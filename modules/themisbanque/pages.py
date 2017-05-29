@@ -23,6 +23,7 @@ from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.pages import LoggedPage, HTMLPage, pagination
 from weboob.browser.elements import method, ListElement, ItemElement
 from weboob.capabilities.bank import Account
+from weboob.capabilities.base import NotAvailable
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Map, Async, AsyncLoad, Regexp, Join
 from weboob.browser.filters.html import Attr, Link
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -49,6 +50,9 @@ class AccountsPage(LoggedPage, HTMLPage):
 
         class item(ItemElement):
             klass = Account
+
+            def condition(self):
+                return CleanDecimal('./td[5]', replace_dots=True, default=NotAvailable)(self) is not NotAvailable
 
             TYPE = {'COMPTE COURANT ORDINAIRE': Account.TYPE_CHECKING,
                    }
