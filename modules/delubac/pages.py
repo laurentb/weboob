@@ -182,6 +182,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_currency = FrenchTransaction.Currency('./td[@class="ColonneCode"]')
             obj_id = CleanText('td[@class="ColonneLibelle"][1]/a')
             obj__link = Link('td[@class="ColonneLibelle"][1]/a')
+            obj__rib_link = Link('.//a[contains(@href, "rib.jsp")]')
             obj_type = Type(Field('label'))
             obj_balance = CleanDecimal('td[@class="ColonneNumerique"]/nobr', replace_dots=True, default=NotAvailable)
 
