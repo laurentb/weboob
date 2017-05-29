@@ -167,7 +167,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             def condition(self):
                 if len(self.el.xpath('./td')) < 6:
                     return False
-                return True
+                return CleanDecimal('td[@class="ColonneNumerique"]', replace_dots=True, default=NotAvailable)(self) is not NotAvailable
 
             class Type(Filter):
                 def filter(self, label):
@@ -184,7 +184,8 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj__link = Link('td[@class="ColonneLibelle"][1]/a')
             obj__rib_link = Link('.//a[contains(@href, "rib.jsp")]')
             obj_type = Type(Field('label'))
-            obj_balance = CleanDecimal('td[@class="ColonneNumerique"]/nobr', replace_dots=True, default=NotAvailable)
+            obj_balance = CleanDecimal('td[@class="ColonneNumerique"]/nobr', replace_dots=True)
+
 
 class HistoryPage(LoggedPage, HTMLPage):
     is_here = u'//title[text() = "Liste des opérations sur un compte"]'
