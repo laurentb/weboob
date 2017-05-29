@@ -67,6 +67,9 @@ class LinebourseBrowser(LoginBrowser):
             self.page.submit()
             self.history.go()
 
+        if self.broken.is_here():
+            return
+
         assert self.history.is_here()
 
         if not self.page.is_on_right_portfolio(account_id):
