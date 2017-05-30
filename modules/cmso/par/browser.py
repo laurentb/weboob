@@ -133,7 +133,8 @@ class CmsoParBrowser(LoginBrowser):
                 return iter([])
 
             # Display code ISIN
-            history = self.location('%s?reload=oui&convertirCode=oui' % self.url).page.iter_history()
+            del self.session.headers['Content-Type']
+            history = self.location(self.url, params={'reload': 'oui', 'convertirCode': 'oui'}).page.iter_history()
             self.session.headers['Content-Type'] = 'application/json'
 
             return history
