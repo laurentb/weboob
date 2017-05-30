@@ -22,9 +22,11 @@ import ssl
 from datetime import timedelta, date
 from urlparse import parse_qs
 from lxml.etree import XMLSyntaxError
+from itertools import groupby
 
 from weboob.tools.date import LinearDateGuesser
 from weboob.capabilities.bank import Account, AccountNotFound
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import HTTPNotFound
@@ -46,7 +48,7 @@ class HSBC(LoginBrowser):
                           r'/cgi-bin/emcgi.*\&CPT_IdPrestation.*',
                           r'/cgi-bin/emcgi.*\&Ass_IdPrestation.*',
                           CPTOperationPage)
-    cbPage =          URL(r'/cgi-bin/emcgi.*\&Cb=.*',
+    cbPage =          URL(r'/cgi-bin/emcgi.*[\&\?]Cb=.*',
                           r'/cgi-bin/emcgi.*\&CB_IdPrestation.*',
                           CBOperationPage)
     appGone =     URL(r'/.*_absente.html',
@@ -197,11 +199,31 @@ class HSBC(LoginBrowser):
 
         if self.cbPage.is_here():
             guesser = LinearDateGuesser(date_max_bump=timedelta(45))
-            return [tr for tr in self.page.get_history(date_guesser=guesser) if (coming and tr.date > date.today()) or (not coming and tr.date <= date.today())]
+            history = list(self.page.get_history(date_guesser=guesser))
+            for url, params in self.page.get_params(self.url):
+                self.location(url, params=params)
+                if self.cbPage.is_here():
+                    history.extend(self.page.get_history(date_guesser=guesser))
+            history.extend(self.get_monthly_transactions(history))
+            return [tr for tr in history if (coming and tr.date > date.today()) or (not coming and tr.date <= date.today())]
         elif not coming:
             return self._get_history()
         else:
             raise NotImplementedError()
+
+    def get_monthly_transactions(self, trs):
+        groups = [list(g) for k, g in groupby(sorted(trs, key=lambda tr: tr.date), lambda tr: tr.date)]
+        trs = []
+        for group in groups:
+            if group[0].date > date.today():
+                continue
+            tr = FrenchTransaction()
+            tr.raw = tr.label = u"RELEVE CARTE %s" % group[0].date
+            tr.amount = -sum([t.amount for t in group])
+            tr.date = tr.rdate = tr.vdate = group[0].date
+            tr.type = FrenchTransaction.TYPE_CARD_SUMMARY
+            trs.append(tr)
+        return trs
 
     def _get_history(self):
         for tr in self.page.get_history():

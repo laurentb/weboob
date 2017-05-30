@@ -18,8 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import re
+import urlparse
 from decimal import Decimal
-from urlparse import urljoin
 
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment, AccountNotFound
@@ -117,7 +117,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_currency = FrenchTransaction.Currency('./td[2]')
 
             def obj_url(self):
-                return urljoin(self.page.url, Link('./td[1]/a')(self))
+                return urlparse.urljoin(self.page.url, Link('./td[1]/a')(self))
 
             obj_type = Type(Field('label'))
             obj_coming = NotAvailable
@@ -175,6 +175,13 @@ class Pagination(object):
 
 
 class CBOperationPage(LoggedPage, HTMLPage):
+    def get_params(self, url):
+        parsed = urlparse.urlparse(url)
+        base_url, params = parsed.path, urlparse.parse_qs(parsed.query)
+        for a in self.doc.xpath('//form[@name="FORM_LIB_CARTE"]//a[contains(@href, "sessionid")]'):
+            params['sessionid'] = urlparse.parse_qs(urlparse.urlparse(Link('.')(a)).query)['sessionid']
+            yield base_url, params
+
     @pagination
     @method
     class get_history(Pagination, Transaction.TransactionsElement):
@@ -208,7 +215,6 @@ class CPTOperationPage(LoggedPage, HTMLPage):
                 op.parse(date=m.group(3), raw=re.sub(u'[ ]+', u' ', m.group(4).replace(u'\n', u' ')))
                 op.set_amount(m.group(5))
                 op._coming = (re.match(r'\d+/\d+/\d+', m.group(2)) is None)
-                op.deleted = (op.type == Transaction.TYPE_CARD_SUMMARY)
                 if first_history is None:
                     first_history = op.to_dict()
                 elif first_history == op.to_dict():
