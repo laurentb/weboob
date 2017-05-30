@@ -463,6 +463,9 @@ class CBListPage(CBHistoryPage):
 class BoursePage(LoggedPage, HTMLPage):
     ENCODING='latin-1'
 
+    TYPES = {u'plan épargne en actions': Account.TYPE_PEA
+            }
+
     def password_required(self):
         return CleanText(u'//b[contains(text(), "Afin de sécuriser vos transactions, nous vous invitons à créer un mot de passe trading")]')(self.doc)
 
@@ -490,7 +493,6 @@ class BoursePage(LoggedPage, HTMLPage):
 
             load_details = Field('_market_link') & AsyncLoad
 
-            obj_type = Account.TYPE_MARKET
             obj_balance = CleanDecimal(TableCell('balance'), replace_dots=True)
             obj_valuation_diff = Async('details') &  CleanDecimal('//td[contains(text(), "value latente")]/ \
                                                                   following-sibling::td[1]', replace_dots=True)
@@ -503,6 +505,9 @@ class BoursePage(LoggedPage, HTMLPage):
 
             def obj_label(self):
                 return "%s Bourse" % CleanText().filter((TableCell('label')(self)[0]).xpath('./div[b]'))
+
+            def obj_type(self):
+                return self.page.TYPES.get(' '.join(Field('label')(self).split()[:-1]).lower(), Account.TYPE_MARKET)
 
     @method
     class iter_investment(ListElement):
