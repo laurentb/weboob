@@ -38,7 +38,7 @@ class NettoKomModule(Module, CapDocument):
     CONFIG = BackendConfig(ValueBackendPassword('login',
                                                 label='Account ID (phone number)',
                                                 masked=False,
-                                                regexp='^(\d{8,13}|)$'),
+                                                regexp='^(\d{8,13})$'),
                            ValueBackendPassword('password',
                                                 label='Password')
                           )

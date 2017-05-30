@@ -39,7 +39,7 @@ class BPModule(Module, CapBankTransfer, CapContact):
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'La Banque Postale'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
-                           ValueBackendPassword('password', label='Mot de passe', regexp='^(\d{6}|)$'),
+                           ValueBackendPassword('password', label='Mot de passe', regexp='^(\d{6})$'),
                            Value('website', label='Type de compte', default='par',
                                  choices={'par': 'Particuliers', 'pro': 'Professionnels'}))
 

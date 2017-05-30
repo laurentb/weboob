@@ -50,7 +50,7 @@ class BNPorcModule(Module, CapBankTransferAddRecipient, CapMessages, CapContact,
     DESCRIPTION = 'BNP Paribas'
     CONFIG = BackendConfig(
         ValueBackendPassword('login',      label=u'Numéro client', masked=False),
-        ValueBackendPassword('password',   label=u'Code secret', regexp='^(\d{6}|)$'),
+        ValueBackendPassword('password',   label=u'Code secret', regexp='^(\d{6})$'),
         #ValueBackendPassword('rotating_password', default='',
         #    label='Password to set when the allowed uses are exhausted (6 digits)',
         #    regexp='^(\d{6}|)$'),

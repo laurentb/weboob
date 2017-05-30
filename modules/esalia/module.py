@@ -37,7 +37,7 @@ class EsaliaModule(AbstractModule, CapBank):
     VERSION = '1.3'
     CONFIG = BackendConfig(
              ValueBackendPassword('login',    label='Identifiant', masked=False),
-             ValueBackendPassword('password', label='Code secret', regexp='^(\d{6}|)$'))
+             ValueBackendPassword('password', label='Code secret', regexp='^(\d{6})$'))
 
     BROWSER = EsaliaBrowser
     PARENT = 's2e'

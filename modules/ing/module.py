@@ -46,7 +46,7 @@ class INGModule(Module, CapBankTransfer, CapDocument, CapProfile):
                                                 masked=False),
                            ValueBackendPassword('password',
                                                 label='Code secret',
-                                                regexp='^(\d{6}|)$'),
+                                                regexp='^(\d{6})$'),
                            ValueDate('birthday',
                                      label='Date de naissance',
                                      formats=('%d%m%Y', '%d/%m/%Y', '%d-%m-%Y'))
