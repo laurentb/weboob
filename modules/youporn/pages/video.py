@@ -32,13 +32,13 @@ class VideoPage(HTMLPage):
     class get_video(ItemElement):
         klass = YoupornVideo
 
-        obj_author = CleanText('//div[@class="author-block--line"][1]') & Regexp(pattern=r'By: (.*)')
+        obj_author = CleanText('//div[has-class("submitByLink")]')
         #obj_date = Date('//div[@id="stats-date"]')
         obj_duration = NotAvailable
         obj_ext = 'mp4'
         obj_id = Env('id')
-        obj_rating = CleanText('//div[@class="rating-percentage"]') & Regexp(pattern=r'(..)%') & Type(type=int)
+        obj_rating = CleanText('//div[@class="videoRatingPercentage"]') & Regexp(pattern=r'(..)%') & Type(type=int)
         obj_rating_max = 100
         obj_thumbnail = NotAvailable
         obj_title = CleanText('//h1')
-        obj_url = Link('//ul[@class="downloadList"]/li[2]/a')
+        obj_url = Link('//div[@id="downloadModal"]//a[1]')

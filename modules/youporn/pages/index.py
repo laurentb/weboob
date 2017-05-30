@@ -21,7 +21,7 @@
 
 from weboob.browser.pages import HTMLPage
 from weboob.browser.elements import ItemElement, ListElement, method
-from weboob.browser.filters.html import Attr, CSS
+from weboob.browser.filters.html import Attr
 from weboob.browser.filters.standard import CleanText, Duration, Regexp, Type
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.image import Thumbnail
@@ -32,21 +32,20 @@ from ..video import YoupornVideo
 class IndexPage(HTMLPage):
     @method
     class iter_videos(ListElement):
-        item_xpath = '//div[@id="content"]/div/div/ul/li/div/a'
+        item_xpath = '//div[has-class("video-box")]'
 
         class item(ItemElement):
             klass = YoupornVideo
 
             def obj_thumbnail(self):
-                thumbnail_url = Attr('./img', 'src')(self)
+                thumbnail_url = Attr('.//img', 'src')(self)
                 thumbnail = Thumbnail(thumbnail_url)
                 thumbnail.url = thumbnail.id
                 return thumbnail
 
             obj_author = NotAvailable
-            obj_duration = CSS('span.duration') & CleanText() & Duration()
-            obj_id = Attr('../..', 'data-video-id')
-            obj_rating = CleanText('./span/i') & Regexp(pattern=r'(..)%') & Type(type=int)
+            obj_duration = CleanText('.//span[has-class("video-box-duration")]') & Duration()
+            obj_id = Attr('.', 'data-video-id')
+            obj_rating = CleanText('.//span[has-class("video-box-percentage")]') & Regexp(pattern=r'(..)%') & Type(type=int)
             obj_rating_max = 100
-            obj_title = CleanText('./p')
-            obj_url = NotAvailable
+            obj_title = CleanText('.//div[has-class("video-box-title")]')

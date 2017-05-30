@@ -29,7 +29,7 @@ __all__ = ['YoupornBrowser']
 
 
 class YoupornBrowser(PagesBrowser):
-    BASEURL = 'http://www.youporn.com'
+    BASEURL = 'https://www.youporn.com'
 
     home = URL('/$', IndexPage)
     search = URL('/search/\?query=(?P<query>.*)', IndexPage)
