@@ -246,9 +246,10 @@ class MultiPage(HTMLPage):
 
 class AccountsPage(LoggedPage, MultiPage):
     def on_load(self):
-        no_accounts_message = CleanText('//span[contains(text(), "On this date, you still have no employee savings in this company.")] | \
-                        //span[contains(text(), "On this date, you do not yet have any employee savings in this company.")] | \
-                        //span[contains(text(), "On this date, you no longer have any employee savings in this company.")]')(self.doc)
+        no_accounts_message = CleanText('//span[contains(text(), "On this date, you still have no employee savings in this company.")] | '
+                        '//span[contains(text(), "On this date, you do not yet have any employee savings in this company.")] | '
+                        '//span[contains(text(), "On this date, you no longer have any employee savings in this company.")] | '
+                        '//p[contains(text(), "You no longer have any employee savings.")]')(self.doc)
         if no_accounts_message:
             raise NoAccountsException(no_accounts_message)
 
