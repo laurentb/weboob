@@ -577,6 +577,9 @@ class MarketHistoryPage(BNPPage):
 
 
 class AdvisorPage(BNPPage):
+    def has_error(self):
+        return (self.doc.get('message') == 'Erreur technique')
+
     @method
     class get_advisor(ListElement):
         class item(ItemElement):

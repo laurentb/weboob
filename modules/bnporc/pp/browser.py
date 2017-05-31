@@ -313,7 +313,10 @@ class BNPPartPro(BNPParibasBrowser):
 
     @need_login
     def get_advisor(self):
-        return self.advisor.stay_or_go().get_advisor()
+        self.advisor.stay_or_go()
+        if self.page.has_error():
+            return None
+        return self.page.get_advisor()
 
 
 class HelloBank(BNPParibasBrowser):

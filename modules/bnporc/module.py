@@ -144,7 +144,10 @@ class BNPorcModule(Module, CapBankTransferAddRecipient, CapMessages, CapContact,
     def iter_contacts(self):
         if not hasattr(self.browser, 'get_advisor'):
             raise NotImplementedError()
-        return self.browser.get_advisor()
+
+        advisor = self.browser.get_advisor()
+        if advisor:
+            yield advisor
 
     def get_profile(self):
         if not hasattr(self.browser, 'get_profile'):
