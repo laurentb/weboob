@@ -42,14 +42,6 @@ from .pages import LoginPage, AccountsPage, AccountsIBANPage, HistoryPage, Trans
 __all__ = ['BNPPartPro', 'HelloBank']
 
 
-class CompatMixin(object):
-    def __enter__(self):
-        return self
-
-    def __exit__(self, type, value, tb):
-        pass
-
-
 def JSON(data):
     return ('json', data)
 
@@ -68,7 +60,8 @@ class JsonBrowserMixin(object):
 
         return super(JsonBrowserMixin, self).open(*args, **kwargs)
 
-class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
+
+class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
     TIMEOUT = 30.0
 
     login = URL(r'identification-wspl-pres/identification\?acceptRedirection=true&timestamp=(?P<timestamp>\d+)',
@@ -237,6 +230,7 @@ class BNPParibasBrowser(CompatMixin, JsonBrowserMixin, LoginBrowser):
     @need_login
     def get_thread(self, thread):
         raise NotImplementedError()
+
 
 class BNPPartPro(BNPParibasBrowser):
     BASEURL_TEMPLATE = r'https://%s.bnpparibas/'

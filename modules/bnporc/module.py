@@ -158,8 +158,7 @@ class BNPorcModule(Module, CapBankTransferAddRecipient, CapMessages, CapContact,
         old = self._threads_age < datetime.utcnow() - self.CACHE_THREADS
         threads = self._threads
         if not cache or threads is None or old:
-            with self.browser:
-                threads = list(self.browser.iter_threads())
+            threads = list(self.browser.iter_threads())
             # the website is stupid and does not have the messages in the proper order
             threads = sorted(threads, key=lambda t: t.date, reverse=True)
             self._threads = threads
@@ -184,8 +183,7 @@ class BNPorcModule(Module, CapBankTransferAddRecipient, CapMessages, CapContact,
             _id = thread.id
         else:
             thread = Thread(_id)
-        with self.browser:
-            thread = self.browser.get_thread(thread)
+        thread = self.browser.get_thread(thread)
         return thread
 
     def iter_unread_messages(self):
