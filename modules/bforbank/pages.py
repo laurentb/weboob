@@ -151,7 +151,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             def obj_url(self):
                 return urljoin(self.page.url, CleanText('./@data-href')(self))
 
-            obj__card_balance = CleanDecimal('./td//div[@class="synthese-encours"]/div[2]', default=None)
+            obj__card_balance = CleanDecimal('./td//div[@class="synthese-encours"][last()]/div[2]', default=None)
 
             def condition(self):
                 return not len(self.el.xpath('./td[@class="chart"]'))
