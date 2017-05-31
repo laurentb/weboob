@@ -39,6 +39,10 @@ def MyDecimal(*args, **kwargs):
     return CleanDecimal(*args, **kwargs)
 
 
+class LoginPage(HTMLPage):
+    pass
+
+
 class LogoutPage(RawPage):
     pass
 

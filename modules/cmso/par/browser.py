@@ -25,10 +25,13 @@ from weboob.browser.exceptions import ClientError
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import Account, Transaction
 
-from .pages import LogoutPage, InfosPage, AccountsPage, HistoryPage, LifeinsurancePage, MarketPage, AdvisorPage
+from .pages import LogoutPage, InfosPage, AccountsPage, HistoryPage, LifeinsurancePage, MarketPage, AdvisorPage, \
+    LoginPage
 
 
 class CmsoParBrowser(LoginBrowser):
+    login = URL('/securityapi/tokens',
+                '/auth/checkuser', LoginPage)
     logout = URL('/securityapi/revoke',
                  '/auth/errorauthn', LogoutPage)
     infos = URL('/comptes/', InfosPage)
@@ -84,7 +87,6 @@ class CmsoParBrowser(LoginBrowser):
             'X-ARKEA-EFS': self.arkea,
             'X-Csrf-Token': m.group(1)
         })
-        self.infos.go()
 
     @need_login
     def iter_accounts(self):
@@ -123,6 +125,7 @@ class CmsoParBrowser(LoginBrowser):
 
             return self.location(url).page.iter_history()
         elif account.type == Account.TYPE_MARKET:
+
             self.location(json.loads(self.market.go(data=json.dumps({'place': 'SITUATION_PORTEFEUILLE'})).content)['urlSSO'])
             self.session.headers['Content-Type'] = 'application/x-www-form-urlencoded'
 
