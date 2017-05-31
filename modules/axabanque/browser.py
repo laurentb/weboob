@@ -86,7 +86,7 @@ class AXABanque(AXABrowser):
                   'https://espaceclient.axa.fr/#', HistoryPage)
 
     lifeinsurance_iframe = URL('https://assurance-vie.axabanque.fr/Consultation/SituationContrat.aspx',
-                               'Consultation/SituationContrat.aspx', LifeInsuranceIframe)
+                               'https://assurance-vie.axabanque.fr/Consultation/HistoriqueOperations.aspx', LifeInsuranceIframe)
 
     def __init__(self, *args, **kwargs):
         super(AXABanque, self).__init__(*args, **kwargs)
@@ -183,6 +183,16 @@ class AXABanque(AXABrowser):
     def iter_history(self, account):
         if account.type is Account.TYPE_LOAN:
             return
+
+        if account.type == Account.TYPE_LIFE_INSURANCE:
+            if not self.lifeinsurance_iframe.is_here():
+                self.location(account._url)
+            self.page.go_to_history()
+
+            # Pass account investments to try to get isin code for transaction investments
+            for tr in self.page.iter_history(investments=self.cache['invs'][account.id] if account.id in self.cache['invs'].iterkeys() else []):
+                yield tr
+
         # Side investment's website
         if account._acctype == "investment":
             pagination_link = self.location(self.wealth_accounts.urls[0][:-1] + account._link).page.get_pagination_link()

@@ -24,8 +24,8 @@ from decimal import Decimal, InvalidOperation
 from weboob.exceptions import BrowserUnavailable
 from weboob.browser.pages import HTMLPage, PDFPage, LoggedPage
 from weboob.browser.elements import ItemElement, TableElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, TableCell, Currency
-from weboob.browser.filters.html import Attr
+from weboob.browser.filters.standard import CleanText, CleanDecimal, TableCell, Date, Regexp, Field, Env, Currency
+from weboob.browser.filters.html import Attr, Link
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -402,6 +402,21 @@ class CBTransactionsPage(TransactionsPage):
 
 
 class LifeInsuranceIframe(LoggedPage, HTMLPage):
+    def go_to_history(self):
+        form = self.get_form(id='aspnetForm')
+
+        form['__EVENTTARGET'] = 'ctl00$Menu$rlbHistorique'
+
+        form.submit()
+
+    def get_transaction_investments_popup(self, mouvement):
+        form = self.get_form(id='aspnetForm')
+
+        form['ctl00$ScriptManager1'] = 'ctl00$ContentPlaceHolderMain$upaListMvt|%s' % mouvement
+        form['__EVENTTARGET'] = mouvement
+
+        return form.submit()
+
     @method
     class iter_investment(TableElement):
         item_xpath = '//table[contains(@id,"dgListSupports")]//tr[@class="AltItem" or @class="Item"]'
@@ -423,8 +438,59 @@ class LifeInsuranceIframe(LoggedPage, HTMLPage):
             obj_unitprice = MyDecimal(TableCell('unitprice'))
             obj_unitvalue = MyDecimal(TableCell('unitvalue'))
             obj_valuation = MyDecimal(TableCell('valuation'))
-            obj_code = CleanText(TableCell('code'))
+            obj_code = Regexp(CleanText(TableCell('code')), r'(.{12})', default=NotAvailable)
+            obj_code_type = lambda self: Investment.CODE_TYPE_ISIN if Field('code')(self) is not NotAvailable else NotAvailable
 
             def obj_diff_percent(self):
                 diff_percent = MyDecimal(TableCell('diff')(self)[0])(self)
                 return diff_percent/100 if diff_percent != NotAvailable else diff_percent
+
+    @method
+    class iter_history(TableElement):
+        item_xpath = '//table[@id="ctl00_ContentPlaceHolderMain_PaymentListing_gvInfos"]/tr[not(contains(@class, "Header"))]'
+        head_xpath = '//table[@id="ctl00_ContentPlaceHolderMain_PaymentListing_gvInfos"]/tr[@class="Header"]/th'
+
+        col_date = 'Date'
+        col_label = re.compile(u'^Nature')
+        col_amount = re.compile(u'^Montant net de frais')
+
+        class item(ItemElement):
+            klass = BankTransaction
+
+            obj_raw = BankTransaction.Raw(CleanText(TableCell('label')))
+            obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
+            obj_amount = MyDecimal(TableCell('amount'))
+
+            def obj_investments(self):
+                investments_popup = self.page.get_transaction_investments_popup(Regexp(Link('.//a'), r"\'(.*?)\'")(self))
+
+                # iter from investments_popup to get transaction investments
+                return [inv for inv in investments_popup.page.iter_transaction_investments(investments=Env('investments')(self))]
+
+    @method
+    class iter_transaction_investments(TableElement):
+        item_xpath = '//table[@id="ctl00_ContentPlaceHolderPopin_UcDetailMouvement_UcInvestissement_gvInfos"]/tr[not(contains(@class, "Header"))]'
+        head_xpath = '//table[@id="ctl00_ContentPlaceHolderPopin_UcDetailMouvement_UcInvestissement_gvInfos"]/tr[@class="Header"]/th'
+
+        col_label = u'Support'
+        col_vdate = u'Date de valeur'
+        col_unitprice = u"Valeur de l'UC"
+        col_quantity = u"Nombre d'UC"
+        col_valuation = u'Montant'
+
+        class item(ItemElement):
+            klass = Investment
+
+            obj_label = CleanText(TableCell('label'))
+            obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True)
+            obj_quantity = MyDecimal(TableCell('quantity'))
+            obj_unitprice = MyDecimal(TableCell('unitprice'))
+            obj_valuation = MyDecimal(TableCell('valuation'))
+            obj_code_type = lambda self: Investment.CODE_TYPE_ISIN if Field('code')(self) is not NotAvailable else NotAvailable
+
+            def obj_code(self):
+                for inv in Env('investments')(self):
+                    if inv.label == Field('label')(self):
+                        return inv.code
+
+                return NotAvailable
