@@ -232,8 +232,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                 self.accounts = list(self.page.get_list())
                 for account in self.accounts:
                     if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
-                        if not self.home.is_here():
-                            self.home_tache.go(tache='CPTSYNT0')
+                        self.home_tache.go(tache='CPTSYNT0')
                         self.page.go_history(account._info)
 
                         if self.message.is_here():
