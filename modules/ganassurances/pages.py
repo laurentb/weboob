@@ -179,7 +179,7 @@ class AVAccountPage(LoggedPage, HTMLPage):
             obj_unitvalue = CleanDecimal(TableCell('unitvalue'))
             obj_valuation = CleanDecimal(TableCell('valuation'))
             obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal(TableCell('portfolio_share')))
-            obj_code = Regexp(Link('./th/a'), r'isin=(.*)')
+            obj_code = Regexp(Link('./th/a'), r'isin=(\w+)|/(\w+)\.pdf')
             obj_code_type = Investment.CODE_TYPE_ISIN
 
 
