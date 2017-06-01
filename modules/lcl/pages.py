@@ -428,7 +428,7 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
                     else:
                         obj.label = '%s %s' % (obj.raw, raw)
                         obj.raw = '%s %s' % (obj.raw, raw)
-                else:
+                elif not obj.raw:
                     # Empty transaction label
                     obj.raw = obj.label = Async('details', CleanText(u'//td[contains(text(), "Nature de l\'opération")]/following-sibling::*[1]'))(self)
                 if not obj.date:
