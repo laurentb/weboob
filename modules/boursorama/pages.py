@@ -26,7 +26,7 @@ from io import BytesIO
 from datetime import date
 from urlparse import urljoin
 
-from weboob.browser.pages import HTMLPage, LoggedPage, pagination, NextPage, FormNotFound
+from weboob.browser.pages import HTMLPage, LoggedPage, pagination, NextPage, FormNotFound, PartialHTMLPage
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement, SkipItem
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Field, Format, TableCell,
@@ -41,14 +41,16 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.value import Value
 from weboob.tools.date import parse_french_date
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard, VirtKeyboardError
-from weboob.exceptions import BrowserQuestion, BrowserIncorrectPassword, BrowserHTTPNotFound
+from weboob.exceptions import BrowserQuestion, BrowserIncorrectPassword, BrowserHTTPNotFound, BrowserUnavailable
 
 
 class BrowserAuthenticationCodeMaxLimit(BrowserIncorrectPassword):
     pass
 
+
 class IncidentPage(HTMLPage):
     pass
+
 
 class IbanPage(LoggedPage, HTMLPage):
     def get_iban(self):
@@ -56,6 +58,7 @@ class IbanPage(LoggedPage, HTMLPage):
            self.doc.xpath('//div[has-class("alert")]/p[contains(text(), "Le compte est introuvable")]'):
             return NotAvailable
         return CleanText('//table[thead[tr[th[contains(text(), "Code I.B.A.N")]]]]/tbody/tr/td[2]', replace=[(' ', '')])(self.doc)
+
 
 class AuthenticationPage(HTMLPage):
     def authenticate(self):
@@ -118,6 +121,7 @@ class Transaction(FrenchTransaction):
 class VirtKeyboardPage(HTMLPage):
     pass
 
+
 class BoursoramaVirtKeyboard(VirtKeyboard):
     symbols = {'0': (17, 7, 24, 17),
                '1': (18, 6, 21, 18),
@@ -169,6 +173,14 @@ class LoginPage(HTMLPage):
         form['form[password]'] = code
         form['form[matrixRandomChallenge]'] = re.search('val\("(.*)"', CleanText('//script')(keyboard_page.doc)).group(1)
         form.submit()
+
+
+class StatusPage(LoggedPage, PartialHTMLPage):
+    def on_load(self):
+        # sometimes checking accounts are missing
+        msg = CleanText('//div[has-class("alert--warning")]', default=None)(self.doc)
+        if msg:
+            raise BrowserUnavailable(msg)
 
 
 class AccountsPage(LoggedPage, HTMLPage):

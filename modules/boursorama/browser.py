@@ -40,7 +40,7 @@ from .pages import (
     MarketPage, LoanPage, SavingMarketPage, ErrorPage, IncidentPage, IbanPage, ProfilePage, ExpertPage,
     CardsNumberPage, CalendarPage, HomePage, PEPPage,
     TransferAccounts, TransferRecipients, TransferCharac, TransferConfirm, TransferSent,
-    AddRecipientPage, RecipientCreated,
+    AddRecipientPage, RecipientCreated, StatusPage,
 )
 
 
@@ -58,6 +58,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
 
     home = URL('/$', HomePage)
     keyboard = URL('/connexion/clavier-virtuel\?_hinclude=300000', VirtKeyboardPage)
+    status = URL(r'/aide/messages/dashboard\?showza=0&_hinclude=1', StatusPage)
     calendar = URL('/compte/cav/.*/calendrier', CalendarPage)
     error = URL('/connexion/compte-verrouille',
                 '/infos-profil', ErrorPage)
@@ -172,6 +173,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def get_accounts_list(self):
+        self.status.go()
         for x in range(3):
             if self.accounts_list is not None:
                 break
