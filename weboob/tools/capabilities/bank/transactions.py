@@ -348,6 +348,11 @@ class AmericanTransaction(Transaction):
         return Decimal(amnt) if amnt else Decimal('0')
 
 
+def sorted_transactions(iterable):
+    """Sort an iterable of transactions in reverse chronological order"""
+    return sorted(iterable, reverse=True, key=lambda tr: (tr.date, tr.rdate))
+
+
 def test():
     clean_amount = AmericanTransaction.clean_amount
     assert clean_amount('42') == '42'
