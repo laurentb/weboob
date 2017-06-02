@@ -52,7 +52,7 @@ class CmsoProBrowser(LoginBrowser):
             self.page.login(self.username, self.password)
         except BrowserHTTPError as e:
             # Yes, I know... In the Wild Wild Web, nobody respects nothing
-            if e.response.status_code == 500:
+            if e.response.status_code in (500, 401):
                 raise BrowserIncorrectPassword()
             else:
                 raise
