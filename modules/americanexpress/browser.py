@@ -24,6 +24,7 @@ from urllib import urlencode
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.browsers import LoginBrowser, need_login
 from weboob.browser.url import URL
+from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages import (
     LoginPage, AccountsPage, TransactionsPage, WrongLoginPage, AccountSuspendedPage,
@@ -110,7 +111,8 @@ class AmericanExpressBrowser(LoginBrowser):
 
             assert self.transactions.is_here()
 
-            for tr in self.page.get_history(account.currency):
+            trs = sorted_transactions(self.page.get_history(account.currency))
+            for tr in trs:
                 yield tr
 
             if self.page.is_last():
