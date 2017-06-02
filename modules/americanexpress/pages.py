@@ -22,12 +22,20 @@ import datetime
 import re
 from urlparse import urljoin
 
+from weboob.browser.elements import ItemElement, method
 from weboob.browser.pages import HTMLPage, LoggedPage, PartialHTMLPage
-from weboob.browser.filters.standard import CleanText, CleanDecimal
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Currency as CleanCurrency
+from weboob.browser.filters.html import Link
 from weboob.capabilities.bank import Account
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
 from weboob.tools.date import ChaoticDateGuesser
+
+
+def parse_decimal(s):
+    # we don't know which decimal format this account will use
+    comma = s.rfind(',') > s.rfind('.')
+    return CleanDecimal(replace_dots=comma).filter(s)
 
 
 class WrongLoginPage(HTMLPage):
@@ -61,7 +69,7 @@ class AccountsPage(LoggedPage, PartialHTMLPage):
                 a.balance = NotAvailable
             else:
                 a.currency = a.get_currency(balance)
-                a.balance = - abs(CleanDecimal(replace_dots=a.currency == 'EUR').filter(balance))
+                a.balance = - abs(parse_decimal(balance))
 
             # Cancel card don't have a link to watch history
             link = self.doc.xpath('.//div[@class="wide-bar"]/h3/a')
@@ -99,6 +107,27 @@ class AccountsPage(LoggedPage, PartialHTMLPage):
         return self.doc.xpath('//form[@id="j-session-form"]//input[@name="Hidden"]/@value')
 
 
+class AccountsPage2(LoggedPage, PartialHTMLPage):
+    @method
+    class get_account(ItemElement):
+        klass = Account
+
+        def parse(self, el):
+            assert len(el.xpath('//td[@class="cardArtColWidth"]/div[@class="summaryTitles"]')) == 1, 'fix parsing for multiple accounts'
+
+        obj_id = CleanText('//td[@class="cardArtColWidth"]/div[@class="summaryTitles"]')
+        obj_label = CleanText('//span[@class="cardTitle"]')
+        obj_type = Account.TYPE_CARD
+
+        obj_currency = CleanCurrency('//td[@id="colOSBalance"]/div[@class="summaryValues makeBold"]')
+
+        def obj_balance(self):
+            return -abs(parse_decimal(CleanText('//td[@id="colOSBalance"]/div[@class="summaryValues makeBold"]')(self)))
+
+        def obj_url(self):
+            return urljoin(self.page.url, Link('//a[span[text()="Online Statement"]]')(self))
+
+
 class TransactionsPage(LoggedPage, HTMLPage):
     def is_last(self):
         current = False
@@ -116,7 +145,7 @@ class TransactionsPage(LoggedPage, HTMLPage):
                 m = re.search('(\d+) ([\w\.]+) (\d{4})$', option.text.strip(), re.UNICODE)
                 if m:
                     return datetime.date(int(m.group(3)),
-                                         self.MONTHS.index(m.group(2).rstrip('.')) + 1,
+                                         self.parse_month(m.group(2)),
                                          int(m.group(1)))
 
     def get_beginning_debit_date(self):
@@ -125,7 +154,7 @@ class TransactionsPage(LoggedPage, HTMLPage):
                 m = re.search('^(\d+) ([\w\.]+) (\d{4})', option.text.strip(), re.UNICODE)
                 if m:
                     return datetime.date(int(m.group(3)),
-                                         self.MONTHS.index(m.group(2).rstrip('.')) + 1,
+                                         self.parse_month(m.group(2)),
                                          int(m.group(1)))
         return datetime.date.today()
 
@@ -137,8 +166,16 @@ class TransactionsPage(LoggedPage, HTMLPage):
     FR_MONTHS = ['janv', u'févr', u'mars', u'avr', u'mai', u'juin', u'juil', u'août', u'sept', u'oct', u'nov', u'déc']
     US_MONTHS = ['Jan', u'Feb', u'Mar', u'Apr', u'May', u'Jun', u'Jul', u'Aug', u'Sep', u'Oct', u'Nov', u'Dec']
 
+    @classmethod
+    def parse_month(cls, s):
+        # there can be fr or us labels even if currency is EUR
+        s = s.rstrip('.')
+        try:
+            return cls.FR_MONTHS.index(s) + 1
+        except ValueError:
+            return cls.US_MONTHS.index(s) + 1
+
     def get_history(self, currency):
-        self.MONTHS = self.FR_MONTHS if currency == 'EUR' else self.US_MONTHS
         #checking if the card is still valid
         if self.doc.xpath('//div[@id="errorbox"]'):
             return
@@ -149,14 +186,14 @@ class TransactionsPage(LoggedPage, HTMLPage):
 
         guesser = ChaoticDateGuesser(beginning_date, end_date)
 
-        for tr in reversed(self.doc.xpath('//div[@id="txnsSection"]//tr[@class="tableStandardText"]')):
+        for tr in reversed(self.doc.xpath('//div[@id="txnsSection"]//tbody/tr[@class="tableStandardText"]')):
             cols = tr.findall('td')
 
             t = Transaction()
 
             day, month = CleanText().filter(cols[self.COL_DATE]).split(' ', 1)
             day = int(day)
-            month = self.MONTHS.index(month.rstrip('.')) + 1
+            month = self.parse_month(month)
             date = guesser.guess_date(day, month)
 
             rdate = None
@@ -169,7 +206,7 @@ class TransactionsPage(LoggedPage, HTMLPage):
                 if m:
                     rday, rmonth = m.group(1).strip().split(' ')
                     rday = int(rday)
-                    rmonth = self.MONTHS.index(rmonth.rstrip('.')) + 1
+                    rmonth = self.parse_month(rmonth)
                     rdate = guesser.guess_date(rday, rmonth)
                 detail.drop_tree()
 
@@ -181,7 +218,7 @@ class TransactionsPage(LoggedPage, HTMLPage):
             t.rdate = rdate or date
             t.raw = re.sub(r'[ ]+', ' ', raw)
             t.label = re.sub('(.*?)( \d+)?  .*', r'\1', raw).strip()
-            t.amount = CleanDecimal(replace_dots=currency == 'EUR').filter(credit or debit) * (1 if credit else -1)
+            t.amount = parse_decimal(credit or debit) * (1 if credit else -1)
             if t.amount > 0:
                 t.type = t.TYPE_ORDER
             else:

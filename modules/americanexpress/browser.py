@@ -25,7 +25,10 @@ from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.browsers import LoginBrowser, need_login
 from weboob.browser.url import URL
 
-from .pages import LoginPage, AccountsPage, TransactionsPage, WrongLoginPage, AccountSuspendedPage
+from .pages import (
+    LoginPage, AccountsPage, TransactionsPage, WrongLoginPage, AccountSuspendedPage,
+    AccountsPage2,
+)
 
 
 __all__ = ['AmericanExpressBrowser']
@@ -39,6 +42,7 @@ class AmericanExpressBrowser(LoginBrowser):
     account_suspended = URL('/myca/onlinepayments/', AccountSuspendedPage)
     partial_account = URL(r'/myca/intl/isummary/emea/summary.do\?method=reloadCardSummary&Face=fr_FR&sorted_index=(?P<idx>\d+)', AccountsPage)
     accounts = URL('/myca/intl/isummary/.*', AccountsPage)
+    accounts2 = URL(r'/myca/intl/acctsumm/emea/accountSummary.do.*', AccountsPage2)
 
     transactions = URL('/myca/intl/estatement/.*', TransactionsPage)
 
@@ -68,6 +72,10 @@ class AmericanExpressBrowser(LoginBrowser):
         if not self.accounts.is_here():
             self.go_on_accounts_list()
 
+        if self.accounts2.is_here():
+            yield self.page.get_account()
+            return
+
         for idx, cancelled in self.page.get_idx_list():
             account = self.get_account_by_idx(idx)
             if account.url or not cancelled:
@@ -84,16 +92,6 @@ class AmericanExpressBrowser(LoginBrowser):
         return self.page.get_account()
 
     @need_login
-    def get_account(self, id):
-        assert isinstance(id, basestring)
-
-        l = self.get_accounts_list()
-        for a in l:
-            if a.id == id:
-                return a
-        return None
-
-    @need_login
     def get_history(self, account):
         if not self.accounts.is_here():
             self.go_on_accounts_list()
@@ -103,7 +101,7 @@ class AmericanExpressBrowser(LoginBrowser):
             return
 
         while url is not None:
-            if self.accounts.is_here():
+            if self.accounts.is_here() or self.accounts2.is_here():
                 self.location(url)
             else:
                 form = self.page.get_form(name='leftnav')
