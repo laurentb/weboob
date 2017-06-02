@@ -43,7 +43,7 @@ from .pages import (
     CardsPage, LifeInsurancePage, MarketPage, LoansPage, PerimeterPage,
     ChgPerimeterPage, MarketHomePage, FirstVisitPage, BGPIPage,
     TransferInit, TransferPage, RecipientPage, RecipientListPage, ProfilePage,
-    HistoryPostPage, RecipientMiscPage,
+    HistoryPostPage, RecipientMiscPage, DeferredCardsPage,
 )
 
 
@@ -95,6 +95,7 @@ class Cragr(LoginBrowser, StatesMixin):
                 r'/stb/collecteNI\?.*sessionAPP=Cartes.*',
                 r'/stb/collecteNI\?.*fwkaction=Detail.*sessionAPP=Cartes.*',
                 CardsPage)
+    cards2 = URL(r'/stb/collecteNI\?fwkaid=([\d_]+)&fwkpid=([\d_]+)$', DeferredCardsPage)
 
     market = URL(r'https?://www.cabourse.credit-agricole.fr/netfinca-titres/servlet/com.netfinca.frontcr.account.WalletVal\?nump=.*', MarketPage)
     market_home = URL(r'https?://www.cabourse.credit-agricole.fr/netfinca-titres/servlet/com.netfinca.frontcr.synthesis.HomeSynthesis', MarketHomePage)
@@ -270,8 +271,11 @@ class Cragr(LoginBrowser, StatesMixin):
         for idelco in self.page.cards_idelco_or_link():
             if not self.accounts.is_here():
                 self.location(self.accounts_url.format(self.sag))
-            self.location(self.page.cards_idelco_or_link(idelco))
-            assert self.cards.is_here()
+            if isinstance(self.page.cards_idelco_or_link(idelco), basestring):
+                self.location(self.page.cards_idelco_or_link(idelco))
+            else:
+                self.page.submit_card(self.page.cards_idelco_or_link(idelco))
+            assert self.cards.is_here() or self.cards2.is_here()
             for account in self.page.get_list():
                 if account_id and account.id == account_id:
                     return account

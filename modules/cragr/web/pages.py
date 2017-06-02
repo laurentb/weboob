@@ -269,18 +269,37 @@ class _AccountsPage(MyLoggedPage, BasePage):
         # Use a set because it is possible to see several times the same link.
         idelcos = set()
         for line in self.doc.xpath('//table[@class="ca-table"]/tr[@class="ligne-connexe"]'):
+            # ignore line if preceding line is also a link to deferred card
+            if line.xpath('./preceding-sibling::tr')[-1].attrib.get('class') == 'ligne-connexe':
+                continue
             try:
                 link = line.xpath('.//a/@href')[0]
             except IndexError:
                 pass
             else:
-                if not link.startswith('javascript:'):
+                if link.startswith('javascript:'):
+                    m = re.search(r"javascript:fwkPUAvancerForm\('Cartes','(\w+)'\)", link)
+                    if not m:
+                        continue
+                    form_name = m.group(1)
+                    if not account_idelco:
+                        idelcos.add(form_name)
+                    else:
+                        return self.get_form(name=form_name)
+                else:
                     if account_idelco and 'IDELCO=%s&' % account_idelco in link:
                         return link
                     m = re.search('IDELCO=(\d+)&', link)
                     if m:
                         idelcos.add(m.group(1))
+
         return idelcos
+
+    def submit_card(self, name):
+        form = name
+        form['fwkaction'] = 'Cartes'
+        form['fwkcodeaction'] = 'Executer'
+        form.submit()
 
     def check_perimeters(self):
         return len(self.doc.xpath('//a[@title="Espace Autres Comptes"]'))
@@ -401,7 +420,11 @@ class CardsPage(MyLoggedPage, BasePage):
                     account.url = urljoin(self.url, re.sub('[\n\r\t]+', '', account.url))
             else:
                 account.url = self.url
-            account._idelco = re.search('IDELCO=(\d+)&', self.url).group(1)
+            # deferred cards do not necessary have an idelco.
+            try:
+                account._idelco = re.search('IDELCO=(\d+)&', self.url).group(1)
+            except AttributeError:
+                pass
             account._perimeter = self.browser.current_perimeter
             yield account
 
@@ -1180,3 +1203,7 @@ class RecipientPage(MyLoggedPage, BasePage):
 def get_text_lines(el):
     lines = [re.sub(r'\s+', ' ', line).strip() for line in el.text_content().split('\n')]
     return filter(None, lines)
+
+
+class DeferredCardsPage(CollectePageMixin, CardsPage):
+    IS_HERE_TEXT = (u'Cartes - détail', 'Cartes')
