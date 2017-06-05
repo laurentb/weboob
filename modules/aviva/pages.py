@@ -135,7 +135,7 @@ class TransactionElement(ItemElement):
     obj_label = Format('%s du %s', Field('_labeltype'), Field('date'))
     obj_date = Date(Regexp(CleanText('./ancestor::div[@class="onerow" or starts-with(@id, "term") or has-class("grid")]/'
                                      'preceding-sibling::h3[1]//div[contains(text(), "Date")]'),
-                           r':\s+([\d/]+)'),
+                           r'(\d{2}\/\d{2}\/\d{4})'),
                     dayfirst=True)
     obj_type = Transaction.TYPE_BANK
 
@@ -161,44 +161,51 @@ class TransactionElement(ItemElement):
 
 class HistoryPage(LoggedPage, HTMLPage):
     @method
-    class iter_simple(ListElement):
-        def find_elements(self):
-            # "arbitrage" transactions are split in 2 table-responsive
-            # the html tree is a mess
-            for sub in self.el.xpath('//div[@class="table-responsive"]'):
-                if (sub.getparent().attrib.get('class') != 'onerow' or
-                    'grid' not in sub.getparent().getparent().attrib.get('class')):
+    class iter_history(ListElement):
+        class iter_simple(ListElement):
+            def find_elements(self):
+                # "arbitrage" transactions are split in 2 table-responsive
+                # the html tree is a mess
+                for sub in self.el.xpath('//div[not(@id="divAvance")]/div[@class="table-responsive"]'):
+                    if (sub.getparent().attrib.get('class') != 'onerow' or
+                        'grid' not in sub.getparent().getparent().attrib.get('class')):
 
-                    yield sub
+                        yield sub
 
-        obj_date = Date(Regexp(CleanText('./ancestor::div[starts-with(@id, "term")/'
-                                         'preceding-sibling::h3[1]//div[contains(text(), "Date")]'),
-                               r':\s+([\d/]+)'),
-                        dayfirst=True)
+            obj_date = Date(Regexp(CleanText('./ancestor::div[starts-with(@id, "term")/'
+                                            'preceding-sibling::h3[1]//div[contains(text(), "Date")]'),
+                                r'\d{2}\/\d{2}\/\d{4}'),
+                            dayfirst=True)
 
-        class item(TransactionElement):
-            class iter_investments(ListElement):
-                item_xpath = './div[@class="line"]'
+            class item(TransactionElement):
+                class iter_investments(ListElement):
+                    item_xpath = './div[@class="line"]'
 
-                class item(InvestmentElement):
-                    pass
+                    class item(InvestmentElement):
+                        pass
 
-    @method
-    class iter_complex(ListElement):
-        item_xpath = '//div[has-class("grid")]/div[@class="onerow"]'
+        class iter_complex(ListElement):
+            item_xpath = '//div[has-class("grid")]/div[@class="onerow"]'
 
-        class item(TransactionElement):
-            class iter_investments(ListElement):
-                item_xpath = './div[@class="table-responsive"]/div[@class="line"]'
+            class item(TransactionElement):
+                class iter_investments(ListElement):
+                    item_xpath = './div[@class="table-responsive"]/div[@class="line"]'
 
-                class item(InvestmentElement):
-                    pass
+                    class item(InvestmentElement):
+                        pass
 
-    def iter_history(self):
-        for tr in self.iter_simple():
-            yield tr
-        for tr in self.iter_complex():
-            yield tr
+        class iter_avance(ListElement):
+            item_xpath = '//div[@id="divAvance"]/div[@class="table-responsive"]/div[@class="line"]'
+
+            class item(ItemElement):
+                klass = Transaction
+
+                obj_label = Format('%s du %s', Field('_labeltype'), Field('date'))
+                obj_type = Transaction.TYPE_BANK
+                obj_date = Date(CleanText(u'./div[@data-label="Date d\'effet"]', children=False), dayfirst=True)
+                obj_amount = CleanDecimal(u'./div[@data-label="Montant en €"]', replace_dots=True)
+                obj__labeltype = Regexp(Capitalize('./preceding::h2[@class="feature"][1]'),
+                                        'Historique Des\s+(\w+)')
 
 
 class ActionNeededPage(LoggedPage, HTMLPage):
