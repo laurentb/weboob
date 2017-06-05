@@ -24,12 +24,13 @@ from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.tools.json import json
 
-from .pages import LoginPage, ProfilPage, DocumentsPage
+from .pages import HomePage, LoginPage, ProfilPage, DocumentsPage
 
 
 class EdfBrowser(LoginBrowser):
     BASEURL = 'https://particulier.edf.fr'
 
+    home = URL('/fr/accueil.html', HomePage)
     login = URL('/bin/edf_rc/servlets/authentication', LoginPage)
     profil = URL('/services/rest/authenticate/getListContracts', ProfilPage)
     csrf_token = URL('/services/rest/init/initPage\?_=(?P<timestamp>.*)', ProfilPage)
@@ -39,7 +40,8 @@ class EdfBrowser(LoginBrowser):
     bill_download = URL('/services/rest/document/getDocumentGetXByData\?csrfToken=(?P<csrf_token>.*)&dn=(?P<dn>.*)&pn=(?P<pn>.*)&di=(?P<di>.*)&bn=(?P<bn>.*)&an=(?P<an>.*)')
 
     def do_login(self):
-        self.location(self.BASEURL)
+        if self.home.go().is_logged():
+            return
 
         self.login.go(data={'login': self.username, 'password': self.password})
 
@@ -72,9 +74,7 @@ class EdfBrowser(LoginBrowser):
             'parNumber': document._par_number
         })).get_bills_informations()
 
-        return self.bill_download.go(csrf_token=token, \
-                                     dn='FACTURE', \
-                                     pn=document._par_number, \
-                                     di=document._doc_number, \
-                                     bn=bills_informations.get('bpNumber'),
+        return self.bill_download.go(csrf_token=token,
+                                     dn='FACTURE', pn=document._par_number, \
+                                     di=document._doc_number, bn=bills_informations.get('bpNumber'), \
                                      an=bills_informations.get('numAcc')).content

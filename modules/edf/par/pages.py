@@ -21,19 +21,22 @@
 from datetime import datetime
 from decimal import Decimal
 
-from weboob.browser.pages import LoggedPage, JsonPage
-from weboob.browser.filters.standard import Env, Format, Date, Eval
+from weboob.browser.pages import LoggedPage, JsonPage, HTMLPage
+from weboob.browser.filters.standard import Env, Format, Date, Eval, CleanText
 from weboob.browser.elements import ItemElement, DictElement, method
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.bill import Bill, Subscription
 from weboob.capabilities.base import NotAvailable
 
 
+class HomePage(HTMLPage):
+    def is_logged(self):
+        return bool(CleanText(u'//a[@data-label="Déconnexion"]', default=None))
+
+
 class LoginPage(JsonPage):
     def is_logged(self):
-        if "200" in Dict().filter(self.doc)['errorCode']:
-            return True
-        return False
+        return "200" in Dict('errorCode')(self.doc)
 
 
 class ProfilPage(LoggedPage, JsonPage):
