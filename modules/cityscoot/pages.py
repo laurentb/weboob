@@ -27,7 +27,6 @@ from weboob.browser.filters.html import Link
 from weboob.capabilities.bill import Bill, Subscription
 from weboob.capabilities.base import NotAvailable
 
-
 class LoginPage(HTMLPage):
     def login(self, login, password):
         form = self.get_form(id='UserLoginForm')
@@ -66,7 +65,7 @@ class DocumentsPage(LoggedPage, HTMLPage):
 
             obj_id = Format('%s_%s', Env('subid'), Regexp(CleanText('.//a[contains(text(), "VOIR")]/@href'), r'(\d*$)'))
             obj_url = Link('.//a[contains(text(), "VOIR")]', default=NotAvailable)
-            obj_date = Async('details') & Date(Regexp(CleanText('.//h3'), r'(\d{2})\/(\d{2})\/(\d{4})'), dayfirst=True)
+            obj_date = Async('details') & Date(Regexp(CleanText('.//h3'), r'(\d{2}\/\d{2}\/\d{4})'), dayfirst=True)
             obj_format = 'html'
             obj_label = Async('details') & CleanText('.//h3')
             obj_type = 'bill'
