@@ -196,7 +196,7 @@ class TransactionsPage(LoggedPage, HTMLPage):
             month = self.parse_month(month)
             date = guesser.guess_date(day, month)
 
-            rdate = None
+            vdate = None
             try:
                 detail = cols[self.COL_TEXT].xpath('./div[has-class("hiddenROC")]')[0]
             except IndexError:
@@ -204,18 +204,18 @@ class TransactionsPage(LoggedPage, HTMLPage):
             else:
                 m = re.search(r' (\d{2} \D{3,4})', (' '.join([txt.strip() for txt in detail.itertext()])).strip())
                 if m:
-                    rday, rmonth = m.group(1).strip().split(' ')
-                    rday = int(rday)
-                    rmonth = self.parse_month(rmonth)
-                    rdate = guesser.guess_date(rday, rmonth)
+                    vday, vmonth = m.group(1).strip().split(' ')
+                    vday = int(vday)
+                    vmonth = self.parse_month(vmonth)
+                    vdate = guesser.guess_date(vday, vmonth)
                 detail.drop_tree()
 
             raw = (' '.join([txt.strip() for txt in cols[self.COL_TEXT].itertext()])).strip()
             credit = CleanText().filter(cols[self.COL_CREDIT])
             debit = CleanText().filter(cols[self.COL_DEBIT])
 
-            t.date = date
-            t.rdate = rdate or date
+            t.date = t.rdate = date
+            t.vdate = vdate
             t.raw = re.sub(r'[ ]+', ' ', raw)
             t.label = re.sub('(.*?)( \d+)?  .*', r'\1', raw).strip()
             t.amount = parse_decimal(credit or debit) * (1 if credit else -1)
