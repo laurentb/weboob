@@ -178,7 +178,7 @@ class LoginPage(HTMLPage):
 class StatusPage(LoggedPage, PartialHTMLPage):
     def on_load(self):
         # sometimes checking accounts are missing
-        msg = CleanText('//div[has-class("alert--warning")]', default=None)(self.doc)
+        msg = CleanText('//div[has-class("alert--danger")]', default=None)(self.doc)
         if msg:
             raise BrowserUnavailable(msg)
 
