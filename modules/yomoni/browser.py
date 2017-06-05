@@ -51,6 +51,8 @@ class YomoniBrowser(APIBrowser):
         self.accounts = []
         self.investments = {}
         self.histories = {}
+        self.login_headers = {}
+        self.request_headers = {}
 
     def build_request(self, *args, **kwargs):
         if 'data' in kwargs:
@@ -62,14 +64,22 @@ class YomoniBrowser(APIBrowser):
         return super(APIBrowser, self).build_request(*args, **kwargs)
 
     def do_login(self):
-        self.open('auth/init')
+        headers_response = self.open('auth/init').headers
+
+        self.login_headers['api_token'] = headers_response['API_TOKEN']
+        self.login_headers['csrf'] = headers_response['CSRF']
+
+        self.open('auth/login', method='OPTIONS')
 
         data = {
             'username': self.username,
             'password': self.password.encode('utf8').encode('base64').strip(),
         }
         try:
-            self.users = self.request('auth/login', data=data)
+            response = self.open('auth/login', data=data, headers=self.login_headers)
+            self.request_headers['api_token'] = response.headers['API_TOKEN']
+            self.request_headers['csrf'] = response.headers['CSRF']
+            self.users = response.json()
         except ClientError:
             raise BrowserIncorrectPassword()
 
@@ -82,7 +92,8 @@ class YomoniBrowser(APIBrowser):
 
         waiting = False
         for project in self.users['projects']:
-            me = self.request('/user/%s/project/%s/' % (self.users['userId'], project['projectId']))
+            self.open('/user/%s/project/%s/' % (self.users['userId'], project['projectId']), method="OPTIONS")
+            me = self.request('/user/%s/project/%s/' % (self.users['userId'], project['projectId']), headers=self.request_headers)
 
             waiting = (me['status'] in ('RETURN_CUSTOMER_SERVICE', 'SUBSCRIPTION_STEP_3', 'SUBSCRIPTION_STEP_4'))
 
@@ -133,7 +144,8 @@ class YomoniBrowser(APIBrowser):
     def iter_history(self, account):
         if account not in self.histories:
             histories = []
-            for activity in [acc for acc in self.request('/user/%s/project/%s/activity' % (self.users['userId'], account.number))['activities'] \
+            self.open('/user/%s/project/%s/activity' % (self.users['userId'], account.number), method="OPTIONS")
+            for activity in [acc for acc in self.request('/user/%s/project/%s/activity' % (self.users['userId'], account.number), headers=self.request_headers)['activities'] \
                              if acc['details'] is not None]:
                 m = re.search(u'([\d\.]+)(?=[\s]+€|[\s]+euro)', activity['details'])
                 if "Souscription" not in activity['title'] and not m:
