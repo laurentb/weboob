@@ -172,10 +172,13 @@ class AccountsPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Account
 
-            obj_id = Dict('numeroContratSouscrit')
             obj_label = Dict('libelle')
             obj_currency = u'EUR'
             obj_type = Account.TYPE_LOAN
+
+            def obj_id(self):
+                # it seems that if we don't have "numeroContratSouscrit", "identifiantTechnique" is unique : only this direction !
+                return Dict('numeroContratSouscrit', default=None)(self) or Dict('identifiantTechnique')(self)
 
             def obj_balance(self):
                 return -abs(CleanDecimal().filter(Dict('montantRestant', default=None)(self) or Dict('montantDisponible')(self)))
