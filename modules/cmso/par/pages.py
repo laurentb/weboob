@@ -238,7 +238,10 @@ class HistoryPage(LoggedPage, JsonPage):
             def parse(self, el):
                 key = Env('key', default=None)(self)
                 if key and "DeferredDebit" in key:
-                    deferred_date = Dict('%s/currentMonthCardList/0/dateDiffere' % key)(self.page.doc)
+                    for x in Dict('%s/currentMonthCardList' % key)(self.page.doc):
+                        deferred_date = Dict('dateDiffere', default=None)(x)
+                        if deferred_date:
+                            break
                     setattr(self.obj, '_deferred_date', self.FromTimestamp().filter(deferred_date))
 
                 # Skip duplicate transactions
