@@ -184,7 +184,7 @@ class AXABanque(AXABrowser):
         if account.type is Account.TYPE_LOAN:
             return
 
-        if account.type == Account.TYPE_LIFE_INSURANCE:
+        if account.type == Account.TYPE_LIFE_INSURANCE and account._acctype == "bank":
             if not self.lifeinsurance_iframe.is_here():
                 self.location(account._url)
             self.page.go_to_history()
