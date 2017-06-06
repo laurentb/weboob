@@ -370,10 +370,14 @@ class AccountsList(LoggedPage, HTMLPage):
             account = Account()
             account._history_link = Link('./ul/li/a[contains(@id, "consulter_solde") '
                                          'or contains(@id, "historique") '
+                                         'or contains(@id, "contrat") '
                                          'or contains(@id, "assurance_vie_operations")]')(cpt)
 
             # this is to test if access to the accounts info is blocked for different reasons
             page = self.browser.open(account._history_link).page
+            # TODO: handle loans
+            if isinstance(page, LoanPage):
+                continue
             if len(accounts) == 0:
                 global_error_message = page.doc.xpath('//div[@id="as_renouvellementMIFID.do_"]/div[contains(text(), "Bonjour")] '
                                                       '| //div[@id="as_afficherMessageBloquantMigration.do_"]//div[@class="content_message"] '
@@ -425,4 +429,8 @@ class AccountsList(LoggedPage, HTMLPage):
 
 
 class GlobalAccountsList(LoggedPage, HTMLPage):
+    pass
+
+
+class LoanPage(LoggedPage, HTMLPage):
     pass

@@ -23,14 +23,14 @@ from weboob.exceptions import BrowserIncorrectPassword
 
 from .pages.login import LoginPage
 from .pages.accounts_list import GlobalAccountsList, AccountsList, AccountHistoryPage, CardHistoryPage, \
-                                 InvestmentHistoryPage, PeaHistoryPage
+                                 InvestmentHistoryPage, PeaHistoryPage, LoanPage
 
 __all__ = ['Fortuneo']
 
 
 class Fortuneo(LoginBrowser):
     BASEURL = 'https://mabanque.fortuneo.fr'
-    #CERTHASH = ['4ff0301115f80f18c4e81a136ca28829b46d416d404174945b1ae48abd0634e2', '608d63d9ef394c13a64b71ed55e4564491873498dd62540a6b7f7b88f251be30']
+
     login_page = URL(r'.*identification\.jsp.*', LoginPage)
 
     accounts_page = URL(r'.*prive/default\.jsp.*',
@@ -47,6 +47,7 @@ class Fortuneo(LoginBrowser):
                       r'.*/prive/mes-comptes/compte-titres-pea/.*',
                       r'.*/prive/mes-comptes/ppe/.*', PeaHistoryPage)
     invest_history = URL(r'.*/prive/mes-comptes/assurance-vie/.*', InvestmentHistoryPage)
+    loan_contract = URL(r'/fr/prive/mes-comptes/credit-immo/contrat-credit-immo/contrat-pret-immobilier.jsp.*', LoanPage)
 
     def __init__(self, *args, **kwargs):
         LoginBrowser.__init__(self, *args, **kwargs)
