@@ -277,22 +277,20 @@ class _AccountsPage(MyLoggedPage, BasePage):
             except IndexError:
                 pass
             else:
-                if link.startswith('javascript:'):
-                    m = re.search(r"javascript:fwkPUAvancerForm\('Cartes','(\w+)'\)", link)
-                    if not m:
-                        continue
-                    form_name = m.group(1)
-                    if not account_idelco:
-                        idelcos.add(form_name)
+                if account_idelco is None:
+                    if link.startswith('javascript:'):
+                        m = re.search(r"javascript:fwkPUAvancerForm\('Cartes','(\w+)'\)", link)
+                        if m:
+                            idelcos.add(m.group(1))
                     else:
-                        return self.get_form(name=form_name)
+                        m = re.search('IDELCO=(\d+)&', link)
+                        if m:
+                            idelcos.add(m.group(1))
                 else:
-                    if account_idelco and 'IDELCO=%s&' % account_idelco in link:
+                    if 'IDELCO=%s&' % account_idelco in link:
                         return link
-                    m = re.search('IDELCO=(\d+)&', link)
-                    if m:
-                        idelcos.add(m.group(1))
-
+                    else:
+                        return self.get_form(name=account_idelco)
         return idelcos
 
     def submit_card(self, name):
