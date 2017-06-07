@@ -22,10 +22,9 @@ from decimal import Decimal
 from urlparse import urljoin
 
 from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Env
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Date
 from weboob.browser.pages import LoggedPage
 from weboob.capabilities.bank import Account
-from weboob.capabilities.base import NotAvailable
 
 from .accounthistory import Transaction
 from .base import MyHTMLPage
@@ -80,24 +79,9 @@ class ProAccountHistory(LoggedPage, MyHTMLPage):
         class item(ItemElement):
             klass = Transaction
 
-            def parse(self, obj):
-                date = Date(CleanText('.//td[@headers="date"]'), dayfirst=True)(self)
-                raw = CleanText('.//td[@headers="libelle"]')(self)
-
-                t = Transaction()
-                t.parse(date, raw)
-
-                self.env['raw'] = t.raw
-                self.env['date'] = t.date
-                self.env['rdate'] = t.rdate
-                self.env['type'] = t.type
-
-            obj_id = NotAvailable
-            obj_raw = Env('raw')
+            obj_raw = Transaction.Raw('.//td[@headers="libelle"]')
             obj_amount = CleanDecimal('.//td[@headers="debit" or @headers="credit"]', replace_dots=True)
-            obj_date = Env('date')
-            obj_rdate = Env('rdate')
-            obj_type = Env('type')
+            obj_date = obj_rdate = Date(CleanText('.//td[@headers="date"]'), dayfirst=True)
 
 
 class DownloadRib(LoggedPage, MyHTMLPage):
