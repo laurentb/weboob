@@ -268,7 +268,7 @@ class ASVInvest(LoggedPage, HTMLPage):
             obj_unitvalue = CleanDecimal(TableCell('unitvalue'), replace_dots=True, default=NotAvailable)
             obj_quantity = CleanDecimal(TableCell('quantity'), replace_dots=True, default=NotAvailable)
             obj_valuation = CleanDecimal(TableCell('valuation'), replace_dots=True)
-            obj_unitprice = CleanDecimal(TableCell('unitprice'), replace_dots=True, default=NotAvailable)
+            obj_unitprice = CleanDecimal(TableCell('unitprice', default=None), replace_dots=True, default=NotAvailable)
             obj_diff = CleanDecimal(TableCell('diff'), replace_dots=True, default=NotAvailable)
 
 
