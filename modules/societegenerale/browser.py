@@ -48,7 +48,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     market = URL('/brs/cct/comti20.html', Market)
     life_insurance = URL('/asv/asvcns10.html', '/asv/AVI/asvcns10a.html', '/brs/fisc/fisca10a.html', LifeInsurance)
     life_insurance_invest = URL('/asv/AVI/asvcns20a.html', LifeInsuranceInvest)
-    life_insurance_history = URL('/asv/AVI/asvcns2[0-9]c.html', LifeInsuranceHistory)
+    life_insurance_history = URL('/asv/AVI/asvcns2(?P<n>[0-9])c.html', LifeInsuranceHistory)
     list_rib = URL('/restitution/imp_listeRib.html', ListRibPage)
     advisor = URL('/com/contacts.html', AdvisorPage)
 
@@ -140,25 +140,26 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
                 yield trans
 
         elif self.life_insurance.is_here():
-            for i in xrange(3, -1, -1):
-                self.location('/asv/AVI/asvcns20c.html')
-                if not self.page.get_error():
-                    break
-                self.logger.warning('Life insurance error (%s), retrying %d more times', self.page.get_error(), i)
-            else:
-                self.logger.warning('Life insurance error (%s), failed', self.page.get_error())
-                return
+            for n in ('0', '1'):
+                for i in xrange(3, -1, -1):
+                    self.life_insurance_history.go(n=n)
+                    if not self.page.get_error():
+                        break
+                    self.logger.warning('Life insurance error (%s), retrying %d more times', self.page.get_error(), i)
+                else:
+                    self.logger.warning('Life insurance error (%s), failed', self.page.get_error())
+                    return
 
-            for trans in self.page.iter_transactions():
-                yield trans
-
-            # go to next page
-            while self.page.doc.xpath('//div[@class="net2g_asv_tableau_pager"]/a[contains(@href, "actionSuivPage")]'):
-                form = self.page.get_form('//form[@id="operationForm"]')
-                form['a100_asv_action'] = 'actionSuivPage'
-                form.submit()
                 for trans in self.page.iter_transactions():
                     yield trans
+
+                # go to next page
+                while self.page.doc.xpath('//div[@class="net2g_asv_tableau_pager"]/a[contains(@href, "actionSuivPage")]'):
+                    form = self.page.get_form('//form[@id="operationForm"]')
+                    form['a100_asv_action'] = 'actionSuivPage'
+                    form.submit()
+                    for trans in self.page.iter_transactions():
+                        yield trans
 
         else:
             self.logger.warning('This account is not supported')
