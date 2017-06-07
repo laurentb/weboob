@@ -79,9 +79,9 @@ class ProAccountHistory(LoggedPage, MyHTMLPage):
         class item(ItemElement):
             klass = Transaction
 
+            obj_date = Date(CleanText('.//td[@headers="date"]'), dayfirst=True)
             obj_raw = Transaction.Raw('.//td[@headers="libelle"]')
             obj_amount = CleanDecimal('.//td[@headers="debit" or @headers="credit"]', replace_dots=True)
-            obj_date = obj_rdate = Date(CleanText('.//td[@headers="date"]'), dayfirst=True)
 
 
 class DownloadRib(LoggedPage, MyHTMLPage):
