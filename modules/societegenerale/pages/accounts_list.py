@@ -492,7 +492,7 @@ class LifeInsuranceHistory(LifeInsurance):
         date_xpath = '//td[@class="net2g_asv_suiviOperation_element1"]/following-sibling::td'
         vdate_xpath = '//td[@class="net2g_asv_tableau_cell_date"]'
 
-        date = CleanText(date_xpath)(self.doc)
+        date = CleanText(date_xpath)(doc)
         if u"Rejet d'intégration" in date:
             return False
 
