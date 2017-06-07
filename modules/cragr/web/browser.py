@@ -268,13 +268,16 @@ class Cragr(LoginBrowser, StatesMixin):
         if not self.accounts.is_here():
             self.location(self.accounts_url.format(self.sag))
 
-        for idelco in self.page.cards_idelco_or_link():
+        for idelco in self.page.iter_idelcos():
             if not self.accounts.is_here():
                 self.location(self.accounts_url.format(self.sag))
-            if isinstance(self.page.cards_idelco_or_link(idelco), basestring):
-                self.location(self.page.cards_idelco_or_link(idelco))
+
+            obj = self.page.get_idelco(idelco)
+            if isinstance(obj, basestring):
+                self.location(obj)
             else:
-                self.page.submit_card(self.page.cards_idelco_or_link(idelco))
+                self.page.submit_card(obj)
+
             assert self.cards.is_here() or self.cards2.is_here()
             for account in self.page.get_list():
                 if account_id and account.id == account_id:

@@ -265,9 +265,7 @@ class _AccountsPage(MyLoggedPage, BasePage):
     def set_link(self, account, cols, use_link):
         raise NotImplementedError()
 
-    def cards_idelco_or_link(self, account_idelco=None):
-        # Use a set because it is possible to see several times the same link.
-        idelcos = set()
+    def _iter_idelcos_ids(self):
         for line in self.doc.xpath('//table[@class="ca-table"]/tr[@class="ligne-connexe"]'):
             # ignore line if preceding line is also a link to deferred card
             if line.xpath('./preceding-sibling::tr')[-1].attrib.get('class') == 'ligne-connexe':
@@ -275,23 +273,30 @@ class _AccountsPage(MyLoggedPage, BasePage):
             try:
                 link = line.xpath('.//a/@href')[0]
             except IndexError:
-                pass
+                continue
+            yield link
+
+    def iter_idelcos(self):
+        # Use a set because it is possible to see several times the same link.
+        idelcos = set()
+        for link in self._iter_idelcos_ids():
+            if link.startswith('javascript:'):
+                m = re.search(r"javascript:fwkPUAvancerForm\('Cartes','(\w+)'\)", link)
+                if m:
+                    idelcos.add(m.group(1))
             else:
-                if account_idelco is None:
-                    if link.startswith('javascript:'):
-                        m = re.search(r"javascript:fwkPUAvancerForm\('Cartes','(\w+)'\)", link)
-                        if m:
-                            idelcos.add(m.group(1))
-                    else:
-                        m = re.search('IDELCO=(\d+)&', link)
-                        if m:
-                            idelcos.add(m.group(1))
-                else:
-                    if 'IDELCO=%s&' % account_idelco in link:
-                        return link
-                    else:
-                        return self.get_form(name=account_idelco)
+                m = re.search('IDELCO=(\d+)&', link)
+                if m:
+                    idelcos.add(m.group(1))
         return idelcos
+
+    def get_idelco(self, account_idelco):
+        for link in self._iter_idelcos_ids():
+            if link.startswith('javascript:'):
+                # no need to fetch a "full" link
+                return self.get_form(name=account_idelco)
+            elif 'IDELCO=%s&' % account_idelco in link:
+                return link
 
     def submit_card(self, name):
         form = name
