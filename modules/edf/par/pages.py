@@ -31,7 +31,7 @@ from weboob.capabilities.base import NotAvailable
 
 class HomePage(HTMLPage):
     def is_logged(self):
-        return bool(CleanText(u'//a[@data-label="Déconnexion"]', default=None))
+        return CleanText(u'(//p[contains(@id, "account-mail-authentified_")])[1]/text()', default=None)(self.doc) != ""
 
 
 class LoginPage(JsonPage):
