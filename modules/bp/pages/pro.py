@@ -18,15 +18,14 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import re
-import datetime
-from dateutil.relativedelta import relativedelta
 from decimal import Decimal
 from urlparse import urljoin
 
-from weboob.browser.filters.standard import CleanText
-from weboob.browser.pages import LoggedPage, CsvPage
-from weboob.exceptions import BrowserUnavailable
+from weboob.browser.elements import ListElement, ItemElement, method
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Env
+from weboob.browser.pages import LoggedPage
 from weboob.capabilities.bank import Account
+from weboob.capabilities.base import NotAvailable
 
 from .accounthistory import Transaction
 from .base import MyHTMLPage
@@ -74,50 +73,31 @@ class ProAccountsList(LoggedPage, MyHTMLPage):
 
 
 class ProAccountHistory(LoggedPage, MyHTMLPage):
-    def on_load(self):
-        MyHTMLPage.on_load(self)
-        link = self.doc.xpath('//a[contains(@href, "telechargercomptes.ea")]/@href')[0]
-        self.browser.location(link)
+    @method
+    class iter_history(ListElement):
+        item_xpath = u'//div[@id="tabReleve"]//tbody/tr'
 
+        class item(ItemElement):
+            klass = Transaction
 
-class ProAccountHistoryDownload(LoggedPage, MyHTMLPage):
-    def on_load(self):
-        MyHTMLPage.on_load(self)
-        form = self.get_form(name='telechargement')
-        form['dateDebutPeriode'] = (datetime.date.today() - relativedelta(months=11)).strftime('%d/%m/%Y')
-        form.submit()
+            def parse(self, obj):
+                date = Date(CleanText('.//td[@headers="date"]'), dayfirst=True)(self)
+                raw = CleanText('.//td[@headers="libelle"]')(self)
 
+                t = Transaction()
+                t.parse(date, raw)
 
-class ProAccountHistoryCSV(LoggedPage, CsvPage):
-    def on_load(self):
-        if isinstance(self.doc, list) and any(u"service" and "indisponible" in e for x in self.doc for e in x):
-            raise BrowserUnavailable()
+                self.env['raw'] = t.raw
+                self.env['date'] = t.date
+                self.env['rdate'] = t.rdate
+                self.env['type'] = t.type
 
-    def decode_row(self, row, encoding):
-        try:
-            return [unicode(cell, encoding) for cell in row]
-        except UnicodeDecodeError:
-            return ''
-
-    FMTPARAMS = {'delimiter': ';'}
-
-    def get_next_link(self):
-        return False
-
-    def get_history(self, deferred=False):
-        operations = []
-        for line in self.doc:
-            if len(line) < 4 or line[0] == 'Date':
-                continue
-            t = Transaction()
-            t.parse(raw=line[1], date=line[0])
-            t.set_amount(line[2])
-            t._coming = False
-            operations.append(t)
-        operations = sorted(operations,
-                      lambda a, b: cmp(a.date, b.date), reverse=True)
-        for op in operations:
-            yield op
+            obj_id = NotAvailable
+            obj_raw = Env('raw')
+            obj_amount = CleanDecimal('.//td[@headers="debit" or @headers="credit"]', replace_dots=True)
+            obj_date = Env('date')
+            obj_rdate = Env('rdate')
+            obj_type = Env('type')
 
 
 class DownloadRib(LoggedPage, MyHTMLPage):

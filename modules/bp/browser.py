@@ -32,7 +32,7 @@ from .pages import (
 )
 from .pages.accounthistory import LifeInsuranceInvest, LifeInsuranceHistory, LifeInsuranceHistoryInv, RetirementHistory, SavingAccountSummary
 from .pages.accountlist import MarketLoginPage, UselessPage
-from .pages.pro import RedirectPage, ProAccountsList, ProAccountHistory, ProAccountHistoryDownload, ProAccountHistoryCSV, DownloadRib, RibPage
+from .pages.pro import RedirectPage, ProAccountsList, ProAccountHistory, DownloadRib, RibPage
 from .linebourse_browser import LinebourseBrowser
 
 from weboob.capabilities.bank import TransferError, Account
@@ -351,8 +351,6 @@ class BProBrowser(BPBrowser):
     pro_accounts_list = URL(r'.*voscomptes/synthese/synthese.ea', ProAccountsList)
 
     pro_history = URL(r'.*voscomptes/historiqueccp/historiqueccp.ea.*', ProAccountHistory)
-    pro_history_dl = URL(r'.*voscomptes/telechargercomptes/telechargercomptes.ea.*', ProAccountHistoryDownload)
-    pro_history_csv = URL(r'.*voscomptes/telechargercomptes/1-telechargercomptes.ea', ProAccountHistoryCSV) # HistoryParser()?
 
     useless2 = URL(r'.*/voscomptes/bourseenligne/lancementBourseEnLigne-bourseenligne.ea\?numCompte=(?P<account>\d+)', UselessPage)
     market_login = URL(r'.*/voscomptes/bourseenligne/oicformautopost.jsp', MarketLoginPage)
@@ -384,9 +382,9 @@ class BProBrowser(BPBrowser):
         args['typeRecherche'] = 10
 
         self.location('%s?%s' % (v.path, urlencode(args)))
-        if hasattr(self.page, 'get_history'):
-            for tr in self.page.get_history():
-                transactions.append(tr)
+
+        for tr in self.page.iter_history():
+            transactions.append(tr)
         transactions.sort(key=lambda tr: tr.rdate, reverse=True)
 
         return transactions
