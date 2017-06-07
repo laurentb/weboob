@@ -247,7 +247,7 @@ class ASVInvest(LoggedPage, HTMLPage):
         col_unitvalue = u'Valeur de part'
         col_quantity = u'Nombre de parts'
         col_valuation = u'Contre-valeur'
-        col_unitprice = u'Prix revient'
+        col_unitprice = [u'Prix revient', u'PAM']
         col_diff = u'Montant'
         col_portfolio_share = u'%'
 
