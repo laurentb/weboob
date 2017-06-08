@@ -149,7 +149,18 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             'nuabbd': self.username
         }
 
-        response = self.location(data['url'], params=playload).page.get_response()
+        res = self.location(data['url'], params=playload)
+        if not res.page:
+            # sometimes, page is None
+            if "/authentification/disconnection" in res.text:
+                # website didn't return a page but a raw txt after location
+                # and we have been disconnected
+                raise BrowserIncorrectPassword()
+
+        if 'error' in res.page.doc:
+            raise BrowserIncorrectPassword(res.page.doc['error'].encode('utf-8'))
+
+        response = res.page.get_response()
 
         assert response is not None
 
