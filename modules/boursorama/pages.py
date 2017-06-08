@@ -135,9 +135,9 @@ class BoursoramaVirtKeyboard(VirtKeyboard):
                '9': (4, 7, 38, 34)}
 
     color = (255,255,255)
-    md5 = {}
 
     def __init__(self, page):
+        self.md5 = {}
         for span in page.doc.xpath('//span'):
             c = span.attrib['data-matrix-key']
             img = BytesIO(span.xpath('./img/@src')[0].replace('data:image/png;base64,', '').decode('base64'))
