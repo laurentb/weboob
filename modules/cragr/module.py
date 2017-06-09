@@ -21,6 +21,7 @@ from datetime import date
 from collections import OrderedDict
 import re
 
+from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import Account, AccountNotFound, CapBankTransferAddRecipient
 from weboob.capabilities.contact import CapContact
 from weboob.capabilities.profile import CapProfile
@@ -101,11 +102,7 @@ class CragrModule(Module, CapBankTransferAddRecipient, CapContact, CapProfile):
         return self.browser.get_accounts_list()
 
     def get_account(self, _id):
-        account = self.browser.get_account(_id)
-        if account:
-            return account
-        else:
-            raise AccountNotFound()
+        return find_object(self.iter_accounts(), id=_id, error=AccountNotFound)
 
     def _history_filter(self, account, coming):
         today = date.today()

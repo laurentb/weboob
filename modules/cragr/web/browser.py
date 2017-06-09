@@ -43,7 +43,7 @@ from .pages import (
     CardsPage, LifeInsurancePage, MarketPage, LoansPage, PerimeterPage,
     ChgPerimeterPage, MarketHomePage, FirstVisitPage, BGPIPage,
     TransferInit, TransferPage, RecipientPage, RecipientListPage, ProfilePage,
-    HistoryPostPage, RecipientMiscPage, DeferredCardsPage,
+    HistoryPostPage, RecipientMiscPage, DeferredCardsPage, UnavailablePage,
 )
 
 
@@ -111,6 +111,8 @@ class Cragr(LoginBrowser, StatesMixin):
     recipient_misc = URL(r'/stb/collecteNI\?fwkaid=([\d_]+)&fwkpid=([\d_]+)$', RecipientMiscPage)
     recipientlist = URL(r'/stb/collecteNI\?.*&act=Vilistedestinataires.*', RecipientListPage)
     recipient_page = URL(r'/stb/collecteNI\?.*fwkaction=Ajouter.*', RecipientPage)
+
+    unavailable_page = URL(r'/stb/collecteNI\?fwkaid=([\d_]+)&fwkpid=([\d_]+)$', UnavailablePage)
 
     new_login_domain = []
     new_login = False
@@ -335,17 +337,6 @@ class Cragr(LoginBrowser, StatesMixin):
         return [acc for acc in accounts_list if account.balance is not NotLoaded]
 
     @need_login
-    def get_account(self, id):
-        assert isinstance(id, basestring)
-
-        l = self.get_accounts_list()
-        for a in l:
-            if a.id == ('%s' % id):
-                return a
-
-        return None
-
-    @need_login
     def get_history(self, account):
         if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA, Account.TYPE_LIFE_INSURANCE):
             self.logger.warning('This account is not supported')
@@ -364,6 +355,7 @@ class Cragr(LoginBrowser, StatesMixin):
             self.location(self.accounts_url.format(self.sag))
             accounts = self.page.get_list(use_links=False)
             new_account = find_object(accounts, AccountNotFound, id=account.id)
+
             self.location(new_account._form.request)
 
         # card accounts need to get an updated link

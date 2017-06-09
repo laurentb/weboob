@@ -33,7 +33,7 @@ from weboob.capabilities.bank import (
 )
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Profile
-from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
 from weboob.tools.date import parse_french_date, LinearDateGuesser
 from weboob.browser.elements import TableElement, ItemElement, method
@@ -519,8 +519,10 @@ class AccountsPage(_AccountsPage):
 
             accounts_page = self.browser.open(self.browser.accounts_url.format(self.browser.sag)).page
             account._form = accounts_page.history_form(form_name)
+
             if use_link:
                 page = self.browser.open(account._form.request).page
+                account._form = None
         else:
             account.url = urljoin(self.url, a.attrib['href'].replace(' ', '%20'))
 
@@ -529,6 +531,9 @@ class AccountsPage(_AccountsPage):
                 account.url = re.sub('sessionSAG=[^&]+', 'sessionSAG={0}', account.url)
 
         if use_link:
+            if isinstance(page, UnavailablePage):
+                raise BrowserUnavailable()
+
             # TODO move this code to avoid the use_link stuff?
             url = page.get_iban_url()
             if url:
@@ -736,6 +741,11 @@ class TransactionsPage(MyLoggedPage, BasePage):
 
 class HistoryPostPage(CollectePageMixin, TransactionsPage):
     IS_HERE_TEXT = ('Consultation des comptes', 'Relevé')
+
+
+class UnavailablePage(CollectePageMixin, BasePage):
+    def is_here(self):
+        return bool(self.get_error())
 
 
 class AutoEncodingMixin(object):
