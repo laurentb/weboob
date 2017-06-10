@@ -256,7 +256,7 @@ class TransferPostPage(LoggedPage, PartialHTMLPage):
         klass = Transfer
 
         obj_amount = CleanDecimal('//p[@class="tabTxt tabTxt2"]/strong[1]', replace_dots=True)
-        obj_exec_date = Date(CleanText('//p[@class="tabTxt tabTxt2"]/strong[2]'))
+        obj_exec_date = Date(CleanText('//p[@class="tabTxt tabTxt2"]/strong[2]'), dayfirst=True)
         obj_label = Regexp(CleanText('//p[@class="tabTxt tabTxt2"]/strong[3]'), u'« (.*) »')
         obj_account_id = Regexp(CleanText('//div[@class="transAction"]/div[@class="inner"]/div[@class="first"]//small'), ur'N°(\w+)')
         obj_recipient_id = Regexp(CleanText('//div[@class="transAction"]/div[@class="inner"]/div[not(@class="first")]//small'), ur'N°(\w+)', default=None)

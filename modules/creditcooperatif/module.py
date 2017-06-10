@@ -42,7 +42,7 @@ class CreditCooperatifModule(Module, CapBankTransfer):
                  'strong': "Sesame (pro)"}
     CONFIG = BackendConfig(Value('auth_type', label='Type de compte', choices=auth_type, default="particular"),
                            ValueBackendPassword('login', label='Code utilisateur', masked=False),
-                           ValueBackendPassword('password', label='Code confidentiel ou code PIN', required=False))
+                           ValueBackendPassword('password', label='Code confidentiel ou code PIN'))
 
     def create_default_browser(self):
         if self.config['auth_type'].get() == 'particular':
