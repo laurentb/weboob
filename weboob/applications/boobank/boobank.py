@@ -41,10 +41,27 @@ __all__ = ['Boobank']
 
 
 class OfxFormatter(IFormatter):
-    MANDATORY_FIELDS = ('id', 'date', 'raw', 'amount', 'category')
-    TYPES_ACCTS = ['', 'CHECKING', 'SAVINGS', 'DEPOSIT', 'LOAN', 'MARKET', 'JOINT', 'CARD']
-    TYPES_TRANS = ['', 'DIRECTDEP', 'PAYMENT', 'CHECK', 'DEP', 'OTHER', 'ATM', 'POS', 'INT', 'FEE']
-    TYPES_CURRS = ['', 'EUR', 'CHF', 'USD']
+    MANDATORY_FIELDS = ('id', 'date', 'rdate', 'label', 'raw', 'amount', 'category')
+    TYPES_ACCTS = {
+        Account.TYPE_CHECKING: 'CHECKING',
+        Account.TYPE_SAVINGS: 'SAVINGS',
+        Account.TYPE_DEPOSIT: 'DEPOSIT',
+        Account.TYPE_LOAN: 'LOAN',
+        Account.TYPE_MARKET: 'MARKET',
+        Account.TYPE_JOINT: 'JOINT',
+        Account.TYPE_CARD: 'CARD',
+    }
+    TYPES_TRANS = {
+        Transaction.TYPE_TRANSFER: 'DIRECTDEP',
+        Transaction.TYPE_ORDER: 'PAYMENT',
+        Transaction.TYPE_CHECK: 'CHECK',
+        Transaction.TYPE_DEPOSIT: 'DEP',
+        Transaction.TYPE_PAYBACK: 'OTHER',
+        Transaction.TYPE_WITHDRAWAL: 'ATM',
+        Transaction.TYPE_CARD: 'POS',
+        Transaction.TYPE_LOAN_PAYMENT: 'INT',
+        Transaction.TYPE_BANK: 'FEE',
+    }
 
     balance = Decimal(0)
     coming = Decimal(0)
@@ -71,40 +88,45 @@ class OfxFormatter(IFormatter):
         self.output(u'<BANKID>null')
         self.output(u'<BRANCHID>null')
         self.output(u'<ACCTID>%s' % account.id)
-        try:
-            account_type = self.TYPES_ACCTS[account.type]
-        except IndexError:
-            account_type = ''
-        self.output(u'<ACCTTYPE>%s' % (account_type or 'CHECKING'))
-        self.output(u'<ACCTKEY>null</BANKACCTFROM>')
+        account_type = self.TYPES_ACCTS.get(account.type, 'CHECKING')
+        self.output(u'<ACCTTYPE>%s' % account_type)
+        self.output(u'<ACCTKEY>null')
+        self.output('</BANKACCTFROM>')
         self.output(u'<BANKTRANLIST>')
         self.output(u'<DTSTART>%s' % datetime.date.today().strftime('%Y%m%d'))
         self.output(u'<DTEND>%s' % datetime.date.today().strftime('%Y%m%d'))
 
     def format_obj(self, obj, alias):
         # special case of coming operations with card ID
+        result = u'<STMTTRN>\n'
         if hasattr(obj, '_coming') and obj._coming and hasattr(obj, 'obj._cardid') and not empty(obj._cardid):
-            result = u'<STMTTRN><TRNTYPE>%s\n' % obj._cardid
-        elif obj.type != 0:
-            result = u'<STMTTRN><TRNTYPE>%s\n' % self.TYPES_TRANS[obj.type]
+            result += u'<TRNTYPE>%s\n' % obj._cardid
+        elif obj.type in self.TYPES_TRANS:
+            result += u'<TRNTYPE>%s\n' % self.TYPES_TRANS[obj.type]
         else:
-            result = u'<STMTTRN><TRNTYPE>%s\n' % ('DEBIT' if obj.amount < 0 else 'CREDIT')
+            result += u'<TRNTYPE>%s\n' % ('DEBIT' if obj.amount < 0 else 'CREDIT')
 
         result += u'<DTPOSTED>%s\n' % obj.date.strftime('%Y%m%d')
+        if obj.rdate:
+            result += u'<DTUSER>%s\n' % obj.rdate.strftime('%Y%m%d')
         result += u'<TRNAMT>%s\n' % obj.amount
         result += u'<FITID>%s\n' % obj.unique_id()
 
         if hasattr(obj, 'label') and not empty(obj.label):
-            result += u'<NAME>%s</STMTTRN>' % obj.label.replace('&', '&amp;')
+            result += u'<NAME>%s\n' % obj.label.replace('&', '&amp;')
         else:
-            result += u'<NAME>%s</STMTTRN>' % obj.raw.replace('&', '&amp;')
+            result += u'<NAME>%s\n' % obj.raw.replace('&', '&amp;')
+        if obj.category:
+            result += u'<MEMO>%s\n' % obj.category.replace('&', '&amp;')
+        result += u'</STMTTRN>'
 
         return result
 
     def flush(self):
         self.output(u'</BANKTRANLIST>')
         self.output(u'<LEDGERBAL><BALAMT>%s' % self.balance)
-        self.output(u'<DTASOF>%s</LEDGERBAL>' % datetime.date.today().strftime('%Y%m%d'))
+        self.output(u'<DTASOF>%s' % datetime.date.today().strftime('%Y%m%d'))
+        self.output(u'</LEDGERBAL>')
 
         try:
             self.output(u'<AVAILBAL><BALAMT>%s' % (self.balance + self.coming))
