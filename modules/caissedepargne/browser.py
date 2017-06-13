@@ -37,7 +37,7 @@ from .pages import IndexPage, ErrorPage, MarketPage, LifeInsurance, GarbagePage,
                    MessagePage, LoginPage, CenetLoginPage, CenetHomePage, \
                    CenetAccountsPage, CenetAccountHistoryPage, CenetCardsPage, \
                    TransferPage, ProTransferPage, TransferConfirmPage, TransferSummaryPage, \
-                   SmsPage, AuthentPage, RecipientPage, CanceledAuth
+                   SmsPage, AuthentPage, RecipientPage, CanceledAuth, CaissedepargneKeyboard
 
 
 __all__ = ['CaisseEpargne']
@@ -51,6 +51,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                 'https://.*/login.aspx', LoginPage)
     account_login = URL('/authentification/manage\?step=account&identifiant=(?P<login>.*)&account=(?P<accountType>.*)', LoginPage)
     cenet_login = URL('https://www.cenet.caisse-epargne.fr/$', CenetLoginPage)
+    cenet_vk = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiAuthentification.asmx/ChargerClavierVirtuel')
     cenet_home = URL('https://www.cenet.caisse-epargne.fr/Default.aspx$', CenetHomePage)
     cenet_accounts = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiComptes.asmx/ChargerSyntheseComptes', CenetAccountsPage)
     cenet_account_history = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiComptes.asmx/ChargerHistoriqueCompte', CenetAccountHistoryPage)
@@ -119,8 +120,19 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         if data is None:
             raise BrowserIncorrectPassword()
 
+
         if "authMode" in data and data['authMode'] == 'redirect':
             self.is_cenet_website = True
+
+            payload = {'contexte': '', 'dataEntree': None, 'donneesEntree': "{}", 'filtreEntree': "\"false\""}
+            res = self.cenet_vk.open(data=json.dumps(payload), headers={'Content-Type': "application/json"})
+            content = json.loads(res.content)
+            d = json.loads(content['d'])
+            end = json.loads(d['DonneesSortie'])
+
+            _id = end['Identifiant']
+            vk = CaissedepargneKeyboard(end['Image'], end['NumerosEncodes'])
+            code = vk.get_string_code(self.password)
 
             post_data = {
                 'CodeEtablissement': data['codeCaisse'],
@@ -130,7 +142,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
             self.location(data['url'], data=post_data, headers={'Referer': 'https://www.cenet.caisse-epargne.fr/'})
 
-            return self.page.login(self.username, self.password, self.nuser, data['codeCaisse'])
+            return self.page.login(self.username, self.password, self.nuser, data['codeCaisse'], _id, code)
 
         if len(data['account']) > 1:
             self.multi_type = True
@@ -140,12 +152,20 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
         typeAccount = data['account'][0]
 
+        idTokenClavier = data['keyboard']['Id']
+        vk = CaissedepargneKeyboard(data['keyboard']['ImageClavier'], data['keyboard']['Num']['string'])
+        newCodeConf = vk.get_string_code(self.password)
+
         playload = {
+            'idTokenClavier': idTokenClavier,
+            'newCodeConf': newCodeConf,
             'auth_mode': 'ajax',
             'nuusager': self.nuser.encode('utf-8'),
             'codconf': self.password,
             'typeAccount': typeAccount,
             'step': 'authentification',
+            'ctx': 'typsrv=WE',
+            'clavierSecurise': '1',
             'nuabbd': self.username
         }
 
