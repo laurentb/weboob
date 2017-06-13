@@ -149,7 +149,11 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             'nuabbd': self.username
         }
 
-        response = self.location(data['url'], params=playload).page.get_response()
+        res = self.location(data['url'], params=playload)
+        if not res.page:
+            raise BrowserUnavailable()
+
+        response = res.page.get_response()
 
         assert response is not None
 
