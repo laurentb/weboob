@@ -73,13 +73,13 @@ class SearchPage(EntreParticuliersXMLPage):
             obj_cost = CleanDecimal('./Prix', default=NotAvailable)
             obj_currency = u'€'
             obj_utilities = UTILITIES.UNKNOWN
-            obj_text = CleanText('./Description')
+            obj_text = CleanHTML(CleanText('./Description'))
             obj_date = datetime.now
 
             obj_area = CleanDecimal(
                 Regexp(
                     CleanText('./MiniINfos'),
-                    '/\s(\d+)\s'
+                    u'\s?(\d+)\sm²'
                 ),
                 default=NotAvailable
             )
@@ -121,7 +121,7 @@ class HousingPage(EntreParticuliersXMLPage):
 
         obj_title = CleanText('//Titre')
 
-        obj_rooms = CleanText('//Nbpieces')
+        obj_rooms = CleanDecimal('//Nbpieces')
 
         def obj_cost(self):
             cost = CleanDecimal(Regexp(CleanText('//Prix'),
