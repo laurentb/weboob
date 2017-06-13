@@ -58,7 +58,7 @@ class BnpcartesentrepriseCorporateBrowser(LoginBrowser):
 
     def __init__(self, *args, **kwargs):
         super(BnpcartesentrepriseCorporateBrowser, self).__init__(*args, **kwargs)
-        self.accounts = None
+        self.accounts = []
 
     def do_login(self):
         assert isinstance(self.username, basestring)
@@ -71,12 +71,16 @@ class BnpcartesentrepriseCorporateBrowser(LoginBrowser):
 
     @need_login
     def iter_accounts(self):
-        if self.accounts is None:
+        if not self.accounts:
             self.acc_home.go()
             if self.error.is_here():
                 raise BrowserPasswordExpired()
             self.page.expand()
-            self.accounts = [acc for acc in self.page.iter_accounts()]
+            for acc in self.page.iter_accounts():
+                if acc.id in [a.id for a in self.accounts]:
+                    # TODO apply that id to all accounts
+                    acc.id = "%s_%s" % (acc.id, ''.join(acc.label.split()))
+                self.accounts.append(acc)
         for acc in self.accounts:
             yield acc
 
@@ -88,8 +92,10 @@ class BnpcartesentrepriseCorporateBrowser(LoginBrowser):
 
     @need_login
     def get_transactions(self, account):
-        if self.accounts is None:
+        if not self.accounts:
             self.iter_accounts()
+
+        # TODO : use account.url instead of all that **** to be sure to get the right account, password expired so can't do it now
         self.his_home.go()
         self.page.expand()
         for a in self.accounts:

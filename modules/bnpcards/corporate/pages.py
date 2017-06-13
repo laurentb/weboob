@@ -59,11 +59,13 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_type = Account.TYPE_CARD
             obj__status = CleanText('./td[5]')
             obj_currency = u'EUR'
+            obj_url = Link('./td[2]/a')
 
     @pagination
     def get_link(self, account_id):
+        account_id = account_id.split('_')
         try:
-            yield self.doc.xpath('.//a[replace(@title, " ", "")="%s"]' % account_id)[0].get("href")
+            yield self.doc.xpath('.//a[replace(@title, " ", "")="%s"]' % account_id[0])[0].get("href")
         except IndexError:
             next_page = self.doc.xpath('//table[@id="tgDecorationFoot"]//b/following-sibling::a[1]/@href')
             if next_page:
