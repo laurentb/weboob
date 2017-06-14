@@ -128,6 +128,9 @@ class ActionNeededPage(HTMLPage):
             form['command'] = 'validateAlertMessage'
             form['radioValide_1_2_40003039944'] = 'Non'
             form.submit()
+        elif self.doc.xpath(u'//p[@class="cddErrorMessage"]'):
+            error_message = CleanText(u'//p[@class="cddErrorMessage"]')(self.doc)
+            raise ActionNeeded(error_message.encode('utf-8'))
         else:
             raise ActionNeeded(CleanText(u'//form//h1[1]')(self.doc))
 

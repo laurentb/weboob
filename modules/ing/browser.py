@@ -68,7 +68,8 @@ class IngBrowser(LoginBrowser):
     # Login and error
     loginpage = URL('/public/displayLogin.jsf.*', LoginPage)
     errorpage = URL('.*displayCoordonneesCommand.*', StopPage)
-    actioneeded = URL('/general\?command=displayTRAlertMessage', ActionNeededPage)
+    actioneeded = URL('/general\?command=displayTRAlertMessage',
+                      '/protected/pages/common/eco1/moveMoneyForbidden.jsf', ActionNeededPage)
 
     # CapBank
     accountspage = URL('/protected/pages/index.jsf',
