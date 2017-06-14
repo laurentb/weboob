@@ -27,7 +27,7 @@ from datetime import datetime
 
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage
 from weboob.browser.elements import DictElement, ItemElement, method, ListElement
-from weboob.browser.filters.standard import Date, CleanDecimal, Regexp, CleanText, Eval, Format, Env, Upper, Field
+from weboob.browser.filters.standard import Date, CleanDecimal, Regexp, CleanText, Format, Env, Upper, Field
 from weboob.browser.filters.html import Link, Attr
 from weboob.browser.filters.json import Dict
 from weboob.capabilities import NotAvailable
@@ -131,7 +131,7 @@ class CenetAccountsPage(LoggedPage, CenetJsonPage):
             obj_iban = CleanText(Dict('IBAN'))
 
             def obj_balance(self):
-                absolut_amount = CleanDecimal(Dict('Solde/Valeur'))(self)/ 10**2
+                absolut_amount = CleanDecimal(Dict('Solde/Valeur'))(self)
                 if CleanText(Dict('Solde/CodeSens'))(self) == 'D':
                     return -absolut_amount
                 return absolut_amount
@@ -200,7 +200,7 @@ class CenetAccountHistoryPage(LoggedPage, CenetJsonPage):
                 return CleanText(Dict('Montant/Devise'))(self).upper()
 
             def obj_amount(self):
-                amount = Eval(lambda x: x / 10**2, CleanDecimal(Dict('Montant/Valeur')))(self)
+                amount = CleanDecimal(Dict('Montant/Valeur'))(self)
 
                 return -amount if Dict('Montant/CodeSens')(self) == "D" else amount
 
