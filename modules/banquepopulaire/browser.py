@@ -367,7 +367,6 @@ class BanquePopulaire(LoginBrowser):
     def get_investment(self, account):
         if account.id in self.investments.keys() and self.investments[account.id] is False:
             raise NotImplementedError()
-
         if account.id not in self.investments.keys():
             self.investments[account.id] = []
             try:
@@ -377,7 +376,8 @@ class BanquePopulaire(LoginBrowser):
                         try:
                             self.natixis_invest.go(**self.page.params)
                         except ServerError:
-                            raise BrowserUnavailable()
+                            self.investments[account.id] = iter([])
+                            return self.investments[account.id]
                         self.investments[account.id] = list(self.page.get_investments())
                     elif "linebourse" in self.url:
                         for inv in self.linebourse.iter_investment(re.sub('[^0-9]', '', account.id)):
@@ -385,7 +385,7 @@ class BanquePopulaire(LoginBrowser):
                             if inv.code != "XX-liquidity":
                                 self.investments[account.id].append(inv)
             except NotImplementedError:
-                self.investments[account.id] = False
+                self.investments[account.id] = iter([])
         return self.investments[account.id]
 
     @need_login
