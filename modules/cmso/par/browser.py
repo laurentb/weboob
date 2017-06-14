@@ -56,7 +56,7 @@ class CmsoParBrowser(LoginBrowser):
         self.logged = False
 
     def deinit(self):
-        if self.page.logged:
+        if self.page and self.page.logged:
             try:
                 self.logout.go(method='DELETE')
             except ClientError:
