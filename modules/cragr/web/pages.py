@@ -378,6 +378,7 @@ class CardsPage(MyLoggedPage, BasePage):
                 'balance': './/tr/td[@class="cel-num"]',
                 'currency': '//table/caption//span/text()[starts-with(.,"Montants en ")]',
                 'link': './/tr//a/@href[contains(., "fwkaction=Detail")]',
+                'deferred_month': './/tr/td[@class="cel-texte"]',
             }
         else:
             self.logger.debug('There is only one card')
@@ -389,10 +390,10 @@ class CardsPage(MyLoggedPage, BasePage):
                            './/tr[last()-2]/td[@class="cel-num"] | '
                            './following-sibling::table[1]//tr[1][td[has-class("cel-neg")]]/td[@class="cel-num"]',
                 'currency': '//table/caption//span/text()[starts-with(.,"Montants en ")]',
+                'deferred_month': './/tr[last()-1]/td[@class="cel-texte"]',
             }
             TABLE_XPATH = '(//table[@class="ca-table"])[1]'
             cards_tables = self.doc.xpath(TABLE_XPATH)
-
 
         for table in cards_tables:
             get = lambda name: CleanText().filter(table.xpath(xpaths[name])[0])
@@ -405,8 +406,23 @@ class CardsPage(MyLoggedPage, BasePage):
             account._id = ' '.join(get('_id').split()[1:])
             account.label = '%s - %s' % (get('label1'),
                                          re.sub('\s*-\s*$', '', get('label2')))
+
+            # verifier l orthographe de Aout sur le site
+            months = ['Janvier', u'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Aout', 'Septembre', 'Octobre', 'Novembre', u'Décembre']
+
             try:
-                account.balance = Decimal(Transaction.clean_amount(table.xpath(xpaths['balance'])[-1].text))
+                # set balance at 0 if there is no deferred transactions for the new month
+                # in case of multiple cards, month is given as a number, else as a string
+                if get('deferred_month')[-6:-4].isdigit():
+                    deferred_month = int(get('deferred_month')[-3:-1])
+                else:
+                    deferred_month = months.index(get('deferred_month')[23:-2])+1
+                # test present date and last date from card account
+                if datetime.today().month > deferred_month % 12:
+                    account.balance = Decimal(0.0)
+                else:
+                    account.balance = Decimal(Transaction.clean_amount(table.xpath(xpaths['balance'])[-1].text))
+
                 account.currency = account.get_currency(self.doc
                         .xpath(xpaths['currency'])[0].replace("Montants en ", ""))
                 if not account.currency and currency:
