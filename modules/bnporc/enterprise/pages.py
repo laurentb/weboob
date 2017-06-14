@@ -272,7 +272,7 @@ class CardListPage(LoggedPage, JsonPage):
             obj__index = Dict('idCarte')
             obj__parent_iban = Env('parent_iban')
             obj_coming = Eval(lambda x: Decimal(x)/100, Dict('montant/montant'))
-
+            obj_currency = CleanText(Dict('montant/devise'))
 
 class CardHistoryPage(LoggedPage, JsonPage):
     @method
