@@ -391,16 +391,21 @@ class MarketPage(LoggedPage, HTMLPage):
         item_xpath = '//table/tbody/tr'
         head_xpath = '//table/thead/tr/th'
 
-        col_label = 'Nature'
+        col_label = ['Nature', u'Opération']
         col_amount = 'Montant'
-        col_date = ['Date d\'effet', 'Date']
+        col_date = ["Date d'effet", 'Date', u'Date opération']
 
         next_page = Link('//li[@class="pagination__next"]/a')
 
         class item(ItemElement):
             klass = Transaction
 
-            obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
+            def obj_date(self):
+                d = Date(CleanText(TableCell('date')), dayfirst=True, default=None)(self)
+                if d:
+                    return d
+                return Date(CleanText(TableCell('date')), parse_func=parse_french_date)(self)
+
             obj_raw = Transaction.Raw(CleanText(TableCell('label')))
             obj_amount = CleanDecimal(TableCell('amount'), replace_dots=True, default=NotAvailable)
             obj__is_coming = False
