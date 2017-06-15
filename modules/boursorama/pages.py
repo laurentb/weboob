@@ -187,11 +187,14 @@ class AccountsPage(LoggedPage, HTMLPage):
     def is_here(self):
         return not self.doc.xpath('//div[contains(@id, "alert-random")]')
 
-    ACCOUNT_TYPES = {u'Comptes courants':      Account.TYPE_CHECKING,
-                     u'Comptes épargne':       Account.TYPE_SAVINGS,
-                     u'Comptes bourse':        Account.TYPE_MARKET,
-                     u'Assurances Vie':        Account.TYPE_LIFE_INSURANCE,
-                     u'Mes crédits':           Account.TYPE_LOAN,
+    ACCOUNT_TYPES = {u'comptes courants':      Account.TYPE_CHECKING,
+                     u'cav':                   Account.TYPE_CHECKING,
+                     u'comptes épargne':       Account.TYPE_SAVINGS,
+                     u'epargne':               Account.TYPE_SAVINGS,
+                     u'comptes bourse':        Account.TYPE_MARKET,
+                     u'assurances vie':        Account.TYPE_LIFE_INSURANCE,
+                     u'assurance-vie':         Account.TYPE_LIFE_INSURANCE,
+                     u'mes crédits':           Account.TYPE_LOAN,
                      u'crédit':                Account.TYPE_LOAN,
                      u'prêt':                  Account.TYPE_LOAN,
                      u'pea':                   Account.TYPE_PEA,
@@ -199,7 +202,7 @@ class AccountsPage(LoggedPage, HTMLPage):
 
     @method
     class iter_accounts(ListElement):
-        item_xpath = '//table[@class="table table--accounts"]/tr[has-class("table__line--account") and count(descendant::td) > 1]'
+        item_xpath = '//table[@class="table table--accounts"]/tr[has-class("table__line--account") and count(descendant::td) > 1 and @data-line-account-href]'
 
         class item(ItemElement):
             klass = Account
@@ -233,8 +236,13 @@ class AccountsPage(LoggedPage, HTMLPage):
                     if v:
                         return v
 
+                for word in Field('url')(self).lower().split('/'):
+                    v = self.page.ACCOUNT_TYPES.get(word)
+                    if v:
+                        return v
+
                 category = CleanText('./preceding-sibling::tr[has-class("list--accounts--master")]//h4')(self)
-                v = self.page.ACCOUNT_TYPES.get(category)
+                v = self.page.ACCOUNT_TYPES.get(category.lower())
                 if v:
                     return v
 
