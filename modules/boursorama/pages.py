@@ -287,11 +287,13 @@ class HistoryPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Transaction
 
-            obj_id = Attr('.', 'data-id', default=NotAvailable) or Attr('.', 'data-custom-id')
             obj_raw = Transaction.Raw(CleanText('.//div[has-class("list__movement__line--label__name")]'))
             obj_date = Date(Attr('.//time', 'datetime'))
             obj_amount = CleanDecimal('.//div[has-class("list__movement__line--amount")]', replace_dots=True)
             obj_category = CleanText('.//div[has-class("category")]')
+
+            def obj_id(self):
+                return Attr('.', 'data-id', default=NotAvailable)(self) or Attr('.', 'data-custom-id')(self)
 
             def obj_type(self):
                 if not Env('is_card', default=False)(self):
