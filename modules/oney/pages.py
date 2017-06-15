@@ -92,16 +92,21 @@ class VirtKeyboard(MappedVirtKeyboard):
 
 class LoginPage(HTMLPage):
     def login(self, login, password):
-        vk = VirtKeyboard(self)
+        if login.isdigit():
+            vk = VirtKeyboard(self)
 
-        form = self.get_form('//form[@id="formulaire-login"]')
-        code = vk.get_string_code(password)
-        try:
-            assert len(code)==10
-        except AssertionError:
-            raise BrowserIncorrectPassword("Wrong number of character")
-        form['accordirect.identifiant'] = login
-        form['accordirect.code'] = code
+            form = self.get_form('//form[@id="formulaire-login"]')
+            code = vk.get_string_code(password)
+            try:
+                assert len(code)==10
+            except AssertionError:
+                raise BrowserIncorrectPassword("Wrong number of character")
+            form['accordirect.identifiant'] = login
+            form['accordirect.code'] = code
+        else:
+            form = self.get_form('//form[@id="formulaire-login-email"]')
+            form['email.identifiant'] = login
+            form['email.code'] = password
         form.submit()
 
 
@@ -111,14 +116,17 @@ class ChoicePage(LoggedPage, HTMLPage):
             yield self.browser.open('/site/s/login/loginidentifiant.html',
                                     data={'selectedSite': page_attrib}).page
 
+
 class DetailPage(LoggedPage, HTMLPage):
 
     def iter_accounts(self):
         return []
 
+
 # this page is to catch account that have unusable information and that we choosed to ignore for now
 class BadAccountPage(LoggedPage, HTMLPage):
     pass
+
 
 class ClientPage(LoggedPage, HTMLPage):
     is_here = "//div[@id='situation']"
