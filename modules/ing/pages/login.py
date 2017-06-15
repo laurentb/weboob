@@ -130,7 +130,8 @@ class ActionNeededPage(HTMLPage):
             form.submit()
         elif self.doc.xpath(u'//p[@class="cddErrorMessage"]'):
             error_message = CleanText(u'//p[@class="cddErrorMessage"]')(self.doc)
-            raise ActionNeeded(error_message.encode('utf-8'))
+            # TODO python2 handles unicode exceptions badly, fix when passing to python3
+            raise ActionNeeded(error_message.encode('ascii', 'replace'))
         else:
             raise ActionNeeded(CleanText(u'//form//h1[1]')(self.doc))
 
