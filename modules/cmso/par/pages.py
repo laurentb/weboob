@@ -247,7 +247,7 @@ class HistoryPage(LoggedPage, JsonPage):
                 # Skip duplicate transactions
                 amount = Dict('montantEnEuro', default=None)(self)
                 tr = Dict('libelleCourt')(self) + Dict('dateOperation')(self) + str(amount)
-                if amount is None or (tr in self.page.browser.trs['list'] and self.page.browser.trs['lastdate'] < Field('date')(self)):
+                if amount is None or (tr in self.page.browser.trs['list'] and self.page.browser.trs['lastdate'] <= Field('date')(self)):
                     raise SkipItem()
 
                 self.page.browser.trs['lastdate'] = Field('date')(self)
