@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
-import json
 import urlparse
 import re
 import datetime
@@ -41,6 +39,10 @@ from .pages import IndexPage, ErrorPage, MarketPage, LifeInsurance, GarbagePage,
 
 
 __all__ = ['CaisseEpargne']
+
+
+class ChangeBrowser(Exception):
+    pass
 
 
 class CaisseEpargne(LoginBrowser, StatesMixin):
@@ -120,29 +122,8 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         if data is None:
             raise BrowserIncorrectPassword()
 
-
         if "authMode" in data and data['authMode'] == 'redirect':
-            self.is_cenet_website = True
-
-            payload = {'contexte': '', 'dataEntree': None, 'donneesEntree': "{}", 'filtreEntree': "\"false\""}
-            res = self.cenet_vk.open(data=json.dumps(payload), headers={'Content-Type': "application/json"})
-            content = json.loads(res.content)
-            d = json.loads(content['d'])
-            end = json.loads(d['DonneesSortie'])
-
-            _id = end['Identifiant']
-            vk = CaissedepargneKeyboard(end['Image'], end['NumerosEncodes'])
-            code = vk.get_string_code(self.password)
-
-            post_data = {
-                'CodeEtablissement': data['codeCaisse'],
-                'NumeroBad': self.username,
-                'NumeroUtilisateur': self.nuser
-            }
-
-            self.location(data['url'], data=post_data, headers={'Referer': 'https://www.cenet.caisse-epargne.fr/'})
-
-            return self.page.login(self.username, self.password, self.nuser, data['codeCaisse'], _id, code)
+            raise ChangeBrowser()
 
         if len(data['account']) > 1:
             self.multi_type = True
@@ -194,74 +175,42 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     @need_login
     def get_accounts_list(self):
         if self.accounts is None:
-            # cenet website
-            if self.is_cenet_website is True:
-                headers = {
-                    'Content-Type': 'application/json; charset=UTF-8',
-                    'Accept': 'application/json, text/javascript, */*; q=0.01'
-                }
-
-                data = {
-                    'contexte': '',
-                    'dateEntree': None,
-                    'donneesEntree': 'null',
-                    'filtreEntree': None
-                }
-
-                try:
-                    self.accounts = [account for account in self.cenet_accounts.go(data=json.dumps(data), headers=headers).get_accounts()]
-                except ClientError:
-                    # Unauthorized due to wrongpass
-                    raise BrowserIncorrectPassword()
-
-                for account in self.accounts:
-                    try:
-                        account._cards = [card for card in self.cenet_cards.go(data=json.dumps(data), headers=headers).get_cards() \
-                                        if card['Compte']['Numero'] == account.id]
-                    except BrowserUnavailable:
-                        # for some accounts, the site can throw us an error, during weeks
-                        self.logger.warning('ignoring cards because site is unavailable...')
-                        account._cards = []
+            if self.home.is_here():
+                self.page.check_no_accounts()
+                self.page.go_list()
             else:
-                if self.home.is_here():
-                    self.page.check_no_accounts()
-                    self.page.go_list()
-                else:
-                    self.home.go()
+                self.home.go()
 
-                self.accounts = list(self.page.get_list())
-                for account in self.accounts:
-                    if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
-                        self.home_tache.go(tache='CPTSYNT0')
+            self.accounts = list(self.page.get_list())
+            for account in self.accounts:
+                if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
+                    self.home_tache.go(tache='CPTSYNT0')
+                    self.page.go_history(account._info)
+
+                    if self.message.is_here():
+                        self.page.submit()
                         self.page.go_history(account._info)
 
-                        if self.message.is_here():
-                            self.page.submit()
-                            self.page.go_history(account._info)
+                    # Some users may not have access to this.
+                    if not self.market.is_here():
+                        continue
 
-                        # Some users may not have access to this.
-                        if not self.market.is_here():
-                            continue
+                    self.page.submit()
 
-                        self.page.submit()
+                    if self.page.is_error():
+                        continue
 
-                        if self.page.is_error():
-                            continue
+                    self.garbage.go()
 
-                        self.garbage.go()
-
-                        if self.garbage.is_here():
-                            continue
-                        self.page.get_valuation_diff(account)
+                    if self.garbage.is_here():
+                        continue
+                    self.page.get_valuation_diff(account)
         return iter(self.accounts)
 
     @need_login
     def get_loans_list(self):
         if self.loans is None:
             self.loans = []
-
-            if self.is_cenet_website is True:
-                return iter([])
 
             if self.home.is_here():
                 if self.page.check_no_accounts() or self.page.check_no_loans():
@@ -286,18 +235,6 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                     break
 
         return iter(self.loans)
-
-    @need_login
-    def get_account(self, id):
-        assert isinstance(id, basestring)
-
-        l = self.get_accounts_list()
-
-        for a in l:
-            if a.id == id:
-                return a
-
-        return None
 
     @need_login
     def _get_history(self, info):
@@ -354,35 +291,6 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
     @need_login
     def get_history(self, account):
-        if self.is_cenet_website is True:
-            # cenet website
-            headers = {
-                'Content-Type': 'application/json; charset=UTF-8',
-                'Accept': 'application/json, text/javascript, */*; q=0.01'
-            }
-
-            data = {
-                'contexte': '',
-                'dateEntree': None,
-                'filtreEntree': None,
-                'donneesEntree': json.dumps(account._formated),
-            }
-
-            items = []
-            while True:
-                self.cenet_account_history.go(data=json.dumps(data), headers=headers)
-                for tr in self.page.get_history():
-                    items.append(tr)
-
-                offset = self.page.next_offset()
-                if not offset:
-                    break
-
-                data['filtreEntree'] = json.dumps({
-                    'Offset': offset,
-                })
-
-            return items
         if not hasattr(account, '_info'):
             raise NotImplementedError
         if account.type is Account.TYPE_LIFE_INSURANCE:
@@ -393,40 +301,18 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     def get_coming(self, account):
         trs = []
 
-        if self.is_cenet_website is True:
-            # cenet website
-            headers = {
-                'Content-Type': 'application/json; charset=UTF-8',
-                'Accept': 'application/json, text/javascript, */*; q=0.01'
-            }
-
-            for card in account._cards:
-                data = {
-                    'contexte': '',
-                    'dateEntree': None,
-                    'donneesEntree': json.dumps(card),
-                    'filtreEntree': None
-                }
-
-                for tr in self.cenet_account_coming.go(data=json.dumps(data), headers=headers).get_history():
-                    trs.append(tr)
-        else:
-            if not hasattr(account, '_info'):
-                raise NotImplementedError()
-            for info in account._card_links:
-                for tr in self._get_history(info.copy()):
-                    tr.type = tr.TYPE_DEFERRED_CARD
-                    tr.nopurge = True
-                    trs.append(tr)
+        if not hasattr(account, '_info'):
+            raise NotImplementedError()
+        for info in account._card_links:
+            for tr in self._get_history(info.copy()):
+                tr.type = tr.TYPE_DEFERRED_CARD
+                tr.nopurge = True
+                trs.append(tr)
 
         return iter(sorted(trs, key=lambda t: t.rdate, reverse=True))
 
     @need_login
     def get_investment(self, account):
-        if self.is_cenet_website is True:
-            # not available for the moment
-            return
-
         if account.type not in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET, Account.TYPE_PEA):
             raise NotImplementedError()
         if self.home.is_here():
@@ -468,22 +354,16 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
     @need_login
     def get_advisor(self):
-        if not self.is_cenet_website:
-            raise NotImplementedError()
-
-        return iter([self.cenet_home.stay_or_go().get_advisor()])
+        raise NotImplementedError()
 
     @need_login
     def get_profile(self):
-        if not self.is_cenet_website:
-            from weboob.tools.misc import to_unicode
-            profile = Profile()
-            if 'username=' in self.session.cookies.get('CTX', ''):
-                profile.name = to_unicode(re.search('username=([^&]+)', self.session.cookies['CTX']).group(1))
-            elif 'nomusager=' in self.session.cookies.get('headerdei'):
-                profile.name = to_unicode(re.search('nomusager=(?:[^&]+/ )?([^&]+)', self.session.cookies['headerdei']).group(1))
-        else:
-            profile = self.cenet_home.stay_or_go().get_profile()
+        from weboob.tools.misc import to_unicode
+        profile = Profile()
+        if 'username=' in self.session.cookies.get('CTX', ''):
+            profile.name = to_unicode(re.search('username=([^&]+)', self.session.cookies['CTX']).group(1))
+        elif 'nomusager=' in self.session.cookies.get('headerdei'):
+            profile.name = to_unicode(re.search('nomusager=(?:[^&]+/ )?([^&]+)', self.session.cookies['headerdei']).group(1))
         return profile
 
     @need_login
@@ -501,9 +381,6 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         return self.page.iter_recipients(account_id=origin_account.id)
 
     def pre_transfer(self, account):
-        if self.is_cenet_website is True:
-            # not available for the moment
-            raise NotImplementedError()
         if self.home.is_here():
             self.page.go_list()
         else:
