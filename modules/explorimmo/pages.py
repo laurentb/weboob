@@ -244,7 +244,15 @@ class HousingPage2(JsonPage):
             details['available'] = Dict(
                 'characteristics/isAvailable', default=NotAvailable
             )(self)
-            details['agency'] = Dict('agency', default=NotAvailable)(self)
+            agency = Dict('agency', default=NotAvailable)(self)
+            details['agency'] = ', '.join([
+                x for x in [
+                    agency.get('corporateName', ''),
+                    agency.get('corporateAddress', ''),
+                    agency.get('corporatePostalCode', ''),
+                    agency.get('corporateCity', '')
+                ] if x
+            ])
             return details
 
     def get_total_page(self):
