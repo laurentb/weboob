@@ -191,6 +191,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                      u'cav':                   Account.TYPE_CHECKING,
                      u'comptes épargne':       Account.TYPE_SAVINGS,
                      u'epargne':               Account.TYPE_SAVINGS,
+                     u'ord':                   Account.TYPE_MARKET,
                      u'comptes bourse':        Account.TYPE_MARKET,
                      u'assurances vie':        Account.TYPE_LIFE_INSURANCE,
                      u'assurance-vie':         Account.TYPE_LIFE_INSURANCE,
