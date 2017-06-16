@@ -172,11 +172,11 @@ class HousingPage(HTMLPage):
 
 
 class SearchPage(HTMLPage):
-    def do_search(self, query):
+    def do_search(self, query, cities):
         form = self.get_form('//form[@name="searchForm"]')
 
         form['searchForm[type]'] = QUERY_TYPES.get(query.type, None)
-        form['searchForm[localisation]'] = ','.join(city.name for city in query.cities)
+        form['searchForm[localisation]'] = cities
         form['searchForm[type_bien][]'] = []
         for house_type in query.house_types:
             try:

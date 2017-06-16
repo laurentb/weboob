@@ -46,4 +46,10 @@ class FonciaModule(Module, CapHousing):
         return self.browser.get_cities(pattern)
 
     def search_housings(self, query):
-        return self.browser.search_housings(query)
+        cities = ','.join(
+            ['%s' % c.name for c in query.cities if c.backend == self.name]
+        )
+        if len(cities) == 0:
+            return []
+
+        return self.browser.search_housings(query, cities)

@@ -40,7 +40,7 @@ class FonciaBrowser(PagesBrowser):
         """
         return self.cities.open(term=pattern).iter_cities()
 
-    def search_housings(self, query):
+    def search_housings(self, query, cities):
         """
         Search for housings matching given query.
         """
@@ -49,7 +49,7 @@ class FonciaBrowser(PagesBrowser):
         except KeyError:
             return []
 
-        self.search.go(type=query_type).do_search(query)
+        self.search.go(type=query_type).do_search(query, cities)
         return self.page.iter_housings()
 
     def get_housing(self, housing):
