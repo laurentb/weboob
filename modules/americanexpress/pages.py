@@ -186,6 +186,20 @@ class TransactionsPage(LoggedPage, HTMLPage):
 
         guesser = ChaoticDateGuesser(beginning_date, end_date)
 
+        #Since the site doesn't provide the debit_date,
+        #we just use the date of beginning of the previous period.
+        #If this date + 1 month is greater than today's date,
+        #then the transaction is coming
+        previous_text_debit_date = CleanText().filter(self.doc.xpath('//td[@id="colStatementBalance"]/div[3]'))
+        if previous_text_debit_date != u'':
+            day, month, year = previous_text_debit_date.split()[1:4]
+            day = int(day)
+            month = self.parse_month(month) +1
+            year = int(year)
+            end_of_period = datetime.date(day=day, month=month, year=year)
+        else:
+            end_of_period = None
+
         for tr in reversed(self.doc.xpath('//div[@id="txnsSection"]//tbody/tr[@class="tableStandardText"]')):
             cols = tr.findall('td')
 
@@ -213,6 +227,10 @@ class TransactionsPage(LoggedPage, HTMLPage):
             raw = (' '.join([txt.strip() for txt in cols[self.COL_TEXT].itertext()])).strip()
             credit = CleanText().filter(cols[self.COL_CREDIT])
             debit = CleanText().filter(cols[self.COL_DEBIT])
+            if end_of_period != None and datetime.date.today() < end_of_period:
+                t._is_coming = True
+            else:
+                t._is_coming = False
 
             t.date = t.rdate = date
             t.vdate = vdate
@@ -222,6 +240,6 @@ class TransactionsPage(LoggedPage, HTMLPage):
             if t.amount > 0:
                 t.type = t.TYPE_ORDER
             else:
-                t.type = t.TYPE_CARD
+                t.type = t.TYPE_DEFERRED_CARD
 
             yield t

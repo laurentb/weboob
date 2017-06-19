@@ -47,6 +47,9 @@ class AmericanExpressBrowser(LoginBrowser):
 
     transactions = URL('/myca/intl/estatement/.*', TransactionsPage)
 
+    def __init__(self, *args, **kwargs):
+        super(AmericanExpressBrowser, self).__init__(*args, **kwargs)
+        self.cache = {}
 
     def do_login(self):
         assert isinstance(self.username, basestring)
@@ -94,31 +97,38 @@ class AmericanExpressBrowser(LoginBrowser):
 
     @need_login
     def get_history(self, account):
-        if not self.accounts.is_here():
-            self.go_on_accounts_list()
+        if self.cache.get(account.id,None) == None:
+            self.cache[account.id] = {}
+            self.cache[account.id]["history"] = []
+            if not self.accounts.is_here():
+                self.go_on_accounts_list()
 
-        url = account.url
-        if not url:
-            return
+            url = account.url
+            if not url:
+                return
 
-        while url is not None:
-            if self.accounts.is_here() or self.accounts2.is_here():
-                self.location(url)
-            else:
-                form = self.page.get_form(name='leftnav')
-                form.url = url
-                form.submit()
+            while url is not None:
+                if self.accounts.is_here() or self.accounts2.is_here():
+                    self.location(url)
+                else:
+                    form = self.page.get_form(name='leftnav')
+                    form.url = url
+                    form.submit()
 
-            assert self.transactions.is_here()
+                assert self.transactions.is_here()
 
-            trs = sorted_transactions(self.page.get_history(account.currency))
-            for tr in trs:
+                trs = sorted_transactions(self.page.get_history(account.currency))
+                for tr in trs:
+                    self.cache[account.id]["history"] += [tr]
+                    yield tr
+
+                if self.page.is_last():
+                    url = None
+                else:
+                    v = urlsplit(url)
+                    args = dict(parse_qsl(v.query))
+                    args['BPIndex'] = int(args['BPIndex']) + 1
+                    url = '%s?%s' % (v.path, urlencode(args))
+        else:
+            for tr in self.cache[account.id]["history"]:
                 yield tr
-
-            if self.page.is_last():
-                url = None
-            else:
-                v = urlsplit(url)
-                args = dict(parse_qsl(v.query))
-                args['BPIndex'] = int(args['BPIndex']) + 1
-                url = '%s?%s' % (v.path, urlencode(args))
