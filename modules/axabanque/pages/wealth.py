@@ -50,15 +50,13 @@ class AccountsPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Account
 
-            load_details = Attr('.', 'data-redirect') & AsyncLoad
-
             condition = lambda self: Field('balance')(self) is not NotAvailable
 
             obj_id = Regexp(CleanText('.//h2/small'), '(\d+)')
             obj_label = CleanText('.//h2/text()')
             obj_balance = MyDecimal('.//span[has-class("card-amount")]')
             obj_valuation_diff = MyDecimal('.//p[@class="card-description"]')
-            obj__link = Async('details') & Attr(u'//a[@data-target][.//div[@class="amount"]]', 'data-target')
+            obj_url = Attr('.', 'data-redirect')
             obj__acctype = "investment"
 
             def obj_type(self):
@@ -110,10 +108,13 @@ class HistoryPage(LoggedPage, HTMLPage):
             content = "<html></html>"
         return super(HistoryPage, self).build_doc(content)
 
-    def get_investment_link(self):
+    def get_account_url(self, url):
+        return Attr(u'//a[@href="%s"]' % url, 'data-target')(self.doc)
+
+    def get_investment_url(self):
         return Attr('//article[has-class("card-distribution")]', 'data-url', default=None)(self.doc)
 
-    def get_pagination_link(self):
+    def get_pagination_url(self):
         return Attr('//div[has-class("default")][@data-current-page]', 'data-url')(self.doc)
 
     @method
@@ -135,7 +136,7 @@ class HistoryPage(LoggedPage, HTMLPage):
         def next_page(self):
             self.page.browser.skip += 10
             return None if not CleanText(self.item_xpath, default=None)(self) else \
-                   "%s?skip=%s" % (Env('pagination_link')(self), self.page.browser.skip)
+                   "%s?skip=%s" % (Env('pagination_url')(self), self.page.browser.skip)
 
         class item(ItemElement):
             klass = Transaction

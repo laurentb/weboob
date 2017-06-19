@@ -162,21 +162,26 @@ class AXABanque(AXABrowser):
             self.location(target, data=args)
 
     @need_login
+    def go_wealth_pages(self, account):
+        self.wealth_accounts.go()
+        self.location(account.url)
+        self.location(self.page.get_account_url(account.url))
+
+    @need_login
     def iter_investment(self, account):
         if account.id not in self.cache['invs']:
-            invs = []
             # do we still need it ?...
             if account._acctype == "bank" and account._hasinv:
                 self.go_account_pages(account, "investment")
-                invs = list(self.page.iter_investment())
             elif account._acctype == "investment":
-                investment_link = self.location(account._link).page.get_investment_link()
-                if investment_link is None:
+                self.go_wealth_pages(account)
+                investment_url = self.page.get_investment_url()
+                if investment_url is None:
                     self.logger.warning('no investment link for account %s, returning empty', account)
                     # fake data, don't cache it
                     return []
-                invs = list(self.location(investment_link).page.iter_investment())
-            self.cache['invs'][account.id] = invs
+                self.location(investment_url)
+            self.cache['invs'][account.id] = list(self.page.iter_investment())
         return self.cache['invs'][account.id]
 
     @need_login
@@ -195,10 +200,11 @@ class AXABanque(AXABrowser):
 
         # Side investment's website
         if account._acctype == "investment":
-            pagination_link = self.location(self.wealth_accounts.urls[0][:-1] + account._link).page.get_pagination_link()
-            self.location(pagination_link, params={'skip': 0})
+            self.go_wealth_pages(account)
+            pagination_url = self.page.get_pagination_url()
+            self.location(pagination_url, params={'skip': 0})
             self.skip = 0
-            for tr in self.page.iter_history(pagination_link=pagination_link):
+            for tr in self.page.iter_history(pagination_url=pagination_url):
                 yield tr
         # Main website withouth investments
         elif account._acctype == "bank" and not account._hasinv:
@@ -213,12 +219,17 @@ class AXAAssurance(AXABrowser):
 
     accounts = URL('/accueil.html', WealthAccountsPage)
     investment = URL('/content/ecc-popin-cards/savings/(\w+)/repartition', InvestmentPage)
-    history = URL('.*accueil/savings/(\w+)/contract', HistoryPage)
+    history = URL('.*accueil/savings/(\w+)/contract',
+                  'https://espaceclient.axa.fr/#', HistoryPage)
 
     def __init__(self, *args, **kwargs):
         super(AXAAssurance, self).__init__(*args, **kwargs)
         self.cache = {}
         self.cache['invs'] = {}
+
+    def go_wealth_pages(self, account):
+        self.location("/" + account.url)
+        self.location(self.page.get_account_url(account.url))
 
     @need_login
     def iter_accounts(self):
@@ -229,14 +240,21 @@ class AXAAssurance(AXABrowser):
     @need_login
     def iter_investment(self, account):
         if account.id not in self.cache['invs']:
-            investment_link = self.location(account._link).page.get_investment_link()
-            self.cache['invs'][account.id] = list(self.location(investment_link).page.iter_investment())
+            self.go_wealth_pages(account)
+            investment_url = self.page.get_investment_url()
+            if investment_url is None:
+                self.logger.warning('no investment link for account %s, returning empty', account)
+                # fake data, don't cache it
+                return []
+            self.location(investment_url)
+            self.cache['invs'][account.id] = list(self.page.iter_investment())
         return self.cache['invs'][account.id]
 
     @need_login
     def iter_history(self, account):
-        pagination_link = self.location(account._link).page.get_pagination_link()
-        self.location(pagination_link, params={'skip': 0})
+        self.go_wealth_pages(account)
+        pagination_url = self.page.get_pagination_url()
+        self.location(pagination_url, params={'skip': 0})
         self.skip = 0
-        for tr in self.page.iter_history(pagination_link=pagination_link):
+        for tr in self.page.iter_history(pagination_url=pagination_url):
             yield tr
