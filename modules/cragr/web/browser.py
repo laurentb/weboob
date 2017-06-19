@@ -334,7 +334,7 @@ class Cragr(LoginBrowser, StatesMixin):
                     break
 
         # be sure that we send accounts with balance
-        return [acc for acc in accounts_list if account.balance is not NotLoaded]
+        return [acc for acc in accounts_list if acc.balance is not NotLoaded]
 
     @need_login
     def get_history(self, account):
