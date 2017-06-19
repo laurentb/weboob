@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import re
 from datetime import datetime
 
 from weboob.browser.pages import JsonPage, XMLPage
@@ -49,6 +50,9 @@ class EntreParticuliersXMLPage(XMLPage):
     def build_doc(self, content):
         from weboob.tools.json import json
         json_content = json.loads(content).get('d') or u'<Annonce></Annonce>'
+        # Fix for invalid encoding sometimes returned by Entreparticuliers
+        # see https://stackoverflow.com/questions/3136954/xml-parse-error-on-illegal-character
+        json_content = re.sub('&#x1A;', ' ', json_content, flags=re.I)
         return super(EntreParticuliersXMLPage, self).build_doc(json_content.encode(self.ENCODING))
 
 
