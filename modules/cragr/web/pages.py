@@ -378,7 +378,6 @@ class CardsPage(MyLoggedPage, BasePage):
                 'balance': './/tr/td[@class="cel-num"]',
                 'currency': '//table/caption//span/text()[starts-with(.,"Montants en ")]',
                 'link': './/tr//a/@href[contains(., "fwkaction=Detail")]',
-                'deferred_month': './/tr/td[@class="cel-texte"]',
             }
         else:
             self.logger.debug('There is only one card')
@@ -390,7 +389,6 @@ class CardsPage(MyLoggedPage, BasePage):
                            './/tr[last()-2]/td[@class="cel-num"] | '
                            './following-sibling::table[1]//tr[1][td[has-class("cel-neg")]]/td[@class="cel-num"]',
                 'currency': '//table/caption//span/text()[starts-with(.,"Montants en ")]',
-                'deferred_month': './/tr[last()-1]/td[@class="cel-texte"]',
             }
             TABLE_XPATH = '(//table[@class="ca-table"])[1]'
             cards_tables = self.doc.xpath(TABLE_XPATH)
@@ -407,18 +405,15 @@ class CardsPage(MyLoggedPage, BasePage):
             account.label = '%s - %s' % (get('label1'),
                                          re.sub('\s*-\s*$', '', get('label2')))
 
-            # verifier l orthographe de Aout sur le site
-            months = ['Janvier', u'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Aout', 'Septembre', 'Octobre', 'Novembre', u'Décembre']
-
             try:
                 # set balance at 0 if there is no deferred transactions for the new month
-                # in case of multiple cards, month is given as a number, else as a string
-                if get('deferred_month')[-6:-4].isdigit():
-                    deferred_month = int(get('deferred_month')[-3:-1])
-                else:
-                    deferred_month = months.index(get('deferred_month')[23:-2])+1
-                # test present date and last date from card account
-                if datetime.today().month > deferred_month % 12:
+                date_guesser = LinearDateGuesser()
+                tr = None
+                for _, tr in self.get_history(date_guesser, fetch_summary=True):
+                    assert tr.type == Transaction.TYPE_CARD_SUMMARY
+                    break
+                # test present date and summary date from card account
+                if tr is None or tr.date < datetime.today():
                     account.balance = Decimal(0.0)
                 else:
                     account.balance = Decimal(Transaction.clean_amount(table.xpath(xpaths['balance'])[-1].text))
@@ -461,7 +456,7 @@ class CardsPage(MyLoggedPage, BasePage):
 
         return None
 
-    def get_history(self, date_guesser, state=None):
+    def get_history(self, date_guesser, state=None, fetch_summary=False):
         seen = set()
         lines = self.doc.xpath('(//table[@class="ca-table"])[2]/tr')
         debit_date = None
@@ -488,7 +483,7 @@ class CardsPage(MyLoggedPage, BasePage):
                     debit_date = state
 
                 # Skip the first line because it is balance
-                if i == 0:
+                if i == 0 and not fetch_summary:
                     continue
 
                 t.date = t.rdate = debit_date
