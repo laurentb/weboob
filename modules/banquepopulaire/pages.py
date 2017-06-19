@@ -249,6 +249,10 @@ class ErrorPage(LoggedPage, MyHTMLPage):
 
 class UnavailablePage(LoggedPage, MyHTMLPage):
     def on_load(self):
+        h1 = CleanText('//h1[1]')(self.doc)
+        if "est indisponible" in h1:
+            raise BrowserUnavailable(h1)
+
         a = Link('//a[@class="btn"][1]')(self.doc)
         if not a:
             raise BrowserUnavailable()
