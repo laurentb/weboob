@@ -294,12 +294,7 @@ class HistoryPage(LoggedPage, HTMLPage):
             obj_category = CleanText('.//div[has-class("category")]')
 
             def obj_id(self):
-                v = Attr('.', 'data-id', default=NotAvailable)(self) or Attr('.', 'data-custom-id', default=NotAvailable)(self)
-                if v:
-                    return v
-
-                assert Attr('.', 'data-deffered')(self) == '1'
-                return v
+                return Attr('.', 'data-id', default=NotAvailable)(self) or Attr('.', 'data-custom-id', default=NotAvailable)(self)
 
             def obj_type(self):
                 if not Env('is_card', default=False)(self):
