@@ -172,7 +172,7 @@ class HistoryPage(LoggedPage, HTMLPage):
 
                         yield sub
 
-            obj_date = Date(Regexp(CleanText('./ancestor::div[starts-with(@id, "term")/'
+            obj_date = Date(Regexp(CleanText('./ancestor::div[starts-with(@id, "term")]/'
                                             'preceding-sibling::h3[1]//div[contains(text(), "Date")]'),
                                 r'\d{2}\/\d{2}\/\d{4}'),
                             dayfirst=True)
