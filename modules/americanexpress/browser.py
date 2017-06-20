@@ -97,7 +97,7 @@ class AmericanExpressBrowser(LoginBrowser):
 
     @need_login
     def get_history(self, account):
-        if self.cache.get(account.id,None) == None:
+        if self.cache.get(account.id, None) is None:
             self.cache[account.id] = {}
             self.cache[account.id]["history"] = []
             if not self.accounts.is_here():
