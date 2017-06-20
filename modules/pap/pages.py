@@ -157,6 +157,7 @@ class HousingPage(HTMLPage):
 
         def obj_phone(self):
             phone = CleanText('(//div[has-class("tel-wrapper")])[1]')(self)
+            phone = phone.replace(' ', ', ')
             return phone.strip()
 
         obj_url = BrowserURL('housing', _id=Env('_id'))
