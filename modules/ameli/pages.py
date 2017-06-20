@@ -147,7 +147,7 @@ class PaymentDetailsPage(AmeliBasePage):
 
                     # TO TEST : Indemnités journalières : Pas pu tester de cas de figure similaire dans la nouvelle mouture du site
                     if len(tds) == 4:
-                        date_str = Regexp(r'.*<br/>(\d+/\d+/\d+)\).*', '\\1')(tds[0].text)
+                        date_str = Regexp(pattern=r'.*<br/>(\d+/\d+/\d+)\).*').filter(tds[0].text)
                         det.id = id + "." + str(line)
                         det.label = unicode(tds[0].xpath('.//span')[0].text.strip())
 
