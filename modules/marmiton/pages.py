@@ -57,7 +57,7 @@ class RecipePage(HTMLPage):
         obj_id = Env('id')
         obj_title = CleanText('//h1[has-class("m_title")]')
         obj_preparation_time = Type(CleanText('//span[@class="preptime"]'), type=int)
-        obj_cooking_time = Type(CleanText('//span[@class="cooktime"]'), type=int)
+        obj_cooking_time = Type(CleanText('//span[@class="cooktime"]'), type=int, default=0)
 
         def obj_nb_person(self):
             nb_pers = Regexp(CleanText('//div[@class="m_content_recette_ingredients m_avec_substitution"]/span[1]'),
