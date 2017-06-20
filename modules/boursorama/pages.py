@@ -456,11 +456,12 @@ class MarketPage(LoggedPage, HTMLPage):
                 t = Transaction()
 
                 t.date = Date(CleanText(page.doc.xpath('//span[contains(text(), "Date d\'effet")]/following-sibling::span')), dayfirst=True)(page)
-                t.label  = label
+                t.label = label
                 t.amount = CleanDecimal(replace_dots=True).filter(amounts[0])
                 amounts.pop(0)
                 t._is_coming = False
                 t.investments = []
+                sum_amount = 0
                 for tr in table.xpath('./tbody/tr'):
                     i = Investment()
                     i.label = CleanText().filter(tr.xpath('./td[1]'))
@@ -468,7 +469,11 @@ class MarketPage(LoggedPage, HTMLPage):
                     i.unitvalue = CleanDecimal(replace_dots=True).filter(tr.xpath('./td[3]'))
                     i.quantity = CleanDecimal(replace_dots=True).filter(tr.xpath('./td[4]'))
                     i.valuation = CleanDecimal(replace_dots=True).filter(tr.xpath('./td[5]'))
+                    sum_amount += i.valuation
                     t.investments.append(i)
+
+                if t.label == 'prélèvement':
+                    t.amount = sum_amount
 
                 yield t
 
