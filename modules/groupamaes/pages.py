@@ -95,8 +95,8 @@ class GroupamaesPage(LoggedPage, HTMLPage):
 
     @method
     class get_history(TableElement):
-        head_xpath = u'//table[@summary="Liste des opérations"]/thead/tr/th/text()'
-        item_xpath = u'//table[@summary="Liste des opérations"]/tbody/tr'
+        head_xpath = u'(//table[@summary="Liste des opérations"])[1]/thead/tr/th/text()'
+        item_xpath = u'(//table[@summary="Liste des opérations"])[1]/tbody/tr'
 
         col_date = u'Date'
         col_operation = u'Opération'
