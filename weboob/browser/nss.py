@@ -120,6 +120,16 @@ class FileWrapper(object):
             ret = wrap_callable(ret)
         return ret
 
+    # for python3 only
+    def readinto(self, b):
+        data = self.read(len(b))
+        b[:len(data)] = data
+        return len(data)
+
+    # for python3 only
+    def flush(self):
+        pass # nss always flushes data?
+
 
 class Wrapper(object):
     def __init__(self, obj):
@@ -178,7 +188,7 @@ def ssl_wrap_socket(sock, *args, **kwargs):
         nsssock.set_auth_certificate_callback(auth_cert_pinning, kwargs['ca_certs'])
 
     nsssock.reset_handshake(False) # marks handshake as not-done
-    wrapper.send('') # performs handshake
+    wrapper.send(b'') # performs handshake
 
     return wrapper
 
