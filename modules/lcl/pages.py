@@ -192,7 +192,7 @@ class ContractsChoicePage(ContractsPage):
     def on_load(self):
         if self.is_error():
             raise BrowserIncorrectPassword()
-        self.browser.contracts = self.doc.xpath('//input[@name="contratId"]/@value')
+        self.browser.contracts = [unicode(x) for x in self.doc.xpath('//input[@name="contratId"]/@value')]
         if not self.logged and not self.browser.current_contract:
             self.select_contract()
 

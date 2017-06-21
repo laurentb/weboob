@@ -109,6 +109,16 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         self.current_contract = None
         self.contracts = None
 
+    def load_state(self, state):
+        super(LCLBrowser, self).load_state(state)
+
+        # lxml _ElementStringResult were put in the state, convert them to plain strs
+        # TODO to remove at some point
+        if self.contracts:
+            self.contracts = [unicode(s) for s in self.contracts]
+        if self.current_contract:
+            self.current_contract = unicode(self.current_contract)
+
     def do_login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
