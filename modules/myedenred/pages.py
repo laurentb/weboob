@@ -26,7 +26,8 @@ from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Format, Field,
     Regexp, Slugify, DateGuesser
 )
-from weboob.capabilities.bill import Bill, Subscription
+from weboob.capabilities.bank import Account, Transaction
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.date import LinearDateGuesser
 from datetime import timedelta
@@ -42,15 +43,15 @@ class LoginPage(HTMLPage):
         return CleanText('//li[@class="notification-summary-message-error"][1]')(self.doc)
 
 
-class SubscriptionsPage(LoggedPage, HTMLPage):
+class AccountsPage(LoggedPage, HTMLPage):
     @method
-    class iter_subscriptions(ListElement):
+    class iter_accounts(ListElement):
         item_xpath = '//ul[@id="navSideProducts"]/li'
 
         class item(ItemElement):
-            klass = Subscription
+            klass = Account
 
-            obj_subscriber = CleanText('//span[@class="wording"]')
+            obj_type = FrenchTransaction.TYPE_CARD
             obj_id = CleanText('./a/p', replace=[('N° ', '')])
             obj_label = obj_id
 
@@ -59,13 +60,13 @@ class SubscriptionsPage(LoggedPage, HTMLPage):
             obj__product_type = Regexp(CleanText('(//div[@class="logo"])[1]//img/@src'), "/img/product_(\d*).png")
 
 
-class DocumentsPage(LoggedPage, HTMLPage):
+class TransactionsPage(LoggedPage, HTMLPage):
     @method
-    class iter_documents(ListElement):
+    class iter_transactions(ListElement):
         item_xpath = '(//table[contains(@class, "table-transaction")])[1]/tbody/tr'
 
         class item(ItemElement):
-            klass = Bill
+            klass = Transaction
 
             # We have no better id than date-hour-marketname slugified
             obj__newid = Format('%s%s%s',
@@ -75,6 +76,6 @@ class DocumentsPage(LoggedPage, HTMLPage):
             obj_id = Slugify(Field('_newid'))
             obj_date = DateGuesser(CleanText('.//span[contains(., "/")]'), LinearDateGuesser(date_max_bump=timedelta(45)))
             obj_label = Format('Facture %s', CleanText('.//h3/strong'))
-            obj_type = 'bill'
+            obj_type = Transaction.TYPE_CARD
             obj_price = MyDecimal('./td[@class="al-r"]')
             obj_currency = "€"

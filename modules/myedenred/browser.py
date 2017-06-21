@@ -21,15 +21,15 @@ from __future__ import unicode_literals
 
 from weboob.browser import LoginBrowser, URL, need_login
 
-from .pages import LoginPage, SubscriptionsPage, DocumentsPage
+from .pages import LoginPage, AccountsPage, TransactionsPage
 
 
 class MyedenredBrowser(LoginBrowser):
     BASEURL = 'https://www.myedenred.fr'
 
     login = URL(r'/ctr\?Length=7', LoginPage)
-    subscriptions = URL(r'/$', SubscriptionsPage)
-    documents = URL('/Card/TransactionSet', DocumentsPage)
+    accounts = URL(r'/$', AccountsPage)
+    transactions = URL('/Card/TransactionSet', TransactionsPage)
 
     def __init__(self, *args, **kwargs):
         super(MyedenredBrowser, self).__init__(*args, **kwargs)
@@ -41,14 +41,14 @@ class MyedenredBrowser(LoginBrowser):
                             'X-Requested-With': 'XMLHttpRequest', 'ReturnUrl': '/'})
 
     @need_login
-    def get_subscription_list(self):
-        return self.subscriptions.stay_or_go().iter_subscriptions()
+    def get_accounts_list(self):
+        return self.accounts.stay_or_go().iter_accounts()
 
     @need_login
-    def iter_documents(self, subscription):
-        documents = self.documents.go(data={'command': 'Charger les 10 transactions suivantes',
-                                            'ErfBenId': subscription._product_token,
-                                            'ProductCode': subscription._product_type,
+    def iter_history(self, account):
+        history = self.transactions.go(data={'command': 'Charger les 10 transactions suivantes',
+                                            'ErfBenId': account._product_token,
+                                            'ProductCode': account._product_type,
                                             'SortBy': 'DateOperation',
                                             'StartDate': '',
                                             'EndDate': '',
@@ -57,6 +57,6 @@ class MyedenredBrowser(LoginBrowser):
                                             'failed': 'false',
                                             'X-Requested-With': 'XMLHttpRequest'
                                             })
-        if subscription.id not in self.docs:
-            self.docs[subscription.id] = [d for d in documents.iter_documents(subid=subscription.id)]
-        return self.docs[subscription.id]
+        if account.id not in self.docs:
+            self.docs[account.id] = [d for d in history.iter_transactions(subid=account.id)]
+        return self.docs[account.id]
