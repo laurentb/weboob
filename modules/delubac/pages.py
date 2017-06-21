@@ -33,11 +33,10 @@ from weboob.capabilities.base import NotAvailable
 
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile(u'^CARTE DU'), FrenchTransaction.TYPE_CARD),
-                (re.compile(u'^VIR (SEPA)? (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
-                (re.compile(u'^Vir (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
+                (re.compile(u'^(VIR (SEPA)?|Vir|VIR.)(?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
                 (re.compile(u'^VIREMENT DE (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
-                (re.compile(u'^CHQ (?P<text>.*)'), FrenchTransaction.TYPE_CHECK),
-                (re.compile(u'^PRLV SEPA (?P<text>.*)'), FrenchTransaction.TYPE_ORDER),
+                (re.compile(u'^(CHQ|CHEQUE) (?P<text>.*)'), FrenchTransaction.TYPE_CHECK),
+                (re.compile(u'^(PRLV SEPA|PRELEVEMENT) (?P<text>.*)'), FrenchTransaction.TYPE_ORDER),
                 ]
 
 
@@ -107,6 +106,8 @@ class DelubacVirtKeyboard(GridVirtKeyboard):
 
 
 class LoginPage(HTMLPage):
+    VK_CLASS = DelubacVirtKeyboard
+
     def login(self, username, password):
         for script in self.doc.xpath('//script'):
             m = re.search("session='([^']+)'", script.text or '')
@@ -116,15 +117,20 @@ class LoginPage(HTMLPage):
             if m:
                 codes = m.group(1).split(',')
 
-        vk = DelubacVirtKeyboard(self.browser, session, codes)
+        vk = self.VK_CLASS(self.browser, session, codes)
 
         form = self.get_form(name='codeident')
+
         form['identifiant'] = username
         form['motpasse'] = vk.get_string_code(password)
         form['CodSec'] = vk.get_string_code(password)
         form['modeClavier'] = '1'
         form['identifiantDlg'] = ''
+
         form.submit()
+
+    def get_vk(self, session, codes):
+        return DelubacVirtKeyboard(self.browser, session, codes)
 
     def on_load(self):
         error_message = CleanText(u'//td[contains(text(), "Votre adhésion au service WEB est résiliée depuis le")]')(self.doc)
@@ -153,9 +159,13 @@ class MenuPage(LoggedPage, HTMLPage):
 class AccountsPage(LoggedPage, HTMLPage):
     TYPES = {'COMPTE COURANT':     Account.TYPE_CHECKING,
              'COMPTE TRANSACTION': Account.TYPE_CHECKING,
+             'COMPTE ORDINAIRE': Account.TYPE_CHECKING
             }
 
     is_here = u'//title[text() = "Solde de chacun de vos comptes"]'
+
+    def accounts_list_condition(self, el):
+        return len(el.xpath('./td')) >= 6 and CleanDecimal('td[@class="ColonneNumerique"]', replace_dots=True, default=NotAvailable)(el) is not NotAvailable
 
     @method
     class get_list(ListElement):
@@ -165,9 +175,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             klass = Account
 
             def condition(self):
-                if len(self.el.xpath('./td')) < 6:
-                    return False
-                return CleanDecimal('td[@class="ColonneNumerique"]', replace_dots=True, default=NotAvailable)(self) is not NotAvailable
+                return self.page.accounts_list_condition(self.el)
 
             class Type(Filter):
                 def filter(self, label):
@@ -190,19 +198,26 @@ class AccountsPage(LoggedPage, HTMLPage):
 class HistoryPage(LoggedPage, HTMLPage):
     is_here = u'//title[text() = "Liste des opérations sur un compte"]'
 
+    def find_transactions_elements(self, el):
+        return el.xpath('//tr')
+
+    def transactions_list_next_page(self, el):
+        for script in el.xpath('//script'):
+            m = re.search(r"""getCodePagination\('(?P<current_page>\d+)','(?P<max_page>\d+)','(?P<link>[^']+)'""", script.text or '', flags=re.MULTILINE)
+            if m:
+                next_page = int(m.group('current_page')) + 1
+                max_page = int(m.group('max_page'))
+                if next_page <= max_page:
+                    return m.group('link') + '&numeroPage=' + str(next_page)
+
     @pagination
     @method
     class get_transactions(ListElement):
-        item_xpath = '//tr'
+        def find_elements(self):
+            return self.page.find_transactions_elements(self.el)
 
         def next_page(self):
-            for script in self.page.doc.xpath('//script'):
-                m = re.search(r"""getCodePagination\('(?P<current_page>\d+)','(?P<max_page>\d+)','(?P<link>[^']+)'""", script.text or '', flags=re.MULTILINE)
-                if m:
-                    next_page = int(m.group('current_page')) + 1
-                    max_page = int(m.group('max_page'))
-                    if next_page <= max_page:
-                        return m.group('link') + '&numeroPage=' + str(next_page)
+            return self.page.transactions_list_next_page(self.el)
 
         class item(ItemElement):
             klass = Transaction
