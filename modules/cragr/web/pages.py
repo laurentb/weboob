@@ -21,7 +21,6 @@ from __future__ import unicode_literals
 
 from datetime import date as ddate, datetime
 from decimal import Decimal
-from urlparse import urlparse, urljoin
 import re
 
 from weboob.browser.pages import HTMLPage, FormNotFound
@@ -36,6 +35,7 @@ from weboob.capabilities.profile import Profile
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
 from weboob.tools.date import parse_french_date, LinearDateGuesser
+from weboob.tools.compat import urlparse, urljoin, unicode
 from weboob.browser.elements import TableElement, ItemElement, method
 from weboob.browser.filters.standard import Date, CleanText, CleanDecimal, Currency as CleanCurrency, \
                                             Regexp, Format, TableCell, Field
@@ -801,7 +801,7 @@ class MarketPage(MyLoggedPage, AutoEncodingMixin, BasePage):
             if ':' in date:
                 inv.vdate = ddate.today()
             else:
-                day, month = map(int, date.split('/'))[:2]
+                day, month = [int(x) for x in date.split('/')][:2]
                 date_guesser = LinearDateGuesser()
                 inv.vdate = date_guesser.guess_date(day, month)
 
@@ -1232,7 +1232,7 @@ class RecipientPage(MyLoggedPage, BasePage):
 
 def get_text_lines(el):
     lines = [re.sub(r'\s+', ' ', line).strip() for line in el.text_content().split('\n')]
-    return filter(None, lines)
+    return [l for l in lines if l]
 
 
 class DeferredCardsPage(CollectePageMixin, CardsPage):

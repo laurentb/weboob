@@ -81,7 +81,7 @@ class CragrModule(Module, CapBankTransferAddRecipient, CapContact, CapProfile):
         'm.ca-tourainepoitou.fr': u'Tourraine Poitou',
         'm.ca-valdefrance.fr': u'Val de France',
         'm.lefil.com': u'Pyrénées Gascogne',
-        }.iteritems())])
+        }.items())])
     CONFIG = BackendConfig(Value('website',  label=u'Région', choices=website_choices),
                            ValueBackendPassword('login',    label=u'N° de compte', masked=False),
                            ValueBackendPassword('password', label=u'Code personnel', regexp=r'\d{6}'))

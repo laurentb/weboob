@@ -19,7 +19,6 @@
 
 import re
 import hashlib
-from urlparse import urlparse, urljoin
 from html2text import unescape
 from datetime import date, datetime, timedelta
 
@@ -36,6 +35,7 @@ from weboob.tools.date import ChaoticDateGuesser, LinearDateGuesser
 from weboob.exceptions import BrowserHTTPError, ActionNeeded
 from weboob.browser.filters.standard import CleanText
 from weboob.tools.value import Value
+from weboob.tools.compat import urlparse, urljoin, basestring
 
 from .pages import (
     HomePage, LoginPage, LoginErrorPage, AccountsPage,
@@ -150,9 +150,6 @@ class Cragr(LoginBrowser, StatesMixin):
         Attempt to log in.
         Note: this method does nothing if we are already logged in.
         """
-        assert isinstance(self.username, basestring)
-        assert isinstance(self.password, basestring)
-
         self.BASEURL = 'https://%s/' % self.first_domain
         self._sag = None
 
