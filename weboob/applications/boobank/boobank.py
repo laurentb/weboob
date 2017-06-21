@@ -254,7 +254,7 @@ class InvestmentFormatter(IFormatter):
         if not empty(obj.quantity):
             quantity = obj.quantity
             format_quantity = '%11.2f'
-            if obj.quantity._isinteger():
+            if obj.quantity == obj.quantity.to_integral():
                 format_quantity = '%11d'
         else:
             format_quantity = '%11s'
@@ -276,7 +276,7 @@ class InvestmentFormatter(IFormatter):
                 self.colored(format_quantity % quantity, 'yellow'),
                 self.colored(format_unitvalue % unitvalue, 'yellow'),
                 self.colored(format_valuation % valuation, 'yellow'),
-                self.colored(format_diff % diff, 'green' if diff >= 0 else 'red')
+                self.colored(format_diff % diff, 'green' if not isinstance(diff, str) and diff >= 0 else 'red')
                 )
 
     def flush(self):
