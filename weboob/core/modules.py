@@ -21,8 +21,6 @@ import os
 import imp
 import logging
 
-from six import raise_from
-
 from weboob.tools.backend import Module
 from weboob.tools.compat import basestring
 from weboob.tools.log import getLogger
@@ -155,7 +153,7 @@ class ModulesLoader(object):
         except Exception as e:
             if logging.root.level <= logging.DEBUG:
                 self.logger.exception(e)
-            raise_from(ModuleLoadError(module_name, e), e)
+            raise ModuleLoadError(module_name, e)
 
         if module.version != self.version:
             raise ModuleLoadError(module_name, "Module requires Weboob %s, but you use Weboob %s. Hint: use 'weboob-config update'"

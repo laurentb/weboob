@@ -28,7 +28,6 @@ from cgi import parse_header
 from functools import reduce
 
 import requests
-from six import raise_from
 
 from weboob.exceptions import ParseError, ModuleInstallError
 from weboob.tools.compat import basestring, unicode, urljoin
@@ -827,7 +826,7 @@ class AbstractPage(Page):
         try:
             parent_module = weboob.load_or_install_module(cls.PARENT)
         except ModuleInstallError as err:
-            raise_from(ModuleInstallError('This module depends on %s module but %s\'s installation failed with: %s' % (cls.PARENT, cls.PARENT, err)), err)
+            raise ModuleInstallError('This module depends on %s module but %s\'s installation failed with: %s' % (cls.PARENT, cls.PARENT, err))
 
         if cls.BROWSER_ATTR is None:
             parent_browser = parent_module.klass.BROWSER

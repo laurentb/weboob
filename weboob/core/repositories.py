@@ -32,8 +32,6 @@ from contextlib import closing
 from compileall import compile_dir
 from io import BytesIO, StringIO
 
-from six import raise_from
-
 from weboob.exceptions import BrowserHTTPError, BrowserHTTPNotFound, ModuleInstallError
 from .modules import LoadedModule
 from weboob.tools.log import getLogger
@@ -182,7 +180,7 @@ class Repository(object):
             try:
                 fp = StringIO(browser.open(posixpath.join(self.url, self.INDEX)).text)
             except BrowserHTTPError as e:
-                raise_from(RepositoryUnavailable(unicode(e)), e)
+                raise RepositoryUnavailable(unicode(e))
 
         self.parse_index(fp)
 
@@ -211,7 +209,7 @@ class Repository(object):
                 keyring_data = browser.open(posixpath.join(self.url, self.KEYRING)).content
                 sig_data = browser.open(posixpath.join(self.url, self.KEYRING + '.sig')).content
             except BrowserHTTPError as e:
-                raise_from(RepositoryUnavailable(unicode(e)), e)
+                raise RepositoryUnavailable(unicode(e))
             if keyring.exists():
                 if not keyring.is_valid(keyring_data, sig_data):
                     raise InvalidSignature('the keyring itself')
@@ -240,9 +238,9 @@ class Repository(object):
             self.signed = bool(int(items.get('signed', '0')))
             self.key_update = int(items.get('key_update', '0'))
         except KeyError as e:
-            raise_from(RepositoryUnavailable('Missing global parameters in repository: %s' % e), e)
+            raise RepositoryUnavailable('Missing global parameters in repository: %s' % e)
         except ValueError as e:
-            raise_from(RepositoryUnavailable('Incorrect value in repository parameters: %s' % e), e)
+            raise RepositoryUnavailable('Incorrect value in repository parameters: %s' % e)
 
         if len(self.name) == 0:
             raise RepositoryUnavailable('Name is empty')
@@ -698,7 +696,7 @@ class Repositories(object):
         try:
             tardata = self.browser.open(module.url).content
         except BrowserHTTPError as e:
-            raise_from(ModuleInstallError('Unable to fetch module: %s' % e), e)
+            raise ModuleInstallError('Unable to fetch module: %s' % e)
 
         # Check signature
         if module.signed and (Keyring.find_gpg() or Keyring.find_gpgv()):

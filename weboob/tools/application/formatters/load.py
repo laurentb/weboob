@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from six import raise_from
 
 __all__ = ['FormattersLoader', 'FormatterLoadError']
 
@@ -47,7 +46,7 @@ class FormattersLoader(object):
                 self.formatters[name] = self.load_builtin_formatter(name)
             except ImportError as e:
                 FormattersLoader.BUILTINS.remove(name)
-                raise_from(FormatterLoadError('Unable to load formatter "%s": %s' % (name, e)), e)
+                raise FormatterLoadError('Unable to load formatter "%s": %s' % (name, e))
         return self.formatters[name]()
 
     def load_builtin_formatter(self, name):
