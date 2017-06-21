@@ -963,12 +963,18 @@ class BGPIPage(MarketPage):
                 inv.code = unicode(a.text_content().strip())
             else:
                 inv.code = NotAvailable
+
             inv.quantity = self.parse_decimal(cells[self.COL_QUANTITY].text_content())
-            inv.unitvalue = self.parse_decimal(cells[self.COL_UNITVALUE].text_content())
-            inv.valuation = self.parse_decimal(cells[self.COL_VALUATION].text_content())
-            inv.unitprice = self.parse_decimal(cells[self.COL_UNITPRICE].text_content())
-            inv.diff = self.parse_decimal(cells[self.COL_DIFF].text_content())
-            inv.portfolio_share = self.parse_decimal(cells[self.COL_PORTFOLIO].text_content())/100
+            if len(cells) == 5:
+                inv.unitvalue = self.parse_decimal(cells[2].text_content())
+                inv.valuation = self.parse_decimal(cells[3].text_content())
+                inv.portfolio_share = self.parse_decimal(cells[4].text_content())/100
+            else:
+                inv.unitvalue = self.parse_decimal(cells[self.COL_UNITVALUE].text_content())
+                inv.valuation = self.parse_decimal(cells[self.COL_VALUATION].text_content())
+                inv.unitprice = self.parse_decimal(cells[self.COL_UNITPRICE].text_content())
+                inv.diff = self.parse_decimal(cells[self.COL_DIFF].text_content())
+                inv.portfolio_share = self.parse_decimal(cells[self.COL_PORTFOLIO].text_content())/100
 
             yield inv
 
