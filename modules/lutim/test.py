@@ -39,7 +39,7 @@ class LutimTest(BackendTest):
         got = self.backend.get_paste(post.id)
         self.assertTrue(got)
         self.assertEqual(got.title, self.TITLE)
-        self.assertEqual(got.contents, self.DATA)
+        self.assertEqual(got.contents.strip(), self.DATA.strip())
 
         # test with an empty name
         post.title = u''

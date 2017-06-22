@@ -32,7 +32,7 @@ class ImagePage(RawPage):
     def filename(self):
         header = self.response.headers['content-disposition']
         m = re.match('inline;filename="(.*)"', header)
-        return unicode(m.group(1))
+        return m.group(1)
 
 
 class UploadPage(JsonPage):

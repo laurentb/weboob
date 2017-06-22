@@ -19,11 +19,11 @@
 
 
 import re
-from urlparse import urljoin
 
 from weboob.tools.backend import Module, BackendConfig
 from weboob.capabilities.paste import CapPaste, BasePaste
 from weboob.tools.capabilities.paste import image_mime
+from weboob.tools.compat import urljoin
 from weboob.tools.value import Value
 
 from .browser import LutimBrowser

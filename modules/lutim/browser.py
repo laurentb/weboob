@@ -17,11 +17,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from base64 import b64decode, b64encode
 import math
-from urlparse import urljoin
 from io import BytesIO
+
 from weboob.browser import PagesBrowser, URL
+from weboob.tools.compat import urljoin
 
 from .pages import ImagePage, UploadPage
 
@@ -40,11 +41,11 @@ class LutimBrowser(PagesBrowser):
     def fetch(self, paste):
         self.location(paste.id)
         assert self.image_page.is_here()
-        paste.contents = unicode(self.page.contents.encode('base64'))
+        paste.contents = b64encode(self.page.contents).decode('ascii')
         paste.title = self.page.filename
 
     def post(self, paste, max_age=0):
-        bin = paste.contents.decode('base64')
+        bin = b64decode(paste.contents)
         name = paste.title or 'file' # filename is mandatory
         filefield = {'file': (name, BytesIO(bin))}
         params = {'format': 'json'}
