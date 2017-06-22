@@ -253,7 +253,7 @@ class UnavailablePage(LoggedPage, MyHTMLPage):
         if "est indisponible" in h1:
             raise BrowserUnavailable(h1)
 
-        a = Link('//a[@class="btn"][1]')(self.doc)
+        a = Link('//a[@class="btn"][1]', default=None)(self.doc)
         if not a:
             raise BrowserUnavailable()
         self.browser.location(a)
