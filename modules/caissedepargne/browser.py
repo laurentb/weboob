@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import urlparse
 import re
 import datetime
 
@@ -28,14 +27,16 @@ from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.profile import Profile
 from weboob.browser.exceptions import BrowserHTTPNotFound, ClientError
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
+from weboob.tools.compat import urljoin
 from weboob.tools.value import Value
 from weboob.tools.decorators import retry
 
-from .pages import IndexPage, ErrorPage, MarketPage, LifeInsurance, GarbagePage, \
-                   MessagePage, LoginPage, CenetLoginPage, CenetHomePage, \
-                   CenetAccountsPage, CenetAccountHistoryPage, CenetCardsPage, \
-                   TransferPage, ProTransferPage, TransferConfirmPage, TransferSummaryPage, \
-                   SmsPage, AuthentPage, RecipientPage, CanceledAuth, CaissedepargneKeyboard
+from .pages import (
+    IndexPage, ErrorPage, MarketPage, LifeInsurance, GarbagePage,
+    MessagePage, LoginPage,
+    TransferPage, ProTransferPage, TransferConfirmPage, TransferSummaryPage,
+    SmsPage, AuthentPage, RecipientPage, CanceledAuth, CaissedepargneKeyboard,
+)
 
 
 __all__ = ['CaisseEpargne']
@@ -52,13 +53,6 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     login = URL('/authentification/manage\?step=identification&identifiant=(?P<login>.*)',
                 'https://.*/login.aspx', LoginPage)
     account_login = URL('/authentification/manage\?step=account&identifiant=(?P<login>.*)&account=(?P<accountType>.*)', LoginPage)
-    cenet_login = URL('https://www.cenet.caisse-epargne.fr/$', CenetLoginPage)
-    cenet_vk = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiAuthentification.asmx/ChargerClavierVirtuel')
-    cenet_home = URL('https://www.cenet.caisse-epargne.fr/Default.aspx$', CenetHomePage)
-    cenet_accounts = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiComptes.asmx/ChargerSyntheseComptes', CenetAccountsPage)
-    cenet_account_history = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiComptes.asmx/ChargerHistoriqueCompte', CenetAccountHistoryPage)
-    cenet_account_coming = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiCartesBanquaires.asmx/ChargerEnCoursCarte', CenetAccountHistoryPage)
-    cenet_cards = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiCartesBanquaires.asmx/ChargerCartes', CenetCardsPage)
     recipient = URL('https://.*/Portail.aspx.*', RecipientPage)
     transfer = URL('https://.*/Portail.aspx.*', TransferPage)
     transfer_summary = URL('https://.*/Portail.aspx.*', TransferSummaryPage)
@@ -165,7 +159,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                 return
             raise BrowserIncorrectPassword(response['error'])
 
-        self.BASEURL = urlparse.urljoin(data['url'], '/')
+        self.BASEURL = urljoin(data['url'], '/')
 
         try:
             self.home.go()
@@ -414,7 +408,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
     def post_sms_password(self, sms_password):
         data = {}
-        for k, v in self.recipient_form.iteritems():
+        for k, v in self.recipient_form.items():
             if k != 'url':
                 data[k] = v
         data['uiAuthCallback__1_'] = sms_password

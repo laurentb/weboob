@@ -28,8 +28,8 @@ from .pages import (
     ErrorPage,
     LoginPage, CenetLoginPage, CenetHomePage,
     CenetAccountsPage, CenetAccountHistoryPage, CenetCardsPage,
-    CaissedepargneKeyboard,
 )
+from ..pages import CaissedepargneKeyboard
 
 
 __all__ = ['CenetBrowser']
@@ -75,7 +75,7 @@ class CenetBrowser(LoginBrowser, StatesMixin):
 
         payload = {'contexte': '', 'dataEntree': None, 'donneesEntree': "{}", 'filtreEntree': "\"false\""}
         res = self.cenet_vk.open(data=json.dumps(payload), headers={'Content-Type': "application/json"})
-        content = json.loads(res.content)
+        content = json.loads(res.text)
         d = json.loads(content['d'])
         end = json.loads(d['DonneesSortie'])
 

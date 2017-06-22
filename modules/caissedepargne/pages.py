@@ -17,45 +17,33 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import division
+
+from base64 import b64decode
 from collections import OrderedDict
 import re
-import json
 from io import BytesIO
 
 from decimal import Decimal
 from datetime import datetime
 
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage
-from weboob.browser.elements import DictElement, ItemElement, method, ListElement
-from weboob.browser.filters.standard import Date, CleanDecimal, Regexp, CleanText, Format, Env, Upper, Field
+from weboob.browser.elements import ItemElement, method, ListElement
+from weboob.browser.filters.standard import Date, CleanDecimal, Regexp, CleanText, Env, Upper
 from weboob.browser.filters.html import Link, Attr
-from weboob.browser.filters.json import Dict
 from weboob.capabilities import NotAvailable
-from weboob.capabilities.bank import Account, Transaction, Investment, Recipient, TransferError, TransferBankError, Transfer,\
+from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, TransferBankError, Transfer,\
                                      AddRecipientError
-from weboob.capabilities.contact import Advisor
-from weboob.capabilities.profile import Profile
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_rib_valid, rib2iban
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
+from weboob.tools.compat import unicode
 from weboob.exceptions import NoAccountsException, BrowserUnavailable
 
 
 class LoginPage(JsonPage):
     def get_response(self):
         return self.doc
-
-
-class CenetLoginPage(HTMLPage):
-    def login(self, username, password, nuser, codeCaisse, _id, vkpass):
-        form = self.get_form(id='aspnetForm')
-
-        form['__EVENTTARGET'] = "btn_authentifier_securise"
-        form['__EVENTARGUMENT'] = '{"CodeCaisse":"%s","NumeroBad":"%s","NumeroUsager":"%s",\
-                                    "MotDePasse":"%s","IdentifiantClavier":"%s","ChaineConnexion":"%s"}' \
-                                    % (codeCaisse, username, nuser, password, _id, vkpass)
-
-        form.submit()
 
 
 class CaissedepargneKeyboard(GridVirtKeyboard):
@@ -73,142 +61,13 @@ class CaissedepargneKeyboard(GridVirtKeyboard):
                '9': '3f41daf8ca5f250be5df91fe24079735'}
 
     def __init__(self, image, symbols):
-        super(CaissedepargneKeyboard, self).__init__(symbols, 5, 3, BytesIO(image.decode('base64')), self.color, convert='RGB')
+        image = BytesIO(b64decode(image.encode('ascii')))
+        super(CaissedepargneKeyboard, self).__init__(symbols, 5, 3, image, self.color, convert='RGB')
 
     def check_color(self, pixel):
         for c in pixel:
             if c < 250:
                 return True
-
-
-class CenetHomePage(HTMLPage):
-    @method
-    class get_advisor(ItemElement):
-        klass = Advisor
-
-        obj_name = CleanText('//section[contains(@id, "ChargeAffaires")]//strong')
-        obj_email = CleanText('//li[contains(@id, "MailContact")]')
-        obj_phone = CleanText('//li[contains(@id, "TelAgence")]', replace=[('.', '')])
-        obj_mobile = NotAvailable
-        obj_agency = CleanText('//section[contains(@id, "Agence")]//strong')
-        obj_address = CleanText('//li[contains(@id, "AdresseAgence")]')
-
-        def obj_fax(self):
-            return CleanText('//li[contains(@id, "FaxAgence")]', replace=[('.', '')])(self) or NotAvailable
-
-    @method
-    class get_profile(ItemElement):
-        klass = Profile
-
-        obj_name = CleanText('//li[@class="identite"]/a/span')
-
-
-class CenetJsonPage(JsonPage):
-    def __init__(self, browser, response, *args, **kwargs):
-        super(CenetJsonPage, self).__init__(browser, response, *args, **kwargs)
-
-        # Why you are so ugly....
-        self.doc = json.loads(self.doc['d'])
-        if self.doc['Erreur'] and self.doc['Erreur']['Titre']:
-            self.logger.warning('error on %r: %s', self.url, self.doc['Erreur']['Titre'])
-            raise BrowserUnavailable(self.doc['Erreur']['Titre'])
-
-        self.doc['DonneesSortie'] = json.loads(self.doc['DonneesSortie'])
-
-
-class CenetAccountsPage(LoggedPage, CenetJsonPage):
-    ACCOUNT_TYPES = {u'CCP': Account.TYPE_CHECKING}
-
-    @method
-    class get_accounts(DictElement):
-        item_xpath = "DonneesSortie"
-
-        class item(ItemElement):
-            klass = Account
-
-            obj_id = CleanText(Dict('Numero'))
-            obj_label = CleanText(Dict('Intitule'))
-            obj_iban = CleanText(Dict('IBAN'))
-
-            def obj_balance(self):
-                absolut_amount = CleanDecimal(Dict('Solde/Valeur'))(self)
-                if CleanText(Dict('Solde/CodeSens'))(self) == 'D':
-                    return -absolut_amount
-                return absolut_amount
-
-
-            def obj_currency(self):
-                return CleanText(Dict('Devise'))(self).upper()
-
-            def obj_type(self):
-                return self.page.ACCOUNT_TYPES.get(Dict('TypeCompte')(self), Account.TYPE_UNKNOWN)
-
-            def obj__formated(self):
-                return self.el
-
-
-class CenetCardsPage(LoggedPage, CenetJsonPage):
-    def get_cards(self):
-        cards = Dict('DonneesSortie')(self.doc)
-
-        # Remove dates to prevent bad parsing
-        def reword_dates(card):
-            tmp_card = card
-
-            for k, v in tmp_card.iteritems():
-                if isinstance(v, dict):
-                    v = reword_dates(v)
-                if k == "Date" and v is not None and "Date" in v:
-                    card[k] = None
-
-        for card in cards:
-            reword_dates(card)
-
-        return cards
-
-class CenetAccountHistoryPage(LoggedPage, CenetJsonPage):
-    TR_TYPES = {8: Transaction.TYPE_TRANSFER, # VIR
-                7: Transaction.TYPE_TRANSFER, # VIR COMPTE A COMPTE
-                6: Transaction.TYPE_CASH_DEPOSIT, # REMISE CHECQUE(s)
-                4: Transaction.TYPE_ORDER # PRELV
-                }
-
-    @method
-    class get_history(DictElement):
-        item_xpath = "DonneesSortie"
-
-        class item(ItemElement):
-            klass = Transaction
-
-            obj_raw = Format('%s %s', Dict('Libelle'), Dict('Libelle2'))
-            obj_label = CleanText(Dict('Libelle'))
-            obj_date = Date(Dict('DateGroupImputation'), dayfirst=True)
-            obj_rdate = Date(Dict('DateGroupReglement'), dayfirst=True)
-
-            def obj_type(self):
-                ret = self.page.TR_TYPES.get(Dict('TypeMouvement')(self), Transaction.TYPE_UNKNOWN)
-                if ret != Transaction.TYPE_UNKNOWN:
-                    return ret
-
-                for pattern, type in Transaction.PATTERNS:
-                    if pattern.match(Field('raw')(self)):
-                        return type
-
-                return Transaction.TYPE_UNKNOWN
-
-            def obj_original_currency(self):
-                return CleanText(Dict('Montant/Devise'))(self).upper()
-
-            def obj_amount(self):
-                amount = CleanDecimal(Dict('Montant/Valeur'))(self)
-
-                return -amount if Dict('Montant/CodeSens')(self) == "D" else amount
-
-    def next_offset(self):
-        offset = Dict('OffsetSortie')(self.doc)
-        if offset:
-            assert Dict('EstComplete')(self.doc) == 'false'
-        return offset
 
 
 class GarbagePage(LoggedPage, HTMLPage):
@@ -350,7 +209,7 @@ class IndexPage(LoggedPage, HTMLPage):
                 info['type'] = parts[0]
                 info['id'] = info['_id'] = parts[1]
                 if id or info['id'] in [acc._info['_id'] for acc in accounts.values()]:
-                    _id = id.group(1) if id else next(iter({k for k, v in accounts.iteritems() if info['id'] == v._info['_id']}))
+                    _id = id.group(1) if id else next(iter({k for k, v in accounts.items() if info['id'] == v._info['_id']}))
                     self.find_and_replace(info, _id)
             else:
                 info['type'] = link
@@ -441,7 +300,7 @@ class IndexPage(LoggedPage, HTMLPage):
                 account_type = self.ACCOUNT_TYPES.get(CleanText('.')(title), Account.TYPE_UNKNOWN)
                 for tr in table.xpath('.//tr'):
                     tds = tr.findall('td')
-                    for i in xrange(len(tds)):
+                    for i in range(len(tds)):
                         a = tds[i].find('a')
                         if a is not None:
                             break
@@ -454,7 +313,7 @@ class IndexPage(LoggedPage, HTMLPage):
 
                     self._add_account(accounts, a, label, account_type, balance)
 
-        return accounts.itervalues()
+        return accounts.values()
 
     def is_access_error(self):
         error_message = u"Vous n'êtes pas autorisé à accéder à cette fonction"
@@ -507,7 +366,7 @@ class IndexPage(LoggedPage, HTMLPage):
                     account._card_links = []
                     accounts[account.id] = account
 
-        return accounts.itervalues()
+        return accounts.values()
 
     def go_list(self):
         form = self.get_form(name='main')
@@ -1003,7 +862,7 @@ class SmsPage(LoggedPage, HTMLPage):
 
     def set_browser_form(self):
         form = self.get_form(name='formAuth')
-        self.browser.recipient_form = dict((k, v) for k, v in form.iteritems() if v)
+        self.browser.recipient_form = dict((k, v) for k, v in form.items() if v)
         self.browser.recipient_form['url'] = form.url
 
 
@@ -1031,7 +890,7 @@ class RecipientPage(LoggedPage, HTMLPage):
         form = self.get_form(name='main')
         form['__EVENTTARGET'] = 'MM$WIZARD_AJOUT_COMPTE_EXTERNE$m_WizardBar$m_lnkNext$m_lnkButton'
         form['MM$WIZARD_AJOUT_COMPTE_EXTERNE$COMPTE_EXTERNE_ADD$m_RibIban$txtTitulaireCompte'] = recipient.label
-        for i in range(len(recipient.iban)/4+1):
+        for i in range(len(recipient.iban) // 4 + 1):
             form['MM$WIZARD_AJOUT_COMPTE_EXTERNE$COMPTE_EXTERNE_ADD$m_RibIban$txtIban%s' % str(i + 1)] = recipient.iban[4*i:4*i+4]
         form.submit()
 

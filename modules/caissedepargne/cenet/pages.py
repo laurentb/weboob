@@ -19,7 +19,6 @@
 
 import re
 import json
-from io import BytesIO
 
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage
 from weboob.browser.elements import DictElement, ItemElement, method
@@ -30,7 +29,6 @@ from weboob.capabilities.bank import Account, Transaction
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Profile
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
 from weboob.exceptions import BrowserUnavailable
 
 
@@ -49,29 +47,6 @@ class CenetLoginPage(HTMLPage):
                                     % (codeCaisse, username, nuser, password, _id, vkpass)
 
         form.submit()
-
-
-class CaissedepargneKeyboard(GridVirtKeyboard):
-    color = (255, 255, 255)
-    margin = 3, 3
-    symbols = {'0': 'ef8d775a73b751c5fbee06e2d537785c',
-               '1': 'bf51842846c3045f76355de32e4689c7',
-               '2': 'e4c057317b7ceb17241a0ae4c26844c4',
-               '3': 'c28c0c109a63f034d0f7c0f7ffdb364c',
-               '4': '6ea6a5152efb1d12c33f9cbf9476caec',
-               '5': '7ec4b424b5db7e7b2a54e6300fdb7515',
-               '6': 'a1fa95fc856804f978f20ad42c60f6d7',
-               '7': '64646adaa5a0b2506880970d8e928156',
-               '8': '4abcc6b24fa77f3756b96257962615eb',
-               '9': '3f41daf8ca5f250be5df91fe24079735'}
-
-    def __init__(self, image, symbols):
-        super(CaissedepargneKeyboard, self).__init__(symbols, 5, 3, BytesIO(image.decode('base64')), self.color, convert='RGB')
-
-    def check_color(self, pixel):
-        for c in pixel:
-            if c < 250:
-                return True
 
 
 class CenetHomePage(HTMLPage):
@@ -148,7 +123,7 @@ class CenetCardsPage(LoggedPage, CenetJsonPage):
         def reword_dates(card):
             tmp_card = card
 
-            for k, v in tmp_card.iteritems():
+            for k, v in tmp_card.items():
                 if isinstance(v, dict):
                     v = reword_dates(v)
                 if k == "Date" and v is not None and "Date" in v:
