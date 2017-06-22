@@ -19,7 +19,6 @@
 
 from __future__ import unicode_literals
 
-from urllib import quote
 from datetime import date, time, datetime, timedelta
 
 from weboob.browser.elements import method, ListElement, ItemElement
@@ -27,6 +26,7 @@ from weboob.browser.filters.standard import CleanText, Field
 from weboob.browser.pages import HTMLPage
 from weboob.capabilities.base import FloatField, IntField, enum, Field as BaseField
 from weboob.capabilities.weather import City, Forecast, Temperature, Current
+from weboob.tools.compat import quote
 
 
 DIRECTION = enum(
