@@ -89,20 +89,25 @@ def to_unicode(text):
     """
     if isinstance(text, unicode):
         return text
-    if not isinstance(text, str):
-        if sys.version_info.major > 2:
+
+    if not isinstance(text, bytes):
+        if sys.version_info.major >= 3:
             return unicode(text)
-        try:
-            text = str(text)
-        except UnicodeError:
-            return unicode(text)
+        else:
+            try:
+                return unicode(text)
+            except UnicodeError:
+                text = bytes(text)
+
     try:
-        return unicode(text, 'utf-8')
+        return text.decode('utf-8')
     except UnicodeError:
-        try:
-            return unicode(text, 'iso-8859-15')
-        except UnicodeError:
-            return unicode(text, 'windows-1252', 'replace')
+        pass
+    try:
+        return text.decode('iso-8859-15')
+    except UnicodeError:
+        pass
+    return text.decode('windows-1252', 'replace')
 
 
 def guess_encoding(stdio):
