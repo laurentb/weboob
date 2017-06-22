@@ -17,9 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from base64 import b64decode
+import binascii
 
 from weboob.capabilities.paste import CapPaste
-import binascii
 
 
 class BasePasteModule(CapPaste):
@@ -57,22 +58,22 @@ def image_mime(data_base64, supported_formats=('gif', 'jpeg', 'png')):
     :param supported_formats: restrict list of formats to test
     """
     try:
-        beginning = data_base64[:24].decode('base64')
+        beginning = b64decode(data_base64[:24])
     except binascii.Error:
         return None
 
-    if 'gif' in supported_formats and 'GIF8' in beginning:
+    if 'gif' in supported_formats and b'GIF8' in beginning:
         return 'image/gif'
-    elif 'jpeg' in supported_formats and 'JFIF' in beginning:
+    elif 'jpeg' in supported_formats and b'JFIF' in beginning:
         return 'image/jpeg'
-    elif 'png' in supported_formats and '\x89PNG' in beginning:
+    elif 'png' in supported_formats and b'\x89PNG' in beginning:
         return 'image/png'
-    elif 'xcf' in supported_formats and 'gimp xcf' in beginning:
+    elif 'xcf' in supported_formats and b'gimp xcf' in beginning:
         return 'image/x-xcf'
-    elif 'pdf' in supported_formats and '%PDF' in beginning:
+    elif 'pdf' in supported_formats and b'%PDF' in beginning:
         return 'application/pdf'
-    elif 'tiff' in supported_formats and ('II\x00\x2a' in beginning or
-          'MM\x2a\x00' in beginning):
+    elif 'tiff' in supported_formats and (b'II\x00\x2a' in beginning or
+          b'MM\x2a\x00' in beginning):
         return 'image/tiff'
 
 

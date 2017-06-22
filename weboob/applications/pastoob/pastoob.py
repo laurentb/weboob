@@ -19,10 +19,12 @@
 
 from __future__ import print_function
 
+from base64 import b64decode, b64encode
 import os
 import codecs
 import re
 from random import choice
+import sys
 
 from weboob.capabilities.paste import CapPaste, PasteNotFound
 from weboob.tools.application.repl import ReplApplication
@@ -98,8 +100,11 @@ class Pastoob(ReplApplication):
                 if not self.ask('The console may become messed up. Are you sure you want to show a binary file on your terminal?', default=False):
                     print('Aborting.', file=self.stderr)
                     return 1
-            output = self.stdout
-            output.write(paste.contents.decode('base64'))
+            if sys.version_info.major >= 3:
+                output = self.stdout.buffer
+            else:
+                output = self.stdout.stream
+            output.write(b64decode(paste.contents))
         else:
             output = codecs.getwriter(self.encoding)(self.stdout)
             output.write(paste.contents)
@@ -132,7 +137,10 @@ class Pastoob(ReplApplication):
         use_stdin = (not filename or filename == '-')
         if use_stdin:
             if binary:
-                contents = self.stdin.read()
+                if sys.version_info.major >= 3:
+                    contents = self.stdin.buffer.read()
+                else:
+                    contents = self.stdin.read()
             else:
                 contents = self.acquire_input()
             if not len(contents):
@@ -142,7 +150,7 @@ class Pastoob(ReplApplication):
         else:
             try:
                 if binary:
-                    m = open(filename)
+                    m = open(filename, 'rb')
                 else:
                     m = codecs.open(filename, encoding=self.options.encoding or self.encoding)
                 with m as fp:
@@ -152,7 +160,7 @@ class Pastoob(ReplApplication):
                 return 1
 
         if binary:
-            contents = contents.encode('base64')
+            contents = b64encode(contents).decode('ascii')
 
         # get and sort the backends able to satisfy our requirements
         params = self.get_params()
