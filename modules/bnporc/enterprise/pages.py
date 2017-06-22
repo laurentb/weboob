@@ -171,20 +171,20 @@ class BnpHistoryItem(ItemElement):
         return x / 10 ** y
 
 class AccountHistoryPage(LoggedPage, JsonPage):
-    TYPES = {u'CARTE': Transaction.TYPE_CARD, # Cartes
-             u'FACCB': Transaction.TYPE_CARD, # Cartes
-             u'CHEQU': Transaction.TYPE_CHECK, # Chèques
-             u'REMCB': Transaction.TYPE_CARD, # Remises cartes
-             u'VIREM': Transaction.TYPE_TRANSFER, # Virements
-             u'VIRIT': Transaction.TYPE_TRANSFER, # Virements internationaux
-             u'VIRSP': Transaction.TYPE_TRANSFER, # Virements européens
-             u'VIRTR': Transaction.TYPE_TRANSFER, # Virements de trésorerie
-             u'VIRXX': Transaction.TYPE_TRANSFER, # Autres virements
-             u'PRLVT': Transaction.TYPE_LOAN_PAYMENT, # Prélèvements, TIP et télérèglements
-             u'AUTOP': Transaction.TYPE_UNKNOWN, # Autres opérations
+    TYPES = {u'CARTE': Transaction.TYPE_DEFERRED_CARD,  # Cartes
+             u'FACCB': Transaction.TYPE_DEFERRED_CARD,  # Cartes
+             u'CHEQU': Transaction.TYPE_CHECK,  # Chèques
+             u'REMCB': Transaction.TYPE_DEFERRED_CARD,  # Remises cartes
+             u'VIREM': Transaction.TYPE_TRANSFER,  # Virements
+             u'VIRIT': Transaction.TYPE_TRANSFER,  # Virements internationaux
+             u'VIRSP': Transaction.TYPE_TRANSFER,  # Virements européens
+             u'VIRTR': Transaction.TYPE_TRANSFER,  # Virements de trésorerie
+             u'VIRXX': Transaction.TYPE_TRANSFER,  # Autres virements
+             u'PRLVT': Transaction.TYPE_LOAN_PAYMENT,  # Prélèvements, TIP et télérèglements
+             u'AUTOP': Transaction.TYPE_UNKNOWN,  # Autres opérations
             }
 
-    COMING_TYPES = {u'0083': Transaction.TYPE_CARD,
+    COMING_TYPES = {u'0083': Transaction.TYPE_DEFERRED_CARD,
                     u'0813': Transaction.TYPE_LOAN_PAYMENT,
                     u'0568': Transaction.TYPE_TRANSFER,
                    }
