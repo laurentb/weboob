@@ -76,15 +76,21 @@ class AccountsPage(LoggedPage, JsonPage):
             obj_valuation = CleanDecimal(Dict('value/6/value'))
 
             def obj_code(self):
-                s = Field('_product_id')(self)
-                return self.page.browser.search_product(s)
+                return self._product()['isin']
+
+            def obj_label(self):
+                return self._product()['name']
+
+            def _product(self):
+                return self.page.browser.get_product(str(Field('_product_id')(self)))
 
             def condition(self):
                 return Field('quantity')(self) > 0
 
 
 class InvestmentPage(LoggedPage, JsonPage):
-    pass
+    def get_products(self):
+        return self.doc['data']
 
 
 class Transaction(FrenchTransaction):
@@ -130,6 +136,14 @@ class HistoryPage(LoggedPage, JsonPage):
 
             obj__datetime = Dict('date')
 
+            def _product(self):
+                return self.page.browser.get_product(str(Field('_product_id')(self)))
+
             def obj_code(self):
-                s = str(Field('_product_id')(self))
-                return self.page.browser.search_product(s)
+                return self._product()['isin']
+
+            def obj_label(self):
+                return self._product()['name']
+
+    def get_products(self):
+        return set(d['productId'] for d in self.doc['data'])

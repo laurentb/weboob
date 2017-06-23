@@ -34,7 +34,7 @@ class DegiroBrowser(LoginBrowser):
 
     login = URL('/login/secure/login', LoginPage)
     client = URL('/pa/secure/client\?sessionId=(?P<sessionId>.*)', LoginPage)
-    product = URL('/product_search/secure/v4/product/info\?intAccount=(?P<accountId>.*)&sessionId=(?P<sessionId>.*)', InvestmentPage)
+    product = URL(r'/product_search/secure/v4/products/info\?sessionId=(?P<sessionId>.*)', InvestmentPage)
     accounts = URL('/trading(?P<staging>\w*)/secure/v5/update/(?P<accountId>.*);jsessionid=(?P<sessionId>.*)\?historicalOrders=0' +
                    '&orders=0&portfolio=0&totalPortfolio=0&transactions=0&alerts=0&cashFunds=0&currencyExchange=0&',
                    AccountsPage)
@@ -99,6 +99,9 @@ class DegiroBrowser(LoginBrowser):
 
             self.transaction_investments.go(fromDate=fromDate.strftime(dateFmt), toDate=toDate.strftime(dateFmt),
                                             accountId=self.intAccount, sessionId=self.sessionId)
+
+            self.fetch_products(list(self.page.get_products()))
+
             transaction_investments = list(self.page.iter_transaction_investments())
 
             self.history.go(fromDate=fromDate.strftime(dateFmt), toDate=toDate.strftime(dateFmt),
@@ -107,15 +110,17 @@ class DegiroBrowser(LoginBrowser):
             self.trs[account.id] = trs
         return self.trs[account.id]
 
-    @need_login
-    def search_product(self, productId):
-        if productId not in self.products:
-            self.product.go(data=json.dumps([productId]),
-                            accountId=self.intAccount,
-                            sessionId=self.sessionId,
-                            headers={'Content-Type': 'application/json;charset=UTF-8'})
-            self.products[productId] = self.page.doc['data'][productId]['isin']
-        return self.products[productId]
+    def fetch_products(self, ids):
+        ids = list(set(ids) - set(self.products.keys()))
+        page = self.product.open(data=json.dumps(ids),
+                                 sessionId=self.sessionId,
+                                 headers={'Content-Type': 'application/json;charset=UTF-8'})
+        self.products.update(page.get_products())
+
+    def get_product(self, id):
+        if id not in self.products:
+            self.fetch_products([id])
+        return self.products[id]
 
 
 class NoCopy(object):
