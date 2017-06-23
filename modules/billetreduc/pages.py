@@ -21,7 +21,6 @@ from __future__ import unicode_literals
 
 import re
 from datetime import datetime
-from urlparse import urljoin
 
 from weboob.browser.elements import method, ListElement, ItemElement
 from weboob.browser.filters.html import Link
@@ -29,6 +28,7 @@ from weboob.browser.filters.standard import CleanText, Env, Field, Format
 from weboob.browser.pages import HTMLPage, pagination
 from weboob.capabilities.base import StringField
 from weboob.capabilities.calendar import BaseCalendarEvent, CATEGORIES
+from weboob.tools.compat import urljoin
 
 
 LABEL_TO_CAT = {
