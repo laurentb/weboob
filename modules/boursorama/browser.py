@@ -34,6 +34,7 @@ from weboob.capabilities.bank import (
 from weboob.capabilities.contact import Advisor
 from weboob.tools.captcha.virtkeyboard import VirtKeyboardError
 from weboob.tools.value import Value
+from weboob.tools.compat import basestring
 
 from .pages import (
     LoginPage, VirtKeyboardPage, AccountsPage, AsvPage, HistoryPage, AccbisPage, AuthenticationPage,

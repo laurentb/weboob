@@ -19,12 +19,12 @@
 
 from __future__ import unicode_literals
 
+from base64 import b64decode
 import datetime
 from decimal import Decimal
 import re
 from io import BytesIO
 from datetime import date
-from urlparse import urljoin
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination, NextPage, FormNotFound, PartialHTMLPage
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement, SkipItem
@@ -41,6 +41,7 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.value import Value
 from weboob.tools.date import parse_french_date
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard, VirtKeyboardError
+from weboob.tools.compat import urljoin
 from weboob.exceptions import BrowserQuestion, BrowserIncorrectPassword, BrowserHTTPNotFound, BrowserUnavailable
 
 
@@ -114,7 +115,7 @@ class Transaction(FrenchTransaction):
                 (re.compile('^AVOIR (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (?P<text>.*)'),   FrenchTransaction.TYPE_PAYBACK),
                 (re.compile(r'^(?P<text>[A-Z][\sa-z]* )?AVOIR (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{4}) (?P<text2>.*)'),   FrenchTransaction.TYPE_PAYBACK),
                 (re.compile('^REM CHQ (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
-                (re.compile(ur'^([*]{3} solde des operations cb [*]{3} )?Relevé différé Carte (.*)'), FrenchTransaction.TYPE_CARD_SUMMARY),
+                (re.compile(u'^([*]{3} solde des operations cb [*]{3} )?Relevé différé Carte (.*)'), FrenchTransaction.TYPE_CARD_SUMMARY),
                ]
 
 
@@ -140,7 +141,9 @@ class BoursoramaVirtKeyboard(VirtKeyboard):
         self.md5 = {}
         for span in page.doc.xpath('//span'):
             c = span.attrib['data-matrix-key']
-            img = BytesIO(span.xpath('./img/@src')[0].replace('data:image/png;base64,', '').decode('base64'))
+
+            txt = span.xpath('./img/@src')[0].replace('data:image/png;base64,', '')
+            img = BytesIO(b64decode(txt.encode('ascii')))
             self.load_image(img, self.color, convert='RGB')
             self.load_symbols((0,0,42,42), c)
 
