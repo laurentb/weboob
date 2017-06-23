@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from base64 import b64encode
 from functools import wraps
 import json
 import re
@@ -73,7 +73,7 @@ class YomoniBrowser(APIBrowser):
 
         data = {
             'username': self.username,
-            'password': self.password.encode('utf8').encode('base64').strip(),
+            'password': b64encode(self.password.encode('utf8')).decode('ascii').strip(),
         }
         try:
             response = self.open('auth/login', data=data, headers=self.login_headers)
@@ -124,8 +124,8 @@ class YomoniBrowser(APIBrowser):
 
     @need_login
     def iter_investment(self, account, invs=None):
-        if account not in self.investments and invs is not None:
-            self.investments[account] = []
+        if account.id not in self.investments and invs is not None:
+            self.investments[account.id] = []
             for inv in invs:
                 i = Investment()
                 i.label = "%s - %s" % (inv['classification'], inv['description'])
@@ -137,12 +137,12 @@ class YomoniBrowser(APIBrowser):
                 i.vdate = Date().filter(inv['datePosition'])
                 i.diff = CleanDecimal().filter(inv['performanceEuro'])
 
-                self.investments[account].append(i)
-        return self.investments[account]
+                self.investments[account.id].append(i)
+        return self.investments[account.id]
 
     @need_login
     def iter_history(self, account):
-        if account not in self.histories:
+        if account.id not in self.histories:
             histories = []
             self.open('/user/%s/project/%s/activity' % (self.users['userId'], account.number), method="OPTIONS")
             for activity in [acc for acc in self.request('/user/%s/project/%s/activity' % (self.users['userId'], account.number), headers=self.request_headers)['activities'] \
@@ -160,5 +160,5 @@ class YomoniBrowser(APIBrowser):
 
                 histories.append(t)
 
-            self.histories[account] = histories
-        return self.histories[account]
+            self.histories[account.id] = histories
+        return self.histories[account.id]
