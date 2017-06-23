@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import division
 
 import hashlib
 import tempfile
@@ -140,13 +141,13 @@ class VirtKeyboard(object):
 
     def checksum(self, coords):
         (x1, y1, x2, y2) = coords
-        s = ''
+        s = b''
         for y in range(y1, min(y2 + 1, self.height)):
             for x in range(x1, min(x2 + 1, self.width)):
                 if self.check_color(self.pixar[x, y]):
-                    s += "."
+                    s += b"."
                 else:
-                    s += " "
+                    s += b" "
         return hashlib.md5(s).hexdigest()
 
     def get_symbol_code(self, md5sum_list):
@@ -234,9 +235,9 @@ class GridVirtKeyboard(VirtKeyboard):
     def __init__(self, symbols, cols, rows, image, color, convert=None):
         self.load_image(image, color, convert)
 
-        tileW = float(self.width) / cols
-        tileH = float(self.height) / rows
-        positions = ((s, i * tileW % self.width, i / cols * tileH)
+        tileW = self.width / cols
+        tileH = self.height / rows
+        positions = ((s, i * tileW % self.width, i // cols * tileH)
                      for i, s in enumerate(symbols))
         coords = dict((s, tuple(map(int, (x, y, x + tileW, y + tileH))))
                       for (s, x, y) in positions)
