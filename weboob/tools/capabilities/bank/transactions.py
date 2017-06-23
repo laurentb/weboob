@@ -86,7 +86,7 @@ class FrenchTransaction(Transaction):
             if date.isdigit() and len(date) == 8:
                 date = datetime.date(int(date[4:8]), int(date[2:4]), int(date[0:2]))
             elif '/' in date:
-                date = datetime.date(*reversed(map(int, date.split('/'))))
+                date = datetime.date(*reversed([int(x) for x in date.split('/')]))
         if not isinstance(date, (datetime.date, datetime.datetime)):
             self._logger.warning('Unable to parse date %r' % date)
             date = NotAvailable
@@ -217,7 +217,7 @@ class FrenchTransaction(Transaction):
                 if date.isdigit() and len(date) == 8:
                     date = datetime.date(int(date[4:8]), int(date[2:4]), int(date[0:2]))
                 elif '/' in date:
-                    date = datetime.date(*reversed(map(int, date.split('/'))))
+                    date = datetime.date(*reversed([int(x) for x in date.split('/')]))
             if not isinstance(date, (datetime.date, datetime.datetime)):
                 date = NotAvailable
             elif date.year < 100:
