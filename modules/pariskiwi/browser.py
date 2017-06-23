@@ -61,7 +61,7 @@ class ParisKiwiBrowser(APIBrowser):
         _id = id_from_title(_id)
         j = self.request('/api.php?action=query&format=json&prop=revisions&rvprop=content&rvlimit=1&titles=%s/%s' % (CAL, _id))
         pages = j['query']['pages']
-        page = pages[pages.keys()[0]]
+        page = pages[list(pages.keys())[0]]
         text = page['revisions'][0]['*']
 
         res = {
@@ -79,7 +79,7 @@ class ParisKiwiBrowser(APIBrowser):
             res['datetime'] = combine(res['date'], res['hour'])
             text = text[:match.start(0)] + text[match.end(0):]
 
-        match = re.search(ur'\b(\d+([,.]\d+)?)\s*(euros\b|euro\b|€)', text)
+        match = re.search(u'\\b(\\d+([,.]\\d+)?)\s*(euros\\b|euro\\b|€)', text)
         if match:
             res['price'] = float(match.group(1).replace(',', '.'))
             text = text[:match.start(0)] + text[match.end(0):]
