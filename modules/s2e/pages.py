@@ -332,10 +332,14 @@ class AccountsPage(LoggedPage, MultiPage):
         col_label = [re.compile(u'My investment'), re.compile(u'Mes supports')]
         col_valuation = [re.compile(u'Gross amount'), re.compile(u'Montant brut')]
         col_portfolio_share = [u'Distribution', u'Répartition']
+        col_diff = [u'+ or - potential value', u'+ ou - value potentielle']
 
         class item(ItemInvestment):
             def obj_id(self):
                 return
+
+            def obj_diff(self):
+                return MyDecimal(TableCell('diff')(self)[0].xpath('.//div[not(.//div)]'))(self)
 
             def obj_portfolio_share(self):
                 return Eval(lambda x: x / 100, MyDecimal(TableCell('portfolio_share')(self)[0] \
