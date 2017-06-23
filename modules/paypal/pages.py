@@ -126,7 +126,7 @@ class AccountPage(HomePage):
 
     def get_accounts(self):
         accounts = {}
-        content = self.doc.xpath('//div[@id="moneyPage"]')[0]
+        content = self.doc.xpath('//div[@id="moneyPage" or @id="MoneyPage"]')[0]
 
         # Multiple accounts
         lines = content.xpath('(//div[@class="col-md-8 multi-currency"])[1]/ul/li')
