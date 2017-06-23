@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from base64 import b64decode
+from base64 import b64decode, b64encode
 import binascii
 
 from weboob.capabilities.paste import CapPaste
@@ -75,6 +75,10 @@ def image_mime(data_base64, supported_formats=('gif', 'jpeg', 'png')):
     elif 'tiff' in supported_formats and (b'II\x00\x2a' in beginning or
           b'MM\x2a\x00' in beginning):
         return 'image/tiff'
+
+
+def bin_to_b64(b):
+    return b64encode(b).decode('ascii')
 
 
 def test():
