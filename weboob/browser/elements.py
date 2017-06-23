@@ -320,9 +320,13 @@ class ItemElement(with_metaclass(_ItemElementMeta, AbstractElement)):
     def handle_attr(self, key, func):
         try:
             value = self.use_selector(func, key=key)
-        except Exception as e:
+        except SkipItem:
             # Help debugging as tracebacks do not give us the key
-            self.logger.warning('Attribute %s raises %s' % (key, repr(e)))
+            self.logger.debug("Attribute %s raises a SkipItem")
+            raise
+        except Exception as e:
+            # If we are here, we have probably a real parsing issue
+            self.logger.warning('Attribute %s raises %s', key, repr(e))
             raise
         logger = getLogger('b2filters')
         logger.log(DEBUG_FILTERS, "%s.%s = %r" % (self._random_id, key, value))
