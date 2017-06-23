@@ -31,7 +31,7 @@ from weboob.browser.pages import JsonPage, LoggedPage, HTMLPage
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment, Recipient, Transfer, TransferError, TransferBankError, AddRecipientError
 from weboob.capabilities.contact import Advisor
-from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, BrowserPasswordExpired
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, BrowserPasswordExpired, ActionNeeded
 from weboob.tools.capabilities.bank.iban import rib2iban, rebuild_rib, is_iban_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
@@ -184,6 +184,9 @@ class LoginPage(JsonPage):
                 # json says "Erreur lors de l'authentification Code retour : 1001 Code retour : 1001"
                 # but js message from "getErrorMessage" says "veuillez contacter votre conseiller"...
                 raise BrowserIncorrectPassword()
+            elif error == 21501: # "Rendez-vous sur le site de BNP Paribas pour gérer vos comptes"
+                raise ActionNeeded(msg)
+
             self.logger.debug('Unexpected error at login: "%s" (code=%s)' % (msg, error))
 
     def login(self, username, password):
