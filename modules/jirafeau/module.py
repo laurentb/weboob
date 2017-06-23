@@ -17,9 +17,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from base64 import b64decode
 
 from weboob.capabilities.paste import CapPaste, BasePaste
 from weboob.tools.backend import Module, BackendConfig
+from weboob.tools.capabilities.paste import bin_to_b64
 from weboob.tools.value import Value
 
 from .browser import JirafeauBrowser
@@ -57,7 +59,7 @@ class JirafeauModule(Module, CapPaste):
             return 0
 
         max_size, _ = self.browser.get_max_sizes()
-        if max_size and len(contents.decode('base64')) > max_size:
+        if max_size and len(b64decode(contents)) > max_size:
             return 0
         return 1
 
@@ -76,7 +78,7 @@ class JirafeauModule(Module, CapPaste):
         return JirafeauPaste(*args, **kwargs)
 
     def post_paste(self, paste, max_age=None):
-        d = self.browser.post(paste.contents.decode('base64'), paste.title, max_age)
+        d = self.browser.post(b64decode(paste.contents), paste.title, max_age)
         paste.id = d['id']
         paste.url = d['page_url']
         return paste
@@ -84,6 +86,6 @@ class JirafeauModule(Module, CapPaste):
     def fill_paste(self, obj, fields):
         if 'contents' in fields:
             data = self.browser.download(obj.id)
-            obj.contents = data.encode('base64')
+            obj.contents = bin_to_b64(data)
 
     OBJECTS = {JirafeauPaste: fill_paste}

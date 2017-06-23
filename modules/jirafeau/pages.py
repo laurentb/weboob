@@ -26,7 +26,7 @@ from weboob.tools.misc import get_bytes_size
 class PageUpload(HTMLPage):
     def get_max_sizes(self):
         max_size = None
-        for item in self.doc.getroot().cssselect('.config'):
+        for item in self.doc.getroot().xpath('//p[has-class("config")]'):
             if not item.text:
                 continue
             match = re.search(r'File size is limited to (\d+) ([A-Za-z]+)', item.text)
