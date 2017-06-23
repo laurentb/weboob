@@ -19,11 +19,11 @@
 
 from __future__ import unicode_literals
 
-from urlparse import urlparse
 
 from weboob.browser.exceptions import ClientError, HTTPNotFound
 from weboob.capabilities.gallery import CapGallery, BaseGallery, BaseImage
 from weboob.tools.backend import Module, BackendConfig
+from weboob.tools.compat import urlparse
 from weboob.tools.value import Value
 
 from .browser import TumblrBrowser

@@ -22,6 +22,7 @@ from __future__ import unicode_literals
 
 from weboob.browser import PagesBrowser, URL
 from weboob.capabilities.gallery import BaseImage
+from weboob.tools.compat import range
 
 from .pages import MainPage, FramePage
 
@@ -39,7 +40,7 @@ class TumblrBrowser(PagesBrowser):
         index = 0
         empty = 0
 
-        for page in xrange(1000):
+        for page in range(1000):
             if page == 1:
                 continue # page 1 doesn't exist, don't ask why
 
