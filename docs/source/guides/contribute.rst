@@ -25,6 +25,11 @@ You can run these scripts to be sure your patch doesn't break anything::
     $ tools/weboob_lint.sh
     $ tools/run_tests.sh yourmodulename  # or without yourmodulename to test everything
 
+To aid in verifying Python 3 compatibility, also run::
+
+    $ tools/pyflakes.sh -3
+    $ tools/run_tests.sh -3 yourmodulename
+
 Perhaps you should also write or fix tests. These tests are automatically run by
 `Gitlab CI <https://git.weboob.org/weboob/devel/pipelines>`_ at each commit and merge requests.
 
