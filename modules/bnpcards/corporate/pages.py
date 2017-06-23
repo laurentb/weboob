@@ -54,6 +54,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             klass = Account
 
             obj_id = Format('%s%s', CleanText('./td[2]', replace=[(' ', '')]), CleanText('./td[3]'))
+            obj__owner = CleanText('./td[1]')
             obj_number = CleanText('./td[2]', replace=[(' ', '')])
             obj_label = CleanText('./td[1]')
             obj_type = Account.TYPE_CARD
@@ -62,11 +63,16 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_url = Link('./td[2]/a')
 
     @pagination
-    def get_link(self, account_id):
-        account_id = account_id.split('_')
-        try:
-            yield self.doc.xpath('.//a[replace(@title, " ", "")="%s"]' % account_id[0])[0].get("href")
-        except IndexError:
+    def get_link(self, account_id, owner):
+        for tr in self.doc.xpath('//tr'):
+            link = tr.xpath('.//a[replace(@title, " ", "") = $id]/@href', id=account_id)
+            if not link:
+                continue
+            if CleanText('.//td[1]')(tr) != owner:
+                continue
+            yield link[0]
+            return
+        else:
             next_page = self.doc.xpath('//table[@id="tgDecorationFoot"]//b/following-sibling::a[1]/@href')
             if next_page:
                 raise NextPage(next_page[0])

@@ -20,6 +20,7 @@
 
 from weboob.exceptions import BrowserIncorrectPassword, BrowserPasswordExpired
 from weboob.browser import LoginBrowser, URL, need_login
+from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages import LoginPage, ErrorPage, AccountsPage, TransactionsPage
 
@@ -85,8 +86,8 @@ class BnpcartesentrepriseCorporateBrowser(LoginBrowser):
             yield acc
 
     @need_login
-    def get_link(self, id):
-        links = [l for l in self.page.get_link(id)]
+    def get_link(self, id, owner):
+        links = [l for l in self.page.get_link(id, owner)]
         if len(links) > 0:
             return links[0]
 
@@ -95,12 +96,11 @@ class BnpcartesentrepriseCorporateBrowser(LoginBrowser):
         if not self.accounts:
             self.iter_accounts()
 
-        # TODO : use account.url instead of all that **** to be sure to get the right account, password expired so can't do it now
         self.his_home.go()
         self.page.expand()
         for a in self.accounts:
             if a.id == account.id:
-                link = self.get_link(a.number)
+                link = self.get_link(a.number, a._owner)
                 if link:
                     self.location(link)
                     assert self.transactions.is_here()
@@ -112,6 +112,6 @@ class BnpcartesentrepriseCorporateBrowser(LoginBrowser):
                         self.page.sort()
 
                     transactions = list(self.page.get_history())
-                    transactions.sort(key=lambda transaction: transaction.date, reverse=True)
+                    transactions = sorted_transactions(transactions)
                     return transactions
         return iter([])
