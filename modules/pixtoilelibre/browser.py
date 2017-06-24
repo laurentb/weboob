@@ -17,10 +17,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
-from weboob.deprecated.browser import Browser
-from weboob.tools.capabilities.paste import image_mime
+from base64 import b64encode
 from io import BytesIO
+
+from weboob.browser import PagesBrowser, URL
+from weboob.tools.capabilities.paste import image_mime
 
 from .pages import PageHome, PageImage, PageError
 
@@ -28,28 +29,27 @@ from .pages import PageHome, PageImage, PageError
 __all__ = ['PixtoilelibreBrowser']
 
 
-class PixtoilelibreBrowser(Browser):
-    PROTOCOL = 'http'
-    DOMAIN = 'pix.toile-libre.org'
-    ENCODING = None
+class PixtoilelibreBrowser(PagesBrowser):
+    BASEURL = 'http://pix.toile-libre.org'
 
-    PAGES = {'%s://%s/' % (PROTOCOL, DOMAIN): PageHome,
-             r'%s://%s/\?action=upload': PageError,
-             r'%s://%s/\?img=(.+)' % (PROTOCOL, DOMAIN): PageImage}
+    home = URL(r'/$', PageHome)
+    error = URL(r'/\?action=upload', PageError)
+    img = URL(r'/\?img=(?P<id>.+)', PageImage)
 
     def post_image(self, filename, contents, private=False, description=''):
         self.location('/')
-        assert self.is_on_page(PageHome)
+        assert self.home.is_here()
 
-        mime = image_mime(contents.encode('base64'))
-        self.select_form(nr=0)
-        self.form.find_control('private').items[0].selected = private
-        self.form['description'] = description or ''
-        self.form.find_control('img').add_file(BytesIO(contents), filename=filename, content_type=mime)
-        self.submit()
+        mime = image_mime(b64encode(contents))
+        form = self.page.get_form(nr=0)
+        form['private'] = int(private)
+        form['description'] = description or ''
+        del form['img']
+        f = (filename, BytesIO(contents), mime)
+        self.location(form.url, data=form, files={'img': f})
 
-        assert self.is_on_page(PageImage)
+        assert self.img.is_here()
         return self.page.get_info()
 
     def get_contents(self, id):
-        return self.readurl('%s://%s/upload/original/%s' % (self.PROTOCOL, self.DOMAIN, id))
+        return self.open('/upload/original/%s' % id).content

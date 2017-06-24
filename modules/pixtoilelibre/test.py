@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from base64 import b64decode
 
 from weboob.tools.test import BackendTest
 
@@ -38,4 +39,4 @@ class PixtoilelibreTest(BackendTest):
 
         got = self.backend.get_paste(post.id)
         assert got
-        assert got.contents.decode('base64') == self.DATA.decode('base64')
+        self.assertEquals(b64decode(got.contents), b64decode(self.DATA))

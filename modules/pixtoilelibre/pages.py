@@ -18,19 +18,19 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import Page
+from weboob.browser.pages import HTMLPage
 import re
 
 
-class PageHome(Page):
+class PageHome(HTMLPage):
     pass
 
 
-class PageImage(Page):
+class PageImage(HTMLPage):
     def get_info(self):
         id = re.search(r'img=([^&]+)', self.url).group(1)
         return {'url': self.url, 'id': id}
 
 
-class PageError(Page):
+class PageError(HTMLPage):
     pass

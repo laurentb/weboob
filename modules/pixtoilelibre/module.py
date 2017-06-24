@@ -17,11 +17,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from base64 import b64decode
+import re
 
 from weboob.tools.backend import Module
 from weboob.capabilities.paste import CapPaste, BasePaste
-from weboob.tools.capabilities.paste import image_mime
-import re
+from weboob.tools.capabilities.paste import image_mime, bin_to_b64
 
 from .browser import PixtoilelibreBrowser
 
@@ -55,16 +56,19 @@ class PixtoilelibreModule(Module, CapPaste):
             return 20 * int(mime is not None)
 
     def get_paste(self, id):
+        m = self.browser.img.match(id)
+        if m:
+            id = m.group('id')
         paste = PixPaste(id)
         contents = self.browser.get_contents(id)
         if contents:
-            paste.contents = contents.encode('base64')
+            paste.contents = bin_to_b64(contents)
             return paste
 
     def new_paste(self, *a, **kw):
         return PixPaste(*a, **kw)
 
     def post_paste(self, paste, max_age=None):
-        d = self.browser.post_image(paste.title or '-', paste.contents.decode('base64'), private=(not paste.public), description=paste.title)
+        d = self.browser.post_image(paste.title or '-', b64decode(paste.contents), private=(not paste.public), description=paste.title)
         paste.id = d['id']
         return paste
