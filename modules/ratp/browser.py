@@ -24,7 +24,7 @@ from .pages import MeteoPage
 
 
 class RATPBrowser(PagesBrowser):
-    BASEURL = u'http://www.ratp.fr'
+    BASEURL = u'https://www.ratp.fr'
 
     meteo = URL(u'/meteo', MeteoPage)
 
