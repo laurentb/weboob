@@ -20,6 +20,7 @@
 
 import re
 from ast import literal_eval
+import sys
 
 from weboob.browser.filters.standard import Filter, Regexp, RegexpError
 from weboob.exceptions import ParseError
@@ -102,7 +103,9 @@ class JSValue(Regexp):
         if t in ('int', 'float'):
             return literal_eval(v)
         if t == 'str':
-            return literal_eval(v).decode('utf-8')
+            if sys.version_info.major < 3:
+                return literal_eval(v).decode('utf-8')
+            return literal_eval(v)
         if t == 'bool':
             return v == 'true'
         if t == 'None':
