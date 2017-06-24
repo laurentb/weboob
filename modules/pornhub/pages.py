@@ -58,4 +58,4 @@ class VideoPage(HTMLPage):
         obj_title = CleanText('//title')
         obj_nsfw = True
         obj_ext = u'mp4'
-        obj_url = CleanText('//script') & Regexp(pattern=r"(http://[^']+\.mp4[^']+)'")
+        obj_url = CleanText('//script') & Regexp(pattern=r'(https:\\/\\/[^"]+\.mp4[^"]+)"') & CleanText(replace=[('\\', '')])

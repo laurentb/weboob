@@ -27,7 +27,7 @@ __all__ = ['PornhubBrowser']
 
 
 class PornhubBrowser(PagesBrowser):
-    BASEURL = 'http://www.pornhub.com'
+    BASEURL = 'https://www.pornhub.com'
 
     index = URL(r'/$', IndexPage)
     search = URL(r'/video/search\?search=(?P<pattern>.+)\&page=(?P<pagenum>\d+)', IndexPage)
