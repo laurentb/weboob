@@ -19,7 +19,6 @@
 
 from weboob.browser import DomainBrowser
 from weboob.tools.date import datetime
-from weboob.tools.json import json
 
 
 __all__ = ['GuerrillamailBrowser']
