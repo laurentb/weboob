@@ -17,9 +17,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from datetime import datetime
 
 from weboob.tools.test import BackendTest
-from datetime import datetime
 
 
 class MediawikiTest(BackendTest):
@@ -35,10 +35,11 @@ class MediawikiTest(BackendTest):
 
     def test_push_content(self):
         content = self.backend.get_content(u"Project:Sandbox")
-        content.content = "test "+str(datetime.now())
+        content.content = "%s\nhello %s" % (content.content, datetime.now())
+        # ^ warning: wikipedia seems to have blocked lines starting with "test"...
         self.backend.push_content(content, message="test weboob", minor=True)
         new_content = self.backend.get_content(u"Project:Sandbox")
-        assert content.content == new_content.content
+        self.assertEquals(content.content, new_content.content)
 
     def test_content_preview(self):
         content = self.backend.get_content(u"Project:Sandbox")

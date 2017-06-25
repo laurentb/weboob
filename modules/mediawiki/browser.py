@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from urlparse import urlsplit, urljoin
+from collections import OrderedDict
 import datetime
 import re
 
@@ -69,7 +70,6 @@ class MediawikiBrowser(DomainBrowser):
                 'titles':           page,
                 'rvprop':           'content|timestamp|ids',
                 'rvlimit':          '1',
-                'intoken':          'edit',
                 }
         if rev:
             data['rvstartid'] = rev
@@ -92,13 +92,11 @@ class MediawikiBrowser(DomainBrowser):
             self.login()
 
         data = {'action':      'query',
-                'prop':        'info',
-                'titles':      page,
-                'intoken':     _type,
+                'meta':        'tokens',
+                'type':        'csrf',
                 }
         result = self.API_get(data)
-        pageid = result['query']['pages'].keys()[0]
-        return result['query']['pages'][str(pageid)][_type + 'token']
+        return result['query']['tokens']['csrftoken']
 
     def set_wiki_source(self, content, message=None, minor=False):
         if len(self.username) > 0 and not self.is_logged():
@@ -115,6 +113,8 @@ class MediawikiBrowser(DomainBrowser):
                 }
         if minor:
             data['minor'] = 'true'
+        data = OrderedDict(data)
+        data['token'] = token
 
         self.API_post(data)
 
