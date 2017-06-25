@@ -47,7 +47,7 @@ class MediawikiTest(BackendTest):
 
     def test_search_image(self):
         it = iter(self.backend.search_file('logo'))
-        for _, img in zip(xrange(3), it):
+        for _, img in zip(range(3), it):
             assert img
             assert img.title
             assert img.ext

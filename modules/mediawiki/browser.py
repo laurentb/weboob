@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from urlparse import urlsplit, urljoin
 from collections import OrderedDict
 import datetime
 import re
@@ -27,6 +26,7 @@ import dateutil.parser
 from weboob.browser.browsers import DomainBrowser
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.content import Revision
+from weboob.tools.compat import urlsplit, urljoin, basestring
 
 __all__ = ['MediawikiBrowser']
 
@@ -75,7 +75,7 @@ class MediawikiBrowser(DomainBrowser):
             data['rvstartid'] = rev
 
         result = self.API_get(data)
-        pageid = result['query']['pages'].keys()[0]
+        pageid = list(result['query']['pages'].keys())[0]
         if pageid == "-1":    # Page does not exist
             return ""
 
@@ -107,7 +107,6 @@ class MediawikiBrowser(DomainBrowser):
 
         data = {'action':      'edit',
                 'title':       page,
-                'token':       token,
                 'text':        content.content.encode('utf-8'),
                 'summary':     message,
                 }
@@ -174,7 +173,7 @@ class MediawikiBrowser(DomainBrowser):
                 data['rvstartid'] = last_id
 
             result = self.API_get(data)
-            pageid = str(result['query']['pages'].keys()[0])
+            pageid = str(list(result['query']['pages'].keys())[0])
 
             results = 0
             if pageid != "-1":
@@ -233,7 +232,7 @@ class MediawikiBrowser(DomainBrowser):
         data['titles'] = page
 
         response = self.API_get(data)
-        pageid = response['query']['pages'].keys()[0]
+        pageid = list(response['query']['pages'].keys())[0]
         info = response['query']['pages'][pageid]
         return self._common_parse_file(info)
 
