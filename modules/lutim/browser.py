@@ -50,7 +50,7 @@ class LutimBrowser(PagesBrowser):
         filefield = {'file': (name, BytesIO(bin))}
         params = {'format': 'json'}
         if max_age:
-            params['delete-day'] = math.ceil(max_age / 86400.)
+            params['delete-day'] = int(math.ceil(max_age / 86400.))
         self.location('/', data=params, files=filefield)
         assert self.upload_page.is_here()
         info = self.page.fetch_info()
