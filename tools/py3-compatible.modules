@@ -1,0 +1,5 @@
+##
+# this file declares which modules are compatible with python3 and should be checked with pyflakes3
+##
+caissedepargne/
+cragr/
