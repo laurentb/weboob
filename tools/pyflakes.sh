@@ -38,13 +38,15 @@ grep -n xrange ${MODULE_FILES3} && echo 'Error: xrange is forbidden' && exit 21
 grep -nE "from (urllib|urlparse) import" ${MODULE_FILES3} && echo 'Error: python2 urllib is forbidden' && exit 22
 grep -nE "import (urllib|urlparse)$" ${MODULE_FILES3} && echo 'Error: python2 urllib is forbidden' && exit 22
 
-FLAKE8=$(find_cmd flake8-python2 flake8)
-if [ -n "$FLAKE8" ]; then
-    python2 ${FLAKE8} --select=E9,F *.py $PYFILES || exit 30
+FLAKE8=
+if python2 -c 'import flake8' 2>/dev/null; then
+    python2 -m flake8 --select=E9,F *.py $PYFILES || exit 30
+    FLAKE8=y
 fi
-FLAKE83=$(find_cmd flake8-python3 flake8)
-if [ -n "$FLAKE83" ]; then
-    python3 ${FLAKE8} --select=E9,F *.py $PYFILES3 || exit 31
+FLAKE83=
+if python3 -c 'import flake8' 2>/dev/null; then
+    python3 -m flake8 --select=E9,F *.py $PYFILES3 || exit 31
+    FLAKE83=y
 fi
 
 if [ -n "$FLAKE8$FLAKE83" ]; then
