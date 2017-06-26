@@ -1,27 +1,57 @@
-image: "python:2.7"
+test:2.7:
+  image: "python:2.7"
 
-before_script:
-  - "pip install -r .ci/requirements.txt"
-  - "REQUIREMENTS=$(mktemp) && python setup.py requirements > ${REQUIREMENTS} && pip install -r ${REQUIREMENTS} && rm ${REQUIREMENTS}"
-  - "pip install -r .ci/requirements_modules.txt"
+  before_script:
+    - "pip install -r .ci/requirements.txt"
+    - "REQUIREMENTS=$(mktemp) && python setup.py requirements > ${REQUIREMENTS} && pip install -r ${REQUIREMENTS} && rm ${REQUIREMENTS}"
+    - "pip install -r .ci/requirements_modules.txt"
 
-build:
-  stage: "build"
-  script:
-    - "./tools/local_install.sh ~/bin"
+  build:
+    stage: "build"
+    script:
+      - "./tools/local_install.sh ~/bin"
 
-lint:
-  stage: "test"
-  script:
-    - "./tools/pyflakes.sh"
-    - "./tools/weboob_lint.sh"
+  lint:
+    stage: "test"
+    script:
+      - "./tools/pyflakes.sh"
+      - "./tools/weboob_lint.sh"
 
-unittests:
-  stage: "test"
-  script:
-    - "./tools/run_tests.sh"
+  unittests:
+    stage: "test"
+    script:
+      - "./tools/run_tests.sh"
 
-doc:
-  stage: "deploy"
-  script:
-    - "cd ./docs && make html"
+  doc:
+    stage: "deploy"
+    script:
+      - "cd ./docs && make html"
+
+test:3:
+  image: "python:3"
+
+  before_script:
+    - "pip install -r .ci/requirements.txt"
+    - "REQUIREMENTS=$(mktemp) && python setup.py requirements > ${REQUIREMENTS} && pip install -r ${REQUIREMENTS} && rm ${REQUIREMENTS}"
+    - "pip install -r .ci/requirements_modules.txt"
+
+  build:
+    stage: "build"
+    script:
+      - "./tools/local_install.sh ~/bin"
+
+  lint:
+    stage: "test"
+    script:
+      - "./tools/pyflakes.sh"
+      - "./tools/weboob_lint.sh"
+
+  unittests:
+    stage: "test"
+    script:
+      - "./tools/run_tests.sh -3"
+
+  doc:
+    stage: "deploy"
+    script:
+      - "cd ./docs && make html"
