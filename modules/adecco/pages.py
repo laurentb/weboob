@@ -32,7 +32,7 @@ from weboob.capabilities.base import empty
 
 class SearchPage(HTMLPage):
     def get_post_params(self):
-        return {'facetSettingId': JSVar(CleanText('//script'), var='_ItemName')(self.doc),
+        return {'facetSettingId': JSVar(CleanText('//script'), var='_FacetName')(self.doc),
                 'currentLanguage': JSVar(CleanText('//script'), var='_CurrentLanguage')(self.doc),
                 'clientId': JSVar(CleanText('//script'), var='_ClientId')(self.doc),
                 'branchId': JSVar(CleanText('//script'), var='_BranchId')(self.doc),
