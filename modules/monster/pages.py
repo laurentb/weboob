@@ -67,7 +67,7 @@ class AdvSearchPage(HTMLPage):
             obj_society_name = CleanText('.//div[@class="company"]/span[@itemprop="name"]|.//div[@class="company"]/a/span[@itemprop="name"]',
                                          replace=[(u'Trouvée sur : ', u'')],
                                          default=NotAvailable)
-            obj_title = CleanText('.//div[@class="jobTitle"]/h2/a/span[@itemprop="title"]',
+            obj_title = CleanText('.//div[@class="jobTitle"]/h2/a/span',
                                   default=NotAvailable)
             obj_publication_date = DateTime(CleanText('.//div[has-class("job-specs-date")]/p/time/@datetime|./div[@class="extras"]/div[@class="postedDate"]/time/@datetime'),
                                             default=NotAvailable)
