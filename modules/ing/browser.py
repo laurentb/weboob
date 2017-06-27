@@ -42,7 +42,7 @@ def start_with_main_site(f):
         browser = args[0]
 
         if browser.url and browser.url.startswith('https://bourse.ingdirect.fr/'):
-            for i in xrange(3):
+            for i in range(3):
                 try:
                     browser.location('https://bourse.ingdirect.fr/priv/redirectIng.php?pageIng=COMPTE')
                 except ServerError:
@@ -104,9 +104,6 @@ class IngBrowser(LoginBrowser):
         self.cache["investments_data"] = {}
 
     def do_login(self):
-        assert isinstance(self.username, basestring)
-        assert isinstance(self.password, basestring)
-        assert isinstance(self.birthday, basestring)
         assert self.password.isdigit()
         assert self.birthday.isdigit()
 
@@ -214,14 +211,14 @@ class IngBrowser(LoginBrowser):
         else:
             history_function = AccountsList.get_transactions_others
             index = 0
-        hashlist = []
+        hashlist = set()
         while True:
             i = index
             for transaction in history_function(self.page, index=index):
                 transaction.id = hashlib.md5(transaction._hash).hexdigest()
                 while transaction.id in hashlist:
-                    transaction.id = hashlib.md5(transaction.id + "1").hexdigest()
-                hashlist.append(transaction.id)
+                    transaction.id = hashlib.md5((transaction.id + "1").encode('ascii')).hexdigest()
+                hashlist.add(transaction.id)
                 i += 1
                 yield transaction
             # if there is no more transactions, it is useless to continue

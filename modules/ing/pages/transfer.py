@@ -125,7 +125,7 @@ class TransferPage(LoggedPage, HTMLPage):
         form.submit()
 
         form = self.get_form()
-        keys = [k for k in form.iterkeys() if '_link_hidden' in k or 'j_idcl' in k]
+        keys = [k for k in form if '_link_hidden' in k or 'j_idcl' in k]
         for k in keys:
             form.pop(k)
         form['AJAXREQUEST'] = "_viewRoot"

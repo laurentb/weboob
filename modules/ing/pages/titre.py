@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 import re
 from decimal import Decimal
@@ -28,6 +29,7 @@ from weboob.browser.elements import ListElement, TableElement, ItemElement, meth
 from weboob.browser.filters.standard import CleanDecimal, CleanText, Date, TableCell, Regexp, Env, Async, AsyncLoad
 from weboob.browser.filters.html import Link, Attr
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.compat import unicode
 
 class NetissimaPage(HTMLPage):
     pass
@@ -42,6 +44,9 @@ class TitreValuePage(LoggedPage, HTMLPage):
 
 
 class TitrePage(LoggedPage, RawPage):
+    def build_doc(self, content):
+        return content.decode(self.encoding)
+
     def get_balance(self):
         return CleanDecimal(default=None, replace_dots=True).filter(self.doc.split('{')[0])
 
@@ -69,15 +74,15 @@ class TitrePage(LoggedPage, RawPage):
                 _pl = columns[start].split('{')[1]
                 _id = columns[start].split('{')[2]
             invest = Investment()
-            invest.label = unicode(columns[start].split('{')[-1])
-            invest.code = unicode(_id) if _id is not None else NotAvailable
+            invest.label = columns[start].split('{')[-1]
+            invest.code = _id or NotAvailable
             if invest.code and ':' in invest.code:
                 invest.code = self.browser.titrevalue.open(val=invest.code,pl=_pl).get_isin()
             # The code we got is not a real ISIN code.
             if invest.code and not re.match('^[A-Z]{2}[\d]{10}$|^[A-Z]{2}[\d]{5}[A-Z]{1}[\d]{4}$', invest.code):
                 m = re.search('\{([A-Z]{2}[\d]{10})\{|\{([A-Z]{2}[\d]{5}[A-Z]{1}[\d]{4})\{', line)
                 if m:
-                    invest.code = unicode(m.group(1) or m.group(2))
+                    invest.code = m.group(1) or m.group(2)
 
             for x, attr in enumerate(['quantity', 'unitprice', 'unitvalue', 'valuation', 'diff'], 1):
                 currency = FrenchTransaction.Currency().filter(columns[start + x])
@@ -106,8 +111,8 @@ class TitrePage(LoggedPage, RawPage):
 
         #We also have to get the liquidity as an investment.
         invest = Investment()
-        invest.label = unicode("Liquidités", 'utf-8')
-        invest.code = unicode("XX-liquidity")
+        invest.label = "Liquidités"
+        invest.code = "XX-liquidity"
         invest.valuation = CleanDecimal(None, True).filter(message.split('&')[3].replace('euro;{','').strip())
         invests.append(invest)
         for invest in invests:
