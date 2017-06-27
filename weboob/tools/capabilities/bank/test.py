@@ -22,10 +22,10 @@ from weboob.capabilities.base import empty
 from weboob.exceptions import NoAccountsException
 
 
-__all__ = ('BasicTest',)
+__all__ = ('BankStandardTest',)
 
 
-class BasicTest(object):
+class BankStandardTest(object):
     """Mixin for simple tests on CapBank backends.
 
     This checks:
@@ -40,31 +40,9 @@ class BasicTest(object):
     """
 
     allow_notimplemented_history = False
+    allow_notimplemented_coming = False
     allow_notimplemented_investments = False
     allow_notimplemented_recipients = False
-
-    def check_history(self, account):
-        for tr in self.backend.iter_history(account):
-            assert not empty(tr.date)
-            assert tr.amount
-            assert tr.raw or tr.label
-
-            for inv in (tr.investments or []):
-                assert inv.label
-                assert inv.valuation
-
-    def check_investments(self, account):
-        for inv in self.backend.iter_investment(account):
-            assert inv.label
-            assert inv.valuation
-
-    def check_recipients(self, account):
-        for rcpt in self.backend.iter_transfer_recipients(account):
-            assert rcpt.id
-            assert rcpt.label
-
-    def check_extra(self, account):
-        pass
 
     def test_basic(self):
         try:
@@ -75,14 +53,18 @@ class BasicTest(object):
         assert accounts
 
         for account in accounts:
-            assert account.id
-            assert account.label
-            assert not empty(account.balance)
+            self.check_account(account)
 
             try:
                 self.check_history(account)
             except NotImplementedError:
                 if not self.allow_notimplemented_history:
+                    raise
+
+            try:
+                self.check_coming(account)
+            except NotImplementedError:
+                if not self.allow_notimplemented_coming:
                     raise
 
             try:
@@ -97,4 +79,41 @@ class BasicTest(object):
                 if not self.allow_notimplemented_recipients:
                     raise
 
-            self.check_extra(account)
+    def check_account(self, account):
+        assert account.id
+        assert account.label
+        assert not empty(account.balance)
+
+    def check_history(self, account):
+        for tr in self.backend.iter_history(account):
+            self.check_transaction(account, tr, False)
+
+    def check_coming(self, account):
+        for tr in self.backend.iter_coming(account):
+            self.check_transaction(account, tr, True)
+
+    def check_transaction(self, account, tr, coming):
+        assert not empty(tr.date)
+        assert tr.amount
+        assert tr.raw or tr.label
+        assert tr.date
+
+        for inv in (tr.investments or []):
+            assert inv.label
+            assert inv.valuation
+
+    def check_investments(self, account):
+        for inv in self.backend.iter_investment(account):
+            self.check_investment(account, inv)
+
+    def check_investment(self, account, inv):
+        assert inv.label
+        assert inv.valuation
+
+    def check_recipients(self, account):
+        for rcpt in self.backend.iter_transfer_recipients(account):
+            self.check_recipient(account, rcpt)
+
+    def check_recipient(self, account, rcpt):
+        assert rcpt.id
+        assert rcpt.label
