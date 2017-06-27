@@ -364,10 +364,7 @@ def html_to_pdf(browser, url=None, data=None, extra_options=None):
     assert (url or data) and not (url and data), 'Please give only url or data parameter'
 
     callback = pdfkit.from_url if url else pdfkit.from_string
-
-    options = {
-        'quiet': '', # do not print conversion steps
-    }
+    options = {}
 
     try:
         cookies = browser.session.cookies
