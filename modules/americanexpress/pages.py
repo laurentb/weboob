@@ -21,6 +21,7 @@
 import datetime
 import re
 from urlparse import urljoin
+from dateutil.relativedelta import relativedelta
 
 from weboob.browser.elements import ItemElement, method
 from weboob.browser.pages import HTMLPage, LoggedPage, PartialHTMLPage
@@ -29,7 +30,7 @@ from weboob.browser.filters.html import Link
 from weboob.capabilities.bank import Account
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
-from weboob.tools.date import ChaoticDateGuesser
+from weboob.tools.date import ChaoticDateGuesser, parse_french_date
 
 
 def parse_decimal(s):
@@ -190,15 +191,10 @@ class TransactionsPage(LoggedPage, HTMLPage):
         # we just use the date of beginning of the previous period.
         # If this date + 1 month is greater than today's date,
         # then the transaction is coming
-        previous_text_debit_date = CleanText().filter(self.doc.xpath('//td[@id="colStatementBalance"]/div[3]'))
-        if previous_text_debit_date != u'':
-            day, month, year = previous_text_debit_date.split()[1:4]
-            day = int(day)
-            month = self.parse_month(month) + 1
-            year = int(year)
-            end_of_period = datetime.date(day=day, month=month, year=year)
-        else:
-            end_of_period = None
+        end_of_period = None
+        previous_date = CleanText('//td[@id="colStatementBalance"]/div[3]', default=None)(self.doc)
+        if previous_date:
+            end_of_period = (parse_french_date(' '.join(previous_date.split()[1:4])) + relativedelta(months=1)).date()
 
         for tr in reversed(self.doc.xpath('//div[@id="txnsSection"]//tbody/tr[@class="tableStandardText"]')):
             cols = tr.findall('td')
