@@ -437,7 +437,8 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
                     obj.vdate = Async('details', Date(CleanText(u'//td[contains(text(), "Date de valeur")]/following-sibling::*[1]', default=u''), default=NotAvailable))(self)
                     obj.amount = Async('details', CleanDecimal(u'//td[contains(text(), "Montant")]/following-sibling::*[1]', replace_dots=True, default=NotAvailable))(self)
                 # ugly hack to fix broken html
-                if not obj.amount:
+                # sometimes transactions have really an amount of 0...
+                if not obj.amount and CleanDecimal(TableCell('credit'), default=None)(self) is None:
                     obj.amount = Async('details', CleanDecimal(u'//td[contains(text(), "Montant")]/following-sibling::*[1]', replace_dots=True, default=NotAvailable))(self)
                 return True
 
