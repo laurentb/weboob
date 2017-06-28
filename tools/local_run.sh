@@ -14,6 +14,8 @@ if [ -z "${PYTHON}" ]; then
         which python2.7 >/dev/null 2>&1 && PYTHON=$(which python2.7)
     else
         which python3.4 >/dev/null 2>&1 && PYTHON=$(which python3.4)
+        which python3.5 >/dev/null 2>&1 && PYTHON=$(which python3.5)
+        which python3.6 >/dev/null 2>&1 && PYTHON=$(which python3.6)
     fi
 fi
 
