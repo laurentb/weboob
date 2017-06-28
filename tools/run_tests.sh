@@ -10,11 +10,18 @@
 # stop on failure
 set -e
 
-VER=2
-if [ "$1" = -3 ]; then
-	VER=3
-	shift
+. "$(dirname $0)/common.sh"
+
+if [ -z "${PYTHON}" ]; then
+    echo "Python required"
+    exit 1
 fi
+
+if ! $PYTHON -c "import nose" 2>/dev/null; then
+    echo "python-nose required"
+    exit 1
+fi
+
 
 # path to sources
 WEBOOB_DIR=$(cd $(dirname $0)/.. && pwd -P)
@@ -59,30 +66,6 @@ if [ -n "${WEBOOB_CI_TARGET}" ]; then
     XUNIT_OUT="${WEBOOB_TMPDIR}/xunit.xml"
 else
     WEBOOB_CI_TARGET=""
-fi
-
-
-# find executables
-if [ -z "${PYTHON}" ]; then
-    which python >/dev/null 2>&1 && PYTHON=$(which python)
-    which python$VER >/dev/null 2>&1 && PYTHON=$(which python$VER)
-    if [ $VER -eq 2 ]; then
-        which python2.7 >/dev/null 2>&1 && PYTHON=$(which python2.7)
-    else
-        which python3.4 >/dev/null 2>&1 && PYTHON=$(which python3.4)
-        which python3.5 >/dev/null 2>&1 && PYTHON=$(which python3.5)
-        which python3.6 >/dev/null 2>&1 && PYTHON=$(which python3.6)
-    fi
-fi
-
-if [ -z "${PYTHON}" ]; then
-    echo "Python required"
-    exit 1
-fi
-
-if ! $PYTHON -c "import nose" 2>/dev/null; then
-    echo "python-nose required"
-    exit 1
 fi
 
 # do not allow undefined variables anymore
