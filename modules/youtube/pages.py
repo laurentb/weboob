@@ -20,7 +20,6 @@
 # Some parts are taken from youtube-dl, licensed under the UNLICENSE.
 
 
-from urlparse import urlparse, parse_qs
 import codecs
 import zlib
 import re
@@ -29,11 +28,11 @@ import string
 import struct
 import collections
 import traceback
-import urllib
 import io
 
 from weboob.capabilities.base import UserError
 from weboob.deprecated.browser import Page, BrokenPageError, BrowserIncorrectPassword
+from weboob.tools.compat import urlparse, parse_qs, urlencode
 from weboob.tools.json import json
 
 
@@ -971,7 +970,7 @@ class VideoPage(BaseYoutubePage):
             # this can be viewed without login into Youtube
             url = 'https://www.youtube.com/embed/%s' % video_id
             embed_webpage = self.browser.readurl(url)
-            data = urllib.urlencode({
+            data = urlencode({
                 'video_id': video_id,
                 'eurl': 'https://youtube.googleapis.com/v/' + video_id,
                 'sts': self._search_regex(

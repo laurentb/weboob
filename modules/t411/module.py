@@ -17,10 +17,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from urllib import quote_plus
-
 from weboob.capabilities.torrent import CapTorrent, Torrent
 from weboob.tools.backend import Module, BackendConfig
+from weboob.tools.compat import quote_plus
 from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import T411Browser

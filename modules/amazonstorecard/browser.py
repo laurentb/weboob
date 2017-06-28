@@ -21,11 +21,11 @@
 from weboob.capabilities.bank import AccountNotFound
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
+from weboob.tools.compat import unquote
 import json
 import os
 from tempfile import mkstemp
 from subprocess import check_output, STDOUT, CalledProcessError
-from urllib import unquote
 
 from .pages import SomePage, StatementsPage, StatementPage, SummaryPage, \
                    ActivityPage

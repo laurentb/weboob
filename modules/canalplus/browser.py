@@ -17,9 +17,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import urllib
 
 from weboob.browser import PagesBrowser, URL
+from weboob.tools.compat import quote_plus
 
 from .pages import ChannelsPage, VideoPage
 from .video import CanalplusVideo
@@ -51,7 +51,7 @@ class CanalplusBrowser(PagesBrowser):
         self.location('http://service.canal-plus.com/video/rest/initPlayer/cplus/')
 
     def search_videos(self, pattern):
-        self.location('http://service.canal-plus.com/video/rest/search/cplus/' + urllib.quote_plus(pattern.replace('/', '').encode('utf-8')))
+        self.location('http://service.canal-plus.com/video/rest/search/cplus/' + quote_plus(pattern.replace('/', '').encode('utf-8')))
         return self.page.iter_results()
 
     def get_video(self, url, video=None):

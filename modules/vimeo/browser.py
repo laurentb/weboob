@@ -21,10 +21,9 @@
 from weboob.browser import PagesBrowser, URL
 from weboob.browser.exceptions import HTTPNotFound
 from weboob.capabilities.base import NotAvailable
+from weboob.tools.compat import urljoin, quote_plus
 from .pages import VideoJsonPage, CategoriesPage, ListPage, APIPage, XMLAPIPage
 
-import urllib
-from urlparse import urljoin
 import time
 import hmac
 from hashlib import sha1
@@ -104,7 +103,7 @@ class VimeoBrowser(PagesBrowser):
                 'sort': 'relevant',
                 'page': '1',
                 'full_response': '1',
-                'query': urllib.quote_plus(pattern.encode('utf-8'))}
+                'query': quote_plus(pattern.encode('utf-8'))}
 
         self._prepare_request(self.APIURL, method='POST', headers=headers, data=data)
         return self._api.go(data=data).iter_videos()
@@ -144,7 +143,7 @@ class VimeoBrowser(PagesBrowser):
                 s = s.encode('utf-8')
                 pass
 
-            result = urllib.quote_plus(s).replace('+', '%20').replace('*', '%2A').replace('%7E', '~')
+            result = quote_plus(s).replace('+', '%20').replace('*', '%2A').replace('%7E', '~')
             # the implementation of the app has a bug. someone double escaped the '@' so we have to correct this
             # on our end.
             result = result.replace('%40', '%2540')

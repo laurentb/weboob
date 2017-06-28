@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import urllib
+from weboob.tools.compat import quote_plus
 
 from .pages.compose import ClosePage, ComposePage, ConfirmPage, SentPage
 from .pages.login import LoginPage
@@ -52,7 +52,7 @@ class SfrBrowser(Browser):
 
     def login(self):
         service_url = 'http://www.sfr.fr/xmscomposer/j_spring_cas_security_check'
-        self.location('https://www.sfr.fr/cas/login?service=%s' % urllib.quote_plus(service_url), no_login=True)
+        self.location('https://www.sfr.fr/cas/login?service=%s' % quote_plus(service_url), no_login=True)
         self.page.login(self.username, self.password)
         if not self.is_logged():
             raise BrowserIncorrectPassword()

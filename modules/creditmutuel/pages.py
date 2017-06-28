@@ -21,10 +21,6 @@
 import re
 import hashlib
 
-try:
-    from urlparse import urlparse, parse_qs
-except ImportError:
-    from urllib.parse import urlparse, parse_qs
 
 from decimal import Decimal, InvalidOperation
 from dateutil.relativedelta import relativedelta
@@ -42,6 +38,7 @@ from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Profile
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.compat import urlparse, parse_qs
 from weboob.tools.date import parse_french_date
 from weboob.tools.value import Value
 

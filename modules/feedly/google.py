@@ -17,11 +17,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from urlparse import urlparse, parse_qs
 
 from weboob.browser import LoginBrowser, URL
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.exceptions import BrowserIncorrectPassword
+from weboob.tools.compat import urlparse, parse_qs
 
 
 class GoogleLoginPage(LoggedPage, HTMLPage):

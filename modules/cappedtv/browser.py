@@ -9,7 +9,6 @@
 # http://sam.zoy.org/wtfpl/COPYING for more details.
 
 from collections import OrderedDict
-import urllib
 import datetime
 
 from weboob.capabilities.base import NotAvailable
@@ -20,6 +19,7 @@ from weboob.deprecated.browser import Browser
 from weboob.deprecated.browser.decorators import id2url
 from weboob.capabilities.image import Thumbnail
 from weboob.capabilities.video import BaseVideo
+from weboob.tools.compat import quote_plus
 
 
 __all__ = ['CappedBrowser']
@@ -124,7 +124,7 @@ class CappedBrowser(Browser):
         return self.page.get_video(video)
 
     def search_videos(self, pattern):
-        self.location('/search?s=%s' % (urllib.quote_plus(pattern.encode('utf-8'))))
+        self.location('/search?s=%s' % (quote_plus(pattern.encode('utf-8'))))
         assert self.is_on_page(IndexPage)
         return self.page.iter_videos()
 

@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import urllib
 import datetime
 from dateutil.relativedelta import relativedelta
 
@@ -92,7 +91,6 @@ class Paypal(LoginBrowser):
         data['_csrf'] = csrf
         data['_sessionID'] = sessionID
         data[key] = value
-        data = urllib.urlencode(data)
         self.open('/auth/verifychallenge', data=data)
         res = self.page.login(self.username, self.password)
 
@@ -139,7 +137,11 @@ class Paypal(LoginBrowser):
         # The response is sometimes not the one we expect.
         for i in xrange(3):
             try:
-                self.location('https://www.paypal.com/myaccount/activity/filter?%s' % urllib.urlencode(data), headers={'Accept' : 'application/json, text/javascript, */*; q=0.01'})
+                self.location(
+                    'https://www.paypal.com/myaccount/activity/filter?%s',
+                    params=data,
+                    headers={'Accept' : 'application/json, text/javascript, */*; q=0.01'}
+                )
                 if self.page.transaction_left():
                     return self.page.iter_transactions(account)
                 return iter([])

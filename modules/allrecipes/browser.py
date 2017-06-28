@@ -19,7 +19,7 @@
 from weboob.browser import PagesBrowser, URL
 from .pages import ResultsPage, RecipePage, HomePage
 
-import urllib
+from weboob.tools.compat import urlencode
 
 __all__ = ['AllrecipesBrowser']
 
@@ -47,7 +47,7 @@ class AllrecipesBrowser(PagesBrowser):
         if not self.TOKEN:
             self.fill_token()
 
-        return self.results.go(query=urllib.urlencode(query)).iter_recipes()
+        return self.results.go(query=urlencode(query)).iter_recipes()
 
     def get_recipe(self, _id, obj=None):
         if not self.TOKEN:

@@ -18,10 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import urllib
-
 from weboob.browser import PagesBrowser, URL
 from weboob.capabilities.housing import Query, TypeNotSupported
+from weboob.tools.compat import urlencode
 
 from .pages import SearchResultsPage, HousingPage, CitiesPage
 
@@ -74,7 +73,7 @@ class PapBrowser(PagesBrowser):
             if house_type in self.RET:
                 ret.append(self.RET.get(house_type))
 
-        _data = '%s%s%s' % (urllib.urlencode(data), '&typesbien%5B%5D=', '&typesbien%5B%5D='.join(ret))
+        _data = '%s%s%s' % (urlencode(data), '&typesbien%5B%5D=', '&typesbien%5B%5D='.join(ret))
         return self.search_page.go(data=_data).iter_housings()
 
     def get_housing(self, _id, housing=None):

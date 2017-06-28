@@ -19,8 +19,7 @@
 
 
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
-
-import urllib
+from weboob.tools.compat import urlencode
 
 from weboob.deprecated.browser.decorators import id2url
 from .video import NolifeTVVideo
@@ -88,7 +87,7 @@ class NolifeTVBrowser(Browser):
                  'emissions': 0 }
 
         while True:
-            self.location('/do.php', urllib.urlencode(data))
+            self.location('/do.php', urlencode(data))
             assert self.is_on_page(VideoListPage)
 
             if self.page.is_list_empty():
@@ -104,7 +103,7 @@ class NolifeTVBrowser(Browser):
     def search_videos(self, pattern):
         data = { 'search': pattern,
                  'submit': 'Rechercher' }
-        self.location('/online/', urllib.urlencode(data))
+        self.location('/online/', urlencode(data))
         assert self.is_on_page(VideoListPage)
 
         for vid in self.page.iter_video(self.AVAILABLE_VIDEOS):

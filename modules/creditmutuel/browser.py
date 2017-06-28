@@ -18,10 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-try:
-    from urlparse import urlparse
-except ImportError:
-    from urllib.parse import urlparse
 
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -37,6 +33,7 @@ from weboob.browser.pages import FormNotFound
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import Account, AddRecipientStep, AddRecipientError, Recipient
 from weboob.capabilities import NotAvailable
+from weboob.tools.compat import urlparse
 
 from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, \
                    OperationsPage, CardPage, ComingPage, NoOperationsPage, \

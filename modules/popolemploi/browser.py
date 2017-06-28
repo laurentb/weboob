@@ -19,8 +19,7 @@
 
 from .pages import SearchPage, AdvertPage
 from weboob.browser import PagesBrowser, URL
-
-from urllib import quote
+from weboob.tools.compat import quote
 
 __all__ = ['PopolemploiBrowser']
 

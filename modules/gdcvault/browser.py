@@ -18,11 +18,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import urllib
 
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword, BrowserUnavailable,\
         BrowserBanned
 from weboob.deprecated.browser.decorators import id2url
+from weboob.tools.compat import urlencode
 
 #from .pages.index import IndexPage
 from .pages import VideoPage, IndexPage, SearchPage
@@ -67,7 +67,7 @@ class GDCVaultBrowser(Browser):
                  }
 
         data = self.readurl('http://gdcvault.com/api/login.php',
-                            urllib.urlencode(params))
+                            urlencode(params))
         # some data returned as JSON, not sure yet if it's useful
 
         if data is None:
@@ -131,7 +131,7 @@ class GDCVaultBrowser(Browser):
                      "category" : "free",
                      "keyword" : pattern.encode('utf-8'),
                      "conference_id" : "", }
-        post_data = urllib.urlencode(post_data)
+        post_data = urlencode(post_data)
         # probably not required
         self.addheaders = [('Referer', 'http://gdcvault.com/'),
                            ("Content-Type" , 'application/x-www-form-urlencoded') ]

@@ -19,10 +19,9 @@
 
 
 import re
-import urlparse
 from logging import warning, debug
-from urlparse import parse_qs
 
+from weboob.tools.compat import parse_qs, urlparse
 from weboob.tools.misc import get_bytes_size
 from weboob.tools.html import html2text
 from weboob.capabilities.torrent import Torrent
@@ -83,7 +82,7 @@ class TorrentsPage(BasePage):
                         title += u' (%s)' % tds[i].find('a').text
                     else:
                         title = ' - '.join([a.text for a in tds[i].findall('a')])
-                    url = urlparse.urlparse(tds[i].find('a').attrib['href'])
+                    url = urlparse(tds[i].find('a').attrib['href'])
                     params = parse_qs(url.query)
                     if 'torrentid' in params:
                         id = '%s.%s' % (params['id'][0], params['torrentid'][0])

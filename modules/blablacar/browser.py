@@ -19,11 +19,11 @@
 
 
 from weboob.browser import PagesBrowser, URL
+from weboob.tools.compat import urlencode
 
 from .pages import DeparturesPage
 
 from datetime import datetime
-import urllib
 
 
 class BlablacarBrowser(PagesBrowser):
@@ -46,4 +46,4 @@ class BlablacarBrowser(PagesBrowser):
                 query['hb'] = _heure
                 query['he'] = '24'
 
-        return self.departures.open(qry=urllib.urlencode(query)).get_station_departures()
+        return self.departures.open(qry=urlencode(query)).get_station_departures()

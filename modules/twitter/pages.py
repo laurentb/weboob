@@ -21,7 +21,6 @@ from datetime import datetime
 from weboob.tools.date import DATE_TRANSLATE_FR
 from io import StringIO
 import lxml.html as html
-import urllib
 
 from weboob.tools.json import json
 from weboob.browser.pages import HTMLPage, JsonPage, FormNotFound, pagination, LoggedPage
@@ -30,6 +29,7 @@ from weboob.browser.filters.standard import CleanText, Format, Regexp, Env, Date
 from weboob.browser.filters.html import Link, Attr
 from weboob.capabilities.messages import Thread, Message
 from weboob.capabilities.base import BaseObject
+from weboob.tools.compat import urlencode
 
 
 class DatetimeFromTimestamp(Filter):
@@ -196,7 +196,7 @@ class SearchTimelinePage(TwitterJsonHTMLPage):
                 params['max_position'] = self.env['min_position']
 
             if self.page.has_next:
-                return u'%s?%s' % (self.page.url.split('?')[0], urllib.urlencode(params))
+                return u'%s?%s' % (self.page.url.split('?')[0], urlencode(params))
 
 
 class LoginErrorPage(HTMLPage):

@@ -19,10 +19,9 @@
 
 
 from weboob.browser import PagesBrowser, URL
+from weboob.tools.compat import quote_plus
 
 from .pages import SearchPage, AdvertPage
-
-import urllib
 
 
 class LinuxJobsBrowser(PagesBrowser):
@@ -40,7 +39,7 @@ class LinuxJobsBrowser(PagesBrowser):
     def search_job(self, pattern=None):
         if pattern is None:
             return []
-        self.search_page.go(job=urllib.quote_plus(pattern.encode('utf-8')))
+        self.search_page.go(job=quote_plus(pattern.encode('utf-8')))
 
         assert self.search_page.is_here()
         return self.page.iter_job_adverts()

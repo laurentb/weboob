@@ -17,9 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import urllib
-
 from weboob.capabilities.housing import Query, TypeNotSupported
+from weboob.tools.compat import urlencode
 
 from weboob.browser import PagesBrowser, URL
 from .pages import SearchResultsPage, HousingPage, CitiesPage
@@ -80,7 +79,7 @@ class SeLogerBrowser(PagesBrowser):
         if ret:
             data['idtypebien'] = ','.join(ret)
 
-        return self.search.go(request=urllib.urlencode(data)).iter_housings()
+        return self.search.go(request=urlencode(data)).iter_housings()
 
     def get_housing(self, _id, obj=None):
         return self.housing.go(_id=_id, noAudiotel=1).get_housing(obj=obj)

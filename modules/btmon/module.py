@@ -19,10 +19,10 @@
 
 from weboob.capabilities.torrent import CapTorrent, Torrent
 from weboob.tools.backend import Module
+from weboob.tools.compat import quote_plus
 
 from .browser import BtmonBrowser
 
-from urllib import quote_plus
 
 __all__ = ['BtmonModule']
 

@@ -20,10 +20,10 @@
 from weboob.capabilities.subtitle import CapSubtitle, LanguageNotSupported, Subtitle
 from weboob.applications.suboob.suboob import LANGUAGE_CONV
 from weboob.tools.backend import Module
+from weboob.tools.compat import quote_plus
 
 from .browser import PodnapisiBrowser
 
-from urllib import quote_plus
 
 __all__ = ['PodnapisiModule']
 

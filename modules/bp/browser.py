@@ -19,11 +19,11 @@
 
 
 from datetime import datetime, timedelta
-from weboob.tools.compat import urlsplit, parse_qsl
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.browsers import StatesMixin
 from weboob.exceptions import BrowserIncorrectPassword, BrowserBanned, NoAccountsException, BrowserUnavailable
+from weboob.tools.compat import urlsplit, parse_qsl
 
 from .pages import (
     LoginPage, Initident, CheckPassword, repositionnerCheminCourant, BadLoginPage, AccountDesactivate,

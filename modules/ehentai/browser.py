@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
-from urllib import urlencode
+from weboob.tools.compat import urlencode
 
 from .pages import IndexPage, GalleryPage, ImagePage, HomePage, LoginPage
 from .gallery import EHentaiImage

@@ -21,11 +21,11 @@
 import datetime
 import re
 import os
-from urllib import quote_plus
 
 from weboob.browser.browsers import APIBrowser
 from weboob.browser.cache import CacheMixin
 from weboob.browser.exceptions import ClientError
+from weboob.tools.compat import quote_plus
 
 __all__ = ['GithubBrowser']
 

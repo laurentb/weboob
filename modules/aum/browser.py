@@ -23,7 +23,6 @@ from hashlib import sha256
 from datetime import datetime
 import math
 import re
-import urllib
 import urllib2
 
 from weboob.exceptions import BrowserIncorrectPassword, BrowserHTTPNotFound, BrowserUnavailable
@@ -31,6 +30,7 @@ from weboob.deprecated.browser import Browser
 from weboob.browser.browsers import LoginBrowser
 from weboob.browser.pages import HTMLPage
 from weboob.browser.filters.standard import CleanText
+from weboob.tools.compat import urlencode
 from weboob.tools.json import json
 from weboob.tools.date import local2utc
 from weboob.tools.misc import to_unicode
@@ -81,7 +81,7 @@ class WebsiteBrowser(LoginBrowser):
                 'remember': 'on',
                }
         self.open('/auth/login', data=data)
-        #self.readurl('https://www.adopteunmec.com/auth/login', urllib.urlencode(data))
+        #self.readurl('https://www.adopteunmec.com/auth/login', urlencode(data))
 
     def get_profile(self, id):
         profile = {}
@@ -179,7 +179,7 @@ class AuMBrowser(Browser):
             # Always do POST requests.
             data = ''
         elif isinstance(data, (list,tuple,dict)):
-            data = urllib.urlencode(data)
+            data = urlencode(data)
         elif isinstance(data, unicode):
             data = data.encode('utf-8')
 

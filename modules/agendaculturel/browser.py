@@ -21,7 +21,7 @@
 from weboob.browser import PagesBrowser, URL
 
 from .pages import BasePage
-from urlparse import urlparse
+from weboob.tools.compat import urlparse
 
 import re
 

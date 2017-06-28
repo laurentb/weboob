@@ -19,10 +19,10 @@
 
 from weboob.capabilities.recipe import CapRecipe, Recipe
 from weboob.tools.backend import Module
+from weboob.tools.compat import quote_plus
 
 from .browser import AllrecipesBrowser
 
-from urllib import quote_plus
 
 __all__ = ['AllrecipesModule']
 

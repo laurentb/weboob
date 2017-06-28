@@ -18,11 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import re
-from urllib import quote_plus
 from weboob.browser import URL
 from weboob.browser.browsers import LoginBrowser, need_login
 from weboob.capabilities.image import CapImage
 from weboob.exceptions import BrowserIncorrectPassword
+from weboob.tools.compat import quote_plus
 
 from .pages import AccountPage, LoginPage, SearchAPI, ViewPage
 

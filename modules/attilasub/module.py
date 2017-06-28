@@ -19,10 +19,10 @@
 
 from weboob.capabilities.subtitle import CapSubtitle, LanguageNotSupported
 from weboob.tools.backend import Module
+from weboob.tools.compat import quote_plus
 
 from .browser import AttilasubBrowser
 
-from urllib import quote_plus
 
 __all__ = ['AttilasubModule']
 

@@ -20,7 +20,6 @@
 
 from datetime import datetime
 import re
-import urllib
 from decimal import Decimal
 
 from weboob.browser.pages import HTMLPage, RawPage, LoggedPage
@@ -118,7 +117,7 @@ class LastPaymentsPage(LoggedPage, AmeliBasePage):
             yield bil
 
     def get_document(self, bill):
-        self.location(bill.url, urllib.urlencode(bill._args))
+        self.location(bill.url, params=bill._args)
 
 
 class PaymentDetailsPage(AmeliBasePage):

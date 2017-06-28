@@ -18,10 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import urllib
 
 from weboob.capabilities.translate import CapTranslate, Translation, TranslationFail, LanguageNotSupported
 from weboob.tools.backend import Module
+from weboob.tools.compat import urlencode
 from weboob.deprecated.browser import StandardBrowser
 
 
@@ -43,7 +43,7 @@ class EbonicsModule(Module, CapTranslate):
 
         with self.browser:
             data = {'English': text.encode('utf-8')}
-            doc = self.browser.location('http://joel.net/EBONICS/Translator', urllib.urlencode(data))
+            doc = self.browser.location('http://joel.net/EBONICS/Translator', urlencode(data))
             try:
                 text = doc.getroot().cssselect('div.translateform div.bubble1 div.bubblemid')[0].text
             except IndexError:

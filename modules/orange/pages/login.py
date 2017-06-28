@@ -18,8 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.deprecated.browser import Page
-import urllib
-
+from weboob.tools.compat import urlencode
 
 class LoginPage(Page):
     def on_loaded(self):
@@ -38,7 +37,7 @@ class LoginPage(Page):
                      "case"     : "",
                      "origin"   : "",    }
 
-        post_data = urllib.urlencode(post_data)
+        post_data = urlencode(post_data)
         self.browser.addheaders = [('Referer', 'http://id.orange.fr/auth_user/template/auth0user/htm/vide.html'),
                               ("Content-Type" , 'application/x-www-form-urlencoded') ]
 

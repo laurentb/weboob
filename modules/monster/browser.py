@@ -16,9 +16,8 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
-import urllib
-
 from weboob.browser import PagesBrowser, URL
+from weboob.tools.compat import quote_plus, urlencode
 
 from .pages import AdvertPage, AdvSearchPage, ExpiredAdvert
 
@@ -34,14 +33,14 @@ class MonsterBrowser(PagesBrowser):
                      AdvSearchPage)
 
     def search_job(self, pattern=None):
-        return self.adv_search.go(search='?q=%s' % urllib.quote_plus(pattern), page=1).iter_job_adverts()
+        return self.adv_search.go(search='?q=%s' % quote_plus(pattern), page=1).iter_job_adverts()
 
     def advanced_search_job(self, job_name, place, contract, limit_date):
         search = '' if not contract else contract
-        query = {'q': urllib.quote_plus(job_name),
+        query = {'q': quote_plus(job_name),
                  'where': place,
                  'tm': limit_date}
-        return self.adv_search.go(search='%s?%s' % (search, urllib.urlencode(query)), page=1).iter_job_adverts()
+        return self.adv_search.go(search='%s?%s' % (search, urlencode(query)), page=1).iter_job_adverts()
 
     def get_job_advert(self, _id, advert):
         return self.advert.go(_id=_id).get_job_advert(obj=advert)

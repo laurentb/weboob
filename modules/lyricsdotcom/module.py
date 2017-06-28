@@ -19,10 +19,10 @@
 
 from weboob.capabilities.lyrics import CapLyrics, SongLyrics
 from weboob.tools.backend import Module
+from weboob.tools.compat import quote_plus
 
 from .browser import LyricsdotcomBrowser
 
-from urllib import quote_plus
 
 __all__ = ['LyricsdotcomModule']
 

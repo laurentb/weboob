@@ -17,10 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import urllib
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bill import Detail
+from weboob.tools.compat import urlencode
 from decimal import Decimal
 from .pages import LoginPage, HomePage, AccountPage, HistoryPage, BillsPage, SearchPage
 
@@ -81,7 +81,7 @@ class AmeliProBrowser(LoginBrowser):
                }
 
         self.session.headers.update({'Content-Type': 'application/x-www-form-urlencoded'})
-        self.historyp.go(data=urllib.urlencode(data))
+        self.historyp.go(data=urlencode(data))
         if self.historyp.is_here():
             return self.page.iter_history()
 

@@ -21,7 +21,6 @@
 import re
 import ast
 
-from urllib import quote
 from decimal import Decimal
 from io import BytesIO
 from datetime import date as da
@@ -36,6 +35,7 @@ from weboob.capabilities.profile import Profile
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
+from weboob.tools.compat import quote
 from weboob.tools.json import json
 
 

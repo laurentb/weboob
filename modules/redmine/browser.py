@@ -18,13 +18,12 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from urlparse import urlsplit
-import urllib
 import re
 import lxml.html
 
 from weboob.capabilities.bugtracker import IssueError
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
+from weboob.tools.compat import urlsplit, urlencode, quote
 
 from .pages.index import LoginPage, IndexPage, MyPage, ProjectsPage
 from .pages.wiki import WikiPage, WikiEditPage
@@ -90,27 +89,27 @@ class RedmineBrowser(Browser):
         return self._userid
 
     def get_wiki_source(self, project, page, version=None):
-        url = '%s/projects/%s/wiki/%s/edit' % (self.BASEPATH, project, urllib.quote(page.encode('utf-8')))
+        url = '%s/projects/%s/wiki/%s/edit' % (self.BASEPATH, project, quote(page.encode('utf-8')))
         if version:
             url += '?version=%s' % version
         self.location(url)
         return self.page.get_source()
 
     def set_wiki_source(self, project, page, data, message):
-        self.location('%s/projects/%s/wiki/%s/edit' % (self.BASEPATH, project, urllib.quote(page.encode('utf-8'))))
+        self.location('%s/projects/%s/wiki/%s/edit' % (self.BASEPATH, project, quote(page.encode('utf-8'))))
         self.page.set_source(data, message)
 
     def get_wiki_preview(self, project, page, data):
         if (not self.is_on_page(WikiEditPage) or self.page.groups[0] != project
                 or self.page.groups[1] != page):
             self.location('%s/projects/%s/wiki/%s/edit' % (self.BASEPATH,
-                                                           project, urllib.quote(page.encode('utf-8'))))
-        url = '%s/projects/%s/wiki/%s/preview' % (self.BASEPATH, project, urllib.quote(page.encode('utf-8')))
+                                                           project, quote(page.encode('utf-8'))))
+        url = '%s/projects/%s/wiki/%s/preview' % (self.BASEPATH, project, quote(page.encode('utf-8')))
         params = {}
         params['content[text]'] = data.encode('utf-8')
         params['authenticity_token'] = "%s" % self.page.get_authenticity_token()
         preview_html = lxml.html.fragment_fromstring(self.readurl(url,
-                                                    urllib.urlencode(params)),
+                                                    urlencode(params)),
                                                     create_parent='div')
         preview_html.find("fieldset").drop_tag()
         preview_html.find("legend").drop_tree()
@@ -159,7 +158,7 @@ class RedmineBrowser(Browser):
                 data += ((self.METHODS[method]['operator'] % key, '~'),)
 
         if method == 'POST':
-            self.location('/issues?set_filter=1&per_page=100', urllib.urlencode(data))
+            self.location('/issues?set_filter=1&per_page=100', urlencode(data))
         else:
             data += (('set_filter', '1'), ('per_page', '100'))
             self.location(self.buildurl('/issues', *data))
@@ -236,7 +235,7 @@ class RedmineBrowser(Browser):
         token = self.page.get_authenticity_token()
 
         data = (('authenticity_token', token),)
-        self.openurl('/issues/%s/destroy' % id, urllib.urlencode(data))
+        self.openurl('/issues/%s/destroy' % id, urlencode(data))
 
     def iter_projects(self):
         self.location('/projects')

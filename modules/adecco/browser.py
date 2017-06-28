@@ -18,10 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.browser import PagesBrowser, URL
+from weboob.tools.compat import quote_plus
 
 from .pages import SearchPage, AdvertPage, AdvertsJsonPage
 
-import urllib
 from datetime import date, timedelta
 
 __all__ = ['AdeccoBrowser']
@@ -50,8 +50,8 @@ class AdeccoBrowser(PagesBrowser):
     def advanced_search_job(self, publication_date=0, contract_type=None, conty=None, activity_domain=None,
                             job='', town=''):
 
-        params = self.search_page.go(job=urllib.quote_plus(job.encode('utf-8')),
-                                     town=urllib.quote_plus(town.encode('utf-8'))).get_post_params()
+        params = self.search_page.go(job=quote_plus(job.encode('utf-8')),
+                                     town=quote_plus(town.encode('utf-8'))).get_post_params()
 
         if contract_type:
             self.page.url += '&employmenttype=%s' % contract_type

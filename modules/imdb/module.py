@@ -19,10 +19,10 @@
 
 from weboob.capabilities.cinema import CapCinema, Person, Movie
 from weboob.tools.backend import Module
+from weboob.tools.compat import quote_plus
 
 from .browser import ImdbBrowser
 
-from urllib import quote_plus
 
 __all__ = ['ImdbModule']
 

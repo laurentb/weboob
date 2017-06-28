@@ -19,10 +19,10 @@
 
 
 from time import sleep
-from urlparse import urlsplit, parse_qs
 
 from weboob.deprecated.browser import BrokenPageError
 from weboob.browser.filters.standard import CleanText
+from weboob.tools.compat import urlsplit, parse_qs
 
 from .index import PhpBBPage
 from ..tools import parse_date

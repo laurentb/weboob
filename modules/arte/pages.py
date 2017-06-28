@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import timedelta
-import urllib
 
 from weboob.capabilities.image import Thumbnail
 from weboob.capabilities.base import BaseObject, NotAvailable
@@ -29,8 +28,7 @@ from weboob.browser.elements import DictElement, ItemElement, ListElement, metho
 from weboob.browser.filters.standard import Date, Format, Env, CleanText, Field, Regexp, Join, Eval
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import XPath
-from weboob.tools.compat import basestring
-
+from weboob.tools.compat import basestring, unquote
 
 from .video import ArteVideo, ArteSiteVideo, SITE
 
@@ -193,7 +191,7 @@ class VideosListPage(HTMLPage):
             return self.doc.xpath('//div[@class="video-container"]')[0].attrib['arte_vp_url']
         elif self.doc.xpath('//iframe'):
             url = Regexp(CleanText('./@src'), '.*json_url=(.*)', default='')(self.doc.xpath('//iframe')[0])
-            return urllib.unquote(url)
+            return unquote(url)
         return ''
 
 

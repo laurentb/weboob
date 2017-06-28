@@ -25,11 +25,11 @@ from weboob.capabilities.base import NotAvailable, NotLoaded, find_object
 from weboob.capabilities.cinema import Movie, Person
 from weboob.browser.browsers import APIBrowser
 from weboob.browser.profiles import Android
+from weboob.tools.compat import urlencode
 import base64
 import hashlib
 from datetime import datetime, date, timedelta
 import time
-import urllib
 
 __all__ = ['AllocineBrowser']
 
@@ -41,14 +41,18 @@ class AllocineBrowser(APIBrowser):
     SECRET_KEY = '29d185d98c984a359e6e6f26a0474269'
 
     def __do_request(self, method, params):
-        params_encode = urllib.urlencode(params)
+        params["sed"] = time.strftime('%Y%m%d', time.localtime())
+        params["sig"] = base64.b64encode(
+            hashlib.sha1(
+                self.SECRET_KEY +
+                urlencode(params)
+            ).digest()
+        )
 
-        sed = time.strftime('%Y%m%d', time.localtime())
-        sig = base64.b64encode(hashlib.sha1(self.SECRET_KEY + params_encode + '&sed=' + sed).digest())
-
-        query_url = 'http://api.allocine.fr/rest/v3/' + method + '?' + params_encode + '&sed=' + sed + '&sig=' + sig
-
-        return self.request(query_url)
+        return self.request(
+            'http://api.allocine.fr/rest/v3/{}'.format(method),
+            params=params
+        )
 
     def iter_movies(self, pattern):
         params = [('partner', self.PARTNER_KEY),

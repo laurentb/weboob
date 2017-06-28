@@ -19,9 +19,9 @@
 
 
 from weboob.browser import PagesBrowser, URL
+from weboob.tools.compat import quote_plus
 
 from .pages import SearchPage, PostPage
-import urllib
 
 
 class VineBrowser(PagesBrowser):
@@ -31,7 +31,7 @@ class VineBrowser(PagesBrowser):
     post_page = URL('r/api/timelines/posts/s/(?P<_id>.*)', PostPage)
 
     def search_videos(self, pattern):
-        return self.search_page.go(pattern=urllib.quote_plus(pattern.encode('utf-8'))).iter_videos()
+        return self.search_page.go(pattern=quote_plus(pattern.encode('utf-8'))).iter_videos()
 
     def get_video(self, _id):
         return self.post_page.go(_id=_id).get_video()

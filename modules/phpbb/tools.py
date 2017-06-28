@@ -19,8 +19,8 @@
 
 
 from dateutil.parser import parse as _parse_dt
-from urlparse import urlsplit, parse_qs
 
+from weboob.tools.compat import urlsplit, parse_qs
 from weboob.tools.date import local2utc
 
 

@@ -17,10 +17,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import urllib
-
 from weboob.deprecated.browser import Browser
 from weboob.deprecated.browser.decorators import id2url
+from weboob.tools.compat import quote
 
 from .video import JacquieEtMichelVideo
 from .pages import VideoPage, ResultsPage
@@ -44,7 +43,7 @@ class JacquieEtMichelBrowser(Browser):
         return self.page.get_video(video)
 
     def search_videos(self, pattern):
-        self.location('/videolist/searchmodevideo/query%s/' % (urllib.quote(pattern.encode('utf-8'))))
+        self.location('/videolist/searchmodevideo/query%s/' % (quote(pattern.encode('utf-8'))))
         assert self.is_on_page(ResultsPage)
         return self.page.iter_videos()
 

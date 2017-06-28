@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import re
-import urllib
 from decimal import Decimal
 from datetime import datetime
 from weboob.browser.filters.json import Dict
@@ -29,7 +28,7 @@ from weboob.browser.filters.html import Attr, CleanHTML, Link, XPath
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.capabilities.housing import Housing, HousingPhoto, City, UTILITIES
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
-
+from weboob.tools.compat import unquote
 
 class CitiesPage(JsonPage):
 
@@ -126,7 +125,7 @@ class SearchPage(HTMLPage):
                     default=None
                 )(self)
                 if url:
-                    url = urllib.unquote(url)
+                    url = unquote(url)
                     if "http://" in url[3:]:
                         url = url[url.find("http://", 3):url.rfind("?")]
                     return [HousingPhoto(url)]

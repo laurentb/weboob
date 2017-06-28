@@ -19,10 +19,7 @@
 
 from __future__ import unicode_literals
 
-import urllib
 import datetime
-from urlparse import parse_qs, urlparse, parse_qsl, urlunparse
-from urllib import urlencode
 from lxml.etree import XML
 from lxml.html import fromstring
 from decimal import Decimal, InvalidOperation
@@ -32,6 +29,7 @@ from weboob.capabilities.base import empty, NotAvailable
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.contact import Advisor
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.compat import parse_qs, urlparse, parse_qsl, urlunparse, urlencode
 from weboob.browser.elements import DictElement, ItemElement, method
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, RegexpError
@@ -241,7 +239,7 @@ class AccountHistory(LoggedPage, BasePage):
             args['sign'] = p['sign'][0]
             args['src'] = p['src'][0]
 
-            url = '%s?%s' % (url.path, urllib.urlencode(args))
+            url = '%s?%s' % (url.path, urlencode(args))
 
     def _iter_transactions(self, doc):
         t = None

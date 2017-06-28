@@ -23,7 +23,7 @@ from weboob.tools.backend import Module
 
 from .browser import OpensubtitlesBrowser
 
-from urllib import quote_plus
+from weboob.tools.compat import quote_plus
 
 __all__ = ['OpensubtitlesModule']
 

@@ -17,9 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import urllib
-
 from weboob.deprecated.browser import Browser
+from weboob.tools.compat import urlencode
 
 from .pages import TrackPage
 
@@ -43,7 +42,7 @@ class UpsBrowser(Browser):
                 'track.x':              'Track',
                 'trackNums':            _id.encode('utf-8'),
                }
-        self.location('https://wwwapps.ups.com/WebTracking/track', urllib.urlencode(data))
+        self.location('https://wwwapps.ups.com/WebTracking/track', urlencode(data))
         assert self.is_on_page(TrackPage)
 
         return self.page.get_info(_id)

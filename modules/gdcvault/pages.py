@@ -20,8 +20,8 @@
 
 
 from weboob.deprecated.browser import Page
+from weboob.tools.compat import quote
 
-import urllib
 import re
 import datetime
 from dateutil.parser import parse as parse_dt
@@ -226,7 +226,7 @@ class VideoPage(Page):
 
         # token doesn't actually seem required
         # 1441 has a space in the xml filename
-        xml_filename = urllib.quote(m.group(2))
+        xml_filename = quote(m.group(2))
         config_url = m.group(1) + xml_filename + '?token=' + m.group(3)
 
         # self.browser.addheaders += [['Referer', 'http://gdcvault.com/play/%s' % self.group_dict['id']]]
@@ -270,11 +270,11 @@ class VideoPage(Page):
 
             obj = self.parser.select(config.getroot(), 'speakervideo', 1)
             if obj.text is not None:
-                videos['speaker'] = 'rtmp://' + host + '/' + urllib.quote(obj.text)
+                videos['speaker'] = 'rtmp://' + host + '/' + quote(obj.text)
 
             obj = self.parser.select(config.getroot(), 'slidevideo', 1)
             if obj.text is not None:
-                videos['slides'] = 'rtmp://' + host + '/' + urllib.quote(obj.text)
+                videos['slides'] = 'rtmp://' + host + '/' + quote(obj.text)
 
             # print videos
             # XXX

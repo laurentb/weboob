@@ -17,10 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from urllib import quote_plus
 import re
 
 from weboob.browser import PagesBrowser, URL
+from weboob.tools.compat import quote_plus
 from .pages import IndexPage, VideoPage
 
 

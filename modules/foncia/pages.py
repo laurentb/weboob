@@ -20,7 +20,6 @@
 from __future__ import unicode_literals
 
 import datetime
-import urlparse
 
 from weboob.browser.pages import JsonPage, HTMLPage, pagination
 from weboob.browser.filters.standard import CleanDecimal, CleanText, Date, Env, Format, Regexp
@@ -29,6 +28,7 @@ from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.housing import City, Housing, UTILITIES
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
+from weboob.tools.compat import urljoin
 
 from .constants import AVAILABLE_TYPES, QUERY_TYPES, QUERY_HOUSE_TYPES
 
@@ -226,7 +226,7 @@ class SearchResultsPage(HTMLPage):
             )
 
             def obj_url(self):
-                return urlparse.urljoin(
+                return urljoin(
                     self.page.browser.BASEURL,
                     Link('.//h3[has-class("TeaserOffer-title")]/a')(self)
                 )

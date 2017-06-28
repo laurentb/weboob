@@ -17,9 +17,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import urllib
 from weboob.browser import PagesBrowser, URL
 from weboob.capabilities.housing import Query, TypeNotSupported
+from weboob.tools.compat import urlencode
 from .pages import CitiesPage, SearchPage, HousingPage, HousingPage2, PhonePage
 
 
@@ -67,7 +67,7 @@ class ExplorimmoBrowser(PagesBrowser):
                 'roomMin': nb_rooms or '',
                 'page': '1'}
 
-        query = u'%s%s%s' % (urllib.urlencode(data), '&type=', '&type='.join(ret))
+        query = u'%s%s%s' % (urlencode(data), '&type=', '&type='.join(ret))
 
         return self.search.go(query=query).iter_housings()
 

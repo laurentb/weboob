@@ -20,11 +20,10 @@
 
 import datetime
 import re
-import urllib
-from urlparse import urlsplit
 from weboob.deprecated.browser import Page
 from weboob.capabilities.messages import Message, Thread
 from weboob.capabilities.contact import Contact, ProfileNode
+from weboob.tools.compat import urlsplit, urlencode
 from weboob.tools.date import parse_french_date
 
 from . import ovsparse
@@ -133,7 +132,7 @@ class PagePrivateThread(OvsPage):
         form = ovsparse.private_message_form_fields(self.document)
         recode_dict(form, self.browser.ENCODING)
         form['Message'] = body.encode(self.browser.ENCODING)
-        self.browser.location('/message_action_envoi.php', urllib.urlencode(form))
+        self.browser.location('/message_action_envoi.php', urlencode(form))
 
         # html code is so broken that mechanize won't parse the forms
         #~ self.browser.select_form('envoimail')
@@ -165,7 +164,7 @@ class PageUserProfile(OvsPage):
         recode_dict(form, self.browser.ENCODING)
         form['Message'] = body.encode(self.browser.ENCODING)
         form['Titre'] = subject.encode(self.browser.ENCODING)
-        self.browser.location('/message_action_envoi.php', urllib.urlencode(form))
+        self.browser.location('/message_action_envoi.php', urlencode(form))
 
         #~ self.browser.select_form('envoimail')
         #~ self.browser['Titre'] = subject.encode(self.browser.ENCODING)
