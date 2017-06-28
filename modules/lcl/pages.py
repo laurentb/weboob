@@ -779,7 +779,7 @@ class TransferPage(LoggedPage, HTMLPage):
         # This aims to track input errors.
         script_error = CleanText(u"//script[contains(text(), 'if (\"true\"===\"true\")')]")(self.doc)
         if script_error:
-            raise TransferBankError(html2text(re.search(u'\.html\("(.*?)"\)', script_error).group(1)).strip())
+            raise TransferBankError(CleanText().filter(html2text(re.search(u'\.html\("(.*?)"\)', script_error).group(1))))
 
     def can_transfer(self, account_transfer_id):
         for div in self.doc.xpath('//div[input[@id="indexCompteEmetteur"]]//div[@class="infoCompte" and not(@title)]'):
