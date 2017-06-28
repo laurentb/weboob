@@ -51,13 +51,9 @@ class Fortuneo(LoginBrowser):
 
     def __init__(self, *args, **kwargs):
         LoginBrowser.__init__(self, *args, **kwargs)
-        self.cache = {}
-        self.cache["investments"] = {}
+        self.investments = {}
 
     def do_login(self):
-        assert isinstance(self.username, basestring)
-        assert isinstance(self.password, basestring)
-
         if not self.login_page.is_here():
             self.location('/fr/identification.jsp')
 
@@ -73,12 +69,12 @@ class Fortuneo(LoginBrowser):
     @need_login
     def get_investments(self, account):
         if hasattr(account, '_investment_link'):
-            if self.cache["investments"].get(account.id) == None:
+            if account.id in self.investments:
+                return self.investments[account.id]
+            else:
                 self.location(account._investment_link)
                 return self.page.get_investments(account)
-            else:
-                return iter(self.cache["investments"].get(account.id))
-        return iter([])
+        return []
 
     @need_login
     def get_history(self, account):
@@ -87,7 +83,7 @@ class Fortuneo(LoginBrowser):
         if self.page.select_period():
             return self.page.get_operations(account)
 
-        return iter([])
+        return []
 
     @need_login
     def get_coming(self, account):
@@ -99,20 +95,8 @@ class Fortuneo(LoginBrowser):
 
     @need_login
     def get_accounts_list(self):
-        """accounts list"""
         self.location('/fr/prive/default.jsp?ANav=1')
 
         return self.page.get_list()
-
-    @need_login
-    def get_account(self, id):
-        """Get an account from its ID"""
-
-        assert isinstance(id, basestring)
-        for a in list(self.get_accounts_list()):
-            if a.id == id:
-                return a
-
-        return None
 
 # vim:ts=4:sw=4

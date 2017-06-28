@@ -17,7 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from urllib import urlencode
+from __future__ import unicode_literals
+
 import re
 from time import sleep
 from datetime import date
@@ -78,7 +79,7 @@ class PeaHistoryPage(LoggedPage, HTMLPage):
             inv = Investment()
             inv.label = CleanText(None).filter(cols[self.COL_LABEL])
             link = cols[self.COL_LABEL].xpath('./a[contains(@href, "cdReferentiel")]')[0]
-            inv.id = unicode(re.search('cdReferentiel=(.*)', link.attrib['href']).group(1))
+            inv.id = re.search('cdReferentiel=(.*)', link.attrib['href']).group(1)
             inv.code = re.match('^[A-Z]+[0-9]+(.*)$', inv.id).group(1)
             inv.quantity = self.parse_decimal(cols[self.COL_QUANTITY], True)
             inv.unitprice = self.parse_decimal(cols[self.COL_UNITPRICE], True)
@@ -92,8 +93,8 @@ class PeaHistoryPage(LoggedPage, HTMLPage):
 
             yield inv
         inv = Investment()
-        inv.code = unicode("XX-liquidity")
-        inv.label = unicode("Liquidités", 'utf-8')
+        inv.code = "XX-liquidity"
+        inv.label = "Liquidités"
         inv.valuation = CleanDecimal(None, True).filter(self.doc.xpath('//*[@id="valorisation_compte"]/table/tr[3]/td[2]'))
         yield inv
 
@@ -162,7 +163,7 @@ class InvestmentHistoryPage(LoggedPage, HTMLPage):
             cols = line.findall('td')
 
             inv = Investment()
-            inv.id = unicode(re.search('cdReferentiel=(.*)', cols[self.COL_LABEL].find('a').attrib['href']).group(1))
+            inv.id = re.search('cdReferentiel=(.*)', cols[self.COL_LABEL].find('a').attrib['href']).group(1)
             inv.code = re.match('^[A-Z]+[0-9]+(.*)$', inv.id).group(1)
             inv.label = CleanText(None).filter(cols[self.COL_LABEL])
             inv.quantity = self.parse_decimal(cols[self.COL_QUANTITY])
@@ -208,6 +209,7 @@ class InvestmentHistoryPage(LoggedPage, HTMLPage):
         for div in self.doc.xpath('//div[@class="block synthese_vie"]/div/div/div'):
             if 'Valorisation' in CleanText('.')(div):
                 return RawText('./p/strong')(div)
+
 
 class AccountHistoryPage(LoggedPage, HTMLPage):
     def build_doc(self, content):
@@ -321,7 +323,7 @@ class AccountsList(LoggedPage, HTMLPage):
                     params['div%s' % i] = input.attrib['value']
                 params['time'] = time
 
-                r = self.browser.open('/AsynchAjax?%s' % urlencode(params))
+                r = self.browser.open('/AsynchAjax', params=params)
                 data = json.loads(r.content)
 
                 for i, d in enumerate(data['data']):
@@ -400,7 +402,7 @@ class AccountsList(LoggedPage, HTMLPage):
 
             account.label = CleanText('./a[contains(@class, "numero_compte")]/@title')(cpt)
 
-            for pattern, type in self.ACCOUNT_TYPES.iteritems():
+            for pattern, type in self.ACCOUNT_TYPES.items():
                 if pattern in account._history_link:
                     account.type = type
                     break
@@ -409,7 +411,7 @@ class AccountsList(LoggedPage, HTMLPage):
                 account._investment_link = Link('./ul/li/a[contains(@id, "portefeuille")]')(cpt)
                 balance = self.browser.open(account._investment_link).page.get_balance(account.type)
                 if account.type in {Account.TYPE_PEA, Account.TYPE_MARKET}:
-                    self.browser.cache["investments"][account.id] = list(self.browser.open(account._investment_link).page.get_investments(account))
+                    self.browser.investments[account.id] = list(self.browser.open(account._investment_link).page.get_investments(account))
             else:
                 balance = self.browser.open(account._history_link).page.get_balance()
 
@@ -425,7 +427,7 @@ class AccountsList(LoggedPage, HTMLPage):
 
             if (account.label, account.id, account.balance) not in [(a.label, a.id, a.balance) for a in accounts]:
                 accounts.append(account)
-        return iter(accounts)
+        return accounts
 
 
 class GlobalAccountsList(LoggedPage, HTMLPage):

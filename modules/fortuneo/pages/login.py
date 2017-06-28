@@ -33,8 +33,8 @@ class LoginPage(HTMLPage):
             raise BrowserUnavailable(msg)
 
         form = self.get_form(name="acces_identification")
-        form['login'] = login.encode('utf-8')
-        form['passwd'] = passwd.encode('utf-8')
+        form['login'] = login
+        form['passwd'] = passwd
         form.submit()
 
 
