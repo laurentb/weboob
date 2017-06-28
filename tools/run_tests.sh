@@ -75,25 +75,12 @@ if [ -z "${PYTHON}" ]; then
     fi
 fi
 
-if [ -z "${NOSE}" ]; then
-    which nosetests >/dev/null 2>&1 && NOSE=$(which nosetests)
-    which nosetests$VER >/dev/null 2>&1 && NOSE=$(which nosetests$VER)
-    which nosetests-python$VER >/dev/null 2>&1 && NOSE=$(which nosetests-python$VER)
-    if [ $VER -eq 2 ]; then
-        which nosetests-python2.7 >/dev/null 2>&1 && NOSE=$(which nosetests-python2.7)
-    else
-        which nosetests-python3.4 >/dev/null 2>&1 && NOSE=$(which nosetests-python3.4)
-        which nosetests-python3.5 >/dev/null 2>&1 && NOSE=$(which nosetests-python3.5)
-        which nosetests-python3.6 >/dev/null 2>&1 && NOSE=$(which nosetests-python3.6)
-    fi
-fi
-
 if [ -z "${PYTHON}" ]; then
     echo "Python required"
     exit 1
 fi
 
-if [ -z "${NOSE}" ]; then
+if ! $PYTHON -c "import nose" 2>/dev/null; then
     echo "python-nose required"
     exit 1
 fi
@@ -128,18 +115,18 @@ ${PYTHON} "${WEBOOB_DIR}/scripts/weboob-config" update
 set +e
 set -o pipefail
 if [ -n "${BACKEND}" ]; then
-    ${PYTHON} ${NOSE} -c /dev/null -sv "${WEBOOB_MODULES}/${BACKEND}/test.py" ${XUNIT_ARGS}
+    ${PYTHON} -m nose -c /dev/null -sv "${WEBOOB_MODULES}/${BACKEND}/test.py" ${XUNIT_ARGS}
     STATUS=$?
     STATUS_CORE=0
 else
     echo "=== Weboob ==="
     CORE_TESTS=$(mktemp)
-    ${PYTHON} ${NOSE} --cover-package weboob -c ${WEBOOB_DIR}/setup.cfg -sv 2>&1 | tee "${CORE_TESTS}"
+    ${PYTHON} -m nose --cover-package weboob -c ${WEBOOB_DIR}/setup.cfg -sv 2>&1 | tee "${CORE_TESTS}"
     STATUS_CORE=$?
     echo "=== Modules ==="
     MODULES_TESTS=$(mktemp)
     MODULES_TO_TEST=$(find "${WEBOOB_MODULES}" -name "test.py" | sort | xargs echo)
-    ${PYTHON} ${NOSE} --with-coverage --cover-package modules -c /dev/null -sv ${XUNIT_ARGS} ${MODULES_TO_TEST} 2>&1 | tee ${MODULES_TESTS}
+    ${PYTHON} -m nose --with-coverage --cover-package modules -c /dev/null -sv ${XUNIT_ARGS} ${MODULES_TO_TEST} 2>&1 | tee ${MODULES_TESTS}
     STATUS=$?
 
     # Compute total coverage
