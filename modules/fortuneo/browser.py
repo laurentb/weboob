@@ -20,7 +20,7 @@
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
-
+from weboob.capabilities.bank import Account
 from .pages.login import LoginPage
 from .pages.accounts_list import GlobalAccountsList, AccountsList, AccountHistoryPage, CardHistoryPage, \
                                  InvestmentHistoryPage, PeaHistoryPage, LoanPage
@@ -79,9 +79,9 @@ class Fortuneo(LoginBrowser):
     @need_login
     def get_history(self, account):
         self.location(account._history_link)
-
-        if self.page.select_period():
-            return self.page.get_operations(account)
+        if not account.type == Account.TYPE_LOAN:
+            if self.page.select_period():
+                return self.page.get_operations(account)
 
         return []
 

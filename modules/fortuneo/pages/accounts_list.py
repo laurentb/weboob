@@ -27,9 +27,9 @@ from dateutil.relativedelta import relativedelta
 from lxml.html import etree
 
 from weboob.browser.filters.html import Link
-from weboob.browser.filters.standard import CleanText, CleanDecimal, RawText
+from weboob.browser.filters.standard import CleanText, CleanDecimal, RawText, Regexp, Date
 from weboob.capabilities import NotAvailable
-from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities.bank import Account, Investment, Loan
 from weboob.browser.pages import HTMLPage, LoggedPage, FormNotFound
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.json import json
@@ -377,9 +377,23 @@ class AccountsList(LoggedPage, HTMLPage):
 
             # this is to test if access to the accounts info is blocked for different reasons
             page = self.browser.open(account._history_link).page
-            # TODO: handle loans
             if isinstance(page, LoanPage):
-                continue
+                account = Loan()
+
+            account._history_link = Link('./ul/li/a[contains(@id, "consulter_solde") '
+                                         'or contains(@id, "historique") '
+                                         'or contains(@id, "contrat") '
+                                         'or contains(@id, "assurance_vie_operations")]')(cpt)
+            if isinstance(page, LoanPage):
+                account.id = CleanText('(//p[@id="c_montantEmprunte"]//span[@class="valStatic"]//strong)[1]')(cpt)
+                account.label = CleanText('(//p[@id="c_montantEmprunte"]//span[@class="valStatic"]//strong)[1]')(cpt)
+                account.type = Account.TYPE_LOAN
+                account.total_amount = self.browser.open(account._history_link).page.get_total_amount()
+                account.next_payment_amount = self.browser.open(account._history_link).page.get_next_payment_amount()
+                account.account_label = self.browser.open(account._history_link).page.get_account_label()
+                account.subscription_date = self.browser.open(account._history_link).page.get_subscription_date()
+                account.maturity_date = self.browser.open(account._history_link).page.get_maturity_date()
+
             if len(accounts) == 0:
                 global_error_message = page.doc.xpath('//div[@id="as_renouvellementMIFID.do_"]/div[contains(text(), "Bonjour")] '
                                                       '| //div[@id="as_afficherMessageBloquantMigration.do_"]//div[@class="content_message"] '
@@ -435,4 +449,20 @@ class GlobalAccountsList(LoggedPage, HTMLPage):
 
 
 class LoanPage(LoggedPage, HTMLPage):
-    pass
+    def get_balance(self):
+        return CleanText(u'//p[@id="c_montantRestant"]//strong')(self.doc)
+
+    def get_total_amount(self):
+        return CleanDecimal(u'(//p[@id="c_montantEmprunte"]//strong)[2]', replace_dots=True)(self.doc)
+
+    def get_next_payment_amount(self):
+        return CleanDecimal(Regexp(CleanText(u'//p[@id="c_prochaineEcheance"]//strong'), u'(.*) le'), replace_dots=True)(self.doc)
+
+    def get_account_label(self):
+        return CleanText(u'//p[@id="c_comptePrelevementl"]//strong')(self.doc)
+
+    def get_subscription_date(self):
+        return Date(CleanText(u'//p[@id="c_dateDebut"]//strong'), dayfirst=True)(self.doc)
+
+    def get_maturity_date(self):
+        return Date(CleanText(u'//p[@id="c_dateFin"]//strong'), dayfirst=True)(self.doc)
