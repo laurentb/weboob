@@ -64,7 +64,6 @@ class AccountsList(LoggedPage, BasePage):
     def get_list(self):
         def check_valid_url(url):
             pattern = ['/restitution/cns_detailAVPAT.html',
-                       '/restitution/cns_detailPea.html',
                        '/restitution/cns_detailAlterna.html',
                       ]
 
@@ -117,7 +116,6 @@ class AccountsList(LoggedPage, BasePage):
                             account.currency = account.get_currency(balance)
                         else:
                             account.balance = NotAvailable
-
             if not account.label or empty(account.balance):
                 continue
 
