@@ -21,7 +21,8 @@
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
-from .pages.login import LoginPage
+
+from .pages.login import LoginPage, UnavailablePage
 from .pages.accounts_list import GlobalAccountsList, AccountsList, AccountHistoryPage, CardHistoryPage, \
                                  InvestmentHistoryPage, PeaHistoryPage, LoanPage
 
@@ -48,6 +49,7 @@ class Fortuneo(LoginBrowser):
                       r'.*/prive/mes-comptes/ppe/.*', PeaHistoryPage)
     invest_history = URL(r'.*/prive/mes-comptes/assurance-vie/.*', InvestmentHistoryPage)
     loan_contract = URL(r'/fr/prive/mes-comptes/credit-immo/contrat-credit-immo/contrat-pret-immobilier.jsp.*', LoanPage)
+    unavailable = URL(r'/customError/indispo.html', UnavailablePage)
 
     def __init__(self, *args, **kwargs):
         LoginBrowser.__init__(self, *args, **kwargs)
