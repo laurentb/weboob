@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.base import BaseObject, StringField
+from weboob.capabilities.base import BaseObject, StringField, NotLoaded
 
 __all__ = ['StreamInfo']
 
@@ -31,8 +31,7 @@ class StreamInfo(BaseObject):
     what = StringField('What is currently on air')
 
     def __iscomplete__(self):
-        # This volatile information may be reloaded everytimes.
-        return False
+        return self.who is not NotLoaded or self.what is not NotLoaded
 
     def __unicode__(self):
         if self.who:
