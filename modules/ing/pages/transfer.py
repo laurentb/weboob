@@ -19,7 +19,7 @@
 
 from datetime import datetime
 
-from weboob.capabilities.bank import Recipient, Transfer
+from weboob.capabilities.bank import Recipient, Transfer, TransferInvalidAmount
 from weboob.capabilities import NotAvailable
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
@@ -160,6 +160,10 @@ class TransferPage(LoggedPage, HTMLPage):
         form.submit()
 
     def recap(self, origin, recipient, transfer):
+        error = CleanText('//div[@id="transfer_form:moveMoneyDetailsBody"]//span[@class="error"]', default=None)(self.doc)
+        if error:
+           raise TransferInvalidAmount(error)
+
         t = Transfer()
         t.label = transfer.label
         assert transfer.amount == CleanDecimal('//div[@id="transferSummary"]/div[@id="virementLabel"]\
