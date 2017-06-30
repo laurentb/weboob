@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from io import BytesIO
 
@@ -100,12 +101,14 @@ class LoginPage(MyHTMLPage):
 
 class repositionnerCheminCourant(LoggedPage, MyHTMLPage):
     def on_load(self):
-        MyHTMLPage.on_load(self)
+        super(repositionnerCheminCourant, self).on_load()
         response = self.browser.open("https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/securite/authentification/initialiser-identif.ea")
         if isinstance(response.page, Initident):
             response.page.on_load()
-        if "vous ne disposez pas" in response.content:
+        if "vous ne disposez pas" in response.text:
             raise BrowserIncorrectPassword("No online banking service for these ids")
+        if 'Nous vous invitons à renouveler votre opération ultérieurement' in response.text:
+            raise BrowserUnavailable()
 
 
 class Initident(LoggedPage, MyHTMLPage):
