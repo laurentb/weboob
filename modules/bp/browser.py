@@ -19,8 +19,7 @@
 
 
 from datetime import datetime, timedelta
-from urllib import urlencode
-from urlparse import urlsplit, parse_qsl
+from weboob.tools.compat import urlsplit, parse_qsl
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.browsers import StatesMixin
@@ -439,7 +438,7 @@ class BProBrowser(BPBrowser):
         args = dict(parse_qsl(v.query))
         args['typeRecherche'] = 10
 
-        self.location('%s?%s' % (v.path, urlencode(args)))
+        self.location(v.path, params=args)
 
         for tr in self.page.iter_history():
             transactions.append(tr)

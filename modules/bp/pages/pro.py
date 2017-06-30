@@ -19,13 +19,13 @@
 
 import re
 from decimal import Decimal
-from urlparse import urljoin
 
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Date
 from weboob.browser.filters.html import Link
 from weboob.browser.pages import LoggedPage, pagination
 from weboob.capabilities.bank import Account
+from weboob.tools.compat import urljoin, unicode
 
 from .accounthistory import Transaction
 from .base import MyHTMLPage

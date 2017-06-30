@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, division
 
 from io import BytesIO
 
@@ -58,7 +58,7 @@ class Keyboard(VirtKeyboard):
             size = 146
         coords = {}
 
-        x, y, width, height = (0, 0, size/4, size/4)
+        x, y, width, height = (0, 0, size // 4, size // 4)
         for i, _ in enumerate(page.doc.xpath('//div[@id="imageclavier"]//button')):
             code = '%02d' % i
             coords[code] = (x+4, y+4, x+width-8, y+height-8)

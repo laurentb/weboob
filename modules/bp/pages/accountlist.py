@@ -20,7 +20,6 @@
 
 from io import BytesIO
 import re
-from urlparse import urljoin
 
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Account
@@ -30,6 +29,7 @@ from weboob.browser.pages import LoggedPage, RawPage, PartialHTMLPage, HTMLPage
 from weboob.browser.filters.html import Link
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, Field, BrowserURL, Currency
 from weboob.exceptions import BrowserUnavailable
+from weboob.tools.compat import urljoin, unicode
 
 from .base import MyHTMLPage
 
@@ -110,12 +110,12 @@ class AccountList(LoggedPage, MyHTMLPage):
 
                 # first trying to match with label
                 label = Field('label')(self)
-                for atypetxt, atype in types.iteritems():
+                for atypetxt, atype in types.items():
                     if re.findall(atypetxt, label.lower()): # match with/without plurial in type
                         return atype
                 # then by type
                 type = Regexp(CleanText('../../preceding-sibling::div[@class="avoirs"][1]/span[1]'), r'(\d+) (.*)', '\\2')(self)
-                for atypetxt, atype in types.iteritems():
+                for atypetxt, atype in types.items():
                     if re.findall(atypetxt, type.lower()): # match with/without plurial in type
                         return atype
 
