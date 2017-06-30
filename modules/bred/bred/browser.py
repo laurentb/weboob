@@ -24,8 +24,8 @@ from decimal import Decimal
 
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Account
-from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.exceptions import BrowserIncorrectPassword, BrowserHTTPError, BrowserUnavailable, ActionNeeded
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction, sorted_transactions
+from weboob.exceptions import BrowserIncorrectPassword, BrowserHTTPError, BrowserUnavailable, ActionNeeded, ParseError
 from weboob.browser import DomainBrowser
 
 
@@ -202,34 +202,47 @@ class BredBrowser(DomainBrowser):
         if account._univers != self.current_univers:
             self.move_to_univers(account._univers)
 
-        # warning: the site is FUBAR, the offset is ignored, the limit is ignored, and the ids are random...
-        # there seems to be one page only anyway, so just stop here
+        seen = set()
         offset = 0
-        r = self.api_open('/transactionnel/services/applications/operations/get/%(number)s/%(nature)s/00/%(currency)s/%(startDate)s/%(endDate)s/%(offset)s/%(limit)s' %
-                      {'number': account._number,
-                       'nature': account._nature,
-                       'currency': account.currency,
-                       'startDate': '2000-01-01',
-                       'endDate': date.today().strftime('%Y-%m-%d'),
-                       'offset': offset,
-                       'limit': 50
-                      })
-        transactions = []
-        for op in reversed(r.json()['content']['operations']):
-            t = Transaction()
-            t.id = op['id']
-            d = date.fromtimestamp(op.get('dateDebit', op.get('dateOperation'))/1000)
-            op['details'] = [i for i in op['details'] if i] # sometimes they put "null" elements...
-            raw = ' '.join([op['libelle']] + op['details'])
-            vdate = date.fromtimestamp(op.get('dateValeur', op.get('dateDebit', op.get('dateOperation')))/1000)
-            t.parse(d, raw, vdate=vdate)
-            t.amount = Decimal(str(op['montant']))
-            t.rdate = date.fromtimestamp(op.get('dateOperation', op.get('dateDebit'))/1000)
-            if 'categorie' in op:
-                t.category = op['categorie']
-            t.label = op['libelle']
-            transactions.append(t)
+        next_page = True
+        while next_page:
+            r = self.api_open('/transactionnel/services/applications/operations/get/%(number)s/%(nature)s/00/%(currency)s/%(startDate)s/%(endDate)s/%(offset)s/%(limit)s' %
+                          {'number': account._number,
+                           'nature': account._nature,
+                           'currency': account.currency,
+                           'startDate': '2000-01-01',
+                           'endDate': date.today().strftime('%Y-%m-%d'),
+                           'offset': offset,
+                           'limit': 50
+                          })
+            transactions = []
+            for op in reversed(r.json()['content']['operations']):
+                t = Transaction()
+                t.id = op['id']
+                if op['id'] in seen:
+                    raise ParseError('There are several transactions with the same ID, probably an infinite loop')
+                if re.match('[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', op['id']):
+                    self.logger.warning('the id is an uuid (%s), the site may be doing an infinite loop', op['id'])
 
-        # Transactions are unsorted
-        for t in sorted(transactions, key=lambda t: t.rdate, reverse=True):
-            yield t
+                seen.add(t.id)
+                d = date.fromtimestamp(op.get('dateDebit', op.get('dateOperation'))/1000)
+                op['details'] = [i for i in op['details'] if i] # sometimes they put "null" elements...
+                raw = ' '.join([op['libelle']] + op['details'])
+                vdate = date.fromtimestamp(op.get('dateValeur', op.get('dateDebit', op.get('dateOperation')))/1000)
+                t.parse(d, raw, vdate=vdate)
+                t.amount = Decimal(str(op['montant']))
+                t.rdate = date.fromtimestamp(op.get('dateOperation', op.get('dateDebit'))/1000)
+                if 'categorie' in op:
+                    t.category = op['categorie']
+                t.label = op['libelle']
+                transactions.append(t)
+
+            # Transactions are unsorted
+            for t in sorted_transactions(transactions):
+                yield t
+
+            next_page = bool(transactions)
+            offset += 50
+
+            assert offset < 5000, 'the site may be doing an infinite loop'
+
