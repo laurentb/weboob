@@ -55,6 +55,8 @@ class BilletreducBrowser(PagesBrowser):
 
             self.search.go()
             self.page.search(q)
+
+            day_events = []
             for event in self.page.iter_events(date=date):
                 for h, m in event._date_hours:
                     event = event.copy()
@@ -62,7 +64,10 @@ class BilletreducBrowser(PagesBrowser):
                     self.set_id_end(event)
 
                     if event.start_date >= original_start:
-                        yield event
+                        day_events.append(event)
+            day_events.sort(key=lambda ev: ev.start_date)
+            for event in day_events:
+                yield event
 
     def get_event(self, _id):
         try:
