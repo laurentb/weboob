@@ -180,7 +180,7 @@ class UpcomingFormatter(IFormatter):
             result += u'Ticket: %s\n' % obj.ticket
 
         if hasattr(obj, 'url') and not empty(obj.url):
-            result += u'url: %s\n' % obj.url
+            result += u'URL: %s\n' % obj.url
 
         if hasattr(obj, 'status') and not empty(obj.status):
             result += u'Status: %s\n' % obj.status
@@ -252,7 +252,7 @@ class Boobcoming(ReplApplication):
         search for an event. Parameters interactively asked
         """
         query = Query()
-        self.select_values(CATEGORIES, query.categories, '  Select categorie (or empty to stop)')
+        self.select_values(CATEGORIES, query.categories, '  Select category (or empty to stop)')
         self.select_values(TICKET, query.ticket, '  Select tickets status (or empty to stop)')
 
         if query.categories and len(query.categories) > 0 and query.ticket and len(query.ticket) > 0:
