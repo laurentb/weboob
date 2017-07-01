@@ -25,7 +25,7 @@ from dateutil import tz
 from weboob.tools.date import parse_date
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 from weboob.capabilities.base import empty
-from weboob.capabilities.calendar import CapCalendarEvent, Query, CATEGORIES, BaseCalendarEvent, TICKET
+from weboob.capabilities.calendar import CapCalendarEvent, Query, CATEGORIES, BaseCalendarEvent, TICKET, STATUS
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.config.yamlconfig import YamlConfig
 
@@ -33,13 +33,15 @@ __all__ = ['Boobcoming']
 
 
 class UpcomingSimpleFormatter(IFormatter):
-    MANDATORY_FIELDS = ('id', 'start_date', 'category', 'summary')
+    MANDATORY_FIELDS = ('id', 'start_date', 'category', 'summary', 'status')
 
     def format_obj(self, obj, alias):
         result = u'%s - %s' % (obj.backend, obj.category)
         if not empty(obj.start_date):
             result += u' - %s' % obj.start_date.strftime('%H:%M')
         result += u' - %s' % obj.summary
+        if obj.status == STATUS.CANCELLED:
+            result += u' (cancelled)'
         return result
 
 
@@ -108,7 +110,7 @@ class ICalFormatter(IFormatter):
 
 
 class UpcomingListFormatter(PrettyFormatter):
-    MANDATORY_FIELDS = ('id', 'start_date', 'end_date', 'summary', 'category')
+    MANDATORY_FIELDS = ('id', 'start_date', 'end_date', 'summary', 'category', 'status')
 
     def get_title(self, obj):
         return ' %s - %s ' % (obj.category, obj.summary)
@@ -124,11 +126,13 @@ class UpcomingListFormatter(PrettyFormatter):
                 if days_diff >= 1:
                     result += ' (%i day(s) later)' % (days_diff)
             result += '\n'
+        if obj.status == STATUS.CANCELLED:
+            result += '\tStatus: Cancelled\n'
         return result.strip('\n\t')
 
 
 class UpcomingFormatter(IFormatter):
-    MANDATORY_FIELDS = ('id', 'start_date', 'end_date', 'summary', 'category')
+    MANDATORY_FIELDS = ('id', 'start_date', 'end_date', 'summary', 'category', 'status')
 
     def format_obj(self, obj, alias):
         result = u'%s%s - %s%s\n' % (self.BOLD, obj.category, obj.summary, self.NC)
@@ -177,6 +181,9 @@ class UpcomingFormatter(IFormatter):
 
         if hasattr(obj, 'url') and not empty(obj.url):
             result += u'url: %s\n' % obj.url
+
+        if hasattr(obj, 'status') and not empty(obj.status):
+            result += u'Status: %s\n' % obj.status
 
         return result
 
