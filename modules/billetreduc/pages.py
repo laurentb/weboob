@@ -23,12 +23,11 @@ import re
 from datetime import datetime
 
 from weboob.browser.elements import method, ListElement, ItemElement
-from weboob.browser.filters.html import Link
+from weboob.browser.filters.html import AbsoluteLink
 from weboob.browser.filters.standard import CleanText, Env, Field, Format
 from weboob.browser.pages import HTMLPage, pagination
 from weboob.capabilities.base import StringField
 from weboob.capabilities.calendar import BaseCalendarEvent, CATEGORIES
-from weboob.tools.compat import urljoin
 
 
 LABEL_TO_CAT = {
@@ -140,16 +139,13 @@ class ResultsPage(HTMLPage):
     @method
     class iter_events(ListElement):
         item_xpath = '//table[@id="preliste"]/tr'
-        next_page = Link('(//a[text()=">"][contains(@href,"LISTEPEpg")])[1]')
+        next_page = AbsoluteLink('(//a[text()=">"][contains(@href,"LISTEPEpg")])[1]')
 
         class item(ItemElement):
             klass = BREvent
 
             obj_summary = CleanText('.//h4')
-
-            def obj_url(self):
-                return urljoin(self.page.url, Link('.//h4/a')(self))
-
+            obj_url = AbsoluteLink('.//h4/a')
             obj_description = CleanText('.//div[@class="libellepreliste"]')
             obj_city = CleanText('(.//span[@class="lieu"]/a)[2]')
             obj_location = CleanText('(.//span[@class="lieu"]/a)[1]')
