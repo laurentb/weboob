@@ -26,13 +26,29 @@ from datetime import datetime, timedelta
 class SueurDeMetalTest(BackendTest):
     MODULE = 'sueurdemetal'
 
+    def check_event(self, ev, full=False):
+        self.assertTrue(ev.id)
+        self.assertTrue(ev.summary)
+        self.assertTrue(ev.description)
+        self.assertTrue(ev.start_date)
+        self.assertTrue(ev.end_date)
+        self.assertTrue(ev.url)
+        if full:
+            self.assertTrue(ev.location)
+
     def test_sueurdemetal_searchcity(self):
         q = Query()
         q.city = u'paris'
         self.assertTrue(len(list(self.backend.search_events(q))) > 0)
 
         ev = next(iter(self.backend.search_events(q)))
-        self.assertTrue(self.backend.get_event(ev.id))
+        self.check_event(ev)
+
+        ev = self.backend.fillobj(ev)
+        self.check_event(ev, full=True)
+
+        ev = self.backend.get_event(ev.id)
+        self.check_event(ev, full=True)
 
     def test_sueurdemetal_datefrom(self):
         q = Query()
@@ -40,6 +56,7 @@ class SueurDeMetalTest(BackendTest):
         q.start_date = later
 
         ev = next(iter(self.backend.search_events(q)))
+        self.check_event(ev)
         self.assertTrue(later.date() <= ev.start_date.date())
 
     def test_sueurdemetal_nocategory(self):

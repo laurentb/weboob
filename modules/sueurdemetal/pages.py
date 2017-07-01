@@ -19,138 +19,94 @@
 
 from __future__ import unicode_literals
 
-from weboob.browser.pages import HTMLPage
-from weboob.tools.date import parse_french_date
-from weboob.tools.compat import urljoin
 import re
+from datetime import datetime, time
+
+from weboob.browser.pages import JsonPage
+from weboob.browser.elements import DictElement, ItemElement, method
+from weboob.browser.filters.json import Dict
+from weboob.browser.filters.standard import Field
+from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.calendar import BaseCalendarEvent, CATEGORIES, STATUS, TRANSP
 
 
-class PageWithConcerts(HTMLPage):
-    def extract_concert(self, concert_table):
-        d = {}
-        date_h3 = next(concert_table.iter('h3'))
-        d['date'] = parse_french_date(date_h3.text)
+class NoEvent(Exception):
+    pass
 
-        cancel_h2 = next(date_h3.itersiblings('h2'), None)
-        if cancel_h2 is not None and cancel_h2.text.startswith('ANNUL'):
-            d['active'] = False
+
+class EventItem(ItemElement):
+    klass = BaseCalendarEvent
+
+    obj_id = Dict('id')
+    obj_city = Dict('ville')
+    obj_category = CATEGORIES.CONCERT
+
+    obj_timezone = 'Europe/Paris'
+
+    def obj_start_date(self):
+        return datetime.fromtimestamp(int(self.el['datetimestamp']))
+
+    def obj_end_date(self):
+        return datetime.combine(self.obj_start_date().date(), time.max)
+
+    def obj_summary(self):
+        t = ' + '.join(g['NomGroupe'] for g in self.el['groupes'])
+        if int(self.el['Guest']):
+            t += ' + GUEST(S)'
+        return t
+
+    def obj_description(self):
+        parts = []
+        for g in self.el['groupes']:
+            if 'WebOfficielGroupe' in g:
+                parts.append('%s (%s): %s' % (g['NomGroupe'], g['StyleMusicalGroupe'], g['WebOfficielGroupe']))
+            else:
+                parts.append('%s (%s)' % (g['NomGroupe'], g['StyleMusicalGroupe']))
+        if int(self.el['Guest']):
+            parts.append('GUEST(S)')
+        return '\n'.join(parts)
+
+    def obj__flyer(self):
+        img = self.el['flyer']
+        if img:
+            return 'http://sueurdemetal.com/images/flyers/' + img
         else:
-            d['active'] = True
+            return NotAvailable
 
-        performers_table = next(concert_table.iterdescendants('table'))
-        d['performers'] = list(self.extract_performers(performers_table))
-        d['summary'] = ' + '.join(p['name'] for p in d['performers'])
-        d['description'] = d['summary']
+    def obj_url(self):
+        slug = re.sub('[^a-z]', '', self.el['groupes'][0]['NomGroupe'], flags=re.I).lower()
+        return 'http://www.sueurdemetal.com/detail-concert/%s-%s' % (slug, Field('id')(self))
 
-        return d
+    def obj_status(self):
+        statuses = {
+            '0': STATUS.CONFIRMED,
+            '2': STATUS.CANCELLED,
+        }
+        return statuses.get(self.el['etat'])
 
-    def extract_performers(self, performers_table):
-        for performer_tr in performers_table.findall('tr'):
-            performer_td = performer_tr.find('td')
-            d = {'name': performer_td.find('strong').text.strip(' \t\r\n+')} # handle '+ GUESTS'
-            rest = performer_td.tail
-            if rest:
-                d['genre'] = rest
-            yield d
-
-    def extract_id_from_url(self, url):
-        return re.search(r'c=(\d+)', url).group(1)
-
-    def extract_city_from_url(self, url):
-        return re.search('metal-(.+).htm$', url).group(1)
-
-    def extract_concert_link(self, concert_table, d):
-        infos_a = concert_table.xpath('.//a[starts-with(@href, "detail-concert-metal.php")]')[0]
-        infos_a = concert_table.xpath('.//a[starts-with(@href, "detail-concert-metal.php")]')[0]
-        d['id'] = self.extract_id_from_url(infos_a.get('href'))
-        d['url'] = 'http://www.sueurdemetal.com/detail-concert-metal.php?c=%s' % d['id']
+    obj_transp = TRANSP.OPAQUE
 
 
-class PageCity(PageWithConcerts):
-    def get_concerts(self):
-        for concert_table in self.doc.xpath('//div[@id="centre-page"]//div/table'):
-            yield self.extract_concert(concert_table)
+class ConcertListPage(JsonPage):
+    @method
+    class iter_concerts(DictElement):
+        item_xpath = 'results/collection1'
 
-    def extract_concert(self, concert_table):
-        d = super(PageCity, self).extract_concert(concert_table)
-        self.extract_concert_link(concert_table, d)
-        d['city_id'] = self.extract_city_from_url(self.url)
-        return d
+        class item(EventItem):
+            pass
 
 
-class PageDate(PageWithConcerts):
-    def get_concerts(self):
-        for concert_table in self.doc.xpath('//div[@id="centre-page"]//div/table'):
-            yield self.extract_concert(concert_table)
+class ConcertPage(JsonPage):
+    @method
+    class get_concert(EventItem):
+        def parse(self, el):
+            try:
+                self.el = self.el['results']['collection1'][0]
+            except IndexError:
+                raise NoEvent()
 
-    def extract_concert(self, concert_table):
-        d = super(PageDate, self).extract_concert(concert_table)
-        self.extract_concert_link(concert_table, d)
-        city_a = concert_table.xpath('.//a[starts-with(@href, "ville-metal-")]')[0]
-        d['city_id'] = self.extract_city_from_url(city_a.get('href'))
-        return d
+        def obj_price(self):
+            return float(re.match('[\d.]+', self.el['prix']).group(0))
 
-
-class PageConcert(PageWithConcerts):
-    def get_concert(self):
-        concert_table = self.doc.xpath('//div[@id="centre-page"]//div/table')[0]
-        d = self.extract_concert(concert_table)
-        d['id'] = self.extract_id_from_url(self.url)
-        d['url'] = self.url
-
-        it = concert_table.iterdescendants('table')
-        next(it) # ignore performers table
-        infos_table = next(it)
-        self.infos_table = infos_table
-        info_trs = infos_table.findall('tr')
-        d['room'] = (info_trs[3].findall('td')[1].text or '').strip()
-        d['address'] = (info_trs[4].findall('td')[1].text or '').strip()
-
-        price = self.parse_price(info_trs[5].findall('td')[1].text)
-        if price is not None: # "None" is different from "0€"
-            d['price'] = price
-
-        city_a = self.doc.xpath('//a[starts-with(@href, "ville-metal-")]')[0]
-        d['city_id'] = self.extract_city_from_url(city_a.get('href'))
-        d['city'] = city_a.text
-        return d
-
-    def parse_price(self, s):
-        if not s:
-            return
-        parts = [x for x in re.split(r'[^\d.]+', s.strip()) if x]
-        if not parts:
-            return
-        return float(parts[-1])
-
-
-class PageCityList(HTMLPage):
-    def get_cities(self):
-        cities = {}
-        for option in self.doc.xpath('//select[@name="ville"]/option'):
-            v = option.get('value')
-            if not v:
-                continue
-            d = {}
-            d['code'], d['dept'] = re.search(r'ville-metal-(.*)-([0-9AB]+).htm$', v).groups() # french dept
-            d['id'] = '%s-%s' % (d['code'], d['dept'])
-            d['name'] = option.text.split('(')[0].strip()
-
-            cities[d['name']] = d
-        return cities
-
-
-class PageDates(HTMLPage):
-    def get_dates(self):
-        for a in self.doc.xpath('//div[@id="dateconcerts"]//a'):
-            d = {}
-            d['date'] = parse_french_date(a.text.strip())
-            d['url'] = urljoin(self.url, a.get('href'))
-            yield d
-
-    def get_dates_filtered(self, date_from=None, date_end=None):
-        for d in self.get_dates():
-            date = d['date']
-            if (not date_from or date_from <= date) and \
-               (not date_end or date <= date_end):
-                yield d
+        def obj_location(self):
+            return '%s, %s' % (self.el['salle'], self.el['adresse'])

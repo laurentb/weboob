@@ -19,19 +19,12 @@
 
 
 from weboob.tools.backend import Module
-from weboob.capabilities.calendar import CapCalendarEvent, BaseCalendarEvent, CATEGORIES, TRANSP, STATUS
-import datetime
+from weboob.capabilities.calendar import CapCalendarEvent, BaseCalendarEvent, CATEGORIES, Query
 
 from .browser import SueurDeMetalBrowser
 
 
 __all__ = ['SueurDeMetalModule']
-
-
-class Concert(BaseCalendarEvent):
-    @classmethod
-    def id2url(cls, _id):
-        return 'http://www.sueurdemetal.com/detail-concert-metal.php?c=%s' % _id
 
 
 class SueurDeMetalModule(Module, CapCalendarEvent):
@@ -50,84 +43,31 @@ class SueurDeMetalModule(Module, CapCalendarEvent):
         super(SueurDeMetalModule, self).__init__(*a, **kw)
         self.cities = {}
 
-    def list_events(self, from_date, to_date=None):
-        for d in self.browser.get_concerts_date(from_date, date_end=to_date):
-            yield self._make_event(d)
-
     def search_events(self, query):
         if not self.has_matching_categories(query):
             return
 
-        if query.city:
-            city_id = self.find_city_id(query.city)
-            for d in self.browser.get_concerts_city(city_id):
-                if self._date_matches(d['date'], query):
-                    yield self._make_event(d)
-        else:
-            for e in self.list_events(query.start_date, query.end_date):
-                yield e
+        for ev in self.browser.search_city(query.city or '00'):
+            if query.start_date and ev.start_date < query.start_date:
+                continue
+            if query.end_date and ev.start_date > query.end_date:
+                continue
+            yield ev
 
-    def get_event(self, _id):
-        d = self.browser.get_concert(_id)
-        return self._make_event(d)
+    def list_events(self, date_from, date_to=None):
+        q = Query()
+        q.start_date = date_from
+        q.end_date = date_to
+        return self.search_events(q)
 
-    def _make_event(self, d):
-        event = Concert(d['id'])
-        event.category = CATEGORIES.CONCERT
-        event.timezone = 'Europe/Paris'
-        event.start_date = d['date']
-        event.end_date = datetime.datetime.combine(event.start_date.date(), datetime.time.max)
-        event.summary = d['summary']
-        event.url = d['url']
-
-        if 'price' in d:
-            event.price = d['price']
-
-        if d['active']:
-            event.status = STATUS.CONFIRMED
-        else:
-            event.status = STATUS.CANCELLED
-
-        if 'city' in d:
-            event.city = d['city']
-        else:
-            event.city = self.find_city_name(d['city_id'])
-        event.transp = TRANSP.OPAQUE
-
-        # "room, address" or "room" or "address" or ""
-        location = ', '.join(filter(None, (d.get('room', ''), d.get('address', ''))))
-        if location:
-            event.location = location
-
-        return event
-
-    def _fetch_cities(self):
-        if self.cities:
-            return
-        self.cities = self.browser.get_cities()
-
-    def find_city_id(self, name):
-        self._fetch_cities()
-        name = name.lower()
-        for c in self.cities:
-            if c.lower() == name:
-                return self.cities[c]['id']
-
-    def find_city_name(self, _id):
-        self._fetch_cities()
-        for c in self.cities.values():
-            if c['id'] == _id:
-                return c['name']
-
-    def _date_matches(self, date, query):
-        return ((not query.start_date or query.start_date <= date) and
-                (not query.end_date or date <= query.end_date))
+    def get_event(self, id):
+        return self.browser.get_concert(id)
 
     def fill_concert(self, obj, fields):
-        if set(fields) & set(('price', 'location', 'description')):
-            new_obj = self.get_event(obj.id)
-            for field in fields:
-                setattr(obj, field, getattr(new_obj, field))
+        if set(fields) & set(('location', 'price')):
+            new = self.get_event(obj.id)
+            for f in fields:
+                setattr(obj, f, getattr(new, f))
         return obj
 
-    OBJECTS = {Concert: fill_concert}
+    OBJECTS = {BaseCalendarEvent: fill_concert}

@@ -20,8 +20,9 @@
 from __future__ import unicode_literals
 
 from weboob.browser import PagesBrowser, URL
+from weboob.tools.json import json
 
-from .pages import PageCity, PageConcert, PageCityList, PageDate, PageDates
+from .pages import ConcertListPage, ConcertPage, NoEvent
 
 
 __all__ = ['SueurDeMetalBrowser']
@@ -30,32 +31,43 @@ __all__ = ['SueurDeMetalBrowser']
 class SueurDeMetalBrowser(PagesBrowser):
     BASEURL = 'http://www.sueurdemetal.com'
 
-    city = URL(r'/ville-metal-(?P<city>.+).htm', PageCity)
-    concert = URL(r'/detail-concert-metal.php\?c=(?P<id>.+)', PageConcert)
-    cities = URL(r'/recherchemulti.php', PageCityList)
-    dates = URL(r'/liste-dates-concerts.php', PageDates)
-    date = URL(r'/date-metal-.+.htm', PageDate)
+    concerts = URL(r'/func/listconcert-timeline.php', ConcertListPage)
+    concert = URL(r'/func/funcGetEvent.php', ConcertPage)
 
-    def get_concerts_city(self, city):
-        self.city.go(city=city)
-        assert self.city.is_here()
-        return self.page.get_concerts()
+    def __init__(self, *args, **kwargs):
+        super(SueurDeMetalBrowser, self).__init__(*args, **kwargs)
+        self.cities = {}
 
-    def get_concerts_date(self, date_from, date_end=None):
-        self.dates.go()
-        assert self.dates.is_here()
-        for day in self.page.get_dates_filtered(date_from, date_end):
-            self.location(day['url'])
-            assert self.date.is_here()
-            for data in self.page.get_concerts():
-                yield data
+    def jlocation(self, *args, **kwargs):
+        kwargs.setdefault('headers', {})['Content-Type'] = 'application/json;charset=utf-8'
+        kwargs['data'] = json.dumps(kwargs['data'])
+        return super(SueurDeMetalBrowser, self).location(*args, **kwargs)
 
-    def get_concert(self, _id):
-        self.concert.go(id=_id)
-        assert self.concert.is_here()
-        return self.page.get_concert()
+    def search_city(self, city):
+        self.jlocation(self.concerts.build(), data={
+            'date': '00',
+            'dep': '00',
+            'salle': '00',
+            'groupes': '00',
+            'ville': city,
+        })
+        return self.page.iter_concerts()
 
-    def get_cities(self):
-        self.cities.go()
-        assert self.cities.is_here()
-        return self.page.get_cities()
+    def get_concert(self, id):
+        self.jlocation(self.concert.build(), data={
+            'id': id,
+        })
+        try:
+            return self.page.get_concert()
+        except NoEvent:
+            return None
+
+    def build_cities(self):
+        if self.cities:
+           return
+        self.deps.go()
+        for dept in self.page.get_depts():
+            self.jlocation(self.cities.build, data={
+                'annee': '00',
+                '': '',
+            })
