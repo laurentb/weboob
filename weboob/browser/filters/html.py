@@ -19,9 +19,10 @@
 
 
 import lxml.html as html
+
 from .standard import _Selector, _NO_DEFAULT, Filter, FilterError
 from weboob.tools.html import html2text
-from weboob.tools.compat import basestring, unicode
+from weboob.tools.compat import basestring, unicode, urljoin
 
 
 __all__ = ['CSS', 'XPath', 'XPathNotFound', 'AttributeNotFound',
@@ -74,6 +75,14 @@ class Link(Attr):
 
     def __init__(self, selector=None, default=_NO_DEFAULT):
         super(Link, self).__init__(selector, 'href', default=default)
+
+
+class AbsoluteLink(Link):
+    def __call__(self, item):
+        ret = super(AbsoluteLink, self).__call__(item)
+        if ret:
+            ret = urljoin(item.page.url, ret)
+        return ret
 
 
 class CleanHTML(Filter):
