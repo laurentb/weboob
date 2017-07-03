@@ -44,8 +44,7 @@ class BillsPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Bill
 
-            def obj_id(self):
-                return '%s_%s' % (Env('subid')(self), Field('date')(self).strftime('%d%m%Y'))
+
 
             obj_url = Link('.//td[@headers="ec-downloadCol"]/a', default=NotAvailable)
             obj_date = Date(Regexp(CleanText('.//td[@headers="ec-downloadCol"]//span[@class="ec_visually_hidden"]'), 'du (.*) \(PDF\)'), parse_func=parse_french_date, dayfirst=True)
@@ -61,6 +60,9 @@ class BillsPage(LoggedPage, HTMLPage):
                 return CleanDecimal(replace_dots=True).filter(txt)
 
             obj_currency = Currency('.//td[@headers="ec-amountCol"]')
+
+            def obj_id(self):
+                return '%s_%s%s' % (Env('subid')(self), Field('date')(self).strftime('%d%m%Y'), Field('price')(self))
 
             def obj_vat(self):
                 ht = CleanDecimal(CleanText('.//td[@headers="ec-amountCol"]/strong[contains(text(),"HT")]', children=False), replace_dots=True, default=NotAvailable)(self)
