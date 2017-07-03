@@ -73,7 +73,7 @@ class AmericanExpressBrowser(LoginBrowser):
 
     @need_login
     def get_accounts_list(self):
-        if not self.accounts.is_here():
+        if not self.accounts.is_here() and not self.accounts2.is_here():
             self.go_on_accounts_list()
 
         if self.accounts2.is_here():
@@ -100,7 +100,7 @@ class AmericanExpressBrowser(LoginBrowser):
         if self.cache.get(account.id, None) is None:
             self.cache[account.id] = {}
             self.cache[account.id]["history"] = []
-            if not self.accounts.is_here():
+            if not self.accounts.is_here() and not self.accounts2.is_here():
                 self.go_on_accounts_list()
 
             url = account.url
