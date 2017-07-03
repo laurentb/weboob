@@ -195,7 +195,7 @@ class BredBrowser(DomainBrowser):
                     a.id += str(poste['monnaie']['codeSwift'])
                 yield a
 
-    def get_history(self, account):
+    def get_history(self, account, coming=False):
         if account.type is Account.TYPE_LOAN or not account._consultable:
             raise NotImplementedError()
 
@@ -221,8 +221,6 @@ class BredBrowser(DomainBrowser):
                 t.id = op['id']
                 if op['id'] in seen:
                     raise ParseError('There are several transactions with the same ID, probably an infinite loop')
-                if re.match('[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', op['id']):
-                    self.logger.warning('the id is an uuid (%s), the site may be doing an infinite loop', op['id'])
 
                 seen.add(t.id)
                 d = date.fromtimestamp(op.get('dateDebit', op.get('dateOperation'))/1000)
@@ -235,11 +233,20 @@ class BredBrowser(DomainBrowser):
                 if 'categorie' in op:
                     t.category = op['categorie']
                 t.label = op['libelle']
+                t._coming = op['intraday']
+                if t._coming:
+                    # coming transactions have a random uuid id (inconsistent between requests)
+                    t.id = ''
                 transactions.append(t)
 
             # Transactions are unsorted
             for t in sorted_transactions(transactions):
-                yield t
+                if coming == t._coming:
+                    yield t
+                elif coming and not t._coming:
+                    # coming transactions are at the top of history
+                    self.logger.debug('stopping coming after %s', t)
+                    return
 
             next_page = bool(transactions)
             offset += 50
