@@ -19,10 +19,9 @@
 
 from __future__ import unicode_literals
 
-import urllib
-
 from weboob.browser import LoginBrowser, URL
 from weboob.exceptions import BrowserUnavailable
+from weboob.tools.compat import quote_plus
 
 from .pages import (
     MessagePage, InvestmentPage, HistoryPage, BrokenPage
@@ -73,11 +72,11 @@ class LinebourseBrowser(LoginBrowser):
         assert self.history.is_here()
 
         if not self.page.is_on_right_portfolio(account_id):
-            self.history.go(id=urllib.quote_plus(self.page.get_compte(account_id)), period=0)
+            self.history.go(id=quote_plus(self.page.get_compte(account_id)), period=0)
 
         periods = self.page.get_periods()
 
         for period in periods:
-            self.history.go(id=urllib.quote_plus(self.page.get_compte(account_id)), period=period)
+            self.history.go(id=quote_plus(self.page.get_compte(account_id)), period=period)
             for tr in self.page.iter_history():
                 yield tr
