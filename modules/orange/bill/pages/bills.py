@@ -48,7 +48,7 @@ class BillsPage(LoggedPage, HTMLPage):
                 return '%s_%s' % (Env('subid')(self), Field('date')(self).strftime('%d%m%Y'))
 
             obj_url = Link('.//td[@headers="ec-downloadCol"]/a', default=NotAvailable)
-            obj_date = Date(CleanText('.//td[@headers="ec-dateCol"]'), parse_func=parse_french_date, dayfirst=True)
+            obj_date = Date(Regexp(CleanText('.//td[@headers="ec-downloadCol"]//span[@class="ec_visually_hidden"]'), 'du (.*) \(PDF\)'), parse_func=parse_french_date, dayfirst=True)
             obj_label = CleanText('.//td[@headers="ec-dateCol"]')
             obj_format = u"pdf"
             obj_type = u"bill"
