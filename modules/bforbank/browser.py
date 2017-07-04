@@ -101,6 +101,7 @@ class BforbankBrowser(LoginBrowser):
                         # if there's a credit card (not debit), create a separate, virtual account
                         card.url = account.url
                         card.balance = account._card_balance
+                        card.currency = account.currency
                         assert not empty(card.balance)
                         account._card_account = card
                         card._checking_account = account
