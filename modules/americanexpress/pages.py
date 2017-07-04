@@ -126,7 +126,7 @@ class AccountsPage2(LoggedPage, PartialHTMLPage):
             return -abs(parse_decimal(CleanText('//td[@id="colOSBalance"]/div[@class="summaryValues makeBold"]')(self)))
 
         def obj_url(self):
-            return urljoin(self.page.url, Link('//a[span[text()="Online Statement"]]')(self))
+            return urljoin(self.page.url, Link(u'//a[span[text()="Online Statement"] or text()="Détail de vos opérations"]')(self))
 
 
 class TransactionsPage(LoggedPage, HTMLPage):
