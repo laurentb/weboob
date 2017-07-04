@@ -98,7 +98,7 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
 
         class Item(MyRecipient):
             def validate(self, obj):
-                return self.obj.id != self.env['account_id']
+                return self.obj.id != self.env['account_id'] and self.obj.id not in self.parent.objects
 
             obj_id = Env('id')
             obj_label = Env('label')
