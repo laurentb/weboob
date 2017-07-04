@@ -44,13 +44,19 @@ class BillsPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Bill
 
-
-
-            obj_url = Link('.//td[@headers="ec-downloadCol"]/a', default=NotAvailable)
             obj_date = Date(Regexp(CleanText('.//td[@headers="ec-downloadCol"]//span[@class="ec_visually_hidden"]'), 'du (.*) \(PDF\)'), parse_func=parse_french_date, dayfirst=True)
             obj_label = CleanText('.//td[@headers="ec-dateCol"]')
             obj_format = u"pdf"
             obj_type = u"bill"
+
+            def obj_url(self):
+                url = Link('.//td[@headers="ec-downloadCol"]/a', default=NotAvailable)(self)
+                if url:
+                    page = self.page.browser.open(url).page
+                    if CleanText(u'//p[contains(., "Votre facture n’est pas encore disponible.")]')(page.doc):
+                        return NotAvailable
+                return url
+
             # sometimes the price td contains a subtag with "inclus un avoir de XX€"
             def obj_price(self):
                 # if TTC is indicated, there's also HT, don't take both
