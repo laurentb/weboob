@@ -44,7 +44,7 @@ class ErehsbcModule(AbstractModule, CapBank):
     PARENT = 's2e'
 
     def create_default_browser(self):
-        return self.create_browser(self.weboob,
-                                   self.config['login'].get(),
+        return self.create_browser(self.config['login'].get(),
                                    self.config['password'].get(),
-                                   secret=self.config['secret'].get())
+                                   secret=self.config['secret'].get(),
+                                   weboob=self.weboob)

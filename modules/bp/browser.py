@@ -136,7 +136,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
         dirname = self.responses_dirname
         if dirname:
             dirname += '/bourse'
-        self.linebourse = LinebourseBrowser(self.weboob, 'https://labanquepostale.offrebourse.com/', logger=self.logger, responses_dirname=dirname)
+        self.linebourse = LinebourseBrowser('https://labanquepostale.offrebourse.com/', logger=self.logger, responses_dirname=dirname, weboob=self.weboob)
 
     def deinit(self):
         super(BPBrowser, self).deinit()

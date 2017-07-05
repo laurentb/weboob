@@ -43,11 +43,11 @@ class PradoepargneModule(Module, CapBank):
     BROWSER = CmesBrowser
 
     def create_default_browser(self):
-        return self.create_browser(self.weboob,
-                                   "https://www.gestion-epargne-salariale.fr",
+        return self.create_browser("https://www.gestion-epargne-salariale.fr",
                                    self.config['login'].get(),
                                    self.config['password'].get(),
-                                   "pradoepargne/")
+                                   "pradoepargne/",
+                                   weboob=self.weboob)
 
     def get_account(self, _id):
         return find_object(self.browser.iter_accounts(), id=_id, error=AccountNotFound)

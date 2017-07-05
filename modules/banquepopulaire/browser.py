@@ -151,13 +151,13 @@ class BanquePopulaire(LoginBrowser):
     def __init__(self, website, *args, **kwargs):
         self.BASEURL = 'https://%s' % website
         self.token = None
-        self.weboob = kwargs.pop('weboob')
+        self.weboob = kwargs['weboob']
         super(BanquePopulaire, self).__init__(*args, **kwargs)
 
         dirname = self.responses_dirname
         if dirname:
             dirname += '/bourse'
-        self.linebourse = LinebourseBrowser(self.weboob, 'https://www.linebourse.fr', logger=self.logger, responses_dirname=dirname)
+        self.linebourse = LinebourseBrowser('https://www.linebourse.fr', logger=self.logger, responses_dirname=dirname, weboob=self.weboob)
 
         self.investments = {}
 

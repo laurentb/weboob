@@ -34,6 +34,6 @@ class NewspaperInrocksBrowser(AbstractBrowser):
                   '/.*',
                   ArticlePage)
 
-    def __init__(self, weboob, *args, **kwargs):
-        self.weboob = weboob
-        super(self.__class__, self).__init__(*args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        self.weboob = kwargs['weboob']
+        super(NewspaperInrocksBrowser, self).__init__(*args, **kwargs)

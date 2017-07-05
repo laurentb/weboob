@@ -43,10 +43,10 @@ class CaelsModule(Module, CapBank):
     BROWSER = CAELSBrowser
 
     def create_default_browser(self):
-        return self.create_browser(self.weboob,
-                                   "https://www.ca-els.com/",
+        return self.create_browser("https://www.ca-els.com/",
                                    self.config['login'].get(),
-                                   self.config['password'].get())
+                                   self.config['password'].get(),
+                                   weboob=self.weboob)
 
     def get_account(self, id):
         return find_object(self.iter_accounts(), id=id, error=AccountNotFound)

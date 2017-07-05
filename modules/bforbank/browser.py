@@ -55,14 +55,13 @@ class BforbankBrowser(LoginBrowser):
                  'https://bourse.bforbank.com/netfinca-titres/servlet/com.netfinca.frontcr.account.*',
                  BoursePage)
 
-    def __init__(self, weboob, birthdate, username, password, *args, **kwargs):
+    def __init__(self, birthdate, username, password, *args, **kwargs):
         super(BforbankBrowser, self).__init__(username, password, *args, **kwargs)
         self.birthdate = birthdate
         self.accounts = None
-        self.weboob = weboob
+        self.weboob = kwargs['weboob']
 
-        self.spirica = SpiricaBrowser(weboob,
-                                      'https://assurance-vie.bforbank.com:443/',
+        self.spirica = SpiricaBrowser('https://assurance-vie.bforbank.com:443/',
                                       None, None, *args, **kwargs)
 
     def deinit(self):

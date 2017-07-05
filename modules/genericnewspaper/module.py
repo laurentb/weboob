@@ -45,7 +45,7 @@ class GenericNewspaperModule(Module):
     BROWSER = GenericPageBrowser
 
     def create_default_browser(self):
-        return self.create_browser(self.weboob, self.weboob)
+        return self.create_browser(weboob=self.weboob)
 
     def get_thread(self, _id):
         if isinstance(_id, Thread):
