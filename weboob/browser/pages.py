@@ -833,7 +833,7 @@ class AbstractPage(Page):
         else:
             parent_browser = reduce(getattr, cls.BROWSER_ATTR.split('.'), parent_module)
 
-        parent = parent_browser._urls.get(cls.PARENT_URL, None)
+        parent = getattr(parent_browser, cls.PARENT_URL, None)
         if parent is None:
             raise AbstractPageError("cls.PARENT_URL is not defined in %s" % browser)
 

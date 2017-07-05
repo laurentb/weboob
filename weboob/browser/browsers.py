@@ -47,7 +47,7 @@ except ImportError:
 from weboob.exceptions import BrowserHTTPSDowngrade, ModuleInstallError
 
 from weboob.tools.log import getLogger
-from weboob.tools.compat import basestring, unicode, with_metaclass, urlparse, urljoin
+from weboob.tools.compat import basestring, unicode, urlparse, urljoin
 from weboob.tools.json import json
 
 from .cookies import WeboobCookieJar
@@ -593,24 +593,7 @@ class DomainBrowser(Browser):
         return self.location(self.BASEURL or self.absurl('/'))
 
 
-class _PagesBrowserMeta(type):
-    """
-    Private meta-class used to keep order of URLs instances of PagesBrowser.
-    """
-    def __new__(mcs, name, bases, attrs):
-        urls = [(url_name, attrs.pop(url_name)) for url_name, obj in list(attrs.items()) if isinstance(obj, URL)]
-        urls.sort(key=lambda x: x[1]._creation_counter)
-
-        new_class = super(_PagesBrowserMeta, mcs).__new__(mcs, name, bases, attrs)
-        if new_class._urls is None:
-            new_class._urls = OrderedDict()
-        else:
-            new_class._urls = deepcopy(new_class._urls)
-        new_class._urls.update(urls)
-        return new_class
-
-
-class PagesBrowser(with_metaclass(_PagesBrowserMeta, DomainBrowser)):
+class PagesBrowser(DomainBrowser):
     r"""
     A browser which works pages and keep state of navigation.
 
@@ -637,22 +620,20 @@ class PagesBrowser(with_metaclass(_PagesBrowserMeta, DomainBrowser)):
     You can then use URL instances to go on pages.
     """
 
-
     _urls = None
-
-    def __getattr__(self, name):
-        if self._urls is not None and name in self._urls:
-            return self._urls[name]
-        else:
-            raise AttributeError("'%s' object has no attribute '%s'" % (
-                self.__class__.__name__, name))
 
     def __init__(self, *args, **kwargs):
         self.highlight_el = kwargs.pop('highlight_el', False)
         super(PagesBrowser, self).__init__(*args, **kwargs)
 
         self.page = None
-        self._urls = deepcopy(self._urls)
+
+        attrs = [(attr, getattr(self, attr)) for attr in dir(self)]
+        attrs = [v for v in attrs if isinstance(v[1], URL)]
+        attrs.sort(key=lambda v: v[1]._creation_counter)
+        self._urls = OrderedDict(deepcopy(attrs))
+        for k, v in self._urls.items():
+            setattr(self, k, v)
         for url in self._urls.values():
             url.browser = self
 
@@ -755,10 +736,6 @@ class PagesBrowser(with_metaclass(_PagesBrowserMeta, DomainBrowser)):
                 self.location(e.request)
             else:
                 return
-
-    if sys.version_info.major >= 3:
-        def __dir__(self):
-            return list(super(PagesBrowser, self).__dir__()) + list(self._urls.keys())
 
 
 def need_login(func):
