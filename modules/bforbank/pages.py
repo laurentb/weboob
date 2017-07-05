@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 from collections import OrderedDict
 import re
 from io import BytesIO
@@ -213,6 +215,31 @@ def add_qs(url, **kwargs):
 
 
 class CardHistoryPage(LoggedPage, HTMLPage):
+    def get_card_indexes(self):
+        for opt in self.doc.xpath('//select[@id="select-box-card"]/option'):
+            number = CleanText('.')(opt).replace(' ', '').replace('*', 'x')
+            number = re.search(r'\d{4}x+\d{4}', number).group(0)
+            yield number, opt.attrib['value']
+
+    def get_balance(self):
+        div, = self.doc.xpath('//div[@class="m-tabs-tab-meta"]')
+        for d in div.xpath('.//div[has-class("pull-left")]'):
+            if 'opération(s):' in CleanText('.')(d):
+                return MyDecimal('./span', replace_dots=True)(d)
+
+    def get_debit_date(self):
+        return Date(Regexp(CleanText('//div[@class="m-tabs-tab-meta"]'),
+                           r'Ces opérations (?:seront|ont été) débitées sur votre compte le (\d{2}/\d{2}/\d{4})'),
+                    dayfirst=True)(self.doc)
+
+    def create_summary(self):
+        tr = Transaction()
+        tr.type = Transaction.TYPE_CARD_SUMMARY
+        tr.amount = abs(self.get_balance())
+        tr.label = 'Règlement cartes à débit différé'
+        tr.date = tr.rdate = self.get_debit_date()
+        return tr
+
     @pagination
     @method
     class get_operations(TableElement):
@@ -238,23 +265,24 @@ class CardHistoryPage(LoggedPage, HTMLPage):
             obj_raw = CleanText(TableCell('raw'))
             obj_vdate = obj_rdate = Date(CleanText(TableCell('vdate')), dayfirst=True)
             obj_amount = MyDecimal(TableCell('amount'), replace_dots=True)
-            obj_date = Date(Regexp(CleanText('//div[@class="m-tabs-tab-meta"]'),
-                                   ur'Ces opérations (?:seront|ont été) débitées sur votre compte le (\d{2}/\d{2}/\d{4})'),
-                            dayfirst=True)
+
+            def obj_date(self):
+                return self.page.get_debit_date()
 
 
 class CardPage(LoggedPage, HTMLPage):
-    def get_card(self, account_id):
+    def get_cards(self, account_id):
         divs = self.doc.xpath('//div[@class="content-boxed"]')
         assert len(divs)
 
         msgs = re.compile(u'Vous avez fait opposition sur cette carte bancaire.|Votre carte bancaire a été envoyée.')
         divs = [d for d in divs if not msgs.search(CleanText('.//div[has-class("alert")]', default='')(d))]
         divs = [d.xpath('.//div[@class="m-card-infos"]')[0] for d in divs]
+        divs = [d for d in divs if not d.xpath('.//div[@class="m-card-infos-body-text"][text()="Débit immédiat"]')]
 
         if not len(divs):
             self.logger.warning('all cards are cancelled, acting as if there is no card')
-            return
+            return []
 
         cards = []
         for div in divs:
@@ -262,9 +290,6 @@ class CardPage(LoggedPage, HTMLPage):
             number = CleanText('.//div[@class="m-card-infos-body-num"]', default='')(div)
             number = re.sub('[^\d*]', '', number).replace('*', 'x')
             debit = CleanText(u'.//div[@class="m-card-infos-body-text"][contains(text(),"Débit")]')(div)
-            if debit == u'Débit immédiat':
-                self.logger.debug('immediate debit card %s', number)
-                continue
             assert debit == u'Débit différé', 'unrecognized card type %s: %s' % (number, debit)
 
             card = Account()
@@ -274,9 +299,7 @@ class CardPage(LoggedPage, HTMLPage):
             card.type = Account.TYPE_CARD
             cards.append(card)
 
-        # Crash on multiple cards if at least two are deferred
-        assert (len(divs) > 1 and len(cards) < 2) or len(divs) == 1
-        return cards[0] if cards else None
+        return cards
 
 
 class LifeInsuranceList(LoggedPage, HTMLPage):

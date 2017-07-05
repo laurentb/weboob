@@ -17,12 +17,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import date, timedelta
-
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.capabilities.bank import Account, AccountNotFound
 from weboob.capabilities.base import empty
+from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages import (
     LoginPage, ErrorPage, AccountsPage, HistoryPage, LoanHistoryPage, RibPage,
@@ -71,8 +70,6 @@ class BforbankBrowser(LoginBrowser):
         self.spirica.deinit()
 
     def do_login(self):
-        assert isinstance(self.username, basestring)
-        assert isinstance(self.password, basestring)
         if not self.password.isdigit():
             raise BrowserIncorrectPassword()
 
@@ -96,24 +93,32 @@ class BforbankBrowser(LoginBrowser):
 
                 if account.type == Account.TYPE_CHECKING:
                     self.card_page.go(account=account.id)
-                    card = self.page.get_card(account.id)
-                    if card is not None:
+                    cards = self.page.get_cards(account.id)
+                    account._cards = cards
+                    if cards:
+                        self.location(account.url.replace('tableauDeBord', 'encoursCarte') + '/0')
+                        indexes = dict(self.page.get_card_indexes())
+
+                    for card in cards:
                         # if there's a credit card (not debit), create a separate, virtual account
                         card.url = account.url
-                        card.balance = account._card_balance
                         card.currency = account.currency
-                        assert not empty(card.balance)
-                        account._card_account = card
                         card._checking_account = account
+                        card._index = indexes[card.number]
+
+                        self.location(account.url.replace('tableauDeBord', 'encoursCarte') + '/%s' % card._index)
+                        card.balance = self.page.get_balance()
+                        assert not empty(card.balance)
+
                         # insert it near its companion checking account
                         self.accounts.append(card)
 
         return iter(self.accounts)
 
     def _get_card_transactions(self, account):
-        self.location(account.url.replace('tableauDeBord', 'encoursCarte') + '/0?month=1')
+        self.location(account.url.replace('tableauDeBord', 'encoursCarte') + '/%s?month=1' % account._index)
         assert self.card_history.is_here()
-        return list(self.page.get_operations())
+        return self.page.get_operations()
 
     @need_login
     def get_history(self, account):
@@ -137,22 +142,14 @@ class BforbankBrowser(LoginBrowser):
 
             return self.page.get_operations()
         else:
-            # TODO same as get_coming, we should handle more than one card
-            assert account._checking_account
-
             # for summary transactions, the transactions must be on both accounts:
             # negative amount on checking account, positive on card account
-            old = date.today() - timedelta(days=31)
-            transactions = []
-            for tr in self.get_history(account._checking_account):
-                if (tr.rdate or tr.date) < old:
-                    break
-                if tr.type == tr.TYPE_CARD_SUMMARY:
-                    tr.amount = -tr.amount
-                    transactions.append(tr)
 
-            transactions.extend(self._get_card_transactions(account))
-            transactions.sort(reverse=True, key=lambda tr: tr.rdate or tr.date)
+            transactions = list(self._get_card_transactions(account))
+            summary = self.page.create_summary()
+            transactions = sorted_transactions(transactions)
+            if summary.amount:
+                transactions.insert(0, summary)
             return transactions
 
     @need_login
@@ -161,8 +158,7 @@ class BforbankBrowser(LoginBrowser):
             self.coming.go(account=account.id)
             return self.page.get_operations()
         elif account.type == Account.TYPE_CARD:
-            # TODO there could be multiple cards, how to find the number of cards?
-            self.location(account.url.replace('tableauDeBord', 'encoursCarte') + '/0')
+            self.location(account.url.replace('tableauDeBord', 'encoursCarte') + '/%s' % account._index)
             return self.page.get_operations()
         else:
             raise NotImplementedError()
