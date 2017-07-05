@@ -229,6 +229,9 @@ class AccountHistoryPage(LoggedPage, JsonPage):
             def obj_amount(self):
                 return Eval(lambda x, y: x / 10**y, CleanDecimal(Dict('montant/montant')), CleanDecimal(Dict('montant/nb_dec')))(self)
 
+            def validate(self, obj):
+                return 'FACTURE CARTE DU' not in obj.raw
+
     @method
     class iter_coming(DictElement):
         item_xpath = "infoOperationsAvenir/operationsAvenir"
