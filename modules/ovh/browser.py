@@ -33,9 +33,13 @@ class OvhBrowser(LoginBrowser):
     profile = URL('/engine/api/me', ProfilePage)
     documents = URL('/engine/2api/sws/billing/bills\?count=0&date=(?P<fromDate>.*)&dateTo=(?P<toDate>.*)&offset=0', BillsPage)
 
-
     def do_login(self):
-        self.login.go().login(self.username, self.password)
+        self.login.go()
+
+        if self.page.is_logged():
+            return
+
+        self.page.login(self.username, self.password)
 
         self.page.check_double_auth()
 

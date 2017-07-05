@@ -28,7 +28,7 @@ from weboob.exceptions import ActionNeeded
 
 class LoginPage(HTMLPage):
     def is_logged(self):
-        return not self.doc.xpath('//div[has-class("error")]')
+        return not self.doc.xpath('//div[has-class("error")]') and not self.doc.xpath('//form//input[contains(@placeholder, "Account ID")]')
 
     def login(self, login, password):
         form = self.get_form('//form[@class="pagination-centered"]')
@@ -43,6 +43,7 @@ class LoginPage(HTMLPage):
 
         if double_auth:
             raise ActionNeeded(CleanText('(//div[contains(., "Two-Factor")])[5]')(self.doc))
+
 
 class ProfilePage(LoggedPage, JsonPage):
     @method
