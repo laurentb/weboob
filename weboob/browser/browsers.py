@@ -108,7 +108,7 @@ class Browser(object):
             return localfile
         return os.path.join(os.path.dirname(inspect.getfile(cls)), localfile)
 
-    def __init__(self, logger=None, proxy=None, responses_dirname=None):
+    def __init__(self, logger=None, proxy=None, responses_dirname=None, weboob=None):
         self.logger = getLogger('browser', logger)
         self.responses_dirname = responses_dirname
         self.responses_count = 1
@@ -893,7 +893,9 @@ class AbstractBrowser(Browser):
     PARENT = None
     PARENT_ATTR = None
 
-    def __new__(cls, weboob, *args, **kwargs):
+    def __new__(cls, *args, **kwargs):
+        weboob = kwargs['weboob']
+
         if cls.PARENT is None:
             raise AbstractBrowserMissingParentError("PARENT is not defined for browser %s" % cls)
 
@@ -909,4 +911,6 @@ class AbstractBrowser(Browser):
 
         if parent is None:
             raise AbstractBrowserMissingParentError("Failed to load parent class")
-        return type(cls.__name__, (parent,), dict(cls.__dict__))(*args, **kwargs)
+
+        cls.__bases__ = (parent,)
+        return cls.__new__(cls, *args, **kwargs)
