@@ -769,7 +769,7 @@ def need_login(func):
     @wraps(func)
     def inner(browser, *args, **kwargs):
         if (not hasattr(browser, 'logged') or (hasattr(browser, 'logged') and not browser.logged)) and \
-                (browser.page is None or not browser.page.logged):
+                (not hasattr(browser, 'page') or browser.page is None or not browser.page.logged):
             browser.do_login()
             browser.logger.debug('logged in with session: %s', json.dumps(browser.export_session()))
         return func(browser, *args, **kwargs)
@@ -844,7 +844,7 @@ class StatesMixin(object):
 
     def dump_state(self):
         state = {}
-        if self.page:
+        if hasattr(self, 'page') and self.page:
             state['url'] = self.page.url
         state['cookies'] = base64.b64encode(zlib.compress(pickle.dumps(self.session.cookies, -1)))
         for attrname in self.__states__:
