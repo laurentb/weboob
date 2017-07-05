@@ -147,7 +147,7 @@ class YomoniBrowser(APIBrowser):
             self.open('/user/%s/project/%s/activity' % (self.users['userId'], account.number), method="OPTIONS")
             for activity in [acc for acc in self.request('/user/%s/project/%s/activity' % (self.users['userId'], account.number), headers=self.request_headers)['activities'] \
                              if acc['details'] is not None]:
-                m = re.search(u'([\d\.]+)(?=[\s]+€|[\s]+euro)', activity['details'])
+                m = re.search(u'([\d\,]+)(?=[\s]+€|[\s]+euro)', activity['details'])
                 if "Souscription" not in activity['title'] and not m:
                     continue
 
@@ -156,7 +156,7 @@ class YomoniBrowser(APIBrowser):
                 t.date = Date().filter(activity['date'])
                 t.type = Transaction.TYPE_BANK
                 amount = account._startbalance if not m else "-%s" % m.group(1) if "FRAIS" in activity['type'] else m.group(1)
-                t.amount = CleanDecimal().filter(amount)
+                t.amount = CleanDecimal(replace_dots=True).filter(amount)
 
                 histories.append(t)
 
