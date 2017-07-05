@@ -274,8 +274,8 @@ class CardPage(LoggedPage, HTMLPage):
             card.type = Account.TYPE_CARD
             cards.append(card)
 
-        # Crash on multiple cards if at least one is deferred
-        assert (len(divs) > 1 and not cards) or len(divs) == 1
+        # Crash on multiple cards if at least two are deferred
+        assert (len(divs) > 1 and len(cards) < 2) or len(divs) == 1
         return cards[0] if cards else None
 
 
