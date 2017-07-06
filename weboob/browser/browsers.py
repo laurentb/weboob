@@ -628,7 +628,12 @@ class PagesBrowser(DomainBrowser):
 
         self.page = None
 
-        attrs = [(attr, getattr(self, attr)) for attr in dir(self)]
+        # exclude properties because they can access other fields not yet defined
+        def is_property(attr):
+            v = getattr(type(self), attr, None)
+            return hasattr(v, '__get__') or hasattr(v, '__set__')
+
+        attrs = [(attr, getattr(self, attr)) for attr in dir(self) if not is_property(attr)]
         attrs = [v for v in attrs if isinstance(v[1], URL)]
         attrs.sort(key=lambda v: v[1]._creation_counter)
         self._urls = OrderedDict(deepcopy(attrs))
