@@ -20,14 +20,15 @@
 from __future__ import unicode_literals
 
 from weboob.browser import LoginBrowser, URL, need_login
-
+from weboob.exceptions import BrowserIncorrectPassword
 from .pages import LoginPage, AccountsPage, TransactionsPage
 
 
 class MyedenredBrowser(LoginBrowser):
     BASEURL = 'https://www.myedenred.fr'
 
-    login = URL(r'/ctr\?Length=7', LoginPage)
+    login = URL(r'/ctr\?Length=7',
+                r'/ExtendedAccount/Logon', LoginPage)
     accounts = URL(r'/$', AccountsPage)
     transactions = URL('/Card/TransactionSet', TransactionsPage)
 
@@ -39,6 +40,9 @@ class MyedenredBrowser(LoginBrowser):
     def do_login(self):
         self.login.go(data={'Email': self.username, 'Password': self.password, 'RememberMe': 'false',
                             'X-Requested-With': 'XMLHttpRequest', 'ReturnUrl': '/'})
+        self.accounts.go()
+        if self.login.is_here():
+            raise BrowserIncorrectPassword
 
     @need_login
     def get_accounts_list(self):
