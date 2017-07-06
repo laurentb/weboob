@@ -46,6 +46,8 @@ class DispoBankBrowser(LoginBrowser):
                          }
            }
 
+    VERIFY = 'cert.pem'
+
     def __init__(self, accnum, *args, **kwargs):
         super(DispoBankBrowser, self).__init__(*args, **kwargs)
         self.accnum = accnum
@@ -55,9 +57,6 @@ class DispoBankBrowser(LoginBrowser):
         self.location(self.URLS[self.website]['home'])
 
     def do_login(self):
-        assert isinstance(self.username, basestring)
-        assert isinstance(self.password, basestring)
-
         if not (self.login_page.is_here() or self.login2.is_here()):
             self.location(self.URLS[self.website]['login'])
 
@@ -79,18 +78,10 @@ class DispoBankBrowser(LoginBrowser):
         return self.page.get_list()
 
     @need_login
-    def get_account(self, id):
-        assert isinstance(id, basestring)
+    def get_history(self, account, coming=False):
+        if coming:
+            raise NotImplementedError()
 
-        l = self.get_accounts_list()
-        for a in l:
-            if a.id == id:
-                return a
-
-        return None
-
-    @need_login
-    def get_history(self, account):
         numero_compte, numero_poste = account.id.split('.')
         data = {'typeDemande':      'recherche',
                 'motRecherche':     '',
