@@ -17,16 +17,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 import datetime
 import re
 from urlparse import urljoin
 from dateutil.relativedelta import relativedelta
 
-from weboob.browser.elements import ItemElement, method
+from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.pages import HTMLPage, LoggedPage, PartialHTMLPage
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Currency as CleanCurrency
-from weboob.browser.filters.html import Link
+from weboob.browser.filters.html import AbsoluteLink
 from weboob.capabilities.bank import Account
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
@@ -110,23 +111,28 @@ class AccountsPage(LoggedPage, PartialHTMLPage):
 
 class AccountsPage2(LoggedPage, PartialHTMLPage):
     @method
-    class get_account(ItemElement):
-        klass = Account
+    class iter_accounts(ListElement):
+        item_xpath = '//table[@id="summaryTable"]'
 
-        def parse(self, el):
-            assert len(el.xpath('//td[@class="cardArtColWidth"]/div[@class="summaryTitles"]')) == 1, 'fix parsing for multiple accounts'
+        class item(ItemElement):
+            klass = Account
 
-        obj_id = CleanText('//td[@class="cardArtColWidth"]/div[@class="summaryTitles"]')
-        obj_label = CleanText('//span[@class="cardTitle"]')
-        obj_type = Account.TYPE_CARD
+            def condition(self):
+                if 'Votre carte est annulée' in CleanText('.//span[@id="cardSORStatus"]')(self):
+                    self.logger.warning('skipping cancelled card %r', self.obj_id(self))
+                    return False
+                return True
 
-        obj_currency = CleanCurrency('//td[@id="colOSBalance"]/div[@class="summaryValues makeBold"]')
+            obj_id = CleanText('.//td[@class="cardArtColWidth"]/div[@class="summaryTitles"]')
+            obj_label = CleanText('.//span[@class="cardTitle"]')
+            obj_type = Account.TYPE_CARD
 
-        def obj_balance(self):
-            return -abs(parse_decimal(CleanText('//td[@id="colOSBalance"]/div[@class="summaryValues makeBold"]')(self)))
+            obj_currency = CleanCurrency('.//td[@id="colOSBalance"]/div[@class="summaryValues makeBold"]')
 
-        def obj_url(self):
-            return urljoin(self.page.url, Link(u'//a[span[text()="Online Statement"] or text()="Détail de vos opérations"]')(self))
+            def obj_balance(self):
+                return -abs(parse_decimal(CleanText('.//td[@id="colOSBalance"]/div[@class="summaryValues makeBold"]')(self)))
+
+            obj_url = AbsoluteLink('.//a[span[text()="Online Statement"] or text()="Détail de vos opérations"]')
 
 
 class TransactionsPage(LoggedPage, HTMLPage):

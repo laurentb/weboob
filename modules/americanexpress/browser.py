@@ -77,7 +77,8 @@ class AmericanExpressBrowser(LoginBrowser):
             self.go_on_accounts_list()
 
         if self.accounts2.is_here():
-            yield self.page.get_account()
+            for account in self.page.iter_accounts():
+                yield account
             return
 
         for idx, cancelled in self.page.get_idx_list():
