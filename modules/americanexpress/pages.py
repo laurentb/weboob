@@ -21,7 +21,6 @@ from __future__ import unicode_literals
 
 import datetime
 import re
-from urlparse import urljoin
 from dateutil.relativedelta import relativedelta
 
 from weboob.browser.elements import ItemElement, ListElement, method
@@ -31,6 +30,7 @@ from weboob.browser.filters.html import AbsoluteLink
 from weboob.capabilities.bank import Account
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
+from weboob.tools.compat import urljoin
 from weboob.tools.date import ChaoticDateGuesser, parse_french_date
 
 

@@ -18,13 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from urlparse import urlsplit, parse_qsl
-from urllib import urlencode
-
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.browsers import LoginBrowser, need_login
 from weboob.browser.url import URL
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
+from weboob.tools.compat import urlsplit, parse_qsl, urlencode
 
 from .pages import (
     LoginPage, AccountsPage, TransactionsPage, WrongLoginPage, AccountSuspendedPage,
@@ -52,9 +50,6 @@ class AmericanExpressBrowser(LoginBrowser):
         self.cache = {}
 
     def do_login(self):
-        assert isinstance(self.username, basestring)
-        assert isinstance(self.password, basestring)
-
         if not self.login.is_here():
             self.location('/myca/logon/emea/action?request_type=LogonHandler&DestPage=https%3A%2F%2Fglobal.americanexpress.com%2Fmyca%2Fintl%2Facctsumm%2Femea%2FaccountSummary.do%3Frequest_type%3D%26Face%3Dfr_FR%26intlink%3Dtopnavvotrecompteneligne-HPmyca&Face=fr_FR&Info=CUExpired')
 
