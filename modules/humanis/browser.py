@@ -27,7 +27,6 @@ class HumanisBrowser(AbstractBrowser):
 
     login = URL('(?P<subsite>.*)fr/identification/login.cgi', LoginPage)
 
-    def __init__(self, weboob, baseurl, subsite, login, password, *args, **kwargs):
-        self.weboob = weboob
-
-        super(self.__class__, self).__init__(baseurl, login, password, subsite, *args, **kwargs)
+    def __init__(self, baseurl, subsite, login, password, *args, **kwargs):
+        self.weboob = kwargs['weboob']
+        super(HumanisBrowser, self).__init__(baseurl, login, password, subsite, *args, **kwargs)
