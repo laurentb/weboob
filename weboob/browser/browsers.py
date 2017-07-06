@@ -918,4 +918,4 @@ class AbstractBrowser(Browser):
             raise AbstractBrowserMissingParentError("Failed to load parent class")
 
         cls.__bases__ = (parent,)
-        return cls.__new__(cls, *args, **kwargs)
+        return object.__new__(cls)

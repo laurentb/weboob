@@ -838,4 +838,4 @@ class AbstractPage(Page):
             raise AbstractPageError("cls.PARENT_URL is not defined in %s" % browser)
 
         cls.__bases__ = (parent.klass,)
-        return cls.__new__(cls, browser, *args, **kwargs)
+        return object.__new__(cls)
