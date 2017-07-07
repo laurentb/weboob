@@ -20,13 +20,13 @@
 
 import ssl
 from datetime import timedelta, date
-from urlparse import parse_qs
 from lxml.etree import XMLSyntaxError
 from itertools import groupby
 
 from weboob.tools.date import LinearDateGuesser
 from weboob.capabilities.bank import Account, AccountNotFound
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.compat import parse_qs
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import HTTPNotFound
@@ -110,7 +110,7 @@ class HSBC(LoginBrowser):
 
     @need_login
     def update_accounts_list(self):
-        for a in list(self.accounts.stay_or_go().iter_accounts()):
+        for a in list(self.accounts.go().iter_accounts()):
             try:
                 self.accounts_list[a.id].url = a.url
             except KeyError:
@@ -142,7 +142,7 @@ class HSBC(LoginBrowser):
         url = (self.js_url + 'PLACEMENTS_ASS').split('?')
         data = {}
 
-        for k, v in parse_qs(url[1]).iteritems():
+        for k, v in parse_qs(url[1]).items():
             data[k] = v[0]
 
         self.location(url[0], data=data).page.redirect_li_space()

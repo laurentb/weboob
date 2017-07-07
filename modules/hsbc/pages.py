@@ -18,19 +18,19 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import re
-import urlparse
 from decimal import Decimal
 
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment, AccountNotFound
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.compat import urlparse, parse_qs
 
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.elements import TableElement, ListElement, ItemElement, method
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, DateGuesser, TableCell, Regexp, \
     Eval, Date
-from weboob.browser.filters.html import Link, XPathNotFound
+from weboob.browser.filters.html import Link, XPathNotFound, AbsoluteLink
 from weboob.browser.filters.javascript import JSVar
 
 
@@ -116,8 +116,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_coming = Env('coming')
             obj_currency = FrenchTransaction.Currency('./td[2]')
 
-            def obj_url(self):
-                return urlparse.urljoin(self.page.url, Link('./td[1]/a')(self))
+            obj_url = AbsoluteLink('./td[1]/a')
 
             obj_type = Type(Field('label'))
             obj_coming = NotAvailable
@@ -176,10 +175,10 @@ class Pagination(object):
 
 class CBOperationPage(LoggedPage, HTMLPage):
     def get_params(self, url):
-        parsed = urlparse.urlparse(url)
-        base_url, params = parsed.path, urlparse.parse_qs(parsed.query)
+        parsed = urlparse(url)
+        base_url, params = parsed.path, parse_qs(parsed.query)
         for a in self.doc.xpath('//form[@name="FORM_LIB_CARTE"]//a[contains(@href, "sessionid")]'):
-            params['sessionid'] = urlparse.parse_qs(urlparse.urlparse(Link('.')(a)).query)['sessionid']
+            params['sessionid'] = parse_qs(urlparse(Link('.')(a)).query)['sessionid']
             yield base_url, params
 
     @pagination
