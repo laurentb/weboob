@@ -48,7 +48,7 @@ class CmsoModule(Module, CapBank, CapContact):
     def create_default_browser(self):
         b = {'par': CmsoParBrowser, 'pro': CmsoProBrowser}
         self.BROWSER = b[self.config['website'].get()]
-        return self.create_browser("cmso.com",
+        return self.create_browser("%s.%s" % (self.NAME, 'com' if self.NAME == 'cmso' else 'fr'),
                                    self.config['login'].get(),
                                    self.config['password'].get())
 
