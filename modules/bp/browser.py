@@ -103,13 +103,16 @@ class BPBrowser(LoginBrowser, StatesMixin):
                      CardsList)
 
     transfer_choose = URL(r'/voscomptes/canalXHTML/virement/mpiaiguillage/init-saisieComptes.ea', TransferChooseAccounts)
-    transfer_complete = URL(r'/voscomptes/canalXHTML/virement/mpiaiguillage/soumissionChoixComptes-saisieComptes.ea', CompleteTransfer)
+    transfer_complete = URL(r'/voscomptes/canalXHTML/virement/mpiaiguillage/soumissionChoixComptes-saisieComptes.ea',
+                            r'/voscomptes/canalXHTML/virement/virementSafran_national/init-creerVirementNational.ea', CompleteTransfer)
     transfer_confirm = URL(r'/voscomptes/canalXHTML/virement/virementSafran_pea/validerVirementPea-virementPea.ea',
                            r'/voscomptes/canalXHTML/virement/virementSafran_sepa/valider-virementSepa.ea',
                            r'/voscomptes/canalXHTML/virement/virementSafran_sepa/confirmerInformations-virementSepa.ea',
+                           r'/voscomptes/canalXHTML/virement/virementSafran_national/valider-creerVirementNational.ea',
                            r'/voscomptes/canalXHTML/virement/virementSafran_national/validerVirementNational-virementNational.ea', TransferConfirm)
     transfer_summary = URL(r'/voscomptes/canalXHTML/virement/virementSafran_national/confirmerVirementNational-virementNational.ea',
                            r'/voscomptes/canalXHTML/virement/virementSafran_pea/confirmerInformations-virementPea.ea',
+                           r'/voscomptes/canalXHTML/virement/virementSafran_national/confirmer-creerVirementNational.ea',
                            r'/voscomptes/canalXHTML/virement/virementSafran_sepa/confirmerInformations-virementSepa.ea', TransferSummary)
 
     create_recipient = URL(r'/voscomptes/canalXHTML/virement/mpiGestionBeneficiairesVirementsCreationBeneficiaire/init-creationBeneficiaire.ea', CreateRecipient)
