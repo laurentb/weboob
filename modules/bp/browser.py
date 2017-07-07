@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from datetime import datetime, timedelta
 from urllib import urlencode
 from urlparse import urlsplit, parse_qsl
 
@@ -28,14 +29,16 @@ from weboob.exceptions import BrowserIncorrectPassword, BrowserBanned, NoAccount
 from .pages import (
     LoginPage, Initident, CheckPassword, repositionnerCheminCourant, BadLoginPage, AccountDesactivate,
     AccountList, AccountHistory, CardsList, UnavailablePage, AccountRIB, Advisor,
-    TransferChooseAccounts, CompleteTransfer, TransferConfirm, TransferSummary,
+    TransferChooseAccounts, CompleteTransfer, TransferConfirm, TransferSummary, CreateRecipient, ValidateRecipient,
+    ValidateCountry, ConfirmPage, RcptSummary
 )
 from .pages.accounthistory import LifeInsuranceInvest, LifeInsuranceHistory, LifeInsuranceHistoryInv, RetirementHistory, SavingAccountSummary
 from .pages.accountlist import MarketLoginPage, UselessPage
 from .pages.pro import RedirectPage, ProAccountsList, ProAccountHistory, DownloadRib, RibPage
 from .linebourse_browser import LinebourseBrowser
 
-from weboob.capabilities.bank import TransferError, Account
+from weboob.capabilities.bank import TransferError, Account, Recipient, AddRecipientStep
+from weboob.tools.value import Value
 
 
 __all__ = ['BPBrowser', 'BProBrowser']
@@ -109,6 +112,13 @@ class BPBrowser(LoginBrowser, StatesMixin):
                            r'/voscomptes/canalXHTML/virement/virementSafran_pea/confirmerInformations-virementPea.ea',
                            r'/voscomptes/canalXHTML/virement/virementSafran_sepa/confirmerInformations-virementSepa.ea', TransferSummary)
 
+    create_recipient = URL(r'/voscomptes/canalXHTML/virement/mpiGestionBeneficiairesVirementsCreationBeneficiaire/init-creationBeneficiaire.ea', CreateRecipient)
+    validate_country = URL(r'/voscomptes/canalXHTML/virement/mpiGestionBeneficiairesVirementsCreationBeneficiaire/validationSaisiePaysBeneficiaire-creationBeneficiaire.ea',
+                             ValidateCountry)
+    validate2_recipient = URL(r'/voscomptes/canalXHTML/virement/mpiGestionBeneficiairesVirementsCreationBeneficiaire/valider-creationBeneficiaire.ea', ValidateRecipient)
+    rcpt_code = URL(r'/voscomptes/canalXHTML/virement/mpiGestionBeneficiairesVirementsCreationBeneficiaire/validerRecapBeneficiaire-creationBeneficiaire.ea', ConfirmPage)
+    rcpt_summary = URL(r'/voscomptes/canalXHTML/virement/mpiGestionBeneficiairesVirementsCreationBeneficiaire/finalisation-creationBeneficiaire.ea', RcptSummary)
+
     badlogin = URL(r'https://transverse.labanquepostale.fr/.*ost/messages\.CVS\.html\?param=0x132120c8.*', # still valid?
                    r'https://transverse.labanquepostale.fr/xo_/messages/message.html\?param=0x132120c8.*',
                    BadLoginPage)
@@ -137,6 +147,12 @@ class BPBrowser(LoginBrowser, StatesMixin):
         if dirname:
             dirname += '/bourse'
         self.linebourse = LinebourseBrowser('https://labanquepostale.offrebourse.com/', logger=self.logger, responses_dirname=dirname, weboob=self.weboob)
+        self.recipient_form = None
+
+    def load_state(self, state):
+        if 'recipient_form' in state and state['recipient_form'] is not None:
+            super(BPBrowser, self).load_state(state)
+            self.logged = True
 
     def deinit(self):
         super(BPBrowser, self).deinit()
@@ -338,6 +354,45 @@ class BPBrowser(LoginBrowser, StatesMixin):
         if self.transfer_confirm.is_here():
             self.page.double_auth(transfer)
         return self.page.handle_response(transfer)
+
+    def build_recipient(self, recipient):
+        r = Recipient()
+        r.iban = recipient.iban
+        r.id = recipient.iban
+        r.label = recipient.label
+        r.category = recipient.category
+        r.enabled_at = datetime.now().replace(microsecond=0) + timedelta(days=5)
+        r.currency = u'EUR'
+        r.bank_name = recipient.bank_name
+        return r
+
+    def post_code(self, code):
+        data = {}
+        for k, v in self.recipient_form.items():
+            if k != 'url':
+                data[k] = v
+        data['codeOTPSaisi'] = code
+        self.location(self.recipient_form['url'], data=data)
+
+    @need_login
+    def new_recipient(self, recipient, is_bp_account=False, **kwargs):
+        if 'code' in kwargs:
+            assert self.rcpt_code.is_here()
+
+            self.post_code(kwargs['code'])
+            self.recipient_form = None
+            assert self.rcpt_summary.is_here()
+            return self.build_recipient(recipient)
+
+        self.create_recipient.go().choose_country(recipient, is_bp_account)
+        self.page.populate(recipient)
+        if self.page.is_bp_account():
+            return self.new_recipient(recipient, is_bp_account=True, **kwargs)
+
+        # send sms
+        self.location(self.page.get_confirm_link())
+        self.page.set_browser_form()
+        raise AddRecipientStep(self.build_recipient(recipient), Value('code', label='Veuillez saisir votre code de validation'))
 
     @need_login
     def get_advisor(self):

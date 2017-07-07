@@ -26,7 +26,7 @@ from weboob.capabilities.bank import (
 from weboob.capabilities.base import find_object
 from weboob.browser.pages import LoggedPage
 from weboob.browser.filters.standard import CleanText, Env, Regexp, Date, CleanDecimal
-from weboob.browser.filters.html import Attr
+from weboob.browser.filters.html import Attr, Link
 from weboob.browser.elements import ListElement, ItemElement, method, SkipItem
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_iban_valid
@@ -178,3 +178,46 @@ class TransferSummary(LoggedPage, CheckTransferError):
         if not transfer.id:
             transfer.exec_date = Date(Regexp(CleanText('//div[@class="bloc Tmargin"]'), 'suivant \(([\d\/]+)\)'), dayfirst=True)(self.doc)
         return transfer
+
+
+class CreateRecipient(LoggedPage, MyHTMLPage):
+    def choose_country(self, recipient, is_bp_account):
+        form = self.get_form(name='SaisiePaysBeneficiaireVirement')
+        form['compteLBP'] = str(is_bp_account).lower()
+        form['beneficiaireBean.paysDestination'] = recipient.iban[:2]
+        form.submit()
+
+
+class ValidateCountry(LoggedPage, MyHTMLPage):
+    def populate(self, recipient):
+        form = self.get_form(name='CaracteristiquesBeneficiaireVirement')
+        form['beneficiaireBean.nom'] = recipient.label
+        form['beneficiaireBean.ibans[1].valeur'] = recipient.iban[2:4]
+        form['beneficiaireBean.ibans[2].valeur'] = recipient.iban[4:8]
+        form['beneficiaireBean.ibans[3].valeur'] = recipient.iban[8:12]
+        form['beneficiaireBean.ibans[4].valeur'] = recipient.iban[12:16]
+        form['beneficiaireBean.ibans[5].valeur'] = recipient.iban[16:20]
+        form['beneficiaireBean.ibans[6].valeur'] = recipient.iban[20:24]
+        form['beneficiaireBean.ibans[7].valeur'] = recipient.iban[24:]
+        form['beneficiaireBean.intituleCompte'] = recipient.label
+        form.submit()
+
+
+class ValidateRecipient(LoggedPage, MyHTMLPage):
+    def is_bp_account(self):
+        msg = CleanText('//span[has-class("app_erreur")]')(self.doc)
+        return msg == u'Le n° de compte que vous avez saisi appartient à La Banque Postale, veuillez vérifier votre saisie.'
+
+    def get_confirm_link(self):
+        return Link('//a[@title="confirmer la creation"]')(self.doc)
+
+
+class ConfirmPage(LoggedPage, MyHTMLPage):
+    def set_browser_form(self):
+        form = self.get_form(name='SaisieOTP')
+        self.browser.recipient_form = dict((k, v) for k, v in form.items() if v)
+        self.browser.recipient_form['url'] = form.url
+
+
+class RcptSummary(LoggedPage, MyHTMLPage):
+    pass

@@ -19,7 +19,7 @@
 
 
 from decimal import Decimal
-from weboob.capabilities.bank import CapBankTransfer, Account, AccountNotFound, RecipientNotFound, TransferError
+from weboob.capabilities.bank import CapBankTransferAddRecipient, Account, AccountNotFound, RecipientNotFound, TransferError
 from weboob.capabilities.contact import CapContact
 from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
@@ -31,7 +31,7 @@ from .browser import BPBrowser, BProBrowser
 __all__ = ['BPModule']
 
 
-class BPModule(Module, CapBankTransfer, CapContact):
+class BPModule(Module, CapBankTransferAddRecipient, CapContact):
     NAME = 'bp'
     MAINTAINER = u'Nicolas Duhamel'
     EMAIL = 'nicolas@jombi.fr'
@@ -97,6 +97,9 @@ class BPModule(Module, CapBankTransfer, CapContact):
 
     def execute_transfer(self, transfer, **params):
         return self.browser.execute_transfer(transfer)
+
+    def new_recipient(self, recipient, **kwargs):
+        return self.browser.new_recipient(recipient, **kwargs)
 
     def iter_contacts(self):
         if self.config['website'].get() != 'par':
