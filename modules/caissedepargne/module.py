@@ -77,7 +77,7 @@ class CaisseEpargneModule(Module, CapBankTransferAddRecipient, CapContact, CapPr
     website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
         'www.caisse-epargne.fr':     u'Caisse d\'Épargne',
         'www.banquebcp.fr':          u'Banque BCP',
-        }.iteritems(), key=lambda k_v: (k_v[1], k_v[0]))])
+        }.items(), key=lambda k_v: (k_v[1], k_v[0]))])
     CONFIG = BackendConfig(Value('website',  label='Banque', choices=website_choices, default='www.caisse-epargne.fr'),
                            ValueBackendPassword('login',    label='Identifiant client', masked=False),
                            ValueBackendPassword('password', label='Code personnel', regexp='\d+'),
