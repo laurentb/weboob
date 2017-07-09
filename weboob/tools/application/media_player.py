@@ -183,7 +183,8 @@ class MediaPlayer(object):
         p1 = Popen(rtmp.split(), stdout=PIPE)
         Popen(player_name + args, stdin=p1.stdout, stderr=PIPE)
 
-    def _find_in_path(self, path, filename):
+    @classmethod
+    def _find_in_path(cls, path, filename):
         for i in path.split(':'):
             if os.path.exists('/'.join([i, filename])):
                 return True
