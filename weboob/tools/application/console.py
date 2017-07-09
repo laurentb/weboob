@@ -94,7 +94,7 @@ class ConsoleApplication(Application):
         NC     = '[0m'    # no color
 
     def __init__(self, option_parser=None):
-        super(ConsoleApplication, self).__init__(option_parser)
+        Application.__init__(self, option_parser)
         self.weboob.requests.register('login', self.login_cb)
         self.enabled_backends = set()
 
