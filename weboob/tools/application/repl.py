@@ -27,7 +27,6 @@ import re
 from optparse import OptionGroup, OptionParser, IndentedHelpFormatter
 from datetime import datetime
 import os
-import sys
 
 from weboob.capabilities.base import FieldNotFound, BaseObject, UserError
 from weboob.core import CallErrors
@@ -93,7 +92,12 @@ def defaultcount(default_count=10):
     return deco
 
 
-class ReplApplication(Cmd, ConsoleApplication):
+class MyCmd(Cmd, object):
+    # Hack for Python 2, because Cmd doesn't inherit object, so its __init__ was not called when using super only
+    pass
+
+
+class ReplApplication(ConsoleApplication, MyCmd):
     """
     Base application class for Repl applications.
     """
@@ -113,8 +117,7 @@ class ReplApplication(Cmd, ConsoleApplication):
     hidden_commands = set(['EOF'])
 
     def __init__(self):
-        Cmd.__init__(self)
-        ConsoleApplication.__init__(self, ReplOptionParser(self.SYNOPSIS, version=self._get_optparse_version()))
+        super(ReplApplication, self).__init__(ReplOptionParser(self.SYNOPSIS, version=self._get_optparse_version()))
 
         copyright = self.COPYRIGHT.replace('YEAR', '%d' % datetime.today().year)
         self.intro = '\n'.join(('Welcome to %s%s%s v%s' % (self.BOLD, self.APPNAME, self.NC, self.VERSION),
