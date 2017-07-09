@@ -19,17 +19,18 @@
 
 
 import re
-import urllib
 
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable, empty
 from weboob.capabilities.image import Thumbnail
 from weboob.capabilities.video import CapVideo, BaseVideo
 from weboob.capabilities.collection import CapCollection, CollectionNotFound
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.misc import to_unicode
 from weboob.tools.value import ValueBackendPassword, Value
+from weboob.tools.capabilities.video.ytdl import video_info
 
-from .browser import YoutubeBrowser
+import requests
+
 from .video import YoutubeVideo
 
 try:
@@ -49,7 +50,7 @@ class YoutubeModule(Module, CapVideo, CapCollection):
     VERSION = '1.3'
     DESCRIPTION = 'YouTube video streaming website'
     LICENSE = 'AGPLv3+'
-    BROWSER = YoutubeBrowser
+    BROWSER = None
     CONFIG = BackendConfig(Value('username', label='Email address', default=''),
                            ValueBackendPassword('password', label='Password', default=''))
 
@@ -74,22 +75,14 @@ class YoutubeModule(Module, CapVideo, CapCollection):
         video.author = to_unicode(snippet['channelTitle'].strip())
         return video
 
-    def _set_video_url(self, video):
-        """
-        In the case of a download, if the user-chosen format is not
-        available, the next available format will be used.
-        Much of the code for this method is borrowed from youtubeservice.py of Cutetube
-        http://maemo.org/packages/view/cutetube/.
-        """
-        if video.url:
+    def _set_video_attrs(self, video):
+        new_video = video_info(YoutubeVideo.id2url(video.id))
+        if not new_video:
             return
 
-        player_url = YoutubeVideo.id2url(video.id)
-        with self.browser:
-            url, ext = self.browser.get_video_url(video, player_url)
-
-        video.url = unicode(url)
-        video.ext = unicode(ext)
+        for k, v in new_video.iter_fields():
+            if not empty(v) and empty(getattr(video, k)):
+                setattr(video, k, v)
 
     def get_video(self, _id):
         m = self.URL_RE.match(_id)
@@ -105,7 +98,7 @@ class YoutubeModule(Module, CapVideo, CapCollection):
             return None
 
         video = self._entry2video(items[0])
-        self._set_video_url(video)
+        self._set_video_attrs(video)
 
         video.set_empty_fields(NotAvailable)
 
@@ -156,10 +149,10 @@ class YoutubeModule(Module, CapVideo, CapCollection):
         return self.search_videos(None, CapVideo.SEARCH_DATE)
 
     def fill_video(self, video, fields):
-        if 'thumbnail' in fields:
-            video.thumbnail.data = urllib.urlopen(video.thumbnail.url).read()
+        if 'thumbnail' in fields and video.thumbnail:
+            video.thumbnail.data = requests.get(video.thumbnail.url).content
         if 'url' in fields:
-            self._set_video_url(video)
+            self._set_video_attrs(video)
         return video
 
     def iter_resources(self, objs, split_path):
