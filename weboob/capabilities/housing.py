@@ -33,7 +33,7 @@ class TypeNotSupported(UserError):
 
     def __init__(self,
                  msg='This type of house is not supported by this module'):
-        UserError.__init__(self, msg)
+        super(TypeNotSupported, self).__init__(msg)
 
 
 class HousingPhoto(BaseObject):
@@ -43,7 +43,7 @@ class HousingPhoto(BaseObject):
     data =      BytesField('Data of photo')
 
     def __init__(self, url):
-        BaseObject.__init__(self, url.split('/')[-1], url)
+        super(HousingPhoto, self).__init__(url.split('/')[-1], url)
 
     def __iscomplete__(self):
         return self.data

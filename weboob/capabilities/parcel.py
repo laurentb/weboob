@@ -64,4 +64,4 @@ class ParcelNotFound(UserError):
     """
 
     def __init__(self, msg='Account not found'):
-        UserError.__init__(self, msg)
+        super(ParcelNotFound, self).__init__(msg)

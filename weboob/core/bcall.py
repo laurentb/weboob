@@ -40,7 +40,7 @@ class CallErrors(Exception):
                 '\n'.join(['Module(%r): %r\n%r\n' % (backend, error, backtrace)
                            for backend, error, backtrace in errors])
 
-        Exception.__init__(self, msg)
+        super(CallErrors, self).__init__(msg)
         self.errors = copy(errors)
 
     def __iter__(self):

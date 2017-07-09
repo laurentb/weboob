@@ -44,7 +44,7 @@ from .qt import QtValue
 
 class RepositoriesDialog(QDialog):
     def __init__(self, filename, parent=None):
-        QDialog.__init__(self, parent)
+        super(RepositoriesDialog, self).__init__(parent)
         self.filename = filename
         self.ui = Ui_RepositoriesDlg()
         self.ui.setupUi(self)
@@ -65,7 +65,7 @@ class IconFetcher(QThread):
     retrieved = Signal()
 
     def __init__(self, weboob, item, minfo):
-        QThread.__init__(self)
+        super(IconFetcher, self).__init__()
         self.weboob = weboob
         self.items = [item]
         self.minfo = minfo
@@ -77,7 +77,7 @@ class IconFetcher(QThread):
 
 class ProgressDialog(IProgress, QProgressDialog):
     def __init__(self, *args, **kwargs):
-        QProgressDialog.__init__(self, *args, **kwargs)
+        super(ProgressDialog, self).__init__(*args, **kwargs)
 
     def progress(self, percent, message):
         self.setValue(int(percent * 100))
@@ -94,7 +94,7 @@ class ProgressDialog(IProgress, QProgressDialog):
 
 class BackendCfg(QDialog):
     def __init__(self, weboob, caps=None, parent=None):
-        QDialog.__init__(self, parent)
+        super(BackendCfg, self).__init__(parent)
         self.ui = Ui_BackendCfg()
         self.ui.setupUi(self)
 

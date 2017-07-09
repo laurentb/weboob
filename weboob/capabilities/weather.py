@@ -35,7 +35,7 @@ class Temperature(BaseObject):
     unit =       StringField('Input unit')
 
     def __init__(self, value=NotLoaded, unit = u'', url=None):
-        BaseObject.__init__(self, unicode(value), url)
+        super(Temperature, self).__init__(unicode(value), url)
         self.value = value
         if unit not in [u'C', u'F']:
             unit = u''
@@ -73,7 +73,7 @@ class Forecast(BaseObject):
     text =      StringField('Comment on forecast')
 
     def __init__(self, date=NotLoaded, low=None, high=None, text=None, unit=None, url=None):
-        BaseObject.__init__(self, unicode(date), url)
+        super(Forecast, self).__init__(unicode(date), url)
         self.date = date
         self.low = Temperature(low, unit)
         self.high = Temperature(high, unit)
@@ -89,7 +89,7 @@ class Current(BaseObject):
     temp =      Field('Current temperature', Temperature)
 
     def __init__(self, date=NotLoaded, temp=None, text=None, unit=None, url=None):
-        BaseObject.__init__(self, unicode(date), url)
+        super(Current, self).__init__(unicode(date), url)
         self.date = date
         self.text = text
         self.temp = Temperature(temp, unit)
@@ -102,7 +102,7 @@ class City(BaseObject):
     name =      StringField('Name of city')
 
     def __init__(self, id='', name=None, url=None):
-        BaseObject.__init__(self, id, url)
+        super(City, self).__init__(id, url)
         self.name = name
 
 

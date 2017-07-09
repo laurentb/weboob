@@ -57,7 +57,7 @@ class ContactPhoto(BaseObject):
     hidden =            BoolField('True if the photo is hidden on website')
 
     def __init__(self, name, url=None):
-        BaseObject.__init__(self, name, url)
+        super(ContactPhoto, self).__init__(name, url)
         self.name = name
 
     def __iscomplete__(self):
@@ -108,7 +108,7 @@ class Contact(BaseContact):
     profile =       Field('Contact profile', dict, default=OrderedDict())
 
     def __init__(self, id, name, status, url=None):
-        BaseObject.__init__(self, id, url)
+        super(Contact, self).__init__(id, url)
         self.name = name
         self.status = status
 
@@ -180,7 +180,7 @@ class Query(BaseObject):
     message =   StringField('Message received')
 
     def __init__(self, id, message, url=None):
-        BaseObject.__init__(self, id, url)
+        super(Query, self).__init__(id, url)
         self.message = message
 
 

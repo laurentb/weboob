@@ -33,7 +33,7 @@ class Station(BaseObject):
     name =  StringField('Name of station')
 
     def __init__(self, id=None, name=None, url=None):
-        BaseObject.__init__(self, id, url)
+        super(Station, self).__init__(id, url)
         self.name = name
 
     def __repr__(self):
@@ -56,7 +56,7 @@ class Departure(BaseObject):
     currency =          StringField('Currency', default=None)
 
     def __init__(self, id=None, _type=None, _time=None, url=None):
-        BaseObject.__init__(self, id, url)
+        super(Departure, self).__init__(id, url)
 
         self.type = _type
         self.time = _time
@@ -92,7 +92,7 @@ class RoadmapFilters(BaseObject):
     arrival_time =      DateField('Wanted arrival time')
 
     def __init__(self, id='', url=None):
-        BaseObject.__init__(self, id, url)
+        super(RoadmapFilters, self).__init__(id, url)
 
 
 class CapTravel(Capability):

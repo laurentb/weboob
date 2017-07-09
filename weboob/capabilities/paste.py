@@ -45,7 +45,7 @@ class BasePaste(BaseObject):
 
     def __init__(self, _id, title=NotLoaded, language=NotLoaded, contents=NotLoaded,
             public=NotLoaded, url=None):
-        BaseObject.__init__(self, unicode(_id), url)
+        super(BasePaste, self).__init__(unicode(_id), url)
 
         self.title = title
         self.language = language

@@ -289,7 +289,7 @@ class Boobathon(ReplApplication):
     radios = []
 
     def __init__(self, *args, **kwargs):
-        ReplApplication.__init__(self, *args, **kwargs)
+        super(Boobathon, self).__init__(*args, **kwargs)
 
     def main(self, argv):
         if len(argv) < 2:

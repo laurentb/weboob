@@ -32,7 +32,7 @@ class SubscriptionNotFound(UserError):
     """
 
     def __init__(self, msg='Subscription not found'):
-        UserError.__init__(self, msg)
+        super(SubscriptionNotFound, self).__init__(msg)
 
 
 class DocumentNotFound(UserError):
@@ -41,7 +41,7 @@ class DocumentNotFound(UserError):
     """
 
     def __init__(self, msg='Document not found'):
-        UserError.__init__(self, msg)
+        super(DocumentNotFound, self).__init__(msg)
 
 
 class Detail(BaseObject, Currency):

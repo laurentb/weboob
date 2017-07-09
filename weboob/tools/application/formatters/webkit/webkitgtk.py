@@ -32,7 +32,7 @@ __all__ = ['WebkitGtkFormatter']
 
 class WebBrowser(gtk.Window):
     def __init__(self):
-        gtk.Window.__init__(self)
+        super(WebBrowser, self).__init__()
         self.connect('destroy', gtk.main_quit)
         self.set_default_size(800, 600)
         self.web_view = webkit.WebView()

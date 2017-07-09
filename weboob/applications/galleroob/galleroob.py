@@ -57,7 +57,7 @@ class Galleroob(ReplApplication):
     COLLECTION_OBJECTS = (BaseGallery, BaseImage, )
 
     def __init__(self, *args, **kwargs):
-        ReplApplication.__init__(self, *args, **kwargs)
+        super(Galleroob, self).__init__(*args, **kwargs)
 
     @defaultcount(10)
     def do_search(self, pattern):

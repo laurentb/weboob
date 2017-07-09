@@ -53,7 +53,7 @@ class BackendNotGiven(Exception):
     def __init__(self, id, backends):
         self.id = id
         self.backends = sorted(backends)
-        Exception.__init__(self, 'Please specify a backend to use for this argument (%s@backend_name). '
+        super(BackendNotGiven, self).__init__('Please specify a backend to use for this argument (%s@backend_name). '
                 'Availables: %s.' % (id, ', '.join(name for name, backend in backends)))
 
 
@@ -94,7 +94,7 @@ class ConsoleApplication(Application):
         NC     = '[0m'    # no color
 
     def __init__(self, option_parser=None):
-        Application.__init__(self, option_parser)
+        super(ConsoleApplication, self).__init__(option_parser)
         self.weboob.requests.register('login', self.login_cb)
         self.enabled_backends = set()
 

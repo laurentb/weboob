@@ -102,7 +102,7 @@ class QCallbacksManager(QObject):
 
     class LoginRequest(Request):
         def __init__(self, backend_name, value):
-            QCallbacksManager.Request.__init__(self)
+            super(QCallbacksManager.LoginRequest, self).__init__()
             self.backend_name = backend_name
             self.value = value
 
@@ -117,7 +117,7 @@ class QCallbacksManager(QObject):
     new_request = Signal()
 
     def __init__(self, weboob, parent=None):
-        QObject.__init__(self, parent)
+        super(QCallbacksManager, self).__init__(parent)
         self.weboob = weboob
         self.weboob.requests.register('login', self.callback(self.LoginRequest))
         self.mutex = QMutex()
@@ -344,7 +344,7 @@ class HTMLDelegate(QStyledItemDelegate):
 
 class _QtValueStr(QLineEdit):
     def __init__(self, value):
-        QLineEdit.__init__(self)
+        super(_QtValueStr, self).__init__()
         self._value = value
         if value.default:
             self.setText(unicode(value.default))
@@ -368,7 +368,7 @@ class _QtValueBackendPassword(_QtValueStr):
 
 class _QtValueBool(QCheckBox):
     def __init__(self, value):
-        QCheckBox.__init__(self)
+        super(_QtValueBool, self).__init__()
         self._value = value
         if value.default:
             self.setChecked(True)
@@ -384,7 +384,7 @@ class _QtValueBool(QCheckBox):
 
 class _QtValueInt(QSpinBox):
     def __init__(self, value):
-        QSpinBox.__init__(self)
+        super(_QtValueInt, self).__init__()
         self._value = value
         if value.default:
             self.setValue(int(value.default))
@@ -400,7 +400,7 @@ class _QtValueInt(QSpinBox):
 
 class _QtValueChoices(QComboBox):
     def __init__(self, value):
-        QComboBox.__init__(self)
+        super(_QtValueChoices, self).__init__()
         self._value = value
         for k, l in value.choices.items():
             self.addItem(l, QVariant(k))

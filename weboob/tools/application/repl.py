@@ -92,7 +92,7 @@ def defaultcount(default_count=10):
     return deco
 
 
-class ReplApplication(Cmd, ConsoleApplication):
+class ReplApplication(ConsoleApplication, Cmd):
     """
     Base application class for Repl applications.
     """
@@ -112,8 +112,7 @@ class ReplApplication(Cmd, ConsoleApplication):
     hidden_commands = set(['EOF'])
 
     def __init__(self):
-        Cmd.__init__(self)
-        ConsoleApplication.__init__(self, ReplOptionParser(self.SYNOPSIS, version=self._get_optparse_version()))
+        super(ReplApplication, self).__init__(ReplOptionParser(self.SYNOPSIS, version=self._get_optparse_version()))
 
         copyright = self.COPYRIGHT.replace('YEAR', '%d' % datetime.today().year)
         self.intro = '\n'.join(('Welcome to %s%s%s v%s' % (self.BOLD, self.APPNAME, self.NC, self.VERSION),

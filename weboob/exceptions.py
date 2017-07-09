@@ -78,7 +78,7 @@ class ModuleInstallError(Exception):
 
 class ModuleLoadError(Exception):
     def __init__(self, module_name, msg):
-        Exception.__init__(self, msg)
+        super(ModuleLoadError, self).__init__(msg)
         self.module = module_name
 
 

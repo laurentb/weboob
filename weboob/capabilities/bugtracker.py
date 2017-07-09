@@ -47,7 +47,7 @@ class Project(BaseObject):
     priorities =    Field('Available priorities for issues', list)
 
     def __init__(self, id, name, url=None):
-        BaseObject.__init__(self, id, url)
+        super(Project, self).__init__(id, url)
         self.name = unicode(name)
 
     def __repr__(self):
@@ -114,7 +114,7 @@ class User(BaseObject):
     name =      StringField('Name of user')
 
     def __init__(self, id, name, url=None):
-        BaseObject.__init__(self, id, url)
+        super(User, self).__init__(id, url)
         self.name = unicode(name)
 
     def __repr__(self):
@@ -128,7 +128,7 @@ class Version(BaseObject):
     name =      StringField('Name of version')
 
     def __init__(self, id, name, url=None):
-        BaseObject.__init__(self, id, url)
+        super(Version, self).__init__(id, url)
         self.name = unicode(name)
 
     def __repr__(self):
@@ -151,7 +151,7 @@ class Status(BaseObject):
     value =     IntField('Value of status (constants VALUE_*)')
 
     def __init__(self, id, name, value, url=None):
-        BaseObject.__init__(self, id, url)
+        super(Status, self).__init__(id, url)
         self.name = unicode(name)
         self.value = value
 
@@ -229,7 +229,7 @@ class Query(BaseObject):
     status =        StringField('Filter on statuses')
 
     def __init__(self, id='', url=None):
-        BaseObject.__init__(self, id, url)
+        super(Query, self).__init__(id, url)
 
 
 class CapBugTracker(Capability):

@@ -44,7 +44,7 @@ class AccountNotFound(UserError):
     """
 
     def __init__(self, msg='Account not found'):
-        UserError.__init__(self, msg)
+        super(AccountNotFound, self).__init__(msg)
 
 
 class RecipientNotFound(UserError):
@@ -53,7 +53,7 @@ class RecipientNotFound(UserError):
     """
 
     def __init__(self, msg='Recipient not found'):
-        UserError.__init__(self, msg)
+        super(RecipientNotFound, self).__init__(msg)
 
 
 class TransferError(UserError):
@@ -157,7 +157,7 @@ class BaseAccount(BaseObject, Currency):
     bank_name =      StringField('Bank Name')
 
     def __init__(self, id='0', url=None):
-        BaseObject.__init__(self, id, url)
+        super(BaseAccount, self).__init__(id, url)
 
     @property
     def currency_text(self):

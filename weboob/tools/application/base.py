@@ -142,6 +142,7 @@ class Application(object):
     # ------ Application methods -------------------------------
 
     def __init__(self, option_parser=None):
+        super(Application, self).__init__()
         self.encoding = self.guess_encoding()
         self.logger = getLogger(self.APPNAME)
         self.weboob = self.create_weboob()

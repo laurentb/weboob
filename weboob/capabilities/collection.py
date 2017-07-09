@@ -31,7 +31,7 @@ class CollectionNotFound(UserError):
             msg = 'Collection not found: %s' % '/'.join(split_path)
         else:
             msg = 'Collection not found'
-        UserError.__init__(self, msg)
+        super(CollectionNotFound, self).__init__(msg)
 
 
 class BaseCollection(BaseObject):
@@ -41,7 +41,7 @@ class BaseCollection(BaseObject):
     """
 
     def __init__(self, split_path, id=None, url=None):
-        BaseObject.__init__(self, id, url)
+        super(BaseCollection, self).__init__(id, url)
         self.split_path = split_path
 
     @property
@@ -85,7 +85,7 @@ class Collection(BaseCollection):
 
     def __init__(self, split_path=None, title=None, id=None, url=None):
         self.title = title
-        BaseCollection.__init__(self, split_path, id, url)
+        super(Collection, self).__init__(split_path, id, url)
 
     def __unicode__(self):
         if self.title and self.basename:

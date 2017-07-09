@@ -39,7 +39,7 @@ class BackendTest(TestCase):
     MODULE = None
 
     def __init__(self, *args, **kwargs):
-        TestCase.__init__(self, *args, **kwargs)
+        super(BackendTest, self).__init__(*args, **kwargs)
 
         self.backends = {}
         self.backend_instance = None

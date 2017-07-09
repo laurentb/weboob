@@ -121,7 +121,7 @@ class WebNip(object):
         """
 
         def __init__(self, backend_name, exception):
-            Exception.__init__(self, unicode(exception))
+            super(WebNip.LoadError, self).__init__(unicode(exception))
             self.backend_name = backend_name
 
     def load_backend(self, module_name, name, params=None, storage=None):

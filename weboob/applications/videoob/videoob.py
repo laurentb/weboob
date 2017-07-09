@@ -76,7 +76,7 @@ class Videoob(ReplApplication):
     nsfw = True
 
     def __init__(self, *args, **kwargs):
-        ReplApplication.__init__(self, *args, **kwargs)
+        super(Videoob, self).__init__(*args, **kwargs)
         self.player = MediaPlayer(self.logger)
 
     def main(self, argv):

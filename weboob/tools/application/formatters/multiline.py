@@ -27,7 +27,7 @@ __all__ = ['MultilineFormatter']
 
 class MultilineFormatter(IFormatter):
     def __init__(self, key_value_separator=u': ', after_item=u'\n'):
-        IFormatter.__init__(self)
+        super(MultilineFormatter, self).__init__()
         self.key_value_separator = key_value_separator
         self.after_item = after_item
 

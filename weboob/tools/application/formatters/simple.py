@@ -26,7 +26,7 @@ __all__ = ['SimpleFormatter']
 
 class SimpleFormatter(IFormatter):
     def __init__(self, field_separator=u'\t', key_value_separator=u'='):
-        IFormatter.__init__(self)
+        super(SimpleFormatter, self).__init__()
         self.field_separator = field_separator
         self.key_value_separator = key_value_separator
 

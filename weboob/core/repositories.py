@@ -740,7 +740,7 @@ class Repositories(object):
 class InvalidSignature(Exception):
     def __init__(self, filename):
         self.filename = filename
-        Exception.__init__(self, 'Invalid signature for %s' % filename)
+        super(InvalidSignature, self).__init__('Invalid signature for %s' % filename)
 
 
 class Keyring(object):

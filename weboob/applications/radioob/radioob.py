@@ -145,7 +145,7 @@ class Radioob(ReplApplication):
     PLAYLIST = []
 
     def __init__(self, *args, **kwargs):
-        ReplApplication.__init__(self, *args, **kwargs)
+        super(Radioob, self).__init__(*args, **kwargs)
         self.player = MediaPlayer(self.logger)
 
     def main(self, argv):

@@ -50,7 +50,7 @@ class FrenchTransaction(Transaction):
     PATTERNS = []
 
     def __init__(self, id='', *args, **kwargs):
-        Transaction.__init__(self, id, *args, **kwargs)
+        super(FrenchTransaction, self).__init__(id, *args, **kwargs)
         self._logger = getLogger('FrenchTransaction')
 
     @classmethod

@@ -67,7 +67,7 @@ class Recipe(BaseObject):
     comments =          Field('User comments about the recipe', list)
 
     def __init__(self, id='', title=u'', url=None):
-        BaseObject.__init__(self, id, url)
+        super(Recipe, self).__init__(id, url)
         self.title = title
 
     def toKrecipesXml(self, author=None):

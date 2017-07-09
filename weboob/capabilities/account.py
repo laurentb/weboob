@@ -39,7 +39,7 @@ class Account(BaseObject):
     properties =    Field('List of key/value properties', dict)
 
     def __init__(self, id=None, url=None):
-        BaseObject.__init__(self, id, url)
+        super(Account, self).__init__(id, url)
 
 
 class StatusField(BaseObject):

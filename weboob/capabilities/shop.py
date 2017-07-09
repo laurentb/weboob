@@ -32,7 +32,7 @@ class OrderNotFound(UserError):
     """
 
     def __init__(self, msg='Order not found'):
-        UserError.__init__(self, msg)
+        super(OrderNotFound, self).__init__(msg)
 
 
 class Order(BaseObject):

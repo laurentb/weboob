@@ -98,8 +98,7 @@ class FieldNotFound(Exception):
     """
 
     def __init__(self, obj, field):
-        Exception.__init__(self,
-                           u'Field "%s" not found for object %s' % (field, obj))
+        super(FieldNotFound, self).__init__(u'Field "%s" not found for object %s' % (field, obj))
 
 
 class ConversionWarning(UserWarning):
@@ -225,7 +224,7 @@ class IntField(Field):
     """
 
     def __init__(self, doc, **kwargs):
-        Field.__init__(self, doc, int, long, **kwargs)
+        super(IntField, self).__init__(doc, int, long, **kwargs)
 
     def convert(self, value):
         return int(value)
@@ -237,7 +236,7 @@ class BoolField(Field):
     """
 
     def __init__(self, doc, **kwargs):
-        Field.__init__(self, doc, bool, **kwargs)
+        super(BoolField, self).__init__(doc, bool, **kwargs)
 
     def convert(self, value):
         return bool(value)
@@ -249,7 +248,7 @@ class DecimalField(Field):
     """
 
     def __init__(self, doc, **kwargs):
-        Field.__init__(self, doc, Decimal, **kwargs)
+        super(DecimalField, self).__init__(doc, Decimal, **kwargs)
 
     def convert(self, value):
         if isinstance(value, Decimal):
@@ -263,7 +262,7 @@ class FloatField(Field):
     """
 
     def __init__(self, doc, **kwargs):
-        Field.__init__(self, doc, float, **kwargs)
+        super(FloatField, self).__init__(doc, float, **kwargs)
 
     def convert(self, value):
         return float(value)
@@ -275,7 +274,7 @@ class StringField(Field):
     """
 
     def __init__(self, doc, **kwargs):
-        Field.__init__(self, doc, unicode, **kwargs)
+        super(StringField, self).__init__(doc, unicode, **kwargs)
 
     def convert(self, value):
         return to_unicode(value)
@@ -287,7 +286,7 @@ class BytesField(Field):
     """
 
     def __init__(self, doc, **kwargs):
-        Field.__init__(self, doc, bytes, **kwargs)
+        super(BytesField, self).__init__(doc, bytes, **kwargs)
 
     def convert(self, value):
         if isinstance(value, unicode):

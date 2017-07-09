@@ -44,7 +44,7 @@ class BaseGallery(BaseObject):
 
     def __init__(self, _id, title=NotLoaded, url=NotLoaded, cardinality=NotLoaded, date=NotLoaded,
                  rating=NotLoaded, rating_max=NotLoaded, thumbnail=NotLoaded, thumbnail_url=None, nsfw=False):
-        BaseObject.__init__(self, unicode(_id), url)
+        super(BaseGallery, self).__init__(unicode(_id), url)
 
         self.title = title
         self.date = date
@@ -81,7 +81,7 @@ class BaseImage(CIBaseImage):
     def __init__(self, _id, index=None, thumbnail=NotLoaded, url=NotLoaded,
             ext=NotLoaded, gallery=None):
 
-        BaseObject.__init__(self, unicode(_id), url)
+        super(BaseImage, self).__init__(unicode(_id), url)
 
         self.index = index
         self.thumbnail = thumbnail

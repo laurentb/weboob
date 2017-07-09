@@ -30,7 +30,7 @@ class LanguageNotSupported(UserError):
     """
 
     def __init__(self, msg='language is not supported'):
-        UserError.__init__(self, msg)
+        super(LanguageNotSupported, self).__init__(msg)
 
 
 class TranslationFail(UserError):
@@ -39,7 +39,7 @@ class TranslationFail(UserError):
     """
 
     def __init__(self, msg='No Translation Available'):
-        UserError.__init__(self, msg)
+        super(TranslationFail, self).__init__(msg)
 
 
 class Translation(BaseObject):
