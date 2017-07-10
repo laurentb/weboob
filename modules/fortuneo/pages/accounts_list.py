@@ -397,6 +397,7 @@ class AccountsList(LoggedPage, HTMLPage):
             if len(accounts) == 0:
                 global_error_message = page.doc.xpath('//div[@id="as_renouvellementMIFID.do_"]/div[contains(text(), "Bonjour")] '
                                                       '| //div[@id="as_afficherMessageBloquantMigration.do_"]//div[@class="content_message"] '
+                                                      '| //p[contains(text(), "Et si vous faisiez de Fortuneo votre banque principale")] '
                                                       '| //div[@id="as_renouvellementMotDePasse.do_"]//p[contains(text(), "votre mot de passe")]'
                                                       '| //div[@id="as_afficherSecuriteForteOTPIdentification.do_"]//span[contains(text(), "Pour valider ")]')
                 if global_error_message:
