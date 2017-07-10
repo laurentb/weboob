@@ -19,12 +19,14 @@
 
 
 from weboob.tools.backend import AbstractModule
+from weboob.capabilities.bank import CapBank
+from weboob.capabilities.contact import CapContact
 
 
 __all__ = ['CmmcModule']
 
 
-class CmmcModule(AbstractModule):
+class CmmcModule(AbstractModule, CapBank, CapContact):
     NAME = 'cmmc'
     MAINTAINER = u'Edouard Lambert'
     EMAIL = 'elambert@budget-insight.com'
