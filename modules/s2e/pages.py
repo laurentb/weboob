@@ -339,7 +339,8 @@ class AccountsPage(LoggedPage, MultiPage):
                 return
 
             def obj_diff(self):
-                return MyDecimal(TableCell('diff')(self)[0].xpath('.//div[not(.//div)]'))(self)
+                td = TableCell('diff', default=None)(self)
+                return MyDecimal('.//div[not(.//div)]')(td[0]) if td else NotAvailable
 
             def obj_portfolio_share(self):
                 return Eval(lambda x: x / 100, MyDecimal(TableCell('portfolio_share')(self)[0] \
