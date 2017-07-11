@@ -1,17 +1,27 @@
 VER=2
-if [ "$1" = -3 ]; then
+if [ "${1-}" = "-3" ]; then
     VER=3
     shift
 fi
 
-if [ -z "${PYTHON}" ]; then
+
+if [ -z "${PYTHON2-}" ]; then
+    which python2.7 >/dev/null 2>&1 && PYTHON2=$(which python2.7)
+    which python2 >/dev/null 2>&1 && PYTHON2=$(which python2)
+fi
+
+if [ -z "${PYTHON3-}" ]; then
+    which python3.4 >/dev/null 2>&1 && PYTHON3=$(which python3.4)
+    which python3.5 >/dev/null 2>&1 && PYTHON3=$(which python3.5)
+    which python3.6 >/dev/null 2>&1 && PYTHON3=$(which python3.6)
+    which python3 >/dev/null 2>&1 && PYTHON3=$(which python3)
+fi
+
+if [ -z "${PYTHON-}" ]; then
     which python >/dev/null 2>&1 && PYTHON=$(which python)
-    which python$VER >/dev/null 2>&1 && PYTHON=$(which python$VER)
-    if [ $VER -eq 2 ]; then
-        which python2.7 >/dev/null 2>&1 && PYTHON=$(which python2.7)
-    else
-        which python3.4 >/dev/null 2>&1 && PYTHON=$(which python3.4)
-        which python3.5 >/dev/null 2>&1 && PYTHON=$(which python3.5)
-        which python3.6 >/dev/null 2>&1 && PYTHON=$(which python3.6)
+    if [ $VER -eq 2 -a -n "${PYTHON2}" ]; then
+        PYTHON=${PYTHON2}
+    elif [ $VER -eq 3 -a -n "${PYTHON3}" ]; then
+        PYTHON=${PYTHON3}
     fi
 fi
