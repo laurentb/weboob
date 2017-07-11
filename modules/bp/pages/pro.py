@@ -23,7 +23,8 @@ from urlparse import urljoin
 
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Date
-from weboob.browser.pages import LoggedPage
+from weboob.browser.filters.html import Link
+from weboob.browser.pages import LoggedPage, pagination
 from weboob.capabilities.bank import Account
 
 from .accounthistory import Transaction
@@ -72,9 +73,11 @@ class ProAccountsList(LoggedPage, MyHTMLPage):
 
 
 class ProAccountHistory(LoggedPage, MyHTMLPage):
+    @pagination
     @method
     class iter_history(ListElement):
         item_xpath = u'//div[@id="tabReleve"]//tbody/tr'
+        next_page = Link('//div[@class="pagination"]//li[@class="pagin-on-right"]/a')
 
         class item(ItemElement):
             klass = Transaction

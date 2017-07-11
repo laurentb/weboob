@@ -408,7 +408,7 @@ class BProBrowser(BPBrowser):
 
     pro_accounts_list = URL(r'.*voscomptes/synthese/synthese.ea', ProAccountsList)
 
-    pro_history = URL(r'.*voscomptes/historique(ccp|cne)/historique(ccp|cne).ea.*', ProAccountHistory)
+    pro_history = URL(r'.*voscomptes/historique(ccp|cne)/(\d+-)?historique(ccp|cne).ea.*', ProAccountHistory)
 
     useless2 = URL(r'.*/voscomptes/bourseenligne/lancementBourseEnLigne-bourseenligne.ea\?numCompte=(?P<account>\d+)', UselessPage)
     market_login = URL(r'.*/voscomptes/bourseenligne/oicformautopost.jsp', MarketLoginPage)
