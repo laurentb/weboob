@@ -30,6 +30,7 @@ from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.tools.compat import urljoin
 from weboob.tools.value import Value
 from weboob.tools.decorators import retry
+from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages import (
     IndexPage, ErrorPage, MarketPage, LifeInsurance, GarbagePage,
@@ -255,8 +256,25 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
                 assert self.home.is_here()
 
-                for tr in self.page.get_history():
-                    yield tr
+                if not self.new_website:
+                    # list of transactions on account page
+                    transactions_list = [tr for tr in self.page.get_history()]
+                    # list of summaries
+                    detail_card = [tr for tr in transactions_list if re.match('^CB [\d]{4}\*{6}[\d]{6} TOT DIF [\w]{3,8}$' , tr.label.upper(), flags=re.UNICODE)]
+
+                    # add detail card to list of transactions
+                    for tr in detail_card:
+                        self.page.go_form_to_detail(tr)
+                        transactions_list.extend([tr for tr in self.page.get_detail()])
+                        self.page.go_form_to_summary()
+
+                    # order by date the transactions without the summaries
+                    transactions = sorted_transactions(transactions_list)
+                    for tr in transactions:
+                        yield tr
+                else:
+                    for tr in self.page.get_history():
+                        yield tr
 
                 if not self.page.go_next():
                     return

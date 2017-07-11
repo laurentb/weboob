@@ -266,7 +266,7 @@ class IndexPage(LoggedPage, HTMLPage):
 
     def get_list(self):
         accounts = OrderedDict()
-
+        self.browser.new_website = False
         # Old website
         for table in self.doc.xpath('//table[@cellpadding="1"]'):
             account_type = Account.TYPE_UNKNOWN
@@ -293,6 +293,7 @@ class IndexPage(LoggedPage, HTMLPage):
 
         if len(accounts) == 0:
             # New website
+            self.browser.new_website = True
             for table in self.doc.xpath('//div[@class="panel"]'):
                 title = table.getprevious()
                 if title is None:
@@ -430,6 +431,29 @@ class IndexPage(LoggedPage, HTMLPage):
                 pass
 
         return form.submit()
+
+    def go_form_to_detail(self, transaction):
+        to_detail = Link(self.doc.xpath('//a[contains(text(), "%s")]' % transaction.label))(self.doc)
+        m = re.match('.*\("(.*)", "(DETAIL_OP&[\d]+).*\)\)', to_detail)
+        # go to detailcard page
+        form = self.get_form(name='main')
+        form['__EVENTTARGET'] =  m.group(1)
+        form['__EVENTARGUMENT'] = m.group(2)
+        form.submit()
+
+    def get_detail(self):
+        # get transactions
+        for tr_detail in self.get_history():
+            tr_detail.type = Transaction.TYPE_DEFERRED_CARD
+            yield tr_detail
+
+    def go_form_to_summary(self):
+        # return to first page
+        to_history = Link(self.doc.xpath(u'//a[contains(text(), "Retour à l\'historique")]'))(self.doc)
+        n = re.match('.*\([\'\"](MM\$.*?)[\'\"],.*\)$', to_history)
+        form = self.get_form(name='main')
+        form['__EVENTTARGET'] = n.group(1)
+        form.submit()
 
     def get_history(self):
         i = 0
