@@ -1,5 +1,26 @@
 ##
 # this file declares which modules are compatible with python3 and should be checked with pyflakes3
 ##
+americanexpress/
+banquepopulaire/
+bforbank/
+bibliothequesparis/
+billetreduc/
+blogspot/
+boursorama/
+/bp/
+bred/
 caissedepargne/
 cragr/
+fortuneo/
+ing/
+jirafeau/
+lameteoagricole/
+larousse/
+linebourse/
+lutim/
+pariskiwi/
+pixtoilelibre/
+spirica/
+sueurdemetal/
+tumblr/

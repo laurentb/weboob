@@ -33,7 +33,7 @@ grep -nE "\.iter(keys|values|items)\(\)" ${PYFILES3} | grep -Fv "six.iter" && ec
 grep -nE "^ *print(\(| )" ${MODULE_FILES} && echo 'Error: Use of print in modules is forbidden, use logger instead' && exit 20
 grep -n xrange ${MODULE_FILES3} && echo 'Error: xrange is forbidden' && exit 21
 grep -nE "from (urllib|urlparse) import" ${MODULE_FILES3} && echo 'Error: python2 urllib is forbidden' && exit 22
-grep -nE "import (urllib|urlparse)$" ${MODULE_FILES3} && echo 'Error: python2 urllib is forbidden' && exit 22
+grep -nE "^import (urllib|urlparse)$" ${MODULE_FILES3} && echo 'Error: python2 urllib is forbidden' && exit 22
 
 
 if ${PYTHON2} -c "import flake8" 2>/dev/null; then
