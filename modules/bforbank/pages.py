@@ -22,9 +22,8 @@ from __future__ import unicode_literals
 from collections import OrderedDict
 import re
 from io import BytesIO
+
 from PIL import Image
-from urllib import urlencode
-from urlparse import urlparse, urlunparse, parse_qsl, urljoin
 
 from weboob.browser.pages import LoggedPage, HTMLPage, pagination, AbstractPage
 from weboob.browser.elements import method, ListElement, ItemElement, TableElement
@@ -34,6 +33,7 @@ from weboob.browser.filters.standard import (
     CleanText, Regexp, Field, Map, CleanDecimal, Date, TableCell,
 )
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.compat import urlencode, urlparse, urlunparse, parse_qsl, urljoin
 
 
 class BfBKeyboard(object):

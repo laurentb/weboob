@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from urlparse import urljoin
 import re
 
 from weboob.browser.pages import HTMLPage, LoggedPage
@@ -28,6 +27,7 @@ from weboob.browser.filters.html import Attr, Link
 from weboob.capabilities.bank import Account, Investment, Transaction
 from weboob.capabilities.base import NotAvailable, empty
 from weboob.exceptions import BrowserUnavailable
+from weboob.tools.compat import urljoin
 
 
 def MyDecimal(*args, **kwargs):
