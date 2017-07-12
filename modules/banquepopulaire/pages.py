@@ -290,16 +290,20 @@ class Login2Page(LoginPage):
 
         r = self.browser.open(self.request_url)
         doc = json.loads(r.content)
-        self.form_id = doc['step']['validationUnits'][0]['PASSWORD_LOOKUP'][0]['id']
+
+        self.form_id, = [(k, v[0]['id']) for k, v in doc['step']['validationUnits'][0].items() if v[0]['type'] == 'PASSWORD_LOOKUP']
 
     def login(self, login, password):
-        payload = {'validate': {'PASSWORD_LOOKUP': [{'id': self.form_id,
-                                                     'login': login.encode(self.ENCODING).upper(),
-                                                     'password': password.encode(self.ENCODING),
-                                                     'type': 'PASSWORD_LOOKUP'
-                                                    }]
-                               }
-                  }
+        payload = {
+            'validate': {
+                self.form_id[0]: [ {
+                    'id': self.form_id[1],
+                    'login': login.upper(),
+                    'password': password,
+                    'type': 'PASSWORD_LOOKUP',
+                } ]
+            }
+        }
 
         url = self.request_url + '/step'
         headers = {'Content-Type': 'application/json'}
