@@ -19,7 +19,6 @@
 
 
 import re
-import urllib
 
 from collections import OrderedDict
 from functools import wraps
@@ -65,7 +64,7 @@ def retry(exc_check, tries=4):
         def wrapper(browser, *args, **kwargs):
             cb = lambda: func(browser, *args, **kwargs)
 
-            for i in xrange(tries, 0, -1):
+            for i in range(tries, 0, -1):
                 try:
                     ret = cb()
                 except exc_check as exc:
@@ -172,13 +171,6 @@ class BanquePopulaire(LoginBrowser):
 
     @no_need_login
     def do_login(self):
-        """
-        Attempt to log in.
-        Note: this method does nothing if we are already logged in.
-        """
-        assert isinstance(self.username, basestring)
-        assert isinstance(self.password, basestring)
-
         self.location(self.BASEURL)
 
         self.page.login(self.username, self.password)
@@ -192,12 +184,12 @@ class BanquePopulaire(LoginBrowser):
     def go_on_accounts_list(self):
         for taskInfoOID in self.ACCOUNT_URLS:
             data = OrderedDict([('taskInfoOID', taskInfoOID), ('token', self.token)])
-            self.location(self.absurl('/cyber/internet/StartTask.do?%s' % urllib.urlencode(data), base=True))
+            self.location(self.absurl('/cyber/internet/StartTask.do', base=True), params=data)
             if not self.page.is_error():
                 if self.page.pop_up():
                     self.logger.debug('Popup displayed, retry')
                     data = OrderedDict([('taskInfoOID', taskInfoOID), ('token', self.token)])
-                    self.location('/cyber/internet/StartTask.do?%s' % urllib.urlencode(data))
+                    self.location('/cyber/internet/StartTask.do', params=data)
                 self.ACCOUNT_URLS = [taskInfoOID]
                 break
         else:
@@ -268,8 +260,6 @@ class BanquePopulaire(LoginBrowser):
     @retry(LoggedOut)
     @need_login
     def get_account(self, id):
-        assert isinstance(id, basestring)
-
         for a in self.get_accounts_list(False):
             if a.id == id:
                 return a
@@ -321,7 +311,7 @@ class BanquePopulaire(LoginBrowser):
             if next_params is None:
                 return
 
-            self.location('/cyber/internet/Page.do?%s' % urllib.urlencode(next_params))
+            self.location('/cyber/internet/Page.do', params=next_params)
 
     @need_login
     def go_investments(self, account, get_account=False):
@@ -425,7 +415,7 @@ class BanquePopulaire(LoginBrowser):
     def get_advisor(self):
         for taskInfoOID in ['accueil', 'contacter']:
             data = OrderedDict([('taskInfoOID', taskInfoOID), ('token', self.token)])
-            self.location(self.absurl('/cyber/internet/StartTask.do?%s' % urllib.urlencode(data), base=True))
+            self.location(self.absurl('/cyber/internet/StartTask.do', base=True), params=data)
             if taskInfoOID == "accueil":
                 advisor = self.page.get_advisor()
                 if not advisor:

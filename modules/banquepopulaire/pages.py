@@ -17,12 +17,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from binascii import hexlify
 import datetime
-from urlparse import urlsplit, parse_qsl
 from decimal import Decimal
 import re
-import urllib
+import sys
 
 from weboob.browser.elements import method, DictElement, ItemElement
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Eval, DateTime, Date, Field
@@ -36,6 +35,7 @@ from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.compat import urlsplit, parse_qsl
 from weboob.tools.json import json
 from weboob.tools.misc import to_unicode
 from weboob.tools.pdf import get_pdf_rows
@@ -51,26 +51,39 @@ class BrokenPageError(Exception):
 
 class WikipediaARC4(object):
     def __init__(self, key=None):
-        self.state = range(256)
+        assert isinstance(key, bytes)
+        self.state = list(range(256))
         self.x = self.y = 0
 
         if key is not None:
             self.init(key)
 
+    @staticmethod
+    def ord(i):
+        if sys.version_info.major < 3:
+            return ord(i)
+        return i
+
+    @staticmethod
+    def chr(i):
+        if sys.version_info.major < 3:
+            return chr(i)
+        return bytes([i])
+
     def init(self, key):
         for i in range(256):
-            self.x = (ord(key[i % len(key)]) + self.state[i] + self.x) & 0xFF
+            self.x = (self.ord(key[i % len(key)]) + self.state[i] + self.x) & 0xFF
             self.state[i], self.state[self.x] = self.state[self.x], self.state[i]
         self.x = 0
 
     def crypt(self, input):
         output = [None]*len(input)
-        for i in xrange(len(input)):
+        for i in range(len(input)):
             self.x = (self.x + 1) & 0xFF
             self.y = (self.state[self.x] + self.y) & 0xFF
             self.state[self.x], self.state[self.y] = self.state[self.y], self.state[self.x]
-            output[i] = chr((ord(input[i]) ^ self.state[(self.state[self.x] + self.state[self.y]) & 0xFF]))
-        return ''.join(output)
+            output[i] = self.chr((self.ord(input[i]) ^ self.state[(self.state[self.x] + self.state[self.y]) & 0xFF]))
+        return b''.join(output)
 
 
 class BasePage(object):
@@ -188,8 +201,9 @@ class RedirectPage(LoggedPage, MyHTMLPage):
 
     def add_cookie(self, name, value):
         # httplib/cookielib don't seem to like unicode cookies...
-        name = to_unicode(name).encode('utf-8')
-        value = to_unicode(value).encode('utf-8')
+        if sys.version_info.major < 3:
+            name = to_unicode(name).encode('utf-8')
+            value = to_unicode(value).encode('utf-8')
         self.browser.logger.debug('adding cookie %r=%r', name, value)
         self.browser.session.cookies.set(name, value)
 
@@ -216,10 +230,11 @@ class RedirectPage(LoggedPage, MyHTMLPage):
 
                 m = re.match("^setCookie\('([^']+)', .*rc4EncryptStr\((\w+), \w+\)", line)
                 if m:
-                    self.add_cookie(m.group(1), RC4.crypt(args[m.group(2)]).encode('hex'))
+                    enc = RC4.crypt(args[m.group(2)].encode('ascii'))
+                    self.add_cookie(m.group(1), hexlify(enc).decode('ascii'))
 
                 if RC4 is None and 'i' in args:
-                    RC4 = WikipediaARC4(args['i'])
+                    RC4 = WikipediaARC4(args['i'].encode('ascii'))
 
         if redirect_url is not None:
             url = self.browser.absurl(redirect_url)
@@ -289,7 +304,7 @@ class Login2Page(LoginPage):
             raise LoggedOut()
 
         r = self.browser.open(self.request_url)
-        doc = json.loads(r.content)
+        doc = r.json()
 
         self.form_id, = [(k, v[0]['id']) for k, v in doc['step']['validationUnits'][0].items() if v[0]['type'] == 'PASSWORD_LOOKUP']
 
@@ -309,7 +324,7 @@ class Login2Page(LoginPage):
         headers = {'Content-Type': 'application/json'}
         r = self.browser.open(url, data=json.dumps(payload), headers=headers)
 
-        doc = json.loads(r.content)
+        doc = r.json()
         self.logger.debug('doc = %s', doc)
         if 'phase' in doc and doc['phase']['state'] == 'TERMS_OF_USE':
             # Got:
@@ -321,7 +336,7 @@ class Login2Page(LoginPage):
             url = self.request_url + '/step'
             headers = {'Content-Type': 'application/json'}
             r = self.browser.open(url, data=json.dumps(payload), headers=headers)
-            doc = json.loads(r.content)
+            doc = r.json()
             self.logger.debug('doc = %s', doc)
 
         if ('phase' in doc and doc['phase']['previousResult'] == 'FAILED_AUTHENTICATION') or \
@@ -361,9 +376,9 @@ class HomePage(LoggedPage, MyHTMLPage):
                     vary = m.group(1)
                     break
 
-        url = self.browser.absurl('/portailinternet/Transactionnel/Pages/CyberIntegrationPage.aspx?%s' % urllib.urlencode({'vary': vary}))
+        url = self.browser.absurl('/portailinternet/Transactionnel/Pages/CyberIntegrationPage.aspx')
         headers = {'Referer': self.url}
-        r = self.browser.open(url, data='taskId=aUniversMesComptes', headers=headers)
+        r = self.browser.open(url, data='taskId=aUniversMesComptes', params={'vary': vary}, headers=headers)
 
         if not int(r.headers.get('Content-Length', 0)):
             url = self.browser.absurl('/portailinternet/Transactionnel/Pages/CyberIntegrationPage.aspx')
