@@ -24,7 +24,6 @@ from weboob.tools.backend import Module
 
 from .browser import PluzzBrowser
 
-import re
 
 __all__ = ['PluzzModule']
 
@@ -39,28 +38,16 @@ class PluzzModule(Module, CapVideo, CapCollection):
     BROWSER = PluzzBrowser
 
     def get_video(self, _id):
-        m = re.match('http://pluzz.francetv.fr/(videos/.*)', _id)
-        if m:
-            return self.browser.get_video_from_url(m.group(1))
-
-        m2 = re.match('http://www.francetvinfo.fr/(.*)', _id)
-        if m2:
-            _id = self.browser.get_video_id_from_francetvinfo(m2.group(1))
-            if not _id:
-                return
-
         return self.browser.get_video(_id)
 
     def search_videos(self, pattern, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=False):
         return self.browser.search_videos(pattern)
 
     def fill_video(self, video, fields):
-        if fields != ['thumbnail']:
-            # if we don't want only the thumbnail, we probably want also every fields
-            video = self.browser.get_video(video.id, video)
+        if 'url' in fields:
+            video = self.browser.get_video(video.id)
         if 'thumbnail' in fields and video.thumbnail:
             video.thumbnail.data = self.browser.open(video.thumbnail.url).content
-
         return video
 
     def iter_resources(self, objs, split_path):

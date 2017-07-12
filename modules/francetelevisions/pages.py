@@ -17,143 +17,81 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
+from weboob.capabilities.file import LICENSES
 from weboob.capabilities.image import Thumbnail
 from weboob.capabilities.video import BaseVideo
-from weboob.capabilities.base import BaseObject
-from datetime import timedelta
+from datetime import datetime
 
 from weboob.browser.pages import HTMLPage, JsonPage
-from weboob.browser.elements import ItemElement, ListElement, DictElement, method
-from weboob.browser.filters.standard import Filter, CleanText, Regexp, Format, DateTime, Env, Duration
-from weboob.browser.filters.html import Link, Attr
+from weboob.browser.elements import ItemElement, ListElement, method
+from weboob.browser.filters.standard import CleanText, Regexp, Format, DateTime, Duration, Date, Eval
+from weboob.browser.filters.html import Attr, AbsoluteLink
 from weboob.browser.filters.json import Dict
 
 
-class DurationPluzz(Filter):
-    def filter(self, el):
-        duration = Regexp(CleanText('.'), r'.+\|(.+)')(el[0])
-        if duration[-1:] == "'":
-            t = [0, int(duration[:-1])]
-        else:
-            t = map(int, duration.split(':'))
-        return timedelta(hours=t[0], minutes=t[1])
+def parse_duration(text):
+    return int(text) * 60
 
 
-class FrancetvinfoPage(HTMLPage):
-    def get_video_id_from_francetvinfo(self):
-        return Regexp(CleanText('//a[@id="catchup"]/@href'),
-                      'http://info.francetelevisions.fr/\?id-video=(.*)@Info-web',
-                      default=None)(self.doc)
-
-
-class VideoListPage(HTMLPage):
-    @method
-    class get_last_video(ItemElement):
-        klass = BaseVideo
-
-        obj_id = CleanText('//div[@id="diffusion-info"]/@data-diffusion')
-        obj_title = CleanText('//div[@id="diffusion-info"]/h1/div[@id="diffusion-titre"]')
-        obj_date = DateTime(Regexp(CleanText('//div[@id="diffusion-info"]/h1|//div[@id="diffusion-info"]/div/div/*[1]',
-                                   replace=[(u'à', u''), (u'  ', u' ')]),
-                                   '.+(\d{2}-\d{2}-\d{2}.+\d{1,2}h\d{1,2}).+'),
-                            dayfirst=True)
-
+class SearchPage(HTMLPage):
     @method
     class iter_videos(ListElement):
-        item_xpath = '//div[@id="player-memeProgramme"]/a'
+        item_xpath = '//section[h1[ends-with(text(), "vidéos")]]/ul/li'
 
         class item(ItemElement):
             klass = BaseVideo
 
-            def condition(self):
-                return CleanText('div[@class="autre-emission-c3"]')(self) == "En replay"
+            obj_id = AbsoluteLink('.//a')
+            #~ obj__number = Attr('./div[@class="card-content"]//a', 'data-video-content')
 
-            obj_id = Regexp(Link('.'), '^/videos/.+,(.+).html$')
-            obj_title = CleanText('//meta[@name="programme_titre"]/@content')
-            obj_date = DateTime(Regexp(CleanText('./div[@class="autre-emission-c2"]|./div[@class="autre-emission-c4"]',
-                                                 replace=[(u'à', u''), (u'  ', u' ')]),
-                                       '(\d{2}-\d{2}.+\d{1,2}:\d{1,2})'),
-                                dayfirst=True)
+            obj_title = Format('%s - %s', CleanText('.//h3/a'), CleanText('.//h3/following-sibling::p[1]'))
+            obj_thumbnail = Eval(Thumbnail, Format('https:%s', Attr('./a//img', 'data-src')))
+
+            _infos = CleanText('.//h3/following-sibling::p[2]')
+            obj_date = Date(Regexp(_infos, r'\| (\d+\.\d+\.\d+) \|'), dayfirst=True)
+            obj_duration = Eval(parse_duration, Regexp(_infos, r' \| (\d+) min'))
 
 
-class IndexPage(HTMLPage):
+
+class VideoWebPage(HTMLPage):
+    def get_number(self):
+        return Attr('//div[@id="player"]', 'data-main-video')(self.doc)
 
     @method
-    class iter_videos(ListElement):
-        item_xpath = '//div[@class="panel-resultat panel-separateur"]'
-        ignore_duplicate = True
+    class get_video(ItemElement):
+        obj_title = CleanText('//article[@id="description"]//h1')
+        obj_description = CleanText('//article[@id="description"]//section/following-sibling::div')
 
-        class item(ItemElement):
-            klass = BaseVideo
+        obj_date = DateTime(Regexp(
+            CleanText('//article[@id="description"]//span[contains(text(),"diffusé le")]'),
+            r'(\d{2})\.(\d{2})\.(\d{2}) à (\d{2})h(\d{2})', r'20\3/\2/\1 \4:\5'))
+        obj_duration = Eval(parse_duration, Regexp(CleanText('//div[span[text()="|"]]'), r'| (\d+)min'))
 
-            obj_title = Format('%s du %s',
-                               CleanText('div/div[@class="resultat-titre-diff"]/a'),
-                               Regexp(CleanText('div/div[@class="resultat-soustitre-diff"]'),
-                                      '.+(\d{2}-\d{2}-\d{2}).+'))
-            obj_id = Regexp(Link('div/div[@class="resultat-titre-diff"]/a'),
-                            '^/videos/.+,(.+).html$')
-            obj_date = DateTime(Regexp(CleanText('div/div[@class="resultat-soustitre-diff"]',
-                                       replace=[(u'à', u''), (u'  ', u' ')]),
-                                       '.+(\d{2}-\d{2}-\d{2}.+\d{1,2}h\d{1,2}).+'))
-            obj_duration = DurationPluzz('div/div[3]')
-
-            def obj_thumbnail(self):
-                url = Attr('a/img[@class="resultat-vignette"]', 'data-src')(self)
-                thumbnail = Thumbnail(url)
-                thumbnail.url = thumbnail.id
-                return thumbnail
+        obj_thumbnail = Eval(Thumbnail, Format('https:%s', Attr('//div[@id="playerPlaceholder"]//img', 'data-src')))
+        obj__number = Attr('//div[@id="player"]', 'data-main-video')
+        obj_license = LICENSES.COPYRIGHT
 
 
-class VideoPage(JsonPage):
+class VideoJsonPage(JsonPage):
     @method
     class get_video(ItemElement):
         klass = BaseVideo
 
-        def validate(self, obj):
-            return obj.url
-
-        def parse(self, el):
-            for video in el['videos']:
-                if video['format'] != 'm3u8-download':
-                    continue
-
-                self.env['url'] = video['url']
-
-        obj_id = Env('id')
         obj_title = Format(u'%s - %s', Dict['titre'], Dict['sous_titre'])
-        obj_url = Env('url')
-        obj_date = Dict['diffusion']['date_debut'] & DateTime
+        obj_date = Eval(datetime.fromtimestamp, Dict('diffusion/timestamp'))
         obj_duration = Dict['duree'] & Duration
         obj_description = Dict['synopsis']
         obj_ext = u'm3u8'
 
-        def obj_thumbnail(self):
-            url = Format('http://www.francetv.fr%s', Dict['image'])(self)
-            thumbnail = Thumbnail(url)
-            thumbnail.url = thumbnail.id
-            return thumbnail
+        obj__uuid = Dict['id']
+        obj_license = LICENSES.COPYRIGHT
 
+        def obj_url(self):
+            return next((v['url_secure'] for v in self.page.doc['videos'] if v['format'] == 'm3u8-download'), None)
 
-class Programs(JsonPage):
-    @method
-    class iter_programs(DictElement):
-        item_xpath = 'reponse/programme'
+        obj_thumbnail = Eval(Thumbnail, Dict['image_secure'])
 
-        class item(ItemElement):
-            klass = BaseObject
-
-            obj_id = CleanText(Dict('url'))
-            obj__title = CleanText(Dict('titre_programme'))
-
-
-class LatestPage(JsonPage):
-    @method
-    class iter_videos(DictElement):
-        item_xpath = 'reponse/emissions'
-
-        class Item(ItemElement):
-            klass = BaseVideo
-
-            obj_id = Dict('id_diffusion')
-            obj_title = Dict('titre_programme')
-            obj_date = DateTime(Dict('date_diffusion'))
+        def validate(self, obj):
+            return obj.url

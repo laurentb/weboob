@@ -17,67 +17,41 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from weboob.browser import PagesBrowser, URL
-from .pages import IndexPage, VideoPage, Programs, VideoListPage, LatestPage, FrancetvinfoPage
+from weboob.exceptions import BrowserHTTPNotFound
+
+from .pages import SearchPage, VideoWebPage, VideoJsonPage
 
 __all__ = ['PluzzBrowser']
 
 
 class PluzzBrowser(PagesBrowser):
-    ENCODING = 'utf-8'
-
-    BASEURL = 'http://pluzz.francetv.fr'
+    BASEURL = 'https://www.france.tv'
     PROGRAMS = None
 
-    francetvinfo = URL(r'http://www.francetvinfo.fr/(?P<url>.*)', FrancetvinfoPage)
-    latest = URL(r'http://pluzz.webservices.francetelevisions.fr/pluzz/liste/type/replay', LatestPage)
-    programs_page = URL(r'http://pluzz.webservices.francetelevisions.fr/pluzz/programme', Programs)
-    index_page = URL(r'recherche\?recherche=(?P<pattern>.*)', IndexPage)
-    video_page = URL(r'http://webservices.francetelevisions.fr/tools/getInfosOeuvre/v2/\?idDiffusion=(?P<id>.*)&catalogue=Pluzz',
-                     VideoPage)
-    videos_list_page = URL(r'(?P<program>videos/.*)', VideoListPage)
+    search_page = URL(r'/recherche/', SearchPage)
+    video = URL(r'/.+/(?P<number>\d+)-[^/]+.html$', VideoWebPage)
+    video_json = URL(r'https://sivideo.webservices.francetelevisions.fr/tools/getInfosOeuvre/v2/\?idDiffusion=(?P<number>.+)$', VideoJsonPage)
 
-    def get_video_id_from_francetvinfo(self, url):
-        return self.francetvinfo.go(url=url).get_video_id_from_francetvinfo()
+    def search_videos(self, s):
+        self.location(self.search_page.build(), params={'q': s})
+        return self.page.iter_videos()
 
-    def get_video_from_url(self, url):
-        video = self.videos_list_page.go(program=url).get_last_video()
-        if video:
-            return self.get_video(video.id, video)
+    def get_video(self, id):
+        self.location(id)
+        number = self.page.get_number()
 
-    def search_videos(self, pattern):
-        if not self.PROGRAMS:
-            self.PROGRAMS = list(self.get_program_list())
-
-        videos = []
-        for program in self.PROGRAMS:
-            if pattern.upper() in program._title.upper():
-                video = self.videos_list_page.go(program=program.id).get_last_video()
-                if video:
-                    videos.append(video)
-                    videos += list(self.page.iter_videos())
-
-        return videos if len(videos) > 0 else self.index_page.go(pattern=pattern).iter_videos()
-
-    def get_program_list(self):
-        return list(self.programs_page.go().iter_programs())
-
-    @video_page.id2url
-    def get_video(self, url, video=None):
-        self.location(url)
-        video = self.page.get_video(obj=video)
-        if not video:
+        try:
+            self.video_json.go(number=number)
+        except BrowserHTTPNotFound:
+            self.logger.warning('video info not found, probably needs payment')
             return
+        video = self.page.get_video()
+        if not video:
+            self.logger.debug('video info not found, maybe not available?')
+            return
+        video.id = id
 
-        for item in self.read_url(video.url):
-            video.url = u'%s' % item
         return video
-
-    def read_url(self, url):
-        r = self.open(url, stream=True)
-        buf = r.iter_lines()
-        return buf
-
-    def latest_videos(self):
-        return self.latest.go().iter_videos()
