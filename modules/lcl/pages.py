@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 # Copyright(C) 2010-2011  Romain Bignon, Pierre Mazière
 #
 # This file is part of weboob.
@@ -17,7 +16,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import re, requests, base64, math, random
+from __future__ import unicode_literals, division
+
+import re
+import requests
+import base64
+import math
+import random
 from decimal import Decimal
 from io import BytesIO
 from datetime import datetime, timedelta, date
@@ -37,6 +42,7 @@ from weboob.browser.filters.standard import CleanText, Field, Regexp, Format, Da
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
+from weboob.tools.compat import unicode
 from weboob.tools.html import html2text
 
 
@@ -46,7 +52,7 @@ def MyDecimal(*args, **kwargs):
 
 def myXOR(value,seed):
     s = ''
-    for i in xrange(len(value)):
+    for i in range(len(value)):
         s += chr(seed^ord(value[i]))
     return s
 
@@ -104,7 +110,7 @@ class LCLVirtKeyboard(MappedVirtKeyboard):
     def __init__(self, basepage):
         img=basepage.doc.find("//img[@id='idImageClavier']")
         random.seed()
-        self.url += "%s"%str(long(math.floor(long(random.random()*1000000000000000000000))))
+        self.url += "%s"%str(int(math.floor(int(random.random()*1000000000000000000000))))
         super(LCLVirtKeyboard, self).__init__(BytesIO(basepage.browser.open(self.url).content), basepage.doc,img,self.color, "id")
         self.check_symbols(self.symbols,basepage.browser.responses_dirname)
 
@@ -151,7 +157,9 @@ class LoginPage(HTMLPage):
 
         form = self.get_form('//form[@id="formAuthenticate"]')
         form['identifiant'] = login
-        form['postClavierXor'] = base64.b64encode(myXOR(password, seed))
+        form['postClavierXor'] = base64.b64encode(
+            myXOR(password, seed).encode("utf-8")
+        )
         try:
             form['identifiantRouting'] = self.browser.IDENTIFIANT_ROUTING
         except AttributeError:
@@ -652,7 +660,7 @@ class Form2Page(LoggedPage, LCLBasePage):
 
 class AVDetailPage(LoggedPage, LCLBasePage):
     def get_account_id(self):
-        return Regexp(CleanText('//div[@class="libelletitrepage"]/h1'), ur"N° (\w+)")(self.doc)
+        return Regexp(CleanText('//div[@class="libelletitrepage"]/h1'), r"N° (\w+)")(self.doc)
 
     def sub(self):
         form = self.get_form(name="formulaire")
@@ -691,10 +699,6 @@ class AVDetailPage(LoggedPage, LCLBasePage):
 
     @method
     class iter_investment(TableElement):
-        def parsxe(self, el):
-            import weboob
-            weboob.browser.elements.magic_highlight(self.page.doc.xpath('//table[@class="table"][ends-with(@id,"CD_UCT")]'))
-
         head_xpath = '//table[@class="table"][ends-with(@id,"CD_UCT")]/thead//th'
         item_xpath = '//table[@class="table"][ends-with(@id,"CD_UCT")]/tbody/tr'
 

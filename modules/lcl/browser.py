@@ -18,8 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import urllib
-from urlparse import urlsplit, parse_qsl
 from datetime import datetime, timedelta
 from functools import wraps
 
@@ -29,6 +27,7 @@ from weboob.browser.exceptions import ServerError
 from weboob.browser.pages import FormNotFound
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Account, AddRecipientError, AddRecipientStep, Recipient
+from weboob.tools.compat import urlsplit, parse_qsl, unicode
 from weboob.tools.value import Value
 
 from .pages import LoginPage, AccountsPage, AccountHistoryPage, \
@@ -284,7 +283,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
             args = dict(parse_qsl(v.query))
             args['MOIS'] = month
 
-            self.location('%s?%s' % (v.path, urllib.urlencode(args)))
+            self.location(v.path, params=args)
 
             for tr in self.page.get_operations():
                 yield tr

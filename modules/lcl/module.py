@@ -26,6 +26,7 @@ from weboob.capabilities.bank import CapBankTransferAddRecipient, AccountNotFoun
 from weboob.capabilities.contact import CapContact
 from weboob.capabilities.profile import CapProfile
 from weboob.tools.backend import Module, BackendConfig
+from weboob.tools.capabilities.bank.transactions import sorted_transactions
 from weboob.tools.value import ValueBackendPassword, Value
 from weboob.capabilities.base import find_object
 
@@ -75,13 +76,11 @@ class LCLModule(Module, CapBankTransferAddRecipient, CapContact, CapProfile):
         return find_object(self.browser.get_accounts_list(), id=_id, error=AccountNotFound)
 
     def iter_coming(self, account):
-        transactions = list(self.browser.get_cb_operations(account))
-        transactions.sort(key=lambda tr: tr.rdate, reverse=True)
+        transactions = sorted_transactions(self.browser.get_cb_operations(account))
         return transactions
 
     def iter_history(self, account):
-        transactions = list(self.browser.get_history(account))
-        transactions.sort(key=lambda tr: tr.rdate, reverse=True)
+        transactions = sorted_transactions(self.browser.get_history(account))
         return transactions
 
     def iter_investment(self, account):
