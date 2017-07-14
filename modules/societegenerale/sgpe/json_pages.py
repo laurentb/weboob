@@ -67,7 +67,7 @@ class AccountsJsonPage(LoggedPage, JsonPage):
                 yield a
 
     def obj_type(self, label):
-        for wording, acc_type in self.TYPES.iteritems():
+        for wording, acc_type in self.TYPES.items():
             if wording.lower() in label.lower():
                 return acc_type
         return Account.TYPE_CHECKING

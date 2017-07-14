@@ -26,7 +26,7 @@ from weboob.tools.log import getLogger
 
 class TileError(Exception):
     def __init__(self, msg, tile=None):
-        Exception.__init__(self, msg)
+        super(TileError, self).__init__(msg)
         self.tile = tile
 
 
@@ -40,15 +40,15 @@ class Captcha(object):
         self.inmat = self.inim.load()
         self.map = {}
 
-        self.tiles = [[Tile(y * self.nbc + x) for y in xrange(4)] for x in xrange(4)]
+        self.tiles = [[Tile(y * self.nbc + x) for y in range(4)] for x in range(4)]
 
     def __getitem__(self, coords):
         x, y = coords
         return self.inmat[x % self.nx, y % self.ny]
 
     def all_coords(self):
-        for y in xrange(self.ny):
-            for x in xrange(self.nx):
+        for y in range(self.ny):
+            for x in range(self.nx):
                 yield x, y
 
     def get_codes(self, code):
@@ -64,16 +64,16 @@ class Captcha(object):
         return s
 
     def build_tiles(self):
-        for ty in xrange(0, self.nbc):
+        for ty in range(0, self.nbc):
             y = ty * 23
 
-            for tx in xrange(0, self.nbr):
+            for tx in range(0, self.nbr):
                 x = tx * 24
 
                 tile = self.tiles[tx][ty]
 
-                for yy in xrange(y, y + 23):
-                    for xx in xrange(x, x + 24):
+                for yy in range(y, y + 23):
+                    for xx in range(x, x + 24):
                         tile.map.append(self[xx, yy])
 
                 num = tile.get_num()
@@ -122,7 +122,7 @@ class Tile(object):
         for pxls in self.map:
             for pxl in pxls:
                 s += '%02d' % pxl
-        return hashlib.md5(s).hexdigest()
+        return hashlib.md5(s.encode('ascii')).hexdigest()
 
     def get_num(self):
         sum = self.checksum()

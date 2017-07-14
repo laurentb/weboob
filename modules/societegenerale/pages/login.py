@@ -36,8 +36,8 @@ class PasswordPage(object):
     strange_map = None
 
     def decode_grid(self, infos):
-        grid = b64decode(infos['grid'])
-        grid = map(int, re.findall('[0-9]{3}', grid))
+        grid = b64decode(infos['grid']).decode('ascii')
+        grid = [int(x) for x in re.findall('[0-9]{3}', grid)]
         n = int(infos['nbrows']) * int(infos['nbcols'])
 
         self.strange_map = list(grid[:n])
@@ -47,14 +47,14 @@ class PasswordPage(object):
         s = n
         u = list(infos['crypto'])
 
-        for j in xrange(s):
+        for j in range(s):
             u[j] = '%02d' % ord(u[j])
-        for i in xrange(5, 0, -1):
-            for j in xrange(s):
+        for i in range(5, 0, -1):
+            for j in range(s):
                 new_grid[i*s+j] = '%03d' % (new_grid[i*s+j]^new_grid[(i-1)*s+j])
-        for j in xrange(s):
+        for j in range(s):
             new_grid[j] = '%03d' % (new_grid[j]^int(self.STRANGE_KEY[j])^self.strange_map[j])
-        for j in xrange(s):
+        for j in range(s):
             self.strange_map[j] = int(u[j])^self.strange_map[j]
 
         return new_grid
@@ -72,7 +72,7 @@ class LoginPage(BasePage, PasswordPage):
     def login(self, login, password):
         url = self.browser.BASEURL + '//sec/vkm/gen_crypto?estSession=0'
         headers = {'Referer': 'https://particuliers.societegenerale.fr/index.html'}
-        infos_data = self.browser.open(url, headers=headers).content
+        infos_data = self.browser.open(url, headers=headers).text
 
         infos_data = re.match('^_vkCallback\((.*)\);$', infos_data).group(1)
 
@@ -95,7 +95,7 @@ class LoginPage(BasePage, PasswordPage):
 
         pwd = img.get_codes(password[:6])
         t = pwd.split(',')
-        newpwd = ','.join([t[self.strange_map[j]] for j in xrange(6)])
+        newpwd = ','.join(t[self.strange_map[j]] for j in range(6))
 
         form['codcli'] = login.encode('iso-8859-1')
         form['user_id'] = login.encode('iso-8859-1')

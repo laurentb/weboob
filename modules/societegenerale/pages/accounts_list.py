@@ -29,7 +29,7 @@ from weboob.capabilities.base import empty, NotAvailable
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.contact import Advisor
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.tools.compat import parse_qs, urlparse, parse_qsl, urlunparse, urlencode
+from weboob.tools.compat import parse_qs, urlparse, parse_qsl, urlunparse, urlencode, unicode
 from weboob.browser.elements import DictElement, ItemElement, method
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, RegexpError
@@ -88,7 +88,7 @@ class AccountsList(LoggedPage, BasePage):
                         break
                     account.label = CleanText('.')(a)
                     account._link_id = a.get('href', '')
-                    for pattern, actype in self.TYPES.iteritems():
+                    for pattern, actype in self.TYPES.items():
                         if account.label.startswith(pattern):
                             account.type = actype
                             break
@@ -319,9 +319,9 @@ class Market(LoggedPage, BasePage, Invest):
     def get_not_rounded_valuations(self):
         def prepare_url(url, fields):
             components = urlparse(url)
-            query_pairs = [(f, v) for (f, v) in parse_qsl(components.query) if f not in fields.iterkeys()]
+            query_pairs = [(f, v) for (f, v) in parse_qsl(components.query) if f not in fields]
 
-            for (field, value) in fields.iteritems():
+            for (field, value) in fields.items():
                 query_pairs.append((field, value))
 
             new_query_str = urlencode(query_pairs)
@@ -480,7 +480,7 @@ class LifeInsuranceHistory(LifeInsurance):
         form.url = '/asv/AVI/asvcns21c.html'
 
         # but the page sometimes fail
-        for i in xrange(3, -1, -1):
+        for i in range(3, -1, -1):
             page = form.submit().page
             doc = page.doc
             if not page.get_error():

@@ -270,7 +270,7 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
 
         pwd = img.get_codes(self.browser.password[:6])
         t = pwd.split(',')
-        newpwd = ','.join([t[self.strange_map[j]] for j in xrange(6)])
+        newpwd = ','.join(t[self.strange_map[j]] for j in range(6))
         form['codsec'] = newpwd
         form['cryptocvcs'] = infos["crypto"].encode('iso-8859-1')
         form['vkm_op'] = 'sign'

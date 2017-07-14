@@ -67,8 +67,6 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     __states__ = ('context', 'dup', 'id_transaction')
 
     def do_login(self):
-        assert isinstance(self.username, basestring)
-        assert isinstance(self.password, basestring)
         if not self.password.isdigit() or len(self.password) != 6:
             raise BrowserIncorrectPassword()
         if not self.username.isdigit() or len(self.username) < 8:
@@ -141,7 +139,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
 
         elif self.life_insurance.is_here():
             for n in ('0', '1'):
-                for i in xrange(3, -1, -1):
+                for i in range(3, -1, -1):
                     self.life_insurance_history.go(n=n)
                     if not self.page.get_error():
                         break

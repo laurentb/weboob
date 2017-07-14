@@ -88,7 +88,7 @@ class ChangePassPage(SGPEPage):
 
 class LoginPage(SGPEPage):
     def login(self, login, password):
-        infos_data = self.browser.open('/sec/vk/gen_crypto?estSession=0').content
+        infos_data = self.browser.open('/sec/vk/gen_crypto?estSession=0').text
         infos_data = re.match('^_vkCallback\((.*)\);$', infos_data).group(1)
         infos = json.loads(infos_data.replace("'", '"'))
 
