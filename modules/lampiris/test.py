@@ -25,3 +25,26 @@ from weboob.tools.test import BackendTest
 
 class LampirisTest(BackendTest):
     MODULE = 'lampiris'
+
+    def test_subscriptions(self):
+        """
+        Test listing of subscriptions.
+        """
+        subscriptions = list(self.backend.iter_subscription())
+        self.assertTrue(list(subscriptions), msg="Failed to list accounts.")
+
+    def test_documents(self):
+        """
+        Test listing all available documents.
+        """
+        for subscription in self.backend.iter_subscription():
+            documents = self.backend.iter_documents(subscription.id)
+            self.assertTrue(list(documents), msg="Failed to list documents.")
+
+    def test_download(self):
+        """
+        Test downloading all documents.
+        """
+        for subscription in self.backend.iter_subscription():
+            for bill in self.backend.iter_documents(subscription.id):
+                self.backend.download_document(bill.id)

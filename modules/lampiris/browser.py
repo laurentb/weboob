@@ -32,7 +32,7 @@ class LampirisBrowser(LoginBrowser):
 
     loginpage = URL('/user/login', LoginPage)
     billspage = URL('/factures-et-paiements', BillsPage)
-    selectcus = URL('https://espaceclient.lampiris.fr/set_selected_cus')
+    selectcus = URL('/set_selected_cus')
 
     def do_login(self):
         self.loginpage.stay_or_go().do_login(self.username, self.password)

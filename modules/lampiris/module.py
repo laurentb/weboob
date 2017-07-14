@@ -22,6 +22,7 @@ from __future__ import unicode_literals
 
 from weboob.tools.backend import BackendConfig, Module
 from weboob.tools.value import Value, ValueBackendPassword
+from weboob.capabilities.base import find_object
 from weboob.capabilities.bill import Bill, CapDocument, DocumentNotFound
 
 from .browser import LampirisBrowser
@@ -80,14 +81,11 @@ class LampirisModule(Module, CapDocument):
         :rtype: :class:`Document`
         :raises: :class:`DocumentNotFound`
         """
-        try:
-            return next(
-                document
-                for document in self.iter_documents(id.split("#")[0])
-                if document.id == id
-            )
-        except StopIteration:
-            raise DocumentNotFound
+        find_object(
+            self.iter_documents(id.split("#")[0]),
+            id=id,
+            error=DocumentNotFound
+        )
 
     def iter_documents(self, subscription):
         """
