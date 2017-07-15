@@ -154,8 +154,7 @@ class HappnContact(Contact):
             self.set_profile('info', 'full_name', ' '.join([info['first_name'] or '', info['last_name'] or '']).strip())
         if 'fb' in info:
             self.set_profile('info', 'facebook', info['fb']['link'])
-            for category, likes in info['fb']['likes'].iteritems():
-                self.set_profile('facebook', 'likes', category, ', '.join(likes))
+            self.set_profile('facebook', 'likes', 'interests', ', '.join(info['fb']['likes']))
             for name, content in info['fb']['infos'].iteritems():
                 self.set_profile('facebook', 'infos', name, content)
         if info['twitter_id'] is not None:

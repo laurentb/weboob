@@ -19,7 +19,6 @@
 
 
 import re
-from collections import defaultdict
 
 from weboob.browser.browsers import DomainBrowser
 from weboob.browser.profiles import IPhone
@@ -99,6 +98,21 @@ class HappnBrowser(DomainBrowser):
         self.my_id = r['user_id']
         self.refresh_token = r['refresh_token']
 
+        self.request('/api/auth/proof', data={'facebook_access_token': facebook.access_token})
+
+        r = self.request('/api/users/%s/devices/' % self.my_id,
+                     data={"adid": "78462200ada313bb943b01800819a1d5",
+                           "android_id": "fe26ca3be49bbbf6",
+                           "app_build": "20.14.0",
+                           "country_id": "FR",
+                           "idfa": "2265540e-7a5f-4308-9c69-3afd2f608a2e",
+                           "language_id": "fr",
+                           "os_build": 23,
+                           "token": "",
+                           "type": "android"
+                          })
+        self.device_id = r['data']['id']
+
         me = self.request('/api/users/me')
         self.my_name = me['data']['name']
 
@@ -109,11 +123,9 @@ class HappnBrowser(DomainBrowser):
     def get_facebook(self, facebook_id):
         data = self.facebook.request('https://graph.facebook.com/%s' % facebook_id)
         if not 'link' in data:
-            data['link'] = 'https://www.facebook.com/%s' % data['username']
+            data['link'] = ('https://www.facebook.com/%s' % data['username']) if 'username' in data else ''
         likes = self.facebook.request('https://graph.facebook.com/%s/likes?limit=10000' % facebook_id)
-        data['likes'] = defaultdict(list)
-        for like in likes['data']:
-            data['likes'][like['category']].append(like['name'])
+        data['likes'] = [like['name'] for like in likes['data']]
         data['infos'] = self.facebook.request('https://graph.facebook.com/v2.3/%s?fields=about,address,age_range,bio,birthday,devices,education,email,favorite_athletes,favorite_teams,hometown,inspirational_people,install_type,interested_in,is_verified,languages,location,meeting_for,political,relationship_status,religion,significant_other,sports,quotes,timezone,updated_time,verified,website,work' % facebook_id)
 
         return data
@@ -141,4 +153,5 @@ class HappnBrowser(DomainBrowser):
         self.request('/api/users/me/accepted/%s' % id, method='POST')
 
     def set_position(self, lat, lng):
-        self.request('/api/users/me/position', data={'latitude': lat, 'longitude': lng, 'altitude': 0.0})
+        self.request('/api/users/%s/devices/%s' % (self.my_id, self.device_id), method='PUT',
+                     data={'latitude': lat, 'longitude': lng, 'altitude': 0.0})
