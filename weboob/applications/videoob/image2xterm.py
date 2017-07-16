@@ -20,10 +20,15 @@
 #
 # This file is distributed under the WTFPLv2 license.
 
-import PIL.Image as Image
-import PIL.ImageColor as PILColor
+from __future__ import division
+
 import sys
 import os
+
+import PIL.Image as Image
+import PIL.ImageColor as PILColor
+
+from weboob.tools.compat import range
 
 """
 XTerm can decode sequences and display 256 colors:
@@ -35,10 +40,6 @@ Other terminals do support these 256 colors escape codes, e.g. roxterm, xfce-ter
 """
 
 __all__ = ('make256xterm', 'imageRGB_to_256', 'image2xterm', 'image256_to_ansi')
-
-
-if sys.version_info.major == 2:
-    range = xrange
 
 
 def make256xterm():
@@ -114,7 +115,7 @@ def image2xterm(imagepath, newsize=(80, 24), halfblocks=True):
     image.load()
 
     stretch = 2
-    curratio = image.size[1] / (float(image.size[0]) * stretch)
+    curratio = image.size[1] / (image.size[0] * stretch)
     targetsize = newsize[0], int(newsize[0] * curratio)
     if targetsize[1] > newsize[1]:
         targetsize = int(newsize[1] / curratio), newsize[1]

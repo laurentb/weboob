@@ -41,9 +41,9 @@ TEMPLATES = TemplateLookup(directories=[TEMPLATE_PATH])
 
 
 def u8(s):
-    if isinstance(s, unicode):
-        return s
-    return s.decode('utf-8')
+    if isinstance(s, bytes):
+        return s.decode('utf-8')
+    return s
 
 
 def gitconfig(entry):

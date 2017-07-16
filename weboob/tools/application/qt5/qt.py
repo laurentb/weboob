@@ -158,16 +158,18 @@ class QtApplication(QApplication, Application):
 
     def load_backends(self, *args, **kwargs):
         while True:
+            last_exc = None
             try:
                 return Application.load_backends(self, *args, **kwargs)
             except VersionsMismatchError as e:
                 msg = 'Versions of modules mismatch with version of weboob.'
             except ConfigError as e:
                 msg = unicode(e)
+                last_exc = e
 
             res = QMessageBox.question(None, 'Configuration error', u'%s\n\nDo you want to update repositories?' % msg, QMessageBox.Yes|QMessageBox.No)
             if res == QMessageBox.No:
-                raise e
+                raise last_exc
 
             # Do not import it globally, it causes circular imports
             from .backendcfg import ProgressDialog

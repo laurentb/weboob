@@ -19,6 +19,8 @@
 
 import re
 
+from weboob.tools.compat import basestring
+
 def is_isin_valid(isin):
     """
     Méthode générale
