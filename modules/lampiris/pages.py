@@ -22,7 +22,7 @@ from __future__ import unicode_literals
 
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.filters.html import Attr, CleanHTML, Link, XPathNotFound
-from weboob.browser.filters.standard import CleanDecimal, CleanText, Date, Format, Regexp
+from weboob.browser.filters.standard import CleanDecimal, CleanText, Date, Format
 from weboob.browser.pages import HTMLPage
 from weboob.capabilities.base import NotAvailable, Currency
 from weboob.capabilities.bill import Bill, Subscription
