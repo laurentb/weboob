@@ -896,7 +896,7 @@ class AddRecipientPage(LoggedPage, HTMLPage):
 
 class CheckValuesPage(LoggedPage, HTMLPage):
     def check_values(self, iban, label):
-        values = CleanText('//table[@class="recap "]//td[@class="recapValeur"]')(self.doc)
+        values = CleanText('//form[contains(@action, "/outil")]')(self.doc)
         try:
             assert iban in values
         except AssertionError:
