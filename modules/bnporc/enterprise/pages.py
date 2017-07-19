@@ -158,10 +158,9 @@ class BnpHistoryItem(ItemElement):
 
     def obj_rdate(self):
         raw = self.obj_raw()
-        mtc = re.search(r'\bDU (\d{6})\b', raw)
+        mtc = re.search(r'\bDU (\d{2})\.?(\d{2})\.?(\d{2})\b', raw)
         if mtc:
-            date = mtc.group(1)
-            date = '%s/%s/%s' % (date[0:2], date[2:4], date[4:])
+            date = '%s/%s/%s' % (mtc.group(1), mtc.group(2), mtc.group(3))
             return parse_french_date(date)
 
         return fromtimestamp(self, Dict('dateCreation'))
@@ -169,6 +168,7 @@ class BnpHistoryItem(ItemElement):
     @staticmethod
     def calculate_decimal(x, y):
         return x / 10 ** y
+
 
 class AccountHistoryPage(LoggedPage, JsonPage):
     TYPES = {u'CARTE': Transaction.TYPE_DEFERRED_CARD,  # Cartes
