@@ -166,7 +166,19 @@ class BoursoramaVirtKeyboard(VirtKeyboard):
 
 
 class LoginPage(HTMLPage):
+    TO_DIGIT = {'2': ['a', 'b', 'c'],
+                '3': ['d', 'e', 'f'],
+                '4': ['g', 'h', 'i'],
+                '5': ['j', 'k', 'l'],
+                '6': ['m', 'n', 'o'],
+                '7': ['p', 'q', 'r', 's'],
+                '8': ['t', 'u', 'v'],
+                '9': ['w', 'x', 'y', 'z']
+               }
+
     def login(self, login, password):
+        if password.isalpha():
+            password = ''.join([k for c in password.lower() for k, v in self.TO_DIGIT.items() if c in v])
         form = self.get_form()
         keyboard_page = self.browser.keyboard.open()
         vk = BoursoramaVirtKeyboard(keyboard_page)
