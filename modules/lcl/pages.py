@@ -609,6 +609,12 @@ class AVPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Account
 
+            def condition(self):
+                if self.obj_balance(self) == 0 and not self.el.xpath('.//td/a'):
+                    self.logger.warning("ignoring an AV account because there's no link for it")
+                    return False
+                return True
+
             obj__owner = CleanText('.//td[1]') & Regexp(pattern=r' ([^ ]+)$')
             obj_label = Format(u'%s %s', CleanText('.//td/a'), obj__owner)
             obj_balance = CleanDecimal('.//td[has-class("right")]', replace_dots=True)
