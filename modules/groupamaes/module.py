@@ -38,7 +38,7 @@ class GroupamaesModule(Module, CapBank):
 
     BROWSER = GroupamaesBrowser
 
-    CONFIG = BackendConfig(ValueBackendPassword('login', label='Identifiant', regexp='\d{8}', masked=False),
+    CONFIG = BackendConfig(ValueBackendPassword('login', label='Identifiant', regexp='\d{8,}', masked=False),
                            ValueBackendPassword('password', label='Mot de passe'))
 
     def create_default_browser(self):
