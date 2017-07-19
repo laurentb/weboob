@@ -20,6 +20,7 @@
 
 from weboob.exceptions import BrowserIncorrectPassword, BrowserPasswordExpired
 from weboob.browser import LoginBrowser, URL, need_login
+from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages import LoginPage, ErrorPage, AccountsPage, TransactionsPage, \
                    TiCardPage, TiHistoPage, ComingPage, HistoPage, HomePage
@@ -34,7 +35,7 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
                 '/ce_internet_prive_ti/compteTituChgPWD.builder.do',
                 ErrorPage)
     home = URL('/ce_internet_prive_ge/accueilInternetGe.builder.do',
-               '/ce_internet_prive_ti/accueilInternetTi.builder.do', HomePage)
+               '/ce_internet_(prive|corporate)_ti/accueilInternetTi(Corporate)?.builder.do', HomePage)
     accounts = URL('/ce_internet_prive_ge/carteAffaireParc.builder.do',
                    '/ce_internet_prive_ge/carteAffaireParcChange.event.do',
                    '/ce_internet_prive_ge/pageParcCarteAffaire.event.do', AccountsPage)
@@ -49,14 +50,14 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
                        TransactionsPage)
 
     ti_card = URL('/ce_internet_prive_ti/operationEnCoursDetail.builder.do',
-                  '/ce_internet_prive_ti/operationEnCoursDetail.event.do.*',
+                  '/ce_internet_(prive|corporate)_ti/operation(Corporate)?EnCoursDetail(Afficher|Appliquer)?.event.do.*',
                   '/ce_internet_prive_ti/pageOperationEnCoursDetail.event.do.*', TiCardPage)
+    ti_corporate_card = URL('/ce_internet_corporate_ti/operationCorporateEnCoursDetail.builder.do', TiCardPage)
     ti_histo = URL('/ce_internet_prive_ti/operationHistoDetail.builder.do',
-                   '/ce_internet_prive_ti/operationHistoDetail.event.do.*',
+                   '/ce_internet_(prive|corporate)_ti/operation(Corporate)?HistoDetail(Afficher|Appliquer)?.event.do.*',
                    '/ce_internet_prive_ti/pageOperationHistoDetail.event.do.*', TiHistoPage)
-    ti_corporate = URL('/ce_internet_corporate_ti/accueilInternetTiCorporate.builder.do', HomePage)
+    ti_corporate_histo = URL('/ce_internet_corporate_ti/operationCorporateHistoDetail.builder.do', TiHistoPage)
     TIMEOUT = 60.0
-    CARDTYP = None
 
     class CorporateCard(Exception):
         pass
@@ -64,6 +65,8 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
     def __init__(self, type, *args, **kwargs):
         super(BnpcartesentrepriseBrowser, self).__init__(*args, **kwargs)
         self.type = type
+        self.is_corporate = False
+        self.transactions_dict = {}
         self.do_login()
 
     def do_login(self):
@@ -76,11 +79,26 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
             raise BrowserIncorrectPassword()
         if self.type == '2' and self.page.is_corporate():
             raise self.CorporateCard()
+        # ti corporate and ge corporate are not detected the same way ..
+        if 'corporate' in self.page.url:
+            self.is_corporate = True
+
+    def ti_card_go(self):
+        if self.is_corporate:
+            self.ti_corporate_card.go()
+        else:
+            self.ti_card.go()
+
+    def ti_histo_go(self):
+        if self.is_corporate:
+            self.ti_corporate_histo.go()
+        else:
+            self.ti_histo.go()
 
     @need_login
     def iter_accounts(self):
         if self.type == '1':
-            self.ti_card.go()
+            self.ti_card_go()
         elif self.type == '2':
             self.accounts.go()
         if self.error.is_here():
@@ -94,19 +112,29 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
                 for account in self.page.iter_accounts(rib=rib):
                     yield account
 
-    @need_login
+    # Could be the very same as non corporate but this shitty website seems
+    # completely bugged
+    def get_ti_corporate_transactions(self, account):
+        if account.id not in self.transactions_dict:
+            self.transactions_dict[account.id] = []
+            self.ti_histo_go()
+            self.page.expand(self.page.get_periods()[0], account=account)
+            for tr in sorted_transactions(self.page.get_history()):
+                self.transactions_dict[account.id].append(tr)
+        return self.transactions_dict[account.id]
+
     def get_ti_transactions(self, account):
-        self.ti_card.go()
-        self.page.expand()
-        for tr in self.page.get_history():
+        self.ti_card_go()
+        self.page.expand(account=account)
+        for tr in sorted_transactions(self.page.get_history()):
             yield tr
-        self.ti_histo.stay_or_go()
+        self.ti_histo_go()
+        self.page.expand(self.page.get_periods()[0], account=account)
         for period in self.page.get_periods():
-            self.page.expand(period)
-            for tr in self.page.get_history():
+            self.page.expand(period, account=account)
+            for tr in sorted_transactions(self.page.get_history()):
                 yield tr
 
-    @need_login
     def get_ge_transactions(self, account):
         transactions = []
         self.coming.go()
@@ -123,10 +151,12 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
                 self.location(link)
                 transactions += self.page.get_history()
                 self.history.go()
-        return iter(transactions)
+        return sorted_transactions(transactions)
 
     @need_login
     def get_transactions(self, account):
         if self.type == '1':
+            if self.is_corporate:
+                return self.get_ti_corporate_transactions(account)
             return self.get_ti_transactions(account)
         return self.get_ge_transactions(account)

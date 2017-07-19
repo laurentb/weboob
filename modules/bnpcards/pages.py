@@ -22,8 +22,8 @@ from datetime import date
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Field, Env
-from weboob.browser.filters.html import Link
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Field, Env, Format
+from weboob.browser.filters.html import Link, Attr
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
@@ -47,10 +47,14 @@ class LoginPage(HTMLPage):
 
 
 class ExpandablePage(LoggedPage, HTMLPage):
-    def expand(self, rib=None):
+    def expand(self, account=None, rib=None):
         form = self.get_form()
         if rib is not None:
             form['ribSaisi'] = rib
+        if account is not None:
+            form['numCarteSaisi'] = account._nav_num
+        # needed if coporate titulaire
+        form.url = form.url.replace('Appliquer', 'Afficher')
         form.submit()
 
     def get_rib_list(self):
@@ -72,13 +76,15 @@ class PeriodsPage(LoggedPage, HTMLPage):
             periods.append(period)
         return periods
 
-    def expand(self, period, rib=None):
+    def expand(self, period, account=None, rib=None):
         form = self.get_form(submit='//input[@value="Display"]')
-        form['bouton'] = 'rechercher'
+        if account is not None:
+            form['numCarteSaisi'] = account._nav_num
         form['periodeSaisie'] = period
-        form['periodeSaisieCache'] = period
         if rib is not None:
             form['ribSaisi'] = rib
+        # needed if coporate titulaire
+        form.url = form.url.replace('Appliquer', 'Afficher')
         form.submit()
 
 
@@ -118,8 +124,8 @@ class TransactionsPage(LoggedPage, HTMLPage):
     @pagination
     @method
     class get_history(ListElement):
-        item_xpath = '//table[@id="datas"]/tbody/tr'
-        next_page = Link('//table[@id="datas"]/tfoot//b/following-sibling::a[1]')
+        item_xpath = '(//table[contains(@id, "datas")]/tbody/tr | //table[contains(@id, "datas")]//tr[@class])'
+        next_page = Link('(//table[@id="tgDecorationTableFoot"] | //table[@id="datas"]/tfoot)//b/following-sibling::a[1]')
 
         class item(ItemElement):
             klass = FrenchTransaction
@@ -135,7 +141,6 @@ class TransactionsPage(LoggedPage, HTMLPage):
             def obj__coming(self):
                 if Field('date')(self) >= date.today():
                     return True
-                return
 
             def obj_amount(self):
                 if not Field('obj_commission'):
@@ -151,12 +156,14 @@ class ErrorPage(HTMLPage):
 class TiCardPage(ExpandablePage, TransactionsPage):
     @method
     class iter_accounts(ListElement):
-        item_xpath = '//table[@class="params"]/tr'
+        item_xpath = '//table[@class="params"]/tr//option'
+
         class item(ItemElement):
             klass = Account
-            obj_id = CleanText('./td[2]/select/option', replace=[(' ', '')])
-            obj_label = CleanText('./td[1]/b[2]')
+            obj_id = CleanText('.', replace=[(' ', '')])
+            obj_label = Format('%s %s', CleanText('//table[@class="params"]/tr/td[1]/b[2]'), Field('id'))
             obj_type = Account.TYPE_CARD
+            obj__nav_num = Attr('.', 'value')
 
 
 class TiHistoPage(PeriodsPage, TransactionsPage):
