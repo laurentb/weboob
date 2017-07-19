@@ -68,7 +68,13 @@ class OuiFMModule(Module, CapRadio, CapCollection):
                                u'http://rock80s.stream.ouifm.fr/ouifmeighties.mp3', 128),
                'rock90s':     (u"OÜI FM Rock 90's",
                                u'OÜI FM - Rock 90\'s',
-                               u'http://rock90s.stream.ouifm.fr/ouifmnineties.mp3', 128)}
+                               u'http://rock90s.stream.ouifm.fr/ouifmnineties.mp3', 128),
+               'rock2000':    (u"OÜI FM Rock 2000",
+                               u'OÜI FM - Rock 2000',
+                               u'http://rock2000.stream.ouifm.fr/ouifmrock2000.mp3', 128),
+               'summertime':  (u"OÜI FM Summertime",
+                               u'OÜI FM - Summertime',
+                               u'http://summertime.stream.ouifm.fr/ouifmsummertime.mp3', 128)}
 
     def iter_resources(self, objs, split_path):
         if Radio in objs:
