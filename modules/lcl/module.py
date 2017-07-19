@@ -23,12 +23,14 @@ import re
 
 from weboob.capabilities.bank import CapBankTransferAddRecipient, AccountNotFound, \
                                      RecipientNotFound, TransferError, Account
+from weboob.capabilities.bill import CapDocument, Subscription, SubscriptionNotFound, \
+                                     Document, DocumentNotFound
 from weboob.capabilities.contact import CapContact
 from weboob.capabilities.profile import CapProfile
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 from weboob.tools.value import ValueBackendPassword, Value
-from weboob.capabilities.base import find_object
+from weboob.capabilities.base import find_object, NotAvailable
 
 from .browser import LCLBrowser, LCLProBrowser, ELCLBrowser
 from .enterprise.browser import LCLEnterpriseBrowser, LCLEspaceProBrowser
@@ -37,7 +39,7 @@ from .enterprise.browser import LCLEnterpriseBrowser, LCLEspaceProBrowser
 __all__ = ['LCLModule']
 
 
-class LCLModule(Module, CapBankTransferAddRecipient, CapContact, CapProfile):
+class LCLModule(Module, CapBankTransferAddRecipient, CapContact, CapProfile, CapDocument):
     NAME = 'lcl'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -94,7 +96,7 @@ class LCLModule(Module, CapBankTransferAddRecipient, CapContact, CapProfile):
         return self.browser.iter_recipients(origin_account)
 
     def new_recipient(self, recipient, **params):
-        if self.config['website'].get() not in  ['par', 'pro']:
+        if self.config['website'].get() not in ['par', 'pro']:
             raise NotImplementedError()
         # Recipient label has max 15 alphanumrical chars.
         recipient.label = ' '.join(w for w in re.sub('[^0-9a-zA-Z ]+', '', recipient.label).split())[:15]
@@ -140,3 +142,29 @@ class LCLModule(Module, CapBankTransferAddRecipient, CapContact, CapProfile):
         if not hasattr(self.browser, 'get_profile'):
             raise NotImplementedError()
         return self.browser.get_profile()
+
+    def get_document(self, _id):
+        return find_object(self.iter_documents(None), id=_id, error=DocumentNotFound)
+
+    def get_subscription(self, _id):
+        return find_object(self.iter_subscription(), id=_id, error=SubscriptionNotFound)
+
+    def iter_bills(self, subscription):
+        return self.iter_documents(None)
+
+    def iter_documents(self, subscription):
+        if not isinstance(subscription, Subscription):
+            subscription = self.get_subscription(subscription)
+
+        return self.browser.iter_documents(subscription)
+
+    def iter_subscription(self):
+        return self.browser.iter_subscriptions()
+
+    def download_document(self, document):
+        if not isinstance(document, Document):
+            document = self.get_document(document)
+        if document.url is NotAvailable:
+            return
+
+        return self.browser.open(document.url).content

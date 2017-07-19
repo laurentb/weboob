@@ -35,7 +35,7 @@ from .pages import LoginPage, AccountsPage, AccountHistoryPage, \
                    AVPage, AVDetailPage, DiscPage, NoPermissionPage, RibPage, \
                    HomePage, LoansPage, TransferPage, AddRecipientPage, \
                    RecipientPage, RecipConfirmPage, SmsPage, RecipRecapPage, \
-                   LoansProPage, Form2Page
+                   LoansProPage, Form2Page, DocumentsPage, ClientPage
 
 
 __all__ = ['LCLBrowser','LCLProBrowser', 'ELCLBrowser']
@@ -59,6 +59,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
     contracts_choice = URL('.*outil/UAUT/Contract/routing', ContractsChoicePage)
     home = URL('/outil/UWHO/Accueil/', HomePage)
     accounts = URL('/outil/UWSP/Synthese', AccountsPage)
+    client = URL('/outil/uwho', ClientPage)
     history = URL('/outil/UWLM/ListeMouvements.*/accesListeMouvements.*',
                   '/outil/UWLM/DetailMouvement.*/accesDetailMouvement.*',
                   '/outil/UWLM/Rebond',
@@ -99,6 +100,9 @@ class LCLBrowser(LoginBrowser, StatesMixin):
     recip_confirm = URL('/outil/UWBE/Creation/creationConfirmation', RecipConfirmPage)
     send_sms = URL('/outil/UWBE/Otp/envoiCodeOtp\?telChoisi=MOBILE', '/outil/UWBE/Otp/getValidationCodeOtp\?codeOtp', SmsPage)
     recip_recap = URL('/outil/UWBE/Creation/executeCreation', RecipRecapPage)
+    documents = URL('/outil/UWDM/ConsultationDocument/derniersReleves',
+                    '/outil/UWDM/Recherche/afficherPlus',
+                    '/outil/UWDM/Recherche/rechercherAll', DocumentsPage)
 
     __states__ = ('contracts', 'current_contract',)
 
@@ -393,6 +397,20 @@ class LCLBrowser(LoginBrowser, StatesMixin):
     @need_login
     def get_advisor(self):
         return iter([self.accounts.stay_or_go().get_advisor()])
+
+    @need_login
+    def iter_subscriptions(self):
+        yield self.client.go().get_item()
+
+    @need_login
+    def iter_documents(self, subscription):
+        documents = []
+        self.documents.go()
+        self.location('https://particuliers.secure.lcl.fr/outil/UWDM/Recherche/afficherPlus')
+        self.page.do_search_request()
+        for document in self.page.get_list():
+            documents.append(document)
+        return documents
 
 
 class LCLProBrowser(LCLBrowser):

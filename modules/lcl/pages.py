@@ -30,6 +30,7 @@ from datetime import datetime, timedelta, date
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, TransferBankError, Transfer, AddRecipientError
+from weboob.capabilities.bill import Document, Subscription
 from weboob.capabilities.contact import Advisor
 from weboob.browser.elements import method, ListElement, TableElement, ItemElement, SkipItem
 from weboob.exceptions import ParseError
@@ -38,7 +39,7 @@ from weboob.browser.pages import LoggedPage, HTMLPage, FormNotFound, pagination
 from weboob.browser.filters.html import Attr, Link
 from weboob.browser.filters.standard import CleanText, Field, Regexp, Format, Date, \
                                             CleanDecimal, Map, AsyncLoad, Async, Env, \
-                                            TableCell, Eval
+                                            TableCell, Eval, Slugify
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
@@ -49,6 +50,7 @@ from weboob.tools.html import html2text
 def MyDecimal(*args, **kwargs):
     kwargs.update(replace_dots=True, default=Decimal(0))
     return CleanDecimal(*args, **kwargs)
+
 
 def myXOR(value,seed):
     s = ''
@@ -915,6 +917,49 @@ class CheckValuesPage(LoggedPage, HTMLPage):
             assert label in values
         except AssertionError:
             raise AddRecipientError('recipient label not found in values')
+
+
+class DocumentsPage(LoggedPage, HTMLPage):
+    def do_search_request(self):
+        form = self.get_form(id="rechercherForm")
+        form['listePeriode'] = "PERIODE1"
+        form['listeFamille'] = "ALL"
+        form['debutRec'] = None
+        form['finRec'] = None
+        form['typeDocFamHidden'] = "ALL"
+        form['typeDocSFamHidden'] = None
+        form.submit()
+
+    @method
+    class get_list(TableElement):
+        head_xpath = '//table[@class="dematTab"]/thead/tr/th'
+        item_xpath = u'//table[@class="dematTab"]/tbody/tr[./td[@class="dematTab-firstCell" and contains(., "Relevés")]]'
+
+        col_label = 'Nature de document'
+        col_id = 'Type de document'
+        col_url = 'Visualiser'
+        col_date = 'Date'
+
+        class item(ItemElement):
+            klass = Document
+
+            obj_id = Slugify(Format('%s_%s', CleanText(TableCell('id')), CleanText(TableCell('date'))))
+            obj_label = Format('%s %s', CleanText(TableCell('label')), CleanText(TableCell('date')))
+            obj_date = Date(CleanText(TableCell('date')))
+            obj_format = "pdf"
+
+            def obj_url(self):
+                return Link(TableCell('url')(self)[0].xpath('./a'))(self)
+
+
+class ClientPage(LoggedPage, HTMLPage):
+    @method
+    class get_item(ItemElement):
+        klass = Subscription
+
+        obj_id = CleanText('//li[@id="nomClient"]', replace=[('M', ''), ('Mme', ''), (' ', '')])
+        obj_label = CleanText('//li[@id="nomClient"]', replace=[('M', ''), ('Mme', '')])
+        obj_subscriber = CleanText('//li[@id="nomClient"]', replace=[('M', ''), ('Mme', '')])
 
 
 class RecipConfirmPage(CheckValuesPage):
