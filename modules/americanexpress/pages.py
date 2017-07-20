@@ -132,7 +132,7 @@ class AccountsPage2(LoggedPage, PartialHTMLPage):
             def obj_balance(self):
                 return -abs(parse_decimal(CleanText('.//td[@id="colOSBalance"]/div[@class="summaryValues makeBold"]')(self)))
 
-            obj_url = AbsoluteLink('.//a[span[text()="Online Statement"] or text()="Détail de vos opérations"]')
+            obj_url = AbsoluteLink('.//a[text()="View Latest Transactions"]', default=AbsoluteLink('.//a[span[text()="Online Statement"] or text()="Détail de vos opérations"]'))
 
 
 class TransactionsPage(LoggedPage, HTMLPage):
@@ -242,6 +242,7 @@ class TransactionsPage(LoggedPage, HTMLPage):
             if t.amount > 0:
                 t.type = t.TYPE_ORDER
             else:
+                t.date = end_of_period
                 t.type = t.TYPE_DEFERRED_CARD
 
             yield t
