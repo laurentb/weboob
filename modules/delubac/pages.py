@@ -179,7 +179,7 @@ class AccountsPage(LoggedPage, HTMLPage):
 
             class Type(Filter):
                 def filter(self, label):
-                    for pattern, actype in AccountsPage.TYPES.iteritems():
+                    for pattern, actype in AccountsPage.TYPES.items():
                         if pattern in label:
                             return actype
                     return Account.TYPE_UNKNOWN
@@ -243,6 +243,7 @@ class HistoryPage(LoggedPage, HTMLPage):
 class IbanPage(LoggedPage, HTMLPage):
     def get_iban(self):
         return CleanText('//td[contains(text(), "IBAN") and @class="ColonneCode"]', replace=[('IBAN', ''), (' ', '')])(self.doc)
+
 
 class ErrorPage(LoggedPage, HTMLPage):
     is_here = u'//div[contains(., "Une erreur technique s\'est produite dans l\'application ")]'
