@@ -27,7 +27,6 @@ from weboob.browser.filters.standard import (
     Regexp, Slugify, DateGuesser
 )
 from weboob.capabilities.bank import Account, Transaction
-from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.date import LinearDateGuesser
 from datetime import timedelta
@@ -51,7 +50,7 @@ class AccountsPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Account
 
-            obj_type = FrenchTransaction.TYPE_CARD
+            obj_type = Account.TYPE_CARD
             obj_id = CleanText('./a/p', replace=[('N° ', '')])
             obj_label = obj_id
 
