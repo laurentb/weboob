@@ -34,14 +34,14 @@ class StreamsPage(XMLPage):
 
         for el in self.doc.xpath('//stream'):
             index += 1
-            stream_url = unicode(el.findtext('url'))
+            stream_url = el.findtext('url')
             bitrate = el.findtext('bitrate')
-            encode = unicode(el.findtext('type'))
-            country = unicode(el.findtext('country')).upper()
+            encode = el.findtext('type')
+            country = el.findtext('country').upper()
             stream = BaseAudioStream(index)
             stream.bitrate = int(bitrate)
             stream.format = encode
-            stream.title = ' '.join([radio.title, country, encode, unicode(bitrate), 'kbps'])
+            stream.title = ' '.join([radio.title, country, encode, str(bitrate), 'kbps'])
             stream.url = stream_url
             radio.streams.append(stream)
 
@@ -51,6 +51,6 @@ class StreamsPage(XMLPage):
 class LivePage(XMLPage):
     def get_current_emission(self):
         current = StreamInfo(0)
-        current.who = unicode(self.doc.xpath('//playlist/now/entry/artist')[0].text)
-        current.what = unicode(self.doc.xpath('//playlist/now/entry/song')[0].text)
+        current.who = self.doc.xpath('//playlist/now/entry/artist')[0].text
+        current.what = self.doc.xpath('//playlist/now/entry/song')[0].text
         return current
