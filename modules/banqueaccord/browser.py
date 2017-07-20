@@ -19,6 +19,7 @@
 
 
 from weboob.browser import LoginBrowser, need_login, URL
+from weboob.capabilities.bank import Account
 from weboob.exceptions import BrowserIncorrectPassword
 
 from .pages import LoginPage, IndexPage, AccountsPage, OperationsPage
@@ -60,11 +61,11 @@ class BanqueAccordBrowser(LoginBrowser):
 
             a.balance = self.page.get_loan_balance()
             if a.balance is not None:
-                a.type = a.TYPE_LOAN
+                a.type = Account.TYPE_LOAN
             else:
                 self.accounts.go()
                 a.balance = self.page.get_balance()
-                a.type = a.TYPE_CARD
+                a.type = Account.TYPE_CARD
             if a.balance is None:
                 continue
             yield a
@@ -75,7 +76,7 @@ class BanqueAccordBrowser(LoginBrowser):
 
         self.index.go(data=post)
 
-        if account.type == account.TYPE_LOAN:
+        if account.type == Account.TYPE_LOAN:
             return self.page.iter_loan_transactions()
 
         self.operations.go()

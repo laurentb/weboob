@@ -46,6 +46,7 @@ class AccountPage(LoggedPage, HTMLPage):
             account.balance = Decimal(Transaction.clean_amount(balance))
             account.id = el.cssselect('span')[0].text.strip()
             account.currency = u'NZD'  # TODO: handle other currencies
+            account.type = Account.TYPE_CHECKING
 
             if el.cssselect('td.AccountName > a'):
                 label_el = el.cssselect('td.AccountName > a')[0]
