@@ -45,6 +45,7 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 from weboob.tools.compat import unicode
 from weboob.tools.html import html2text
+from weboob.tools.date import parse_french_date
 
 
 def MyDecimal(*args, **kwargs):
@@ -461,6 +462,9 @@ class CBHistoryPage(AccountHistoryPage):
     def get_operations(self):
         for tr in self._get_operations(self)():
             tr.type = tr.TYPE_DEFERRED_CARD
+            deferred_date = Regexp(CleanText('//div[@class="date"][contains(text(), "Carte")]'), r'le ([^:]+)', default=None)(self.doc)
+            if deferred_date:
+                tr.date = parse_french_date(deferred_date)
             yield tr
 
 
