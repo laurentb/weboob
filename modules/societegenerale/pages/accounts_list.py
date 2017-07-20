@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 import urllib
 import datetime
@@ -36,6 +37,7 @@ from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, RegexpError
 from weboob.browser.filters.html import Link
 from weboob.browser.pages import JsonPage, LoggedPage
+from weboob.exceptions import NoAccountsException
 
 from .base import BasePage
 
@@ -62,6 +64,10 @@ class AccountsList(LoggedPage, BasePage):
             }
 
     def get_list(self):
+        err = CleanText('//span[@class="error_msg"]', default='')(self.doc)
+        if err == 'Vous ne disposez pas de compte consultable.':
+            raise NoAccountsException()
+
         def check_valid_url(url):
             pattern = ['/restitution/cns_detailAVPAT.html',
                        '/restitution/cns_detailAlterna.html',
