@@ -19,7 +19,7 @@
 
 
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 
 from .pages import LoginPage, AccountsPage, InvestmentPage, HistoryPage, ActionNeededPage
 
@@ -40,9 +40,10 @@ class AvivaBrowser(LoginBrowser):
         self.login.go().login(self.username, self.password)
 
         if self.login.is_here():
-            error = u'Veuillez accepter les conditions générales d\'utilisation sur le site.' \
-                    if "acceptation" in self.url else 'L\'identifiant ou le mot de passe est incorrect.'
-            raise BrowserIncorrectPassword(error)
+            if "acceptation" in self.url:
+                raise ActionNeeded(u'Veuillez accepter les conditions générales d\'utilisation sur le site.')
+            else:
+                raise BrowserIncorrectPassword(u'L\'identifiant ou le mot de passe est incorrect.')
 
     @need_login
     def iter_accounts(self):
