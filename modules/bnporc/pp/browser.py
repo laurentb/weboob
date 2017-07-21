@@ -191,7 +191,7 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
 
     @need_login
     def iter_investment(self, account):
-        if account.type == account.TYPE_LIFE_INSURANCE:
+        if account.type in (account.TYPE_LIFE_INSURANCE, account.TYPE_PERP):
             self.lifeinsurances.go(data=JSON({
                 "ibanCrypte": account.id,
             }))
