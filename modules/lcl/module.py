@@ -19,6 +19,7 @@
 
 
 from decimal import Decimal
+from functools import wraps
 import re
 
 from weboob.capabilities.bank import CapBankTransferAddRecipient, AccountNotFound, \
@@ -37,6 +38,19 @@ from .enterprise.browser import LCLEnterpriseBrowser, LCLEspaceProBrowser
 
 
 __all__ = ['LCLModule']
+
+
+def only_for_websites(*cfg):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            if self.config['website'].get() not in cfg:
+                raise NotImplementedError()
+
+            return func(self, *args, **kwargs)
+
+        return wrapper
+    return decorator
 
 
 class LCLModule(Module, CapBankTransferAddRecipient, CapContact, CapProfile, CapDocument):
@@ -88,24 +102,20 @@ class LCLModule(Module, CapBankTransferAddRecipient, CapContact, CapProfile, Cap
     def iter_investment(self, account):
         return self.browser.get_investment(account)
 
+    @only_for_websites('par', 'pro', 'elcl')
     def iter_transfer_recipients(self, origin_account):
-        if self.config['website'].get() not in  ['par', 'pro', 'elcl']:
-            raise NotImplementedError()
         if not isinstance(origin_account, Account):
             origin_account = find_object(self.iter_accounts(), id=origin_account, error=AccountNotFound)
         return self.browser.iter_recipients(origin_account)
 
+    @only_for_websites('par', 'pro')
     def new_recipient(self, recipient, **params):
-        if self.config['website'].get() not in ['par', 'pro']:
-            raise NotImplementedError()
         # Recipient label has max 15 alphanumrical chars.
         recipient.label = ' '.join(w for w in re.sub('[^0-9a-zA-Z ]+', '', recipient.label).split())[:15]
         return self.browser.new_recipient(recipient, **params)
 
+    @only_for_websites('par', 'pro')
     def init_transfer(self, transfer, **params):
-        if self.config['website'].get() not in  ['par', 'pro']:
-            raise NotImplementedError()
-
         # There is a check on the website, transfer can't be done with too long reason.
         if transfer.label:
             transfer.label = transfer.label[:30]
@@ -132,10 +142,8 @@ class LCLModule(Module, CapBankTransferAddRecipient, CapContact, CapProfile, Cap
     def execute_transfer(self, transfer, **params):
         return self.browser.execute_transfer(transfer)
 
+    @only_for_websites('par')
     def iter_contacts(self):
-        if self.config['website'].get() != "par":
-            raise NotImplementedError()
-
         return self.browser.get_advisor()
 
     def get_profile(self):
@@ -143,24 +151,30 @@ class LCLModule(Module, CapBankTransferAddRecipient, CapContact, CapProfile, Cap
             raise NotImplementedError()
         return self.browser.get_profile()
 
+    @only_for_websites('par')
     def get_document(self, _id):
         return find_object(self.iter_documents(None), id=_id, error=DocumentNotFound)
 
+    @only_for_websites('par')
     def get_subscription(self, _id):
         return find_object(self.iter_subscription(), id=_id, error=SubscriptionNotFound)
 
+    @only_for_websites('par')
     def iter_bills(self, subscription):
         return self.iter_documents(None)
 
+    @only_for_websites('par')
     def iter_documents(self, subscription):
         if not isinstance(subscription, Subscription):
             subscription = self.get_subscription(subscription)
 
         return self.browser.iter_documents(subscription)
 
+    @only_for_websites('par')
     def iter_subscription(self):
         return self.browser.iter_subscriptions()
 
+    @only_for_websites('par')
     def download_document(self, document):
         if not isinstance(document, Document):
             document = self.get_document(document)
