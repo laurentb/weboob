@@ -70,7 +70,7 @@ class AccountsPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Investment
 
-            obj__product_id = CleanText(Dict('value/0/value'))
+            obj__product_id = Dict('value/0/value')
             obj_quantity = CleanDecimal(Dict('value/2/value'))
             obj_unitvalue = CleanDecimal(Dict('value/3/value'))
             obj_valuation = CleanDecimal(Dict('value/6/value'))
@@ -128,7 +128,7 @@ class HistoryPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Investment
 
-            obj__product_id = CleanDecimal(Dict('productId'))
+            obj__product_id = Dict('productId')
             obj_quantity = CleanDecimal(Dict('quantity'))
             obj_unitvalue = CleanDecimal(Dict('price'))
             obj_vdate = Date(CleanText(Dict('date')), dayfirst=True)
