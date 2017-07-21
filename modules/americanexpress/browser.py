@@ -26,7 +26,7 @@ from weboob.tools.compat import urlsplit, parse_qsl, urlencode
 
 from .pages import (
     LoginPage, AccountsPage, TransactionsPage, WrongLoginPage, AccountSuspendedPage,
-    AccountsPage2,
+    AccountsPage2, ActionNeededPage,
 )
 
 
@@ -44,6 +44,8 @@ class AmericanExpressBrowser(LoginBrowser):
     accounts2 = URL(r'/myca/intl/acctsumm/emea/accountSummary.do.*', AccountsPage2)
 
     transactions = URL('/myca/intl/estatement/.*', TransactionsPage)
+
+    action_needed = URL(r'/myca/oce/emea/action/home\?request_type=un_Register', ActionNeededPage)
 
     def __init__(self, *args, **kwargs):
         super(AmericanExpressBrowser, self).__init__(*args, **kwargs)

@@ -29,6 +29,7 @@ from weboob.browser.filters.standard import CleanText, CleanDecimal, Currency as
 from weboob.browser.filters.html import AbsoluteLink
 from weboob.capabilities.bank import Account
 from weboob.capabilities import NotAvailable
+from weboob.exceptions import ActionNeeded
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
 from weboob.tools.compat import urljoin
 from weboob.tools.date import ChaoticDateGuesser, parse_french_date
@@ -246,3 +247,9 @@ class TransactionsPage(LoggedPage, HTMLPage):
                 t.type = t.TYPE_DEFERRED_CARD
 
             yield t
+
+
+class ActionNeededPage(LoggedPage, HTMLPage):
+    def on_load(self):
+        if self.doc.xpath('//meta[contains(@content,"action/home?request_type=un_Activation")]'):
+            raise ActionNeeded()
