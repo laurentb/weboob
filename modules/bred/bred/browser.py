@@ -224,15 +224,16 @@ class BredBrowser(DomainBrowser):
 
                 seen.add(t.id)
                 d = date.fromtimestamp(op.get('dateDebit', op.get('dateOperation'))/1000)
-                op['details'] = [i for i in op['details'] if i] # sometimes they put "null" elements...
-                raw = ' '.join([op['libelle']] + op['details'])
+                op['details'] = [re.sub('\s+', ' ', i).replace('\x00', '') for i in op['details'] if i] # sometimes they put "null" elements...
+                label = re.sub('\s+', ' ', op['libelle']).replace('\x00', '')
+                raw = ' '.join([label] + op['details'])
                 vdate = date.fromtimestamp(op.get('dateValeur', op.get('dateDebit', op.get('dateOperation')))/1000)
                 t.parse(d, raw, vdate=vdate)
                 t.amount = Decimal(str(op['montant']))
                 t.rdate = date.fromtimestamp(op.get('dateOperation', op.get('dateDebit'))/1000)
                 if 'categorie' in op:
                     t.category = op['categorie']
-                t.label = op['libelle']
+                t.label = label
                 t._coming = op['intraday']
                 if t._coming:
                     # coming transactions have a random uuid id (inconsistent between requests)
