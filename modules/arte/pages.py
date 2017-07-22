@@ -24,12 +24,12 @@ from weboob.capabilities.image import Thumbnail
 from weboob.capabilities.base import BaseObject, NotAvailable
 from weboob.capabilities.collection import Collection
 from weboob.capabilities.base import empty
-
-from weboob.browser.pages import HTMLPage, JsonPage
+from weboob.browser.pages import HTMLPage, JsonPage, pagination
 from weboob.browser.elements import DictElement, ItemElement, ListElement, method
-from weboob.browser.filters.standard import Date, Format, Env, CleanText, Field, Regexp, Join
+from weboob.browser.filters.standard import Date, Format, Env, CleanText, Field, Regexp, Join, Eval
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import XPath
+from weboob.tools.compat import basestring
 
 
 from .video import ArteVideo, ArteSiteVideo, SITE
@@ -318,3 +318,28 @@ class ArteJsonPage(JsonPage):
                 return 'VDS' in self.el.keys() and len(self.el['VDS']) > 0
 
             obj_id = Dict('programId')
+
+
+class SearchPage(JsonPage):
+    @pagination
+    @method
+    class iter_videos(DictElement):
+        item_xpath = 'teasers'
+
+        class item(ItemElement):
+            klass = ArteVideo
+
+            obj_id = Dict('id')
+            obj_title = Dict('title')
+            obj_duration = Eval(lambda x: x * 60, Dict('duration'))
+            obj_date = Date(Dict('creationDate'))
+
+            def obj_thumbnail(self):
+                try:
+                    return Thumbnail(next(img['url'] for img in self.el['images'] if img['format'] == 'landscape'))
+                except StopIteration:
+                    return NotAvailable
+
+        def next_page(self):
+            if self.el['metas']['page'] < self.el['metas']['pages']:
+                return self.page.url.rstrip('0123456789') + str(self.el['metas']['page'] + 1)

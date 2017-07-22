@@ -110,6 +110,9 @@ class ArteModule(Module, CapVideo, CapCollection):
         if 'thumbnail' in fields and video and video.thumbnail:
             video.thumbnail.data = self.browser.open(video.thumbnail.url).content
 
+        if 'url' in fields and not video.url:
+            video.ext, video.url = self.browser.fetch_url(video.id)
+
         return video
 
     def fill_site_video(self, video, fields):
@@ -125,6 +128,7 @@ class ArteModule(Module, CapVideo, CapCollection):
                 video.thumbnail.data = self.browser.open(video.thumbnail.url).content
             except BrowserHTTPSDowngrade:
                 pass
+
         return video
 
     def iter_resources(self, objs, split_path):

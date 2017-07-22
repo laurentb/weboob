@@ -36,9 +36,9 @@ class ArteTest(BackendTest):
             self.backend.config['version'] = Value(value='VOSTF')
 
     def test_search(self):
-        l = list(self.backend.search_videos('a'))
+        l = list(zip(self.backend.search_videos('a'), range(30)))
         assert len(l)
-        v = l[0]
+        v = l[0][0]
         self.backend.fillobj(v, ('url',))
         self.assertTrue(v.url, 'URL for video "%s" not found' % (v.id))
 

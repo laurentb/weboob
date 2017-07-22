@@ -22,9 +22,10 @@ import re
 from weboob.capabilities.collection import Collection
 from weboob.capabilities.base import UserError
 from weboob.capabilities import NotAvailable
-
 from weboob.browser import PagesBrowser, URL
-from .pages import VideosListPage, ArteJsonPage
+from weboob.tools.compat import quote, unicode
+
+from .pages import VideosListPage, ArteJsonPage, SearchPage
 from .video import VERSION_VIDEO, LANG, QUALITY, SITE, ArteEmptyVideo
 
 
@@ -33,6 +34,8 @@ __all__ = ['ArteBrowser']
 
 class ArteBrowser(PagesBrowser):
     BASEURL = 'http://arte.tv/'
+
+    search = URL('/guide/api/api/search/(?P<lang>\w{2})/(?P<pattern>[^/]+)/(?P<page>\d+)', SearchPage)
 
     webservice = URL('papi/tvguide/(?P<class_name>.*)/(?P<method_name>.*)/(?P<parameters>.*).json',
                      'http://(?P<__site>.*).arte.tv/(?P<_lang>\w{2})/player/(?P<_id>.*)',
@@ -43,19 +46,20 @@ class ArteBrowser(PagesBrowser):
                       VideosListPage)
 
     def __init__(self, lang, quality, order, format, version, *args, **kwargs):
+        super(ArteBrowser, self).__init__(*args, **kwargs)
         self.order = order
-        self.lang = (value for key, value in LANG.items if key == lang).next()
-        self.version = (value for key, value in VERSION_VIDEO.items
-                        if self.lang.get('label') in value.keys() and version == key).next()
-        self.quality = (value for key, value in QUALITY.items if key == quality).next()
+        self.lang = next(value for key, value in LANG.items if key == lang)
+        self.version = next(value for key, value in VERSION_VIDEO.items
+                            if self.lang.get('label') in value.keys() and version == key)
+        self.quality = next(value for key, value in QUALITY.items if key == quality)
         self.format = format
 
         if self.lang.get('label') not in self.version.keys():
             raise UserError('%s is not available for %s' % (self.lang.get('label'), version))
 
-        PagesBrowser.__init__(self, *args, **kwargs)
-
     def search_videos(self, pattern):
+        return self.search.go(lang=self.lang['site'], pattern=quote(pattern), page='1').iter_videos()
+
         class_name = 'videos/plus7'
         method_name = 'search'
         parameters = '/'.join([self.lang.get('webservice'), 'L1', pattern, 'ALL', 'ALL', '-1',
@@ -85,7 +89,7 @@ class ArteBrowser(PagesBrowser):
         return ext, url
 
     def get_m3u8_link(self, url):
-        r = self.open(url).content.split('\n')
+        r = self.open(url).text.split('\n')
         baseurl = url.rpartition('/')[0]
 
         links_by_quality = []
@@ -230,3 +234,7 @@ class ArteBrowser(PagesBrowser):
             video.id = id
             return video
         return ArteEmptyVideo()
+
+    def fetch_url(self, _id):
+        self.webservice.go(__lang=self.lang['site'], vid=_id, ___site='ARTEPLUS7')
+        return self.get_url()
