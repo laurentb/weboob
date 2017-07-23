@@ -19,14 +19,17 @@
 
 from __future__ import unicode_literals
 
+import re
+from datetime import datetime
+
+from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.file import LICENSES
 from weboob.capabilities.image import Thumbnail
 from weboob.capabilities.video import BaseVideo
-from datetime import datetime
 
 from weboob.browser.pages import HTMLPage, JsonPage
 from weboob.browser.elements import ItemElement, ListElement, method
-from weboob.browser.filters.standard import CleanText, Regexp, Format, DateTime, Duration, Date, Eval
+from weboob.browser.filters.standard import CleanText, Regexp, Format, DateTime, Duration, Date, Eval, Env
 from weboob.browser.filters.html import Attr, AbsoluteLink
 from weboob.browser.filters.json import Dict
 
@@ -43,15 +46,24 @@ class SearchPage(HTMLPage):
         class item(ItemElement):
             klass = BaseVideo
 
+            def parse(self, el):
+                self.env['infos'] = CleanText('.//h3/following-sibling::p[contains(text()," min")]')(self)
+
+                basetitle = CleanText('.//h3/a')(self)
+                sub = CleanText('.//h3/following-sibling::p[1]')(self)
+                if re.search(r'\d min', sub):
+                    self.env['title'] = basetitle
+                else:
+                    self.env['title'] = '%s - %s' % (basetitle, sub)
+
             obj_id = AbsoluteLink('.//a')
             #~ obj__number = Attr('./div[@class="card-content"]//a', 'data-video-content')
 
-            obj_title = Format('%s - %s', CleanText('.//h3/a'), CleanText('.//h3/following-sibling::p[1]'))
+            obj_title = Env('title')
             obj_thumbnail = Eval(Thumbnail, Format('https:%s', Attr('./a//img', 'data-src')))
 
-            _infos = CleanText('.//h3/following-sibling::p[2]')
-            obj_date = Date(Regexp(_infos, r'\| (\d+\.\d+\.\d+) \|'), dayfirst=True)
-            obj_duration = Eval(parse_duration, Regexp(_infos, r' \| (\d+) min'))
+            obj_date = Date(Regexp(Env('infos'), r'\| (\d+\.\d+\.\d+) \|', default=NotAvailable), dayfirst=True, default=NotAvailable)
+            obj_duration = Eval(parse_duration, Regexp(Env('infos'), r'(\d+) min'))
 
 
 

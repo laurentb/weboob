@@ -26,10 +26,10 @@ class PluzzTest(BackendTest):
 
     def test_search(self):
         # If the test fails, it might be good news!
-        l = list(self.backend.search_videos("pblv"))
+        l = list(self.backend.search_videos("journal"))
         self.assertTrue(len(l) > 0)
         v = l[0]
-        self.backend.fillobj(v, ('url',))
+        v = self.backend.fillobj(v, ('url',)) or v
         self.assertTrue(v.url, 'URL for video "%s" not found: %s' % (v.id, v.url))
 
     def test_video_from_url(self):
