@@ -177,8 +177,8 @@ class LoginPage(HTMLPage):
                }
 
     def login(self, login, password):
-        if password.isalpha():
-            password = ''.join([k for c in password.lower() for k, v in self.TO_DIGIT.items() if c in v])
+        if not password.isdigit():
+           password = ''.join([c if c.isdigit() else [k for k, v in self.TO_DIGIT.items() if c in v][0] for c in password.lower()])
         form = self.get_form()
         keyboard_page = self.browser.keyboard.open()
         vk = BoursoramaVirtKeyboard(keyboard_page)
