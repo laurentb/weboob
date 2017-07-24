@@ -26,12 +26,15 @@ from itertools import groupby
 from weboob.tools.date import LinearDateGuesser
 from weboob.capabilities.bank import Account, AccountNotFound
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.tools.compat import parse_qs
+from weboob.tools.compat import parse_qsl, urlparse
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import HTTPNotFound
 
-from .pages import AccountsPage, CBOperationPage, CPTOperationPage, LoginPage, AppGonePage, RibPage, LifeInsurancesPage
+from .pages import (
+    AccountsPage, CBOperationPage, CPTOperationPage, LoginPage, AppGonePage, RibPage,
+    LifeInsurancesPage, FrameContainer, LifeInsurancePortal, LifeInsuranceMain,
+)
 
 
 __all__ = ['HSBC']
@@ -47,9 +50,13 @@ class HSBC(LoginBrowser):
                           r'/cgi-bin/emcgi.*\&Epa=.*',
                           r'/cgi-bin/emcgi.*\&CPT_IdPrestation.*',
                           r'/cgi-bin/emcgi.*\&Ass_IdPrestation.*',
+                          # FIXME are the previous patterns relevant in POST nav?
+                          r'/cgi-bin/emcgi',
                           CPTOperationPage)
     cbPage =          URL(r'/cgi-bin/emcgi.*[\&\?]Cb=.*',
                           r'/cgi-bin/emcgi.*\&CB_IdPrestation.*',
+                          # FIXME are the previous patterns relevant in POST nav?
+                          r'/cgi-bin/emcgi',
                           CBOperationPage)
     appGone =     URL(r'/.*_absente.html',
                       r'/pm_absent_inter.html',
@@ -58,14 +65,17 @@ class HSBC(LoginBrowser):
     rib =             URL(r'/cgi-bin/emcgi', RibPage)
     accounts =        URL(r'/cgi-bin/emcgi', AccountsPage)
 
-    # separated space
+    # other site
+    life_insurance_portal = URL(r'/cgi-bin/emcgi', LifeInsurancePortal)
+    life_insurance_main = URL('https://assurances.hsbc.fr/fr/accueil/b2c/accueil.html\?pointEntree=PARTIEGENERIQUEB2C', LifeInsuranceMain)
     life_insurances = URL('https://assurances.hsbc.fr/navigation', LifeInsurancesPage)
 
+    frame_page = URL(r'/cgi-bin/emcgi', FrameContainer)
+
     def __init__(self, username, password, secret, *args, **kwargs):
+        super(HSBC, self).__init__(username, password, *args, **kwargs)
         self.accounts_list = dict()
         self.secret = secret
-
-        LoginBrowser.__init__(self, username, password, *args, **kwargs)
 
     def load_state(self, state):
         return
@@ -79,6 +89,9 @@ class HSBC(LoginBrowser):
         return preq
 
     def do_login(self):
+        self.session.cookies.clear()
+
+        self.app_gone = False
         self.connection.go()
         self.page.login(self.username)
 
@@ -89,7 +102,7 @@ class HSBC(LoginBrowser):
         self.location(no_secure_key_link)
 
         self.page.login_w_secure(self.password, self.secret)
-        for _ in range(2):
+        for _ in range(3):
             if self.login.is_here():
                 self.page.useless_form()
 
@@ -105,30 +118,44 @@ class HSBC(LoginBrowser):
     def get_accounts_list(self):
         if not self.accounts_list:
             self.update_accounts_list()
-        for i, a in self.accounts_list.items():
+        for a in self.accounts_list.values():
             yield a
 
+    def go_post(self, url, data=None):
+        # most of HSBC accounts links are actually handled by js code
+        # which convert a GET query string to POST data.
+        # not doing so often results in logout by the site
+        q = dict(parse_qsl(urlparse(url).query))
+        if data:
+            q.update(data)
+        url = url[:url.find('?')]
+        self.location(url, data=q)
+
     @need_login
-    def update_accounts_list(self):
-        for a in list(self.accounts.go().iter_accounts()):
+    def update_accounts_list(self, iban=True):
+        if self.accounts.is_here():
+            self.go_post(self.js_url)
+        else:
+            data = {'debr': 'COMPTES_PAN'}
+            self.go_post(self.js_url, data=data)
+
+        for a in self.page.iter_accounts():
             try:
                 self.accounts_list[a.id].url = a.url
             except KeyError:
                 self.accounts_list[a.id] = a
 
-        self.location('%s%s' % (self.page.url, '&debr=COMPTES_RIB'))
-        self.page.get_rib(self.accounts_list)
+        if iban:
+            self.location(self.js_url, params={'debr': 'COMPTES_RIB'})
+            self.page.get_rib(self.accounts_list)
 
     @need_login
     def _quit_li_space(self):
         if self.life_insurances.is_here():
-            self.page.disconnect_order()
+            self.page.disconnect()
 
-            try:
-                self.session.cookies.pop('ErisaSession')
-                self.session.cookies.pop('HBFR-INSURANCE-COOKIE-82')
-            except KeyError:
-                pass
+            self.session.cookies.pop('ErisaSession', None)
+            self.session.cookies.pop('HBFR-INSURANCE-COOKIE-82', None)
 
             home_url = self.page.get_frame()
             self.js_url = self.page.get_js_url()
@@ -136,27 +163,23 @@ class HSBC(LoginBrowser):
             self.location(home_url)
 
     @need_login
-    def _go_to_life_insurance(self, lfid):
+    def _go_to_life_insurance(self, account):
         self._quit_li_space()
 
-        url = (self.js_url + 'PLACEMENTS_ASS').split('?')
-        data = {}
-
-        for k, v in parse_qs(url[1]).items():
-            data[k] = v[0]
-
-        self.location(url[0], data=data).page.redirect_li_space()
-        self.life_insurances.go(data={'url_suivant': 'PARTIEGENERIQUEB2C'})
+        self.go_post(account.url)
 
         data = {'url_suivant': 'SITUATIONCONTRATB2C', 'strNumAdh': ''}
-
-        for attr, value in self.page.get_lf_attributes(lfid).iteritems():
-            data[attr] = value
+        data.update(self.page.get_lf_attributes(account.id))
 
         self.life_insurances.go(data=data)
 
     @need_login
-    def get_history(self, account, coming=False):
+    def get_history(self, account, coming=False, retry_li=True):
+        self._quit_li_space()
+
+        self.update_accounts_list(False)
+        account = self.accounts_list[account.id]
+
         if account.url is None:
             return []
 
@@ -165,12 +188,24 @@ class HSBC(LoginBrowser):
 
         if account.type == Account.TYPE_LIFE_INSURANCE:
             if coming is True:
-                raise NotImplementedError()
+                return []
 
             try:
-                self._go_to_life_insurance(account.id)
-            except (XMLSyntaxError, HTTPNotFound, AccountNotFound):
+                self._go_to_life_insurance(account)
+            except (XMLSyntaxError, HTTPNotFound):
                 self._quit_li_space()
+                return []
+            except AccountNotFound:
+                self.go_post(self.js_url)
+
+                # often if we visit life insurance subsite multiple times too quickly, the site just returns an error
+                # so we just retry (we might relogin...)
+                # TODO find out how to avoid the error, or avoid relogin
+                if retry_li:
+                    self.logger.warning('life insurance seems unavailable for account %s', account.id)
+                    return self.get_history(account, coming, False)
+
+                self.logger.error('life insurance seems unavailable for account %s', account.id)
                 return []
 
             self.life_insurances.go(data={'url_suivant': 'HISTORIQUECONTRATB2C', 'strMonnaie': 'EURO'})
@@ -182,7 +217,8 @@ class HSBC(LoginBrowser):
             return history
 
         try:
-            self.location(self.accounts_list[account.id].url)
+            #self.location(self.accounts_list[account.id].url)
+            self.go_post(self.accounts_list[account.id].url)
         except HTTPNotFound: # sometime go to hsbc life insurance space do logout
             self.app_gone = True
             self.do_logout()
@@ -229,14 +265,30 @@ class HSBC(LoginBrowser):
         for tr in self.page.get_history():
             yield tr
 
-    def get_investments(self, account):
+    def get_investments(self, account, retry_li=True):
         if account.type != Account.TYPE_LIFE_INSURANCE:
             raise NotImplementedError()
 
+        self._quit_li_space()
+
+        self.update_accounts_list(False)
+        account = self.accounts_list[account.id]
+
         try:
-            self._go_to_life_insurance(account.id)
-        except (XMLSyntaxError, HTTPNotFound, AccountNotFound):
+            self._go_to_life_insurance(account)
+        except (XMLSyntaxError, HTTPNotFound):
             self._quit_li_space()
+            return []
+        except AccountNotFound:
+            self.go_post(self.js_url)
+
+            # often if we visit life insurance subsite multiple times too quickly, the site just returns an error
+            # retry (we might relogin...)
+            if retry_li:
+                self.logger.warning('life insurance seems unavailable for account %s', account.id)
+                return self.get_investments(account, False)
+
+            self.logger.error('life insurance seems unavailable for account %s', account.id)
             return []
 
         investments = [i for i in self.page.iter_investments()]

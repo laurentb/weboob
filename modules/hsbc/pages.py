@@ -17,17 +17,19 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 import re
 from decimal import Decimal
 
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment, AccountNotFound
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.tools.compat import urlparse, parse_qs
+from weboob.tools.compat import urlparse, parse_qs, urljoin
 
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.elements import TableElement, ListElement, ItemElement, method
-from weboob.browser.pages import HTMLPage, LoggedPage, pagination
+from weboob.browser.pages import HTMLPage, LoggedPage, pagination, FormNotFound
 from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, DateGuesser, TableCell, Regexp, \
     Eval, Date
 from weboob.browser.filters.html import Link, XPathNotFound, AbsoluteLink
@@ -48,21 +50,16 @@ class Transaction(FrenchTransaction):
                 ]
 
 
-class AccountsPage(LoggedPage, HTMLPage):
+class FrameContainer(LoggedPage, HTMLPage):
+    # main page, a frameset
     def on_load(self):
         txt = CleanText('//p[@class="debit"]', default='')(self.doc)
         if u"Vos données d'identification (identifiant - code secret) sont incorrectes" in txt:
             raise BrowserIncorrectPassword()
 
     def get_js_url(self):
-        return JSVar(CleanText('//script'), var='url')(self.doc)
-
-    def redirect_li_space(self):
-        form = self.get_form(name='FORM_ERISA')
-
-        form['token'] = JSVar(CleanText('//script'), var='document.FORM_ERISA.token.value')(self.doc)
-
-        form.submit()
+        # look for frame url in the top page
+        return urljoin(self.url, JSVar(CleanText('//script'), var='url')(self.doc))
 
     def get_frame(self):
         try:
@@ -71,6 +68,10 @@ class AccountsPage(LoggedPage, HTMLPage):
             return None
         else:
             return a.attrib['src']
+
+
+class AccountsPage(LoggedPage, HTMLPage):
+    is_here = '//h1[text()="Synthèse"]'
 
     @method
     class iter_accounts(ListElement):
@@ -174,6 +175,8 @@ class Pagination(object):
 
 
 class CBOperationPage(LoggedPage, HTMLPage):
+    is_here = '//h1[text()="Historique des opérations"]'
+
     def get_params(self, url):
         parsed = urlparse(url)
         base_url, params = parsed.path, parse_qs(parsed.query)
@@ -197,6 +200,8 @@ class CBOperationPage(LoggedPage, HTMLPage):
 
 
 class CPTOperationPage(LoggedPage, HTMLPage):
+    is_here = '''//h1[text()="Historique des opérations"] and //h2[text()="Recherche d'opération"]'''
+
     def get_history(self):
         if self.doc.xpath('//form[@name="FORM_SUITE"]'):
             m = re.search('suite[\s]+=[\s]+([\w]+)', CleanText().filter(self.doc.xpath('//script[contains(text(), "var suite")]')))
@@ -209,9 +214,10 @@ class CPTOperationPage(LoggedPage, HTMLPage):
                 continue
 
             first_history = None
-            for m in re.finditer(r"CL\((\d+),'(.+)','(.+)','(.+)','([\d -\.,]+)',('([\d -\.,]+)',)?'\d+','\d+','[\w\s]+'\);", script.text, flags=re.MULTILINE):
+            for m in re.finditer(r"CL\((\d+),'(.+)','(.+)','(.+)','([\d -\.,]+)',('([\d -\.,]+)',)?'\d+','\d+','[\w\s]+'\);", script.text, flags=re.MULTILINE | re.UNICODE):
                 op = Transaction()
-                op.parse(date=m.group(3), raw=re.sub(u'[ ]+', u' ', m.group(4).replace(u'\n', u' ')))
+                raw = re.sub(u'[ ]+', u' ', m.group(4).replace(u'\n', u' ').replace(r"\'", "'"))
+                op.parse(date=m.group(3), raw=raw)
                 op.set_amount(m.group(5))
                 op._coming = (re.match(r'\d+/\d+/\d+', m.group(2)) is None)
                 if first_history is None:
@@ -277,11 +283,34 @@ class LoginPage(HTMLPage):
         form.submit()
 
 
+## Life insurance subsite
+
 class LITransaction(FrenchTransaction):
     PATTERNS = [(re.compile(u'^(?P<text>Arbitrage.*)'), FrenchTransaction.TYPE_ORDER),
                 (re.compile(u'^(?P<text>Versement.*)'),  FrenchTransaction.TYPE_DEPOSIT),
                 (re.compile(r'^(?P<text>.*)'), FrenchTransaction.TYPE_BANK),
                ]
+
+
+class LifeInsurancePortal(LoggedPage, HTMLPage):
+    def is_here(self):
+        try:
+            self.get_form(name='FORM_ERISA')
+        except FormNotFound:
+            return False
+        return True
+
+    def on_load(self):
+        form = self.get_form(name='FORM_ERISA')
+        form['token'] = JSVar(CleanText('//script'), var='document.FORM_ERISA.token.value')(self.doc)
+        form.submit()
+
+
+class LifeInsuranceMain(LoggedPage, HTMLPage):
+    def on_load(self):
+        form = self.get_form(name='formAccueil')
+        form.url = 'https://assurances.hsbc.fr/navigation'
+        form.submit()
 
 
 class LifeInsurancesPage(LoggedPage, HTMLPage):
@@ -341,16 +370,13 @@ class LifeInsurancesPage(LoggedPage, HTMLPage):
         try:
             values = Regexp(Link('//a[contains(., "%s")]' % lfid[:-3].lstrip('0')), r'\((.*?)\)')(self.doc).replace(' ', '').replace('\'', '').split(',')
         except XPathNotFound:
-            self.logger.error('cannot find account id %s on life insurance site', lfid)
-            raise AccountNotFound()
+            raise AccountNotFound('cannot find account id %s on life insurance site' % lfid)
         keys = Regexp(CleanText('//script'), r'consultationContrat\((.*?)\)')(self.doc).replace(' ', '').split(',')
 
-        for i, key in enumerate(keys):
-            attributes[key] = values[i]
-
+        attributes = dict(zip(keys, values))
         return attributes
 
-    def disconnect_order(self):
-        form = self.get_form(name='formDeconnexion')
+    def disconnect(self):
+        self.get_form(name='formDeconnexion').submit()
 
-        form.submit()
+##
