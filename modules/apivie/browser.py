@@ -50,7 +50,7 @@ class ApivieBrowser(LoginBrowser):
 
         self.page.login(self.username, self.password)
 
-        if self.login.is_here():
+        if self.login.is_here() or self.page is None:
             raise BrowserIncorrectPassword()
 
     @need_login
