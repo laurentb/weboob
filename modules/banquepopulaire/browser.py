@@ -345,8 +345,6 @@ class BanquePopulaire(LoginBrowser):
                 self.logged = True
             elif self.natixis_page.is_here():
                 self.page.submit_form()
-                if not self.etna.is_here():
-                    raise BrowserUnavailable
 
             if self.natixis_error_page.is_here():
                 self.logger.warning("natixis site doesn't work")
