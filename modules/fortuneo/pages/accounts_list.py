@@ -92,11 +92,12 @@ class PeaHistoryPage(LoggedPage, HTMLPage):
                 inv.diff = CleanDecimal(None, replace_dots=True).filter(diff)
 
             yield inv
-        inv = Investment()
-        inv.code = "XX-liquidity"
-        inv.label = "Liquidités"
-        inv.valuation = CleanDecimal(None, True).filter(self.doc.xpath('//*[@id="valorisation_compte"]/table/tr[3]/td[2]'))
-        yield inv
+        if not account.type == account.TYPE_MARKET:
+            inv = Investment()
+            inv.code = "XX-liquidity"
+            inv.label = "Liquidités"
+            inv.valuation = CleanDecimal(None, True).filter(self.doc.xpath('//*[@id="valorisation_compte"]/table/tr[3]/td[2]'))
+            yield inv
 
     def parse_decimal(self, string, replace_dots):
         string = CleanText(None).filter(string)
