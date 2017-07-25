@@ -212,9 +212,8 @@ class BanquePopulaire(LoginBrowser):
         accounts = []
 
         for a in self.page.iter_accounts(next_pages):
-            if get_iban:
-                accounts.append(a)
-            else:
+            accounts.append(a)
+            if not get_iban:
                 yield a
 
         while len(next_pages) > 0:
@@ -233,9 +232,8 @@ class BanquePopulaire(LoginBrowser):
             self.location('/cyber/internet/ContinueTask.do', data=next_page)
 
             for a in self.page.iter_accounts(next_pages):
-                if get_iban:
-                    accounts.append(a)
-                else:
+                accounts.append(a)
+                if not get_iban:
                     yield a
 
         if get_iban:

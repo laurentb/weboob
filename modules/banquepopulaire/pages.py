@@ -545,23 +545,23 @@ class AccountsFullPage(AccountsPage):
 
 
 class CardsPage(LoggedPage, MyHTMLPage):
-    COL_ID = 0
-    COL_TYPE = 1
-    COL_LABEL = 2
-    COL_DATE = 3
-    COL_AMOUNT = 4
+    COL_ID = 1
+    COL_TYPE = 2
+    COL_LABEL = 3
+    COL_DATE = 4
+    COL_AMOUNT = 5
 
     def iter_accounts(self, next_pages):
         params = self.get_params()
 
         account = None
         currency = None
-        for th in self.doc.xpath('//table[@id="TabCtes"]//thead//th'):
+        for th in self.doc.xpath('//table[@id="tbl1"]//thead//th'):
             m = re.match('.*\((\w+)\)$', th.text)
             if m and currency is None:
                 currency = Account.get_currency(m.group(1))
 
-        for tr in self.doc.xpath('//table[@id="TabCtes"]/tbody/tr'):
+        for tr in self.doc.xpath('//table[@id="tbl1"]/tbody/tr'):
             cols = tr.xpath('./td')
 
             id = CleanText(None).filter(cols[self.COL_ID])
