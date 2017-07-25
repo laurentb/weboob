@@ -217,14 +217,14 @@ class HSBC(LoginBrowser):
             return history
 
         try:
-            #self.location(self.accounts_list[account.id].url)
             self.go_post(self.accounts_list[account.id].url)
-        except HTTPNotFound: # sometime go to hsbc life insurance space do logout
+        # sometime go to hsbc life insurance space do logout
+        except HTTPNotFound:
             self.app_gone = True
             self.do_logout()
             self.do_login()
 
-        #If we relogin on hsbc, all link have change
+        # If we relogin on hsbc, all link have change
         if self.app_gone:
             self.app_gone = False
             self.update_accounts_list()

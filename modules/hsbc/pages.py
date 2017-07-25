@@ -143,7 +143,7 @@ class RibPage(LoggedPage, HTMLPage):
 
     def link_rib(self, accounts):
         for id, acc in accounts.items():
-            if acc.iban or not acc.type is Account.TYPE_CHECKING:
+            if acc.iban or acc.type is not Account.TYPE_CHECKING:
                 continue
             digit_id = ''.join(re.findall('\d', id))
             if digit_id in CleanText('//div[@class="RIB_content"]')(self.doc):
@@ -151,7 +151,7 @@ class RibPage(LoggedPage, HTMLPage):
 
     def get_rib(self, accounts):
         self.link_rib(accounts)
-        for nb in range(len(self.doc.xpath('//select/option')) -1):
+        for nb in range(len(self.doc.xpath('//select/option')) - 1):
             form = self.get_form(name="FORM_RIB")
             form['index_rib'] = str(nb+1)
             form.submit()
@@ -191,7 +191,8 @@ class CBOperationPage(LoggedPage, HTMLPage):
         item_xpath = '//table//tr'
 
         class item(Transaction.TransactionElement):
-            condition = lambda self: len(self.el.xpath('./td')) >= 4
+            def condition(self):
+                return len(self.el.xpath('./td')) >= 4
 
             obj_rdate = Transaction.Date(TableCell('date'))
 
@@ -329,8 +330,7 @@ class LifeInsurancesPage(LoggedPage, HTMLPage):
 
             obj_raw = LITransaction.Raw(CleanText(TableCell('label')))
             obj_date = Date(CleanText(TableCell('date')))
-            obj_amount = Transaction.Amount(TableCell('amount'), TableCell('gross_amount'), replace_dots=False) #CleanDecimal(TableCell('amount'))
-
+            obj_amount = Transaction.Amount(TableCell('amount'), TableCell('gross_amount'), replace_dots=False)
 
     @method
     class iter_investments(TableElement):
@@ -358,7 +358,8 @@ class LifeInsurancesPage(LoggedPage, HTMLPage):
                 return Regexp(Link('.//a'), r'javascript:openSupportPerformanceWindow\(\'(.*?)\', \'(.*?)\'\)', '\\2')(self)
 
             def obj_quantity(self):
-                return CleanDecimal(TableCell('quantity'), default=CleanDecimal(TableCell('support_value'))(self))(self) # default for euro funds
+                # default for euro funds
+                return CleanDecimal(TableCell('quantity'), default=CleanDecimal(TableCell('support_value'))(self))(self)
 
             def condition(self):
                 return len(self.el.xpath('.//td')) > 1
