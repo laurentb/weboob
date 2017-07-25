@@ -451,7 +451,7 @@ class AccountsPage(LoggedPage, MyHTMLPage):
         params = self.get_params()
         actions = self.get_button_actions()
 
-        for div in self.doc.getroot().cssselect('div.btit'):
+        for div in self.doc.xpath('//div[has-class("btit")]'):
             if div.text in (None, u'Synthèse'):
                 continue
             account_type = self.ACCOUNT_TYPES.get(div.text.strip(), Account.TYPE_UNKNOWN)
@@ -462,11 +462,10 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                 continue
 
             # Go to the full list of this kind of account, if any.
-            btn = div.getparent().xpath('.//button/span[text()="Suite"]')
+            btn = div.getparent().xpath('.//button[span[text()="Suite"]]')
             if len(btn) > 0:
-                btn = btn[0].getparent()
                 _params = params.copy()
-                _params.update(actions[btn.attrib['id']])
+                _params.update(actions[btn[0].attrib['id']])
                 next_pages.append(_params)
                 continue
 
@@ -534,11 +533,10 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                 yield account
 
         # Needed to preserve navigation.
-        btn = self.doc.xpath('.//button/span[text()="Retour"]')
+        btn = self.doc.xpath('.//button[span[text()="Retour"]]')
         if len(btn) > 0:
-            btn = btn[0].getparent()
             _params = params.copy()
-            _params.update(actions[btn.attrib['id']])
+            _params.update(actions[btn[0].attrib['id']])
             self.browser.open('/cyber/internet/ContinueTask.do', data=_params)
 
 
@@ -597,7 +595,7 @@ class CardsPage(LoggedPage, MyHTMLPage):
                 self.logger.warning('Unable to parse date %r' % date_col)
                 continue
 
-            date = datetime.date(*reversed(map(int, m.groups())))
+            date = datetime.date(*[int(c) for c in m.groups()][::-1])
             if date.year < 100:
                 date = date.replace(year=date.year+2000)
 
@@ -615,12 +613,11 @@ class CardsPage(LoggedPage, MyHTMLPage):
             yield account
 
         # Needed to preserve navigation.
-        btn = self.doc.xpath('.//button/span[text()="Retour"]')
+        btn = self.doc.xpath('.//button[span[text()="Retour"]]')
         if len(btn) > 0:
-            btn = btn[0].getparent()
             actions = self.get_button_actions()
             _params = params.copy()
-            _params.update(actions[btn.attrib['id']])
+            _params.update(actions[btn[0].attrib['id']])
             self.browser.open('/cyber/internet/ContinueTask.do', data=_params)
 
 

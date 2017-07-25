@@ -27,7 +27,7 @@ from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.browser.exceptions import HTTPNotFound, ServerError
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.capabilities.bank import Account
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable, find_object
 
 from .pages import (
     LoggedOut,
@@ -71,7 +71,7 @@ def retry(exc_check, tries=4):
                     browser.logger.debug('%s raised, retrying', exc)
                     continue
 
-                if not hasattr(ret, '__iter__'):
+                if not (hasattr(ret, '__next__') or hasattr(ret, 'next')):
                     return ret  # simple value, no need to retry on items
                 return iter_retry(cb, value=ret, remaining=i, exc_check=exc_check, logger=browser.logger)
 
@@ -260,11 +260,7 @@ class BanquePopulaire(LoginBrowser):
     @retry(LoggedOut)
     @need_login
     def get_account(self, id):
-        for a in self.get_accounts_list(False):
-            if a.id == id:
-                return a
-
-        return None
+        return find_object(self.get_accounts_list(False), id=id)
 
     @retry(LoggedOut)
     @need_login
