@@ -43,7 +43,7 @@ def rssid(entry):
 
     ind = m.group(1).replace('Post', 'Board')[0]
 
-    for url_re, id_re in REGEXPS.iteritems():
+    for url_re, id_re in REGEXPS.items():
         if id_re[0] != ind:
             continue
 
@@ -61,7 +61,7 @@ def id2url(id):
     if not m:
         return None
 
-    for url_re, id_re in REGEXPS.iteritems():
+    for url_re, id_re in REGEXPS.items():
         if id_re[0] != m.group(1):
             continue
 
@@ -72,7 +72,7 @@ def id2url(id):
 
 
 def url2id(url):
-    for url_re, id_re in REGEXPS.iteritems():
+    for url_re, id_re in REGEXPS.items():
         m = re.match(f2re(url_re), url)
         if not m:
             continue

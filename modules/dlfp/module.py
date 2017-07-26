@@ -27,6 +27,7 @@ from weboob.tools.newsfeed import Newsfeed
 from weboob.tools.value import Value, ValueBool, ValueBackendPassword
 from weboob.capabilities.messages import CapMessages, CapMessagesPost, Message, Thread, CantSendMessage
 from weboob.capabilities.content import CapContent, Content
+from weboob.tools.compat import basestring
 
 from .browser import DLFP
 from .tools import rssid, id2url
@@ -80,7 +81,7 @@ class DLFPModule(Module, CapMessages, CapMessagesPost, CapContent):
 
     def iter_threads(self):
         whats = set()
-        for param, url in self.FEEDS.iteritems():
+        for param, url in self.FEEDS.items():
             if self.config[param].get():
                 whats.add(url)
 

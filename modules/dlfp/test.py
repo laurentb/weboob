@@ -28,12 +28,12 @@ class DLFPTest(BackendTest):
     MODULE = 'dlfp'
 
     def __init__(self, *args, **kwargs):
+        super(DLFPTest, self).__init__(*args, **kwargs)
         DLFP.DOMAIN = 'alpha.linuxfr.org'
-        BackendTest.__init__(self, *args, **kwargs)
 
     def test_new_messages(self):
         feeds = {}
-        for name, feed in self.backend.FEEDS.iteritems():
+        for name, feed in self.backend.FEEDS.items():
             feeds[name] = feed.replace('//linuxfr.org', '//alpha.linuxfr.org')
         self.backend.FEEDS = feeds
 

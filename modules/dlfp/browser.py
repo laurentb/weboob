@@ -77,6 +77,7 @@ class DLFP(LoginBrowser):
 
         return url, _id
 
+    @need_login
     def get_wiki_content(self, _id):
         url, _id = self.parse_id('W.%s' % _id)
         if url is None:
@@ -170,9 +171,6 @@ class DLFP(LoginBrowser):
             content.id = _id
         return content
 
-    def _is_comment_submit_form(self, form):
-        return 'comment_new' in form.action
-
     @need_login
     def post_comment(self, thread, reply_id, title, message):
         url = id2url(thread)
@@ -184,17 +182,16 @@ class DLFP(LoginBrowser):
         self.location(self.page.get_post_comment_url())
         assert self.new_comment.is_here()
 
-        self.select_form(predicate=self._is_comment_submit_form)
-        self.set_all_readonly(False)
+        form = self.page.get_form(xpath='//form[contains(@action,"comment_new")]')
         if title is not None:
-            self['comment[title]'] = title.encode('utf-8')
-        self['comment[wiki_body]'] = message.encode('utf-8')
+            form['comment[title]'] = title.encode('utf-8')
+        form['comment[wiki_body]'] = message.encode('utf-8')
         if int(reply_id) > 0:
-            self['comment[parent_id]'] = str(reply_id)
-        self['commit'] = 'Poster le commentaire'
+            form['comment[parent_id]'] = str(reply_id)
+        form['commit'] = 'Poster le commentaire'
 
         try:
-            self.submit()
+            form.submit()
         except HTTPError as e:
             raise CantSendMessage('Unable to send message to %s.%s: %s' % (thread, reply_id, e))
 
@@ -222,7 +219,7 @@ class DLFP(LoginBrowser):
         self._token = self.page.doc.xpath('//input[@name="authenticity_token"]')
 
     def is_logged(self):
-        return (self.username is None or (self.page and self.page.is_logged()))
+        return (self.username is None or (self.page and self.page.logged))
 
     def close_session(self):
         if self._token:

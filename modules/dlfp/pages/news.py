@@ -22,6 +22,7 @@ from datetime import datetime
 import lxml.html
 
 from weboob.tools.date import local2utc
+from weboob.tools.compat import unicode
 
 from ..tools import url2id
 from .index import DLFPPage
@@ -55,7 +56,7 @@ class Content(object):
 
 class Comment(Content):
     def __init__(self, article, div, reply_id):
-        Content.__init__(self, article.browser)
+        super(Comment, self).__init__(article.browser)
         self.reply_id = reply_id
         self.signature = u''
         self.preurl = article.url
@@ -90,8 +91,8 @@ class Comment(Content):
             pass
         else:
             content.remove(signature)
-            self.signature = lxml.html.tostring(signature)
-        self.body = lxml.html.tostring(content)
+            self.signature = lxml.html.tostring(signature).decode('utf-8')
+        self.body = lxml.html.tostring(content).decode('utf-8')
 
         self.score = int(self.div.find('p').xpath('.//span[has-class("score")]')[0].text)
         forms = self.div.find('footer').xpath('.//form[has-class("button_to")]')
@@ -113,7 +114,7 @@ class Article(Content):
     TAGGABLE = True
 
     def __init__(self, browser, url, tree):
-        Content.__init__(self, browser)
+        super(Article, self).__init__(browser)
         self.url = url
         self.id = url2id(self.url)
 
@@ -130,7 +131,7 @@ class Article(Content):
         else:
             self.author = unicode(a.text)
             self.username = unicode(a.attrib['href'].split('/')[2])
-        self.body = lxml.html.tostring(tree.xpath('.//div[has-class("content")]')[0])
+        self.body = lxml.html.tostring(tree.xpath('.//div[has-class("content")]')[0]).decode('utf-8')
         try:
             self.date = datetime.strptime(header.xpath('.//time')[0].attrib['datetime'].split('+')[0],
                                           '%Y-%m-%dT%H:%M:%S')
@@ -157,7 +158,7 @@ class Article(Content):
 class CommentPage(DLFPPage):
     def get_comment(self):
         article = Article(self.browser, self.url, None)
-        return Comment(article, self.doc.xpath('li[has-class("comment")]')[0], 0)
+        return Comment(article, self.doc.xpath('//li[has-class("comment")]')[0], 0)
 
 
 class ContentPage(DLFPPage):
@@ -192,7 +193,7 @@ class ContentPage(DLFPPage):
         return self.article
 
     def get_post_comment_url(self):
-        return self.doc.xpath('p[@id="send-comment"]')[0].find('a').attrib['href']
+        return self.doc.xpath('//p[@id="send-comment"]')[0].find('a').attrib['href']
 
     def get_tag_url(self):
         return self.doc.xpath('//div[has-class("tag_in_place")]')[0].find('a').attrib['href']
@@ -203,13 +204,10 @@ class NewCommentPage(DLFPPage):
 
 
 class NewTagPage(DLFPPage):
-    def _is_tag_form(self, form):
-        return form.action.endswith('/tags')
-
     def tag(self, tag):
-        self.browser.select_form(predicate=self._is_tag_form)
-        self.browser['tags'] = tag
-        self.browser.submit()
+        form = self.get_form(xpath='//form[ends-with(@action,"/tags")]')
+        form['tags'] = tag
+        form.submit()
 
 
 class NodePage(DLFPPage):
