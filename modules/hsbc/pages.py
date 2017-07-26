@@ -104,6 +104,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                     ('ely. retraite', Account.TYPE_LIFE_INSURANCE),
                     ('lae option assurance', Account.TYPE_LIFE_INSURANCE),
                     ('carte ', Account.TYPE_CARD),
+                    ('plan assur. innovat.', Account.TYPE_LIFE_INSURANCE),
                 ]
 
                 def filter(self, label):
@@ -302,6 +303,7 @@ class LifeInsurancePortal(LoggedPage, HTMLPage):
         return True
 
     def on_load(self):
+        self.logger.debug('automatically following form')
         form = self.get_form(name='FORM_ERISA')
         form['token'] = JSVar(CleanText('//script'), var='document.FORM_ERISA.token.value')(self.doc)
         form.submit()
@@ -309,6 +311,7 @@ class LifeInsurancePortal(LoggedPage, HTMLPage):
 
 class LifeInsuranceMain(LoggedPage, HTMLPage):
     def on_load(self):
+        self.logger.debug('automatically following form')
         form = self.get_form(name='formAccueil')
         form.url = 'https://assurances.hsbc.fr/navigation'
         form.submit()

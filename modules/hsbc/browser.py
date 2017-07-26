@@ -231,7 +231,7 @@ class HSBC(LoginBrowser):
             self.location(self.accounts_list[account.id].url)
 
         if self.page is None:
-            return
+            return []
 
         if self.cbPage.is_here():
             guesser = LinearDateGuesser(date_max_bump=timedelta(45))
