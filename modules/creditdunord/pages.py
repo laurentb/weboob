@@ -182,6 +182,7 @@ class AccountsPage(LoggedPage, CDNBasePage):
 
     TYPES = {u'CARTE':               Account.TYPE_CARD,
              u'COMPTE COURANT':      Account.TYPE_CHECKING,
+             u'CPT COURANT':         Account.TYPE_CHECKING,
              u'COMPTE ÉPARGNE':      Account.TYPE_SAVINGS,
              u'COMPTE EPARGNE':      Account.TYPE_SAVINGS,
              u'COMPTE SUR LIVRET':   Account.TYPE_SAVINGS,
