@@ -172,6 +172,7 @@ class Application(object):
         logging_options.add_option('-v', '--verbose', action='store_true', help='display info messages')
         logging_options.add_option('--logging-file', action='store', type='string', dest='logging_file', help='file to save logs')
         logging_options.add_option('-a', '--save-responses', action='store_true', help='save every response')
+        logging_options.add_option('--export-session', action='store_true', help='log browser session cookies after login')
         self._parser.add_option_group(logging_options)
         self._parser.add_option('--shell-completion', action='store_true', help=optparse.SUPPRESS_HELP)
         self._is_default_count = True
@@ -237,6 +238,9 @@ class Application(object):
 
         if self.config.get('use_nss', default=False):
             self.setup_nss()
+
+        if self.config.get('export_session', default=False):
+            log_settings['export_session'] = True
 
     def main(self, argv):
         """
@@ -388,6 +392,9 @@ class Application(object):
             print('Debug data will be saved in this directory: %s' % responses_dirname, file=self.stderr)
             log_settings['responses_dirname'] = responses_dirname
             handlers.append(self.create_logging_file_handler(os.path.join(responses_dirname, 'debug.log')))
+
+        if self.options.export_session:
+            log_settings['export_session'] = True
 
         # file logger
         if self.options.logging_file:

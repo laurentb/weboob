@@ -753,7 +753,8 @@ def need_login(func):
         if (not hasattr(browser, 'logged') or (hasattr(browser, 'logged') and not browser.logged)) and \
                 (not hasattr(browser, 'page') or browser.page is None or not browser.page.logged):
             browser.do_login()
-            browser.logger.debug('logged in with session: %s', json.dumps(browser.export_session()))
+            if browser.logger.settings.get('export_session'):
+                browser.logger.debug('logged in with session: %s', json.dumps(browser.export_session()))
         return func(browser, *args, **kwargs)
 
     return inner
