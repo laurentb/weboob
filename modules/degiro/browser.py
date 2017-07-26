@@ -103,10 +103,14 @@ class DegiroBrowser(LoginBrowser):
             self.fetch_products(list(self.page.get_products()))
 
             transaction_investments = list(self.page.iter_transaction_investments())
-
             self.history.go(fromDate=fromDate.strftime(dateFmt), toDate=toDate.strftime(dateFmt),
                             accountId=self.intAccount, sessionId=self.sessionId)
-            trs = list(self.page.iter_history(transaction_investments=NoCopy(transaction_investments)))
+
+            # the list can be pretty big, and the tr list too
+            # avoid doing O(n*n) operation
+            trinv_dict = {(inv.code, inv._action, inv._datetime): inv for inv in transaction_investments}
+
+            trs = list(self.page.iter_history(transaction_investments=NoCopy(trinv_dict)))
             self.trs[account.id] = trs
         return self.trs[account.id]
 

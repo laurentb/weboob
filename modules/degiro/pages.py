@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 import re
 
@@ -94,8 +95,8 @@ class InvestmentPage(LoggedPage, JsonPage):
 
 
 class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile(u'^Deposit.*'), FrenchTransaction.TYPE_DEPOSIT),
-                (re.compile(u'^(Buy.*|Sell.*)'), FrenchTransaction.TYPE_ORDER),
+    PATTERNS = [(re.compile('^(Deposit|Versement)'), FrenchTransaction.TYPE_DEPOSIT),
+                (re.compile('^(Buy|Sell|Achat|Vente)'), FrenchTransaction.TYPE_ORDER),
                 (re.compile(u'^(?P<text>.*)'), FrenchTransaction.TYPE_BANK),
                ]
 
@@ -116,9 +117,27 @@ class HistoryPage(LoggedPage, JsonPage):
 
             obj__datetime = Dict('date')
 
+            def obj__action(self):
+                if not Field('_isin')(self):
+                    return
+
+                label = Field('raw')(self).split()[0]
+                return {
+                    'Buy': 'B',
+                    'Sell': 'S',
+                    'Achat': 'B',
+                    'Vente': 'S',
+                    'Taxe': None,
+                    # make sure we don't miss transactions labels specifying an ISIN
+                }[label]
+
             def obj_investments(self):
-                if Field('_isin')(self):
-                    return [inv for inv in Env('transaction_investments')(self).v if inv.code == Field('_isin')(self) and inv._action == Field('raw')(self)[0] and inv._datetime == Field('_datetime')(self)]
+                d = Env('transaction_investments')(self).v
+                isin = Field('_isin')(self)
+                action = Field('_action')(self)
+                if isin and action:
+                    k = (isin, action, Field('_datetime')(self))
+                    return [d[k]]
                 return []
 
     @method
