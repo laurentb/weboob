@@ -320,9 +320,9 @@ class ItemElement(with_metaclass(_ItemElementMeta, AbstractElement)):
     def handle_attr(self, key, func):
         try:
             value = self.use_selector(func, key=key)
-        except SkipItem:
+        except SkipItem as e:
             # Help debugging as tracebacks do not give us the key
-            self.logger.debug("Attribute %s raises a SkipItem")
+            self.logger.debug("Attribute %s raises a %r", key, e)
             raise
         except Exception as e:
             # If we are here, we have probably a real parsing issue
