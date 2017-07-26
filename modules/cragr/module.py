@@ -125,7 +125,7 @@ class CragrModule(Module, CapBankTransferAddRecipient, CapContact, CapProfile):
     def iter_coming(self, account):
         if account.type == Account.TYPE_CARD:
             return self._history_filter(account, True)
-        raise []
+        return []
 
     def iter_investment(self, account):
         for inv in self.browser.iter_investment(account):
