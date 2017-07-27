@@ -116,7 +116,7 @@ class CmsoParBrowser(LoginBrowser):
             'errorUri': '%s/auth/errorauthn' % self.BASEURL
         }
 
-        self.location('/securityapi/tokens', data=data)
+        self.login.go(data=data)
 
         if self.logout.is_here():
             raise BrowserIncorrectPassword
