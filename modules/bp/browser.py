@@ -34,6 +34,7 @@ from .pages import (
 from .pages.accounthistory import LifeInsuranceInvest, LifeInsuranceHistory, LifeInsuranceHistoryInv, RetirementHistory, SavingAccountSummary
 from .pages.accountlist import MarketLoginPage, UselessPage
 from .pages.pro import RedirectPage, ProAccountsList, ProAccountHistory, DownloadRib, RibPage
+from .pages.mandate import MandateAccountsList, PreMandate, PreMandateBis, MandateLife, MandateMarket
 from .linebourse_browser import LinebourseBrowser
 
 from weboob.capabilities.bank import TransferError, Account, Recipient, AddRecipientStep
@@ -140,6 +141,12 @@ class BPBrowser(LoginBrowser, StatesMixin):
     login_url = 'https://voscomptesenligne.labanquepostale.fr/wsost/OstBrokerWeb/loginform?TAM_OP=login&' \
             'ERROR_CODE=0x00000000&URL=%2Fvoscomptes%2FcanalXHTML%2Fidentif.ea%3Forigin%3Dparticuliers'
 
+    pre_mandate = URL(r'/voscomptes/canalXHTML/sso/commun/init-integration.ea\?partenaire=procapital', PreMandate)
+    pre_mandate_bis = URL(r'https://www.gestion-sous-mandat.labanquepostale-gestionprivee.fr/lbpgp/secure/main.html', PreMandateBis)
+    mandate_accounts_list = URL(r'https://www.gestion-sous-mandat.labanquepostale-gestionprivee.fr/lbpgp/secure/accounts_list.html', MandateAccountsList)
+    mandate_market = URL(r'https://www.gestion-sous-mandat.labanquepostale-gestionprivee.fr/lbpgp/secure_account/selectedAccountDetail.html', MandateMarket)
+    mandate_life = URL(r'https://www.gestion-sous-mandat.labanquepostale-gestionprivee.fr/lbpgp/secure_main/asvContratClient.html', MandateLife)
+
     accounts = None
 
     def __init__(self, *args, **kwargs):
@@ -191,6 +198,11 @@ class BPBrowser(LoginBrowser, StatesMixin):
                 for account in self.page.iter_accounts():
                     accounts.append(account)
 
+                if self.page.has_mandate_management_space:
+                    self.location(self.page.mandate_management_space_link())
+                    for mandate_account in self.page.iter_accounts():
+                        accounts.append(mandate_account)
+
             self.accounts = accounts
 
             # if we are sure there is no accounts on the all visited pages,
@@ -202,6 +214,10 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def get_history(self, account):
+        # TODO scrap pdf to get history of mandate accounts
+        if 'gestion-sous-mandat' in account.url:
+            return []
+
         if account.type in (account.TYPE_PEA, account.TYPE_MARKET):
             self.go_linebourse(account)
 
@@ -249,6 +265,9 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def get_coming(self, account):
+        if 'gestion-sous-mandat' in account.url:
+            return []
+
         transactions = list(self._get_coming_transactions(account))
 
         for tr in self.iter_card_transactions(account):
@@ -290,6 +309,9 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def iter_investment(self, account):
+        if 'gestion-sous-mandat' in account.url:
+            return self.location(account.url).page.iter_investments()
+
         if account.type in (account.TYPE_PEA, account.TYPE_MARKET):
             self.go_linebourse(account)
             return self.linebourse.iter_investment(account.id)

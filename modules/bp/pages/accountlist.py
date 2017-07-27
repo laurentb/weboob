@@ -47,6 +47,13 @@ class AccountList(LoggedPage, MyHTMLPage):
     def no_accounts(self):
         return len(self.doc.xpath('//iframe[contains(@src, "/comptes_contrats/sans_")]')) > 0
 
+    @property
+    def has_mandate_management_space(self):
+        return len(self.doc.xpath(u'//a[@title="Accéder aux Comptes Gérés Sous Mandat"]')) > 0
+
+    def mandate_management_space_link(self):
+        return Link(u'//a[@title="Accéder aux Comptes Gérés Sous Mandat"]')(self.doc)
+
     @method
     class iter_accounts(ListElement):
         item_xpath = u'//ul/li//div[contains(@class, "account-resume")]'
