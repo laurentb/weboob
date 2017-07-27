@@ -182,3 +182,11 @@ class LCLModule(Module, CapBankTransferAddRecipient, CapContact, CapProfile, Cap
             return
 
         return self.browser.open(document.url).content
+
+    def iter_resources(self, objs, split_path):
+        if Account in objs:
+            self._restrict_level(split_path)
+            return self.iter_accounts()
+        if Subscription in objs:
+            self._restrict_level(split_path)
+            return self.iter_subscription()
