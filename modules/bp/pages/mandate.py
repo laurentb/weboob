@@ -23,8 +23,8 @@ import re
 from weboob.browser.pages import LoggedPage, HTMLPage, pagination
 from weboob.browser.elements import TableElement, ItemElement, method
 from weboob.browser.filters.html import Link, Attr
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env,\
-                                            Format, Field, BrowserURL, Currency, TableCell
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, \
+                                            Format, Currency, TableCell
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Account, Investment
 
@@ -75,32 +75,48 @@ class MandateAccountsList(LoggedPage, HTMLPage):
                 return TYPES[CleanText(TableCell('type'))(self)]
 
 
+class Myiter_investments(TableElement):
+    col_isin = 'Code ISIN'
+    col_label = u'Libellé'
+    col_unitvalue = u'Cours'
+    col_valuation = 'Valorisation'
+
+
+class MyInvestItem(ItemElement):
+    klass = Investment
+
+    obj_code = CleanText(TableCell('isin'))
+    obj_label = CleanText(TableCell('label'))
+    obj_quantity = CleanDecimal(TableCell('quantity'), replace_dots=True)
+    obj_unitvalue = CleanDecimal(TableCell('unitvalue'), replace_dots=True)
+    obj_valuation = CleanDecimal(TableCell('valuation'), replace_dots=True)
+
+
 class MandateLife(LoggedPage, HTMLPage):
     @pagination
     @method
-    class iter_investments(TableElement):
-        item_xpath = '//table[@id="asvSupportList"]/tbody/tr'
+    class iter_investments(Myiter_investments):
+        item_xpath = '//table[@id="asvSupportList"]/tbody/tr[count(td)>=5]'
         head_xpath = '//table[@id="asvSupportList"]/thead/tr/th'
 
         next_page = Regexp(Attr('//div[@id="turn_next"]/a', 'onclick'), 'href: "([^"]+)"')
 
-        col_isin = 'Code ISIN'
-        col_label = u'Libellé'
         col_quantity = u'Quantité'
-        col_unitvalue = u'Cours'
-        col_valuation = 'Valorisation'
 
-        class Item(ItemElement):
-            klass = Investment
-
-            obj_code = CleanText(TableCell('isin'))
-            obj_label = CleanText(TableCell('label'))
-            obj_quantity = CleanDecimal(TableCell('quantity'), replace_dots=True)
-            obj_unitvalue = CleanDecimal(TableCell('unitvalue'), replace_dots=True)
-            obj_valuation = CleanDecimal(TableCell('valuation'), replace_dots=True)
+        class Item(MyInvestItem):
+            pass
 
 
 class MandateMarket(LoggedPage, HTMLPage):
     @method
-    class iter_investments(TableElement):
-        pass
+    class iter_investments(Myiter_investments):
+        # FIXME table was empty
+        item_xpath = '//table[@id="valuation"]/tbody/tr[count(td)>=9]'
+        head_xpath = '//table[@id="valuation"]/thead/tr/th'
+
+        col_quantity = u'Qté'
+        col_unitprice = u'Prix moyen'
+        col_share = u'Poids'
+
+        class Item(MyInvestItem):
+            obj_unitprice = CleanDecimal(TableCell('unitprice'), replace_dots=True)
