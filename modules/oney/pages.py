@@ -17,16 +17,19 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
+from decimal import Decimal
 import re
 from io import BytesIO
 
 import requests
 
 from weboob.capabilities.bank import Account
-from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction, sorted_transactions
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
-
-from weboob.browser.pages import HTMLPage, LoggedPage, pagination
+from weboob.tools.date import parse_french_date
+from weboob.browser.pages import HTMLPage, LoggedPage, pagination, XLSPage
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import Env, CleanDecimal, CleanText, Field, Format
 from weboob.browser.filters.html import Attr
@@ -123,11 +126,6 @@ class DetailPage(LoggedPage, HTMLPage):
         return []
 
 
-# this page is to catch account that have unusable information and that we choosed to ignore for now
-class BadAccountPage(LoggedPage, HTMLPage):
-    pass
-
-
 class ClientPage(LoggedPage, HTMLPage):
     is_here = "//div[@id='situation']"
 
@@ -144,6 +142,7 @@ class ClientPage(LoggedPage, HTMLPage):
             obj__num = Env('_num')
             obj_id = Env('id')
             obj_balance = Env('balance')
+            obj__site = 'oney'
 
             def parse(self, el):
                 self.env['label'] = CleanText('./h3/a')(self) or u'Carte Oney'
@@ -169,7 +168,7 @@ class OperationsPage(LoggedPage, HTMLPage):
         def flush(self):
             # As transactions are unordered on the page, we flush only at end
             # the sorted list of them.
-            return sorted(self.objects.itervalues(), key=lambda tr: tr.rdate, reverse=True)
+            return sorted_transactions(self.objects.itervalues())
 
         def store(self, obj):
             # It stores only objects with an ID. To be sure it works, use the
@@ -204,3 +203,44 @@ class OperationsPage(LoggedPage, HTMLPage):
             if options:
                 data = {'numReleve':options[0].values(),'task':'Releve','process':'Releve','eventid':'select','taskid':'','hrefid':'','hrefext':''}
                 return requests.Request("POST", self.page.url, data=data)
+
+
+class CreditHome(LoggedPage, HTMLPage):
+    def get_name(self):
+        # boulanger/auchan/etc.
+        return CleanText('//div[@class="conteneur"]/h1')(self.doc)
+
+
+class CreditAccountPage(LoggedPage, HTMLPage):
+    @method
+    class get_account(ItemElement):
+        klass = Account
+
+        obj_type = Account.TYPE_CARD
+        obj__site = 'other'
+
+        def obj_label(self):
+            return self.page.browser.card_name
+
+        obj_id = CleanText('//tr[td[text()="Mon numéro de compte"]]/td[@class="droite"]', replace=[(' ', '')])
+        obj_balance = CleanDecimal('''//div[@id="mod-paiementcomptant"]//tr[td[starts-with(normalize-space(text()),"Disponible jusqu'au")]]/td[@class="droite"]''')
+        obj_coming = CleanDecimal('''//div[@id="mod-paiementcomptant"]//tr[td[span[contains(text(),"prélevé le")]]]/td[@class="droite"]''', sign=lambda _: -1)
+        # what's the balance anyway?
+        # there's "Paiements au comptant" and sometimes "Retraits d'argent au comptant"
+
+
+class CreditHistory(LoggedPage, XLSPage):
+    # this history doesn't contain the monthly recharges, so the balance isn't consistent with the transactions?
+    def iter_history(self):
+        header, lines = self.doc[0], self.doc[1:][::-1]
+        assert header == ['Date', "Libellé de l'opération ", ' Débit', 'Credit'], "wrong columns"
+
+        for line in lines:
+            tr = Transaction()
+            tr.raw = line[1]
+
+            assert not (line[2] and line[3]), "cannot have both debit and credit"
+            amount = float(line[3] or 0) - abs(float(line[2] or 0))
+            tr.amount = Decimal(str(amount))
+            tr.date = parse_french_date(line[0])
+            yield tr

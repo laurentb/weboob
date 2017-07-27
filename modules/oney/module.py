@@ -31,7 +31,7 @@ __all__ = ['OneyModule']
 
 class OneyModule(Module, CapBank):
     NAME = 'oney'
-    MAINTAINER = u'Vincet Paredes'
+    MAINTAINER = u'Vincent Paredes'
     EMAIL = 'vparedes@budget-insight.com'
     VERSION = '1.3'
     LICENSE = 'AGPLv3+'
