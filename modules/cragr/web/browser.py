@@ -262,8 +262,11 @@ class Cragr(LoginBrowser, StatesMixin):
         return l
 
     @need_login
-    def get_cards_or_card(self, account_id=None):
-        accounts = []
+    def get_card(self, id):
+        return find_object(self.get_cards(), id=id)
+
+    @need_login
+    def get_cards(self):
         if not self.accounts.is_here():
             self.location(self.accounts_url.format(self.sag))
 
@@ -279,12 +282,7 @@ class Cragr(LoginBrowser, StatesMixin):
 
             assert self.cards.is_here() or self.cards2.is_here()
             for account in self.page.get_list():
-                if account_id and account.id == account_id:
-                    return account
-                else:
-                    accounts.append(account)
-
-        return accounts
+                yield account
 
     @need_login
     def get_list(self):
@@ -297,7 +295,7 @@ class Cragr(LoginBrowser, StatesMixin):
         # credit cards
         # reseting location in case of pagination
         self.location(self.accounts_url.format(self.sag))
-        accounts_list.extend(self.get_cards_or_card())
+        accounts_list.extend(self.get_cards())
 
         # loan accounts
         self.location(self.loans_url.format(self.sag))
@@ -357,7 +355,7 @@ class Cragr(LoginBrowser, StatesMixin):
 
         # card accounts need to get an updated link
         if account.type == Account.TYPE_CARD:
-            account = self.get_cards_or_card(account.id)
+            account = self.get_card(account.id)
 
         if account.url and (account.type != Account.TYPE_CARD or not self.page.is_on_right_detail(account)):
             self.location(account.url.format(self.sag))
