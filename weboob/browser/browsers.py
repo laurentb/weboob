@@ -113,13 +113,13 @@ class Browser(object):
         self.responses_dirname = responses_dirname
         self.responses_count = 1
 
+        if isinstance(self.VERIFY, basestring):
+            self.VERIFY = self.asset(self.VERIFY)
+
         self.PROXIES = proxy
         self._setup_session(self.PROFILE)
         self.url = None
         self.response = None
-
-        if isinstance(self.VERIFY, basestring):
-            self.VERIFY = self.asset(self.VERIFY)
 
     def deinit(self):
         self.session.close()
