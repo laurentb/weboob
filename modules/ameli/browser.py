@@ -19,7 +19,7 @@
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
-from .pages import LoginPage, LoginValidationPage, HomePage, AccountPage, LastPaymentsPage, PaymentsPage, PaymentDetailsPage, Raw
+from .pages import LoginPage, HomePage, AccountPage, LastPaymentsPage, PaymentsPage, PaymentDetailsPage, Raw
 
 __all__ = ['AmeliBrowser']
 
@@ -27,8 +27,7 @@ __all__ = ['AmeliBrowser']
 class AmeliBrowser(LoginBrowser):
     BASEURL = 'https://assure.ameli.fr'
 
-    loginp = URL('/PortailAS/appmanager/PortailAS/assure\?.*_pageLabel=as_login_page', LoginPage)
-    login_validationp = URL('https://assure.ameli.fr:443/PortailAS/appmanager/PortailAS/assure;jsessionid=[a-zA-Z0-9!;-]+\?_nfpb=true&_windowLabel=connexioncompte_2&connexioncompte_2_actionOverride=%2Fportlets%2Fconnexioncompte%2Fvalidationconnexioncompte&_pageLabel=as_login_page$', LoginValidationPage)
+    loginp = URL('https://assure.ameli.fr:443/PortailAS/appmanager/PortailAS/assure\?.*_pageLabel=as_login_page', LoginPage)
     homep = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_accueil_page', HomePage)
     accountp = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_info_perso_page', AccountPage)
     paymentsp = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_paiements_page', PaymentsPage)

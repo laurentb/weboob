@@ -34,7 +34,7 @@ FRENCH_MONTHS = [u'janvier', u'février', u'mars', u'avril', u'mai', u'juin', u'
 class AmeliBasePage(HTMLPage):
     @property
     def logged(self):
-        if self.doc.xpath('//a[@id="id_lien_deco"]'):
+        if self.doc.xpath(u'//a[contains(text(), "Déconnexion")]'):
             logged = True
         else:
             logged = False
@@ -59,10 +59,6 @@ class LoginPage(AmeliBasePage):
         form['connexioncompte_2numSecuriteSociale'] = login.encode('utf8')
         form['connexioncompte_2codeConfidentiel'] = password.encode('utf8')
         form.submit()
-
-
-class LoginValidationPage(AmeliBasePage):
-    pass
 
 
 class HomePage(AmeliBasePage):
