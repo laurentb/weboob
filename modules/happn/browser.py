@@ -153,5 +153,7 @@ class HappnBrowser(DomainBrowser):
         self.request('/api/users/me/accepted/%s' % id, method='POST')
 
     def set_position(self, lat, lng):
-        self.request('/api/users/%s/devices/%s' % (self.my_id, self.device_id), method='PUT',
-                     data={'latitude': lat, 'longitude': lng, 'altitude': 0.0})
+        r = self.request('/api/users/%s/devices/%s' % (self.my_id, self.device_id), method='PUT',
+                         data={'latitude': lat, 'longitude': lng, 'altitude': 0.0})
+
+        return r['data']['position']

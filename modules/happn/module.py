@@ -95,12 +95,12 @@ class ProfilesWalker(Optimization):
                 d = geopy.distance.VincentyDistance(kilometers=random()*self._max_distance)
                 pos = d.destination(point=self._location, bearing=randint(0,360))
                 try:
-                    self._browser.set_position(pos.latitude, pos.longitude)
+                    pos = self._browser.set_position(pos.latitude, pos.longitude)
                 except BrowserHTTPError:
                     self._logger.warning('Unable to update position for now, it will be retried later.')
                     self._logger.warning('NB: don\'t be afraid, happn only allows to update position every 20 minutes.')
                 else:
-                    self._logger.info('You are now here: https://www.google.com/maps/place//@%s,%s,17z', pos.latitude, pos.longitude)
+                    self._logger.info('You are now here: https://www.google.com/maps/place//@%s,%s,17z', pos['latitude'], pos['longitude'])
                     self._last_position_update = datetime.datetime.now()
 
             for thread in self._browser.get_threads():
