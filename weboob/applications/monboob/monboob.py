@@ -47,7 +47,7 @@ __all__ = ['Monboob']
 
 class FakeSMTPD(SMTPServer):
     def __init__(self, app, bindaddr, port):
-        super(FakeSMTPD, self).__init__((bindaddr, port), None)
+        SMTPServer.__init__(self, (bindaddr, port), None)
         self.app = app
 
     def process_message(self, peer, mailfrom, rcpttos, data):
