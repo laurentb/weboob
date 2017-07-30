@@ -20,7 +20,7 @@
 from __future__ import unicode_literals
 
 
-from weboob.browser import LoginBrowser, need_login, PagesBrowser, URL
+from weboob.browser import LoginBrowser, need_login, URL
 from weboob.browser.profiles import Firefox
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.base import find_object
