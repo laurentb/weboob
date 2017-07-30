@@ -212,8 +212,7 @@ class MyThread(Thread):
 
     def check_board(self):
         def iter_messages(backend):
-            with backend.browser:
-                return backend.browser.iter_new_board_messages()
+            return backend.browser.iter_new_board_messages()
 
         for msg in self.weboob.do(iter_messages, backends=['dlfp']):
             word = self.find_keywords(msg.message)
