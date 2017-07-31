@@ -376,7 +376,7 @@ class AccountListFormatter(IFormatter):
 
     def flush(self):
         self.output(u'------------------------------------------%s+----------+----------' % (('-' * 15) if not self.interactive else ''))
-        for currency, currency_totals in sorted(self.totals.items(), key=lambda k_v: (k_v[1],k_v[0])):
+        for currency, currency_totals in sorted(self.totals.items(), key=lambda k_v: (k_v[1]['balance'], k_v[1]['coming'], k_v[0])):
             balance = currency_totals['balance']
             coming = currency_totals['coming']
 
