@@ -21,7 +21,7 @@
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 
-from .pages import LoginPage, AccountsPage, InvestmentPage, HistoryPage, ActionNeededPage
+from .pages import LoginPage, AccountsPage, InvestmentPage, HistoryPage, ActionNeededPage, InvestDetail
 
 
 class AvivaBrowser(LoginBrowser):
@@ -33,6 +33,7 @@ class AvivaBrowser(LoginBrowser):
     investment = URL('contrat/epargne/', InvestmentPage)
     history = URL('contrat/getOperations', HistoryPage)
     action_needed = URL(r'coordonnees/detailspersonne\?majcontacts=true', ActionNeededPage)
+    invest_detail = URL(r'https://aviva.sixtelekurs.fr/.*', InvestDetail)
 
     def do_login(self):
         if not self.password.isdigit():

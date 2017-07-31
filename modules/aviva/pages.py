@@ -110,12 +110,28 @@ class InvestmentPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Investment
 
-            obj_label = CleanText('./div[@data-label="Nom du support"]/text()')
+            def load_details(self):
+                # create URL with ISIN code if exists
+                code = Field('code')(self)
+                if code:
+                    url = 'https://aviva.sixtelekurs.fr/opcvm.hts?isin=%s&environnement=internet' % code
+                    return self.page.browser.async_open(url=url)
+
             obj_code = Regexp(Attr('./div[@data-label="Nom du support"]/a', 'onclick', default=''), '\"([^\"]+)', default=NotAvailable)
             obj_quantity = MyDecimal('./div[@data-label="Nombre de parts"]', default=NotAvailable)
             obj_unitvalue = MyDecimal('./div[@data-label="Valeur de la part"]')
             obj_valuation = MyDecimal('./div[@data-label="Valeur"]', default=NotAvailable)
             obj_vdate = Date(CleanText('./div[@data-label="Date de valeur"]'), dayfirst=True, default=NotAvailable)
+            obj_unitprice = Async('details') & CleanDecimal('//td[@class="donnees"]/span[@id="VL_achat"]', default=NotAvailable)
+            obj_diff_percent = Async('details') & CleanDecimal('//td[@class="donnees"]/span[@id="Performance"]', default=NotAvailable)
+            obj_description = Async('details') & CleanText('//td[@class="donnees"]/span[@id="Nature"]', default=NotAvailable)
+
+            def obj_label(self):
+                # label xpath changes if there is a link to details
+                label = CleanText('./div[@data-label="Nom du support"]', children=False)(self)
+                if label:
+                    return label
+                return CleanText('./div[@data-label="Nom du support"]/a', children=False)(self)
 
 
 class InvestmentElement(ItemElement):
@@ -211,3 +227,7 @@ class HistoryPage(LoggedPage, HTMLPage):
 class ActionNeededPage(LoggedPage, HTMLPage):
     def on_load(self):
         raise ActionNeeded(u'Veuillez mettre à jour vos coordonnées')
+
+
+class InvestDetail(LoggedPage, HTMLPage):
+    pass
