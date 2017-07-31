@@ -28,7 +28,7 @@ from io import BytesIO
 from datetime import datetime, timedelta, date
 
 from weboob.capabilities import NotAvailable
-from weboob.capabilities.base import find_object
+from weboob.capabilities.base import find_object, Currency
 from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, TransferBankError, Transfer, AddRecipientError
 from weboob.capabilities.bill import Document, Subscription
 from weboob.capabilities.contact import Advisor
@@ -504,19 +504,27 @@ class BoursePage(LoggedPage, HTMLPage):
         head_xpath = '//table[has-class("tableau_comptes_details")]/thead/tr/th'
 
         col_label = u'Comptes'
-        col_balance = re.compile('Valorisation')
+        col_titres = re.compile('Valorisation')
+        col_especes = u'Solde espèces'
 
         class item(ItemElement):
             klass = Account
 
             load_details = Field('_market_link') & AsyncLoad
 
-            obj_balance = CleanDecimal(TableCell('balance'), replace_dots=True)
+            obj__especes = CleanDecimal(TableCell('especes'), replace_dots=True)
+            obj__titres = CleanDecimal(TableCell('titres'), replace_dots=True, default=0)
             obj_valuation_diff = Async('details') &  CleanDecimal('//td[contains(text(), "value latente")]/ \
                                                                   following-sibling::td[1]', replace_dots=True)
             obj__market_link = Regexp(Attr(TableCell('label'), 'onclick'), "'(.*?)'")
             obj__link_id = Async('details') & Link(u'//a[text()="Historique"]')
             obj__transfer_id = None
+
+            def obj_balance(self):
+                return Field('_especes')(self) + Field('_titres')(self)
+
+            def obj_currency(self):
+                return Currency.get_currency(CleanText(TableCell('titres'))(self))
 
             def obj_id(self):
                 return "%sbourse" % "".join(CleanText().filter((TableCell('label')(self)[0]).xpath('./div[not(b)]')).split(' - '))
@@ -648,6 +656,16 @@ class AVPage(LoggedPage, HTMLPage):
                     account_id = page.get_account_id()
                     page.come_back()
                     return account_id
+
+            def obj_currency(self):
+                _id = CleanText('.//td/a/@id')(self)
+                if not _id:
+                    ac_details_page = self.page.browser.open(Link('.//td/a')(self)).page
+                else:
+                    split = _id.split('-')
+                    ac_details_page = self.page.browser.open('/outil/UWVI/AssuranceVie/accesDetail?ID_CONTRAT=%s&PRODUCTEUR=%s' % (split[0], split[1])).page
+                return Currency.get_currency(re.sub(r'[\d\,\ ]', '', CleanText('(//tr[8])/td[2]', default=NotAvailable)(ac_details_page.doc))) or NotAvailable
+
 
             def obj__form(self):
                 form_id = Attr('.//td/a', 'id', default=None)(self)
