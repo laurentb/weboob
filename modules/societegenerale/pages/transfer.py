@@ -192,7 +192,7 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
 
         # This one seem to be set in stone.
         data['inrili'] = 'N'
-        data['toprib'] = '0' if recipient_params[0] == 'pic_a_recuperer' else '1'
+        data['toprib'] = '0'
 
         if recipient_params[1]:
             data['idprde'] = recipient_params[1]
