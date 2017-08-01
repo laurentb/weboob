@@ -27,7 +27,7 @@ from weboob.browser.exceptions import ServerError
 from weboob.browser.pages import FormNotFound
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Account, AddRecipientError, AddRecipientStep, Recipient
-from weboob.tools.compat import urlsplit, parse_qsl, unicode
+from weboob.tools.compat import basestring, urlsplit, parse_qsl, unicode
 from weboob.tools.value import Value
 
 from .pages import LoginPage, AccountsPage, AccountHistoryPage, \
