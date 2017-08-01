@@ -36,12 +36,12 @@ from weboob.capabilities import NotAvailable
 from weboob.tools.compat import urlparse
 
 from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, \
-                   OperationsPage, CardPage, ComingPage, NoOperationsPage, \
+                   OperationsPage, CardPage, ComingPage, RecipientsListPage, \
                    ChangePasswordPage, VerifCodePage, EmptyPage, PorPage, \
                    IbanPage, NewHomePage, AdvisorPage, RedirectPage, \
                    LIAccountsPage, CardsActivityPage, CardsListPage,       \
                    CardsOpePage, NewAccountsPage, InternalTransferPage, \
-                   ExternalTransferPage, RecipientsListPage
+                   ExternalTransferPage, RevolvingLoanDetails, RevolvingLoansList
 
 
 __all__ = ['CreditMutuelBrowser']
@@ -62,6 +62,8 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
     accounts =    URL('/(?P<subbank>.*)fr/banque/situation_financiere.cgi',
                       '/(?P<subbank>.*)fr/banque/situation_financiere.html',
                       AccountsPage)
+    revolving_loan_list = URL(r'/(?P<subbank>.*)fr/banque/CR/arrivee.asp\?fam=CR.*', RevolvingLoansList)
+    revolving_loan_details = URL(r'/(?P<subbank>.*)fr/banque/CR/cam9_vis_lstcpt.asp.*', RevolvingLoanDetails)
     user_space =  URL('/(?P<subbank>.*)fr/banque/espace_personnel.aspx',
                       '/(?P<subbank>.*)fr/banque/accueil.cgi',
                       '/(?P<subbank>.*)fr/banque/DELG_Gestion',
@@ -77,7 +79,6 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                       r'(?P<subbank>.*)fr/banque/CRP8_GESTPMONT.aspx\?webid=.*&trnref=.*&contract=\d+&cardid=.*&cardmonth=\d+',
                       OperationsPage)
     coming =      URL('/(?P<subbank>.*)fr/banque/mvts_instance.cgi.*',      ComingPage)
-    noop =        URL('/(?P<subbank>.*)fr/banque/CR/arrivee.asp.*',         NoOperationsPage)
     info =        URL('/(?P<subbank>.*)fr/banque/BAD.*',                    EmptyPage)
     change_pass = URL('/(?P<subbank>.*)fr/validation/change_password.cgi',
                       '/fr/services/change_password.html', ChangePasswordPage)
@@ -167,6 +168,9 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                 self.por.go(subbank=self.currentSubBank).add_por_accounts(self.accounts_list)
 
             for acc in self.li.go(subbank=self.currentSubBank).iter_li_accounts():
+                self.accounts_list.append(acc)
+
+            for acc in self.revolving_loan_list.stay_or_go(subbank=self.currentSubBank).iter_accounts():
                 self.accounts_list.append(acc)
 
         return self.accounts_list
