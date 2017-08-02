@@ -779,9 +779,22 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
         return url, params if url and params else None
 
 
+class NatixisChoicePage(LoggedPage, HTMLPage):
+    def on_load(self):
+        # TODO handle when there are multiple accounts on this page
+        account_tr, = self.doc.xpath('//tbody[@id="list:dataVie:tb"]/tr')
+        self.logger.info('opening automatically account %s', CleanText('./td[1]')(account_tr))
+        self.browser.location(Link('./td[1]/a')(account_tr))
+
+
 class NatixisPage(LoggedPage, HTMLPage):
     def submit_form(self):
         form = self.get_form(name="formRoutage")
+        form['javax.faces.source'] = 'formRoutageButton'
+        form['javax.faces.partial.execute'] = 'formRoutageButton @component'
+        form['javax.faces.partial.render'] = '@component'
+        form['AJAX:EVENTS_COUNT'] = '1'
+        form['javax.faces.partial.ajax'] = 'true'
         form.submit()
 
 

@@ -35,7 +35,7 @@ from .pages import (
     UnavailablePage, RedirectPage, HomePage, Login2Page, ErrorPage,
     IbanPage, AdvisorPage,
     NatixisPage, EtnaPage, NatixisInvestPage, NatixisHistoryPage, NatixisErrorPage,
-    NatixisDetailsPage,
+    NatixisDetailsPage, NatixisChoicePage,
 )
 
 from .linebourse_browser import LinebourseBrowser
@@ -130,13 +130,17 @@ class BanquePopulaire(LoginBrowser):
                     r'https://[^/]+/portailinternet/Pages/.*.aspx\?vary=(?P<vary>.*)',
                     r'https://[^/]+/portailinternet/Pages/default.aspx',
                     r'https://[^/]+/portailinternet/Transactionnel/Pages/CyberIntegrationPage.aspx',
+                    r'https://[^/]+/cyber/internet/ShowPortal.do\?token=.*',
                     HomePage)
 
     login2_page = URL(r'https://[^/]+/WebSSO_BP/_(?P<bankid>\d+)/index.html\?transactionID=(?P<transactionID>.*)', Login2Page)
 
     # natixis
+    natixis_choice = URL(r'https://www.assurances.natixis.fr/espaceinternet-bp/views/contrat/list.xhtml\?.*', NatixisChoicePage)
     natixis_page = URL(r'https://www.assurances.natixis.fr/espaceinternet-bp/views/common.*', NatixisPage)
-    etna = URL(r'https://www.assurances.natixis.fr/etna-ihs-bp/#/contratVie/(?P<id1>\w+)/(?P<id2>\w+)/(?P<id3>\w+).*', EtnaPage)
+    etna = URL(r'https://www.assurances.natixis.fr/etna-ihs-bp/#/contratVie/(?P<id1>\w+)/(?P<id2>\w+)/(?P<id3>\w+).*',
+               r'https://www.assurances.natixis.fr/espaceinternet-bp/views/contrat/detail/vie/view.xhtml\?windowId=.*&reference=(?P<id3>\d+)&codeSociete=(?P<id1>[^&]*)&codeProduit=(?P<id2>[^&]*).*',
+               EtnaPage)
     natixis_error_page = URL(r'https://www.assurances.natixis.fr/espaceinternet-bp/error-redirect.*',
                              r'https://www.assurances.natixis.fr/etna-ihs-bp/#/equipement;codeEtab=.*\?windowId=.*',
                              NatixisErrorPage)
