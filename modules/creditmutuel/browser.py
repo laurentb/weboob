@@ -25,7 +25,7 @@ from itertools import groupby
 
 from weboob.tools.compat import basestring
 from weboob.tools.value import Value
-from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction, sorted_transactions
 from weboob.browser.browsers import LoginBrowser, need_login, StatesMixin
 from weboob.browser.profiles import Wget
 from weboob.browser.url import URL
@@ -74,6 +74,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
     operations =  URL('/(?P<subbank>.*)fr/banque/mouvements.cgi.*',
                       '/(?P<subbank>.*)fr/banque/mouvements.html.*',
                       '/(?P<subbank>.*)fr/banque/nr/nr_devbooster.aspx.*',
+                      r'(?P<subbank>.*)fr/banque/CRP8_GESTPMONT.aspx\?webid=.*&trnref=.*&contract=\d+&cardid=.*&cardmonth=\d+',
                       OperationsPage)
     coming =      URL('/(?P<subbank>.*)fr/banque/mvts_instance.cgi.*',      ComingPage)
     noop =        URL('/(?P<subbank>.*)fr/banque/CR/arrivee.asp.*',         NoOperationsPage)
@@ -280,7 +281,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                              differed_date.month <= tr.date.month and \
                              not hasattr(tr, '_is_manualsum')
 
-        transactions.sort(key=lambda tr: tr.rdate, reverse=True)
+        transactions = sorted_transactions(transactions)
         return transactions
 
     @need_login
