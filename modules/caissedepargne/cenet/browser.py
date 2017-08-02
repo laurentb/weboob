@@ -23,6 +23,7 @@ from weboob.browser import LoginBrowser, need_login, StatesMixin
 from weboob.browser.url import URL
 from weboob.browser.exceptions import ClientError
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
+from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages import (
     ErrorPage,
@@ -178,7 +179,7 @@ class CenetBrowser(LoginBrowser, StatesMixin):
             for tr in self.cenet_account_coming.go(data=json.dumps(data), headers=headers).get_history():
                 trs.append(tr)
 
-        return iter(sorted(trs, key=lambda t: t.rdate, reverse=True))
+        return sorted_transactions(trs)
 
     @need_login
     def get_investment(self, account):

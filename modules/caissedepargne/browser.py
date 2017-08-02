@@ -27,6 +27,7 @@ from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.profile import Profile
 from weboob.browser.exceptions import BrowserHTTPNotFound, ClientError
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
+from weboob.tools.capabilities.bank.transactions import sorted_transactions
 from weboob.tools.compat import urljoin
 from weboob.tools.value import Value
 from weboob.tools.decorators import retry
@@ -303,7 +304,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                 tr.nopurge = True
                 trs.append(tr)
 
-        return iter(sorted(trs, key=lambda t: t.rdate, reverse=True))
+        return sorted_transactions(trs)
 
     @need_login
     def get_investment(self, account):
