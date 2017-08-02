@@ -22,16 +22,104 @@ from io import BytesIO
 import re
 
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, Loan
 from weboob.capabilities.contact import Advisor
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.pages import LoggedPage, RawPage, PartialHTMLPage, HTMLPage
 from weboob.browser.filters.html import Link
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, Field, BrowserURL, Currency
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, Field, BrowserURL, Currency, \
+    Async, AsyncLoad, Date
 from weboob.exceptions import BrowserUnavailable
 from weboob.tools.compat import urljoin, unicode
 
 from .base import MyHTMLPage
+
+
+def MyDecimal(*args, **kwargs):
+    kwargs.update(replace_dots=True, default=NotAvailable)
+    return CleanDecimal(*args, **kwargs)
+
+def MyDate(*args, **kwargs):
+    kwargs.update(dayfirst=True, default=NotAvailable)
+    return Date(*args, **kwargs)
+
+
+class item_account_generic(ItemElement):
+    klass = Account
+
+    def condition(self):
+        return len(self.el.xpath('.//span[@class="number"]')) > 0
+
+    obj_id = CleanText('.//abbr/following-sibling::text()')
+    obj_currency = Currency('.//span[@class="number"]')
+
+    def obj_url(self):
+        url = Link(u'./a', default=NotAvailable)(self)
+        if url:
+            return urljoin(self.page.url, url)
+        return url
+
+    def obj_label(self):
+        return CleanText('.//div[@class="title"]/h3')(self).upper()
+
+    def obj_balance(self):
+        if Field('type')(self) == Account.TYPE_LOAN:
+            return -abs(CleanDecimal('.//span[@class="number"]', replace_dots=True)(self))
+        return CleanDecimal('.//span[@class="number"]', replace_dots=True, default=NotAvailable)(self)
+
+    def obj_coming(self):
+        if Field('type')(self) == Account.TYPE_CHECKING:
+            has_coming = False
+            coming = 0
+
+            coming_operations = self.page.browser.open(
+                BrowserURL('par_account_checking_coming', accountId=Field('id'))(self))
+
+            if CleanText('//span[@id="amount_total"]')(coming_operations.page.doc):
+                has_coming = True
+                coming += CleanDecimal('//span[@id="amount_total"]', replace_dots=True)(coming_operations.page.doc)
+
+            if CleanText(u'.//dt[contains(., "Débit différé à débiter")]')(self):
+                has_coming = True
+                coming += CleanDecimal(u'.//dt[contains(., "Débit différé à débiter")]/following-sibling::dd[1]',
+                                       replace_dots=True)(self)
+
+            return coming if has_coming else NotAvailable
+        return NotAvailable
+
+    def obj_iban(self):
+        response = self.page.browser.open(
+            '/voscomptes/canalXHTML/comptesCommun/imprimerRIB/init-imprimer_rib.ea?compte.numero=%s' % Field('id')(
+                self))
+
+        return response.page.get_iban()
+
+    def obj_type(self):
+        types = {'comptes? bancaires?': Account.TYPE_CHECKING,
+                 'livrets?': Account.TYPE_SAVINGS,
+                 'epargnes? logement': Account.TYPE_SAVINGS,
+                 'comptes? titres? et pea': Account.TYPE_MARKET,
+                 'assurances? vie et retraite': Account.TYPE_LIFE_INSURANCE,
+                 u'prêt': Account.TYPE_LOAN,
+                 u'crédits?': Account.TYPE_LOAN,
+                 'plan d\'epargne en actions': Account.TYPE_PEA
+                 }
+
+        # first trying to match with label
+        label = Field('label')(self)
+        for atypetxt, atype in types.items():
+            if re.findall(atypetxt, label.lower()):  # match with/without plurial in type
+                return atype
+        # then by type
+        type = Regexp(CleanText('../../preceding-sibling::div[@class="avoirs"][1]/span[1]'), r'(\d+) (.*)', '\\2')(self)
+        for atypetxt, atype in types.items():
+            if re.findall(atypetxt, type.lower()):  # match with/without plurial in type
+                return atype
+
+        return Account.TYPE_UNKNOWN
+
+    def obj__has_cards(self):
+        return Link(u'.//a[contains(., "Débit différé")]', default=None)(self)
 
 
 class AccountList(LoggedPage, MyHTMLPage):
@@ -57,80 +145,26 @@ class AccountList(LoggedPage, MyHTMLPage):
     @method
     class iter_accounts(ListElement):
         item_xpath = u'//ul/li//div[contains(@class, "account-resume")]'
+        class item_account(item_account_generic):
+            def condition(self):
+                type = Field('type')(self)
+                return item_account_generic.condition(self) and type != Account.TYPE_LOAN
 
-        class item(ItemElement):
-            klass = Account
+        class item_loans(item_account_generic):
+            klass = Loan
+
+            obj_total_amount = MyDecimal('.//dd[1]')
+
+            load_details = Link('.//a') & AsyncLoad
+            obj_maturity_date = Async('details') & MyDate(CleanText('//table[@id="pret"]/tbody/tr/td[5]/span[1]'))
+            obj_subscription_date = Async('details') & MyDate(Regexp(CleanText(
+                '//form[@id="selection_offre"]/div[1]/div[2]/span'), ' (\d{2}/\d{2}/\d{4})', default=NotAvailable))
+            obj_next_payment_amount = Async('details') & MyDecimal('//table[@id="pret"]/tbody/tr/td[3]/span')
+            obj_next_payment_date = Async('details') & MyDate(CleanText('//table[@id="pret"]/tbody/tr/td[4]/span'))
 
             def condition(self):
-                return len(self.el.xpath('.//span[@class="number"]')) > 0
-
-            obj_id = CleanText('.//abbr/following-sibling::text()')
-            obj_currency = Currency('.//span[@class="number"]')
-
-            def obj_url(self):
-                url = Link(u'./a', default=NotAvailable)(self)
-                if url:
-                    return urljoin(self.page.url, url)
-                return url
-
-            def obj_label(self):
-                return CleanText('.//div[@class="title"]/h3')(self).upper()
-
-            def obj_balance(self):
-                if Field('type')(self) == Account.TYPE_LOAN:
-                    return -abs(CleanDecimal('.//span[@class="number"]', replace_dots=True)(self))
-                return CleanDecimal('.//span[@class="number"]', replace_dots=True, default=NotAvailable)(self)
-
-            def obj_coming(self):
-                if Field('type')(self) == Account.TYPE_CHECKING:
-                    has_coming = False
-                    coming = 0
-
-                    coming_operations = self.page.browser.open(BrowserURL('par_account_checking_coming', accountId=Field('id'))(self))
-
-                    if CleanText('//span[@id="amount_total"]')(coming_operations.page.doc):
-                        has_coming = True
-                        coming += CleanDecimal('//span[@id="amount_total"]', replace_dots=True)(coming_operations.page.doc)
-
-                    if CleanText(u'.//dt[contains(., "Débit différé à débiter")]')(self):
-                        has_coming = True
-                        coming += CleanDecimal(u'.//dt[contains(., "Débit différé à débiter")]/following-sibling::dd[1]', replace_dots=True)(self)
-
-                    return coming if has_coming else NotAvailable
-                return NotAvailable
-
-            def obj_iban(self):
-                response = self.page.browser.open('/voscomptes/canalXHTML/comptesCommun/imprimerRIB/init-imprimer_rib.ea?compte.numero=%s' % Field('id')(self))
-
-                return response.page.get_iban()
-
-            def obj_type(self):
-                types = {'comptes? bancaires?':         Account.TYPE_CHECKING,
-                         'livrets?':                    Account.TYPE_SAVINGS,
-                         'epargnes? logement':          Account.TYPE_SAVINGS,
-                         'comptes? titres? et pea':     Account.TYPE_MARKET,
-                         'assurances? vie et retraite': Account.TYPE_LIFE_INSURANCE,
-                         u'prêt':                       Account.TYPE_LOAN,
-                         u'crédits?':                   Account.TYPE_LOAN,
-                         'plan d\'epargne en actions':  Account.TYPE_PEA
-                        }
-
-                # first trying to match with label
-                label = Field('label')(self)
-                for atypetxt, atype in types.items():
-                    if re.findall(atypetxt, label.lower()): # match with/without plurial in type
-                        return atype
-                # then by type
-                type = Regexp(CleanText('../../preceding-sibling::div[@class="avoirs"][1]/span[1]'), r'(\d+) (.*)', '\\2')(self)
-                for atypetxt, atype in types.items():
-                    if re.findall(atypetxt, type.lower()): # match with/without plurial in type
-                        return atype
-
-                return Account.TYPE_UNKNOWN
-
-            def obj__has_cards(self):
-                return Link(u'.//a[contains(., "Débit différé")]', default=None)(self)
-
+                type = Field('type')(self)
+                return item_account_generic.condition(self) and type == Account.TYPE_LOAN
 
 class Advisor(LoggedPage, MyHTMLPage):
     @method
