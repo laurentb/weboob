@@ -83,7 +83,7 @@ class Fortuneo(LoginBrowser):
         self.location(account._history_link)
         if not account.type == Account.TYPE_LOAN:
             if self.page.select_period():
-                return self.page.get_operations(account)
+                return self.page.get_operations()
 
         return []
 
@@ -92,7 +92,7 @@ class Fortuneo(LoginBrowser):
         for cb_link in account._card_links:
             self.location(cb_link)
 
-            for tr in self.page.get_operations(account):
+            for tr in self.page.get_operations():
                 yield tr
 
     @need_login

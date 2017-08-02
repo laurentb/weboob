@@ -26,7 +26,7 @@ from datetime import date
 from dateutil.relativedelta import relativedelta
 from lxml.html import etree
 
-from weboob.browser.filters.html import Link
+from weboob.browser.filters.html import Link, Attr
 from weboob.browser.filters.standard import CleanText, CleanDecimal, RawText, Regexp, Date
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment, Loan
@@ -115,7 +115,7 @@ class PeaHistoryPage(LoggedPage, HTMLPage):
         form.submit()
         return True
 
-    def get_operations(self, account):
+    def get_operations(self):
         for tr in self.doc.xpath('//table[@id="tabHistoriqueOperations"]/tbody/tr'):
             tds = tr.findall('td')
             if len(CleanText(None).filter(tds[-1])) == 0:
@@ -194,8 +194,12 @@ class InvestmentHistoryPage(LoggedPage, HTMLPage):
         form.submit()
         return True
 
-    def get_operations(self, account):
-        for tr in self.doc.xpath('//table[@id="tableau_histo_opes"]/tbody/tr'):
+    def get_operations(self):
+        # skip on investments details
+        if self.doc.xpath('//table/thead/tr/th[contains(text(), "ISIN")]'):
+            return
+
+        for tr in self.doc.xpath('//table[@id="tableau_histo_opes"]/tbody/tr | //form[@name="DetailOperationForm"]//table/tbody/tr[not(@id)][td[3]]'):
             tds = tr.findall('td')
             if len(CleanText(None).filter(tds[-1])) == 0:
                 continue
@@ -204,6 +208,16 @@ class InvestmentHistoryPage(LoggedPage, HTMLPage):
             t.parse(date=CleanText(None).filter(tds[1]),
                     raw=CleanText(None).filter(tds[2]))
             t.amount = CleanDecimal(None, replace_dots=True, default=0).filter(tds[-1])
+            # we check if transactions as sub transactions
+            details_link = Regexp(Attr('./a', 'onclick', default=''), r"afficherDetailOperation\('([^']+)", default='')(tds[0])
+            if details_link:
+                has_trs = False
+                for tr in self.browser.location(details_link).page.get_operations():
+                    has_trs = True
+                    yield tr
+                # skipping main transaction with sub transactions
+                if has_trs:
+                    continue
             yield t
 
     def get_balance(self, account_type):
@@ -240,7 +254,7 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
 
         return True
 
-    def get_operations(self, account):
+    def get_operations(self):
         """history, see http://docs.weboob.org/api/capabilities/bank.html?highlight=transaction#weboob.capabilities.bank.Transaction"""
 
         # TODO need to rewrite that with FrenchTransaction class http://tinyurl.com/6lq4r9t
@@ -279,7 +293,7 @@ class CardHistoryPage(LoggedPage, HTMLPage):
     def select_period(self):
         return True
 
-    def get_operations(self, account):
+    def get_operations(self):
         cleaner = CleanText(None).filter
         for op in self.doc.xpath('//table[@id="tableauEncours"]/tbody/tr'):
             rdate =  cleaner(op.xpath('./td[1]')[0])
