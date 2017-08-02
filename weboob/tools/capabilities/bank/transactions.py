@@ -26,6 +26,7 @@ from weboob.capabilities.bank import Transaction, Account
 from weboob.capabilities import NotAvailable, NotLoaded
 from weboob.tools.misc import to_unicode
 from weboob.tools.log import getLogger
+from weboob.tools.date import new_datetime
 
 from weboob.exceptions import ParseError
 from weboob.browser.elements import TableElement, ItemElement
@@ -350,7 +351,7 @@ class AmericanTransaction(Transaction):
 
 def sorted_transactions(iterable):
     """Sort an iterable of transactions in reverse chronological order"""
-    return sorted(iterable, reverse=True, key=lambda tr: (tr.date, tr.rdate))
+    return sorted(iterable, reverse=True, key=lambda tr: (tr.date, new_datetime(tr.rdate) if tr.rdate else datetime.datetime.min))
 
 
 def test():
