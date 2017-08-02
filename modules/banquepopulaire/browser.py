@@ -273,8 +273,9 @@ class BanquePopulaire(LoginBrowser):
             raise BrowserUnavailable()
 
         if account._invest_params or (account.id.startswith('TIT') and account._params):
-            for tr in self.get_invest_history(account):
-                yield tr
+            if not coming:
+                for tr in self.get_invest_history(account):
+                    yield tr
             return
 
         if coming:
