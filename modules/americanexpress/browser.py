@@ -17,16 +17,21 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import datetime
 
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.browsers import LoginBrowser, need_login
 from weboob.browser.url import URL
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 from weboob.tools.compat import urlsplit, parse_qsl, urlencode
+from weboob.tools.date import parse_date
 
-from .pages import (
+from .pages.base import (
     LoginPage, AccountsPage, TransactionsPage, WrongLoginPage, AccountSuspendedPage,
     AccountsPage2, ActionNeededPage,
+)
+from .pages.json import (
+    AccountsPage3, JsonBalances, DashboardPage, JsonPeriods, JsonHistory,
 )
 
 
@@ -47,9 +52,20 @@ class AmericanExpressBrowser(LoginBrowser):
 
     action_needed = URL(r'/myca/oce/emea/action/home\?request_type=un_Register', ActionNeededPage)
 
+    # new site
+    dashboard = URL(r'/dashboard', DashboardPage)
+    accounts3 = URL(r'/accounts', AccountsPage3)
+    js_balances = URL(r'/account-data/v1/financials/balances', JsonBalances)
+    js_pending = URL(r'/account-data/v1/financials/transactions\?limit=1000&offset=(?P<offset>\d+)&status=pending',
+                     JsonHistory)
+    js_posted = URL(r'/account-data/v1/financials/transactions\?limit=1000&offset=(?P<offset>\d+)&statement_end_date=(?P<end>[0-9-]+)&status=posted',
+                    JsonHistory)
+    js_periods = URL(r'/account-data/v1/financials/statement_periods', JsonPeriods)
+
     def __init__(self, *args, **kwargs):
         super(AmericanExpressBrowser, self).__init__(*args, **kwargs)
         self.cache = {}
+        self.new_website = False
 
     def do_login(self):
         if not self.login.is_here():
@@ -59,8 +75,16 @@ class AmericanExpressBrowser(LoginBrowser):
         if self.wrong_login.is_here() or self.login.is_here() or self.account_suspended.is_here():
             raise BrowserIncorrectPassword()
 
+        self.new_website = self.dashboard.is_here()
+
     @need_login
     def go_on_accounts_list(self):
+        if self.new_website:
+            self.dashboard.go()
+            assert self.dashboard.is_here()
+            self.accounts3.go()
+            return
+
         if self.transactions.is_here():
             form = self.page.get_form(name='leftnav')
             form.url = '/myca/intl/acctsumm/emea/accountSummary.do'
@@ -69,7 +93,23 @@ class AmericanExpressBrowser(LoginBrowser):
             self.partial_account.go(idx='0')
 
     @need_login
+    def get_accounts_new(self):
+        self.accounts3.go()
+        accounts = list(self.page.iter_accounts())
+        assert len(accounts) == 1 # FIXME how to pass multiple tokens?
+        self.js_balances.go(headers={'account_tokens': accounts[0]._token})
+        self.page.set_balances(accounts)
+
+        for acc in accounts:
+            yield acc
+
+    @need_login
     def get_accounts_list(self):
+        if self.new_website:
+            for account in self.get_accounts_new():
+                yield account
+            return
+
         if not self.accounts.is_here() and not self.accounts2.is_here():
             self.go_on_accounts_list()
 
@@ -94,7 +134,58 @@ class AmericanExpressBrowser(LoginBrowser):
         return self.page.get_account()
 
     @need_login
-    def get_history(self, account):
+    def iter_posted_new(self, account):
+        self.js_periods.go(headers={'account_token': account._token})
+        periods = self.page.get_periods()
+        for p in periods:
+            # TODO handle pagination
+            self.js_posted.go(offset=0, end=p[1], headers={'account_token': account._token})
+            for tr in self.page.iter_history():
+                yield tr
+
+    @need_login
+    def iter_coming_new(self, account):
+        # "pending" have no vdate and debit date is in future
+        self.js_periods.go(headers={'account_token': account._token})
+        date = parse_date(self.page.get_periods()[0][1])
+
+        self.js_pending.go(offset=0, headers={'account_token': account._token})
+        for tr in self.page.iter_history():
+            tr.date = date
+            yield tr
+
+        # "posted" have a vdate but debit date can be future or past
+        today = datetime.date.today()
+        for tr in self.iter_posted_new(account):
+            if tr.date > today:
+                yield tr
+            else:
+                break
+
+    @need_login
+    def iter_coming(self, account):
+        if self.new_website:
+            for tr in self.iter_coming_new(account):
+                yield tr
+        else:
+            for tr in self.iter_history_old(account):
+                if tr._is_coming:
+                    yield tr
+
+    @need_login
+    def iter_history(self, account):
+        if self.new_website:
+            today = datetime.date.today()
+            for tr in self.iter_posted_new(account):
+                if tr.date <= today:
+                    yield tr
+        else:
+            for tr in self.iter_history_old(account):
+                if not tr._is_coming:
+                    yield tr
+
+    @need_login
+    def iter_history_old(self, account):
         if self.cache.get(account.id, None) is None:
             self.cache[account.id] = {}
             self.cache[account.id]["history"] = []

@@ -51,11 +51,7 @@ class AmericanExpressModule(Module, CapBank):
         return find_object(self.browser.get_accounts_list(), id=_id, error=AccountNotFound)
 
     def iter_history(self, account):
-        for tr in self.browser.get_history(account):
-            if not tr._is_coming:
-                yield tr
+        return self.browser.iter_history(account)
 
     def iter_coming(self, account):
-        for tr in self.browser.get_history(account):
-            if tr._is_coming:
-                yield tr
+        return self.browser.iter_coming(account)
