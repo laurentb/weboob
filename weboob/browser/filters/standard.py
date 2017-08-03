@@ -35,6 +35,7 @@ from weboob.capabilities.base import Currency as BaseCurrency
 from weboob.tools.compat import basestring, unicode, long
 from weboob.exceptions import ParseError
 from weboob.browser.url import URL
+from weboob.tools.compat import parse_qs, urlparse
 from weboob.tools.log import getLogger, DEBUG_FILTERS
 
 
@@ -833,6 +834,7 @@ class Join(Filter):
 
         return result
 
+
 class Eval(MultiFilter):
     """
     Evaluate a function with given 'deferred' arguments.
@@ -848,6 +850,30 @@ class Eval(MultiFilter):
     @debug()
     def filter(self, values):
         return self.func(*values)
+
+
+class QueryValue(Filter):
+    """
+    Extract the value of a parameter from an URL with a query string.
+
+    >>> from lxml.html import etree
+    >>> from .html import Link
+    >>> f = QueryValue(Link('//a'), 'id')
+    >>> f(etree.fromstring('<html><body><a href="http://example.org/view?id=1234"></a></body></html>'))
+    u'1234'
+    """
+    def __init__(self, selector, key, default=_NO_DEFAULT):
+        super(QueryValue, self).__init__(selector, default=default)
+        self.querykey = key
+
+    @debug()
+    def filter(self, url):
+        qs = parse_qs(urlparse(url).query)
+        if not qs.get(self.querykey):
+            return self.default_or_raise(ParseError('Key %s not found' % self.querykey))
+        if len(qs[self.querykey]) > 1:
+            raise ParseError('More than one value for key %s' % self.querykey)
+        return qs[self.querykey][0]
 
 
 def test_CleanText():
