@@ -24,7 +24,7 @@ from weboob.exceptions import ParseError
 from weboob.tools.compat import basestring, unicode, urljoin
 from weboob.tools.html import html2text
 
-from .standard import _NO_DEFAULT, Filter, FilterError, _Selector
+from .standard import _NO_DEFAULT, Filter, FilterError, _Selector, debug
 
 __all__ = ['CSS', 'XPath', 'XPathNotFound', 'AttributeNotFound',
            'Attr', 'Link', 'CleanHTML', 'FormValue', 'HasElement']
@@ -58,6 +58,7 @@ class Attr(Filter):
         super(Attr, self).__init__(selector, default=default)
         self.attr = attr
 
+    @debug()
     def filter(self, el):
         try:
             return u'%s' % el[0].attrib[self.attr]
@@ -87,6 +88,7 @@ class AbsoluteLink(Link):
 
 
 class CleanHTML(Filter):
+    @debug()
     def filter(self, txt):
         if isinstance(txt, (tuple, list)):
             return u' '.join([self.clean(item) for item in txt])
@@ -109,6 +111,7 @@ class FormValue(Filter):
     Checkboxes and radio return booleans, while the rest
     return text. Select returns the user-visible text.
     """
+    @debug()
     def filter(self, el):
         try:
             el = el[0]
@@ -147,6 +150,7 @@ class HasElement(Filter):
         super(HasElement, self).__init__(selector, default=novalue)
         self.yesvalue = yesvalue
 
+    @debug()
     def filter(self, value):
         if value:
             return self.yesvalue
