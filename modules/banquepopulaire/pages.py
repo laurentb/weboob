@@ -564,6 +564,10 @@ class CardsPage(LoggedPage, MyHTMLPage):
         for tr in self.doc.xpath('//table[@id="tbl1"]/tbody/tr'):
             cols = tr.xpath('./td')
 
+            if len(cols) == 1 and CleanText('.')(cols[0]) == 'pas de carte':
+                self.logger.debug('there are no cards on this page')
+                continue
+
             id = CleanText(None).filter(cols[self.COL_ID])
             if len(id) > 0:
                 if account is not None:
