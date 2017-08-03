@@ -20,13 +20,14 @@
 
 import lxml.html as html
 
+from weboob.exceptions import ParseError
 from weboob.tools.compat import basestring, unicode, urljoin
 from weboob.tools.html import html2text
 
 from .standard import _NO_DEFAULT, Filter, FilterError, _Selector
 
 __all__ = ['CSS', 'XPath', 'XPathNotFound', 'AttributeNotFound',
-           'Attr', 'Link', 'CleanHTML', 'FormValue']
+           'Attr', 'Link', 'CleanHTML', 'FormValue', 'HasElement']
 
 
 class XPathNotFound(FilterError):
@@ -136,3 +137,17 @@ class FormValue(Filter):
             return u'\n'.join([unicode(o.text) for o in options])
         else:
             raise UnrecognizedElement('Element %s is recognized' % el)
+
+
+class HasElement(Filter):
+    """
+    Returns yesvalue if the selector finds elements, novalue otherwise.
+    """
+    def __init__(self, selector, yesvalue=True, novalue=False):
+        super(HasElement, self).__init__(selector, default=novalue)
+        self.yesvalue = yesvalue
+
+    def filter(self, value):
+        if value:
+            return self.yesvalue
+        return self.default_or_raise(ParseError('No default value'))
