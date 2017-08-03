@@ -202,6 +202,11 @@ class TransactionsPage(LoggedPage, HTMLPage):
         previous_date = CleanText('//td[@id="colStatementBalance"]/div[3]', default=None)(self.doc)
         if previous_date:
             end_of_period = (parse_french_date(' '.join(previous_date.split()[1:4])) + relativedelta(months=1)).date()
+        else:
+            previous_date = CleanText('//select[@id="viewPeriod"]/option[@selected]', default=None)(self.doc)
+            if previous_date:
+                end_of_period = parse_french_date(' '.join(previous_date.split()[:3])) + relativedelta(days=-1) + relativedelta(months=1)
+                end_of_period = end_of_period.date()
 
         for tr in reversed(self.doc.xpath('//div[@id="txnsSection"]//tbody/tr[@class="tableStandardText"]')):
             cols = tr.findall('td')
