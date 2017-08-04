@@ -578,7 +578,7 @@ class ProTransactionsPage(TransactionsPage):
                     transactions[i] = {}
                 transactions[i][key] = value.strip()
 
-        return transactions.iteritems()
+        return sorted(transactions.items())
 
     def get_history(self, acc_type):
         for i, tr in self.parse_transactions():

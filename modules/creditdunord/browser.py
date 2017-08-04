@@ -103,7 +103,7 @@ class CreditDuNordBrowser(LoginBrowser):
                 self.location(link + a._acc_nb)
                 a.iban = self.page.get_iban()
 
-        return iter(accounts)
+        return accounts
 
     def get_account(self, id):
         assert isinstance(id, basestring)
@@ -131,18 +131,17 @@ class CreditDuNordBrowser(LoginBrowser):
     @need_login
     def get_history(self, account, coming=False):
         if coming and account.type is not Account.TYPE_CARD or account.type is Account.TYPE_LOAN:
-            return iter([])
+            return []
 
         transactions = []
         for tr in self.iter_transactions(account._link, account._args, account.type):
             transactions.append(tr)
-        transactions.sort(key=lambda tr: tr.rdate, reverse=True)
         return transactions
 
     @need_login
     def get_investment(self, account):
         if not account._inv:
-            return iter([])
+            return []
 
         investments = []
         if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
@@ -152,7 +151,7 @@ class CreditDuNordBrowser(LoginBrowser):
             self.location(account._link, data=account._args)
             self.location(account._link.replace("_attente", "_detail_contrat_rep"), data=account._args)
             investments = [i for i in self.page.get_deposit_investment()]
-        return iter(investments)
+        return investments
 
     @need_login
     def get_profile(self):
