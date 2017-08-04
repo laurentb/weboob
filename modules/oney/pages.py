@@ -224,7 +224,7 @@ class CreditAccountPage(LoggedPage, HTMLPage):
 
         obj_id = CleanText('//tr[td[text()="Mon numéro de compte"]]/td[@class="droite"]', replace=[(' ', '')])
         obj_balance = CleanDecimal('''//div[@id="mod-paiementcomptant"]//tr[td[starts-with(normalize-space(text()),"Disponible jusqu'au")]]/td[@class="droite"]''')
-        obj_coming = CleanDecimal('''//div[@id="mod-paiementcomptant"]//tr[td[span[contains(text(),"prélevé le")]]]/td[@class="droite"]''', sign=lambda _: -1)
+        obj_coming = CleanDecimal('''//div[@id="mod-paiementcomptant"]//tr[td[span[contains(text(),"prélevé le")]]]/td[@class="droite"]''', sign=lambda _: -1, default=0)
         # what's the balance anyway?
         # there's "Paiements au comptant" and sometimes "Retraits d'argent au comptant"
 
