@@ -164,6 +164,10 @@ class ComingTransactionsPage(LoggedPage, HTMLPage):
             break
 
         for tr in data:
+            if tr[self.ROW_DATE] == 'En attente de comptabilisation':
+                self.logger.debug('skipping transaction without a date: %r', tr[self.ROW_TEXT])
+                continue
+
             t = Transaction()
             t.parse(tr[self.ROW_DATE], tr[self.ROW_TEXT])
             t.set_amount(tr[self.ROW_CREDIT], tr[self.ROW_DEBIT])
