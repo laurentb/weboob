@@ -35,7 +35,7 @@ from weboob.capabilities.profile import Profile
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
-from weboob.tools.compat import quote
+from weboob.tools.compat import quote, unicode, basestring
 from weboob.tools.json import json
 
 
@@ -105,7 +105,7 @@ class LoginPage(HTMLPage):
             self.classic_login(username,password)
 
     def vk_login(self, username, password):
-        res = self.browser.open('/sec/vk/gen_crypto?estSession=0').content
+        res = self.browser.open('/sec/vk/gen_crypto?estSession=0').text
         crypto = re.search(r"'crypto': '([^']+)'", res).group(1)
         grid = re.search(r"'grid': \[([^\]]+)]", res).group(1).split(',')
 
@@ -198,7 +198,7 @@ class AccountsPage(LoggedPage, CDNBasePage):
             }
 
     def get_account_type(self, label):
-        for pattern, actype in sorted(self.TYPES.iteritems()):
+        for pattern, actype in sorted(self.TYPES.items()):
             if label.startswith(pattern) or label.endswith(pattern):
                 return actype
 
@@ -292,7 +292,7 @@ class AVPage(LoggedPage, CDNBasePage):
         for sub in re.findall("'([^']*)'", text):
             l.append(sub)
         for i, key in enumerate(self.ARGS):
-            args[key] = unicode(l[self.ARGS.index(key)]).encode(self.browser.ENCODING)
+            args[key] = l[self.ARGS.index(key)]
 
         return url, args
 

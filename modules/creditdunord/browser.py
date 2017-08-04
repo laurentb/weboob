@@ -106,8 +106,6 @@ class CreditDuNordBrowser(LoginBrowser):
         return accounts
 
     def get_account(self, id):
-        assert isinstance(id, basestring)
-
         for a in self._iter_accounts():
             if a.id == id:
                 return a
