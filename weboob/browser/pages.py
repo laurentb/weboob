@@ -464,7 +464,7 @@ class XLSPage(Page):
         header = None
         drows = []
         rows = []
-        for i in range(sh.nrows - 1):
+        for i in range(sh.nrows):
             if self.HEADER and i + 1 < self.HEADER:
                 continue
             row = sh.row_values(i)
