@@ -561,6 +561,9 @@ class CardsPage(LoggedPage, MyHTMLPage):
             if m and currency is None:
                 currency = Account.get_currency(m.group(1))
 
+        if currency is None:
+            currency = Account.get_currency(CleanText('//td[@id="tbl1_0_5_Cell"]/span')(self.doc))
+
         for tr in self.doc.xpath('//table[@id="tbl1"]/tbody/tr'):
             cols = tr.xpath('./td')
 
