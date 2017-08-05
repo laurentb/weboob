@@ -28,14 +28,12 @@ from datetime import date, datetime
 from random import randint
 from weboob.browser.pages import HTMLPage, FormNotFound, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, SkipItem, method, TableElement
-from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, TableCell, \
-    Regexp, Async, AsyncLoad, Date, ColumnNotFound, Format, Type
+from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, TableCell, Regexp, Async, AsyncLoad, Date, ColumnNotFound, Format
 from weboob.browser.filters.html import Link, Attr
 from weboob.exceptions import BrowserIncorrectPassword, ParseError, NoAccountsException, ActionNeeded
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.base import empty
-from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, TransferBankError, \
-    Transfer, AddRecipientError, AddRecipientStep, Loan
+from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, TransferBankError, Transfer, AddRecipientError, AddRecipientStep
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Profile
 from weboob.tools.capabilities.bank.iban import is_iban_valid
@@ -44,14 +42,6 @@ from weboob.tools.compat import urlparse, parse_qs
 from weboob.tools.date import parse_french_date
 from weboob.tools.value import Value
 
-
-def MyDecimal(*args, **kwargs):
-    kwargs.update(replace_dots=True, default=NotAvailable)
-    return CleanDecimal(*args, **kwargs)
-
-def MyDate(*args, **kwargs):
-    kwargs.update(dayfirst=True, default=NotAvailable)
-    return Date(*args, **kwargs)
 
 class RedirectPage(LoggedPage, HTMLPage):
     def on_load(self):
@@ -102,8 +92,14 @@ class ChangePasswordPage(LoggedPage, HTMLPage):
         raise BrowserIncorrectPassword('Please change your password')
 
 
-class item_account_generic(ItemElement):
-    klass = Account
+
+class AccountsPage(LoggedPage, HTMLPage):
+    def on_load(self):
+        super(AccountsPage, self).on_load()
+
+        no_account_message = CleanText(u'//td[contains(text(), "Votre contrat de banque à distance ne vous donne accès à aucun compte.")]')(self.doc)
+        if no_account_message:
+            raise NoAccountsException(no_account_message)
 
     TYPES = {u'C/C':                     Account.TYPE_CHECKING,
              u'Livret':                  Account.TYPE_SAVINGS,
@@ -128,216 +124,159 @@ class item_account_generic(ItemElement):
              u'Etalis':                  Account.TYPE_SAVINGS,
             }
 
-    REVOLVING_LOAN_LABELS = [
-        'Passeport Credit'
-    ]
-
-    def condition(self):
-        if len(self.el.xpath('./td')) < 2:
-            return False
-
-        first_td = self.el.xpath('./td')[0]
-        return (("i" in first_td.attrib.get('class', '') or "p" in first_td.attrib.get('class', ''))
-                and (first_td.find('a') is not None or (first_td.find('.//span') is not None
-                and "cartes" in first_td.findtext('.//span') and first_td.find('./div/a') is not None)))
-
-    class Label(Filter):
-        def filter(self, text):
-            return text.lstrip(' 0123456789').title()
-
-    class Type(Filter):
-        def filter(self, label):
-            for pattern, actype in item_account_generic.TYPES.iteritems():
-                if label.startswith(pattern):
-                    return actype
-            return Account.TYPE_UNKNOWN
-
-    obj_id = Env('id')
-    obj__card_number = None
-    obj_label = Label(CleanText('./td[1]/a/text() | ./td[1]/a/span[@class and not(contains(@class, "doux"))] | ./td[1]/div/a[has-class("cb")]'))
-    obj_coming = Env('coming')
-    obj_balance = Env('balance')
-    obj_currency = FrenchTransaction.Currency('./td[2] | ./td[3]')
-    obj__link_id = Link('./td[1]//a')
-    obj__card_links = []
-    obj_type = Type(Field('label'))
-    obj__is_inv = False
-    obj__is_webid = Env('_is_webid')
-
-    def parse(self, el):
-        link = el.xpath('./td[1]//a')[0].get('href', '')
-        if 'POR_SyntheseLst' in link:
-            raise SkipItem()
-
-        url = urlparse(link)
-        p = parse_qs(url.query)
-        if 'rib' not in p and 'webid' not in p:
-            raise SkipItem()
-
-        for td in el.xpath('./td[2] | ./td[3]'):
-            try:
-                balance = CleanDecimal('.', replace_dots=True)(td)
-            except InvalidOperation:
-                continue
-            else:
-                break
-        else:
-            if 'lien_inter_sites' in link:
-                raise SkipItem()
-            else:
-                raise ParseError('Unable to find balance for account %s' % CleanText('./td[1]/a')(el))
-
-        self.env['_is_webid'] = False
-
-        if "cartes" in CleanText('./td[1]')(el):
-            # handle cb differed card
-            if "cartes" in CleanText('./preceding-sibling::tr[1]/td[1]', replace=[(' ', '')])(el):
-                # In case it's the second month of card history present, we need to ignore the first
-                # one to get the attach accoount
-                id_xpath = './preceding-sibling::tr[2]/td[1]/a/node()[contains(@class, "doux")]'
-            else:
-                # first month of history, the previous tr is the attached account
-                id_xpath = './preceding-sibling::tr[1]/td[1]/a/node()[contains(@class, "doux")]'
-        else:
-            # classical account
-            id_xpath = './td[1]/a/node()[contains(@class, "doux")]'
-
-        id = CleanText(id_xpath, replace=[(' ', '')])(el)
-        if not id:
-            if 'rib' in p:
-                id = p['rib'][0]
-            else:
-                id = p['webid'][0]
-                self.env['_is_webid'] = True
-
-        page = self.page.browser.open(link).page
-
-        # Handle cards
-        if id in self.parent.objects:
-            # be sure that we don't have that case anymore
-            assert not page.is_fleet()
-
-            # on old website we want card's history in account's history
-            if not page.browser.is_new_website:
-                account = self.parent.objects[id]
-                if not account.coming:
-                    account.coming = Decimal('0.0')
-                date = parse_french_date(Regexp(Field('label'), 'Fin (.+) (\d{4})', '01 \\1 \\2')(self)) + relativedelta(day=31)
-                if date > datetime.now() - relativedelta(day=1):
-                    account.coming += balance
-                account._card_links.append(link)
-            else:
-                card_xpath = u'//div[contains(@class, "title")]/div//*[self::span or self::option][contains(text(), "Carte")]'
-                for elem in page.doc.xpath(card_xpath):
-                    card_id = Regexp(CleanText('.', symbols=' '), '([\dx]+)')(elem)
-                    if any(card_id in a.id for a in page.browser.accounts_list):
-                        continue
-
-                    card = Account()
-                    card.type = Account.TYPE_CARD
-                    card.id = card._card_number = card_id
-                    card._link_id = link
-                    card._is_inv = card._is_webid = False
-
-                    pattern = 'Carte\s(\w+).*\d{4}\s([A-Za-z\s]+)(.*)'
-                    m = re.search(pattern, CleanText('.')(elem))
-                    card.label = "%s %s %s" % (m.group(1), card_id, m.group(2))
-                    card.balance = CleanDecimal(replace_dots=True).filter(m.group(3))
-                    card.currency = card.get_currency(m.group(3))
-
-                    card._card_pages = [page]
-                    next_month = Link('./following-sibling::tr[contains(@class, "encours")][1]/td[1]//a', default=None)(self)
-                    if next_month:
-                        card_page = page.browser.open(next_month).page
-                        # retrieving coming from next month matching on id
-                        card.coming = Decimal('0.0')
-                        for e in card_page.doc.xpath(card_xpath):
-                            if card.id != Regexp(CleanText('.', symbols=' '), '([\dx]+)')(e):
-                                continue
-                            m = re.search(pattern, CleanText('.')(e))
-                            card.coming += CleanDecimal(replace_dots=True).filter(m.group(3))
-                        card._card_pages.append(card_page)
-
-                    self.page.browser.accounts_list.append(card)
-
-            raise SkipItem()
-
-        self.env['id'] = id
-
-        # Handle real balances
-        coming = page.find_amount(u"Opérations à venir") if page else None
-        accounting = page.find_amount(u"Solde comptable") if page else None
-
-        if accounting is not None and accounting + (coming or Decimal('0')) != balance:
-            self.page.logger.warning('%s + %s != %s' % (accounting, coming, balance))
-
-        if accounting is not None:
-            balance = accounting
-
-        self.env['balance'] = balance
-        self.env['coming'] = coming or NotAvailable
-
-
-class AccountsPage(LoggedPage, HTMLPage):
-    def on_load(self):
-        super(AccountsPage, self).on_load()
-
-        no_account_message = CleanText(u'//td[contains(text(), "Votre contrat de banque à distance ne vous donne accès à aucun compte.")]')(self.doc)
-        if no_account_message:
-            raise NoAccountsException(no_account_message)
-
     @method
     class iter_accounts(ListElement):
         item_xpath = '//tr'
         flush_at_end = True
 
-        class item_account(item_account_generic):
-            def condition(self):
-                type = Field('type')(self)
-                return item_account_generic.condition(self) and type != Account.TYPE_LOAN
-
-        class item_loan(item_account_generic):
-            klass = Loan
-
-            load_details = Link('.//a') & AsyncLoad
-
-            obj_total_amount = Async('details') & MyDecimal('//div[@id="F4:expContent"]/table/tbody/tr[1]/td[1]/text()')
-            obj_rate = Async('details') & MyDecimal('//div[@id="F4:expContent"]/table/tbody/tr[2]/td[1]')
-            obj_account_label = Async('details') & CleanText('//div[@id="F4:expContent"]/table/tbody/tr[1]/td[2]')
-            obj_nb_payments_left = Async('details') & Type(CleanText('//div[@id="F4:expContent"]/table/tbody/tr[2]/td[2]'), type=int)
-            obj_subscription_date = Async('details') & MyDate(Regexp(CleanText(
-                '//*[@id="F4:expContent"]/table/tbody/tr[1]/th[1]'), ' (\d{2}/\d{2}/\d{4})', default=NotAvailable))
-            obj_maturity_date = Async('details') & MyDate(
-                CleanText('//div[@id="F4:expContent"]/table/tbody/tr[4]/td[2]'))
-
-            obj_next_payment_amount = Async('details') & MyDecimal('//div[@id="F4:expContent"]/table/tbody/tr[3]/td[2]')
-            obj_next_payment_date = Async('details') & MyDate(
-                CleanText('//div[@id="F4:expContent"]/table/tbody/tr[3]/td[1]'))
-
-            obj_last_payment_amount = Async('details') & MyDecimal('//td[@id="F2_0.T12"]')
-            obj_last_payment_date = Async('details') & \
-                MyDate(CleanText('//div[@id="F8:expContent"]/table/tbody/tr[1]/td[1]'))
+        class item(ItemElement):
+            klass = Account
 
             def condition(self):
-                type = Field('type')(self)
-                label = Field('label')(self)
-                return item_account_generic.condition(self) and type == Account.TYPE_LOAN \
-                    and label not in self.REVOLVING_LOAN_LABELS
+                if len(self.el.xpath('./td')) < 2:
+                    return False
 
-        class item_revolving_loan(item_account_generic):
-            klass = Loan
+                first_td = self.el.xpath('./td')[0]
+                return (("i" in first_td.attrib.get('class', '') or "p" in first_td.attrib.get('class', ''))
+                        and (first_td.find('a') is not None or (first_td.find('.//span') is not None
+                        and "cartes" in first_td.findtext('.//span') and first_td.find('./div/a') is not None)))
 
-            load_details = Link('.//a') & AsyncLoad
+            class Label(Filter):
+                def filter(self, text):
+                    return text.lstrip(' 0123456789').title()
 
-            obj_total_amount = Async('details') & MyDecimal('//main[@id="ei_tpl_content"]/div/div[2]/table/tbody/tr/td[3]')
-            def obj_used_amount(self):
-                return -Field('balance')(self)
+            class Type(Filter):
+                def filter(self, label):
+                    for pattern, actype in AccountsPage.TYPES.iteritems():
+                        if label.startswith(pattern):
+                            return actype
+                    return Account.TYPE_UNKNOWN
 
-            def condition(self):
-                type = Field('type')(self)
-                label = Field('label')(self)
-                return item_account_generic.condition(self) and type == Account.TYPE_LOAN \
-                       and label in self.REVOLVING_LOAN_LABELS
+            obj_id = Env('id')
+            obj__card_number = None
+            obj_label = Label(CleanText('./td[1]/a/text() | ./td[1]/a/span[@class and not(contains(@class, "doux"))] | ./td[1]/div/a[has-class("cb")]'))
+            obj_coming = Env('coming')
+            obj_balance = Env('balance')
+            obj_currency = FrenchTransaction.Currency('./td[2] | ./td[3]')
+            obj__link_id = Link('./td[1]//a')
+            obj__card_links = []
+            obj_type = Type(Field('label'))
+            obj__is_inv = False
+            obj__is_webid = Env('_is_webid')
+
+            def parse(self, el):
+                link = el.xpath('./td[1]//a')[0].get('href', '')
+                if 'POR_SyntheseLst' in link:
+                    raise SkipItem()
+
+                url = urlparse(link)
+                p = parse_qs(url.query)
+                if 'rib' not in p and 'webid' not in p:
+                    raise SkipItem()
+
+                for td in el.xpath('./td[2] | ./td[3]'):
+                    try:
+                        balance = CleanDecimal('.', replace_dots=True)(td)
+                    except InvalidOperation:
+                        continue
+                    else:
+                        break
+                else:
+                    if 'lien_inter_sites' in link:
+                        raise SkipItem()
+                    else:
+                        raise ParseError('Unable to find balance for account %s' % CleanText('./td[1]/a')(el))
+
+                self.env['_is_webid'] = False
+
+                if "cartes" in CleanText('./td[1]')(el):
+                    # handle cb differed card
+                    if "cartes" in CleanText('./preceding-sibling::tr[1]/td[1]', replace=[(' ', '')])(el):
+                        # In case it's the second month of card history present, we need to ignore the first
+                        # one to get the attach accoount
+                        id_xpath = './preceding-sibling::tr[2]/td[1]/a/node()[contains(@class, "doux")]'
+                    else:
+                        # first month of history, the previous tr is the attached account
+                        id_xpath = './preceding-sibling::tr[1]/td[1]/a/node()[contains(@class, "doux")]'
+                else:
+                    # classical account
+                    id_xpath = './td[1]/a/node()[contains(@class, "doux")]'
+
+
+                id = CleanText(id_xpath, replace=[(' ', '')])(el)
+                if not id:
+                    if 'rib' in p:
+                        id = p['rib'][0]
+                    else:
+                        id = p['webid'][0]
+                        self.env['_is_webid'] = True
+
+                page = self.page.browser.open(link).page
+
+                # Handle cards
+                if id in self.parent.objects:
+                    # be sure that we don't have that case anymore
+                    assert not page.is_fleet()
+
+                    # on old website we want card's history in account's history
+                    if not page.browser.is_new_website:
+                        account = self.parent.objects[id]
+                        if not account.coming:
+                            account.coming = Decimal('0.0')
+                        date = parse_french_date(Regexp(Field('label'), 'Fin (.+) (\d{4})', '01 \\1 \\2')(self)) + relativedelta(day=31)
+                        if date > datetime.now() - relativedelta(day=1):
+                            account.coming += balance
+                        account._card_links.append(link)
+                    else:
+                        card_xpath = u'//div[contains(@class, "title")]/div//*[self::span or self::option][contains(text(), "Carte")]'
+                        for elem in page.doc.xpath(card_xpath):
+                            card_id = Regexp(CleanText('.', symbols=' '), '([\dx]+)')(elem)
+                            if any(card_id in a.id for a in page.browser.accounts_list):
+                                continue
+
+                            card = Account()
+                            card.type = Account.TYPE_CARD
+                            card.id = card._card_number = card_id
+                            card._link_id = link
+                            card._is_inv = card._is_webid = False
+
+                            pattern = 'Carte\s(\w+).*\d{4}\s([A-Za-z\s]+)(.*)'
+                            m = re.search(pattern, CleanText('.')(elem))
+                            card.label = "%s %s %s" % (m.group(1), card_id, m.group(2))
+                            card.balance = CleanDecimal(replace_dots=True).filter(m.group(3))
+                            card.currency = card.get_currency(m.group(3))
+
+                            card._card_pages = [page]
+                            next_month = Link('./following-sibling::tr[contains(@class, "encours")][1]/td[1]//a', default=None)(self)
+                            if next_month:
+                                card_page = page.browser.open(next_month).page
+                                # retrieving coming from next month matching on id
+                                card.coming = Decimal('0.0')
+                                for e in card_page.doc.xpath(card_xpath):
+                                    if card.id != Regexp(CleanText('.', symbols=' '), '([\dx]+)')(e):
+                                        continue
+                                    m = re.search(pattern, CleanText('.')(e))
+                                    card.coming += CleanDecimal(replace_dots=True).filter(m.group(3))
+                                card._card_pages.append(card_page)
+
+                            self.page.browser.accounts_list.append(card)
+
+                    raise SkipItem()
+
+                self.env['id'] = id
+
+                # Handle real balances
+                coming = page.find_amount(u"Opérations à venir") if page else None
+                accounting = page.find_amount(u"Solde comptable") if page else None
+
+                if accounting is not None and accounting + (coming or Decimal('0')) != balance:
+                    self.page.logger.warning('%s + %s != %s' % (accounting, coming, balance))
+
+                if accounting is not None:
+                    balance = accounting
+
+                self.env['balance'] = balance
+                self.env['coming'] = coming or NotAvailable
 
     def get_advisor_link(self):
         return Link('//div[@id="e_conseiller"]/a', default=None)(self.doc)
