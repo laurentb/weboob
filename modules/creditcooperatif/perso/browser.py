@@ -44,7 +44,8 @@ class CreditCooperatif(LoginBrowser):
     accountspage = URL('/portail/particuliers/mescomptes/synthese.do', AccountsPage)
     transactionpage = URL('/portail/particuliers/mescomptes/relevedesoperations.do', TransactionsPage)
     transactjsonpage = URL('/portail/particuliers/mescomptes/relevedesoperationsjson.do', TransactionsJSONPage)
-    comingpage = URL('/portail/particuliers/mescomptes/synthese/operationsencourslien.do', ComingTransactionsPage)
+    pre_comingpage = URL('/portail/particuliers/mescomptes/synthese/operationsencourslien.do', ComingTransactionsPage)
+    comingpage = URL('/portail/particuliers/mescomptes/operationsavenir/avenir.do', ComingTransactionsPage)
     iban = URL('/portail/particuliers/mesoperations/ribiban/telechargementribajax.do\?accountExternalNumber=(?P<account_id>.*)', IbanPage)
 
     transfer_start = URL(r'/portail/particuliers/mesoperations/virement/creer.do', TransferPage)
@@ -102,11 +103,15 @@ class CreditCooperatif(LoginBrowser):
     @need_login
     def get_coming(self, account):
         data = {'accountExternalNumber': account.id}
-        self.comingpage.go(data=data)
-
+        self.pre_comingpage.go(data=data)
         assert self.comingpage.is_here()
+        # this page is "operations du jour" and may not have any date yet
+        # so don't take transactions here, but it sets the "context"
 
-        return self.page.get_transactions()
+        self.comingpage.go()
+        assert self.comingpage.is_here()
+        for tr in self.page.get_transactions():
+            yield tr
 
     @need_login
     def iter_recipients(self, account_id):
