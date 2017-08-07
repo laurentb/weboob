@@ -82,7 +82,7 @@ class AccountsPage(LoggedPage, HTMLPage):
 
                     return m.group(2) if m else None
                 else:
-                    return Link('.//a')(self)
+                    return Link('.//a', default=None)(self)
 
     def refresh_link(self, account):
         if account.type is not Account.TYPE_LIFE_INSURANCE:
