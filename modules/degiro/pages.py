@@ -113,7 +113,7 @@ class HistoryPage(LoggedPage, JsonPage):
             obj_date = Date(CleanText(Dict('date')), dayfirst=True)
             obj_amount = CleanDecimal(Dict('change'))
 
-            obj__isin = Regexp(Dict('description'), r'\((.*?)\)', nth=-1, default=None)
+            obj__isin = Regexp(Dict('description'), r'\((.{12}?)\)', nth=-1, default=None)
             obj__number = Regexp(Dict('description'), r'^([Aa]chat|[Vv]ente|[Bb]uy|[Ss]ell) (\d+[,.]?\d*)', template='\\2', default=None)
 
             obj__datetime = Dict('date')
