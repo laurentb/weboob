@@ -79,6 +79,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
     disc = URL('https://bourse.secure.lcl.fr/netfinca-titres/servlet/com.netfinca.frontcr.login.ContextTransferDisconnect',
                r'https://assurance-vie-et-prevoyance.secure.lcl.fr/filiale/entreeBam\?.*\btypeaction=reroutage_retour\b',
                r'https://assurance-vie-et-prevoyance.secure.lcl.fr/filiale/ServletReroutageCookie',
+               r'https://ASSURANCE-VIE-et-prevoyance.secure.lcl.fr/filiale/ServletReroutageCookie',
                '/outil/UAUT/RetourPartenaire/retourCar', DiscPage)
 
     form2 = URL(r'/outil/UWVI/Routage/', Form2Page)
