@@ -278,7 +278,7 @@ class Application(object):
 
         obj.backend = backend.name
         if fields is None or len(fields) > 0:
-            backend.fillobj(obj, fields)
+            obj = backend.fillobj(obj, fields) or obj
         return obj
 
     def _do_complete_iter(self, backend, count, fields, res):
