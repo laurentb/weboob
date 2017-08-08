@@ -63,7 +63,7 @@ class OrangeModule(Module, CapAccount, CapMessages, CapMessagesPost, CapDocument
                            Value('phonenumber', label='Phone number', default='')
                            )
     ACCOUNT_REGISTER_PROPERTIES = None
-    BROWSER = OrangeBrowser
+    BROWSER = OrangeBillBrowser
 
 
     def __init__(self, *args, **kwargs):
