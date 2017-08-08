@@ -19,6 +19,7 @@
 
 from decimal import Decimal
 from datetime import datetime
+from functools import wraps
 
 from weboob.browser.browsers import DomainBrowser
 from weboob.capabilities.base import find_object, NotAvailable
@@ -29,6 +30,17 @@ from weboob.browser.exceptions import ClientError
 
 # Do not use an APIBrowser since APIBrowser sends all its requests bodies as
 # JSON, although N26 only accepts urlencoded format.
+
+def need_login(func):
+    @wraps(func)
+    def wrapper(browser, *args, **kwargs):
+        if browser.auth_method.lower() == 'basic':
+            browser.do_login()
+
+        return func(browser, *args, **kwargs)
+
+    return wrapper
+
 
 class Number26Browser(DomainBrowser):
     BASEURL = 'https://api.tech26.de'
@@ -47,15 +59,18 @@ class Number26Browser(DomainBrowser):
 
     def __init__(self, username, password, *args, **kwargs):
         super(Number26Browser, self).__init__(*args, **kwargs)
+        self.username = username
+        self.password = password
+        self.auth_method = 'Basic'
+        self.bearer = Number26Browser.INITIAL_TOKEN
 
+    def do_login(self):
         data = {
-            'username': username,
-            'password': password,
+            'username': self.username,
+            'password': self.password,
             'grant_type': 'password'
         }
 
-        self.auth_method = 'Basic'
-        self.bearer = Number26Browser.INITIAL_TOKEN
         try:
             result = self.request('/oauth/token', data=data, method="POST")
         except ClientError:
@@ -64,6 +79,7 @@ class Number26Browser(DomainBrowser):
         self.auth_method = 'bearer'
         self.bearer = result['access_token']
 
+    @need_login
     def get_accounts(self):
         account = self.request('/api/accounts')
 
@@ -84,6 +100,7 @@ class Number26Browser(DomainBrowser):
     def get_account(self, _id):
         return find_object(self.get_accounts(), id=_id, error=AccountNotFound)
 
+    @need_login
     def get_categories(self):
         """
         Generates a map of categoryId -> categoryName, for fast lookup when
@@ -101,13 +118,16 @@ class Number26Browser(DomainBrowser):
     def is_past_transaction(t):
         return "userAccepted" in t or "confirmed" in t
 
+    @need_login
     def get_transactions(self, categories):
         return self._internal_get_transactions(categories, Number26Browser.is_past_transaction)
 
+    @need_login
     def get_coming(self, categories):
         filter = lambda x: not Number26Browser.is_past_transaction(x)
         return self._internal_get_transactions(categories, filter)
 
+    @need_login
     def _internal_get_transactions(self, categories, filter_func):
         transactions = self.request('/api/smrt/transactions?limit=1000')
 
