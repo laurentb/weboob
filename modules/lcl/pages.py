@@ -44,6 +44,7 @@ from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 from weboob.tools.compat import unicode
+from weboob.tools.compat import urlparse, parse_qs
 from weboob.tools.html import html2text
 from weboob.tools.date import parse_french_date
 
@@ -666,14 +667,23 @@ class AVPage(LoggedPage, HTMLPage):
                     ac_details_page = self.page.browser.open('/outil/UWVI/AssuranceVie/accesDetail?ID_CONTRAT=%s&PRODUCTEUR=%s' % (split[0], split[1])).page
                 return Currency.get_currency(re.sub(r'[\d\,\ ]', '', CleanText('(//tr[8])/td[2]', default=NotAvailable)(ac_details_page.doc))) or NotAvailable
 
-
             def obj__form(self):
                 form_id = Attr('.//td/a', 'id', default=None)(self)
-                if not form_id:
-                    return
+                if form_id:
+                    id_contrat = re.search(r'^(.*?)-', form_id).group(1)
+                    producteur = re.search(r'-(.*?)$', form_id).group(1)
+                else:
+                    # sometimes information are not in id but in href
+                    url = Attr('.//td/a', 'href', default=None)(self)
+                    parsed_url = urlparse(url)
+                    params = parse_qs(parsed_url.query)
+
+                    id_contrat = params['ID_CONTRAT'][0]
+                    producteur = params['PRODUCTEUR'][0]
+
                 form = self.page.get_form('//form[@id="formRoutage"]')
-                form['ID_CONTRAT'] = re.search(r'^(.*?)-', form_id).group(1)
-                form['PRODUCTEUR'] = re.search(r'-(.*?)$', form_id).group(1)
+                form['ID_CONTRAT'] = id_contrat
+                form['PRODUCTEUR'] = producteur
                 return form
 
 
