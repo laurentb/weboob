@@ -152,6 +152,47 @@ class DoQueue(QObject):
             do.stop()
 
 
+class ByIdDict(dict):
+    """dict keeping objects by their `id()`
+
+    This is used to store BaseObjects as key, because they are unhashable and
+    so can't be put in a regular dict else.
+    """
+
+    def __init__(self):
+        super(ByIdDict, self).__init__()
+        self.objs = {}
+
+    def __getitem__(self, k):
+        return super(ByIdDict, self).__getitem__(id(k))
+
+    def get(self, k, default=None):
+        return super(ByIdDict, self).get(id(k), default)
+
+    def __contains__(self, k):
+        return super(ByIdDict, self).__contains__(id(k))
+
+    def __setitem__(self, k, v):
+        super(ByIdDict, self).__setitem__(id(k), v)
+        self.objs[id(k)] = k
+
+    def setdefault(self, k, v):
+        self.objs[id(k)] = k
+        return super(ByIdDict, self).setdefault(id(k), v)
+
+    def __delitem__(self, k):
+        super(ByIdDict, self).__delitem__(id(k))
+        del self.objs[id(k)]
+
+    def pop(self, k, *args, **kwargs):
+        self.objs.pop(id(k), None)
+        return super(ByIdDict, self).pop(id(k), *args, **kwargs)
+
+    def clear(self):
+        super(ByIdDict, self).clear()
+        self.objs.clear()
+
+
 class ResultModel(QAbstractItemModel):
     """Model for displaying objects and collections"""
 
@@ -166,8 +207,8 @@ class ResultModel(QAbstractItemModel):
         super(ResultModel, self).__init__(*args, **kwargs)
         self.weboob = weboob
         self.resource_classes = []
-        self.children = {}
-        self.parents = {}
+        self.children = ByIdDict()
+        self.parents = ByIdDict()
         self.columns = []
 
         self.limit = None
@@ -193,8 +234,8 @@ class ResultModel(QAbstractItemModel):
         #self.beginResetModel()
         if n:
             self.beginRemoveRows(QModelIndex(), 0, max(0, n - 1))
-        self.children = {}
-        self.parents = {}
+        self.children.clear()
+        self.parents.clear()
         #self.endResetModel()
         if n:
             self.endRemoveRows()
