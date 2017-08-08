@@ -144,6 +144,7 @@ class Cragr(LoginBrowser, StatesMixin):
         self.perimeters = None
         self.current_perimeter = None
         self.broken_perimeters = list()
+        self.BASEURL = 'https://%s/' % self.first_domain
 
     def do_login(self):
         """
