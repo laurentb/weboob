@@ -114,6 +114,7 @@ class HistoryPage(LoggedPage, JsonPage):
             obj_amount = CleanDecimal(Dict('change'))
 
             obj__isin = Regexp(Dict('description'), r'\((.*?)\)', nth=-1, default=None)
+            obj__number = Regexp(Dict('description'), r'^([Aa]chat|[Vv]ente|[Bb]uy|[Ss]ell) (\d+[,.]?\d*)', template='\\2', default=None)
 
             obj__datetime = Dict('date')
 
@@ -136,8 +137,17 @@ class HistoryPage(LoggedPage, JsonPage):
                 isin = Field('_isin')(self)
                 action = Field('_action')(self)
                 if isin and action:
+                    number = float(Field('_number')(self).replace(',', '.'))
                     k = (isin, action, Field('_datetime')(self))
-                    return [d[k]]
+                    if number > 0:
+                        return [d[k]]
+                    else:
+                        try:
+                            return [d[k]]
+                        except KeyError:
+                            # number == 0 => it's normal k key is not found
+                            # but we try in case it's here
+                            pass
                 return []
 
     @method
