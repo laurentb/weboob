@@ -160,13 +160,19 @@ class CapDocument(CapCollection):
 
     def download_document_pdf(self, id):
         """
-        Download a document and convert it to PDF.
+        Download a document, convert it to PDF if it isn't the document format.
 
         :param id: ID of document
         :rtype: str
         :raises: :class:`DocumentNotFound`
         """
-        raise NotImplementedError()
+        if not isinstance(id, Document):
+            id = self.get_document(id)
+
+        if id.format == 'pdf':
+            return self.download_document(id)
+        else:
+            raise NotImplementedError()
 
     def iter_documents(self, subscription):
         """
