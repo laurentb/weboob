@@ -21,10 +21,10 @@ import re, requests
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import method, TableElement, ItemElement
-from weboob.browser.filters.standard import Env, CleanText, CleanDecimal, Field, Regexp
+from weboob.browser.filters.standard import Env, CleanText, CleanDecimal, Field, Regexp, TableCell
 from weboob.browser.filters.html import Attr, Link
 from weboob.browser.filters.javascript import JSVar
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, Investment
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.capabilities.base import NotAvailable
 
@@ -77,18 +77,24 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_id = Regexp(Field('label'), u'N° (\w+)')
 
             def obj__link(self):
-                if Field('type')(self) is not Account.TYPE_LIFE_INSURANCE:
-                    m = re.search(r"javascript:submitForm\(([\w_]+),'([^']+)'\);", Attr('.//a', 'onclick')(self))
-
-                    return m.group(2) if m else None
-                else:
-                    return Link('.//a', default=None)(self)
+                m = re.match(u'(.*?)(N°[a-zA-Z0-9 ]+)', Field('label')(self))
+                number = m.group(2).replace(' ','')
+                for a in self.page.doc.xpath('//ul[@id="sunmenu-0"]/li/a'):
+                    link = Link('.')(a)
+                    if number in CleanText('./nobr')(a):
+                        return link
 
     def refresh_link(self, account):
         if account.type is not Account.TYPE_LIFE_INSURANCE:
             m = re.search(r"javascript:submitForm\(([\w_]+),'([^']+)'\);", Attr('.//a[contains(text(), "%s")]' % account.id, 'onclick')(self.doc))
             account._link =  m.group(2) if m else None
-
+        else:
+            m = re.match(u'(.*?)(N°[a-zA-Z0-9 ]+)', account.label)
+            number = m.group(2).replace(' ','')
+            for a in self.doc.xpath('//ul[@id="sunmenu-0"]/li/a'):
+                link = Link('.')(a)
+                if number in CleanText('./nobr')(a):
+                    account._link = link
 
 class AccountDetailsPage(LoggedPage, HTMLPage):
     def get_rivage(self):
@@ -117,6 +123,25 @@ class AccountDetailsPage(LoggedPage, HTMLPage):
 
     def fill_account_details(self, account):
         account.balance = CleanDecimal(u'//p[contains(., "épargne") and contains(., "€")]', replace_dots=True)(self.doc)
+
+    @method
+    class get_investments(TableElement):
+        item_xpath = "//table[@id='repartition_epargne3']/tr[position()>1 and position()<last()]"
+        head_xpath = "//table[@id='repartition_epargne3']/tr[1]/th"
+
+        col_label = u'Support'
+        col_quantity = u'Nombre d’unités de compte'
+        col_unitvalue = u'Valeur de l’unité de compte'
+        col_valuation = u'Épargne constituée en euros'
+
+
+        class item(ItemElement):
+            klass = Investment
+
+            obj_label = CleanText(TableCell('label', support_th=True))
+            obj_quantity = CleanDecimal(TableCell('quantity', support_th=True), default=NotAvailable)
+            obj_unitvalue = CleanDecimal(TableCell('unitvalue', support_th=True), default=NotAvailable)
+            obj_valuation = CleanDecimal(TableCell('valuation', support_th=True), default=NotAvailable)
 
 
 class Transaction(FrenchTransaction):

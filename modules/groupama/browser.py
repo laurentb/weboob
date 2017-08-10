@@ -44,6 +44,8 @@ class GroupamaBrowser(LoginBrowser):
                           'https://secure-rivage.groupama.fr/', AccountDetailsPage)
     transactions = URL('/wps/myportal/!ut.*', TransactionsPage)
 
+    accounts_list = None
+
     def prepare_request(self, req):
         """
         Gan Assurances does not support SSL anymore.
@@ -68,7 +70,6 @@ class GroupamaBrowser(LoginBrowser):
         if self.login.is_here():
             raise BrowserIncorrectPassword()
 
-        self.accounts_list = None
 
     @need_login
     def get_accounts_list(self):
@@ -144,3 +145,19 @@ class GroupamaBrowser(LoginBrowser):
 
                         return self.page.get_history(accid=account.id)
         return iter([])
+
+    @need_login
+    def get_investment(self, account):
+        self.accounts.stay_or_go()
+        assert self.accounts.is_here()
+
+        self.refresh_accounts_link()
+        self.location(account._link)
+
+        if self.account_details.is_here():
+            rivage = self.page.get_rivage()
+            if rivage is not None:
+                self.location(rivage.get('link'), data=rivage.get('data'))
+                for inv in self.page.get_investments(account):
+                    yield inv
+

@@ -55,3 +55,6 @@ class GroupamaModule(Module, CapBank):
 
     def iter_coming(self, account):
         return self.browser.get_coming(account)
+
+    def iter_investment(self, account):
+        return self.browser.get_investment(account)
