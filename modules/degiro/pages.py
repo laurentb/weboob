@@ -133,19 +133,19 @@ class HistoryPage(LoggedPage, JsonPage):
                 }[label]
 
             def obj_investments(self):
-                d = Env('transaction_investments')(self).v
+                tr_investment_list = Env('transaction_investments')(self).v
                 isin = Field('_isin')(self)
                 action = Field('_action')(self)
                 if isin and action:
                     number = float(Field('_number')(self).replace(',', '.'))
-                    k = (isin, action, Field('_datetime')(self))
+                    tr_inv_key = (isin, action, Field('_datetime')(self))
                     if number > 0:
-                        return [d[k]]
+                        return [tr_investment_list[tr_inv_key]]
                     else:
                         try:
-                            return [d[k]]
+                            return [tr_investment_list[tr_inv_key]]
                         except KeyError:
-                            # number == 0 => it's normal k key is not found
+                            # number==0 => it's normal tr_inv_key is not found
                             # but we try in case it's here
                             pass
                 return []
