@@ -195,9 +195,9 @@ class TransactionsFormatter(IFormatter):
             except (IndexError, AttributeError):
                 _type = ''
 
-        label = obj.label
+        label = obj.label or ''
         if not label and hasattr(obj, 'raw'):
-            label = obj.raw
+            label = obj.raw or ''
         date = obj.date.strftime('%Y-%m-%d') if not empty(obj.date) else ''
         amount = obj.amount or Decimal('0')
         return ' %s   %s %s %s' % (self.colored('%-10s' % date, 'blue'),
