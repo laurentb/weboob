@@ -548,10 +548,11 @@ class AsvPage(MarketPage):
     @method
     class iter_investment(Myiter_investment):
         col_vdate = u'Date de Valeur'
+        col_label = u'Valeur'
 
         class item(Myitem):
             obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True, default=NotAvailable)
-
+            obj_label = CleanText('.//strong/a')
 
 class AccbisPage(LoggedPage, HTMLPage):
     def populate(self, accounts):
