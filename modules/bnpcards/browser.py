@@ -67,7 +67,6 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
         self.type = type
         self.is_corporate = False
         self.transactions_dict = {}
-        self.do_login()
 
     def do_login(self):
         assert isinstance(self.username, basestring)

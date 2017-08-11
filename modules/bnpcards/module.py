@@ -23,8 +23,7 @@ from weboob.capabilities.bank import CapBank, AccountNotFound
 from weboob.capabilities.base import find_object
 from weboob.tools.value import ValueBackendPassword, Value
 
-from .browser import BnpcartesentrepriseBrowser
-from .corporate.browser import BnpcartesentrepriseCorporateBrowser
+from .proxy_browser import ProxyBrowser
 
 
 __all__ = ['BnpcartesentrepriseModule']
@@ -43,18 +42,12 @@ class BnpcartesentrepriseModule(Module, CapBank):
                                  choices={'1': 'Titulaire',
                                           '2': 'Gestionnaire'}))
 
-    BROWSER = BnpcartesentrepriseBrowser
+    BROWSER = ProxyBrowser
 
     def create_default_browser(self):
-        try:
-            return self.create_browser(self.config['type'].get(),
-                                    self.config['login'].get(),
-                                    self.config['password'].get())
-        except BnpcartesentrepriseBrowser.CorporateCard:
-            self.logger.debug('Switching on Corporate website.')
-            self.BROWSER = BnpcartesentrepriseCorporateBrowser
-            return self.create_browser(self.config['login'].get(),
-                                       self.config['password'].get())
+        return self.create_browser(self.config['type'].get(),
+                                   self.config['login'].get(),
+                                   self.config['password'].get())
 
     def get_account(self, _id):
         return find_object(self.browser.iter_accounts(), id=_id, error=AccountNotFound)

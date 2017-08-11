@@ -57,7 +57,7 @@ class BnpcartesentrepriseCorporateBrowser(LoginBrowser):
     TIMEOUT = 60.0
 
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, user_type, *args, **kwargs):
         super(BnpcartesentrepriseCorporateBrowser, self).__init__(*args, **kwargs)
         self.accounts = []
 
