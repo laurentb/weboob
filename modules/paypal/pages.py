@@ -72,9 +72,9 @@ class LoginPage(HTMLPage):
 
         # Another victory for the scrapper team # CommitStrip Data Wars
         code1 = re.sub('return typeof document!="undefined"&&typeof document.createAttribute!="undefined"', 'return 1==1', code1)
+
         # now it checks if some browsers-only builtin variables are defined:
         # e+=function(e,t){return typeof navigator!="undefined"?e:t}
-
         code1 = re.sub(r'if\((?:typeof |document)[^)]*\)', 'if(true)', code1)
 
         js = Javascript(code1)
