@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2012 Romain Bignon
+# Copyright(C) 2012-2017 Jean Walrave
 #
 # This file is part of weboob.
 #
@@ -18,183 +18,187 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import re
+from __future__ import unicode_literals
+
+from requests.exceptions import ConnectionError
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
-from weboob.capabilities.bank import NotAvailable
+from weboob.capabilities.bank import Account
+from weboob.capabilities.base import NotAvailable
 
-from .pages import LoginPage, Login2Page, IndexPage, AccountsPage, IbanPage, IbanPDFPage, TransactionsPage, \
-                   CardPage, ValuationPage, LoanPage, MarketPage, AssurancePage, LogoutPage
+from .pages import (
+    LoginPage, AccountsPage, AccountPage, MarketAccountPage,
+    LifeInsuranceAccountPage, CardPage, IbanPDFPage
+)
 
 
 class Barclays(LoginBrowser):
-    BASEURL = 'https://www.barclays.fr'
+    BASEURL = 'https://client.barclays.fr'
 
-    index = URL('https?://.*.barclays.fr/\d-index.html',                                 IndexPage)
-    login = URL('https://.*.barclays.fr/barclaysnetV2/logininstit.do.*',                 LoginPage)
-    login2 = URL('https://.*.barclays.fr/barclaysnetV2/loginSecurite.do.*',              Login2Page)
-    logout = URL('https://.*.barclays.fr/bayexterne/barclaysnet/deconnexion/index.html', LogoutPage)
-    accounts = URL('https://.*.barclays.fr/barclaysnetV2/tbord.do.*',                    AccountsPage)
-    iban = URL('https://.*.barclays.fr/barclaysnetV2/editionRIB.do.*',                   IbanPage)
-    ibanpdf = URL('https://.*.barclays.fr/barclaysnetV2/telechargerRIB.pdf',             IbanPDFPage)
-    transactions = URL('https://.*.barclays.fr/barclaysnetV2/releve.do.*',               TransactionsPage)
-    card = URL('https://.*.barclays.fr/barclaysnetV2/cartes.do.*',                       CardPage)
-    valuation = URL('https://.*.barclays.fr/barclaysnetV2/valuationViewBank.do.*',       ValuationPage)
-    loan = URL('https://.*.barclays.fr/barclaysnetV2/pret.do.*',
-               'https://.*.barclays.fr/barclaysnetV2/revolving.do.*',
-               LoanPage)
-    market = URL('https://.*.barclays.fr/barclaysnetV2/titre.do.*',                      MarketPage)
-    assurance = URL('https://.*.barclays.fr/barclaysnetV2/assurance.do.*',
-                    'https://.*.barclays.fr/barclaysnetV2/assuranceSupports.do.*',       AssurancePage)
+    login_client_acess = URL('https://www.barclays.fr/front/layouts/barclays/components/accesclient.jspz\?accesType=client')
+    logout = URL('https://www.barclays.fr/bayexterne/enquetes/BCon/index.html')
+    barclays_ajax = URL('/BconnectDesk/ajaxservletcontroller')
 
-    SESSION_PARAM = None
+    login = URL('/BconnectDesk/servletcontroller',                  LoginPage)
+    accounts = URL('/BconnectDesk/servletcontroller',               AccountsPage)
+    account = URL('/BconnectDesk/servletcontroller',                AccountPage)
+    card_account = URL('/BconnectDesk/servletcontroller',           CardPage)
+    market_account = URL('/BconnectDesk/servletcontroller',         MarketAccountPage)
+    life_insurance_account = URL('/BconnectDesk/servletcontroller', LifeInsuranceAccountPage)
+    iban = URL('/BconnectDesk/editique',                            IbanPDFPage)
 
     def __init__(self, secret, *args, **kwargs):
         super(Barclays, self).__init__(*args, **kwargs)
+
         self.secret = secret
-        self.cache = {}
 
-    def is_logged(self):
-        return self.page is not None and not (self.login.is_here() or self.index.is_here() or self.login2.is_here())
+        # do some cache to avoid time loss
+        self.cache = {'history': {},
+                     }
 
-    def go_home(self):
-        if self.is_logged():
-            link = self.page.doc.xpath('.//a[contains(@id, "tbordalllink")]')[0].attrib['href']
-            m = re.match('(.*?fr)', self.url)
-            if m:
-                absurl = m.group(1)
-                self.location('%s%s' % (absurl, link))
+
+    def _relogin(self):
+        self.do_logout()
+
+        self.do_login()
+
+    def _go_to_account(self, account, refresh=False):
+        if refresh:
+            self.page.go_to_account(account)
         else:
-            self.do_login()
+            if not self.accounts.is_here():
+                self.page.go_to_menu('Comptes et contrats')
 
-    def set_session_param(self):
-        if self.is_logged():
-            link = self.page.doc.xpath('.//a[contains(@id, "tbordalllink")]')[0].attrib['href']
-            m = re.search('&(.*)', link)
-            if m:
-                self.SESSION_PARAM = m.group(1)
+                if not self.accounts.is_here(): # Sometime we can't go out from account page, so re-login
+                    self._relogin()
+
+            self.page.go_to_account(account)
+
+    def _go_to_account_space(self, space, account):
+        attrs = self.page.get_space_attrs(space)
+        token = self.page.isolate_token()
+        data = {
+            'MODE': 'C4__AJXButtonAction',
+            'key': attrs[0][:2] + attrs[0][4:],
+            attrs[1]: attrs[2],
+            'C9__GETMODULENOTEPAD[1].IOGETMODULENOTEPAD[1].OUTPUTPARAMETER[1].TEXT': '',
+            'id': attrs[3],
+            'namespace': '',
+            'controllername': 'servletcontroller',
+            'disable': 'false',
+            'title': 'Barclaysnet',
+            token[0]: token[1]
+         }
+
+        self.barclays_ajax.open(data=data)
+        self._go_to_account(account, refresh=True)
+
+    def _multiple_account_choice(self, account):
+        accounts = [a for a in self.cache['accounts'] if a._uncleaned_id == account._uncleaned_id]
+
+        return not any(a for a in accounts if a.id in self.cache['history'])
 
     def do_login(self):
         """
         Attempt to log in.
         Note: this method does nothing if we are already logged in.
         """
-        assert isinstance(self.username, basestring)
-        assert isinstance(self.password, basestring)
 
-        if self.is_logged():
-            return
+        self.login.go().login(self.username, self.password)
 
-        if not self.login.is_here():
-            self.location('https://b-net.barclays.fr/barclaysnetV2/logininstit.do?lang=fr&nodoctype=0')
-
-        self.page.login(self.username, self.password)
-
-        if not self.page.has_redirect():
+        if self.page.has_error():
             raise BrowserIncorrectPassword()
 
-        self.location('loginSecurite.do')
+        self.login_client_acess.open()
 
-        if self.logout.is_here():
+        self.page.login_secret(self.secret)
+
+        if self.login.is_here():
             raise BrowserIncorrectPassword()
-
-        self.page.login(self.secret)
-
-        if not self.is_logged():
-            raise BrowserIncorrectPassword()
-
-        self.set_session_param()
-
-    def get_ibans_form(self):
-        link = self.page.get_ibanlink()
-        if link:
-            self.location(link.split('/')[-1])
-            return self.page.get_list()
-        return False
 
     @need_login
-    def get_accounts_list(self):
-        if 'accs' not in self.cache.keys():
-            if not self.accounts.is_here():
-                self.go_home()
-            accounts = self.page.get_list()
-            accounts_url = self.url
-            ibans = self.get_ibans_form()
-            accs = []
-            for a in accounts:
-                if ibans and a.id in ibans['list']:
-                    ibans['form']['checkaccount'] = ibans['list'][a.id]
-                    if ibans['form'].req:
-                        # this form has been submitted and whe have to rebuild data
-                        ibans['form'].req.data['checkaccount'] = ibans['list'][a.id]
-                    ibans['form'].submit()
-                    a.iban = self.page.get_iban()
-                else:
-                    a.iban = NotAvailable
-                accs.append(a)
-            self.location(accounts_url)
-            self.cache['accs'] = accs
-        return self.cache['accs']
-
-    def get_account(self, id):
-        assert isinstance(id, basestring)
-
-        l = self.get_accounts_list()
-        for a in l:
-            if a.id == id:
-                return a
-
-        return None
-
-    def get_related_account(self, related_accid):
-        l = []
-        for a in self.get_accounts_list():
-            if related_accid in a.id and a.type == a.TYPE_CHECKING:
-                l.append(a)
-        assert len(l) == 1
-        return l[0]
-
-    @need_login
-    def get_history(self, account):
+    def iter_accounts(self):
         if not self.accounts.is_here():
-            self.go_home()
+            self.page.go_to_menu('Comptes et contrats')
 
-        self.location(account._link)
+        if not 'accounts' in self.cache:
+            accounts = list(self.page.iter_accounts())
+            traccounts = []
 
-        assert (self.transactions.is_here() or self.valuation.is_here() or self.loan.is_here() \
-                or self.market.is_here() or self.assurance.is_here() or self.card.is_here())
+            for k, account in enumerate(accounts):
+                self._go_to_account(account)
 
-        transactions = list()
-        while True:
-            for tr in self.page.get_history():
-                transactions.append(tr)
-            next_page = self.page.get_next_page()
-            if next_page:
-                self.location(next_page)
-            else:
-                break
+                if account.type == Account.TYPE_CARD:
+                    if not self.page.has_history():
+                        continue
 
-        if account._attached_acc is not None:
-            for tr in self.get_history(self.get_related_account(account._attached_acc)):
-                if (tr.raw.startswith('ACHAT CARTE -DEBIT DIFFERE') or 'ACHAT-DEBIT DIFFERE' in tr.raw) and account.id[:6] in tr.raw and account.id[:4] in tr.raw:
-                    tr.amount *= -1
-                    transactions.append(tr)
+                    account._attached_account = self.page.do_account_attachment([a for a in accounts if a.type == Account.TYPE_CHECKING])
 
-        for tr in sorted(transactions, key=lambda t: t.rdate, reverse=True) :
-            yield tr
+                account.iban = self.iban.open().get_iban() if self.page.has_iban() else NotAvailable
+
+                traccounts.append(account)
+
+            self.cache['accounts'] = traccounts
+
+        return self.cache['accounts']
+
+    @need_login
+    def iter_history(self, account):
+        if account.type == Account.TYPE_CARD or (account._multiple_type and not self._multiple_account_choice(account)):
+            return []
+
+        if account.id not in self.cache['history']:
+            self._go_to_account(account)
+
+            if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET):
+                self._go_to_account_space('Mouvements', account)
+
+            history_page = self.page
+
+            if account.type != Account.TYPE_LIFE_INSURANCE:
+                for _ in range(100): # on new history page they take previous results too, so go to the last page before starts recover history
+                    form = history_page.form_to_history_page()
+
+                    if not form:
+                        break
+
+                    try:
+                        history_page = self.account.open(data=form)
+                    except ConnectionError: # Sometime accounts have too much history and website crash
+                        # Need to relogin
+                        self._relogin()
+
+                        break
+                else:
+                    assert False, "Too many iterations"
+
+            self.cache['history'][account.id] = list(history_page.iter_history()) if history_page.has_history() else []
+
+        return self.cache['history'][account.id]
+
+    @need_login
+    def iter_coming(self, account):
+        if account.type != Account.TYPE_CARD:
+            raise NotImplementedError()
+
+        self._go_to_account(account)
+
+        return self.page.iter_history()
 
     @need_login
     def iter_investments(self, account):
-        if account.type not in (account.TYPE_MARKET, account.TYPE_LIFE_INSURANCE):
+        if account.type not in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET):
             raise NotImplementedError()
 
-        if not self.accounts.is_here():
-            self.go_home()
+        self._go_to_account(account)
 
-        self.location(account._link)
-
-        if account.type == account.TYPE_LIFE_INSURANCE:
-            self.location(self.url.replace('assurance.do', 'assuranceSupports.do'))
+        if account.type == Account.TYPE_LIFE_INSURANCE:
+            self._go_to_account_space('Liste supports', account)
 
         return self.page.iter_investments()
+
+    def do_logout(self):
+        self.logout.go()
+
+        self.session.cookies.clear()
