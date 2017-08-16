@@ -18,10 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import sys
 
-from PyQt5.QtCore import Qt, QModelIndex, pyqtSlot as Slot
+from PyQt5.QtCore import Qt, QModelIndex, pyqtSlot as Slot, pyqtSignal as Signal, QObject
 from PyQt5.QtGui import QCursor
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QMessageBox
 
 from weboob.tools.application.qt5 import QtMainWindow
 from weboob.tools.application.qt5.backendcfg import BackendCfg
@@ -33,6 +34,9 @@ from weboob.capabilities.image import CapImage, BaseImage
 
 from .ui.mainwindow_ui import Ui_MainWindow
 from .viewer import Viewer
+
+
+PY3 = sys.version_info.major >= 3
 
 
 def size_format(n):
@@ -48,13 +52,70 @@ def size_format(n):
             return '%.2f %s' % (n / float(f), u)
 
 
+class CheckableModel(ResultModel):
+    def __init__(self, *args, **kwargs):
+        super(CheckableModel, self).__init__(*args, **kwargs)
+        self._check = {}
+
+    def flags(self, qidx):
+        f = super(CheckableModel, self).flags(qidx)
+        if not f or qidx.column() != 0:
+            return f
+        f |= Qt.ItemIsUserCheckable
+        return f
+
+    def setData(self, qidx, v, role):
+        if role == Qt.CheckStateRole:
+            self._check[id(qidx.internalPointer())] = v
+            self.dataChanged.emit(qidx, qidx)
+            return True
+        else:
+            return False
+
+    def data(self, qidx, role):
+        if role == Qt.CheckStateRole:
+            return self._check.get(id(qidx.internalPointer()), Qt.Unchecked)
+        else:
+            return super(CheckableModel, self).data(qidx, role)
+
+
+class FavDemandFetcher(CheckableModel, QObject):
+    endHit = Signal()
+
+    def __init__(self, weboob):
+        super(FavDemandFetcher, self).__init__(weboob)
+
+        app = QApplication.instance()
+        app.dataChanged.connect(self._reemit)
+        self.counter = 0
+        self.on_demand = False
+        self.reqs = {}
+
+    @Slot(int)
+    def _reemit(self, cookie):
+        item = self.reqs[cookie]
+        assert item.parent
+        qidx = self.createIndex(item.parent.children.index(item), 0, item)
+        self.dataChanged.emit(qidx, qidx)
+
+    def fillObj(self, obj, fields, qidx):
+        if self.on_demand:
+            self.counter += 1
+
+            app = QApplication.instance()
+            self.reqs[self.counter] = qidx.internalPointer()
+            app.fetchFill((obj, fields, self.counter))
+        else:
+            super(FavDemandFetcher, self).fillObj(obj, fields, qidx)
+
+
 class MainWindow(QtMainWindow):
     def __init__(self, config, storage, weboob, parent=None):
         super(MainWindow, self).__init__(parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        self.mdl = ResultModel(weboob)
+        self.mdl = FavDemandFetcher(weboob)
         self.mdl.setColumnFields([['name', 'title'],['url']])
         self.mdl.jobAdded.connect(self._jobAdded)
         self.mdl.jobFinished.connect(self._jobFinished)
@@ -94,6 +155,18 @@ class MainWindow(QtMainWindow):
         self.mdl.setLimit(self.ui.limitResults.value())
 
         self.lastSaveDir = os.path.expanduser('~')
+
+        app = QApplication.instance()
+        self.ui.fetchMore.clicked.connect(app.fetchMore)
+
+        self.ui.fetchStop.clicked.connect(app.fetchStop)
+        self.ui.fetchStop.clicked.connect(self.disableNext)
+
+        self.ui.ignUnchecked.clicked.connect(self.ignoreUnchecked)
+        self.mdl.endHit.connect(self.disableNext)
+        self.ui.toggleChecks.clicked.connect(self.toggleChecks)
+        self.mdl.rowsInserted.connect(self.inserted)
+        self.ui.helpLink.linkActivated.connect(self.showHelp)
 
     @Slot()
     def backendsConfig(self):
@@ -194,6 +267,8 @@ class MainWindow(QtMainWindow):
 
     @Slot()
     def startImgSearch(self):
+        self._newJob()
+
         backend = self.ui.backendImgCombo.currentData(BackendListModel.RoleBackendName)
         if not backend:
             backend = list(self.weboob.iter_backends(caps=CapImage))
@@ -206,10 +281,13 @@ class MainWindow(QtMainWindow):
 
         self.ui.imageList.setRootIndex(QModelIndex())
         self.ui.collectionTree.setRootIndex(QModelIndex())
+
         self.mdl.addRootDoLimit(BaseImage, 'search_image', pattern, backends=backend)
 
     @Slot()
     def startGallSearch(self):
+        self._newJob()
+
         backend = self.ui.backendGallCombo.currentData(BackendListModel.RoleBackendName)
         if not backend:
             backend = list(self.weboob.iter_backends(caps=CapGallery))
@@ -251,3 +329,80 @@ class MainWindow(QtMainWindow):
     @Slot(int)
     def _limitResultsChanged(self, value):
         self.mdl.setLimit(value)
+
+    # on-demand fetching
+    def closeEvent(self, ev):
+        super(MainWindow, self).closeEvent(ev)
+
+        app = QApplication.instance()
+        app.fetchStop()
+
+    def _newJob(self):
+        app = QApplication.instance()
+        app.prepareJob(self.ui.fetchMoreChoice.isChecked())
+        self.mdl.on_demand = self.ui.fetchMoreChoice.isChecked()
+
+        self.ui.fetchMore.setEnabled(self.ui.fetchMoreChoice.isChecked())
+        self.ui.fetchStop.setEnabled(self.ui.fetchMoreChoice.isChecked())
+
+    @Slot()
+    def disableNext(self):
+        self.ui.fetchMore.setEnabled(False)
+        self.ui.fetchStop.setEnabled(False)
+
+    @Slot()
+    def ignoreUnchecked(self):
+        app = QApplication.instance()
+
+        def root():
+            return self.ui.imageList.rootIndex()
+
+        n = 0
+        while n < self.mdl.rowCount(root()):
+            qidx = self.mdl.index(n, 0, root())
+            obj = qidx.data(ResultModel.RoleObject)
+            if qidx.data(Qt.CheckStateRole) == Qt.Checked:
+                if obj.id:
+                    app.bookmarks.add_bookmark(obj.fullid)
+                else:
+                    app.logger.warning('cannot bookmark %r since it has no id', obj)
+                n += 1
+            else:
+                if obj.id:
+                    app.bookmarks.add_ignore(obj.fullid)
+                else:
+                    app.logger.warning('cannot ignore %r since it has no id', obj)
+                self.mdl.removeItem(qidx)
+
+        app.bookmarks.save()
+
+    @Slot()
+    def toggleChecks(self):
+        allck = all(self.mdl.index(n, 0, QModelIndex()).data(Qt.CheckStateRole) == Qt.Checked for n in range(self.mdl.rowCount(QModelIndex())))
+        new = Qt.Unchecked if allck else Qt.Checked
+        for n in range(self.mdl.rowCount(QModelIndex())):
+            self.mdl.setData(self.mdl.index(n, 0, QModelIndex()), new, Qt.CheckStateRole)
+
+    @Slot()
+    def showHelp(self):
+        QMessageBox.information(self, self.tr('Help'), self.tr(
+            'When "fetch on-demand" is checked, QGalleroob only fetches a limited number of results. '
+            'It will fetch more items only when "Fetch more" is clicked.\n\n'
+            'When pressing "Hide unchecked", unchecked results are permanently hidden, even when QGalleroob is restarted. '
+            'Checked results will be bookmarked instead and will be checked automatically.'
+        ))
+
+    @Slot(QModelIndex, int, int)
+    def inserted(self, parent, f, l):
+        app = QApplication.instance()
+
+        if f != l:
+            return
+
+        idx = self.mdl.index(f, 0, parent)
+        obj = idx.data(ResultModel.RoleObject)
+        if obj is None:
+            return
+
+        if app.bookmarks.is_bookmarked(obj.fullid):
+            self.mdl.setData(idx, Qt.Checked, Qt.CheckStateRole)

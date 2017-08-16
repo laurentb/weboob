@@ -63,7 +63,7 @@
      <x>0</x>
      <y>0</y>
      <width>1024</width>
-     <height>19</height>
+     <height>20</height>
     </rect>
    </property>
   </widget>
@@ -329,6 +329,13 @@
       </layout>
      </item>
      <item>
+      <widget class="QCheckBox" name="fetchMoreChoice">
+       <property name="text">
+        <string>Fetch on-demand</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QToolBox" name="toolBox">
        <property name="currentIndex">
         <number>0</number>
@@ -339,7 +346,7 @@
           <x>0</x>
           <y>0</y>
           <width>256</width>
-          <height>214</height>
+          <height>224</height>
          </rect>
         </property>
         <attribute name="label">
@@ -388,7 +395,7 @@
           <x>0</x>
           <y>0</y>
           <width>256</width>
-          <height>214</height>
+          <height>224</height>
          </rect>
         </property>
         <attribute name="label">
@@ -437,7 +444,7 @@
           <x>0</x>
           <y>0</y>
           <width>256</width>
-          <height>214</height>
+          <height>224</height>
          </rect>
         </property>
         <attribute name="label">
@@ -520,6 +527,81 @@
        <attribute name="headerDefaultSectionSize">
         <number>0</number>
        </attribute>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="dockWidget_3">
+   <property name="features">
+    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
+   </property>
+   <property name="windowTitle">
+    <string>On-demand fetch</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_3">
+    <layout class="QVBoxLayout" name="verticalLayout_7">
+     <item>
+      <spacer name="verticalSpacer_5">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="fetchMore">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Fetch more</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="fetchStop">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Stop fetch</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="ignUnchecked">
+       <property name="text">
+        <string>Hide unchecked</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="toggleChecks">
+       <property name="text">
+        <string>(Un)Check all</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="helpLink">
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;help:&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;Help&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="textFormat">
+        <enum>Qt::RichText</enum>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
       </widget>
      </item>
     </layout>
