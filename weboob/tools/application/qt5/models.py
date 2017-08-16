@@ -273,6 +273,21 @@ class ResultModel(QAbstractItemModel):
         """Set accepted object classes for CapCollection.iter_resources"""
         self.resource_classes = classes
 
+    def removeItem(self, qidx):
+        obj = qidx.internalPointer()
+        assert obj
+        # TODO recursive?
+        parent_qidx = qidx.parent()
+        parent_obj = parent_qidx.internalPointer()
+
+        n = self.children[parent_obj].index(obj)
+
+        self.beginRemoveRows(parent_qidx, n, n)
+        self.parents.pop(obj, None)
+        self.children.pop(obj, None)
+        del self.children[parent_obj][n]
+        self.endRemoveRows()
+
     # internal operation
     def _addToRoot(self, obj):
         self._addItem(obj, None, QModelIndex())
