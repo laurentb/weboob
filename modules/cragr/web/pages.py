@@ -1027,7 +1027,7 @@ class TransferInit(MyLoggedPage, BasePage):
                 rcpt._raw_label = ' '.join(lines)
                 rcpt.category = 'Externe'
                 rcpt.label = lines[0]
-                rcpt.iban = lines[1]
+                rcpt.iban = lines[1].upper()
                 rcpt.id = rcpt.iban
                 rcpt.enabled_at = datetime.now().replace(microsecond=0)
                 yield rcpt
@@ -1192,9 +1192,10 @@ class RecipientMiscPage(CollectePageMixin, MyLoggedPage, BasePage):
             raise AddRecipientError(message=msg)
 
     def find_recipient(self, iban):
+        iban = iban.upper()
         for tr in self.doc.xpath('//table[starts-with(@summary,"Nom et IBAN")]/tbody/tr'):
             iban_text = re.sub(r'\s', '', CleanText('./td[3]')(tr))
-            if iban_text == 'IBAN:%s' % iban:
+            if iban_text.upper() == 'IBAN:%s' % iban:
                 res = Recipient()
                 res.iban = iban
                 res.label = CleanText('./td[2]')(tr)
