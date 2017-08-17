@@ -108,7 +108,9 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
     transfer_choose = URL(r'/voscomptes/canalXHTML/virement/mpiaiguillage/init-saisieComptes.ea', TransferChooseAccounts)
     transfer_complete = URL(r'/voscomptes/canalXHTML/virement/mpiaiguillage/soumissionChoixComptes-saisieComptes.ea',
-                            r'/voscomptes/canalXHTML/virement/virementSafran_national/init-creerVirementNational.ea', CompleteTransfer)
+                            r'/voscomptes/canalXHTML/virement/virementSafran_national/init-creerVirementNational.ea',
+                            r'/voscomptes/canalXHTML/virement/virementSafran_sepa/init-creerVirementSepa.ea',
+                            CompleteTransfer)
     transfer_confirm = URL(r'/voscomptes/canalXHTML/virement/virementSafran_pea/validerVirementPea-virementPea.ea',
                            r'/voscomptes/canalXHTML/virement/virementSafran_sepa/valider-virementSepa.ea',
                            r'/voscomptes/canalXHTML/virement/virementSafran_sepa/confirmerInformations-virementSepa.ea',
@@ -371,6 +373,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
     def init_transfer(self, account, recipient, amount, transfer):
         self.transfer_choose.stay_or_go()
         self.page.init_transfer(account.id, recipient._value)
+        assert self.transfer_complete.is_here()
         self.page.complete_transfer(amount, transfer)
         return self.page.handle_response(account, recipient, amount, transfer.label)
 
