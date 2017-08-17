@@ -284,7 +284,7 @@ class MediawikiBrowser(DomainBrowser):
                 break
 
     def fill_file(self, obj, fields):
-        response = self.browser.open(obj.url)
+        response = self.open(obj.url)
         if 'data' in fields:
             obj.data = response.content
         if 'size' in fields:
