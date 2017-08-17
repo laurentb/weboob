@@ -79,7 +79,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             def obj__link(self):
                 m = re.match(u'(.*?)(N°[a-zA-Z0-9 ]+)', Field('label')(self))
                 number = m.group(2).replace(' ','')
-                for a in self.page.doc.xpath('//ul[@id="sunmenu-0"]/li/a'):
+                for a in self.page.doc.xpath('//ul[@id="sunmenu-0"]/li/a[@href]'):
                     link = Link('.')(a)
                     if number in CleanText('./nobr')(a):
                         return link
@@ -91,10 +91,11 @@ class AccountsPage(LoggedPage, HTMLPage):
         else:
             m = re.match(u'(.*?)(N°[a-zA-Z0-9 ]+)', account.label)
             number = m.group(2).replace(' ','')
-            for a in self.doc.xpath('//ul[@id="sunmenu-0"]/li/a'):
+            for a in self.doc.xpath('//ul[@id="sunmenu-0"]/li/a[@href]'):
                 link = Link('.')(a)
                 if number in CleanText('./nobr')(a):
                     account._link = link
+
 
 class AccountDetailsPage(LoggedPage, HTMLPage):
     def get_rivage(self):
