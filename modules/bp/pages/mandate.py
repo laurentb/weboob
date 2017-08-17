@@ -54,6 +54,14 @@ class MandateAccountsList(LoggedPage, HTMLPage):
         col_perf = re.compile('Perf')
 
         class Item(ItemElement):
+            TYPES = {'CIFO':            Account.TYPE_MARKET,
+                     'PEA':             Account.TYPE_PEA,
+                     'Excelis VIE':     Account.TYPE_LIFE_INSURANCE,
+                     'Satinium':        Account.TYPE_LIFE_INSURANCE,
+                     'Satinium CAPI':   Account.TYPE_LIFE_INSURANCE,
+                     'Excelis CAPI':    Account.TYPE_LIFE_INSURANCE,
+                    }
+
             klass = Account
 
             obj_id = CleanText(TableCell('id'))
@@ -69,10 +77,7 @@ class MandateAccountsList(LoggedPage, HTMLPage):
                 return Link(td.xpath('./a'))(self)
 
             def obj_type(self):
-                TYPES = {'CIFO': Account.TYPE_MARKET,
-                         'Excelis VIE': Account.TYPE_LIFE_INSURANCE}
-
-                return TYPES[CleanText(TableCell('type'))(self)]
+                return self.TYPES.get(CleanText(TableCell('type'))(self), Account.TYPE_UNKNOWN)
 
 
 class Myiter_investments(TableElement):
