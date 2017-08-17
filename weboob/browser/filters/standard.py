@@ -547,6 +547,8 @@ class Type(Filter):
 
     >>> Type(CleanText('./td[1]'), type=int)  # doctest: +SKIP
 
+    >>> Type(type=int).filter(42)
+    42
     >>> Type(type=int).filter('42')
     42
     >>> Type(type=int, default='NaN').filter('')
@@ -564,6 +566,8 @@ class Type(Filter):
 
     @debug()
     def filter(self, txt):
+        if isinstance(txt, self.type_func):
+            return txt
         if empty(txt):
             return self.default_or_raise(ParseError('Unable to parse %r' % txt))
         if self.minlen is not False and len(txt) <= self.minlen:
