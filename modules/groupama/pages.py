@@ -21,7 +21,7 @@ import re, requests
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import method, TableElement, ItemElement
-from weboob.browser.filters.standard import Env, CleanText, CleanDecimal, Field, Regexp, TableCell
+from weboob.browser.filters.standard import Env, CleanText, CleanDecimal, Field, Regexp, TableCell, Eval
 from weboob.browser.filters.html import Attr, Link
 from weboob.browser.filters.javascript import JSVar
 from weboob.capabilities.bank import Account, Investment
@@ -134,6 +134,7 @@ class AccountDetailsPage(LoggedPage, HTMLPage):
         col_quantity = u'Nombre d’unités de compte'
         col_unitvalue = u'Valeur de l’unité de compte'
         col_valuation = u'Épargne constituée en euros'
+        col_portfolio = u'Répartition %'
 
 
         class item(ItemElement):
@@ -143,6 +144,10 @@ class AccountDetailsPage(LoggedPage, HTMLPage):
             obj_quantity = CleanDecimal(TableCell('quantity', support_th=True), default=NotAvailable)
             obj_unitvalue = CleanDecimal(TableCell('unitvalue', support_th=True), default=NotAvailable)
             obj_valuation = CleanDecimal(TableCell('valuation', support_th=True), default=NotAvailable)
+            obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal(TableCell('portfolio', support_th=True), default=NotAvailable))
+
+            def obj_code(self):
+                return Regexp(CleanText('./a/@href'), '.*?isin=(\w+)', default=NotAvailable)(TableCell('label', support_th=True)(self)[0])
 
 
 class Transaction(FrenchTransaction):
