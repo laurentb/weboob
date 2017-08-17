@@ -326,8 +326,17 @@ class AccountsPage(LoggedPage, HTMLPage):
             def condition(self):
                 type = Field('type')(self)
                 label = Field('label')(self)
-                return item_account_generic.condition(self) and type == Account.TYPE_LOAN \
-                    and label not in self.REVOLVING_LOAN_LABELS
+                details_link = Link('.//a', default=None)(self)
+                if details_link:
+                    details= self.page.browser.open(Link('.//a')(self))
+                    closed_message = CleanText('//form[@id="P:F"]/div/div[1]/div/p', default='')(details.page.doc)
+                    closed_loan =  u'cloturé' in closed_message
+                else:
+                    closed_loan = False
+                return ( item_account_generic.condition(self)
+                       and type == Account.TYPE_LOAN
+                       and label not in self.REVOLVING_LOAN_LABELS
+                       and not closed_loan )
 
         class item_revolving_loan(item_account_generic):
             klass = Loan
