@@ -553,10 +553,10 @@ class Type(Filter):
     42
     >>> Type(type=int, default='NaN').filter('')
     'NaN'
-    >>> Type(type=str, minlen=False, default='a').filter('')
-    ''
-    >>> Type(type=str, minlen=0, default='a').filter('')
-    'a'
+    >>> Type(type=list, minlen=False, default=list('ab')).filter('')
+    []
+    >>> Type(type=list, minlen=0, default=list('ab')).filter('')
+    ['a', 'b']
     """
 
     def __init__(self, selector=None, type=None, minlen=0, default=_NO_DEFAULT):
