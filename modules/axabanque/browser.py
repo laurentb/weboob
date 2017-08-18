@@ -207,8 +207,17 @@ class AXABanque(AXABrowser):
             for tr in self.page.iter_history(pagination_url=pagination_url):
                 yield tr
         # Main website withouth investments
-        elif account._acctype == "bank" and not account._hasinv:
+        elif account._acctype == "bank" and not account._hasinv and account.type != Account.TYPE_CARD:
             self.go_account_pages(account, "history")
+
+            if self.page.more_history():
+                for tr in self.page.get_history():
+                    yield tr
+
+    def iter_coming(self, account):
+        if account._acctype == "bank" and account.type == Account.TYPE_CARD:
+            self.go_account_pages(account, "history")
+
             if self.page.more_history():
                 for tr in self.page.get_history():
                     yield tr
