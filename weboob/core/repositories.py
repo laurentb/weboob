@@ -404,13 +404,13 @@ class IProgress(object):
 
 class PrintProgress(IProgress):
     def progress(self, percent, message):
-        print('=== [%3.0f%%] %s' % (percent*100, message))
+        print('=== [%3.0f%%] %s' % (percent*100, message), file=sys.stderr)
 
     def error(self, message):
         print('ERROR: %s' % message, file=sys.stderr)
 
     def prompt(self, message):
-        print('%s (Y/n): *** ASSUMING YES ***' % message)
+        print('%s (Y/n): *** ASSUMING YES ***' % message, file=sys.stderr)
         return True
 
 
