@@ -22,7 +22,7 @@ import re
 
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 from PyQt5.QtGui import QPixmap, QImage, QKeySequence
-from PyQt5.QtCore import Qt, pyqtSlot as Slot, pyqtSignal as Signal, QModelIndex
+from PyQt5.QtCore import Qt, pyqtSlot as Slot, pyqtSignal as Signal, QModelIndex, QPersistentModelIndex
 
 from weboob.tools.application.qt5 import QtMainWindow
 from weboob.tools.application.qt5.models import ResultModel
@@ -66,7 +66,7 @@ class Viewer(QtMainWindow):
 
     def setData(self, model, qidx):
         self.model = model
-        self.current = qidx
+        self.current = QPersistentModelIndex(qidx)
 
         self.model.rowsInserted.connect(self.updatePos)
         self.model.rowsRemoved.connect(self.updatePos)
@@ -95,7 +95,7 @@ class Viewer(QtMainWindow):
         obj = self.current.data(ResultModel.RoleObject)
 
         if obj.data is NotLoaded:
-            self.model.fillObj(obj, ['data'], self.current)
+            self.model.fillObj(obj, ['data'], QModelIndex(self.current))
             self.pixmap = None
         elif obj.data:
             self.pixmap = QPixmap(QImage.fromData(obj.data))
@@ -120,24 +120,24 @@ class Viewer(QtMainWindow):
         new = self.current.sibling(self.current.row() + 1, 0)
         if not new.isValid():
             return
-        self.current = new
+        self.current = QPersistentModelIndex(new)
         self.updateImage()
 
     @Slot()
     def prev(self):
         if self.current.row() == 0:
             return
-        self.current = self.current.sibling(self.current.row() - 1, 0)
+        self.current = QPersistentModelIndex(self.current.sibling(self.current.row() - 1, 0))
         self.updateImage()
 
     @Slot()
     def first(self):
-        self.current = self.current.sibling(0, 0)
+        self.current = QPersistentModelIndex(self.current.sibling(0, 0))
         self.updateImage()
 
     @Slot()
     def last(self):
-        self.current = self.current.sibling(self.total - 1, 0)
+        self.current = QPersistentModelIndex(self.current.sibling(self.total - 1, 0))
         self.updateImage()
 
     @Slot()
