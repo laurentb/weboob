@@ -230,15 +230,15 @@ class ResultModel(QAbstractItemModel):
     def clear(self):
         """Empty the model completely"""
         self.jobs.stop()
-        n = len(self.children.get(None, []))
-        #self.beginResetModel()
-        if n:
-            self.beginRemoveRows(QModelIndex(), 0, max(0, n - 1))
+        #n = len(self.children.get(None, []))
+        self.beginResetModel()
+        #if n:
+        #    self.beginRemoveRows(QModelIndex(), 0, max(0, n - 1))
         self.children.clear()
         self.parents.clear()
-        #self.endResetModel()
-        if n:
-            self.endRemoveRows()
+        self.endResetModel()
+        #if n:
+        #    self.endRemoveRows()
 
     @Slot(object)
     def _gotRootDone(self, obj):
