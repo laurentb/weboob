@@ -73,8 +73,13 @@ class Viewer(QtMainWindow):
         self.model.rowsInserted.connect(self.updateNavButtons)
         self.model.rowsRemoved.connect(self.updateNavButtons)
         self.model.dataChanged.connect(self._dataChanged)
+        self.model.modelReset.connect(self.disable)
 
         self.updateImage()
+
+    @Slot()
+    def disable(self):
+        self.setEnabled(False)
 
     def updateNavButtons(self):
         prev = self.current.row() > 0
