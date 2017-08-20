@@ -106,7 +106,10 @@ class Pastoob(ReplApplication):
                 output = self.stdout.stream
             output.write(b64decode(paste.contents))
         else:
-            output = codecs.getwriter(self.encoding)(self.stdout)
+            if sys.version_info.major < 3:
+                output = codecs.getwriter(self.encoding)(self.stdout)
+            else:
+                output = self.stdout
             output.write(paste.contents)
             # add a newline unless we are writing
             # in a file or in a pipe
