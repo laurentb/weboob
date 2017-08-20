@@ -152,8 +152,6 @@ class Browser(object):
             (self.responses_count, response.status_code, '-' if path else '', path, ext)
 
         response_filepath = os.path.join(self.responses_dirname, filename)
-        with open(response_filepath, 'wb') as f:
-            f.write(response.content)
 
         request = response.request
         with open(response_filepath + '-request.txt', 'w') as f:
@@ -168,6 +166,9 @@ class Browser(object):
             f.write('%s %s\n\n\n' % (response.status_code, response.reason))
             for key, value in response.headers.items():
                 f.write('%s: %s\n' % (key, value))
+
+        with open(response_filepath, 'wb') as f:
+            f.write(response.content)
 
         match_filepath = os.path.join(self.responses_dirname, 'url_response_match.txt')
         with open(match_filepath, 'a') as f:
