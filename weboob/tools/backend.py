@@ -431,10 +431,10 @@ class Module(object):
                 missing = False
                 if hasattr(value, '__iter__'):
                     for v in (value.values() if isinstance(value, dict) else value):
-                        if not_loaded(v):
+                        if check_cb(v):
                             missing = True
                             break
-                elif not_loaded(value):
+                elif check_cb(value):
                     missing = True
 
                 if missing:
