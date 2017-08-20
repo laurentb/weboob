@@ -35,7 +35,7 @@ from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, TransferBankError, Transfer,\
                                      AddRecipientError
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.tools.capabilities.bank.iban import is_rib_valid, rib2iban
+from weboob.tools.capabilities.bank.iban import is_rib_valid, rib2iban, is_iban_valid
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
 from weboob.tools.compat import unicode
 from weboob.exceptions import NoAccountsException, BrowserUnavailable
@@ -805,8 +805,14 @@ class TransferConfirmPage(TransferErrorPage, IndexPage):
         transfer.amount = CleanDecimal('.//tr[td[contains(text(), "Montant")]]/td[not(@class)] | \
                                         .//tr[th[contains(text(), "Montant")]]/td[not(@class)]', replace_dots=True)(self.doc)
         transfer.account_iban = account.iban
-        transfer.recipient_iban = Upper(Regexp(CleanText(u'.//tr[th[contains(text(), "Compte à créditer")]]/td[not(@class)]'), '(\w+)$'))(self.doc) \
-                                  if recipient.category == u'Externe' else recipient.iban
+        if recipient.category == u'Externe':
+            for word in Upper(CleanText(u'.//tr[th[contains(text(), "Compte à créditer")]]/td[not(@class)]'))(self.doc).split():
+                if is_iban_valid(word):
+                    transfer.recipient_iban = word
+            else:
+                raise TransferError('Unable to find IBAN (original was %s)' % recipient.iban)
+        else:
+            transfer.recipient_iban = recipient.iban
         transfer.account_id = unicode(account.id)
         transfer.recipient_id = unicode(recipient.id)
         transfer.exec_date = Date(CleanText('.//tr[th[contains(text(), "En date du")]]/td[not(@class)]'), dayfirst=True)(self.doc)
