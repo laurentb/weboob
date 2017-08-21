@@ -28,7 +28,7 @@ from weboob.capabilities import NotAvailable
 from weboob.capabilities.base import Currency
 from weboob.capabilities.bank import (
     Account, Investment, Recipient, Transfer, TransferError, TransferBankError,
-    AddRecipientError,
+    AddRecipientError, Loan
 )
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Profile
@@ -39,6 +39,17 @@ from weboob.tools.compat import urlparse, urljoin, unicode
 from weboob.browser.elements import TableElement, ItemElement, method
 from weboob.browser.filters.standard import Date, CleanText, CleanDecimal, Currency as CleanCurrency, \
                                             Regexp, Format, TableCell, Field
+from weboob.browser.filters.html import Link
+
+
+def MyDecimal(*args, **kwargs):
+    kwargs.update(replace_dots=True)
+    return CleanDecimal(*args, **kwargs)
+
+
+def MyDate(*args, **kwargs):
+    kwargs.update(dayfirst=True)
+    return Date(*args, **kwargs)
 
 
 class MyLoggedPage(object):
@@ -234,10 +245,16 @@ class _AccountsPage(MyLoggedPage, BasePage):
 
             cleaner = CleanText().filter
 
-            account = Account()
+            label = cleaner(cols[self.COL_LABEL])
+            type = self.TYPES.get(label, Account.TYPE_UNKNOWN) or account_type
+            if type == Account.TYPE_LOAN:
+                details = self.browser.open(Link('.//a')(tr))
+                account = details.page.item_loan()
+            else:
+                account = Account()
             account.id = cleaner(cols[self.COL_ID])
-            account.label = cleaner(cols[self.COL_LABEL])
-            account.type = self.TYPES.get(account.label, Account.TYPE_UNKNOWN) or account_type
+            account.type = type
+            account.label = label
             balance = cleaner(cols[self.COL_VALUE])
             # we have to ignore those accounts, because using NotAvailable
             # makes boobank and probably many others crash
@@ -564,6 +581,19 @@ class LoansPage(_AccountsPage):
     def set_link(self, account, cols, use_link):
         account.balance = -abs(account.balance)
 
+    @method
+    class item_loan(ItemElement):
+        klass = Loan
+        obj_total_amount = MyDecimal('//div[@id="trPagePu"]/div[3]/table[1]//tr[2]/td/font/text()')
+        obj_duration = CleanDecimal('//div[@id="trPagePu"]/div[3]/table[1]//tr[3]/td/font/text()')
+        obj_subscription_date = MyDate(CleanText('//div[@id="trPagePu"]/div[3]/table[1]//tr[4]/td[1]/font/text()[2]'))
+        obj_maturity_date = MyDate(
+            CleanText('//div[@id="trPagePu"]/div[3]/table[1]//tr[4]/td[2]/font/text()[2]', symbols=':'))
+        obj_rate = MyDecimal('//div[@id="trPagePu"]/div[3]/table[2]/tr[3]/td/font/text()[2]')
+        obj_next_payment_amount = MyDecimal('//div[@id="trPagePu"]/div[3]/table[5]//tr[1]/td/font/text()[2]')
+        obj_next_payment_date = MyDate(CleanText('//div[@id="trPagePu"]/div[3]/table[5]//tr[2]/td/font/text()[2]'))
+        obj_account_label = CleanText('//div[@id="trPagePu"]/div[2]/fieldset/table/tr[1]/td[2]/font/span')
+
 
 class SavingsPage(_AccountsPage):
     COL_ID = 1
@@ -711,7 +741,7 @@ class TransactionsPage(MyLoggedPage, BasePage):
                 day, month = map(int, date.split('/', 1))
                 t.date = date_guesser.guess_date(day, month)
             elif date.count('/') == 2:
-                t.date = Date(dayfirst=True).filter(date)
+                t.date = MyDate().filter(date)
             t.rdate = t.date
             t.raw = raw
 
@@ -837,7 +867,7 @@ class MarketHomePage(MarketPage):
             def obj_label(self):
                 return CleanText(default=None).filter(TableCell('label')(self)[0].xpath('./div/b'))
 
-            obj_balance = CleanDecimal(TableCell('balance'), replace_dots=True)
+            obj_balance = MyDecimal(TableCell('balance'))
 
 
 class LifeInsurancePage(MarketPage):
@@ -1084,7 +1114,7 @@ class TransferPage(CollectePageMixin, MyLoggedPage, BasePage):
         # FIXME all will probably fail if an account has a user-chosen label with "IBAN :" or "n°"
 
         amount_xpath = '//fieldset//p[has-class("montant")]'
-        transfer.amount = CleanDecimal(amount_xpath, replace_dots=True)(self.doc)
+        transfer.amount = MyDecimal(amount_xpath)(self.doc)
         transfer.currency = CleanCurrency(amount_xpath)(self.doc)
 
         if self.is_sent():
@@ -1099,8 +1129,7 @@ class TransferPage(CollectePageMixin, MyLoggedPage, BasePage):
             if 'IBAN' in base:
                 transfer.recipient_iban = transfer.recipient_id
 
-            transfer.exec_date = Date(CleanText('//p[@class="nomarge"][span[contains(text(), "Date de l\'ordre")]]/text()'),
-                                      dayfirst=True)(self.doc)
+            transfer.exec_date = MyDate(CleanText('//p[@class="nomarge"][span[contains(text(), "Date de l\'ordre")]]/text()'))(self.doc)
         else:
             transfer.account_id = Regexp(CleanText('//fieldset[.//h3[contains(text(), "Compte émetteur")]]//p'),
                                          r'n°(\d+)')(self.doc)
@@ -1112,7 +1141,7 @@ class TransferPage(CollectePageMixin, MyLoggedPage, BasePage):
             if 'IBAN' in base:
                 transfer.recipient_iban = transfer.recipient_id
 
-            transfer.exec_date = Date(CleanText('//fieldset//p[span[contains(text(), "Virement unique le :")]]/text()'), dayfirst=True)(self.doc)
+            transfer.exec_date = MyDate(CleanText('//fieldset//p[span[contains(text(), "Virement unique le :")]]/text()'))(self.doc)
 
         transfer.label = CleanText('//fieldset//p[span[contains(text(), "Référence opération")]]')(self.doc)
         transfer.label = re.sub(r'^Référence opération(?:\s*):', '', transfer.label).strip()
