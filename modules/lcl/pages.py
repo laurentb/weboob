@@ -673,6 +673,13 @@ class AVPage(LoggedPage, HTMLPage):
                     id_contrat = re.search(r'^(.*?)-', form_id).group(1)
                     producteur = re.search(r'-(.*?)$', form_id).group(1)
                 else:
+                    if len(self.xpath('.//td/a[@class="clickPopupDetail"]')):
+                        # making a form of this link sometimes makes the site return an empty response...
+                        # the link is a link to some info, not full AV website
+                        # it's probably an indication the account is restricted anyway, so avoid it
+                        self.logger.debug("account %r is probably restricted, don't try its form", Field('id')(self))
+                        return None
+
                     # sometimes information are not in id but in href
                     url = Attr('.//td/a', 'href', default=None)(self)
                     parsed_url = urlparse(url)
@@ -734,8 +741,10 @@ class AVDetailPage(LoggedPage, LCLBasePage):
 
     def is_restricted(self):
         msg = CleanText('//div[has-class("titre_libelle_erreur")]')(self.doc)
-        expected = u'Vous n’avez pas accès à l’espace assurances de personnes.'
-        return msg == expected
+        return msg in (
+            "Pour ce type d’opération, nous vous conseillons de vous rapprocher de votre conseiller afin de bénéficier du conseil personnalisé le mieux adapté à vos objectifs.",
+            "Vous n’avez pas accès à l’espace assurances de personnes.",
+        )
 
     @method
     class iter_investment(TableElement):
