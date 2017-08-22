@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 from binascii import hexlify
 import datetime
 from decimal import Decimal
@@ -901,45 +903,33 @@ class NatixisDetailsPage(LoggedPage, RawPage):
     def build_doc(self, data):
         return list(get_pdf_rows(data))
 
+    COL_LABEL = 0
+    COL_DATE = 1
+    COL_TR_AMOUNT = 2
+    COL_VALUATION = 3
+    COL_UNITVALUE = 4
+    COL_QUANTITY = 5
+
+    # warning: tr amount is "brut", unlike invest amounts ("net")...
+
     def get_history(self):
-        sign = 0
         tr = None
 
         for page in self.doc:
-            first_in_page = True
-
-            for row in page:
+            for n, row in enumerate(page):
                 if len(row) != 7:
-                    first_in_page = False
                     continue
 
-                label = ' '.join(row[0])
+                label = ' '.join(row[self.COL_LABEL])
 
-                if label == 'Investissement':
-                    sign = 1
-                    first_in_page = False
-                    continue
-                elif label == u'Désinvestissement':
-                    sign = -1
-                    first_in_page = False
-                    continue
-
-                global_amount = ''.join(row[2])
-                if global_amount:
-                    if first_in_page and tr and tr.raw == label:
-                        # this must be the continuation of the previous page
-                        first_in_page = False
-                        continue
-                    first_in_page = False
-
+                if row[self.COL_TR_AMOUNT]:
                     if tr is not None:
-                        # flush
-                        use_invest_date(tr)
+                        if n == 0 and label == tr.label:
+                            self.logger.debug('%r seems to continue on next page', tr)
+                            continue
                         yield tr
 
-                    # amount is "brut", unlike invest amounts ("net")...
-                    sign = 0
-                    tr = None
+                        tr = None
 
                     if not label:
                         # this pdf is really cryptic...
@@ -948,42 +938,41 @@ class NatixisDetailsPage(LoggedPage, RawPage):
                         continue
 
                     tr = Transaction()
-                    # the amount is always positive... do not set it to avoid mistakes
                     tr.type = Transaction.TYPE_BANK
-                    tr.label = tr.raw = label
-                    tr.investments = []
-                    continue
+                    tr.raw = tr.label = label
+                    tr.amount = CleanDecimal(replace_dots=True).filter(''.join(row[self.COL_TR_AMOUNT]))
+                elif not row[self.COL_DATE]:
+                    if not tr:
+                        # ignore transactions with the empty label, see above
+                        continue
 
-                first_in_page = False
+                    if label == 'Investissement':
+                        tr.amount = abs(tr.amount)
+                    elif label == 'Désinvestissement':
+                        tr.amount = -abs(tr.amount)
+                    else:
+                        assert False, 'unhandled line %s' % label
+                    assert not any(len(cell) for cell in row[self.COL_LABEL+1:]), 'there should be only the label'
+                else:
+                    if not tr:
+                        continue
 
-                date = ''.join(row[1])
-                assert date
+                    inv = Investment()
+                    inv.label = label
+                    inv.valuation = CleanDecimal(replace_dots=True).filter(row[self.COL_VALUATION])
+                    if tr.amount < 0:
+                        inv.valuation = -inv.valuation
+                    inv.vdate = Date(dayfirst=True).filter(''.join(row[self.COL_DATE]))
+                    tr.date = inv.vdate
 
-                if tr is None:
-                    # ignore transactions with the empty label, see above
-                    continue
+                    inv.quantity = CleanDecimal(replace_dots=True, default=NotAvailable).filter(''.join(row[self.COL_QUANTITY]))
+                    if inv.quantity and tr.amount < 0:
+                        inv.quantity = -inv.quantity
+                    inv.unitvalue = CleanDecimal(replace_dots=True, default=NotAvailable).filter(''.join(row[self.COL_UNITVALUE]))
 
-                assert sign
+                    tr.investments.append(inv)
 
-                inv = Investment()
-                inv.label = label
-                inv.vdate = Date(dayfirst=True).filter(date)
-
-                inv.quantity = CleanDecimal(replace_dots=True, default=NotAvailable).filter(''.join(row[5]))
-                if inv.quantity is not NotAvailable:
-                    inv.quantity *= sign
-
-                inv.unitvalue = CleanDecimal(replace_dots=True, default=NotAvailable).filter(''.join(row[4]))
-
-                inv.valuation = CleanDecimal(replace_dots=True, default=NotAvailable).filter(''.join(row[3]))
-                if inv.valuation is not NotAvailable:
-                    inv.valuation *= sign
-
-                tr.investments.append(inv)
-
-        # flush
-        if tr is not None:
-            use_invest_date(tr)
+        if tr:
             yield tr
 
 
