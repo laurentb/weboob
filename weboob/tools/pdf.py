@@ -19,6 +19,7 @@
 
 from io import BytesIO
 from collections import namedtuple
+import logging
 import os
 import subprocess
 from tempfile import mkstemp
@@ -272,6 +273,10 @@ def arrange_texts_in_rows(rows, trects):
     return table
 
 
+LOGGER = logging.getLogger('pdf')
+DEBUGFILES = logging.DEBUG - 1
+
+
 def get_pdf_rows(data, miner_layout=True):
     """
     Takes PDF file content as string and yield table row data for each page.
@@ -302,7 +307,7 @@ def get_pdf_rows(data, miner_layout=True):
         newapi = False
     from pdfminer.converter import PDFPageAggregator
     from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
-    from pdfminer.layout import LAParams, LTRect, LTTextBox, LTTextLine, LTLine, LTChar
+    from pdfminer.layout import LAParams, LTRect, LTTextBox, LTTextLine, LTLine, LTChar, LTCurve
 
     parser = PDFParser(BytesIO(data))
     try:
@@ -328,18 +333,78 @@ def get_pdf_rows(data, miner_layout=True):
         doc.initialize()
         pages = doc.get_pages()
 
+    if LOGGER.isEnabledFor(DEBUGFILES):
+        import tempfile
+        import PIL.Image as Image
+        import PIL.ImageDraw as ImageDraw
+        import random
+
+        path = tempfile.mkdtemp(prefix='pdf')
+
     for npage, page in enumerate(pages):
+        LOGGER.debug('processing page %s', npage)
         interpreter.process_page(page)
         page_layout = device.get_result()
 
         texts = sum([list(lttext_to_multilines(obj, page_layout)) for obj in page_layout._objs if isinstance(obj, (LTTextBox, LTTextLine, LTChar))], [])
+        LOGGER.debug('found %d text objects', len(texts))
+        if LOGGER.isEnabledFor(DEBUGFILES):
+            img = Image.new('RGB', (int(page.mediabox[2]), int(page.mediabox[3])), (255, 255, 255))
+            draw = ImageDraw.Draw(img)
+            for t in texts:
+                color = (random.randint(127, 255), random.randint(127, 255), random.randint(127, 255))
+                draw.rectangle((t.x0, t.y0, t.x1, t.y1), outline=color)
+                draw.text((t.x0, t.y0), t.text.encode('utf-8'), color)
+            fpath = '%s/1text-%03d.png' % (path, npage)
+            img.save(fpath)
+            LOGGER.log(DEBUGFILES, 'saved %r', fpath)
+
         if not miner_layout:
             texts.sort(key=lambda t: (t.y0, t.x0))
 
-        lines = list(uniq_lines(lt_to_coords(obj, page_layout) for obj in page_layout._objs if isinstance(obj, (LTRect, LTLine))))
+        # TODO filter ltcurves that are not lines?
+        # TODO convert rects to 4 lines?
+        lines = [lt_to_coords(obj, page_layout) for obj in page_layout._objs if isinstance(obj, (LTRect, LTLine, LTCurve))]
+        LOGGER.debug('found %d lines', len(lines))
+        if LOGGER.isEnabledFor(DEBUGFILES):
+            img = Image.new('RGB', (int(page.mediabox[2]), int(page.mediabox[3])), (255, 255, 255))
+            draw = ImageDraw.Draw(img)
+            for l in lines:
+                color = (random.randint(127, 255), random.randint(127, 255), random.randint(127, 255))
+                draw.rectangle((l.x0, l.y0, l.x1, l.y1), outline=color)
+            fpath = '%s/2lines-%03d.png' % (path, npage)
+            img.save(fpath)
+            LOGGER.log(DEBUGFILES, 'saved %r', fpath)
 
-        boxes = build_rows(lines)
-        textrows = arrange_texts_in_rows(boxes, texts)
+        lines = list(uniq_lines(lines))
+        LOGGER.debug('found %d unique lines', len(lines))
+
+        rows = build_rows(lines)
+        LOGGER.debug('built %d rows (%d boxes)', len(rows), sum(len(row) for row in rows))
+        if LOGGER.isEnabledFor(DEBUGFILES):
+            img = Image.new('RGB', (int(page.mediabox[2]), int(page.mediabox[3])), (255, 255, 255))
+            draw = ImageDraw.Draw(img)
+            for r in rows:
+                for b in r:
+                    color = (random.randint(127, 255), random.randint(127, 255), random.randint(127, 255))
+                    draw.rectangle((b.x0 + 1, b.y0 + 1, b.x1 - 1, b.y1 - 1), outline=color)
+            fpath = '%s/3rows-%03d.png' % (path, npage)
+            img.save(fpath)
+            LOGGER.log(DEBUGFILES, 'saved %r', fpath)
+
+        textrows = arrange_texts_in_rows(rows, texts)
+        LOGGER.debug('assigned %d strings', sum(sum(len(c) for c in r) for r in textrows))
+        if LOGGER.isEnabledFor(DEBUGFILES):
+            img = Image.new('RGB', (int(page.mediabox[2]), int(page.mediabox[3])), (255, 255, 255))
+            draw = ImageDraw.Draw(img)
+            for row, trow in zip(rows, textrows):
+                for b, tlines in zip(row, trow):
+                    color = (random.randint(127, 255), random.randint(127, 255), random.randint(127, 255))
+                    draw.rectangle((b.x0 + 1, b.y0 + 1, b.x1 - 1, b.y1 - 1), outline=color)
+                    draw.text((b.x0 + 1, b.y0 + 1), '\n'.join(tlines).encode('utf-8'), color)
+            fpath = '%s/4cells-%03d.png' % (path, npage)
+            img.save(fpath)
+            LOGGER.log(DEBUGFILES, 'saved %r', fpath)
 
         yield textrows
     device.close()
