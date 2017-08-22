@@ -233,6 +233,7 @@ class Account(BaseAccount):
     def __repr__(self):
         return "<Account id=%r label=%r>" % (self.id, self.label)
 
+
 class Loan(Account):
 
     name = StringField('Person Name')
@@ -255,6 +256,7 @@ class Loan(Account):
     account_label = StringField('Label of the debited account')
     insurance_label = StringField('Label of the insurance')
     duration = StringField('Duration of the loan')
+
 
 class Transaction(BaseObject):
     """
@@ -359,6 +361,9 @@ class Investment(BaseObject):
     original_unitvalue = DecimalField('Original unitvalue (in another currency)')
     original_unitprice = DecimalField('Original unitprice (in another currency)')
     original_diff = DecimalField('Original diff (in another currency)')
+
+    def __repr__(self):
+        return '<Investment label=%r code=%r valuation=%r>' % (self.label, self.code, self.valuation)
 
 
 class Pocket(BaseObject):
