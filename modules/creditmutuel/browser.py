@@ -93,14 +93,17 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                       '/(?P<subbank>.*)fr/banque/POR_SyntheseLst.aspx',
                       PorPage)
     li =          URL('/(?P<subbank>.*)fr/assurances/profilass.aspx\?domaine=epargne',
-                      '/(?P<subbank>.*)fr/assurances/(consultation/)?WI_ASSAVI', LIAccountsPage)
+                      '/(?P<subbank>.*)fr/assurances/(consultations/)WI_ASS.*',
+                      'https://www.cic.fr:443/fr/assurances/WI_ASS',
+                      '/fr/assurances/', LIAccountsPage)
     iban =        URL('/(?P<subbank>.*)fr/banque/rib.cgi', IbanPage)
 
     new_accounts = URL('/(?P<subbank>.*)fr/banque/comptes-et-contrats.html', NewAccountsPage)
     new_operations = URL('/(?P<subbank>.*)fr/banque/mouvements.cgi',
                          '/fr/banque/nr/nr_devbooster.aspx.*',
                          '/(?P<subbank>.*)fr/banque/RE/aiguille.asp',
-                         '/fr/banque/mouvements.html', OperationsPage)
+                         '/fr/banque/mouvements.html',
+                         '/(?P<subbank>.*)fr/banque/consultation/operations', OperationsPage)
 
     advisor = URL('/(?P<subbank>.*)fr/banques/contact/trouver-une-agence/(?P<page>.*)',
                   '/(?P<subbank>.*)fr/infoclient/',
