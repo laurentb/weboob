@@ -27,9 +27,9 @@ from io import BytesIO
 from decimal import Decimal
 from datetime import datetime
 
-from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage
-from weboob.browser.elements import ItemElement, method, ListElement
-from weboob.browser.filters.standard import Date, CleanDecimal, Regexp, CleanText, Env, Upper
+from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage, pagination
+from weboob.browser.elements import ItemElement, method, ListElement, TableElement
+from weboob.browser.filters.standard import Date, CleanDecimal, Regexp, CleanText, Env, Upper, TableCell, Field
 from weboob.browser.filters.html import Link, Attr
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, TransferBankError, Transfer,\
@@ -268,6 +268,7 @@ class IndexPage(LoggedPage, HTMLPage):
         accounts = OrderedDict()
 
         # Old website
+        self.browser.new_website = False
         for table in self.doc.xpath('//table[@cellpadding="1"]'):
             account_type = Account.TYPE_UNKNOWN
             for tr in table.xpath('./tr'):
@@ -293,6 +294,7 @@ class IndexPage(LoggedPage, HTMLPage):
 
         if len(accounts) == 0:
             # New website
+            self.browser.new_website = True
             for table in self.doc.xpath('//div[@class="panel"]'):
                 title = table.getprevious()
                 if title is None:
@@ -413,6 +415,11 @@ class IndexPage(LoggedPage, HTMLPage):
 
         form.submit()
 
+    def _fix_form(self, form):
+        for name in ['MM$HISTORIQUE_COMPTE$btnCumul','Cartridge$imgbtnMessagerie','MM$m_CH$ButtonImageFondMessagerie',\
+                    'MM$m_CH$ButtonImageMessagerie']:
+            form.pop(name, None)
+
     def go_history(self, info, is_cbtab=False):
         form = self.get_form(name='main')
 
@@ -422,14 +429,17 @@ class IndexPage(LoggedPage, HTMLPage):
         if "MM$m_CH$IsMsgInit" in form and form['MM$m_CH$IsMsgInit'] == "0":
             form['m_ScriptManager'] = "MM$m_UpdatePanel|MM$SYNTHESE"
 
-        for name in ['MM$HISTORIQUE_COMPTE$btnCumul','Cartridge$imgbtnMessagerie','MM$m_CH$ButtonImageFondMessagerie',\
-                     'MM$m_CH$ButtonImageMessagerie']:
-            try:
-                del form[name]
-            except KeyError:
-                pass
-
+        self._fix_form(form)
         return form.submit()
+
+    def get_form_to_detail(self, transaction):
+        m = re.match('.*\("(.*)", "(DETAIL_OP&[\d]+).*\)\)', transaction._link)
+        # go to detailcard page
+        form = self.get_form(name='main')
+        form['__EVENTTARGET'] =  m.group(1)
+        form['__EVENTARGUMENT'] = m.group(2)
+        self._fix_form(form)
+        return form
 
     def get_history(self):
         i = 0
@@ -467,7 +477,6 @@ class IndexPage(LoggedPage, HTMLPage):
 
             t.parse(date, re.sub(r'[ ]+', ' ', raw))
 
-
             card_debit_date = self.doc.xpath(u'//span[@id="MM_HISTORIQUE_CB_m_TableTitle3_lblTitle"] | //label[contains(text(), "débiter le")]')
             if card_debit_date:
                 t.rdate = Date(dayfirst=True).filter(date)
@@ -477,19 +486,13 @@ class IndexPage(LoggedPage, HTMLPage):
             if t.date is NotAvailable:
                 continue
             if 'tot dif' in t.raw.lower():
+                t._link = Link(tr.xpath('./td/a'))(self.doc)
                 t.deleted = True
+
             t.set_amount(credit, debit)
             yield t
 
             i += 1
-
-    def get_cbtabs(self):
-        cbtabs = []
-        for href in self.doc.xpath('//ul[@class="onglets"]/li/a[contains(text(), "CB")]/@href'):
-            m = re.search('(DETAIL[^"]+)', href)
-            if m:
-                cbtabs.append(m.group(1))
-        return cbtabs
 
     def go_next(self):
         # <a id="MM_HISTORIQUE_CB_lnkSuivante" class="next" href="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;MM$HISTORIQUE_CB$lnkSuivante&quot;, &quot;&quot;, true, &quot;&quot;, &quot;&quot;, false, true))">Suivant<span class="arrow">></span></a>
@@ -511,13 +514,7 @@ class IndexPage(LoggedPage, HTMLPage):
         if "MM$m_CH$IsMsgInit" in form and form['MM$m_CH$IsMsgInit'] == "N":
             form['m_ScriptManager'] = "MM$m_UpdatePanel|MM$HISTORIQUE_COMPTE$lnkSuivante"
 
-        for name in ['MM$HISTORIQUE_COMPTE$btnCumul','Cartridge$imgbtnMessagerie','MM$m_CH$ButtonImageFondMessagerie',\
-                     'MM$m_CH$ButtonImageMessagerie']:
-            try:
-                del form[name]
-            except KeyError:
-                pass
-
+        self._fix_form(form)
         form.submit()
 
         return True
@@ -538,13 +535,7 @@ class IndexPage(LoggedPage, HTMLPage):
             form['MM$m_CH$IsMsgInit'] = "0"
             form['m_ScriptManager'] = "MM$m_UpdatePanel|MM$SYNTHESE"
 
-            for name in ['MM$HISTORIQUE_COMPTE$btnCumul','Cartridge$imgbtnMessagerie','MM$m_CH$ButtonImageFondMessagerie',\
-                         'MM$m_CH$ButtonImageMessagerie']:
-                try:
-                    del form[name]
-                except KeyError:
-                    pass
-
+            self._fix_form(form)
             form.submit()
 
     def go_transfer_via_history(self, account):
@@ -906,3 +897,61 @@ class RecipientPage(LoggedPage, HTMLPage):
         form = self.get_form(name='main')
         form['__EVENTTARGET'] = 'MM$WIZARD_AJOUT_COMPTE_EXTERNE$m_WizardBar$m_lnkNext$m_lnkButton'
         form.submit()
+
+
+class TransactionsDetailsPage(LoggedPage, HTMLPage):
+
+    def is_here(self):
+        return bool(CleanText(u'//h2[contains(text(), "Débits différés imputés")] | //span[@id="MM_m_CH_lblTitle" and contains(text(), "Débit différé imputé")]')(self.doc))
+
+    @pagination
+    @method
+    class get_detail(TableElement):
+        item_xpath = '//table[@id="MM_ECRITURE_GLOBALE_m_ExDGEcriture"]/tr[not(@class)] | //table[has-class("small special")]//tbody/tr[@class="rowClick"]'
+        head_xpath = '//table[@id="MM_ECRITURE_GLOBALE_m_ExDGEcriture"]/tr[@class="DataGridHeader"]/td | //table[has-class("small special")]//thead/tr/th'
+
+        col_date = u'Date'
+        col_label = [u'Opération', u'Libellé']
+        col_debit = u'Débit'
+        col_credit = u'Crédit'
+
+        def next_page(self):
+            # only for new website, don't have any accounts with enough deferred card transactions on old webiste
+            if self.page.doc.xpath('//a[contains(@id, "lnkSuivante") and not(contains(@disabled,"disabled"))]'):
+                form = self.page.get_form(name='main')
+                form['__EVENTTARGET'] = "MM$ECRITURE_GLOBALE$lnkSuivante"
+                form['__EVENTARGUMENT'] = ''
+                self.page._fix_form(form)
+                return form.request
+            return
+
+        class item(ItemElement):
+            klass = Transaction
+
+            obj_raw = Transaction.Raw(TableCell('label'))
+            obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
+            obj__debit = CleanDecimal(TableCell('debit'), replace_dots=True, default=0)
+            obj__credit = CleanDecimal(TableCell('credit'), replace_dots=True, default=0)
+
+            def obj_amount(self):
+                return abs(Field('_credit')(self)) - abs(Field('_debit')(self))
+
+
+    def _fix_form(self, form):
+        for name in ['MM$HISTORIQUE_COMPTE$btnCumul','Cartridge$imgbtnMessagerie','MM$m_CH$ButtonImageFondMessagerie',\
+                'MM$m_CH$ButtonImageMessagerie']:
+            form.pop(name, None)
+
+    def go_form_to_summary(self):
+        # return to first page
+        to_history = Link(self.doc.xpath(u'//a[contains(text(), "Retour à l\'historique")]'))(self.doc)
+        n = re.match('.*\([\'\"](MM\$.*?)[\'\"],.*\)$', to_history)
+        form = self.get_form(name='main')
+        form['__EVENTTARGET'] = n.group(1)
+        form.submit()
+
+    def go_newsite_back_to_summary(self):
+        form = self.get_form(name='main')
+        form['__EVENTTARGET'] = "MM$ECRITURE_GLOBALE$lnkRetourHisto"
+        form.submit()
+

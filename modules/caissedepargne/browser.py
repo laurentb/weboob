@@ -22,7 +22,7 @@ import datetime
 
 from weboob.browser import LoginBrowser, need_login, StatesMixin
 from weboob.browser.url import URL
-from weboob.capabilities.bank import Account, AddRecipientStep, Recipient, TransferBankError
+from weboob.capabilities.bank import Account, AddRecipientStep, Recipient, TransferBankError, Transaction
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.profile import Profile
 from weboob.browser.exceptions import BrowserHTTPNotFound, ClientError
@@ -37,6 +37,7 @@ from .pages import (
     MessagePage, LoginPage,
     TransferPage, ProTransferPage, TransferConfirmPage, TransferSummaryPage,
     SmsPage, AuthentPage, RecipientPage, CanceledAuth, CaissedepargneKeyboard,
+    TransactionsDetailsPage,
 )
 
 
@@ -54,6 +55,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     login = URL('/authentification/manage\?step=identification&identifiant=(?P<login>.*)',
                 'https://.*/login.aspx', LoginPage)
     account_login = URL('/authentification/manage\?step=account&identifiant=(?P<login>.*)&account=(?P<accountType>.*)', LoginPage)
+    transaction_detail = URL('https://.*/Portail.aspx.*', TransactionsDetailsPage)
     recipient = URL('https://.*/Portail.aspx.*', RecipientPage)
     transfer = URL('https://.*/Portail.aspx.*', TransferPage)
     transfer_summary = URL('https://.*/Portail.aspx.*', TransferSummaryPage)
@@ -245,22 +247,47 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         self.page.go_history(info)
 
         info['link'] = [info['link']]
-        if info['type'] == "HISTORIQUE_CB":
-            info['link'] += self.page.get_cbtabs()
 
-        while True:
-            for i, link in enumerate(info['link'], 1):
-                if i > 1:
-                    info['link'] = link
-                    self.page.go_history(info, True)
+        for i in range(20):
 
-                assert self.home.is_here()
+            assert self.home.is_here()
 
-                for tr in self.page.get_history():
-                    yield tr
+            # list of transactions on account page
+            transactions_list = []
+            list_form = []
+            for tr in self.page.get_history():
+                transactions_list.append(tr)
+                if re.match('^CB [\d]{4}\*{6}[\d]{6} TOT DIF ([\w]{3,9})', tr.label, flags=re.IGNORECASE):
+                    list_form.append(self.page.get_form_to_detail(tr))
 
-                if not self.page.go_next():
-                    return
+            # add detail card to list of transactions
+            for form in list_form:
+                form.submit()
+                assert self.transaction_detail.is_here()
+                for tr in self.page.get_detail():
+                    tr.type = Transaction.TYPE_DEFERRED_CARD
+                    transactions_list.append(tr)
+                if self.new_website:
+                    self.page.go_newsite_back_to_summary()
+                else:
+                    self.page.go_form_to_summary()
+
+                # going back to summary goes back to first page
+                for j in range(i):
+                    assert self.page.go_next()
+
+            #  order by date the transactions without the summaries
+            transactions_list = sorted_transactions(transactions_list)
+
+            for tr in transactions_list:
+                yield tr
+
+            assert self.home.is_here()
+
+            if not self.page.go_next():
+                return
+
+        assert False, 'More than 20 history pages'
 
     @need_login
     def _get_history_invests(self, account):
