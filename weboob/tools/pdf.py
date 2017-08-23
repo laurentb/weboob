@@ -47,7 +47,7 @@ def decompress_pdf(inpdf):
 
     subprocess.call(['mutool', 'clean', '-d', inname, outname])
 
-    with open(outname) as f:
+    with open(outname, 'rb') as f:
         outpdf = f.read()
     os.remove(inname)
     os.remove(outname)
