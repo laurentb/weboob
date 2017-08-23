@@ -30,7 +30,7 @@ from weboob.capabilities.base import NotLoaded, find_object
 from weboob.capabilities.bank import AccountNotFound
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.browser.pages import FormNotFound
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.tools.date import ChaoticDateGuesser, LinearDateGuesser
 from weboob.exceptions import BrowserHTTPError, ActionNeeded
 from weboob.browser.filters.standard import CleanText
@@ -202,6 +202,8 @@ class Cragr(LoginBrowser, StatesMixin):
         self.location(url.replace('Synthese', 'Synthcomptes'))
 
         if self.login_error.is_here():
+            if self.page.is_unavailable():
+                raise BrowserUnavailable()
             raise BrowserIncorrectPassword()
 
         if self.page is None:
