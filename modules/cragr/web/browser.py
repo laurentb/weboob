@@ -75,7 +75,7 @@ class Cragr(LoginBrowser, StatesMixin):
                    AccountsPage)
 
     loans = URL(r'/stb/entreeBam\?.*act=Synthcredits',
-                r'/stb/collecteNI\?.*sessionAPP=Synthcredits.*',
+                r'/stb/collecteNI\?.*sessionAPP=Synthcredits.*indicePage=.*',
                 LoansPage)
 
     savings = URL(r'/stb/entreeBam\?.*act=Synthepargnes',
