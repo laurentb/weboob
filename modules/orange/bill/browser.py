@@ -81,4 +81,10 @@ class OrangeBillBrowser(LoginBrowser):
 
     @need_login
     def iter_documents(self, subscription):
-        return self.billspage.go(subid=subscription.id).get_documents(subid=subscription.id)
+        documents = []
+        for d in self.billspage.go(subid=subscription.id).get_documents(subid=subscription.id):
+            documents.append(d)
+        for b in self.billspage.go(subid=subscription.id).get_bills(subid=subscription.id):
+            documents.append(b)
+        return iter(documents)
+

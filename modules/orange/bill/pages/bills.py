@@ -20,15 +20,16 @@
 from __future__ import unicode_literals
 
 import re
+import HTMLParser
 
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.capabilities.bill import Subscription
-from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Field, Regexp, Date, Currency
+from weboob.browser.elements import ListElement, ItemElement, method, TableElement
+from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Field, Regexp, Date, Currency, TableCell
 from weboob.browser.filters.html import Link
 from weboob.browser.filters.javascript import JSValue
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.bill import Bill
+from weboob.capabilities.bill import Bill, Document
 from weboob.tools.date import parse_french_date
 
 
@@ -37,45 +38,86 @@ class ProfilPage(HTMLPage):
 
 
 class BillsPage(LoggedPage, HTMLPage):
+
     @method
-    class get_documents(ListElement):
-        item_xpath = '//div[has-class("factures-historique")]//table//tr[not(ancestor::thead)]'
+    class get_bills(TableElement):
+        item_xpath = '//table[has-class("table-hover")]/div/div/tr | //table[has-class("table-hover")]/div/tr'
+        head_xpath = '//table[has-class("table-hover")]/thead/tr/th'
+
+        col_date = u'Date'
+        col_amount = u'Montant TTC'
+        col_ht = u'Montant HT'
+        col_url = u'Télécharger'
 
         class item(ItemElement):
             klass = Bill
 
-            obj_date = Date(Regexp(CleanText('.//td[@headers="ec-downloadCol"]//span[@class="ec_visually_hidden"]'), 'du (.*) \(PDF\)'), parse_func=parse_french_date, dayfirst=True)
-            obj_label = CleanText('.//td[@headers="ec-dateCol"]')
-            obj_format = u"pdf"
+            obj_price = CleanDecimal(TableCell('amount'), replace_dots=True)
+            obj_currency = Currency(TableCell('amount'))
             obj_type = u"bill"
+            obj_format = u"pdf"
 
+            # TableCell('date') can have other info like: 'duplicata'
+            obj_date = Date(CleanText('./td[@headers="ec-dateCol"]/text()[not(preceding-sibling::br)]'), parse_func=parse_french_date, dayfirst=True)
+
+            # Only when a list of documents is present
+            obj__url_base = Regexp(CleanText('.//ul[@class="liste"]/script', default=None), '.*?contentList[\d]+ \+= \'<li><a href=".*\"(.*?idDocument=2)"', default=None)
             def obj_url(self):
-                url = Link('.//td[@headers="ec-downloadCol"]/a', default=NotAvailable)(self)
-                if url:
-                    page = self.page.browser.open(url).page
-                    if CleanText(u'//p[contains(., "Votre facture n’est pas encore disponible.")]')(page.doc):
-                        return NotAvailable
-                return url
+                if Field('_url_base')(self):
+                    # URL won't work if HTML is not unescape
+                    return HTMLParser.HTMLParser().unescape(str(Field('_url_base')(self)))
+                else:
+                    return Link(TableCell('url')(self)[0].xpath('./a'))(self)
 
-            # sometimes the price td contains a subtag with "inclus un avoir de XX€"
-            def obj_price(self):
-                # if TTC is indicated, there's also HT, don't take both
-                txt = CleanText('.//td[@headers="ec-amountCol"]/strong[contains(text(),"TTC")]', children=False)(self)
-                if not txt:
-                    txt = CleanText('.//td[@headers="ec-amountCol"]/strong', children=False)(self)
-                return CleanDecimal(replace_dots=True).filter(txt)
+            obj__label_base = Regexp(CleanText('.//ul[@class="liste"]/script', default=None), '.*</span>(.*?)</a.*', default=None)
 
-            obj_currency = Currency('.//td[@headers="ec-amountCol"]')
+            def obj_label(self):
+                if Field('_label_base')(self):
+                    return HTMLParser.HTMLParser().unescape(str(Field('_label_base')(self)))
+                else:
+                    return CleanText(TableCell('url')(self)[0].xpath('.//span[@class="ec_visually_hidden"]'))(self)
+
+            def obj_vat(self):
+                ht = CleanDecimal(TableCell('ht'), replace_dots=True, default=NotAvailable)(self)
+                return Field('price')(self) - ht
 
             def obj_id(self):
                 return '%s_%s%s' % (Env('subid')(self), Field('date')(self).strftime('%d%m%Y'), Field('price')(self))
 
-            def obj_vat(self):
-                ht = CleanDecimal(CleanText('.//td[@headers="ec-amountCol"]/strong[contains(text(),"HT")]', children=False), replace_dots=True, default=NotAvailable)(self)
-                if ht is NotAvailable:
-                    return ht
-                return Field('price')(self) - ht
+    @method
+    class get_documents(ListElement):
+        item_xpath = '//table[has-class("table-hover")]/div/div/tr//ul[@class="liste"]/script | \
+                      //table[has-class("table-hover")]/div/tr//ul[@class="liste"]/script'
 
+        class item(ItemElement):
+            klass = Document
+
+            def obj_date(self):
+                # Get bill from list of documents and get the correct date
+                for bill in self.page.get_bills():
+                    # url change is only the doc id, last int in url, but slice 2 char for security
+                    if str(Field('url')(self)[:-2]) in bill.url:
+                        return bill.date
+
+            obj_url_base = Regexp(CleanText('.'), '.*?contentList[\d]+ \+= \'<li><a href="(.*?)"')
+            def obj_url(self):
+                # URL won't work if HTML is not unescape
+                return HTMLParser.HTMLParser().unescape(str(Field('url_base')(self)))
+
+            obj__label_base = Regexp(CleanText('.'), '.*?</span>(.*?)</a.*')
+
+            def obj_label(self):
+                return HTMLParser.HTMLParser().unescape(str(Field('_label_base')(self)))
+
+            obj__id_doc = Regexp(Field('url'), '.*?idDocument=([\d]+)')
+            def obj_id(self):
+                return '%s_%s%s' % (Env('subid')(self), Field('date')(self).strftime('%d%m%Y'), Field('_id_doc')(self))
+
+            obj_type = u"document"
+            obj_format = u"pdf"
+
+            def condition(self):
+                return 'Votre duplicata de facture' not in Regexp(CleanText('.'), '.*?</span>(.*?)</a.*')(self)
 
 class SubscriptionsPage(LoggedPage, HTMLPage):
     def build_doc(self, data):
