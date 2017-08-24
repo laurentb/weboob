@@ -170,8 +170,9 @@ class UselessPage(MyLoggedPage, BasePage):
 
 
 class LoginErrorPage(BasePage):
-    def is_unavailable(self):
-        return CleanText(u'//p[contains(text(), "momentanément indisponible")]', default=None)(self.doc)
+    def on_load(self):
+        if CleanText(u'//p[contains(text(), "momentanément indisponible")]', default=None)(self.doc):
+            raise BrowserUnavailable()
 
 
 class FirstVisitPage(BasePage):
