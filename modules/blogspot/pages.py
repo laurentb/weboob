@@ -38,7 +38,16 @@ class DatePage(RawPage):
 
 class IndexPage(HTMLPage):
     def get_dates(self):
+        found = False
         for url in self.doc.xpath('//a[@class="post-count-link"]/@href'):
+            if self.browser.date.match(url):
+                found = True
+                yield url
+
+        if found:
+            return
+
+        for url in self.doc.xpath('//li[@class="archivedate"]/a/@href'):
             if self.browser.date.match(url):
                 yield url
 
