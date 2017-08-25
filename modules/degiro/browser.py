@@ -34,7 +34,7 @@ class DegiroBrowser(LoginBrowser):
 
     login = URL('/login/secure/login', LoginPage)
     client = URL('/pa/secure/client\?sessionId=(?P<sessionId>.*)', LoginPage)
-    product = URL(r'/product_search/secure/v4/products/info\?sessionId=(?P<sessionId>.*)', InvestmentPage)
+    product = URL(r'/product_search/secure/v5/products/info\?sessionId=(?P<sessionId>.*)', InvestmentPage)
     accounts = URL('/trading(?P<staging>\w*)/secure/v5/update/(?P<accountId>.*);jsessionid=(?P<sessionId>.*)\?historicalOrders=0' +
                    '&orders=0&portfolio=0&totalPortfolio=0&transactions=0&alerts=0&cashFunds=0&currencyExchange=0&',
                    AccountsPage)
