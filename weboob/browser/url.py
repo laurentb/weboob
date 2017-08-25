@@ -205,3 +205,20 @@ class URL(object):
 
             return func(browser, id_or_url, *args, **kwargs)
         return inner
+
+
+def normalize_url(url):
+    """Normalize URL by lower-casing the domain and other fixes.
+
+    Lower-cases the domain, removes the default port and a trailing dot.
+
+    >>> normalize_url('http://EXAMPLE:80')
+    'http://example'
+    """
+    def norm_domain(m):
+        port = m.group(3) or ''
+        if (port == ':80' and m.group(1) == 'http://') or (port == ':443' and m.group(1) == 'https://'):
+            port = ''
+        return '%s%s%s' % (m.group(1), m.group(2).lower(), port)
+
+    return re.sub(r'(https?://)([^/]+?)\.?(:\d+)?(?=/|$)', norm_domain, url)

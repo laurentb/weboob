@@ -55,7 +55,7 @@ from .exceptions import HTTPNotFound, ClientError, ServerError
 from .sessions import FuturesSession
 from .profiles import Firefox
 from .pages import NextPage
-from .url import URL
+from .url import URL, normalize_url
 
 
 class Browser(object):
@@ -123,6 +123,9 @@ class Browser(object):
 
     def deinit(self):
         self.session.close()
+
+    def set_normalized_url(self, response, **kwargs):
+        response.url = normalize_url(response.url)
 
     def save_response(self, response, warning=False, **kwargs):
         if self.responses_dirname is None:
@@ -214,6 +217,7 @@ class Browser(object):
 
         profile.setup_session(session)
 
+        session.hooks['response'].append(self.set_normalized_url)
         if self.responses_dirname is not None:
             session.hooks['response'].append(self.save_response)
 
@@ -298,6 +302,11 @@ class Browser(object):
             warnings.warn('Please use is_async instead of async.', DeprecationWarning)
             is_async = kwargs['async']
             del kwargs['async']
+
+        if isinstance(url, basestring):
+            url = normalize_url(url)
+        elif isinstance(url, requests.Request):
+            url.url = normalize_url(url.url)
 
         req = self.build_request(url, referrer, data_encoding=data_encoding, **kwargs)
         preq = self.prepare_request(req)
