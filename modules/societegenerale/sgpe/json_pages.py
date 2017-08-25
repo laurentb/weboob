@@ -21,7 +21,7 @@ import requests
 
 from weboob.browser.pages import LoggedPage, JsonPage, pagination
 from weboob.browser.elements import ItemElement, method, DictElement
-from weboob.browser.filters.standard import CleanDecimal, CleanText, Date, Format, BrowserURL
+from weboob.browser.filters.standard import CleanDecimal, CleanText, Date, Format, BrowserURL, Env
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.base import Currency
 from weboob.capabilities import NotAvailable
@@ -90,6 +90,13 @@ class BalancesJsonPage(LoggedPage, JsonPage):
 
 
 class HistoryJsonPage(LoggedPage, JsonPage):
+
+    def get_value(self):
+        if 'NOK' in self.doc['commun']['statut']:
+            return 'position'
+        else:
+            return 'valeur'
+
     @pagination
     @method
     class iter_history(DictElement):
@@ -112,7 +119,7 @@ class HistoryJsonPage(LoggedPage, JsonPage):
                 data = {}
                 data['b64e4000_sceauEcriture'] = next_data
                 if not 'intraday' in self.page.url:
-                    data['cl200_typeReleve'] = 'valeur'
+                    data['cl200_typeReleve'] = Env('value')(self)
                 return requests.Request("POST", BrowserURL('history_next')(self), data=data)
 
         class item(ItemElement):
