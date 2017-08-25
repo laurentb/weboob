@@ -255,7 +255,7 @@ class Loan(Account):
 
     account_label = StringField('Label of the debited account')
     insurance_label = StringField('Label of the insurance')
-    duration = StringField('Duration of the loan')
+    duration = IntField('Duration of the loan given in months')
 
 
 class Transaction(BaseObject):
