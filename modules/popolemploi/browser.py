@@ -19,60 +19,42 @@
 
 from .pages import SearchPage, AdvertPage
 from weboob.browser import PagesBrowser, URL
-from weboob.tools.compat import quote
+from weboob.tools.compat import urlencode
 
 __all__ = ['PopolemploiBrowser']
 
 
 class PopolemploiBrowser(PagesBrowser):
 
-    BASEURL = 'https://candidat.pole-emploi.fr/'
+    BASEURL = 'https://candidat.pole-emploi.fr'
 
-    advert = URL('candidat/rechercheoffres/detail/(?P<id>.*)', AdvertPage)
-    search = URL('candidat/rechercheoffres/resultats/(?P<search>.*?)', SearchPage)
-
-    decode_salary = {
-        'FOURCHETTE1': u'|15000|A',
-        'FOURCHETTE2': u'15000|18000|A',
-        'FOURCHETTE3': u'18000|21000|A',
-        'FOURCHETTE4': u'21000|24000|A',
-        'FOURCHETTE5': u'24000|36000|A',
-        'FOURCHETTE6': u'36000|60000|A',
-        'FOURCHETTE7': u'60000||A',
-    }
+    advert = URL('/offres/recherche/detail/(?P<id>.*)', AdvertPage)
+    search = URL('/offres/recherche\?(?P<param>.*?)',
+                  '/offres/recherche\?motsCles=(?P<pattern>.*?)', SearchPage)
 
     def search_job(self, pattern=None):
-        search = "A_%s_____P__________INDIFFERENT_______________________" % \
-                 quote(pattern.encode('utf-8')).replace('%', '$00')
-        return self.search.go(search=search).iter_job_adverts()
+        return self.search.go(pattern=pattern).iter_job_adverts()
+
+    def decode_place(self, splitted_place):
+        return splitted_place[2] + splitted_place[1][0]
 
     def advanced_search_job(self, metier='', place=None, contrat=None, salary=None,
                             qualification=None, limit_date=None, domain=None):
 
-        splitted_place = place.split('|')
-        _domain = "%s-" % domain if domain else ""
+        data = {}
+        data['lieux'] = self.decode_place(place.split('|'))
+        data['offresPartenaires'] = True
+        data['rayon'] = 10
+        data['tri'] = 0
+        data['typeContrat'] = contrat
+        data['qualification'] = qualification
+        data['salaireMin'] = salary
+        data['uniteSalaire'] = 'A'
+        data['emission'] = limit_date
+        data['domaine'] = domain
+        data['motsCles'] = metier
 
-        if salary in self.decode_salary:
-            salary_time = self.decode_salary.get(salary).split('|')[2]
-            salary_low = self.decode_salary.get(salary).split('|')[0]
-            salary_hight = self.decode_salary.get(salary).split('|')[1]
-        else:
-            salary_time = ""
-            salary_low = ""
-            salary_hight = ""
-
-        search = "A_%s_%s_%s__%s_P_%s_%s_%s_____________________%s_%s_%s_______" % (
-            quote(metier.encode('utf-8')).replace('%', '$00'),
-            splitted_place[1],
-            splitted_place[2],
-            contrat,
-            _domain,
-            salary_time,
-            qualification,
-            limit_date,
-            salary_low,
-            salary_hight)
-        return self.search.go(search=search).iter_job_adverts()
+        return self.search.go(param=urlencode(data)).iter_job_adverts()
 
     def get_job_advert(self, id, advert):
         return self.advert.go(id=id).get_job_advert(obj=advert)

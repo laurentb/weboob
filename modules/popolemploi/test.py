@@ -19,10 +19,20 @@
 
 
 from weboob.tools.test import BackendTest
+from weboob.tools.value import Value
 
 
 class PopolemploiTest(BackendTest):
     MODULE = 'popolemploi'
+
+    def setUp(self):
+        if not self.is_backend_configured():
+            self.backend.config['metier'] = Value(value='informaticien')
+            self.backend.config['place'] = Value(value='100|PAYS|01')
+            self.backend.config['salary'] = Value(value='15000')
+            self.backend.config['qualification'] = Value(value='9')
+            self.backend.config['domain'] = Value(value='M18')
+            self.backend.config['limit_data'] = Value(value='93')
 
     def test_popolemploi_search(self):
         l = list(self.backend.search_job('infographiste'))

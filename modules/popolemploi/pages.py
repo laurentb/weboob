@@ -20,24 +20,44 @@
 from weboob.capabilities.job import BaseJobAdvert
 from weboob.browser.pages import HTMLPage
 from weboob.browser.elements import ItemElement, ListElement, method
-from weboob.browser.filters.standard import Regexp, CleanText, Date, Env, BrowserURL
-from weboob.browser.filters.html import Link, CleanHTML
+from weboob.browser.filters.standard import Regexp, CleanText, Env, BrowserURL, Filter, Join
+from weboob.browser.filters.html import XPath
+
+
+import re
+from datetime import datetime, timedelta
+
+
+class PoleEmploiDate(Filter):
+    def filter(self, el):
+        days = 0
+        if el == u'Publié aujourd\'hui':
+            days = 0
+        elif el == u'Publié hier':
+            days = 1
+        else:
+            m = re.search(u'Publié il y a (\d*) jours', el)
+            if m:
+                days = int(m.group(1))
+
+        return datetime.now() - timedelta(days=days)
 
 
 class SearchPage(HTMLPage):
     @method
     class iter_job_adverts(ListElement):
-        item_xpath = '//table[@class="definition-table ordered"]/tbody/tr'
+        item_xpath = '//ul[has-class("result-list")]/li'
 
         class item(ItemElement):
             klass = BaseJobAdvert
 
-            obj_id = Regexp(Link('td[@headers="offre"]/a'), '.*detailoffre/(.*?)(?:\?|;).*')
-            obj_contract_type = CleanText('td[@headers="contrat"]')
-            obj_title = CleanText('td[@headers="offre"]/a')
-            obj_society_name = CleanText('td/div/p/span[@class="company"]/span', default='')
-            obj_place = CleanText('td[@headers="lieu"]')
-            obj_publication_date = Date(CleanText('td[@headers="dateEmission"]'))
+            obj_id = CleanText('./@data-id-offre')
+            obj_contract_type = CleanText('./div/div/p[@class="contrat"]')
+            obj_title = CleanText('./div/div/h2')
+            obj_society_name = CleanText('./div/div/p[@class="subtext"]',
+                                         children=False, replace=[('-', '')])
+            obj_place = CleanText('./div/div/p[@class="subtext"]/span')
+            obj_publication_date = PoleEmploiDate(CleanText('./div/div/p[@class="date"]'))
 
 
 class AdvertPage(HTMLPage):
@@ -47,14 +67,27 @@ class AdvertPage(HTMLPage):
 
         obj_id = Env('id')
         obj_url = BrowserURL('advert', id=Env('id'))
-        obj_title = CleanText('//div[@id="offre-body"]/h4[@itemprop="title"]')
-        obj_job_name = CleanText('//div[@id="offre-body"]/h4[@itemprop="title"]')
-        obj_description = CleanHTML('//div[@id="offre-body"]/p[@itemprop="description"]')
-        obj_society_name = CleanText('//div[@id="offre-body"]/div[@class="vcard"]/p[@class="title"]/span',
-                                     default='')
-        obj_contract_type = CleanText('//div[@id="offre-body"]/dl/dd/span[@itemprop="employmentType"]')
-        obj_place = CleanText('//div[@id="offre-body"]/dl/dd/ul/li[@itemprop="addressRegion"]')
-        obj_formation = CleanText('//div[@id="offre-body"]/dl/dd/span[@itemprop="qualifications"]')
-        obj_pay = CleanText('//div[@id="offre-body"]/dl/dd/span[@itemprop="baseSalary"]')
-        obj_experience = CleanText('//div[@id="offre-body"]/dl/dd/span[@itemprop="experienceRequirements"]')
-        obj_publication_date = Date(CleanText('//span[@itemprop="datePosted"]'))
+        obj_title = CleanText('//div[@class="modal-body"]/h2')
+        obj_job_name = CleanText('//div[@class="modal-body"]/h2')
+        obj_description = CleanText('//div[has-class("description")]/p')
+        obj_society_name = CleanText('//div[@class="media-body"]/h4')
+        obj_experience = Join(u'- ',
+                              '//h4[contains(text(), "Exp")]/following-sibling::ul[has-class("skill-list")][1]/li',
+                              newline=True,
+                              addBefore='\n- ')
+        obj_formation = Join(u'- ',
+                             '//h4[contains(text(), "For")]/following-sibling::ul[has-class("skill-list")][1]/li',
+                             newline=True,
+                             addBefore='\n- ')
+
+        obj_place = CleanText('//div[@class="modal-body"]/h2/following-sibling::p[1]')
+        obj_publication_date = PoleEmploiDate(CleanText('//div[@class="modal-body"]/h2/following-sibling::p[2]'))
+
+        def parse(self, el):
+            for el in XPath('//dl[@class="icon-group"]/dt')(el):
+                dt = CleanText('.')(el)
+                if dt == u'Type de contrat':
+                    self.obj.contract_type = CleanText('./following-sibling::dd[1]')(el)
+                elif dt == u'Salaire':
+                    self.obj.pay = Regexp(CleanText('./following-sibling::dd[1]'),
+                                          u'Salaire : (.*)')(el)
