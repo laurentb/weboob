@@ -93,8 +93,8 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                       '/(?P<subbank>.*)fr/banque/POR_SyntheseLst.aspx',
                       PorPage)
     li =          URL('/(?P<subbank>.*)fr/assurances/profilass.aspx\?domaine=epargne',
-                      '/(?P<subbank>.*)fr/assurances/(consultations/)WI_ASS.*',
-                      'https://www.cic.fr:443/fr/assurances/WI_ASS',
+                      '/(?P<subbank>.*)fr/assurances/(consultations/)?WI_ASS.*',
+                      'https://www.cic.fr:443/fr/assurances/WI_ASS', # TODO check with CIC if it is really needed
                       '/fr/assurances/', LIAccountsPage)
     iban =        URL('/(?P<subbank>.*)fr/banque/rib.cgi', IbanPage)
 
