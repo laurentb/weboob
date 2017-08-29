@@ -33,7 +33,7 @@ __all__ = ['ArteBrowser']
 
 
 class ArteBrowser(PagesBrowser):
-    BASEURL = 'http://arte.tv/'
+    BASEURL = 'https://www.arte.tv/'
 
     search = URL('/guide/api/api/search/(?P<lang>\w{2})/(?P<pattern>[^/]+)/(?P<page>\d+)', SearchPage)
 
