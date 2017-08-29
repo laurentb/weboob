@@ -790,6 +790,9 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
 
 class NatixisChoicePage(LoggedPage, HTMLPage):
     def on_load(self):
+        message = CleanText('//span[@class="rf-msgs-sum"]', default='')(self.doc)
+        if re.search(r"Le service de consultation de votre contrat \w+ est momentanément indisponible.", message):
+            raise BrowserUnavailable()
         # TODO handle when there are multiple accounts on this page
         account_tr, = self.doc.xpath('//tbody[@id="list:dataVie:tb"]/tr')
         self.logger.info('opening automatically account %s', CleanText('./td[1]')(account_tr))

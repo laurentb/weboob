@@ -343,7 +343,10 @@ class BanquePopulaire(LoginBrowser):
                 self.linebourse.invest.go()
                 self.logged = True
             elif self.natixis_page.is_here():
-                self.page.submit_form()
+                try:
+                    self.page.submit_form()
+                except BrowserUnavailable:
+                    return False
 
             if self.natixis_error_page.is_here():
                 self.logger.warning("natixis site doesn't work")
