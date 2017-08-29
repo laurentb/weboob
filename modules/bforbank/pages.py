@@ -34,6 +34,7 @@ from weboob.browser.filters.standard import (
 )
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.compat import urlencode, urlparse, urlunparse, parse_qsl, urljoin
+import datetime
 
 
 class BfBKeyboard(object):
@@ -204,6 +205,24 @@ class HistoryPage(LoggedPage, HTMLPage):
 
             obj_raw = Transaction.Raw('./td[1]')
             obj_amount = MyDecimal('./td[2]', replace_dots=True)
+
+
+    @method
+    class get_today_operations(TableElement):
+        item_xpath = '//table[has-class("style-virements")]/tbody/tr[@class="tr-trigger"]'
+        head_xpath = '//table[has-class("style-virements")]/thead/tr/th'
+
+        col_amount = 'Montant'
+        col_raw = u'Libellé'
+
+        class item(ItemElement):
+            klass = Transaction
+
+            def obj_date(self):
+                return datetime.date.today()
+
+            obj_raw = Transaction.Raw(TableCell('raw'))
+            obj_amount = MyDecimal(TableCell('amount'), replace_dots=True)
 
 
 def add_qs(url, **kwargs):
