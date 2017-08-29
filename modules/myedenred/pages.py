@@ -76,5 +76,5 @@ class TransactionsPage(LoggedPage, HTMLPage):
             obj_date = DateGuesser(CleanText('.//span[contains(., "/")]'), LinearDateGuesser(date_max_bump=timedelta(45)))
             obj_label = Format('Facture %s', CleanText('.//h3/strong'))
             obj_type = Transaction.TYPE_CARD
-            obj_price = MyDecimal('./td[@class="al-r"]')
+            obj_amount = MyDecimal('./td[@class="al-r"]')
             obj_currency = "€"
