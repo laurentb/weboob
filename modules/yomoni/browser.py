@@ -106,6 +106,7 @@ class YomoniBrowser(APIBrowser):
             a.label = " ".join(me['supportEpargne'].split("_"))
             a.type = Account.TYPE_LIFE_INSURANCE if "assurance vie" in a.label.lower() else \
                      Account.TYPE_MARKET if "compte titre" in a.label.lower() else \
+                     Account.TYPE_PEA if "pea" in a.label.lower() else \
                      Account.TYPE_UNKNOWN
             a.balance = CleanDecimal().filter(me['solde'])
             a.iban = me['ibancompteTitre'] or NotAvailable
