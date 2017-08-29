@@ -292,6 +292,7 @@ class AccountsPage(LoggedPage, HTMLPage):
 
     @method
     class iter_accounts(ListElement):
+        item_xpath = '//div[has-class("a_blocappli")]//tr'
         flush_at_end = True
 
         class item_account(item_account_generic):
@@ -351,12 +352,6 @@ class AccountsPage(LoggedPage, HTMLPage):
                 label = Field('label')(self)
                 return (item_account_generic.condition(self) and type == Account.TYPE_LOAN
                         and label in self.REVOLVING_LOAN_LABELS)
-
-        def find_elements(self):
-            if self.page.browser.currentSubBank == u'banqueprivee/':
-                return self.el.xpath('//table[has-class("liste")]//tr')
-            else:
-                return self.el.xpath('//tr')
 
     def get_advisor_link(self):
         return Link('//div[@id="e_conseiller"]/a', default=None)(self.doc)
