@@ -36,7 +36,7 @@ from weboob.core.repositories import IProgress
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, BrowserForbidden, \
                               BrowserSSLError, BrowserQuestion, BrowserHTTPSDowngrade, \
                               ModuleInstallError, ModuleLoadError, NoAccountsException, \
-                              ActionNeeded
+                              ActionNeeded, CaptchaQuestion
 from weboob.capabilities.bank import TransferInvalidLabel, TransferInvalidAmount, TransferInvalidDate, \
                                      TransferInvalidEmitter, TransferInvalidRecipient
 from weboob.tools.value import Value, ValueBool, ValueFloat, ValueInt, ValueBackendPassword
@@ -583,6 +583,8 @@ class ConsoleApplication(Application):
                 v = self.ask(field)
                 if v:
                     backend.config[field.id].set(v)
+        if isinstance(error, CaptchaQuestion):
+            print(u'Warning(%s): Captcha has been found on login page' % backend.name, file=self.stderr)
         elif isinstance(error, BrowserIncorrectPassword):
             msg = unicode(error)
             if not msg:

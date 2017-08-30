@@ -42,6 +42,16 @@ class BrowserQuestion(BrowserIncorrectPassword):
         self.fields = fields
 
 
+class CaptchaQuestion(Exception):
+    """
+    Handles captcha
+    """
+    def __init__(self, website_key, website_url):
+        super(CaptchaQuestion, self).__init__("The site requires solving a captcha")
+        self.website_key = website_key
+        self.website_url = website_url
+
+
 class BrowserHTTPNotFound(BrowserUnavailable):
     pass
 
