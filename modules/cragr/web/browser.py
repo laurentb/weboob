@@ -99,7 +99,7 @@ class Cragr(LoginBrowser, StatesMixin):
 
     market = URL(r'https?://www.cabourse.credit-agricole.fr/netfinca-titres/servlet/com.netfinca.frontcr.account.WalletVal\?nump=.*', MarketPage)
     market_home = URL(r'https?://www.cabourse.credit-agricole.fr/netfinca-titres/servlet/com.netfinca.frontcr.synthesis.HomeSynthesis', MarketHomePage)
-    lifeinsurance = URL(r'https://assurance-personnes.credit-agricole.fr(:443)?/filiale/.*', LifeInsurancePage)
+    lifeinsurance = URL(r'https://assurance-personnes.credit-agricole.fr/filiale/.*', LifeInsurancePage)
     bgpi = URL(r'https://bgpi-gestionprivee.credit-agricole.fr/bgpi/.*', BGPIPage)
 
     perimeter = URL(r'/stb/entreeBam\?.*act=Perimetre', PerimeterPage)

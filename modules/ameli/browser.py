@@ -27,7 +27,7 @@ __all__ = ['AmeliBrowser']
 class AmeliBrowser(LoginBrowser):
     BASEURL = 'https://assure.ameli.fr'
 
-    loginp = URL('https://assure.ameli.fr:443/PortailAS/appmanager/PortailAS/assure\?.*_pageLabel=as_login_page', LoginPage)
+    loginp = URL('https://assure.ameli.fr/PortailAS/appmanager/PortailAS/assure\?.*_pageLabel=as_login_page', LoginPage)
     homep = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_accueil_page', HomePage)
     accountp = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_info_perso_page', AccountPage)
     paymentsp = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_paiements_page', PaymentsPage)

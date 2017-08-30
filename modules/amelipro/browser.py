@@ -27,7 +27,7 @@ from .pages import LoginPage, HomePage, AccountPage, HistoryPage, BillsPage, Sea
 __all__ = ['AmeliProBrowser']
 
 class AmeliProBrowser(LoginBrowser):
-    BASEURL = 'https://espacepro.ameli.fr:443'
+    BASEURL = 'https://espacepro.ameli.fr'
 
     loginp = URL('/PortailPS/appmanager/portailps/professionnelsante\?_nfpb=true&_pageLabel=vp_login_page', LoginPage)
     homep = URL('/PortailPS/appmanager/portailps/professionnelsante\?_nfpb=true&_pageLabel=vp_accueil_page', HomePage)

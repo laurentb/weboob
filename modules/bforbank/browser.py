@@ -50,7 +50,7 @@ class BforbankBrowser(LoginBrowser):
 
     lifeinsurance_list = URL(r'/client/accounts/lifeInsurance/lifeInsuranceSummary.action', LifeInsuranceList)
     lifeinsurance_iframe = URL(r'https://(?:www|client).bforbank.com/client/accounts/lifeInsurance/consultationDetailSpirica.action', LifeInsuranceIframe)
-    lifeinsurance_redir = URL(r'https://assurance-vie.bforbank.com:443/sylvea/welcomeSSO.xhtml', LifeInsuranceRedir)
+    lifeinsurance_redir = URL(r'https://assurance-vie.bforbank.com/sylvea/welcomeSSO.xhtml', LifeInsuranceRedir)
     lifeinsurance_error = URL(r'/client/accounts/lifeInsurance/lifeInsuranceError.action\?errorCode=.*&errorMsg=.*', ErrorPage)
 
     bourse_login = URL(r'/espace-client/synthese/debranchementCaTitre/(?P<id>\d+)')
@@ -64,7 +64,7 @@ class BforbankBrowser(LoginBrowser):
         self.accounts = None
         self.weboob = kwargs['weboob']
 
-        self.spirica = SpiricaBrowser('https://assurance-vie.bforbank.com:443/',
+        self.spirica = SpiricaBrowser('https://assurance-vie.bforbank.com/',
                                       None, None, *args, **kwargs)
 
     def deinit(self):
