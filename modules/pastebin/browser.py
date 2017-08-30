@@ -116,7 +116,7 @@ class LimitExceeded(BrowserUnavailable):
 
 
 class PastebinBrowser(LoginBrowser):
-    BASEURL = 'http://pastebin.com/'
+    BASEURL = 'https://pastebin.com/'
 
     warning = URL('warning\.php\?p=(?P<id>\d+)', WarningPage)
     api = URL('api/api_post\.php', RawPage)
