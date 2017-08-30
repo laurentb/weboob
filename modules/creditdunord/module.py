@@ -46,7 +46,7 @@ class CreditDuNordModule(Module, CapBank, CapProfile):
         'www.banque-rhone-alpes.fr': u'Banque Rhône-Alpes',
         'www.tarneaud.fr':           u'Tarneaud',
         'www.smc.fr':                u'Société Marseillaise de Crédit',
-        }.iteritems(), key=lambda k_v: (k_v[1], k_v[0]))])
+        }.items(), key=lambda k_v: (k_v[1], k_v[0]))])
     CONFIG = BackendConfig(Value('website',  label='Banque', choices=website_choices, default='www.credit-du-nord.fr'),
                            ValueBackendPassword('login',    label='Identifiant', masked=False),
                            ValueBackendPassword('password', label='Code confidentiel'))
