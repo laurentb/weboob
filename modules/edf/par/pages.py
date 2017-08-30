@@ -30,13 +30,24 @@ from weboob.capabilities.base import NotAvailable
 
 
 class HomePage(HTMLPage):
-    def is_logged(self):
-        return CleanText(u'(//p[contains(@id, "account-mail-authentified_")])[1]/text()', default=None)(self.doc) != ""
+    def has_captcha_request(self):
+        return len(self.doc.xpath('//div[@class="captcha"]')) > 0
+
+    def get_recaptcha_key(self):
+        return CleanText(self.doc.xpath('(//input[@name="captchaPublicKeyAuth"]/@value)[1]'))(self.doc)
 
 
 class LoginPage(JsonPage):
     def is_logged(self):
         return "200" in Dict('errorCode')(self.doc)
+
+
+class WelcomePage(LoggedPage, HTMLPage):
+    pass
+
+
+class UnLoggedPage(HTMLPage):
+    pass
 
 
 class ProfilPage(LoggedPage, JsonPage):

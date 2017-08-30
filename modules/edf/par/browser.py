@@ -21,10 +21,9 @@
 from time import time
 
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, CaptchaQuestion
 from weboob.tools.json import json
-
-from .pages import HomePage, LoginPage, ProfilPage, DocumentsPage
+from .pages import HomePage, LoginPage, ProfilPage, DocumentsPage, WelcomePage, UnLoggedPage
 
 
 class EdfBrowser(LoginBrowser):
@@ -32,6 +31,8 @@ class EdfBrowser(LoginBrowser):
 
     home = URL('/fr/accueil.html', HomePage)
     login = URL('/bin/edf_rc/servlets/authentication', LoginPage)
+    not_connected = URL('/fr/accueil/connexion/mon-espace-client.html', UnLoggedPage)
+    connected = URL('/fr/accueil/espace-client/tableau-de-bord.html', WelcomePage)
     profil = URL('/services/rest/authenticate/getListContracts', ProfilPage)
     csrf_token = URL('/services/rest/init/initPage\?_=(?P<timestamp>.*)', ProfilPage)
     documents = URL('/services/rest/edoc/getMyDocuments', DocumentsPage)
@@ -39,14 +40,38 @@ class EdfBrowser(LoginBrowser):
     bill_informations = URL('/services/rest/document/dataUserDocumentGetX', DocumentsPage)
     bill_download = URL('/services/rest/document/getDocumentGetXByData\?csrfToken=(?P<csrf_token>.*)&dn=(?P<dn>.*)&pn=(?P<pn>.*)&di=(?P<di>.*)&bn=(?P<bn>.*)&an=(?P<an>.*)')
 
+    def __init__(self, config, *args, **kwargs):
+        self.config = config
+        kwargs['username'] = self.config['login'].get()
+        kwargs['password'] = self.config['password'].get()
+        super(EdfBrowser, self).__init__(*args, **kwargs)
+
     def do_login(self):
-        if self.home.go().is_logged():
+        self.connected.go()
+        if self.not_connected.is_here():
+            if self.config['captcha_response'].get() is not None:
+                self.login.go(data={'login': self.username,
+                                    'password': self.password,
+                                    'rememberMe': "false",
+                                    'goto': None,
+                                    'gRecaptchaAuthentResponse': self.config['captcha_response'].get()})
+                self.connected.go()
+
+                if self.not_connected.is_here():
+                    raise BrowserIncorrectPassword()
+                else:
+                    return
+
+            self.home.go()
+
+            if self.page.has_captcha_request():
+                website_key = self.page.get_recaptcha_key()  # google recaptcha plubic key
+                website_url = "https://particulier.edf.fr/fr/accueil.html"
+                raise CaptchaQuestion(website_key=website_key, website_url=website_url, type="g_recaptcha")
+            else:
+                raise BrowserIncorrectPassword()
+        else:
             return
-
-        self.login.go(data={'login': self.username, 'password': self.password})
-
-        if not self.page.is_logged():
-            raise BrowserIncorrectPassword
 
     def get_csrf_token(self):
         return self.csrf_token.go(timestamp=int(time())).get_token()

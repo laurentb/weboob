@@ -40,13 +40,14 @@ class EdfModule(Module, CapDocument):
     CONFIG = BackendConfig(Value('login', label='E-mail ou Identifiant'), \
                            ValueBackendPassword('password', label='Mot de passe'), \
                            Value('website', label='Type de compte', default='par',
-                                 choices={'par': 'Particulier', 'pro': 'Entreprise'}))
+                                 choices={'par': 'Particulier', 'pro': 'Entreprise'}),
+                           Value('captcha_response', label='Reponse Captcha', required=False))
 
     def create_default_browser(self):
         browsers = {'pro': EdfproBrowser, 'par': EdfBrowser}
         self.BROWSER = browsers[self.config['website'].get()]
 
-        return self.create_browser(self.config['login'].get(), self.config['password'].get())
+        return self.create_browser(self.config)
 
     def iter_subscription(self):
         return self.browser.get_subscription_list()

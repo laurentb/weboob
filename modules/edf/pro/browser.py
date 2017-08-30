@@ -35,17 +35,18 @@ class EdfproBrowser(LoginBrowser):
 
     login = URL('https://www.edf.fr/entreprises', LoginPage)
     auth = URL('/openam/UI/Login.*',
-               'https://www.edfentreprises.fr:443/openam/UI/Login.*',
                '/ice/rest/aiguillagemp/redirect', AuthPage)
     contracts = URL('/rest/contratmp/detaillercontrat', SubscriptionsPage)
     bills = URL('/rest/facturemp/getnomtelechargerfacture', BillsPage)
     documents = URL('/rest/facturemp/recherchefacture', DocumentsPage)
 
-    def __init__(self, *args, **kwargs):
-        super(EdfproBrowser, self).__init__(*args, **kwargs)
-
+    def __init__(self, config, *args, **kwargs):
+        self.config = config
         self.cache = {}
         self.cache['docs'] = {}
+        kwargs['username'] = self.config['login'].get()
+        kwargs['password'] = self.config['password'].get()
+        super(EdfproBrowser, self).__init__(*args, **kwargs)
 
     def do_login(self):
         self.login.go().login(self.username, self.password)
