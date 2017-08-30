@@ -18,8 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import absolute_import
+
 from codecs import open
 import csv
+import sys
 
 from weboob.tools.compat import basestring
 from weboob.tools.misc import to_unicode
@@ -51,4 +53,7 @@ class CSVFormatter(IFormatter):
             writer.writerow([to_unicode(v) for v in item.keys()])
             self.started = True
 
-        writer.writerow([to_unicode(v) for v in item.values()])
+        if sys.version_info.major >= 3:
+            writer.writerow([str(v) for v in item.values()])
+        else:
+            writer.writerow([to_unicode(v).encode('utf-8') for v in item.values()])
