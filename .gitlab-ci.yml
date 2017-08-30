@@ -39,12 +39,14 @@ doc:2.7:
 build:3:
   image: "python:3"
   stage: "build3"
+  when: always
   script:
     - "./tools/local_install.sh ~/bin"
 
 lint:3:
   image: "python:3"
   stage: "test3"
+  when: always
   script:
     - "./tools/pyflakes.sh"
     - "./tools/weboob_lint.sh"
@@ -52,6 +54,7 @@ lint:3:
 unittests:3:
   image: "python:3"
   stage: "test3"
+  when: always
   script:
     - "./tools/run_tests.sh -3"
 
