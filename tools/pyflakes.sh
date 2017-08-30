@@ -35,7 +35,7 @@ grep -n xrange ${MODULE_FILES3} && echo 'Error: xrange is forbidden' && exit 21
 grep -nE "from (urllib|urlparse) import" ${MODULE_FILES3} && echo 'Error: python2 urllib is forbidden' && exit 22
 grep -nE "^import (urllib|urlparse)$" ${MODULE_FILES3} && echo 'Error: python2 urllib is forbidden' && exit 22
 
-if [ -n "${PYTHON2+x}" ]
+if [ ${VER} -eq 2 ]
 then
   if ${PYTHON2} -c "import flake8" 2>/dev/null; then
       FLAKER2=flake8
@@ -50,7 +50,7 @@ then
   $PYTHON2 -m ${FLAKER2} ${OPT2} ${PYFILES} || exit 32
 fi
 
-if [ -n "${PYTHON3+x}" ]
+if [ ${VER} -eq 3 ]
 then
   if ${PYTHON3} -c "import flake8" 2>/dev/null; then
       FLAKER3=flake8
