@@ -17,14 +17,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import re
+try:
+    from html.parser import HTMLParser
+except ImportError:
+    from HTMLParser import HTMLParser
 
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import method, ListElement, ItemElement, SkipItem
 from weboob.capabilities.collection import Collection
 from weboob.browser.filters.standard import CleanText
 
-import re
-from HTMLParser import HTMLParser
 
 class PageLogin(HTMLPage):
     def login(self, email, password, csrf):
