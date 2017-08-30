@@ -17,11 +17,17 @@ build:2.7:
   script:
     - "./tools/local_install.sh ~/bin"
 
-lint:2.7:
+pyflakes:2.7:
   image: "python:2.7"
   stage: "test27"
   script:
     - "./tools/pyflakes.sh"
+
+lint:2.7:
+  image: "python:2.7"
+  stage: "test27"
+  allow_failure: true
+  script:
     - "./tools/weboob_lint.sh"
 
 unittests:2.7:
@@ -43,12 +49,19 @@ build:3:
   script:
     - "./tools/local_install.sh ~/bin"
 
-lint:3:
+pyflakes:3:
   image: "python:3"
   stage: "test3"
   when: always
   script:
     - "./tools/pyflakes.sh"
+
+lint:3:
+  image: "python:3"
+  stage: "test3"
+  when: always
+  allow_failure: true
+  script:
     - "./tools/weboob_lint.sh"
 
 unittests:3:
