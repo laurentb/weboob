@@ -1,57 +1,62 @@
-test:2.7:
+before_script:
+  - "pip install -r .ci/requirements.txt"
+  - "REQUIREMENTS=$(mktemp) && python setup.py requirements > ${REQUIREMENTS} && pip install -r ${REQUIREMENTS} && rm ${REQUIREMENTS}"
+  - "pip install -r .ci/requirements_modules.txt"
+
+stages:
+  - "build27"
+  - "test27"
+  - "deploy27"
+  - "build3"
+  - "test3"
+  - "deploy3"
+
+build:2.7:
   image: "python:2.7"
+  stage: "build27"
+  script:
+    - "./tools/local_install.sh ~/bin"
 
-  before_script:
-    - "pip install -r .ci/requirements.txt"
-    - "REQUIREMENTS=$(mktemp) && python setup.py requirements > ${REQUIREMENTS} && pip install -r ${REQUIREMENTS} && rm ${REQUIREMENTS}"
-    - "pip install -r .ci/requirements_modules.txt"
+lint:2.7:
+  image: "python:2.7"
+  stage: "test27"
+  script:
+    - "./tools/pyflakes.sh"
+    - "./tools/weboob_lint.sh"
 
-  build:
-    stage: "build"
-    script:
-      - "./tools/local_install.sh ~/bin"
+unittests:2.7:
+  image: "python:2.7"
+  stage: "test27"
+  script:
+    - "./tools/run_tests.sh"
 
-  lint:
-    stage: "test"
-    script:
-      - "./tools/pyflakes.sh"
-      - "./tools/weboob_lint.sh"
+doc:2.7:
+  image: "python:2.7"
+  stage: "deploy27"
+  script:
+    - "cd ./docs && make html"
 
-  unittests:
-    stage: "test"
-    script:
-      - "./tools/run_tests.sh"
-
-  doc:
-    stage: "deploy"
-    script:
-      - "cd ./docs && make html"
-
-test:3:
+build:3:
   image: "python:3"
+  stage: "build3"
+  script:
+    - "./tools/local_install.sh ~/bin"
 
-  before_script:
-    - "pip install -r .ci/requirements.txt"
-    - "REQUIREMENTS=$(mktemp) && python setup.py requirements > ${REQUIREMENTS} && pip install -r ${REQUIREMENTS} && rm ${REQUIREMENTS}"
-    - "pip install -r .ci/requirements_modules.txt"
+lint:3:
+  image: "python:3"
+  stage: "test3"
+  script:
+    - "./tools/pyflakes.sh"
+    - "./tools/weboob_lint.sh"
 
-  build:
-    stage: "build"
-    script:
-      - "./tools/local_install.sh ~/bin"
+unittests:3:
+  image: "python:3"
+  stage: "test3"
+  script:
+    - "./tools/run_tests.sh -3"
 
-  lint:
-    stage: "test"
-    script:
-      - "./tools/pyflakes.sh"
-      - "./tools/weboob_lint.sh"
-
-  unittests:
-    stage: "test"
-    script:
-      - "./tools/run_tests.sh -3"
-
-  doc:
-    stage: "deploy"
-    script:
-      - "cd ./docs && make html"
+doc:3:
+  image: "python:3"
+  stage: "deploy3"
+  script:
+    - "cd ./docs && make html"
