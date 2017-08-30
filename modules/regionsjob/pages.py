@@ -52,9 +52,9 @@ class SearchPage(HTMLPage):
 
             def obj_id(self):
                 site = Regexp(CleanText('h1/a[@class="lien-annonce"]/@href'),
-                              'http://www\.(.*)\.com', default=None)(self)
+                              'https://www\.(.*)\.com', default=None)(self)
                 if site is None:
-                    site = Regexp(Env('domain'), 'http://www\.(.*)\.com')(self)
+                    site = Regexp(Env('domain'), 'https://www\.(.*)\.com')(self)
 
                 _id = Regexp(CleanText('h1/a[@class="lien-annonce"]/@href'), '/emplois/(.*)\.html')(self)
                 return u'%s#%s' % (site, _id)
@@ -81,7 +81,7 @@ class AdvertPage(HTMLPage):
     class get_job_advert(ItemElement):
         klass = BaseJobAdvert
 
-        obj_description = Join('\n', '//div[@id="annonce-detail"]/p[@class="text"]', textCleaner=CleanHTML)
+        obj_description = CleanText(Join('\n', '//div[@id="annonce-detail"]/p[@class="text"]', textCleaner=CleanHTML))
         obj_id = Env('_id')
         obj_url = BrowserURL('advert_page', _id=Env('_id'))
         obj_publication_date = Date(Regexp(CleanText('//div[@id="annonce-detail"]/p[@class="infos"]'),

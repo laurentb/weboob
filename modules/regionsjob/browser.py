@@ -31,7 +31,7 @@ class RegionsjobBrowser(PagesBrowser):
     location_page = URL('search/getloc\?term=(?P<place>.*)', LocationPage)
 
     def __init__(self, website, *args, **kwargs):
-        self.BASEURL = 'http://%s/' % website
+        self.BASEURL = 'https://%s/' % website
         PagesBrowser.__init__(self, *args, **kwargs)
 
     def search_job(self, pattern='', fonction='', secteur='', contract='',
@@ -65,5 +65,5 @@ class RegionsjobBrowser(PagesBrowser):
 
     def get_job_advert(self, _id, advert):
         splitted_id = _id.split('#')
-        self.BASEURL = 'http://www.%s.com/' % splitted_id[0]
+        self.BASEURL = 'https://www.%s.com/' % splitted_id[0]
         return self.advert_page.go(_id=splitted_id[1]).get_job_advert(obj=advert)
