@@ -20,7 +20,10 @@
 
 from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
 from weboob.deprecated.browser.parsers.iparser import IParser
-import BeautifulSoup
+try:
+    import BeautifulSoup
+except ImportError:
+    import bs4 as BeautifulSoup
 
 from .pages import PagePrivateThreadsList, PagePrivateThread, PageLogin, PageIndex, DummyPage, PageUserProfile, PageCityList
 

@@ -18,7 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import BeautifulSoup
+try:
+    import BeautifulSoup
+except ImportError:
+    import bs4 as BeautifulSoup
 
 
 def nearest_parent(node, expected):
