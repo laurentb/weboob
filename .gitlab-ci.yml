@@ -38,7 +38,7 @@ build:3:
   image: "python:3"
   stage: "build"
   script:
-    - "./tools/local_install.sh ~/bin"
+    - "./tools/local_install.sh -3 ~/bin"
 
 pyflakes:3:
   image: "python:3"
