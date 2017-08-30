@@ -268,6 +268,7 @@ class AccountsPage(LoggedPage, MultiPage):
             }
 
     CONDITIONS = {u'disponible': Pocket.CONDITION_AVAILABLE,
+                  u'épargne':    Pocket.CONDITION_AVAILABLE,
                   u'available':  Pocket.CONDITION_AVAILABLE,
                   u'withdrawal': Pocket.CONDITION_RETIREMENT,
                   u'retraite':   Pocket.CONDITION_RETIREMENT,
