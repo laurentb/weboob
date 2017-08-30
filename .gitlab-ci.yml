@@ -3,76 +3,64 @@ before_script:
   - "REQUIREMENTS=$(mktemp) && python setup.py requirements > ${REQUIREMENTS} && pip install -r ${REQUIREMENTS} && rm ${REQUIREMENTS}"
   - "pip install -r .ci/requirements_modules.txt"
 
-stages:
-  - "build27"
-  - "test27"
-  - "deploy27"
-  - "build3"
-  - "test3"
-  - "deploy3"
-
 build:2.7:
   image: "python:2.7"
-  stage: "build27"
+  stage: "build"
   script:
     - "./tools/local_install.sh ~/bin"
 
 pyflakes:2.7:
   image: "python:2.7"
-  stage: "test27"
+  stage: "test"
   script:
     - "./tools/pyflakes.sh"
 
 lint:2.7:
   image: "python:2.7"
-  stage: "test27"
+  stage: "test"
   allow_failure: true
   script:
     - "./tools/weboob_lint.sh"
 
 unittests:2.7:
   image: "python:2.7"
-  stage: "test27"
+  stage: "test"
   script:
     - "./tools/run_tests.sh"
 
 doc:2.7:
   image: "python:2.7"
-  stage: "deploy27"
+  stage: "deploy"
   script:
     - "cd ./docs && make html"
 
 build:3:
   image: "python:3"
-  stage: "build3"
-  when: always
+  stage: "build"
   script:
     - "./tools/local_install.sh ~/bin"
 
 pyflakes:3:
   image: "python:3"
-  stage: "test3"
-  when: always
+  stage: "test"
   script:
     - "./tools/pyflakes.sh"
 
 lint:3:
   image: "python:3"
-  stage: "test3"
-  when: always
+  stage: "test"
   allow_failure: true
   script:
     - "./tools/weboob_lint.sh"
 
 unittests:3:
   image: "python:3"
-  stage: "test3"
-  when: always
+  stage: "test"
   script:
     - "./tools/run_tests.sh -3"
 
 doc:3:
   image: "python:3"
-  stage: "deploy3"
+  stage: "deploy"
   script:
     - "cd ./docs && make html"
