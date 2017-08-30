@@ -58,13 +58,6 @@ class CreditCooperatif(LoginBrowser):
     transfer_finish = URL(r'/portail/particuliers/mesoperations/virement/creer/executerajax.do', TransferFinishPage)
 
     def do_login(self):
-        """
-        Attempt to log in.
-        Note: this method does nothing if we are already logged in.
-        """
-        assert isinstance(self.username, basestring)
-        assert isinstance(self.password, basestring)
-
         self.loginpage.stay_or_go()
         self.page.login(self.username, self.password)
 

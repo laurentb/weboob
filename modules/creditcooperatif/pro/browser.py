@@ -54,13 +54,6 @@ class CreditCooperatif(LoginBrowser):
         assert self.login_page.is_here()
 
     def do_login(self):
-        """
-        Attempt to log in.
-        Note: this method does nothing if we are already logged in.
-        """
-
-        assert isinstance(self.username, basestring)
-        assert isinstance(self.password, basestring)
         assert isinstance(self.strong_auth, bool)
 
         if not self.login_page.is_here():

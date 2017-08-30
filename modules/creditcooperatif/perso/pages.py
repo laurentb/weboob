@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 import re
 
 from weboob.tools.json import json
@@ -35,8 +37,8 @@ from weboob.browser.exceptions import ServerError
 class LoginPage(HTMLPage):
     def login(self, login, password):
         form = self.get_form(xpath='//form[@id="AuthForm"]')
-        form['j_username'] = login.encode('iso-8859-15')
-        form['j_password'] = password.encode('iso-8859-15')
+        form['j_username'] = login
+        form['j_password'] = password
         form.submit()
 
 
@@ -262,8 +264,8 @@ class TransferPostPage(LoggedPage, PartialHTMLPage):
         obj_amount = CleanDecimal('//p[@class="tabTxt tabTxt2"]/strong[1]', replace_dots=True)
         obj_exec_date = Date(CleanText('//p[@class="tabTxt tabTxt2"]/strong[2]'), dayfirst=True)
         obj_label = Regexp(CleanText('//p[@class="tabTxt tabTxt2"]/strong[3]'), u'« (.*) »')
-        obj_account_id = Regexp(CleanText('//div[@class="transAction"]/div[@class="inner"]/div[@class="first"]//small'), ur'N°(\w+)')
-        obj_recipient_id = Regexp(CleanText('//div[@class="transAction"]/div[@class="inner"]/div[not(@class="first")]//small'), ur'N°(\w+)', default=None)
+        obj_account_id = Regexp(CleanText('//div[@class="transAction"]/div[@class="inner"]/div[@class="first"]//small'), r'N°(\w+)')
+        obj_recipient_id = Regexp(CleanText('//div[@class="transAction"]/div[@class="inner"]/div[not(@class="first")]//small'), r'N°(\w+)', default=None)
 
         def obj_recipient_iban(self):
             if Field('recipient_id')(self) is None:

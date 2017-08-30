@@ -27,6 +27,8 @@ from weboob.browser.filters.standard import CleanText
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.date import parse_date
+from weboob.tools.compat import unicode
+
 
 class TechnicalErrorPage(LoggedPage, HTMLPage):
     pass
@@ -38,8 +40,8 @@ class LoginPage(HTMLPage):
         indentType = "RENFORCE" if strong_auth else "MDP"
 
         form = self.get_form(name='loginCoForm', nr=form_nb)
-        form['codeUtil'] = login.encode('iso8859-15')
-        form['motPasse'] = pin[:12].encode('iso8859-15')
+        form['codeUtil'] = login
+        form['motPasse'] = pin[:12]
 
         assert form['identType'] == indentType
         form.submit()
