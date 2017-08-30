@@ -44,14 +44,14 @@ pyflakes:3:
   image: "python:3"
   stage: "test"
   script:
-    - "./tools/pyflakes.sh"
+      - "./tools/pyflakes.sh -3"
 
 lint:3:
   image: "python:3"
   stage: "test"
   allow_failure: true
   script:
-    - "./tools/weboob_lint.sh"
+    - "./tools/weboob_lint.sh -3"
 
 unittests:3:
   image: "python:3"
