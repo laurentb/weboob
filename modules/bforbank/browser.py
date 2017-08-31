@@ -142,9 +142,10 @@ class BforbankBrowser(LoginBrowser):
             self.location(account.url.replace('tableauDeBord', 'operations'))
             assert self.history.is_here() or self.loan_history.is_here()
             transactions_list = []
-            # transaction of the day
-            for tr in self.page.get_today_operations():
-                transactions_list.append(tr)
+            if account.type == Account.TYPE_CHECKING:
+                # transaction of the day
+                for tr in self.page.get_today_operations():
+                    transactions_list.append(tr)
             # history
             for tr in self.page.get_operations():
                 transactions_list.append(tr)
