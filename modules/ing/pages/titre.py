@@ -109,12 +109,14 @@ class TitrePage(LoggedPage, RawPage):
 
             invests.append(invest)
 
-        #We also have to get the liquidity as an investment.
-        invest = Investment()
-        invest.label = "Liquidités"
-        invest.code = "XX-liquidity"
-        invest.valuation = CleanDecimal(None, True).filter(message.split('&')[3].replace('euro;{','').strip())
-        invests.append(invest)
+        # There is no investment on life insurance in the process to be created.
+        if len(message.split('&')) >= 4:
+            # We also have to get the liquidity as an investment.
+            invest = Investment()
+            invest.label = "Liquidités"
+            invest.code = "XX-liquidity"
+            invest.valuation = CleanDecimal(None, True).filter(message.split('&')[3].replace('euro;{','').strip())
+            invests.append(invest)
         for invest in invests:
             yield invest
 
