@@ -789,6 +789,7 @@ class TransferPage(TransferErrorPage, IndexPage):
         form['__EVENTARGUMENT'] = m.group(2)
         form.submit()
 
+
 class TransferConfirmPage(TransferErrorPage, IndexPage):
     def is_here(self):
         return bool(CleanText(u'//h2[contains(text(), "Confirmer mon virement")]')(self.doc))
@@ -809,6 +810,7 @@ class TransferConfirmPage(TransferErrorPage, IndexPage):
             for word in Upper(CleanText(u'.//tr[th[contains(text(), "Compte à créditer")]]/td[not(@class)]'))(self.doc).split():
                 if is_iban_valid(word):
                     transfer.recipient_iban = word
+                    break
             else:
                 raise TransferError('Unable to find IBAN (original was %s)' % recipient.iban)
         else:
