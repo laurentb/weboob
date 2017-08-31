@@ -27,7 +27,7 @@ from weboob.capabilities.bank import Account, Investment, AccountNotFound
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.compat import urlparse, parse_qs, urljoin
 
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.browser.elements import TableElement, ListElement, ItemElement, method
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination, FormNotFound
 from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, DateGuesser, TableCell, Regexp, \
@@ -51,6 +51,8 @@ class Transaction(FrenchTransaction):
 
 
 class FrameContainer(LoggedPage, HTMLPage):
+    is_here = '//frameset'
+
     # main page, a frameset
     def on_load(self):
         txt = CleanText('//p[@class="debit"]', default='')(self.doc)
@@ -68,6 +70,17 @@ class FrameContainer(LoggedPage, HTMLPage):
             return None
         else:
             return a.attrib['src']
+
+
+class LifeInsuranceUseless(LoggedPage, HTMLPage):
+    is_here = '//h1[text()="Assurance Vie"]'
+
+
+class UnavailablePage(LoggedPage, HTMLPage):
+    is_here = '//strong[contains(text(),"Service momentanément indisponible.")]'
+
+    def on_load(self):
+        raise BrowserUnavailable()
 
 
 class AccountsPage(LoggedPage, HTMLPage):

@@ -34,6 +34,7 @@ from weboob.browser.exceptions import HTTPNotFound
 from .pages import (
     AccountsPage, CBOperationPage, CPTOperationPage, LoginPage, AppGonePage, RibPage,
     LifeInsurancesPage, FrameContainer, LifeInsurancePortal, LifeInsuranceMain,
+    LifeInsuranceUseless, UnavailablePage,
 )
 
 
@@ -64,13 +65,15 @@ class HSBC(LoginBrowser):
                         AppGonePage)
     rib =             URL(r'/cgi-bin/emcgi', RibPage)
     accounts =        URL(r'/cgi-bin/emcgi', AccountsPage)
+    life_insurance_useless = URL(r'/cgi-bin/emcgi', LifeInsuranceUseless)
+    unavailable = URL(r'/cgi-bin/emcgi', UnavailablePage)
+    frame_page = URL(r'/cgi-bin/emcgi', FrameContainer)
 
     # other site
     life_insurance_portal = URL(r'/cgi-bin/emcgi', LifeInsurancePortal)
     life_insurance_main = URL('https://assurances.hsbc.fr/fr/accueil/b2c/accueil.html\?pointEntree=PARTIEGENERIQUEB2C', LifeInsuranceMain)
     life_insurances = URL('https://assurances.hsbc.fr/navigation', LifeInsurancesPage)
 
-    frame_page = URL(r'/cgi-bin/emcgi', FrameContainer)
 
     def __init__(self, username, password, secret, *args, **kwargs):
         super(HSBC, self).__init__(username, password, *args, **kwargs)
@@ -157,10 +160,15 @@ class HSBC(LoginBrowser):
             self.session.cookies.pop('ErisaSession', None)
             self.session.cookies.pop('HBFR-INSURANCE-COOKIE-82', None)
 
+        if self.frame_page.is_here():
             home_url = self.page.get_frame()
             self.js_url = self.page.get_js_url()
 
             self.location(home_url)
+
+        if self.life_insurance_useless.is_here():
+            data = {'debr': 'COMPTES_PAN'}
+            self.go_post(self.js_url, data=data)
 
     @need_login
     def _go_to_life_insurance(self, account):
@@ -168,10 +176,15 @@ class HSBC(LoginBrowser):
 
         self.go_post(account.url)
 
+        if self.frame_page.is_here() or self.life_insurance_useless.is_here():
+            self.logger.warning('cannot go to life insurance %r', account)
+            return False
+
         data = {'url_suivant': 'SITUATIONCONTRATB2C', 'strNumAdh': ''}
         data.update(self.page.get_lf_attributes(account.id))
 
         self.life_insurances.go(data=data)
+        return True
 
     @need_login
     def get_history(self, account, coming=False, retry_li=True):
@@ -191,7 +204,9 @@ class HSBC(LoginBrowser):
                 return []
 
             try:
-                self._go_to_life_insurance(account)
+                if not self._go_to_life_insurance(account):
+                    self._quit_li_space()
+                    return []
             except (XMLSyntaxError, HTTPNotFound):
                 self._quit_li_space()
                 return []
@@ -275,7 +290,9 @@ class HSBC(LoginBrowser):
         account = self.accounts_list[account.id]
 
         try:
-            self._go_to_life_insurance(account)
+            if not self._go_to_life_insurance(account):
+                self._quit_li_space()
+                return []
         except (XMLSyntaxError, HTTPNotFound):
             self._quit_li_space()
             return []
