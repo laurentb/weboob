@@ -29,7 +29,7 @@ from weboob.capabilities.base import NotAvailable
 
 from .pages import (
     LoginPage, AccountsPage, AccountPage, MarketAccountPage,
-    LifeInsuranceAccountPage, CardPage, IbanPDFPage
+    LifeInsuranceAccountPage, CardPage, IbanPDFPage,
 )
 
 
@@ -50,17 +50,16 @@ class Barclays(LoginBrowser):
 
     def __init__(self, secret, *args, **kwargs):
         super(Barclays, self).__init__(*args, **kwargs)
-
         self.secret = secret
 
         # do some cache to avoid time loss
-        self.cache = {'history': {},
-                     }
+        self.cache = {'history': {}}
 
+    def locate_browser(self, state):
+        pass
 
     def _relogin(self):
         self.do_logout()
-
         self.do_login()
 
     def _go_to_account(self, account, refresh=False):
@@ -69,7 +68,6 @@ class Barclays(LoginBrowser):
         else:
             if not self.accounts.is_here():
                 self.page.go_to_menu('Comptes et contrats')
-
                 if not self.accounts.is_here(): # Sometime we can't go out from account page, so re-login
                     self._relogin()
 
@@ -96,15 +94,9 @@ class Barclays(LoginBrowser):
 
     def _multiple_account_choice(self, account):
         accounts = [a for a in self.cache['accounts'] if a._uncleaned_id == account._uncleaned_id]
-
         return not any(a for a in accounts if a.id in self.cache['history'])
 
     def do_login(self):
-        """
-        Attempt to log in.
-        Note: this method does nothing if we are already logged in.
-        """
-
         self.login.go().login(self.username, self.password)
 
         if self.page.has_error():
@@ -116,6 +108,10 @@ class Barclays(LoginBrowser):
 
         if self.login.is_here():
             raise BrowserIncorrectPassword()
+
+    def do_logout(self):
+        self.logout.go()
+        self.session.cookies.clear()
 
     @need_login
     def iter_accounts(self):
@@ -183,7 +179,6 @@ class Barclays(LoginBrowser):
             raise NotImplementedError()
 
         self._go_to_account(account)
-
         return self.page.iter_history()
 
     @need_login
@@ -197,8 +192,3 @@ class Barclays(LoginBrowser):
             self._go_to_account_space('Liste supports', account)
 
         return self.page.iter_investments()
-
-    def do_logout(self):
-        self.logout.go()
-
-        self.session.cookies.clear()

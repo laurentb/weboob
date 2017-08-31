@@ -35,14 +35,16 @@ def MyDecimal(*args, **kwargs):
     kwargs.update(replace_dots=True, default=NotAvailable)
     return CleanDecimal(*args, **kwargs)
 
+
 class StatefulPage(LoggedPage, HTMLPage):
-    def go_to_menu(self, menu):
+    def get_form_for_menu(self, menu):
         btn = Regexp(Attr('//div[@class="menuvert"]//a[contains(., "%s")]' % (menu), 'onclick'), r"\('', '(.*?)',")(self.doc)
-
         form = self.get_form(id='form1')
-
         form['MODE'] = 'NAVMENU_' + btn
+        return form
 
+    def go_to_menu(self, menu):
+        form = self.get_form_for_menu(menu)
         form.submit()
 
     def go_to_account(self, account):
