@@ -251,8 +251,9 @@ class _AccountsPage(MyLoggedPage, BasePage):
 
             label = cleaner(cols[self.COL_LABEL])
             type = self.TYPES.get(label, Account.TYPE_UNKNOWN) or account_type
-            if type == Account.TYPE_LOAN:
-                details = self.browser.open(Link('.//a')(tr))
+            url = Link('.//a', default=None)(tr)
+            if type == Account.TYPE_LOAN and url is not None:
+                details = self.browser.open(url)
                 account = details.page.item_loan()
             else:
                 account = Account()
