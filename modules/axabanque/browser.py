@@ -263,6 +263,14 @@ class AXAAssurance(AXABrowser):
     def iter_history(self, account):
         self.go_wealth_pages(account)
         pagination_url = self.page.get_pagination_url()
-        self.location(pagination_url, params={'skip': 0})
+        try:
+            self.location(pagination_url, params={'skip': 0})
+        except ClientError as e:
+            assert e.response.status_code == 406
+            self.logger.info('not doing pagination for account %r, site seems broken', account)
+            for tr in self.page.iter_history(no_pagination=True):
+                yield tr
+            return
+
         for tr in self.page.iter_history():
             yield tr
