@@ -35,7 +35,7 @@ from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, RegexpError
 from weboob.browser.filters.html import Link
 from weboob.browser.pages import JsonPage, LoggedPage
-from weboob.exceptions import NoAccountsException
+from weboob.exceptions import NoAccountsException, BrowserUnavailable
 
 from .base import BasePage
 
@@ -183,6 +183,11 @@ class AccountHistory(LoggedPage, BasePage):
             not bool(CleanText(u'//h1[contains(text(), "Ajouter un compte bénéficiaire de virement")]')(self.doc)) and \
             not bool(CleanText(u'//h3[contains(text(), "Veuillez vérifier les informations du compte à ajouter")]')(self.doc)) and \
             not bool(Link('//a[contains(@href, "per_cptBen_ajouterFrBic")]', default=NotAvailable)(self.doc))
+
+    def on_load(self):
+        msg = CleanText('//span[@class="error_msg"]', default='')(self.doc)
+        if 'Le service est momentanément indisponible' in msg:
+            raise BrowserUnavailable()
 
     debit_date =  None
     def get_part_url(self):
