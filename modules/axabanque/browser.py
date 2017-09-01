@@ -274,3 +274,6 @@ class AXAAssurance(AXABrowser):
 
         for tr in self.page.iter_history():
             yield tr
+
+    def iter_coming(self, account):
+        raise NotImplementedError()
