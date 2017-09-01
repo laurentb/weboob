@@ -29,6 +29,7 @@ from weboob.browser.filters.html import Attr, Link
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.compat import unicode
 
 
 def MyDecimal(*args, **kwargs):
@@ -194,16 +195,21 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                             break
                     else:
                         account_type_str = ''
-                    for pattern, type in self.ACCOUNT_TYPES.iteritems():
+                    for pattern, type in self.ACCOUNT_TYPES.items():
                         if pattern in account_type_str or pattern in account.label.lower():
                             account.type = type
                             break
                     else:
                         account.type = Account.TYPE_UNKNOWN
 
-                    account.type = Account.TYPE_MARKET if "Valorisation" in account.label else \
-                        Account.TYPE_CARD if "Visa" in account.label else \
-                            account.type
+                    types = [('Valorisation', Account.TYPE_MARKET),
+                             ('Visa', Account.TYPE_CARD),
+                            ]
+
+                    for sub, t in types:
+                        if sub in account.label:
+                            account.type = t
+                            break
 
                     account._url = self.doc.xpath('//form[contains(@action, "panorama")]/@action')[0]
                     account._acctype = "bank"

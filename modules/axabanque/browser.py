@@ -195,7 +195,7 @@ class AXABanque(AXABrowser):
             self.page.go_to_history()
 
             # Pass account investments to try to get isin code for transaction investments
-            for tr in self.page.iter_history(investments=self.cache['invs'][account.id] if account.id in self.cache['invs'].iterkeys() else []):
+            for tr in self.page.iter_history(investments=self.cache['invs'][account.id] if account.id in self.cache['invs'] else []):
                 yield tr
 
         # Side investment's website

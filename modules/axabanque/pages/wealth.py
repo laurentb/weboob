@@ -105,7 +105,7 @@ class HistoryPage(LoggedPage, HTMLPage):
     def build_doc(self, content):
         # we got empty pages at end of pagination
         if not content.strip():
-            content = "<html></html>"
+            content = b"<html></html>"
         return super(HistoryPage, self).build_doc(content)
 
     def get_account_url(self, url):

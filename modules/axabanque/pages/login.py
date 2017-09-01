@@ -69,7 +69,7 @@ class MyVirtKeyboard(VirtKeyboard):
         return ','.join(self.get_position_from_md5(self.symbols[c]) for c in string)
 
     def get_position_from_md5(self, md5):
-        for k, v in self.md5.iteritems():
+        for k, v in self.md5.items():
             if v == md5:
                 return k
 
