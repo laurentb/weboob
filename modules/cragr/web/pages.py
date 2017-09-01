@@ -593,9 +593,9 @@ class LoansPage(_AccountsPage):
         # todo handle duration as a relativedelta
         obj_duration = MyDecimal(Regexp(CleanText('//div[@id="trPagePu"]//td[contains(., "Durée")]'), r' (\d+) '))
         obj_subscription_date = MyDate(Regexp(
-            CleanText('//div[@id="trPagePu"]//td[contains(., "Début")]', symbols=':'), r'(\d{2}/\d{2}/\d{4})'))
+            CleanText('//div[@id="trPagePu"]//td[contains(., "Début")]', symbols=':'), r'(\d{2}/\d{2}/\d{4})'), default=NotAvailable)
         obj_maturity_date = MyDate(Regexp(
-            CleanText('//div[@id="trPagePu"]//td[contains(., "Fin le")]', symbols=':'), r'(\d{2}/\d{2}/\d{4})'))
+            CleanText('//div[@id="trPagePu"]//td[contains(., "Fin le")]', symbols=':'), r'(\d{2}/\d{2}/\d{4})'), default=NotAvailable)
         obj_rate = MyDecimal('//div[@id="trPagePu"]//td[contains(., "Taux")]')
         obj_next_payment_amount = MyDecimal('//div[@id="trPagePu"]//td[contains(., "Remboursement")]')
         obj_next_payment_date = MyDate(Regexp(CleanText('//div[@id="trPagePu"]//td[contains(., "Prochaine")]'),
