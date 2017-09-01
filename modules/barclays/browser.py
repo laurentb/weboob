@@ -122,8 +122,9 @@ class Barclays(LoginBrowser):
             accounts = list(self.page.iter_accounts())
             traccounts = []
 
-            for k, account in enumerate(accounts):
-                self._go_to_account(account)
+            for account in accounts:
+                if account.type != Account.TYPE_LOAN:
+                    self._go_to_account(account)
 
                 if account.type == Account.TYPE_CARD:
                     if not self.page.has_history():
@@ -142,6 +143,8 @@ class Barclays(LoginBrowser):
     @need_login
     def iter_history(self, account):
         if account.type == Account.TYPE_CARD or (account._multiple_type and not self._multiple_account_choice(account)):
+            return []
+        elif account.type == Account.TYPE_LOAN:
             return []
 
         if account.id not in self.cache['history']:

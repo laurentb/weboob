@@ -98,9 +98,10 @@ class LoginPage(HTMLPage):
 
 
 class AccountsPage(StatefulPage):
-    ACCOUNT_TYPES = {u'Liquidités': Account.TYPE_CHECKING,
+    ACCOUNT_TYPES = {'Liquidités': Account.TYPE_CHECKING,
                      'Epargne': Account.TYPE_SAVINGS,
                      'Titres': Account.TYPE_MARKET,
+                     'Engagement/Crédits': Account.TYPE_LOAN,
                     }
     ACCOUNT_EXTRA_TYPES = {'BMOOVIE': Account.TYPE_LIFE_INSURANCE
                           }
@@ -121,7 +122,7 @@ class AccountsPage(StatefulPage):
             obj_balance = MyDecimal('.//td[4]//div[1]/a')
             obj_label = CleanText('.//td[1]//span')
             obj__uncleaned_id = CleanText('.//td[2]//a')
-            obj__btn = Attr('.//button', 'name')
+            obj__btn = Attr('.//button', 'name', default=None)
             obj__attached_account = NotAvailable # for card account only
 
             def obj_id(self):
