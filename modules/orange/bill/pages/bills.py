@@ -45,20 +45,22 @@ class BillsPage(LoggedPage, HTMLPage):
         head_xpath = '//table[has-class("table-hover")]/thead/tr/th'
 
         col_date = u'Date'
-        col_amount = u'Montant TTC'
+        col_amount = [u'Montant TTC', u'Montant']
         col_ht = u'Montant HT'
         col_url = u'Télécharger'
 
         class item(ItemElement):
             klass = Bill
 
-            obj_price = CleanDecimal(TableCell('amount'), replace_dots=True)
             obj_currency = Currency(TableCell('amount'))
             obj_type = u"bill"
             obj_format = u"pdf"
 
             # TableCell('date') can have other info like: 'duplicata'
             obj_date = Date(CleanText('./td[@headers="ec-dateCol"]/text()[not(preceding-sibling::br)]'), parse_func=parse_french_date, dayfirst=True)
+
+            def obj_price(self):
+                return CleanDecimal(Regexp(CleanText(TableCell('amount')), '.*?([\d,]+).*'), replace_dots=True)(self)
 
             # Only when a list of documents is present
             obj__url_base = Regexp(CleanText('.//ul[@class="liste"]/script', default=None), '.*?contentList[\d]+ \+= \'<li><a href=".*\"(.*?idDocument=2)"', default=None)
@@ -78,7 +80,9 @@ class BillsPage(LoggedPage, HTMLPage):
                     return CleanText(TableCell('url')(self)[0].xpath('.//span[@class="ec_visually_hidden"]'))(self)
 
             def obj_vat(self):
-                ht = CleanDecimal(TableCell('ht'), replace_dots=True, default=NotAvailable)(self)
+                ht = CleanDecimal(TableCell('ht', default=NotAvailable), replace_dots=True, default=NotAvailable)(self)
+                if ht is NotAvailable:
+                    return
                 return Field('price')(self) - ht
 
             def obj_id(self):
