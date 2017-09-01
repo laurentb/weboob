@@ -264,6 +264,5 @@ class AXAAssurance(AXABrowser):
         self.go_wealth_pages(account)
         pagination_url = self.page.get_pagination_url()
         self.location(pagination_url, params={'skip': 0})
-        self.skip = 0
-        for tr in self.page.iter_history(pagination_url=pagination_url):
+        for tr in self.page.iter_history():
             yield tr

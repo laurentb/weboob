@@ -23,7 +23,7 @@ import re
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement
 from weboob.browser.filters.standard import (
-    CleanText, Date, Regexp, CleanDecimal, Env, Eval, Field, Async, AsyncLoad,
+    CleanText, Date, Regexp, CleanDecimal, Eval, Field, Async, AsyncLoad,
     TableCell,
 )
 from weboob.browser.filters.html import Attr
@@ -134,9 +134,12 @@ class HistoryPage(LoggedPage, HTMLPage):
         item_xpath = '//div[contains(@data-url, "savingsdetailledcard")]'
 
         def next_page(self):
-            self.page.browser.skip += 10
-            return None if not CleanText(self.item_xpath, default=None)(self) else \
-                   "%s?skip=%s" % (Env('pagination_url')(self), self.page.browser.skip)
+            if not CleanText(self.item_xpath, default=None)(self):
+                return
+            elif self.env.get('no_pagination'):
+                return
+
+            return re.sub(r'(?<=\bskip=)(\d+)', lambda m: str(int(m.group(1)) + 10), self.page.url)
 
         class item(ItemElement):
             klass = Transaction
@@ -149,5 +152,6 @@ class HistoryPage(LoggedPage, HTMLPage):
 
             def obj_investments(self):
                 investments = list(Async('details').loaded_page(self).get_investments())
-                [setattr(inv, 'vdate', Field('date')(self)) for inv in investments]
+                for inv in investments:
+                    inv.vdate = Field('date')(self)
                 return investments
