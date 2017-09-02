@@ -24,10 +24,14 @@ from weboob.exceptions import ParseError
 from weboob.tools.compat import basestring, unicode, urljoin
 from weboob.tools.html import html2text
 
-from .standard import _NO_DEFAULT, Filter, FilterError, _Selector, debug
+from .base import _NO_DEFAULT, Filter, FilterError, _Selector, debug
+from .standard import TableCell # TODO move class here when modules are migrated
+
 
 __all__ = ['CSS', 'XPath', 'XPathNotFound', 'AttributeNotFound',
-           'Attr', 'Link', 'CleanHTML', 'FormValue', 'HasElement']
+           'Attr', 'Link', 'CleanHTML', 'FormValue', 'HasElement',
+           'TableCell',
+          ]
 
 
 class XPathNotFound(FilterError):

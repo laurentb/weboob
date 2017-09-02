@@ -17,9 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from weboob.exceptions import ParseError
 from weboob.tools.compat import basestring, with_metaclass
 
-from .standard import _Filter, _NO_DEFAULT, Filter, ParseError, debug
+from .base import _Filter, _NO_DEFAULT, Filter, debug
 
 __all__ = ['Dict']
 
