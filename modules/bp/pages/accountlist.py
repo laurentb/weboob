@@ -249,7 +249,7 @@ class AccountRIB(LoggedPage, RawPage):
             self.parsed_text = out.getvalue()
 
     def get_iban(self):
-        m = re.search(self.iban_regexp, self.parsed_text)
+        m = re.search(self.iban_regexp, self.parsed_text.decode('utf-8'))
         if m:
             return unicode(m.group(1))
         return None
