@@ -53,6 +53,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_type = Account.TYPE_CARD
             obj_id = CleanText('./a/p', replace=[('N° ', '')])
             obj_label = obj_id
+            obj_currency = u'EUR'
 
             # Every subscription a product token and a type ex: card = 240
             obj__product_token = Regexp(CleanText('./@id'), r'navSideProduct_(\d*)')
@@ -77,4 +78,3 @@ class TransactionsPage(LoggedPage, HTMLPage):
             obj_label = Format('Facture %s', CleanText('.//h3/strong'))
             obj_type = Transaction.TYPE_CARD
             obj_amount = MyDecimal('./td[@class="al-r"]')
-            obj_currency = "€"
