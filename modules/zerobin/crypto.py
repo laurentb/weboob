@@ -29,7 +29,7 @@ from Cryptodome.Hash import HMAC
 
 
 def log2(n):
-    return math.log(n) / math.log(2)
+    return math.log(n, 2)
 
 
 def encrypt(plaintext):
