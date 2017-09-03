@@ -21,7 +21,8 @@ from __future__ import absolute_import
 from codecs import open
 import csv
 
-from weboob.tools.compat import basestring, unicode
+from weboob.tools.compat import basestring
+from weboob.tools.misc import to_unicode
 
 from .iformatter import IFormatter
 
@@ -47,7 +48,7 @@ class CSVFormatter(IFormatter):
     def write_dict(self, item, fp):
         writer = csv.writer(fp, delimiter=self.field_separator)
         if not self.started:
-            writer.writerow([unicode(v) for v in item.keys()])
+            writer.writerow([to_unicode(v) for v in item.keys()])
             self.started = True
 
-        writer.writerow([unicode(v) for v in item.values()])
+        writer.writerow([to_unicode(v) for v in item.values()])
