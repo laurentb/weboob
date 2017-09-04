@@ -45,31 +45,34 @@ class SearchCitiesPage(JsonPage):
 class WeatherPage(HTMLPage):
     @method
     class iter_forecast(ListElement):
-        item_xpath = '//div[@class="group-days-summary"]/article'
+        item_xpath = '//div[@class="liste-jours"]/ul/li'
 
         class item(ItemElement):
             klass = Forecast
 
-            obj_id = CleanText('./header/h4')
-            obj_date = CleanText('./header/h4')
+            obj_id = CleanText('./dl/dt')
+
+            def obj_date(self):
+                actual_day_number = Regexp(CleanText('./dl/dt'), '\w{3} (\d+)')(self)
+                base_date = date.today()
+                if base_date.day > actual_day_number:
+                    base_date = base_date.replace(month=base_date.month + 1)
+                base_date = base_date.replace(day=int(actual_day_number))
+                return base_date
 
             def obj_low(self):
-                temp = CleanDecimal(Regexp(CleanText('./ul/li[@class="day-summary-temperature"]'),
-                                           '(.*) / .*'))(self)
-                unit = Regexp(CleanText('./ul/li[@class="day-summary-temperature"]'), u'.*\xb0(\w) Minimale / .*')(self)
+                temp = CleanDecimal(Regexp(CleanText('./dl/dd/span[@class="min-temp"]'),
+                                           u'(\d*)\xb0\w Minimale.*'))(self)
+                unit = Regexp(CleanText('./dl/dd/span[@class="min-temp"]'), u'.*\xb0(\w) Minimale.*')(self)
                 return Temperature(float(temp), unit)
 
             def obj_high(self):
-                temp = CleanDecimal(Regexp(CleanText('./ul/li[@class="day-summary-temperature"]'),
-                                           '.* / (.*)'))(self)
-                unit = Regexp(CleanText('./ul/li[@class="day-summary-temperature"]'), u'.* / .*\xb0(\w).*')(self)
+                temp = CleanDecimal(Regexp(CleanText('./dl/dd/span[@class="max-temp"]'),
+                                           u'(.*)\xb0\w Maximale.*'))(self)
+                unit = Regexp(CleanText('./dl/dd/span[@class="max-temp"]'), u'.*\xb0(\w) Maximale.*')(self)
                 return Temperature(float(temp), unit)
 
-            obj_text = Format('%s - %s - %s - %s',
-                              CleanText('./ul/li[@class="day-summary-temperature"]'),
-                              CleanText('./ul/li[@class="day-summary-image"]'),
-                              CleanText('./ul/li[@class="day-summary-uv"]'),
-                              CleanText('./ul/li[@class="day-summary-wind"]'))
+            obj_text = CleanText('./@title')
 
     @method
     class get_current(ItemElement):
@@ -77,14 +80,14 @@ class WeatherPage(HTMLPage):
 
         obj_id = date.today()
         obj_date = date.today()
-        obj_text = Format('%s - %s - %s - %s',
-                          CleanText('(//div[@class="group-days-summary"])[1]/article[1]/ul/li[@class="day-summary-temperature"]'),
-                          CleanText('(//div[@class="group-days-summary"])[1]/article[1]/ul/li[@class="day-summary-image"]'),
-                          CleanText('(//div[@class="group-days-summary"])[1]/article[1]/ul/li[@class="day-summary-uv"]'),
-                          CleanText('(//div[@class="group-days-summary"])[1]/article[1]/ul/li[@class="day-summary-wind"]'))
+        obj_text = Format('%s - %s - %s - Vent %s',
+                          CleanText('//ul[@class="prevision-horaire "]/li[@class=" active "]/div/ul/li[@class="day-summary-tress-start"]'),
+                          CleanText('//ul[@class="prevision-horaire "]/li[@class=" active "]/div/ul/li[@class="day-summary-image"]'),
+                          CleanText('//ul[@class="prevision-horaire "]/li[@class=" active "]/div/ul/li[@class="day-summary-uv"]'),
+                          CleanText('//ul[@class="prevision-horaire "]/li[@class=" active "]/div/ul/li[@class="day-summary-wind"]'))
 
         def obj_temp(self):
-            temp = CleanDecimal('//div[@id="detail-day-01"]/table/tr[@class="in-between"]/td[1]')(self)
-            unit = Regexp(CleanText('//div[@id="detail-day-01"]/table/tr[@class="in-between"]/td[1]'),
+            temp = CleanDecimal('//ul[@class="prevision-horaire "]/li[@class=" active "]/ul/li[@class="day-summary-temperature"]')(self)
+            unit = Regexp(CleanText('//ul[@class="prevision-horaire "]/li[@class=" active "]/ul/li[@class="day-summary-temperature"]'),
                           u'.*\xb0(\w)')(self)
             return Temperature(float(temp), unit)
