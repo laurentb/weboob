@@ -37,18 +37,22 @@ class AmazonPage(HTMLPage):
 
 class HomePage(AmazonPage):
     def to_login(self):
-        url1 = self.doc.xpath('//a[@id="nav-link-yourAccount"]/@href')
-        url2 = self.doc.xpath('//a[@id="nav-your-account"]/@href')
-        self.browser.location((url1 or url2)[0])
+        self.browser.location(self.doc.xpath('(//a[contains(., "Identifiez-vous")]//@href)[1]')[0])
         return self.browser.page
 
 
 class LoginPage(AmazonPage):
-    def login(self, email, password):
+    def login(self, email, password, captcha=None):
         form = self.get_form(name='signIn')
         form['email'] = email
         form['password'] = password
+
+        if captcha is not None:
+            form['guess'] = captcha
         form.submit()
+
+    def has_captcha(self):
+        return self.doc.xpath('//img[@id="auth-captcha-image"]/@src')[0] if len(self.doc.xpath('//img[@id="auth-captcha-image"]/@src')) != 0 else None
 
 
 class HistoryPage(AmazonPage):

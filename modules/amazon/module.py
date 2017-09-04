@@ -56,12 +56,12 @@ class AmazonModule(Module, CapShop, CapDocument):
     CONFIG = BackendConfig(
         Value('website',  label=u'Website', choices=website_choices, default='www.amazon.com'),
         ValueBackendPassword('email', label='Username', masked=False),
-        ValueBackendPassword('password', label='Password'))
+        ValueBackendPassword('password', label='Password'),
+        Value('captcha_response', label='Captcha response', required=False))
 
     def create_default_browser(self):
         self.BROWSER = self.BROWSERS[self.config['website'].get()]
-        return self.create_browser(self.config['email'].get(),
-                                   self.config['password'].get())
+        return self.create_browser(self.config)
 
     def get_currency(self):
         return self.browser.get_currency()

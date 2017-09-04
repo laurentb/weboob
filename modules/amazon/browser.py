@@ -26,7 +26,8 @@ from weboob.capabilities.bill import Subscription, Bill
 from weboob.capabilities.shop import OrderNotFound
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.decorators import retry
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.tools.value import Value
+from weboob.exceptions import BrowserIncorrectPassword, CaptchaQuestion
 
 from .pages import HomePage, LoginPage, AmazonPage, HistoryPage, \
     OrderOldPage, OrderNewPage
@@ -52,6 +53,12 @@ class Amazon(LoginBrowser):
                     r'/gp/your-account/order-details\?orderID=%\(order_id\)s',
                     OrderNewPage)
     unknown = URL(r'*', AmazonPage)
+
+    def __init__(self, config, *args, **kwargs):
+        self.config = config
+        kwargs['username'] = self.config['email'].get()
+        kwargs['password'] = self.config['password'].get()
+        super(Amazon, self).__init__(*args, **kwargs)
 
     def get_currency(self):
         return self.CURRENCY
@@ -111,10 +118,22 @@ class Amazon(LoginBrowser):
             self.logger.warning('Order %s not found' % order_id)
 
     def do_login(self):
+        if self.config['captcha_response'].get() is not None and self.login.is_here():
+            self.page.login(self.username, self.password, self.config['captcha_response'].get())
+            self.config['captcha_response'] = Value(value=None)
+            if not self.page.logged:
+                raise BrowserIncorrectPassword()
+            return
+
         self.session.cookies.clear()
         self.home.go().to_login().login(self.username, self.password)
-        if not self.page.logged:
-            raise BrowserIncorrectPassword()
+
+        if self.login.is_here():
+            has_captcha = self.page.has_captcha()
+            if not has_captcha:
+                raise BrowserIncorrectPassword()
+            else:
+                raise CaptchaQuestion(image_url=has_captcha, type="image_captcha")
 
     def location(self, *args, **kwargs):
         """
