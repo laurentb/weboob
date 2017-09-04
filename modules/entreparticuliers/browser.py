@@ -30,8 +30,8 @@ class EntreparticuliersBrowser(PagesBrowser):
     cities = URL('/HTTPHandlers/LocalisationsAutocompleteHandler.ashx\?q=(?P<pattern>.*)', CitiesPage)
     form_item = URL('/Default.aspx/GetElementsMoteur')
     search = URL('/default.aspx/CreateSearchParams')
-    search_result = URL('/default.aspx/GetAnnonces', SearchPage)
-    housing = URL('/default.aspx/GetAnnonceDetail', HousingPage)
+    search_result = URL('/resultat-annonces-immobilieres', SearchPage)
+    housing = URL('/annonces-immobilieres/(?P<_id>.*).html', HousingPage)
 
     def search_city(self, pattern):
         return self.cities.open(pattern=pattern).iter_cities()
@@ -98,12 +98,16 @@ class EntreparticuliersBrowser(PagesBrowser):
             Avec un rayon a 0, on remonte en priorité les resultats les plus proches, puis de plus en plus eloignes sans limite aucune.
             On choisit donc arbitrairement de limiter a 100km autour de la ville choisie
             """
-            data['rayon'] = 100
+            if len(cities) > 1:
+                data['rayon'] = 0
+            else:
+                data['rayon'] = 100
+
             data['localisation_id_rayon'] = None
             data['lstLocalisationId'] = ','.join(cities)
             data['photos'] = 0
             data['colocation'] = ''
-            data['meuble'] = ''
+            data['meuble'] = 'nc'
             data['pageNumber'] = 1
             data['order_by'] = 1
             data['sort_order'] = 1
@@ -111,22 +115,23 @@ class EntreparticuliersBrowser(PagesBrowser):
             data['SaveSearch'] = "false"
             data['EmailUser'] = ""
             data['GSMUser'] = ""
+            data['CapaciteMin'] = None
+            data['progneuf'] = "false"
 
             self.search.go(data="{'p_SearchParams':'%s', 'forcealerte':'0'}" % json.dumps(data))
 
-            data = '{pageIndex: 1,source:"undefined",latmin:"0",latmax:"0",lngmin:"0",lngmax:"0", frommoteur:"true"}'
-            for item in self.search_result.go(data=data).iter_housings():
-                yield item
+            self.reset_header()
+            return self.search_result.go().iter_housings()
 
     def get_housing(self, _id, obj=None):
-        self.update_header()
-        splitted_id = _id.split('#')
-        data = '{idannonce: %s,source:"%s",rubrique:%s, fromcache:0}' % (splitted_id[0], splitted_id[2], splitted_id[1])
-        obj = self.housing.go(data=data).get_housing(obj=obj)
-        obj.id = _id
-        return obj
+        return self.housing.go(_id=_id).get_housing(obj=obj)
 
     def update_header(self):
         self.session.headers.update({"X-Requested-With": "XMLHttpRequest",
                                      "Content-Type": "application/json; charset=utf-8",
                                      "Accept": "application/json, text/javascript, */*; q=0.01"})
+
+    def reset_header(self):
+        self.session.headers.update({"Upgrade-Insecure-Requests": "1",
+                                     "Content-Type": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                                     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"})
