@@ -41,8 +41,16 @@ try:
 except ImportError:
     raise ImportError('Please install python-nss')
 
+from weboob.tools.log import getLogger
+
 
 __all__ = ['init_nss', 'inject_in_urllib3']
+
+
+CTX = None
+INIT_PID = None
+INIT_ARGS = None
+LOGGER = getLogger('weboob.browser.nss')
 
 
 def cert_to_dict(cert):
@@ -166,6 +174,8 @@ def auth_cert_pinning(sock, check_sig, is_server, path):
 
 
 def ssl_wrap_socket(sock, *args, **kwargs):
+    reinit_if_needed()
+
     # TODO handle more options?
     hostname = kwargs.get('server_hostname')
     ossl_ctx = kwargs.get('ssl_context')
@@ -207,13 +217,20 @@ def inject_in_urllib3():
 
 
 def init_nss(path, rw=False):
-    if nss.nss.nss_is_initialized():
+    global CTX, INIT_PID, INIT_ARGS
+
+    if CTX is not None and INIT_PID == os.getpid():
         return
 
+    INIT_ARGS = (path, rw)
+
     if rw:
-        nss.nss.nss_init_read_write(path)
+        flags = 0
     else:
-        nss.nss.nss_init(path)
+        flags = nss.nss.NSS_INIT_READONLY
+
+    INIT_PID = os.getpid()
+    CTX = nss.nss.nss_init_context(path, flags=flags)
 
     nss.nss.enable_ocsp_checking()
 
@@ -230,3 +247,14 @@ def create_cert_db(path):
         if os.path.isdir(f):
             continue
         subprocess.check_call(['certutil', '-A', '-d', path, '-i', f, '-n', f, '-t', 'TC,C,T'])
+
+
+def reinit_if_needed():
+    # if we forked since NSS was initialized, we might get an exception
+    # (SEC_ERROR_PKCS11_DEVICE_ERROR) A PKCS #11 module returned CKR_DEVICE_ERROR, indicating that a problem has occurred with the token or slot.
+    # so we should reinit NSS
+
+    if INIT_PID and INIT_PID != os.getpid():
+        LOGGER.warning('nss inited in %s but now in %s', INIT_PID, os.getpid())
+        assert INIT_ARGS
+        init_nss(*INIT_ARGS)
