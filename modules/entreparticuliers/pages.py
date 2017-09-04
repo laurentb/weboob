@@ -83,14 +83,16 @@ class SearchPage(EntreParticuliersXMLPage):
             obj_area = CleanDecimal(
                 Regexp(
                     CleanText('./MiniINfos'),
-                    u'\s?(\d+)\sm²'
+                    u'\s?(\d+)\sm²',
+                    default=NotAvailable
                 ),
                 default=NotAvailable
             )
             obj_rooms = CleanDecimal(
                 Regexp(
                     CleanText('./MiniINfos'),
-                    '^(\d)+ .*'
+                    '^(\d)+ .*',
+                    default=NotAvailable
                 ),
                 default=NotAvailable
             )
