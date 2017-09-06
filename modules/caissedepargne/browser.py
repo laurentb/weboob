@@ -248,7 +248,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
         info['link'] = [info['link']]
 
-        for i in range(40):
+        for i in range(100):
 
             assert self.home.is_here()
 
@@ -287,7 +287,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             if not self.page.go_next():
                 return
 
-        assert False, 'More than 40 history pages'
+        assert False, 'More than 100 history pages'
 
     @need_login
     def _get_history_invests(self, account):
