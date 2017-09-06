@@ -48,19 +48,34 @@ class BillsPage(LoggedPage, HTMLPage):
         col_amount = [u'Montant TTC', u'Montant']
         col_ht = u'Montant HT'
         col_url = u'Télécharger'
+        col_infos = u'Infos paiement'
 
         class item(ItemElement):
             klass = Bill
 
-            obj_currency = Currency(TableCell('amount'))
             obj_type = u"bill"
             obj_format = u"pdf"
 
             # TableCell('date') can have other info like: 'duplicata'
             obj_date = Date(CleanText('./td[@headers="ec-dateCol"]/text()[not(preceding-sibling::br)]'), parse_func=parse_french_date, dayfirst=True)
 
+            def obj__cell(self):
+                # sometimes the link to the bill is not in the right column (Thanks Orange!!)
+                if CleanText(TableCell('url')(self))(self):
+                    return 'url'
+                return 'infos'
+
             def obj_price(self):
-                return CleanDecimal(Regexp(CleanText(TableCell('amount')), '.*?([\d,]+).*'), replace_dots=True)(self)
+                if CleanText(TableCell('amount')(self))(self):
+                    return CleanDecimal(Regexp(CleanText(TableCell('amount')), '.*?([\d,]+).*', default=NotAvailable), replace_dots=True, default=NotAvailable)(self)
+                else:
+                    return Field('_ht')(self)
+
+            def obj_currency(self):
+                if CleanText(TableCell('amount')(self))(self):
+                    return Currency(TableCell('amount')(self))(self)
+                else:
+                    return Currency(TableCell('ht')(self))(self)
 
             # Only when a list of documents is present
             obj__url_base = Regexp(CleanText('.//ul[@class="liste"]/script', default=None), '.*?contentList[\d]+ \+= \'<li><a href=".*\"(.*?idDocument=2)"', default=None)
@@ -68,8 +83,8 @@ class BillsPage(LoggedPage, HTMLPage):
                 if Field('_url_base')(self):
                     # URL won't work if HTML is not unescape
                     return HTMLParser.HTMLParser().unescape(str(Field('_url_base')(self)))
-                else:
-                    return Link(TableCell('url')(self)[0].xpath('./a'))(self)
+                else :
+                    return Link(TableCell(Field('_cell')(self))(self)[0].xpath('./a'))(self)
 
             obj__label_base = Regexp(CleanText('.//ul[@class="liste"]/script', default=None), '.*</span>(.*?)</a.*', default=None)
 
@@ -77,16 +92,19 @@ class BillsPage(LoggedPage, HTMLPage):
                 if Field('_label_base')(self):
                     return HTMLParser.HTMLParser().unescape(str(Field('_label_base')(self)))
                 else:
-                    return CleanText(TableCell('url')(self)[0].xpath('.//span[@class="ec_visually_hidden"]'))(self)
+                    return CleanText(TableCell(Field('_cell')(self))(self)[0].xpath('.//span[@class="ec_visually_hidden"]'))(self)
 
+            obj__ht = CleanDecimal(TableCell('ht', default=NotAvailable), replace_dots=True, default=NotAvailable)
             def obj_vat(self):
-                ht = CleanDecimal(TableCell('ht', default=NotAvailable), replace_dots=True, default=NotAvailable)(self)
-                if ht is NotAvailable:
+                if Field('_ht')(self) is NotAvailable or Field('price')(self) is NotAvailable:
                     return
-                return Field('price')(self) - ht
+                return Field('price')(self) - Field('_ht')(self)
 
             def obj_id(self):
-                return '%s_%s%s' % (Env('subid')(self), Field('date')(self).strftime('%d%m%Y'), Field('price')(self))
+                if Field('price')(self) is NotAvailable:
+                    return '%s_%s%s' % (Env('subid')(self), Field('date')(self).strftime('%d%m%Y'), Field('_ht')(self))
+                else:
+                    return '%s_%s%s' % (Env('subid')(self), Field('date')(self).strftime('%d%m%Y'), Field('price')(self))
 
     @method
     class get_documents(ListElement):
