@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
 from __future__ import unicode_literals
 
 import re
@@ -321,7 +320,7 @@ class CardPage(AbstractAccountPage):
 
     @method
     class iter_history(TableElement):
-        head_xpath = '//table[@class="table-cartes"]/thead/tr/th//a/text()'
+        head_xpath = '//table[@class="table-cartes"]/thead/tr/th//a'
         item_xpath = '//table[@class="table-cartes"]/tbody/tr'
 
         col_label = u'Libellé'
@@ -329,6 +328,13 @@ class CardPage(AbstractAccountPage):
 
         class item(ItemElement):
             klass = Transaction
+
+            def condition(self):
+                tds = self.el.xpath('./td')
+                if len(tds) == 1 and 'colspan' in tds[0].attrib:
+                    assert self.page.doc.xpath('//h1[text()="Aucune opération"]')
+                    return False
+                return True
 
             obj_label = CleanText(TableCell('label'))
             obj_type = Transaction.TYPE_DEFERRED_CARD
