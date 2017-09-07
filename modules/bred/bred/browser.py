@@ -252,5 +252,5 @@ class BredBrowser(DomainBrowser):
             next_page = bool(transactions)
             offset += 50
 
-            assert offset < 5000, 'the site may be doing an infinite loop'
+            assert offset < 10000, 'the site may be doing an infinite loop'
 
