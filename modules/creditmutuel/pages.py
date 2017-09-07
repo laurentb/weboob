@@ -1181,7 +1181,7 @@ class VerifCodePage(LoggedPage, HTMLPage):
         '46ac73377b08712a1bbe297d5f3a51f3': 'G8',
         'bc288cbfa82b119c508cf4fbcfe75a6e': 'H1',
         '6a8f5a82419fed29eeb8bd439a109920': 'H2',
-        '36ad9e845c7a6ca642b0021c3b2cef2c': 'H3',
+        ('36ad9e845c7a6ca642b0021c3b2cef2c', '2cc8bfeea91f8d2be5af3a3671611a33'): 'H3',
         '0124561f987c77a5118abe6b5b1a56d5': 'H4',
         'd20f5baef6301de18cc0ffed06806f18': 'H5',
         '004c7a4ec9ad6fdcf1723269c6e78c6c': 'H6',
@@ -1198,9 +1198,14 @@ class VerifCodePage(LoggedPage, HTMLPage):
         if action_needed:
             raise ActionNeeded(action_needed)
 
+    def get_key_case(self, _hash):
+        for h, v in self.HASHES.items():
+            if h == _hash or _hash in h:
+                return v
+
     def get_question(self):
         s = CleanText('//label[@for="txtCle"]')(self.doc)
-        key_case = self.HASHES[hashlib.md5(self.browser.open(Attr('//label[@for="txtCle"]/img', 'src')(self.doc)).content).hexdigest()]
+        key_case = self.get_key_case(hashlib.md5(self.browser.open(Attr('//label[@for="txtCle"]/img', 'src')(self.doc)).content).hexdigest())
         return s[:25] + ' %s' % key_case + s[25:]
 
     def post_code(self, key):
