@@ -54,6 +54,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_id = CleanText('./a/p', replace=[('N° ', '')])
             obj_label = obj_id
             obj_currency = u'EUR'
+            obj_balance = MyDecimal(u'//p[@class="num"]//strong')
 
             # Every subscription a product token and a type ex: card = 240
             obj__product_token = Regexp(CleanText('./@id'), r'navSideProduct_(\d*)')
