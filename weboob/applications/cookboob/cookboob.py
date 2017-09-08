@@ -26,7 +26,6 @@ from weboob.capabilities.base import empty
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 
-
 __all__ = ['Cookboob']
 
 
@@ -53,7 +52,7 @@ class RecipeInfoFormatter(IFormatter):
         if not empty(obj.comments):
             result += '\n%sComments%s\n' % (self.BOLD, self.NC)
             for c in obj.comments:
-                result += '  * %s\n' % c
+                result += u'  * %s\n' % c
         return result
 
 
