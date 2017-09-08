@@ -19,6 +19,7 @@
 
 
 from weboob.capabilities.base import empty
+from weboob.capabilities.bank import CapBankTransfer
 from weboob.exceptions import NoAccountsException
 
 
@@ -111,6 +112,8 @@ class BankStandardTest(object):
         assert inv.valuation
 
     def check_recipients(self, account):
+        if not isinstance(self.backend, CapBankTransfer):
+            return
         for rcpt in self.backend.iter_transfer_recipients(account):
             self.check_recipient(account, rcpt)
 
