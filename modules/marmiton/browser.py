@@ -20,24 +20,27 @@
 from weboob.browser.exceptions import BrowserHTTPNotFound
 from weboob.browser import PagesBrowser, URL
 
-from .pages import RecipePage, ResultsPage
+from .pages import RecipePage, ResultsPage, CommentsPage
 
 
 __all__ = ['MarmitonBrowser']
 
 
 class MarmitonBrowser(PagesBrowser):
-    BASEURL = 'http://www.marmiton.org/'
-    search = URL('recettes/recherche.aspx\?aqt=(?P<pattern>.*)', ResultsPage)
-    recipe = URL('recettes/recette_(?P<id>.*).aspx', RecipePage)
+    BASEURL = 'http://www.marmiton.org'
+    search = URL('/recettes/recherche.aspx\?aqt=(?P<pattern>.*)&start=(?P<start>\d*)',
+                 '/recettes/recherche.aspx\?aqt=.*',
+                 ResultsPage)
+    recipe = URL('/recettes/recette_(?P<id>.*).aspx', RecipePage)
+    comment = URL('/recettes/recette-avis_(?P<id>.*).aspx', CommentsPage)
 
     def iter_recipes(self, pattern):
-        return self.search.go(pattern=pattern).iter_recipes()
+        return self.search.go(pattern=pattern, start=0).iter_recipes(pattern=pattern)
 
     def get_recipe(self, id, recipe=None):
         try:
             recipe = self.recipe.go(id=id).get_recipe(obj=recipe)
-            comments = list(self.page.get_comments())
+            comments = list(self.comment.go(id=id).get_comments())
             if comments:
                 recipe.comments = comments
             return recipe

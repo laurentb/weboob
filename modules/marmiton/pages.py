@@ -19,10 +19,11 @@
 
 from weboob.browser.pages import HTMLPage, pagination
 from weboob.browser.elements import ItemElement, ListElement, method
-from weboob.browser.filters.standard import Regexp, CleanText, Format, Env, Type
-from weboob.browser.filters.html import CleanHTML
+from weboob.browser.filters.standard import Regexp, CleanText, Format, Env, BrowserURL, CleanDecimal, Eval
+from weboob.browser.filters.json import Dict
 from weboob.capabilities.recipe import Recipe, Comment
-from weboob.capabilities.base import NotAvailable
+from weboob.tools.json import json
+import re
 
 
 class ResultsPage(HTMLPage):
@@ -31,11 +32,14 @@ class ResultsPage(HTMLPage):
     @pagination
     @method
     class iter_recipes(ListElement):
-        item_xpath = '//div[has-class("recette_classique")]'
+        item_xpath = '//div[@class="m_resultats_liste_recherche"]/div[has-class("recette_classique")]'
 
         def next_page(self):
-            return CleanText('//a[@id="ctl00_cphMainContent_m_ctrlSearchEngine_m_ctrlSearchListDisplay_m_ctrlSearchPagination_m_linkNextPage"]/@href',
-                             default=None)(self)
+            str_results = Regexp(CleanText('//div[@class="m_resultats_recherche_titre"]'),
+                                 '.* - (\d* / \d*) .*')(self)
+            results = str_results.split('/')
+            if int(results[0]) - int(results[1]) < 10:
+                return BrowserURL('search', pattern=Env('pattern'), start=int(results[0]))(self)
 
         class item(ItemElement):
             klass = Recipe
@@ -50,40 +54,51 @@ class ResultsPage(HTMLPage):
 class RecipePage(HTMLPage):
     """ Page which contains a recipe
     """
+
     @method
     class get_recipe(ItemElement):
         klass = Recipe
 
+        def parse(self, el):
+            json_content = CleanText(u'//script[@type="application/ld+json"]',
+                                     replace=[('//<![CDATA[ ', ''),
+                                              (' //]]>', '')])(self)
+            self.el = json.loads(json_content)
+
         obj_id = Env('id')
-        obj_title = CleanText('//h1[has-class("m_title")]')
-        obj_preparation_time = Type(CleanText('//span[@class="preptime"]'), type=int)
-        obj_cooking_time = Type(CleanText('//span[@class="cooktime"]'), type=int, default=0)
+        obj_title = Dict('name')
+        obj_ingredients = Dict('recipeIngredient')
+
+        obj_thumbnail_url = Dict('image')
+        obj_picture_url = Dict('image')
+
+        def obj_instructions(self):
+            str = Dict('recipeInstructions')(self)
+            return re.sub(r'(\d+\.)', r'\n\1', str)
+
+        obj_preparation_time = Eval(int, CleanDecimal(Dict('prepTime')))
+        obj_cooking_time = Eval(int, CleanDecimal(Dict('cookTime')))
 
         def obj_nb_person(self):
-            nb_pers = Regexp(CleanText('//div[@class="m_content_recette_ingredients m_avec_substitution"]/span[1]'),
-                             '.*\(pour (\d+) personnes\)', default=0)(self)
-            return [nb_pers] if nb_pers else NotAvailable
+            return [Dict('recipeYield')(self)]
 
-        def obj_ingredients(self):
-            ingredients = CleanText('//div[@class="m_content_recette_ingredients m_avec_substitution"]',
-                                    default='')(self).split('-')
-            if len(ingredients) > 1:
-                return ingredients[1:]
-            return []
 
-        obj_instructions = CleanHTML('//div[@class="m_content_recette_todo"]')
-        obj_thumbnail_url = CleanText('//a[@class="m_content_recette_illu"]/img/@src', default=NotAvailable)
-        obj_picture_url = CleanText('//a[@class="m_content_recette_illu"]/img/@src', default=NotAvailable)
+class CommentsPage(HTMLPage):
+    """ Page which contains a comments
+    """
 
     @method
     class get_comments(ListElement):
-        item_xpath = '//div[@class="m_commentaire_row"]'
+        item_xpath = '//div[@class="commentaire"]/div/table/tr'
         ignore_duplicate = True
 
         class item(ItemElement):
             klass = Comment
 
-            obj_author = CleanText('./div[@class="m_commentaire_content"]/span[1]')
-            obj_rate = CleanText('./div[@class="m_commentaire_note"]/span')
-            obj_text = CleanText('./div[@class="m_commentaire_content"]/p[1]')
-            obj_id = CleanText('./div[@class="m_commentaire_content"]/span[1]')
+            obj_author = CleanText('./td/div[@class="txtCommentaire"]/div[1]')
+            obj_rate = CleanText('./td/div[@class="bulle"]')
+
+            def obj_text(self):
+                return CleanText('./td/div[@class="txtCommentaire"]')(self)
+
+            obj_id = CleanText('./td/div[@class="txtCommentaire"]/div[1]')
