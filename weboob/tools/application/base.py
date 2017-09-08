@@ -437,7 +437,7 @@ class Application(object):
 
     def create_logging_file_handler(self, filename):
         try:
-            stream = open(filename, 'w')
+            stream = open(os.path.expanduser(filename), 'w')
         except IOError as e:
             self.logger.error('Unable to create the logging file: %s' % e)
             sys.exit(1)
