@@ -19,6 +19,7 @@
 
 from weboob.capabilities.recipe import CapRecipe, Recipe
 from weboob.tools.backend import Module
+from weboob.tools.compat import unicode
 
 from .browser import CuisineazBrowser
 
@@ -46,7 +47,7 @@ class CuisineazModule(Module, CapRecipe):
     def iter_recipes(self, pattern):
         # the search form does that so the url is clean of special chars
         # we go directly on search results by the url so we strip it too
-        return self.browser.iter_recipes(strip_accents(unicode(pattern)).encode('utf-8'))
+        return self.browser.iter_recipes(strip_accents(unicode(pattern)))
 
     def fill_recipe(self, recipe, fields):
         if 'nb_person' in fields or 'instructions' in fields:
