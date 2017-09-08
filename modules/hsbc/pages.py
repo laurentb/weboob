@@ -27,7 +27,7 @@ from weboob.capabilities.bank import Account, Investment, AccountNotFound
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.compat import urlparse, parse_qs, urljoin
 
-from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded
 from weboob.browser.elements import TableElement, ListElement, ItemElement, method
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination, FormNotFound
 from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, DateGuesser, TableCell, Regexp, \
@@ -259,7 +259,7 @@ class LoginPage(HTMLPage):
         return False
 
     def on_load(self):
-        for message in self.doc.getroot().cssselect('div.csPanelErrors'):
+        for message in self.doc.xpath('//div[has-class("csPanelErrors")]'):
             raise BrowserIncorrectPassword(CleanText('.')(message))
 
     def login(self, login):
@@ -296,6 +296,12 @@ class LoginPage(HTMLPage):
     def useless_form(self):
         form = self.get_form(nr=0)
         form.submit()
+
+
+class OtherPage(HTMLPage):
+    def on_load(self):
+        for message in self.doc.xpath('//p[@class="debit"]//strong[text()[contains(.,"Votre contrat est suspendu")]]'):
+            raise ActionNeeded(CleanText('.')(message))
 
 
 ## Life insurance subsite

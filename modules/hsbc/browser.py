@@ -34,7 +34,7 @@ from weboob.browser.exceptions import HTTPNotFound
 from .pages import (
     AccountsPage, CBOperationPage, CPTOperationPage, LoginPage, AppGonePage, RibPage,
     LifeInsurancesPage, FrameContainer, LifeInsurancePortal, LifeInsuranceMain,
-    LifeInsuranceUseless, UnavailablePage,
+    LifeInsuranceUseless, UnavailablePage, OtherPage,
 )
 
 
@@ -68,6 +68,7 @@ class HSBC(LoginBrowser):
     life_insurance_useless = URL(r'/cgi-bin/emcgi', LifeInsuranceUseless)
     unavailable = URL(r'/cgi-bin/emcgi', UnavailablePage)
     frame_page = URL(r'/cgi-bin/emcgi', FrameContainer)
+    frame_page = URL(r'/cgi-bin/emcgi', OtherPage)
 
     # other site
     life_insurance_portal = URL(r'/cgi-bin/emcgi', LifeInsurancePortal)
