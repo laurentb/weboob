@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Copyright(C) 2015-2016 Julien Veyssier
-#
+# Copyright(C) 2016-2017 David Kremer
 # This file is part of weboob.
 #
 # weboob is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.torrent import CapTorrent, Torrent
+from weboob.capabilities.torrent import CapTorrent
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.compat import quote_plus
 from weboob.tools.value import ValueBackendPassword, Value
@@ -30,24 +30,22 @@ __all__ = ['T411Module']
 
 class T411Module(Module, CapTorrent):
     NAME = 't411'
-    MAINTAINER = u'Julien Veyssier'
-    EMAIL = 'eneiluj@gmx.fr'
+    MAINTAINER = u'David Kremer'
+    EMAIL = 'courrier@david-kremer.fr'
     VERSION = '1.3'
     DESCRIPTION = 'T411 BitTorrent tracker'
     LICENSE = 'AGPLv3+'
-    CONFIG = BackendConfig(Value('username', label='Username'),
-                           ValueBackendPassword('password', label='Password'))
+    CONFIG = BackendConfig(Value('username', label='Username'), ValueBackendPassword('password', label='Password'))
     BROWSER = T411Browser
 
     def create_default_browser(self):
-        return self.create_browser(self.config['username'].get(),
-                                   self.config['password'].get())
+        return self.create_browser(self.config['username'].get(), self.config['password'].get())
 
-    def get_torrent(self, id):
-        return self.browser.get_torrent(id)
+    def get_torrent(self, torrent):
+        return self.browser.get_torrent(torrent)
 
-    def get_torrent_file(self, id):
-        torrent = self.browser.get_torrent(id)
+    def get_torrent_file(self, torrent):
+        torrent = self.browser.get_torrent(torrent)
         if not torrent:
             return None
 
@@ -57,11 +55,3 @@ class T411Module(Module, CapTorrent):
     def iter_torrents(self, pattern):
         return self.browser.iter_torrents(quote_plus(pattern.encode('utf-8')))
 
-    def fill_torrent(self, torrent, fields):
-        if 'description' in fields or 'files' in fields:
-            torrent = self.browser.get_torrent(torrent.id, torrent)
-        return torrent
-
-    OBJECTS = {
-        Torrent: fill_torrent
-    }

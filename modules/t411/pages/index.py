@@ -21,13 +21,19 @@
 from weboob.browser.pages import HTMLPage
 
 
-class HomePage(HTMLPage):
+class LoginPage(HTMLPage):
     def login(self, login, password):
         form = self.get_form(xpath='//form[contains(@id, "loginform")]')
-        form['login'] = login
+        form['username'] = login
         form['password'] = password
-        form.submit()
+        form.pop('url')
+        form.pop('login')
+        form.url = self.browser.absurl('/login/checklogin.php')
+        form.submit(format_url='utf-8')
 
+
+class HomePage(LoginPage):
     @property
     def logged(self):
-        return self.doc.xpath('//a[@class="logout"]')
+        return bool(self.doc.xpath('//a[contains(@id, "lg")]'))
+

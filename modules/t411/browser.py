@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Copyright(C) 2015-2016 Julien Veyssier
+# Copyright(C) 2016-2017 David Kremer
 #
 # This file is part of weboob.
 #
@@ -24,7 +25,7 @@ from weboob.browser.url import URL
 from weboob.browser.profiles import Wget
 from weboob.exceptions import BrowserIncorrectPassword
 
-from .pages.index import HomePage
+from .pages.index import HomePage, LoginPage
 from .pages.torrents import TorrentPage, SearchPage, DownloadPage
 
 
@@ -35,22 +36,19 @@ class T411Browser(LoginBrowser):
     PROFILE = Wget()
     TIMEOUT = 30
 
-    BASEURL = 'https://www.t411.ai/'
+    BASEURL = 'https://www.t411.si/'
     home = URL('$', HomePage)
-    search = URL('torrents/search/\?search=(?P<pattern>.*)&order=seeders&type=desc',
-                 SearchPage)
-    # Order matters here: 'torrents/[^&]*' would match '/torrents/download/\?id...' and
-    # TorrentPage would crash on the bencode data, so DownloadPage must be listed before
-    # TorrentPage
-    download = URL('/torrents/download/\?id=(?P<id>.*)', DownloadPage)
-    torrent = URL('/torrents/details/\?id=(?P<id>.*)&r=1',
-                  'torrents/[^&]*',
-                  TorrentPage)
+    login = URL('/login$', LoginPage)
+    search = URL(r'/torrents/search/\?search=(?P<pattern>.*)', SearchPage)
+    download = URL('/telecharger-torrent/(?P<torrent_hash>[0-9a-f]{40})/(?P<torrent_name>\w+)', DownloadPage)
+    torrent = URL('/torrents/(?P<torrent_id>[0-9]+)/(?P<torrent_name>.*)', TorrentPage)
 
     def do_login(self):
         self.home.go()
         if not self.page.logged:
             self.page.login(self.username, self.password)
+            self.home.go()
+
         if not self.page.logged:
             raise BrowserIncorrectPassword()
 
@@ -59,10 +57,17 @@ class T411Browser(LoginBrowser):
         return self.search.go(pattern=pattern).iter_torrents()
 
     @need_login
-    def get_torrent(self, fullid, torrent=None):
+    def get_torrent(self, torrent):
         try:
-            self.torrent.go(id=fullid)
+            self.torrent.go(torrent_id=torrent.id, torrent_name=torrent.name)
             torrent = self.page.get_torrent()
             return torrent
         except BrowserHTTPNotFound:
             return
+
+    def get_torrent_file(self, torrent):
+        torrent = self.browser.get_torrent(torrent)
+        if not torrent:
+            return None
+        resp = self.browser.open(torrent.url)
+        return resp.content

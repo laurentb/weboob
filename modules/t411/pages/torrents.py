@@ -17,9 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
-import re
-
 from weboob.tools.misc import get_bytes_size
 from weboob.capabilities.torrent import Torrent
 from weboob.capabilities.base import NotLoaded, NotAvailable
@@ -34,27 +31,22 @@ class SearchPage(LoggedPage, HTMLPage):
 
     @method
     class iter_torrents(ListElement):
-        item_xpath = '//table[@class="results"]/tbody/tr'
+        item_xpath = '//table[@class="category-list"]/tbody/tr[@class="bordergrey isItem isItemDesk"]'
 
         class item(ItemElement):
             klass = Torrent
-            obj_id = Regexp(CleanText('./td[3]/a/@href'),
-                            '/torrents/nfo/\?id=(.*)')
-            obj_name = CleanText('./td[2]/a/@title')
-            obj_seeders = CleanText('./td[8]') & Type(type=int)
-            obj_leechers = CleanText('./td[9]') & Type(type=int)
+            obj_id = Regexp(CleanText('./td[2]/a/@href'), '/torrents/([0-9]+)/(\w+)', '\\1')
+            obj_name = Regexp(CleanText('./td[2]/a/@href'), '/torrents/([0-9]+)/([-\w]+)', '\\2')
+            obj_seeders = CleanText('./td[6]/span[text()]') & Type(type=int)
+            obj_leechers = CleanText('./td[7]/span[text()]') & Type(type=int)
             obj_description = NotLoaded
             obj_files = NotLoaded
-            obj_filename = Format('%s.torrent', CleanText('./td[2]/a/@title'))
+            obj_filename = Format('%s.torrent', obj_name)
             obj_magnet = NotAvailable
-
-            def obj_url(self):
-                fullid = Regexp(CleanText('./td[3]/a/@href'), '/torrents/nfo/\?id=(.*)')(self)
-                downurl = self.page.browser.download.build(id=fullid)
-                return downurl
+            obj_url = CleanText('./td[2]/a/@href')
 
             def obj_size(self):
-                rawsize = CleanText('./td[6]')(self)
+                rawsize = CleanText('./td[5]')(self)
                 nsize = float(rawsize.split()[0])
                 usize = rawsize.split()[-1].upper()
                 size = get_bytes_size(nsize, usize)
@@ -62,43 +54,19 @@ class SearchPage(LoggedPage, HTMLPage):
 
 
 class TorrentPage(LoggedPage, HTMLPage):
+
     @method
     class get_torrent(ItemElement):
         klass = Torrent
-
-        def obj_description(self):
-            desctxt = CleanHTML('//div[has-class("description")]/article')(self)
-            strippedlines = '\n'.join([s.strip() for s in desctxt.split('\n') if re.search(r'\[[0-9]+\]', s) is None])
-            description = re.sub(r'\s\s+', '\n\n', strippedlines)
-            return description
-
-        obj_name = CleanText('//div[has-class("torrentDetails")]/h2/span/text()')
-
+        obj_description = CleanHTML('/html/body/div[2]/div/div[2]/div[1]/p/span[3]/span')
+        obj_name = CleanText('//title1[has-class("noh ww")]/text()')
         obj_id = CleanText('//input[@id="torrent-id"][1]/@value')
-
-        def obj_url(self):
-            fullid = CleanText('//input[@id="torrent-id"][1]/@value')(self)
-            downurl = self.page.browser.download.build(id=fullid)
-            return downurl
-
-        obj_filename = CleanText('//div[@class="accordion"]//tr[th="Torrent"]/td')
-
-        def obj_size(self):
-            rawsize = CleanText('//div[@class="accordion"]//tr[th="Taille totale"]/td')(self)
-            nsize = float(rawsize.split()[0])
-            usize = rawsize.split()[-1].upper()
-            size = get_bytes_size(nsize, usize)
-            return size
-
-        def obj_files(self):
-            res = []
-            for f in Type('//div[@class="accordion"]/h3[text()="Liste des Fichiers"]\
-                          /following-sibling::div[1]//tr', type=list)(self)[1:]:
-                res.append(CleanText(f)(self))
-            return res
-
-        obj_seeders = CleanText('//div[@class="details"]//td[@class="up"]') & Type(type=int)
-        obj_leechers = CleanText('//div[@class="details"]//td[@class="down"]') & Type(type=int)
+        obj_url = CleanText('//tr/td/a/@href[contains(.,"telecharger")]')
+        obj_filename = NotAvailable
+        obj_size = NotAvailable
+        obj_files = NotAvailable
+        obj_seeders = NotAvailable
+        obj_leechers = NotAvailable
         obj_magnet = NotAvailable
 
 

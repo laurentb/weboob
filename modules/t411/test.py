@@ -31,19 +31,16 @@ class T411Test(BackendTest):
         torrents = list(self.backend.iter_torrents('spiderman'))[:10]
         for torrent in torrents:
             path, qs = urllib.splitquery(torrent.url)
-            assert qs.endswith(torrent.id)
-            if qs:
-                assert torrent.filename
             assert torrent.id
+            assert path.endswith(torrent.name)
             assert torrent.name
             assert torrent.description is NotLoaded
-            full_torrent = self.backend.get_torrent(torrent.id)
-            assert full_torrent.name
-            assert full_torrent.url
+            full_torrent = self.backend.get_torrent(torrent)
+            assert 'telecharger-torrent' in full_torrent.url
             assert full_torrent.description is not NotLoaded
 
         # get the file of a random torrent
         # from the list (getting them all would be too long)
         if len(torrents):
             torrent = choice(torrents)
-            self.backend.get_torrent_file(torrent.id)
+            self.backend.get_torrent_file(torrent)
