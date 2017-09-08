@@ -24,7 +24,7 @@ import re
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import TableElement, ItemElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, TableCell, Date, Env, Regexp, Field
-from weboob.capabilities.bank import Account, Transaction, Investment
+from weboob.capabilities.bank import Account, Transaction, Investment, Pocket
 from weboob.capabilities.base import NotAvailable
 
 
@@ -144,3 +144,41 @@ class GroupamaesPage(LoggedPage, HTMLPage):
             obj_type = Transaction.TYPE_UNKNOWN
             obj_label = CleanText(TableCell('operation'))
             obj_amount = CleanDecimal(TableCell('montant'), replace_dots=True)
+
+
+class GroupamaesPocketPage(LoggedPage, HTMLPage):
+    CONDITIONS = {u'immédiate': Pocket.CONDITION_AVAILABLE,
+                  u'à':   Pocket.CONDITION_RETIREMENT,
+                 }
+    def iter_pocket(self, label):
+        date_available, condition = 0, 0
+        for tr in self.doc.xpath(u'//table[@summary="Liste des échéances"]/tbody/tr'):
+            tds = tr.findall('td')
+
+            pocket = Pocket()
+            i = 0
+
+            if len(tds) <= 2 :
+                continue
+            elif len(tds) < 6:
+                pocket.availability_date = date_available
+                pocket.condition = condition
+            else:
+                i+=1
+                pocket.availability_date = Date(Regexp(CleanText(tds[0]), '([\d\/]+)', default=NotAvailable), default=NotAvailable)(tr)
+                date_available = pocket.availability_date
+
+                pocket.condition = Pocket.CONDITION_DATE if pocket.availability_date is not NotAvailable else \
+                                            self.CONDITIONS.get(CleanText(tds[0])(tr).lower().split()[0], Pocket.CONDITION_UNKNOWN)
+                condition = pocket.condition
+
+            pocket.label = CleanText(tds[i])(tr)
+            pocket.quantity = CleanDecimal(tds[i+3], replace_dots=True)(tr)
+            pocket.amount = CleanDecimal(tds[i+4], replace_dots=True)(tr)
+
+            if 'PEI' in label.split()[0]:
+                label = 'PEE'
+            if Regexp(CleanText(tds[i]), '\(([\w]+).*\)$')(tr) not in label.split()[0]:
+                continue
+
+            yield pocket

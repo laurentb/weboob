@@ -58,3 +58,6 @@ class GroupamaesModule(Module, CapBank):
 
     def get_account(self, _id):
         return find_object(self.browser.get_accounts_list(), id=_id, error=AccountNotFound)
+
+    def iter_pocket(self, account):
+        return self.browser.iter_pocket(account)

@@ -22,7 +22,7 @@ from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.tools.date import LinearDateGuesser
 
-from .pages import LoginPage, LoginErrorPage, GroupamaesPage
+from .pages import LoginPage, LoginErrorPage, GroupamaesPage, GroupamaesPocketPage
 
 
 __all__ = ['GroupamaesBrowser']
@@ -34,6 +34,7 @@ class GroupamaesBrowser(LoginBrowser):
     login = URL('/groupama-es/fr/index.html', LoginPage)
     login_error = URL('/groupama-es/fr/identification/default.cgi', LoginErrorPage)
     groupamaes_page = URL('/groupama-es/fr/espace/devbavoirs.aspx\?mode=net&menu=cpte(?P<page>.*)', GroupamaesPage)
+    groupamaes_pocket = URL('/groupama-es/fr/espace/devbavoirs.aspx\?_tabi=C&a_mode=net&a_mode=net&menu=cpte(?P<page>.*)', GroupamaesPocketPage)
 
     def do_login(self):
         self.login.stay_or_go()
@@ -62,3 +63,7 @@ class GroupamaesBrowser(LoginBrowser):
     @need_login
     def iter_investment(self):
         return self.groupamaes_page.go(page='&_fid=GoPositionsParFond&_pid=SituationGlobale').iter_investment()
+
+    @need_login
+    def iter_pocket(self, account):
+       return self.groupamaes_pocket.go(page='&_pid=SituationParPlan&_fid=GoPositionsDetaillee').iter_pocket(account.label)
