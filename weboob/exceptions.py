@@ -46,12 +46,11 @@ class CaptchaQuestion(Exception):
     """
     Handles captcha
     """
-    def __init__(self, website_key=None, website_url=None, image_url=None, type=None):
+    def __init__(self, type=None, **kwargs):
         super(CaptchaQuestion, self).__init__("The site requires solving a captcha")
-        self.website_key = website_key
-        self.website_url = website_url
         self.type = type
-        self.image_url = image_url
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
 
 class BrowserHTTPNotFound(BrowserUnavailable):

@@ -133,7 +133,7 @@ class Amazon(LoginBrowser):
             if not has_captcha:
                 raise BrowserIncorrectPassword()
             else:
-                raise CaptchaQuestion(image_url=has_captcha, type="image_captcha")
+                raise CaptchaQuestion('image_captcha', image_url=has_captcha)
 
     def location(self, *args, **kwargs):
         """
