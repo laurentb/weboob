@@ -26,12 +26,12 @@ for i in $ACCOUNTS
 do
 	printf "Last operations for account $i \n" >> ${TMPSTORAGE}/account_mail
 	cat ${TMPSTORAGE}/account_history_${i} >> ${TMPSTORAGE}/account_mail
-	printf >> ${TMPSTORAGE}/account_mail
+	printf "\n" >> ${TMPSTORAGE}/account_mail
 	if [ -s ${TMPSTORAGE}/account_coming_${i} ]
 	then
 		printf "Coming operations for account $i \n" >> ${TMPSTORAGE}/account_mail
 		cat ${TMPSTORAGE}/account_coming_${i} >> ${TMPSTORAGE}/account_mail
-                printf >> ${TMPSTORAGE}/account_mail
+                printf "\n" >> ${TMPSTORAGE}/account_mail
 	else
 		printf "No coming operation for $i \n" >> ${TMPSTORAGE}/account_mail
 	fi
