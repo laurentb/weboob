@@ -37,7 +37,7 @@ class CityListPage(HTMLPage):
 
     def build_doc(self, content):
         content = super(CityListPage, self).build_doc(content)
-        if content.getroot():
+        if content.getroot() is not None:
             return content
         return etree.Element("html")
 
