@@ -87,8 +87,7 @@ class HousingListPage(HTMLPage):
             if item.attrib['value']:
                 select[CleanDecimal('.')(item)] = CleanDecimal('./@value')(item)
 
-        select_keys = select.keys()
-        select_keys.sort()
+        select_keys = sorted(select.keys())
         for select_value in select_keys:
             if select_value >= ref_value:
                 return select[select_value]
