@@ -48,7 +48,7 @@ class RegionsjobModule(Module, CapJob):
         'www.rhonealpesjob.com': u'RhoneAlpesJob',
         'www.sudouestjob.com': u'SudOuestJob',
         'www.jobtrotter.com': u'JobTrotter',
-    }.iteritems())])
+    }.items())])
 
     fonction_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
         '': u'Indifferent',
@@ -85,7 +85,7 @@ class RegionsjobModule(Module, CapJob):
         'Sante_social': u'Santé/Social',
         'SAV_Hotline': u'SAV/Hotline/Téléconseiller',
         'Services_pers_entreprises': u'Services à la personne/aux entreprises',
-    }.iteritems())])
+    }.items())])
 
     secteur_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
         '': u'Indifferent',
@@ -115,14 +115,14 @@ class RegionsjobModule(Module, CapJob):
         'Serv_pers_part': u'Services aux Personnes/Particuliers',
         'Tourism_hotel_loisir': u'Tourisme/Hôtellerie/Loisirs',
         'Transport_logist': u'Transport/Logistique',
-    }.iteritems())])
+    }.items())])
 
     experience_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
         '      ': u'Indifferent',
         'Inf_1': u'- 1 an',
         '1_7': u'1 à 7 ans',
         'Sup_7': u'+ 7 ans',
-    }.iteritems())])
+    }.items())])
 
     contract_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
         '': u'Tous types de contrat',
@@ -133,7 +133,7 @@ class RegionsjobModule(Module, CapJob):
         'Alternance': u'Alternance',
         'Independant': u'Indépendant',
         'Franchise': u'Franchise',
-    }.iteritems())])
+    }.items())])
 
     qualification_choice = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
         '': u'Indifferent',
@@ -143,7 +143,7 @@ class RegionsjobModule(Module, CapJob):
         'Agent_maitrise_B3': u'Agent de maîtrise/Bac +3/4',
         'Ingenieur_B5': u'Ingénieur/Cadre/Bac +5',
         'Cadre_dirigeant': u'> Bac + 5 (cadre dirigeant)',
-    }.iteritems())])
+    }.items())])
 
     enterprise_type_choice = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
         '': u'Tous types d\'entreprises',
@@ -151,7 +151,7 @@ class RegionsjobModule(Module, CapJob):
         'Entreprises': u'Entreprises',
         'SSII': u'SSII',
         'Travail_temporaire': u'Travail temporaire',
-    }.iteritems())])
+    }.items())])
 
     CONFIG = BackendConfig(Value('website', label=u'Region', choices=website_choices),
                            Value('place', label='Place', masked=False, default=''),

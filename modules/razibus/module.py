@@ -64,7 +64,7 @@ class RazibusModule(Module, CapCalendarEvent):
         'Rhone-Alpes': u'Rhône-Alpes',
         'Belgique': u'Belgique',
         'Suisse': u'Suisse',
-    }.iteritems())])
+    }.items())])
 
     CONFIG = BackendConfig(Value('region', label=u'Region', choices=region_choices, default=''))
 

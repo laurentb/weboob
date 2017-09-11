@@ -105,7 +105,7 @@ class TwitterModule(Module, CapMessages, CapMessagesPost, CapCollection):
             # we can't directly delete without a "RuntimeError: dictionary changed size during iteration"
             todelete = []
 
-            for id, date in self.storage.get('seen', default={}).iteritems():
+            for id, date in self.storage.get('seen', default={}).items():
                 # if no date available, create a new one (compatibility with "old" storage)
                 if not date:
                     self.storage.set('seen', id, datetime.now())

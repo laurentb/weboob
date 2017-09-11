@@ -47,7 +47,7 @@ class MonsterModule(Module, CapJob):
         'Journalier_8': u'Journalier',
         'Temps-Partiel_8': u'Temps Partiel',
         'Temps-Plein_8': u'Temps Plein',
-    }.iteritems())])
+    }.items())])
 
     date_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
         '-1': u'N importe quelle date',
@@ -57,7 +57,7 @@ class MonsterModule(Module, CapJob):
         '7': u'Les 7 derniers jours',
         '14': u'Les 14 derniers jours',
         '30': u'30 derniers jours',
-    }.iteritems())])
+    }.items())])
 
     CONFIG = BackendConfig(
         Value('job_name', label='Job name', masked=False, default=''),

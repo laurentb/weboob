@@ -45,7 +45,7 @@ class IndeedModule(Module, CapJob):
         'contract': u'Durée indéterminée',
         'internship': u'Stage / Apprentissage',
         'temporary': u'Durée déterminée',
-    }.iteritems())])
+    }.items())])
 
     limit_date_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
         'any': u'à tout moment',
@@ -54,7 +54,7 @@ class IndeedModule(Module, CapJob):
         '3': u'depuis 3 jours',
         '1': u'depuis hier',
         'last': u'depuis ma dernière visite',
-    }.iteritems())])
+    }.items())])
 
     radius_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
         '0': u'uniquement à cet endroit',
@@ -64,7 +64,7 @@ class IndeedModule(Module, CapJob):
         '25': u'dans un rayon de 25 kilomètres',
         '50': u'dans un rayon de 50 kilomètres',
         '100': u'dans un rayon de 100 kilomètres',
-    }.iteritems())])
+    }.items())])
 
     CONFIG = BackendConfig(Value('metier', label=u'Job name', masked=False, default=''),
                            Value('limit_date', label=u'Date limite', choices=limit_date_choices, default=''),

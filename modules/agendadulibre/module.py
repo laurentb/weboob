@@ -101,7 +101,7 @@ class AgendadulibreModule(Module, CapCalendarEvent):
         "https://www.agendadulibre.ch#22": u'Vaud',
         "https://www.agendadulibre.ch#9": u'Zoug',
         "https://www.agendadulibre.ch#1": u'Zurich',
-    }.iteritems())])
+    }.items())])
 
     CONFIG = BackendConfig(Value('region', label=u'Region', choices=region_choices))
 

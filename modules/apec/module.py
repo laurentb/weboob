@@ -207,7 +207,7 @@ class ApecModule(Module, CapJob):
         '166|99702': u'..Amérique du Nord',
         '167|99711': u'..Océanie',
         '168|99714': u'..Amérique Latine',
-    }.iteritems())])
+    }.items())])
 
     fonction_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
         '00|': u'-- Indifférent --',
@@ -267,7 +267,7 @@ class ApecModule(Module, CapJob):
         '54|101825': u'.....Maintenance, sécurité',
         '55|101826': u'.....Process, méthodes',
         '56|101827': u'.....Qualité',
-    }.iteritems())])
+    }.items())])
 
     secteur_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
         ' ': u'-- Indifférent --',
@@ -299,9 +299,9 @@ class ApecModule(Module, CapJob):
         '101777': u'Services divers aux entreprises',
         '101778': u'Télécommunications',
         '101779': u'Transports et logistique',
-    }.iteritems())])
+    }.items())])
 
-    type_contrat_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted(APEC_CONTRATS.iteritems())])
+    type_contrat_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted(APEC_CONTRATS.items())])
 
     salary_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
         ' ': u'-- Indifférent --',
@@ -310,7 +310,7 @@ class ApecModule(Module, CapJob):
         '50|70': u'Entre 50 et 69 K€',
         '70|90': u'Entre 70 et 90 K€',
         '90|1000': u'Plus de 90 K€',
-    }.iteritems())])
+    }.items())])
 
     date_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
         ' ': u'-- Indifférent --',
@@ -318,9 +318,9 @@ class ApecModule(Module, CapJob):
         '101851': u'Les 7 derniers jours',
         '101852': u'Les 30 derniers jours',
         '101853': u'Toutes les offres',
-    }.iteritems())])
+    }.items())])
 
-    level_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted(APEC_EXPERIENCE.iteritems())])
+    level_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted(APEC_EXPERIENCE.items())])
 
     CONFIG = BackendConfig(Value('place', label=u'Lieu', choices=places_choices, default=''),
                            Value('fonction', label=u'Fonction', choices=fonction_choices, default=''),

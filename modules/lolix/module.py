@@ -69,7 +69,7 @@ class LolixModule(Module, CapJob):
         '100200004': u'-- Réunion',
         '100200005': u'-- Saint-Pierre et Miquelon',
         '200000000': u'-- Etranger',
-    }.iteritems())])
+    }.items())])
 
     poste_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
         '0': u'-- Indifférent --',
@@ -109,7 +109,7 @@ class LolixModule(Module, CapJob):
         '500100000': u'-- Assistant(e) de direction',
         '4000000': u'-- Stagiaire',
         '5000000': u'-- Traducteur',
-    }.iteritems())])
+    }.items())])
 
     '''
         '000000' in order to display description in console question
@@ -123,14 +123,14 @@ class LolixModule(Module, CapJob):
         '1': u'CDI',
         '4': u'Freelance',
         '3': u'Stage',
-    }.iteritems())])
+    }.items())])
 
     limit_date_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
         '2592000': u'30 jours',
         '5184000': u'60 jours',
         '7776000': u'90 jours',
         '0': u'Illimitée',
-    }.iteritems())])
+    }.items())])
 
     CONFIG = BackendConfig(Value('region', label=u'Région', choices=region_choices),
                            Value('poste', label=u'Poste', choices=poste_choices),

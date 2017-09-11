@@ -46,7 +46,7 @@ class ManpowerModule(Module, CapJob):
         'interim/c1': u'CDD',
         'cdd/c2': u'CDI',
         'cdi/c3': u'Mission en intérim',
-    }.iteritems())])
+    }.items())])
 
     activityDomain_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
         '': u'All',
@@ -91,7 +91,7 @@ class ManpowerModule(Module, CapJob):
         'teleservices-marketing-vente/s21': u'Téléservices - Marketing - Vente',
         'verre-porcelaine/s48': u'Verre - Porcelaine',
         'vin-agriculture-paysagisme/s60': u'Vin - Agriculture - Paysagisme',
-    }.iteritems())])
+    }.items())])
 
     places_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
         '': u'All',
@@ -212,7 +212,7 @@ class ManpowerModule(Module, CapJob):
         'rhone-alpes/loire/r22d42': u'Loire',
         'rhone-alpes/rhone/r22d69': u'Rhône',
         'rhone-alpes/savoie/r22d73': u'Savoie',
-    }.iteritems())])
+    }.items())])
 
     CONFIG = BackendConfig(Value('job', label='Job name', masked=False, default=''),
                            Value('place', label=u'County', choices=places_choices, default=''),

@@ -162,7 +162,7 @@ class PopolemploiModule(Module, CapJob):
         '218|DEPARTEMENT|987': u'Polynésie française',
         '219|DEPARTEMENT|988': u'Nouvelle-Calédonie',
         '220|DEPARTEMENT|989': u'Clipperton',
-    }.iteritems())])
+    }.items())])
 
     type_contrat_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
         ' ': u'Tous types de contrats',
@@ -180,7 +180,7 @@ class PopolemploiModule(Module, CapJob):
         'LIB': u'Profession libérale',
         'REP': u'Reprise d\'entreprise',
         'CCE': u'Profession commerciale',
-    }.iteritems())])
+    }.items())])
 
     qualification_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
         ' ': u'Toute Qualification',
@@ -193,7 +193,7 @@ class PopolemploiModule(Module, CapJob):
         '7': u'Technicien',
         '8': u'Agent de maîtrise',
         '9': u'Cadre',
-    }.iteritems())])
+    }.items())])
 
     limit_date_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
         ' ': u'Aucune limite',
@@ -203,7 +203,7 @@ class PopolemploiModule(Module, CapJob):
         '14': u'2 semaines',
         '31': u'1 mois',
         '93': u'3 mois',
-    }.iteritems())])
+    }.items())])
 
     domain_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
         ' ': u'Tout secteur d\'activité',
@@ -229,7 +229,7 @@ class PopolemploiModule(Module, CapJob):
         'L': u'Spectacle',
         'L14': u'Sport',
         'N': u'Transport / Logistique'
-    }.iteritems())])
+    }.items())])
 
     CONFIG = BackendConfig(Value('metier', label='Job name', masked=False, default=''),
                            Value('place', label=u'Place', choices=places_choices, default='100|FRANCE|01'),

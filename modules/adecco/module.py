@@ -41,7 +41,7 @@ class AdeccoModule(Module, CapJob):
         '2': u'Moins de 48 heures',
         '7': u'Moins de 1 semaine',
         '14': u'Moins de 2 semaines',
-    }.iteritems())])
+    }.items())])
 
     type_contract_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
         '': u'-- Indifferent --',
@@ -50,7 +50,7 @@ class AdeccoModule(Module, CapJob):
         'ADCFREMP003': u'Intérim',
         'ADCFREMP009': u'Autres',
         'ADCFREMP010': u'Libéral',
-    }.iteritems())])
+    }.items())])
 
     places_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
         '': u'-- Indifferent --',
@@ -158,7 +158,7 @@ class AdeccoModule(Module, CapJob):
         'VOSGES': u'Vosges',
         'YONNE': u'Yonne',
         'YVELINES': u'Yvelines',
-    }.iteritems())])
+    }.items())])
 
     activityDomain_choices = OrderedDict([(k, u'%s' % (v)) for k, v in sorted({
         'Z': '-- Indifferent --',
@@ -180,7 +180,7 @@ class AdeccoModule(Module, CapJob):
         'P': u'Pharmacie (Industrie, Officine) - Recherche clinique',
         'Q': u'Télémarketing - Téléservices',
         'R': u'Tourisme - Loisirs - Spectacle - Audiovisuel',
-    }.iteritems())])
+    }.items())])
 
     CONFIG = BackendConfig(Value('job', label='Job name', masked=False, default=''),
                            Value('town', label='Town name', masked=False, default=''),
