@@ -549,7 +549,7 @@ class HTMLPage(Page):
         if self.REFRESH_MAX is None:
             return
 
-        for refresh in self.doc.xpath('//head/meta[@http-equiv="Refresh"]'):
+        for refresh in self.doc.xpath('//head/meta[lower-case(@http-equiv)="refresh"]'):
             m = self.browser.REFRESH_RE.match(refresh.get('content', ''))
             if not m:
                 continue

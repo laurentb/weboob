@@ -421,7 +421,7 @@ class Browser(object):
         """
         return self.session.prepare_request(req)
 
-    REFRESH_RE = re.compile(r"^(?P<sleep>[\d\.]+)(; url=[\"']?(?P<url>.*?)[\"']?)?$", re.IGNORECASE)
+    REFRESH_RE = re.compile(r"^(?P<sleep>[\d\.]+)(;\s*url=[\"']?(?P<url>.*?)[\"']?)?$", re.IGNORECASE)
 
     def handle_refresh(self, response):
         """
