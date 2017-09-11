@@ -24,7 +24,7 @@ from weboob.browser.pages import JsonPage, HTMLPage
 from weboob.browser.elements import ItemElement, ListElement, DictElement, method
 from weboob.capabilities.weather import Forecast, Current, City, Temperature
 from weboob.browser.filters.json import Dict
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Format
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Format, Eval
 
 
 class SearchCitiesPage(JsonPage):
@@ -53,11 +53,13 @@ class WeatherPage(HTMLPage):
             obj_id = CleanText('./dl/dt')
 
             def obj_date(self):
-                actual_day_number = Regexp(CleanText('./dl/dt'), '\w{3} (\d+)')(self)
+                actual_day_number = Eval(int,
+                                         Regexp(CleanText('./dl/dt'),
+                                                '\w{3} (\d+)'))(self)
                 base_date = date.today()
                 if base_date.day > actual_day_number:
                     base_date = base_date.replace(month=base_date.month + 1)
-                base_date = base_date.replace(day=int(actual_day_number))
+                base_date = base_date.replace(day=actual_day_number)
                 return base_date
 
             def obj_low(self):
