@@ -64,6 +64,6 @@ class MaterielnetModule(Module, CapDocument):
     def download_document(self, document):
         if not isinstance(document, Document):
             document = self.get_document(document)
-        if document._url is NotAvailable:
+        if document.url is NotAvailable:
             return
-        return self.browser.open(document._url).content
+        return self.browser.open(document.url).content

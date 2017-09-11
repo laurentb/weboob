@@ -23,24 +23,25 @@ import re
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Env, Format, TableCell, Date, Async, AsyncLoad
 from weboob.browser.elements import ListElement, ItemElement, TableElement, method
-from weboob.browser.filters.html import Attr
+from weboob.browser.filters.html import Attr, Link
 from weboob.capabilities.bill import Bill, Subscription
 from weboob.capabilities.base import NotAvailable
 
-
 class LoginPage(HTMLPage):
     def login(self, login, password):
-        form = self.get_form('//form[contains(@action, "login")]')
-        form['login'] = login
-        form['pass'] = password
+        form = self.get_form('//form[@class="login-form"]')
+        form['identifier'] = login
+        form['credentials'] = password
         form.submit()
 
     def get_error(self):
         return CleanText('//div[@class="ValidatorError"]')(self.doc)
 
+
 class CaptchaPage(HTMLPage):
     def get_error(self):
         return CleanText('//div[@class="captcha-block"]/p[1]/text()')(self.doc)
+
 
 class ProfilPage(LoggedPage, HTMLPage):
     @method
@@ -55,12 +56,13 @@ class ProfilPage(LoggedPage, HTMLPage):
             def parse(self, el):
                 self.env['subid'] = self.page.browser.username
 
+
 class DocumentsPage(LoggedPage, HTMLPage):
     @pagination
     @method
     class get_documents(TableElement):
-        item_xpath = '//table[@class="EpCmdList"]/tr[@class="Line1" or @class="Line2"]'
-        head_xpath = '//table[@class="EpCmdList"]/tr/th'
+        item_xpath = '//div[@id="ListCmd"]//table//tr[position() > 1]'
+        head_xpath = '//div[@id="ListCmd"]//table//tr//th'
 
         col_id = u'Référence'
         col_date = u'Date'
@@ -80,7 +82,7 @@ class DocumentsPage(LoggedPage, HTMLPage):
             load_details = Attr('./td/a', 'href') & AsyncLoad
 
             obj_id = Format('%s_%s', Env('email'), CleanDecimal(TableCell('id')))
-            obj__url = Async('details') & Attr('//a[contains(@href, "facture")]', 'href', default=NotAvailable)
+            obj_url = Async('details') & Link('//a[contains(@href, "facture")]', default=NotAvailable)
             obj_date = Date(CleanText(TableCell('date')))
             obj_format = u"pdf"
             obj_label = Async('details') & CleanText('//table/tr/td[@class="Prod"]')
