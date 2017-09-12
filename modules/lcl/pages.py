@@ -481,9 +481,16 @@ class CBListPage(CBHistoryPage):
 
 class BoursePage(LoggedPage, HTMLPage):
     ENCODING='latin-1'
+    REFRESH_MAX = 0
 
     TYPES = {u'plan épargne en actions': Account.TYPE_PEA
             }
+
+    def open_iframe(self):
+        # should be done always (in on_load)?
+        for iframe in self.doc.xpath('//iframe[@id="mainIframe"]'):
+            self.browser.location(iframe.attrib['src'])
+            break
 
     def password_required(self):
         return CleanText(u'//b[contains(text(), "Afin de sécuriser vos transactions, nous vous invitons à créer un mot de passe trading")]')(self.doc)
