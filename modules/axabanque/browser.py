@@ -17,14 +17,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import ClientError
 from weboob.capabilities.base import NotAvailable
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 
 from .pages.login import KeyboardPage, LoginPage, ChangepasswordPage, PredisconnectedPage
-from .pages.bank import AccountsPage as BankAccountsPage, CBTransactionsPage, \
-                        TransactionsPage, UnavailablePage, IbanPage, LifeInsuranceIframe
+from .pages.bank import (
+    AccountsPage as BankAccountsPage, CBTransactionsPage, TransactionsPage,
+    UnavailablePage, IbanPage, LifeInsuranceIframe, BoursePage,
+)
 from .pages.wealth import AccountsPage as WealthAccountsPage, InvestmentPage, HistoryPage
 from weboob.capabilities.bank import Account
 
@@ -88,10 +92,13 @@ class AXABanque(AXABrowser):
     lifeinsurance_iframe = URL('https://assurance-vie.axabanque.fr/Consultation/SituationContrat.aspx',
                                'https://assurance-vie.axabanque.fr/Consultation/HistoriqueOperations.aspx', LifeInsuranceIframe)
 
+    bourse = URL(r'https://bourse.axabanque.fr/netfinca-titres/servlet/com.netfinca.*', BoursePage)
+
     def __init__(self, *args, **kwargs):
         super(AXABanque, self).__init__(*args, **kwargs)
         self.cache = {}
         self.cache['invs'] = {}
+        self.weboob = kwargs['weboob']
 
     @need_login
     def iter_accounts(self):
@@ -155,7 +162,7 @@ class AXABanque(AXABrowser):
             self.location(account._purl, data=account._pargs)
             self.location(account._url, data=args)
             # Check if we are on the good tab
-            if isinstance(self.page, TransactionsPage):
+            if isinstance(self.page, TransactionsPage) and action:
                 self.page.go_action(action)
         else:
             target = self.page.get_form_action(args['_form_name'])
@@ -167,8 +174,28 @@ class AXABanque(AXABrowser):
         self.location(account.url)
         self.location(self.page.get_account_url(account.url))
 
+    def get_netfinca_account(self, account):
+        self.go_account_pages(account, None)
+        self.page.open_market()
+        self.page.open_market_next()
+        self.page.open_iframe()
+        for bourse_account in self.page.get_list():
+            self.logger.debug('iterating account %r', bourse_account)
+            bourse_id = bourse_account.id.replace('bourse', '')
+            if account.id.startswith(bourse_id):
+                return bourse_account
+
     @need_login
     def iter_investment(self, account):
+        if account._acctype == 'bank' and account.type == account.TYPE_PEA:
+            if 'Liquidités' in account.label:
+                return []
+
+            account = self.get_netfinca_account(account)
+            self.location(account._market_link)
+            assert self.bourse.is_here()
+            return self.page.iter_investment()
+
         if account.id not in self.cache['invs']:
             # do we still need it ?...
             if account._acctype == "bank" and account._hasinv:
@@ -186,7 +213,9 @@ class AXABanque(AXABrowser):
 
     @need_login
     def iter_history(self, account):
-        if account.type is Account.TYPE_LOAN:
+        if account.type == Account.TYPE_LOAN:
+            return
+        elif account.type == Account.TYPE_PEA and 'Liquidités' in account.label:
             return
 
         if account.type == Account.TYPE_LIFE_INSURANCE and account._acctype == "bank":

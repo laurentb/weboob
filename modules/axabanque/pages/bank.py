@@ -22,7 +22,7 @@ import re
 from decimal import Decimal, InvalidOperation
 
 from weboob.exceptions import BrowserUnavailable
-from weboob.browser.pages import HTMLPage, PDFPage, LoggedPage
+from weboob.browser.pages import HTMLPage, PDFPage, LoggedPage, AbstractPage
 from weboob.browser.elements import ItemElement, TableElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, TableCell, Date, Regexp, Field, Env, Currency
 from weboob.browser.filters.html import Attr, Link
@@ -268,6 +268,15 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
         error = CleanText(default="").filter(self.doc.xpath('//p[@class="question"]'))
         return error if u"a expiré" in error else None
 
+    def open_market(self):
+        # only for netfinca PEA
+        self.get_form(id='_idJsp0').submit()
+
+    def open_market_next(self):
+        # only for netfinca PEA
+        # can't do it in separate page/on_load because there might be history on this page...
+        self.get_form(id='formToSubmit').submit()
+
     def go_action(self, action):
         names = {'investment': "Portefeuille", 'history': "Mouvements"}
         for li in self.doc.xpath('//div[@class="onglets"]/ul/li[not(script)]'):
@@ -500,3 +509,8 @@ class LifeInsuranceIframe(LoggedPage, HTMLPage):
                         return inv.code
 
                 return NotAvailable
+
+
+class BoursePage(AbstractPage):
+    PARENT = 'lcl'
+    PARENT_URL = 'bourse'
