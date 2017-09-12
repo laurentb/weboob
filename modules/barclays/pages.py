@@ -84,7 +84,6 @@ class LoginPage(HTMLPage):
         letters = ''
         for n in re.findall('(\d+)', label):
             letters += secret[int(n) - 1]
-
         form = self.get_form(id='form1')
 
         form['MODE'] = 'C1____09AE2D522D145CD3 FormButton 29'
@@ -102,7 +101,7 @@ class AccountsPage(StatefulPage):
                      'Titres': Account.TYPE_MARKET,
                      'Engagement/Crédits': Account.TYPE_LOAN,
                     }
-    ACCOUNT_EXTRA_TYPES = {'BMOOVIE': Account.TYPE_LIFE_INSURANCE
+    ACCOUNT_EXTRA_TYPES = {'BMOOVIE': Account.TYPE_LIFE_INSURANCE,
                           }
     ACCOUNT_TYPE_TO_STR = {Account.TYPE_MARKET: 'TTR',
                            Account.TYPE_CARD: 'CRT'
@@ -135,7 +134,6 @@ class AccountsPage(StatefulPage):
                     return Account.TYPE_CARD
 
                 type = CleanText('./ancestor::node()[7]//button[contains(@id, "C4__BUT_787E7BC48BF75E723710")]')(self)
-
                 return self.page.ACCOUNT_EXTRA_TYPES.get(Field('label')(self)) or self.page.ACCOUNT_TYPES.get(type, Account.TYPE_UNKNOWN)
 
             def obj__multiple_type(self):
@@ -238,8 +236,42 @@ class MarketAccountPage(AbstractAccountPage):
 
         return (a[1], 'C4__WORKING[1].SELECTEDSECURITYACCOUNTID', form['C4__WORKING[1].SELECTEDSECURITYACCOUNTID'], a[2])
 
-    def iter_investments(self):
-        raise NotImplementedError()
+
+    @method
+    class iter_investments(TableElement):
+        head_xpath = '//table[@id="C4__TBL_Equity"]/thead/tr/th'
+        item_xpath = '//table[@id="C4__TBL_Equity"]/tbody/tr'
+
+        col_label = 'Valeur'
+        col_quantity = 'Qté'
+        col_unitvalue = 'Cours'
+        col_unitprice = 'PAM'
+        col_valuation = 'Valorisation'
+        col_portfolio_share = '%'
+        col_code = 'Code'
+
+        class item(ItemElement):
+            klass = Investment
+
+            def obj_label(self):
+                if not CleanText(TableCell('code'))(self):
+                    return CleanText('./preceding-sibling::tr[1]/td[2]')(self)
+                return CleanText(TableCell('label'))(self)
+
+            def obj_code(self):
+                if CleanText(TableCell('code'))(self):
+                    return CleanText(TableCell('code'))(self)
+                return CleanText('./preceding-sibling::tr[1]/td[1]')(self)
+
+            obj_quantity = CleanDecimal(TableCell('quantity'), default=NotAvailable)
+            obj_unitvalue = CleanDecimal(TableCell('unitvalue'), default=NotAvailable)
+            obj_unitprice = CleanDecimal(TableCell('unitprice'))
+            obj_valuation = MyDecimal(TableCell('valuation'))
+            obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal(TableCell('portfolio_share')))
+            obj_code_type = Investment.CODE_TYPE_ISIN
+
+            def condition(self):
+                return CleanDecimal(TableCell('quantity'), default=None)(self) is not None
 
 
 class LifeInsuranceAccountPage(AbstractAccountPage):
