@@ -115,3 +115,13 @@ class AmazonModule(Module, CapShop, CapDocument):
             except HTTPNotFound:
                 pass
         return None
+
+    def download_document_pdf(self, bill):
+        if not isinstance(bill, Bill):
+            bill = self.get_document(bill)
+        if bill.url:
+            try:
+                return self.browser.download_document_pdf(bill.url)
+            except IOError:
+                pass
+        return None

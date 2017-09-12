@@ -27,6 +27,7 @@ from weboob.capabilities.shop import OrderNotFound
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.decorators import retry
 from weboob.tools.value import Value
+from weboob.tools.pdf import html_to_pdf
 from weboob.exceptions import BrowserIncorrectPassword, CaptchaQuestion
 
 from .pages import HomePage, LoginPage, AmazonPage, HistoryPage, \
@@ -180,4 +181,12 @@ class Amazon(LoginBrowser):
         doc = self.location(url)
         if not self.order_new.is_here():
             return doc.content
+        return NotAvailable
+
+    @retry(HTTPNotFound)
+    @need_login
+    def download_document_pdf(self, url):
+        self.location(url)
+        if not self.order_new.is_here():
+            return html_to_pdf(self, url=self.BASEURL + url)
         return NotAvailable
