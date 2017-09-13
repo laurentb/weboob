@@ -154,13 +154,15 @@ class Number26Browser(DomainBrowser):
 
             if "originalCurrency" in t:
                 new.original_currency = t["originalCurrency"]
-            if "originalAmount"in t:
+            if "originalAmount" in t:
                 new.original_amount = Decimal(str(t["originalAmount"]))
 
             if t["type"] == 'PT':
                 new.type = Transaction.TYPE_CARD
             elif t["type"] == 'CT':
                 new.type = Transaction.TYPE_TRANSFER
+            elif t["type"] == 'WEE':
+                new.type = Transaction.TYPE_BANK
 
             if t["category"] in categories:
                 new.category = categories[t["category"]]

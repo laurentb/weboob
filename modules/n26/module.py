@@ -31,7 +31,7 @@ class Number26Module(Module, CapBank):
     NAME = 'n26'
     DESCRIPTION = u'Bank N26'
     MAINTAINER = u'Benjamin Bouvier'
-    EMAIL = 'public+weboob@benj.me'
+    EMAIL = 'public@benj.me'
     LICENSE = 'AGPLv3+'
     VERSION = '1.3'
 
