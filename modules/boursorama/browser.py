@@ -34,7 +34,7 @@ from weboob.capabilities.bank import (
 from weboob.capabilities.contact import Advisor
 from weboob.tools.captcha.virtkeyboard import VirtKeyboardError
 from weboob.tools.value import Value
-from weboob.tools.compat import basestring
+from weboob.tools.compat import basestring, urlsplit, urlunsplit
 
 from .pages import (
     LoginPage, VirtKeyboardPage, AccountsPage, AsvPage, HistoryPage, AccbisPage, AuthenticationPage,
@@ -288,10 +288,16 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
     @need_login
     def iter_transfer_recipients(self, account):
         assert account.url
-        if account.url.endswith('/'):
-            target = account.url + 'virements'
-        else:
-            target = account.url + '/virements'
+
+        url = urlsplit(account.url)
+        parts = [part for part in url.path.split('/') if part]
+        if account.type == Account.TYPE_SAVINGS:
+            self.logger.debug('Deleting account name %s to get recipients', parts[-2])
+            del parts[-2]
+
+        parts.append('virements')
+        url = url._replace(path='/'.join(parts))
+        target = urlunsplit(url)
 
         try:
             self.location(target)
