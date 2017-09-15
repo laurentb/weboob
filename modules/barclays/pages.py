@@ -231,11 +231,15 @@ class MarketAccountPage(AbstractAccountPage):
         return bool(self.doc.xpath('//select[@name="C4__WORKING[1].SELECTEDSECURITYACCOUNTID"]'))
 
     def get_space_attrs(self, space):
-        a = Regexp(Attr('//a[contains(span, "%s")]' % space, 'onclick'), r'\((.*?)\)')(self.doc).replace('\'', '').split(', ')
+        a = self.doc.xpath('//a[contains(span, $space)]', space=space)
+        if not a:
+            self.logger.debug('there is no "mouvements" link on this page')
+            return None
+
+        a = Regexp(Attr('.', 'onclick'), r'\((.*?)\)')(a[0]).replace('\'', '').split(', ')
         form = self.get_form(id='form1')
 
         return (a[1], 'C4__WORKING[1].SELECTEDSECURITYACCOUNTID', form['C4__WORKING[1].SELECTEDSECURITYACCOUNTID'], a[2])
-
 
     @method
     class iter_investments(TableElement):
@@ -282,7 +286,12 @@ class LifeInsuranceAccountPage(AbstractAccountPage):
         return True
 
     def get_space_attrs(self, space):
-        a = Regexp(Attr('//a[contains(span, "%s")]' % space, 'onclick'), r'\((.*?)\)')(self.doc).replace('\'', '').split(', ')
+        a = self.doc.xpath('//a[contains(span, $space)]', space=space)
+        if not a:
+            self.logger.debug('there is no "mouvements" link on this page')
+            return None
+
+        a = Regexp(Attr('.', 'onclick'), r'\((.*?)\)')(a[0]).replace('\'', '').split(', ')
         form = self.get_form(id='form1')
 
         return (a[1], 'C4__WORKING[1].IDENTCONTRACTLIST', form['C4__WORKING[1].IDENTCONTRACTLIST'], a[2])

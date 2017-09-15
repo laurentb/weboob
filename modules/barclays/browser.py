@@ -75,6 +75,9 @@ class Barclays(LoginBrowser):
 
     def _go_to_account_space(self, space, account):
         attrs = self.page.get_space_attrs(space)
+        if attrs is None:
+            return False
+
         token = self.page.isolate_token()
         data = {
             'MODE': 'C4__AJXButtonAction',
@@ -91,6 +94,7 @@ class Barclays(LoginBrowser):
 
         self.barclays_ajax.open(data=data)
         self._go_to_account(account, refresh=True)
+        return True
 
     def _multiple_account_choice(self, account):
         accounts = [a for a in self.cache['accounts'] if a._uncleaned_id == account._uncleaned_id]
@@ -151,7 +155,9 @@ class Barclays(LoginBrowser):
             self._go_to_account(account)
 
             if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET):
-                self._go_to_account_space('Mouvements', account)
+                if not self._go_to_account_space('Mouvements', account):
+                    self.logger.warning('cannot go to history page for %r', account)
+                    return []
 
             history_page = self.page
 
