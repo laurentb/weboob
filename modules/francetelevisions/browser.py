@@ -22,7 +22,7 @@ from __future__ import unicode_literals
 from weboob.browser import PagesBrowser, URL
 from weboob.exceptions import BrowserHTTPNotFound
 
-from .pages import SearchPage, VideoWebPage, VideoJsonPage
+from .pages import SearchPage, VideoWebPage, VideoJsonPage, HomePage
 
 __all__ = ['PluzzBrowser']
 
@@ -34,6 +34,7 @@ class PluzzBrowser(PagesBrowser):
     search_page = URL(r'/recherche/', SearchPage)
     video = URL(r'/.+/(?P<number>\d+)-[^/]+.html$', VideoWebPage)
     video_json = URL(r'https://sivideo.webservices.francetelevisions.fr/tools/getInfosOeuvre/v2/\?idDiffusion=(?P<number>.+)$', VideoJsonPage)
+    home = URL(r'/(?P<cat>.*)', HomePage)
 
     def search_videos(self, s):
         self.location(self.search_page.build(), params={'q': s})
@@ -55,3 +56,19 @@ class PluzzBrowser(PagesBrowser):
         video.id = id
 
         return video
+
+    def get_categories(self):
+        return self.home.go(cat="").iter_categories()
+
+    def iter_subcategories(self, cat):
+        for cat in self.home.go(cat="/".join(cat)).iter_subcategories(cat=cat):
+            yield cat
+
+        self.page.item_xpath = r"//li[@class='card card-li             ']|//li[@class='card card-small             ']"
+        for vid in self.page.iter_videos():
+            yield vid
+
+    def iter_videos(self, cat):
+        self.page = self.home.go(cat="")
+        self.page.item_xpath = r'//h1[contains(text(), "%s")]/following-sibling::ul/li' % cat
+        return self.page.iter_videos()

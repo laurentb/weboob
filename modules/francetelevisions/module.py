@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from weboob.capabilities.base import find_object
 from weboob.capabilities.video import CapVideo, BaseVideo
 from weboob.capabilities.collection import CapCollection, CollectionNotFound
 from weboob.tools.backend import Module
@@ -54,16 +54,18 @@ class PluzzModule(Module, CapVideo, CapCollection):
         if BaseVideo in objs:
             collection = self.get_collection(objs, split_path)
             if collection.path_level == 0:
-                yield self.get_collection(objs, [u'latest'])
-            if collection.split_path == [u'latest']:
-                for video in self.browser.latest_videos():
+                for category in self.browser.get_categories():
+                    yield category
+            elif collection.path_level == 1 and collection.split_path[0].startswith('vid_'):
+                cat = find_object(self.browser.get_categories(), id=collection.split_path[0], error=None)
+                for video in self.browser.iter_videos(cat.title):
                     yield video
+            else:
+                for cat in self.browser.iter_subcategories(collection.split_path):
+                    yield cat
 
     def validate_collection(self, objs, collection):
-        if collection.path_level == 0:
-            return
-        if BaseVideo in objs and collection.split_path == [u'latest']:
-            collection.title = u'Latest France Télévisions videos'
+        if collection.path_level <= 2:
             return
 
         raise CollectionNotFound(collection.split_path)

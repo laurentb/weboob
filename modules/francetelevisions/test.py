@@ -26,19 +26,20 @@ class PluzzTest(BackendTest):
 
     def test_search(self):
         # If the test fails, it might be good news!
-        l = list(self.backend.search_videos("journal"))
+        l = list(self.backend.search_videos("20h"))
         self.assertTrue(len(l) > 0)
         v = l[0]
         v = self.backend.fillobj(v, ('url',)) or v
         self.assertTrue(v.url, 'URL for video "%s" not found: %s' % (v.id, v.url))
 
-    def test_video_from_url(self):
-        v = self.backend.get_video('http://pluzz.francetv.fr/videos/plus_belle_la_vie.html')
-        self.assertTrue(v.url, 'URL for video "%s" not found: %s' % (v.id, v.url))
-
-    def test_latest(self):
-        l = list(self.backend.iter_resources([BaseVideo], [u'latest']))
-        assert len(l)
-        v = l[0]
-        self.backend.fillobj(v, ('url',))
-        self.assertTrue(v.url, 'URL for video "%s" not found' % (v.id))
+    def test_categories(self):
+        cat = list(self.backend.iter_resources([BaseVideo], []))
+        self.assertTrue(len(cat) > 0)
+        for c in cat:
+            if c.split_path[-1].startswith('vid_'):
+                videos = list(self.backend.iter_resources([BaseVideo], c.split_path))
+                self.assertTrue(len(videos) > 0)
+                v = videos[0]
+                v = self.backend.fillobj(v, ('url',)) or v
+                self.assertTrue(v.url, 'URL for video "%s" not found: %s' % (v.id, v.url))
+                return

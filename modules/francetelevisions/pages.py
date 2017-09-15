@@ -20,22 +20,25 @@
 from __future__ import unicode_literals
 
 import re
-from datetime import datetime
+import hashlib
+
+from datetime import datetime, timedelta
 
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.file import LICENSES
 from weboob.capabilities.image import Thumbnail
 from weboob.capabilities.video import BaseVideo
+from weboob.capabilities.collection import Collection
 
 from weboob.browser.pages import HTMLPage, JsonPage
 from weboob.browser.elements import ItemElement, ListElement, method
-from weboob.browser.filters.standard import CleanText, Regexp, Format, DateTime, Duration, Date, Eval, Env
-from weboob.browser.filters.html import Attr, AbsoluteLink
+from weboob.browser.filters.standard import CleanText, Regexp, Format, DateTime, Duration, Date, Eval, Env, Field
+from weboob.browser.filters.html import Attr, AbsoluteLink, CleanHTML
 from weboob.browser.filters.json import Dict
 
 
 def parse_duration(text):
-    return int(text) * 60
+    return timedelta(seconds=int(text) * 60)
 
 
 class SearchPage(HTMLPage):
@@ -57,14 +60,15 @@ class SearchPage(HTMLPage):
                     self.env['title'] = '%s - %s' % (basetitle, sub)
 
             obj_id = AbsoluteLink('.//a')
-            #~ obj__number = Attr('./div[@class="card-content"]//a', 'data-video-content')
+            # obj__number = Attr('./div[@class="card-content"]//a', 'data-video-content')
 
             obj_title = Env('title')
             obj_thumbnail = Eval(Thumbnail, Format('https:%s', Attr('./a//img', 'data-src')))
 
-            obj_date = Date(Regexp(Env('infos'), r'\| (\d+\.\d+\.\d+) \|', default=NotAvailable), dayfirst=True, default=NotAvailable)
+            obj_date = Date(Regexp(Env('infos'), r'\| (\d+\.\d+\.\d+) \|',
+                                   default=NotAvailable),
+                            dayfirst=True, default=NotAvailable)
             obj_duration = Eval(parse_duration, Regexp(Env('infos'), r'(\d+) min'))
-
 
 
 class VideoWebPage(HTMLPage):
@@ -107,3 +111,56 @@ class VideoJsonPage(JsonPage):
 
         def validate(self, obj):
             return obj.url
+
+
+class HomePage(HTMLPage):
+    @method
+    class iter_categories(ListElement):
+        item_xpath = '//h1'
+
+        class item(ItemElement):
+            klass = Collection
+
+            def obj_id(self):
+                id = Regexp(CleanText('./a/@href'), '//www.france.tv/(.*)/', default=None)(self)
+                if not id:
+                    id = CleanText('.')(self)
+                    id = id.encode('ascii', 'ignore')
+                    id = hashlib.md5(id).hexdigest()
+                    id = u'vid_%s' % id
+                return id
+
+            obj_title = CleanText('.')
+
+            def obj_split_path(self):
+                return [Field('id')(self)]
+
+    @method
+    class iter_subcategories(ListElement):
+        item_xpath = '//h2[has-class("title-wall")]'
+
+        class item(ItemElement):
+            klass = Collection
+
+            obj_id = Regexp(CleanText('./a/@href'), '//www.france.tv/.*/(.*)/', default=None)
+
+            obj_title = CleanText('.')
+
+            def obj_split_path(self):
+                cat = Env('cat')(self)
+                cat.append(Field('id')(self))
+                return cat
+
+    @method
+    class iter_videos(ListElement):
+        def parse(self, el):
+            self.item_xpath = self.page.item_xpath
+
+        class item(ItemElement):
+            klass = BaseVideo
+
+            obj_id = Format('https:%s', CleanText('./a/@href'))
+            obj_title = CleanText(CleanHTML('./a/div[@class="card-content"]|./div[has-class("card-content")]'))
+
+            def condition(self):
+                return Field('title')(self)
