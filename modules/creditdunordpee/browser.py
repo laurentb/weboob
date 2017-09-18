@@ -53,7 +53,7 @@ class CreditdunordpeeBrowser(LoginBrowser):
     @need_login
     def get_history(self):
         transactions = list(self.history.go().get_history(date_guesser=LinearDateGuesser()))
-        transactions.sort(key=lambda tr: tr.rdate, reverse=True)
+        transactions.sort(key=lambda tr: tr.date, reverse=True)
         return transactions
 
     @need_login

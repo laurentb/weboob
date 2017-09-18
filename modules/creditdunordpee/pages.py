@@ -16,13 +16,17 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
+
+from __future__ import unicode_literals
+
 from io import BytesIO
 import re
 from decimal import Decimal
+
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard
 from weboob.browser.elements import ItemElement, TableElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Format, Regexp, Date, Env, TableCell, Field
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Format, Regexp, Date, Env, TableCell, Field, Currency, Eval
 from weboob.browser.filters.html import CleanHTML
 from weboob.capabilities.bank import Account, Transaction, Investment
 from weboob.capabilities.base import NotAvailable
@@ -78,45 +82,40 @@ class AvoirPage(LoggedPage, HTMLPage):
         klass = Account
 
         obj_label = Format('PEE %s', CleanText('//div[@id="pbGp_df83b8bd_2dd787_2d4d10_2db608_2d69c44af91e91_j_id1:j_idt1:j_idt2:j_idt15_body"]'))
-        obj_balance = CleanDecimal('//div[@id="pbGp_3f1d2af7_2ddd41_2d45d2_2dbb9d_2d8f27b33a375f_j_id1:j_idt1:form:j_idt2:j_idt14:j_idt23:0:j_idt65:j_idt47_body"]',
-                                   default=Decimal(0),
-                                   replace_dots=True)
-        obj_currency = Regexp(CleanText('//div[@id="pbGp_3f1d2af7_2ddd41_2d45d2_2dbb9d_2d8f27b33a375f_j_id1:j_idt1:form:j_idt2:j_idt14:j_idt23:0:j_idt65:j_idt47_body"]'),
-                              '.*(.)$', default=u'€')
+
+        def obj_balance(self):
+            return CleanDecimal('.', replace_dots=True).filter(self.fetch_total())
+
+        def obj_currency(self):
+            return Currency('.').filter(self.fetch_total())
+
         obj_type = Account.TYPE_PEE
+
+        def fetch_total(self):
+            table, = self.el.xpath('//table[has-class("operation-bloc-content-tableau-synthese")]')
+            assert CleanText('(./thead//th)[3]')(table) == 'Total'
+            tr, = table.xpath('./tbody[1]/tr')
+            return CleanText('./td[3]/div')(tr)
 
     @method
     class iter_investment(TableElement):
-        head_xpath = u'//table[@id="pbGp_3f1d2af7_2ddd41_2d45d2_2dbb9d_2d8f27b33a375f_j_id1:j_idt1:form:j_idt2:j_idt413:j_idt447"]/thead/tr/th/@id'
-        item_xpath = u'//table[@id="pbGp_3f1d2af7_2ddd41_2d45d2_2dbb9d_2d8f27b33a375f_j_id1:j_idt1:form:j_idt2:j_idt413:j_idt447"]/tbody/tr[@id]'
+        head_xpath = '//div[has-class("detail-epargne-par-support")]//table/thead//th'
+        item_xpath = '//div[has-class("detail-epargne-par-support")]//table/tbody[1]/tr'
 
-        col_reference = u'pbGp_3f1d2af7_2ddd41_2d45d2_2dbb9d_2d8f27b33a375f_j_id1:j_idt1:form:j_idt2:j_idt413:j_idt447:j_idt450'
-        col_montant = u'pbGp_3f1d2af7_2ddd41_2d45d2_2dbb9d_2d8f27b33a375f_j_id1:j_idt1:form:j_idt2:j_idt413:j_idt447:j_idt456'
-        col_repartition = u'pbGp_3f1d2af7_2ddd41_2d45d2_2dbb9d_2d8f27b33a375f_j_id1:j_idt1:form:j_idt2:j_idt413:j_idt447:j_idt460'
+        col_misc = 'Mes supports de placement'
+        col_portfolio_share = 'Répartition'
+        col_valuation = 'Montant brut (1)'
+        col_diff = '+ ou - value potentielle'
 
         class item(ItemElement):
             klass = Investment
 
-            obj_label = CleanText(Regexp(CleanHTML(TableCell('reference')),
-                                         '(.*)\n\n'))
-
-            obj_vdate = Date(Regexp(CleanHTML(TableCell('reference')),
-                                    '(\d{2}/\d{2}/\d{4})'))
-
-            obj_unitvalue = CleanDecimal(Regexp(CleanHTML(TableCell('reference')),
-                                                '.*\n\n(.*)\n\n'),
-                                         replace_dots=True)
-
-            obj_description = CleanText(CleanHTML(TableCell('reference')))
-
-            obj_portfolio_share = CleanDecimal(CleanHTML(TableCell('repartition')),
-                                               replace_dots=True)
-
-            obj_valuation = CleanDecimal(CleanHTML(TableCell('montant')),
-                                         replace_dots=True)
-
-            def obj_quantity(self):
-                return Decimal(Field('valuation')(self)/Field('unitvalue')(self))
+            obj_label = Regexp(CleanText(CleanHTML(TableCell('misc'))), r'^(.*? - \d+)')
+            obj_vdate = Date(Regexp(CleanHTML(TableCell('misc')), r'(\d{2}/\d{2}/\d{4})'))
+            obj_unitvalue = CleanDecimal(Regexp(CleanText(TableCell('misc')), r'([\d,]+) €'), replace_dots=True)
+            obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal(CleanHTML(TableCell('portfolio_share')), replace_dots=True))
+            obj_valuation = CleanDecimal(CleanHTML(TableCell('valuation')), replace_dots=True)
+            obj_diff = CleanDecimal(CleanHTML(TableCell('diff')), replace_dots=True)
 
 
 class HistoryPage(LoggedPage, HTMLPage):
