@@ -49,7 +49,7 @@ class HomePage(AmazonPage):
             self.doc.xpath('//a[@id="nav-your-account"]/@href'),
             self.doc.xpath('//a[@id="nav-link-accountList"]/@href'),
         ]
-        url = filter(None, urls)[0][0]
+        url = [url for url in urls if url][0][0]
         self.browser.location(url)
         return self.browser.page
 
