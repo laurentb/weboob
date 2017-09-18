@@ -113,6 +113,7 @@ class Videoob(ReplApplication):
             parsed_uri = urlparse(video.url)
             baseurl = '{uri.scheme}://{uri.netloc}'.format(uri=parsed_uri)
             for line in self.read_url(video.url):
+                line = line.decode('utf-8')
                 if not line.startswith('#'):
                     if not line.startswith('http'):
                         line = u'%s%s' % (baseurl, line)
