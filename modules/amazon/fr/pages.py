@@ -37,8 +37,7 @@ class AmazonPage(HTMLPage):
 
 class HomePage(AmazonPage):
     def to_login(self):
-        if not self.home.is_here():
-            self.home.go()
+        self.browser.home.stay_or_go()
         self.browser.location(self.doc.xpath('(//a[contains(., "Identifiez-vous")]//@href)[1]')[0])
         return self.browser.page
 
