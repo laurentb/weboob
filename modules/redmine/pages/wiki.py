@@ -17,25 +17,27 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from .index import BaseHTMLPage
 
-from weboob.deprecated.browser import Page
 
-
-class WikiEditPage(Page):
+class WikiEditPage(BaseHTMLPage):
     def get_source(self):
-        return self.parser.select(self.document.getroot(), 'textarea#content_text', 1).text
+        return self.doc.xpath('//textarea[@id="content_text"]')[0].text
 
     def set_source(self, data, message):
-        self.browser.select_form(nr=1)
-        self.browser['content[text]'] = data.encode('utf-8')
+        form = self.get_form(nr=1)
+        form['content[text]'] = data
         if message:
-            self.browser['content[comments]'] = message.encode('utf-8')
-        self.browser.submit()
+            form['content[comments]'] = message
+        form.submit()
 
     def get_authenticity_token(self):
-        wiki_form = self.parser.select(self.document.getroot(), 'form#wiki_form', 1)
-        return wiki_form.xpath('div/input')[0].get('value')
+        form = self.get_form(id='wiki_form')
+        return form['authenticity_token']
+
+    def get_submit(self):
+        return self.get_form(id='wiki_form')
 
 
-class WikiPage(Page):
+class WikiPage(BaseHTMLPage):
     pass

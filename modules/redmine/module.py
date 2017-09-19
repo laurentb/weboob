@@ -25,6 +25,7 @@ from weboob.capabilities.bugtracker import CapBugTracker, Issue, Project, User, 
 from weboob.capabilities.collection import CapCollection, Collection, CollectionNotFound
 from weboob.tools.backend import Module, BackendConfig
 from weboob.exceptions import BrowserHTTPNotFound
+from weboob.tools.compat import basestring, unicode
 from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import RedmineBrowser
@@ -68,8 +69,7 @@ class RedmineModule(Module, CapContent, CapBugTracker, CapCollection):
             return None
 
         version = revision.id if revision else None
-        with self.browser:
-            data = self.browser.get_wiki_source(project, page, version)
+        data = self.browser.get_wiki_source(project, page, version)
 
         content.content = data
         return content
@@ -80,8 +80,7 @@ class RedmineModule(Module, CapContent, CapBugTracker, CapCollection):
         except ValueError:
             return
 
-        with self.browser:
-            return self.browser.set_wiki_source(project, page, content.content, message)
+        return self.browser.set_wiki_source(project, page, content.content, message)
 
     def get_content_preview(self, content):
         try:
@@ -89,8 +88,7 @@ class RedmineModule(Module, CapContent, CapBugTracker, CapCollection):
         except ValueError:
             return
 
-        with self.browser:
-            return self.browser.get_wiki_preview(project, page, content.content)
+        return self.browser.get_wiki_preview(project, page, content.content)
 
     ############# CapCollection ###################################################
     def iter_resources(self, objs, split_path):
@@ -196,8 +194,7 @@ class RedmineModule(Module, CapContent, CapBugTracker, CapCollection):
             issue = Issue(issue)
 
         try:
-            with self.browser:
-                params = self.browser.get_issue(id)
+            params = self.browser.get_issue(id)
         except BrowserHTTPNotFound:
             return None
 
@@ -243,15 +240,13 @@ class RedmineModule(Module, CapContent, CapBugTracker, CapCollection):
 
     def create_issue(self, project):
         try:
-            with self.browser:
-                r = self.browser.get_project(project)
+            r = self.browser.get_project(project)
         except BrowserHTTPNotFound:
             return None
 
         issue = Issue(0)
         issue.project = self._build_project(r)
-        with self.browser:
-            issue.fields = self.browser.get_custom_fields(project)
+        issue.fields = self.browser.get_custom_fields(project)
         return issue
 
     def post_issue(self, issue):
@@ -270,11 +265,10 @@ class RedmineModule(Module, CapContent, CapBugTracker, CapCollection):
                   'fields':     issue.fields,
                  }
 
-        with self.browser:
-            if int(issue.id) < 1:
-                id = self.browser.create_issue(project, **kwargs)
-            else:
-                id = self.browser.edit_issue(issue.id, **kwargs)
+        if int(issue.id) < 1:
+            id = self.browser.create_issue(project, **kwargs)
+        else:
+            id = self.browser.edit_issue(issue.id, **kwargs)
 
         if id is None:
             return None
@@ -286,11 +280,10 @@ class RedmineModule(Module, CapContent, CapBugTracker, CapCollection):
         if isinstance(issue, Issue):
             issue = issue.id
 
-        with self.browser:
-            if update.hours:
-                return self.browser.logtime_issue(issue, update.hours, update.message)
-            else:
-                return self.browser.comment_issue(issue, update.message)
+        if update.hours:
+            return self.browser.logtime_issue(issue, update.hours, update.message)
+        else:
+            return self.browser.comment_issue(issue, update.message)
 
     def remove_issue(self, issue):
         """
@@ -299,8 +292,7 @@ class RedmineModule(Module, CapContent, CapBugTracker, CapCollection):
         if isinstance(issue, Issue):
             issue = issue.id
 
-        with self.browser:
-            return self.browser.remove_issue(issue)
+        return self.browser.remove_issue(issue)
 
     def iter_projects(self):
         """
@@ -308,14 +300,12 @@ class RedmineModule(Module, CapContent, CapBugTracker, CapCollection):
 
         @return [iter(Project)] projects
         """
-        with self.browser:
-            for project in self.browser.iter_projects():
-                yield Project(project['id'], project['name'])
+        for project in self.browser.iter_projects():
+            yield Project(project['id'], project['name'])
 
     def get_project(self, id):
         try:
-            with self.browser:
-                params = self.browser.get_project(id)
+            params = self.browser.get_project(id)
         except BrowserHTTPNotFound:
             return None
 

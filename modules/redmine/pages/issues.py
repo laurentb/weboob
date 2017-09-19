@@ -21,16 +21,16 @@
 import datetime
 import re
 
-import mechanize
-
 from weboob.capabilities.bugtracker import IssueError
-from weboob.deprecated.browser import BrokenPageError, Page
 from weboob.tools.date import parse_french_date
 from weboob.tools.json import json
 from weboob.tools.misc import to_unicode
+from weboob.browser.filters.standard import CleanText
+
+from .index import BaseHTMLPage
 
 
-class BaseIssuePage(Page):
+class BaseIssuePage(BaseHTMLPage):
     def parse_datetime(self, text):
         m = re.match('(\d+)/(\d+)/(\d+) (\d+):(\d+) (\w+)', text)
         if m:
@@ -66,11 +66,11 @@ class BaseIssuePage(Page):
 
     def iter_choices(self, name):
         try:
-            select = self.parser.select(self.document.getroot(), 'select#%s' % name, 1)
-        except BrokenPageError:
+            select, = self.doc.xpath('//select[@id=$id]', id=name)
+        except ValueError:
             try:
-                select = self.parser.select(self.document.getroot(), 'select#%s_1' % name, 1)
-            except BrokenPageError:
+                select, = self.doc.xpath('//select[@id="%s_1"]' % name)
+            except ValueError:
                 return
         for option in select.findall('option'):
             if option.attrib['value'].isdigit():
@@ -79,14 +79,14 @@ class BaseIssuePage(Page):
     def get_project(self, project_name):
         project = {}
         project['name'] = project_name
-        for field, elid in self.PROJECT_FIELDS.iteritems():
+        for field, elid in self.PROJECT_FIELDS.items():
             project[field] = list(self.iter_choices(elid))
         return project
 
     def get_authenticity_token(self):
-        tokens = self.parser.select(self.document.getroot(), 'input[name=authenticity_token]')
+        tokens = self.doc.xpath('//input[@name="authenticity_token"]')
         if len(tokens) == 0:
-            tokens = self.document.xpath('//meta[@name="csrf-token"]')
+            tokens = self.doc.xpath('//meta[@name="csrf-token"]')
         if len(tokens) == 0:
             raise IssueError("You don't have rights to remove this issue.")
 
@@ -98,12 +98,12 @@ class BaseIssuePage(Page):
 
     def get_errors(self):
         errors = []
-        for li in self.document.xpath('//div[@id="errorExplanation"]//li'):
+        for li in self.doc.xpath('//div[@id="errorExplanation"]//li'):
             errors.append(li.text.strip())
         return ', '.join(errors)
 
     def get_value_from_label(self, name, label):
-        for option in self.document.xpath('//select[@name="%s"]/option' % name):
+        for option in self.doc.xpath('//select[@name=$name]/option', name=name):
             if option.text.strip().lower() == label.lower():
                 return option.attrib['value']
         return label
@@ -121,7 +121,7 @@ class IssuesPage(BaseIssuePage):
         find a pattern in any javascript text
         """
         value = None
-        for script in self.document.xpath('//script'):
+        for script in self.doc.xpath('//script'):
             txt = script.text
             if txt is None:
                 continue
@@ -175,12 +175,12 @@ class IssuesPage(BaseIssuePage):
         return project
 
     def get_query_method(self):
-        return self.document.xpath('//form[@id="query_form"]')[0].attrib['method'].upper()
+        return self.doc.xpath('//form[@id="query_form"]')[0].attrib['method'].upper()
 
     def iter_issues(self):
         try:
-            issues = self.parser.select(self.document.getroot(), 'table.issues', 1)
-        except BrokenPageError:
+            issues, = self.doc.xpath('//table[has-class("issues")]')
+        except ValueError:
             # No results.
             return
 
@@ -227,41 +227,40 @@ class NewIssuePage(BaseIssuePage):
                       'statuses':   'issue_status_id',
                      }
 
+    form = None
+
     def get_project_name(self):
         m = re.search('/projects/([^/]+)/', self.url)
         return m.group(1)
 
     def iter_custom_fields(self):
-        for div in self.document.xpath('//form//input[starts-with(@id, "issue_custom_field")]|//form//select[starts-with(@id, "issue_custom_field")]'):
+        for div in self.doc.xpath('//form//input[starts-with(@id, "issue_custom_field")]|//form//select[starts-with(@id, "issue_custom_field")]'):
             if 'type' in div.attrib and div.attrib['type'] == 'hidden':
                 continue
-            label = self.document.xpath('//label[@for="%s"]' % div.attrib['id'])[0]
-            yield self.parser.tocleanstring(label), div
+            label = self.doc.xpath('//label[@for="%s"]' % div.attrib['id'])[0]
+            yield CleanText('.')(label), div
 
     def set_title(self, title):
-        self.browser['issue[subject]'] = title.encode('utf-8')
+        self.form['issue[subject]'] = title
 
     def set_body(self, body):
-        self.browser['issue[description]'] = body.encode('utf-8')
+        self.form['issue[description]'] = body
 
     def set_assignee(self, member):
         if member:
-            self.browser['issue[assigned_to_id]'] = [str(member)]
+            self.form['issue[assigned_to_id]'] = [str(member)]
         else:
-            self.browser['issue[assigned_to_id]'] = ['']
+            self.form['issue[assigned_to_id]'] = ['']
 
     def set_version(self, version):
-        try:
-            if version:
-                self.browser['issue[fixed_version_id]'] = [str(version)]
-            else:
-                self.browser['issue[fixed_version_id]'] = ['']
-        except mechanize.ItemNotFoundError:
-            self.logger.warning('Version not found: %s' % version)
+        if version:
+            self.form['issue[fixed_version_id]'] = [str(version)]
+        else:
+            self.form['issue[fixed_version_id]'] = ['']
 
     def set_tracker(self, tracker):
         if tracker:
-            select = self.parser.select(self.document.getroot(), 'select#issue_tracker_id', 1)
+            select, = self.doc.xpath('//select[@id="issue_tracker_id"]')
             for option in select.findall('option'):
                 if option.text and option.text.strip() == tracker:
                     self.browser['issue[tracker_id]'] = [option.attrib['value']]
@@ -277,43 +276,36 @@ class NewIssuePage(BaseIssuePage):
             #     self.logger.warning('Tracker "%s" not found' % tracker)
             self.logger.warning('Tracker "%s" not found' % tracker)
         else:
-            try:
-                self.browser['issue[tracker_id]'] = ['']
-            except mechanize.ControlNotFoundError:
-                self.logger.warning('Tracker item not found')
+            self.form['issue[tracker_id]'] = ['']
 
     def set_category(self, category):
         if category:
-            select = self.parser.select(self.document.getroot(), 'select#issue_category_id', 1)
+            select = self.doc.xpath('//select[@id="issue_category_id"]')
             for option in select.findall('option'):
                 if option.text and option.text.strip() == category:
-                    self.browser['issue[category_id]'] = [option.attrib['value']]
+                    self.form['issue[category_id]'] = [option.attrib['value']]
                     return
             value = None
-            if len(self.document.xpath('//a[@title="New category"]')) > 0:
+            if len(self.doc.xpath('//a[@title="New category"]')) > 0:
                 value = self.browser.create_category(self.get_project_name(), category, self.get_authenticity_token())
             if value:
-                control = self.browser.find_control('issue[category_id]')
-                mechanize.Item(control, {'name': category, 'value': value})
-                self.browser['issue[category_id]'] = [value]
+                self.form[category] = value
+                self.form['issue[category_id]'] = [value]
             else:
                 self.logger.warning('Category "%s" not found' % category)
         else:
-            try:
-                self.browser['issue[category_id]'] = ['']
-            except mechanize.ControlNotFoundError:
-                self.logger.warning('Category item not found')
+            self.form['issue[category_id]'] = ['']
 
     def set_status(self, status):
         assert status is not None
-        self.browser['issue[status_id]'] = [str(status)]
+        self.form['issue[status_id]'] = [str(status)]
 
     def set_priority(self, priority):
         if priority:
-            select = self.parser.select(self.document.getroot(), 'select#issue_priority_id', 1)
+            select, = self.doc.xpath('//select[@id="issue_priority_id"]')
             for option in select.findall('option'):
                 if option.text and option.text.strip() == priority:
-                    self.browser['issue[priority_id]'] = [option.attrib['value']]
+                    self.form['issue[priority_id]'] = [option.attrib['value']]
                     return
             # value = None
             # if len(self.document.xpath('//a[@title="New priority"]')) > 0:
@@ -326,53 +318,44 @@ class NewIssuePage(BaseIssuePage):
             #     self.logger.warning('Priority "%s" not found' % priority)
             self.logger.warning('Priority "%s" not found' % priority)
         else:
-            try:
-                self.browser['issue[priority_id]'] = ['']
-            except mechanize.ControlNotFoundError:
-                self.logger.warning('Priority item not found')
+            self.form['issue[priority_id]'] = ['']
 
     def set_start(self, start):
         if start is not None:
-            self.browser['issue[start_date]'] = start.strftime("%Y-%m-%d")
+            self.form['issue[start_date]'] = start.strftime("%Y-%m-%d")
         #XXX: else set to "" ?
 
     def set_due(self, due):
         if due is not None:
-            self.browser['issue[due_date]'] = due.strftime("%Y-%m-%d")
+            self.form['issue[due_date]'] = due.strftime("%Y-%m-%d")
         #XXX: else set to "" ?
 
     def set_note(self, message):
-        try:
-            self.browser['notes'] = message.encode('utf-8')
-        except mechanize.ControlNotFoundError:
-            self.browser['issue[notes]'] = message.encode('utf-8')
+        if 'notes' in self.form:
+            self.form['notes'] = message
+        else:
+            self.form['issue[notes]'] = message
 
     def set_fields(self, fields):
         for key, div in self.iter_custom_fields():
             try:
-                control = self.browser.find_control(div.attrib['name'], nr=0)
-                if isinstance(control, mechanize.TextControl):
-                    control.value = fields[key]
-                else:
-                    item = control.get(label=fields[key].encode("utf-8"), nr=0)
-                    if item and fields[key] != '':
-                        item.selected = True
+                self.form[div.attrib['name']] = fields[key]
             except KeyError:
                 continue
 
     def fill_form(self, **kwargs):
-        self.browser.select_form(predicate=lambda form: form.attrs.get('id', '') == 'issue-form')
-        for key, value in kwargs.iteritems():
+        self.form = self.get_form(id='issue-form')
+        for key, value in kwargs.items():
             if value is not None:
                 getattr(self, 'set_%s' % key)(value)
-        self.browser.submit()
+        self.form.submit()
 
 
 class IssuePage(NewIssuePage):
     def _parse_selection(self, id):
         try:
-            select = self.parser.select(self.document.getroot(), 'select#%s' % id, 1)
-        except BrokenPageError:
+            select, = self.doc.xpath('//select[@id=$id]', id=id)
+        except ValueError:
             # not available for this project
             return ('', None)
         else:
@@ -384,13 +367,13 @@ class IssuePage(NewIssuePage):
 
     def get_params(self):
         params = {}
-        content = self.parser.select(self.document.getroot(), 'div#content', 1)
-        issue = self.parser.select(content, 'div.issue', 1)
+        content, = self.doc.xpath('//div[@id="content"]')
+        issue, = content.xpath('.//div[has-class("issue")]')
 
-        params['project'] = self.get_project(to_unicode(self.parser.select(self.document.getroot(), 'h1', 1).text))
-        params['subject'] = to_unicode(self.parser.select(issue, 'div.subject', 1).find('div').find('h3').text.strip())
-        params['body'] = to_unicode(self.parser.select(self.document.getroot(), 'textarea#issue_description', 1).text)
-        author = self.parser.select(issue, 'p.author', 1)
+        params['project'] = self.get_project(CleanText('(//h1)[1]')(self.doc))
+        params['subject'] = issue.xpath('.//div[has-class("subject")]/div/h3')[0].text.strip()
+        params['body'] = self.doc.xpath('//textarea[@id="issue_description"]')[0].text.strip()
+        author, = issue.xpath('.//p[has-class("author")]')
 
         # check issue 666 on symlink.me
         i = 0
@@ -413,12 +396,12 @@ class IssuePage(NewIssuePage):
         params['tracker'] = self._parse_selection('issue_tracker_id')
         params['category'] = self._parse_selection('issue_category_id')
         params['version'] = self._parse_selection('issue_fixed_version_id')
-        div = self.parser.select(self.document.getroot(), 'input#issue_start_date', 1)
+        div, = self.doc.xpath('//input[@id="issue_start_date"]')
         if 'value' in div.attrib:
             params['start_date'] = datetime.datetime.strptime(div.attrib['value'], "%Y-%m-%d")
         else:
             params['start_date'] = None
-        div = self.parser.select(self.document.getroot(), 'input#issue_due_date', 1)
+        div, = self.doc.xpath('//input[@id="issue_due_date"]')
         if 'value' in div.attrib:
             params['due_date'] = datetime.datetime.strptime(div.attrib['value'], "%Y-%m-%d")
         else:
@@ -436,19 +419,16 @@ class IssuePage(NewIssuePage):
             params['fields'][key] = value
 
         params['attachments'] = []
-        try:
-            for p in self.parser.select(content, 'div.attachments', 1).findall('p'):
-                attachment = {}
-                a = p.find('a')
-                attachment['id'] = int(a.attrib['href'].split('/')[-2])
-                attachment['filename'] = p.find('a').text
-                attachment['url'] = '%s://%s%s' % (self.browser.PROTOCOL, self.browser.DOMAIN, p.find('a').attrib['href'])
-                params['attachments'].append(attachment)
-        except BrokenPageError:
-            pass
+        for p in content.xpath('//div[has-class("attachments")]/p'):
+            attachment = {}
+            a = p.find('a')
+            attachment['id'] = int(a.attrib['href'].split('/')[-2])
+            attachment['filename'] = p.find('a').text
+            attachment['url'] = '%s%s' % (self.browser.BASEURL, p.find('a').attrib['href'])
+            params['attachments'].append(attachment)
 
         params['updates'] = []
-        for div in self.parser.select(content, 'div.journal'):
+        for div in content.xpath('.//div[has-class("journal")]'):
             update = {}
             update['id'] = div.xpath('.//h4//a')[0].text[1:]
             user_link = div.xpath('.//h4//a[contains(@href, "/users/")]')
@@ -477,8 +457,8 @@ class IssuePage(NewIssuePage):
 
             changes = []
             try:
-                details = self.parser.select(div, 'ul.details', 1)
-            except BrokenPageError:
+                details, = div.xpath('.//ul[has-class("details")]')
+            except ValueError:
                 pass
             else:
                 for li in details.findall('li'):
@@ -504,7 +484,7 @@ class IssuePage(NewIssuePage):
         return params
 
 
-class IssueLogTimePage(Page):
+class IssueLogTimePage(BaseHTMLPage):
     def logtime(self, hours, message):
         self.browser.select_form(predicate=lambda form: form.attrs.get('action', '').endswith('/edit'))
         self.browser['time_entry[hours]'] = '%.2f' % hours
@@ -513,5 +493,5 @@ class IssueLogTimePage(Page):
         self.browser.submit()
 
 
-class IssueTimeEntriesPage(Page):
+class IssueTimeEntriesPage(BaseHTMLPage):
     pass

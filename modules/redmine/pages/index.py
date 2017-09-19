@@ -18,28 +18,34 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import Page
+from weboob.browser.pages import HTMLPage
 
 
-class LoginPage(Page):
+class BaseHTMLPage(HTMLPage):
+    @property
+    def logged(self):
+        return len(self.doc.xpath('//a[has-class("my-account")]'))
+
+
+class LoginPage(HTMLPage):
     def login(self, username, password):
-        self.browser.select_form(predicate=lambda f: f.attrs.get('method', '') == 'post')
-        self.browser['username'] = username.encode(self.browser.ENCODING)
-        self.browser['password'] = password.encode(self.browser.ENCODING)
-        self.browser.submit()
+        form = self.get_form(xpath='//form[@method="post"]')
+        form['username'] = username
+        form['password'] = password
+        form.submit()
 
 
-class IndexPage(Page):
+class IndexPage(BaseHTMLPage):
     pass
 
 
-class MyPage(Page):
+class MyPage(BaseHTMLPage):
     pass
 
 
-class ProjectsPage(Page):
+class ProjectsPage(BaseHTMLPage):
     def iter_projects(self):
-        for ul in self.parser.select(self.document.getroot(), 'ul.projects'):
+        for ul in self.doc.xpath('//ul[has-class("projects")]'):
             for li in ul.findall('li'):
                 prj = {}
                 link = li.find('div').find('a')
