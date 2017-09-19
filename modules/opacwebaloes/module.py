@@ -55,9 +55,9 @@ class AloesModule(Module, CapBook):
             yield book
 
     def iter_books(self):
-        for book in self.get_booked():
+        for book in self.iter_booked():
             yield book
-        for book in self.get_rented():
+        for book in self.iter_rented():
             yield book
 
     def get_book(self, _id):
