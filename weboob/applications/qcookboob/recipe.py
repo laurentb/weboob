@@ -94,7 +94,7 @@ class Recipe(QFrame):
     @Slot()
     def export(self):
         fileDial = QFileDialog(self, u'Export "%s" recipe' %
-                               self.recipe.title, u'%s.kreml' % self.recipe.title.replace('/', ','), 'Krecipe file (*.kreml);;all files (*)')
+                               self.recipe.title, u'%s.kreml' % self.recipe.id, 'Krecipe file (*.kreml);;all files (*)')
         fileDial.setAcceptMode(QFileDialog.AcceptSave)
         fileDial.setLabelText(QFileDialog.Accept, 'Export recipe')
         fileDial.setLabelText(QFileDialog.FileName, 'Recipe file name')
