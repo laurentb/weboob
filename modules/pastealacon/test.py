@@ -40,7 +40,7 @@ class PastealaconTest(BackendTest):
         p = self.backend.get_paste(_id)
         self.backend.fillobj(p, ['contents'])
         assert p.title is NotLoaded
-        assert p.page_url.startswith('http://paste.alacon.org/')
+        assert p.page_url is None
         assert u'héhéhé' in p.contents
         assert p.public is True
 

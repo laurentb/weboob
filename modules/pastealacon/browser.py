@@ -20,7 +20,7 @@
 import re
 
 from weboob.capabilities.paste import BasePaste, PasteNotFound
-from weboob.browser.filters.standard import CleanText, DateTime, Env, RawText, Regexp
+from weboob.browser.filters.standard import BrowserURL, CleanText, DateTime, Env, Field, RawText, Regexp
 from weboob.browser.pages import HTMLPage
 from weboob.browser.browsers import PagesBrowser
 from weboob.browser.url import URL
@@ -41,7 +41,7 @@ class PastealaconPaste(BasePaste):
     # (page_url is required by pastoob)
     @property
     def page_url(self):
-        return '%s%s' % (PastealaconBrowser.BASEURL, self.id)
+        return self.url
 
 
 class PastePage(HTMLPage):
@@ -53,6 +53,7 @@ class PastePage(HTMLPage):
         obj_title = Regexp(CleanText('id("content")/h3'), r'Posted by (.+) on .+ \(')
         obj__date = DateTime(Regexp(CleanText('id("content")/h3'), r'Posted by .+ on (.+) \('))
         obj_contents = RawText('//textarea[@id="code"]')
+        obj_url = BrowserURL('paste', id=Field('id'))
 
         def parse(self, el):
             # there is no 404, try to detect if there really is a content
