@@ -58,7 +58,7 @@ class LoginPage(BasePastebinPage):
 
 class CleanVisibility(Filter):
     def filter(self, txt):
-        if txt.startswith('Public'):
+        if txt is None or txt.startswith('Public'):
             return True
         if txt.startswith('Unlisted') or txt.startswith('Private'):
             return False
@@ -78,7 +78,7 @@ class PastePage(BasePastebinPage):
         obj_contents = RawText('//textarea[@id="paste_code"]')
         obj_public = Base(
             Env('header'),
-            CleanVisibility(Attr('.//div[@class="paste_box_line1"]//img', 'title')))
+            CleanVisibility(Attr('.//div[@class="paste_box_line1"]//img', 'title', default=None)))
         obj__date = Base(
             Env('header'),
             DateTime(Attr('.//div[@class="paste_box_line2"]/span[1]', 'title')))
