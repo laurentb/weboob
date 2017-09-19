@@ -34,6 +34,7 @@ class LolixModule(Module, CapJob):
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
     VERSION = '1.3'
+    LICENSE = 'AGPLv3+'
 
     BROWSER = LolixBrowser
 
