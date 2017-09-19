@@ -78,7 +78,7 @@ class Bill(Document, Currency):
     duedate =       DateField('The day the bill must be paid')
     startdate =     DateField('The first day the bill applies to')
     finishdate =    DateField('The last day the bill applies to')
-    income =       BoolField('Boolean to set if bill is income or invoice', default=False)
+    income =        BoolField('Boolean to set if bill is income or invoice', default=False)
 
 
 class Subscription(BaseObject):
@@ -86,20 +86,12 @@ class Subscription(BaseObject):
     Subscription to a service.
     """
     label =         StringField('label of subscription')
-    subscriber =    StringField('whe has subscribed')
-    validity =      DateField('End validity date of the subscription')
-    renewdate =     DateField('Reset date of consumption')
+    subscriber =    StringField('Subscriber name or identifier (for companies)')
+    validity =      DateField('End validity date of the subscription (if any)')
+    renewdate =     DateField('Reset date of consumption, for time based suscription (monthly, yearly, etc)')
 
 
 class CapDocument(CapCollection):
-    def iter_resources(self, objs, split_path):
-        """
-        Iter resources. Will return :func:`iter_subscriptions`.
-        """
-        if Subscription in objs:
-            self._restrict_level(split_path)
-            return self.iter_subscription()
-
     def iter_subscription(self):
         """
         Iter subscriptions.
@@ -214,3 +206,11 @@ class CapDocument(CapCollection):
         :rtype: class:`Detail`
         """
         raise NotImplementedError()
+
+    def iter_resources(self, objs, split_path):
+        """
+        Iter resources. Will return :func:`iter_subscriptions`.
+        """
+        if Subscription in objs:
+            self._restrict_level(split_path)
+            return self.iter_subscription()
