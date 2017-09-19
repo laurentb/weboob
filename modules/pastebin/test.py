@@ -28,12 +28,12 @@ class PastebinTest(BackendTest):
     MODULE = 'pastebin'
 
     def test_get_paste(self):
-        for _id in ('7HmXwzyt', 'http://pastebin.com/7HmXwzyt'):
+        for _id in ('7HmXwzyt', 'https://pastebin.com/7HmXwzyt'):
             # html method
             p = self.backend.get_paste(_id)
             self.backend.fillobj(p, ['title'])
             assert p.title == u'plop'
-            assert p.page_url == 'http://pastebin.com/7HmXwzyt'
+            assert p.page_url == 'https://pastebin.com/7HmXwzyt'
             assert p.contents == u'prout'
             assert p.public is True
             assert p._date.year == 2011
@@ -42,7 +42,7 @@ class PastebinTest(BackendTest):
             p = self.backend.get_paste(_id)
             self.backend.fillobj(p, ['contents'])
             assert p.title is NotLoaded
-            assert p.page_url == 'http://pastebin.com/7HmXwzyt'
+            assert p.page_url == 'https://pastebin.com/7HmXwzyt'
             assert p.contents == u'prout'
             assert p.public is NotLoaded
 
@@ -55,7 +55,7 @@ class PastebinTest(BackendTest):
         except LimitExceeded:
             raise SkipTest("Limit exceeded")
         assert p.id
-        assert not p.id.startswith('http://')
+        assert not p.id.startswith('https://')
         self.backend.fill_paste(p, ['title'])
         assert p.title == u'ouiboube'
         assert p.id in p.page_url
@@ -80,7 +80,7 @@ class PastebinTest(BackendTest):
         assert p2.public is NotLoaded
 
     def test_notfound(self):
-        for _id in ('weboooooooooooooooooooooooooob', 'http://pastebin.com/weboooooooooooooooooooooooooob'):
+        for _id in ('weboooooooooooooooooooooooooob', 'https://pastebin.com/weboooooooooooooooooooooooooob'):
             # html method
             p = self.backend.get_paste(_id)
             self.assertRaises(PasteNotFound, self.backend.fillobj, p, ['title'])
@@ -91,7 +91,7 @@ class PastebinTest(BackendTest):
 
     def test_checkurl(self):
         # call with an URL we can't handle with this backend
-        assert self.backend.get_paste('http://pastealacon.com/1') is None
+        assert self.backend.get_paste('http://paste.alacon.org/1') is None
 
     def test_can_post(self):
         assert self.backend.can_post(u'hello', public=None) > 0
