@@ -23,7 +23,7 @@ do
 				echo "$LOG" | awk -F ":::" '{print $1}' | git show --stdin
 			else
 				echo -e "\tModules: $MODULE"
-				echo "$LOG" | awk -F ":::" '{print "\t"$2}'
+				echo "$LOG" | awk -F ":::" '{print "\t"$2}' | sed "s/$MODULE: //" | sed "s/\[$MODULE\] //"
 				echo ""
 			fi
 		fi
