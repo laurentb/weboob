@@ -62,23 +62,23 @@ class Recipe(QFrame):
         if not empty(recipe.ingredients):
             txt = u''
             for ing in recipe.ingredients:
-                txt += '* %s\n' % ing
-            self.ui.ingredientsPlain.setPlainText('%s' % txt)
+                txt += u'* %s\n' % ing
+            self.ui.ingredientsPlain.setPlainText(u'%s' % txt)
         else:
             self.ui.ingredientsPlain.parent().hide()
         if not empty(recipe.author):
-            self.ui.authorLabel.setText('%s' % recipe.author)
+            self.ui.authorLabel.setText(u'%s' % recipe.author)
         else:
             self.ui.authorLabel.parent().hide()
         if not empty(recipe.instructions):
-            self.ui.instructionsPlain.setPlainText('%s' % recipe.instructions)
+            self.ui.instructionsPlain.setPlainText(u'%s' % recipe.instructions)
         else:
             self.ui.instructionsPlain.parent().hide()
         if not empty(recipe.comments):
             txt = u''
             for com in recipe.comments:
-                txt += '* %s\n' % com
-            self.ui.commentsPlain.setPlainText('%s' % txt)
+                txt += u'* %s\n' % com
+            self.ui.commentsPlain.setPlainText(u'%s' % txt)
         else:
             self.ui.commentsPlain.parent().hide()
 
@@ -93,8 +93,8 @@ class Recipe(QFrame):
 
     @Slot()
     def export(self):
-        fileDial = QFileDialog(self, 'Export "%s" recipe' %
-                               self.recipe.title, '%s.kreml' % self.recipe.title.replace('/', ','), 'Krecipe file (*.kreml);;all files (*)')
+        fileDial = QFileDialog(self, u'Export "%s" recipe' %
+                               self.recipe.title, u'%s.kreml' % self.recipe.title.replace('/', ','), 'Krecipe file (*.kreml);;all files (*)')
         fileDial.setAcceptMode(QFileDialog.AcceptSave)
         fileDial.setLabelText(QFileDialog.Accept, 'Export recipe')
         fileDial.setLabelText(QFileDialog.FileName, 'Recipe file name')
@@ -111,6 +111,6 @@ class Recipe(QFrame):
                 with codecs.open(dest, 'w', 'utf-8') as f:
                     f.write(data)
             except IOError as e:
-                print('Unable to write Krecipe file in "%s": %s' % (dest, e), file=self.stderr)
+                print(u'Unable to write Krecipe file in "%s": %s' % (dest, e), file=self.stderr)
                 return 1
             return
