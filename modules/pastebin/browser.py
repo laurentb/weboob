@@ -20,21 +20,20 @@
 
 import re
 
-from weboob.capabilities.paste import BasePaste, PasteNotFound
-from weboob.browser import LoginBrowser, need_login, URL
-from weboob.browser.pages import HTMLPage, RawPage
+from weboob.browser import URL, LoginBrowser, need_login
 from weboob.browser.elements import ItemElement, method
-from weboob.browser.filters.standard import Base, CleanText, DateTime, Env, Filter, FilterError, RawText
 from weboob.browser.filters.html import Attr
+from weboob.browser.filters.standard import Base, BrowserURL, CleanText, DateTime, Env, Field, Filter, FilterError, RawText
+from weboob.browser.pages import HTMLPage, RawPage
+from weboob.capabilities.paste import BasePaste, PasteNotFound
 from weboob.exceptions import BrowserHTTPNotFound, BrowserIncorrectPassword, BrowserUnavailable
 
 
 class PastebinPaste(BasePaste):
-    # TODO perhaps move this logic elsewhere, remove this and id2url from capability
-    # (page_url is required by pastoob)
-    @classmethod
-    def id2url(cls, _id):
-        return '%s%s' % (PastebinBrowser.BASEURL, _id)
+    # TODO default id2url logic may not be so useful no that we have `url` as a default attribute
+    @property
+    def page_url(self):
+        return self.url
 
 
 class BasePastebinPage(HTMLPage):
@@ -82,6 +81,7 @@ class PastePage(BasePastebinPage):
         obj__date = Base(
             Env('header'),
             DateTime(Attr('.//div[@class="paste_box_line2"]/span[1]', 'title')))
+        obj_url = BrowserURL('paste', id=Field('id'))
 
 
 class PostPage(BasePastebinPage):
@@ -150,7 +150,9 @@ class PastebinBrowser(LoginBrowser):
     def get_paste(self, url):
         m = self.paste.match(url)
         if m:
-            return PastebinPaste(m.groupdict()['id'])
+            paste = PastebinPaste(m.groupdict()['id'])
+            paste.url = self.paste.build(id=paste.id)
+            return paste
 
     def get_contents(self, _id):
         """
@@ -168,6 +170,7 @@ class PastebinBrowser(LoginBrowser):
         # We cannot call fill_paste because we often have a captcha
         # anti-spam page, and do not detect it.
         paste.id = self.page.params['id']
+        paste.url = self.paste.build(id=paste.id)
 
     def api_post_paste(self, paste, expiration=None):
         data = {'api_dev_key': self.api_key,
@@ -186,6 +189,7 @@ class PastebinBrowser(LoginBrowser):
         res = self.open(self.api.build(), data=data, data_encoding='utf-8').text
         self._validate_api_response(res)
         paste.id = self.paste.match(res).groupdict()['id']
+        paste.url = self.paste.build(id=paste.id)
 
     def api_login(self):
         # "The api_user_key does not expire."
