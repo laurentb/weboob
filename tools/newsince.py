@@ -22,7 +22,7 @@ def get_caps(module, config):
     try:
         return sorted(c for c in config[module]['capabilities'].split() if c != 'CapCollection')
     except KeyError:
-        return ['**** FILL ME ****']
+        return ['**** FILL ME **** (running weboob update could help)']
 
 os.chdir(os.path.join(os.path.dirname(__file__), os.path.pardir))
 modules_info = configparser.ConfigParser()
