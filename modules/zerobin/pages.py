@@ -42,6 +42,9 @@ class ReadPageZero(HTMLPage):
         if 'expire_date' in d:
             return datetime.fromtimestamp(d['expire_date'])
 
+    def has_paste(self):
+        return bool(CleanText('//div[@id="cipherdata"]')(self.doc))
+
 
 def fix_base64(s):
     pad = {
@@ -61,6 +64,9 @@ class ReadPage0(HTMLPage):
         # 0bin is supposed to use LZW but their js impl is such a piece of crap it doesn't compress anything
         # this is easier for us though hehe
         return b64decode(decr).decode('utf-8')
+
+    def has_paste(self):
+        return len(self.doc.xpath('//pre[@id="paste-content"]'))
 
 
 class WritePageZero(HTMLPage):

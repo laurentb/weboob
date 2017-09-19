@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.browser import PagesBrowser, URL
+from weboob.browser.exceptions import HTTPNotFound
 from weboob.capabilities.date import DateField
 from weboob.capabilities.paste import BasePaste
 
@@ -35,8 +36,8 @@ class ZeroPaste(BasePaste):
 class ZerobinBrowser(PagesBrowser):
     BASEURL = 'https://zerobin.net/'
 
-    read_page_zero = URL(r'https?://.*/\?(?P<id>[\w+-]+)$', ReadPageZero)
-    read_page_0 = URL(r'https?://.*/paste/(?P<id>[\w+-]+)$', ReadPage0)
+    read_page_zero = URL(r'/\?(?P<id>[\w+-]+)$', ReadPageZero)
+    read_page_0 = URL(r'/paste/(?P<id>[\w+-]+)$', ReadPage0)
     write_page_zero = URL('.*', WritePageZero)
     write_page_0 = URL('.*', WritePage0)
 
@@ -45,13 +46,34 @@ class ZerobinBrowser(PagesBrowser):
         self.BASEURL = baseurl
         self.opendiscussion = opendiscussion
 
-    def get_paste(self, url):
-        server_url, key = url.split('#')
-        self.location(server_url)
-        if not (self.read_page_zero.is_here() or self.read_page_0.is_here()):
-            return None
+    def _find_page(self, subid):
+        for page in (self.read_page_0, self.read_page_zero):
+            try:
+                page.go(id=subid)
+            except HTTPNotFound:
+                continue
+            if self.page.has_paste():
+                return self.url
+            else:
+                continue
 
-        ret = ZeroPaste(url)
+    def get_paste(self, id):
+        if id.startswith('http://') or id.startswith('https://'):
+            url = id
+            server_url, key = url.split('#')
+            id = url.rsplit('/', 1)[1]
+            self.location(server_url)
+            if not (self.read_page_zero.is_here() or self.read_page_0.is_here()):
+                return
+            elif not self.page.has_paste():
+                return
+        else:
+            subid, key = id.split('#')
+            url = self._find_page(subid)
+            if not url:
+                return
+
+        ret = ZeroPaste(id)
         ret.url = url
         ret.contents = self.page.decode_paste(key)
         ret.public = False

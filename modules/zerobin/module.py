@@ -68,8 +68,13 @@ class ZerobinModule(Module, CapPaste):
             return 0
         return self.browser.can_post(contents, max_age)
 
-    def get_paste(self, url):
-        return self.browser.get_paste(url)
+    def get_paste(self, id):
+        if '#' not in id:
+            return
+        elif id.startswith('http://') or id.startswith('https://'):
+            if not id.startswith(self.config['url'].get()):
+                return
+        return self.browser.get_paste(id)
 
     def new_paste(self, *args, **kwargs):
         return ZeroPaste(*args, **kwargs)
