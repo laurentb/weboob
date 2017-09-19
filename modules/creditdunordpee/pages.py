@@ -21,12 +21,11 @@ from __future__ import unicode_literals
 
 from io import BytesIO
 import re
-from decimal import Decimal
 
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard
 from weboob.browser.elements import ItemElement, TableElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Format, Regexp, Date, Env, TableCell, Field, Currency, Eval
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Format, Regexp, Date, Env, TableCell, Currency, Eval
 from weboob.browser.filters.html import CleanHTML
 from weboob.capabilities.bank import Account, Transaction, Investment
 from weboob.capabilities.base import NotAvailable
