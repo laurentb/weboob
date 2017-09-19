@@ -66,7 +66,12 @@ class ConsoleProgress(IProgress):
         self.app = app
 
     def progress(self, percent, message):
-        self.app.stdout.write('=== [%3.0f%%] %s\n' % (percent*100, message))
+        try:
+            quiet = self.app.options.quiet
+        except AttributeError:
+            quiet = False
+        if not quiet:
+            self.app.stdout.write('=== [%3.0f%%] %s\n' % (percent*100, message))
 
     def error(self, message):
         self.app.stderr.write('ERROR: %s\n' % message)
