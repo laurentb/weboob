@@ -150,9 +150,7 @@ class PastebinBrowser(LoginBrowser):
     def get_paste(self, url):
         m = self.paste.match(url)
         if m:
-            paste = PastebinPaste(m.groupdict()['id'])
-            paste.url = self.paste.build(id=paste.id)
-            return paste
+            return PastebinPaste(m.groupdict()['id'])
 
     def get_contents(self, _id):
         """

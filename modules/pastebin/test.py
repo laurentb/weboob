@@ -42,7 +42,7 @@ class PastebinTest(BackendTest):
             p = self.backend.get_paste(_id)
             self.backend.fillobj(p, ['contents'])
             assert p.title is NotLoaded
-            assert p.page_url == 'https://pastebin.com/7HmXwzyt'
+            assert p.page_url is None
             assert p.contents == u'prout'
             assert p.public is NotLoaded
 
