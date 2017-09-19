@@ -68,13 +68,14 @@ class HSBC(LoginBrowser):
     life_insurance_useless = URL(r'/cgi-bin/emcgi', LifeInsuranceUseless)
     unavailable = URL(r'/cgi-bin/emcgi', UnavailablePage)
     frame_page = URL(r'/cgi-bin/emcgi', FrameContainer)
-    other_page = URL(r'/cgi-bin/emcgi', OtherPage)
 
     # other site
     life_insurance_portal = URL(r'/cgi-bin/emcgi', LifeInsurancePortal)
     life_insurance_main = URL('https://assurances.hsbc.fr/fr/accueil/b2c/accueil.html\?pointEntree=PARTIEGENERIQUEB2C', LifeInsuranceMain)
     life_insurances = URL('https://assurances.hsbc.fr/navigation', LifeInsurancesPage)
 
+    # catch-all
+    other_page = URL(r'/cgi-bin/emcgi', OtherPage)
 
     def __init__(self, username, password, secret, *args, **kwargs):
         super(HSBC, self).__init__(username, password, *args, **kwargs)
