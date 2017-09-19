@@ -21,6 +21,8 @@
 from weboob.tools.test import BackendTest
 from weboob.capabilities.video import BaseVideo
 
+import requests
+
 
 class YoutubeTest(BackendTest):
     MODULE = 'youtube'
@@ -32,7 +34,7 @@ class YoutubeTest(BackendTest):
         self.backend.fillobj(v, ('url',))
         self.assertTrue(v.url and v.url.startswith('https://'), 'URL for video "%s" not found: %s' % (v.id, v.url))
         assert self.backend.get_video(v.shorturl)
-        self.backend.browser.openurl(v.url)
+        requests.get(v.url, stream=True)
 
     def test_latest(self):
         l = list(self.backend.iter_resources([BaseVideo], [u'latest']))
@@ -44,9 +46,9 @@ class YoutubeTest(BackendTest):
         assert len(v.url)
 
         try:
-            self.backend.browser.openurl(v.url)
+            requests.get(v.url, stream=True)
         except:
-            self.fail('can\'t open url')
+            self.fail("can't open url %s" % v.url)
 
     def test_weirdchars(self):
         v = self.backend.get_video('https://www.youtube.com/watch?v=BaW_jenozKc')

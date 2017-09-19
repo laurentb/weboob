@@ -68,7 +68,10 @@ class YoutubeModule(Module, CapVideo, CapCollection):
         Parse an entry returned by googleapi and return a Video object.
         """
         snippet = entry['snippet']
-        video = YoutubeVideo(to_unicode(entry['id']['videoId']))
+        id = entry['id']
+        if isinstance(id, dict):
+            id = id['videoId']
+        video = YoutubeVideo(to_unicode(id))
         video.title = to_unicode(snippet['title'].strip())
         # duration does not seem to be available with api
         video.thumbnail = Thumbnail(snippet['thumbnails']['default']['url'])
