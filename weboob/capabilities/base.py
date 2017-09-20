@@ -68,12 +68,10 @@ def find_object(mylist, error=None, **kwargs):
     kwargs.
     """
     for a in mylist:
-        found = True
         for key, value in kwargs.items():
             if getattr(a, key) != value:
-                found = False
                 break
-        if found:
+        else:
             return a
 
     if error is not None:
