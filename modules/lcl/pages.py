@@ -637,9 +637,9 @@ class AVPage(LoggedPage, HTMLPage):
                     return False
                 return True
 
-            obj__owner = CleanText('.//td[1]') & Regexp(pattern=r' ([^ ]+)$')
-            obj_label = Format(u'%s %s', CleanText('.//td/a'), obj__owner)
-            obj_balance = CleanDecimal('.//td[has-class("right")]', replace_dots=True)
+            obj__owner = CleanText('.//td[2]')
+            obj_label = Format(u'%s %s', CleanText('.//td/text()[following-sibling::br]'), obj__owner)
+            obj_balance = CleanDecimal('.//td[last()]', replace_dots=True)
             obj_type = Account.TYPE_LIFE_INSURANCE
             obj__link_id = None
             obj__market_link = None
