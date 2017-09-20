@@ -1,3 +1,1675 @@
+Weboob 1.3 (2017-09-20)
+
+	General
+	* Big step for python 3 full support (many patches to improve python3
+	  support (core is compatible, a number of modules are compatible))
+	* New QGalleroob application for CapImage and CapGallery
+	* New CapProfile capability (used in boobank for example)
+	* Don't check updates of modules automatically (new --auto-update option)
+	* Some code cleanups since python 2.6 is not supported
+	* New bibliothequesparis module (CapBook)
+	* New billetreduc module (CapCalendarEvent)
+	* New blogspot module (CapMessages)
+	* New bnppere module (CapBank)
+	* New btpbanque module (CapBank)
+	* New capeasi module (CapBank)
+	* New cices module (CapBank)
+	* New cityscoot module (CapDocument)
+	* New cmes module (CapBank)
+	* New cmmc module (CapBank, CapContact)
+	* New ensap module (CapDocument)
+	* New erehsbc module (CapBank)
+	* New esalia module (CapBank)
+	* New foncia module (CapHousing)
+	* New lameteoagricole module (CapWeather)
+	* New lampiris module (CapDocument)
+	* New larousse module (CapTranslate)
+	* New linebourse module (CapBank)
+	* New myfoncia module (CapDocument)
+	* New pixabay module (CapFile, CapImage)
+	* New pradoepargne module (CapBank)
+	* New ratp module (CapGauge)
+	* New tumblr module (CapGallery)
+	* New zerobin module (CapPaste)
+	* Deleted champslibres module
+	* Deleted citelis module
+	* Deleted ovs module
+
+	General: core
+	* Use https for module updates by default
+	* Real cleanup of modules folder in installation
+	* Force utf-8 for backends config file encoding
+	* API change: BrowserPasswordExpired exception now inherit from ActionNeeded
+	  (previously from BrowserIncorrectPassword )
+	* Print progress on stderr instead of stdout
+
+	Documentation
+	* Improved module guide
+
+	Browser
+	* Introduce weboob.browser.nss to replace OpenSSL by libnss
+	* Add magic_highlight to open a browser showing an el
+	* In debug, write html responses highlighting involved selectors when
+	  _highlight_el is set in backend config
+	* Enable expiration duration on state
+	* URL.open can take headers and methods, like URL.go
+	* Support '*' special char in DictElement
+	* Print session when debug is enabled
+	* Rework of AbstractBrowser build
+	* Support headers in stay_or_go method
+	* Normalize URL before opening
+	* Save content of response after headers, in case there is a crash during
+	  call of r.content
+
+	Browser: Filters
+	* Introduce filters.base, move or alias filters
+	* Add AbsoluteLink filter
+	* Add FormValue filter
+	* Add HasElement filter
+	* Add QueryValue filter
+	* CleanText(children=False) now reads all text nodes, not just the first one
+	* Allow for setting options on CleanHTML filter
+	* Fix Type filter when data has already the right data type
+	* Add debug() decorator to several filters
+
+	Browser: Pages
+	* Fix PartialHTMLPage in case of empty content
+	* Fix off-by-one error skipping last row on XLSPage
+
+	Old Browser
+	* Remove support for older mechanize versions
+
+	Tools: backend
+	* Set fields to NotAvailable instead of NotLoaded when a module does not
+	  fill it after fill request.
+	* New Module.get_proxy() method
+
+	Tools
+	* Remove weboob.tools.ordereddict since we now use python>=2.7
+	* Remove weboob.tools.compat.check_output since we now use python>=2.7
+	* Remove obsolete and unused weboob.tools.property
+	* New ValueDate class
+	* If a Value is required, it must be set to be valid (in configuration)
+	* Value's regexp must now match until end of string
+
+	Tools: pdf
+	* get_pdf_rows now handles unsorted table lines
+	* Support LTCurve objects and output debug images
+	* Open method new read as bytes (windows support)
+
+	Tools: media_player
+	* Use requests instead of urllib2
+
+	Capabilities
+	* Replace some Field objects by more specialized types (IntField,
+	  BoolField, etc)
+	* DeltaField now accepts int and long for seconds
+	* Copy() of BaseObject now copies fields
+
+	CapBank
+	* New steps/API to manage transfer (see do_add_recipient, new_recipient
+	  and add_recipient)
+	* New CapBankTransferAddRecipient to filter out module without relevant
+	  methods
+	* Use OrderedDict for currencies
+	* Add better error codes for TransferError exception
+	* Add Pocket class
+	* Add Loan class to have more detailed info on loans (not printed today with boobank, only avaiable with weboob API)
+	* New code_type field for Investment
+	* Add basic tests for banking modules
+	* Add sorted_transactions helper
+	* New ISIN code checker
+
+	CapHousing
+	* New 'rooms' and 'bedrooms' and 'utilities' fields for Housing objects
+
+	CapVideo
+	* Introduce video.ytdl which uses youtube-dl
+
+	Applications
+	* Support --nss and 'use_nss' in config to replace OpenSSL by NSS
+	* Allow user to use '~' when picking log file name
+	* Honor quiet option for progress messages
+
+	Applications: Qt
+	* Add ResultModel for viewing objects hierarchies and FilterTypeMode
+	* Some code cleanups/improvements
+	* Quit faster by aborting running weboob backend calls
+	* Limit results count in ResultsModel
+	* Replace urllib.urlopen with requests.get
+	* Do not keep references to main windows so that they can be garbage-collected
+
+	Applications: boobank
+	* Load config at startup
+	* New error messages for TransferError childrens
+	* Improve OFX formatter
+
+	Applications: boobill
+	* Reduce number of requests run by download command
+	* Add optional PDF conversion on download
+
+	Applications: boobcoming
+	* Report CANCELLED status
+
+	Applications: boobmsg
+	* Add a few fillobj calls and export_thread support using numbers
+
+	Applications: boobooks
+	* Add a new "rented" command
+
+	Applications: cookbook
+	* Fix unicode comments display in python2
+
+	Applications: qcookboob
+	* Fix unicode issues
+	* Use ID as export filename default
+
+	Applications: radioob
+	* Fix playlist decoding
+
+	Applications: videoob
+	* Display xterm-256 color thumbnail
+	* Decode utf-8 lines
+
+	Formatters: csv
+	* Use to_unicode() to be sure it does not fail
+	* Fix unicode output in python2
+
+	Modules: 750g
+	* fix recipe parsing because of website update
+
+	Modules: adecco
+	* fix parsing job location
+	* fix mode site changed
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: afer
+	* fix history parsing and transactions date
+	* add certificate
+
+	Modules: agendaculturel
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: agendadulibre
+	* fix french region choice and use https
+
+	Modules: allocine
+	* fix get_movie_release and pep8
+	* bump to browser2
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: allrecipes
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: amazon
+	* don't crash anymore on broken links
+	* Patch Amazon module
+	* Bug fix in payment list (proper)
+	* fix order not found crash
+	* retry on TooManyRedirects error
+	* fixed redirect loop error
+	* use xpath "$vars" in a few modules
+
+	Modules: amazonstorecard
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: ameli
+	* detect more wrong password + improve login state management
+	* fixing wrong regexp
+	* Use weboob.tools.compat instead of urllib/urlparse
+	* fix login validation URL
+	* remove some useless ":443" in URLs since weboob normalizes them
+
+	Modules: amelipro
+	* Use weboob.tools.compat instead of urllib/urlparse
+	* remove some useless ":443" in URLs since weboob normalizes them
+
+	Modules: americanexpress
+	* use url field instead of _link for Accounts
+	* parse some other types of accounts
+	* sort each transaction page to avoid sorting the whole list
+	* set rdate to date
+	* handle transactions as deferred
+	* coding style
+	* fix incorrect date (like 13th month)
+	* fixing some accounts
+	* fixing xpath on accounts2
+	* skip some canceled cards
+	* port to python3
+	* fixing history and date on deferred
+	* detect ActionNeeded
+	* handle the new js site along with old site
+	* add another fallback for fetching end_of_period
+
+	Modules: amundi
+	* detect NoAccountsException
+
+	Modules: arte
+	* do not crash if there is no video in creativ frame + improve test to handle this case
+	* fix module / handle date not available in arte cinema json
+	* do not handle arte-cinema program submenu
+	* fix default 'quality' value
+	* fix search and port to Python3
+	* base url changed
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: attilasub
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: audioaddict
+	* fix Frescaradio + set a default test config in case no one exists
+	* bump to browser2 / import unicode_literals
+	* remove frescaradio / add classicalradio / There are No public stream available anymore (www.radiotunes.com/founder-letter)
+	* fix type in tests
+
+	Modules: aum
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: axabanque
+	* avoid "is" comparison for strings
+	* the history url is not fixed
+	* axabanque : adding new browser to handle wealth part
+	* fix: handle perp on wealth part
+	* fix:: handle bank and wealth part at same time
+	* fix: troubles on some accounts / ActionNeeded
+	* when accounts have no detailed investments, just return empty
+	* use io.BytesIO where deprecated StringIO module was used for bytes
+	* investment uses dot decimals and date can be missing
+	* do a get request to finish login
+	* fixing account type with PEA
+	* investments page changed
+	* portfolio_share uses comma separator
+	* Fix no account and get_form warning
+	* fill the diff_percent instead of diff for life insurances
+	* avoid relogin after visiting an erroneous wealth page
+	* fix url for post
+	* Fix recuperation value of invest
+	* Fix open for personnal loan and label xpath
+	* add isin_code to investments, add history for life insurance accounts
+	* handle life insurance history this way only on main website
+	* fixing navigation to get rights investments/history
+	* deferred card transactions are now flagged as coming
+	* improve pagination code
+	* sometimes the pagination doesn't work at all
+	* iter_coming is not implemented for wealth site
+	* basic port to python3
+	* pagination of transaction history is broken
+
+	Modules: banqueaccord
+	* remove dummy test.py files as they are false negatives for weboob_lint
+	* use io.BytesIO where deprecated StringIO module was used for bytes
+	* html had 2 elements with same id
+	* fix exception raised in case of wrong password length
+	* fix raise BrowserIncorrectpassword
+	* adding missing account type for several banks
+
+	Modules: banquepopulaire
+	* don't update with an empty token
+	* handle new natixis life insurance website
+	* fix iter_investement vdate on natixis json
+	* set date for investment history and label
+	* fix natixis json with missing date
+	* some years do not exist as pdf, fallback on json
+	* some invest history just have no label
+	* don't raise when natixis site is broken
+	* retry the backend method in case of unexpected logout
+	* minor improvements on retry decorator
+	* return investment history in reverse chronological order
+	* add another url for natixis error pages
+	* fetch quantity of history invest
+	* skip transactions without date on natixis
+	* handling empty page
+	* adding advisor
+	* fix 500 errors on natixis website
+	* adding entry to match some loans
+	* cleaner handling of website crash
+	* detection of another pattern for error on page
+	* fix saving accounts with investments
+	* Raise BrowserUnvalaible when site does not work
+	* use now linebourse module to handle more investments
+	* remove liquidity + fetch balance with invests
+	* [banquepop] natixis website might be broken
+	* fix list command when investments not available
+	* fix BrowserUnavailable.
+	* [banquechaix/banquepopulaire] replace a website choice
+	* modules: fix AbstractBrowser use
+	* login changed
+	* basic port to python3
+	* skip natixis accounts if website is broken
+	* misc improvements
+	* CardsPage changed a little
+	* new natixis page
+	* no coming on invest accounts
+	* handle when card page has no cards
+	* Add alternative to get card accounts currency
+	* rewrite natixis pdf parsing
+	* skip investment when account is unavailable
+
+	Modules: barclays
+	* support the revolving credit url
+	* fix accounts balance parsing
+	* fix rebuild data request when get iban.
+	* Handle new website, add it to py3 compatible modules list
+	* misc improvements
+	* don't try to access loan accounts
+	* fix parsing when there are 0 transactions
+
+	Modules: bforbank
+	* remove dummy test.py files as they are false negatives for weboob_lint
+	* skip history and invest on not available market accounts
+	* handle when spirica is broken
+	* use io.BytesIO where deprecated StringIO module was used for bytes
+	* handle logout when opening a spirica page
+	* fetch deferred card transactions
+	* fixing account type with PEA
+	* handle transactions rdate
+	* handle another login url
+	* [ing/bforbank] use now ValueDate
+	* adapt ValueDate formats
+	* password can only contain digits
+	* deferred debit card are now a separate account
+	* fetch new coming page
+	* recognize withdrawal transactions
+	* pyflakes in bforbank
+	* handle multiple immediates card on an account
+	* don't generate card account if all cards are canceled
+	* changes on deferred card summary transactions handling
+	* skip not yet available cards
+	* use url field instead of _link for Accounts in a few modules
+	* [banquepopulaire][bforbank][bp] deinit sub-browsers
+	* sometimes there are 2 "synthese-encours"
+	* handle currency on deferred cards
+	* change assertion to match multiple cards with 1 deferred
+	* parse when multiple deferred cards one same checking account
+	* modules: fix AbstractBrowser use
+	* port to python3
+	* add another login url
+	* add another life insurance url
+	* use xpath "$vars" in a few modules
+	* Get transactions of the day
+	* remove some useless ":443" in URLs since weboob normalizes them
+	* do "get today operations" only for checking accounts
+	* add another url for errors on spirica login
+
+	Modules: blablacar
+	* fix module website changed
+	* fix departure time parsing
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: bnporc
+	* skip recipients without valid iban
+	* fix bnporc bullshit
+	* fetch waiting to be validated recipients
+	* add_recipient
+	* adding CapProfile to bnporc ent
+	* fix empty recipient currency
+	* use io.BytesIO where deprecated StringIO module was used for bytes
+	* change exception for "1001" json code on login page
+	* fixing wording for bnp enterprise
+	* fix crash on not caught wrongpass
+	* fixing account type with PEA
+	* fix crash after password renewal
+	* reject expired password if we won't be able to restore it
+	* raise expired password when we can't apply temp password
+	* use new TransferError codes in a few modules
+	* use new TransferError subclasses in modules
+	* adding perp type
+	* handle pea account type
+	* adding an account type
+	* bnporc/entreprise: if label contains a date, use it for rdate
+	* bnporc/entreprise: don't set coming transactions as deferred
+	* ignore "sans suite" life insurance transactions
+	* remove deprecated 'ppold' website
+	* virtual keyboard has changed
+	* fixing coming amount for enterprise accounts
+	* update modules to use new CapBankTransferAddRecipient
+	* don't get investments on liquidity accounts
+	* added card account for entreprise site
+	* raise NotImplementedError when profile is not available
+	* fetch balance from market page and fix diff
+	* entreprise:] fixing wrong amounts and date on cards
+	* corrected useless pipe on password regex
+	* remove enter/exit browser1 leftover
+	* Add currency to card account
+	* advisor page may be missing
+	* Handle cards transactions as deferred
+	* hellobank: raise ActionNeeded when bnporc pp should be used instead
+	* bnporc entreprise: no more deferred_card transactions on checking account
+	* entreprise: sometimes card date format has dots
+	* add investments on PERP
+
+	Modules: boursorama
+	* skip external cards (amex cards here)
+	* adding CapProfile to boursorama
+	* use io.BytesIO where deprecated StringIO module was used for bytes
+	* recognize another type of transfer
+	* correctly type PEA account
+	* card accounts, coming, card transactions
+	* rdate is parsed by Raw and add new transaction pattern
+	* fix cards number
+	* fix date of card transactions
+	* fix some cards where there is no info
+	* get_history must return an iterable, not None
+	* fix card number regexp
+	* do not yield not activated cards
+	* on card accounts, transactions should be TYPE_DEFERRED_CARD
+	* retry to login when virtkeyboard process fails
+	* stop crashing on obvious wrongpass
+	* fix crash when job_start_date is unavailable
+	* fetch pro accounts
+	* handle other deferred cards
+	* handle transfers
+	* execute_transfer returns the passed Transfer
+	* fixing card_summary on main account
+	* fix coming and date of deferred_card trs
+	* use new TransferError codes in a few modules
+	* handle invests on PEA
+	* use new TransferError subclasses in modules
+	* adding advisor : hotline
+	* implement adding recipients
+	* remove useless config field
+	* fix date of history of deffered_card
+	* recognize more loan accounts + clean obj_type
+	* fixing rdate on deferred cb
+	* fix regexp on old versions
+	* definitly fix rdate on deferred card
+	* fix regexp on buggy python versions
+	* use url field instead of _link for Accounts in a few modules
+	* parse recipients bank_name
+	* field webid with iban on new_recipient
+	* fix recipient label regex pattern
+	* update modules to use new CapBankTransferAddRecipient
+	* fix label of external recipient (corner case)
+	* improve condition to skip more summary in coming
+	* create url object for PEP saving
+	* fetch balance on pea and li from invs page
+	* fix account type
+	* create liquidity investment
+	* load state only if double auth or add recipient
+	* fix regexp to match summary
+	* verify some kind of status page
+	* search for danger instead of warning to raise Unavailable
+	* fix wrongpass cornercase
+	* the MarketPage history may have a different format
+	* fix accounts parsing + typing
+	* fix id transactions not being parsed
+	* fix ord accounts typing
+	* transaction id can be missing for coming transactions
+	* sometimes data-deffered is just missing, drop the assert
+	* fixed prelevement transaction amount being 0
+	* change typing for some accounts
+	* port to python3
+	* now handle alpha password
+	* handle alnum instead of digit + alpha
+	* TableElement takes 2 a nodes and messes up label
+
+	Modules: bouygues
+	* remove dummy test.py files as they are false negatives for weboob_lint
+	* Fix Bouygues module bills fetching for Internet clients
+	* handle an insecure HTTP page to avoid BrowserHTTPSDowngrade
+	* fix documents list
+	* Fix ref can be not found, so add a condition before return the regex exp
+	* fix wrongpass not detected sometime on backend or blackbox
+	* Corrected subscription id duplication
+	* Check if activation date is null
+	* use xpath "$vars" in a few modules
+
+	Modules: bp
+	* sometimes, sending account id of transfer not present in recap
+	* same id problem on recipient recap
+	* new url for CheckPassword and use location instead of open
+	* fix some internal recipients label
+	* handle another change password url
+	* use io.BytesIO instead of StringIO.StringIO
+	* use io.BytesIO where deprecated StringIO module was used for bytes
+	* pro, fix corrupted csv
+	* set StatesMixin duration to 15 minutes
+	* use new TransferError codes in a few modules
+	* use new TransferError subclasses in modules
+	* adding isin code on cachemire contract
+	* handle one more deferred card url
+	* fix handling pages with right classes
+	* handle new par website
+	* add cb deferred history and coming amount
+	* get deferred card history, fix error when account has no balance
+	* don't get shitty accounts on shitty page
+	* account page is on error
+	* fix empty wording on some transactions
+	* fix coding style
+	* fix detecting no accounts cases, and remove dead code
+	* correctly handle multiple cards
+	* do not consider hours in transaction labels
+	* do not hardcode currency
+	* ignore accounts without amount
+	* fix cards crash when website is unavailable, and fix positive loans
+	* fix crash on accounts without cards
+	* really fix positive loans and remove useless code
+	* now loan's history is not recovered
+	* state duration of 5 minutes is enough
+	* use exec_date field in transfer
+	* fix no more history on pro website
+	* avoid pro code in par browser
+	* use linebourse browser for handling PEA accounts
+	* fix date parsing for solesio life insurance
+	* fix history and investment for cachemire and gmo life insurances
+	* fixed browser unvailable error when getting deffered card account history
+	* fix multiple recipients with same iban, and label parsing
+	* use url field instead of _link for Accounts in a few modules
+	* fix when transaction doesn't have investments attached
+	* fix table with multiple invests on multiple spaces
+	* more history for checking, savings and market accounts, fix wrong label for transactions
+	* Bug #4020 - change url image
+	* fix wrong iter_history method for non typed accounts
+	* fixing login xpath and pattern
+	* set_variables only needs a url, not a page
+	* matching account types by label
+	* fix crash during fetch of cards history (closes #4019)
+	* [banquepopulaire][bforbank]deinit sub-browsers
+	* [bp][pro] raise BrowserUnavailable on history page
+	* corrected useless pipe on password regex
+	* get history from html page and not from csv file.
+	* [bp pro] enhance transaction parsing
+	* [bp pro] fix parsing of rdate
+	* fix bad regex URL.
+	* detect another BrowserUnavailable at login
+	* modules: fix AbstractBrowser use
+	* wip add_recipient
+	* [bp transfer] add urls
+	* [bp pro] pagination on history
+	* port to python3
+	* Use weboob.tools.compat instead of urllib/urlparse
+	* [bp pro] handle more pro_history pagination pages
+	* wip handle mandate space
+	* handle mandate space
+	* handle more informations for loans
+	* handle one more loan detail's url
+	* add url for loan
+	* support more investment account types
+	* support SEPA transfers
+	* Convert byte buffer to unicode string (py3 compat)
+
+	Modules: bred
+	* fix json when they put "null" elements
+	* disable pagination since the json is FUBAR
+	* pyflakes
+	* fix id not unique for some accounts
+	* raise ActionNeeded when 2FA is enabled
+	* adding loans accounts
+	* port dispobank to browser2 the easy way
+	* put back pagination, but limit pagination number
+	* detect coming transactions
+	* fix dispobank certificate + fix history
+	* remove useless whitespaces
+	* increase history size limit
+
+	Modules: btmon
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: caels
+	* remove dummy test.py files as they are false negatives for weboob_lint
+	* modules: fix AbstractBrowser use
+
+	Modules: caissedepargne
+	* fix date format
+	* fix balance for life insurance accounts
+	* Fixing absolut amount for credit
+	* adding CapProfile to caissedepargne
+	* fix history for cenet pages since search is too stupid
+	* add regex to type CB
+	* fixing account type with PEA
+	* cache accounts list
+	* transfer feature
+	* fix mistake when changing account type
+	* handling revolving credit amout
+	* fix iter_recipients internal accounts matching
+	* skip itering recipients on double auth accounts
+	* fix recipients iban regexp
+	* fix transfer not allowed on iter_recipients
+	* fixing palatine account type
+	* fixing home loan
+	* refix regexp to find iban on external recipients
+	* use a more often present cookie to find name
+	* fixing cb nature was not handle for palatine
+	* fix profile and recipient
+	* improve recipient parsing
+	* try to come back from bourse website
+	* fix crash on missing link
+	* fix wrong loan amount
+	* use new TransferError codes in a few modules
+	* use new TransferError subclasses in modules
+	* recognize more account types
+	* fix navigation to transfer page
+	* fix crash when transfer are not available
+	* handle loans on old website
+	* [palatine] work around broken fcking website
+	* missing title yield None, not empty string
+	* add recipients
+	* ignore cards if site returns an error
+	* fix loan account parsing.
+	* don't list transfer recipients for loan accounts
+	* handle corner case of recipient parsing
+	* don't raise TransferBankError in iter_recipients
+	* catch another transfer error
+	* check password is not empty...
+	* update modules to use new CapBankTransferAddRecipient
+	* do not try to go into the loans space if we do not have one, add some account types
+	* fix 500 error on iter_recipients try, wrong detection of transfer space link, and some coding style
+	* fix iter_recipients when user has a dash char
+	* add unrecovered corrency, prevent some problems
+	* handle more credits
+	* fix when page is None.
+	* use vk to fix login
+	* cnet now returns decimal values
+	* go to home page between multiple PEA accounts
+	* separate CENET website to a dedicated browser
+	* straightforward port to py2/py3
+	* python3 fix (s/iteritems/items)
+	* use xpath "$vars" in a few modules
+	* use sorted_transactions
+	* fix detection of recipient IBAN during transfer (zd:2595)
+	* fix detection of recipient iban
+	* Get deferred card transactions from card summary detail
+	* Increased max history to 40 pages
+	* increase again history limit
+
+	Modules: canalplus
+	* canalplus is now on browser2
+	* remove deprecated and useless stuff + fix contextmanager use
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: cappedtv
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: cci
+	* use xpath "$vars" in a few modules
+
+	Modules: chronopost
+	* remove dummy test.py files as they are false negatives for weboob_lint
+
+	Modules: cic
+	* login url changed
+	* update modules to use new CapBankTransferAddRecipient
+	* modules: fix AbstractBrowser use
+
+	Modules: cmb
+	* adding advisor for cmb/cmso/cmmc
+	* modules: fix AbstractBrowser use
+	* clean code with AbstractModule
+	* adding CapBak/CapContact capabilities
+
+	Modules: cmso
+	* use more accurate account id for life insurance accounts
+	* improve clarity for some list comprehensions
+	* Fix cmso par: wrong types for deferred cards
+	* Fix cmso pro: wrong xpath
+	* add rdate for deferred card
+	* adding new accounts type
+	* some life insurance have no invests
+	* ignore errors when logging out
+	* [cmb/cmso/cmmc] adding account types
+	* [cmso par] livret vie bla bla wrongly typed life insurancehhh
+	* recognize more life insurance accounts
+	* don't return accounts which seem duplicate
+	* [cmso par] skip 0 amount loan transactions
+	* [cmso/cmb/cmmc] fix positive balances on loan accounts
+	* adding advisor for cmb/cmso/cmmc
+	* [cmb/cmso/cmmc] fixing coming and deferred date
+	* fix itering on loans
+	* [cmb] Detect BrowserUnavailable on MarketPage
+	* change browserunvalaible to empty iter for investment
+	* coding style
+	* [cmso/pro] disambiguate market account ids
+	* [cmso/cmb/cmmc] fixing id on loan accounts
+	* fixed bad request for market account history
+	* cleaning cmso login
+	* incorrect password may also return 401 http code
+	* [cmso/cmmc/cmb] fixing id on loan accounts
+	* [cmso/cmmc/cmb] fixing deferred date
+	* do not crash on deinit() if we haven't been logged
+	* [cmmc] hope to fix duplicates transactions
+	* [cmb/cmmb] clean code with AbstractModule
+	* [cmb/cmso/cmmc] fixing random ClientError, ServerError
+	* fix relogging when currently on another domain
+
+	Modules: colissimo
+	* fixed date parsing
+	* New website
+
+	Modules: cpasbien
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: cragr
+	* raise ActionNeeded on trading password creation
+	* adding advisor to cragr
+	* port to browser2 the quick way
+	* fix debug leftover
+	* fix shared URL instance modification
+	* fix browser1 leftover
+	* fix cragr broken html
+	* fix method name after browser2 switch
+	* escape error message during authentication
+	* use ActionNeeded exception when it is appropriated
+	* implement transfers
+	* fix TransferPage url to avoid the pattern match other pages
+	* fix Transfer object after execute_transfer
+	* fixing cragr : advisor on cmds
+	* use TYPE_CARD_SUMMARY and TYPE_DEFERRED_CARD transaction types
+	* adding CapProfile to cragr
+	* use bytes since content is bytes
+	* Fix BGPI go_to don't work without return, change DAV PEA type
+	* adding xpath to get card's balance
+	* fix mistake on card balance xpath
+	* fixing account type with PEA
+	* fix rdate, there are not always sorted
+	* keep usage of LinearDateGuesser for other than cards accounts
+	* fix cragr dateguesser for deferred cards
+	* catch more broken html to replace
+	* improve domain management
+	* use new TransferError codes in a few modules
+	* use new TransferError subclasses in modules
+	* match another card_summary type
+	* for card accounts, separate history from coming
+	* fix advisor fetching navigation
+	* handle perimeter having "&/et" sometimes
+	* adding an account type
+	* add autoencoding and fix market accounts
+	* implement adding new transfer recipients
+	* use url field instead of _link for Accounts in a few modules
+	* update modules to use new CapBankTransferAddRecipient
+	* more wtf on cards being debitted 37 weeks later!
+	* Fixing using number instead of webid
+	* some accounts need a form submit to go to history
+	* "Remise carte" is not a TYPE_CARD_SUMMARY Transaction
+	* Fix deferred cards
+	* return list of deferred cards or url
+	* fix deferred debit cards when it's a link, not a form
+	* detect browser unavailable page when account uses a form
+	* set card balance at 0 if there is no coming
+	* Set balance to 0 if there is no coming transactions
+	* get account base on acc.balance
+	* handle some BGIPage investments
+	* straightforward py2/py3 port
+	* use xpath "$vars" in a few modules
+	* use BankStandardTest
+	* split get_cards_or_card
+	* added BASEURL initialisation in init
+	* sometimes site returns recipients iban not in uppercase
+	* raise BrowserUnavailable
+	* handle unavalaible browser a better way
+	* handle more informations for loans. duration is now given in months
+	* remove some useless ":443" in URLs since weboob normalizes them
+	* handle closed loans that stay on the accounts list
+	* add default value for Loan start/end date
+	* sometimes there's no link for the loan
+
+	Modules: creditcooperatif
+	* port to browser2 the easy way
+	* pro: fix for multiple cards on same account
+	* don't modify raw label
+	* detect PEL accounts
+	* first implementation of transfers for perso accounts
+	* implement transfers to external recipients
+	* fix debug leftover
+	* fix transfer exec_date parsing
+	* use xpath "$vars" in a few modules
+	* skip coming transactions without a date
+	* use another page for coming transactions
+	* quick port to python3
+
+	Modules: creditdunord
+	* adding CapProfile to creditdunord
+	* fix when no accounts + improve js search code
+	* fixing account type with PEA
+	* fix accounts parsing
+	* fix investments date parsing
+	* Add support for banque laydernier
+	* catch no iban error, change some account id
+	* some transactions have no dates ...
+	* fix account not well typed
+	* Changed json loads to literal eval to prevent useless replaces
+	* Use weboob.tools.compat instead of urllib/urlparse
+	* correctly type checking account
+	* correctly sort transactions
+	* port to python3
+	* fix py3 compat
+
+	Modules: creditdunordpee
+	* remove dummy test.py files as they are false negatives for weboob_lint
+	* fix homepage regexp and virtualkeyboard
+	* use io.BytesIO where deprecated StringIO module was used for bytes
+	* fix "-" amount
+	* iter_accounts now returns an iterable
+	* fix warning
+
+	Modules: creditmutuel
+	* fixing creditmutuel/cic : remove deleted from summary manually summed
+	* remove dirt from label
+	* adding CapProfile to cm/cic
+	* call super-classes on_load
+	* fix some missing @need_login
+	* fix advisor fetch
+	* [cm/cic] fixing account type with PEA
+	* remove dup URL
+	* fix investement on PEA accounts + NotImplemented for history
+	* catch another error message during transfer
+	* [creditmut] add recipient feature
+	* [cm/cic] adding account type
+	* remove useless commented code
+	* use new TransferError codes in a few modules
+	* use new TransferError subclasses in modules
+	* catch ActionNeeded on add recipient
+	* [creditmut] change deferred card webid to be uniq
+	* [creditmut & cic] fix bug following change of account webid
+	* handle empty key error
+	* [cm/cic] fix accounts type
+	* if a transaction commission is present, exclude it from amount
+	* [creditmut] handle new transfer bank error
+	* P.E.A accounts has now the good type
+	* [cic] better transfer errors handling
+	* [cic/cm] fix problems on deferred cards and coming
+	* update modules to use new CapBankTransferAddRecipient
+	* [credimut] fix consecutive new recipients
+	* [creditmut] fix check on recap transfer
+	* [creditmut] fix fetching iban
+	* [creditmut] preventively use has-class instead of @class=
+	* [cm/cic] create new account to keep consistency
+	* [cm/cic] match another loan account
+	* remove regex on login
+	* [cm/cic] adding word to match order
+	* Use weboob.tools.compat instead of urllib/urlparse
+	* use xpath "$vars" in a few modules
+	* new URL for OperationsPage + call sorted_transactions
+	* handle more informations for loans
+	* stop taking closed loans into account
+	* fix unhandled page for loans condition
+	* [cic/creditmutuel] fixed some pages not being matched
+	* CMCIC: fix catching URI for life insurances
+	* CMCIC another fix for uri for life assurances
+	* CMCIC better xpath for banqueprivee subbank for accounts items
+	* fix validation message when the transfer is registered
+	* CMCIC same xpath for account items for all subbanks
+	* [credit mut] add_recipient, might have multiples hashes for same key
+
+	Modules: cuisineaz
+	* port to python3
+
+	Modules: dailymotion
+	* set a default test config in case no-one exists
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: delubac
+	* fix parsing when there are several accounts
+	* detected terminated account
+	* Corrected not accessible account and balance unavailable
+	* fix unaccessible transactions
+	* Improve iban recuperation
+	* Skip unreachable accounts
+	* some changes to be compatible with his childrens
+	* port to python3
+
+	Modules: dlfp
+	* quick-and-dirty port to Browser2
+	* fix browser1 leftovers and port to python3
+
+	Modules: ebonics
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: edf
+	* remove dummy test.py files as they are false negatives for weboob_lint
+	* fetch 3 years of documents instead of fixed begining date
+	* [edf pro] catch ActionNeeded (CGU validation)
+	* fixing parsing doc
+	* fix edf pro: bad detection of wrongpass and dl method change
+	* Fix edfpro: crashes when no bills found, and make subscription labels clean
+	* fix new page for bills and new method for download
+	* fix multiple subscriptions documents, fix download doc (same case), and fix invalid price
+	* [edf pro] fix non-static id for subscriptions, and clean some code
+	* fix multiple persons for multiple subs
+	* [EDF] Factures correction
+	* pyflakes
+	* Fix PAR documents & PRO bills ID
+	* [edf-par] fix disconnect on download bills
+	* [edf - par] Corrected is_logged that was always true
+
+	Modules: ehentai
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: entreparticuliers
+	* fix land rent type
+	* correctly handle RENT queries
+	* Update Entreparticuliers module
+	* Partial fix for entreparticuliers single housing fetching
+	* Use a dedicated field for utilities status in housing capability
+	* Fix some discrepancies between list and infos in entreparticuliers module
+	* fix pyflakes
+	* fix area detection when number of rooms is unknow + fix description parsing + fis nbroom parsing
+	* Fix a bug due to invalid XML encoding in entreparticuliers module
+	* fix parsing crappy adverts
+	* fix module website got updated
+
+	Modules: europarl
+	* Clean up imports
+
+	Modules: explorimmo
+	* fix module: handle case price in not in search result
+	* fix error parsing prices
+	* handle empty search cities result
+	* Update explorimmo module
+	* Remove useless imports in explorimmo module
+	* Update explorimmo single housing fetching
+	* Use a dedicated field for utilities status in housing capability
+	* Correctly fetch the area in Explorimmo listing when there is a comma
+	* Fix according to comment by @Bezleputh
+	* Fix explorimmo agency in details
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: feedly
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: fortuneo
+	* fixing account type with PEA
+	* fix broken html
+	* fetch PEA balance from account page because it's more up to date
+	* handle another actionNeeded
+	* do not use 'with' on browser
+	* use url field instead of _link for Accounts
+	* changed way accounts links are retrieved
+	* added history for PEA and life insurrances accounts
+	* Form not found correction
+	* ignore auto assurance account
+	* added action needed exception for recently created profiles
+	* [Fortuneo] Handling of liquidities because investments are very volatiles, investments are cached during list command in order to keep consistancy between list' balances and investments sums
+	* added action needed exception when profile require it
+	* added another case of action needed on the site
+	* fixing account type
+	* added BrowserUnvailable exception for unreachable accounts
+	* fix crash on loans
+	* port to python3
+	* Now full handle loans
+	* detect BrowserUnavailable at login
+	* another ActionNeede
+	* Delete liquidity for stock account
+	* now get sub transactions from main one
+
+	Modules: francetelevisions
+	* site changed
+	* sometimes there is no date or sublabel
+	* handle ls command + fix test
+
+	Modules: freemobile
+	* Fix for https://symlink.me/issues/3664
+	* Add CapMessagesPost to self using Freemobile SMS API
+	* Should now support multilines account with CapMessage
+	* Freemobile CapMessagePost should support multi-line accounts
+	* Fix Freemobile HomePage not having correct logged property
+	* use io.BytesIO where deprecated StringIO module was used for bytes
+	* ended subs make crash when renewdate try to get recovered
+	* use xpath "$vars" in a few modules
+
+	Modules: funmooc
+	* fix login and pages
+	* port to python3
+
+	Modules: ganassurances
+	* failed login can redirect to groupama
+	* added virtual keyboard support
+	* some life assurance accounts weren't returned
+	* [ganssurances] diasble comings for life insurances accounts
+	* keep get_coming as an iterator
+	* fix history for different life insurances
+	* Skip false account and fix columns use
+	* using is instead of == to compare with None
+	* add investments support
+	* now recover currency
+	* add arbitration and test existence of columns
+	* parse another ISIN pattern
+
+	Modules: gazelle
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: gdcvault
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: genericnewspaper
+	* modules: fix AbstractBrowser use
+
+	Modules: github
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: googletranslate
+	* fix translation decoding
+
+	Modules: groupamaes
+	* amount column label has changed
+	* amount may be not available
+	* detect another negative amount transaction
+	* fix duplicated coming operations
+	* accept more than 8 digits in login
+
+	Modules: guerrillamail
+	* port to browser2
+	* remove unused import
+
+	Modules: happn
+	* add parameters 'position' and 'distance'
+	* little improvements
+	* fix changes in API
+	* fix set of position
+
+	Modules: hsbc
+	* login form has changed
+	* recognize an additional type of life insurance account
+	* raise BrowserIncorrectPassword when password is too short
+	* recognize an additional pattern for life insurance
+	* fixing account type and loans
+	* sometimes life insurance label is "elysee" instead of "elysees"
+	* handle life insurance history and investments
+	* fix transactions with gross amount, fix invest name (sometime there is some letters in id)
+	* set date instead of vdate in life insurance history
+	* life insurance website is randomly unavailable
+	* fix mistake
+	* fix mistake n°2
+	* some life insurance are not on side website
+	* when app is gone, relogin is needed
+	* fix crash when life insurance space is unavailable
+	* detect another BrowserIncorrectPassword
+	* fixed IBAN not found when on french site
+	* fix regexp to parse first matching date instead of last
+	* coding style: use sign CleanDecimal param
+	* the life insurance site may not show all accounts
+	* Fix ignored history
+	* use url weboob field and remove some useless except
+	* don't parse "some shop 24/24" as the transaction date
+	* fixing history and summary on deferred cb
+	* basic port to python3
+	* change site navigation to use more POSTs
+	* some coding style improvements
+	* detect new life insurance label + empty history
+	* handle a variety of errors for life insurance
+	* detect suspended account ActionNeeded
+
+	Modules: imdb
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: imgur
+	* fill more fields
+
+	Modules: ina
+	* fix ina tests
+
+	Modules: indeed
+	* set a default test config when no-one exists
+
+	Modules: ing
+	* Adding Loan type
+	* use io.BytesIO where deprecated StringIO module was used for bytes
+	* adding CapProfile to ING
+	* fixing account type with PEA
+	* fix start_with_main_site decorator
+	* fix get_profile happening after life insurance account
+	* fixing investment in some cases
+	* use new TransferError codes in a few modules
+	* use new TransferError subclasses in modules
+	* [ing/bforbank] use now ValueDate
+	* fix ValueDate format and no more replace
+	* don't need anymore to hardcode server cert
+	* handle one more format date
+	* handle orignal_currency on TitrePage
+	* fetch PEA and MARKET balance from details because it's more up to date
+	* fix positive balances on loan accounts
+	* transfers
+	* retry if we can't get market balance
+	* exec_date can move 4 days later
+	* transfer better exec_date parsing
+	* fix recipient iban parsing
+	* Handling of liquidities as an investment. To avoid inconsistencies between balances and investment totals, investments are cached during list command
+	* corrected useless pipe on password regex
+	* fixing unitprice column
+	* unitprice invest life insurance column may be missing
+	* raise ActionNeeded if page is moveMoneyForbidden.
+	* fix unicode exception problem
+	* port to python3
+	* add error on invalid transfer amount
+	* there is no liquidity on life insurance in creation
+
+	Modules: inrocks
+	* modules: fix AbstractBrowser use
+
+	Modules: jacquieetmichel
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: jcvelaux
+	* straightforward py3 compatibility
+
+	Modules: jirafeau
+	* port to python3
+
+	Modules: kickass
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: kiwibank
+	* adding missing account type
+
+	Modules: lcl
+	* catch actionNeeded on trading website
+	* fixing  parsing on invest
+	* fixing  parsing on invest
+	* do not raise ActionNeeded on BoursePage
+	* some accounts can't do any transfer
+	* add_recipient
+	* fix encoding error
+	* adding CapProfile to lcl esp/ent
+	* use io.BytesIO where deprecated StringIO module was used for bytes
+	* do not crash on unavailable market website
+	* fix recipients webid
+	* fix mistake
+	* fix life insurance xpath
+	* fix wrong type for cb deferred
+	* set expire on state
+	* use new TransferError codes in a few modules
+	* use new TransferError subclasses in modules
+	* entreprise: fix multiple accounts + misc
+	* fix recipient add message
+	* better parse accounts list if multiple companies
+	* fixing some type accounts PEA
+	* advisor phone can be missing
+	* Added pro loans
+	* Fixed AV, now taking contractID instead of labelname as ID
+	* add e.LCL space on websites, fix crash on market disconnect page
+	* update modules to use new CapBankTransferAddRecipient
+	* Fix ac_details_page xpath in AvPage
+	* fix website redirection to get lifeinsurances accounts
+	* use on_load for life insurance routing pages
+	* access is restricted to life insurance accounts of a third-party
+	* parsing of life insurance investments changed
+	* Iban duplication correction
+	* go on accounts list before submitting life insurance page form
+	* handle multi contracts
+	* force logout with multi contracts and statesmixin
+	* init some variables and avoid a name conflict
+	* fixing pea type on bourse accounts
+	* patch empty transaction label with nature
+	* fix lcl transaction label at None
+	* don't use lxml custom strs in the state but standard strings
+	* sometimes transactions have amount of 0
+	* fix transferbankerror msg format
+	* [lcl add recipient] fix detection of params xpath
+	* port to python3
+	* some life insurances don't have a link and so are useless
+	* CapDocument added, now donwloading documents
+	* fixing wrong date on deferred_cb transactions
+	* Missing import basestring in LCL module (Python 3 compatibility)
+	* CapDocument is only implemented for "par" site
+	* use xpath "$vars" in a few modules
+	* fix iter_resources since module has CapBank/CapDocument
+	* add currency to life insurance and market accounts
+	* Add uppercase ASSURANCE-VIE in disc URL.
+	* fix when form params are not in id but in href.
+	* detect some cases of "restricted" life insurances
+	* remove some useless ":443" in URLs since weboob normalizes them
+
+	Modules: ldlc
+	* Fix LDLC module
+
+	Modules: leboncoin
+	* set a default test config in case no-one exists
+	* fix: module crash while searching cities whose name contains spaces
+	* handle unknown cities search result
+	* Update Leboncoin module
+	* Fix single housing fetching on Leboncoin
+	* Use a dedicated field for utilities status in housing capability
+	* Remove region parameter in Leboncoin module
+	* fix call to sort for py3 compat
+	* fix warning from element.getroot()
+
+	Modules: leclercmobile
+	* use io.BytesIO where deprecated StringIO module was used for bytes
+	* Remove support for older mechanize versions
+
+	Modules: lefigaro
+	* fix module / set a defaut test config in case no-one exists
+	* modules: fix AbstractBrowser use
+
+	Modules: liberation
+	* modules: fix AbstractBrowser use
+
+	Modules: linebourse
+	* new bank invest module
+	* fix non-existing page
+	* fix portfolio_share > 1
+	* fix index out of range due to not urlencoded account id, change warning to assertion error
+	* portfolio share can be NotAvailable, change static 'isin' to Investment variable
+	* fix empty invest with 0 in quantity
+	* sometimes investments have an empty label
+	* change hard code type to invest variable
+	* sometimes the diff column is just missing
+	* reimplement MessagePage behavior of caissedepargne
+	* create liquidity investment
+	* fix invest history label
+	* fix invest history label
+	* sometimes investment list is not in a link
+	* fix escaping '?' in URL.urls for calling go on it
+	* the website might be dead
+	* fix broken page on iter_history
+	* port to python3
+	* use xpath "$vars" in a few modules
+
+	Modules: linuxjobs
+	* add proper favicon
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: logicimmo
+	* Update Logicimmo module
+	* Fix location detection in logicimmo
+	* Update logic-immo single housing fetching
+	* Use a dedicated field for utilities status in housing capability
+
+	Modules: lolix
+	* bump to browser2 / set a default config in case no-one exists
+
+	Modules: lutim
+	* use io.BytesIO where deprecated StringIO module was used for bytes
+	* port to python3
+	* fix expiration field
+
+	Modules: lyricsdotcom
+	* fix module : website got updated
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: lyricsmode
+	* fix artist name and song name
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: marmiton
+	* fix parsing when cooking time is not filled
+	* Use weboob.tools.compat instead of urllib/urlparse
+	* fix module website got updated
+
+	Modules: mediawiki
+	* add gallery search + improve fillobj
+	* edit token changed + fix unittest
+	* port for python3
+	* fix image data fetching
+
+	Modules: meteofrance
+	* fix module website got updated (fix issue #43)
+	* fix unorderable types error
+
+	Modules: minutes20
+	* modules: fix AbstractBrowser use
+
+	Modules: monster
+	* fix module, website is beeing updated
+	* fix module site changed
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: myfoncia
+	* Billing capability for Foncia
+
+	Modules: n26
+	* remove dummy test.py files as they are false negatives for weboob_lint
+	* catch wrongpass
+	* fix old-style exception
+	* fix module creation
+	* set account number to NotAvailable
+	* currency is always EUR
+	* moved login from init with wrapper
+	* N26: Handle bank fee type;
+
+	Modules: nectarine
+	* port to browser2
+	* port to python3
+
+	Modules: nettokom
+	* corrected useless pipe on password regex
+
+	Modules: nolifetv
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: nova
+	* use io.BytesIO where deprecated StringIO module was used for bytes
+	* remove useless dict.iterkeys() calls
+
+	Modules: oney
+	* use io.BytesIO where deprecated StringIO module was used for bytes
+	* fixed incorrect password on site choice page
+	* catch and ignore unusable accounts
+	* handle email on login
+	* parse special credit page
+	* the coming value may be missing
+
+	Modules: onlinenet
+	* setted timeout to prevent 504 errors
+
+	Modules: opacwebaloes
+	* remove dummy test.py files as they are false negatives for weboob_lint
+	* library: rename get_booked/get_rented and remove wrong id parameter
+	* Remove support for older mechanize versions
+	* fix API change
+
+	Modules: opensubtitles
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: orange
+	* fix bills for pro and sosh accounts
+	* fix bill price when there is a discount info
+	* fix price parsing when there's vat and non-vat amounts
+	* Corrected date xpath
+	* Added price to ID to prevent bills doublons
+	* [sosh - orange] Corrected url for unavailable documents
+	* Use weboob.tools.compat instead of urllib/urlparse
+	* Get documents and bills from new site
+	* Some subscriptions don't have basic columns like 'Montant HT'
+	* Pro contracts take amount without taxes
+
+	Modules: ouifm
+	* update OÜI FM stream urls
+	* update station name
+	* bump to browser2
+	* remove useless dict.iterkeys() calls
+	* 4 brand new OUI FM streams
+	* syntax terror
+	* added OÜI FM Rock 2000 + OÜI FM Summertime urls
+
+	Modules: ovh
+	* remove dummy test.py files as they are false negatives for weboob_lint
+	* [OVH] Added bills label
+	* Two-Factor authentication now catched
+	* Changed links to match new API & select bills 2 years ago
+	* Added condition on login (sometimes trying to log when already logged)
+
+	Modules: pap
+	* Update Pap module
+	* Fetch single housing fetching of Pap
+	* Use a dedicated field for utilities status in housing capability
+	* Use CleanText rather than CleanHTML in pap phone fetching
+	* Better handling of housing posts with multiple phone numbers on pap
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: pariskiwi
+	* port to python3
+
+	Modules: parolesmania
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: pastebin
+	* base url is https
+
+	Modules: paypal
+	* fix paypal login
+	* bypass new anti-scraping js
+	* handle more home urls
+	* [paypal part] create transaction with there is a funding src
+	* fix regressions with fundingSrc
+	* don't crash if fundingSource is missing
+	* fix login js
+	* fix when get account list.
+	* Use weboob.tools.compat instead of urllib/urlparse
+	* handle new home page
+
+	Modules: phpbb
+	* port to browser2 and add fixes
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: pixabay
+	* add module for pixabay public domain photo search
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: pixtoilelibre
+	* use io.BytesIO where deprecated StringIO module was used for bytes
+	* port to browser2 and python3
+
+	Modules: podnapisi
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: popolemploi
+	* Use weboob.tools.compat instead of urllib/urlparse
+	* fix module site dramatically changed
+
+	Modules: pornhub
+	* Now uses https
+
+	Modules: pradoepargne
+	* adding pradoepargne module
+	* [pradoepargne][btpbanque] Upgrade version
+	* modules: fix AbstractBrowser use
+
+	Modules: presseurop
+	* fix module + set a default test config in case no-one exists
+	* modules: fix AbstractBrowser use
+
+	Modules: radiofrance
+	* fix francemusique, mouv and franceculture
+	* fix franceinter podcasts / search not only search in selections but also in podcasts
+	* better output for current song
+
+	Modules: ratp
+	* RATP: Rename module to be lowercase
+	* Fix a few bugs with ratp module
+	* Make RATP module use the provided issue description
+	* site is now https
+
+	Modules: redmine
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: regionsjob
+	* set a default test config in case no-one exists
+	* handled websites are now using https
+
+	Modules: rmll
+	* Fix RMLL module required weboob version
+	* Fix module : website got updated
+
+	Modules: s2e
+	* use io.BytesIO where deprecated StringIO module was used for bytes
+	* detect an ActionNeeded page
+	* use now AbstractBrowser and AbstractModule
+	* adding pockets
+	* now recover AMF code around 3 websites
+	* fix undefined page (website without amf code)
+	* handle another code page
+	* fix XMLSyntaxError due to an empty page occurring sometimes
+	* abandon AMF code fetching when the page redirects to a graphplot page
+	* handle one more isin site (the url is enough for it)
+	* fix cpr-am url + handle yet another isin url... except it's a pdf
+	* add another cpr-am url pattern
+	* add another type of ISIN page
+	* corrected useless pipe on password regex
+	* detect one more "no accounts" sentence
+	* add diff to investments
+	* diff column can be unavailable
+	* use xpath "$vars" in a few modules
+	* add new text to get pocket condition from dict CONDITONS
+
+	Modules: seloger
+	* Update seloger module
+	* Filter cities results of SeLoger module
+	* Fix seloger modifications according to @Bezleputh comments
+	* Better title fetching from seloger module
+	* Use a dedicated field for utilities status in housing capability
+	* Do not return utilities.excluded when should not be the case for seloger
+	* Add missing favicons for foncia and seloger
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: senscritique
+	* Website now uses https
+
+	Modules: sfr
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: societegenerale
+	* new url for a ActionNeeded page
+	* delete cb_summary transactions
+	* new action needed page
+	* life insurance pages are broken randomly, do retry
+	* do not throw a TransferError if the customer can't do tranfers
+	* fix debit date, must be descending
+	* fix transfers
+	* adding CapProfile to societegenerale
+	* username is digit..
+	* use io.BytesIO where deprecated StringIO module was used for bytes
+	* list loans in accounts
+	* fix crash on history on loan accounts
+	* raise BrowserIncorrectPassword for short logins
+	* some loans have no balance in the loan json
+	* fix crash on unavailable loan page
+	* fixing account type with PEA
+	* fix transfer
+	* fixing isin code
+	* add recipient
+	* raise step on appli validation instead of waiting
+	* use new TransferError codes in a few modules
+	* valutations for invests are now taken from the previous page for a better value
+	* use new TransferError subclasses in modules
+	* fix transfer
+	* skip life insurance transaction when date is "rejet"
+	* [soge] fix rounded valuations bugs (KeyError), now go on all pages to get valuations, and catch the error
+	* fix unicode literal
+	* transfer date more flexible
+	* [societegenerale iter_recipients] \d in field might not be an id
+	* fix transfer data wrongly posted
+	* sometimes an owner has no accounts
+	* bugfix check also if _id in acc.id.
+	* fix handling transfer page
+	* card transactions are coming before the first card_summary
+	* fix no accounts due to site error
+	* fix recipients list if multiple accounts have the same name
+	* recognize new url for ActionNeeded
+	* skip external recipient with not valid iban
+	* update modules to use new CapBankTransferAddRecipient
+	* fix regex
+	* Transfer.exec_date can vary of 2 days during weekend
+	* fetch balance from market page
+	* exclude a new error message for iter_transfer_recipients
+	* [societe generale] changed IBAN to not available for Epargne accounts
+	* skip market transaction if the amount is unavailable
+	* fix too strict and inconsistent exec_date check
+	* the "rejet d'intégration" state was searched on wrong doc
+	* test another page for life insurance history
+	* allow iter_history on PEA liquidity
+	* Corrected validation condition to prevent recipient doublons
+	* detect a NoAccountsException case
+	* Use weboob.tools.compat instead of urllib/urlparse
+	* port to Python3
+	* [soge] fast fix transfer
+	* Form param value changes between 'valeur' and 'position'
+	* detect yet another BrowserUnavailable
+
+	Modules: somafm
+	* Port somafm to browser2
+
+	Modules: spirica
+	* 0% portfolio_share is different than NotAvailable
+	* recognize "capitalisation" accounts
+	* exclude 'arrêté annuel' transactions
+	* use url field instead of _link for Accounts in a few modules
+
+	Modules: sueurdemetal
+	* port to browser2
+	* set timezone of events
+	* straightforward py3 port
+	* site completely changed
+
+	Modules: supertoinette
+	* bump to browser2
+
+	Modules: t411
+	* Correct download URL
+	* new URL
+	* Use weboob.tools.compat instead of urllib/urlparse
+	* update to new website
+
+	Modules: tapatalk
+	* bugfix: use 'Anonymous' if post_author_name is undefined
+	* bugfix: if a forum doesn't have new_post attribute, assume it to be true
+
+	Modules: taz
+	* modules: fix AbstractBrowser use
+
+	Modules: tinder
+	* add optional parameter 'location' to force position
+	* sometimes 'common_likes' is not present in person dict
+	* send a welcome message
+	* sometimes description is missing
+
+	Modules: torrentz
+	* CSS changed
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: trainline
+	* fix some bugs in iter_docs
+	* fix unavalaible docs
+
+	Modules: tvsubtitles
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: twitter
+	* fix : website got updated
+	* remove useless encoding
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: unsee
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: ups
+	* remove dummy test.py files as they are false negatives for weboob_lint
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: vimeo
+	* fix search / rewrite search and channels listing using phone API / set a default test config in case no-one exists
+	* fix : keep your grubby hands to your own website !
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: vine
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: virginradio
+	* fix module (header wants a str not an int)
+	* remove useless dict.iterkeys() calls
+
+	Modules: weather
+	* fix module: website got updated / bump to broser 2
+
+	Modules: wellsfargo
+	* Use weboob.tools.compat instead of urllib/urlparse
+
+	Modules: yomoni
+	* remove dummy test.py files as they are false negatives for weboob_lint
+	* raise ActionNeeded for certain "no accounts"
+	* encode utf8 before base64 to avoid crash on accent
+	* detect more ActionNeeded
+	* User get message if subscription at step 4
+	* Added right tokens to all requests
+	* don't use Account as dict key, it's not hashable
+	* parse amount with comma and replace with dot
+	* PEA account_type now recognized
+
+	Modules: youjizz
+	* fix parsing links without schemes
+	* force https for thumbnails
+	* fix parsing of urls
+
+	Modules: youporn
+	* fix compatibility with new website
+
+	Modules: youtube
+	* Use weboob.tools.compat instead of urllib/urlparse
+	* use youtube_dl
+	* remove pages.py since no browser is used anymore
+
+	Tools
+	* Add a script to backport modules from devel to stable
+	* Add a script to detect new and removed modules since a release
+	* Add check_xpath script
+	* Add "-3" option to all relevant tools
+	* CI update to manage both python versions
+
+	Contrib
+	* Add replace-backends-pass.py tool to use the "pass" tool
+	* Add rboorrent-download script
+	* Add a export_session method and a webextension
+
+
 Weboob 1.2 (2017-01-08)
 
 	General

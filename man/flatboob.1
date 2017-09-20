@@ -1,6 +1,6 @@
 .\" -*- coding: utf-8 -*-
 .\" This file was generated automatically by tools/make_man.sh.
-.TH FLATBOOB 1 "08 January 2017" "flatboob 1\&.2"
+.TH FLATBOOB 1 "20 September 2017" "flatboob 1\&.3"
 .SH NAME
 flatboob \- search for housing
 .SH SYNOPSIS
@@ -19,6 +19,8 @@ Console application to search for housing.
 * entreparticuliers (entreparticuliers.com website)
 .br
 * explorimmo (explorimmo website)
+.br
+* foncia (Foncia housing website.)
 .br
 * leboncoin (search house on leboncoin website)
 .br
@@ -196,6 +198,9 @@ what backend(s) to exclude (comma separated)
 .TP
 \fB\-I\fR, \fB\-\-insecure\fR
 do not validate SSL
+.TP
+\fB\-\-nss\fR
+Use NSS instead of OpenSSL
 
 .SH LOGGING OPTIONS
 .TP
@@ -213,6 +218,9 @@ file to save logs
 .TP
 \fB\-a\fR, \fB\-\-save\-responses\fR
 save every response
+.TP
+\fB\-\-export\-session\fR
+log browser session cookies after login
 
 .SH RESULTS OPTIONS
 .TP

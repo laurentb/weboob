@@ -1,6 +1,6 @@
 .\" -*- coding: utf-8 -*-
 .\" This file was generated automatically by tools/make_man.sh.
-.TH BOOBLYRICS 1 "08 January 2017" "booblyrics 1\&.2"
+.TH BOOBLYRICS 1 "20 September 2017" "booblyrics 1\&.3"
 .SH NAME
 booblyrics \- search and display song lyrics
 .SH SYNOPSIS
@@ -18,7 +18,7 @@ Console application allowing to search for song lyrics on various websites.
 .SS Supported websites:
 * lyricsdotcom (Lyrics.com lyrics website)
 .br
-* lyricsmode (Lyrics.com lyrics website)
+* lyricsmode (Lyricsmode.com lyrics website)
 .br
 * lyricsplanet (Lyricsplanet.com song lyrics website)
 .br
@@ -190,6 +190,9 @@ what backend(s) to exclude (comma separated)
 .TP
 \fB\-I\fR, \fB\-\-insecure\fR
 do not validate SSL
+.TP
+\fB\-\-nss\fR
+Use NSS instead of OpenSSL
 
 .SH LOGGING OPTIONS
 .TP
@@ -207,6 +210,9 @@ file to save logs
 .TP
 \fB\-a\fR, \fB\-\-save\-responses\fR
 save every response
+.TP
+\fB\-\-export\-session\fR
+log browser session cookies after login
 
 .SH RESULTS OPTIONS
 .TP

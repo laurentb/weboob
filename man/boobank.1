@@ -1,6 +1,6 @@
 .\" -*- coding: utf-8 -*-
 .\" This file was generated automatically by tools/make_man.sh.
-.TH BOOBANK 1 "08 January 2017" "boobank 1\&.2"
+.TH BOOBANK 1 "20 September 2017" "boobank 1\&.3"
 .SH NAME
 boobank \- manage bank accounts
 .SH SYNOPSIS
@@ -40,25 +40,35 @@ Console application allowing to list your bank accounts and get their balance, d
 .br
 * bnporc (BNP Paribas)
 .br
+* bnppere (BNP Épargne Salariale)
+.br
 * boursorama (Boursorama)
 .br
 * bp (La Banque Postale)
 .br
 * bred (Bred)
 .br
+* btpbanque (BTP Banque)
+.br
 * caels (Crédit Agricole \- Epargne Longue des Salariés)
 .br
 * caissedepargne (Caisse d'Épargne)
+.br
+* capeasi (AXA Épargne Salariale)
 .br
 * carrefourbanque (Carrefour Banque)
 .br
 * cic (CIC)
 .br
-* citelis (Citélis)
+* cices (CIC Épargne Salariale)
 .br
 * citibank (Citibank)
 .br
 * cmb (Credit Mutuel de Bretagne)
+.br
+* cmes (Crédit Mutuel Épargne Salariale)
+.br
+* cmmc (Crédit Mutuel Massif Central)
 .br
 * cmso (Crédit Mutuel Sud\-Ouest)
 .br
@@ -66,13 +76,17 @@ Console application allowing to list your bank accounts and get their balance, d
 .br
 * creditcooperatif (Crédit Coopératif)
 .br
-* creditdunord (Crédit du Nord, Banque Courtois, Kolb, Nuger, Tarneaud, Société Marseillaise de Crédit)
+* creditdunord (Crédit du Nord, Banque Courtois, Kolb, Nuger, Laydernier, Tarneaud, Société Marseillaise de Crédit)
 .br
 * creditdunordpee (Site de gestion du PEE du groupe Credit du nord)
 .br
 * creditmutuel (Crédit Mutuel)
 .br
 * delubac (Banque Delubac & Cie)
+.br
+* erehsbc (HSBC Épargne Salariale)
+.br
+* esalia (Société Générale Épargne Salariale)
 .br
 * fortuneo (Fortuneo)
 .br
@@ -88,11 +102,15 @@ Console application allowing to list your bank accounts and get their balance, d
 .br
 * lcl (LCL)
 .br
+* linebourse (linebourse website)
+.br
 * n26 (Bank N26)
 .br
 * oney (Oney)
 .br
 * paypal (PayPal)
+.br
+* pradoepargne (Prado Épargne Salariale)
 .br
 * s2e (Épargne Salariale)
 .br
@@ -106,6 +124,10 @@ Console application allowing to list your bank accounts and get their balance, d
 .br
 * yomoni (Yomoni)
 .SH BOOBANK COMMANDS
+.TP
+\fBadd_recipient\fR iban label
+.br
+Add a recipient to a backend.
 .TP
 \fBadvisor\fR
 .br
@@ -160,6 +182,14 @@ Display investments of an account.
 List accounts.
 .br
 Use \-U to disable sorting of results.
+.TP
+\fBpocket\fR \fIID\fR
+.br
+Display pockets of an account.
+.TP
+\fBprofile\fR
+.br
+Display detailed information about person or company.
 .TP
 \fBtransfer\fR \fIACCOUNT\fR [\fIRECIPIENT\fR \fIAMOUNT\fR [\fIREASON\fR]]
 .br
@@ -326,6 +356,9 @@ what backend(s) to exclude (comma separated)
 .TP
 \fB\-I\fR, \fB\-\-insecure\fR
 do not validate SSL
+.TP
+\fB\-\-nss\fR
+Use NSS instead of OpenSSL
 
 .SH LOGGING OPTIONS
 .TP
@@ -343,6 +376,9 @@ file to save logs
 .TP
 \fB\-a\fR, \fB\-\-save\-responses\fR
 save every response
+.TP
+\fB\-\-export\-session\fR
+log browser session cookies after login
 
 .SH RESULTS OPTIONS
 .TP
