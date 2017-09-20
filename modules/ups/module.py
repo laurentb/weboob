@@ -32,7 +32,7 @@ class UpsModule(Module, CapParcel):
     DESCRIPTION = u'UPS website'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '1.3'
+    VERSION = '1.4'
 
     BROWSER = UpsBrowser
 

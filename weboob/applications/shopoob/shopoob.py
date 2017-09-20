@@ -90,7 +90,7 @@ class PaymentsFormatter(IFormatter):
 
 class Shopoob(ReplApplication):
     APPNAME = 'shopoob'
-    VERSION = '1.3'
+    VERSION = '1.4'
     COPYRIGHT = 'Copyright(C) 2015 Christophe Lampin'
     DESCRIPTION = 'Console application to obtain details and status of e-commerce orders.'
     SHORT_DESCRIPTION = "Obtain details and status of e-commerce orders"

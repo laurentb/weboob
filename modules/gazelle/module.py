@@ -31,7 +31,7 @@ class GazelleModule(Module, CapTorrent):
     NAME = 'gazelle'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '1.3'
+    VERSION = '1.4'
     DESCRIPTION = 'Gazelle-based BitTorrent trackers'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(Value('domain',   label='Domain (example "ssl.what.cd")'),

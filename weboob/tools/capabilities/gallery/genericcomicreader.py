@@ -66,7 +66,7 @@ class GenericComicReaderModule(Module, CapGallery):
     NAME = 'genericcomicreader'
     MAINTAINER = u'Noé Rubinstein'
     EMAIL = 'noe.rubinstein@gmail.com'
-    VERSION = '1.3'
+    VERSION = '1.4'
     DESCRIPTION = 'Generic comic reader backend; subclasses implement specific sites'
     LICENSE = 'AGPLv3+'
     BROWSER = GenericComicReaderBrowser

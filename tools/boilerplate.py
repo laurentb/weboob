@@ -35,7 +35,7 @@ MODULE_PATH = os.getenv(
 TEMPLATE_PATH = os.getenv(
     'TEMPLATE_PATH',
     os.path.realpath(os.path.join(os.path.dirname(__file__), 'boilerplate_data')))
-VERSION = '1.3'
+VERSION = '1.4'
 
 TEMPLATES = TemplateLookup(directories=[TEMPLATE_PATH])
 

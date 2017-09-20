@@ -33,7 +33,7 @@ class CarrefourBanqueModule(Module, CapBank):
     NAME = 'carrefourbanque'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '1.3'
+    VERSION = '1.4'
     DESCRIPTION = u'Carrefour Banque'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label=u'Votre Identifiant Internet', masked=False),

@@ -278,7 +278,7 @@ class MasstransitHildon(object):
 class Masstransit(Application):
     "Application Class"
     APPNAME = 'masstransit'
-    VERSION = '1.3'
+    VERSION = '1.4'
     COPYRIGHT = 'Copyright(C) 2010-YEAR Julien Hébert'
     DESCRIPTION = "Maemo application allowing to search for train stations and get departure times."
     SHORT_DESCRIPTION = "search for train stations and departures"

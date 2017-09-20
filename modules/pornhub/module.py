@@ -32,7 +32,7 @@ class PornhubModule(Module, CapVideo, CapCollection):
     NAME = 'pornhub'
     MAINTAINER = u'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'
-    VERSION = '1.3'
+    VERSION = '1.4'
     DESCRIPTION = 'Pornhub pornographic video streaming website'
     LICENSE = 'AGPLv3+'
     BROWSER = PornhubBrowser

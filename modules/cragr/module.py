@@ -38,7 +38,7 @@ class CragrModule(Module, CapBankTransferAddRecipient, CapContact, CapProfile):
     NAME = 'cragr'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '1.3'
+    VERSION = '1.4'
     DESCRIPTION = u'Crédit Agricole'
     LICENSE = 'AGPLv3+'
     website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({

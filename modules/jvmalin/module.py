@@ -30,7 +30,7 @@ class JVMalinModule(Module, CapTravel):
     NAME = 'jvmalin'
     MAINTAINER = u'Alexandre Lissy'
     EMAIL = 'github@lissy.me'
-    VERSION = '1.3'
+    VERSION = '1.4'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u"Multimodal public transportation for whole Région Centre, France"
     BROWSER = JVMalin

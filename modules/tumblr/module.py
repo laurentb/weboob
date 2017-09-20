@@ -38,7 +38,7 @@ class TumblrModule(Module, CapGallery):
     MAINTAINER = 'Vincent A'
     EMAIL = 'dev@indigo.re'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.3'
+    VERSION = '1.4'
     CONFIG = BackendConfig(Value('url', label='URL of the tumblr', regexp='https?://[^.]+.tumblr.com/?'))
 
     BROWSER = TumblrBrowser

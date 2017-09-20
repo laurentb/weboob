@@ -278,7 +278,7 @@ h2. Attendees
 
 class Boobathon(ReplApplication):
     APPNAME = 'boobathon'
-    VERSION = '1.3'
+    VERSION = '1.4'
     COPYRIGHT = 'Copyright(C) 2011-YEAR Romain Bignon'
     DESCRIPTION = 'Console application to participate to a Boobathon.'
     SHORT_DESCRIPTION = "participate in a Boobathon"

@@ -36,7 +36,7 @@ class VoyagesSNCFModule(Module, CapTravel):
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.3'
+    VERSION = '1.4'
     CONFIG = BackendConfig(Value('age', label='Passenger age', default='ADULT',
                                  choices=OrderedDict((('ADULT', '26-59 ans'),
                                                       ('SENIOR', '60 et +'),

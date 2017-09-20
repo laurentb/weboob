@@ -43,7 +43,7 @@ class QuviModule(Module, CapVideo):
     MAINTAINER = u'Vincent A'
     EMAIL = 'dev@indigo.re'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.3'
+    VERSION = '1.4'
 
     BROWSER = None
 

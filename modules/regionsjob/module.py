@@ -34,7 +34,7 @@ class RegionsjobModule(Module, CapJob):
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.3'
+    VERSION = '1.4'
 
     BROWSER = RegionsjobBrowser
 

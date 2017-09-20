@@ -75,7 +75,7 @@ class JobAdvertListFormatter(PrettyFormatter):
 
 class Handjoob(ReplApplication):
     APPNAME = 'handjoob'
-    VERSION = '1.3'
+    VERSION = '1.4'
     COPYRIGHT = 'Copyright(C) 2012-YEAR Bezleputh'
     DESCRIPTION = "Console application to search for a job."
     SHORT_DESCRIPTION = "search for a job"

@@ -29,7 +29,7 @@ class LyricsplanetModule(Module, CapLyrics):
     NAME = 'lyricsplanet'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'eneiluj@gmx.fr'
-    VERSION = '1.3'
+    VERSION = '1.4'
     DESCRIPTION = 'Lyricsplanet.com song lyrics website'
     LICENSE = 'AGPLv3+'
     BROWSER = LyricsplanetBrowser

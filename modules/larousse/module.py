@@ -33,7 +33,7 @@ class LarousseModule(Module, CapTranslate):
     MAINTAINER = u'Vincent A'
     EMAIL = 'dev@indigo.re'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.3'
+    VERSION = '1.4'
 
     BROWSER = LarousseBrowser
 

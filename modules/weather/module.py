@@ -30,7 +30,7 @@ class WeatherModule(Module, CapWeather):
     NAME = 'weather'
     MAINTAINER = u'Arno Renevier'
     EMAIL = 'arno@renevier.net'
-    VERSION = '1.3'
+    VERSION = '1.4'
     DESCRIPTION = 'Get forecasts from weather.com'
     LICENSE = 'AGPLv3+'
     BROWSER = WeatherBrowser

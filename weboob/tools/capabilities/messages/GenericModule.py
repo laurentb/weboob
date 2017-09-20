@@ -31,7 +31,7 @@ class GenericNewspaperModule(Module, CapMessages):
     """
     MAINTAINER = u'Julien Hebert'
     EMAIL = 'juke@free.fr'
-    VERSION = '1.3'
+    VERSION = '1.4'
     LICENSE = 'AGPLv3+'
     STORAGE = {'seen': {}}
     RSS_FEED = None

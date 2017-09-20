@@ -34,7 +34,7 @@ class FunmoocModule(Module, CapVideo, CapCollection):
     MAINTAINER = u'Vincent A'
     EMAIL = 'dev@indigo.re'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.3'
+    VERSION = '1.4'
 
     CONFIG = BackendConfig(Value('email', label='Email'),
                            ValueBackendPassword('password', label='Password'),

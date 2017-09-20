@@ -31,7 +31,7 @@ __all__ = ['WordReferenceModule']
 class WordReferenceModule(Module, CapTranslate):
     MAINTAINER = u'Lucien Loiseau'
     EMAIL = 'loiseau.lucien@gmail.com'
-    VERSION = '1.3'
+    VERSION = '1.4'
     LICENSE = 'AGPLv3+'
     NAME = 'wordreference'
     DESCRIPTION = u'Free online translator'

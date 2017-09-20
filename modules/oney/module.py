@@ -33,7 +33,7 @@ class OneyModule(Module, CapBank):
     NAME = 'oney'
     MAINTAINER = u'Vincent Paredes'
     EMAIL = 'vparedes@budget-insight.com'
-    VERSION = '1.3'
+    VERSION = '1.4'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = 'Oney'
     CONFIG = BackendConfig(ValueBackendPassword('login',      label='Identifiant', masked=False),

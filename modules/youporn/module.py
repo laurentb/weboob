@@ -33,7 +33,7 @@ class YoupornModule(Module, CapVideo, CapCollection):
     NAME = 'youporn'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '1.3'
+    VERSION = '1.4'
     DESCRIPTION = 'YouPorn pornographic video streaming website'
     LICENSE = 'AGPLv3+'
     BROWSER = YoupornBrowser

@@ -30,7 +30,7 @@ class GdfSuezModule(Module, CapDocument):
     NAME = 'gdfsuez'
     MAINTAINER = u'Mathieu Jourdan'
     EMAIL = 'mathieu.jourdan@gresille.org'
-    VERSION = '1.3'
+    VERSION = '1.4'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'GDF-Suez French energy provider'
     CONFIG = BackendConfig(ValueBackendPassword('login',

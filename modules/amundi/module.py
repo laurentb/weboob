@@ -34,7 +34,7 @@ class AmundiModule(Module, CapBank):
     MAINTAINER = u'James GALT'
     EMAIL = 'james.galt.bi@gmail.com'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.3'
+    VERSION = '1.4'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', regexp='\d+', masked=False),
                            ValueBackendPassword('password', label=u"Mot de passe", regexp='\d+'),
                            Value('website', label='Type de compte', default='ee',

@@ -35,7 +35,7 @@ class AferModule(Module, CapBank):
     MAINTAINER = u'James GALT'
     EMAIL = 'jgalt@budget-insight.com'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.3'
+    VERSION = '1.4'
 
     BROWSER = AferBrowser
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Username', regexp='[A-z]\d+', masked=False),

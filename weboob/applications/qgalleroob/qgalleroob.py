@@ -28,7 +28,7 @@ from .main_window import MainWindow
 
 class QGalleroob(QtApplication):
     APPNAME = 'qgalleroob'
-    VERSION = '1.3'
+    VERSION = '1.4'
     COPYRIGHT = u'Copyright(C) 2016 Vincent A'
     DESCRIPTION = "Qt application to view image galleries."
     SHORT_DESCRIPTION = "search for images"

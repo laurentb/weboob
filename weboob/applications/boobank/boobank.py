@@ -391,7 +391,7 @@ class AccountListFormatter(IFormatter):
 
 class Boobank(ReplApplication):
     APPNAME = 'boobank'
-    VERSION = '1.3'
+    VERSION = '1.4'
     COPYRIGHT = 'Copyright(C) 2010-YEAR Romain Bignon, Christophe Benz'
     CAPS = CapBank, CapBankTransfer
     DESCRIPTION = "Console application allowing to list your bank accounts and get their balance, " \

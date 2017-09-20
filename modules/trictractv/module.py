@@ -33,7 +33,7 @@ class TricTracTVModule(Module, CapVideo):
     NAME = 'trictractv'
     MAINTAINER = u'Benjamin Drieu'
     EMAIL = 'benjamin@drieu.org'
-    VERSION = '1.3'
+    VERSION = '1.4'
     DESCRIPTION = u'TricTrac.tv video website'
     LICENSE = 'AGPLv3+'
     BROWSER = TricTracTVBrowser

@@ -30,7 +30,7 @@ class GeolocIpModule(Module, CapGeolocIp):
     NAME = 'geolocip'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '1.3'
+    VERSION = '1.4'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u"GeolocIP IP addresses geolocation service"
     BROWSER = Browser

@@ -31,7 +31,7 @@ class MarmitonModule(Module, CapRecipe):
     NAME = 'marmiton'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '1.3'
+    VERSION = '1.4'
     DESCRIPTION = u'Marmiton French recipe website'
     LICENSE = 'AGPLv3+'
     BROWSER = MarmitonBrowser

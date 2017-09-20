@@ -32,7 +32,7 @@ class FourChanModule(Module, CapMessages):
     NAME = 'fourchan'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '1.3'
+    VERSION = '1.4'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = '4chan image board'
     CONFIG = BackendConfig(Value('boards', label='Boards to fetch'))

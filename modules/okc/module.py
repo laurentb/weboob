@@ -95,7 +95,7 @@ class OkCModule(Module, CapMessages, CapContact, CapMessagesPost, CapDating):
     NAME = 'okc'
     MAINTAINER = u'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'
-    VERSION = '1.3'
+    VERSION = '1.4'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'OkCupid'
     CONFIG = BackendConfig(Value('username',                label='Username'),

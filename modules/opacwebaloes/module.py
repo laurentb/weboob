@@ -32,7 +32,7 @@ class AloesModule(Module, CapBook):
     NAME = 'opacwebaloes'
     MAINTAINER = u'Jeremy Monnet'
     EMAIL = 'jmonnet@gmail.com'
-    VERSION = '1.3'
+    VERSION = '1.4'
     DESCRIPTION = 'Aloes Library software'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(Value('login',    label='Account ID', regexp='^\d{1,8}\w$'),
