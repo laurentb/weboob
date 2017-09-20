@@ -13,7 +13,7 @@ from collections import defaultdict
 from termcolor import colored
 
 
-STABLE_VERSION = '1.2'
+STABLE_VERSION = '1.3'
 DEVEL_BRANCH = 'master'
 
 
