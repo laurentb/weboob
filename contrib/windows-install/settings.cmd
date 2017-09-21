@@ -1,5 +1,5 @@
-set WEBOOB_VERSION=1.3
-set WEBOOB=weboob-1.3-py2.7.egg
+set WEBOOB_VERSION=1.4
+set WEBOOB=weboob-1.4-py2.7.egg
 set LIST_APPLIQUATIONS_QT=qboobmsg qcineoob qcookboob qflatboob qhandjoob qhavedate qvideoob qwebcontentedit weboob-config-qt qbooblyrics
 REM x32 | x64
 set ARCHITECTURE=x64
