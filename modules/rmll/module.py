@@ -29,12 +29,12 @@ __all__ = ['RmllModule']
 
 
 class RmllModule(Module, CapVideo, CapCollection):
-    NAME = 'rmll'                          # The name of module
-    MAINTAINER = u'Guyou'                  # Name of maintainer of this module
-    EMAIL = 'guilhem.bonnefille@gmail.com' # Email address of the maintainer
-    VERSION = '1.3'                        # Version of weboob
-    DESCRIPTION = 'Videos from RMLL'       # Description of your module
-    LICENSE = 'AGPLv3+'                    # License of your module
+    NAME = 'rmll'
+    MAINTAINER = u'Guyou'
+    EMAIL = 'guilhem.bonnefille@gmail.com'
+    VERSION = '1.4'
+    DESCRIPTION = 'Videos from RMLL'
+    LICENSE = 'AGPLv3+'
 
     BROWSER = RmllBrowser
 
