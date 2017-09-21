@@ -21,6 +21,7 @@ from weboob.tools.capabilities.bank.transactions import \
     AmericanTransaction as AmTr
 from weboob.capabilities.shop import Order, Payment, Item
 from weboob.browser.pages import HTMLPage, pagination, NextPage
+from weboob.capabilities.base import NotAvailable
 
 from datetime import datetime
 from decimal import Decimal
@@ -115,8 +116,10 @@ class OrderNewPage(OrderPage):
             return order
 
     def bill(self):
-        html = self.doc.xpath(u'//a[contains(text(), "Printable Order Summary")]')
-        return {'url': html[0].attrib['href'], 'format': u'html'}
+        html = self.doc.xpath(u'//a[contains(text(), "Printable Order Summary") or contains(., "Print invoice")]')
+        if html:
+            return {'url': html[0].attrib['href'], 'format': u'html'}
+        return {'url': NotAvailable, 'format': u'html'}
 
     def order_date(self):
         return datetime.strptime(
