@@ -110,7 +110,11 @@ class AccountsPage(LoggedPage, JsonPage):
             def obj_id(self):
                 return CleanText(Dict('numeroCompte'))(self)[2:]
 
-            obj_balance = Eval(lambda x, y: x / 10**y, CleanDecimal(Dict('soldeComptable')), CleanDecimal(Dict('decSoldeComptable')))
+            obj_balance = Eval(
+                lambda x, y: x / 10**y,
+                CleanDecimal(Dict('soldeComptable')),
+                CleanDecimal(Dict('decSoldeComptable'))
+            )
             obj_label = CleanText(Dict('libelleCompte'))
             obj_currency = CleanText(Dict('deviseTenue'))
             obj_iban = CleanText(Dict('numeroCompte', default=None), default=NotAvailable)
@@ -119,15 +123,23 @@ class AccountsPage(LoggedPage, JsonPage):
                 return self.page.TYPES.get(Dict('libelleType')(self), Account.TYPE_UNKNOWN)
 
             def obj_coming(self):
-                page = self.page.browser.open(BrowserURL('account_coming', identifiant=Field('iban'))(self)).page
-                coming = Eval(lambda x, y: x / 10**y, CleanDecimal(Dict('infoOperationsAvenir/cumulTotal/montant', default='0')),
-                                                    CleanDecimal(Dict('infoOperationsAvenir/cumulTotal/nb_dec', default='0')))(page.doc)
+                page = self.page.browser.open(
+                    BrowserURL('account_coming', identifiant=Field('iban'))(self)
+                ).page
+                coming = Eval(
+                    lambda x, y: x / 10**y,
+                    CleanDecimal(Dict('infoOperationsAvenir/cumulTotal/montant', default='0')),
+                    CleanDecimal(Dict('infoOperationsAvenir/cumulTotal/nb_dec', default='0'))
+                )(page.doc)
 
                 # this so that card coming transactions aren't accounted twice in the total incoming amount
                 for el in Dict('infoOperationsAvenir/natures')(page.doc):
                     if Dict('nature/libelle')(el) == "Factures / Retraits cartes":
-                        coming_carte = Eval(lambda x, y: x / 10**y, CleanDecimal(Dict('cumulNatureMere/montant', default='0')),
-                                                    CleanDecimal(Dict('cumulNatureMere/nb_dec', default='0')))(el)
+                        coming_carte = Eval(
+                            lambda x, y: x / 10**y,
+                            CleanDecimal(Dict('cumulNatureMere/montant', default='0')),
+                            CleanDecimal(Dict('cumulNatureMere/nb_dec', default='0'))
+                        )(el)
                         coming -= coming_carte
                         break
 
@@ -150,7 +162,10 @@ class BnpHistoryItem(ItemElement):
 
     def obj_raw(self):
         if self.el.get('nature.libelle') and self.el.get('libelle'):
-            return "%s %s" % (CleanText(Dict('nature/libelle'))(self), CleanText(Dict('libelle'))(self))
+            return "%s %s" % (
+                CleanText(Dict('nature/libelle'))(self),
+                CleanText(Dict('libelle'))(self),
+            )
         elif self.el.get('libelle'):
             return CleanText(Dict('libelle'))(self)
         else:
@@ -171,23 +186,25 @@ class BnpHistoryItem(ItemElement):
 
 
 class AccountHistoryPage(LoggedPage, JsonPage):
-    TYPES = {u'CARTE': Transaction.TYPE_DEFERRED_CARD,  # Cartes
-             u'FACCB': Transaction.TYPE_DEFERRED_CARD,  # Cartes
-             u'CHEQU': Transaction.TYPE_CHECK,  # Chèques
-             u'REMCB': Transaction.TYPE_DEFERRED_CARD,  # Remises cartes
-             u'VIREM': Transaction.TYPE_TRANSFER,  # Virements
-             u'VIRIT': Transaction.TYPE_TRANSFER,  # Virements internationaux
-             u'VIRSP': Transaction.TYPE_TRANSFER,  # Virements européens
-             u'VIRTR': Transaction.TYPE_TRANSFER,  # Virements de trésorerie
-             u'VIRXX': Transaction.TYPE_TRANSFER,  # Autres virements
-             u'PRLVT': Transaction.TYPE_LOAN_PAYMENT,  # Prélèvements, TIP et télérèglements
-             u'AUTOP': Transaction.TYPE_UNKNOWN,  # Autres opérations
-            }
+    TYPES = {
+        u'CARTE': Transaction.TYPE_DEFERRED_CARD,  # Cartes
+        u'FACCB': Transaction.TYPE_DEFERRED_CARD,  # Cartes
+        u'CHEQU': Transaction.TYPE_CHECK,  # Chèques
+        u'REMCB': Transaction.TYPE_DEFERRED_CARD,  # Remises cartes
+        u'VIREM': Transaction.TYPE_TRANSFER,  # Virements
+        u'VIRIT': Transaction.TYPE_TRANSFER,  # Virements internationaux
+        u'VIRSP': Transaction.TYPE_TRANSFER,  # Virements européens
+        u'VIRTR': Transaction.TYPE_TRANSFER,  # Virements de trésorerie
+        u'VIRXX': Transaction.TYPE_TRANSFER,  # Autres virements
+        u'PRLVT': Transaction.TYPE_LOAN_PAYMENT,  # Prélèvements, TIP et télérèglements
+        u'AUTOP': Transaction.TYPE_UNKNOWN,  # Autres opérations
+    }
 
-    COMING_TYPES = {u'0083': Transaction.TYPE_DEFERRED_CARD,
-                    u'0813': Transaction.TYPE_LOAN_PAYMENT,
-                    u'0568': Transaction.TYPE_TRANSFER,
-                   }
+    COMING_TYPES = {
+        u'0083': Transaction.TYPE_DEFERRED_CARD,
+        u'0813': Transaction.TYPE_LOAN_PAYMENT,
+        u'0568': Transaction.TYPE_TRANSFER,
+    }
 
     @method
     class iter_history(DictElement):
@@ -227,7 +244,11 @@ class AccountHistoryPage(LoggedPage, JsonPage):
                 return fromtimestamp(self, Dict('dateValeur'))
 
             def obj_amount(self):
-                return Eval(lambda x, y: x / 10**y, CleanDecimal(Dict('montant/montant')), CleanDecimal(Dict('montant/nb_dec')))(self)
+                return Eval(
+                    lambda x, y: x / 10**y,
+                    CleanDecimal(Dict('montant/montant')),
+                    CleanDecimal(Dict('montant/nb_dec'))
+                )(self)
 
             def validate(self, obj):
                 return 'FACTURE CARTE DU' not in obj.raw
@@ -253,7 +274,11 @@ class AccountHistoryPage(LoggedPage, JsonPage):
                 return self.page.COMING_TYPES.get(Dict('codeMouvement')(self), Transaction.TYPE_UNKNOWN)
 
             def obj_amount(self):
-                return Eval(lambda x, y: x / 10**y, CleanDecimal(Dict('montantMvmt/montant')), CleanDecimal(Dict('montantMvmt/nb_dec')))(self)
+                return Eval(
+                    lambda x, y: x / 10**y,
+                    CleanDecimal(Dict('montantMvmt/montant')),
+                    CleanDecimal(Dict('montantMvmt/nb_dec'))
+                )(self)
 
             def parse(self, obj):
                 if Dict('natureLibelleMvt')(self) == 'FACTURE CARTE':
@@ -276,6 +301,7 @@ class CardListPage(LoggedPage, JsonPage):
             obj__parent_iban = Env('parent_iban')
             obj_coming = Eval(lambda x: Decimal(x)/100, Dict('montant/montant'))
             obj_currency = CleanText(Dict('montant/devise'))
+
 
 class CardHistoryPage(LoggedPage, JsonPage):
     @method
