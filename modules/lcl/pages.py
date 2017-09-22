@@ -680,7 +680,7 @@ class AVPage(LoggedPage, HTMLPage):
                     id_contrat = re.search(r'^(.*?)-', form_id).group(1)
                     producteur = re.search(r'-(.*?)$', form_id).group(1)
                 else:
-                    if len(self.xpath('.//td/a[@class="clickPopupDetail"]')):
+                    if len(self.xpath('.//td/a[has-class("clickPopupDetail")]')):
                         # making a form of this link sometimes makes the site return an empty response...
                         # the link is a link to some info, not full AV website
                         # it's probably an indication the account is restricted anyway, so avoid it
