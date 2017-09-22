@@ -232,7 +232,7 @@ class AccountHistoryPage(LoggedPage, JsonPage):
 
             def obj_rdate(self):
                 raw = self.obj_raw()
-                mtc = re.search(r'\bDU (\d{6})\b', raw)
+                mtc = re.search(r'\bDU (\d{8})\b', raw)
                 if mtc:
                     date = mtc.group(1)
                     date = '%s/%s/%s' % (date[0:2], date[2:4], date[4:])
