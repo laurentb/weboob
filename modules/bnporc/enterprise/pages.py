@@ -37,6 +37,10 @@ from weboob.capabilities import NotAvailable
 from weboob.exceptions import ActionNeeded
 
 
+def fromtimestamp(milliseconds):
+    return datetime.fromtimestamp(milliseconds/1000)
+
+
 class BNPVirtKeyboard(MappedVirtKeyboard):
     symbols = {'0': '8adee734aaefb163fb008d26bb9b3a42',
                '1': 'dad45ef18a75200030073ab102155e2f',
@@ -154,10 +158,6 @@ class AccountHistoryViewPage(LoggedPage, HTMLPage):
         obj_name = Regexp(CleanText('//table[@class="table_info_connecte"]//td'), '(.+?)\s-', default=NotAvailable)
 
 
-def fromtimestamp(page, dict):
-    return datetime.fromtimestamp(float(dict(page) / 1000))
-
-
 class BnpHistoryItem(ItemElement):
 
     def obj_raw(self):
@@ -178,7 +178,7 @@ class BnpHistoryItem(ItemElement):
             date = '%s/%s/%s' % (mtc.group(1), mtc.group(2), mtc.group(3))
             return parse_french_date(date)
 
-        return fromtimestamp(self, Dict('dateCreation'))
+        return fromtimestamp(Dict('dateCreation')(self))
 
     @staticmethod
     def calculate_decimal(x, y):
@@ -228,7 +228,7 @@ class AccountHistoryPage(LoggedPage, JsonPage):
                 return self.page.TYPES.get(Dict('nature/codefamille')(self), Transaction.TYPE_UNKNOWN)
 
             def obj_date(self):
-                return fromtimestamp(self, Dict('dateOperation'))
+                return fromtimestamp(Dict('dateOperation')(self))
 
             def obj_rdate(self):
                 raw = self.obj_raw()
@@ -238,10 +238,10 @@ class AccountHistoryPage(LoggedPage, JsonPage):
                     date = '%s/%s/%s' % (date[0:2], date[2:4], date[4:])
                     return parse_french_date(date)
 
-                return fromtimestamp(self, Dict('dateCreation'))
+                return fromtimestamp(Dict('dateCreation')(self))
 
             def obj_vdate(self):
-                return fromtimestamp(self, Dict('dateValeur'))
+                return fromtimestamp(Dict('dateValeur')(self))
 
             def obj_amount(self):
                 return Eval(
