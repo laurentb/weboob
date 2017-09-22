@@ -29,6 +29,7 @@ from weboob.capabilities.bank import AccountNotFound, Account, TransferError, Ad
 from weboob.tools.decorators import retry
 from weboob.tools.json import json
 from weboob.browser.exceptions import ServerError
+from weboob.browser.elements import DataError
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.tools.value import Value
 
@@ -125,16 +126,28 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
             except TransferError:
                 pass
 
-            accounts = self.accounts.go().iter_accounts(ibans)
-            self.market_syn.go(data=JSON({}))
+            accounts = list(self.accounts.go().iter_accounts(ibans))
+            self.market_syn.go(data=JSON({}))  # do a post on the given URL
+            market_accounts = self.page.get_list()  # get the list of 'Comptes Titres'
+            checked_accounts = set()
             for account in accounts:
-                for market_acc in self.page.get_list():
-                    if account.number[-4:] == market_acc['securityAccountNumber'][-4:] and \
-                        account.type in (Account.TYPE_MARKET, Account.TYPE_PEA) and not account.iban:
+                for market_acc in market_accounts:
+                    if all((
+                        market_acc['securityAccountNumber'].endswith(account.number[-4:]),
+                        account.type in (Account.TYPE_MARKET, Account.TYPE_PEA),
+                        account.label == market_acc['securityAccountName'],
+                        not account.iban,
+                    )):
+                        if account.id in checked_accounts:
+                            # in this case, we have identified two accounts for the same CompteTitre
+                            raise DataError('we have two market accounts mapped to a same "CompteTitre" dictionary')
+
+                        checked_accounts.add(account.id)
                         account.balance = market_acc.get('valorisation', account.balance)
                         account.valuation_diff = market_acc['profitLoss']
                         break
                 self.accounts_list.append(account)
+
         return iter(self.accounts_list)
 
     @need_login
