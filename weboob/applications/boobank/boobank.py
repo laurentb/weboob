@@ -207,17 +207,25 @@ class TransactionsFormatter(IFormatter):
 
 
 class TransferFormatter(IFormatter):
-    MANDATORY_FIELDS = ('id', 'date', 'origin', 'recipient', 'amount')
-    DISPLAYED_FIELDS = ('reason', )
+    MANDATORY_FIELDS = ('id', 'exec_date', 'account_label', 'recipient_label', 'amount')
+    DISPLAYED_FIELDS = ('label', 'account_iban', 'recipient_iban', 'currency')
 
     def format_obj(self, obj, alias):
         result = u'------- Transfer %s -------\n' % obj.fullid
-        result += u'Date:       %s\n' % obj.date
-        result += u'Origin:     %s\n' % obj.origin
-        result += u'Recipient:  %s\n' % obj.recipient
-        result += u'Amount:     %.2f\n' % obj.amount
-        if obj.reason:
-            result += u'Reason:     %s\n' % obj.reason
+        result += u'Date:       %s\n' % obj.exec_date
+        if obj.account_iban:
+            result += u'Origin:     %s (%s)\n' % (obj.account_label, obj.account_iban)
+        else:
+            result += u'Origin:     %s\n' % obj.account_label
+
+        if obj.recipient_iban:
+            result += u'Recipient:  %s (%s)\n' % (obj.recipient_label, obj.recipient_iban)
+        else:
+            result += u'Recipient:  %s\n' % obj.recipient_label
+
+        result += u'Amount:     %.2f %s\n' % (obj.amount, obj.currency or '')
+        if obj.label:
+            result += u'Label:      %s\n' % obj.label
         return result
 
 
@@ -291,11 +299,15 @@ class InvestmentFormatter(IFormatter):
 
 class RecipientListFormatter(PrettyFormatter):
     MANDATORY_FIELDS = ('id', 'label')
+    DISPLAYED_FIELDS = ('iban', 'bank_name')
 
     def start_format(self, **kwargs):
         self.output('Available recipients:')
 
     def get_title(self, obj):
+        details = ' - '.join(filter(None, (obj.iban, obj.bank_name)))
+        if details:
+            return '%s (%s)' % (obj.label, details)
         return obj.label
 
 
