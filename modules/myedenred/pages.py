@@ -70,10 +70,12 @@ class TransactionsPage(LoggedPage, HTMLPage):
             klass = Transaction
 
             # We have no better id than date-hour-marketname slugified
-            obj__newid = Format('%s%s%s',
+            # [edit] Wow, seems like it's not enough, let's add the price then.
+            obj__newid = Format('%s%s%s%s',
                                 CleanText('.//span[contains(., "/")]', replace=[('/', '')]),
                                 Regexp(CleanText('.//h3', replace=[('h', '')]), '(.*) - '),
-                                CleanText('.//h3/strong'))
+                                CleanText('.//h3/strong'),
+                                CleanText('./td[@class="al-r"]', replace=[('-', ''), (',', '')]))
             obj_id = Slugify(Field('_newid'))
             obj_date = DateGuesser(CleanText('.//span[contains(., "/")]'), LinearDateGuesser(date_max_bump=timedelta(45)))
             obj_label = Format('Facture %s', CleanText('.//h3/strong'))
