@@ -393,7 +393,7 @@ class Boobank(ReplApplication):
     APPNAME = 'boobank'
     VERSION = '1.4'
     COPYRIGHT = 'Copyright(C) 2010-YEAR Romain Bignon, Christophe Benz'
-    CAPS = CapBank, CapBankTransfer
+    CAPS = CapBank
     DESCRIPTION = "Console application allowing to list your bank accounts and get their balance, " \
                   "display accounts history and coming bank operations, and transfer money from an account to " \
                   "another (if available)."
