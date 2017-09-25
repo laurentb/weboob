@@ -19,7 +19,7 @@
 
 
 from weboob.tools.test import BackendTest
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, Transaction
 from datetime import timedelta
 import random
 
@@ -35,8 +35,8 @@ class INGTest(BackendTest):
             self.assertTrue(_id.id == account.id)
             # Methods can use Account objects or id. Try one of them
             id_or_account = random.choice([account, account.id])
+            history = list(self.backend.iter_history(id_or_account))
             if account.type == Account.TYPE_CHECKING or account.type == Account.TYPE_SAVINGS:
-                history = list(self.backend.iter_history(id_or_account))
                 self.assertTrue(len(history) > 0)
                 date = history[0].date
                 for elem in history[1:]:
@@ -53,6 +53,9 @@ class INGTest(BackendTest):
                 invest = list(self.backend.iter_investment(id_or_account))
                 self.backend.iter_history(id_or_account)  # can be empty. Only try to call it
                 self.assertTrue(len(invest) > 0)
+                deferred_cards_only = self.browser.only_deferred_cards.get(account._id)
+                if deferred_cards_only:
+                    self.assertTrue(all([transaction.type != Transaction.TYPE_CARD for transaction in history]))
 
     def test_subscriptions(self):
         l = list(self.backend.iter_subscription())

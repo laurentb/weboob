@@ -28,6 +28,7 @@ from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.exceptions import ServerError
 from weboob.capabilities.bank import Account, AccountNotFound
 from weboob.capabilities.base import find_object
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 from .pages import AccountsList, LoginPage, NetissimaPage, TitrePage, TitreHistory,\
     TransferPage, BillsPage, StopPage, TitreDetails, TitreValuePage, ASVHistory,\
@@ -61,7 +62,8 @@ def start_with_main_site(f):
 class IngBrowser(LoginBrowser):
     BASEURL = 'https://secure.ingdirect.fr'
     TIMEOUT = 60.0
-
+    DEFERRED_CB = 'deferred'
+    IMMEDIATE_CB = 'immediate'
     # avoid relogin every time
     lifeback = URL(r'https://ingdirectvie.ingdirect.fr/b2b2c/entreesite/EntAccExit', ReturnPage)
 
@@ -102,6 +104,7 @@ class IngBrowser(LoginBrowser):
         LoginBrowser.__init__(self, *args, **kwargs)
         self.cache = {}
         self.cache["investments_data"] = {}
+        self.only_deferred_cards = {}
 
     def do_login(self):
         assert self.password.isdigit()
@@ -169,6 +172,11 @@ class IngBrowser(LoginBrowser):
                 "cptnbr": account._id
                 }
         self.accountspage.go(data=data)
+        card_list = self.page.get_card_list()
+        if card_list:
+            self.only_deferred_cards[account._id] = any(
+                [card['kind'] != self.DEFERRED_CB for card in card_list]
+            )
         self.where = "history"
 
     @need_login
@@ -201,6 +209,8 @@ class IngBrowser(LoginBrowser):
         account = self.get_account(account.id)
         self.go_account_page(account)
         jid = self.page.get_history_jid()
+        only_deferred_cb = self.only_deferred_cards.get(account._id)
+
         if jid is None:
             self.logger.info('There is no history for this account')
             return
@@ -215,6 +225,9 @@ class IngBrowser(LoginBrowser):
         while True:
             i = index
             for transaction in history_function(self.page, index=index):
+                if only_deferred_cb and transaction.type == FrenchTransaction.TYPE_CARD:
+                    transaction.type = FrenchTransaction.TYPE_DEFERRED_CARD
+
                 transaction.id = hashlib.md5(transaction._hash).hexdigest()
                 while transaction.id in hashlist:
                     transaction.id = hashlib.md5((transaction.id + "1").encode('ascii')).hexdigest()

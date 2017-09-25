@@ -26,9 +26,12 @@ from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.profile import Person
 from weboob.browser.pages import HTMLPage, LoggedPage
-from weboob.browser.elements import ListElement, TableElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Filter, Field, MultiFilter, Date, \
-                                            Lower, Async, AsyncLoad, Format, TableCell, Eval, Env
+from weboob.browser.elements import ListElement, TableElement, ItemElement, method, DataError
+from weboob.browser.filters.standard import (
+    CleanText, CleanDecimal, Filter, Field, MultiFilter, Date,
+    Lower, Async, AsyncLoad, Format, TableCell, Eval, Env,
+    Regexp,
+)
 from weboob.browser.filters.html import Attr, Link
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
@@ -128,6 +131,29 @@ class AccountsList(LoggedPage, HTMLPage):
 
     def has_link(self):
         return len(self.doc.xpath('//a[contains(@href, "goTo")]'))
+
+    def get_card_list(self):
+        card_list = []
+        card_elements = self.doc.xpath('//div[has-class("ccinc_cards")]/div[has-class("accordion")]')
+        for card in card_elements:
+            card_properties = {}
+
+            card_properties['number'] = Regexp(CleanText('.'), '([0-9]{4}\s\*{4}\s\*{4}\s[0-9]{4})')(card)
+            debit_info = (CleanText('.//div[@class="debit-info"]', default='')(card))
+
+            is_deferred = debit_info.startswith('Débit différé')
+            is_immediate = debit_info.startswith('Débit immédiat')
+
+            if is_immediate:
+                card_properties['kind'] = self.browser.IMMEDIATE_CB
+            elif is_deferred:
+                card_properties['kind'] = self.browser.DEFERRED_CB
+            else:
+                raise DataError("Cannot tell if this card is deferred or immediate")
+
+            card_list.append(card_properties)
+
+        return card_list
 
     @method
     class get_list(ListElement):
