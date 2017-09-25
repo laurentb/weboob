@@ -30,6 +30,7 @@ from weboob.browser.browsers import LoginBrowser, need_login, StatesMixin
 from weboob.browser.profiles import Wget
 from weboob.browser.url import URL
 from weboob.browser.pages import FormNotFound
+from weboob.browser.exceptions import ClientError
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import Account, AddRecipientStep, AddRecipientError, Recipient
 from weboob.capabilities import NotAvailable
@@ -223,6 +224,11 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                 form.submit()
             except (IndexError, FormNotFound):
                 break
+            #sometime the browser can't go further
+            except ClientError as exc:
+                if exc.response.status_code == 413:
+                    break
+                raise
 
         if self.li.is_here():
             return self.page.iter_history()
