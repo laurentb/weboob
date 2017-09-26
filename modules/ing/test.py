@@ -38,9 +38,14 @@ class INGTest(BackendTest):
             if account.type == Account.TYPE_CHECKING or account.type == Account.TYPE_SAVINGS:
                 history = list(self.backend.iter_history(id_or_account))
                 self.assertTrue(len(history) > 0)
-                date = history.pop(0).date
-                for elem in history:
-                    self.assertTrue(date + timedelta(days=2) >= elem.date)
+                date = history[0].date
+                for elem in history[1:]:
+                    # check that all the transactions in the history are no
+                    # more than 7 days older than the first fetched transaction
+                    self.assertTrue(
+                        date + timedelta(days=7) >= elem.date,
+                        msg="there's a serious time gap here"
+                    )
                     date = elem.date
                 # recipients = list(self.backend.iter_transfer_recipients(id_or_account))
                 # elf.assertTrue(len(recipients) > 0)
