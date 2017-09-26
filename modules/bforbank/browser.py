@@ -126,7 +126,9 @@ class BforbankBrowser(LoginBrowser):
 
     @need_login
     def get_history(self, account):
-        if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
+        if account.type == Account.TYPE_LOAN:
+            return []
+        elif account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
             bourse_account = self.get_bourse_account(account)
             if not bourse_account:
                 return iter([])
