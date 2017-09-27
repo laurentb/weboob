@@ -35,7 +35,7 @@ from .pages import (
     UnavailablePage, RedirectPage, HomePage, Login2Page, ErrorPage,
     IbanPage, AdvisorPage,
     NatixisPage, EtnaPage, NatixisInvestPage, NatixisHistoryPage, NatixisErrorPage,
-    NatixisDetailsPage, NatixisChoicePage,
+    NatixisDetailsPage, NatixisChoicePage, NatixisRedirect,
 )
 
 from .linebourse_browser import LinebourseBrowser
@@ -93,7 +93,6 @@ def no_need_login(func):
     return wrapper
 
 
-
 class BanquePopulaire(LoginBrowser):
     login_page = URL(r'https://[^/]+/auth/UI/Login.*', LoginPage)
     index_page = URL(r'https://[^/]+/cyber/internet/Login.do', IndexPage)
@@ -136,6 +135,7 @@ class BanquePopulaire(LoginBrowser):
     login2_page = URL(r'https://[^/]+/WebSSO_BP/_(?P<bankid>\d+)/index.html\?transactionID=(?P<transactionID>.*)', Login2Page)
 
     # natixis
+    natixis_redirect = URL(r'https://www.assurances.natixis.fr/espaceinternet-bp/views/common/routage.xhtml.*?windowId=[a-f0-9]+$', NatixisRedirect)
     natixis_choice = URL(r'https://www.assurances.natixis.fr/espaceinternet-bp/views/contrat/list.xhtml\?.*', NatixisChoicePage)
     natixis_page = URL(r'https://www.assurances.natixis.fr/espaceinternet-bp/views/common.*', NatixisPage)
     etna = URL(r'https://www.assurances.natixis.fr/etna-ihs-bp/#/contratVie/(?P<id1>\w+)/(?P<id2>\w+)/(?P<id3>\w+).*',
@@ -336,54 +336,85 @@ class BanquePopulaire(LoginBrowser):
 
         url, params = self.page.get_investment_page_params()
         if params:
-            self.location(url, data=params)
+            try:
+                self.location(url, data=params)
+            except BrowserUnavailable:
+                return False
 
             if "linebourse" in self.url:
                 self.linebourse.session.cookies.update(self.session.cookies)
                 self.linebourse.invest.go()
                 self.logged = True
-            elif self.natixis_page.is_here():
-                try:
-                    self.page.submit_form()
-                except BrowserUnavailable:
-                    return False
 
             if self.natixis_error_page.is_here():
                 self.logger.warning("natixis site doesn't work")
                 return False
+
+            if self.natixis_redirect.is_here():
+                url = self.page.get_redirect()
+                if re.match(r'https://www.assurances.natixis.fr/etna-ihs-bp/#/equipement;codeEtab=\d+\?windowId=[a-f0-9]+$', url):
+                    self.logger.warning('there may be no contract associated with %s, skipping', url)
+                    return False
         return True
 
     @need_login
     def get_investment(self, account):
+        if account.type in (Account.TYPE_LOAN,):
+            self.investments[account.id] = []
+            return []
+
         if account.id in self.investments.keys() and self.investments[account.id] is False:
             raise NotImplementedError()
+
         if account.id not in self.investments.keys():
             self.investments[account.id] = []
             try:
                 if self.go_investments(account, get_account=True):
-                    if self.etna.is_here():
-                        # Broken website .. nothing to do.
-                        try:
-                            self.natixis_invest.go(**self.page.params)
-                        except ServerError:
-                            self.investments[account.id] = iter([])
-                            return self.investments[account.id]
-                        self.investments[account.id] = list(self.page.get_investments())
-                    elif "linebourse" in self.url:
+                    if "linebourse" in self.url:
                         for inv in self.linebourse.iter_investment(re.sub('[^0-9]', '', account.id)):
                             # skip liquidity from linebourse, it's on another account
                             if inv.code != "XX-liquidity":
                                 self.investments[account.id].append(inv)
+
+                    if self.etna.is_here():
+                        params = self.page.params
+                    elif self.natixis_redirect.is_here():
+                        # the url may contain a "#", so we cannot make a request to it, the params after "#" would be dropped
+                        url = self.page.get_redirect()
+                        self.logger.debug('using redirect url %s', url)
+                        m = self.etna.match(url)
+                        params = m.groupdict()
+
+                    if self.natixis_redirect.is_here() or self.etna.is_here():
+                        try:
+                            self.natixis_invest.go(**params)
+                        except ServerError:
+                            # Broken website .. nothing to do.
+                            self.investments[account.id] = iter([])
+                            return self.investments[account.id]
+                        self.investments[account.id] = list(self.page.get_investments())
             except NotImplementedError:
-                self.investments[account.id] = iter([])
+                self.investments[account.id] = []
         return self.investments[account.id]
 
     @need_login
     def get_invest_history(self, account):
         if not self.go_investments(account):
             return
+        if "linebourse" in self.url:
+            for tr in self.linebourse.iter_history(re.sub('[^0-9]', '', account.id)):
+                yield tr
+            return
+
         if self.etna.is_here():
             params = self.page.params
+        elif self.natixis_redirect.is_here():
+            url = self.page.get_redirect()
+            self.logger.debug('using redirect url %s', url)
+            m = self.etna.match(url)
+            params = m.groupdict()
+
+        if self.etna.is_here() or self.natixis_redirect.is_here():
             self.natixis_history.go(**params)
             items_from_json = list(self.page.get_history())
             items_from_json.sort(reverse=True, key=lambda item: item.date)
@@ -406,9 +437,6 @@ class BanquePopulaire(LoginBrowser):
                     history.sort(reverse=True, key=lambda item: item.date)
                     for tr in history:
                         yield tr
-        elif "linebourse" in self.url:
-            for tr in self.linebourse.iter_history(re.sub('[^0-9]', '', account.id)):
-                yield tr
 
     @retry(LoggedOut)
     @need_login

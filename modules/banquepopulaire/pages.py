@@ -31,7 +31,7 @@ from weboob.browser.filters.html import Attr, Link, AttributeNotFound
 from weboob.browser.filters.json import Dict
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
 
-from weboob.browser.pages import HTMLPage, LoggedPage, FormNotFound, JsonPage, RawPage
+from weboob.browser.pages import HTMLPage, LoggedPage, FormNotFound, JsonPage, RawPage, XMLPage
 
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.contact import Advisor
@@ -800,14 +800,24 @@ class NatixisChoicePage(LoggedPage, HTMLPage):
 
 
 class NatixisPage(LoggedPage, HTMLPage):
-    def submit_form(self):
+    def on_load(self):
         form = self.get_form(name="formRoutage")
         form['javax.faces.source'] = 'formRoutageButton'
         form['javax.faces.partial.execute'] = 'formRoutageButton @component'
         form['javax.faces.partial.render'] = '@component'
         form['AJAX:EVENTS_COUNT'] = '1'
         form['javax.faces.partial.ajax'] = 'true'
+        form['javax.faces.partial.event'] = 'click'
+        form['org.richfaces.ajax.component'] = 'formRoutageButton'
+        form['formRoutageButton'] = 'formRoutageButton'
+        form.request.headers['Faces-Request'] = 'partial/ajax'
         form.submit()
+
+
+class NatixisRedirect(LoggedPage, XMLPage):
+    def get_redirect(self):
+        url = self.doc.xpath('/partial-response/redirect/@url')[0]
+        return url.replace('http://', 'https://') # why do they use http on a bank site???
 
 
 class NatixisErrorPage(LoggedPage, HTMLPage):
