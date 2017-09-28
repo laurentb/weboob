@@ -21,6 +21,7 @@
 from datetime import date, datetime
 from binascii import crc32
 import re
+from unidecode import unidecode
 
 from weboob.capabilities.base import empty
 from weboob.exceptions import BrowserQuestion
@@ -578,6 +579,9 @@ class CapBankTransfer(CapBank):
                 except AssertionError:
                     raise TransferError('%s changed during transfer processing (from %s to %s)' % (key, transfer_val, value))
         return self.execute_transfer(t, **params)
+
+    def transfer_check_label(self, old, new):
+        return unidecode(old) == unidecode(new)
 
 
 class CapBankTransferAddRecipient(CapBankTransfer):
