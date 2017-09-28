@@ -271,7 +271,7 @@ class Repository(object):
         :param filename: file to save index
         :type filename: str
         """
-        print('Rebuild index')
+        self.logger.debug('Rebuild index')
         self.modules.clear()
 
         if os.path.isdir(os.path.join(path, self.KEYDIR)):
