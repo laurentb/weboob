@@ -59,7 +59,7 @@ class BNPEnterprise(LoginBrowser):
 
     card_init = URL(r'/NCCPresentationWeb/m04_selectionCompteGroupe/init.do\?type=compteCarte&identifiant=(?P<identifiant>)', CardListPage)
     card_init2 = URL(r'https://secure1.entreprises.bnpparibas.net/NCCPresentationWeb/e13_cartes/change_common.do', CardListPage)
-    card_list = URL(r'/NCCPresentationWeb/e13_cartes/liste_cartes.do\?Ligne_Encour=Global', CardListPage)
+    card_list = URL(r'/NCCPresentationWeb/e13_cartes/liste_cartes.do\?Ligne_Encour=', CardListPage)
     init_card_history = URL(r'/NCCPresentationWeb/e13_encours/init.do\?Id_Carte=(?P<card_id>)&Ligne_Encour=Global', CardHistoryPage)
 
     card_history = URL(r'/NCCPresentationWeb/e13_encours/liste_operations.do', CardHistoryPage)

@@ -293,6 +293,9 @@ class CardListPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Account
 
+            def condition(self):
+                return bool(Dict('montantLigneEncours')(self))
+
             obj_type = Account.TYPE_CARD
             obj_number = Dict('numCarte')
             obj_id = Format('%s.%s', Env('account_id'), Dict('numCarte'))
