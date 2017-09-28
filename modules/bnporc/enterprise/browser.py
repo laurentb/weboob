@@ -31,8 +31,8 @@ from weboob.browser.url import URL
 
 from .pages import (
     LoginPage, AuthPage, AccountsPage, AccountHistoryViewPage, AccountHistoryPage,
-    ActionNeededPage, CardListPage,
-    CardHistoryPage)
+    ActionNeededPage, CardListPage, CardHistoryPage, merge_cards
+)
 
 
 __all__ = ['BNPEnterprise']
@@ -59,7 +59,7 @@ class BNPEnterprise(LoginBrowser):
 
     card_init = URL(r'/NCCPresentationWeb/m04_selectionCompteGroupe/init.do\?type=compteCarte&identifiant=(?P<identifiant>)', CardListPage)
     card_init2 = URL(r'https://secure1.entreprises.bnpparibas.net/NCCPresentationWeb/e13_cartes/change_common.do', CardListPage)
-    card_list = URL(r'/NCCPresentationWeb/e13_cartes/liste_cartes.do\?Ligne_Encour=', CardListPage)
+    card_list = URL(r'/NCCPresentationWeb/e13_cartes/liste_cartes.do\?Ligne_Encour=Global', CardListPage)
     init_card_history = URL(r'/NCCPresentationWeb/e13_encours/init.do\?Id_Carte=(?P<card_id>)&Ligne_Encour=Global', CardHistoryPage)
 
     card_history = URL(r'/NCCPresentationWeb/e13_encours/liste_operations.do', CardHistoryPage)
@@ -100,7 +100,8 @@ class BNPEnterprise(LoginBrowser):
                     self.card_init.go(identifiant=account.iban)
                     self.card_init2.go()
                     self.card_list.go()
-                    accounts.extend(self.page.iter_accounts(account_id=account.id, parent_iban=account.iban))
+                    card_accounts = list(self.page.iter_accounts(account_id=account.id, parent_iban=account.iban))
+                    accounts.extend(merge_cards(card_accounts))
 
             self.cache['accounts'] = accounts
         return self.cache['accounts']

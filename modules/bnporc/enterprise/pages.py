@@ -37,6 +37,27 @@ from weboob.capabilities import NotAvailable
 from weboob.exceptions import ActionNeeded
 
 
+def merge_cards(input_list):
+    final_card_set = {}
+
+    # step 1: merge cards
+    for card in input_list:
+        card_number = card.number
+        if card_number in final_card_set:
+            if card._coming_amount:
+                final_card_set[card_number] = card
+        else:
+            final_card_set[card_number] = card
+
+    # step 2: update card.id
+    output = []
+    for card in final_card_set.values():
+        card.id, _index = card.id.rsplit('.', 1)
+        assert card._index == _index
+        output.append(card)
+
+    return output
+
 def fromtimestamp(milliseconds):
     return datetime.fromtimestamp(milliseconds/1000)
 
@@ -292,15 +313,12 @@ class CardListPage(LoggedPage, JsonPage):
 
         class item(ItemElement):
             klass = Account
-
-            def condition(self):
-                return bool(Dict('montantLigneEncours')(self))
-
             obj_type = Account.TYPE_CARD
             obj_number = Dict('numCarte')
-            obj_id = Format('%s.%s', Env('account_id'), Dict('numCarte'))
+            obj_id = Format('%s.%s.%s', Env('account_id'), Dict('numCarte'), Dict('idCarte'))
             obj_label = Format('%s %s', Dict('typeCarte'), Dict('nomPorteur'))
             obj__index = Dict('idCarte')
+            obj__coming_amount = Dict('montantLigneEncours')
             obj__parent_iban = Env('parent_iban')
             obj_coming = Eval(lambda x: Decimal(x)/100, Dict('montant/montant'))
             obj_currency = CleanText(Dict('montant/devise'))
