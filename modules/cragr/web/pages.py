@@ -590,15 +590,19 @@ class LoansPage(_AccountsPage):
     class item_loan(ItemElement):
         klass = Loan
 
-        obj_total_amount = MyDecimal('//div[@id="trPagePu"]//td[contains(., "Montant emprunté")]')
-        # todo handle duration as a relativedelta
-        obj_duration = MyDecimal(Regexp(CleanText('//div[@id="trPagePu"]//td[contains(., "Durée")]'), r' (\d+) '))
+        obj_total_amount = MyDecimal('//div[@class="ca-table"]//td[contains(., "Montant :") or contains(., "Montant emprunté")] | \
+                            //table[@class="ca-table"][1]//td[contains(., "Montant :") or contains(., "Montant emprunté")] | \
+                            //div[@id="trPagePu"]//td[contains(., "Montant emprunté")]')
         obj_subscription_date = MyDate(Regexp(
-            CleanText('//div[@id="trPagePu"]//td[contains(., "Début")]', symbols=':'), r'(\d{2}/\d{2}/\d{4})'), default=NotAvailable)
+            CleanText('//div[@id="trPagePu"]//td[contains(., "Début") or contains(., "Date de souscription")]', symbols=':'), r'(\d{2}/\d{2}/\d{4})'), default=NotAvailable)
         obj_maturity_date = MyDate(Regexp(
-            CleanText('//div[@id="trPagePu"]//td[contains(., "Fin le")]', symbols=':'), r'(\d{2}/\d{2}/\d{4})'), default=NotAvailable)
+            CleanText('//div[@id="trPagePu"]//td[contains(., "Fin le") or contains(., "Date de remboursement")]', symbols=':'), r'(\d{2}/\d{2}/\d{4})'), default=NotAvailable)
         obj_rate = MyDecimal('//div[@id="trPagePu"]//td[contains(., "Taux")]')
-        obj_next_payment_amount = MyDecimal('//div[@id="trPagePu"]//td[contains(., "Remboursement")]')
+        # following data are not always available
+        # todo handle duration as a relativedelta
+        obj_duration = MyDecimal(Regexp(CleanText(
+            '//div[@id="trPagePu"]//td[contains(., "Durée")]', default=NotAvailable), r' (\d+) ', default=NotAvailable), default=NotAvailable)
+        obj_next_payment_amount = MyDecimal('//div[@id="trPagePu"]//td[contains(., "Remboursement")]', default=NotAvailable)
         obj_next_payment_date = MyDate(Regexp(CleanText('//div[@id="trPagePu"]//td[contains(., "Prochaine")]'),
                                               r'(\d{2}/\d{2}/\d{4})', default=NotAvailable), default=NotAvailable)
 
