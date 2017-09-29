@@ -141,8 +141,8 @@ class AccountsList(LoggedPage, HTMLPage):
             card_properties['number'] = Regexp(CleanText('.'), '([0-9]{4}\s\*{4}\s\*{4}\s[0-9]{4})')(card)
             debit_info = (CleanText('.//div[@class="debit-info"]', default='')(card))
 
-            is_deferred = debit_info.startswith('Débit différé')
-            is_immediate = debit_info.startswith('Débit immédiat')
+            is_deferred = debit_info.startswith(u'Débit différé')
+            is_immediate = debit_info.startswith(u'Débit immédiat')
 
             if is_immediate:
                 card_properties['kind'] = self.browser.IMMEDIATE_CB
