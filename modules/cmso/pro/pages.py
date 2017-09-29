@@ -61,7 +61,7 @@ class SubscriptionPage(HTMLPage):
 
 class LoginPage(HTMLPage):
     def login(self, username, password):
-        form = self.get_form('//form[@id="formAuth"]')
+        form = self.get_form('//form[@id="formAuthent"]')
 
         form['noPersonne'] = username
         form['motDePasse'] = password[:16]
