@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2016      Edouard Lambert
+# Copyright(C) 2017      Théo Dorée
 #
 # This file is part of weboob.
 #
@@ -17,16 +17,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
-import re
-from datetime import datetime
-
-from ..pages import OrderNewPage
+from ..en.browser import AmazonEnBrowser
 
 
-class OrderNewPageDE(OrderNewPage):
-    def order_date(self):
-        return datetime.strptime(
-            re.match('.*Ordered on ([0-9]+ [\w]+ [0-9]+) .*',
-                     self.date_num()).group(1),
-            '%d %B %Y')
+class AmazonUkBrowser(AmazonEnBrowser):
+    BASEURL = 'https://www.amazon.co.uk'
+    CURRENCY = u'£'
+    LANGUAGE = u'en-GB'

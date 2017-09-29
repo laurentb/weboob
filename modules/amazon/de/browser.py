@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2016      Edouard Lambert
+# Copyright(C) 2017      Théo Dorée
 #
 # This file is part of weboob.
 #
@@ -17,34 +17,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
-from weboob.browser import URL
-from ..browser import Amazon
-
-from weboob.exceptions import BrowserIncorrectPassword
-
-from .pages import OrderNewPageDE
-from ..pages import HomePage
-
-__all__ = ['AmazonDE']
+from ..en.browser import AmazonEnBrowser
 
 
-class AmazonDE(Amazon):
+class AmazonDeBrowser(AmazonEnBrowser):
     BASEURL = 'https://www.amazon.de'
-    CURRENCY = u'€'
-    home = URL(r'/$', r'.*/homepage\.html.*', HomePage)
-    order_new = URL(r'/gp/css/summary.*$',
-                    r'/gp/your-account/order-details.*$',
-                    r'/gp/your-account/order-details\?orderID=%\(order_id\)s',
-                    OrderNewPageDE)
-
-    def do_login(self):
-        self.session.cookies.clear()
-
-        self.home.go().to_login().login(self.username, self.password)
-
-        # Switch language to english
-        self.page.to_switchlanguage()
-
-        if not self.page.logged:
-            raise BrowserIncorrectPassword()
+    CURRENCY = 'EUR'
+    LANGUAGE = 'en-GB'

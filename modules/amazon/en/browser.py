@@ -19,21 +19,14 @@
 
 from __future__ import unicode_literals
 
+from ..browser import AmazonBrowser
 
-from weboob.tools.test import BackendTest
 
+class AmazonEnBrowser(AmazonBrowser):
+    BASEURL = 'https://www.amazon.com'
+    CURRENCY = '$'
+    LANGUAGE = 'en-US'
 
-class AmazonfrTest(BackendTest):
-    MODULE = 'amazonfr'
-
-    def test_document(self):
-        subscriptions = list(self.backend.iter_subscription())
-        assert subscriptions
-
-        for sub in subscriptions:
-            docs = list(self.backend.iter_documents(sub))
-            assert docs
-
-            for doc in docs:
-                content = self.backend.download_document(doc)
-                assert content
+    L_SIGNIN = 'Sign in'
+    L_LOGIN = 'Login'
+    L_SUBSCRIBER = 'Name: (.*) Edit E'

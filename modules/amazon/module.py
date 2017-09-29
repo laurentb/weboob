@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2014      Oleg Plakhotniuk
+# Copyright(C) 2017      Théo Dorée
 #
 # This file is part of weboob.
 #
@@ -17,88 +17,65 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 from collections import OrderedDict
 
-from weboob.capabilities.bill import CapDocument, Subscription, Bill, SubscriptionNotFound, DocumentNotFound
-from weboob.capabilities.shop import CapShop, Order
-from weboob.capabilities.base import find_object
+from weboob.capabilities.bill import CapDocument, Subscription, Document, SubscriptionNotFound, DocumentNotFound
+from weboob.capabilities.base import find_object, NotAvailable
 from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.value import Value, ValueBackendPassword
-from weboob.browser.exceptions import HTTPNotFound
+from weboob.tools.value import ValueBackendPassword, Value
+from weboob.tools.pdf import html_to_pdf
 
-from .browser import Amazon
-from .fr.browser import AmazonFR
-from .de.browser import AmazonDE
+from .browser import AmazonBrowser
+from .en.browser import AmazonEnBrowser
+from .de.browser import AmazonDeBrowser
+from .uk.browser import AmazonUkBrowser
 
 __all__ = ['AmazonModule']
 
 
-class AmazonModule(Module, CapShop, CapDocument):
-    NAME = 'amazon'
-    MAINTAINER = u'Oleg Plakhotniuk'
-    EMAIL = 'olegus8@gmail.com'
-    VERSION = '1.4'
+class AmazonModule(Module, CapDocument):
+    NAME = 'amazonfr'
+    DESCRIPTION = 'AmazonFR'
+    MAINTAINER = 'Théo Dorée'
+    EMAIL = 'tdoree@budget-insight.com'
     LICENSE = 'AGPLv3+'
-    DESCRIPTION = u'Amazon'
+    VERSION = '1.4'
 
     website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
-        'www.amazon.com': u'Amazon.com',
-        'www.amazon.fr': u'Amazon France',
-        'www.amazon.de': u'Amazon.de',
-        }.iteritems())])
+                        'www.amazon.com': u'Amazon.com',
+                        'www.amazon.fr': u'Amazon France',
+                        'www.amazon.de': u'Amazon.de',
+                        'www.amazon.co.uk': u'Amazon UK',
+                      }.iteritems())])
 
     BROWSERS = {
-        'www.amazon.com': Amazon,
-        'www.amazon.fr': AmazonFR,
-        'www.amazon.de': AmazonDE,
-        }
+        'www.amazon.fr': AmazonBrowser,
+        'www.amazon.com': AmazonEnBrowser,
+        'www.amazon.de': AmazonDeBrowser,
+        'www.amazon.co.uk': AmazonUkBrowser,
+    }
 
     CONFIG = BackendConfig(
-        Value('website',  label=u'Website', choices=website_choices, default='www.amazon.com'),
+        Value('website', label=u'Website', choices=website_choices, default='www.amazon.com'),
         ValueBackendPassword('email', label='Username', masked=False),
         ValueBackendPassword('password', label='Password'),
-        Value('captcha_response', label='Captcha response', required=False))
+        Value('captcha_response', label='Captcha Response', required=False),)
 
     def create_default_browser(self):
         self.BROWSER = self.BROWSERS[self.config['website'].get()]
         return self.create_browser(self.config)
 
-    def get_currency(self):
-        return self.browser.get_currency()
-
-    def get_order(self, id_):
-        return self.browser.get_order(id_)
-
-    def iter_orders(self):
-        return self.browser.iter_orders()
-
-    def iter_payments(self, order):
-        if not isinstance(order, Order):
-            order = self.get_order(order)
-        return self.browser.iter_payments(order)
-
-    def iter_items(self, order):
-        if not isinstance(order, Order):
-            order = self.get_order(order)
-        return self.browser.iter_items(order)
-
-    def iter_resources(self, objs, split_path):
-        if Order in objs:
-            self._restrict_level(split_path)
-            return self.iter_orders()
-        if Subscription in objs:
-            self._restrict_level(split_path)
-            return self.iter_subscription()
-
     def iter_subscription(self):
-        return self.browser.get_subscription_list()
+        return self.browser.iter_subscription()
 
     def get_subscription(self, _id):
         return find_object(self.iter_subscription(), id=_id, error=SubscriptionNotFound)
 
     def get_document(self, _id):
-        subid = _id.split('.')[0]
+        subid = _id.rsplit('_', 1)[0]
         subscription = self.get_subscription(subid)
+
         return find_object(self.iter_documents(subscription), id=_id, error=DocumentNotFound)
 
     def iter_documents(self, subscription):
@@ -106,22 +83,18 @@ class AmazonModule(Module, CapShop, CapDocument):
             subscription = self.get_subscription(subscription)
         return self.browser.iter_documents(subscription)
 
-    def download_document(self, bill):
-        if not isinstance(bill, Bill):
-            bill = self.get_document(bill)
-        if bill.url:
-            try:
-                return self.browser.download_document(bill.url)
-            except HTTPNotFound:
-                pass
-        return None
+    def download_document(self, document):
+        if not isinstance(document, Document):
+            document = self.get_document(document)
+        if document.url is NotAvailable:
+            return
 
-    def download_document_pdf(self, bill):
-        if not isinstance(bill, Bill):
-            bill = self.get_document(bill)
-        if bill.url:
-            try:
-                return self.browser.download_document_pdf(bill.url)
-            except IOError:
-                pass
-        return None
+        return self.browser.open(document.url).content
+
+    def download_document_pdf(self, document):
+        if not isinstance(document, Document):
+            document = self.get_document(document)
+        if document.url is NotAvailable:
+            return
+
+        return html_to_pdf(self.browser, url=self.browser.BASEURL + document.url)

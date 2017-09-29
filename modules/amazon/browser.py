@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2014      Oleg Plakhotniuk
+# Copyright(C) 2017      Théo Dorée
 #
 # This file is part of weboob.
 #
@@ -17,176 +17,86 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
-from requests.exceptions import Timeout, ConnectionError, TooManyRedirects
+from __future__ import unicode_literals
+from datetime import date
 
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.browser.exceptions import ServerError, HTTPNotFound
-from weboob.capabilities.bill import Subscription, Bill
-from weboob.capabilities.shop import OrderNotFound
-from weboob.capabilities.base import NotAvailable
-from weboob.tools.decorators import retry
-from weboob.tools.value import Value
-from weboob.tools.pdf import html_to_pdf
-from weboob.exceptions import BrowserIncorrectPassword, CaptchaQuestion
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded, CaptchaQuestion
 
-from .pages import HomePage, LoginPage, AmazonPage, HistoryPage, \
-    OrderOldPage, OrderNewPage
-
-__all__ = ['Amazon']
+from .pages import LoginPage, SubscriptionsPage, DocumentsPage, HomePage, PanelPage, SecurityPage, LanguagePage
 
 
-class Amazon(LoginBrowser):
-    BASEURL = 'https://www.amazon.com'
-    MAX_RETRIES = 10
-    CURRENCY = u'$'
-    home = URL(r'/$', r'http://www.amazon.com/$', HomePage)
-    login = URL(r'/ap/signin.*$', LoginPage)
-    history = URL(r'/gp/css/order-history.*$',
-                  r'/gp/your-account/order-history.*$', HistoryPage)
-    order_old = URL(r'/gp/css/summary.*$',
-                    r'/gp/css/summary/edit.html\?orderID=%\(order_id\)s',
-                    r'/gp/digital/your-account/order-summary.html.*$',
-                    r'/gp/digital/your-account/orderPe-summary.html\?orderID=%\(order_id\)s',
-                    OrderOldPage)
-    order_new = URL(r'/gp/css/summary.*$',
-                    r'/gp/your-account/order-details.*$',
-                    r'/gp/your-account/order-details\?orderID=%\(order_id\)s',
-                    OrderNewPage)
-    unknown = URL(r'*', AmazonPage)
+class AmazonBrowser(LoginBrowser):
+    BASEURL = 'https://www.amazon.fr'
+    CURRENCY = 'EUR'
+    LANGUAGE = 'fr-FR'
+
+    L_SIGNIN = 'Identifiez-vous'
+    L_LOGIN = 'Connexion'
+    L_SUBSCRIBER = 'Nom : (.*) Modifier E-mail'
+
+    login = URL(r'/ap/signin(.*)', LoginPage)
+    home = URL(r'/$', HomePage)
+    panel = URL('/gp/css/homepage.html/ref=nav_youraccount_ya', PanelPage)
+    subscriptions = URL(r'/ap/cnep(.*)', SubscriptionsPage)
+    documents = URL(r'/gp/your-account/order-history\?opt=ab&digitalOrders=1(.*)&orderFilter=year-(?P<year>.*)', DocumentsPage)
+    security = URL('/ap/dcq', SecurityPage)
+    language = URL(r'/gp/customer-preferences/save-settings/ref=icp_lop_(?P<language>.*)_tn', LanguagePage)
 
     def __init__(self, config, *args, **kwargs):
         self.config = config
         kwargs['username'] = self.config['email'].get()
         kwargs['password'] = self.config['password'].get()
-        super(Amazon, self).__init__(*args, **kwargs)
-
-    def get_currency(self):
-        return self.CURRENCY
-
-    def get_order(self, id_):
-        order = self.to_order(id_)
-        if order:
-            return order
-        else:
-            raise OrderNotFound()
-
-    def iter_orders(self):
-        histRoot = self.to_history()
-        for histYear in histRoot.iter_years():
-            for order in histYear.iter_orders():
-                if order:
-                    yield order
-
-    def iter_payments(self, order):
-        return self.to_order_page(order.id).payments()
-
-    def iter_items(self, order):
-        return self.to_order_page(order.id).items()
-
-    @need_login
-    def to_history(self):
-        self.history.stay_or_go()
-        assert self.history.is_here()
-        return self.page
-
-    @need_login
-    def to_order_page(self, order_id):
-        """
-        Amazon updates its website in stages: they reroute a random part of
-        their users to new pages, and the rest to old ones.
-        """
-        for i in xrange(self.MAX_RETRIES):
-            if (self.order_new.is_here() or self.order_old.is_here()) \
-                    and self.page.order_number() == order_id:
-                return self.page
-            try:
-                self.order_new.go(order_id=order_id)
-            except HTTPNotFound:
-                self.order_old.go(order_id=order_id)
-        self.logger.warning('Order %s not found' % order_id)
-
-    @need_login
-    def to_order(self, order_id):
-        """
-        Amazon updates its website in stages: they reroute a random part of
-        their users to new pages, and the rest to old ones.
-        """
-
-        try:
-            return self.to_order_page(order_id).order()
-        except AttributeError:
-            self.logger.warning('Order %s not found' % order_id)
+        super(AmazonBrowser, self).__init__(*args, **kwargs)
 
     def do_login(self):
-        if self.config['captcha_response'].get() is not None and self.login.is_here():
+        self.to_english(self.LANGUAGE)
+        if not self.login.is_here():
+            self.location(self.home.go().get_login_link())
+            self.page.login(self.username, self.password)
+        elif self.config['captcha_response'].get():
             self.page.login(self.username, self.password, self.config['captcha_response'].get())
-            self.config['captcha_response'] = Value(value=None)
-            if not self.page.logged:
-                raise BrowserIncorrectPassword()
+
+        if not self.login.is_here():
             return
 
-        self.session.cookies.clear()
-        self.home.go().to_login().login(self.username, self.password)
+        if self.security.is_here():
+            raise ActionNeeded("It looks like double authentication is activated for your account. Please desactivate it before retrying connection.")
 
+        captcha = self.page.has_captcha()
+        if captcha and not self.config['captcha_response'].get():
+            raise CaptchaQuestion('image_captcha', image_url=captcha[0])
+        else:
+            raise BrowserIncorrectPassword()
+
+    def is_login(self):
         if self.login.is_here():
-            has_captcha = self.page.has_captcha()
-            if not has_captcha:
-                raise BrowserIncorrectPassword()
-            else:
-                raise CaptchaQuestion('image_captcha', image_url=has_captcha)
+            self.do_login()
+        else:
+            raise BrowserUnavailable()
 
-    def location(self, *args, **kwargs):
-        """
-        Amazon throws 500 HTTP status code for apparently valid requests
-        from time to time. Requests eventually succeed after login again and retrying.
-        """
-        for i in xrange(self.MAX_RETRIES):
-            try:
-                return super(Amazon, self).location(*args, **kwargs)
-            except (ServerError, Timeout, ConnectionError, TooManyRedirects) as e:
-                self.do_login()
-                self.logger.warning('Exception %s was caught, retry %d' % (type(e).__name__, i))
-                pass
-        raise e
-
-
+    def to_english(self, language):
+        # We put language in english
+        datas = {
+            '_url': '/?language=' + language.replace('-', '_'),
+            'LOP': language.replace('-', '_'),
+        }
+        self.language.go(method='POST', data=datas, language=language)
 
     @need_login
-    def get_subscription_list(self):
-        sub = Subscription()
-        sub.label = u'amazon'
-        sub.id = u'amazon'
-        yield sub
+    def iter_subscription(self):
+        self.location(self.panel.go().get_sub_link())
+
+        if not self.subscriptions.is_here():
+            self.is_login()
+
+        yield self.page.get_item()
 
     @need_login
     def iter_documents(self, subscription):
-        orders = self.iter_orders()
-        for o in orders:
-            b = Bill()
-            b.url = unicode(o._bill['url'])
-            b.id = '%s.%s' % (subscription.id, o.id)
-            b.date = o.date
-            b.price = o.total
-            b.format = o._bill['format']
-            b.type = u'bill'
-            b.currency = b.get_currency(self.get_currency())
-            b.label = '%s %s' % (subscription.label, o.date)
-            b.vat = o.tax
-            yield b
+        documents = []
 
-    @retry(HTTPNotFound)
-    @need_login
-    def download_document(self, url):
-        doc = self.location(url)
-        if not self.order_new.is_here():
-            return doc.content
-        return NotAvailable
-
-    @retry(HTTPNotFound)
-    @need_login
-    def download_document_pdf(self, url):
-        self.location(url)
-        if not self.order_new.is_here():
-            return html_to_pdf(self, url=self.BASEURL + url)
-        return NotAvailable
+        for y in range(date.today().year - 2, date.today().year + 1):
+            for doc in self.documents.go(year=y).iter_documents(subid=subscription.id, currency=self.CURRENCY):
+                documents.append(doc)
+        return documents

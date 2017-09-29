@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2014      Oleg Plakhotniuk
+# Copyright(C) 2017      Théo Dorée
 #
 # This file is part of weboob.
 #
@@ -17,7 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 
 from .module import AmazonModule
+
 
 __all__ = ['AmazonModule']
