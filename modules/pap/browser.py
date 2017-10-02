@@ -30,7 +30,7 @@ __all__ = ['PapBrowser']
 
 class PapBrowser(PagesBrowser):
 
-    BASEURL = 'http://www.pap.fr'
+    BASEURL = 'https://www.pap.fr'
     search_page = URL('annonce/.*', SearchResultsPage)
     housing = URL('annonces/(?P<_id>.*)', HousingPage)
     cities = URL('index/ac-geo2\?q=(?P<pattern>.*)', CitiesPage)
