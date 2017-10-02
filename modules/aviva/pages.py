@@ -42,9 +42,11 @@ class BasePage(HTMLPage):
 
 
 class LoginPage(BasePage, HTMLPage):
+
     def get_values(self):
         values = {}
-        for input in self.doc.xpath('//input[@keypad]'):
+        virtual_keyboard = self.doc.xpath('//input[@keypad]')
+        for input in virtual_keyboard:
             value = Attr(None, 'value').filter(input.xpath('.'))
             index = Attr(None, 'data-index').filter(input.xpath('.'))
             values[value] = index
@@ -52,7 +54,8 @@ class LoginPage(BasePage, HTMLPage):
 
     def get_password(self, password):
         values = self.get_values()
-        password = [values[c] for c in password]
+        if values:
+            password = [values[c] for c in password]
         return "".join(password)
 
     def login(self, login, password):
