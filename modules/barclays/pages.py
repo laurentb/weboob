@@ -154,11 +154,15 @@ class AccountsPage(StatefulPage):
 
 
 class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile('^RET DAB (?P<text>.*?) RETRAIT DU (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}).*'),
+    PATTERNS = [
+                (re.compile(r'\w+ FRAIS RET DAB '),           FrenchTransaction.TYPE_BANK),
+                (re.compile('^RET DAB (?P<text>.*?) RETRAIT DU (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}).*'),
                                                               FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile('^RET DAB (?P<text>.*?) CARTE ?:.*'),
                                                               FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile('^RET DAB (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2}) (?P<text>.*?) CARTE .*'),
+                                                              FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile(r'(?P<text>.*) RET DAB DU (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2}) (?P<text2>.*?) CARTE .*'),
                                                               FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile('^(?P<text>.*) RETRAIT DU (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) .*'),
                                                               FrenchTransaction.TYPE_WITHDRAWAL),
@@ -166,7 +170,8 @@ class Transaction(FrenchTransaction):
                                                               FrenchTransaction.TYPE_CARD),
                 (re.compile('^(?P<category>VIR(EMEN)?T? (SEPA)?(RECU|FAVEUR)?)( /FRM)?(?P<text>.*)'),
                                                               FrenchTransaction.TYPE_TRANSFER),
-                (re.compile('^PRLV (?P<text>.*) (REF: .*)?$'),FrenchTransaction.TYPE_ORDER),
+                (re.compile(r'^PRLV (?P<text>.*) (?:REF: \w+ DE (?P<text2>.*))?$'),FrenchTransaction.TYPE_ORDER),
+                (re.compile(r'PRELEVEMENT (?P<text>.*)'),     FrenchTransaction.TYPE_ORDER),
                 (re.compile('^CHEQUE.*? (REF \w+)?$'),        FrenchTransaction.TYPE_CHECK),
                 (re.compile('^(AGIOS /|FRAIS) (?P<text>.*)'), FrenchTransaction.TYPE_BANK),
                 (re.compile('^(CONVENTION \d+ )?COTIS(ATION)? (?P<text>.*)'),
@@ -176,7 +181,13 @@ class Transaction(FrenchTransaction):
                                                               FrenchTransaction.TYPE_ORDER),
                 (re.compile('^.* LE (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})$'),
                                                               FrenchTransaction.TYPE_UNKNOWN),
-                (re.compile('^CARTE .*'), FrenchTransaction.TYPE_CARD_SUMMARY)
+                (re.compile('^CARTE .*'),                     FrenchTransaction.TYPE_CARD_SUMMARY),
+                (re.compile(r'CONTRIBUTIONS SOCIALES'),       FrenchTransaction.TYPE_BANK),
+                (re.compile(r'COMMISSION INTERVENTION'),      FrenchTransaction.TYPE_BANK),
+                (re.compile(r'INTERETS CREDITEURS'),          FrenchTransaction.TYPE_BANK),
+                (re.compile(r'(ANNUL |ANNULATION |)FRAIS '),  FrenchTransaction.TYPE_BANK),
+                (re.compile(r'(ANNUL |ANNULATION |)INT DEB'), FrenchTransaction.TYPE_BANK),
+                (re.compile(r'TAEG APPLIQUE '),               FrenchTransaction.TYPE_BANK),
                ]
 
 
