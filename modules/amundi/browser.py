@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import ssl
 from .pages import LoginPage, AccountsPage, AccountHistoryPage
 from weboob.browser import URL, LoginBrowser, need_login
 from weboob.tools.json import json
@@ -37,6 +38,15 @@ class AmundiBrowser(LoginBrowser):
         self.BASEURL = website
 
         super(AmundiBrowser, self).__init__(*args, **kwargs)
+
+    def prepare_request(self, req):
+        """
+        Amundi uses TLS v1.0.
+        """
+        preq = super(AmundiBrowser, self).prepare_request(req)
+        conn = self.session.adapters['https://'].get_connection(preq.url)
+        conn.ssl_version = ssl.PROTOCOL_TLSv1
+        return preq
 
     def do_login(self):
         """
