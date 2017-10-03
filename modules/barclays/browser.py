@@ -147,6 +147,7 @@ class Barclays(LoginBrowser):
     @need_login
     def iter_history(self, account):
         if account.type == Account.TYPE_CARD or (account._multiple_type and not self._multiple_account_choice(account)):
+            # warning: this shit code is not idempotent ^
             return []
         elif account.type == Account.TYPE_LOAN:
             return []
