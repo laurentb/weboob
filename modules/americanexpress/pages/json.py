@@ -25,7 +25,7 @@ import re
 
 from weboob.browser.pages import LoggedPage, JsonPage, HTMLPage
 from weboob.browser.elements import ItemElement, DictElement, method
-from weboob.browser.filters.standard import Date, Eval, CleanDecimal, CleanText
+from weboob.browser.filters.standard import Date, Eval, CleanDecimal, CleanText, Field
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.bank import Account, Transaction
 from weboob.capabilities.base import NotAvailable
@@ -94,7 +94,14 @@ class JsonHistory(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Transaction
 
-            obj_type = Transaction.TYPE_DEFERRED_CARD
+            def obj_type(self):
+                if Field('raw')(self) in self.page.browser.SUMMARY_CARD_LABEL:
+                    return Transaction.TYPE_CARD_SUMMARY
+                elif Field('amount')(self) > 0:
+                    return Transaction.TYPE_ORDER
+                else:
+                    return Transaction.TYPE_DEFERRED_CARD
+
             obj_raw = CleanText(Dict('description'))
             obj_date = Date(Dict('statement_end_date', default=None), default=None)
             obj_rdate = Date(Dict('charge_date'))

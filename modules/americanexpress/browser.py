@@ -62,6 +62,11 @@ class AmericanExpressBrowser(LoginBrowser):
                     JsonHistory)
     js_periods = URL(r'/account-data/v1/financials/statement_periods', JsonPeriods)
 
+    SUMMARY_CARD_LABEL = [
+        u'PAYMENT RECEIVED - THANK YOU',
+        u'PRELEVEMENT AUTOMATIQUE ENREGISTRE-MERCI'
+    ]
+
     def __init__(self, *args, **kwargs):
         super(AmericanExpressBrowser, self).__init__(*args, **kwargs)
         self.cache = {}

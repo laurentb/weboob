@@ -245,7 +245,9 @@ class TransactionsPage(LoggedPage, HTMLPage):
             t.raw = re.sub(r'[ ]+', ' ', raw)
             t.label = re.sub('(.*?)( \d+)?  .*', r'\1', raw).strip()
             t.amount = parse_decimal(credit or debit) * (1 if credit else -1)
-            if t.amount > 0:
+            if t.raw in self.browser.SUMMARY_CARD_LABEL:
+                t.type = t.TYPE_CARD_SUMMARY
+            elif t.amount > 0:
                 t.type = t.TYPE_ORDER
             else:
                 t.date = end_of_period
