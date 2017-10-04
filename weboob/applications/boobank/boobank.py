@@ -19,6 +19,7 @@
 
 from __future__ import print_function
 
+from contextlib import contextmanager
 import datetime
 import uuid
 from dateutil.relativedelta import relativedelta
@@ -28,7 +29,7 @@ from decimal import Decimal, InvalidOperation
 from weboob.browser.browsers import APIBrowser
 from weboob.browser.profiles import Weboob
 from weboob.exceptions import BrowserHTTPError
-from weboob.capabilities.base import empty
+from weboob.capabilities.base import empty, find_object
 from weboob.capabilities.bank import CapBank, Account, Transaction, CapBankTransfer, \
                                      Transfer, TransferStep, Recipient, AddRecipientStep
 from weboob.capabilities.contact import CapContact, Advisor
@@ -423,6 +424,7 @@ class Boobank(ReplApplication):
     DEFAULT_FORMATTER = 'table'
     COMMANDS_FORMATTERS = {'ls':          'account_list',
                            'list':        'account_list',
+                           'recipients':  'recipient_list',
                            'transfer':    'transfer',
                            'history':     'ops_list',
                            'coming':      'ops_list',
@@ -550,78 +552,144 @@ class Boobank(ReplApplication):
         recipient.label = label
         next(iter(self.do('add_recipient', recipient)))
 
-    def do_transfer(self, line):
+    def do_recipients(self, line):
         """
-        transfer ACCOUNT [RECIPIENT AMOUNT [REASON]]
+        recipients ACCOUNT
 
-        Make a transfer beetwen two account
-        - ACCOUNT    the source account
-        - RECIPIENT  the recipient
-        - AMOUNT     amount to transfer
-        - REASON     reason of transfer
-
-        If you give only the ACCOUNT parameter, it lists all the
-        available recipients for this account.
+        List recipients of ACCOUNT
         """
-        id_from, id_to, amount, reason = self.parse_command_args(line, 4, 1)
+        id_from, = self.parse_command_args(line, 1, 1)
 
         account = self.get_object(id_from, 'get_account', [])
         if not account:
             print('Error: account %s not found' % id_from, file=self.stderr)
             return 1
 
-        if not id_to:
-            self.objects = []
-            self.set_formatter('table')
-            self.set_formatter_header(u'Available recipients')
+        self.objects = []
 
-            self.start_format()
-            for recipient in self.do('iter_transfer_recipients', account.id, backends=account.backend, caps=CapBankTransfer):
-                self.cached_format(recipient)
-            return 0
+        self.start_format()
+        for recipient in self.do('iter_transfer_recipients', account.id, backends=account.backend, caps=CapBankTransfer):
+            self.cached_format(recipient)
 
-        id_to, backend_name_to = self.parse_id(id_to)
+    @contextmanager
+    def use_cmd_formatter(self, cmd):
+        self.set_formatter(self.commands_formatters.get(cmd, self.DEFAULT_FORMATTER))
+        try:
+            yield
+        finally:
+            self.flush()
 
-        if account.backend != backend_name_to:
-            print("Transfer between different backends is not implemented", file=self.stderr)
-            return 4
+    def _build_transfer(self, line):
+        if self.interactive:
+            id_from, id_to, amount, reason = self.parse_command_args(line, 4, 0)
+        else:
+            id_from, id_to, amount, reason = self.parse_command_args(line, 4, 3)
 
+        missing = not bool(id_from and id_to and amount)
+
+        if id_from:
+            account = self.get_object(id_from, 'get_account', [])
+            id_from = account.id
+            if not account:
+                print('Error: account %s not found' % id_from, file=self.stderr)
+                return
+        else:
+            with self.use_cmd_formatter('list'):
+                self.do_ls('')
+            id_from = self.ask('Transfer money from account', default='')
+            if not id_from:
+                return
+            id_from, backend = self.parse_id(id_from)
+
+            account = find_object(self.objects, fullid='%s@%s' % (id_from, backend))
+            if not account:
+                return
+            id_from = account.id
+
+        if id_to:
+            id_to, backend_name_to = self.parse_id(id_to)
+            if account.backend != backend_name_to:
+                print("Transfer between different backends is not implemented", file=self.stderr)
+                return
+            rcpts = self.do('iter_transfer_recipients', id_from, backends=account.backend)
+            rcpt = find_object(rcpts, id=id_to)
+        else:
+            with self.use_cmd_formatter('recipients'):
+                self.do_recipients(account.fullid)
+            id_to = self.ask('Transfer money to recipient', default='')
+            if not id_to:
+                return
+            id_to, backend = self.parse_id(id_to)
+
+            rcpt = find_object(self.objects, fullid='%s@%s' % (id_to, backend))
+            if not rcpt:
+                return
+
+        if not amount:
+            amount = self.ask('Amount to transfer', default='', regexp=r'\d+(?:\.\d*)?')
         try:
             amount = Decimal(amount)
         except (TypeError, ValueError, InvalidOperation):
             print('Error: please give a decimal amount to transfer', file=self.stderr)
-            return 2
+            return
+        if amount <= 0:
+            print('Error: transfer amount must be strictly positive', file=self.stderr)
+            return
+
+        if missing:
+            reason = self.ask('Label of the transfer (seen by the recipient)', default='')
 
         exec_date = datetime.date.today()
 
-        if self.interactive:
+        transfer = Transfer()
+        transfer.backend = account.backend
+        transfer.account_id = account.id
+        transfer.account_label = account.label
+        transfer.account_iban = account.iban
+        transfer.recipient_id = id_to
+        if rcpt:
             # Try to find the recipient label. It can be missing from
             # recipients list, for example for banks which allow transfers to
             # arbitrary recipients.
-            to = id_to
-            for recipient in self.do('iter_transfer_recipients', account.id, backends=account.backend, caps=CapBankTransfer):
-                if recipient.id == id_to:
-                    to = recipient.label
-                    break
+            transfer.recipient_label = rcpt.label
+            transfer.recipient_iban = rcpt.iban
+        transfer.amount = amount
+        transfer.label = reason or u''
+        transfer.exec_date = exec_date
 
-            print('Amount: %s%s' % (amount, account.currency_text))
-            print('From:   %s' % account.label)
-            print('To:     %s' % to)
-            print('Reason: %s' % (reason or ''))
-            print('Date:   %s' % exec_date)
+        return transfer
+
+    def do_transfer(self, line):
+        """
+        transfer [ACCOUNT RECIPIENT AMOUNT [LABEL]]
+
+        Make a transfer beetwen two account
+        - ACCOUNT    the source account
+        - RECIPIENT  the recipient
+        - AMOUNT     amount to transfer
+        - LABEL      label of transfer
+        """
+
+        transfer = self._build_transfer(line)
+        if transfer is None:
+            return 1
+
+        if self.interactive:
+            with self.use_cmd_formatter('transfer'):
+                self.start_format()
+                self.cached_format(transfer)
+
             if not self.ask('Are you sure to do this transfer?', default=True):
                 return
 
+        # only keep basic fields because most modules don't handle others
+        transfer.account_label = None
+        transfer.account_iban = None
+        transfer.recipient_label = None
+        transfer.recipient_iban = None
+
         self.start_format()
-
-        transfer = Transfer()
-        transfer.account_id = account.id
-        transfer.recipient_id = id_to
-        transfer.amount = amount
-        transfer.label = reason or ''
-        transfer.exec_date = exec_date
-
-        next(iter(self.do('transfer', transfer, backends=account.backend)))
+        next(iter(self.do('transfer', transfer, backends=transfer.backend)))
 
     def show_wealth(self, command, id):
         account = self.get_object(id, 'get_account', [])
