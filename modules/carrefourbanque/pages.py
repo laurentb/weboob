@@ -49,6 +49,7 @@ class LoginPage(HTMLPage):
 
 class HomePage(LoggedPage, HTMLPage):
     TYPES = {'carte': Account.TYPE_CARD, 'assurance': Account.TYPE_LIFE_INSURANCE, 'epargne': Account.TYPE_SAVINGS}
+    LABEL_TYPES = [(u'Prêt personnel', Account.TYPE_LOAN)]
 
     @method
     class get_list(ListElement):
@@ -60,16 +61,19 @@ class HomePage(LoggedPage, HTMLPage):
             def obj_balance(self):
                 if len(self.el.xpath('.//div[@class="catre_col_one"]/h2')) > 0:
                     balance = CleanDecimal(CleanText('.//div[@class="catre_col_one"]/h2'), replace_dots=True)(self)
-                    return -balance if Field('type')(self) is Account.TYPE_CARD else balance
+                    return -balance if Field('type')(self) in (Account.TYPE_CARD, Account.TYPE_LOAN) else balance
                 return Decimal('0')
 
             def obj_type(self):
+                for label, type in self.page.LABEL_TYPES:
+                    if label in Field('label')(self):
+                        return type
                 return self.page.TYPES.get(Regexp(Field('_link'), '\/([^-]+)')(self), Account.TYPE_UNKNOWN)
 
             obj_id = CleanText('.//div[@class="carte_col_leftcol"]/p') & Regexp(pattern=r'(\d+)')
             obj_label = CleanText('.//div[@class="carte_col_leftcol"]/h2')
             obj_currency = FrenchTransaction.Currency('.//div[@class="catre_col_one"]/h2')
-            obj__link = Link('.//a[contains(@href, "-operations")]')
+            obj__link = Link('.//a[contains(@href, "-operations")]', default=None)
 
 
 class Transaction(FrenchTransaction):
