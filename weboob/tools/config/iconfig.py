@@ -69,3 +69,9 @@ class IConfig(object):
         :param default: if specified, default value when path is not found
         """
         raise NotImplementedError()
+
+    def __enter__(self):
+        self.load()
+
+    def __exit__(self, t, v, tb):
+        self.save()
