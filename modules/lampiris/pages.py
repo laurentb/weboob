@@ -63,7 +63,7 @@ class BillsPage(HTMLPage):
             obj_type = Format(
                 '%s - %s',
                 CleanText('./td[2]'),
-                Attr('./td[1]//img', 'title')
+                Attr('./td[1]//img', 'title', default="")
             )
             obj_label = obj_type
             obj_format = 'pdf'
