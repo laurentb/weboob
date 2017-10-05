@@ -34,11 +34,18 @@ class LampirisBrowser(LoginBrowser):
     billspage = URL('/factures-et-paiements', BillsPage)
     selectcus = URL('/set_selected_cus')
 
+    def __init__(self, *args, **kwargs):
+        self.logged = False
+        super(LampirisBrowser, self).__init__(*args, **kwargs)
+
     def do_login(self):
+        if self.logged:
+            return
         self.loginpage.stay_or_go().do_login(self.username, self.password)
 
         try:
             self.billspage.go()
+            self.logged = True
         except ClientError:
             raise BrowserIncorrectPassword()
 
