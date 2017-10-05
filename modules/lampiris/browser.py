@@ -28,7 +28,7 @@ from .pages import LoginPage, BillsPage
 
 
 class LampirisBrowser(LoginBrowser):
-    BASEURL = 'https://espaceclient.lampiris.fr/'
+    BASEURL = 'https://espaceclient.total-spring.fr/'
 
     loginpage = URL('/user/login', LoginPage)
     billspage = URL('/factures-et-paiements', BillsPage)
