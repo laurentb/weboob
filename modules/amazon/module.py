@@ -35,8 +35,8 @@ __all__ = ['AmazonModule']
 
 
 class AmazonModule(Module, CapDocument):
-    NAME = 'amazonfr'
-    DESCRIPTION = 'AmazonFR'
+    NAME = 'amazon'
+    DESCRIPTION = 'Amazon'
     MAINTAINER = 'Théo Dorée'
     EMAIL = 'tdoree@budget-insight.com'
     LICENSE = 'AGPLv3+'

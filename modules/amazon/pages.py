@@ -24,7 +24,7 @@ from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Env, Regexp, Format,
-    Field, Currency
+    Field, Currency, RegexpError
 )
 from weboob.capabilities.bill import Bill, Subscription
 from weboob.capabilities.base import NotAvailable
@@ -75,7 +75,10 @@ class SubscriptionsPage(LoggedPage, HTMLPage):
         klass = Subscription
 
         def obj_subscriber(self):
-            return Regexp(CleanText('//div[contains(@class, "a-fixed-right-grid-col")]'), self.page.browser.L_SUBSCRIBER)(self)
+            try:
+                return Regexp(CleanText('//div[contains(@class, "a-fixed-right-grid-col")]'), self.page.browser.L_SUBSCRIBER)(self)
+            except RegexpError:
+                return self.page.browser.username
 
         obj_id = 'amazon'
 
