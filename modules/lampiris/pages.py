@@ -56,6 +56,9 @@ class BillsPage(HTMLPage):
         class item(ItemElement):
             klass = Bill
 
+            def condition(self):
+                return len(self.el.xpath('./td')) > 3
+
             obj_id = Attr('./td[3]/span', 'title')
             obj_type = Format(
                 '%s - %s',
