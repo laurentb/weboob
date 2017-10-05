@@ -56,7 +56,9 @@ class LampirisBrowser(LoginBrowser):
     @need_login
     def get_documents(self, subscription):
         # Select subscription
-        self.selectcus.go(params={'cus': subscription})
+        self.selectcus.go(params={'cus': subscription.id})
 
         # Then, fetch documents
-        return self.billspage.go().get_documents()
+        for doc in self.billspage.go().get_documents():
+            doc.id = "{}#{}".format(subscription.id, doc.id)
+            yield doc

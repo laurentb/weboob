@@ -23,7 +23,7 @@ from __future__ import unicode_literals
 from weboob.tools.backend import BackendConfig, Module
 from weboob.tools.value import Value, ValueBackendPassword
 from weboob.capabilities.base import find_object
-from weboob.capabilities.bill import Bill, CapDocument, DocumentNotFound
+from weboob.capabilities.bill import Bill, CapDocument, DocumentNotFound, SubscriptionNotFound, Subscription
 
 from .browser import LampirisBrowser
 
@@ -68,6 +68,8 @@ class LampirisModule(Module, CapDocument):
         """
         if not isinstance(id, Bill):
             doc = self.get_document(id)
+        else:
+            doc = id
         if not doc.url:
             return None
 
@@ -81,11 +83,9 @@ class LampirisModule(Module, CapDocument):
         :rtype: :class:`Document`
         :raises: :class:`DocumentNotFound`
         """
-        find_object(
-            self.iter_documents(id.split("#")[0]),
-            id=id,
-            error=DocumentNotFound
-        )
+        return find_object(self.iter_documents(id.split("#")[0]),
+                           id=id,
+                           error=DocumentNotFound)
 
     def iter_documents(self, subscription):
         """
@@ -95,6 +95,11 @@ class LampirisModule(Module, CapDocument):
         :type subscription: :class:`Subscription`
         :rtype: iter[:class:`Document`]
         """
+        if not isinstance(subscription, Subscription):
+            subscription = find_object(self.iter_subscription(),
+                                       id=subscription,
+                                       error=SubscriptionNotFound)
+
         return self.browser.get_documents(subscription)
 
     def iter_subscription(self):
