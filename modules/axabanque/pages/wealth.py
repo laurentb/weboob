@@ -24,9 +24,9 @@ from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement
 from weboob.browser.filters.standard import (
     CleanText, Date, Regexp, CleanDecimal, Eval, Field, Async, AsyncLoad,
-    TableCell,
+    TableCell, QueryValue,
 )
-from weboob.browser.filters.html import Attr
+from weboob.browser.filters.html import Attr, Link
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -82,6 +82,7 @@ class InvestmentPage(LoggedPage, HTMLPage):
             klass = Investment
 
             obj_label = CleanText(TableCell('label'))
+            obj_code = QueryValue(Link('.//a[contains(@href, "isin")]', default=''), 'isin', default=NotAvailable)
 
             def obj_valuation(self):
                 td = TableCell('valuation')(self)[0]
