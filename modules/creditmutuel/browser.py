@@ -54,7 +54,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
     TIMEOUT = 30
     BASEURL = 'https://www.creditmutuel.fr'
 
-    login =       URL('/groupe/fr/index.html',
+    login =       URL('/fr/authentification.html',
                       '/(?P<subbank>.*)fr/$',
                       '/(?P<subbank>.*)fr/banques/accueil.html',
                       '/(?P<subbank>.*)fr/banques/particuliers/index.html',
