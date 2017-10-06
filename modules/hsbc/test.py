@@ -19,7 +19,7 @@
 
 
 from weboob.tools.test import BackendTest
-
+from weboob.capabilities.bank import Account
 
 class HSBCTest(BackendTest):
     MODULE = 'hsbc'
@@ -29,3 +29,10 @@ class HSBCTest(BackendTest):
         if len(l) > 0:
             a = l[0]
             list(self.backend.iter_history(a))
+
+    def test_investments(self):
+        life_insurance_accounts = [account for account in self.backend.iter_accounts() if account.type == Account.TYPE_LIFE_INSURANCE]
+        investments = {acc.id: list(self.backend.iter_investment(acc)) for acc in life_insurance_accounts}
+        for acc in life_insurance_accounts:
+            invs = investments[acc.id]
+            self.assertLessEquals(sum([inv.valuation for inv in invs]), acc.balance)

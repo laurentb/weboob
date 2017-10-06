@@ -373,6 +373,7 @@ class LifeInsurancesPage(LoggedPage, HTMLPage):
             obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True)
             obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal(TableCell('portfolio_share')))
             obj_unitvalue = CleanDecimal(TableCell('unitvalue'), default=Decimal('1'))
+            obj_valuation = CleanDecimal(TableCell('support_value'))
 
             def obj_code(self):
                 if "Fonds en euros" in Field('label')(self):
