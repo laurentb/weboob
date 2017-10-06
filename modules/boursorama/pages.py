@@ -330,7 +330,8 @@ class HistoryPage(LoggedPage, HTMLPage):
                 if not s:
                     return Field('date')(self)
                 s = s.replace('/', '')
-                return Date(dayfirst=True).filter('%s%s%s%s%s' % (s[:2], '-', s[2:4], '-', s[4:]))
+                # Sometimes the user enters an invalid date 16/17/19 for example
+                return Date(dayfirst=True, default=NotAvailable).filter('%s%s%s%s%s' % (s[:2], '-', s[2:4], '-', s[4:]))
 
             def obj__is_coming(self):
                 return Env('coming', default=False)(self) or len(self.xpath(u'.//span[@title="Mouvement à débit différé"]')) or self.obj_date() > date.today()
