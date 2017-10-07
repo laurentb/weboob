@@ -193,6 +193,13 @@ def install_weboob():
         data_files=data_files,
 
         install_requires=requirements,
+        python_requires='>=2.7',
+        tests_require=[
+            'flake8',
+            'nose',
+            'xunitparser',
+            'coverage',
+        ],
     )
 
 
