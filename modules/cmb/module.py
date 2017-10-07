@@ -18,9 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import AbstractModule
+from weboob.tools.backend import AbstractModule, BackendConfig
 from weboob.capabilities.bank import CapBank
 from weboob.capabilities.contact import CapContact
+from weboob.tools.value import Value, ValueBackendPassword
 
 
 __all__ = ['CmbModule']
@@ -34,3 +35,8 @@ class CmbModule(AbstractModule, CapBank, CapContact):
     DESCRIPTION = u'Credit Mutuel de Bretagne'
     LICENSE = 'AGPLv3+'
     PARENT = 'cmso'
+
+    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
+                           ValueBackendPassword('password', label='Mot de passe'),
+                           Value('website', label='Type de compte', default='par',
+                                 choices={'par': 'Particuliers', 'pro': 'Professionnels'}))
