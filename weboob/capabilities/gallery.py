@@ -78,7 +78,7 @@ class BaseImage(CIBaseImage):
     index =     IntField('Usually page number')
     gallery =   Field('Reference to the Gallery object', BaseGallery)
 
-    def __init__(self, _id, index=None, thumbnail=NotLoaded, url=NotLoaded,
+    def __init__(self, _id=u'', index=None, thumbnail=NotLoaded, url=NotLoaded,
             ext=NotLoaded, gallery=None):
 
         super(BaseImage, self).__init__(unicode(_id), url)
