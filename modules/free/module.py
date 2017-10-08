@@ -35,7 +35,7 @@ class FreeModule(Module, CapDocument):
     MAINTAINER = u'Edouard Lambert'
     EMAIL = 'elambert@budget-insight.com'
     LICENSE = 'LGPLv3+'
-    VERSION = '1.3'
+    VERSION = '1.4'
     CONFIG = BackendConfig(Value('login', label='Identifiant'),
                        ValueBackendPassword('password', label='Mot de passe'))
 
