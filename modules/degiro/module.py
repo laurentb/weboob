@@ -35,7 +35,7 @@ class DegiroModule(Module, CapBank):
     MAINTAINER = u'Jean Walrave'
     EMAIL = 'jwalrave@budget-insight.com'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.3'
+    VERSION = '1.4'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Nom d\'utilisateur', masked=False),
                            ValueBackendPassword('password', label='Mot de passe'))
 
