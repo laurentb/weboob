@@ -37,11 +37,11 @@ class EdfModule(Module, CapDocument):
     EMAIL = 'elambert@budget-insight.com'
     LICENSE = 'AGPLv3+'
     VERSION = '1.4'
-    CONFIG = BackendConfig(Value('login', label='E-mail ou Identifiant'), \
-                           ValueBackendPassword('password', label='Mot de passe'), \
+    CONFIG = BackendConfig(Value('login', label='E-mail ou Identifiant'),
+                           ValueBackendPassword('password', label='Mot de passe'),
                            Value('website', label='Type de compte', default='par',
                                  choices={'par': 'Particulier', 'pro': 'Entreprise'}),
-                           Value('captcha_response', label='Reponse Captcha', required=False))
+                           Value('captcha_response', label='Reponse Captcha', required=False, default=''))
 
     def create_default_browser(self):
         browsers = {'pro': EdfproBrowser, 'par': EdfBrowser}

@@ -42,8 +42,8 @@ class BoursoramaModule(Module, CapBankTransferAddRecipient, CapProfile, CapConta
     CONFIG = BackendConfig(ValueBackendPassword('login',      label='Identifiant', masked=False),
                            ValueBackendPassword('password',   label='Mot de passe'),
                            ValueBool('enable_twofactors',     label='Send validation sms', default=False),
-                           Value('device',                    label='Device name', regexp='\w*', default=''),
-                           Value('pin_code',                  label='Sms code', required=False),
+                           Value('device',                    label='Device name', regexp='\w*', default='weboob'),
+                           Value('pin_code',                  label='Sms code', required=False, default=''),
                           )
     BROWSER = BoursoramaBrowser
 

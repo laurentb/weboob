@@ -60,7 +60,8 @@ class AmazonModule(Module, CapDocument):
         Value('website', label=u'Website', choices=website_choices, default='www.amazon.com'),
         ValueBackendPassword('email', label='Username', masked=False),
         ValueBackendPassword('password', label='Password'),
-        Value('captcha_response', label='Captcha Response', required=False),)
+        Value('captcha_response', label='Captcha Response', required=False, default=''),
+    )
 
     def create_default_browser(self):
         self.BROWSER = self.BROWSERS[self.config['website'].get()]
