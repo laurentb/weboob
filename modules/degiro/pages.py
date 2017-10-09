@@ -28,6 +28,7 @@ from weboob.browser.filters.json import Dict
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.exceptions import BrowserIncorrectPassword
 
 
 def MyDecimal(*args, **kwargs):
@@ -36,6 +37,10 @@ def MyDecimal(*args, **kwargs):
 
 
 class LoginPage(JsonPage):
+    def on_load(self):
+        if Dict('statusText', default="")(self.doc) == "totpNeeded":
+            raise BrowserIncorrectPassword("Time-based One-time Password is not supported")
+
     def get_session_id(self):
         return Dict('sessionId')(self.doc)
 
