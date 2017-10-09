@@ -29,6 +29,7 @@ from weboob.browser.filters.standard import CleanText, CleanDecimal, Format, Reg
 from weboob.browser.filters.html import CleanHTML
 from weboob.capabilities.bank import Account, Transaction, Investment
 from weboob.capabilities.base import NotAvailable
+from weboob.exceptions import NoAccountsException
 
 
 class VirtKeyboard(MappedVirtKeyboard):
@@ -67,6 +68,10 @@ class LoginPage(HTMLPage):
 
 
 class HomePage(HTMLPage):
+    def on_load(self):
+        if CleanText(u'//span[contains(text(), "vous ne disposez plus d\'épargne salariale")]')(self.doc):
+            raise NoAccountsException()
+
     def get_coded_passwd(self, password):
         vk = VirtKeyboard(self)
         return '%s|%s|#006#' % (vk.get_string_code(password), vk.img_id)
