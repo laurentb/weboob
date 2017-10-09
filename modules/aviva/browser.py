@@ -21,11 +21,14 @@
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.capabilities.base import empty
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
+from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
-from .pages import (
-    LoginPage, AccountsPage, InvestmentPage, HistoryPage,
-    ActionNeededPage, InvestDetail
+from .pages.detail_pages import (
+    LoginPage, InvestmentPage, HistoryPage,
+    ActionNeededPage, InvestDetail, PrevoyancePage,
 )
+
+from .pages.account_page import AccountsPage
 
 
 class AvivaBrowser(LoginBrowser):
@@ -35,6 +38,7 @@ class AvivaBrowser(LoginBrowser):
                 '/espaceclient/conventions/acceptation', LoginPage)
     accounts = URL('/espaceclient/Accueil/Synthese-Contrats', AccountsPage)
     investment = URL(r'/espaceclient/contrat/epargne/-(?P<page_id>[0-9]{10})', InvestmentPage)
+    prevoyance = URL(r'/espaceclient/contrat/prevoyance/-(?P<page_id>[0-9]{10})', PrevoyancePage)
     history = URL(r'/espaceclient/contrat/getOperations\?param1=(?P<history_token>.*)', HistoryPage)
     action_needed = URL(r'/espaceclient/coordonnees/detailspersonne\?majcontacts=true', ActionNeededPage)
     invest_detail = URL(r'https://aviva.sixtelekurs.fr/.*', InvestDetail)
@@ -43,7 +47,6 @@ class AvivaBrowser(LoginBrowser):
         if not self.password.isdigit():
             raise BrowserIncorrectPassword()
         self.login.go().login(self.username, self.password)
-
         if self.login.is_here():
             if "acceptation" in self.url:
                 raise ActionNeeded(u'Veuillez accepter les conditions générales d\'utilisation sur le site.')
@@ -61,12 +64,22 @@ class AvivaBrowser(LoginBrowser):
     @need_login
     def iter_history(self, account):
         if empty(account._link):
+            # An account should always have a link to the details
             raise NotImplementedError()
 
-        self.location(account._link)
-        self.location(self.page.get_history_link())
-        assert self.history.is_here()         # must be here
-        return self.page.iter_history()
+        self.location(account._link)  # go on detail page
+        history_link = self.page.get_history_link()
+
+        if not history_link:
+            # accounts don't always have an history_link
+            raise NotImplementedError()
+
+        self.location(history_link)
+        assert self.history.is_here()
+        result = []
+        result.extend(self.page.iter_versements())
+        result.extend(self.page.iter_arbitrages())
+        return sorted_transactions(result)
 
     def get_subscription_list(self):
-        return iter([])
+        return []
