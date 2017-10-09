@@ -134,6 +134,7 @@ def install_weboob():
         'PyYAML',
         'html2text>=3.200',
         'six',
+        'unidecode',
     ]
     try:
         import Image
