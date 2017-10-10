@@ -66,6 +66,7 @@ class OfxFormatter(IFormatter):
 
     balance = Decimal(0)
     coming = Decimal(0)
+    seen = set()
 
     def start_format(self, **kwargs):
         account = kwargs['account']
@@ -111,7 +112,7 @@ class OfxFormatter(IFormatter):
         if obj.rdate:
             result += u'<DTUSER>%s\n' % obj.rdate.strftime('%Y%m%d')
         result += u'<TRNAMT>%s\n' % obj.amount
-        result += u'<FITID>%s\n' % obj.unique_id()
+        result += u'<FITID>%s\n' % obj.unique_id(self.seen)
 
         if hasattr(obj, 'label') and not empty(obj.label):
             result += u'<NAME>%s\n' % obj.label.replace('&', '&amp;')
