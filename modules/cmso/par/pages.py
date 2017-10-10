@@ -67,7 +67,9 @@ class AccountsPage(LoggedPage, JsonPage):
                          ('titres',              Account.TYPE_MARKET),
                          ('ldd cm',              Account.TYPE_SAVINGS),
                          ('librissime',          Account.TYPE_SAVINGS),
-                         ('epargne logement',    Account.TYPE_SAVINGS)])
+                         ('epargne logement',    Account.TYPE_SAVINGS),
+                         ('plan bleu',           Account.TYPE_SAVINGS),
+                       ])
 
     def get_keys(self):
         if "exception" in self.doc:
