@@ -19,20 +19,24 @@
 
 
 from weboob.browser import LoginBrowser, URL, need_login
+from weboob.capabilities.base import empty
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 
-from .pages import LoginPage, AccountsPage, InvestmentPage, HistoryPage, ActionNeededPage, InvestDetail
+from .pages import (
+    LoginPage, AccountsPage, InvestmentPage, HistoryPage,
+    ActionNeededPage, InvestDetail
+)
 
 
 class AvivaBrowser(LoginBrowser):
-    BASEURL = 'https://www.aviva.fr/espaceclient/'
+    BASEURL = 'https://www.aviva.fr'
 
-    login = URL('MonCompte/Connexion',
-                'conventions/acceptation', LoginPage)
-    accounts = URL('Accueil/Synthese-Contrats', AccountsPage)
-    investment = URL('contrat/epargne/', InvestmentPage)
-    history = URL('contrat/getOperations', HistoryPage)
-    action_needed = URL(r'coordonnees/detailspersonne\?majcontacts=true', ActionNeededPage)
+    login = URL('/espaceclient/MonCompte/Connexion',
+                '/espaceclient/conventions/acceptation', LoginPage)
+    accounts = URL('/espaceclient/Accueil/Synthese-Contrats', AccountsPage)
+    investment = URL(r'/espaceclient/contrat/epargne/-(?P<page_id>[0-9]{10})', InvestmentPage)
+    history = URL(r'/espaceclient/contrat/getOperations\?param1=(?P<history_token>.*)', HistoryPage)
+    action_needed = URL(r'/espaceclient/coordonnees/detailspersonne\?majcontacts=true', ActionNeededPage)
     invest_detail = URL(r'https://aviva.sixtelekurs.fr/.*', InvestDetail)
 
     def do_login(self):
@@ -56,11 +60,13 @@ class AvivaBrowser(LoginBrowser):
 
     @need_login
     def iter_history(self, account):
-        link = self.location(account._link).page.get_history_link()
-        if not link:
+        if empty(account._link):
             raise NotImplementedError()
 
-        return self.location(link).page.iter_history()
+        self.location(account._link)
+        self.location(self.page.get_history_link())
+        assert self.history.is_here()         # must be here
+        return self.page.iter_history()
 
     def get_subscription_list(self):
         return iter([])
