@@ -21,7 +21,7 @@ from __future__ import unicode_literals
 from datetime import date
 
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded, CaptchaQuestion
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, CaptchaQuestion, AuthMethodNotImplemented
 
 from .pages import LoginPage, SubscriptionsPage, DocumentsPage, HomePage, PanelPage, SecurityPage, LanguagePage
 
@@ -40,7 +40,10 @@ class AmazonBrowser(LoginBrowser):
     panel = URL('/gp/css/homepage.html/ref=nav_youraccount_ya', PanelPage)
     subscriptions = URL(r'/ap/cnep(.*)', SubscriptionsPage)
     documents = URL(r'/gp/your-account/order-history\?opt=ab&digitalOrders=1(.*)&orderFilter=year-(?P<year>.*)', DocumentsPage)
-    security = URL('/ap/dcq', SecurityPage)
+    security = URL('/ap/dcq',
+                   '/ap/cvf/',
+                   '/ap/mfa',
+                   SecurityPage)
     language = URL(r'/gp/customer-preferences/save-settings/ref=icp_lop_(?P<language>.*)_tn', LanguagePage)
 
     def __init__(self, config, *args, **kwargs):
@@ -57,11 +60,11 @@ class AmazonBrowser(LoginBrowser):
         elif self.config['captcha_response'].get():
             self.page.login(self.username, self.password, self.config['captcha_response'].get())
 
+        if self.security.is_here():
+            raise AuthMethodNotImplemented("It looks like double authentication is activated for your account. Please desactivate it before retrying connection.")
+
         if not self.login.is_here():
             return
-
-        if self.security.is_here():
-            raise ActionNeeded("It looks like double authentication is activated for your account. Please desactivate it before retrying connection.")
 
         captcha = self.page.has_captcha()
         if captcha and not self.config['captcha_response'].get():
