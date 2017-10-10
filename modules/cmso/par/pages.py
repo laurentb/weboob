@@ -129,40 +129,49 @@ class AccountsPage(LoggedPage, JsonPage):
                 return self.page.TYPES.get(Dict('accountType', default=None)(self).lower(), Account.TYPE_UNKNOWN)
 
     @method
-    class iter_products(DictElement):
-        def parse(self, el):
-            self.item_xpath = "%s/*/savingsProducts/*/savingsAccounts" % Env('key')(self)
+    class iter_savings(DictElement):
+        @property
+        def item_xpath(self):
+            return "%s/*/savingsProducts" % Env('key')(self)
 
-        class item(ItemElement):
-            klass = Account
+        # the accounts really are deeper, but the account type is in a middle-level
+        class iter_accounts(DictElement):
+            item_xpath = 'savingsAccounts'
 
-            obj_label = Upper(Dict('libelleContrat'))
-            obj_balance = CleanDecimal(Dict('solde', default="0"))
-            obj_currency = u'EUR'
-            obj_coming = CleanDecimal(Dict('AVenir', default=None), default=NotAvailable)
-            obj__index = Dict('index')
+            def parse(self, el):
+                # accounts may have a user-entered label, so it shouldn't be relied too much on for parsing the account type
+                self.env['type_label'] = el['libelleProduit']
 
-            def obj_id(self):
-                if Field('type')(self) == Account.TYPE_LIFE_INSURANCE:
-                    return self.get_lifenumber()
+            class item(ItemElement):
+                klass = Account
 
-                try:
-                    return Env('numbers')(self)[Dict('index')(self)]
-                except KeyError:
-                    # index often changes, so we can't use it... and have to do something ugly
-                    return Slugify(Format('%s-%s', Dict('libelleContrat'), Dict('nomTitulaire')))(self)
+                obj_label = Upper(Dict('libelleContrat'))
+                obj_balance = CleanDecimal(Dict('solde', default="0"))
+                obj_currency = u'EUR'
+                obj_coming = CleanDecimal(Dict('AVenir', default=None), default=NotAvailable)
+                obj__index = Dict('index')
 
-            def obj_type(self):
-                for key in self.page.TYPES:
-                    if key in Dict('libelleContrat')(self).lower():
-                        return self.page.TYPES[key]
-                return Account.TYPE_UNKNOWN
+                def obj_id(self):
+                    if Field('type')(self) == Account.TYPE_LIFE_INSURANCE:
+                        return self.get_lifenumber()
 
-            def get_lifenumber(self):
-                index = Dict('index')(self)
-                url = json.loads(self.page.browser.lifeinsurance.open(accid=index).content)['url']
-                page = self.page.browser.open(url).page
-                return page.get_account_id()
+                    try:
+                        return Env('numbers')(self)[Dict('index')(self)]
+                    except KeyError:
+                        # index often changes, so we can't use it... and have to do something ugly
+                        return Slugify(Format('%s-%s', Dict('libelleContrat'), Dict('nomTitulaire')))(self)
+
+                def obj_type(self):
+                    for key in self.page.TYPES:
+                        if key in Env('type_label')(self).lower():
+                            return self.page.TYPES[key]
+                    return Account.TYPE_UNKNOWN
+
+                def get_lifenumber(self):
+                    index = Dict('index')(self)
+                    url = json.loads(self.page.browser.lifeinsurance.open(accid=index).content)['url']
+                    page = self.page.browser.open(url).page
+                    return page.get_account_id()
 
     @method
     class iter_loans(DictElement):

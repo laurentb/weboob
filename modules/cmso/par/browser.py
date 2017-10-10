@@ -153,7 +153,7 @@ class CmsoParBrowser(LoginBrowser):
         # Next, get saving accounts
         numbers = self.page.get_numbers()
         for key in self.accounts.go(data=json.dumps({}), type='epargne').get_keys():
-            for a in self.page.iter_products(key=key, numbers=numbers):
+            for a in self.page.iter_savings(key=key, numbers=numbers):
                 if a._index in seen:
                     self.logger.warning('skipping %s because it seems to be a duplicate of %s', a, seen[a._index])
                     continue
