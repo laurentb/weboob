@@ -31,11 +31,17 @@ from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import HTTPNotFound
 
-from .pages import (
+from .pages.account_pages import (
     AccountsPage, CBOperationPage, CPTOperationPage, LoginPage, AppGonePage, RibPage,
-    LifeInsurancesPage, FrameContainer, LifeInsurancePortal, LifeInsuranceMain,
-    LifeInsuranceUseless, UnavailablePage, OtherPage,
+     UnavailablePage, OtherPage, FrameContainer
 )
+from .pages.life_insurances import (
+    LifeInsurancesPage, LifeInsurancePortal, LifeInsuranceMain, LifeInsuranceUseless,
+)
+from .pages.investments import (
+    LogonInvestmentPage, ProductViewHelper, RetrieveAccountsPage, RetrieveInvestmentsPage, RetrieveLiquidityPage
+)
+from .pages.landing_pages import JSMiddleFramePage, JSMiddleAuthPage, InvestmentFormPage
 
 
 __all__ = ['HSBC']
@@ -43,6 +49,7 @@ __all__ = ['HSBC']
 
 class HSBC(LoginBrowser):
     BASEURL = 'https://client.hsbc.fr'
+
     app_gone = False
 
     connection =      URL(r'https://www.hsbc.fr/1/2/hsbc-france/particuliers/connexion', LoginPage)
@@ -74,6 +81,28 @@ class HSBC(LoginBrowser):
     life_insurance_main = URL('https://assurances.hsbc.fr/fr/accueil/b2c/accueil.html\?pointEntree=PARTIEGENERIQUEB2C', LifeInsuranceMain)
     life_insurances = URL('https://assurances.hsbc.fr/navigation', LifeInsurancesPage)
 
+    # investment pages
+    middle_frame_page = URL(r'/cgi-bin/emcgi', JSMiddleFramePage)
+    middle_auth_page = URL(r'/cgi-bin/emcgi', JSMiddleAuthPage)
+    investment_form_page = URL(
+        r'https://www.hsbc.fr/1/[0-9]/authentication/sso-cwd\?customerFullName=.*',
+        InvestmentFormPage
+    )
+    logon_investment_page = URL(r'https://investissements.clients.hsbc.fr/group-wd-gateway-war/gateway/LogonAuthentication', LogonInvestmentPage)
+    retrieve_accounts_view = URL(
+        r'https://investissements.clients.hsbc.fr/group-wd-gateway-war/gateway/wd/RetrieveProductView',
+        RetrieveAccountsPage
+    )
+    retrieve_investments_page = URL(
+        r'https://investissements.clients.hsbc.fr/group-wd-gateway-war/gateway/wd/RetrieveProductView',
+        RetrieveInvestmentsPage
+    )
+    retrieve_liquidity_page = URL(
+        r'https://investissements.clients.hsbc.fr/group-wd-gateway-war/gateway/wd/RetrieveProductView',
+        RetrieveLiquidityPage
+    )
+
+
     # catch-all
     other_page = URL(r'/cgi-bin/emcgi', OtherPage)
 
@@ -81,6 +110,7 @@ class HSBC(LoginBrowser):
         super(HSBC, self).__init__(username, password, *args, **kwargs)
         self.accounts_list = dict()
         self.secret = secret
+        self.PEA_LISTING = {}
 
     def load_state(self, state):
         return
@@ -282,9 +312,21 @@ class HSBC(LoginBrowser):
         for tr in self.page.get_history():
             yield tr
 
-    def get_investments(self, account, retry_li=True):
-        if account.type != Account.TYPE_LIFE_INSURANCE:
+    def get_investments(self, account):
+        if account.type == Account.TYPE_LIFE_INSURANCE:
+            return self.get_life_investments(account)
+        elif account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
+            return self.get_pea_investments(account)
+        else:
             raise NotImplementedError()
+
+    def get_pea_investments(self, account):
+        assert account.type in (Account.TYPE_PEA, Account.TYPE_MARKET)
+        if not self.PEA_LISTING:
+            self._go_to_wealth_accounts()
+        return self.PEA_LISTING['investments']
+
+    def get_life_investments(self, account, retry_li=True):
 
         self._quit_li_space()
 
@@ -315,3 +357,20 @@ class HSBC(LoginBrowser):
         self._quit_li_space()
 
         return investments
+
+    def _go_to_wealth_accounts(self):
+        if not hasattr(self.page, 'get_middle_frame_url'):
+            # if we can catch the URL, we go directly, else we need to browse
+            # the website
+            self.update_accounts_list()
+
+        self.location(self.page.get_middle_frame_url())
+        self.location(self.page.get_patrimoine_url())
+        self.page.go_next()
+        self.page.go_to_logon()
+        helper = ProductViewHelper(self)
+        # we need to go there to initialize the session
+        self.PEA_LISTING['accounts'] = list(helper.retrieve_accounts())
+        self.PEA_LISTING['liquidities'] = list(helper.retrieve_liquidity_account())
+        self.PEA_LISTING['investments'] = list(helper.retrieve_invests())
+        self.connection.go()
