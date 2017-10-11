@@ -97,5 +97,9 @@ class ActionNeeded(Exception):
     pass
 
 
+class AuthMethodNotImplemented(ActionNeeded):
+    pass
+
+
 class BrowserPasswordExpired(ActionNeeded):
     pass

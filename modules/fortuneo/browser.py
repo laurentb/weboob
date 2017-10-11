@@ -19,7 +19,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import AuthMethodNotImplemented
 from weboob.capabilities.bank import Account
 
 from .pages.login import LoginPage, UnavailablePage
@@ -66,7 +66,7 @@ class Fortuneo(LoginBrowser):
 
         self.location('/fr/prive/default.jsp?ANav=1')
         if self.accounts_page.is_here() and self.page.need_sms():
-            raise BrowserIncorrectPassword('Authentification with sms is not supported')
+            raise AuthMethodNotImplemented('Authentification with sms is not supported')
 
     @need_login
     def get_investments(self, account):
