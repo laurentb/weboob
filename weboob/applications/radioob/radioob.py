@@ -437,7 +437,7 @@ class Radioob(ReplApplication):
         """
 
         if not pattern:
-            print('This command takes an argument: %s' % self.get_command_help('playlist'), file=self.stderr)
+            print('This command takes an argument: %s' % self.get_command_help('search'), file=self.stderr)
             return 2
 
         cmd, args = self.parse_command_args(pattern, 2, req_n=1)
