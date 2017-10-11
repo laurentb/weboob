@@ -154,9 +154,9 @@ class CmsoParBrowser(LoginBrowser):
 
         # Next, get saving accounts
         numbers = self.page.get_numbers()
-        self.accounts.go(data=json.dumps({}), type='epargne', headers=self.json_headers)
-        for key in self.page.get_keys():
-            for a in self.page.iter_savings(key=key, numbers=numbers):
+        page = self.accounts.go(data=json.dumps({}), type='epargne', headers=self.json_headers)
+        for key in page.get_keys():
+            for a in page.iter_savings(key=key, numbers=numbers):
                 if a._index in seen:
                     self.logger.warning('skipping %s because it seems to be a duplicate of %s', a, seen[a._index])
                     continue
@@ -168,6 +168,11 @@ class CmsoParBrowser(LoginBrowser):
                 self.accounts_list.append(a)
         return self.accounts_list
 
+    def _go_market_history(self):
+        content = self.market.go(data=json.dumps({'place': 'SITUATION_PORTEFEUILLE'}), headers=self.json_headers).content
+        self.location(json.loads(content)['urlSSO'])
+
+        return self.market.go(website=self.website, action='historique')
 
     @retry((ClientError, ServerError))
     @need_login
@@ -183,10 +188,7 @@ class CmsoParBrowser(LoginBrowser):
 
             return self.location(url).page.iter_history()
         elif account.type in (Account.TYPE_PEA, Account.TYPE_MARKET):
-            content = self.market.go(data=json.dumps({'place': 'SITUATION_PORTEFEUILLE'}), headers=self.json_headers).content
-            self.location(json.loads(content)['urlSSO'])
-
-            self.market.go(website=self.website, action='historique')
+            self._go_market_history()
             if not self.page.go_account(account.label):
                 return []
 

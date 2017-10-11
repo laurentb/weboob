@@ -152,8 +152,11 @@ class AccountsPage(LoggedPage, JsonPage):
                 obj__index = Dict('index')
 
                 def obj_id(self):
-                    if Field('type')(self) == Account.TYPE_LIFE_INSURANCE:
+                    type = Field('type')(self)
+                    if type == Account.TYPE_LIFE_INSURANCE:
                         return self.get_lifenumber()
+                    elif type in (Account.TYPE_PEA, Account.TYPE_MARKET):
+                        return self.get_market_number()
 
                     try:
                         return Env('numbers')(self)[Dict('index')(self)]
@@ -166,6 +169,11 @@ class AccountsPage(LoggedPage, JsonPage):
                         if key in Env('type_label')(self).lower():
                             return self.page.TYPES[key]
                     return Account.TYPE_UNKNOWN
+
+                def get_market_number(self):
+                    label = Field('label')(self)
+                    page = self.page.browser._go_market_history()
+                    return page.get_account_id(label)
 
                 def get_lifenumber(self):
                     index = Dict('index')(self)
@@ -319,24 +327,36 @@ class LifeinsurancePage(LoggedPage, HTMLPage):
 
 
 class MarketPage(LoggedPage, HTMLPage):
-    def go_account(self, acclabel):
+    def find_account(self, acclabel):
         # Check if history is present
         if CleanText(default=None).filter(self.doc.xpath('//body/p[contains(text(), "indisponible pour le moment")]')):
             return False
         ids = None
         for a in self.doc.xpath('//a[contains(@onclick, "indiceCompte")]'):
             self.logger.debug("get investment from onclick")
-            if CleanText().filter(a.xpath('.')) == acclabel:
-                ids = re.search(r'indiceCompte[^\d]+(\d+).*idRacine[^\d]+(\d+)', Attr('.', 'onclick')(a)).groups()
+            if CleanText('.')(a) == acclabel:
+                ids = list(re.search(r'indiceCompte[^\d]+(\d+).*idRacine[^\d]+(\d+)', Attr('.', 'onclick')(a)).groups())
+                ids.append(CleanText('./ancestor::td/preceding-sibling::td')(a))
                 self.logger.debug("assign value to ids: {}".format(ids))
-                break
-        if ids is None:
-            for a in self.doc.xpath('//a[contains(@href, "indiceCompte")]'):
-                self.logger.debug("get investment from href")
-                if CleanText('.')(a) == acclabel:
-                    ids = re.search(r'indiceCompte[^\d]+(\d+).*idRacine[^\d]+(\d+)', Attr('.', 'href')(a)).groups()
-                    self.logger.debug("assign value to ids: {}".format(ids))
-                    break
+                return ids
+        for a in self.doc.xpath('//a[contains(@href, "indiceCompte")]'):
+            self.logger.debug("get investment from href")
+            if CleanText('.')(a) == acclabel:
+                ids = list(re.search(r'indiceCompte[^\d]+(\d+).*idRacine[^\d]+(\d+)', Attr('.', 'href')(a)).groups())
+                ids.append(CleanText('./ancestor::td/preceding-sibling::td')(a))
+                self.logger.debug("assign value to ids: {}".format(ids))
+                return ids
+
+        return
+
+    def get_account_id(self, acclabel):
+        return self.find_account(acclabel)[2].replace(' ', '')
+
+    def go_account(self, acclabel):
+        ids = self.find_account(acclabel)
+        if not ids:
+            return
+
         form = self.get_form(name="formCompte")
         form['indiceCompte'] = ids[0]
         form['idRacine'] = ids[1]
