@@ -225,7 +225,7 @@ class HistoryPage(LoggedPage, JsonPage):
                         'filtreOperationsComptabilisees': "MOIS_MOINS_%s" % Env('nbs')(self)[0]
                        }
                 Env('nbs')(self).pop(0)
-                return requests.Request('POST', data=json.dumps(data))
+                return requests.Request('POST', data=json.dumps(data), headers={'Content-Type': 'application/json'})
 
         def parse(self, el):
             # Key only if coming

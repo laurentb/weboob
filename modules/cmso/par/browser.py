@@ -83,6 +83,8 @@ class CmsoParBrowser(LoginBrowser):
                  'https://www.*/domiweb/prive/particulier', MarketPage)
     advisor = URL('/edrapi/v(?P<version>\w+)/oauth/(?P<page>\w+)', AdvisorPage)
 
+    json_headers = {'Content-Type': 'application/json'}
+
     def __init__(self, website, *args, **kwargs):
         super(CmsoParBrowser, self).__init__(*args, **kwargs)
 
@@ -104,7 +106,7 @@ class CmsoParBrowser(LoginBrowser):
         super(CmsoParBrowser, self).deinit()
 
     def do_login(self):
-        self.session.headers = {}
+        self.set_profile(self.PROFILE) # reset headers but don't clear them
         self.session.cookies.clear()
         self.accounts_list = []
 
@@ -124,7 +126,6 @@ class CmsoParBrowser(LoginBrowser):
         m = re.search('access_token=([^&]+).*id_token=(.*)', self.url)
 
         self.session.headers.update({
-            'Content-Type': 'application/json',
             'Authentication': "Bearer %s" % m.group(2),
             'Authorization': "Bearer %s" % m.group(1),
             'X-ARKEA-EFS': self.arkea,
@@ -144,7 +145,8 @@ class CmsoParBrowser(LoginBrowser):
 
         # First get all checking accounts...
         data = dict(self.infos.stay_or_go().get_typelist())
-        self.accounts.go(data=json.dumps(data), type='comptes').check_response()
+        self.accounts.go(data=json.dumps(data), type='comptes', headers=self.json_headers)
+        self.page.check_response()
         for key in self.page.get_keys():
             for a in self.page.iter_accounts(key=key):
                 self.accounts_list.append(a)
@@ -152,7 +154,8 @@ class CmsoParBrowser(LoginBrowser):
 
         # Next, get saving accounts
         numbers = self.page.get_numbers()
-        for key in self.accounts.go(data=json.dumps({}), type='epargne').get_keys():
+        self.accounts.go(data=json.dumps({}), type='epargne', headers=self.json_headers)
+        for key in self.page.get_keys():
             for a in self.page.iter_savings(key=key, numbers=numbers):
                 if a._index in seen:
                     self.logger.warning('skipping %s because it seems to be a duplicate of %s', a, seen[a._index])
@@ -179,22 +182,19 @@ class CmsoParBrowser(LoginBrowser):
             url = self.location(url).page.get_link(u"opérations")
 
             return self.location(url).page.iter_history()
-        elif account.type == Account.TYPE_MARKET:
+        elif account.type in (Account.TYPE_PEA, Account.TYPE_MARKET):
+            content = self.market.go(data=json.dumps({'place': 'SITUATION_PORTEFEUILLE'}), headers=self.json_headers).content
+            self.location(json.loads(content)['urlSSO'])
 
-            self.location(json.loads(self.market.go(data=json.dumps({'place': 'SITUATION_PORTEFEUILLE'})).content)['urlSSO'])
-
-            self.market.go(website=self.website, action='historique', headers={'Content-Type': 'application/x-www-form-urlencoded'})
+            self.market.go(website=self.website, action='historique')
             if not self.page.go_account(account.label):
                 return []
 
             if not self.page.go_account_full():
                 return []
 
-            del self.session.headers['Content-Type']
-
             # Display code ISIN
             history = self.location(self.url, params={'reload': 'oui', 'convertirCode': 'oui'}).page.iter_history()
-            self.session.headers['Content-Type'] = 'application/json'
 
             return history
 
@@ -202,11 +202,11 @@ class CmsoParBrowser(LoginBrowser):
         nbs = ["UN", "DEUX", "TROIS", "QUATRE", "CINQ", "SIX", "SEPT", "HUIT", "NEUF", "DIX", "ONZE", "DOUZE"]
         trs = []
 
-        self.history.go(data=json.dumps({"index": account._index}), page="pendingListOperations")
+        self.history.go(data=json.dumps({"index": account._index}), page="pendingListOperations", headers=self.json_headers)
 
         has_deferred_cards = self.page.has_deferred_cards()
 
-        self.history.go(data=json.dumps({'index': account._index}), page="detailcompte")
+        self.history.go(data=json.dumps({'index': account._index}), page="detailcompte", headers=self.json_headers)
 
         self.trs = {'lastdate': None, 'list': []}
 
@@ -228,7 +228,7 @@ class CmsoParBrowser(LoginBrowser):
 
         comings = []
 
-        self.history.go(data=json.dumps({"index": account._index}), page="pendingListOperations")
+        self.history.go(data=json.dumps({"index": account._index}), page="pendingListOperations", headers=self.json_headers)
 
         for key in self.page.get_keys():
             self.trs = {'lastdate': None, 'list': []}
@@ -253,9 +253,9 @@ class CmsoParBrowser(LoginBrowser):
             if not url:
                 return iter([])
             return self.location(url).page.iter_investment()
-        elif account.type == Account.TYPE_MARKET:
+        elif account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
             data = {"place": "SITUATION_PORTEFEUILLE"}
-            response = self.market.go(data=json.dumps(data))
+            response = self.market.go(data=json.dumps(data), headers=self.json_headers)
             self.location(json.loads(response.content)['urlSSO'])
             self.market.go(website=self.website, action="situation")
             if self.page.go_account(account.label):
