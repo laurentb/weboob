@@ -169,7 +169,10 @@ class AccountsPage(LoggedPage, JsonPage):
 
                 def get_lifenumber(self):
                     index = Dict('index')(self)
-                    url = json.loads(self.page.browser.lifeinsurance.open(accid=index).content)['url']
+                    data = json.loads(self.page.browser.lifeinsurance.open(accid=index).content)
+                    if not data:
+                        raise SkipItem('account seems unavailable')
+                    url = data['url']
                     page = self.page.browser.open(url).page
                     return page.get_account_id()
 
