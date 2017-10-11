@@ -19,7 +19,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import AuthMethodNotImplemented
+from weboob.exceptions import AuthMethodNotImplemented, BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
 
 from .pages.login import LoginPage, UnavailablePage
