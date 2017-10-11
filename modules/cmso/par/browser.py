@@ -182,16 +182,17 @@ class CmsoParBrowser(LoginBrowser):
         elif account.type == Account.TYPE_MARKET:
 
             self.location(json.loads(self.market.go(data=json.dumps({'place': 'SITUATION_PORTEFEUILLE'})).content)['urlSSO'])
-            self.session.headers['Content-Type'] = 'application/x-www-form-urlencoded'
 
-            if not self.market.go(website=self.website, action='historique').get_list(account.label):
-                return iter([])
+            self.market.go(website=self.website, action='historique', headers={'Content-Type': 'application/x-www-form-urlencoded'})
+            if not self.page.go_account(account.label):
+                return []
 
-            if not self.page.get_full_list():
-                return iter([])
+            if not self.page.go_account_full():
+                return []
+
+            del self.session.headers['Content-Type']
 
             # Display code ISIN
-            del self.session.headers['Content-Type']
             history = self.location(self.url, params={'reload': 'oui', 'convertirCode': 'oui'}).page.iter_history()
             self.session.headers['Content-Type'] = 'application/json'
 
@@ -253,11 +254,13 @@ class CmsoParBrowser(LoginBrowser):
                 return iter([])
             return self.location(url).page.iter_investment()
         elif account.type == Account.TYPE_MARKET:
-            self.location(json.loads(self.market.go(data=json.dumps({"place": \
-                          "SITUATION_PORTEFEUILLE"})).content)['urlSSO'])
-
-            return self.page.iter_investment() if self.market.go(website=self.website, \
-                        action="situation").get_list(account.label) else iter([])
+            data = {"place": "SITUATION_PORTEFEUILLE"}
+            response = self.market.go(data=json.dumps(data))
+            self.location(json.loads(response.content)['urlSSO'])
+            self.market.go(website=self.website, action="situation")
+            if self.page.go_account(account.label):
+                return self.page.iter_investment()
+            return []
         raise NotImplementedError()
 
     @retry((ClientError, ServerError))

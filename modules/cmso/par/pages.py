@@ -316,7 +316,7 @@ class LifeinsurancePage(LoggedPage, HTMLPage):
 
 
 class MarketPage(LoggedPage, HTMLPage):
-    def get_list(self, acclabel):
+    def go_account(self, acclabel):
         # Check if history is present
         if CleanText(default=None).filter(self.doc.xpath('//body/p[contains(text(), "indisponible pour le moment")]')):
             return False
@@ -342,7 +342,7 @@ class MarketPage(LoggedPage, HTMLPage):
         except ServerError:
             return False
 
-    def get_full_list(self):
+    def go_account_full(self):
         form = self.get_form(name="formOperation")
         form['dateDebut'] = "02/01/1970"
         try:
