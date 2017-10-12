@@ -331,6 +331,12 @@ class AccountsPage(LoggedPage, HTMLPage):
                 label = Field('label')(self)
                 details_link = Link('.//a', default=None)(self)
                 closed_loan = False
+
+                # mobile accounts are leading to a 404 error when parsing history
+                # furthermore this is not exactly a loan account
+                if re.search(r'Le\sMobile\s+([0-9]{2}\s?){5}', label):
+                    return False
+
                 if details_link:
                     details = self.page.browser.open(details_link)
                     if details.page:
