@@ -21,7 +21,6 @@
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 from dateutil import parser
-from lxml.etree import XMLSyntaxError
 
 from weboob.browser.browsers import LoginBrowser, need_login, StatesMixin
 from weboob.browser.url import URL
@@ -117,7 +116,6 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
     def __init__(self, config=None, *args, **kwargs):
         self.config = config
         self.auth_token = None
-        self.webid = None
         self.accounts_list = None
         self.deferred_card_calendar = None
         kwargs['username'] = self.config['login'].get()
@@ -181,20 +179,22 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
             self.accounts_list = []
             self.accounts_list.extend(self.pro_accounts.go().iter_accounts())
             self.accounts_list.extend(self.accounts.go().iter_accounts())
-            self.acc_tit.go(webid=self.webid).populate(self.accounts_list)
-            try:
-                if not all([acc._webid for acc in self.accounts_list]):
-                    self.acc_rep.go(webid=self.webid).populate(self.accounts_list)
-            except XMLSyntaxError:
-                self.accounts_list = None
-                continue
+            cards = [acc for acc in self.accounts_list if acc.type == Account.TYPE_CARD]
+            if cards:
+                self.go_cards_number(cards[0].url)
+                if self.cards.is_here():
+                    self.page.populate_cards_number(cards)
+
             for account in self.accounts_list:
                 if account.type in [Account.TYPE_PEA, Account.TYPE_LIFE_INSURANCE]:
                     self.location(account.url)
                     if isinstance(self.page, MarketPage):
                         account.balance = self.page.get_balance(account.type) or account.balance
-                account.iban = self.iban.go(webid=account._webid).get_iban()
-        return iter(self.accounts_list)
+
+                if account.type != Account.TYPE_CARD:
+                    account.iban = self.iban.go(webid=account._webid).get_iban()
+
+        return self.accounts_list
 
     def get_account(self, id):
         assert isinstance(id, basestring)
