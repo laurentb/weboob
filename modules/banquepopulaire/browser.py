@@ -383,6 +383,11 @@ class BanquePopulaire(LoginBrowser):
                         url = self.page.get_redirect()
                         self.logger.debug('using redirect url %s', url)
                         m = self.etna.match(url)
+                        if not m:
+                            # url can be contratPrev which is not investments
+                            self.logger.debug('Unable to handle this kind of contract')
+                            raise NotImplementedError()
+
                         params = m.groupdict()
 
                     if self.natixis_redirect.is_here() or self.etna.is_here():
@@ -412,31 +417,37 @@ class BanquePopulaire(LoginBrowser):
             url = self.page.get_redirect()
             self.logger.debug('using redirect url %s', url)
             m = self.etna.match(url)
+            if not m:
+                # url can be contratPrev which is not investments
+                self.logger.debug('Unable to handle this kind of contract')
+                return
+
             params = m.groupdict()
+        else:
+            return
 
-        if self.etna.is_here() or self.natixis_redirect.is_here():
-            self.natixis_history.go(**params)
-            items_from_json = list(self.page.get_history())
-            items_from_json.sort(reverse=True, key=lambda item: item.date)
+        self.natixis_history.go(**params)
+        items_from_json = list(self.page.get_history())
+        items_from_json.sort(reverse=True, key=lambda item: item.date)
 
-            years = list(set(item.date.year for item in items_from_json))
-            years.sort(reverse=True)
+        years = list(set(item.date.year for item in items_from_json))
+        years.sort(reverse=True)
 
-            for year in years:
-                try:
-                    self.natixis_pdf.go(year=year, **params)
-                except HTTPNotFound:
-                    self.logger.debug('no pdf for year %s, fallback on json transactions', year)
-                    for tr in items_from_json:
-                        if tr.date.year == year:
-                            yield tr
-                except ServerError:
-                    return
-                else:
-                    history = list(self.page.get_history())
-                    history.sort(reverse=True, key=lambda item: item.date)
-                    for tr in history:
+        for year in years:
+            try:
+                self.natixis_pdf.go(year=year, **params)
+            except HTTPNotFound:
+                self.logger.debug('no pdf for year %s, fallback on json transactions', year)
+                for tr in items_from_json:
+                    if tr.date.year == year:
                         yield tr
+            except ServerError:
+                return
+            else:
+                history = list(self.page.get_history())
+                history.sort(reverse=True, key=lambda item: item.date)
+                for tr in history:
+                    yield tr
 
     @retry(LoggedOut)
     @need_login
