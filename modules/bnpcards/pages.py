@@ -164,6 +164,7 @@ class TiCardPage(ExpandablePage, TransactionsPage):
             obj_label = Format('%s %s', CleanText('//table[@class="params"]/tr/td[1]/b[2]'), Field('id'))
             obj_type = Account.TYPE_CARD
             obj__nav_num = Attr('.', 'value')
+            obj_currency = u'EUR'
 
 
 class TiHistoPage(PeriodsPage, TransactionsPage):
