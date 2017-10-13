@@ -711,7 +711,10 @@ class CardPage(OperationsPage, LoggedPage):
                 label = CleanText(u'//*[contains(text(), "Achats")]')(el)
                 if not label:
                     return
-                label = re.findall('(\d+ [^ ]+ \d+)', label)[-1]
+                try:
+                    label = re.findall('(\d+ [^ ]+ \d+)', label)[-1]
+                except IndexError:
+                    return
                 # use the trick of relativedelta to get the last day of month.
                 self.env['debit_date'] = (parse_french_date(label) + relativedelta(day=31)).date()
 
