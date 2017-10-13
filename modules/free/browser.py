@@ -48,10 +48,9 @@ class FreeBrowser(LoginBrowser):
             self.email = self.username
             self.status = "inactive"
 
-        self.urlid = self.page.url.rsplit('.pl', 2)[1]
-
     @need_login
     def get_subscription_list(self):
+        self.urlid = self.page.url.rsplit('.pl', 2)[1]
         if self.status is "inactive":
             return self.documents.stay_or_go(urlid=self.urlid).get_list()
         return self.home.stay_or_go(urlid=self.urlid).get_list()
