@@ -53,7 +53,7 @@ class HomePage(LoggedPage, HTMLPage):
 
     @method
     class get_list(ListElement):
-        item_xpath = '//div[@class="three_contenu_table"]'
+        item_xpath = '//div[@class="three_contenu_table" and ./div[not(contains(@class, "pp_espace_client"))]] | //div[@class="pp_espace_client"]'
 
         class item(ItemElement):
             klass = Account
