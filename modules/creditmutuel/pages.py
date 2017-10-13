@@ -1052,7 +1052,9 @@ class InternalTransferPage(LoggedPage, HTMLPage):
         self.check_errors()
         # look for the known "everything went well" message
         content = self.get_unicode_content()
-        transfer_ok_message = [u'Votre virement a &#233;t&#233; ex&#233;cut&#233;', u'Ce virement a &#233;t&#233; enregistr&#233; ce jour']
+        transfer_ok_message = [u'Votre virement a &#233;t&#233; ex&#233;cut&#233;',
+                               u'Ce virement a &#233;t&#233; enregistr&#233; ce jour',
+                               u'Ce virement a été enregistré ce jour']
         if not any(msg for msg in transfer_ok_message if msg in content):
             raise TransferError('The expected message "%s" was not found.' % transfer_ok_message)
 
