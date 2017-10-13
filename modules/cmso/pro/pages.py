@@ -140,6 +140,9 @@ class AccountsPage(CMSOPage):
 
 
 class InvestmentPage(CMSOPage):
+    def has_error(self):
+        return CleanText('//span[@id="id_error_msg"]')(self.doc)
+
     @method
     class iter_accounts(CmsoListElement):
         class item(ItemElement):

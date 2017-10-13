@@ -80,7 +80,6 @@ class CmsoProBrowser(LoginBrowser):
             except ServerError:
                 self.logger.warning('Area not unavailable.')
 
-
     @need_login
     def iter_history(self, account):
         self.fetch_areas()
@@ -130,6 +129,11 @@ class CmsoProBrowser(LoginBrowser):
                 break
         else:
             # not an investment account
+            return []
+
+        if self.investment.is_here():
+            assert self.page.has_error()
+            self.logger.warning('account %r does not seem to be usable', account)
             return []
 
         assert self.invest_account.is_here()
