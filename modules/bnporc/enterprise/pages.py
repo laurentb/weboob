@@ -34,7 +34,7 @@ from weboob.capabilities.profile import Profile
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 from weboob.tools.date import parse_french_date
 from weboob.capabilities import NotAvailable
-from weboob.exceptions import ActionNeeded
+from weboob.exceptions import ActionNeeded, BrowserForbidden
 
 
 def merge_cards(input_list):
@@ -112,7 +112,10 @@ class LoginPage(HTMLPage):
 
 
 class AuthPage(HTMLPage):
-    pass
+    def on_load(self):
+        content = CleanText(u'//p[contains(text(), "Vous n\'êtes pas autorisée à afficher cette page")]')(self.doc)
+        if content:
+            raise BrowserForbidden(content)
 
 
 class ActionNeededPage(HTMLPage):
