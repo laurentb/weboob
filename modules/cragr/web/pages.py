@@ -254,7 +254,12 @@ class _AccountsPage(MyLoggedPage, BasePage):
             url = Link('.//a', default=None)(tr)
             if type == Account.TYPE_LOAN and url is not None:
                 details = self.browser.open(url)
-                account = details.page.item_loan()
+                if not details.page.get_error():
+                    account = details.page.item_loan()
+                else:
+                    account = Loan()
+                    account.total_amount = MyDecimal().filter(cols[self.COL_INITIAL_AMOUNT])
+                    account.next_payment_amount = account.last_payment_amount = MyDecimal().filter(cols[self.COL_MONTHLY_PAYMENT])
             else:
                 account = Account()
 
@@ -582,6 +587,11 @@ class AccountsPage(_AccountsPage):
 class LoansPage(_AccountsPage):
     COL_ID = 1
     NB_COLS = 6
+
+    # IMMO LOAN
+    COL_MONTHLY_PAYMENT = 2
+    COL_INITIAL_AMOUNT = 3
+    COL_AMOUNT_LEFT_TO_PAY = 4
 
     def set_link(self, account, cols, use_link):
         account.balance = -abs(account.balance)
