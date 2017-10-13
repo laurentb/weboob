@@ -138,18 +138,19 @@ class AccountsList(LoggedPage, HTMLPage):
         for card in card_elements:
             card_properties = {}
 
-            card_properties['number'] = Regexp(CleanText('.'), '([0-9]{4}\s\*{4}\s\*{4}\s[0-9]{4})')(card)
+            # Regexp parse the text to extract the card number that may be in different formats
+            card_properties['number'] = Regexp(CleanText('.'), '(\d+[\s|*]+\d+)')(card)
             debit_info = (CleanText('.//div[@class="debit-info"]', default='')(card))
 
-            is_deferred = debit_info.startswith(u'Débit différé')
-            is_immediate = debit_info.startswith(u'Débit immédiat')
+            is_deferred = u'Débit différé' in debit_info
+            is_immediate = u'Débit immédiat' in debit_info
 
             if is_immediate:
                 card_properties['kind'] = self.browser.IMMEDIATE_CB
             elif is_deferred:
                 card_properties['kind'] = self.browser.DEFERRED_CB
             else:
-                raise DataError("Cannot tell if this card is deferred or immediate")
+                raise DataError("Cannot tell if the card {} is deferred or immediate".format(card_properties['number']))
 
             card_list.append(card_properties)
 
