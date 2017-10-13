@@ -312,7 +312,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_rate = Async('details') & MyDecimal('//div[@id="F4:expContent"]/table/tbody/tr[2]/td[1]')
             obj_account_label = Async('details') & CleanText('//div[@id="F4:expContent"]/table/tbody/tr[1]/td[2]')
             obj_nb_payments_left = Async('details') & Type(CleanText(
-                '//div[@id="F4:expContent"]/table/tbody/tr[2]/td[2]/text()'), type=int)
+                '//div[@id="F4:expContent"]/table/tbody/tr[2]/td[2]/text()'), type=int, default=NotAvailable)
             obj_subscription_date = Async('details') & MyDate(Regexp(CleanText(
                 '//*[@id="F4:expContent"]/table/tbody/tr[1]/th[1]'), ' (\d{2}/\d{2}/\d{4})', default=NotAvailable))
             obj_maturity_date = Async('details') & MyDate(
