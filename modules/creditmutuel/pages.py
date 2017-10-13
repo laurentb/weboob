@@ -707,6 +707,14 @@ class CardPage(OperationsPage, LoggedPage):
             col_commerce = u'Commerce'
             col_ville = u'Ville'
 
+            def condition(self):
+                if CleanText(u'//td[contains(., "Aucun mouvement")]', default=None)(self) \
+                        or len(self.el.xpath('./td')) < 4 \
+                        or CleanText(u'//td/p[contains(., "pas de Crédit")]'):
+                    return False
+                else:
+                    return True
+
             def parse(self, el):
                 label = CleanText(u'//*[contains(text(), "Achats")]')(el)
                 if not label:
