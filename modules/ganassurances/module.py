@@ -19,9 +19,8 @@
 
 from collections import OrderedDict
 
-from weboob.capabilities.bank import CapBank, AccountNotFound
-from weboob.capabilities.base import find_object
-from weboob.tools.backend import Module, BackendConfig
+from weboob.capabilities.bank import CapBank
+from weboob.tools.backend import AbstractModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import GanAssurances
@@ -30,7 +29,7 @@ from .browser import GanAssurances
 __all__ = ['GanAssurancesModule']
 
 
-class GanAssurancesModule(Module, CapBank):
+class GanAssurancesModule(AbstractModule, CapBank):
     NAME = 'ganassurances'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -46,23 +45,10 @@ class GanAssurancesModule(Module, CapBank):
                            ValueBackendPassword('login',    label=u'Numéro client', masked=False),
                            ValueBackendPassword('password', label=u"Code d'accès"))
     BROWSER = GanAssurances
+    PARENT = 'groupama'
 
     def create_default_browser(self):
         return self.create_browser(self.config['website'].get(),
                                    self.config['login'].get(),
-                                   self.config['password'].get())
-
-    def iter_accounts(self):
-        return self.browser.get_accounts_list()
-
-    def get_account(self, _id):
-        return find_object(self.browser.get_accounts_list(), id=_id, error=AccountNotFound)
-
-    def iter_history(self, account):
-        return self.browser.get_history(account)
-
-    def iter_coming(self, account):
-        return self.browser.get_coming(account)
-
-    def iter_investment(self, account):
-        return self.browser.get_investment(account)
+                                   self.config['password'].get(),
+                                   weboob=self.weboob)

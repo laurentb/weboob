@@ -16,22 +16,27 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
-import ast
-import re, requests
 
-from weboob.browser.pages import HTMLPage, LoggedPage, pagination
+
+import re
+import requests
+import ast
+
+from decimal import Decimal
+
+from weboob.browser.pages import HTMLPage, pagination, LoggedPage, FormNotFound
 from weboob.browser.elements import method, TableElement, ItemElement
-from weboob.browser.filters.standard import Env, CleanText, CleanDecimal, Field, Regexp, TableCell, Eval
+from weboob.browser.filters.standard import Env, CleanDecimal, CleanText, TableCell, Date, Regexp, Eval, Field
 from weboob.browser.filters.html import Attr, Link
 from weboob.browser.filters.javascript import JSVar
 from weboob.capabilities.bank import Account, Investment
-from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.capabilities.base import NotAvailable
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
 class LoginPage(HTMLPage):
     def login(self, login, passwd):
-        tab = re.search(r'tab = (\[[\d,\s]*\])', self.content).group(1)
+        tab = re.search(r'clavierAChristian = (\[[\d,\s]*\])', self.content).group(1)
         number_list = ast.literal_eval(tab)
         key_map = {}
         for i, number in enumerate(number_list):
@@ -52,102 +57,45 @@ class AccountsPage(LoggedPage, HTMLPage):
                      u'Mes crédits':                                    Account.TYPE_LOAN,
                      u'Assurance Vie':                                  Account.TYPE_LIFE_INSURANCE}
 
-    @method
-    class get_list(TableElement):
-        item_xpath = "//div[@class='finance']/form/table[@class='ecli']/tr[td]"
-        head_xpath = "//div[@class='finance']/form/table[@class='ecli']/tr[@class='entete']/th"
+    def get_list(self):
+        account_type = Account.TYPE_UNKNOWN
+        accounts = []
 
-        class item(ItemElement):
-            klass = Account
+        for tr in self.doc.xpath('//div[@class="finance"]/form/table[@class="ecli"]/tr'):
+            if tr.attrib.get('class', '') == 'entete':
+                account_type = self.ACCOUNT_TYPES.get(tr.find('th').text.strip(), Account.TYPE_UNKNOWN)
+                continue
 
-            def obj_label(self):
-                return CleanText('.//td[1]', replace=[(u'\u2022', u'')])(self).lstrip()
+            tds = tr.findall('td')
+            a = tds[0].find('a')
 
-            def obj_number(self):
-                return CleanText().filter(re.findall('(\d+)', Field('label')(self))).replace(u' ', u'')
+            # Skip accounts that can't be accessed
+            if a is None:
+                continue
 
-            def obj_type(self):
-                return self.page.ACCOUNT_TYPES.get(CleanText('.//parent::table/tr[1]/th[1]')(self), Account.TYPE_UNKNOWN)
+            balance = tds[-1].text.strip()
 
-            def obj_balance(self):
-                balance = CleanDecimal('./td[3]', replace_dots=True, default=NotAvailable)(self)
-                return -abs(balance) if Field('type')(self) == Account.TYPE_LOAN else balance
+            account = Account()
+            account.label = u' '.join([txt.strip() for txt in tds[0].itertext()])
+            account.label = re.sub(u'[ \xa0\u2022\r\n\t]+', u' ', account.label).strip()
+            account.id = Regexp(pattern=u'N° ((.*?) |(.*))').filter(account.label).strip()
+            account.type = account_type
+            if balance:
+                account.balance = Decimal(FrenchTransaction.clean_amount(balance))
+                account.currency = account.get_currency(balance)
 
-            obj_currency = u"EUR"
-            obj_id = Regexp(Field('label'), u'N° (\w+)')
+            if 'onclick' in a.attrib:
+                m = re.search(r"javascript:submitForm\(([\w_]+),'([^']+)'\);", a.attrib['onclick'])
+                if not m:
+                    self.logger.warning('Unable to find link for %r' % account.label)
+                    account._link = None
+                else:
+                    account._link = m.group(2)
+            else:
+                account._link = a.attrib['href'].strip()
 
-            def obj__link(self):
-                m = re.match(u'(.*?)(N°[a-zA-Z0-9 ]+)', Field('label')(self))
-                number = m.group(2).replace(' ','')
-                for a in self.page.doc.xpath('//ul[@id="sunmenu-0"]/li/a[@href]'):
-                    link = Link('.')(a)
-                    if number in CleanText('./nobr')(a):
-                        return link
-
-    def refresh_link(self, account):
-        if account.type is not Account.TYPE_LIFE_INSURANCE:
-            m = re.search(r"javascript:submitForm\(([\w_]+),'([^']+)'\);", Attr('.//a[contains(text(), "%s")]' % account.id, 'onclick')(self.doc))
-            account._link =  m.group(2) if m else None
-        else:
-            m = re.match(u'(.*?)(N°[a-zA-Z0-9 ]+)', account.label)
-            number = m.group(2).replace(' ','')
-            for a in self.doc.xpath('//ul[@id="sunmenu-0"]/li/a[@href]'):
-                link = Link('.')(a)
-                if number in CleanText('./nobr')(a):
-                    account._link = link
-
-
-class AccountDetailsPage(LoggedPage, HTMLPage):
-    def get_rivage(self):
-        if Attr('//iframe[@id="frame1"]', 'src', default=NotAvailable)(self.doc) is NotAvailable:
-            return None
-        return {'link': 'https://secure-rivage.groupama.fr/contratVie.rivage.syntheseContratEparUc.gsi', \
-                'data': {'gfr_idFMC': Attr('//input[@name="gfr_idFMC"]', 'value')(self.doc),
-                         'gfr_idCaisse': Attr('//input[@name="gfr_idCaisse"]', 'value')(self.doc),
-                         'gfr_idGRC': Attr('//input[@name="gfr_idGRC"]', 'value')(self.doc),
-                         'gfr_mailperso': Attr('//input[@name="gfr_mailperso"]', 'value')(self.doc),
-                         'gfr_optin': Attr('//input[@name="gfr_optin"]', 'value')(self.doc),
-                         'gfr_pgRetourGfr': Attr('//input[@name="gfr_pgRetourGfr"]', 'value')(self.doc),
-                         'gfr_nom': Attr('//input[@name="gfr_nom"]', 'value')(self.doc),
-                         'gfr_prenom': Attr('//input[@name="gfr_prenom"]', 'value')(self.doc),
-                         'gfr_civilite': Attr('//input[@name="gfr_civilite"]', 'value')(self.doc),
-                         'gfr_cgu': 1,
-                         'gfr_emailAgent': Attr('//input[@name="gfr_emailAgent"]', 'value')(self.doc),
-                         'gfr_numeroContrat': JSVar(CleanText('//script'), var='numContrat')(self.doc),
-                         'gfr_data': JSVar(CleanText('//script'), var='pCryptage')(self.doc),
-                         'gfr_adrSite': 'https://espaceclient.groupama.fr'
-                        }
-        }
-
-    def fill_rivage_account_details(self, account):
-        account.balance = CleanDecimal(u'//p[contains(., "Épargne constituée") and contains(., "€")]/span')(self.doc)
-
-    def fill_account_details(self, account):
-        account.balance = CleanDecimal(u'//p[contains(., "épargne") and contains(., "€")]', replace_dots=True)(self.doc)
-
-    @method
-    class get_investments(TableElement):
-        item_xpath = "//table[@id='repartition_epargne3']/tr[position()>1 and position()<last()]"
-        head_xpath = "//table[@id='repartition_epargne3']/tr[1]/th"
-
-        col_label = u'Support'
-        col_quantity = u'Nombre d’unités de compte'
-        col_unitvalue = u'Valeur de l’unité de compte'
-        col_valuation = u'Épargne constituée en euros'
-        col_portfolio = u'Répartition %'
-
-
-        class item(ItemElement):
-            klass = Investment
-
-            obj_label = CleanText(TableCell('label', support_th=True))
-            obj_quantity = CleanDecimal(TableCell('quantity', support_th=True), default=NotAvailable)
-            obj_unitvalue = CleanDecimal(TableCell('unitvalue', support_th=True), default=NotAvailable)
-            obj_valuation = CleanDecimal(TableCell('valuation', support_th=True), default=NotAvailable)
-            obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal(TableCell('portfolio', support_th=True), default=NotAvailable))
-
-            def obj_code(self):
-                return Regexp(CleanText('./a/@href'), '.*?isin=(\w+)', default=NotAvailable)(TableCell('label', support_th=True)(self)[0])
+            accounts.append(account)
+        return accounts
 
 
 class Transaction(FrenchTransaction):
@@ -164,7 +112,9 @@ class Transaction(FrenchTransaction):
                ]
 
 
-class TransactionsPage(LoggedPage, HTMLPage):
+class TransactionsPage(HTMLPage):
+    logged = True
+
     @pagination
     @method
     class get_history(Transaction.TransactionsElement):
@@ -195,11 +145,98 @@ class TransactionsPage(LoggedPage, HTMLPage):
             return None
         return re.sub('[ \t\r\n]+', '', a.attrib['href'])
 
-    def fill_account_iban(self, account):
-        account.iban = CleanText('(.//font[b[contains(text(), "IBAN")]])[1]', replace=[(' ', '')])(self.doc)[5:]
 
-    def get_iban_link(self):
-        onclick = Attr('.//a[@class="rib"]', 'onclick', default=None)(self.doc)
-        if onclick:
-            m = re.search(r"envoyer\('(\d+)','(.*)'\);", onclick)
-            return '%s?paramNumCpt=%s' % (m.group(2), m.group(1))
+class AVAccountPage(LoggedPage, HTMLPage):
+    """
+    Get balance
+
+    :return: decimal balance, currency
+    :rtype: tuple
+    """
+    def get_av_balance(self):
+        balance_xpath = u'//p[contains(text(), "Épargne constituée")]/span'
+        return (CleanDecimal(balance_xpath)(self.doc), Account.get_currency(CleanText(balance_xpath)(self.doc)))
+
+    @method
+    class get_av_investments(TableElement):
+        item_xpath = '//table[@id="repartition_epargne3"]/tr[position() > 1]'
+        head_xpath = '//table[@id="repartition_epargne3"]/tr/th[position() > 1]'
+
+        col_quantity = u'Nombre d’unités de compte'
+        col_unitvalue = u"Valeur de l’unité de compte"
+        col_valuation = u'Épargne constituée en euros'
+        col_portfolio_share = u'Répartition %'
+
+        class item(ItemElement):
+            klass = Investment
+
+            def condition(self):
+                return Field('quantity')(self) is not NotAvailable
+
+            obj_label = CleanText('./th')
+            obj_quantity = CleanDecimal(TableCell('quantity'), default=NotAvailable)
+            obj_unitvalue = CleanDecimal(TableCell('unitvalue'))
+            obj_valuation = CleanDecimal(TableCell('valuation'))
+            obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal(TableCell('portfolio_share')))
+            obj_code = Regexp(Link('./th/a'), r'isin=(\w+)|/(\w+)\.pdf')
+            obj_code = Regexp(Link('./th/a', default=''), r'isin=(\w+)|/(\w+)\.pdf', default=NotAvailable)
+            obj_code_type = Investment.CODE_TYPE_ISIN
+
+
+class AVHistoryPage(LoggedPage, HTMLPage):
+    @method
+    class get_av_history(TableElement):
+        item_xpath = '//table[@id="enteteTableSupports"]/tbody/tr'
+        head_xpath = '//table[@id="enteteTableSupports"]/thead/tr/th'
+
+        col_date = 'Date'
+        col_label = 'Type de mouvement'
+        col_debit = u'Montant Désinvesti'
+        col_credit = ['Montant investi', u'Montant Net Perçu']
+        # There is several types of life insurances, so multiple columns
+        col_credit2 = [u'Montant Brut Versé']
+
+        class item(ItemElement):
+            klass = Transaction
+
+            def condition(self):
+                return CleanText(TableCell('date'))(self) != 'en cours'
+
+            obj_label = CleanText(TableCell('label'))
+            obj_type = Transaction.TYPE_BANK
+            obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
+            obj__arbitration = False
+
+            def obj_amount(self):
+                credit = CleanDecimal(TableCell('credit'), default=Decimal(0))(self)
+                # Different types of life insurances, use different columns.
+                if TableCell('debit', default=None)(self):
+                    debit = CleanDecimal(TableCell('debit'), default=Decimal(0))(self)
+                    # In case of financial arbitration, both columns are equal
+                    if credit and debit:
+                        assert credit == debit
+                        self.obj._arbitration = True
+                        return credit
+                    else:
+                        return credit - abs(debit)
+                else:
+                    credit2 = CleanDecimal(TableCell('credit2'), default=Decimal(0))(self)
+                    assert not (credit and credit2)
+                    return credit + credit2
+
+
+class FormPage(LoggedPage, HTMLPage):
+    def get_av_balance(self):
+        balance_xpath = u'//p[contains(text(), "montant de votre épargne")]'
+        return (CleanDecimal(Regexp(CleanText(balance_xpath), r'est de ([\s\d,]+)'))(self.doc), Account.get_currency(CleanText(balance_xpath)(self.doc)))
+
+    def av_account_form(self):
+        try:
+            form = self.get_form(id="formGoToRivage")
+            form['gfr_numeroContrat'] = JSVar(var='numContrat').filter(CleanText('//script[contains(text(), "var numContrat")]')(self.doc))
+            form['gfr_data'] = JSVar(var='pCryptage').filter(CleanText('//script[contains(text(), "var pCryptage")]')(self.doc))
+            form['gfr_adrSite'] = 'https://espaceclient.%s.fr' % self.browser.website
+            form.url = 'https://secure-rivage.%s.fr/contratVie.rivage.syntheseContratEparUc.gsi' % self.browser.website
+            form.submit()
+        except FormNotFound:
+            pass
