@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Julien Veyssier
+# Copyright(C) 2010-2017 Julien Veyssier, Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -17,13 +17,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.torrent import CapTorrent, MagnetOnly, Torrent
-from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.value import Value
 from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.torrent import CapTorrent, MagnetOnly, Torrent
+from weboob.tools.backend import BackendConfig, Module
+from weboob.tools.value import Value
 
 from .browser import PiratebayBrowser
-
 
 __all__ = ['PiratebayModule']
 
@@ -36,10 +35,11 @@ class PiratebayModule(Module, CapTorrent):
     DESCRIPTION = 'The Pirate Bay BitTorrent tracker'
     LICENSE = 'AGPLv3+'
     BROWSER = PiratebayBrowser
-    CONFIG = BackendConfig(Value('proxybay', label='Use a Proxy Bay', regexp=r'https?://.*', default='', required=False))
+    CONFIG = BackendConfig(Value('proxybay', label='Use a Proxy Bay',
+                                 regexp=r'https?://.*/', default='', required=False))
 
     def create_default_browser(self):
-        return self.create_browser(self.config['proxybay'].get())
+        return self.create_browser(self.config['proxybay'].get() or None)
 
     def get_torrent(self, id):
         return self.browser.get_torrent(id)
