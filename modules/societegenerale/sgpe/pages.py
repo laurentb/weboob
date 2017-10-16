@@ -44,6 +44,8 @@ class Transaction(FrenchTransaction):
                                                             FrenchTransaction.TYPE_PAYBACK),
                 (re.compile(r'^DEBIT MENSUEL CARTE.*'),
                                                             FrenchTransaction.TYPE_CARD_SUMMARY),
+                (re.compile(r'^CREDIT MENSUEL CARTE.*'),
+                                                            FrenchTransaction.TYPE_CARD_SUMMARY),
                 (re.compile(r'^(?P<category>CARTE) \w+ (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_CARD),
                 (re.compile(r'^(?P<dd>\d{2})(?P<mm>\d{2})/(?P<text>.*?)/?(-[\d,]+)?$'),
