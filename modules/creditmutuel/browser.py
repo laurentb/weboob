@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
-
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from itertools import groupby
@@ -177,8 +175,8 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
             for acc in self.revolving_loan_list.stay_or_go(subbank=self.currentSubBank).iter_accounts():
                 self.accounts_list.append(acc)
 
-            # this account type is like a loan, for splitting payments in smaller amounts, debitted on another account
-            self.accounts_list = [account for account in self.accounts_list if 'etalis' not in account.label.lower()]
+            excluded_label = ['etalis', 'valorisation totale']
+            self.accounts_list = [acc for acc in self.accounts_list if not any(w in acc.label.lower() for w in excluded_label)]
 
         return self.accounts_list
 
