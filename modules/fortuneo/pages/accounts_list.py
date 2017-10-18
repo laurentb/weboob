@@ -223,8 +223,7 @@ class InvestmentHistoryPage(LoggedPage, HTMLPage):
     def get_balance(self, account_type):
         for div in self.doc.xpath('//div[@class="block synthese_vie"]/div/div/div'):
             if 'Valorisation' in CleanText('.')(div):
-                return RawText('./p/strong')(div)
-
+                return CleanText('./p[@class="synthese_data_line_right_text"]')(div)
 
 class AccountHistoryPage(LoggedPage, HTMLPage):
     def build_doc(self, content):
