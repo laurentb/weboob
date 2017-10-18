@@ -245,5 +245,6 @@ class FormPage(LoggedPage, HTMLPage):
             form['gfr_adrSite'] = 'https://espaceclient.%s.fr' % self.browser.website
             form.url = 'https://secure-rivage.%s.fr/contratVie.rivage.syntheseContratEparUc.gsi' % self.browser.website
             form.submit()
+            return True
         except FormNotFound:
-            pass
+            return False

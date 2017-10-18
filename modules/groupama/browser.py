@@ -78,7 +78,9 @@ class GroupamaBrowser(LoginBrowser):
             if a.id == account.id:
                 self.location(a._link)
                 if a.type == Account.TYPE_LIFE_INSURANCE:
-                    self.page.av_account_form()
+                    if not self.page.av_account_form():
+                        self.logger.warning('history form not found for %s', account)
+                        return []
                     self.av_history.go(website=self.website)
                     return self.page.get_av_history()
                 assert self.transactions.is_here()
