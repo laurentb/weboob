@@ -158,7 +158,9 @@ class AVAccountPage(LoggedPage, HTMLPage):
     """
     def get_av_balance(self):
         balance_xpath = u'//p[contains(text(), "Épargne constituée")]/span'
-        return (CleanDecimal(balance_xpath)(self.doc), Account.get_currency(CleanText(balance_xpath)(self.doc)))
+        balance = CleanDecimal(balance_xpath, replace_dots=True)(self.doc)
+        currency = Account.get_currency(CleanText(balance_xpath)(self.doc))
+        return balance, currency
 
     @method
     class get_av_investments(TableElement):
@@ -231,7 +233,9 @@ class AVHistoryPage(LoggedPage, HTMLPage):
 class FormPage(LoggedPage, HTMLPage):
     def get_av_balance(self):
         balance_xpath = u'//p[contains(text(), "montant de votre épargne")]'
-        return (CleanDecimal(Regexp(CleanText(balance_xpath), r'est de ([\s\d,]+)'))(self.doc), Account.get_currency(CleanText(balance_xpath)(self.doc)))
+        balance = CleanDecimal(Regexp(CleanText(balance_xpath), r'est de ([\s\d,]+)'), replace_dots=True)(self.doc)
+        currency = Account.get_currency(CleanText(balance_xpath)(self.doc))
+        return balance, currency
 
     def av_account_form(self):
         try:
