@@ -54,9 +54,13 @@ class AccountsPage(LoggedPage, HTMLPage):
     ACCOUNT_TYPES = {u'Solde des comptes bancaires - Groupama Banque':  Account.TYPE_CHECKING,
                      u'Solde des comptes bancaires':                    Account.TYPE_CHECKING,
                      u'Epargne bancaire constituée - Groupama Banque':  Account.TYPE_SAVINGS,
-                     u'Epargne bancaire constituée':                    Account.TYPE_CHECKING,
+                     u'Epargne bancaire constituée':                    Account.TYPE_SAVINGS,
                      u'Mes crédits':                                    Account.TYPE_LOAN,
                      u'Assurance Vie':                                  Account.TYPE_LIFE_INSURANCE}
+
+    ACCOUNT_TYPES2 = {
+        'plan epargne actions': Account.TYPE_PEA,
+    }
 
     def get_list(self):
         account_type = Account.TYPE_UNKNOWN
@@ -83,6 +87,12 @@ class AccountsPage(LoggedPage, HTMLPage):
             # take "N° (FOO123 456)" but "N° (FOO123) MR. BAR"
             account.id = re.search(r'N° (\w+( \d+)*)', account.label).group(1).replace(' ', '')
             account.type = account_type
+
+            for patt, type in self.ACCOUNT_TYPES2.items():
+                if patt in account.label.lower():
+                    account.type = type
+                    break
+
             if balance:
                 account.balance = Decimal(FrenchTransaction.clean_amount(balance))
                 account.currency = account.get_currency(balance)
@@ -96,6 +106,10 @@ class AccountsPage(LoggedPage, HTMLPage):
                     account._link = m.group(2)
             else:
                 account._link = a.attrib['href'].strip()
+
+            if accounts and accounts[-1].label == account.label and account.type == Account.TYPE_PEA:
+                self.logger.warning('%s seems to be a duplicate of %s, skipping', account, accounts[-1])
+                continue
 
             accounts.append(account)
         return accounts
