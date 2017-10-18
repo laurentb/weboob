@@ -225,6 +225,7 @@ class InvestmentHistoryPage(LoggedPage, HTMLPage):
             if 'Valorisation' in CleanText('.')(div):
                 return CleanText('./p[@class="synthese_data_line_right_text"]')(div)
 
+
 class AccountHistoryPage(LoggedPage, HTMLPage):
     def build_doc(self, content):
         content = re.sub(br'\*<E040032TC MSBILL.INFO', b'*', content)
