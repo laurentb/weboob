@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 import re
 import requests
@@ -78,7 +79,9 @@ class AccountsPage(LoggedPage, HTMLPage):
             account = Account()
             account.label = u' '.join([txt.strip() for txt in tds[0].itertext()])
             account.label = re.sub(u'[ \xa0\u2022\r\n\t]+', u' ', account.label).strip()
-            account.id = Regexp(pattern=u'N° ((.*?) |(.*))').filter(account.label).strip()
+
+            # take "N° (FOO123 456)" but "N° (FOO123) MR. BAR"
+            account.id = re.search(r'N° (\w+( \d+)*)', account.label).group(1).replace(' ', '')
             account.type = account_type
             if balance:
                 account.balance = Decimal(FrenchTransaction.clean_amount(balance))
