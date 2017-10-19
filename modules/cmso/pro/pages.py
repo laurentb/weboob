@@ -106,6 +106,9 @@ class AccountsPage(CMSOPage):
             # Last numbers replaced with XX... or we have to send sms to get RIB.
             obj_iban = NotAvailable
 
+            # some accounts may appear on multiple areas, but the area where they come from is indicated
+            obj__owner = CleanText('(./preceding-sibling::tr[@class="LnMnTiers"])[last()]')
+
             def obj_id(self):
                 history_url = Field('_history_url')(self)
                 if history_url.startswith('javascript:'):

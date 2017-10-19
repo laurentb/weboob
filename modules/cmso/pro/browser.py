@@ -70,12 +70,20 @@ class CmsoProBrowser(LoginBrowser):
         # Manage multiple areas
         if not self.areas:
             raise BrowserIncorrectPassword("Vous n'avez pas de comptes sur l'espace professionnel de ce site.")
+
+        seen = set()
         for area in self.areas:
             self.subscription.stay_or_go()
             self.location(area)
             try:
                 for a in self.accounts.go().iter_accounts():
+                    seenkey = (a.id, a._owner)
+                    if seenkey in seen:
+                        self.logger.warning('skipping seemingly duplicate account %r', a)
+                        continue
+
                     a._area = area
+                    seen.add(seenkey)
                     yield a
             except ServerError:
                 self.logger.warning('Area not unavailable.')
