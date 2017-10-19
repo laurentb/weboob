@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import datetime
-from decimal import Decimal
 
 from weboob.browser.elements import ItemElement, method, DictElement
 from weboob.browser.filters.standard import CleanDecimal, Date, Field, CleanText, Env
@@ -106,7 +105,7 @@ class AccountHistoryPage(LoggedPage, JsonPage):
                '%s%s' % (account.label, account.id):
                 amount += ins['montantNet']
 
-        return Decimal(amount)
+        return CleanDecimal().filter(amount)
 
     def iter_history(self, account):
         for hist in self.doc['operationsIndividuelles']:
