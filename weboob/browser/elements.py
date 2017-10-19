@@ -24,6 +24,7 @@ import re
 import sys
 from collections import OrderedDict
 from copy import deepcopy
+import traceback
 
 import lxml.html
 
@@ -224,6 +225,7 @@ class _ItemElementMeta(type):
         # constants first, then filters, then methods
         filters.sort(key=lambda x: x[1]._creation_counter if hasattr(x[1], '_creation_counter') else (sys.maxsize if callable(x[1]) else 0))
 
+        attrs['_class_file'], attrs['_class_line'] = traceback.extract_stack()[-2][:2]
         new_class = super(_ItemElementMeta, mcs).__new__(mcs, name, bases, attrs)
         new_class._attrs = _attrs + [f[0] for f in filters]
         return new_class
@@ -326,7 +328,7 @@ class ItemElement(with_metaclass(_ItemElementMeta, AbstractElement)):
             raise
         except Exception as e:
             # If we are here, we have probably a real parsing issue
-            self.logger.warning('Attribute %s raises %s', key, repr(e))
+            self.logger.warning('Attribute %s (in %s:%s) raises %s', key, self._class_file, self._class_line, repr(e))
             raise
         logger = getLogger('b2filters')
         logger.log(DEBUG_FILTERS, "%s.%s = %r" % (self._random_id, key, value))
