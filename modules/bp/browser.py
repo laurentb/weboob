@@ -22,6 +22,7 @@ from datetime import datetime, timedelta
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.browsers import StatesMixin
+from weboob.capabilities import NotAvailable
 from weboob.exceptions import BrowserIncorrectPassword, BrowserBanned, NoAccountsException, BrowserUnavailable
 from weboob.tools.compat import urlsplit, parse_qsl
 
@@ -31,7 +32,10 @@ from .pages import (
     TransferChooseAccounts, CompleteTransfer, TransferConfirm, TransferSummary, CreateRecipient, ValidateRecipient,
     ValidateCountry, ConfirmPage, RcptSummary
 )
-from .pages.accounthistory import LifeInsuranceInvest, LifeInsuranceHistory, LifeInsuranceHistoryInv, RetirementHistory, SavingAccountSummary
+from .pages.accounthistory import (
+    LifeInsuranceInvest, LifeInsuranceHistory, LifeInsuranceHistoryInv, RetirementHistory,
+    SavingAccountSummary, CachemireCatalogPage,
+)
 from .pages.accountlist import MarketLoginPage, UselessPage
 from .pages.pro import RedirectPage, ProAccountsList, ProAccountHistory, DownloadRib, RibPage
 from .pages.mandate import MandateAccountsList, PreMandate, PreMandateBis, MandateLife, MandateMarket
@@ -40,7 +44,6 @@ from .linebourse_browser import LinebourseBrowser
 from weboob.capabilities.bank import TransferError, Account, Recipient, AddRecipientStep
 from weboob.tools.value import Value
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
-
 
 __all__ = ['BPBrowser', 'BProBrowser']
 
@@ -81,11 +84,12 @@ class BPBrowser(LoginBrowser, StatesMixin):
                          SavingAccountSummary)
 
     lifeinsurance_invest = URL(r'/voscomptes/canalXHTML/assurance/retraiteUCEuro/afficherSansDevis-assuranceRetraiteUCEuros.ea\?numContrat=(?P<id>\w+)',
-                               r'https://www.labanquepostale.fr/particulier/bel_particuliers/assurance/accueil_cachemire.html', LifeInsuranceInvest)
+                               LifeInsuranceInvest)
     lifeinsurance_invest2 = URL(r'/voscomptes/canalXHTML/assurance/vie/valorisation-assuranceVie.ea\?numContrat=(?P<id>\w+)', LifeInsuranceInvest)
     lifeinsurance_history = URL(r'/voscomptes/canalXHTML/assurance/vie/historiqueVie-assuranceVie.ea\?numContrat=(?P<id>\w+)', LifeInsuranceHistory)
     lifeinsurance_hist_inv = URL(r'/voscomptes/canalXHTML/assurance/vie/detailMouvement-assuranceVie.ea\?idMouvement=(?P<id>\w+)',
                                  r'/voscomptes/canalXHTML/assurance/vie/detailMouvementHermesBompard-assuranceVie.ea\?idMouvement=(\w+)', LifeInsuranceHistoryInv)
+    lifeinsurance_cachemire_catalog = URL(r'https://www.labanquepostale.fr/particuliers/bel_particuliers/assurance/accueil_cachemire.html', CachemireCatalogPage)
 
     market_login = URL(r'/voscomptes/canalXHTML/bourse/aiguillage/oicFormAutoPost.jsp', MarketLoginPage)
     useless = URL(r'https://labanquepostale.offrebourse.com/ReroutageSJR', UselessPage)
@@ -351,13 +355,12 @@ class BPBrowser(LoginBrowser, StatesMixin):
             self.lifeinsurance_invest2.go(id=account.id)
             investments = list(self.page.iter_investments())
 
-        # check if life insurance is a cachemire contract
-        page = None
-        if self.page.is_cachemire():
-            # had to put full url to skip redirections.
-            page = self.open('https://www.labanquepostale.fr/particulier/bel_particuliers/assurance/accueil_cachemire.html').page
+        if self.page.get_cachemire_link():
+            # fetch ISIN codes for cachemire invests
+            self.lifeinsurance_cachemire_catalog.go()
+            product_codes = self.page.product_codes
             for inv in investments:
-                setattr(inv, 'code', page.get_cachemire_code(inv.label))
+                inv.code = product_codes.get(inv.label.upper(), NotAvailable)
 
         return investments
 

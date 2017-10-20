@@ -206,18 +206,28 @@ class InvestItem(ItemElement):
     obj_valuation = CleanDecimal(TableCell('valuation', support_th=True), replace_dots=True, default=NotAvailable)
 
 
+class CachemireCatalogPage(LoggedPage, MyHTMLPage):
+    def on_load(self):
+        self.product_codes = self.load_product_codes()
+
+    def load_product_codes(self):
+        # store ISIN codes in a dictionary with a (label: isin) fashion
+        product_codes = {}
+        for table in self.doc.xpath('//table/tbody'):
+            for row in table.xpath('//tr[contains(./th/@scope,"row")]'):
+                label = CleanText('./th[1]', default=None)(row)
+                isin_code = CleanText('./td[1]', default=None)(row)
+                if label and isin_code:
+                    product_codes[label.upper()] = isin_code
+        return product_codes
+
+
 class LifeInsuranceInvest(LoggedPage, MyHTMLPage):
     def has_error(self):
         return 'erreur' in CleanText('//p[has-class("titlePage")]')(self.doc)
 
-    def is_cachemire(self):
+    def get_cachemire_link(self):
         return Link('//a[contains(@title, "espace cachemire")]', default=None)(self.doc)
-
-    def get_cachemire_code(self, label):
-        for tr in self.doc.xpath('//table/tbody/tr[td[2]]'):
-            if CleanText('./th')(tr).upper() == label:
-                return CleanText('./td[1]')(tr)
-        return NotAvailable
 
     @method
     class iter_investments(InvestTable):
