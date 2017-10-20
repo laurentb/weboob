@@ -123,7 +123,7 @@ class LoginPage(HTMLPage):
 
 class ActionNeededPage(HTMLPage):
     def on_load(self):
-        if self.doc.xpath(u'//form//h1[contains(text(), "Accusé de reception du chéquier")]'):
+        if self.doc.xpath(u'//form//h1[1][contains(text(), "Accusé de reception du chéquier")]'):
             form = self.get_form(name='Alert')
             form['command'] = 'validateAlertMessage'
             form['radioValide_1_2_40003039944'] = 'Non'
