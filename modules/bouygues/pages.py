@@ -48,6 +48,9 @@ class ProfilePage(JsonPage, LoggedPage):
     class get_list(DictElement):
         item_xpath = 'data/lignes'
 
+        def condition(self):
+            return 'lignes' in self.page.doc['data']
+
         class item(ItemElement):
             klass = Subscription
 
