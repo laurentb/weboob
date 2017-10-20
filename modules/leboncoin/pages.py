@@ -252,9 +252,9 @@ class HousingPage(HTMLPage):
             return DateTime(Env('tmp'), LinearDateGuesser())(self)
 
         def obj_photos(self):
-            items = re.findall(r'images\[\d\]\s*=\s*"([\w\/\.-]*\.jpg)";',
+            items = re.findall(r'images\[\d\]\s*=\s*"([\w:\/\.-]*\.jpg)";',
                                CleanText('//script')(self))
-            photos = [HousingPhoto(u'http:%s' % item) for item in items]
+            photos = [HousingPhoto(unicode(item)) for item in items]
             if not photos:
                 img = CleanText('//meta[@itemprop="image"]/@content',
                                 default=None)(self)
