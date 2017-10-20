@@ -28,6 +28,7 @@ from weboob.browser.exceptions import ClientError, ServerError
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.capabilities.bank import Account, Transaction, AccountNotFound
 from weboob.capabilities.base import find_object
+from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages import (
     LogoutPage, InfosPage, AccountsPage, HistoryPage, LifeinsurancePage, MarketPage,
@@ -203,9 +204,10 @@ class CmsoParBrowser(LoginBrowser):
                 return []
 
             # Display code ISIN
-            history = self.location(self.url, params={'reload': 'oui', 'convertirCode': 'oui'}).page.iter_history()
-
-            return history
+            self.location(self.url, params={'reload': 'oui', 'convertirCode': 'oui'})
+            # don't rely on server-side to do the sorting, not only do you need several requests to do so
+            # but the site just toggles the sorting, resulting in reverse order if you browse multiple accounts
+            return sorted_transactions(self.page.iter_history())
 
         # Getting a year of history
         nbs = ["UN", "DEUX", "TROIS", "QUATRE", "CINQ", "SIX", "SEPT", "HUIT", "NEUF", "DIX", "ONZE", "DOUZE"]
