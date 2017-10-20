@@ -524,7 +524,7 @@ class CardsListPage(LoggedPage, HTMLPage):
                     raise SkipItem()
 
                 # 1 card : we have to check on another page to get id
-                page = page.browser.open(Link('//form//a[text()="Contrat"]')(page.doc)).page
+                page = page.browser.open(Link('//form//a[text()="Contrat"]', default=None)(page.doc)).page
                 xpath = '//table[has-class("liste")]/tbody/tr'
                 active_card = CleanText('%s[td[text()="Active"]][1]/td[2]' % xpath, replace=[(' ', '')], default=None)(page.doc)
 
