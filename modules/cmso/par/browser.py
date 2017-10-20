@@ -189,7 +189,7 @@ class CmsoParBrowser(LoginBrowser):
             return self.location(url).page.iter_history()
         elif account.type in (Account.TYPE_PEA, Account.TYPE_MARKET):
             self._go_market_history()
-            if not self.page.go_account(account.label):
+            if not self.page.go_account(account.label, account._owner):
                 return []
 
             if not self.page.go_account_full():
@@ -260,7 +260,7 @@ class CmsoParBrowser(LoginBrowser):
             response = self.market.go(data=json.dumps(data), headers=self.json_headers)
             self.location(json.loads(response.content)['urlSSO'])
             self.market.go(website=self.website, action="situation")
-            if self.page.go_account(account.label):
+            if self.page.go_account(account.label, account._owner):
                 return self.page.iter_investment()
             return []
         raise NotImplementedError()

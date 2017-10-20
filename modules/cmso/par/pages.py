@@ -150,6 +150,7 @@ class AccountsPage(LoggedPage, JsonPage):
                 obj_currency = u'EUR'
                 obj_coming = CleanDecimal(Dict('AVenir', default=None), default=NotAvailable)
                 obj__index = Dict('index')
+                obj__owner = Dict('nomTitulaire')
 
                 def obj_id(self):
                     type = Field('type')(self)
@@ -173,7 +174,7 @@ class AccountsPage(LoggedPage, JsonPage):
                 def get_market_number(self):
                     label = Field('label')(self)
                     page = self.page.browser._go_market_history()
-                    return page.get_account_id(label)
+                    return page.get_account_id(label, Field('_owner')(self))
 
                 def get_lifenumber(self):
                     index = Dict('index')(self)
@@ -327,18 +328,27 @@ class LifeinsurancePage(LoggedPage, HTMLPage):
 
 
 class MarketPage(LoggedPage, HTMLPage):
-    def find_account(self, acclabel):
+    def find_account(self, acclabel, accowner):
+        accowner = sorted(accowner.lower().split()) # first name and last name may not be ordered the same way on market site...
+
         # Check if history is present
         if CleanText(default=None).filter(self.doc.xpath('//body/p[contains(text(), "indisponible pour le moment")]')):
             return False
+
         ids = None
         for a in self.doc.xpath('//a[contains(@onclick, "indiceCompte")]'):
             self.logger.debug("get investment from onclick")
-            if CleanText('.')(a) == acclabel:
+
+            label = CleanText('.')(a)
+            owner = CleanText('./ancestor::tr/preceding-sibling::tr[@class="LnMnTiers"][1]')(a)
+            owner = sorted(owner.lower().split())
+
+            if label == acclabel and owner == accowner:
                 ids = list(re.search(r'indiceCompte[^\d]+(\d+).*idRacine[^\d]+(\d+)', Attr('.', 'onclick')(a)).groups())
                 ids.append(CleanText('./ancestor::td/preceding-sibling::td')(a))
                 self.logger.debug("assign value to ids: {}".format(ids))
                 return ids
+
         for a in self.doc.xpath('//a[contains(@href, "indiceCompte")]'):
             self.logger.debug("get investment from href")
             if CleanText('.')(a) == acclabel:
@@ -347,13 +357,11 @@ class MarketPage(LoggedPage, HTMLPage):
                 self.logger.debug("assign value to ids: {}".format(ids))
                 return ids
 
-        return
+    def get_account_id(self, acclabel, owner):
+        return self.find_account(acclabel, owner)[2].replace(' ', '')
 
-    def get_account_id(self, acclabel):
-        return self.find_account(acclabel)[2].replace(' ', '')
-
-    def go_account(self, acclabel):
-        ids = self.find_account(acclabel)
+    def go_account(self, acclabel, owner):
+        ids = self.find_account(acclabel, owner)
         if not ids:
             return
 
