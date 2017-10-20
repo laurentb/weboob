@@ -105,11 +105,11 @@ class UnavailablePage(HTMLPage):
 
 
 class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile('^CB (?P<text>.*?) FACT (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2})', re.IGNORECASE),
+    PATTERNS = [(re.compile(r'^CB (?P<text>.*?) FACT (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2})\b', re.IGNORECASE),
                                                             FrenchTransaction.TYPE_CARD),
                 (re.compile('^RET(RAIT)? DAB (?P<dd>\d+)-(?P<mm>\d+)-.*', re.IGNORECASE),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('^RET(RAIT)? DAB (?P<text>.*?) (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (?P<HH>\d{2})H(?P<MM>\d{2})', re.IGNORECASE),
+                (re.compile(r'^RET(RAIT)? DAB (?P<text>.*?) (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (?P<HH>\d{2})H(?P<MM>\d{2})\b', re.IGNORECASE),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile('^VIR(EMENT)?(\.PERIODIQUE)? (?P<text>.*)', re.IGNORECASE),
                                                             FrenchTransaction.TYPE_TRANSFER),
@@ -128,12 +128,13 @@ class Transaction(FrenchTransaction):
                                                             FrenchTransaction.TYPE_CARD_SUMMARY),
                 (re.compile('^CB [\d\*]+ (?P<text>.*)', re.IGNORECASE),
                                                             FrenchTransaction.TYPE_CARD),
-                (re.compile('^CB (?P<text>.*?) (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2})', re.IGNORECASE),
+                (re.compile(r'^CB (?P<text>.*?) (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2})\b', re.IGNORECASE),
                                                             FrenchTransaction.TYPE_CARD),
-                (re.compile('\*CB (?P<text>.*?) (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2})', re.IGNORECASE),
+                (re.compile(r'\*CB (?P<text>.*?) (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2})\b', re.IGNORECASE),
                                                             FrenchTransaction.TYPE_CARD),
-                (re.compile('^FAC CB (?P<text>.*?) (?P<dd>\d{2})/(?P<mm>\d{2})', re.IGNORECASE),
+                (re.compile(r'^FAC CB (?P<text>.*?) (?P<dd>\d{2})/(?P<mm>\d{2})\b', re.IGNORECASE),
                                                             FrenchTransaction.TYPE_CARD),
+                (re.compile(r'^\*?CB (?P<text>.*)', re.IGNORECASE), FrenchTransaction.TYPE_CARD),
                ]
 
 
@@ -480,7 +481,7 @@ class IndexPage(LoggedPage, HTMLPage):
             card_debit_date = self.doc.xpath(u'//span[@id="MM_HISTORIQUE_CB_m_TableTitle3_lblTitle"] | //label[contains(text(), "débiter le")]')
             if card_debit_date:
                 t.rdate = Date(dayfirst=True).filter(date)
-                m = re.search('(\d{2}\/\d{2}\/\d{4})', card_debit_date[0].text)
+                m = re.search(r'\b(\d{2}/\d{2}/\d{4})\b', card_debit_date[0].text)
                 assert m
                 t.date = Date(dayfirst=True).filter(m.group(1))
             if t.date is NotAvailable:
