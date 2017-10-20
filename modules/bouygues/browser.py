@@ -75,7 +75,9 @@ class BouyguesBrowser(LoginBrowser):
 
     @need_login
     def iter_documents(self, subscription):
-        ref = self.documents.go().get_ref(subscription.label)
+        # some accounts get redirected on first request
+        self.documents.go()
+        ref = self.documents.stay_or_go().get_ref(subscription.label)
 
         if not ref:
             return iter([])

@@ -39,11 +39,11 @@ class LoginPage(HTMLPage):
         form.submit()
 
 
-class HomePage(HTMLPage, LoggedPage):
+class HomePage(LoggedPage, HTMLPage):
     pass
 
 
-class ProfilePage(JsonPage, LoggedPage):
+class ProfilePage(LoggedPage, JsonPage):
     @method
     class get_list(DictElement):
         item_xpath = 'data/lignes'
@@ -91,7 +91,7 @@ class SendSMSErrorPage(HTMLPage):
         return CleanText('//span[@class="txt12-o"][1]')(self.doc)
 
 
-class DocumentsPage(HTMLPage):
+class DocumentsPage(LoggedPage, HTMLPage):
     def get_ref(self, label):
         options = self.doc.xpath('//select[@id="factureMois"]/option[position() > 1]/@value')
 
