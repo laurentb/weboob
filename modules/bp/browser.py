@@ -202,6 +202,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
             for page in pages:
                 page.go()
 
+                assert page.is_here(), "AccountList type page not reached"
                 if self.page.no_accounts:
                     no_accounts += 1
                     continue
