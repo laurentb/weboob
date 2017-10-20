@@ -28,7 +28,7 @@ from decimal import Decimal
 from datetime import datetime
 
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage, pagination
-from weboob.browser.elements import ItemElement, method, ListElement, TableElement
+from weboob.browser.elements import ItemElement, method, ListElement, TableElement, SkipItem
 from weboob.browser.filters.standard import Date, CleanDecimal, Regexp, CleanText, Env, Upper, TableCell, Field
 from weboob.browser.filters.html import Link, Attr
 from weboob.capabilities import NotAvailable
@@ -747,8 +747,13 @@ class TransferPage(TransferErrorPage, IndexPage):
                     self.env['label'] = match.label
                 # Usual case
                 elif Attr('.', 'value')(self)[1] == '-':
+                    full = CleanText('.')(self)
+                    if full.startswith('- '):
+                        self.logger.warning('skipping recipient without a label: %r', full)
+                        raise SkipItem()
+
                     # <recipient name> - <account number or iban> - <bank name (optional)> <optional last dash>
-                    mtc = re.match('(?P<label>.+) - (?P<id>[^-]+) -(?P<bank> [^-]*)?-?$', CleanText('.')(self))
+                    mtc = re.match('(?P<label>.+) - (?P<id>[^-]+) -(?P<bank> [^-]*)?-?$', full)
                     assert mtc
                     self.env['id'] = self.env['iban'] = mtc.group('id')
                     self.env['bank_name'] = (mtc.group('bank') and mtc.group('bank').strip()) or NotAvailable
