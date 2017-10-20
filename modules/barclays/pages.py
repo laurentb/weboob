@@ -294,7 +294,7 @@ class MarketAccountPage(AbstractAccountPage):
             obj_unitvalue = CleanDecimal(TableCell('unitvalue'), default=NotAvailable)
             obj_unitprice = CleanDecimal(TableCell('unitprice'))
             obj_valuation = MyDecimal(TableCell('valuation'))
-            obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal(TableCell('portfolio_share')))
+            obj_portfolio_share = Eval(lambda x: x / 100, MyDecimal(TableCell('portfolio_share')))
             obj_code_type = Investment.CODE_TYPE_ISIN
 
             def condition(self):
