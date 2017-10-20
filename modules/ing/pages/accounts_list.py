@@ -139,7 +139,7 @@ class AccountsList(LoggedPage, HTMLPage):
             card_properties = {}
 
             # Regexp parse the text to extract the card number that may be in different formats
-            card_properties['number'] = Regexp(CleanText('.'), '(\d+[\s|*]+\d+)')(card)
+            card_properties['number'] = Regexp(CleanText('.'), '(\d+[\s|*]+\d+)', default=NotAvailable)(card)
             debit_info = (CleanText('.//div[@class="debit-info"]', default='')(card))
 
             is_deferred = u'Débit différé' in debit_info
