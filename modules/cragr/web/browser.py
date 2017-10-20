@@ -410,7 +410,7 @@ class Cragr(LoginBrowser, StatesMixin):
             new_location = self.moveto_insurance_website(account)
             self.location(new_location, data={})
             if self.bgpi.is_here():
-                if not self.page.go_detail():
+                if self.page.cgu_needed() or not self.page.go_detail():
                     return
             if self.lifeinsurance.is_here():
                 self.page.go_on_detail(account.id)

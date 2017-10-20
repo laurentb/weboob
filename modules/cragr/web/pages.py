@@ -1044,6 +1044,9 @@ class BGPIPage(MarketPage):
         form = self.browser.page.get_form(name='formulaire')
         form.submit()
 
+    def cgu_needed(self):
+        return bool(CleanText(u'//h1[contains(text(), "Conditions Générales d\'utilisation des Services en Ligne")]')(self.doc))
+
 
 class TransferInit(MyLoggedPage, BasePage):
     def iter_emitters(self):
