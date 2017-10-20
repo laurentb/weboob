@@ -23,25 +23,20 @@ from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.exceptions import HTTPNotFound
 
 from .pages import LoginPage, AccountsPage, InvestmentPage, HistoryPage, QuestionPage,\
-                   ChangePassPage
+                   ChangePassPage, LogonFlowPage
 
 
 class BinckBrowser(LoginBrowser):
     BASEURL = 'https://web.binck.fr'
 
     login = URL('/Logon', LoginPage)
+    logon_flow = URL('/AmlQuestionnairesOverview/LogonFlow$', LogonFlowPage)
     accounts = URL('/AccountsOverview', '/$', AccountsPage)
     investment = URL('/PortfolioOverview/GetPortfolioOverview', InvestmentPage)
     history = URL('/TransactionsOverview/GetTransactions',
                   '/TransactionsOverview/FilteredOverview', HistoryPage)
     questions = URL('/FDL_Complex_FR_Compte', QuestionPage)
     change_pass = URL('/EditSetting/GetSetting\?code=MutationPassword', ChangePassPage)
-
-    def __init__(self, *args, **kwargs):
-        super(BinckBrowser, self).__init__(*args, **kwargs)
-        self.cache = {}
-        self.cache['invs'] = {}
-        self.cache['trs'] = {}
 
     def deinit(self):
         if self.page and self.page.logged:
@@ -56,46 +51,38 @@ class BinckBrowser(LoginBrowser):
 
     @need_login
     def iter_accounts(self):
-        if 'accs' not in self.cache.keys():
-            accs = []
-            for a in self.accounts.go().iter_accounts():
-                self.accounts.stay_or_go().go_toaccount(a.id)
-                a.iban = self.page.get_iban()
-                # Get token
-                token = self.page.get_token()
-                # Get investment page
-                data = {'grouping': "SecurityCategory"}
-                try:
-                    a._invpage = self.investment.go(data=data, headers=token) \
-                        if self.page.is_investment() else None
-                except HTTPNotFound:
-                    # if it's not an invest account, the portfolio link may be present but hidden and return a 404
-                    a._invpage = None
+        for a in self.accounts.go().iter_accounts():
+            self.accounts.stay_or_go().go_toaccount(a.id)
+            a.iban = self.page.get_iban()
+            # Get token
+            token = self.page.get_token()
+            # Get investment page
+            data = {'grouping': "SecurityCategory"}
+            try:
+                a._invpage = self.investment.go(data=data, headers=token) \
+                    if self.page.is_investment() else None
+            except HTTPNotFound:
+                # if it's not an invest account, the portfolio link may be present but hidden and return a 404
+                a._invpage = None
 
-                if a._invpage:
-                    a.valuation_diff = a._invpage.get_valuation_diff()
-                # Get history page
-                data = [('currencyCode', a.currency), ('startDate', ""), ('endDate', "")]
-                a._histpages = [self.history.go(data=data, headers=token)]
-                while self.page.doc['EndOfData'] is False:
-                    a._histpages.append(self.history.go(data=self.page.get_nextpage_data(data[:]), headers=token))
-                accs.append(a)
-            self.cache['accs'] = accs
-        return self.cache['accs']
+            if a._invpage:
+                a.valuation_diff = a._invpage.get_valuation_diff()
+            # Get history page
+            data = [('currencyCode', a.currency), ('startDate', ""), ('endDate', "")]
+            a._histpages = [self.history.go(data=data, headers=token)]
+            while self.page.doc['EndOfData'] is False:
+                a._histpages.append(self.history.go(data=self.page.get_nextpage_data(data[:]), headers=token))
+
+            yield a
 
     @need_login
     def iter_investment(self, account):
-        if account.id not in self.cache['invs']:
-            invs = [i for i in account._invpage.iter_investment()] \
-                if account._invpage else []
-            self.cache['invs'][account.id] = invs
-        return self.cache['invs'][account.id]
+        if account._invpage:
+            for inv in account._invpage.iter_investment():
+                yield inv
 
     @need_login
     def iter_history(self, account):
-        if account.id not in self.cache['trs']:
-            trs = []
-            for page in account._histpages:
-                trs.extend([t for t in page.iter_history()])
-            self.cache['trs'][account.id] = trs
-        return self.cache['trs'][account.id]
+        for page in account._histpages:
+            for tr in page.iter_history():
+                yield tr
