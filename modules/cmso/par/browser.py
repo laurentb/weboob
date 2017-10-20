@@ -29,8 +29,10 @@ from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.capabilities.bank import Account, Transaction, AccountNotFound
 from weboob.capabilities.base import find_object
 
-from .pages import LogoutPage, InfosPage, AccountsPage, HistoryPage, LifeinsurancePage, MarketPage, AdvisorPage, \
-    LoginPage
+from .pages import (
+    LogoutPage, InfosPage, AccountsPage, HistoryPage, LifeinsurancePage, MarketPage,
+    AdvisorPage, LoginPage, RecipientsPage,
+)
 
 
 def retry(exc_check, tries=4):
@@ -82,6 +84,8 @@ class CmsoParBrowser(LoginBrowser):
                  'https://www.(?P<website>.*)/domifronttitre/front/sso/domiweb/01/(?P<action>.*)Portefeuille\?csrf=',
                  'https://www.*/domiweb/prive/particulier', MarketPage)
     advisor = URL('/edrapi/v(?P<version>\w+)/oauth/(?P<page>\w+)', AdvisorPage)
+
+    recipients = URL(r'/domiapi/oauth/json/transfer/transferinfos', RecipientsPage)
 
     json_headers = {'Content-Type': 'application/json'}
 
@@ -143,6 +147,9 @@ class CmsoParBrowser(LoginBrowser):
 
         seen = {}
 
+        self.recipients.go(data='{"beneficiaryType":"INTERNATIONAL"}', headers=self.json_headers)
+        numbers = self.page.get_numbers()
+
         # First get all checking accounts...
         data = dict(self.infos.stay_or_go().get_typelist())
         self.accounts.go(data=json.dumps(data), type='comptes', headers=self.json_headers)
@@ -153,7 +160,7 @@ class CmsoParBrowser(LoginBrowser):
                 seen[a._index] = a
 
         # Next, get saving accounts
-        numbers = self.page.get_numbers()
+        numbers.update(self.page.get_numbers())
         page = self.accounts.go(data=json.dumps({}), type='epargne', headers=self.json_headers)
         for key in page.get_keys():
             for a in page.iter_savings(key=key, numbers=numbers):

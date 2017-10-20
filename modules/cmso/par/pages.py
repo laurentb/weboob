@@ -453,3 +453,11 @@ class AdvisorPage(LoggedPage, JsonPage):
         obj_fax = CleanText(Dict('numeroFax'), replace=[(' ', '')])
         obj_agency = Dict('nom')
         obj_address = Format('%s %s', Dict('adresse1'), Dict('adresse3'))
+
+
+class RecipientsPage(LoggedPage, JsonPage):
+    def get_numbers(self):
+        return {
+            d['index']: d['numeroContratSouscrit']
+            for d in self.doc['listCompteTitulaireCotitulaire']
+        }
