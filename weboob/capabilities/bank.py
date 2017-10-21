@@ -23,7 +23,7 @@ from binascii import crc32
 import re
 from unidecode import unidecode
 
-from weboob.capabilities.base import empty
+from weboob.capabilities.base import empty, find_object
 from weboob.exceptions import BrowserQuestion
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.compat import unicode
@@ -470,7 +470,7 @@ class CapBank(CapCollection):
         :rtype: :class:`Account`
         :raises: :class:`AccountNotFound`
         """
-        raise NotImplementedError()
+        return find_object(self.iter_accounts(), id=id, error=AccountNotFound)
 
     def iter_history(self, account):
         """
