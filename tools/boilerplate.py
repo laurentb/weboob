@@ -167,7 +167,7 @@ class CapRecipe(Recipe):
         methods = []
 
         for name, member in inspect.getmembers(klass):
-            if inspect.ismethod(member):
+            if inspect.ismethod(member) and name in klass.__dict__:
                 lines, _ = inspect.getsourcelines(member)
                 methods.append(lines)
 
