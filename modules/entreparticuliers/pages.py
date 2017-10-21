@@ -91,5 +91,5 @@ class HousingPage(HTMLPage):
         def obj_photos(self):
             photos = []
             for photo in self.xpath('//div[@id="plistimage"]/a/@urlbig'):
-                photos.append(HousingPhoto(unicode("http://www.entreparticuliers.com/" + photo)))
+                photos.append(HousingPhoto(u"http://www.entreparticuliers.com/%s" % photo))
             return photos

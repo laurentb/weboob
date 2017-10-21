@@ -19,6 +19,7 @@
 
 from weboob.capabilities.recipe import CapRecipe, Recipe
 from weboob.tools.backend import Module
+from weboob.tools.compat import unicode
 
 from .browser import SevenFiftyGramsBrowser
 

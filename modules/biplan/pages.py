@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 import re
 from datetime import datetime, time
 
@@ -68,7 +70,7 @@ class StartTime(Filter):
         content = CleanText.clean(CleanText('.', ['HORAIRES'])(el[index]))
         _content = content.split(' - ')
         a_time = _content[2] if len(_content) > 2 else _content[0]
-        regexp = re.compile(ur'(?P<hh>\d+)h?(?P<mm>\d+)')
+        regexp = re.compile(r'(?P<hh>\d+)h?(?P<mm>\d+)')
         m = regexp.search(a_time)
         if m:
             return time(int(m.groupdict()['hh'] or 0), int(m.groupdict()['mm'] or 0))

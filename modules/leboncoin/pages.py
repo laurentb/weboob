@@ -16,6 +16,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
+
 from weboob.browser.pages import HTMLPage, pagination, JsonPage
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, Env, DateTime, BrowserURL, Format, Join
@@ -26,6 +27,7 @@ from weboob.capabilities.housing import City, Housing, HousingPhoto, Query, UTIL
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 from weboob.tools.date import DATE_TRANSLATE_FR, LinearDateGuesser
+from weboob.tools.compat import unicode
 
 from decimal import Decimal
 from datetime import date, timedelta
