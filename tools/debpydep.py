@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 
@@ -35,6 +35,7 @@ for f in selection:
     p = subprocess.Popen(['/usr/bin/dpkg', '-S', f], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if p.wait() == 0:
         for line in p.stdout.readlines():
+            line = line.decode('utf-8')
             dependencies.add(line.strip().split(':')[0])
     else:
         print('not found: %s' % f)
