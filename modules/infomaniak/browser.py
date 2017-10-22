@@ -30,15 +30,14 @@ from .pages import LoginPage, SubscriptionsPage, DocumentsPage
 class InfomaniakBrowser(LoginBrowser):
     BASEURL = 'https://manager.infomaniak.com'
 
-    login = URL(r'https://login.infomaniak.com/login', LoginPage)
+    login = URL(r'https://login.infomaniak.com/api/login', LoginPage)
     profile = URL(r'/v3/api/profile/me', SubscriptionsPage)
     documents = URL(r'/admin/facturation/operations/satable_load.php', DocumentsPage)
 
     def do_login(self):
-        self.login.go()
-        self.page.login(self.username, self.password)
+        self.login.go(data={'login': self.username, 'password': self.password})
 
-        if self.login.is_here():
+        if not self.page.logged:
             raise BrowserIncorrectPassword()
 
     @need_login

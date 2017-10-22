@@ -21,7 +21,7 @@ from __future__ import unicode_literals
 
 from datetime import datetime
 
-from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage
+from weboob.browser.pages import LoggedPage, JsonPage
 from weboob.browser.elements import ItemElement, method, DictElement
 from weboob.browser.filters.standard import (
     CleanDecimal, Env, Regexp, Format, Currency, Field, Eval,
@@ -31,12 +31,10 @@ from weboob.capabilities.bill import Bill, Subscription
 from weboob.tools.compat import urljoin
 
 
-class LoginPage(HTMLPage):
-    def login(self, login, password):
-        form = self.get_form(nr=0)
-        form['login'] = login
-        form['password'] = password
-        form.submit()
+class LoginPage(JsonPage):
+    @property
+    def logged(self):
+        return self.doc['result'] == 'success'
 
 
 class SubscriptionsPage(LoggedPage, JsonPage):
