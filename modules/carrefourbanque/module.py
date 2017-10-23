@@ -45,10 +45,10 @@ class CarrefourBanqueModule(Module, CapBank):
                                    self.config['password'].get())
 
     def iter_accounts(self):
-        return self.browser.get_accounts_list()
+        return self.browser.get_account_list()
 
     def get_account(self, _id):
-        return find_object(self.browser.get_accounts_list(), id=_id, error=AccountNotFound)
+        return find_object(self.browser.get_account_list(), id=_id, error=AccountNotFound)
 
     def iter_history(self, account):
         return self.browser.iter_history(account)

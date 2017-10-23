@@ -17,13 +17,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 import re
-from decimal import Decimal
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, TableElement, ItemElement, method
-from weboob.browser.filters.standard import Regexp, Field, TableCell, CleanText, CleanDecimal, Eval
+from weboob.browser.filters.standard import (
+    Regexp, Field, TableCell, CleanText, CleanDecimal, Eval, Currency
+)
 from weboob.browser.filters.html import Link
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
@@ -47,40 +49,118 @@ class LoginPage(HTMLPage):
         form.submit()
 
 
-class HomePage(LoggedPage, HTMLPage):
-    TYPES = {'carte': Account.TYPE_CARD, 'assurance': Account.TYPE_LIFE_INSURANCE, 'epargne': Account.TYPE_SAVINGS}
-    LABEL_TYPES = [(u'Prêt personnel', Account.TYPE_LOAN)]
-
-    @method
-    class get_list(ListElement):
-        item_xpath = '//div[@class="three_contenu_table" and ./div[not(contains(@class, "pp_espace_client"))]] | //div[@class="pp_espace_client"]'
-
-        class item(ItemElement):
-            klass = Account
-
-            def obj_balance(self):
-                if len(self.el.xpath('.//div[@class="catre_col_one"]/h2')) > 0:
-                    balance = CleanDecimal(CleanText('.//div[@class="catre_col_one"]/h2'), replace_dots=True)(self)
-                    return -balance if Field('type')(self) in (Account.TYPE_CARD, Account.TYPE_LOAN) else balance
-                return Decimal('0')
-
-            def obj_type(self):
-                for label, type in self.page.LABEL_TYPES:
-                    if label in Field('label')(self):
-                        return type
-                return self.page.TYPES.get(Regexp(Field('_link'), '\/([^-]+)')(self), Account.TYPE_UNKNOWN)
-
-            obj_id = CleanText('.//div[@class="carte_col_leftcol"]/p') & Regexp(pattern=r'(\d+)')
-            obj_label = CleanText('.//div[@class="carte_col_leftcol"]/h2')
-            obj_currency = FrenchTransaction.Currency('.//div[@class="catre_col_one"]/h2')
-            obj__link = Link('.//a[contains(@href, "-operations")]', default=None)
-
-
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile(r'^(?P<text>.*?) (?P<dd>\d{2})/(?P<mm>\d{2})$'), FrenchTransaction.TYPE_CARD)]
 
 
+class item_account_generic(ItemElement):
+    """Generic accounts properties for Carrefour homepage"""
+    klass = Account
+
+    def obj_balance(self):
+        balance = CleanDecimal('.//div[contains(@class, "right_col")]//h2[1]', replace_dots=True)(self)
+        return (-balance if Field('type')(self) in (Account.TYPE_LOAN,) else balance)
+
+    obj_currency = Currency('.//div[contains(@class, "right_col")]//h2[1]')
+    obj_label = CleanText('.//div[contains(@class, "leftcol")]//h2[1]')
+    obj_id = Regexp(CleanText('.//div[contains(@class, "leftcol")]//p'), ":\s+([\d]+)")
+    obj_number = Field('id')
+
+    def obj_url(self):
+        acc_number = Field('id')(self)
+        xpath_link = '//li[contains(., "{acc_number}")]/ul/li/a'.format(acc_number=acc_number)
+        return Link(xpath_link)(self)
+
+
+class item_history_generic(Transaction.TransactionElement):
+    obj_id = None
+
+    def obj_type(self):
+        return Transaction.TYPE_CARD if len(self.el.xpath('./td')) > 3 else Transaction.TYPE_BANK
+
+    def condition(self):
+        return TableCell('raw')(self)
+
+
+class iter_history_generic(Transaction.TransactionsElement):
+    head_xpath = u'//div[*[contains(text(), "opérations")]]/table//thead/tr/th'
+    item_xpath = u'//div[*[contains(text(), "opérations")]]/table/tbody/tr'
+
+    def next_page(self):
+        next_page = Link(u'//a[contains(text(), "précédentes")]', default=None)(self)
+        if next_page:
+            return "/%s" % next_page
+
+    class item_history(item_history_generic):
+        pass
+
+
+class HomePage(LoggedPage, HTMLPage):
+
+    @method
+    class iter_loan_accounts(ListElement):  # Prêts
+        item_xpath = '//div[@class="pp_espace_client"]'
+
+        class item(item_account_generic):
+            obj_type = Account.TYPE_LOAN
+
+    @method
+    class iter_card_accounts(ListElement):  # PASS cards
+        item_xpath = '//div/div[contains(./h2, "Carte et Crédit") and contains(./p, "Numéro de compte")]/..'
+
+        class item(item_account_generic):
+            obj_type = Account.TYPE_CARD
+
+            def obj_balance(self):
+                available = CleanDecimal('.//p[contains(., "disponibles à crédit")]//preceding-sibling::h2', default=None, replace_dots=True)(self)
+                return available if available is None else -available
+
+    @method
+    class iter_saving_accounts(ListElement):  # livrets
+        item_xpath = (
+            '//div/div['
+            '(contains(./h2, "Livret Carrefour") or contains(./h2, "Epargne PASS"))'
+            'and contains(./p, "Numéro de compte")'
+            ']/..'
+        )
+
+        class item(item_account_generic):
+            obj_type = Account.TYPE_SAVINGS
+            obj_url = Link('.//a[contains(., "Historique des opérations")]')
+
+    @method
+    class iter_life_accounts(ListElement):  # Assurances vie
+        item_xpath = '//div/div[contains(./h2, "Carrefour Horizons") and contains(./p, "Numéro de compte")]/..'
+
+        class item(item_account_generic):
+            obj_type = Account.TYPE_LIFE_INSURANCE
+
+            def obj_url(self):
+                acc_number = Field('id')(self)
+                xpath_link = '//li[contains(., "{acc_number}")]/ul/li/a[contains(text(), "Dernieres opérations")]'.format(acc_number=acc_number)
+                return Link(xpath_link)(self)
+
+            def obj__life_investments(self):
+                xpath_link = '//li[contains(., "{acc_number}")]/ul/li/a[contains(text(), "Solde")]'.format(acc_number=Field('id')(self))
+                return Link(xpath_link)(self)
+
+
 class TransactionsPage(LoggedPage, HTMLPage):
+    @pagination
+    @method
+    class iter_history(iter_history_generic):
+        pass
+
+
+class SavingHistoryPage(LoggedPage, HTMLPage):
+    @pagination
+    @method
+    class iter_history(iter_history_generic):
+        head_xpath = '//table[@id="creditHistory" or @id="TransactionHistory"]/thead/tr/th'
+        item_xpath = '//table[@id="creditHistory" or @id="TransactionHistory"]/tbody/tr'
+
+
+class LifeInvestmentsPage(LoggedPage, HTMLPage):
     @method
     class get_investment(TableElement):
         item_xpath = '//table[@id="assets"]/tbody/tr[position() > 1]'
@@ -102,22 +182,13 @@ class TransactionsPage(LoggedPage, HTMLPage):
             obj_portfolio_share = Eval(lambda x: x / 100, MyDecimal(TableCell('portfolio_share')))
 
 
-    @pagination
-    @method
-    class get_history(Transaction.TransactionsElement):
-        head_xpath = u'//div[*[contains(text(), "opérations")]]/table//thead/tr/th'
-        item_xpath = u'//div[*[contains(text(), "opérations")]]/table/tbody/tr'
+class LifeHistoryPage(TransactionsPage):
+    pass
 
-        def next_page(self):
-            next_page = Link(u'//a[contains(text(), "précédentes")]', default=None)(self)
-            if next_page:
-                return "/%s" % next_page
 
-        class item(Transaction.TransactionElement):
-            obj_id = None
+class LoanHistoryPage(TransactionsPage):
+    pass
 
-            def obj_type(self):
-                return Transaction.TYPE_CARD if len(self.el.xpath('./td')) > 3 else Transaction.TYPE_BANK
 
-            def condition(self):
-                return TableCell('raw')(self)
+class CardHistoryPage(TransactionsPage):
+    pass

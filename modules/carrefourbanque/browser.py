@@ -22,7 +22,10 @@ from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
 
-from .pages import LoginPage, HomePage, TransactionsPage
+from .pages import (
+    LoginPage, HomePage, LoanHistoryPage, CardHistoryPage, SavingHistoryPage,
+    LifeInvestmentsPage, LifeHistoryPage
+)
 
 
 __all__ = ['CarrefourBanque']
@@ -33,7 +36,16 @@ class CarrefourBanque(LoginBrowser):
 
     login = URL('/espace-client/connexion', LoginPage)
     home = URL('/espace-client$', HomePage)
-    transactions = URL('/espace-client/(?P<account>.*)/.*-operations.*', TransactionsPage)
+
+    loan_history = URL(r'/espace-client/pret-personnel/situation\?(.*)', LoanHistoryPage)
+    saving_history = URL(
+        r'/espace-client/compte-livret/solde-dernieres-operations\?(.*)',
+        r'/espace-client/epargne-pass/historique-des-operations\?(.*)',
+        SavingHistoryPage
+    )
+    card_history = URL(r'/espace-client/carte-credit/solde-dernieres-operations\?(.*)', CardHistoryPage)
+    life_history = URL(r'/espace-client/assurance-vie/historique-des-operations\?(.*)', LifeHistoryPage)
+    life_investments = URL(r'/espace-client/assurance-vie/solde-dernieres-operations\?(.*)', LifeInvestmentsPage)
 
     def do_login(self):
         """
@@ -51,22 +63,39 @@ class CarrefourBanque(LoginBrowser):
             raise BrowserIncorrectPassword()
 
     @need_login
-    def get_accounts_list(self):
+    def get_account_list(self):
         self.home.stay_or_go()
-        return self.page.get_list()
+        cards = list(self.page.iter_card_accounts())
+        life_insurances = list(self.page.iter_life_accounts())
+        savings = list(self.page.iter_saving_accounts())
+        loans = list(self.page.iter_loan_accounts())
+        return cards + life_insurances + savings + loans
 
     @need_login
     def iter_investment(self, account):
         if account.type != Account.TYPE_LIFE_INSURANCE:
             raise NotImplementedError()
+
         self.home.stay_or_go()
-        self.location(account._link.replace('historique-des', 'solde-dernieres'))
-        assert self.transactions.is_here()
+        self.location(account._life_investments)
+        assert self.life_investments.is_here()
         return self.page.get_investment(account)
 
     @need_login
     def iter_history(self, account):
+
         self.home.stay_or_go()
-        self.location(account._link)
-        assert self.transactions.is_here()
-        return self.page.get_history(account)
+        self.location(account.url)
+
+        if account.type == Account.TYPE_SAVINGS:
+            assert self.saving_history.is_here()
+        elif account.type == Account.TYPE_CARD:
+            assert self.card_history.is_here()
+        elif account.type == Account.TYPE_LOAN:
+            assert self.loan_history.is_here()
+        elif account.type == Account.TYPE_LIFE_INSURANCE:
+            assert self.life_history.is_here()
+        else:
+            raise NotImplementedError()
+
+        return self.page.iter_history(account)
