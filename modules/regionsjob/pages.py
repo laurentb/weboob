@@ -37,7 +37,7 @@ class SearchPage(HTMLPage):
     @pagination
     @method
     class iter_job_adverts(ListElement):
-        item_xpath = '//section[@class="annonce"]'
+        item_xpath = '//section[@class="annonce  "]'
 
         def next_page(self):
             return Link('//a[@class="picto picto-nextsmall"]')(self)
