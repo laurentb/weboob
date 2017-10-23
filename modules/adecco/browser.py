@@ -28,7 +28,7 @@ __all__ = ['AdeccoBrowser']
 
 
 class AdeccoBrowser(PagesBrowser):
-    BASEURL = 'http://www.adecco.fr'
+    BASEURL = 'https://www.adecco.fr'
     TIMEOUT = 30
 
     search_page = URL('/resultats-offres-emploi/\?k=(?P<job>.*)&l=(?P<town>.*)&pageNum=1&display=50', SearchPage)
