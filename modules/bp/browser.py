@@ -39,6 +39,7 @@ from .linebourse_browser import LinebourseBrowser
 
 from weboob.capabilities.bank import TransferError, Account, Recipient, AddRecipientStep
 from weboob.tools.value import Value
+from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 
 __all__ = ['BPBrowser', 'BProBrowser']
@@ -253,7 +254,9 @@ class BPBrowser(LoginBrowser, StatesMixin):
             for tr in self.iter_card_transactions(account):
                 if not tr._coming:
                     transactions.append(tr)
-        transactions.sort(key=lambda tr: tr.rdate, reverse=True)
+
+        # TODO be smarter by avoid fetching all, sorting all and returning all if only coming were desired
+        transactions = sorted_transactions(transactions)
 
         return transactions
 
@@ -284,7 +287,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
             if tr._coming:
                 transactions.append(tr)
 
-        transactions.sort(key=lambda tr: tr.rdate, reverse=True)
+        transactions = sorted_transactions(transactions)
 
         return transactions
 
