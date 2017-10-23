@@ -42,7 +42,7 @@ class SearchPage(HTMLPage):
     @pagination
     @method
     class iter_job_adverts(ListElement):
-        item_xpath = '//div[@itemtype="http://schema.org/JobPosting"]'
+        item_xpath = '//div[@data-tn-component="organicJob"]'
 
         def next_page(self):
             for a in self.page.doc.xpath('//a'):
