@@ -28,6 +28,7 @@ class GanAssurances(AbstractBrowser):
     PARENT_ATTR = 'package.browser.GroupamaBrowser'
 
     def __init__(self, website, *args, **kwargs):
+        super(GanAssurances, self).__init__(*args, **kwargs)
         self.BASEURL = 'https://%s' % website
         self.website = re.findall('espaceclient.(.*?).fr', self.BASEURL)[0]
-        super(GanAssurances, self).__init__(*args, **kwargs)
+
