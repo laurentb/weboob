@@ -172,7 +172,7 @@ class AVAccountPage(LoggedPage, HTMLPage):
     """
     def get_av_balance(self):
         balance_xpath = u'//p[contains(text(), "Épargne constituée")]/span'
-        balance = CleanDecimal(balance_xpath, replace_dots=True)(self.doc)
+        balance = CleanDecimal(balance_xpath)(self.doc)
         currency = Account.get_currency(CleanText(balance_xpath)(self.doc))
         return balance, currency
 
