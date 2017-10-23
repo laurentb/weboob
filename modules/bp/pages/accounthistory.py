@@ -29,6 +29,7 @@ from weboob.browser.pages import LoggedPage
 from weboob.browser.elements import TableElement, ItemElement, method
 from weboob.browser.filters.html import Link
 from weboob.browser.filters.standard import CleanDecimal, CleanText, Eval, TableCell, Field, Async, AsyncLoad, Date, Env
+from weboob.tools.compat import urljoin
 
 from .base import MyHTMLPage
 
@@ -176,8 +177,9 @@ class CardsList(LoggedPage, MyHTMLPage):
     def get_cards(self):
         cards = []
         for tr in self.doc.xpath('//table[@class="dataNum"]/tbody/tr'):
-            cards.append(tr.xpath('.//a')[0].attrib['href'])
+            cards.append(urljoin(self.url, Link('.//a')(tr)))
 
+        assert cards
         return cards
 
 

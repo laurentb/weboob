@@ -96,7 +96,8 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
     par_account_checking_history = URL('/voscomptes/canalXHTML/CCP/releves_ccp/init-releve_ccp.ea\?typeRecherche=10&compte.numero=(?P<accountId>.*)',
                                        '/voscomptes/canalXHTML/CCP/releves_ccp/afficher-releve_ccp.ea', AccountHistory)
-    par_account_deferred_card_history = URL('/voscomptes/canalXHTML/CB/releveCB/preparerRecherche-mouvementsCarteDD.ea\?typeListe=(?P<type>.*)', AccountHistory)
+    deferred_card_history = URL(r'/voscomptes/canalXHTML/CB/releveCB/init-mouvementsCarteDD.ea\?compte.numero=(?P<accountId>\w+)&indexCarte=(?P<cardIndex>\d+)&typeListe=(?P<type>\d+)', AccountHistory)
+    deferred_card_history_multi = URL(r'/voscomptes/canalXHTML/CB/releveCB/preparerRecherche-mouvementsCarteDD.ea\?compte.numero=(?P<accountId>\w+)&indexCarte=(?P<cardIndex>\d+)&typeListe=(?P<type>\d+)', AccountHistory) # &typeRecherche=10
     par_account_checking_coming = URL('/voscomptes/canalXHTML/CCP/releves_ccp_encours/preparerRecherche-releve_ccp_encours.ea\?compte.numero=(?P<accountId>.*)&typeRecherche=1',
                                       '/voscomptes/canalXHTML/CB/releveCB/init-mouvementsCarteDD.ea\?compte.numero=(?P<accountId>.*)&typeListe=1&typeRecherche=10', AccountHistory)
     par_account_savings_and_invests_history = URL('/voscomptes/canalXHTML/CNE/releveCNE/init-releve_cne.ea\?typeRecherche=10&compte.numero=(?P<accountId>.*)',
@@ -289,32 +290,39 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def iter_card_transactions(self, account):
-        def iter_transactions(self, link):
+        def iter_transactions(link, urlobj):
             self.location(link)
+            assert urlobj.is_here()
+            ncard = self.page.params['cardIndex']
+            self.logger.debug('handling card %s for account %r', ncard, account)
 
             for t in range(6):
                 try:
-                    self.par_account_deferred_card_history.go(type=t)
+                    urlobj.go(accountId=account.id, type=t, cardIndex=ncard)
                 except BrowserUnavailable:
                     self.logger.debug("deferred card history stop at %s", t)
                     break
 
-                if self.par_account_deferred_card_history.is_here():
+                if urlobj.is_here():
                     for tr in self.page.get_history(deferred=True):
                         tr.type = tr.TYPE_CARD
                         yield tr
 
-            assert t < 9, "verify if history goes back to 10 months"
-
         if not account._has_cards:
-            return iter([])
+            self.logger.debug('no card for account %r', account)
+            return
 
-        self.cards_list.go(account_id=account.id)
+        self.deferred_card_history.go(accountId=account.id, type=0, cardIndex=0)
         if self.cards_list.is_here():
+            self.logger.debug('multiple cards for account %r', account)
             for link in self.page.get_cards():
-                return iter_transactions(self, link)
+                for tr in iter_transactions(link, self.deferred_card_history_multi):
+                    yield tr
         else:
-            return iter_transactions(self, account._has_cards)
+            self.logger.debug('single card for account %r', account)
+            self.logger.debug('parsing %r', self.url)
+            for tr in iter_transactions(self.url, self.deferred_card_history):
+                yield tr
 
     @need_login
     def iter_investment(self, account):
