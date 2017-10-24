@@ -81,7 +81,8 @@ class CaisseEpargneModule(Module, CapBankTransferAddRecipient, CapContact, CapPr
     CONFIG = BackendConfig(Value('website',  label='Banque', choices=website_choices, default='www.caisse-epargne.fr'),
                            ValueBackendPassword('login',    label='Identifiant client', masked=False),
                            ValueBackendPassword('password', label='Code personnel', regexp='\d+'),
-                           Value('nuser',                   label='User ID (optional)', default=''))
+                           Value('nuser',                   label='User ID (optional)', default=''),
+                           Value('pincode',                 label='pincode', required=False))
 
     def create_default_browser(self):
         return self.create_browser(nuser=self.config['nuser'].get(),

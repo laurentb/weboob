@@ -19,6 +19,7 @@
 
 import re
 import datetime
+import json
 
 from weboob.browser import LoginBrowser, need_login, StatesMixin
 from weboob.browser.url import URL
@@ -36,7 +37,7 @@ from .pages import (
     IndexPage, ErrorPage, MarketPage, LifeInsurance, GarbagePage,
     MessagePage, LoginPage,
     TransferPage, ProTransferPage, TransferConfirmPage, TransferSummaryPage,
-    SmsPage, AuthentPage, RecipientPage, CanceledAuth, CaissedepargneKeyboard,
+    SmsPage, SmsPageOption, SmsRequest, AuthentPage, RecipientPage, CanceledAuth, CaissedepargneKeyboard,
     TransactionsDetailsPage,
 )
 
@@ -78,7 +79,8 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                   'https://.*/particuliers/emprunter.*',
                   'https://.*/particuliers/epargner.*', GarbagePage)
     sms = URL('https://www.icgauth.caisse-epargne.fr/dacswebssoissuer/AuthnRequestServlet', SmsPage)
-
+    sms_option = URL('https://www.icgauth.caisse-epargne.fr/dacstemplate-SOL/index.html\?transactionID=.*', SmsPageOption)
+    request_sms = URL('https://www.icgauth.caisse-epargne.fr/dacsrest/api/v1u0/transaction/(?P<param>)', SmsRequest)
     __states__ = ('BASEURL', 'multi_type', 'typeAccount', 'is_cenet_website', 'recipient_form')
 
     def __init__(self, nuser, *args, **kwargs):
@@ -442,14 +444,17 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         data['uiAuthCallback__1_'] = sms_password
         self.location(self.recipient_form['url'], data=data)
 
+    def facto_post_recip(self, recipient):
+        self.page.post_recipient(recipient)
+        self.page.confirm_recipient()
+        return self.get_recipient_obj(recipient)
+
     def end_sms_recipient(self, recipient, **params):
         self.post_sms_password(params['sms_password'])
         self.recipient_form = None
         self.page.post_form()
         self.page.go_on()
-        self.page.post_recipient(recipient)
-        self.page.confirm_recipient()
-        return self.get_recipient_obj(recipient)
+        self.facto_post_recip(recipient)
 
     @retry(CanceledAuth)
     @need_login
@@ -457,9 +462,35 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         if 'sms_password' in params:
             return self.end_sms_recipient(recipient, **params)
 
+        if 'otp_sms' in params:
+            transactionid = re.search(r'transactionID=(.*)', self.page.url).group(1)
+            self.request_sms.go(param = transactionid)
+            validation = {}
+            validation['validate'] = {}
+            key = self.page.validate_key()
+            validation['validate'][key] = []
+            inner_param = {}
+            inner_param['id'] = self.page.validation_id(key)
+            inner_param['type'] = 'SMS'
+            inner_param['otp_sms'] = params['otp_sms']
+            validation['validate'][key].append(inner_param)
+            headers = {'Content-Type': 'application/json', 'Accept':'application/json, text/plain, */*'}
+            self.location(self.url +'/step' , data=json.dumps(validation), headers=headers)
+            saml = self.page.get_saml()
+            action = self.page.get_action()
+            self.location(action, data={'SAMLResponse':saml})
+            if self.authent.is_here():
+                self.page.go_on()
+                return self.facto_post_recip(recipient)
+
         self.pre_transfer(next(acc for acc in self.get_accounts_list() if acc.type in (Account.TYPE_CHECKING, Account.TYPE_SAVINGS)))
         # This send sms to user.
         self.page.go_add_recipient()
-        self.page.check_canceled_auth()
-        self.page.set_browser_form()
-        raise AddRecipientStep(self.get_recipient_obj(recipient), Value('sms_password', label=self.page.get_prompt_text()))
+        if self.sms_option.is_here() :
+            raise AddRecipientStep(self.get_recipient_obj(recipient), Value('otp_sms',
+            label=u'Veuillez renseigner le mot de passe unique qui vous a été envoyé par SMS dans le champ réponse.'))
+
+        else:
+            self.page.check_canceled_auth()
+            self.page.set_browser_form()
+            raise AddRecipientStep(self.get_recipient_obj(recipient), Value('sms_password', label=self.page.get_prompt_text()))

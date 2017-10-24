@@ -846,6 +846,28 @@ class CanceledAuth(Exception):
     pass
 
 
+class SmsPageOption(LoggedPage, HTMLPage):
+    pass
+
+
+class SmsRequestStep(LoggedPage, JsonPage):
+    pass
+
+
+class SmsRequest(LoggedPage, JsonPage):
+    def validate_key(self):
+        return self.doc['step']['validationUnits'][0].keys()[0]
+
+    def validation_id(self, key):
+        return self.doc['step']['validationUnits'][0][key][0]['id']
+
+    def get_saml(self):
+        return self.doc['response']['saml2_post']['samlResponse']
+
+    def get_action(self):
+        return self.doc['response']['saml2_post']['action']
+
+
 class SmsPage(LoggedPage, HTMLPage):
     def on_load(self):
         error = CleanText('//p[@class="warning_trials_before"]')(self.doc)
