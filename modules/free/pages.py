@@ -75,13 +75,13 @@ class DocumentsPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Bill
 
-            obj_id = Format('%s_%s', Env('subid'), Regexp(Attr('./span[3]/a', 'href'), '(?<=.facture=)([^*]+)'))
-            obj__url = Attr('./span[3]/a', 'href', default=NotAvailable)
+            obj_id = Format('%s_%s', Env('subid'), Regexp(Attr('./span[1]/a', 'href'), '(?<=.facture=)([^*]+)'))
+            obj_url = Attr('./span[1]/a', 'href', default=NotAvailable)
             obj_date = Env('date')
             obj_format = u"pdf"
             obj_label = Format('Facture %s', CleanText('./span[1]/strong'))
             obj_type = u"bill"
-            obj_price = CleanDecimal(CleanText('./span[2]/strong'), replace_dots=True)
+            obj_price = CleanDecimal(CleanText('./span[has-class("last")]'), replace_dots=True)
             obj_currency = u"EUR"
 
             def parse(self, el):
