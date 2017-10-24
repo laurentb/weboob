@@ -177,6 +177,9 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
             for acc in self.revolving_loan_list.stay_or_go(subbank=self.currentSubBank).iter_accounts():
                 self.accounts_list.append(acc)
 
+            # this account type is like a loan, for splitting payments in smaller amounts, debitted on another account
+            self.accounts_list = [account for account in self.accounts_list if 'etalis' not in account.label.lower()]
+
         return self.accounts_list
 
     def get_account(self, id):
