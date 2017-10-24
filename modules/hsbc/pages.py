@@ -302,6 +302,8 @@ class OtherPage(HTMLPage):
     def on_load(self):
         for message in self.doc.xpath('//p[@class="debit"]//strong[text()[contains(.,"Votre contrat est suspendu")]]'):
             raise ActionNeeded(CleanText('.')(message))
+        for message in self.doc.xpath('''//p[@class="debit"]//strong[text()[contains(.,"Vos données d'identification (identifiant - code secret) sont incorrectes")]]'''):
+            raise BrowserIncorrectPassword(CleanText('.')(message))
 
 
 ## Life insurance subsite
