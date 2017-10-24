@@ -85,4 +85,4 @@ class DocumentsPage(LoggedPage, HTMLPage):
             obj_currency = u"EUR"
 
             def parse(self, el):
-                self.env['date'] = parse_french_date(u"01 %s" % CleanText('./span[1]/strong')(self)).date()
+                self.env['date'] = parse_french_date(u"01 %s" % CleanText('./span[2]')(self)).date()
