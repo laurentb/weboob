@@ -25,7 +25,7 @@ from .pages import CitiesPage, SearchPage, HousingPage
 
 
 class EntreparticuliersBrowser(PagesBrowser):
-    BASEURL = 'http://www.entreparticuliers.com'
+    BASEURL = 'https://www.entreparticuliers.com'
 
     cities = URL('/HTTPHandlers/LocalisationsAutocompleteHandler.ashx\?q=(?P<pattern>.*)', CitiesPage)
     form_item = URL('/Default.aspx/GetElementsMoteur')
