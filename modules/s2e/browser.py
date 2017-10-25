@@ -23,7 +23,7 @@ from weboob.exceptions import BrowserIncorrectPassword
 
 from .pages import (
     LoginPage, AccountsPage, AMFHSBCPage, AMFAmundiPage, AMFSGPage, HistoryPage,
-    ErrorPage, LyxorfcpePage, EcofiPage,
+    ErrorPage, LyxorfcpePage, EcofiPage, EcofiDummyPage,
 )
 
 
@@ -36,6 +36,7 @@ class S2eBrowser(LoginBrowser):
     amfcode_amundi = URL('https://www.amundi-ee.com/entr/product', AMFAmundiPage)
     amfcode_sg = URL('http://sggestion-ede.com/product', AMFSGPage)
     isincode_ecofi = URL(r'http://www.ecofi.fr/fr/fonds/.*#yes\?bypass=clientprive', EcofiPage)
+    pdf_file_ecofi = URL(r'http://www.ecofi.fr/sites/.*', EcofiDummyPage)
     lyxorfcpe = URL('http://www.lyxorfcpe.com/part', LyxorfcpePage)
     history = URL('/portal/salarie-(?P<slug>\w+)/operations/consulteroperations', HistoryPage)
     error = URL('/maintenance/HSBC/', ErrorPage)

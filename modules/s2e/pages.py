@@ -23,7 +23,7 @@ from io import BytesIO
 from decimal import Decimal
 from lxml import objectify
 
-from weboob.browser.pages import HTMLPage, XMLPage, LoggedPage, pagination
+from weboob.browser.pages import HTMLPage, XMLPage, RawPage, LoggedPage, pagination
 from weboob.browser.elements import ItemElement, TableElement, SkipItem, method
 from weboob.browser.filters.standard import CleanText, Date, Regexp, Eval, CleanDecimal, Env, TableCell, Field
 from weboob.browser.filters.html import Attr
@@ -152,6 +152,10 @@ class EcofiPage(LoggedPage, HTMLPage):
 
     def get_code(self):
         return CleanText('//div[has-class("field-name-CodeISIN")]/div[@class="field-items"]')(self.doc)
+
+
+class EcofiDummyPage(LoggedPage, RawPage):
+    pass
 
 
 class ItemInvestment(ItemElement):
