@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from itertools import groupby
@@ -29,7 +31,7 @@ from weboob.browser.profiles import Wget
 from weboob.browser.url import URL
 from weboob.browser.pages import FormNotFound
 from weboob.browser.exceptions import ClientError
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, AuthMethodNotImplemented
 from weboob.capabilities.bank import Account, AddRecipientStep, AddRecipientError, Recipient
 from weboob.capabilities import NotAvailable
 from weboob.tools.compat import urlparse
@@ -140,6 +142,9 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
 
             if not self.page.logged or self.login_error.is_here():
                 raise BrowserIncorrectPassword()
+
+        if self.verify_pass.is_here():
+            raise AuthMethodNotImplemented("L'identification renforcée avec la carte n'est pas supportée.")
 
         self.getCurrentSubBank()
 
