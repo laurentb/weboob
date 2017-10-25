@@ -177,8 +177,8 @@ class HistoryPage(LoggedPage, HTMLPage):
                 for elem in self.xpath('./following-sibling::div[1]//ul'):
                     inv = Investment()
                     inv.label = CleanText('./li[1]/p')(elem)
-                    inv.portfolio_share = CleanDecimal('./li[2]/p', replace_dots=True)(elem)
-                    inv.quantity = CleanDecimal('./li[3]/p', replace_dots=True)(elem)
+                    inv.portfolio_share = CleanDecimal('./li[2]/p', replace_dots=True, default=NotAvailable)(elem)
+                    inv.quantity = CleanDecimal('./li[3]/p', replace_dots=True, default=NotAvailable)(elem)
                     inv.valuation = CleanDecimal('./li[4]/p', replace_dots=True)(elem)
                     investments.append(inv)
 
