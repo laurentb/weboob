@@ -24,11 +24,11 @@ from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement
 from weboob.browser.filters.standard import (
     CleanText, Date, Regexp, CleanDecimal, Eval, Field, Async, AsyncLoad,
-    TableCell, QueryValue,
+    TableCell, QueryValue, Currency
 )
 from weboob.browser.filters.html import Attr, Link
 from weboob.capabilities.bank import Account, Investment
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
@@ -74,9 +74,11 @@ class InvestmentPage(LoggedPage, HTMLPage):
         head_xpath = '//table/thead//th'
 
         col_label = 'Nom des supports'
-        col_valuation = 'Date Montant'
+        col_valuation = re.compile('.*Montant')
         col_vdate = 'Date de valorisation'
         col_portfolio_share = u'Répartition'
+        col_quantity = re.compile('Nombre de parts')
+        col_unitvalue = re.compile('Valeur de la part')
 
         class item(ItemElement):
             klass = Investment
@@ -84,16 +86,58 @@ class InvestmentPage(LoggedPage, HTMLPage):
             obj_label = CleanText(TableCell('label'))
             obj_code = QueryValue(Link('.//a[contains(@href, "isin")]', default=''), 'isin', default=NotAvailable)
 
-            def obj_valuation(self):
+            def valuation(self):
                 td = TableCell('valuation')(self)[0]
                 return CleanDecimal('.')(td)
+
+            def obj_quantity(self):
+                if not self.page.is_detail():
+                    return NotAvailable
+                td = TableCell('quantity')(self)[0]
+                return CleanDecimal('.//span[1]', replace_dots=True)(td)
+
+            def obj_valuation(self):
+                if self.obj_original_currency():
+                    return NotAvailable
+                return self.valuation()
+
+            def obj_original_valuation(self):
+                if self.obj_original_currency():
+                    return self.valuation()
+                return NotLoaded
 
             def obj_vdate(self):
                 td = TableCell('vdate')(self)[0]
                 txt = CleanText('./text()')(td)
                 return Date('.', dayfirst=True, default=NotAvailable).filter(txt)
 
-            obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal(TableCell('portfolio_share'), replace_dots=True))
+            def unitvalue(self):
+                return CleanDecimal(TableCell('unitvalue'), replace_dots=True)(self)
+
+            def obj_unitvalue(self):
+                if not self.page.is_detail() or self.obj_original_currency():
+                    return NotAvailable
+                return self.unitvalue()
+
+            def obj_original_unitvalue(self):
+                if self.page.is_detail() and self.obj_original_currency():
+                    return self.unitvalue()
+                return NotLoaded
+
+            def obj_portfolio_share(self):
+                if self.page.is_detail():
+                    return NotAvailable
+                return Eval(lambda x: x / 100, CleanDecimal(TableCell('portfolio_share'), replace_dots=True))(self)
+
+            def obj_original_currency(self):
+                cur = Currency(TableCell('valuation'))(self)
+                return cur if self.env['currency'] != cur else NotLoaded
+
+    def detailed_view(self):
+        return Attr(u'//button[contains(text(), "Vision détaillée")]', 'data-url')(self.doc)
+
+    def is_detail(self):
+        return not bool(self.doc.xpath(u'//button[contains(text(), "Vision détaillée")]'))
 
 
 class Transaction(FrenchTransaction):

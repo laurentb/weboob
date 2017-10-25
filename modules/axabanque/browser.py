@@ -263,7 +263,7 @@ class AXAAssurance(AXABrowser):
     BASEURL = 'https://espaceclient.axa.fr'
 
     accounts = URL('/accueil.html', WealthAccountsPage)
-    investment = URL('/content/ecc-popin-cards/savings/(\w+)/repartition', InvestmentPage)
+    investment = URL('/content/ecc-popin-cards/savings/[^/]+/repartition', InvestmentPage)
     history = URL('.*accueil/savings/(\w+)/contract',
                   'https://espaceclient.axa.fr/#', HistoryPage)
 
@@ -292,7 +292,17 @@ class AXAAssurance(AXABrowser):
                 # fake data, don't cache it
                 return []
             self.location(investment_url)
-            self.cache['invs'][account.id] = list(self.page.iter_investment())
+            portfolio_page = self.page
+            self.location(self.page.detailed_view())
+            self.cache['invs'][account.id] = list(self.page.iter_investment(currency=account.currency))
+            for inv in portfolio_page.iter_investment(currency=account.currency):
+                i = [i for i in self.cache['invs'][account.id] if (i.valuation == inv.valuation and i.label == inv.label)]
+                assert len(i) in (0, 1)
+                if i:
+                    i[0].portfolio_share = inv.portfolio_share
+                else:
+                    self.cache['invs'][account.id].append(inv)
+
         return self.cache['invs'][account.id]
 
     @need_login
