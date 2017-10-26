@@ -160,7 +160,8 @@ class TransferPage(LoggedPage, HTMLPage):
         form.submit()
 
     def recap(self, origin, recipient, transfer):
-        error = CleanText('//div[@id="transfer_form:moveMoneyDetailsBody"]//span[@class="error"]', default=None)(self.doc)
+        error = CleanText(u'//div[@id="transfer_form:moveMoneyDetailsBody"]//span[@class="error"]', default=None)(self.doc) or \
+                CleanText(u'//p[contains(text(), "Nous sommes désolés. Le solde de votre compte ne doit pas être inférieur au montant de votre découvert autorisé. Veuillez saisir un montant inférieur.")]', default=None)(self.doc)
         if error:
            raise TransferInvalidAmount(error)
 
