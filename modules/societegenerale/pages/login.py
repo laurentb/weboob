@@ -24,8 +24,7 @@ from logging import error
 import re
 from weboob.tools.json import json
 
-from weboob.exceptions import BrowserUnavailable
-from weboob.exceptions import BrowserPasswordExpired
+from weboob.exceptions import BrowserUnavailable, BrowserPasswordExpired, ActionNeeded
 
 from .base import BasePage
 from ..captcha import Captcha, TileError
@@ -114,3 +113,9 @@ class BadLoginPage(BasePage):
 class ReinitPasswordPage(BasePage):
     def on_load(self):
         raise BrowserPasswordExpired()
+
+
+class CCTPage(BasePage):
+    # Mise à jour des conditions particulières de vos sonventions de comptes titres
+    def on_load(self):
+        raise ActionNeeded()
