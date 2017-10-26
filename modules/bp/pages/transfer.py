@@ -176,6 +176,9 @@ class TransferSummary(LoggedPage, CheckTransferError):
         # NotAvailable in case of future exec_date not on a working day.
         transfer.id = Regexp(CleanText('//div[@class="bloc Tmargin"]'), 'virement N.+ (\d+) ', default=NotAvailable)(self.doc)
         if not transfer.id:
+            # TODO handle transfer with sms code.
+            if u'veuillez saisir votre code de validation' in CleanText('//div[@class="bloc Tmargin"]')(self.doc):
+                raise NotImplementedError()
             transfer.exec_date = Date(Regexp(CleanText('//div[@class="bloc Tmargin"]'), 'suivant \(([\d\/]+)\)'), dayfirst=True)(self.doc)
         return transfer
 
