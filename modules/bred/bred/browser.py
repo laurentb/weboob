@@ -70,7 +70,8 @@ class BredBrowser(DomainBrowser):
         if 'gestion-des-erreurs/opposition' in r.url:
             raise BrowserIncorrectPassword('Your account is disabled')
         if '/pages-gestion-des-erreurs/erreur-technique' in r.url:
-            raise BrowserUnavailable('A technical error occured')
+            errmsg = re.search(r'<h4>(.*)</h4>', r.text).group(1)
+            raise BrowserUnavailable(errmsg)
         if '/pages-gestion-des-erreurs/message-tiers-oppose' in r.url:
             raise ActionNeeded('Cannot connect to account because 2-factor authentication is enabled')
 
