@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -156,6 +157,8 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
 
     @need_login
     def iter_history(self, account, coming=False):
+        if account.type == Account.TYPE_PEA and account.label.endswith('Espèces'):
+            return []
         if account.type == account.TYPE_LIFE_INSURANCE:
             return self.iter_lifeinsurance_history(account, coming)
         elif account.type in (account.TYPE_MARKET, Account.TYPE_PEA) and not coming:
@@ -204,6 +207,8 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
 
     @need_login
     def iter_investment(self, account):
+        if account.type == Account.TYPE_PEA and account.label.endswith('Espèces'):
+            return []
         if account.type in (account.TYPE_LIFE_INSURANCE, account.TYPE_PERP):
             self.lifeinsurances.go(data=JSON({
                 "ibanCrypte": account.id,
