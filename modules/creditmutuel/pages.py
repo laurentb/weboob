@@ -680,7 +680,7 @@ class CardPage(OperationsPage, LoggedPage):
             if Attr('.', 'selected', default=None)(option):
                 break
 
-            form = self.get_form('//form[@id="I1:fm"]', submit='//input[@type="submit"]')
+            form = self.get_form('//form[@id="I1:fm"]')
             [form.pop(k, None) for k in form.keys() if k.startswith('_FID_Do')]
             form['_FID_DoChangeCardDetails'] = ""
             form['Data_SelectedCardItemKey'] = Attr('.', 'value')(option)
