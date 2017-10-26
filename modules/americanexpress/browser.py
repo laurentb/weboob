@@ -24,7 +24,6 @@ from weboob.browser.browsers import LoginBrowser, need_login
 from weboob.browser.url import URL
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 from weboob.tools.compat import urlsplit, parse_qsl, urlencode
-from weboob.tools.date import parse_date
 
 from .pages.base import (
     LoginPage, AccountsPage, TransactionsPage, WrongLoginPage, AccountSuspendedPage,
@@ -152,7 +151,7 @@ class AmericanExpressBrowser(LoginBrowser):
     def iter_coming_new(self, account):
         # "pending" have no vdate and debit date is in future
         self.js_periods.go(headers={'account_token': account._token})
-        date = parse_date(self.page.get_periods()[0][1])
+        date = datetime.datetime.strptime(self.page.get_periods()[0][1], '%Y-%m-%d').date()
 
         self.js_pending.go(offset=0, headers={'account_token': account._token})
         for tr in self.page.iter_history():
