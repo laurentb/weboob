@@ -299,11 +299,16 @@ class LoginPage(HTMLPage):
 
 
 class OtherPage(HTMLPage):
+    ERROR_CLASSES = [
+        ('Votre contrat est suspendu', ActionNeeded),
+        ("Vos données d'identification (identifiant - code secret) sont incorrectes", BrowserIncorrectPassword),
+        ('Erreur : Votre contrat est clôturé.', ActionNeeded),
+    ]
+
     def on_load(self):
-        for message in self.doc.xpath('//p[@class="debit"]//strong[text()[contains(.,"Votre contrat est suspendu")]]'):
-            raise ActionNeeded(CleanText('.')(message))
-        for message in self.doc.xpath('''//p[@class="debit"]//strong[text()[contains(.,"Vos données d'identification (identifiant - code secret) sont incorrectes")]]'''):
-            raise BrowserIncorrectPassword(CleanText('.')(message))
+        for msg, exc in self.ERROR_CLASSES:
+            for tag in self.doc.xpath('//p[@class="debit"]//strong[text()[contains(.,$msg)]]', msg=msg):
+                raise exc(CleanText('.')(tag))
 
 
 ## Life insurance subsite
