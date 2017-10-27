@@ -26,7 +26,7 @@ import re
 import sys
 
 from weboob.browser.elements import method, DictElement, ItemElement
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Eval, DateTime, Date, Field
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Eval, Date, Field
 from weboob.browser.filters.html import Attr, Link, AttributeNotFound
 from weboob.browser.filters.json import Dict
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
@@ -876,7 +876,7 @@ class NatixisInvestPage(LoggedPage, JsonPage):
                 dt = Dict('dateValeurUniteCompte', default=None)(self)
                 if dt is None:
                     dt = self.page.doc['detailContratVie']['valorisation']['date']
-                return DateTime().filter(dt)
+                return Date().filter(dt)
 
             obj_valuation = Eval(float_to_decimal, Dict('montant'))
             obj_quantity = Eval(float_to_decimal, Dict('nombreUnitesCompte'))
@@ -894,8 +894,8 @@ class NatixisHistoryPage(LoggedPage, JsonPage):
 
             obj_amount = Eval(float_to_decimal, Dict('montantNet'))
             obj_raw = CleanText(Dict('libelle', default=''))
-            obj_vdate = DateTime(Dict('dateValeur', default=NotAvailable), default=NotAvailable)
-            obj_date = DateTime(Dict('dateEffet', default=NotAvailable), default=NotAvailable)
+            obj_vdate = Date(Dict('dateValeur', default=NotAvailable), default=NotAvailable)
+            obj_date = Date(Dict('dateEffet', default=NotAvailable), default=NotAvailable)
             obj_investments = NotAvailable
             obj_type = Transaction.TYPE_BANK
 
