@@ -127,7 +127,10 @@ class SearchPage(HTMLPage):
                 if url:
                     url = unquote(url)
                     if "http://" in url[3:]:
-                        url = url[url.find("http://", 3):url.rfind("?")]
+                        rindex = url.rfind("?")
+                        if rindex == -1:
+                            rindex = None
+                        url = url[url.find("http://", 3):rindex]
                     return [HousingPhoto(url)]
                 else:
                     return NotAvailable
