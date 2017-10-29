@@ -12,3 +12,4 @@ Contents:
    capability
    application
    tests
+   cookbook
