@@ -241,6 +241,10 @@ class BredBrowser(DomainBrowser):
                     # coming transactions have a random uuid id (inconsistent between requests)
                     t.id = ''
                 t._coming |= (t.date > today)
+
+                if t.type == Transaction.TYPE_CARD and account.type == Account.TYPE_CARD:
+                    t.type = Transaction.TYPE_DEFERRED_CARD
+
                 transactions.append(t)
 
             # Transactions are unsorted
