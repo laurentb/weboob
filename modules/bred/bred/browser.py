@@ -203,6 +203,7 @@ class BredBrowser(DomainBrowser):
         if account._univers != self.current_univers:
             self.move_to_univers(account._univers)
 
+        today = date.today()
         seen = set()
         offset = 0
         next_page = True
@@ -239,6 +240,7 @@ class BredBrowser(DomainBrowser):
                 if t._coming:
                     # coming transactions have a random uuid id (inconsistent between requests)
                     t.id = ''
+                t._coming |= (t.date > today)
                 transactions.append(t)
 
             # Transactions are unsorted
