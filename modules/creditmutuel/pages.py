@@ -894,11 +894,11 @@ class PorPage(LoggedPage, HTMLPage):
 
             obj_label = CleanText('.//td[1]/a')
             obj_code = CleanText('.//td[1]/a/@title') & Regexp(pattern='^([^ ]+)')
-            obj_quantity = CleanDecimal('.//td[2]', default=Decimal(0), replace_dots=True)
-            obj_unitprice = CleanDecimal('.//td[3]', default=Decimal(0), replace_dots=True)
-            obj_unitvalue = CleanDecimal('.//td[4]', default=Decimal(0), replace_dots=True)
-            obj_valuation = CleanDecimal('.//td[5]', default=Decimal(0), replace_dots=True)
-            obj_diff = CleanDecimal('.//td[6]', default=Decimal(0), replace_dots=True)
+            obj_quantity = CleanDecimal('.//td[3]', default=Decimal(0), replace_dots=True)
+            obj_unitprice = CleanDecimal('.//td[4]', default=Decimal(0), replace_dots=True)
+            obj_unitvalue = CleanDecimal('.//td[5]', default=Decimal(0), replace_dots=True)
+            obj_valuation = CleanDecimal('.//td[6]', default=Decimal(0), replace_dots=True)
+            obj_diff = CleanDecimal('.//td[7]', default=Decimal(0), replace_dots=True)
 
 
 class IbanPage(LoggedPage, HTMLPage):
