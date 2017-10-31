@@ -52,10 +52,10 @@ class AXABrowser(LoginBrowser):
                 'email': self.username,
                 'password': vk_passwd,
                 'rememberIdenfiant': False,
-                'version': 1
             }
 
-            self.login.go(data=login_data)
+            self.location('https://connect.axa.fr')
+            self.login.go(data=login_data, headers={'X-XSRF-TOKEN': self.session.cookies['XSRF-TOKEN']})
 
         if not self.password.isdigit() or self.page.check_error():
             raise BrowserIncorrectPassword()
