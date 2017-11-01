@@ -147,6 +147,11 @@ class Filter(_Filter):
     """
 
     def __init__(self, selector=None, default=_NO_DEFAULT):
+        """
+        :param default: default value in case the filter fails to find or parse
+                        the requested value
+        """
+
         super(Filter, self).__init__(default=default)
         self.selector = selector
 
@@ -177,7 +182,7 @@ class Filter(_Filter):
     @debug()
     def filter(self, value):
         """
-        This method have to be overrided by children classes.
+        This method has to be overridden by children classes.
         """
         raise NotImplementedError()
 

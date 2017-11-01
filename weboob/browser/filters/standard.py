@@ -59,12 +59,30 @@ class ItemNotFound(FilterError):
 
 
 class AsyncLoad(Filter):
+    """Load a page asynchronously for later use.
+
+    Often used in combination with :class:`Async` filter.
+    """
+
     def __call__(self, item):
         link = self.select(self.selector, item)
         return item.page.browser.async_open(link) if link else None
 
 
 class Async(Filter):
+    """Selector that uses another page fetched earlier.
+
+    Often used in combination with :class:`AsyncLoad` filter.
+    Requires that the other page's URL is matched with a Page by the Browser.
+
+    Example::
+
+        class item(ItemElement):
+            load_details = Field('url') & AsyncLoad
+
+            obj_description = Async('details') & CleanText('//h3')
+    """
+
     def __init__(self, name, selector=None):
         super(Async, self).__init__()
         self.selector = selector
@@ -116,8 +134,8 @@ class Decode(Filter):
     >>> from .html import Link
     >>> Decode(Link('./a'))  # doctest: +ELLIPSIS
     <weboob.browser.filters.standard.Decode object at 0x...>
-
     """
+
     def __call__(self, item):
         self.encoding = item.page.ENCODING if item.page.ENCODING else 'utf-8'
         return self.filter(self.select(self.selector, item))
@@ -154,7 +172,7 @@ class Env(_Filter):
 
 class TableCell(_Filter):
     """
-    Used with TableElement, it get the cell value from its name.
+    Used with TableElement, gets the cell element from its name.
 
     For example:
 
@@ -195,7 +213,17 @@ class TableCell(_Filter):
 
 
 class RawText(Filter):
+    """Get raw text from an element.
+
+    Unlike :class:`CleanText`, whitespace is kept as is.
+    """
+
     def __init__(self, selector=None, children=False, default=_NO_DEFAULT):
+        """
+        :param children: whether to get text from children elements of the select elements
+        :type children: bool
+        """
+
         super(RawText, self).__init__(selector, default=default)
         self.children = children
 
@@ -241,6 +269,19 @@ class CleanText(Filter):
     """
 
     def __init__(self, selector=None, symbols='', replace=[], children=True, newlines=True, normalize='NFC', **kwargs):
+        """
+        :param symbols: list of strings to remove from text
+        :type symbols: list
+        :param replace: optional pairs of text replacements to perform
+        :type replace: list[tuple[str, str]]
+        :param children: whether to get text from children elements of the select elements
+        :type children: bool
+        :param newlines: if True, newlines will be converted to space too
+        :type newlines: bool
+        :param normalize: Unicode normalization to perform
+        :type normalize: str or None
+        """
+
         super(CleanText, self).__init__(selector, **kwargs)
         self.symbols = symbols
         self.toreplace = replace
@@ -294,6 +335,8 @@ class CleanText(Filter):
 
 
 class Lower(CleanText):
+    """Extract text with :class:`CleanText` and convert to lower-case."""
+
     @debug()
     def filter(self, txt):
         txt = super(Lower, self).filter(txt)
@@ -301,6 +344,8 @@ class Lower(CleanText):
 
 
 class Upper(CleanText):
+    """Extract text with :class:`CleanText` and convert to upper-case."""
+
     @debug()
     def filter(self, txt):
         txt = super(Upper, self).filter(txt)
@@ -308,6 +353,8 @@ class Upper(CleanText):
 
 
 class Capitalize(CleanText):
+    """Extract text with :class:`CleanText` and capitalize it."""
+
     @debug()
     def filter(self, txt):
         txt = super(Capitalize, self).filter(txt)
@@ -325,12 +372,12 @@ class CleanDecimal(CleanText):
     """
     Get a cleaned Decimal value from an element.
 
-    replace_dots is False by default. A dot is interpreted as a decimal separator.
+    `replace_dots` is False by default. A dot is interpreted as a decimal separator.
 
-    If replace_dots is set to True, we remove all the dots. The ',' is used as decimal
+    If `replace_dots` is set to True, we remove all the dots. The ',' is used as decimal
     separator (often useful for French values)
 
-    If replace_dots is a tuple, the first element will be used as the thousands separator,
+    If `replace_dots` is a tuple, the first element will be used as the thousands separator,
     and the second as the decimal separator.
 
     See http://en.wikipedia.org/wiki/Thousands_separator#Examples_of_use
@@ -341,6 +388,10 @@ class CleanDecimal(CleanText):
     """
 
     def __init__(self, selector=None, replace_dots=False, sign=None, default=_NO_DEFAULT):
+        """
+        :param sign: function accepting the text as param and returning the sign
+        """
+
         super(CleanDecimal, self).__init__(selector, default=default)
         self.replace_dots = replace_dots
         self.sign = sign
@@ -420,6 +471,13 @@ class Type(Filter):
 class Field(_Filter):
     """
     Get the attribute of object.
+
+    Example::
+
+        obj_foo = CleanText('//h1')
+        obj_bar = Field('foo')
+
+    will make "bar" field equal to "foo" field.
     """
 
     def __init__(self, name):
@@ -482,6 +540,10 @@ class Regexp(Filter):
 
     @debug()
     def filter(self, txt):
+        """
+        :raises: :class:`RegexpError` if `pattern` was not found
+        """
+
         if isinstance(txt, (tuple, list)):
             txt = u' '.join([t.strip() for t in txt.itertext()])
 
@@ -498,13 +560,32 @@ class Regexp(Filter):
 
 
 class Map(Filter):
+    """Map selected value to another value using a dict.
+
+    Example::
+
+        TYPES = {
+            'Concert': CATEGORIES.CONCERT,
+            'Cinéma': CATEGORIES.CINE,
+        }
+
+        obj_type = Map(CleanText('./li'), TYPES)
+    """
 
     def __init__(self, selector, map_dict, default=_NO_DEFAULT):
+        """
+        :param selector: key from `map_dict` to use
+        """
+
         super(Map, self).__init__(selector, default=default)
         self.map_dict = map_dict
 
     @debug()
     def filter(self, txt):
+        """
+        :raises: :class:`ItemNotFound` if key does not exist in dict
+        """
+
         try:
             return self.map_dict[txt]
         except KeyError:
@@ -512,8 +593,18 @@ class Map(Filter):
 
 
 class DateTime(Filter):
+    """Parse date and time."""
+
     def __init__(self, selector=None, default=_NO_DEFAULT, dayfirst=False, translations=None,
                  parse_func=parse_date, fuzzy=False):
+        """
+        :param dayfirst: if True, the day is be the first element in the string to parse
+        :type dayfirst: bool
+        :param parse_func: the function to use for parsing the datetime
+        :param translations: string replacements from site locale to English
+        :type translations: list[tuple[str, str]]
+        """
+
         super(DateTime, self).__init__(selector, default=default)
         self.dayfirst = dayfirst
         self.translations = translations
@@ -534,6 +625,8 @@ class DateTime(Filter):
 
 
 class Date(DateTime):
+    """Parse date."""
+
     def __init__(self, selector=None, default=_NO_DEFAULT, dayfirst=False, translations=None,
                  parse_func=parse_date, fuzzy=False):
         super(Date, self).__init__(selector, default=default, dayfirst=dayfirst, translations=translations,
@@ -571,6 +664,8 @@ class DateGuesser(Filter):
 
 
 class Time(Filter):
+    """Parse time."""
+
     klass = datetime.time
     _regexp = re.compile(r'(?P<hh>\d+)[:h]?(?P<mm>\d+)([:m](?P<ss>\d+))?')
     kwargs = {'hour': 'hh', 'minute': 'mm', 'second': 'ss'}
@@ -591,6 +686,8 @@ class Time(Filter):
 
 
 class Duration(Time):
+    """Parse a duration as timedelta."""
+
     klass = datetime.timedelta
     _regexp = re.compile(r'((?P<hh>\d+)[:;])?(?P<mm>\d+)[;:](?P<ss>\d+)')
     kwargs = {'hours': 'hh', 'minutes': 'mm', 'seconds': 'ss'}
@@ -610,7 +707,13 @@ class MultiFilter(Filter):
 
 
 class CombineDate(MultiFilter):
+    """Combine separate Date and Time filters into a single datetime."""
+
     def __init__(self, date, time):
+        """
+        :type date: filter
+        :type time: filter
+        """
         super(CombineDate, self).__init__(date, time)
 
     @debug()
@@ -619,7 +722,23 @@ class CombineDate(MultiFilter):
 
 
 class Format(MultiFilter):
+    """Combine multiple filters with string-format.
+
+    Example::
+
+        obj_title = Format('%s (%s)', CleanText('//h1'), CleanText('//h2'))
+
+    will concatenate the text from all ``<h1>`` and all ``<h2>`` (but put
+    the latter between parentheses).
+    """
+
     def __init__(self, fmt, *args):
+        """
+        :param fmt: string format suitable for "%"-formatting
+        :type fmt: str
+        :param args: other filters to insert in `fmt` string.
+                     There should be as many args as there are "%" in `fmt`.
+        """
         super(Format, self).__init__(*args)
         self.fmt = fmt
 
@@ -680,8 +799,18 @@ class Eval(MultiFilter):
     >>> F = Field; Eval(lambda a, b, c: a * b + c, F('foo'), F('bar'), F('baz')) # doctest: +SKIP
     >>> Eval(lambda x, y: x * y + 1).filter([3, 7])
     22
+
+    Example::
+
+        obj_ratio = Eval(lambda x: x / 100, Env('percentage'))
     """
+
     def __init__(self, func, *args):
+        """
+        :param func: function to apply to all filters. The function should
+                     accept as many args as there are filters passed to
+                     Eval.
+        """
         super(Eval, self).__init__(*args)
         self.func = func
 

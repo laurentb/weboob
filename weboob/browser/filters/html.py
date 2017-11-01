@@ -29,7 +29,8 @@ from .standard import TableCell # TODO move class here when modules are migrated
 
 
 __all__ = ['CSS', 'XPath', 'XPathNotFound', 'AttributeNotFound',
-           'Attr', 'Link', 'CleanHTML', 'FormValue', 'HasElement',
+           'Attr', 'Link', 'AbsoluteLink',
+           'CleanHTML', 'FormValue', 'HasElement',
            'TableCell',
           ]
 
@@ -43,6 +44,14 @@ class AttributeNotFound(FilterError):
 
 
 class CSS(_Selector):
+    """Select HTML elements with a CSS selector
+
+    For example::
+
+        obj_foo = CleanText(CSS('div.main'))
+
+    will take the text of all ``<div>`` having CSS class "main".
+    """
     def select(self, selector, item):
         ret = item.cssselect(selector)
         if isinstance(ret, list):
@@ -54,16 +63,39 @@ class CSS(_Selector):
 
 
 class XPath(_Selector):
+    """Select HTML elements with a XPath selector
+    """
     pass
 
 
 class Attr(Filter):
+    """Get the text value of an HTML attribute.
+
+    Get value from attribute `attr` of HTML element matched by `selector`.
+
+    For example::
+
+        obj_foo = Attr('//img[@id="thumbnail"]', 'src')
+
+    will take the "src" attribute of ``<img>`` whose "id" is "thumbnail".
+    """
+
     def __init__(self, selector, attr, default=_NO_DEFAULT):
+        """
+        :param selector: selector targeting the element
+        :param attr: name of the attribute to take
+        """
+
         super(Attr, self).__init__(selector, default=default)
         self.attr = attr
 
     @debug()
     def filter(self, el):
+        """
+        :raises: :class:`XPathNotFound` if no element is found
+        :raises: :class:`AttributeNotFound` if the element doesn't have the requested attribute
+        """
+
         try:
             return u'%s' % el[0].attrib[self.attr]
         except IndexError:
@@ -76,7 +108,7 @@ class Link(Attr):
     """
     Get the link uri of an element.
 
-    If the <a> tag is not found, an exception IndexError is raised.
+    If the ``<a>`` tag is not found, an exception `IndexError` is raised.
     """
 
     def __init__(self, selector=None, default=_NO_DEFAULT):
@@ -84,6 +116,8 @@ class Link(Attr):
 
 
 class AbsoluteLink(Link):
+    """Get the absolute link URI of an element.
+    """
     def __call__(self, item):
         ret = super(AbsoluteLink, self).__call__(item)
         if ret:
@@ -92,7 +126,17 @@ class AbsoluteLink(Link):
 
 
 class CleanHTML(Filter):
+    """Convert HTML to text (Markdown) using html2text.
+
+    .. seealso:: `html2text site <https://pypi.python.org/pypi/html2text>`_
+    """
+
     def __init__(self, selector=None, options=None, default=_NO_DEFAULT):
+        """
+        :param options: options suitable for html2text
+        :type options: dict
+        """
+
         super(CleanHTML, self).__init__(selector=selector, default=default)
         self.options = options
 
@@ -117,9 +161,11 @@ class UnrecognizedElement(Exception):
 class FormValue(Filter):
     """
     Extract a Python value from a form element.
+
     Checkboxes and radio return booleans, while the rest
-    return text. Select returns the user-visible text.
+    return text. For ``<select>`` tags, returns the user-visible text.
     """
+
     @debug()
     def filter(self, el):
         try:
@@ -153,7 +199,7 @@ class FormValue(Filter):
 
 class HasElement(Filter):
     """
-    Returns yesvalue if the selector finds elements, novalue otherwise.
+    Returns `yesvalue` if the `selector` finds elements, `novalue` otherwise.
     """
     def __init__(self, selector, yesvalue=True, novalue=False):
         super(HasElement, self).__init__(selector, default=novalue)
