@@ -202,7 +202,7 @@ class Advisor(LoggedPage, MyHTMLPage):
 
 
 class AccountRIB(LoggedPage, RawPage):
-    iban_regexp = r'BankIdentiferCode(\w+)PSS'
+    iban_regexp = r'Identifiantinternationaldecompte(\w+)BIC'
 
     def __init__(self, *args, **kwargs):
         super(AccountRIB, self).__init__(*args, **kwargs)
