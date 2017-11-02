@@ -49,7 +49,7 @@ class EdfBrowser(LoginBrowser):
     def do_login(self):
         self.connected.go()
         if self.not_connected.is_here():
-            if self.config['captcha_response'].get() is not None:
+            if self.config['captcha_response'].get():
                 self.login.go(data={'login': self.username,
                                     'password': self.password,
                                     'rememberMe': "false",
