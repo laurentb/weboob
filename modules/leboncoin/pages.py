@@ -237,7 +237,8 @@ class HousingPage(HTMLPage):
         obj_details = Env('details')
 
         def obj_rooms(self):
-            return int(self.env["details"].get(u"Pièces", NotAvailable))
+            rooms = int(self.env["details"].get(u"Pièces", -1))
+            return NotAvailable if rooms == -1 else rooms
 
         obj_area = Env('area')
         obj_price_per_meter = PricePerMeterFilter()
