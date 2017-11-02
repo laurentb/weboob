@@ -13,8 +13,8 @@ __all__ = ['${r.classname}Module']
 
 class ${r.classname}Module(Module, ${r.capname}):
     NAME = '${r.name}'
-    DESCRIPTION = u'${r.name} website'
-    MAINTAINER = u'${r.author}'
+    DESCRIPTION = '${r.name} website'
+    MAINTAINER = '${r.author}'
     EMAIL = '${r.email}'
     LICENSE = 'AGPLv3+'
     VERSION = '${r.version}'
