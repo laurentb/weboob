@@ -18,32 +18,34 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.browser.pages import HTMLPage, XMLPage
-from weboob.browser.elements import ListElement, ItemElement, TableElement, method
-from weboob.browser.filters.standard import CleanText, Filter
-from weboob.browser.filters.html import TableCell
+from weboob.browser.pages import HTMLPage
+from weboob.browser.elements import ItemElement, TableElement, method
+from weboob.browser.filters.standard import CleanText, TableCell, DateTime, Field
 
 from weboob.capabilities.gauge import Gauge, GaugeMeasure, GaugeSensor
 from weboob.capabilities.base import NotLoaded
-import datetime
-import re
 
 
-class LastDateFilter(Filter):
-    def filter(self, last_update):
-        return datetime.datetime.now() - datetime.timedelta(seconds=int(re.match(r'\d+', last_update).group(0)))
-
-
-class InfoStationPage(XMLPage):
-
-    ENCODING = 'utf-8'
-
+class ListStationsPage(HTMLPage):
     @method
-    class get_station_infos(ListElement):
-        item_xpath = "."
+    class get_station_list(TableElement):
+        item_xpath = "//div[@id='liste-station']/table/tbody/tr"
+        head_xpath = "//div[@id='liste-station']/table/thead/tr/th/@class"
+
+        col_id = 'libelle'
+        col_name = 'Nom'
+        col_city = 'commune'
+        col_adresse = 'adresse'
+        col_bikes = 'nbVelosDispo'
+        col_attachs = 'nbPlacesDispo'
 
         class item(ItemElement):
             klass = Gauge
+
+            obj_id = CleanText(TableCell('id'))
+            obj_name = CleanText(TableCell('name'))
+            obj_city = CleanText(TableCell('city'))
+            obj_object = u'vLille'
 
             def _create_bikes_sensor(self, value, gauge_id, last_update, adresse):
                 levelbikes = GaugeSensor(gauge_id + '-bikes')
@@ -73,6 +75,7 @@ class InfoStationPage(XMLPage):
                 levelattach.gaugeid = gauge_id
                 return levelattach
 
+            """
             def _create_status_sensor(self, value, gauge_id, last_update, adresse):
                 levelstatus = GaugeSensor(gauge_id + '-status')
                 levelstatus.name = u'Status'
@@ -91,41 +94,19 @@ class InfoStationPage(XMLPage):
                 levelstatus.history = NotLoaded
                 levelstatus.gaugeid = gauge_id
                 return levelstatus
-
-            def parse(self, el):
-                self.obj = self.env['obj']
+            """
 
             def obj_sensors(self):
                 sensors = []
-                last_update = LastDateFilter(CleanText('lastupd'))(self)
-                adresse = CleanText('adress')(self)
-                sensors.append(self._create_bikes_sensor(CleanText('bikes')(self),
-                                                         self.env['idgauge'],
+                last_update = DateTime(CleanText('(//div[@class="maj"]/b)[1]', replace=[(u'à', '')]))(self)
+                adresse = CleanText(TableCell('adresse'))(self)
+                sensors.append(self._create_bikes_sensor(CleanText(TableCell('bikes'))(self),
+                                                         Field('id')(self),
                                                          last_update, adresse))
-                sensors.append(self._create_attach_sensor(CleanText('attachs')(self),
-                                                          self.env['idgauge'],
+                sensors.append(self._create_attach_sensor(CleanText(TableCell('attachs'))(self),
+                                                          Field('id')(self),
                                                           last_update, adresse))
-                sensors.append(self._create_status_sensor(CleanText('status')(self),
-                                                          self.env['idgauge'],
-                                                          last_update, adresse))
+                # sensors.append(self._create_status_sensor(CleanText('status')(self),
+                #                                          self.env['idgauge'],
+                #                                          last_update, adresse))
                 return sensors
-
-
-class ListStationsPage(HTMLPage):
-    @method
-    class get_station_list(TableElement):
-        item_xpath = "//table[@id='ctl00_Contenu_ListeStations1_ListViewStations_itemPlaceholderContainer']/tr"
-        head_xpath = "//table[@id='ctl00_Contenu_ListeStations1_ListViewStations_itemPlaceholderContainer']/tr/th/@id"
-
-        col_id = 'ctl00_Contenu_ListeStations1_ListViewStations_Th1'
-        col_name = 'ctl00_Contenu_ListeStations1_ListViewStations_Th2'
-        col_city = 'ctl00_Contenu_ListeStations1_ListViewStations_Th9'
-
-        class item(ItemElement):
-            klass = Gauge
-            condition = lambda self: (len(self.el.xpath('td/span')) > 4 and not ('id' in self.el.attrib))
-
-            obj_id = CleanText(TableCell('id'))
-            obj_name = CleanText(TableCell('name'))
-            obj_city = CleanText(TableCell('city'))
-            obj_object = u'vLille'

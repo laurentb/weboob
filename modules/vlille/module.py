@@ -50,7 +50,6 @@ class VlilleModule(Module, CapGauge):
         if not isinstance(gauge, Gauge):
             gauge = find_object(self.iter_gauges(), id=gauge, error=SensorNotFound)
 
-        gauge = self.browser.get_station_infos(gauge).next()
         if pattern is None:
             for sensor in gauge.sensors:
                 yield sensor

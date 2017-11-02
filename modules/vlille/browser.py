@@ -20,7 +20,7 @@
 
 from weboob.browser import PagesBrowser, URL
 
-from .pages import ListStationsPage, InfoStationPage
+from .pages import ListStationsPage
 
 
 __all__ = ['VlilleBrowser']
@@ -28,12 +28,8 @@ __all__ = ['VlilleBrowser']
 
 class VlilleBrowser(PagesBrowser):
 
-    BASEURL = 'http://www.vlille.fr'
-    list_page = URL('/stations/les-stations-vlille.aspx', ListStationsPage)
-    info_page = URL('/stations/xml-station.aspx\?borne=(?P<idgauge>.*)', InfoStationPage)
+    BASEURL = 'https://www.transpole.fr'
+    list_page = URL('/cms/institutionnel/vlille-carto/', ListStationsPage)
 
     def get_station_list(self):
         return self.list_page.go().get_station_list()
-
-    def get_station_infos(self, gauge):
-        return self.info_page.go(idgauge=gauge.id).get_station_infos(obj=gauge)
