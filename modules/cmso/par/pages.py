@@ -19,7 +19,7 @@
 
 
 import re, requests, json
-from datetime import datetime as dt
+import datetime as dt
 from collections import OrderedDict
 
 from weboob.browser.pages import HTMLPage, JsonPage, RawPage, LoggedPage, pagination
@@ -28,7 +28,7 @@ from weboob.browser.filters.standard import CleanText, Upper, Date, Regexp, Form
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import Attr, Link
 from weboob.browser.exceptions import ServerError
-from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities.bank import Account, Investment, Loan
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -72,6 +72,7 @@ class AccountsPage(LoggedPage, JsonPage):
                        ])
 
     def get_keys(self):
+        """Returns the keys for which the value is a list or dict"""
         if "exception" in self.doc:
             return []
         return [k for k, v in self.doc.items() if v and isinstance(v, (dict, list))]
@@ -193,15 +194,25 @@ class AccountsPage(LoggedPage, JsonPage):
                 self.item_xpath = "%s/*/lstPret" % self.item_xpath
 
         class item(ItemElement):
-            klass = Account
-
-            obj_label = Dict('libelle')
-            obj_currency = u'EUR'
-            obj_type = Account.TYPE_LOAN
+            klass = Loan
 
             def obj_id(self):
                 # it seems that if we don't have "numeroContratSouscrit", "identifiantTechnique" is unique : only this direction !
                 return Dict('numeroContratSouscrit', default=None)(self) or Dict('identifiantTechnique')(self)
+
+            obj_label = Dict('libelle')
+            obj_currency = u'EUR'
+            obj_type = Account.TYPE_LOAN
+            obj_total_amount = Dict('montantEmprunte')
+            obj_next_payment_amount = Dict('montantProchaineEcheance')
+            # obj_rate = can't find the info on website except pdf :(
+
+            # Dates scrapped are timestamp, to remove last '000' we divide by 1000
+            def obj_maturity_date(self):
+                return dt.date.fromtimestamp(Dict('dateFin')(self)/1000)
+
+            def obj_next_payment_date(self):
+                return dt.date.fromtimestamp(Dict('dateProchaineEcheance')(self)/1000)
 
             def obj_balance(self):
                 return -abs(CleanDecimal().filter(Dict('montantRestant', default=None)(self) or Dict('montantDisponible')(self)))
