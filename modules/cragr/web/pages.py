@@ -212,6 +212,7 @@ class _AccountsPage(MyLoggedPage, BasePage):
              u'P. HABITAT': Account.TYPE_LOAN,
              u'PRET 0%':    Account.TYPE_LOAN,
              u'INV PRO':    Account.TYPE_LOAN,
+             u'TRES. PRO':  Account.TYPE_LOAN,
              u'PEA':        Account.TYPE_PEA,
              u'CPS':        Account.TYPE_MARKET,
              u'TITR':       Account.TYPE_MARKET,
