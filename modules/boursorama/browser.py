@@ -236,10 +236,10 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
             yield t
 
     def get_regular_transactions(self, account, coming):
-        # We look for 1 year of history.
+        # We look for 3 years of history.
         params = {}
         params['movementSearch[toDate]'] = (date.today() + relativedelta(days=40)).strftime('%d/%m/%Y')
-        params['movementSearch[fromDate]'] = (date.today() - relativedelta(years=1)).strftime('%d/%m/%Y')
+        params['movementSearch[fromDate]'] = (date.today() - relativedelta(years=3)).strftime('%d/%m/%Y')
         params['movementSearch[selectedAccounts][]'] = account._webid
         self.location('%s/mouvements' % account.url.rstrip('/'), params=params)
         for t in self.page.iter_history():
