@@ -177,7 +177,7 @@ class InvestmentHistoryPage(LoggedPage, HTMLPage):
 
     def parse_decimal(self, string):
         string = CleanText(None).filter(string)
-        if string == '-':
+        if string == '-' or string == '*':
             return NotAvailable
         return CleanDecimal(None, replace_dots=True).filter(string)
 
