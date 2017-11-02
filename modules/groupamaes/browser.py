@@ -21,6 +21,7 @@
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.tools.date import LinearDateGuesser
+from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages import LoginPage, LoginErrorPage, GroupamaesPage, GroupamaesPocketPage
 
@@ -51,18 +52,18 @@ class GroupamaesBrowser(LoginBrowser):
     @need_login
     def get_history(self):
         transactions = list(self.groupamaes_page.go(page='&_pid=MenuOperations&_fid=GoOperationsTraitees').get_history(date_guesser=LinearDateGuesser()))
-        transactions.sort(key=lambda tr: tr.rdate, reverse=True)
+        transactions = sorted_transactions(transactions)
         return transactions
 
     @need_login
     def get_coming(self):
         transactions = list(self.groupamaes_page.go(page='&_pid=OperationsTraitees&_fid=GoWaitingOperations').get_history(date_guesser=LinearDateGuesser(), coming=True))
-        transactions.sort(key=lambda tr: tr.rdate, reverse=True)
+        transactions = sorted_transactions(transactions)
         return transactions
 
     @need_login
-    def iter_investment(self):
-        return self.groupamaes_page.go(page='&_fid=GoPositionsParFond&_pid=SituationGlobale').iter_investment()
+    def iter_investment(self, account):
+        return self.groupamaes_pocket.go(page='&_pid=SituationParPlan&_fid=GoPositionsDetaillee').iter_investment(account.label)
 
     @need_login
     def iter_pocket(self, account):

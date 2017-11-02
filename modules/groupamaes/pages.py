@@ -150,6 +150,28 @@ class GroupamaesPocketPage(LoggedPage, HTMLPage):
     CONDITIONS = {u'immédiate': Pocket.CONDITION_AVAILABLE,
                   u'à':   Pocket.CONDITION_RETIREMENT,
                  }
+
+    def iter_investment(self, label):
+        for tr in self.doc.xpath(u'//table[@summary="Liste des échéances"]/tbody/tr'):
+            tds = tr.findall('td')
+
+            inv = Investment()
+            i = 1
+
+            if len(tds) <= 2:
+                continue
+
+            inv.label = CleanText(tds[i])(tr)
+            inv.quantity = CleanDecimal(tds[i+3], replace_dots=True)(tr)
+            inv.valuation = CleanDecimal(tds[i+4], replace_dots=True)(tr)
+
+            if 'PEI' in label.split()[0]:
+                label = 'PEE'
+            if Regexp(CleanText(tds[i]), '\(([\w]+).*\)$')(tr) not in label.split()[0]:
+                continue
+
+            yield inv
+
     def iter_pocket(self, label):
         date_available, condition = 0, 0
         for tr in self.doc.xpath(u'//table[@summary="Liste des échéances"]/tbody/tr'):

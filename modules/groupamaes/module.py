@@ -54,7 +54,7 @@ class GroupamaesModule(Module, CapBank):
         return self.browser.get_history()
 
     def iter_investment(self, account):
-        return self.browser.iter_investment()
+        return self.browser.iter_investment(account)
 
     def get_account(self, _id):
         return find_object(self.browser.get_accounts_list(), id=_id, error=AccountNotFound)
