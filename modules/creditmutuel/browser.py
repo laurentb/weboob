@@ -225,9 +225,13 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
 
         while self.page:
             try:
-                form = self.page.get_form('//*[@id="I1:fm"]', submit='//input[@name="_FID_DoLoadMoreTransactions"]')
-                [form.pop(k, None) for k in form.keys() if "_FID_Do" in k and "LoadMore" not in k]
-                form.submit()
+                #submit form if their is more transactions to fetch
+                form = self.page.get_form(id="I1:fm")
+                if self.page.doc.xpath('boolean(//a[@class="ei_loadmorebtn"])'):
+                    form['_FID_DoLoadMoreTransactions'] = ""
+                    form.submit()
+                else:
+                    break
             except (IndexError, FormNotFound):
                 break
             #sometime the browser can't go further
