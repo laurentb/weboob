@@ -29,7 +29,7 @@ from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, TableElement, ItemElement, method, DataError
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Filter, Field, MultiFilter, Date,
-    Lower, Async, AsyncLoad, Format, TableCell, Eval, Env,
+    Lower, Async, AsyncLoad, Format, TableCell, Env,
     Regexp,
 )
 from weboob.browser.filters.html import Attr, Link
@@ -276,7 +276,7 @@ class ASVInvest(LoggedPage, HTMLPage):
         col_valuation = u'Contre-valeur'
         col_unitprice = [u'Prix revient', u'PAM']
         col_diff = u'Montant'
-        col_portfolio_share = u'%'
+        col_diff_percent = u'%'
 
         class item(ItemElement):
             klass = Investment
@@ -286,9 +286,8 @@ class ASVInvest(LoggedPage, HTMLPage):
                 val = Async('details', CleanText('//td[@class="libelle-normal" and contains(.,"CodeISIN")]', default=NotAvailable))(self)
                 return val.split('CodeISIN : ')[1] if val else val
 
-            def obj_portfolio_share(self):
-                p = CleanDecimal(TableCell('portfolio_share'), replace_dots=True, default=NotAvailable)(self)
-                return Eval(lambda x: x / 100, p)(self) if p else p
+            def obj_diff_percent(self):
+                return CleanDecimal(TableCell('diff_percent'), replace_dots=True, default=NotAvailable)(self)
 
             obj_label = CleanText(TableCell('label'))
             obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True)
