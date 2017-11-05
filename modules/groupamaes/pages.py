@@ -23,7 +23,8 @@ import re
 
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import TableElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, TableCell, Date, Env, Regexp, Field
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Env, Regexp, Field
+from weboob.browser.filters.html import TableCell
 from weboob.capabilities.bank import Account, Transaction, Investment, Pocket
 from weboob.capabilities.base import NotAvailable
 

@@ -24,9 +24,9 @@ from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement
 from weboob.browser.filters.standard import (
     CleanText, Date, Regexp, CleanDecimal, Eval, Field, Async, AsyncLoad,
-    TableCell, QueryValue, Currency
+    QueryValue, Currency,
 )
-from weboob.browser.filters.html import Attr, Link
+from weboob.browser.filters.html import Attr, Link, TableCell
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction

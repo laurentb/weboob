@@ -24,9 +24,9 @@ import re
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, TableElement, ItemElement, method
 from weboob.browser.filters.standard import (
-    Regexp, Field, TableCell, CleanText, CleanDecimal, Eval, Currency
+    Regexp, Field, CleanText, CleanDecimal, Eval, Currency
 )
-from weboob.browser.filters.html import Link
+from weboob.browser.filters.html import Link, TableCell
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction

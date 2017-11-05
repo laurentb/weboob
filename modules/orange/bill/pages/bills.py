@@ -25,8 +25,8 @@ import HTMLParser
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.capabilities.bill import Subscription
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement
-from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Field, Regexp, Date, Currency, TableCell
-from weboob.browser.filters.html import Link
+from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Field, Regexp, Date, Currency
+from weboob.browser.filters.html import Link, TableCell
 from weboob.browser.filters.javascript import JSValue
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bill import Bill, Document

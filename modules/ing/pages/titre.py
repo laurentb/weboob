@@ -26,8 +26,8 @@ from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Investment
 from weboob.browser.pages import RawPage, HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, TableElement, ItemElement, method
-from weboob.browser.filters.standard import CleanDecimal, CleanText, Date, TableCell, Regexp, Env, Async, AsyncLoad
-from weboob.browser.filters.html import Link, Attr
+from weboob.browser.filters.standard import CleanDecimal, CleanText, Date, Regexp, Env, Async, AsyncLoad
+from weboob.browser.filters.html import Link, Attr, TableCell
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.compat import unicode
 

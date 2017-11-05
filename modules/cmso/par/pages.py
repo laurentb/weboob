@@ -24,9 +24,9 @@ from collections import OrderedDict
 
 from weboob.browser.pages import HTMLPage, JsonPage, RawPage, LoggedPage, pagination
 from weboob.browser.elements import DictElement, ItemElement, TableElement, SkipItem, method
-from weboob.browser.filters.standard import CleanText, Upper, Date, Regexp, Format, CleanDecimal, Filter, Env, Slugify, TableCell, Field
+from weboob.browser.filters.standard import CleanText, Upper, Date, Regexp, Format, CleanDecimal, Filter, Env, Slugify, Field
 from weboob.browser.filters.json import Dict
-from weboob.browser.filters.html import Attr, Link
+from weboob.browser.filters.html import Attr, Link, TableCell
 from weboob.browser.exceptions import ServerError
 from weboob.capabilities.bank import Account, Investment, Loan
 from weboob.capabilities.contact import Advisor

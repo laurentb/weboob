@@ -17,10 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
 import re
 import hashlib
-
 
 from decimal import Decimal, InvalidOperation
 from dateutil.relativedelta import relativedelta
@@ -30,9 +28,9 @@ from collections import OrderedDict
 
 from weboob.browser.pages import HTMLPage, FormNotFound, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, SkipItem, method, TableElement
-from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, TableCell, \
-    Regexp, Async, AsyncLoad, Date, ColumnNotFound, Format, Type
-from weboob.browser.filters.html import Link, Attr
+from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, \
+    Regexp, Async, AsyncLoad, Date, Format, Type
+from weboob.browser.filters.html import Link, Attr, TableCell, ColumnNotFound
 from weboob.exceptions import BrowserIncorrectPassword, ParseError, NoAccountsException, ActionNeeded
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.base import empty

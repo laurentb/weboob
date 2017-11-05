@@ -20,7 +20,8 @@
 
 from weboob.browser.pages import HTMLPage, XMLPage
 from weboob.browser.elements import ListElement, ItemElement, TableElement, method
-from weboob.browser.filters.standard import CleanText, TableCell, Filter
+from weboob.browser.filters.standard import CleanText, Filter
+from weboob.browser.filters.html import TableCell
 
 from weboob.capabilities.gauge import Gauge, GaugeMeasure, GaugeSensor
 from weboob.capabilities.base import NotLoaded

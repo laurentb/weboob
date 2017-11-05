@@ -36,10 +36,10 @@ from weboob.browser.elements import method, ListElement, TableElement, ItemEleme
 from weboob.exceptions import ParseError
 from weboob.browser.exceptions import ServerError
 from weboob.browser.pages import LoggedPage, HTMLPage, FormNotFound, pagination
-from weboob.browser.filters.html import Attr, Link
+from weboob.browser.filters.html import Attr, Link, TableCell
 from weboob.browser.filters.standard import CleanText, Field, Regexp, Format, Date, \
                                             CleanDecimal, Map, AsyncLoad, Async, Env, \
-                                            TableCell, Eval, Slugify
+                                            Eval, Slugify
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError

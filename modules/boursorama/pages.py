@@ -29,11 +29,11 @@ from datetime import date
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination, NextPage, FormNotFound, PartialHTMLPage
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement, SkipItem
 from weboob.browser.filters.standard import (
-    CleanText, CleanDecimal, Field, Format, TableCell,
+    CleanText, CleanDecimal, Field, Format,
     Regexp, Date, AsyncLoad, Async, Eval, RegexpError, Env,
     Currency as CleanCurrency,
 )
-from weboob.browser.filters.html import Attr, Link
+from weboob.browser.filters.html import Attr, Link, TableCell
 from weboob.capabilities.bank import Account, Investment, Recipient, Transfer, AccountNotFound, AddRecipientError
 from weboob.capabilities.base import NotAvailable, empty
 from weboob.capabilities.profile import Person

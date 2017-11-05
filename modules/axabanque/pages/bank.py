@@ -24,8 +24,8 @@ from decimal import Decimal, InvalidOperation
 from weboob.exceptions import BrowserUnavailable
 from weboob.browser.pages import HTMLPage, PDFPage, LoggedPage, AbstractPage
 from weboob.browser.elements import ItemElement, TableElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, TableCell, Date, Regexp, Field, Env, Currency
-from weboob.browser.filters.html import Attr, Link
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Regexp, Field, Env, Currency
+from weboob.browser.filters.html import Attr, Link, TableCell
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction

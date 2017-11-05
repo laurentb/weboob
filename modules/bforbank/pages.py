@@ -29,9 +29,9 @@ from PIL import Image
 from weboob.browser.pages import LoggedPage, HTMLPage, pagination, AbstractPage
 from weboob.browser.elements import method, ListElement, ItemElement, TableElement
 from weboob.capabilities.bank import Account
-from weboob.browser.filters.html import Link, Attr
+from weboob.browser.filters.html import Link, Attr, TableCell
 from weboob.browser.filters.standard import (
-    CleanText, Regexp, Field, Map, CleanDecimal, Date, TableCell,
+    CleanText, Regexp, Field, Map, CleanDecimal, Date,
 )
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.compat import urlencode, urlparse, urlunparse, parse_qsl, urljoin

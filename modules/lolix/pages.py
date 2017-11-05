@@ -20,8 +20,8 @@
 
 from weboob.browser.pages import HTMLPage
 from weboob.browser.elements import TableElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, TableCell, Regexp, Date, Env, BrowserURL, Join, Format
-from weboob.browser.filters.html import CleanHTML
+from weboob.browser.filters.standard import CleanText, Regexp, Date, Env, BrowserURL, Join, Format
+from weboob.browser.filters.html import CleanHTML, TableCell
 from weboob.capabilities.job import BaseJobAdvert
 
 

@@ -24,10 +24,10 @@ from weboob.browser.pages import JsonPage, HTMLPage
 from weboob.browser.elements import TableElement, ItemElement, DictElement, method
 from weboob.capabilities.travel import Station, Departure, RoadStep
 from weboob.capabilities import NotAvailable
-from weboob.browser.filters.standard import CleanText, TableCell, Filter, Time, Env, Regexp, Duration,\
+from weboob.browser.filters.standard import CleanText, Filter, Time, Env, Regexp, Duration,\
     Format, Join, DateTime
 from weboob.browser.filters.json import Dict
-from weboob.browser.filters.html import Link
+from weboob.browser.filters.html import Link, TableCell
 
 
 class RoadMapDuration(Duration):

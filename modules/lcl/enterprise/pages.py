@@ -22,8 +22,8 @@ import re, requests
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, TableElement, method
-from weboob.browser.filters.standard import CleanText, Date, CleanDecimal, Env, TableCell
-from weboob.browser.filters.html import Link
+from weboob.browser.filters.standard import CleanText, Date, CleanDecimal, Env
+from weboob.browser.filters.html import Link, TableCell
 from weboob.capabilities.bank import Account
 from weboob.capabilities.profile import Profile
 from weboob.capabilities.base import NotAvailable

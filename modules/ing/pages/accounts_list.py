@@ -29,10 +29,9 @@ from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, TableElement, ItemElement, method, DataError
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Filter, Field, MultiFilter, Date,
-    Lower, Async, AsyncLoad, Format, TableCell, Env,
-    Regexp,
+    Lower, Async, AsyncLoad, Format, Env, Regexp,
 )
-from weboob.browser.filters.html import Attr, Link
+from weboob.browser.filters.html import Attr, Link, TableCell
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 

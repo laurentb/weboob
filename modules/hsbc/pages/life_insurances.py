@@ -11,9 +11,9 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.browser.elements import TableElement, ItemElement, method
 from weboob.browser.pages import HTMLPage, LoggedPage, FormNotFound
 from weboob.browser.filters.standard import (
-    CleanText, CleanDecimal, Field, TableCell, Regexp, Eval, Date
+    CleanText, CleanDecimal, Field, Regexp, Eval, Date
 )
-from weboob.browser.filters.html import Link, XPathNotFound
+from weboob.browser.filters.html import Link, XPathNotFound, TableCell
 from weboob.browser.filters.javascript import JSVar
 
 from .account_pages import Transaction

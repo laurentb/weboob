@@ -29,8 +29,8 @@ from datetime import datetime
 
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage, pagination
 from weboob.browser.elements import ItemElement, method, ListElement, TableElement, SkipItem
-from weboob.browser.filters.standard import Date, CleanDecimal, Regexp, CleanText, Env, Upper, TableCell, Field
-from weboob.browser.filters.html import Link, Attr
+from weboob.browser.filters.standard import Date, CleanDecimal, Regexp, CleanText, Env, Upper, Field
+from weboob.browser.filters.html import Link, Attr, TableCell
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, TransferBankError, Transfer,\
                                      AddRecipientError

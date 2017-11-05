@@ -25,8 +25,8 @@ from lxml import objectify
 
 from weboob.browser.pages import HTMLPage, XMLPage, RawPage, LoggedPage, pagination
 from weboob.browser.elements import ItemElement, TableElement, SkipItem, method
-from weboob.browser.filters.standard import CleanText, Date, Regexp, Eval, CleanDecimal, Env, TableCell, Field
-from weboob.browser.filters.html import Attr
+from weboob.browser.filters.standard import CleanText, Date, Regexp, Eval, CleanDecimal, Env, Field
+from weboob.browser.filters.html import Attr, TableCell
 from weboob.capabilities.bank import Account, Investment, Pocket, Transaction
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard

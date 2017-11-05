@@ -27,8 +27,8 @@ from weboob.exceptions import BrowserUnavailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.browser.pages import LoggedPage
 from weboob.browser.elements import TableElement, ItemElement, method
-from weboob.browser.filters.html import Link
-from weboob.browser.filters.standard import CleanDecimal, CleanText, Eval, TableCell, Field, Async, AsyncLoad, Date, Env
+from weboob.browser.filters.html import Link, TableCell
+from weboob.browser.filters.standard import CleanDecimal, CleanText, Eval, Field, Async, AsyncLoad, Date, Env
 from weboob.tools.compat import urljoin
 
 from .base import MyHTMLPage

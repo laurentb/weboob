@@ -38,10 +38,8 @@ from weboob.tools.date import parse_french_date, LinearDateGuesser
 from weboob.tools.compat import urlparse, urljoin, unicode
 from weboob.browser.elements import TableElement, ItemElement, method
 from weboob.browser.filters.standard import Date, CleanText, CleanDecimal, Currency as CleanCurrency, \
-                                            Regexp, Format, TableCell, Field
-
-
-from weboob.browser.filters.html import Link
+                                            Regexp, Format, Field
+from weboob.browser.filters.html import Link, TableCell
 
 
 def MyDecimal(*args, **kwargs):

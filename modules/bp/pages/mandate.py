@@ -22,9 +22,9 @@ import re
 
 from weboob.browser.pages import LoggedPage, HTMLPage, pagination
 from weboob.browser.elements import TableElement, ItemElement, method
-from weboob.browser.filters.html import Link, Attr
+from weboob.browser.filters.html import Link, Attr, TableCell
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, \
-                                            Format, Currency, TableCell
+                                            Format, Currency
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Account, Investment
 

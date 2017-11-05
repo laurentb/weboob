@@ -29,9 +29,9 @@ from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, Acti
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.pages import HTMLPage, pagination
 from weboob.browser.filters.standard import (
-    Filter, Env, CleanText, CleanDecimal, Field, DateGuesser, TableCell, Regexp
+    Filter, Env, CleanText, CleanDecimal, Field, DateGuesser, Regexp
 )
-from weboob.browser.filters.html import Link, AbsoluteLink
+from weboob.browser.filters.html import Link, AbsoluteLink, TableCell
 from weboob.browser.filters.javascript import JSVar
 
 from .landing_pages import GenericLandingPage

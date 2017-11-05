@@ -22,8 +22,8 @@ import re
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ItemElement, TableElement, method
 from weboob.browser.filters.standard import CleanText, Date, Regexp, CleanDecimal, \
-                                            TableCell, Field, Async, AsyncLoad, Eval
-from weboob.browser.filters.html import Attr, Link
+                                            Field, Async, AsyncLoad, Eval
+from weboob.browser.filters.html import Attr, Link, TableCell
 from weboob.capabilities.bank import Account, Investment, Transaction
 from weboob.capabilities.base import NotAvailable, empty
 from weboob.exceptions import BrowserUnavailable
