@@ -315,7 +315,7 @@ class HSBC(LoginBrowser):
     def get_investments(self, account):
         if account.type == Account.TYPE_LIFE_INSURANCE:
             return self.get_life_investments(account)
-        elif account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
+        elif account.type in (Account.TYPE_PEA,):
             return self.get_pea_investments(account)
         else:
             raise NotImplementedError()
