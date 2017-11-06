@@ -160,7 +160,7 @@ class HistoryPage(LoggedPage, HTMLPage):
         return Attr('//article[has-class("card-distribution")]', 'data-url', default=None)(self.doc)
 
     def get_pagination_url(self):
-        return Attr('//div[has-class("default")][@data-current-page]', 'data-url')(self.doc)
+        return Attr('//div[contains(@class, "default")][@data-current-page]', 'data-url')(self.doc)
 
     @method
     class get_investments(ListElement):
