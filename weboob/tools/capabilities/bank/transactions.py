@@ -30,7 +30,8 @@ from weboob.tools.date import new_datetime
 
 from weboob.exceptions import ParseError
 from weboob.browser.elements import TableElement, ItemElement
-from weboob.browser.filters.standard import Filter, CleanText, CleanDecimal, TableCell
+from weboob.browser.filters.standard import Filter, CleanText, CleanDecimal
+from weboob.browser.filters.html import TableCell
 
 
 __all__ = ['FrenchTransaction', 'AmericanTransaction']
