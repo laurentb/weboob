@@ -465,8 +465,12 @@ class CBHistoryPage(AccountHistoryPage):
             tr.type = tr.TYPE_DEFERRED_CARD
             deferred_date = Regexp(CleanText('//div[@class="date"][contains(text(), "Carte")]'), r'le ([^:]+)', default=None)(self.doc)
             if deferred_date:
-                tr.date = parse_french_date(deferred_date)
-            yield tr
+                tr.date = parse_french_date(deferred_date).date()
+            # rdate > date doesn't make any sense but it seems that lcl website can do shitty things sometimes
+            if tr.date >= tr.rdate:
+                yield tr
+            else:
+                self.logger.error('skipping transaction with rdate > date')
 
 
 class CBListPage(CBHistoryPage):
