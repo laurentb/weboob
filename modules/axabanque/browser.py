@@ -292,9 +292,13 @@ class AXAAssurance(AXABrowser):
                 # fake data, don't cache it
                 return []
             self.location(investment_url)
+            detailed_view = self.page.detailed_view()
             portfolio_page = self.page
-            self.location(self.page.detailed_view())
-            self.cache['invs'][account.id] = list(self.page.iter_investment(currency=account.currency))
+            if detailed_view:
+                self.location(detailed_view)
+                self.cache['invs'][account.id] = list(self.page.iter_investment(currency=account.currency))
+            else:
+                self.cache['invs'][account.id] = []
             for inv in portfolio_page.iter_investment(currency=account.currency):
                 i = [i for i in self.cache['invs'][account.id] if (i.valuation == inv.valuation and i.label == inv.label)]
                 assert len(i) in (0, 1)

@@ -134,10 +134,10 @@ class InvestmentPage(LoggedPage, HTMLPage):
                 return cur if self.env['currency'] != cur else NotLoaded
 
     def detailed_view(self):
-        return Attr(u'//button[contains(text(), "Vision détaillée")]', 'data-url')(self.doc)
+        return Attr(u'//button[contains(text(), "Vision détaillée")]', 'data-url', default=None)(self.doc)
 
     def is_detail(self):
-        return not bool(self.doc.xpath(u'//button[contains(text(), "Vision détaillée")]'))
+        return bool(self.doc.xpath(u'//th[contains(text(), "Valeur de la part")]'))
 
 
 class Transaction(FrenchTransaction):
