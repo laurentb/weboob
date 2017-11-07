@@ -304,11 +304,11 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
         except BrowserHTTPNotFound:
             return []
 
-        assert self.transfer_accounts.is_here()
-        try:
-            self.page.submit_account(account.id)
-        except AccountNotFound:
-            return []
+        if self.transfer_accounts.is_here():
+            try:
+                self.page.submit_account(account.id)
+            except AccountNotFound:
+                return []
 
         assert self.recipients_page.is_here()
         return self.page.iter_recipients()
