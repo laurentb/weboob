@@ -206,6 +206,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                      u'cav':                   Account.TYPE_CHECKING,
                      u'comptes épargne':       Account.TYPE_SAVINGS,
                      u'mon épargne':           Account.TYPE_SAVINGS,
+                     'csljeune':               Account.TYPE_SAVINGS, # in url
                      u'ord':                   Account.TYPE_MARKET,
                      u'comptes bourse':        Account.TYPE_MARKET,
                      u'mes placements financiers': Account.TYPE_MARKET,
