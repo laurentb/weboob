@@ -444,3 +444,45 @@ def html_to_pdf(browser, url=None, data=None, extra_options=None):
         options.update(extra_options)
 
     return callback(url or data, False, options=options)
+
+
+# extract all text from PDF
+def extract_text(data):
+    try:
+        try:
+            from pdfminer.pdfdocument import PDFDocument
+            from pdfminer.pdfpage import PDFPage
+            newapi = True
+        except ImportError:
+            from pdfminer.pdfparser import PDFDocument
+            newapi = False
+        from pdfminer.pdfparser import PDFParser, PDFSyntaxError
+        from pdfminer.converter import TextConverter
+        from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
+    except ImportError:
+        raise ImportError('Please install python-pdfminer to parse PDF')
+    else:
+        parser = PDFParser(BytesIO(data))
+        try:
+            if newapi:
+                doc = PDFDocument(parser)
+            else:
+                doc = PDFDocument()
+                parser.set_document(doc)
+                doc.set_parser(parser)
+        except PDFSyntaxError:
+            return
+
+        rsrcmgr = PDFResourceManager()
+        out = BytesIO()
+        device = TextConverter(rsrcmgr, out)
+        interpreter = PDFPageInterpreter(rsrcmgr, device)
+        if newapi:
+            pages = PDFPage.create_pages(doc)
+        else:
+            doc.initialize()
+            pages = doc.get_pages()
+        for page in pages:
+            interpreter.process_page(page)
+
+        return out.getvalue()
