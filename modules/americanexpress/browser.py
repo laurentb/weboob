@@ -21,6 +21,7 @@ import datetime
 
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.browsers import LoginBrowser, need_login
+from weboob.browser.exceptions import HTTPNotFound
 from weboob.browser.url import URL
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 from weboob.tools.compat import urlsplit, parse_qsl, urlencode
@@ -31,6 +32,7 @@ from .pages.base import (
 )
 from .pages.json import (
     AccountsPage3, JsonBalances, DashboardPage, JsonPeriods, JsonHistory,
+    JsonBalances2,
 )
 
 
@@ -55,6 +57,7 @@ class AmericanExpressBrowser(LoginBrowser):
     dashboard = URL(r'/dashboard', DashboardPage)
     accounts3 = URL(r'/accounts', AccountsPage3)
     js_balances = URL(r'/account-data/v1/financials/balances', JsonBalances)
+    js_balances2 = URL(r'/api/servicing/v1/financials/transaction_summary\?type=split_by_cardmember&statement_end_date=(?P<date>[\d-]+)', JsonBalances2)
     js_pending = URL(r'/account-data/v1/financials/transactions\?limit=1000&offset=(?P<offset>\d+)&status=pending',
                      JsonHistory)
     js_posted = URL(r'/account-data/v1/financials/transactions\?limit=1000&offset=(?P<offset>\d+)&statement_end_date=(?P<end>[0-9-]+)&status=posted',
@@ -101,7 +104,13 @@ class AmericanExpressBrowser(LoginBrowser):
         self.accounts3.go()
         accounts = list(self.page.iter_accounts())
         assert len(accounts) == 1 # FIXME how to pass multiple tokens?
-        self.js_balances.go(headers={'account_tokens': accounts[0]._token})
+
+        try:
+            self.js_balances.go(headers={'account_tokens': accounts[0]._token})
+        except HTTPNotFound:
+            self.js_periods.go(headers={'account_token': accounts[0]._token})
+            periods = self.page.get_periods()
+            self.js_balances2.go(date=periods[1][1], headers={'account_tokens': accounts[0]._token})
         self.page.set_balances(accounts)
 
         for acc in accounts:

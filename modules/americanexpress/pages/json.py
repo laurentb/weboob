@@ -78,6 +78,14 @@ class JsonBalances(LoggedPage, JsonPage):
             by_token[d['account_token']].balance = -float_to_decimal(d['total_payments_credits_amount'])
 
 
+class JsonBalances2(LoggedPage, JsonPage):
+    def set_balances(self, accounts):
+        by_token = {a._token: a for a in accounts}
+        for d in self.doc:
+            by_token[d['account_token']].balance = -float_to_decimal(d['total']['debits_total_amount'])
+            # warning: payments_credits_total_amount is not the coming value here
+
+
 class JsonPeriods(LoggedPage, JsonPage):
     def get_periods(self):
         return [(p['statement_start_date'], p['statement_end_date']) for p in self.doc]
