@@ -524,7 +524,7 @@ class BoursePage(LoggedPage, HTMLPage):
 
             load_details = Field('_market_link') & AsyncLoad
 
-            obj__especes = CleanDecimal(TableCell('especes'), replace_dots=True)
+            obj__especes = CleanDecimal(TableCell('especes'), replace_dots=True, default=0)
             obj__titres = CleanDecimal(TableCell('titres'), replace_dots=True, default=0)
             obj_valuation_diff = Async('details') &  CleanDecimal('//td[contains(text(), "value latente")]/ \
                                                                   following-sibling::td[1]', replace_dots=True)
