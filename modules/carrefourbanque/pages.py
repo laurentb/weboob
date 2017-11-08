@@ -72,16 +72,6 @@ class item_account_generic(ItemElement):
         return Link(xpath_link)(self)
 
 
-class item_history_generic(Transaction.TransactionElement):
-    obj_id = None
-
-    def obj_type(self):
-        return Transaction.TYPE_CARD if len(self.el.xpath('./td')) > 3 else Transaction.TYPE_BANK
-
-    def condition(self):
-        return TableCell('raw')(self)
-
-
 class iter_history_generic(Transaction.TransactionsElement):
     head_xpath = u'//div[*[contains(text(), "opérations")]]/table//thead/tr/th'
     item_xpath = u'//div[*[contains(text(), "opérations")]]/table/tbody/tr'
@@ -91,8 +81,12 @@ class iter_history_generic(Transaction.TransactionsElement):
         if next_page:
             return "/%s" % next_page
 
-    class item_history(item_history_generic):
-        pass
+    class item(Transaction.TransactionElement):
+        def obj_type(self):
+            return Transaction.TYPE_CARD if len(self.el.xpath('./td')) > 3 else Transaction.TYPE_BANK
+
+        def condition(self):
+            return TableCell('raw')(self)
 
 
 class HomePage(LoggedPage, HTMLPage):
