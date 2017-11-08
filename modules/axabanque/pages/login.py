@@ -103,3 +103,8 @@ class ChangepasswordPage(HTMLPage):
 class PredisconnectedPage(HTMLPage):
     def on_load(self):
         raise BrowserBanned()
+
+
+class DeniedPage(HTMLPage):
+    def on_load(self):
+        raise ActionNeeded()

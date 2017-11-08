@@ -24,7 +24,7 @@ from weboob.browser.exceptions import ClientError
 from weboob.capabilities.base import NotAvailable
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 
-from .pages.login import KeyboardPage, LoginPage, ChangepasswordPage, PredisconnectedPage
+from .pages.login import KeyboardPage, LoginPage, ChangepasswordPage, PredisconnectedPage, DeniedPage
 from .pages.bank import (
     AccountsPage as BankAccountsPage, CBTransactionsPage, TransactionsPage,
     UnavailablePage, IbanPage, LifeInsuranceIframe, BoursePage,
@@ -39,6 +39,8 @@ class AXABrowser(LoginBrowser):
     password = URL('https://connect.axa.fr/#/changebankpassword', ChangepasswordPage)
     predisconnected = URL('https://www.axa.fr/axa-predisconnect.html',
                           'https://www.axa.fr/axa-postmaw-predisconnect.html', PredisconnectedPage)
+
+    denied = URL('https://connect.axa.fr/Account/AccessDenied', DeniedPage)
 
     def do_login(self):
         # due to the website change, login changed too, this is for don't try to login with the wrong login
