@@ -208,7 +208,7 @@ class AXABanque(AXABrowser):
                     # fake data, don't cache it
                     return []
                 self.location(investment_url)
-            self.cache['invs'][account.id] = list(self.page.iter_investment())
+            self.cache['invs'][account.id] = list(self.page.iter_investment(currency=account.currency))
         return self.cache['invs'][account.id]
 
     @need_login
