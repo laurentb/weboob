@@ -24,9 +24,13 @@ from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Format
 from weboob.browser.filters.html import Attr
 from weboob.browser.filters.json import Dict
 from weboob.browser.elements import ListElement, ItemElement, method, DictElement
-from weboob.exceptions import ActionNeeded
+from weboob.exceptions import ActionNeeded, AuthMethodNotImplemented
 
 class LoginPage(HTMLPage):
+    def on_load(self):
+        if self.doc.xpath('//p[contains(text(), "You have activated the double factor authentication")]'):
+            raise AuthMethodNotImplemented('Two-Factor authentication is not supported.')
+
     def is_logged(self):
         return not self.doc.xpath('//div[has-class("error")]') and not self.doc.xpath('//form//input[contains(@placeholder, "Account ID")]')
 
