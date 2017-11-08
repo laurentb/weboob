@@ -121,6 +121,7 @@ class HomePage(LoggedPage, HTMLPage):
         class item(item_account_generic):
             obj_type = Account.TYPE_SAVINGS
             obj_url = Link('.//a[contains(., "Historique des opérations")]')
+            obj_balance = CleanDecimal('.//a[contains(text(), "versement")]//preceding-sibling::h2', replace_dots=True)
 
     @method
     class iter_life_accounts(ListElement):  # Assurances vie
