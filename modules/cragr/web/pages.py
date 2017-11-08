@@ -208,6 +208,7 @@ class _AccountsPage(MyLoggedPage, BasePage):
              u'ESPE INTEG': Account.TYPE_SAVINGS,
              u'DAV TIGERE': Account.TYPE_SAVINGS,
              u'CPTEXCPRO':  Account.TYPE_SAVINGS,
+             u'CPTEXCENT':  Account.TYPE_SAVINGS,
              u'PRET PERSO': Account.TYPE_LOAN,
              u'P. HABITAT': Account.TYPE_LOAN,
              u'PRET 0%':    Account.TYPE_LOAN,
