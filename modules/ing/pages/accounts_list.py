@@ -28,8 +28,9 @@ from weboob.capabilities.profile import Person
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, TableElement, ItemElement, method, DataError
 from weboob.browser.filters.standard import (
-    CleanText, CleanDecimal, Filter, Field, MultiFilter, Date,
-    Lower, Async, AsyncLoad, Format, Env, Regexp,
+    CleanText, CleanDecimal, Eval, Filter, Field, MultiFilter, Date,
+    Lower, Async, AsyncLoad, Format, Env,
+    Regexp,
 )
 from weboob.browser.filters.html import Attr, Link, TableCell
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -200,6 +201,16 @@ class AccountsList(LoggedPage, HTMLPage):
                 return True
 
     @method
+    class iter_asv_investments(ListElement):
+        item_xpath = '//div[@id="index:accountdetail"]//div[@class="asv_fond"]'
+
+        class item(ItemElement):
+            klass = Investment
+
+            obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal('.//dl[@class="ligne-repartition"]/dd', replace_dots=True))
+            obj_code = Regexp(Attr('.//div[@class="asv_fond_view"]/a', 'onclick'), "'(.*?)'")
+
+    @method
     class get_coming(generic_transactions):
         item_xpath = '//div[@class="transactions cc future"]//table'
 
@@ -279,7 +290,7 @@ class ASVInvest(LoggedPage, HTMLPage):
 
         class item(ItemElement):
             klass = Investment
-            load_details = Link('.//td[1]//a')  & AsyncLoad
+            load_details = Link('.//td[1]//a') & AsyncLoad
 
             def obj_code(self):
                 val = Async('details', CleanText('//td[@class="libelle-normal" and contains(.,"CodeISIN")]', default=NotAvailable))(self)
@@ -297,7 +308,7 @@ class ASVInvest(LoggedPage, HTMLPage):
             obj_diff = CleanDecimal(TableCell('diff'), replace_dots=True, default=NotAvailable)
 
 
-class DetailFondsPage(LoggedPage,HTMLPage):
+class DetailFondsPage(LoggedPage, HTMLPage):
     pass
 
 
