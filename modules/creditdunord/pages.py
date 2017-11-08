@@ -180,22 +180,26 @@ class AccountsPage(LoggedPage, CDNBasePage):
     COL_LABEL = 5
     COL_BALANCE = -1
 
-    TYPES = {u'CARTE':               Account.TYPE_CARD,
-             u'COMPTE COURANT':      Account.TYPE_CHECKING,
-             u'CPT COURANT':         Account.TYPE_CHECKING,
-             u'COMPTE ÉPARGNE':      Account.TYPE_SAVINGS,
-             u'COMPTE EPARGNE':      Account.TYPE_SAVINGS,
-             u'COMPTE SUR LIVRET':   Account.TYPE_SAVINGS,
-             u'LIVRET':              Account.TYPE_SAVINGS,
-             u'PLAN ÉPARGNE':        Account.TYPE_SAVINGS,
-             u'PEA':                 Account.TYPE_PEA,
-             u'P.E.A.':              Account.TYPE_PEA,
-             u'TITRES':              Account.TYPE_MARKET,
-             u'ÉTOILE AVANCE':       Account.TYPE_LOAN,
-             u'PRÊT':                Account.TYPE_LOAN,
-             u'CREDIT':              Account.TYPE_LOAN,
-             u'FACILINVEST':         Account.TYPE_LOAN,
-            }
+    TYPES = {
+        u'CARTE':               Account.TYPE_CARD,
+        u'COMPTE COURANT':      Account.TYPE_CHECKING,
+        u'CPT COURANT':         Account.TYPE_CHECKING,
+        u'PEA':                 Account.TYPE_PEA,
+        u'P.E.A':               Account.TYPE_PEA,
+        u'COMPTE ÉPARGNE':      Account.TYPE_SAVINGS,
+        u'COMPTE EPARGNE':      Account.TYPE_SAVINGS,
+        u'COMPTE SUR LIVRET':   Account.TYPE_SAVINGS,
+        u'LDDS':                Account.TYPE_SAVINGS,
+        u'LIVRET':              Account.TYPE_SAVINGS,
+        u"PLAN D'EPARGNE":      Account.TYPE_SAVINGS,
+        u'PLAN ÉPARGNE':        Account.TYPE_SAVINGS,
+        u'ASS.VIE':             Account.TYPE_LIFE_INSURANCE,
+        u'ÉTOILE AVANCE':       Account.TYPE_LOAN,
+        u'PRÊT':                Account.TYPE_LOAN,
+        u'CREDIT':              Account.TYPE_LOAN,
+        u'FACILINVEST':         Account.TYPE_LOAN,
+        u'TITRES':              Account.TYPE_MARKET,
+        }
 
     def get_account_type(self, label):
         for pattern, actype in sorted(self.TYPES.items()):
