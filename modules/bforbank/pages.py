@@ -22,6 +22,7 @@ from __future__ import unicode_literals
 from collections import OrderedDict
 import re
 from io import BytesIO
+from base64 import b64decode
 
 from PIL import Image
 
@@ -55,7 +56,7 @@ class BfBKeyboard(object):
         self.fingerprints = []
         for htmlimg in self.basepage.doc.xpath('.//div[@class="m-btn-pin"]//img'):
             url = htmlimg.attrib.get("src")
-            imgfile = BytesIO(basepage.browser.open(url).content)
+            imgfile = BytesIO(b64decode(re.match('data:image/png;base64,(.*)', url).group(1)))
             img = Image.open(imgfile)
             matrix = img.load()
             s = ""
