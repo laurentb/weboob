@@ -394,7 +394,7 @@ class CleanDecimal(CleanText):
     >>> CleanDecimal('./td[1]', replace_dots=(',', '.'))  # doctest: +SKIP
     """
 
-    def __init__(self, selector=None, replace_dots=False, sign=None, default=_NO_DEFAULT):
+    def __init__(self, selector=None, replace_dots=False, sign=None, legacy=True, default=_NO_DEFAULT):
         """
         :param sign: function accepting the text as param and returning the sign
         """
@@ -402,6 +402,7 @@ class CleanDecimal(CleanText):
         super(CleanDecimal, self).__init__(selector, default=default)
         self.replace_dots = replace_dots
         self.sign = sign
+        self.legacy = legacy
 
     @debug()
     def filter(self, text):
@@ -412,19 +413,54 @@ class CleanDecimal(CleanText):
             return self.default_or_raise(FormatError('Unable to parse %r' % text))
 
         original_text = text = super(CleanDecimal, self).filter(text)
-        if self.replace_dots:
-            if type(self.replace_dots) is tuple:
-                thousands_sep, decimal_sep = self.replace_dots
-            else:
-                thousands_sep, decimal_sep = '.', ','
+
+        if self.legacy:
+            if self.replace_dots:
+                if type(self.replace_dots) is tuple:
+                    thousands_sep, decimal_sep = self.replace_dots
+                else:
+                    thousands_sep, decimal_sep = '.', ','
+                text = text.replace(thousands_sep, '').replace(decimal_sep, '.')
+
+            text = re.sub(r'[^\d\-\.]', '', text)
+        else:
+            #if not self.replace_dots:
+            thousands_sep, decimal_sep = self.replace_dots
+
+            decimal_matching = re.compile(r'[+-]?(?:\d[\d%s%s]*|%s\d+)' % tuple(map(re.escape, (thousands_sep, decimal_sep, decimal_sep))))
+            matches = decimal_matching.findall(text)
+            if not matches:
+                self.default_or_raise(NumberFormatError('There is no number to parse'))
+            elif len(matches) > 1:
+                self.default_or_raise(NumberFormatError('There should be exactly one number to parse'))
+            text, = matches
             text = text.replace(thousands_sep, '').replace(decimal_sep, '.')
+
         try:
-            v = Decimal(re.sub(r'[^\d\-\.]', '', text))
+            v = Decimal(text)
             if self.sign:
                 v *= self.sign(original_text)
             return v
         except InvalidOperation as e:
             return self.default_or_raise(NumberFormatError(e))
+
+    @classmethod
+    def US(cls, *args, **kwargs):
+        kwargs['legacy'] = False
+        kwargs['replace_dots'] = (',', '.')
+        return cls(*args, **kwargs)
+
+    @classmethod
+    def French(cls, *args, **kwargs):
+        kwargs['legacy'] = False
+        kwargs['replace_dots'] = (' ', ',')
+        return cls(*args, **kwargs)
+
+    @classmethod
+    def SI(cls, *args, **kwargs):
+        kwargs['legacy'] = False
+        kwargs['replace_dots'] = (' ', '.')
+        return cls(*args, **kwargs)
 
 
 class Slugify(Filter):
@@ -871,3 +907,44 @@ def test_CleanText():
     assert CleanText(normalize='NFD').filter(u'\u3053\u3099') == u'\u3053\u3099'
     assert CleanText(normalize='NFD').filter(u'\u3054') == u'\u3053\u3099'
     assert CleanText(normalize=False).filter(u'\u3053\u3099') == u'\u3053\u3099'
+
+
+def assert_raises(exc_class, func, *args, **kwargs):
+    try:
+        func(*args, **kwargs)
+    except exc_class:
+        pass
+    else:
+        assert False, 'did not raise %s' % exc_class
+
+
+def test_CleanDecimal_strict():
+    assert CleanDecimal.US().filter('123') == Decimal('123')
+    assert CleanDecimal.US().filter('foo +123 bar') == Decimal('123')
+    assert CleanDecimal.US().filter('foo 123.45 bar') == Decimal('123.45')
+    assert CleanDecimal.US().filter('foo 12,345.67 bar') == Decimal('12345.67')
+    assert CleanDecimal.US().filter('foo 123,456,789 bar') == Decimal('123456789')
+    assert CleanDecimal.US().filter('foo -123,456,789.1 bar') == Decimal('-123456789.1')
+    assert CleanDecimal.US().filter('foo -.1 bar') == Decimal('-0.1')
+    assert_raises(NumberFormatError, CleanDecimal.US().filter, 'foo 12 345.67 bar')
+    assert_raises(NumberFormatError, CleanDecimal.US().filter, 'foo 123 bar 456')
+    assert_raises(NumberFormatError, CleanDecimal.US().filter, 'foo 123.456.789 bar')
+
+    assert CleanDecimal.French().filter('123') == Decimal('123')
+    assert CleanDecimal.French().filter('foo +123 bar') == Decimal('123')
+    assert CleanDecimal.French().filter('foo 123,45 bar') == Decimal('123.45')
+    assert CleanDecimal.French().filter('foo 12 345,67 bar') == Decimal('12345.67')
+    assert CleanDecimal.French().filter('foo 123 456 789 bar') == Decimal('123456789')
+    assert_raises(NumberFormatError, CleanDecimal.French().filter, 'foo 123.45 bar')
+    assert_raises(NumberFormatError, CleanDecimal.French().filter, 'foo 123 bar 456')
+    assert_raises(NumberFormatError, CleanDecimal.French().filter, 'foo 123,456,789')
+
+    assert CleanDecimal.SI().filter('123') == Decimal('123')
+    assert CleanDecimal.SI().filter('foo +123 bar') == Decimal('123')
+    assert CleanDecimal.SI().filter('foo 123.45 bar') == Decimal('123.45')
+    assert CleanDecimal.SI().filter('foo 12 345.67 bar') == Decimal('12345.67')
+    assert CleanDecimal.SI().filter('foo 123 456 789 bar') == Decimal('123456789')
+    assert CleanDecimal.SI().filter('foo -123 456 789 bar') == Decimal('-123456789')
+    assert_raises(NumberFormatError, CleanDecimal.SI().filter, 'foo 123,45 bar')
+    assert_raises(NumberFormatError, CleanDecimal.SI().filter, 'foo 123 bar 456')
+    assert_raises(NumberFormatError, CleanDecimal.SI().filter, 'foo 123,456,789')
