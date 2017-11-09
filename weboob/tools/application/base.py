@@ -36,6 +36,8 @@ from weboob.tools.config.iconfig import ConfigError
 from weboob.exceptions import FormFieldConversionWarning
 from weboob.tools.log import createColoredFormatter, getLogger, DEBUG_FILTERS, settings as log_settings
 from weboob.tools.misc import to_unicode, guess_encoding
+from weboob.tools.compat import unicode
+
 from .results import ResultsConditionError
 
 __all__ = ['Application']
@@ -307,7 +309,7 @@ class Application(object):
         else:
             res = getattr(backend, function)(*args, **kwargs)
 
-        if hasattr(res, '__iter__'):
+        if hasattr(res, '__iter__') and not isinstance(res, (bytes, unicode)):
             return self._do_complete_iter(backend, count, selected_fields, res)
         else:
             return self._do_complete_obj(backend, selected_fields, res)
