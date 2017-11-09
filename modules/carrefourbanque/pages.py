@@ -106,8 +106,8 @@ class HomePage(LoggedPage, HTMLPage):
             obj_type = Account.TYPE_CARD
 
             def obj_balance(self):
-                available = CleanDecimal('.//p[contains(., "disponibles à crédit")]//preceding-sibling::h2', default=None, replace_dots=True)(self)
-                return available if available is None else -available
+                available = CleanDecimal('.//p[contains(., "encours depuis le")]//preceding-sibling::h2', default=None, replace_dots=True)(self)
+                return NotAvailable if not available else -available
 
     @method
     class iter_saving_accounts(ListElement):  # livrets
