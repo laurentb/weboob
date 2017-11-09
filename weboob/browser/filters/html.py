@@ -25,13 +25,13 @@ from weboob.tools.compat import basestring, unicode, urljoin
 from weboob.tools.html import html2text
 
 from .base import _NO_DEFAULT, Filter, FilterError, _Selector, debug
-from .standard import TableCell # TODO move class here when modules are migrated
+from .standard import TableCell, ColumnNotFound # TODO move class here when modules are migrated
 
 
 __all__ = ['CSS', 'XPath', 'XPathNotFound', 'AttributeNotFound',
            'Attr', 'Link', 'AbsoluteLink',
            'CleanHTML', 'FormValue', 'HasElement',
-           'TableCell',
+           'TableCell', 'ColumnNotFound',
           ]
 
 
