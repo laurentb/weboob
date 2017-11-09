@@ -419,7 +419,7 @@ def html_to_pdf(browser, url=None, data=None, extra_options=None):
     :param url: link to the html ressource
     :param data: HTML content
     :return: the document converted in PDF
-    :rtype: str
+    :rtype: bytes
     """
     try:
         import pdfkit # https://pypi.python.org/pypi/pdfkit

@@ -577,7 +577,7 @@ class ConsoleApplication(Application):
         """
         Handler for an exception inside the CallErrors exception.
 
-        This method can be overrided to support more exceptions types.
+        This method can be overridden to support more exceptions types.
         """
         if isinstance(error, BrowserQuestion):
             for field in error.fields:

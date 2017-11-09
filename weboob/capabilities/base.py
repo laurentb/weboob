@@ -280,7 +280,7 @@ class StringField(Field):
 
 class BytesField(Field):
     """
-    A field which accepts only :class:`str` strings.
+    A field which accepts only :class:`bytes` strings.
     """
 
     def __init__(self, doc, **kwargs):
@@ -360,7 +360,7 @@ class BaseObject(with_metaclass(_BaseObjectMeta, StrConv, object)):
         """
         Return True if the object is completed.
 
-        It is usefull when the object is a field of an other object which is
+        It is useful when the object is a field of an other object which is
         going to be filled.
 
         The default behavior is to iter on fields (with iter_fields) and if

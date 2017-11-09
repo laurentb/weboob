@@ -81,6 +81,6 @@ class CapTorrent(Capability):
 
         :param _id: ID of torrent
         :type _id: str
-        :rtype: str
+        :rtype: bytes
         """
         raise NotImplementedError()

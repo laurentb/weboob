@@ -406,7 +406,7 @@ class ReplApplication(ConsoleApplication, MyCmd):
     # -- cmd.Cmd methods ---------
     def postcmd(self, stop, line):
         """
-        This REPL method is overrided to return None instead of integers
+        This REPL method is overridden to return None instead of integers
         to prevent stopping cmdloop().
         """
         if not isinstance(stop, bool):
@@ -415,7 +415,7 @@ class ReplApplication(ConsoleApplication, MyCmd):
 
     def parseline(self, line):
         """
-        This REPL method is overrided to search "short" alias of commands
+        This REPL method is overridden to search "short" alias of commands
         """
         cmd, arg, ignored = Cmd.parseline(self, line)
 
@@ -432,7 +432,7 @@ class ReplApplication(ConsoleApplication, MyCmd):
 
     def onecmd(self, line):
         """
-        This REPL method is overrided to catch some particular exceptions.
+        This REPL method is overridden to catch some particular exceptions.
         """
         line = to_unicode(line)
         cmd, arg, ignored = self.parseline(line)
@@ -527,7 +527,7 @@ class ReplApplication(ConsoleApplication, MyCmd):
         """
         Handler for an exception inside the CallErrors exception.
 
-        This method can be overrided to support more exceptions types.
+        This method can be overridden to support more exceptions types.
         """
         return super(ReplApplication, self).bcall_error_handler(backend, error, backtrace)
 

@@ -145,7 +145,7 @@ class CapDocument(CapCollection):
         Download a document.
 
         :param id: ID of document
-        :rtype: str
+        :rtype: bytes
         :raises: :class:`DocumentNotFound`
         """
         raise NotImplementedError()
@@ -155,7 +155,7 @@ class CapDocument(CapCollection):
         Download a document, convert it to PDF if it isn't the document format.
 
         :param id: ID of document
-        :rtype: str
+        :rtype: bytes
         :raises: :class:`DocumentNotFound`
         """
         if not isinstance(id, Document):
