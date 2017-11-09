@@ -150,13 +150,22 @@ class DetailsPage(LoggedPage, HTMLPage):
         class item(ItemInvestment):
             obj_code = Regexp(CleanText('.//td[contains(text(), "Isin")]'), ':[\s]+([\w]+)', default=NotAvailable)
 
+            def invest_link(self):
+                label = Field('label')(self)
+                for a in self.el.xpath('//div[contains(@id, "PRIX_REVIENT")]//a'):
+                    if label in CleanText('.')(a):
+                        return a
+                assert 'fonds euro' in label.lower()
+
             def obj_unitprice(self):
-                return MyDecimal('//div[contains(@id, "PRIX_REVIENT")]//a[contains(text(), \
-                            "%s")]/ancestor::tr/td[5]' % Field('label')(self))(self)
+                link = self.invest_link()
+                if link:
+                    return MyDecimal('./ancestor::tr/td[5]')(link)
 
             def obj_diff(self):
-                return MyDecimal('//div[contains(@id, "PRIX_REVIENT")]//a[contains(text(), \
-                            "%s")]/ancestor::tr/td[6]' % Field('label')(self))(self)
+                link = self.invest_link()
+                if link:
+                    return MyDecimal('./ancestor::tr/td[6]')(link)
 
             def obj_portfolio_share(self):
                 inv_share = ItemInvestment.obj_portfolio_share(self)
