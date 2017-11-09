@@ -105,29 +105,31 @@ class ChangePasswordPage(LoggedPage, HTMLPage):
 class item_account_generic(ItemElement):
     klass = Account
 
-    TYPES = OrderedDict([(u'C/C',                     Account.TYPE_CHECKING),
-                         (u'Livret',                  Account.TYPE_SAVINGS),
-                         (u'Credits Promoteurs',      Account.TYPE_CHECKING), # it doesn't fit loan's model
-                         (u'Nouveau Prêt',            Account.TYPE_LOAN),
-                         (u'Pret',                    Account.TYPE_LOAN),
-                         (u'Eco-Prêt',                Account.TYPE_LOAN),
-                         (u'Cic Immo',                Account.TYPE_LOAN),
-                         (u'Passeport Credit',        Account.TYPE_LOAN),
-                         (u'Credit',                  Account.TYPE_LOAN),
-                         (u'Regroupement De Credits', Account.TYPE_LOAN),
-                         (u'Compte Courant',          Account.TYPE_CHECKING),
-                         (u'Cpte Courant',            Account.TYPE_CHECKING),
-                         (u'Compte Cheque',           Account.TYPE_CHECKING),
-                         (u'Start',                   Account.TYPE_CHECKING),
-                         (u'Contrat Personnel',       Account.TYPE_CHECKING),
-                         (u'Cc Contrat Personnel',    Account.TYPE_CHECKING),
-                         (u'P.E.A',                   Account.TYPE_PEA),
-                         (u'Compte Epargne',          Account.TYPE_SAVINGS),
-                         (u'Plan D\'Epargne',         Account.TYPE_SAVINGS),
-                         (u'Tonic Croissance',        Account.TYPE_SAVINGS),
-                         (u'Ldd',                     Account.TYPE_SAVINGS),
-                         (u'Etalis',                  Account.TYPE_SAVINGS),
-            ])
+    TYPES = OrderedDict([
+        (u'Credits Promoteurs',      Account.TYPE_CHECKING),  # it doesn't fit loan's model
+        (u'Compte Cheque',           Account.TYPE_CHECKING),
+        (u'Compte Courant',          Account.TYPE_CHECKING),
+        (u'Cpte Courant',            Account.TYPE_CHECKING),
+        (u'Contrat Personnel',       Account.TYPE_CHECKING),
+        (u'Cc Contrat Personnel',    Account.TYPE_CHECKING),
+        (u'C/C',                     Account.TYPE_CHECKING),
+        (u'Start',                   Account.TYPE_CHECKING),
+        (u'Catip',                   Account.TYPE_DEPOSIT),
+        (u'Cic Immo',                Account.TYPE_LOAN),
+        (u'Credit',                  Account.TYPE_LOAN),
+        (u'Eco-Prêt',                Account.TYPE_LOAN),
+        (u'Nouveau Prêt',            Account.TYPE_LOAN),
+        (u'Passeport Credit',        Account.TYPE_LOAN),
+        (u'Pret',                    Account.TYPE_LOAN),
+        (u'Regroupement De Credits', Account.TYPE_LOAN),
+        (u'P.E.A',                   Account.TYPE_PEA),
+        (u'Compte Epargne',          Account.TYPE_SAVINGS),
+        (u'Etalis',                  Account.TYPE_SAVINGS),
+        (u'Ldd',                     Account.TYPE_SAVINGS),
+        (u'Livret',                  Account.TYPE_SAVINGS),
+        (u'Plan D\'Epargne',         Account.TYPE_SAVINGS),
+        (u'Tonic Croissance',        Account.TYPE_SAVINGS),
+        ])
 
     REVOLVING_LOAN_LABELS = [
         'Passeport Credit'
