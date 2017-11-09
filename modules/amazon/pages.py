@@ -27,13 +27,7 @@ from weboob.browser.filters.standard import (
     Field, Currency, RegexpError
 )
 from weboob.capabilities.bill import Bill, Subscription
-from weboob.capabilities.base import NotAvailable
 from weboob.tools.date import parse_french_date
-
-
-def MyDecimal(*args, **kwargs):
-    kwargs.update(replace_dots=True, default=NotAvailable)
-    return CleanDecimal(*args, **kwargs)
 
 
 class HomePage(HTMLPage):
@@ -47,7 +41,18 @@ class PanelPage(HTMLPage, LoggedPage):
 
 
 class SecurityPage(HTMLPage, LoggedPage):
-    pass
+    def push_otp(self, otp):
+        form = self.get_form(id='auth-mfa-form')
+        form['otpCode'] = otp
+        form.submit()
+
+    def get_otp_message(self):
+        message = self.doc.xpath('//div[@class="a-box-inner"]/p')
+        return message[0] if message else None
+
+    def send_code(self):
+        form = self.get_form()
+        form.submit()
 
 
 class LanguagePage(HTMLPage):

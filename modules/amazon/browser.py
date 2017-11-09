@@ -21,7 +21,8 @@ from __future__ import unicode_literals
 from datetime import date
 
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, CaptchaQuestion, AuthMethodNotImplemented
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, CaptchaQuestion, BrowserQuestion
+from weboob.tools.value import Value
 
 from .pages import LoginPage, SubscriptionsPage, DocumentsPage, HomePage, PanelPage, SecurityPage, LanguagePage
 
@@ -53,7 +54,16 @@ class AmazonBrowser(LoginBrowser):
         super(AmazonBrowser, self).__init__(*args, **kwargs)
 
     def do_login(self):
+        if self.security.is_here() and self.config['pin_code'].get():
+            self.page.push_otp(self.config['pin_code'].get())
+
+            if not self.security.is_here():
+                return
+            else:
+                raise BrowserIncorrectPassword("The OTP you entered is incorrect")
+
         self.to_english(self.LANGUAGE)
+
         if not self.login.is_here():
             self.location(self.home.go().get_login_link())
             self.page.login(self.username, self.password)
@@ -61,7 +71,9 @@ class AmazonBrowser(LoginBrowser):
             self.page.login(self.username, self.password, self.config['captcha_response'].get())
 
         if self.security.is_here():
-            raise AuthMethodNotImplemented("It looks like double authentication is activated for your account. Please desactivate it before retrying connection.")
+            if self.page.doc.xpath('//span[@class="a-button-text"]'):
+                self.page.send_code()
+                raise BrowserQuestion(Value('pin_code', label=self.page.get_otp_message() if self.page.get_otp_message() else 'Please type the OTP you received'))
 
         if not self.login.is_here():
             return
