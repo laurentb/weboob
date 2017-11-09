@@ -234,6 +234,13 @@ class Account(BaseAccount):
     # market and lifeinssurance accounts
     valuation_diff = DecimalField('+/- values total')
 
+    # parent account
+    #  - A checking account parent of a card account
+    #  - A checking account parent of a recurring loan account
+    #  - An investment account parent of a liquidity account
+    #  - ...
+    parent = Field('Parent account', BaseAccount)
+
     def __repr__(self):
         return "<%s id=%r label=%r>" % (type(self).__name__, self.id, self.label)
 
