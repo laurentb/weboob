@@ -35,7 +35,7 @@ from weboob.capabilities.bank import Account, Investment, Loan
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, NoAccountsException
 
 
 def MyDecimal(*args, **kwargs):
@@ -489,6 +489,9 @@ class AdvisorPage(LoggedPage, JsonPage):
 
 class RecipientsPage(LoggedPage, JsonPage):
     def get_numbers(self):
+        if 'listCompteTitulaireCotitulaire' not in self.doc and 'exception' in self.doc:
+            raise NoAccountsException()
+
         return {
             d['index']: d['numeroContratSouscrit']
             for d in self.doc['listCompteTitulaireCotitulaire']
