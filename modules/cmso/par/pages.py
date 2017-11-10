@@ -160,9 +160,13 @@ class AccountsPage(LoggedPage, JsonPage):
                 def obj_id(self):
                     type = Field('type')(self)
                     if type == Account.TYPE_LIFE_INSURANCE:
-                        return self.get_lifenumber()
+                        number = self.get_lifenumber()
+                        if number:
+                            return number
                     elif type in (Account.TYPE_PEA, Account.TYPE_MARKET):
-                        return self.get_market_number()
+                        number = self.get_market_number()
+                        if number:
+                            return number
 
                     try:
                         return Env('numbers')(self)[Dict('index')(self)]
@@ -311,7 +315,9 @@ class HistoryPage(LoggedPage, JsonPage):
 
 class LifeinsurancePage(LoggedPage, HTMLPage):
     def get_account_id(self):
-        return re.sub(r'\s', '', Regexp(CleanText('//h1[@class="portlet-title"]'), ur'n° ([\d\s]+)')(self.doc))
+        account_id = Regexp(CleanText('//h1[@class="portlet-title"]'), ur'n° ([\d\s]+)', default=NotAvailable)(self.doc)
+        if account_id:
+            return re.sub(r'\s', '', account_id)
 
     def get_link(self, page):
         return Link(default=NotAvailable).filter(self.doc.xpath(u'//a[contains(text(), "%s")]' % page))
@@ -390,7 +396,9 @@ class MarketPage(LoggedPage, HTMLPage):
                 return ids
 
     def get_account_id(self, acclabel, owner):
-        return self.find_account(acclabel, owner)[2].replace(' ', '')
+        account = self.find_account(acclabel, owner)
+        if account:
+            return account[2].replace(' ', '')
 
     def go_account(self, acclabel, owner):
         ids = self.find_account(acclabel, owner)
