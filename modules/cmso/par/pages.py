@@ -235,7 +235,7 @@ class AccountsPage(LoggedPage, JsonPage):
                 return -abs(CleanDecimal().filter(Dict('montantRestant', default=None)(self) or Dict('montantUtilise')(self)))
 
             # only for revolving loans
-            obj_available_amount = CleanDecimal(Dict('montantDisponible', default=NotAvailable))
+            obj_available_amount = CleanDecimal(Dict('montantDisponible', default=NotAvailable), default=NotAvailable)
 
 
 class Transaction(FrenchTransaction):
