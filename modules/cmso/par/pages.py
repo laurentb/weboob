@@ -18,8 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import re, requests, json
+import re
+import requests
+import json
 import datetime as dt
+
 from collections import OrderedDict
 
 from weboob.browser.pages import HTMLPage, JsonPage, RawPage, LoggedPage, pagination
@@ -33,6 +36,7 @@ from weboob.capabilities.contact import Advisor
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.exceptions import BrowserIncorrectPassword
+
 
 def MyDecimal(*args, **kwargs):
     kwargs.update(replace_dots=True, default=NotAvailable)
@@ -206,36 +210,33 @@ class AccountsPage(LoggedPage, JsonPage):
 
             def obj_total_amount(self):
                 # Json key change depending on loan type, consumer credit or revolving credit
-                if 'montantEmprunte' in self.page.text:
-                    return Dict('montantEmprunte')(self)
-                else:
-                    return Dict('montantUtilise')(self)
+                return CleanDecimal(Dict('montantEmprunte', default=None)(self) or Dict('montantUtilise'))(self)
 
             # Key not always available, when revolving credit not yet consummed
-            obj_next_payment_amount = Dict('montantProchaineEcheance', default=NotAvailable)
+            obj_next_payment_amount = CleanDecimal(Dict('montantProchaineEcheance', default=None), default=NotAvailable)
 
             # obj_rate = can't find the info on website except pdf :(
 
             # Dates scraped are timestamp, to remove last '000' we divide by 1000
             def obj_maturity_date(self):
                 # Key not always available, when revolving credit not yet consummed
-                if 'dateFin' in self.page.text:
-                    return dt.date.fromtimestamp(Dict('dateFin')(self)/1000)
-                else:
-                    return NotAvailable
+                timestamp = Dict('dateFin', default=None)(self)
+                if timestamp:
+                    return dt.date.fromtimestamp(timestamp/1000)
+                return NotAvailable
 
             def obj_next_payment_date(self):
                 # Key not always available, when revolving credit not yet consummed
-                if 'dateProchaineEcheance' in self.page.text:
-                    return dt.date.fromtimestamp(Dict('dateProchaineEcheance')(self)/1000)
-                else:
-                    return NotAvailable
+                timestamp = Dict('dateProchaineEcheance', default=None)(self)
+                if timestamp:
+                    return dt.date.fromtimestamp(timestamp/1000)
+                return NotAvailable
 
             def obj_balance(self):
                 return -abs(CleanDecimal().filter(Dict('montantRestant', default=None)(self) or Dict('montantUtilise')(self)))
 
             # only for revolving loans
-            obj_available_amount = CleanDecimal(Dict('montantDisponible', default=NotAvailable), default=NotAvailable)
+            obj_available_amount = CleanDecimal(Dict('montantDisponible', default=None), default=NotAvailable)
 
 
 class Transaction(FrenchTransaction):
