@@ -25,11 +25,12 @@ import re
 
 from weboob.browser.pages import LoggedPage, JsonPage, HTMLPage
 from weboob.browser.elements import ItemElement, DictElement, method
-from weboob.browser.filters.standard import Date, Eval, CleanDecimal, CleanText, Field
+from weboob.browser.filters.standard import Date, Eval, CleanText, Field
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.bank import Account, Transaction
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.json import json
+from .base import parse_decimal
 
 
 def flatten(l):
@@ -121,15 +122,15 @@ class JsonHistory(LoggedPage, JsonPage):
                 # amount in the account's currency
                 amount = Field("amount")(self)
                 # amount in the transaction's currency
-                original_amount = CleanDecimal(Dict('foreign_details/amount', default=NotAvailable), default=NotAvailable)(self)
+                original_amount = Dict('foreign_details/amount', default=NotAvailable)(self)
                 if not original_amount:
                     return NotAvailable
-                original_amount = abs(original_amount)
+                else:
+                    original_amount = abs(parse_decimal(original_amount))
                 if amount < 0:
                     return -original_amount
                 else:
                     return original_amount
-
 
             #obj__ref = Dict('reference_id')
             obj__ref = Dict('identifier')
