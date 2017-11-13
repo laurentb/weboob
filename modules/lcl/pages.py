@@ -645,6 +645,7 @@ class AVPage(LoggedPage, HTMLPage):
             obj_label = Format(u'%s %s', CleanText('.//td/text()[following-sibling::br]'), obj__owner)
             obj_balance = CleanDecimal('.//td[last()]', replace_dots=True)
             obj_type = Account.TYPE_LIFE_INSURANCE
+            obj_currency = 'EUR'
             obj__link_id = None
             obj__market_link = None
             obj__coming_links = []
@@ -668,15 +669,6 @@ class AVPage(LoggedPage, HTMLPage):
                     account_id = page.get_account_id()
                     page.come_back()
                     return account_id
-
-            def obj_currency(self):
-                _id = CleanText('.//td/a/@id')(self)
-                if not _id:
-                    ac_details_page = self.page.browser.open(Link('.//td/a')(self)).page
-                else:
-                    split = _id.split('-')
-                    ac_details_page = self.page.browser.open('/outil/UWVI/AssuranceVie/accesDetail?ID_CONTRAT=%s&PRODUCTEUR=%s' % (split[0], split[1])).page
-                return Currency.get_currency(re.sub(r'[\d\,\ ]', '', CleanText('(//tr[8])/td[2]', default=NotAvailable)(ac_details_page.doc))) or NotAvailable
 
             def obj__form(self):
                 form_id = Attr('.//td/a', 'id', default=None)(self)
