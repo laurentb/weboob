@@ -235,9 +235,11 @@ class LifeInsuranceInvest(LoggedPage, MyHTMLPage):
         item_xpath = '//table[starts-with(@id, "mouvements")]/tbody//tr'
 
         col_unitvalue = 'Valeur Liquidative'
+        col_vdate = 'Date'
 
         class item(InvestItem):
             obj_unitvalue = CleanDecimal(TableCell('unitvalue'), replace_dots=True, default=NotAvailable)
+            obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True, default=NotAvailable)
 
 
 class LifeInsuranceHistory(LoggedPage, MyHTMLPage):
