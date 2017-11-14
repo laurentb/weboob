@@ -313,7 +313,6 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
                 if urlobj.is_here():
                     for tr in self.page.get_history(deferred=True):
-                        tr.type = tr.TYPE_CARD
                         yield tr
 
         if not account._has_cards:
