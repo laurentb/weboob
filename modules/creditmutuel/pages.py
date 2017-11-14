@@ -905,6 +905,10 @@ class PorPage(LoggedPage, HTMLPage):
             obj_valuation = CleanDecimal(TableCell('valuation'), default=Decimal(0), replace_dots=True)
             obj_diff = CleanDecimal(TableCell('diff'), default=Decimal(0), replace_dots=True)
 
+            def obj_vdate(self):
+                td = TableCell('unitvalue')(self)[0]
+                return Date(Regexp(Attr('./img', 'title'), r'Cours au : (\d{2}/\d{2}/\d{4})\b'), dayfirst=True)(td)
+
 
 class IbanPage(LoggedPage, HTMLPage):
     def fill_iban(self, accounts):
