@@ -37,6 +37,7 @@ from .pages.account_pages import (
 )
 from .pages.life_insurances import (
     LifeInsurancesPage, LifeInsurancePortal, LifeInsuranceMain, LifeInsuranceUseless,
+    LifeNotFound,
 )
 from .pages.investments import (
     LogonInvestmentPage, ProductViewHelper, RetrieveAccountsPage, RetrieveInvestmentsPage, RetrieveLiquidityPage
@@ -80,6 +81,7 @@ class HSBC(LoginBrowser):
     life_insurance_portal = URL(r'/cgi-bin/emcgi', LifeInsurancePortal)
     life_insurance_main = URL('https://assurances.hsbc.fr/fr/accueil/b2c/accueil.html\?pointEntree=PARTIEGENERIQUEB2C', LifeInsuranceMain)
     life_insurances = URL('https://assurances.hsbc.fr/navigation', LifeInsurancesPage)
+    life_not_found = URL(r'https://assurances.hsbc.fr/fr/404.html', LifeNotFound)
 
     # investment pages
     middle_frame_page = URL(r'/cgi-bin/emcgi', JSMiddleFramePage)
@@ -192,6 +194,10 @@ class HSBC(LoginBrowser):
             self.session.cookies.pop('ErisaSession', None)
             self.session.cookies.pop('HBFR-INSURANCE-COOKIE-82', None)
 
+        if self.life_not_found.is_here():
+            # likely won't avoid having to login again anyway
+            self.location(self.js_url)
+
         if self.frame_page.is_here():
             home_url = self.page.get_frame()
             self.js_url = self.page.get_js_url()
@@ -208,7 +214,7 @@ class HSBC(LoginBrowser):
 
         self.go_post(account.url)
 
-        if self.frame_page.is_here() or self.life_insurance_useless.is_here():
+        if self.frame_page.is_here() or self.life_insurance_useless.is_here() or self.life_not_found.is_here():
             self.logger.warning('cannot go to life insurance %r', account)
             return False
 

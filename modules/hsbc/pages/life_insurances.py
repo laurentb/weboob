@@ -124,4 +124,6 @@ class LifeInsurancesPage(LoggedPage, HTMLPage):
 class LifeInsuranceUseless(LoggedPage, HTMLPage):
     is_here = '//h1[text()="Assurance Vie"]'
 
-##
+
+class LifeNotFound(LoggedPage, HTMLPage):
+    pass
