@@ -53,7 +53,11 @@ class AccountsPage(LoggedPage, JsonPage):
 
             obj_id = CleanText(Dict('codeDispositif'))
             obj_balance = CleanDecimal(Dict('mtBrut'))
-            obj_number = Field('id')
+
+            def obj_number(self):
+                # just the id is a kind of company id so it can be unique on a backend but not unique on multiple backends
+                return self.page.browser.username + Field('id')(self)
+
             obj_currency = u"EUR"
 
             def obj_type(self):
