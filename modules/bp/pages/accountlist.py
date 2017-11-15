@@ -207,7 +207,7 @@ class AccountRIB(LoggedPage, RawPage):
     def __init__(self, *args, **kwargs):
         super(AccountRIB, self).__init__(*args, **kwargs)
 
-        self.parsed_text = ''
+        self.parsed_text = b''
 
         try:
             try:
