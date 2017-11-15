@@ -212,7 +212,6 @@ class BnpHistoryItem(ItemElement):
 class AccountHistoryPage(LoggedPage, JsonPage):
     TYPES = {
         u'CARTE': Transaction.TYPE_DEFERRED_CARD,  # Cartes
-        u'FACCB': Transaction.TYPE_DEFERRED_CARD,  # Cartes
         u'CHEQU': Transaction.TYPE_CHECK,  # Chèques
         u'REMCB': Transaction.TYPE_DEFERRED_CARD,  # Remises cartes
         u'VIREM': Transaction.TYPE_TRANSFER,  # Virements
@@ -222,6 +221,8 @@ class AccountHistoryPage(LoggedPage, JsonPage):
         u'VIRXX': Transaction.TYPE_TRANSFER,  # Autres virements
         u'PRLVT': Transaction.TYPE_LOAN_PAYMENT,  # Prélèvements, TIP et télérèglements
         u'AUTOP': Transaction.TYPE_UNKNOWN,  # Autres opérations
+
+        'FACCB': Transaction.TYPE_CARD,   # Cartes
     }
 
     COMING_TYPES = {
@@ -251,7 +252,10 @@ class AccountHistoryPage(LoggedPage, JsonPage):
                     return nature
 
             def obj_type(self):
-                return self.page.TYPES.get(Dict('nature/codefamille')(self), Transaction.TYPE_UNKNOWN)
+                type = self.page.TYPES.get(Dict('nature/codefamille')(self), Transaction.TYPE_UNKNOWN)
+                if type == Transaction.TYPE_CARD and re.search(r' RELEVE DU \d+\.', Field('raw')(self)):
+                    return Transaction.TYPE_CARD_SUMMARY
+                return type
 
             def obj_date(self):
                 return fromtimestamp(Dict('dateOperation')(self))
@@ -275,9 +279,6 @@ class AccountHistoryPage(LoggedPage, JsonPage):
                     CleanDecimal(Dict('montant/montant')),
                     CleanDecimal(Dict('montant/nb_dec'))
                 )(self)
-
-            def validate(self, obj):
-                return 'FACTURE CARTE DU' not in obj.raw
 
     @method
     class iter_coming(DictElement):
