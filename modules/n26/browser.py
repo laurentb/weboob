@@ -55,6 +55,7 @@ class Number26Browser(DomainBrowser):
         body back to JSON.
         """
         kwargs.setdefault('headers', {})['Authorization'] = self.auth_method + ' ' + self.bearer
+        kwargs.setdefault('headers', {})['Accept'] = "application/json"
         return self.open(*args, **kwargs).json()
 
     def __init__(self, username, password, *args, **kwargs):
