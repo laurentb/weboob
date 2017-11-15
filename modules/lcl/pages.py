@@ -781,6 +781,8 @@ class AVDetailPage(LoggedPage, LCLBasePage):
             obj_valuation = MyDecimal(TableCell('valuation'))
             obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal(TableCell('portfolio_share'), replace_dots=True))
 
+            obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True, default=NotAvailable)
+
     @pagination
     @method
     class iter_history(TableElement):
