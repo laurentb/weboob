@@ -634,26 +634,13 @@ class LifeInsurance(MarketPage):
             inv = Investment()
             libelle = CleanText('.')(tr.xpath('./td[1]')[0]).split(' ')
             inv.label, inv.code = self.split_label_code(libelle)
-            diff = self.parse_decimal(tr.xpath('./td[6]')[0])
             inv.quantity = self.parse_decimal(tr.xpath('./td[2]')[0])
             inv.unitvalue = self.parse_decimal(tr.xpath('./td[3]')[0])
             date = CleanText('.')(tr.xpath('./td[4]')[0])
             inv.vdate = Date(dayfirst=True).filter(date) if date and date != '-' else NotAvailable
-            inv.unitprice = self.calc(inv.unitvalue, diff)
             inv.valuation = self.parse_decimal(tr.xpath('./td[5]')[0])
-            inv.diff = self.get_diff(inv.valuation, self.calc(inv.valuation, diff))
 
             yield inv
-
-    def calc(self, value, diff):
-        if value is NotAvailable or diff is NotAvailable:
-            return NotAvailable
-        return Decimal(value) / (1 + Decimal(diff)/100)
-
-    def get_diff(self, valuation, calc):
-        if valuation is NotAvailable or calc is NotAvailable:
-            return NotAvailable
-        return valuation - calc
 
     def split_label_code(self, libelle):
         m = re.search('FR\d+', libelle[-1])
