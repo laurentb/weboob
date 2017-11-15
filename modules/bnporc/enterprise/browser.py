@@ -28,6 +28,7 @@ from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.url import URL
+from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages import (
     LoginPage, AuthPage, AccountsPage, AccountHistoryViewPage, AccountHistoryPage,
@@ -66,13 +67,6 @@ class BNPEnterprise(LoginBrowser):
 
     renew_pass = URL('/sommaire/PseRedirectPasswordConnect', ActionNeededPage)
 
-    def __init__(self, *args, **kwargs):
-        super(BNPEnterprise, self).__init__(*args, **kwargs)
-
-        self.cache = {}
-        self.cache['transactions'] = {}
-        self.cache['coming_transactions'] = {}
-
     def do_login(self):
         self.login.go()
 
@@ -92,19 +86,17 @@ class BNPEnterprise(LoginBrowser):
 
     @need_login
     def get_accounts_list(self):
-        if "accounts" not in self.cache.keys():
-            accounts = []
-            for account in self.accounts.stay_or_go().iter_accounts():
-                accounts.append(account)
-                if account._has_cards:
-                    self.card_init.go(identifiant=account.iban)
-                    self.card_init2.go()
-                    self.card_list.go()
-                    card_accounts = list(self.page.iter_accounts(account_id=account.id, parent_iban=account.iban))
-                    accounts.extend(merge_cards(card_accounts))
+        accounts = []
+        for account in self.accounts.stay_or_go().iter_accounts():
+            accounts.append(account)
+            if account._has_cards:
+                self.card_init.go(identifiant=account.iban)
+                self.card_init2.go()
+                self.card_list.go()
+                card_accounts = list(self.page.iter_accounts(account_id=account.id, parent_iban=account.iban))
+                accounts.extend(merge_cards(card_accounts))
 
-            self.cache['accounts'] = accounts
-        return self.cache['accounts']
+        return accounts
 
     @need_login
     def get_account(self, _id):
@@ -114,45 +106,41 @@ class BNPEnterprise(LoginBrowser):
 
     @need_login
     def iter_history(self, account):
-        if account.id not in self.cache['transactions']:
-            if account.type == Account.TYPE_CARD:
-                return []
-            else:
-                dformat = "%Y%m%d"
+        if account.type == Account.TYPE_CARD:
+            return []
 
-                self.cache['transactions'][account.id] = []
+        history = []
+        dformat = "%Y%m%d"
 
-                for date in rrule(MONTHLY, dtstart=(datetime.now() - relativedelta(months=3)), until=datetime.now()):
-                    self.account_history_view.go(identifiant=account.iban, type_solde='C', type_releve='Comptable', \
-                                                 type_date='O', date_min=(date + relativedelta(days=1)).strftime(dformat), \
-                                                 date_max=(date + relativedelta(months=1)).strftime(dformat))
-                    self.account_history.go(identifiant=account.iban, date_min=(date + relativedelta(days=1)).strftime(dformat), \
-                                            date_max=(date + relativedelta(months=1)).strftime(dformat))
+        for date in rrule(MONTHLY, dtstart=(datetime.now() - relativedelta(months=3)), until=datetime.now()):
+            self.account_history_view.go(identifiant=account.iban, type_solde='C', type_releve='Comptable', \
+                                         type_date='O', date_min=(date + relativedelta(days=1)).strftime(dformat), \
+                                         date_max=(date + relativedelta(months=1)).strftime(dformat))
+            self.account_history.go(identifiant=account.iban, date_min=(date + relativedelta(days=1)).strftime(dformat), \
+                                    date_max=(date + relativedelta(months=1)).strftime(dformat))
 
-                    for transaction in [t for t in self.page.iter_history() if t._coming is False]:
-                        self.cache['transactions'][account.id].append(transaction)
-                self.cache['transactions'][account.id].sort(key=lambda t: t.date, reverse=True)
-
-        return self.cache['transactions'][account.id]
+            for transaction in self.page.iter_history():
+                if transaction._coming:
+                    self.logger.debug('skipping coming %r', transaction.to_dict())
+                    continue
+                history.append(transaction)
+        return sorted_transactions(history)
 
     @need_login
     def iter_coming_operations(self, account):
-        if account.id not in self.cache['coming_transactions']:
-            if account.type == Account.TYPE_CARD:
-                self.accounts.go()
-                self.card_init.go(identifiant=account._parent_iban)
-                self.card_init2.go()
-                self.card_list.go()
-                self.init_card_history.go(card_id=account._index)
-                self.open('/NCCPresentationWeb/m99_pagination/setStatutPagination.do?ecran=e13_encours&nbEntreesParPage=TOUS&numPage=1')
-                self.card_history.go()
-            else:
-                self.account_coming_view.go(identifiant=account.iban)
-                self.account_coming.go(identifiant=account.iban)
+        if account.type == Account.TYPE_CARD:
+            self.accounts.go()
+            self.card_init.go(identifiant=account._parent_iban)
+            self.card_init2.go()
+            self.card_list.go()
+            self.init_card_history.go(card_id=account._index)
+            self.open('/NCCPresentationWeb/m99_pagination/setStatutPagination.do?ecran=e13_encours&nbEntreesParPage=TOUS&numPage=1')
+            self.card_history.go()
+        else:
+            self.account_coming_view.go(identifiant=account.iban)
+            self.account_coming.go(identifiant=account.iban)
 
-            self.cache['coming_transactions'][account.id] = [t for t in self.page.iter_coming()]
-
-        return self.cache['coming_transactions'][account.id]
+        return self.page.iter_coming()
 
     @need_login
     def iter_investment(self, account):

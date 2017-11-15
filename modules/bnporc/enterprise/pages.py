@@ -241,12 +241,14 @@ class AccountHistoryPage(LoggedPage, JsonPage):
             obj__coming = Dict('aVenir')
 
             def obj_raw(self):
-                if CleanText(Dict('nature/libelle'))(self) and CleanText(Dict('libelle'))(self):
-                    return "%s %s" % (CleanText(Dict('nature/libelle'))(self), CleanText(Dict('libelle'))(self))
-                elif CleanText(Dict('libelle'))(self):
-                    return CleanText(Dict('libelle'))(self)
+                nature = CleanText(Dict('nature/libelle'))(self)
+                label = CleanText(Dict('libelle'))(self)
+                if nature and label:
+                    return "%s %s" % (nature, label)
+                elif label:
+                    return label
                 else:
-                    return CleanText(Dict('nature/libelle'))(self)
+                    return nature
 
             def obj_type(self):
                 return self.page.TYPES.get(Dict('nature/codefamille')(self), Transaction.TYPE_UNKNOWN)
