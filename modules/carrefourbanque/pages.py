@@ -112,16 +112,19 @@ class HomePage(LoggedPage, HTMLPage):
     @method
     class iter_saving_accounts(ListElement):  # livrets
         item_xpath = (
-            '//div/div['
-            '(contains(./h2, "Livret Carrefour") or contains(./h2, "Epargne PASS"))'
-            'and contains(./p, "Numéro de compte")'
-            ']/..'
+            '//div[div[(contains(./h2, "Livret Carrefour") or contains(./h2, "Epargne PASS")) and contains(./p, "Numéro de compte")]]'
         )
 
         class item(item_account_generic):
             obj_type = Account.TYPE_SAVINGS
             obj_url = Link('.//a[contains(., "Historique des opérations")]')
-            obj_balance = CleanDecimal('.//a[contains(text(), "versement")]//preceding-sibling::h2', replace_dots=True)
+
+            def obj_balance(self):
+                val = CleanDecimal('.//a[contains(text(), "versement")]//preceding-sibling::h2', replace_dots=True, default=NotAvailable)(self)
+                if val is not NotAvailable:
+                    return val
+                val = CleanDecimal(Regexp(CleanText('./div[@class="right_col_wrapper"]//h2'), r'([\d ,]+€)'), replace_dots=True)(self)
+                return val
 
     @method
     class iter_life_accounts(ListElement):  # Assurances vie
