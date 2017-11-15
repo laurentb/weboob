@@ -895,7 +895,9 @@ class LifeInsurancePage(MarketPage):
     COL_ID = 0
     COL_QUANTITY = 3
     COL_UNITVALUE = 1
+    COL_VDATE = 2
     COL_VALUATION = 4
+    COL_PSHARE = 5
 
     def go_on_detail(self, account_id):
         # Sometimes this page is a synthesis, so we need to go on detail.
@@ -926,11 +928,13 @@ class LifeInsurancePage(MarketPage):
                     continue
             else:
                 inv.code = NotAvailable
-            inv.quantity = self.parse_decimal(cells[self.COL_QUANTITY].text_content())
-            inv.unitvalue = self.parse_decimal(cells[self.COL_UNITVALUE].text_content())
+            inv.quantity = self.parse_decimal(cells[self.COL_QUANTITY].text_content()) or NotAvailable
+            inv.unitvalue = self.parse_decimal(cells[self.COL_UNITVALUE].text_content()) or NotAvailable
             inv.valuation = self.parse_decimal(cells[self.COL_VALUATION].text_content())
             inv.unitprice = NotAvailable
             inv.diff = NotAvailable
+            inv.vdate = Date('.', dayfirst=True, default=NotAvailable)(cells[self.COL_VDATE])
+            inv.portfolio_share = self.parse_decimal(cells[self.COL_PSHARE].text_content()) / 100
 
             yield inv
 
