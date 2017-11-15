@@ -93,8 +93,11 @@ class BNPEnterprise(LoginBrowser):
                 self.card_init.go(identifiant=account.iban)
                 self.card_init2.go()
                 self.card_list.go()
-                card_accounts = list(self.page.iter_accounts(account_id=account.id, parent_iban=account.iban))
-                accounts.extend(merge_cards(card_accounts))
+                cards = list(self.page.iter_accounts(account_id=account.id, parent_iban=account.iban))
+                cards = merge_cards(cards)
+                for card in cards:
+                    card.parent = account
+                accounts.extend(cards)
 
         return accounts
 
