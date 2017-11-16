@@ -43,6 +43,4 @@ class EsaliaModule(AbstractModule, CapBank):
     PARENT = 's2e'
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(),
-                                   self.config['password'].get(),
-                                   weboob=self.weboob)
+        return self.create_browser(self.config, weboob=self.weboob)

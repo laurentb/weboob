@@ -30,7 +30,8 @@ from weboob.browser.filters.html import Attr, TableCell
 from weboob.capabilities.bank import Account, Investment, Pocket, Transaction
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard
-from weboob.exceptions import NoAccountsException, BrowserUnavailable, ActionNeeded
+from weboob.exceptions import NoAccountsException, BrowserUnavailable, ActionNeeded, BrowserQuestion, BrowserIncorrectPassword
+from weboob.tools.value import Value
 
 
 def MyDecimal(*args, **kwargs):
@@ -74,6 +75,10 @@ class S2eVirtKeyboard(MappedVirtKeyboard):
         return ''.join([self.get_symbol_code(self.symbols[c]) for c in string])
 
 
+class BrowserIncorrectAuthenticationCode(BrowserIncorrectPassword):
+    pass
+
+
 class LoginPage(HTMLPage):
     def get_password(self, password, secret):
         vkid = Attr('//input[@id="identifiantClavierVirtuel"]', 'value')(self.doc)
@@ -85,11 +90,12 @@ class LoginPage(HTMLPage):
         return password
 
     def login(self, login, password, secret):
-        data = {}
-        data['initialURI'] = "/portal/private/salarie-%s" % self.browser.SLUG
-        data['password'] = self.get_password(password, secret)
-        data['username'] = login
-        self.browser.location('/portal/login', data=data)
+        form = self.get_form(id="formulaireEnvoi")
+        device_print = '''{"screen":{"screenWidth":500,"screenHeight":500,"screenColourDepth":24},"timezone":{"timezone":-60},"plugins":{"installedPlugins":""},"fonts":{"installedFonts":"cursive;monospace;serif;sans-serif;fantasy;default;Arial;Courier;Courier New;Gentium;Times;Times New Roman;"},"userAgent":"Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.78 Mobile Safari/537.36","appName":"Netscape","appCodeName":"Mozilla","appVersion":"5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.78 Mobile Safari/537.36","platform":"Linux x86_64","product":"Gecko","productSub":"20030107","vendor":"Google Inc.","language":"en-US"}'''
+        form['password'] = self.get_password(password, secret) + device_print
+        form['username'] = login
+        form['devicePrint'] = device_print
+        form.submit()
 
     def get_error(self):
         cgu = CleanText('//h1[contains(text(), "Conditions")]', default=None)(self.doc)
@@ -98,6 +104,44 @@ class LoginPage(HTMLPage):
                else "Please accept the general conditions of use." if self.browser.LANG == 'en' \
                else cgu
         return cgu or CleanText('//div[contains(text(), "Erreur")]', default='')(self.doc)
+
+    def send_otp(self, otp):
+        form = self.get_form(xpath='//form[.//div[has-class("authentification-bloc-content-btn-bloc")]]',
+                             submit='//div[has-class("authentification-bloc-content-btn-bloc")]//input[@type="submit"]')
+        input_otp = Attr('//input[contains(@id, "otp")]', 'id')(self.doc)
+        input_id = Attr('//input[@type="checkbox"]', 'id')(self.doc)
+        form[input_otp] = otp
+        form[input_id] = 'on'
+        form.submit()
+
+    def check_error(self):
+        if bool(self.doc.xpath('//span[@class="operation-bloc-content-message-erreur-text"][contains(text(), "est incorrect")]')) or \
+           bool(self.doc.xpath('//span[@class="operation-bloc-content-message-erreur-text"][contains(text(), "is incorrect")]')):
+                raise BrowserIncorrectAuthenticationCode('Invalid OTP')
+        elif bool(self.doc.xpath('//span[@class="operation-bloc-content-message-erreur-text"][contains(text(), "Technical error")]')):
+            raise BrowserUnavailable()
+
+    def on_load(self):
+        receive_code_btn = bool(self.doc.xpath('//div[has-class("authentification-bloc-content-btn-bloc")][count(input)=1]'))
+        submit_input = self.doc.xpath('//input[@type="submit"]')
+        if receive_code_btn and len(submit_input) == 1:
+            form = self.get_form(xpath='//form[.//div[has-class("authentification-bloc-content-btn-bloc")][count(input)=1]]',
+                                 submit='//div[has-class("authentification-bloc-content-btn-bloc")]//input[@type="submit"]')
+
+            # sending mail with code
+            form.submit()
+            raise BrowserQuestion(Value('otp', label=u'Veuillez saisir votre code de sécurité'))
+
+        send_code_form = bool(self.doc.xpath('//form[.//div[has-class("authentification-bloc-content-btn-bloc")]]'))
+        otp = self.browser.config['otp'].get() if 'otp' in self.browser.config else None
+        if send_code_form and otp:
+            self.check_error()
+            self.send_otp(otp)
+
+
+class LandingPage(LoggedPage, HTMLPage):
+    pass
+
 
 # AMF codes
 class AMFHSBCPage(XMLPage):

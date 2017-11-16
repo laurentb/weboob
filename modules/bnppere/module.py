@@ -19,7 +19,7 @@
 
 
 from weboob.tools.backend import AbstractModule, BackendConfig
-from weboob.tools.value import ValueBackendPassword
+from weboob.tools.value import ValueBackendPassword, Value
 from weboob.capabilities.bank import CapBank
 
 from .browser import BnppereBrowser
@@ -37,12 +37,11 @@ class BnppereModule(AbstractModule, CapBank):
     VERSION = '1.4'
     CONFIG = BackendConfig(
              ValueBackendPassword('login',    label='Identifiant', masked=False),
-             ValueBackendPassword('password', label='Code secret', regexp='^(\d{6})$'))
+             ValueBackendPassword('password', label='Code secret', regexp='^(\d{6})$'),
+             Value('otp', label=u'Code de sécurité', default='', regexp='^(\d{6})$'))
 
     BROWSER = BnppereBrowser
     PARENT = 's2e'
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(),
-                                   self.config['password'].get(),
-                                   weboob=self.weboob)
+        return self.create_browser(self.config, weboob=self.weboob)

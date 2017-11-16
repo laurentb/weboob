@@ -19,7 +19,7 @@
 
 
 from weboob.tools.backend import AbstractModule, BackendConfig
-from weboob.tools.value import ValueBackendPassword
+from weboob.tools.value import ValueBackendPassword, Value
 from weboob.capabilities.bank import CapBank
 
 from .browser import ErehsbcBrowser
@@ -38,13 +38,11 @@ class ErehsbcModule(AbstractModule, CapBank):
     CONFIG = BackendConfig(
              ValueBackendPassword('login',    label='Identifiant', masked=False),
              ValueBackendPassword('password', label='Code secret', regexp='^(\d{6})$'),
-             ValueBackendPassword('secret',   label=u'Réponse secrète'))
+             ValueBackendPassword('secret',   label=u'Réponse secrète'),
+             Value('otp', label=u'Code de sécurité', default='', regexp='^(\d{6})$'))
 
     BROWSER = ErehsbcBrowser
     PARENT = 's2e'
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(),
-                                   self.config['password'].get(),
-                                   secret=self.config['secret'].get(),
-                                   weboob=self.weboob)
+        return self.create_browser(self.config, weboob=self.weboob)

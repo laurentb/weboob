@@ -41,6 +41,7 @@ class S2eModule(Module, CapBank):
              ValueBackendPassword('login',    label='Identifiant', masked=False),
              ValueBackendPassword('password', label='Code secret', regexp='^(\d{6})$'),
              ValueBackendPassword('secret',   label=u'Réponse secrète (optionnel)', default=''),
+             Value('otp',     label=u'Code de sécurité', default='', regexp='^(\d{6})$'),
              Value('website', label='Banque', default='', choices={'esalia': u'Esalia',
                                                                    'capeasi': u'Capeasi',
                                                                    'erehsbc': u'ERE HSBC',
@@ -55,9 +56,7 @@ class S2eModule(Module, CapBank):
 
     def create_default_browser(self):
         self.BROWSER = self.BROWSERS[self.config['website'].get()]
-        return self.create_browser(self.config['login'].get(),
-                                   self.config['password'].get(),
-                                   secret=self.config['secret'].get())
+        return self.create_borser(self.config)
 
     def get_account(self, _id):
         return find_object(self.browser.iter_accounts(), id=_id, error=AccountNotFound)

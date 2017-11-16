@@ -18,18 +18,20 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.browser import LoginBrowser, URL, need_login
+from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.exceptions import BrowserIncorrectPassword
 
 from .pages import (
     LoginPage, AccountsPage, AMFHSBCPage, AMFAmundiPage, AMFSGPage, HistoryPage,
-    ErrorPage, LyxorfcpePage, EcofiPage, EcofiDummyPage,
+    ErrorPage, LyxorfcpePage, EcofiPage, EcofiDummyPage, LandingPage
 )
 
 
-class S2eBrowser(LoginBrowser):
+class S2eBrowser(LoginBrowser, StatesMixin):
     login = URL('/portal/salarie-(?P<slug>\w+)/authentification',
+                '(.*)portal/salarie-(?P<slug>\w+)/authentification',
                 '/portal/j_security_check', LoginPage)
+    landing = URL('(.*)portal/salarie-bnp/accueil', LandingPage)
     accounts = URL('/portal/salarie-(?P<slug>\w+)/monepargne/mesavoirs\?language=(?P<lang>)',
                    '/portal/salarie-(?P<slug>\w+)/monepargne/mesavoirs', AccountsPage)
     amfcode_hsbc = URL('https://www.assetmanagement.hsbc.com/feedRequest', AMFHSBCPage)
@@ -41,11 +43,12 @@ class S2eBrowser(LoginBrowser):
     history = URL('/portal/salarie-(?P<slug>\w+)/operations/consulteroperations', HistoryPage)
     error = URL('/maintenance/HSBC/', ErrorPage)
 
-    def __init__(self, *args, **kwargs):
-        self.secret = None
-        if 'secret' in kwargs:
-            self.secret = kwargs['secret']
-            del kwargs['secret']
+    def __init__(self, config=None, *args, **kwargs):
+        self.config = config
+        kwargs['username'] = self.config['login'].get()
+        kwargs['password'] = self.config['password'].get()
+
+        self.secret = self.config['secret'].get() if 'secret' in self.config else None
         super(S2eBrowser, self).__init__(*args, **kwargs)
         self.cache = {}
         self.cache['invs'] = {}
@@ -53,11 +56,16 @@ class S2eBrowser(LoginBrowser):
         self.cache['details'] = {}
 
     def do_login(self):
-        self.login.go(slug=self.SLUG).login(self.username, self.password, self.secret)
+        otp = self.config['otp'].get() if 'otp' in self.config else None
+        if self.login.is_here() and otp:
+            self.page.check_error()
+            self.page.send_otp(otp)
+        else:
+            self.login.go(slug=self.SLUG).login(self.username, self.password, self.secret)
 
-        if self.login.is_here():
-            error = self.page.get_error()
-            raise BrowserIncorrectPassword(error)
+            if self.login.is_here():
+                error = self.page.get_error()
+                raise BrowserIncorrectPassword(error)
 
     @need_login
     def iter_accounts(self):
