@@ -40,15 +40,15 @@ class BanquePopulaireModule(Module, CapBank, CapContact):
     LICENSE = 'AGPLv3+'
     website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
         'www.ibps.alpes.banquepopulaire.fr': u'Alpes',
-        'www.ibps.alsace.banquepopulaire.fr': u'Alsace',
+        'www.ibps.alsace.banquepopulaire.fr': u'Alsace Lorraine Champagne',
         'www.ibps.bpaca.banquepopulaire.fr': u'Aquitaine Centre atlantique',
         'www.ibps.atlantique.banquepopulaire.fr': u'Atlantique',
+        'www.ibps.loirelyonnais.banquepopulaire.fr': u'Auvergne Rhône Alpes',
         'www.ibps.banquedesavoie.banquepopulaire.fr': u'Banque de Savoie',
-        'www.ibps.bpbfc.banquepopulaire.fr': u'Bourgogne-Franche Comté',
+        'www.ibps.bpbfc.banquepopulaire.fr': u'Bourgogne Franche-Comté',
         'www.ibps.bretagnenormandie.cmm.groupe.banquepopulaire.fr': u'Crédit Maritime Bretagne Normandie',
         'www.ibps.atlantique.creditmaritime.groupe.banquepopulaire.fr': u'Crédit Maritime Atlantique',
         'www.ibps.sudouest.creditmaritime.groupe.banquepopulaire.fr': u'Crédit Maritime du Littoral du Sud-Ouest',
-        'www.ibps.loirelyonnais.banquepopulaire.fr': u'Loire et Lyonnais',
         'www.ibps.lorrainechampagne.banquepopulaire.fr': u'Lorraine Champagne',
         'www.ibps.massifcentral.banquepopulaire.fr': u'Massif central',
         'www.ibps.mediterranee.banquepopulaire.fr': u'Méditerranée',
