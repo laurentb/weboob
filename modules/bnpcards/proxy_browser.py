@@ -18,33 +18,14 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from functools import wraps
+from weboob.browser.switch import SwitchingBrowser
 
 from .browser import BnpcartesentrepriseBrowser
 from .corporate.browser import BnpcartesentrepriseCorporateBrowser
 
 
-class ProxyBrowser(object):
-    def __init__(self, *args, **kwargs):
-        super(ProxyBrowser, self).__init__()
-        self._browser_args = args
-        self._browser_kwargs = kwargs
-
-        self._browser = BnpcartesentrepriseBrowser(*args, **kwargs)
-
-    def __getattr__(self, attr):
-        val = getattr(self._browser, attr)
-        if not callable(val):
-            return val
-
-        @wraps(val)
-        def wrapper(*args, **kwargs):
-            try:
-                return val(*args, **kwargs)
-            except BnpcartesentrepriseBrowser.CorporateCard:
-                self._browser = BnpcartesentrepriseCorporateBrowser(*self._browser_args, **self._browser_kwargs)
-                val2 = getattr(self._browser, attr)
-                return val2(*args, **kwargs)
-
-        return wrapper
-
+class ProxyBrowser(SwitchingBrowser):
+    BROWSERS = {
+        'main': BnpcartesentrepriseBrowser,
+        'corporate': BnpcartesentrepriseCorporateBrowser,
+    }

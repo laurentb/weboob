@@ -20,6 +20,7 @@
 
 from weboob.exceptions import BrowserIncorrectPassword, BrowserPasswordExpired
 from weboob.browser import LoginBrowser, URL, need_login
+from weboob.browser.switch import SiteSwitch
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages import LoginPage, ErrorPage, AccountsPage, TransactionsPage, \
@@ -60,9 +61,6 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
     ti_corporate_histo = URL('/ce_internet_corporate_ti/operationCorporateHistoDetail.builder.do', TiHistoPage)
     TIMEOUT = 60.0
 
-    class CorporateCard(Exception):
-        pass
-
     def __init__(self, type, *args, **kwargs):
         super(BnpcartesentrepriseBrowser, self).__init__(*args, **kwargs)
         self.type = type
@@ -78,7 +76,7 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
         if self.error.is_here() or self.page.is_error():
             raise BrowserIncorrectPassword()
         if self.type == '2' and self.page.is_corporate():
-            raise self.CorporateCard()
+            raise SiteSwitch('corporate')
         # ti corporate and ge corporate are not detected the same way ..
         if 'corporate' in self.page.url:
             self.is_corporate = True
