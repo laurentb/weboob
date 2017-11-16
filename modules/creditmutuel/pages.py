@@ -120,6 +120,7 @@ class item_account_generic(ItemElement):
         ('Cic Immo',                Account.TYPE_LOAN),
         ('Credit',                  Account.TYPE_LOAN),
         ('Eco-Prêt',                Account.TYPE_LOAN),
+        ('Mcne',                    Account.TYPE_LOAN),
         ('Nouveau Prêt',            Account.TYPE_LOAN),
         ('Passeport Credit',        Account.TYPE_LOAN),
         ('Pret',                    Account.TYPE_LOAN),
