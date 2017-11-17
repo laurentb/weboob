@@ -202,13 +202,13 @@ class AccountsList(LoggedPage, HTMLPage):
 
     @method
     class iter_asv_investments(ListElement):
-        item_xpath = '//div[@id="index:accountdetail"]//div[@class="asv_fond"]'
+        item_xpath = '//div[@id="index:accountdetail"]//div[has-class("asv_fond")]'
 
         class item(ItemElement):
             klass = Investment
 
             obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal('.//dl[@class="ligne-repartition"]/dd', replace_dots=True))
-            obj_code = Regexp(Attr('.//div[@class="asv_fond_view"]/a', 'onclick'), "'(.*?)'")
+            obj_label = CleanText('.//span[@class="asv_cat_lbl"]')
 
     @method
     class get_coming(generic_transactions):
@@ -294,7 +294,10 @@ class ASVInvest(LoggedPage, HTMLPage):
 
             def obj_code(self):
                 val = Async('details', CleanText('//td[@class="libelle-normal" and contains(.,"CodeISIN")]', default=NotAvailable))(self)
-                return val.split('CodeISIN : ')[1] if val else val
+                if val:
+                    return val.split('CodeISIN : ')[1] if val else val
+                else:
+                    return NotAvailable
 
             def obj_diff_percent(self):
                 return CleanDecimal(TableCell('diff_percent'), replace_dots=True, default=NotAvailable)(self)

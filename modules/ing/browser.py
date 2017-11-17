@@ -346,12 +346,11 @@ class IngBrowser(LoginBrowser):
             self.accountspage.stay_or_go()
             shares = {}
             for asv_investments in self.page.iter_asv_investments():
-                shares[asv_investments.code] = asv_investments.portfolio_share
-
+                shares[asv_investments.label] = asv_investments.portfolio_share
             if self.go_on_asv_detail(account, '/b2b2c/epargne/CoeDetCon') is not False:
                 self.where = u"asv"
                 for inv in self.page.iter_investments():
-                    inv.portfolio_share = shares[inv.code]
+                    inv.portfolio_share = shares[inv.label]
                     yield inv
 
     def get_history_titre(self, account):
