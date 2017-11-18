@@ -24,42 +24,19 @@ from weboob.tools.test import BackendTest
 class ZerobinTest(BackendTest):
     MODULE = 'zerobin'
 
-    def _test_read(self, url):
-        p = self.backend.get_paste(url)
-        self.assertEqual(p.contents, 'weboob test')
-        self.assertEqual(p.id, url)
-        self.assertEqual(p.url, url)
-        assert p.title
-
-    def test_read_0bin(self):
-        self._test_read('https://0bin.net/paste/KLRN54Ie2i6bLSx7#+DRqWpm7bdtdxaSn6UMwKNQMpxEJt1EkbTjNvY4xM9i')
-
-    def test_read_zerobin(self):
-        self._test_read('https://zerobin.net/?2e0aa2e95f8d846b#QObWRdfQroCN7MsQ9y9zvEHk/KAoOAIZszo2LrJnCEA=')
-
-    def _test_write(self, base):
+    def test_writeread(self):
         p = self.backend.new_paste(_id=None, contents='weboob test')
-        old = self.backend.browser.BASEURL
-        try:
-            self.backend.browser.BASEURL = base
-            self.backend.browser.post_paste(p, 86400)
-        finally:
-            self.backend.browser.BASEURL = old
+        self.backend.browser.post_paste(p, 86400)
+
         assert p.url
         assert p.id
         assert p.title
 
-        p2 = self.backend.get_paste(p.url)
+        p2 = self.backend.get_paste(p.id)
         self.assertEqual(p2.contents, 'weboob test')
-        assert p.url.startswith(base)
+        assert p.url.startswith(self.backend.browser.BASEURL)
         self.assertEqual(p.url, p2.url)
         self.assertEqual(p.id, p2.id)
 
-    def test_write_0bin(self):
-        self._test_write('https://0bin.net')
-
-    def test_write_zerobin(self):
-        self._test_write('https://zerobin.net')
-
-    def test_write_current(self):
-        self._test_write(self.backend.browser.BASEURL)
+        p3 = self.backend.get_paste(p.url)
+        self.assertEqual(p.id, p3.id)

@@ -61,7 +61,12 @@ class ZerobinBrowser(PagesBrowser):
         if id.startswith('http://') or id.startswith('https://'):
             url = id
             server_url, key = url.split('#')
-            id = url.rsplit('/', 1)[1]
+            m = self.read_page_0.match(server_url) or self.read_page_zero.match(server_url)
+            if not m:
+                return
+            subid = m.group('id')
+            id = '%s#%s' % (subid, key)
+
             self.location(server_url)
             if not (self.read_page_zero.is_here() or self.read_page_0.is_here()):
                 return
@@ -69,9 +74,10 @@ class ZerobinBrowser(PagesBrowser):
                 return
         else:
             subid, key = id.split('#')
-            url = self._find_page(subid)
-            if not url:
+            server_url = self._find_page(subid)
+            if not server_url:
                 return
+            url = '%s#%s' % (server_url, key)
 
         ret = ZeroPaste(id)
         ret.url = url
@@ -95,8 +101,8 @@ class ZerobinBrowser(PagesBrowser):
     def post_paste(self, p, max_age):
         self.location(self.BASEURL)
         p.url = self.page.post(p.contents, max_age)
-        p.id = p.url
 
-        server_url, _ = p.url.split('#')
+        server_url, key = p.url.split('#')
         m = self.read_page_0.match(server_url) or self.read_page_zero.match(server_url)
         p.title = m.group('id')
+        p.id = '%s#%s' % (p.title, key)
