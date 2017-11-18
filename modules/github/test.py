@@ -60,8 +60,8 @@ class GithubTest(BackendTest):
         query.project = 'weboobie/testing'
         query.status = 'closed'
         query.title = 'fix'
-        issues = self.backend.iter_issues(query)
-        issue = issues.next()
+        issues = iter(self.backend.iter_issues(query))
+        issue = next(issues)
         assert issue.status.name == 'closed'
         assert 'fix' in issue.title
 
