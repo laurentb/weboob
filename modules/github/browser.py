@@ -149,14 +149,17 @@ class GithubBrowser(CacheMixin, APIBrowser):
 
     def iter_comments(self, project_id, issue_number):
         url = 'https://api.github.com/repos/%s/issues/%s/comments' % (project_id, issue_number)
-        for jcomment in self.request(url):
-            d = {}
-            d['id'] = jcomment['id']
-            d['message'] = jcomment['body']
-            d['author'] = jcomment['user']['login']
-            d['date'] = parse_date(jcomment['created_at'])
-            d['attachments'] = list(self._extract_attachments(d['message']))
-            yield d
+        for json in self._paginated(url):
+            for jcomment in json:
+                d = {}
+                d['id'] = jcomment['id']
+                d['message'] = jcomment['body']
+                d['author'] = jcomment['user']['login']
+                d['date'] = parse_date(jcomment['created_at'])
+                d['attachments'] = list(self._extract_attachments(d['message']))
+                yield d
+            if len(json) < 100:
+                break
 
     def _extract_attachments(self, message):
         for attach_url in re.findall(r'https://f.cloud.github.com/assets/[\w/.-]+', message):
