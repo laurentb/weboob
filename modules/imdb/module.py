@@ -17,9 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 from weboob.capabilities.cinema import CapCinema, Person, Movie
 from weboob.tools.backend import Module
-from weboob.tools.compat import quote_plus
 
 from .browser import ImdbBrowser
 
@@ -43,10 +44,10 @@ class ImdbModule(Module, CapCinema):
         return self.browser.get_person(id)
 
     def iter_movies(self, pattern):
-        return self.browser.iter_movies(quote_plus(pattern.encode('utf-8')))
+        return self.browser.iter_movies(pattern)
 
     def iter_persons(self, pattern):
-        return self.browser.iter_persons(quote_plus(pattern.encode('utf-8')))
+        return self.browser.iter_persons(pattern)
 
     def iter_movie_persons(self, id, role=None):
         return self.browser.iter_movie_persons(id, role)

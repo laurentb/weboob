@@ -17,13 +17,20 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import re
+from __future__ import unicode_literals
 
-from HTMLParser import HTMLParser
-from weboob.deprecated.browser import Browser, BrowserHTTPNotFound
+import re
+try:
+    from HTMLParser import HTMLParser
+except ImportError:
+    from html.parser import HTMLParser
+
+from weboob.browser import PagesBrowser, URL
+from weboob.browser.profiles import Wget
+from weboob.exceptions import BrowserHTTPNotFound
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.capabilities.cinema import Movie, Person
-from weboob.tools.json import json
+from weboob.tools.compat import unicode
 
 from .pages import PersonPage, MovieCrewPage, BiographyPage,  ReleasePage
 
@@ -32,21 +39,18 @@ from datetime import datetime
 __all__ = ['ImdbBrowser']
 
 
-class ImdbBrowser(Browser):
-    DOMAIN = 'www.imdb.com'
-    PROTOCOL = 'http'
-    ENCODING = 'utf-8'
-    USER_AGENT = Browser.USER_AGENTS['wget']
-    PAGES = {
-        'http://www.imdb.com/title/tt[0-9]*/fullcredits.*': MovieCrewPage,
-        'http://www.imdb.com/title/tt[0-9]*/releaseinfo.*': ReleasePage,
-        'http://www.imdb.com/name/nm[0-9]*/*': PersonPage,
-        'http://www.imdb.com/name/nm[0-9]*/bio.*': BiographyPage,
-    }
+class ImdbBrowser(PagesBrowser):
+    BASEURL = 'http://www.imdb.com'
+    PROFILE = Wget()
+
+    movie_crew = URL(r'/title/tt[0-9]*/fullcredits.*', MovieCrewPage)
+    release = URL(r'/title/tt[0-9]*/releaseinfo.*', ReleasePage)
+    bio = URL(r'/name/nm[0-9]*/bio.*', BiographyPage)
+    person = URL(r'/name/nm[0-9]*/*', PersonPage)
 
     def iter_movies(self, pattern):
-        res = self.readurl('http://www.imdb.com/xml/find?json=1&nr=1&tt=on&q=%s' % pattern.encode('utf-8'))
-        jres = json.loads(res)
+        res = self.open('http://www.imdb.com/xml/find?json=1&nr=1&tt=on', params={'q': pattern})
+        jres = res.json()
         htmlparser = HTMLParser()
         for cat in ['title_popular', 'title_exact', 'title_approx']:
             if cat in jres:
@@ -71,8 +75,8 @@ class ImdbBrowser(Browser):
                     yield movie
 
     def iter_persons(self, pattern):
-        res = self.readurl('http://www.imdb.com/xml/find?json=1&nr=1&nm=on&q=%s' % pattern.encode('utf-8'))
-        jres = json.loads(res)
+        res = self.open('http://www.imdb.com/xml/find?json=1&nr=1&nm=on', params={'q': pattern})
+        jres = res.json()
         htmlparser = HTMLParser()
         for cat in ['name_popular', 'name_exact', 'name_approx']:
             if cat in jres:
@@ -91,9 +95,9 @@ class ImdbBrowser(Browser):
                     yield person
 
     def get_movie(self, id):
-        res = self.readurl('http://www.omdbapi.com/?i=%s&plot=full' % id)
+        res = self.open('http://www.omdbapi.com/?apikey=b7c56eb5&i=%s&plot=full' % id)
         if res is not None:
-            jres = json.loads(res)
+            jres = res.json()
         else:
             return None
         htmlparser = HTMLParser()
@@ -178,38 +182,38 @@ class ImdbBrowser(Browser):
             self.location('http://www.imdb.com/name/%s' % id)
         except BrowserHTTPNotFound:
             return
-        assert self.is_on_page(PersonPage)
+        assert self.person.is_here()
         return self.page.get_person(id)
 
     def get_person_biography(self, id):
         self.location('http://www.imdb.com/name/%s/bio' % id)
-        assert self.is_on_page(BiographyPage)
+        assert self.bio.is_here()
         return self.page.get_biography()
 
     def iter_movie_persons(self, movie_id, role):
         self.location('http://www.imdb.com/title/%s/fullcredits' % movie_id)
-        assert self.is_on_page(MovieCrewPage)
+        assert self.movie_crew.is_here()
         for p in self.page.iter_persons(role):
             yield p
 
     def iter_person_movies(self, person_id, role):
         self.location('http://www.imdb.com/name/%s' % person_id)
-        assert self.is_on_page(PersonPage)
+        assert self.person.is_here()
         return self.page.iter_movies(role)
 
     def iter_person_movies_ids(self, person_id):
         self.location('http://www.imdb.com/name/%s' % person_id)
-        assert self.is_on_page(PersonPage)
+        assert self.person.is_here()
         for movie in self.page.iter_movies_ids():
             yield movie
 
     def iter_movie_persons_ids(self, movie_id):
         self.location('http://www.imdb.com/title/%s/fullcredits' % movie_id)
-        assert self.is_on_page(MovieCrewPage)
+        assert self.movie_crew.is_here()
         for person in self.page.iter_persons_ids():
             yield person
 
     def get_movie_releases(self, id, country):
         self.location('http://www.imdb.com/title/%s/releaseinfo' % id)
-        assert self.is_on_page(ReleasePage)
+        assert self.release.is_here()
         return self.page.get_movie_releases(country)
