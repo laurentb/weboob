@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import re
 
 from weboob.capabilities.lyrics import SongLyrics
 from weboob.capabilities.base import NotLoaded, NotAvailable
@@ -59,6 +60,7 @@ class SearchPage(HTMLPage):
         aids = [href.split('/')[-1].replace('paroles-','') for href in artists_href]
         return aids
 
+
 class ArtistPage(HTMLPage):
     @method
     class iter_lyrics(ListElement):
@@ -88,7 +90,7 @@ class LyricsPage(HTMLPage):
             subid = self.page.url.replace('.html','').replace('paroles-','').split('/')[-2:]
             id = '%s|%s'%(subid[0], subid[1])
             return id
-        obj_content = CleanText(CleanHTML('//div[has-class("top-listing")]//div[has-class("text-center")]', default=NotAvailable), newlines=False)
+        obj_content = Regexp(CleanText(CleanHTML('//div[has-class("top-listing")]//div[has-class("text-center")]', default=NotAvailable), newlines=False), r'^(.*?)\s+Paroles2Chansons dispose d', flags=re.DOTALL)
         obj_title = Regexp(CleanText('//title', default=NotAvailable), 'Paroles (.*) - .*')
         obj_artist = Regexp(CleanText('//title', default=NotAvailable), 'Paroles .* - (.*) \(tra.*')
 

@@ -35,7 +35,7 @@ class Paroles2chansonsBrowser(PagesBrowser):
     PROFILE = Firefox()
     TIMEOUT = 30
 
-    BASEURL = 'http://www.paroles2chansons.com/'
+    BASEURL = 'http://paroles2chansons.lemonde.fr/'
     home = URL('$',
                  HomePage)
     search = URL('search',
