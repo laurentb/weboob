@@ -126,8 +126,6 @@ class YoutubeModule(Module, CapVideo, CapCollection):
 
         params = {'part': 'id,snippet', 'maxResults': YOUTUBE_MAX_RESULTS}
         if pattern is not None:
-            if isinstance(pattern, unicode):
-                pattern = pattern.encode('utf-8')
             params['q'] = pattern
         params['safeSearch'] = 'none' if nsfw else 'strict' # or 'moderate'
         params['order'] = ('relevance', 'rating', 'viewCount', 'date')[sortby]
