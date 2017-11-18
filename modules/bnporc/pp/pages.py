@@ -368,9 +368,16 @@ class ValidateTransferPage(BNPPage):
         transfer.currency = transfer_data['devise']
         transfer.amount = Decimal(transfer_data['montantEuros'])
         transfer.account_iban = transfer_data['ibanCompteDebiteur']
-        transfer.recipient_iban = transfer_data['ibanCompteCrediteur'] or recipient.iban
         transfer.account_id = account.id
-        transfer.recipient_id = recipient.id
+        try:
+            transfer.recipient_iban = transfer_data['ibanCompteCrediteur'] or recipient.iban
+        except KeyError:
+            # In last version, json contains a key 'idBeneficiaire' containing:
+            # "idBeneficiaire" : "00003##00001####FR7610278123456789028070101",
+            transfer.recipient_id = transfer_data['idBeneficiaire']
+            transfer.recipient_iban = transfer.recipient_id.split('#')[-1] or recipient.iban
+        else:
+            transfer.recipient_id = recipient.id
         transfer.exec_date = exec_date
         transfer.fees = Decimal(transfer_data['montantFrais'])
         transfer.label = transfer_data['motifVirement']
