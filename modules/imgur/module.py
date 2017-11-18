@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import re
+from base64 import b64encode
 
 from weboob.capabilities.base import StringField
 from weboob.capabilities.gallery import BaseGallery, BaseImage, CapGallery
@@ -106,7 +107,7 @@ class ImgurModule(Module, CapPaste, CapGallery, CapImage):
 
         paste = ImgPaste(id)
         bin = self.browser.open_raw(paste.raw_url).content
-        paste.contents = bin.encode('base64')
+        paste.contents = b64encode(bin)
         return paste
 
     def post_paste(self, paste, max_age=None):
