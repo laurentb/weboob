@@ -47,7 +47,7 @@ class JirafeauModule(Module, CapPaste):
     CONFIG = BackendConfig(Value('base_url', label='Base Jirafeau URL',
                                  description='URL of the Jirafeau-based site to use',
                                  regexp=r'https?://.*',
-                                 default='http://jirafeau.net/'))
+                                 default='https://jirafeau.net/'))
 
     BROWSER = JirafeauBrowser
 
