@@ -21,7 +21,7 @@ from __future__ import unicode_literals
 
 from weboob.browser.pages import HTMLPage
 from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, Regexp
+from weboob.browser.filters.standard import CleanText, Regexp, Field, Decode
 from weboob.browser.filters.html import AbsoluteLink
 from weboob.capabilities.collection import Collection
 from weboob.capabilities.audio import BaseAudio
@@ -69,12 +69,12 @@ class FolderPage(HTMLPage):
 
             klass = BaseAudio
 
-            filename = CleanText('./td/a')
+            obj_url = AbsoluteLink('./td/a')
 
+            filename = Decode(Regexp(Field('url'), '/([^/]+)$'))
             obj_title = Regexp(filename, r'(.*)\.[^.]+$')
             obj_ext = Regexp(filename, r'\.([^.]+)$')
             obj_format = obj_ext
-            obj_url = AbsoluteLink('./td/a')
 
             def obj_id(self):
                 return 'audio.%s' % '/'.join(self.page.get_split_path() + [self.filename(self)])
