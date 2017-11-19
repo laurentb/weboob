@@ -26,7 +26,7 @@ from weboob.tools.compat import unicode, basestring
 from weboob.tools.log import getLogger, DEBUG_FILTERS
 
 
-__all__ = ['FilterError', 'Filter',]
+__all__ = ['FilterError', 'ItemNotFound', 'Filter',]
 
 
 class NoDefault(object):
@@ -37,6 +37,10 @@ _NO_DEFAULT = NoDefault()
 
 
 class FilterError(ParseError):
+    pass
+
+
+class ItemNotFound(FilterError):
     pass
 
 

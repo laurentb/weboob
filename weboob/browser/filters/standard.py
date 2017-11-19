@@ -35,10 +35,10 @@ from weboob.exceptions import ParseError
 from weboob.browser.url import URL
 from weboob.tools.compat import parse_qs, urlparse
 
-from .base import _NO_DEFAULT, FilterError, _Filter, Filter, debug
+from .base import _NO_DEFAULT, FilterError, _Filter, Filter, debug, ItemNotFound
 
 
-__all__ = ['FilterError', 'ColumnNotFound', 'RegexpError', 'ItemNotFound',
+__all__ = ['FilterError', 'ColumnNotFound', 'RegexpError',
            'Filter', 'Base', 'Env', 'TableCell', 'RawText',
            'CleanText', 'Lower', 'Upper', 'Capitalize', 'CleanDecimal',
            'Field', 'Regexp', 'Map', 'DateTime', 'Date', 'Time', 'DateGuesser',
@@ -51,10 +51,6 @@ class ColumnNotFound(FilterError):
 
 
 class RegexpError(FilterError):
-    pass
-
-
-class ItemNotFound(FilterError):
     pass
 
 
