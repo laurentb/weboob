@@ -142,9 +142,13 @@ class Decode(Filter):
 
     @debug()
     def filter(self, txt):
-        from weboob.tools.compat import unquote
         try:
-            txt = unquote(txt.encode('ascii')).decode(self.encoding)
+            try:
+                from urllib.parse import unquote
+                txt = unquote(txt, self.encoding)
+            except ImportError:
+                from urllib import unquote
+                txt = unquote(txt.encode('ascii')).decode(self.encoding)
         except (UnicodeDecodeError, UnicodeEncodeError):
             pass
 
