@@ -22,6 +22,7 @@ from __future__ import unicode_literals
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import ClientError
 from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.bill import Subscription
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 
 from .pages.login import KeyboardPage, LoginPage, ChangepasswordPage, PredisconnectedPage, DeniedPage
@@ -30,7 +31,9 @@ from .pages.bank import (
     UnavailablePage, IbanPage, LifeInsuranceIframe, BoursePage,
 )
 from .pages.wealth import AccountsPage as WealthAccountsPage, InvestmentPage, HistoryPage
+from .pages.document import DocumentsPage, DownloadPage
 from weboob.capabilities.bank import Account
+
 
 class AXABrowser(LoginBrowser):
     # Login
@@ -260,6 +263,18 @@ class AXABanque(AXABrowser):
                 for tr in self.page.get_history():
                     yield tr
 
+    @need_login
+    def get_subscription_list(self):
+        raise NotImplementedError()
+
+    @need_login
+    def iter_documents(self, subscription):
+        raise NotImplementedError()
+
+    @need_login
+    def download_document(self, url):
+        raise NotImplementedError()
+
 
 class AXAAssurance(AXABrowser):
     BASEURL = 'https://espaceclient.axa.fr'
@@ -268,6 +283,10 @@ class AXAAssurance(AXABrowser):
     investment = URL('/content/ecc-popin-cards/savings/[^/]+/repartition', InvestmentPage)
     history = URL('.*accueil/savings/(\w+)/contract',
                   'https://espaceclient.axa.fr/#', HistoryPage)
+    documents = URL('https://espaceclient.axa.fr/content/espace-client/accueil/mes-documents/attestations-d-assurances.content-inner.din_CERTIFICATE.html', DocumentsPage)
+    download = URL('/content/ecc-popin-cards/technical/detailed/document.downloadPdf.html',
+                   '/content/ecc-popin-cards/technical/detailed/document/_jcr_content/',
+                   DownloadPage)
 
     def __init__(self, *args, **kwargs):
         super(AXAAssurance, self).__init__(*args, **kwargs)
@@ -329,3 +348,19 @@ class AXAAssurance(AXABrowser):
 
     def iter_coming(self, account):
         raise NotImplementedError()
+
+    @need_login
+    def get_subscription_list(self):
+        sub = Subscription()
+        sub.label = sub.id = self.username
+        yield sub
+
+    @need_login
+    def iter_documents(self, subscription):
+        return self.documents.go().get_documents(subid=subscription.id)
+
+    @need_login
+    def download_document(self, url):
+        self.location(url)
+        self.page.create_document()
+        return self.page.content
