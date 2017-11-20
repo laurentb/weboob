@@ -111,6 +111,14 @@ class InvestmentPage(LoggedPage, HTMLPage):
                 txt = CleanText('./text()')(td)
                 return Date('.', dayfirst=True, default=NotAvailable).filter(txt)
 
+            def obj_code_type(self):
+                lst = self.el.xpath('./th/a')
+                if not lst:
+                    return NotAvailable
+                return Investment.CODE_TYPE_ISIN
+
+            obj_code = Regexp(Link('./th/a', default=''), r'isin=(.{12})$', default=NotAvailable)
+
             def unitvalue(self):
                 return CleanDecimal(TableCell('unitvalue'), replace_dots=True)(self)
 
