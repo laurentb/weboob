@@ -17,17 +17,19 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 import json
 import re
+import time
 from datetime import date
 from decimal import Decimal
 
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction, sorted_transactions
-from weboob.exceptions import BrowserIncorrectPassword, BrowserHTTPError, BrowserUnavailable, ActionNeeded, ParseError
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded, ParseError
 from weboob.browser import DomainBrowser
-
 
 __all__ = ['BredBrowser']
 
@@ -56,15 +58,24 @@ class BredBrowser(DomainBrowser):
         super(BredBrowser, self).__init__(*args, **kwargs)
         self.login = login
         # Bred only use first 8 char (even if the password is set to be bigger)
-        # The js login form remove after 8th char. No comment.
+        # The js login form remove after 8th char. No comment.
         self.password = password[:8]
         self.accnum = accnum
         self.universes = None
         self.current_univers = None
 
-    def do_login(self, login, password):
-        r = self.open('/transactionnel/Authentication', data={'identifiant': login, 'password': password})
+    def do_post_auth(self):
+        if 'hsess' not in self.session.cookies:
+            self.location('/')  # set session token
+            assert 'hsess' in self.session.cookies, "Session token not correctly set"
 
+        # hard-coded authentication payload
+        data = dict(identifiant=self.login, password=self.password)
+        cookies = {k: v for k, v in self.session.cookies.items() if k in ('hsess', )}
+        return self.open('https://www.bred.fr/transactionnel/Authentication', data=data, cookies=cookies)
+
+    def do_login(self):
+        r = self.do_post_auth()
         if 'gestion-des-erreurs/erreur-pwd' in r.url:
             raise BrowserIncorrectPassword('Bad login/password.')
         if 'gestion-des-erreurs/opposition' in r.url:
@@ -86,69 +97,74 @@ class BredBrowser(DomainBrowser):
                      '730': Account.TYPE_DEPOSIT,
                     }
 
-    def api_open(self, *args, **kwargs):
-        try:
-            return super(BredBrowser, self).open(*args, **kwargs)
-        except BrowserHTTPError:
-            self.do_login(self.login, self.password)
-            return super(BredBrowser, self).open(*args, **kwargs)
+    def get_universes(self):
+        """Get universes (particulier, pro, etc)"""
 
-    def set_universes(self):
-        universes = []
-        r = self.api_open('/transactionnel/services/applications/menu/getMenuUnivers')
-        for univers in r.json()['content']['menus']:
-            universes.append(univers['universKey'])
-        if not universes:
-            # There is just the default univers here.
-            universes.append('')
-            self.current_univers = ''
-        else:
-            # The following is needed to get the default univers in the list.
-            self.move_to_univers(universes[0])
-            r = self.api_open('/transactionnel/services/applications/menu/getMenuUnivers')
-            for univers in r.json()['content']['menus']:
-                if univers['universKey'] not in universes:
-                    universes.append(univers['universKey'])
-        self.universes = universes
+        self.do_login()
+        self.get_and_update_bred_token()
+        universe_data = self.open(
+            '/transactionnel/services/applications/menu/getMenuUnivers',
+            headers={'Accept': 'application/json'}
+        ).json().get('content', {})
+
+        universes = {}
+        universes[universe_data['universKey']] = universe_data['title']
+        for universe in universe_data.get('menus', {}):
+            universes[universe['universKey']] = universe['title']
+
+        return universes
+
+    def get_and_update_bred_token(self):
+        timestamp = int(time.time() * 1000)
+        x_token_bred = self.location('/transactionnel/services/rest/User/nonce?random={}'.format(timestamp)).json()['content']
+        self.session.headers.update({'X-Token-Bred': x_token_bred, })  # update headers for session
+        return {'X-Token-Bred': x_token_bred, }
 
     def move_to_univers(self, univers):
-        x_token_bred = self.api_open('/transactionnel/services/rest/User/nonce?random=').json()['content']
-        data = {}
-        data['all'] = 'true'
-        data['univers'] = univers
-        self.api_open('/transactionnel/services/rest/User/switch', data=json.dumps(data), headers={'x-token-bred': x_token_bred})
+        if univers == self.current_univers:
+            return
+        self.open('/transactionnel/services/applications/listes/{key}/default'.format(key=univers))
+        self.get_and_update_bred_token()
+        headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+        self.open(
+            '/transactionnel/services/rest/User/switch',
+            data=json.dumps({'all': 'false', 'univers': univers}),
+            headers=headers,
+        )
         self.current_univers = univers
 
     def get_accounts_list(self):
-        if not self.universes:
-            self.set_universes()
         accounts = []
-        for univers in self.universes:
-            if univers != self.current_univers:
-                self.move_to_univers(univers)
+        for universe_key in self.get_universes():
+            self.move_to_univers(universe_key)
             accounts.extend(self.get_list())
             accounts.extend(self.get_loans_list())
-        return accounts
+
+        return sorted(accounts, key=lambda x: x._univers)
 
     def get_loans_list(self):
-        r = self.api_open('/transactionnel/services/applications/prets/liste')
+        call_response = self.location('/transactionnel/services/applications/prets/liste').json().get('content', [])
 
-        if 'content' in r.json():
-            for content in r.json()['content']:
-                a = Account()
-                a.id = "%s.%s" % (content['comptePrets'].strip(), content['numeroDossier'].strip())
-                a.type = Account.TYPE_LOAN
-                a.label = ' '.join([content['intitule'].strip(), content['libellePrets'].strip()])
-                a.balance = -Decimal(str(content['montantCapitalDu']['valeur']))
-                a.currency = content['montantCapitalDu']['monnaie']['code'].strip()
-                yield a
+        for content in call_response:
+            a = Account()
+            a.id = "%s.%s" % (content['comptePrets'].strip(), content['numeroDossier'].strip())
+            a.type = Account.TYPE_LOAN
+            a.label = ' '.join([content['intitule'].strip(), content['libellePrets'].strip()])
+            a.balance = -Decimal(str(content['montantCapitalDu']['valeur']))
+            a.currency = content['montantCapitalDu']['monnaie']['code'].strip()
+            a._univers = self.current_univers
+            yield a
 
     def get_list(self):
-        r = self.api_open('/transactionnel/services/rest/Account/accounts')
-
+        call_response = self.location(
+            '/transactionnel/services/rest/Account/accounts'
+        ).json().get('content', [])
         seen = set()
 
-        for content in r.json()['content']:
+        for content in call_response:
             if self.accnum != '00000000000' and content['numero'] != self.accnum:
                 continue
             for poste in content['postes']:
@@ -164,12 +180,15 @@ class BredBrowser(DomainBrowser):
                     # but in fact are kind of closed, so worthless...
                     self.logger.warning('ignored account id %r (%r) because it is already used', a.id, poste.get('numeroDossier'))
                     continue
+
                 seen.add(a.id)
 
                 a.type = self.ACCOUNT_TYPES.get(poste['codeNature'], Account.TYPE_UNKNOWN)
                 if a.type == Account.TYPE_CHECKING:
-                    iban_response = self.api_open('/transactionnel/services/rest/Account/account/%s/iban' % a._number).json()
-                    a.iban = iban_response['content']['iban'] if 'content' in iban_response else NotAvailable
+                    iban_response = self.location(
+                        '/transactionnel/services/rest/Account/account/%s/iban' % a._number
+                    ).json().get('content', {})
+                    a.iban = iban_response.get('iban', NotAvailable)
                 else:
                     a.iban = NotAvailable
 
@@ -196,6 +215,32 @@ class BredBrowser(DomainBrowser):
                     a.id += str(poste['monnaie']['codeSwift'])
                 yield a
 
+    def _make_api_call(self, account, start_date, end_date, offset, max_length=50):
+        HEADERS = {
+            'Accept': "application/json",
+            'Content-Type': 'application/json',
+        }
+        HEADERS.update(self.get_and_update_bred_token())
+        call_payload = {
+            "account": account._number,
+            "poste": "000",
+            "sousPoste": "00",
+            "devise": account.currency,
+            "fromDate": start_date.strftime('%Y-%m-%d'),
+            "toDate": end_date.strftime('%Y-%m-%d'),
+            "from": offset,
+            "size": max_length,  # max length of transactions
+            "search": "",
+            "categorie": "",
+        }
+        result = self.open('/transactionnel/services/applications/operations/getSearch/', data=json.dumps(call_payload), headers=HEADERS, ).json()
+
+        if int(result['erreur']['code']) != 0:
+            raise BrowserUnavailable("API sent back an error code")
+
+        transaction_list = result['content']['operations']
+        return transaction_list
+
     def get_history(self, account, coming=False):
         if account.type is Account.TYPE_LOAN or not account._consultable:
             raise NotImplementedError()
@@ -208,17 +253,13 @@ class BredBrowser(DomainBrowser):
         offset = 0
         next_page = True
         while next_page:
-            r = self.api_open('/transactionnel/services/applications/operations/get/%(number)s/%(nature)s/00/%(currency)s/%(startDate)s/%(endDate)s/%(offset)s/%(limit)s' %
-                          {'number': account._number,
-                           'nature': account._nature,
-                           'currency': account.currency,
-                           'startDate': '2000-01-01',
-                           'endDate': date.today().strftime('%Y-%m-%d'),
-                           'offset': offset,
-                           'limit': 50
-                          })
+            operation_list = self._make_api_call(
+                account=account,
+                start_date=date(day=1, month=1, year=2000), end_date=date.today(),
+                offset=offset, max_length=50,
+            )
             transactions = []
-            for op in reversed(r.json()['content']['operations']):
+            for op in reversed(operation_list):
                 t = Transaction()
                 t.id = op['id']
                 if op['id'] in seen:
@@ -226,7 +267,7 @@ class BredBrowser(DomainBrowser):
 
                 seen.add(t.id)
                 d = date.fromtimestamp(op.get('dateDebit', op.get('dateOperation'))/1000)
-                op['details'] = [re.sub('\s+', ' ', i).replace('\x00', '') for i in op['details'] if i] # sometimes they put "null" elements...
+                op['details'] = [re.sub('\s+', ' ', i).replace('\x00', '') for i in op['details'] if i]  # sometimes they put "null" elements...
                 label = re.sub('\s+', ' ', op['libelle']).replace('\x00', '')
                 raw = ' '.join([label] + op['details'])
                 vdate = date.fromtimestamp(op.get('dateValeur', op.get('dateDebit', op.get('dateOperation')))/1000)
@@ -260,4 +301,3 @@ class BredBrowser(DomainBrowser):
             offset += 50
 
             assert offset < 30000, 'the site may be doing an infinite loop'
-
