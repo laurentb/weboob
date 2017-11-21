@@ -32,6 +32,7 @@ from weboob.browser.filters.standard import CleanText, Date, CleanDecimal, Regex
 from weboob.exceptions import ActionNeeded, BrowserIncorrectPassword, BrowserUnavailable
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.profile import Profile
+from weboob.capabilities.base import Currency
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
@@ -584,6 +585,22 @@ class ProTransactionsPage(TransactionsPage):
 
         return sorted(transactions.items())
 
+    def detect_currency(self, t, raw):
+        matches = []
+        for currency in Currency.CURRENCIES:
+            if ' ' + currency + ' ' in raw:
+                m = re.search(r'(\d+[,.]\d{1,2}? ' + currency + r')', raw)
+                if m:
+                    matches.append((m, currency))
+        assert len(matches) in [0,1]
+        if matches:
+            match = matches[0][0]
+            currency = matches[0][1]
+            t.original_currency = currency
+            t.original_amount = abs(MyDecimal().filter(match.group()))
+            if (t.amount < 0):
+                t.original_amount = -t.original_amount
+
     def get_history(self, acc_type):
         for i, tr in self.parse_transactions():
             t = Transaction()
@@ -594,9 +611,9 @@ class ProTransactionsPage(TransactionsPage):
                 date = Date(dayfirst=True, default=None).filter(tr['date'])
                 vdate = Date(dayfirst=True, default=None).filter(tr['dateval']) or date
             raw = MyStrip(' '.join([tr['typeope'], tr['LibComp']]))
-
             t.parse(date, raw, vdate)
             t.set_amount(tr['mont'])
+            self.detect_currency(t, raw)
 
             if self.condition(t, acc_type):
                 continue
