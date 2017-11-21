@@ -149,7 +149,10 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             'nuabbd': self.username
         }
 
-        res = self.location(data['url'], params=playload)
+        try:
+            res = self.location(data['url'], params=playload)
+        except json.decoder.JSONDecodeError:
+            raise BrowserUnavailable()
         if not res.page:
             raise BrowserUnavailable()
 
