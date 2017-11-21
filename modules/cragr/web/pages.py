@@ -751,6 +751,9 @@ class TransactionsPage(MyLoggedPage, BasePage):
                 col_text = cols[self.COL_TEXT+1]
 
             raw = cleaner(col_text)
+            # strip HTML comments if present
+            for html_comment in col_text.xpath('.//comment()'):
+                raw = raw.replace(html_comment.text, '')
             date = cleaner(cols[self.COL_DATE])
             credit = cleaner(cols[self.COL_CREDIT])
             if self.COL_DEBIT is not None:
