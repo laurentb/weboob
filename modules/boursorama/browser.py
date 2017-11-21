@@ -194,6 +194,10 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
                 if account.type != Account.TYPE_CARD:
                     account.iban = self.iban.go(webid=account._webid).get_iban()
 
+            for card in cards:
+                checking, = [account for account in self.accounts_list if account.type == Account.TYPE_CHECKING and account.url in card.url]
+                card.parent = checking
+
         return self.accounts_list
 
     def get_account(self, id):
