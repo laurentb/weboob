@@ -42,7 +42,7 @@ from weboob.tools.value import Value
 from weboob.tools.date import parse_french_date
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard, VirtKeyboardError
 from weboob.tools.compat import urljoin
-from weboob.exceptions import BrowserQuestion, BrowserIncorrectPassword, BrowserHTTPNotFound, BrowserUnavailable
+from weboob.exceptions import BrowserQuestion, BrowserIncorrectPassword, BrowserHTTPNotFound, BrowserUnavailable, ActionNeeded
 
 
 class BrowserAuthenticationCodeMaxLimit(BrowserIncorrectPassword):
@@ -617,7 +617,10 @@ class LoanPage(LoggedPage, HTMLPage):
 
 
 class ErrorPage(HTMLPage):
-    pass
+    def on_load(self):
+        input_required = Attr('//input[@required][@id="profile_lei_type_identifier"]', 'data-message')(self.doc)
+        if input_required:
+            raise ActionNeeded(input_required)
 
 
 class ExpertPage(LoggedPage, HTMLPage):
