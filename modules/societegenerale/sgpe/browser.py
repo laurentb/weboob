@@ -42,14 +42,13 @@ class SGPEBrowser(LoginBrowser):
                       '/gae/afficherChangementCodeSecretExpire.html',
                       ChangePassPage)
 
-    def is_logged(self):
+    def check_logged_status(self):
         if not self.page or self.login.is_here():
-            return False
+            raise BrowserIncorrectPassword()
 
         error = self.page.get_error()
-        if error is None:
-            return True
-        return False
+        if error:
+            raise BrowserIncorrectPassword(error)
 
     def do_login(self):
         if not self.password.isdigit():
@@ -65,8 +64,7 @@ class SGPEBrowser(LoginBrowser):
         # force page change
         if not self.accounts.is_here():
             self.go_accounts()
-        if not self.is_logged():
-            raise BrowserIncorrectPassword()
+        self.check_logged_status()
 
     def card_history(self, account, coming):
         page = 1
