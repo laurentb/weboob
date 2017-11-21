@@ -23,9 +23,6 @@ from weboob.capabilities.bank import CapBank, AccountNotFound
 from weboob.capabilities.base import find_object
 
 
-__all__ = ['S2eModule']
-
-
 class S2eModule(Module, CapBank):
     NAME = 's2e'
     DESCRIPTION = u'Épargne Salariale'

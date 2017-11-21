@@ -20,4 +20,6 @@
 
 from .module import S2eModule
 
-__all__ = ['S2eModule']
+from .browser import CapeasiBrowser, ErehsbcBrowser, BnppereBrowser, EsaliaBrowser
+
+__all__ = ['S2eModule', 'CapeasiBrowser', 'ErehsbcBrowser', 'BnppereBrowser', 'EsaliaBrowser']
