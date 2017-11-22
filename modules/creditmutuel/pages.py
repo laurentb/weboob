@@ -908,7 +908,7 @@ class PorPage(LoggedPage, HTMLPage):
 
             def obj_vdate(self):
                 td = TableCell('unitvalue')(self)[0]
-                return Date(Regexp(Attr('./img', 'title'), r'Cours au : (\d{2}/\d{2}/\d{4})\b'), dayfirst=True)(td)
+                return Date(Regexp(Attr('./img', 'title', default=''), r'Cours au : (\d{2}/\d{2}/\d{4})\b', default=None), dayfirst=True, default=NotAvailable)(td)
 
 
 class IbanPage(LoggedPage, HTMLPage):
