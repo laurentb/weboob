@@ -162,6 +162,10 @@ class IndexPage(LoggedPage, HTMLPage):
                      u'PEA':                        Account.TYPE_PEA,
                     }
 
+    def build_doc(self, content):
+        content = content.strip('\x00')
+        return super(IndexPage, self).build_doc(content)
+
     def on_load(self):
         # This page is sometimes an useless step to the market website.
 
