@@ -29,7 +29,7 @@ from weboob.browser.elements import method, DictElement, ItemElement
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Eval, Date, Field
 from weboob.browser.filters.html import Attr, Link, AttributeNotFound
 from weboob.browser.filters.json import Dict
-from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
+from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, ActionNeeded
 
 from weboob.browser.pages import HTMLPage, LoggedPage, FormNotFound, JsonPage, RawPage, XMLPage
 
@@ -341,8 +341,11 @@ class Login2Page(LoginPage):
             doc = r.json()
             self.logger.debug('doc = %s', doc)
 
-        if ('phase' in doc and doc['phase']['previousResult'] == 'FAILED_AUTHENTICATION') or \
-           doc['response']['status'] != 'AUTHENTICATION_SUCCESS':
+        if 'phase' in doc and doc['phase']['state'] == "ENROLLMENT":
+            raise ActionNeeded()
+
+        if (('phase' in doc and doc['phase']['previousResult'] == 'FAILED_AUTHENTICATION') or
+            doc['response']['status'] != 'AUTHENTICATION_SUCCESS'):
             raise BrowserIncorrectPassword()
 
         data = {'SAMLResponse': doc['response']['saml2_post']['samlResponse']}
