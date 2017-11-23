@@ -36,6 +36,9 @@ from weboob.tools.date import ChaoticDateGuesser, parse_french_date
 
 
 def parse_decimal(s):
+    # we might get 1,399,680 in rupie indonésienne
+    if s.count(',') > 1 and not s.count('.'):
+        return CleanDecimal(replace_dots=(',', '.')).filter(s)
     # we don't know which decimal format this account will use
     comma = s.rfind(',') > s.rfind('.')
     return CleanDecimal(replace_dots=comma).filter(s)
