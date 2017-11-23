@@ -253,6 +253,11 @@ class RedirectPage(LoggedPage, MyHTMLPage):
 
 
 class ErrorPage(LoggedPage, MyHTMLPage):
+    def on_load(self):
+        if CleanText('//script[contains(text(), "momentanément indisponible")]')(self.doc):
+            raise BrowserUnavailable(u"Le service est momentanément indisponible")
+        return super(ErrorPage, self).on_load()
+
     def get_token(self):
         try:
             buf = self.doc.xpath('//body/@onload')[0]
