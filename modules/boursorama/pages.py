@@ -618,9 +618,10 @@ class LoanPage(LoggedPage, HTMLPage):
 
 class ErrorPage(HTMLPage):
     def on_load(self):
-        input_required = Attr('//input[@required][@id="profile_lei_type_identifier"]', 'data-message')(self.doc)
-        if input_required:
-            raise ActionNeeded(input_required)
+        error = (Attr('//input[@required][@id="profile_lei_type_identifier"]', 'data-message', default=None)(self.doc) or
+                 CleanText('//h2[@class="page-title"][contains(text(), "Actualisation")]', default=None)(self.doc))
+        if error:
+            raise ActionNeeded(error)
 
 
 class ExpertPage(LoggedPage, HTMLPage):
