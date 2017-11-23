@@ -69,6 +69,8 @@ class BanquePopulaireModule(Module, CapBank, CapContact):
             ('alsace', 'bpalc'),
             ('lorrainechampagne', 'bpalc'),
             ('loirelyonnais', 'bpaura'),
+            ('alpes', 'bpaura'),
+            ('massifcentral', 'bpaura'),
         ]
         website = reduce(lambda a, kv: a.replace(*kv), repls, self.config['website'].get())
         return self.create_browser(website,
