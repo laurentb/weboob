@@ -87,6 +87,11 @@ class JsonBalances2(LoggedPage, JsonPage):
             # warning: payments_credits_total_amount is not the coming value here
 
 
+class CurrencyPage(LoggedPage, JsonPage):
+    def get_currency(self):
+        return self.doc['currency']
+
+
 class JsonPeriods(LoggedPage, JsonPage):
     def get_periods(self):
         return [(p['statement_start_date'], p['statement_end_date']) for p in self.doc]

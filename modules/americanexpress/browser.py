@@ -32,7 +32,7 @@ from .pages.base import (
 )
 from .pages.json import (
     AccountsPage3, JsonBalances, DashboardPage, JsonPeriods, JsonHistory,
-    JsonBalances2,
+    JsonBalances2, CurrencyPage
 )
 
 
@@ -63,6 +63,7 @@ class AmericanExpressBrowser(LoginBrowser):
     js_posted = URL(r'/account-data/v1/financials/transactions\?limit=1000&offset=(?P<offset>\d+)&statement_end_date=(?P<end>[0-9-]+)&status=posted',
                     JsonHistory)
     js_periods = URL(r'/account-data/v1/financials/statement_periods', JsonPeriods)
+    currency_page = URL(r'https://www.aexp-static.com/cdaas/axp-app/modules/axp-offers/1.11.1/fr-fr/axp-offers.json', CurrencyPage)
 
     SUMMARY_CARD_LABEL = [
         u'PAYMENT RECEIVED - THANK YOU',
@@ -113,7 +114,12 @@ class AmericanExpressBrowser(LoginBrowser):
             self.js_balances2.go(date=periods[1][1], headers={'account_tokens': accounts[0]._token})
         self.page.set_balances(accounts)
 
+        # get currency
+        self.currency_page.go()
+        currency = self.page.get_currency()
+
         for acc in accounts:
+            acc.currency = currency
             yield acc
 
     @need_login
