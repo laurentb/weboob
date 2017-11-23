@@ -171,6 +171,7 @@ class BredBrowser(DomainBrowser):
                 a = Account()
                 a._number = content['numeroLong']
                 a._nature = poste['codeNature']
+                a._codeSousPoste = poste['codeSousPoste'] if 'codeSousPoste' in poste else None
                 a._consultable = poste['consultable']
                 a._univers = self.current_univers
                 a.id = '%s.%s' % (a._number, a._nature)
@@ -223,8 +224,8 @@ class BredBrowser(DomainBrowser):
         HEADERS.update(self.get_and_update_bred_token())
         call_payload = {
             "account": account._number,
-            "poste": "000",
-            "sousPoste": "00",
+            "poste": account._nature,
+            "sousPoste": account._codeSousPoste or '00',
             "devise": account.currency,
             "fromDate": start_date.strftime('%Y-%m-%d'),
             "toDate": end_date.strftime('%Y-%m-%d'),
