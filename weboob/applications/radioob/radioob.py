@@ -448,25 +448,29 @@ class Radioob(ReplApplication):
         self.change_path([u'search'])
 
         if cmd == "radio":
-            self.set_formatter('radio_list')
+            if 'search' in self.commands_formatters:
+                self.set_formatter('radio_list')
             for radio in self.do('iter_radios_search', pattern=args):
                 self.add_object(radio)
                 self.format(radio)
 
         elif cmd == "song" or cmd == "file":
-            self.set_formatter('song_list')
+            if 'search' in self.commands_formatters:
+                self.set_formatter('song_list')
             for audio in self.do('search_audio', pattern=args):
                 self.add_object(audio)
                 self.format(audio)
 
         elif cmd == "album":
-            self.set_formatter('song_list')
+            if 'search' in self.commands_formatters:
+                self.set_formatter('song_list')
             for album in self.do('search_album', pattern=args):
                 self.add_object(album)
                 self.format(album)
 
         elif cmd == "playlist":
-            self.set_formatter('song_list')
+            if 'search' in self.commands_formatters:
+                self.set_formatter('song_list')
             for playlist in self.do('search_playlist', pattern=args):
                 self.add_object(playlist)
                 self.format(playlist)
