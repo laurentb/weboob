@@ -22,14 +22,16 @@ from __future__ import unicode_literals
 import datetime
 
 from weboob.browser.pages import JsonPage, HTMLPage, pagination
-from weboob.browser.filters.standard import (CleanDecimal, CleanText, Currency,
-                                             Date, Env, Format, Regexp)
-from weboob.browser.filters.html import Attr, Link
+from weboob.browser.filters.standard import (
+    CleanDecimal, CleanText, Currency, Date, Env, Format, Regexp
+)
+from weboob.browser.filters.html import AbsoluteLink, Attr, Link
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.housing import (City, Housing, HousingPhoto, UTILITIES,
-                                         ENERGY_CLASS, POSTS_TYPES,
-                                         ADVERT_TYPES)
+from weboob.capabilities.housing import (
+    City, Housing, HousingPhoto, UTILITIES, ENERGY_CLASS, POSTS_TYPES,
+    ADVERT_TYPES
+)
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 
 from .constants import AVAILABLE_TYPES, QUERY_TYPES, QUERY_HOUSE_TYPES
@@ -262,6 +264,7 @@ class SearchResultsPage(HTMLPage):
                             return house_type
                 return NotAvailable
 
+            obj_url = AbsoluteLink('.//h3[has-class("TeaserOffer-title")]/a')
             obj_title = CleanText('.//h3[has-class("TeaserOffer-title")]')
             obj_area = CleanDecimal(
                 Regexp(
