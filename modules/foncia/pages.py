@@ -23,12 +23,11 @@ import datetime
 
 from weboob.browser.pages import JsonPage, HTMLPage, pagination
 from weboob.browser.filters.standard import CleanDecimal, CleanText, Date, Env, Format, Regexp
-from weboob.browser.filters.html import Attr, Link
+from weboob.browser.filters.html import Attr, Link, AbsoluteLink
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.housing import City, Housing, UTILITIES
+from weboob.capabilities.housing import City, Housing, HousingPhoto, UTILITIES
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
-from weboob.tools.compat import urljoin
 
 from .constants import AVAILABLE_TYPES, QUERY_TYPES, QUERY_HOUSE_TYPES
 
@@ -70,19 +69,14 @@ class HousingPage(HTMLPage):
             )
         )
         obj_cost = CleanDecimal(
-            Regexp(
-                CleanText(
-                    '//p[has-class("OfferTop-price")]'
-                ),
-                r'([\d \.]*) .*'
-            )
+            '//p[has-class("OfferTop-price")]'
         )
         obj_price_per_meter = PricePerMeterFilter()
         obj_currency = Regexp(
             CleanText(
                 '//p[has-class("OfferTop-price")]'
             ),
-            r'[\d \.]* (.) .*'
+            r'[\d+\ ]*(.) .*'
         )
         obj_location = Format(
             '%s - %s',
@@ -100,7 +94,7 @@ class HousingPage(HTMLPage):
         def obj_photos(self):
             photos = []
             for photo in self.xpath('//li[has-class("OfferSlider-thumbs-item")]/img'):
-                photos.append(Attr('.', 'src')(photo))
+                photos.append(HousingPhoto(Attr('.', 'src')(photo)))
             return photos
 
         obj_date = datetime.date.today()
@@ -225,11 +219,7 @@ class SearchResultsPage(HTMLPage):
                 Attr('.//span[boolean(@data-reference)]', 'data-reference')
             )
 
-            def obj_url(self):
-                return urljoin(
-                    self.page.browser.BASEURL,
-                    Link('.//h3[has-class("TeaserOffer-title")]/a')(self)
-                )
+            obj_url = AbsoluteLink('.//h3[has-class("TeaserOffer-title")]/a')
 
             obj_title = CleanText('.//h3[has-class("TeaserOffer-title")]')
             obj_area = CleanDecimal(
@@ -241,27 +231,25 @@ class SearchResultsPage(HTMLPage):
                 )
             )
             obj_cost = CleanDecimal(
-                Regexp(
-                    CleanText(
-                        './/strong[has-class("TeaserOffer-price-num")]'
-                    ),
-                    r'([\d \.]*) .*'
-                )
+                './/strong[has-class("TeaserOffer-price-num")]'
             )
             obj_price_per_meter = PricePerMeterFilter()
             obj_currency = Regexp(
                 CleanText(
                     './/strong[has-class("TeaserOffer-price-num")]'
                 ),
-                r'[\d \.]* (.) .*'
+                r'[\d\ ]* (.) .*'
             )
             obj_location = CleanText('.//p[has-class("TeaserOffer-loc")]')
             obj_text = CleanText('.//p[has-class("TeaserOffer-description")]')
 
             def obj_photos(self):
-                return [
-                    Attr('.//a[has-class("TeaserOffer-ill")]/img', 'src')(self)
-                ]
+                url = CleanText(Attr('.//a[has-class("TeaserOffer-ill")]/img', 'src'))(self)
+                # If the used photo is a default no photo, the src is on the same domain.
+                if url[0] == '/':
+                    return []
+                else:
+                    return [HousingPhoto(url)]
 
             obj_date = datetime.date.today()
 
@@ -275,9 +263,13 @@ class SearchResultsPage(HTMLPage):
                     return UTILITIES.EXCLUDED
 
             obj_rooms = CleanDecimal(
-                './/div[has-class("MiniData")]//p[@data-behat="nbPiecesDesBiens"]'
+                './/div[has-class("MiniData")]//p[@data-behat="nbPiecesDesBiens"]',
+                default=NotAvailable
             )
-            obj_bedrooms = NotAvailable
+            obj_bedrooms = CleanDecimal(
+                './/div[has-class("MiniData")]//p[@data-behat="nbChambresDesBiens"]',
+                default=NotAvailable
+            )
 
             def obj_details(self):
                 return {
