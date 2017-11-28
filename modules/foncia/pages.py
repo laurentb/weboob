@@ -26,7 +26,8 @@ from weboob.browser.filters.standard import CleanDecimal, CleanText, Date, Env, 
 from weboob.browser.filters.html import Attr, Link, AbsoluteLink
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.housing import City, Housing, HousingPhoto, UTILITIES
+from weboob.capabilities.housing import (City, Housing, HousingPhoto, UTILITIES,
+                                         ENERGY_CLASS)
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 
 from .constants import AVAILABLE_TYPES, QUERY_TYPES, QUERY_HOUSE_TYPES
@@ -94,7 +95,9 @@ class HousingPage(HTMLPage):
         def obj_photos(self):
             photos = []
             for photo in self.xpath('//li[has-class("OfferSlider-thumbs-item")]/img'):
-                photos.append(HousingPhoto(Attr('.', 'src')(photo)))
+                photo_url = Attr('.', 'src')(photo)
+                photo_url = photo_url.replace('640/480', '800/600')
+                photos.append(HousingPhoto(photo_url))
             return photos
 
         obj_date = datetime.date.today()
@@ -115,6 +118,30 @@ class HousingPage(HTMLPage):
             '//div[has-class("MiniData")]//p[has-class("MiniData-item")][3]',
             default=NotAvailable
         )
+
+        def obj_DPE(self):
+            electric_consumption = CleanDecimal(Regexp(
+                Attr('//div[has-class("OfferDetails-content")]//img', 'src'),
+                r'https://dpe.foncia.net\/(\d+)\/.*',
+                default=None
+            ))(self)
+            DPE = ""
+            if electric_consumption is not None:
+                if electric_consumption <= 50:
+                    DPE = "A"
+                elif electric_consumption > 50 and electric_consumption <= 90:
+                    DPE = "B"
+                elif electric_consumption > 90 and electric_consumption <= 150:
+                    DPE = "C"
+                elif electric_consumption > 150 and electric_consumption <= 230:
+                    DPE = "D"
+                elif electric_consumption > 230 and electric_consumption <= 330:
+                    DPE = "E"
+                elif electric_consumption > 330 and electric_consumption <= 450:
+                    DPE = "F"
+                else:
+                    DPE = "G"
+            return getattr(ENERGY_CLASS, DPE, NotAvailable)
 
         def obj_details(self):
             details = {
@@ -142,26 +169,11 @@ class HousingPage(HTMLPage):
                 Attr('//div[has-class("OfferDetails-content")]//img', 'src'),
                 r'https://dpe.foncia.net\/(\d+)\/.*',
                 default=None
-            )(self))
+            ))(self)
             if electric_consumption is not None:
                 details["electric_consumption"] = '{} kWhEP/m².an'.format(electric_consumption)
-                if electric_consumption <= 50:
-                    details["DPE"] = "A"
-                elif electric_consumption > 50 and electric_consumption <= 90:
-                    details["DPE"] = "B"
-                elif electric_consumption > 90 and electric_consumption <= 150:
-                    details["DPE"] = "C"
-                elif electric_consumption > 150 and electric_consumption <= 230:
-                    details["DPE"] = "D"
-                elif electric_consumption > 230 and electric_consumption <= 330:
-                    details["DPE"] = "E"
-                elif electric_consumption > 330 and electric_consumption <= 450:
-                    details["DPE"] = "F"
-                else:
-                    details["DPE"] = "G"
             else:
                 details["electric_consumption"] = NotAvailable
-                details["DPE"] = NotAvailable
             return details
 
 

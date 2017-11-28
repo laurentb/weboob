@@ -23,7 +23,8 @@ from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, Env
 from weboob.browser.filters.javascript import JSVar
 from weboob.browser.filters.html import Attr, Link
 from weboob.browser.filters.json import Dict
-from weboob.capabilities.housing import City, Housing, HousingPhoto, Query, UTILITIES
+from weboob.capabilities.housing import (City, Housing, HousingPhoto, Query,
+                                         UTILITIES, ENERGY_CLASS)
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 from weboob.tools.date import DATE_TRANSLATE_FR, LinearDateGuesser
@@ -185,6 +186,8 @@ class HousingPage(HTMLPage):
         def parse(self, el):
             details = dict()
             self.env['area'] = NotAvailable
+            self.env['GES'] = NotAvailable
+            self.env['DPE'] = NotAvailable
             for item in el.xpath('//div[@class="line"]/h2'):
                 if 'Surface' in CleanText('./span[@class="property"]')(item):
                     self.env['area'] = CleanDecimal(Regexp(CleanText('./span[@class="value"]'), '(.*)m.*'),
@@ -193,13 +196,15 @@ class HousingPage(HTMLPage):
                 else:
                     key = u'%s' % CleanText('./span[@class="property"]')(item)
                     if 'GES' in key or 'Classe' in key:
+                        if 'Classe' in key:
+                            key = 'DPE'
+
                         value = (
                             CleanText('./span[@class="value"]')(item).strip()
                         )
                         if len(value):
-                            details[key] = value[0]
-                        else:
-                            details[key] = NotAvailable
+                            self.env[key] = getattr(ENERGY_CLASS, value[0],
+                                            NotAvailable)
                     else:
                         details[key] = CleanText('./span[@class="value"]')(item)
 
@@ -231,6 +236,9 @@ class HousingPage(HTMLPage):
                 return UTILITIES.EXCLUDED
             else:
                 return UTILITIES.UNKNOWN
+
+        obj_DPE = Env('DPE')
+        obj_GES = Env('GES')
 
         obj_text = CleanText('//p[@itemprop="description"]')
         obj_location = CleanText('//span[@itemprop="address"]')

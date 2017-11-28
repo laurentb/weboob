@@ -56,6 +56,7 @@ class HousingPhoto(BaseObject):
 
 
 UTILITIES = enum(INCLUDED=u'C.C.', EXCLUDED=u'H.C.', UNKNOWN=u'')
+ENERGY_CLASS = enum(A=u'A', B=u'B', C=u'C', D=u'D', E=u'E', F=u'F', G=u'G')
 
 
 class Housing(BaseObject):
@@ -77,6 +78,8 @@ class Housing(BaseObject):
     rooms =           DecimalField('Number of rooms')
     bedrooms =        DecimalField('Number of bedrooms')
     details =         Field('Key/values of details', dict)
+    DPE = Field('DPE (Energy Performance Certificate)', *ENERGY_CLASS.types)
+    GES = Field('GES (Greenhouse Gas Emissions)', *ENERGY_CLASS.types)
 
 
 class Query(BaseObject):

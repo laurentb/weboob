@@ -26,7 +26,8 @@ from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env
 from weboob.browser.filters.html import Attr, Link, XPath, CleanHTML
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.housing import Housing, City, HousingPhoto, UTILITIES
+from weboob.capabilities.housing import (Housing, City, HousingPhoto,
+                                         UTILITIES, ENERGY_CLASS)
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 
 
@@ -162,23 +163,19 @@ class HousingPage(HTMLPage):
 
         obj_url = BrowserURL('housing', _id=Env('_id'))
 
-        def obj_details(self):
-            GES = Attr(
+        def obj_DPE(self):
+            DPE = Attr(
                 '//div[has-class("energy-box")]//div[has-class("rank")]',
                 'class',
-                default=None
+                default=""
             )(self)
-            if GES:
-                GES = [x.replace("rank-", "").upper()
-                       for x in GES.split() if x.startswith("rank-")][0]
-            else:
-                GES = NotAvailable
-            return {
-                "GES": GES
-            }
+            if DPE:
+                DPE = [x.replace("rank-", "").upper()
+                       for x in DPE.split() if x.startswith("rank-")][0]
+            return getattr(ENERGY_CLASS, DPE, NotAvailable)
 
         def obj_photos(self):
             photos = []
-            for img in XPath('//div[has-class("owl-carousel-thumbs")]//img/@src')(self):
+            for img in XPath('//div[has-class("owl-thumbs")]//img/@src')(self):
                 photos.append(HousingPhoto(u'%s' % img))
             return photos

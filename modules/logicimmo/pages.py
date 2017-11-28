@@ -24,7 +24,8 @@ from weboob.browser.elements import ItemElement, ListElement, DictElement, metho
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import Format, CleanText, Regexp, CleanDecimal, Date, Env, BrowserURL
 from weboob.browser.filters.html import Attr, XPath, CleanHTML
-from weboob.capabilities.housing import Housing, HousingPhoto, City, UTILITIES
+from weboob.capabilities.housing import (Housing, HousingPhoto, City,
+                                         UTILITIES, ENERGY_CLASS)
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 
@@ -89,35 +90,30 @@ class HousingPage(HTMLPage):
 
         def obj_photos(self):
             photos = []
-            for img in XPath('//div[@class="carousel-content"]/ul/li/a/img/@src|//div[@class="carousel"]/ul/li/a/img/@src')(self):
+            for img in XPath('//div[has-class("carousel-content")]//img/@src')(self):
                 photos.append(HousingPhoto(u'%s' % img.replace('75x75', '800x600')))
             return photos
 
-        def obj_details(self):
-            details = {}
+        def obj_DPE(self):
             energy_value = CleanText(
                 '//div[has-class("offer-energy-greenhouseeffect-summary")]//div[has-class("energy-summary")]',
-                default=None
+                default=""
             )(self)
-            if energy_value and len(energy_value) > 1:
+            if len(energy_value):
                 energy_value = energy_value.replace("DPE", "").strip()[0]
-                if energy_value not in ["A", "B", "C", "D", "E", "F", "G"]:
-                    energy_value = None
-            if energy_value is None:
-                energy_value = NotAvailable
-            details["DPE"] = energy_value
+            return getattr(ENERGY_CLASS, energy_value, NotAvailable)
 
+        def obj_GES(self):
             greenhouse_value = CleanText(
                 '//div[has-class("offer-energy-greenhouseeffect-summary")]//div[has-class("greenhouse-summary")]',
-                default=None
+                default=""
             )(self)
-            if greenhouse_value and len(greenhouse_value) > 1:
+            if len(greenhouse_value):
                 greenhouse_value = greenhouse_value.replace("GES", "").strip()[0]
-                if greenhouse_value not in ["A", "B", "C", "D", "E", "F", "G"]:
-                    greenhouse_value = None
-            if greenhouse_value is None:
-                greenhouse_value = NotAvailable
-            details["GES"] = greenhouse_value
+            return getattr(ENERGY_CLASS, greenhouse_value, NotAvailable)
+
+        def obj_details(self):
+            details = {}
 
             details["creationDate"] = Date(
                 Regexp(
@@ -287,10 +283,11 @@ class SearchPage(HTMLPage):
             def obj_photos(self):
                 photos = []
                 url = Attr(
-                    './div/div/div/div[has-class("picture-wrapper")]/div/img',
+                    './/div[has-class("offer-picture")]//img',
                     'src'
                 )(self)
                 if url:
+                    url = url.replace('400x267', '800x600')
                     photos.append(HousingPhoto(url))
                 return photos
 

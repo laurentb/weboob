@@ -24,7 +24,8 @@ from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import XPath
 from weboob.browser.filters.standard import CleanText, CleanDecimal, DateTime, Format, Regexp
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.housing import Housing, HousingPhoto, City, UTILITIES
+from weboob.capabilities.housing import (Housing, HousingPhoto, City,
+                                         UTILITIES, ENERGY_CLASS)
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 
 
@@ -126,6 +127,14 @@ class HousingPage(XMLPage):
                     url = CleanText('stdUrl', default=None)(photo)
                 photos.append(HousingPhoto(url))
             return photos
+
+        def obj_DPE(self):
+            DPE = CleanText('//bilanConsoEnergie', default="")(self)
+            return getattr(ENERGY_CLASS, DPE, NotAvailable)
+
+        def obj_GES(self):
+            GES = CleanText('//bilanEmissionGES', default="")(self)
+            return getattr(ENERGY_CLASS, GES, NotAvailable)
 
         def obj_details(self):
             details = {}

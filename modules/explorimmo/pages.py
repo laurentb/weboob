@@ -26,7 +26,8 @@ from weboob.browser.pages import JsonPage, HTMLPage, pagination
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, BrowserURL, Filter, Format
 from weboob.browser.filters.html import Attr, CleanHTML, Link, XPath
 from weboob.capabilities.base import NotAvailable, NotLoaded
-from weboob.capabilities.housing import Housing, HousingPhoto, City, UTILITIES
+from weboob.capabilities.housing import (Housing, HousingPhoto, City,
+                                         UTILITIES, ENERGY_CLASS)
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 from weboob.tools.compat import unquote
 
@@ -197,6 +198,20 @@ class HousingPage2(JsonPage):
                     photos.append(HousingPhoto(img.get('xl')))
             return photos
 
+        def obj_DPE(self):
+            DPE = Dict(
+                'characteristics/energyConsumptionCategory',
+                default=""
+            )(self)
+            return getattr(ENERGY_CLASS, DPE, NotAvailable)
+
+        def obj_GES(self):
+            GES = Dict(
+                'characteristics/greenhouseGasEmissionCategory',
+                default=""
+            )(self)
+            return getattr(ENERGY_CLASS, GES, NotAvailable)
+
         def obj_details(self):
             details = {}
             details['fees'] = Dict(
@@ -231,14 +246,6 @@ class HousingPage2(JsonPage):
             )(self)
             details['isFurnished'] = Dict(
                 'characteristics/isFurnished', default=NotAvailable
-            )(self)
-            details['energy'] = Dict(
-                'characteristics/energyConsumptionCategory',
-                default=NotAvailable
-            )(self)
-            details['greenhouseGasEmission'] = Dict(
-                'characteristics/greenHouseGasEmissionCategory',
-                default=NotAvailable
             )(self)
             rooms = Dict('characteristics/roomCount', default=[])(self)
             if len(rooms):
