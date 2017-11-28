@@ -23,9 +23,9 @@ from weboob.browser.pages import JsonPage, HTMLPage
 from weboob.browser.elements import ItemElement, ListElement, DictElement, method
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, Format
-from weboob.browser.filters.html import CleanHTML
+from weboob.browser.filters.html import CleanHTML, XPath, Link, Attr, AbsoluteLink
 from weboob.capabilities.housing import (Housing, HousingPhoto, City,
-                                         UTILITIES, ADVERT_TYPES)
+                                         UTILITIES, ADVERT_TYPES, HOUSE_TYPES)
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 from weboob.capabilities.base import NotAvailable, Currency
 
@@ -50,6 +50,13 @@ class SearchPage(HTMLPage):
         item_xpath = '//li[@id]'
 
         class item(ItemElement):
+            def condition(self):
+                has_children = XPath('.//div[@id="spanInfosEpc"]',
+                                     default=False)(self)
+                if has_children:
+                    return True
+                return False
+
             klass = Housing
 
             def condition(self):
@@ -60,7 +67,16 @@ class SearchPage(HTMLPage):
                             '(.*).html')
             obj_type = Env('query_type')
             obj_advert_type = ADVERT_TYPES.PERSONAL
-            obj_house_type = NotAvailable  # TODO
+            def obj_house_type(self):
+                type = Attr('./a/div/p/span[@class="item type"]/img', 'alt')(self)
+                if type == 'Appartement':
+                    return HOUSE_TYPES.APART
+                elif type == 'Maison /villa':
+                    return HOUSE_TYPES.HOUSE
+                elif type == 'Terrain / autreinfosaccesepc':
+                    return HOUSE_TYPES.LAND
+                else:
+                    return HOUSE_TYPES.OTHER
 
             def obj_title(self):
                 title = CleanText('./a/div/p/span[@class="item title"]')(self)
@@ -75,7 +91,11 @@ class SearchPage(HTMLPage):
                               CleanText('./a/div/p/span[@id="divnbpieces"]', children=False),
                               CleanText('./a/div/p/span[@id="divsurface"]', children=False),
                               CleanText('./a/div/p/span[@class="item prix"]/span'))
+            obj_location = CleanText('./a/div/p/span[@class="item loc"]/text()[position() > 1]')
+            obj_area = CleanDecimal('./a/div/p/span[@class="item surf"]/text()[last()]')
+            obj_rooms = CleanDecimal('./a/div/p/span[@class="item nb"]/text()[last()]')
             obj_utilities = UTILITIES.UNKNOWN
+            obj_url = AbsoluteLink('./a')
 
 
 class HousingPage(HTMLPage):
