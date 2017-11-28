@@ -290,7 +290,7 @@ class BanquePopulaire(LoginBrowser):
 
         self.location(self.absurl('/cyber/internet/ContinueTask.do', base=True), data=params)
 
-        if not self.page or self.page.no_operations():
+        if not self.page or self.error_page.is_here() or self.page.no_operations():
             return
 
         # Sort by values dates (see comment in TransactionsPage.get_history)
@@ -521,4 +521,3 @@ class iter_retry(object):
             return obj
 
     next = __next__
-
