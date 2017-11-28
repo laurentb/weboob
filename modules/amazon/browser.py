@@ -20,14 +20,14 @@
 from __future__ import unicode_literals
 from datetime import date
 
-from weboob.browser import LoginBrowser, URL, need_login
+from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, CaptchaQuestion, BrowserQuestion
 from weboob.tools.value import Value
 
 from .pages import LoginPage, SubscriptionsPage, DocumentsPage, HomePage, PanelPage, SecurityPage, LanguagePage
 
 
-class AmazonBrowser(LoginBrowser):
+class AmazonBrowser(LoginBrowser, StatesMixin):
     BASEURL = 'https://www.amazon.fr'
     CURRENCY = 'EUR'
     LANGUAGE = 'fr-FR'
