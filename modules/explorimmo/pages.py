@@ -26,7 +26,7 @@ from weboob.browser.pages import JsonPage, HTMLPage, pagination
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, BrowserURL, Filter, Format
 from weboob.browser.filters.html import Attr, CleanHTML, Link, XPath
 from weboob.capabilities.base import NotAvailable, NotLoaded
-from weboob.capabilities.housing import (Housing, HousingPhoto, City,
+from weboob.capabilities.housing import (Housing, HousingPhoto, City, Query,
                                          UTILITIES, ENERGY_CLASS)
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 from weboob.tools.compat import unquote
@@ -71,6 +71,16 @@ class SearchPage(HTMLPage):
 
         class item(ItemElement):
             klass = Housing
+
+            def condition(self):
+                if len(self.env['advert_types']) == 1:
+                    agency = CleanText('.//span[has-class("item-agency-name")]')(self.el)
+                    is_agency = 'annonce de particulier' not in agency.lower()
+                    if self.env['advert_types'][0] == Query.ADVERT_TYPES.PERSONAL:
+                        return not is_agency
+                    elif self.env['advert_types'][0] == Query.ADVERT_TYPES.PROFESSIONAL:
+                        return is_agency
+                return True
 
             obj_id = CleanText('./@data-classified-id')
             obj_title = CleanText('./div/h2[@itemprop="name"]/a')

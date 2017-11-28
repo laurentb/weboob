@@ -37,11 +37,6 @@ class LeboncoinModule(Module, CapHousing):
 
     BROWSER = LeboncoinBrowser
 
-    CONFIG = BackendConfig(
-        Value('advert_type', label='Advert type',
-              choices={'c': 'Agency', 'p': 'Owner', 'a': 'All'}, default='a')
-    )
-
     def create_default_browser(self):
         return self.create_browser()
 
@@ -60,6 +55,12 @@ class LeboncoinModule(Module, CapHousing):
         return self.browser.get_cities(pattern)
 
     def search_housings(self, query):
-        return self.browser.search_housings(query, self.config['advert_type'].get(), self.name)
+        advert_type = 'a'  # All
+        if len(query.advert_types) == 1:
+            if query.advert_types[0] = Query.ADVERT_TYPES.PERSONAL:
+                advert_type = 'p'  # Owner
+            elif query.advert_types[0] = Query.ADVERT_TYPES.PROFESSIONAL:
+                advert_type = 'c'  # Agency
+        return self.browser.search_housings(query, advert_type, self.name)
 
     OBJECTS = {Housing: fill_housing, HousingPhoto: fill_photo}

@@ -45,7 +45,8 @@ class SeLogerModule(Module, CapHousing):
         return self.browser.search_housings(query.type, cities, query.nb_rooms,
                                             query.area_min, query.area_max,
                                             query.cost_min, query.cost_max,
-                                            query.house_types)
+                                            query.house_types,
+                                            query.advert_types)
 
     def get_housing(self, housing):
         if isinstance(housing, Housing):

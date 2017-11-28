@@ -19,7 +19,7 @@
 
 
 from weboob.tools.backend import Module
-from weboob.capabilities.housing import CapHousing, Housing, HousingPhoto
+from weboob.capabilities.housing import CapHousing, Housing, HousingPhoto, Query
 from weboob.capabilities.base import UserError
 from .browser import LogicimmoBrowser
 
@@ -59,6 +59,11 @@ class LogicimmoModule(Module, CapHousing):
         return self.browser.get_cities(pattern)
 
     def search_housings(self, query):
+        if(len(query.advert_types) == 1 and
+           query.advert_types[0] == Query.ADVERT_TYPES.PERSONAL):
+            # Logic-immo is pro only
+            return list()
+
         cities_names = ['%s' % c.name.replace(' ', '-') for c in query.cities if c.backend == self.name]
         cities_ids = ['%s' % c.id for c in query.cities if c.backend == self.name]
 

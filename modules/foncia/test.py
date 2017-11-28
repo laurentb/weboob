@@ -68,6 +68,18 @@ class FonciaTest(BackendTest):
         obj = self.backend.fillobj(results[0])
         self.assertTrue(obj.url is not None, 'Missing url for "%s"' % (obj.id))
 
+    def test_search_housings_personal(self):
+        query = Query()
+        query.cities = []
+        query.type = Query.TYPE_RENT
+        query.advert_types = [Query.ADVERT_TYPES.PERSONAL]
+        for city in self.backend.search_city('92120'):
+            city.backend = self.backend.name
+            query.cities.append(city)
+
+        results = list(itertools.islice(self.backend.search_housings(query), 0, 20))
+        self.assertEqual(len(results), 0)
+
     def test_get_housing(self):
         query = Query()
         query.cities = []

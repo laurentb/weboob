@@ -189,6 +189,26 @@ class Flatboob(ReplApplication):
             _type = self.ask_int('Type of query')
 
         query.type = _type
+
+        r = 'notempty'
+        while r != '':
+            for good in Query.ADVERT_TYPES.values:
+                print('  %s%2d)%s [%s] %s' % (self.BOLD,
+                                              Query.ADVERT_TYPES.index[good] + 1,
+                                              self.NC,
+                                              'x' if good in query.advert_types else ' ', good))
+            r = self.ask('  Select type of posts (or empty to stop)', regexp='(\d+|)', default='')
+            if not r.isdigit():
+                continue
+            r = int(r)
+            if r <= 0 or r > len(Query.ADVERT_TYPES.values):
+                continue
+            value = Query.ADVERT_TYPES.values[r - 1]
+            if value in query.advert_types:
+                query.advert_types.remove(value)
+            else:
+                query.advert_types.append(value)
+
         query.area_min = self.ask_int('Enter min area')
         query.area_max = self.ask_int('Enter max area')
         query.cost_min = self.ask_int('Enter min cost')

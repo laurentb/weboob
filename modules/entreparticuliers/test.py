@@ -39,3 +39,16 @@ class EntreparticuliersTest(BackendTest):
 
         obj = self.backend.fillobj(results[0])
         self.assertTrue(obj.area is not None, 'Area for "%s"' % (obj.id))
+
+    def test_entreparticuliers_professional(self):
+        query = Query()
+        query.cities = []
+        for city in self.backend.search_city('lille'):
+            city.backend = self.backend.name
+            query.cities.append(city)
+
+        query.type = Query.TYPE_SALE
+        query.house_types = [Query.HOUSE_TYPES.HOUSE]
+        query.advert_types = [Query.ADVERT_TYPES.PROFESSIONAL]
+        results = list(itertools.islice(self.backend.search_housings(query), 0, 20))
+        self.assertEqual(len(results), 0)

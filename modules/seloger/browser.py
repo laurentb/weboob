@@ -48,7 +48,8 @@ class SeLogerBrowser(PagesBrowser):
            Query.HOUSE_TYPES.PARKING: '3',
            Query.HOUSE_TYPES.OTHER: '10'}
 
-    def search_housings(self, type, cities, nb_rooms, area_min, area_max, cost_min, cost_max, house_types):
+    def search_housings(self, type, cities, nb_rooms, area_min, area_max,
+                        cost_min, cost_max, house_types, advert_types):
 
         if type not in self.TYPES:
             raise TypeNotSupported()
@@ -78,6 +79,13 @@ class SeLogerBrowser(PagesBrowser):
 
         if ret:
             data['idtypebien'] = ','.join(ret)
+
+        if(len(advert_types) == 1 and
+           advert_types[0] == Query.ADVERT_TYPES.PROFESSIONAL):
+            data['SI_PARTICULIER'] = 0
+        elif(len(advert_types) == 1 and
+           advert_types[0] == Query.ADVERT_TYPES.PERSONAL):
+            data['SI_PARTICULIER'] = 1
 
         return self.search.go(request=urlencode(data)).iter_housings()
 

@@ -45,7 +45,8 @@ class ExplorimmoBrowser(PagesBrowser):
     def get_cities(self, pattern):
         return self.cities.open(city=pattern).get_cities()
 
-    def search_housings(self, type, cities, nb_rooms, area_min, area_max, cost_min, cost_max, house_types):
+    def search_housings(self, type, cities, nb_rooms, area_min, area_max,
+                        cost_min, cost_max, house_types, advert_types):
 
         if type not in self.TYPES:
             raise TypeNotSupported()
@@ -69,7 +70,7 @@ class ExplorimmoBrowser(PagesBrowser):
 
         query = u'%s%s%s' % (urlencode(data), '&type=', '&type='.join(ret))
 
-        return self.search.go(query=query).iter_housings()
+        return self.search.go(query=query).iter_housings(advert_types=advert_types)
 
     def get_housing(self, _id, housing=None):
         return self.housing.go(_id=_id).get_housing(obj=housing)

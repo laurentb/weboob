@@ -19,7 +19,7 @@
 
 
 from weboob.tools.backend import Module
-from weboob.capabilities.housing import CapHousing, Housing, HousingPhoto
+from weboob.capabilities.housing import CapHousing, Housing, HousingPhoto, Query
 
 from .browser import EntreparticuliersBrowser
 
@@ -41,6 +41,11 @@ class EntreparticuliersModule(Module, CapHousing):
         return self.browser.search_city(pattern)
 
     def search_housings(self, query):
+        if(len(query.advert_types) == 1 and
+           query.advert_types[0] == Query.ADVERT_TYPES.PROFESSIONAL):
+            # Entreparticuliers is personal only
+            return list()
+
         cities = [c.id for c in query.cities if c.backend == self.name]
         if len(cities) == 0:
             return list([])

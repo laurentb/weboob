@@ -39,3 +39,17 @@ class PapTest(BackendTest):
         self.assertTrue(len(results) > 0)
 
         self.backend.fillobj(results[0], 'phone')
+
+    def test_pap_professional(self):
+        query = Query()
+        query.area_min = 20
+        query.cost_max = 900
+        query.type = Query.TYPE_RENT
+        query.advert_types = [Query.ADVERT_TYPES.PROFESSIONAL]
+        query.cities = []
+        for city in self.backend.search_city('paris'):
+            city.backend = self.backend.name
+            query.cities.append(city)
+
+        results = list(self.backend.search_housings(query))
+        self.assertEqual(len(results), 0)

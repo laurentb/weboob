@@ -96,6 +96,7 @@ class Query(BaseObject):
                        LAND=u'Land',
                        OTHER=u'Other',
                        UNKNOWN=u'Unknown')
+    ADVERT_TYPES = enum(PROFESSIONAL=u'Professional', PERSONAL=u'Personal')
 
     type = IntField('Type of housing to find (TYPE_* constants)')
     cities = Field('List of cities to search in', list, tuple)
@@ -105,6 +106,8 @@ class Query(BaseObject):
     cost_max = IntField('Maximal cost')
     nb_rooms = IntField('Number of rooms')
     house_types = Field('List of house types', list, tuple, default=HOUSE_TYPES.values)
+    advert_types = Field('List of advert types to filter on', list, tuple,
+                        default=ADVERT_TYPES.values)
 
 
 class City(BaseObject):
