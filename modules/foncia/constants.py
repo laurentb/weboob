@@ -1,22 +1,22 @@
-from weboob.capabilities.housing import Query
+from weboob.capabilities.housing import POSTS_TYPES, HOUSE_TYPES
 
 QUERY_TYPES = {
-    Query.TYPE_RENT: 'location',
-    Query.TYPE_SALE: 'achat'
+    POSTS_TYPES.RENT: 'location',
+    POSTS_TYPES.SALE: 'achat'
 }
 
 QUERY_HOUSE_TYPES = {
-    Query.HOUSE_TYPES.APART: ['appartement'],
-    Query.HOUSE_TYPES.HOUSE: ['maison'],
-    Query.HOUSE_TYPES.PARKING: ['parking'],
-    Query.HOUSE_TYPES.LAND: ['terrain'],
-    Query.HOUSE_TYPES.OTHER: ['chambre', 'appartement-meuble',
-                              'local-commercial', 'immeuble']
+    HOUSE_TYPES.APART: ['appartement'],
+    HOUSE_TYPES.HOUSE: ['maison'],
+    HOUSE_TYPES.PARKING: ['parking'],
+    HOUSE_TYPES.LAND: ['terrain'],
+    HOUSE_TYPES.OTHER: ['chambre', 'appartement-meuble',
+                        'local-commercial', 'immeuble']
 }
 
 AVAILABLE_TYPES = {
-    Query.TYPE_RENT: ['appartement', 'maison', 'parking', 'chambre',
-                      'appartement-meuble', 'local-commercial'],
-    Query.TYPE_SALE: ['appartement', 'maison', 'parking', 'local-commercial',
-                      'terrain', 'immeuble']
+    POSTS_TYPES.RENT: ['appartement', 'maison', 'parking', 'chambre',
+                       'appartement-meuble', 'local-commercial'],
+    POSTS_TYPES.SALE: ['appartement', 'maison', 'parking', 'local-commercial',
+                       'terrain', 'immeuble']
 }

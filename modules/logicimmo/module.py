@@ -19,7 +19,8 @@
 
 
 from weboob.tools.backend import Module
-from weboob.capabilities.housing import CapHousing, Housing, HousingPhoto, Query
+from weboob.capabilities.housing import (CapHousing, Housing, HousingPhoto,
+                                         Query, ADVERT_TYPES)
 from weboob.capabilities.base import UserError
 from .browser import LogicimmoBrowser
 
@@ -60,7 +61,7 @@ class LogicimmoModule(Module, CapHousing):
 
     def search_housings(self, query):
         if(len(query.advert_types) == 1 and
-           query.advert_types[0] == Query.ADVERT_TYPES.PERSONAL):
+           query.advert_types[0] == ADVERT_TYPES.PERSONAL):
             # Logic-immo is pro only
             return list()
 

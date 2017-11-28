@@ -20,7 +20,7 @@
 import itertools
 from weboob.tools.test import BackendTest
 from weboob.tools.value import Value
-from weboob.capabilities.housing import Query
+from weboob.capabilities.housing import Query, POSTS_TYPES
 
 
 class LeboncoinTest(BackendTest):
@@ -34,7 +34,7 @@ class LeboncoinTest(BackendTest):
     def test_leboncoin(self):
         query = Query()
         query.cities = []
-        query.type = Query.TYPE_SALE
+        query.type = POSTS_TYPES.SALE
         for city in self.backend.search_city('lille'):
             city.backend = self.backend.name
             query.cities.append(city)

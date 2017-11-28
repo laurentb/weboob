@@ -18,7 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.browser import PagesBrowser, URL
-from weboob.capabilities.housing import Query, TypeNotSupported
+from weboob.capabilities.housing import (TypeNotSupported, POSTS_TYPES,
+                                         HOUSE_TYPES)
 from .pages import CityListPage, HousingListPage, HousingPage, PhonePage
 
 
@@ -31,15 +32,15 @@ class LeboncoinBrowser(PagesBrowser):
     housing = URL('ventes_immobilieres/(?P<_id>.*).htm', HousingPage)
     phone = URL('https://api.leboncoin.fr/api/utils/phonenumber.json', PhonePage)
 
-    TYPES = {Query.TYPE_RENT: 'locations',
-             Query.TYPE_SALE: 'ventes_immobilieres',
-             Query.TYPE_SHARING: 'colocations', }
+    TYPES = {POSTS_TYPES.RENT: 'locations',
+             POSTS_TYPES.SALE: 'ventes_immobilieres',
+             POSTS_TYPES.SHARING: 'colocations', }
 
-    RET = {Query.HOUSE_TYPES.HOUSE: '1',
-           Query.HOUSE_TYPES.APART: '2',
-           Query.HOUSE_TYPES.LAND: '3',
-           Query.HOUSE_TYPES.PARKING: '4',
-           Query.HOUSE_TYPES.OTHER: '5'}
+    RET = {HOUSE_TYPES.HOUSE: '1',
+           HOUSE_TYPES.APART: '2',
+           HOUSE_TYPES.LAND: '3',
+           HOUSE_TYPES.PARKING: '4',
+           HOUSE_TYPES.OTHER: '5'}
 
     def __init__(self, *args, **kwargs):
         super(LeboncoinBrowser, self).__init__(*args, **kwargs)
@@ -66,13 +67,13 @@ class LeboncoinBrowser(PagesBrowser):
                               ros=nb_rooms,
                               sqs=area_min,
                               sqe=area_max,
-                              _ps="mrs" if query.type == Query.TYPE_RENT else "ps",
+                              _ps="mrs" if query.type == POSTS_TYPES.RENT else "ps",
                               ps=cost_min,
-                              _pe="mre" if query.type == Query.TYPE_RENT else "pe",
+                              _pe="mre" if query.type == POSTS_TYPES.RENT else "pe",
                               pe=cost_max,
                               type=type,
                               advert_type=advert_type,
-                              ret=ret).get_housing_list()
+                              ret=ret).get_housing_list(query_type=query.type)
 
     def get_housing(self, _id, obj=None):
         housing = self.housing.go(_id=_id).get_housing(obj=obj)

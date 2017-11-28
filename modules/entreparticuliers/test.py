@@ -19,7 +19,8 @@
 
 import itertools
 from weboob.tools.test import BackendTest
-from weboob.capabilities.housing import Query
+from weboob.capabilities.housing import (Query, POSTS_TYPES, ADVERT_TYPES,
+                                         HOUSE_TYPES)
 
 
 class EntreparticuliersTest(BackendTest):
@@ -32,8 +33,8 @@ class EntreparticuliersTest(BackendTest):
             city.backend = self.backend.name
             query.cities.append(city)
 
-        query.type = Query.TYPE_SALE
-        query.house_types = [Query.HOUSE_TYPES.HOUSE]
+        query.type = POSTS_TYPES.SALE
+        query.house_types = [HOUSE_TYPES.HOUSE]
         results = list(itertools.islice(self.backend.search_housings(query), 0, 20))
         self.assertTrue(len(results) > 0)
 
@@ -47,8 +48,8 @@ class EntreparticuliersTest(BackendTest):
             city.backend = self.backend.name
             query.cities.append(city)
 
-        query.type = Query.TYPE_SALE
-        query.house_types = [Query.HOUSE_TYPES.HOUSE]
-        query.advert_types = [Query.ADVERT_TYPES.PROFESSIONAL]
+        query.type = POSTS_TYPES.SALE
+        query.house_types = [HOUSE_TYPES.HOUSE]
+        query.advert_types = [ADVERT_TYPES.PROFESSIONAL]
         results = list(itertools.islice(self.backend.search_housings(query), 0, 20))
         self.assertEqual(len(results), 0)

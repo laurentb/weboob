@@ -24,9 +24,10 @@ from weboob.browser.elements import ItemElement, ListElement, DictElement, metho
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, Format
 from weboob.browser.filters.html import CleanHTML
-from weboob.capabilities.housing import Housing, HousingPhoto, City, UTILITIES
+from weboob.capabilities.housing import (Housing, HousingPhoto, City,
+                                         UTILITIES, ADVERT_TYPES)
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable, Currency
 
 
 class CitiesPage(JsonPage):
@@ -57,6 +58,9 @@ class SearchPage(HTMLPage):
             obj_id = Regexp(CleanText('./a/@href',
                                       replace=[('/annonces-immobilieres/', ''), ('/location/', '')]),
                             '(.*).html')
+            obj_type = Env('query_type')
+            obj_advert_type = ADVERT_TYPES.PERSONAL
+            obj_house_type = NotAvailable  # TODO
 
             def obj_title(self):
                 title = CleanText('./a/div/p/span[@class="item title"]')(self)
@@ -65,7 +69,7 @@ class SearchPage(HTMLPage):
                 return title
 
             obj_cost = CleanDecimal(CleanText('./a/div/p/span[@class="item prix"]', children=False))
-            obj_currency = u'EUR'
+            obj_currency = Currency(u'€')
             obj_text = Format('%s / %s / %s / %s',
                               CleanText('./a/div/p/span[@class="item type"]/img/@alt'),
                               CleanText('./a/div/p/span[@id="divnbpieces"]', children=False),
@@ -80,6 +84,9 @@ class HousingPage(HTMLPage):
         klass = Housing
 
         obj_id = Env('_id')
+        obj_type = NotAvailable  # TODO
+        obj_advert_type = ADVERT_TYPES.PERSONAL
+        obj_house_type = NotAvailable  # TODO
         obj_title = CleanText('h1')
 
         obj_rooms = CleanDecimal('//div[@class="stats"]/section/div[@id="divpieces"]/span[@class="stat"]', default=0)

@@ -21,10 +21,11 @@ from weboob.browser.pages import HTMLPage, pagination, JsonPage
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, Env, DateTime, BrowserURL, Format, Join
 from weboob.browser.filters.javascript import JSVar
-from weboob.browser.filters.html import Attr, Link
+from weboob.browser.filters.html import Attr, Link, XPath
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.housing import (City, Housing, HousingPhoto, Query,
-                                         UTILITIES, ENERGY_CLASS)
+                                         UTILITIES, ENERGY_CLASS, POSTS_TYPES,
+                                         ADVERT_TYPES, HOUSE_TYPES)
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 from weboob.tools.date import DATE_TRANSLATE_FR, LinearDateGuesser
@@ -77,11 +78,11 @@ class HousingListPage(HTMLPage):
     #     return self.find_select_value(asked_rooms, '//select[@id="roe"]/option')
 
     def get_cost_min(self, asked_cost, _type):
-        _id = "ps" if _type == Query.TYPE_SALE else "mrs"
+        _id = "ps" if _type == POSTS_TYPES.SALE else "mrs"
         return self.find_select_value(asked_cost, '//select[@id="%s"]/option' % _id)
 
     def get_cost_max(self, asked_cost, _type):
-        _id = "pe" if _type == Query.TYPE_SALE else "mre"
+        _id = "pe" if _type == POSTS_TYPES.SALE else "mre"
         return self.find_select_value(asked_cost, '//select[@id="%s"]/option' % _id)
 
     def find_select_value(self, ref_value, selector):
@@ -114,6 +115,16 @@ class HousingListPage(HTMLPage):
             obj_id = Regexp(Link('.'),
                             '//www.leboncoin.fr/(ventes_immobilieres|locations|colocations)/(.*).htm.*',
                             '\\2', default=None)
+            obj_type = Env('query_type')
+
+            def obj_advert_type(self):
+                ispro = XPath('.//span[has-class("ispro")]', default=None)(self)
+                if ispro:
+                    return ADVERT_TYPES.PROFESSIONAL
+                else:
+                    return ADVERT_TYPES.PERSONAL
+
+            obj_house_type = NotAvailable
 
             obj_title = CleanText('./@title|./section/p[@class="item_title"]')
             obj_cost = CleanDecimal('./section[@class="item_infos"]/*[@class="item_price"]/text()',
@@ -188,11 +199,25 @@ class HousingPage(HTMLPage):
             self.env['area'] = NotAvailable
             self.env['GES'] = NotAvailable
             self.env['DPE'] = NotAvailable
+            self.env['typeBien'] = NotAvailable
             for item in el.xpath('//div[@class="line"]/h2'):
-                if 'Surface' in CleanText('./span[@class="property"]')(item):
+                property = CleanText('./span[@class="property"]')(item)
+                if 'Surface' in property:
                     self.env['area'] = CleanDecimal(Regexp(CleanText('./span[@class="value"]'), '(.*)m.*'),
                                                     replace_dots=(',', '.'))(item)
 
+                elif 'Type de bien' in property:
+                    value = CleanText('./span[@class="value"]')(item).lower()
+                    if value == 'parking':
+                        self.env['typeBien'] = HOUSE_TYPES.PARKING
+                    elif value == 'appartement':
+                        self.env['typeBien'] = HOUSE_TYPES.APART
+                    elif value == 'maison':
+                        self.env['typeBien'] = HOUSE_TYPES.HOUSE
+                    elif value == 'terrain':
+                        self.env['typeBien'] = HOUSE_TYPES.LAND
+                    else:
+                        self.env['typeBien'] = HOUSE_TYPES.OTHER
                 else:
                     key = u'%s' % CleanText('./span[@class="property"]')(item)
                     if 'GES' in key or 'Classe' in key:
@@ -211,6 +236,22 @@ class HousingPage(HTMLPage):
             self.env['details'] = details
 
         obj_id = Env('_id')
+        def obj_type(self):
+            breadcrumb = Link('(//nav[has-class("breadcrumbsNav")]//a)[last()]')(self)
+            if 'colocations' in breadcrumb:
+                return POSTS_TYPES.SHARING
+            elif 'locations' in breadcrumb:
+                return POSTS_TYPES.RENT
+            else:
+                return POSTS_TYPES.SALE
+        def obj_advert_type(self):
+            line_pro = XPath('.//span[has-class("ispro")]', default=None)(self)
+            if line_pro:
+                return ADVERT_TYPES.PROFESSIONAL
+            else:
+                return ADVERT_TYPES.PERSONAL
+        obj_house_type = Env('typeBien')
+
         obj_title = CleanText('//h1[@itemprop="name"]')
         obj_cost = CleanDecimal('//h2[@itemprop="price"]/@content', default=Decimal(0))
 

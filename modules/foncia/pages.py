@@ -27,7 +27,8 @@ from weboob.browser.filters.html import Attr, Link, AbsoluteLink
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.housing import (City, Housing, HousingPhoto, UTILITIES,
-                                         ENERGY_CLASS)
+                                         ENERGY_CLASS, POSTS_TYPES,
+                                         ADVERT_TYPES)
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 
 from .constants import AVAILABLE_TYPES, QUERY_TYPES, QUERY_HOUSE_TYPES
@@ -56,9 +57,27 @@ class HousingPage(HTMLPage):
             Env('type'),
             Attr('//div[boolean(@data-property-reference)]', 'data-property-reference')
         )
+        obj_advert_type = ADVERT_TYPES.PROFESSIONAL
+
+        def obj_type(self):
+            type = Env('type')(self)
+            if type == 'location':
+                return POSTS_TYPES.RENT
+            elif type == 'achat':
+                return POSTS_TYPES.SALE
+            else:
+                return NotAvailable
 
         def obj_url(self):
             return self.page.url
+
+        def obj_house_type(self):
+            url = self.obj_url()
+            for house_type, types in QUERY_HOUSE_TYPES.items():
+                for type in types:
+                    if ('/%s/' % type) in url:
+                        return house_type
+            return NotAvailable
 
         obj_title = CleanText('//h1[has-class("OfferTop-title")]')
         obj_area = CleanDecimal(
@@ -230,8 +249,17 @@ class SearchResultsPage(HTMLPage):
                 Env('type'),
                 Attr('.//span[boolean(@data-reference)]', 'data-reference')
             )
-
             obj_url = AbsoluteLink('.//h3[has-class("TeaserOffer-title")]/a')
+            obj_type = Env('query_type')
+            obj_advert_type = ADVERT_TYPES.PROFESSIONAL
+
+            def obj_house_type(self):
+                url = self.obj_url()
+                for house_type, types in QUERY_HOUSE_TYPES.items():
+                    for type in types:
+                        if ('/%s/' % type) in url:
+                            return house_type
+                return NotAvailable
 
             obj_title = CleanText('.//h3[has-class("TeaserOffer-title")]')
             obj_area = CleanDecimal(

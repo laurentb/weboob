@@ -22,7 +22,7 @@ from __future__ import unicode_literals
 import itertools
 
 from weboob.tools.test import BackendTest
-from weboob.capabilities.housing import Query
+from weboob.capabilities.housing import Query, POSTS_TYPES, ADVERT_TYPES
 
 
 class FonciaTest(BackendTest):
@@ -45,7 +45,7 @@ class FonciaTest(BackendTest):
     def test_search_housings_sale(self):
         query = Query()
         query.cities = []
-        query.type = Query.TYPE_SALE
+        query.type = POSTS_TYPES.SALE
         for city in self.backend.search_city('92120'):
             city.backend = self.backend.name
             query.cities.append(city)
@@ -58,7 +58,7 @@ class FonciaTest(BackendTest):
     def test_search_housings_rent(self):
         query = Query()
         query.cities = []
-        query.type = Query.TYPE_RENT
+        query.type = POSTS_TYPES.RENT
         for city in self.backend.search_city('92120'):
             city.backend = self.backend.name
             query.cities.append(city)
@@ -71,8 +71,8 @@ class FonciaTest(BackendTest):
     def test_search_housings_personal(self):
         query = Query()
         query.cities = []
-        query.type = Query.TYPE_RENT
-        query.advert_types = [Query.ADVERT_TYPES.PERSONAL]
+        query.type = POSTS_TYPES.RENT
+        query.advert_types = [ADVERT_TYPES.PERSONAL]
         for city in self.backend.search_city('92120'):
             city.backend = self.backend.name
             query.cities.append(city)
@@ -83,7 +83,7 @@ class FonciaTest(BackendTest):
     def test_get_housing(self):
         query = Query()
         query.cities = []
-        query.type = Query.TYPE_RENT
+        query.type = POSTS_TYPES.RENT
         for city in self.backend.search_city('92120'):
             city.backend = self.backend.name
             query.cities.append(city)

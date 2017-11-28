@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import itertools
-from weboob.capabilities.housing import Query
+from weboob.capabilities.housing import Query, POSTS_TYPES, ADVERT_TYPES
 from weboob.tools.test import BackendTest
 
 
@@ -30,7 +30,7 @@ class LogicimmoTest(BackendTest):
         query.area_min = 20
         query.cost_max = 900
         query.cities = []
-        query.type = Query.TYPE_RENT
+        query.type = POSTS_TYPES.RENT
         for city in self.backend.search_city('paris'):
             if len(query.cities) >= 3:
                 break
@@ -46,8 +46,8 @@ class LogicimmoTest(BackendTest):
     def test_logicimmo_personal(self):
         query = Query()
         query.cities = []
-        query.type = Query.TYPE_RENT
-        query.advert_types = [Query.ADVERT_TYPES.PERSONAL]
+        query.type = POSTS_TYPES.RENT
+        query.advert_types = [ADVERT_TYPES.PERSONAL]
         for city in self.backend.search_city('paris'):
             if len(query.cities) >= 3:
                 break

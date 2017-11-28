@@ -17,12 +17,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.housing import Query, TypeNotSupported
+from weboob.capabilities.housing import Query, TypeNotSupported, POSTS_TYPES, ADVERT_TYPES
 from weboob.tools.compat import urlencode
 
 from weboob.browser import PagesBrowser, URL
 from .pages import SearchResultsPage, HousingPage, CitiesPage
 from weboob.browser.profiles import Android
+
+from .constants import TYPES, RET
 
 __all__ = ['SeLogerBrowser']
 
@@ -38,31 +40,20 @@ class SeLogerBrowser(PagesBrowser):
     def search_geo(self, pattern):
         return self.cities.open(pattern=pattern).iter_cities()
 
-    TYPES = {Query.TYPE_RENT: 1,
-             Query.TYPE_SALE: 2,
-             }
-
-    RET = {Query.HOUSE_TYPES.HOUSE: '2',
-           Query.HOUSE_TYPES.APART: '1',
-           Query.HOUSE_TYPES.LAND: '4',
-           Query.HOUSE_TYPES.PARKING: '3',
-           Query.HOUSE_TYPES.OTHER: '10'}
-
     def search_housings(self, type, cities, nb_rooms, area_min, area_max,
                         cost_min, cost_max, house_types, advert_types):
-
-        if type not in self.TYPES:
+        if type not in TYPES:
             raise TypeNotSupported()
 
         data = {'ci':            ','.join(cities),
-                'idtt':          self.TYPES.get(type, 1),
+                'idtt':          TYPES.get(type, 1),
                 'org':           'advanced_search',
                 'surfacemax':    area_max or '',
                 'surfacemin':    area_min or '',
                 'tri':           'd_dt_crea',
                 }
 
-        if type == Query.TYPE_SALE:
+        if type == POSTS_TYPES.SALE:
             data['pxmax'] = cost_max or ''
             data['pxmin'] = cost_min or ''
         else:
@@ -74,20 +65,22 @@ class SeLogerBrowser(PagesBrowser):
 
         ret = []
         for house_type in house_types:
-            if house_type in self.RET:
-                ret.append(self.RET.get(house_type))
+            if house_type in RET:
+                ret.append(RET.get(house_type))
 
         if ret:
             data['idtypebien'] = ','.join(ret)
 
         if(len(advert_types) == 1 and
-           advert_types[0] == Query.ADVERT_TYPES.PROFESSIONAL):
+           advert_types[0] == ADVERT_TYPES.PROFESSIONAL):
             data['SI_PARTICULIER'] = 0
         elif(len(advert_types) == 1 and
-           advert_types[0] == Query.ADVERT_TYPES.PERSONAL):
+           advert_types[0] == ADVERT_TYPES.PERSONAL):
             data['SI_PARTICULIER'] = 1
 
-        return self.search.go(request=urlencode(data)).iter_housings()
+        return self.search.go(request=urlencode(data)).iter_housings(
+            query_type=type
+        )
 
     def get_housing(self, _id, obj=None):
         return self.housing.go(_id=_id, noAudiotel=1).get_housing(obj=obj)

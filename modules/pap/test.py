@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.housing import Query
+from weboob.capabilities.housing import Query, POSTS_TYPES, ADVERT_TYPES
 from weboob.tools.test import BackendTest
 
 
@@ -29,7 +29,7 @@ class PapTest(BackendTest):
         query = Query()
         query.area_min = 20
         query.cost_max = 900
-        query.type = Query.TYPE_RENT
+        query.type = POSTS_TYPES.RENT
         query.cities = []
         for city in self.backend.search_city('paris'):
             city.backend = self.backend.name
@@ -44,8 +44,8 @@ class PapTest(BackendTest):
         query = Query()
         query.area_min = 20
         query.cost_max = 900
-        query.type = Query.TYPE_RENT
-        query.advert_types = [Query.ADVERT_TYPES.PROFESSIONAL]
+        query.type = POSTS_TYPES.RENT
+        query.advert_types = [ADVERT_TYPES.PROFESSIONAL]
         query.cities = []
         for city in self.backend.search_city('paris'):
             city.backend = self.backend.name

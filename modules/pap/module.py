@@ -18,7 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.housing import CapHousing, Housing, HousingPhoto, Query
+from weboob.capabilities.housing import (CapHousing, Housing, HousingPhoto,
+                                         Query, ADVERT_TYPES)
 from weboob.tools.backend import Module
 
 from .browser import PapBrowser
@@ -38,7 +39,7 @@ class PapModule(Module, CapHousing):
 
     def search_housings(self, query):
         if(len(query.advert_types) == 1 and
-           query.advert_types[0] == Query.ADVERT_TYPES.PROFESSIONAL):
+           query.advert_types[0] == ADVERT_TYPES.PROFESSIONAL):
             # Pap is personal only
             return list()
 

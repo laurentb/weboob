@@ -19,10 +19,12 @@
 
 
 from weboob.browser import PagesBrowser, URL
-from weboob.capabilities.housing import Query, TypeNotSupported
+from weboob.capabilities.housing import (TypeNotSupported, POSTS_TYPES,
+                                         HOUSE_TYPES)
 from weboob.tools.compat import urlencode
 
 from .pages import SearchResultsPage, HousingPage, CitiesPage
+from .constants import TYPES, RET
 
 
 __all__ = ['PapBrowser']
@@ -38,18 +40,9 @@ class PapBrowser(PagesBrowser):
     def search_geo(self, pattern):
         return self.cities.open(pattern=pattern).iter_cities()
 
-    TYPES = {Query.TYPE_RENT: 'location',
-             Query.TYPE_SALE: 'vente'}
-
-    RET = {Query.HOUSE_TYPES.HOUSE: 'maison',
-           Query.HOUSE_TYPES.APART: 'appartement',
-           Query.HOUSE_TYPES.LAND: 'terrain',
-           Query.HOUSE_TYPES.PARKING: 'garage-parking',
-           Query.HOUSE_TYPES.OTHER: 'divers'}
-
     def search_housings(self, type, cities, nb_rooms, area_min, area_max, cost_min, cost_max, house_types):
 
-        if type not in self.TYPES:
+        if type not in TYPES:
             raise TypeNotSupported()
 
         self.session.headers.update({'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'})
@@ -59,7 +52,7 @@ class PapBrowser(PagesBrowser):
                 'surface[max]':   area_max or '',
                 'prix[min]':      cost_min or '',
                 'prix[max]':      cost_max or '',
-                'produit':        self.TYPES.get(type, 'location'),
+                'produit':        TYPES.get(type, 'location'),
                 'recherche':      1,
                 'nb_resultats_par_page': 40,
                 }
@@ -70,11 +63,13 @@ class PapBrowser(PagesBrowser):
 
         ret = []
         for house_type in house_types:
-            if house_type in self.RET:
-                ret.append(self.RET.get(house_type))
+            if house_type in RET:
+                ret.append(RET.get(house_type))
 
         _data = '%s%s%s' % (urlencode(data), '&typesbien%5B%5D=', '&typesbien%5B%5D='.join(ret))
-        return self.search_page.go(data=_data).iter_housings()
+        return self.search_page.go(data=_data).iter_housings(
+            query_type=type
+        )
 
     def get_housing(self, _id, housing=None):
         return self.housing.go(_id=_id).get_housing(obj=housing)

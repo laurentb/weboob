@@ -28,6 +28,8 @@ from weboob.capabilities.housing import (Housing, HousingPhoto, City,
                                          UTILITIES, ENERGY_CLASS)
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 
+from .constants import TYPES, RET
+
 
 class CitiesPage(JsonPage):
     @method
@@ -52,6 +54,18 @@ class SeLogerItem(ItemElement):
     klass = Housing
 
     obj_id = CleanText('idAnnonce')
+
+    def obj_type(self):
+        idType = int(CleanText('idTypeTransaction')(self))
+        return next(k for k, v in TYPES.items() if v == idType)
+    obj_advert_type = NotAvailable
+    def obj_house_type(self):
+        idType = CleanText('idTypeBien')(self)
+        try:
+            return next(k for k, v in RET.items() if v == idType)
+        except StopIteration:
+            return NotAvailable
+
     obj_title = Format(
         "%s %s%s - %s",
         CleanText('titre'),

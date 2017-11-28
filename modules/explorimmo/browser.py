@@ -18,7 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.browser import PagesBrowser, URL
-from weboob.capabilities.housing import Query, TypeNotSupported
+from weboob.capabilities.housing import (TypeNotSupported, POSTS_TYPES,
+                                         HOUSE_TYPES)
 from weboob.tools.compat import urlencode
 from .pages import CitiesPage, SearchPage, HousingPage, HousingPage2, PhonePage
 
@@ -33,14 +34,14 @@ class ExplorimmoBrowser(PagesBrowser):
     housing = URL('rest/classifieds/(?P<_id>.*)',
                   'rest/classifieds/\?(?P<js_datas>.*)', HousingPage2)
 
-    TYPES = {Query.TYPE_RENT: 'location',
-             Query.TYPE_SALE: 'vente'}
+    TYPES = {POSTS_TYPES.RENT: 'location',
+             POSTS_TYPES.SALE: 'vente'}
 
-    RET = {Query.HOUSE_TYPES.HOUSE: 'Maison',
-           Query.HOUSE_TYPES.APART: 'Appartement',
-           Query.HOUSE_TYPES.LAND: 'Terrain',
-           Query.HOUSE_TYPES.PARKING: 'Parking',
-           Query.HOUSE_TYPES.OTHER: 'Divers'}
+    RET = {HOUSE_TYPES.HOUSE: 'Maison',
+           HOUSE_TYPES.APART: 'Appartement',
+           HOUSE_TYPES.LAND: 'Terrain',
+           HOUSE_TYPES.PARKING: 'Parking',
+           HOUSE_TYPES.OTHER: 'Divers'}
 
     def get_cities(self, pattern):
         return self.cities.open(city=pattern).get_cities()
@@ -70,7 +71,10 @@ class ExplorimmoBrowser(PagesBrowser):
 
         query = u'%s%s%s' % (urlencode(data), '&type=', '&type='.join(ret))
 
-        return self.search.go(query=query).iter_housings(advert_types=advert_types)
+        return self.search.go(query=query).iter_housings(
+            query_type=type,
+            advert_types=advert_types
+        )
 
     def get_housing(self, _id, housing=None):
         return self.housing.go(_id=_id).get_housing(obj=housing)

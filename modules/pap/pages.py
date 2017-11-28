@@ -27,7 +27,8 @@ from weboob.browser.filters.html import Attr, Link, XPath, CleanHTML
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.housing import (Housing, City, HousingPhoto,
-                                         UTILITIES, ENERGY_CLASS)
+                                         UTILITIES, ENERGY_CLASS, POSTS_TYPES,
+                                         ADVERT_TYPES, HOUSE_TYPES)
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 
 
@@ -58,6 +59,11 @@ class SearchResultsPage(HTMLPage):
                 return Regexp(Link('./div[has-class("box-header")]/a[@class="title-item"]'), '/annonces/(.*)', default=None)(self)
 
             obj_id = Regexp(Link('./div[has-class("box-header")]/a[@class="title-item"]'), '/annonces/(.*)')
+            obj_type = Env('query_type')
+            obj_advert_type = ADVERT_TYPES.PERSONAL
+            obj_house_type = NotAvailable
+
+
             obj_title = CleanText('./div[has-class("box-header")]/a[@class="title-item"]')
             obj_area = CleanDecimal(Regexp(CleanText('./div[has-class("box-header")]/a/span[@class="h1"]'),
                                            '(.*?)(\d*) m\xb2(.*?)', '\\2'), default=NotAvailable)
@@ -113,6 +119,30 @@ class HousingPage(HTMLPage):
         klass = Housing
 
         obj_id = Env('_id')
+        def obj_type(self):
+            prev_link = Link('//ol[has-class("breadcrumb")]/li[1]/a')(self)
+            if 'location' in prev_link:
+                return POSTS_TYPES.RENT
+            elif 'vente' in prev_link:
+                return POSTS_TYPES.SALE
+            else:
+                return NotAvailable
+        obj_advert_type = ADVERT_TYPES.PERSONAL
+        def obj_house_type(self):
+            prev_link = Link('//ol[has-class("breadcrumb")]/li[1]/a')(self)
+            house_type = prev_link.split('-')[-1]
+            if 'parking' in house_type:
+                return HOUSE_TYPES.PARKING
+            elif 'appartement' in house_type:
+                return HOUSE_TYPES.APART
+            elif 'terrain' in house_type:
+                return HOUSE_TYPES.LAND
+            elif 'maison' in house_type:
+                return HOUSE_TYPES.HOUSE
+            else:
+                return HOUSE_TYPES.OTHER
+
+
         obj_title = CleanText(
             '//div[has-class("box-header")]/h1[@class="clearfix"]'
         )

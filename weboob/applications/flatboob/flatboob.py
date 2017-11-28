@@ -19,7 +19,8 @@
 
 from __future__ import print_function
 
-from weboob.capabilities.housing import CapHousing, Query
+from weboob.capabilities.housing import (CapHousing, Query, POSTS_TYPES,
+                                         ADVERT_TYPES, HOUSE_TYPES)
 from weboob.capabilities.base import empty
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
@@ -141,7 +142,7 @@ class Flatboob(ReplApplication):
             while r != '':
                 for i, city in enumerate(cities):
                     print('  %s%2d)%s [%s] %s (%s)' % (self.BOLD, i+1, self.NC, 'x' if city in query.cities else ' ', city.name, city.backend))
-                r = self.ask('  Select cities (or empty to stop)', regexp='(\d+|)', default='')
+                r = self.ask('Select cities (or empty to stop)', regexp='(\d+|)', default='')
                 if not r.isdigit():
                     continue
                 r = int(r)
@@ -155,55 +156,56 @@ class Flatboob(ReplApplication):
 
         r = 'notempty'
         while r != '':
-            for good in Query.HOUSE_TYPES.values:
+            for good in HOUSE_TYPES.values:
                 print('  %s%2d)%s [%s] %s' % (self.BOLD,
-                                              Query.HOUSE_TYPES.index[good] + 1,
+                                              HOUSE_TYPES.index[good] + 1,
                                               self.NC,
                                               'x' if good in query.house_types else ' ', good))
-            r = self.ask('  Select type of house (or empty to stop)', regexp='(\d+|)', default='')
+            r = self.ask('Select type of house (or empty to stop)', regexp='(\d+|)', default='')
             if not r.isdigit():
                 continue
             r = int(r)
-            if r <= 0 or r > len(Query.HOUSE_TYPES.values):
+            if r <= 0 or r > len(HOUSE_TYPES.values):
                 continue
-            value = Query.HOUSE_TYPES.values[r - 1]
+            value = HOUSE_TYPES.values[r - 1]
             if value in query.house_types:
                 query.house_types.remove(value)
             else:
                 query.house_types.append(value)
 
         _type = None
-        while _type not in [query.TYPE_RENT, query.TYPE_SALE, query.TYPE_SHARING]:
+        house_types = [POSTS_TYPES.RENT, POSTS_TYPES.SALE, POSTS_TYPES.SHARING]
+        while _type not in [0, 1, 2]:
             print('  %s%2d)%s %s' % (self.BOLD,
-                                     query.TYPE_RENT,
+                                     0,
                                      self.NC,
                                      "Rent"))
             print('  %s%2d)%s %s' % (self.BOLD,
-                                     query.TYPE_SALE,
+                                     1,
                                      self.NC,
                                      "Sale"))
             print('  %s%2d)%s %s' % (self.BOLD,
-                                     query.TYPE_SHARING,
+                                     2,
                                      self.NC,
                                      "Sharing"))
             _type = self.ask_int('Type of query')
 
-        query.type = _type
+        query.type = house_types[_type]
 
         r = 'notempty'
         while r != '':
-            for good in Query.ADVERT_TYPES.values:
+            for good in ADVERT_TYPES.values:
                 print('  %s%2d)%s [%s] %s' % (self.BOLD,
-                                              Query.ADVERT_TYPES.index[good] + 1,
+                                              ADVERT_TYPES.index[good] + 1,
                                               self.NC,
                                               'x' if good in query.advert_types else ' ', good))
-            r = self.ask('  Select type of posts (or empty to stop)', regexp='(\d+|)', default='')
+            r = self.ask('Select type of posts (or empty to stop)', regexp='(\d+|)', default='')
             if not r.isdigit():
                 continue
             r = int(r)
-            if r <= 0 or r > len(Query.ADVERT_TYPES.values):
+            if r <= 0 or r > len(ADVERT_TYPES.values):
                 continue
-            value = Query.ADVERT_TYPES.values[r - 1]
+            value = ADVERT_TYPES.values[r - 1]
             if value in query.advert_types:
                 query.advert_types.remove(value)
             else:

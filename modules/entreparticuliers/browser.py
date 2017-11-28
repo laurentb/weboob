@@ -18,7 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.json import json
-from weboob.capabilities.housing import Query, TypeNotSupported
+from weboob.capabilities.housing import (TypeNotSupported, POSTS_TYPES,
+                                         HOUSE_TYPES)
 from weboob.browser import PagesBrowser, URL
 
 from .pages import CitiesPage, SearchPage, HousingPage
@@ -36,20 +37,19 @@ class EntreparticuliersBrowser(PagesBrowser):
     def search_city(self, pattern):
         return self.cities.open(pattern=pattern).iter_cities()
 
-    TYPES = {Query.TYPE_RENT: "1",
-             Query.TYPE_SALE: "4"
-             }
+    TYPES = {POSTS_TYPES.RENT: "1",
+             POSTS_TYPES.SALE: "4"}
 
-    RET = {Query.TYPE_RENT: {Query.HOUSE_TYPES.HOUSE: '18',
-                             Query.HOUSE_TYPES.APART: '17',
-                             Query.HOUSE_TYPES.LAND: '0',
-                             Query.HOUSE_TYPES.PARKING: '20',
-                             Query.HOUSE_TYPES.OTHER: '22'},
-           Query.TYPE_SALE: {Query.HOUSE_TYPES.HOUSE: '2',
-                             Query.HOUSE_TYPES.APART: '1',
-                             Query.HOUSE_TYPES.LAND: '5',
-                             Query.HOUSE_TYPES.PARKING: '6',
-                             Query.HOUSE_TYPES.OTHER: '9'}
+    RET = {POSTS_TYPES.RENT: {HOUSE_TYPES.HOUSE: '18',
+                              HOUSE_TYPES.APART: '17',
+                              HOUSE_TYPES.LAND: '0',
+                              HOUSE_TYPES.PARKING: '20',
+                              HOUSE_TYPES.OTHER: '22'},
+           POSTS_TYPES.SALE: {HOUSE_TYPES.HOUSE: '2',
+                              HOUSE_TYPES.APART: '1',
+                              HOUSE_TYPES.LAND: '5',
+                              HOUSE_TYPES.PARKING: '6',
+                              HOUSE_TYPES.OTHER: '9'}
            }
 
     def search_housings(self, type, cities, nb_rooms, area_min, area_max, cost_min, cost_max, house_types):
@@ -121,7 +121,7 @@ class EntreparticuliersBrowser(PagesBrowser):
             self.search.go(data="{'p_SearchParams':'%s', 'forcealerte':'0'}" % json.dumps(data))
 
             self.reset_header()
-            return self.search_result.go().iter_housings()
+            return self.search_result.go().iter_housings(query_type=type)
 
     def get_housing(self, _id, obj=None):
         return self.housing.go(_id=_id).get_housing(obj=obj)

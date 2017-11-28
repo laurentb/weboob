@@ -25,7 +25,8 @@ from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import Format, CleanText, Regexp, CleanDecimal, Date, Env, BrowserURL
 from weboob.browser.filters.html import Attr, XPath, CleanHTML
 from weboob.capabilities.housing import (Housing, HousingPhoto, City,
-                                         UTILITIES, ENERGY_CLASS)
+                                         UTILITIES, ENERGY_CLASS, POSTS_TYPES,
+                                         ADVERT_TYPES, HOUSE_TYPES)
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 
@@ -56,6 +57,29 @@ class HousingPage(HTMLPage):
         klass = Housing
 
         obj_id = Env('_id')
+        def obj_type(self):
+            url = BrowserURL('housing', _id=Env('_id'))(self)
+            if 'colocation' in url:
+                return POSTS_TYPES.SHARING
+            elif 'location' in url:
+                return POSTS_TYPES.RENT
+            elif 'vente' in url:
+                return POSTS_TYPES.SALE
+            return NotAvailable
+        obj_advert_type = ADVERT_TYPES.PROFESSIONAL
+        def obj_house_type(self):
+            house_type = CleanText('.//div[has-class("offer-type")]')(self).lower()
+            if house_type == "appartement":
+                return HOUSE_TYPES.APART
+            elif house_type == "maison":
+                return HOUSE_TYPES.HOUSE
+            elif house_type == "terrain":
+                return HOUSE_TYPES.LAND
+            elif house_type == "parking":
+                return HOUSE_TYPES.PARKING
+            else:
+                return HOUSE_TYPES.OTHER
+
         obj_title = CleanText(CleanHTML('//meta[@itemprop="name"]/@content'))
         obj_area = CleanDecimal(Regexp(CleanText(CleanHTML('//meta[@itemprop="name"]/@content')),
                                        '(.*?)(\d*) m\xb2(.*?)', '\\2', default=NotAvailable),
@@ -173,6 +197,8 @@ class SearchPage(HTMLPage):
             klass = Housing
 
             obj_id = Format('colocation-%s', CleanText('./div/header/@id', replace=[('header-offer-', '')]))
+            obj_type = POSTS_TYPES.SHARING
+            obj_advert_type = ADVERT_TYPES.PROFESSIONAL
             obj_title = CleanText(CleanHTML('./div/header/section/p[@class="property-type"]/span/@title'))
 
             obj_area = CleanDecimal('./div/header/section/p[@class="offer-attributes"]/a/span[@class="offer-area-number"]',
@@ -212,6 +238,22 @@ class SearchPage(HTMLPage):
                 Regexp(Env('type'), '(.*)-.*'),
                 CleanText('./@id', replace=[('header-offer-', '')])
             )
+            obj_type = Env('query_type')
+            obj_advert_type = ADVERT_TYPES.PROFESSIONAL
+
+            def obj_house_type(self):
+                house_type = CleanText('.//p[has-class("offer-type")]')(self).lower()
+                if house_type == "appartement":
+                    return HOUSE_TYPES.APART
+                elif house_type == "maison":
+                    return HOUSE_TYPES.HOUSE
+                elif house_type == "terrain":
+                    return HOUSE_TYPES.LAND
+                elif house_type == "parking":
+                    return HOUSE_TYPES.PARKING
+                else:
+                    return HOUSE_TYPES.OTHER
+
             obj_title = Attr(
                 offer_details_wrapper + '/div/div/p[@class="offer-type"]/a',
                 'title'

@@ -27,7 +27,8 @@ from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env
 from weboob.browser.filters.html import Attr, CleanHTML, Link, XPath
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.capabilities.housing import (Housing, HousingPhoto, City, Query,
-                                         UTILITIES, ENERGY_CLASS)
+                                         UTILITIES, ENERGY_CLASS, POSTS_TYPES,
+                                         ADVERT_TYPES, HOUSE_TYPES)
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 from weboob.tools.compat import unquote
 
@@ -72,17 +73,38 @@ class SearchPage(HTMLPage):
         class item(ItemElement):
             klass = Housing
 
+            def is_agency(self):
+                agency = CleanText('.//span[has-class("item-agency-name")]')(self.el)
+                return 'annonce de particulier' not in agency.lower()
+
             def condition(self):
                 if len(self.env['advert_types']) == 1:
-                    agency = CleanText('.//span[has-class("item-agency-name")]')(self.el)
-                    is_agency = 'annonce de particulier' not in agency.lower()
-                    if self.env['advert_types'][0] == Query.ADVERT_TYPES.PERSONAL:
+                    is_agency = self.is_agency()
+                    if self.env['advert_types'][0] == ADVERT_TYPES.PERSONAL:
                         return not is_agency
-                    elif self.env['advert_types'][0] == Query.ADVERT_TYPES.PROFESSIONAL:
+                    elif self.env['advert_types'][0] == ADVERT_TYPES.PROFESSIONAL:
                         return is_agency
                 return True
 
             obj_id = CleanText('./@data-classified-id')
+            obj_type = Env('query_type')
+            def obj_advert_type(self):
+                if self.is_agency():
+                    return ADVERT_TYPES.PROFESSIONAL
+                else:
+                    return ADVERT_TYPES.PERSONAL
+            def obj_house_type(self):
+                type = self.obj_title(self).split()[0].lower()
+                if type == "appartement" or type == "studio" or type == "chambre":
+                    return HOUSE_TYPES.APART
+                elif type == "maison" or type == "villa":
+                    return HOUSE_TYPES.HOUSE
+                elif type == "parking":
+                    return HOUSE_TYPES.PARKING
+                elif type == "terrain":
+                    return HOUSE_TYPES.LAND
+                else:
+                    return HOUSE_TYPES.OTHER
             obj_title = CleanText('./div/h2[@itemprop="name"]/a')
             obj_location = CleanText('./div/h2[@itemprop="name"]/span[@class="item-localisation"]/span[@class="localisation-label"]/strong')
             obj_cost = CleanDecimal('./div/div/span[@class="price-label"]|./div/div[@class="item-price-pdf"]',
@@ -167,7 +189,39 @@ class HousingPage2(JsonPage):
     class get_housing(ItemElement):
         klass = Housing
 
+        def is_agency(self):
+            return 'un particulier' in CleanText(
+                './/div[has-class("container-agency-infos")]')(self).lower()
+
         obj_id = Env('_id')
+        def obj_type(self):
+            transaction = Dict('characteristics/transaction')(self)
+            if transaction == 'location':
+                return POSTS_TYPES.RENT
+            elif transaction == 'vente':
+                return POSTS_TYPES.SALE
+            else:
+                return NotAvailable
+
+        def obj_advert_type(self):
+            if self.is_agency:
+                return ADVERT_TYPES.PROFESSIONAL
+            else:
+                return ADVERT_TYPES.PERSONAL
+
+        def obj_house_type(self):
+            type = Dict('characteristics/estateType')(self).lower()
+            if 'appartement' in type:
+                return HOUSE_TYPES.APART
+            elif 'maison' in type:
+                return HOUSE_TYPES.HOUSE
+            elif 'parking' in type:
+                return HOUSE_TYPES.PARKING
+            elif 'terrain' in type:
+                return HOUSE_TYPES.LAND
+            else:
+                return HOUSE_TYPES.OTHER
+
         obj_title = Dict('characteristics/titleWithTransaction')
         obj_location = Format('%s %s %s', Dict('location/address'),
                               Dict('location/cityLabel'),

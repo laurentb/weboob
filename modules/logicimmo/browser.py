@@ -19,7 +19,8 @@
 
 
 from weboob.browser import PagesBrowser, URL
-from weboob.capabilities.housing import Query, TypeNotSupported
+from weboob.capabilities.housing import (TypeNotSupported, POSTS_TYPES,
+                                         HOUSE_TYPES)
 from .pages import CitiesPage, SearchPage, HousingPage, PhonePage
 
 
@@ -32,15 +33,15 @@ class LogicimmoBrowser(PagesBrowser):
     housing = URL('detail-(?P<_id>.*).htm', HousingPage)
     phone = URL('(?P<urlcontact>.*)', PhonePage)
 
-    TYPES = {Query.TYPE_RENT: 'location-immobilier',
-             Query.TYPE_SALE: 'vente-immobilier',
-             Query.TYPE_SHARING: 'recherche-colocation'}
+    TYPES = {POSTS_TYPES.RENT: 'location-immobilier',
+             POSTS_TYPES.SALE: 'vente-immobilier',
+             POSTS_TYPES.SHARING: 'recherche-colocation'}
 
-    RET = {Query.HOUSE_TYPES.HOUSE: '2',
-           Query.HOUSE_TYPES.APART: '1',
-           Query.HOUSE_TYPES.LAND: '3',
-           Query.HOUSE_TYPES.PARKING: '10',
-           Query.HOUSE_TYPES.OTHER: '14'}
+    RET = {HOUSE_TYPES.HOUSE: '2',
+           HOUSE_TYPES.APART: '1',
+           HOUSE_TYPES.LAND: '3',
+           HOUSE_TYPES.PARKING: '10',
+           HOUSE_TYPES.OTHER: '14'}
 
     def get_cities(self, pattern):
         if pattern:
@@ -72,7 +73,7 @@ class LogicimmoBrowser(PagesBrowser):
             options.append('areamax=%s' % area_max)
 
         if nb_rooms:
-            if type == Query.TYPE_SHARING:
+            if type == POSTS_TYPES.SHARING:
                 options.append('nbbedrooms=%s' % ','.join([str(i) for i in range(nb_rooms, 7)]))
             else:
                 options.append('nbrooms=%s' % ','.join([str(i) for i in range(nb_rooms, 7)]))
@@ -81,10 +82,10 @@ class LogicimmoBrowser(PagesBrowser):
                        cities=cities,
                        options='/'.join(options))
 
-        if type == Query.TYPE_SHARING:
+        if type == POSTS_TYPES.SHARING:
             return self.page.iter_sharing()
 
-        return self.page.iter_housings()
+        return self.page.iter_housings(query_type=type)
 
     def get_housing(self, _id, housing=None):
         return self.housing.go(_id=_id).get_housing(obj=housing)

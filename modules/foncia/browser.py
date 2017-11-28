@@ -50,7 +50,7 @@ class FonciaBrowser(PagesBrowser):
             return []
 
         self.search.go(type=query_type).do_search(query, cities)
-        return self.page.iter_housings()
+        return self.page.iter_housings(query_type=query.type)
 
     def get_housing(self, housing):
         """

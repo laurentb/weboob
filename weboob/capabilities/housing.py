@@ -58,11 +58,28 @@ class HousingPhoto(BaseObject):
 UTILITIES = enum(INCLUDED=u'C.C.', EXCLUDED=u'H.C.', UNKNOWN=u'')
 ENERGY_CLASS = enum(A=u'A', B=u'B', C=u'C', D=u'D', E=u'E', F=u'F', G=u'G')
 
+POSTS_TYPES = enum(RENT=u'RENT',
+                   SALE=u'SALE',
+                   SHARING=u'SHARING')
+ADVERT_TYPES = enum(PROFESSIONAL=u'Professional', PERSONAL=u'Personal')
+HOUSE_TYPES = enum(APART=u'Apartment',
+                    HOUSE=u'House',
+                    PARKING=u'Parking',
+                    LAND=u'Land',
+                    OTHER=u'Other',
+                    UNKNOWN=u'Unknown')
+
 
 class Housing(BaseObject):
     """
     Content of a housing.
     """
+    type =            Field('Type of housing (rent, sale, sharing)',
+                            *POSTS_TYPES.types)
+    advert_type =     Field('Type of advert (professional or personal)',
+                            *ADVERT_TYPES.types)
+    house_type =      Field('Type of house (apartment, house, parking, …)',
+                            *HOUSE_TYPES.types)
     title =           StringField('Title of housing')
     area =            DecimalField('Area of housing, in m2')
     cost =            DecimalField('Cost of housing')
@@ -86,19 +103,8 @@ class Query(BaseObject):
     """
     Query to find housings.
     """
-    TYPE_RENT = 0
-    TYPE_SALE = 1
-    TYPE_SHARING = 2
-
-    HOUSE_TYPES = enum(APART=u'Apartment',
-                       HOUSE=u'House',
-                       PARKING=u'Parking',
-                       LAND=u'Land',
-                       OTHER=u'Other',
-                       UNKNOWN=u'Unknown')
-    ADVERT_TYPES = enum(PROFESSIONAL=u'Professional', PERSONAL=u'Personal')
-
-    type = IntField('Type of housing to find (TYPE_* constants)')
+    type = Field('Type of housing to find (POSTS_TYPES constants)',
+                 *POSTS_TYPES.types)
     cities = Field('List of cities to search in', list, tuple)
     area_min = IntField('Minimal area (in m2)')
     area_max = IntField('Maximal area (in m2)')
