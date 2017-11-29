@@ -26,6 +26,7 @@ from io import BytesIO
 import codecs
 from cgi import parse_header
 from functools import reduce
+import re
 
 import requests
 
@@ -612,9 +613,16 @@ class HTMLPage(Page):
                 text = [text]
             return any(t.endswith(suffix) for t in text)
 
+        def matches(context, text, pattern):
+            reobj = re.compile(pattern)
+            if not isinstance(text, list):
+                text = [text]
+            return any(reobj.search(t) for t in text)
+
         ns['has-class'] = has_class
         ns['starts-with'] = starts_with
         ns['ends-with'] = ends_with
+        ns['matches'] = matches
 
     def build_doc(self, content):
         """
