@@ -209,10 +209,10 @@ class TransactionsPage(LoggedPage, HTMLPage):
             date = cleaner(cols[0])
             label = cleaner(col_label)
 
-            t = Transaction(col_label.attrib.get('id', ''))
+            t = Transaction()
 
             # an optional tooltip on page contain the second part of the transaction label.
-            tooltip = self.doc.xpath('//div[@id="tooltip%s"]' % t.id)
+            tooltip = self.doc.xpath('//div[@id="tooltip%s"]' % col_label.attrib.get('id', ''))
             raw = label
             if len(tooltip) > 0:
                 raw += u' ' + u' '.join([txt.strip() for txt in tooltip[0].itertext()])
