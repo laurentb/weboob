@@ -53,7 +53,6 @@ class LogicimmoModule(Module, CapHousing):
             id = housing
             housing = None
         housing = self.browser.get_housing(id, housing)
-        housing.phone = self.browser.get_phone(id)
         return housing
 
     def search_city(self, pattern):
@@ -81,7 +80,6 @@ class LogicimmoModule(Module, CapHousing):
                                             query.house_types)
 
     def fill_housing(self, housing, fields):
-        self.browser.get_housing(housing.id, housing)
         if 'phone' in fields:
             housing.phone = self.browser.get_phone(housing.id)
         return housing

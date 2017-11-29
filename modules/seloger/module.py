@@ -60,20 +60,9 @@ class SeLogerModule(Module, CapHousing):
     def search_city(self, pattern):
         return self.browser.search_geo(pattern)
 
-    def fill_housing(self, housing, fields):
-        if fields != ['photos'] or not housing.photos:
-            housing = self.browser.get_housing(housing.id, housing)
-        if 'photos' in fields:
-            for photo in housing.photos:
-                if not photo.data:
-                    photo.data = self.browser.open(photo.url)
-        return housing
-
     def fill_photo(self, photo, fields):
         if 'data' in fields and photo.url and not photo.data:
             photo.data = self.browser.open(photo.url).content
         return photo
 
-    OBJECTS = {Housing: fill_housing,
-               HousingPhoto: fill_photo,
-               }
+    OBJECTS = {HousingPhoto: fill_photo}

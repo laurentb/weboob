@@ -59,12 +59,9 @@ class EntreparticuliersModule(Module, CapHousing):
     def get_housing(self, _id):
         return self.browser.get_housing(_id)
 
-    def fill_housing(self, housing, fields):
-        return self.browser.get_housing(housing.id, housing)
-
     def fill_photo(self, photo, fields):
         if 'data' in fields and photo.url and not photo.data:
             photo.data = self.browser.open(photo.url).content
         return photo
 
-    OBJECTS = {Housing: fill_housing, HousingPhoto: fill_photo}
+    OBJECTS = {HousingPhoto: fill_photo}

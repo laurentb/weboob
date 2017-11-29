@@ -77,7 +77,6 @@ class LeboncoinBrowser(PagesBrowser):
 
     def get_housing(self, _id, obj=None):
         housing = self.housing.go(_id=_id).get_housing(obj=obj)
-        housing.phone = self.get_phone(_id)
         return housing
 
     def get_phone(self, _id):
