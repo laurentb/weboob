@@ -19,8 +19,8 @@
 
 
 from weboob.tools.backend import Module
-from weboob.capabilities.housing import (CapHousing, Housing, HousingPhoto,
-                                         Query, ADVERT_TYPES)
+from weboob.capabilities.housing import (CapHousing, HousingPhoto,
+                                         ADVERT_TYPES)
 
 from .browser import EntreparticuliersBrowser
 

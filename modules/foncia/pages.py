@@ -23,7 +23,7 @@ import datetime
 
 from weboob.browser.pages import JsonPage, HTMLPage, pagination
 from weboob.browser.filters.standard import CleanDecimal, CleanText, Date, Env, Format, Regexp
-from weboob.browser.filters.html import Attr, Link, AbsoluteLink
+from weboob.browser.filters.html import Attr, Link
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.housing import (City, Housing, HousingPhoto, UTILITIES,
@@ -148,15 +148,15 @@ class HousingPage(HTMLPage):
             if electric_consumption is not None:
                 if electric_consumption <= 50:
                     DPE = "A"
-                elif electric_consumption > 50 and electric_consumption <= 90:
+                elif 50 < electric_consumption <= 90:
                     DPE = "B"
-                elif electric_consumption > 90 and electric_consumption <= 150:
+                elif 90 < electric_consumption <= 150:
                     DPE = "C"
-                elif electric_consumption > 150 and electric_consumption <= 230:
+                elif 150 < electric_consumption <= 230:
                     DPE = "D"
-                elif electric_consumption > 230 and electric_consumption <= 330:
+                elif 230 < electric_consumption <= 330:
                     DPE = "E"
-                elif electric_consumption > 330 and electric_consumption <= 450:
+                elif 330 < electric_consumption <= 450:
                     DPE = "F"
                 else:
                     DPE = "G"

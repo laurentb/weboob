@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.housing import (CapHousing, Housing, HousingPhoto,
-                                         Query, ADVERT_TYPES)
+                                         ADVERT_TYPES)
 from weboob.tools.backend import Module
 
 from .browser import PapBrowser

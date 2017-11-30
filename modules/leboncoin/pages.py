@@ -23,7 +23,7 @@ from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, Env
 from weboob.browser.filters.javascript import JSVar
 from weboob.browser.filters.html import Attr, Link, XPath
 from weboob.browser.filters.json import Dict
-from weboob.capabilities.housing import (City, Housing, HousingPhoto, Query,
+from weboob.capabilities.housing import (City, Housing, HousingPhoto,
                                          UTILITIES, ENERGY_CLASS, POSTS_TYPES,
                                          ADVERT_TYPES, HOUSE_TYPES)
 from weboob.capabilities.base import NotAvailable

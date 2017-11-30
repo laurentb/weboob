@@ -20,7 +20,7 @@
 
 from weboob.tools.backend import Module
 from weboob.capabilities.housing import (CapHousing, Housing, HousingPhoto,
-                                         Query, ADVERT_TYPES)
+                                         ADVERT_TYPES)
 from weboob.capabilities.base import UserError
 from .browser import LogicimmoBrowser
 

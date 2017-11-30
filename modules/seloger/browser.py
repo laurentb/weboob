@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.housing import Query, TypeNotSupported, POSTS_TYPES, ADVERT_TYPES
+from weboob.capabilities.housing import TypeNotSupported, POSTS_TYPES, ADVERT_TYPES
 from weboob.tools.compat import urlencode
 
 from weboob.browser import PagesBrowser, URL

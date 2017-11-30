@@ -18,10 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import Module, BackendConfig
+from weboob.tools.backend import Module
 from weboob.capabilities.housing import (CapHousing, Housing, HousingPhoto,
                                          ADVERT_TYPES)
-from weboob.tools.value import Value
 from .browser import LeboncoinBrowser
 
 

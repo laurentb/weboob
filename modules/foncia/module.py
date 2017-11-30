@@ -21,7 +21,7 @@ from __future__ import unicode_literals
 
 
 from weboob.tools.backend import Module
-from weboob.capabilities.housing import CapHousing, Housing, Query, ADVERT_TYPES
+from weboob.capabilities.housing import CapHousing, Housing, ADVERT_TYPES
 
 from .browser import FonciaBrowser
 
@@ -46,8 +46,10 @@ class FonciaModule(Module, CapHousing):
         return self.browser.get_cities(pattern)
 
     def search_housings(self, query):
-        if(len(query.advert_types) == 1 and
-           query.advert_types[0] == ADVERT_TYPES.PERSONAL):
+        if (
+                len(query.advert_types) == 1 and
+                query.advert_types[0] == ADVERT_TYPES.PERSONAL
+        ):
             # Foncia is pro only
             return list()
 

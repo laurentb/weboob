@@ -19,8 +19,7 @@
 
 
 from weboob.browser import PagesBrowser, URL
-from weboob.capabilities.housing import (TypeNotSupported, POSTS_TYPES,
-                                         HOUSE_TYPES)
+from weboob.capabilities.housing import TypeNotSupported
 from weboob.tools.compat import urlencode
 
 from .pages import SearchResultsPage, HousingPage, CitiesPage
