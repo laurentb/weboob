@@ -193,14 +193,16 @@ class HousingPage2(JsonPage):
         klass = Housing
 
         def is_agency(self):
-            return 'un particulier' in CleanText(
-                './/div[has-class("container-agency-infos")]')(self).lower()
+            return Dict('agency/isParticulier')(self) == 'false'
 
         obj_id = Env('_id')
         def obj_type(self):
             transaction = Dict('characteristics/transaction')(self)
             if transaction == 'location':
-                return POSTS_TYPES.RENT
+                if Dict('characteristics/isFurnished')(self) == 'true':
+                    return POSTS_TYPES.FURNISHED_RENT
+                else:
+                    return POSTS_TYPES.RENT
             elif transaction == 'vente':
                 return POSTS_TYPES.SALE
             else:

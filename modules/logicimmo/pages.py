@@ -64,7 +64,17 @@ class HousingPage(HTMLPage):
             if 'colocation' in url:
                 return POSTS_TYPES.SHARING
             elif 'location' in url:
-                return POSTS_TYPES.RENT
+                isFurnished = False
+                for li in XPath('//ul[@itemprop="description"]/li')(self):
+                    label = CleanText('./div[has-class("criteria-label")]')(li)
+                    if label.lower() == "meublé":
+                        isFurnished = (
+                            CleanText('./div[has-class("criteria-value")]')(li).lower() == 'oui'
+                        )
+                if isFurnished:
+                    return POSTS_TYPES.FURNISHED_RENT
+                else:
+                    return POSTS_TYPES.RENT
             elif 'vente' in url:
                 return POSTS_TYPES.SALE
             return NotAvailable

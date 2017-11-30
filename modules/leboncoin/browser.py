@@ -28,11 +28,11 @@ class LeboncoinBrowser(PagesBrowser):
     city = URL('ajax/location_list.html\?city=(?P<city>.*)&zipcode=(?P<zip>.*)', CityListPage)
     search = URL('(?P<type>.*)/offres/\?(?P<_ps>ps|mrs)=(?P<ps>.*)&(?P<_pe>pe|mre)=(?P<pe>.*)&ros=(?P<ros>.*)&location=(?P<location>.*)&sqs=(?P<sqs>.*)&sqe=(?P<sqe>.*)&ret=(?P<ret>.*)&f=(?P<advert_type>.*)',
                  '(?P<_type>.*)/offres/occasions.*?',
-                 HousingListPage)
     housing = URL('ventes_immobilieres/(?P<_id>.*).htm', HousingPage)
     phone = URL('https://api.leboncoin.fr/api/utils/phonenumber.json', PhonePage)
 
     TYPES = {POSTS_TYPES.RENT: 'locations',
+             POSTS_TYPES.FURNISHED_RENT: 'locations',
              POSTS_TYPES.SALE: 'ventes_immobilieres',
              POSTS_TYPES.SHARING: 'colocations', }
 
@@ -59,7 +59,7 @@ class LeboncoinBrowser(PagesBrowser):
         if query.type not in self.TYPES:
             return TypeNotSupported()
 
-        type, cities, nb_rooms, area_min, area_max, cost_min, cost_max, ret = self.decode_query(query, module_name)
+        type, cities, nb_rooms, area_min, area_max, cost_min, cost_max, ret, furn = self.decode_query(query, module_name)
         if len(cities) == 0 or len(ret) == 0:
             return list()
 
@@ -67,6 +67,7 @@ class LeboncoinBrowser(PagesBrowser):
                               ros=nb_rooms,
                               sqs=area_min,
                               sqe=area_max,
+                              furn=furn,
                               _ps="mrs" if query.type == POSTS_TYPES.RENT else "ps",
                               ps=cost_min,
                               _pe="mre" if query.type == POSTS_TYPES.RENT else "pe",
@@ -100,4 +101,11 @@ class LeboncoinBrowser(PagesBrowser):
         cost_min = '' if not query.cost_min else self.page.get_cost_min(query.cost_min, query.type)
         cost_max = '' if not query.cost_max else self.page.get_cost_max(query.cost_max, query.type)
 
-        return _type, ','.join(cities), nb_rooms, area_min, area_max, cost_min, cost_max, '&ret='.join(ret)
+        if query.type == POSTS_TYPES.FURNISHED_RENT:
+            furn = '1'
+        elif query.type == POSTS_TYPES.RENT:
+            furn = '2'
+        else:
+            furn = ''
+
+        return _type, ','.join(cities), nb_rooms, area_min, area_max, cost_min, cost_max, '&ret='.join(ret), furn

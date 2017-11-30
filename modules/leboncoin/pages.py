@@ -16,6 +16,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
+from __future__ import unicode_literals
 
 from weboob.browser.pages import HTMLPage, pagination, JsonPage
 from weboob.browser.elements import ItemElement, ListElement, method
@@ -221,6 +222,9 @@ class HousingPage(HTMLPage):
                         self.env['typeBien'] = HOUSE_TYPES.LAND
                     else:
                         self.env['typeBien'] = HOUSE_TYPES.OTHER
+                elif 'Meublé' in property:
+                    value = CleanText('./span[@class="value"]')(item).lower()
+                    self.env['isFurnished'] = (value == 'meublé')
                 else:
                     key = u'%s' % CleanText('./span[@class="property"]')(item)
                     if 'GES' in key or 'Classe' in key:
@@ -244,7 +248,10 @@ class HousingPage(HTMLPage):
             if 'colocations' in breadcrumb:
                 return POSTS_TYPES.SHARING
             elif 'locations' in breadcrumb:
-                return POSTS_TYPES.RENT
+                if self.env['isFurnished']:
+                    return POSTS_TYPES.FURNISHED_RENT
+                else:
+                    return POSTS_TYPES.RENT
             else:
                 return POSTS_TYPES.SALE
         def obj_advert_type(self):

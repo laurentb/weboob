@@ -19,7 +19,7 @@
 
 
 from weboob.browser import PagesBrowser, URL
-from weboob.capabilities.housing import TypeNotSupported
+from weboob.capabilities.housing import TypeNotSupported, POSTS_TYPES
 from weboob.tools.compat import urlencode
 
 from .pages import SearchResultsPage, HousingPage, CitiesPage
@@ -59,6 +59,9 @@ class PapBrowser(PagesBrowser):
         if nb_rooms:
             data['nb_pieces[min]'] = nb_rooms
             data['nb_pieces[max]'] = nb_rooms
+
+        if type == POSTS_TYPES.FURNISHED_RENT:
+            data['tags[]'] = 'meuble'
 
         ret = []
         for house_type in house_types:

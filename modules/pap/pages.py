@@ -16,7 +16,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
-
+from __future__ import unicode_literals
 from decimal import Decimal
 
 from weboob.tools.date import parse_french_date
@@ -29,7 +29,7 @@ from weboob.browser.filters.json import Dict
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.housing import (Housing, City, HousingPhoto,
                                          UTILITIES, ENERGY_CLASS, POSTS_TYPES,
-                                         ADVERT_TYPES, HOUSE_TYPES)
+                                         ADVERT_TYPES, HOUSE_TYPES, POSTS_TYPES)
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 
 
@@ -57,12 +57,31 @@ class SearchResultsPage(HTMLPage):
             klass = Housing
 
             def condition(self):
-                return Regexp(Link('./div[has-class("box-header")]/a[@class="title-item"]'), '/annonces/(.*)', default=None)(self)
+                title = CleanText('./div[has-class("box-header")]/a[@class="title-item"]')(self)
+                isNotFurnishedOk = True
+                if self.env['query_type'] == POSTS_TYPES.RENT:
+                    isNotFurnishedOk = 'meublé' not in title.lower()
+                return (
+                    Regexp(Link('./div[has-class("box-header")]/a[@class="title-item"]'), '/annonces/(.*)', default=None)(self)
+                    and isNotFurnishedOk
+                )
 
             obj_id = Regexp(Link('./div[has-class("box-header")]/a[@class="title-item"]'), '/annonces/(.*)')
             obj_type = Env('query_type')
             obj_advert_type = ADVERT_TYPES.PERSONAL
-            obj_house_type = NotAvailable
+            def obj_house_type(self):
+                item_link = Link('.//a[has-class("title-item")]')(self)
+                house_type = item_link.split('/')[-1].split('-')[0]
+                if 'parking' in house_type:
+                    return HOUSE_TYPES.PARKING
+                elif 'appartement' in house_type:
+                    return HOUSE_TYPES.APART
+                elif 'terrain' in house_type:
+                    return HOUSE_TYPES.LAND
+                elif 'maison' in house_type:
+                    return HOUSE_TYPES.HOUSE
+                else:
+                    return HOUSE_TYPES.OTHER
 
 
             obj_title = CleanText('./div[has-class("box-header")]/a[@class="title-item"]')
@@ -131,7 +150,13 @@ class HousingPage(HTMLPage):
         def obj_type(self):
             prev_link = Link('//ol[has-class("breadcrumb")]/li[1]/a')(self)
             if 'location' in prev_link:
-                return POSTS_TYPES.RENT
+                title = CleanText(
+                    '//div[has-class("box-header")]/h1[@class="clearfix"]'
+                )(self)
+                if 'meublé' in title.lower():
+                    return POSTS_TYPES.FURNISHED_RENT
+                else:
+                    return POSTS_TYPES.RENT
             elif 'vente' in prev_link:
                 return POSTS_TYPES.SALE
             else:

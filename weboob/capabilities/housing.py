@@ -60,7 +60,8 @@ ENERGY_CLASS = enum(A=u'A', B=u'B', C=u'C', D=u'D', E=u'E', F=u'F', G=u'G')
 
 POSTS_TYPES = enum(RENT=u'RENT',
                    SALE=u'SALE',
-                   SHARING=u'SHARING')
+                   SHARING=u'SHARING',
+                   FURNISHED_RENT=u'FURNISHED_RENT')
 ADVERT_TYPES = enum(PROFESSIONAL=u'Professional', PERSONAL=u'Personal')
 HOUSE_TYPES = enum(APART=u'Apartment',
                    HOUSE=u'House',
@@ -78,7 +79,7 @@ class Housing(BaseObject):
                  *POSTS_TYPES.types)
     advert_type = Field('Type of advert (professional or personal)',
                         *ADVERT_TYPES.types)
-    house_type = Field('Type of house (apartment, house, parking, …)',
+    house_type = Field(u'Type of house (apartment, house, parking, …)',
                        *HOUSE_TYPES.types)
     title = StringField('Title of housing')
     area = DecimalField('Area of housing, in m2')

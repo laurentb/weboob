@@ -35,7 +35,8 @@ class ExplorimmoBrowser(PagesBrowser):
                   'rest/classifieds/\?(?P<js_datas>.*)', HousingPage2)
 
     TYPES = {POSTS_TYPES.RENT: 'location',
-             POSTS_TYPES.SALE: 'vente'}
+             POSTS_TYPES.SALE: 'vente',
+             POSTS_TYPES.FURNISHED_RENT: 'location'}
 
     RET = {HOUSE_TYPES.HOUSE: 'Maison',
            HOUSE_TYPES.APART: 'Appartement',
@@ -58,6 +59,7 @@ class ExplorimmoBrowser(PagesBrowser):
                 ret.append(self.RET.get(house_type))
 
         data = {'location': ','.join(cities).encode('iso 8859-1'),
+                'furnished': type == POSTS_TYPES.FURNISHED_RENT,
                 'areaMin': area_min or '',
                 'areaMax': area_max or '',
                 'priceMin': cost_min or '',

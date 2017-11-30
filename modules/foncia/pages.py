@@ -63,7 +63,10 @@ class HousingPage(HTMLPage):
         def obj_type(self):
             type = Env('type')(self)
             if type == 'location':
-                return POSTS_TYPES.RENT
+                if 'appartement-meuble' in self.page.url:
+                    return POSTS_TYPES.FURNISHED_RENT
+                else:
+                    return POSTS_TYPES.RENT
             elif type == 'achat':
                 return POSTS_TYPES.SALE
             else:

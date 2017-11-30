@@ -174,23 +174,16 @@ class Flatboob(ReplApplication):
                 query.house_types.append(value)
 
         _type = None
-        house_types = [POSTS_TYPES.RENT, POSTS_TYPES.SALE, POSTS_TYPES.SHARING]
-        while _type not in [0, 1, 2]:
-            print('  %s%2d)%s %s' % (self.BOLD,
-                                     0,
-                                     self.NC,
-                                     "Rent"))
-            print('  %s%2d)%s %s' % (self.BOLD,
-                                     1,
-                                     self.NC,
-                                     "Sale"))
-            print('  %s%2d)%s %s' % (self.BOLD,
-                                     2,
-                                     self.NC,
-                                     "Sharing"))
+        posts_types = sorted(POSTS_TYPES.values)
+        while _type not in range(len(posts_types)):
+            for i, t in enumerate(posts_types):
+                print('  %s%2d)%s %s' % (self.BOLD,
+                                         i,
+                                         self.NC,
+                                         t))
             _type = self.ask_int('Type of query')
 
-        query.type = house_types[_type]
+        query.type = posts_types[_type]
 
         r = 'notempty'
         while r != '':

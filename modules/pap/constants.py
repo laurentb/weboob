@@ -1,6 +1,7 @@
 from weboob.capabilities.housing import POSTS_TYPES, HOUSE_TYPES
 
 TYPES = {POSTS_TYPES.RENT: 'location',
+         POSTS_TYPES.FURNISHED_RENT: 'location',
          POSTS_TYPES.SALE: 'vente'}
 
 RET = {HOUSE_TYPES.HOUSE: 'maison',

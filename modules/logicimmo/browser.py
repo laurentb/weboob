@@ -35,7 +35,8 @@ class LogicimmoBrowser(PagesBrowser):
 
     TYPES = {POSTS_TYPES.RENT: 'location-immobilier',
              POSTS_TYPES.SALE: 'vente-immobilier',
-             POSTS_TYPES.SHARING: 'recherche-colocation'}
+             POSTS_TYPES.SHARING: 'recherche-colocation',
+             POSTS_TYPES.FURNISHED_RENT: 'location-immobilier'}
 
     RET = {HOUSE_TYPES.HOUSE: '2',
            HOUSE_TYPES.APART: '1',
@@ -48,7 +49,6 @@ class LogicimmoBrowser(PagesBrowser):
             return self.city.go(pattern=pattern).get_cities()
 
     def search_housings(self, type, cities, nb_rooms, area_min, area_max, cost_min, cost_max, house_types):
-
         if type not in self.TYPES:
             raise TypeNotSupported()
 
@@ -61,6 +61,9 @@ class LogicimmoBrowser(PagesBrowser):
 
         if len(ret):
             options.append('groupprptypesids=%s' % ','.join(ret))
+
+        if type == POSTS_TYPES.FURNISHED_RENT:
+            options.append('searchoptions=4')
 
         options.append('pricemin=%s' % (cost_min if cost_min else '0'))
 
