@@ -500,11 +500,11 @@ class LifeInsurancesPage(BNPPage):
             inv = Investment()
             if 'codeIsin' in support:
                 inv.code = inv.id = support['codeIsin']
-                inv.quantity = support['nbUC']
-                inv.unitvalue = support['valUC']
+                inv.quantity = support.get('nbUC', NotAvailable)
+                inv.unitvalue = support.get('valUC', NotAvailable)
 
             inv.label = support['libelle']
-            inv.valuation = support['montant']
+            inv.valuation = support.get('montant', NotAvailable)
             inv.set_empty_fields(NotAvailable)
             yield inv
 
