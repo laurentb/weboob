@@ -24,6 +24,7 @@ from weboob.browser.elements import ItemElement, ListElement, DictElement, metho
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, Format
 from weboob.browser.filters.html import CleanHTML, XPath, Link, Attr, AbsoluteLink
+from weboob.capabilities.base import Currency
 from weboob.capabilities.housing import (Housing, HousingPhoto, City,
                                          UTILITIES, ADVERT_TYPES, HOUSE_TYPES)
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
@@ -85,7 +86,7 @@ class SearchPage(HTMLPage):
                 return title
 
             obj_cost = CleanDecimal(CleanText('./a/div/p/span[@class="item prix"]', children=False))
-            obj_currency = Currency(u'€')
+            obj_currency = Currency.get_currency(u'€')
             obj_text = Format('%s / %s / %s / %s',
                               CleanText('./a/div/p/span[@class="item type"]/img/@alt'),
                               CleanText('./a/div/p/span[@id="divnbpieces"]', children=False),
@@ -94,6 +95,7 @@ class SearchPage(HTMLPage):
             obj_location = CleanText('./a/div/p/span[@class="item loc"]/text()[position() > 1]')
             obj_area = CleanDecimal('./a/div/p/span[@class="item surf"]/text()[last()]')
             obj_rooms = CleanDecimal('./a/div/p/span[@class="item nb"]/text()[last()]')
+            obj_currency = Currency.get_currency(u'€')
             obj_utilities = UTILITIES.UNKNOWN
             obj_url = AbsoluteLink('./a')
 
@@ -111,8 +113,8 @@ class HousingPage(HTMLPage):
 
         obj_rooms = CleanDecimal('//div[@class="stats"]/section/div[@id="divpieces"]/span[@class="stat"]', default=0)
 
-        obj_currency = u'EUR'
         obj_cost = CleanDecimal('(//div[@class="stats"]/div/h2)[2]/em')
+        obj_currency = Currency.get_currency(u'€')
         obj_utilities = UTILITIES.UNKNOWN
         obj_text = CleanHTML('//div[@class="textes"]')
         obj_location = CleanText('//input[@id="adressegeo"]/@value')

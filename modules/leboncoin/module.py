@@ -45,7 +45,7 @@ class LeboncoinModule(Module, CapHousing):
 
     def fill_housing(self, housing, fields):
         if 'phone' in fields:
-            housing.phone = self.get_phone(housing.id)
+            housing.phone = self.browser.get_phone(housing.id)
         return housing
 
     def fill_photo(self, photo, fields):

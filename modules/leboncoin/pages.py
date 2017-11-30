@@ -19,7 +19,9 @@
 
 from weboob.browser.pages import HTMLPage, pagination, JsonPage
 from weboob.browser.elements import ItemElement, ListElement, method
-from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, Env, DateTime, BrowserURL, Format, Join
+from weboob.browser.filters.standard import (CleanText, Currency, Regexp,
+                                             CleanDecimal, Env, DateTime,
+                                             BrowserURL, Format, Join)
 from weboob.browser.filters.javascript import JSVar
 from weboob.browser.filters.html import Attr, Link, XPath
 from weboob.browser.filters.json import Dict
@@ -133,8 +135,9 @@ class HousingListPage(HTMLPage):
             obj_location = CleanText(
                 './section[@class="item_infos"]/*[@itemtype="http://schema.org/Place"]/text()'
             )
-            obj_currency = Regexp(CleanText('./section[@class="item_infos"]/*[@class="item_price"]'),
-                                  '\d+ ([%s%s%s]).*' % (u'€', u'$', u'£'), default=u'€')
+            obj_currency = Currency(
+                './section[@class="item_infos"]/*[@class="item_price"]'
+            )
 
             def obj_utilities(self):
                 utilities = Regexp(CleanText('./section[@class="item_infos"]/*[@class="item_price"]'),
@@ -255,12 +258,8 @@ class HousingPage(HTMLPage):
         obj_title = CleanText('//h1[@itemprop="name"]')
         obj_cost = CleanDecimal('//h2[@itemprop="price"]/@content', default=Decimal(0))
 
-        obj_currency = Regexp(
-            CleanText(
-                '//h2[@itemprop="price"]/span[@class="value"]'
-            ),
-            '.*([%s%s%s])' % (u'€', u'$', u'£'),
-            default=u'€'
+        obj_currency = Currency(
+            '//h2[@itemprop="price"]/span[@class="value"]'
         )
 
         def obj_utilities(self):

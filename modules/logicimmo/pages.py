@@ -22,7 +22,9 @@ from __future__ import unicode_literals
 from weboob.browser.pages import HTMLPage, JsonPage
 from weboob.browser.elements import ItemElement, ListElement, DictElement, method
 from weboob.browser.filters.json import Dict
-from weboob.browser.filters.standard import Format, CleanText, Regexp, CleanDecimal, Date, Env, BrowserURL
+from weboob.browser.filters.standard import (Currency, Format, CleanText,
+                                             Regexp, CleanDecimal, Date, Env,
+                                             BrowserURL)
 from weboob.browser.filters.html import Attr, XPath, CleanHTML
 from weboob.capabilities.housing import (Housing, HousingPhoto, City,
                                          UTILITIES, ENERGY_CLASS, POSTS_TYPES,
@@ -87,10 +89,8 @@ class HousingPage(HTMLPage):
         obj_rooms = CleanDecimal('//div[has-class("offer-info")]//span[has-class("offer-rooms-number")]',
                                 default=NotAvailable)
         obj_cost = CleanDecimal('//*[@itemprop="price"]', default=0)
-        obj_currency = Regexp(
-            CleanText('//*[@itemprop="price"]'),
-            '.*([%s%s%s])' % (u'€', u'$', u'£'),
-            default=u'€'
+        obj_currency = Currency(
+            '//*[@itemprop="price"]'
         )
         def obj_utilities(self):
             notes = CleanText('//p[@class="offer-description-notes"]')(self)
@@ -205,9 +205,9 @@ class SearchPage(HTMLPage):
                                     default=0)
 
             obj_cost = CleanDecimal('./div/header/section/p[@class="price"]', default=0)
-            obj_currency = Regexp(CleanText('./div/header/section/p[@class="price"]',
-                                            default=NotAvailable),
-                                  '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
+            obj_currency = Currency(
+                './div/header/section/p[@class="price"]'
+            )
             obj_utilities = UTILITIES.UNKNOWN
 
             obj_text = CleanText(
@@ -299,12 +299,8 @@ class SearchPage(HTMLPage):
                 ),
                 default=NotAvailable
             )
-            obj_currency = Regexp(
-                CleanText(
-                    offer_details_wrapper + '/div/div/p[has-class("offer-price")]/span',
-                    default=NotAvailable
-                ),
-                '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€'
+            obj_currency = Currency(
+                offer_details_wrapper + '/div/div/p[has-class("offer-price")]/span'
             )
             obj_utilities = UTILITIES.UNKNOWN
             obj_date = Date(

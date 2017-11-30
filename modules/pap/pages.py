@@ -22,7 +22,8 @@ from decimal import Decimal
 from weboob.tools.date import parse_french_date
 from weboob.browser.pages import HTMLPage, JsonPage, pagination
 from weboob.browser.elements import ItemElement, ListElement, DictElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, BrowserURL, Format
+from weboob.browser.filters.standard import (CleanText, CleanDecimal, Regexp,
+                                             Env, BrowserURL, Format, Currency)
 from weboob.browser.filters.html import Attr, Link, XPath, CleanHTML
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.base import NotAvailable
@@ -65,12 +66,20 @@ class SearchResultsPage(HTMLPage):
 
 
             obj_title = CleanText('./div[has-class("box-header")]/a[@class="title-item"]')
-            obj_area = CleanDecimal(Regexp(CleanText('./div[has-class("box-header")]/a/span[@class="h1"]'),
-                                           '(.*?)(\d*) m\xb2(.*?)', '\\2'), default=NotAvailable)
+            obj_area = CleanDecimal(
+                Regexp(
+                    CleanText(
+                        './div[has-class("box-header")]/a/span[@class="h1"]'),
+                    '(.*?)(\d*) m\xb2(.*?)', '\\2',
+                    default=NotAvailable
+                ),
+                default=NotAvailable
+            )
             obj_cost = CleanDecimal(CleanText('./div[has-class("box-header")]/a/span[@class="price"]'),
                                     replace_dots=True, default=Decimal(0))
-            obj_currency = Regexp(CleanText('./div[has-class("box-header")]/a/span[@class="price"]'),
-                                  '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
+            obj_currency = Currency(
+                './div[has-class("box-header")]/a/span[@class="price"]'
+            )
             obj_utilities = UTILITIES.UNKNOWN
 
             def obj_date(self):
@@ -148,11 +157,18 @@ class HousingPage(HTMLPage):
         )
         obj_cost = CleanDecimal('//h1[@class="clearfix"]/span[@class="price"]',
                                 replace_dots=True)
-        obj_currency = Regexp(CleanText('//h1[@class="clearfix"]/span[@class="price"]'),
-                              '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
+        obj_currency = Currency(
+            '//h1[@class="clearfix"]/span[@class="price"]'
+        )
         obj_utilities = UTILITIES.UNKNOWN
-        obj_area = CleanDecimal(Regexp(CleanText('//h1[@class="clearfix"]/span[@class="title"]'),
-                                '(.*?)(\d*) m\xb2(.*?)', '\\2'), default=NotAvailable)
+        obj_area = CleanDecimal(
+            Regexp(
+                CleanText('//h1[@class="clearfix"]/span[@class="title"]'),
+                '(.*?)(\d*) m\xb2(.*?)', '\\2',
+                default=NotAvailable
+            ),
+            default=NotAvailable
+        )
 
         def obj_date(self):
             date = CleanText(

@@ -22,7 +22,8 @@ from __future__ import unicode_literals
 import datetime
 
 from weboob.browser.pages import JsonPage, HTMLPage, pagination
-from weboob.browser.filters.standard import CleanDecimal, CleanText, Date, Env, Format, Regexp
+from weboob.browser.filters.standard import (CleanDecimal, CleanText, Currency,
+                                             Date, Env, Format, Regexp)
 from weboob.browser.filters.html import Attr, Link
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.capabilities.base import NotAvailable
@@ -92,11 +93,8 @@ class HousingPage(HTMLPage):
             '//p[has-class("OfferTop-price")]'
         )
         obj_price_per_meter = PricePerMeterFilter()
-        obj_currency = Regexp(
-            CleanText(
-                '//p[has-class("OfferTop-price")]'
-            ),
-            r'[\d+\ ]*(.) .*'
+        obj_currency = Currency(
+            '//p[has-class("OfferTop-price")]'
         )
         obj_location = Format(
             '%s - %s',
@@ -274,11 +272,8 @@ class SearchResultsPage(HTMLPage):
                 './/strong[has-class("TeaserOffer-price-num")]'
             )
             obj_price_per_meter = PricePerMeterFilter()
-            obj_currency = Regexp(
-                CleanText(
-                    './/strong[has-class("TeaserOffer-price-num")]'
-                ),
-                r'[\d\ ]* (.) .*'
+            obj_currency = Currency(
+                './/strong[has-class("TeaserOffer-price-num")]'
             )
             obj_location = CleanText('.//p[has-class("TeaserOffer-loc")]')
             obj_text = CleanText('.//p[has-class("TeaserOffer-description")]')

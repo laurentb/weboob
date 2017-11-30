@@ -23,9 +23,11 @@ from datetime import datetime
 from weboob.browser.filters.json import Dict
 from weboob.browser.elements import ItemElement, ListElement, DictElement, method
 from weboob.browser.pages import JsonPage, HTMLPage, pagination
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, BrowserURL, Filter, Format
+from weboob.browser.filters.standard import (CleanText, CleanDecimal, Currency,
+                                             Regexp, Env, BrowserURL, Filter,
+                                             Format)
 from weboob.browser.filters.html import Attr, CleanHTML, Link, XPath
-from weboob.capabilities.base import NotAvailable, NotLoaded
+from weboob.capabilities.base import NotAvailable, NotLoaded, Currency as BaseCurrency
 from weboob.capabilities.housing import (Housing, HousingPhoto, City,
                                          UTILITIES, ENERGY_CLASS, POSTS_TYPES,
                                          ADVERT_TYPES, HOUSE_TYPES)
@@ -109,8 +111,9 @@ class SearchPage(HTMLPage):
             obj_location = CleanText('./div/h2[@itemprop="name"]/span[@class="item-localisation"]/span[@class="localisation-label"]/strong')
             obj_cost = CleanDecimal('./div/div/span[@class="price-label"]|./div/div[@class="item-price-pdf"]',
                                     default=NotAvailable)
-            obj_currency = Regexp(CleanText('./div/div/span[@class="price-label"]|./div/div[@class="item-price-pdf"]'),
-                                  '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
+            obj_currency = Currency(
+                './div/div/span[@class="price-label"]|./div/div[@class="item-price-pdf"]'
+            )
 
             def obj_utilities(self):
                 utilities = Regexp(CleanText('./div/div/span[@class="price-label"]|./div/div[@class="item-price-pdf"]'),
@@ -228,7 +231,8 @@ class HousingPage2(JsonPage):
                               Dict('location/postalCode'))
         obj_cost = TypeDecimal(Dict('characteristics/price'))
 
-        obj_currency = u'EUR'
+        obj_currency = BaseCurrency.get_currency(u'€')
+
         def obj_utilities(self):
             are_fees_included = Dict('characteristics/areFeesIncluded',
                                      default=None)(self)
@@ -341,8 +345,7 @@ class HousingPage(HTMLPage):
         obj_title = CleanText('//h1[@itemprop="name"]')
         obj_location = CleanText('//span[@class="informations-localisation"]')
         obj_cost = CleanDecimal('//span[@itemprop="price"]')
-        obj_currency = Regexp(CleanText('//span[@itemprop="price"]'),
-                              '.*([%s%s%s])' % (u'€', u'$', u'£'), default=u'€')
+        obj_currency = Currency('//span[@itemprop="price"]')
         obj_text = CleanHTML('//div[@itemprop="description"]')
         obj_url = BrowserURL('housing', _id=Env('_id'))
         obj_area = CleanDecimal(Regexp(CleanText('//h1[@itemprop="name"]'),
