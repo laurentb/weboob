@@ -354,8 +354,10 @@ class ValidateTransferPage(BNPPage):
 
         self.abort_if_unknown(transfer_data)
 
-        if transfer_data['idBeneficiaire'] is not None:
+        if 'idBeneficiaire' in transfer_data and transfer_data['idBeneficiaire'] is not None:
             assert transfer_data['idBeneficiaire'] == recipient.id
+        elif 'ibanCompteCrediteur' in transfer_data and transfer_data['ibanCompteCrediteur'] is not None:
+            assert transfer_data['ibanCompteCrediteur'] == recipient.iban
 
         exec_date = Date(transfer_data['dateExecution']).date()
         today = datetime.today().date()
