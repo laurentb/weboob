@@ -528,7 +528,7 @@ class LifeInsurancesHistoryPage(BNPPage):
                 continue
 
             tr.parse(date=Date(op.get('dateSaisie')),
-                     vdate=Date(op.get('dateEffet')),
+                     vdate = Date(op.get('dateEffet')) if op.get('dateEffet') else None,
                      raw='%s %s' % (op.get('libelleMouvement'), op.get('canalSaisie') or ''))
             tr._op = op
 
