@@ -159,6 +159,8 @@ class HousingPage(HTMLPage):
                     return POSTS_TYPES.RENT
             elif 'vente' in prev_link:
                 return POSTS_TYPES.SALE
+            elif 'viager' in prev_link:
+                return POSTS_TYPES.VIAGER
             else:
                 return NotAvailable
         obj_advert_type = ADVERT_TYPES.PERSONAL

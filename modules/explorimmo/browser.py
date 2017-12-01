@@ -36,7 +36,8 @@ class ExplorimmoBrowser(PagesBrowser):
 
     TYPES = {POSTS_TYPES.RENT: 'location',
              POSTS_TYPES.SALE: 'vente',
-             POSTS_TYPES.FURNISHED_RENT: 'location'}
+             POSTS_TYPES.FURNISHED_RENT: 'location',
+             POSTS_TYPES.VIAGER: 'vente'}
 
     RET = {HOUSE_TYPES.HOUSE: 'Maison',
            HOUSE_TYPES.APART: 'Appartement',
@@ -54,9 +55,12 @@ class ExplorimmoBrowser(PagesBrowser):
             raise TypeNotSupported()
 
         ret = []
-        for house_type in house_types:
-            if house_type in self.RET:
-                ret.append(self.RET.get(house_type))
+        if type == POSTS_TYPES.VIAGER:
+            ret = ['Viager']
+        else:
+            for house_type in house_types:
+                if house_type in self.RET:
+                    ret.append(self.RET.get(house_type))
 
         data = {'location': ','.join(cities).encode('iso 8859-1'),
                 'furnished': type == POSTS_TYPES.FURNISHED_RENT,

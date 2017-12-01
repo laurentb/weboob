@@ -76,7 +76,13 @@ class HousingPage(HTMLPage):
                 else:
                     return POSTS_TYPES.RENT
             elif 'vente' in url:
-                return POSTS_TYPES.SALE
+                if(
+                    'viager' in self.obj_text(self).lower()
+                    and 'rente' in self.obj_text(self).lower()
+                ):
+                    return POSTS_TYPES.VIAGER
+                else:
+                    return POSTS_TYPES.SALE
             return NotAvailable
         obj_advert_type = ADVERT_TYPES.PROFESSIONAL
         def obj_house_type(self):

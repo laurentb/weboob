@@ -36,7 +36,8 @@ class LogicimmoBrowser(PagesBrowser):
     TYPES = {POSTS_TYPES.RENT: 'location-immobilier',
              POSTS_TYPES.SALE: 'vente-immobilier',
              POSTS_TYPES.SHARING: 'recherche-colocation',
-             POSTS_TYPES.FURNISHED_RENT: 'location-immobilier'}
+             POSTS_TYPES.FURNISHED_RENT: 'location-immobilier',
+             POSTS_TYPES.VIAGER: 'vente-immobilier'}
 
     RET = {HOUSE_TYPES.HOUSE: '2',
            HOUSE_TYPES.APART: '1',
@@ -55,9 +56,12 @@ class LogicimmoBrowser(PagesBrowser):
         options = []
 
         ret = []
-        for house_type in house_types:
-            if house_type in self.RET:
-                ret.append(self.RET.get(house_type))
+        if type == POSTS_TYPES.VIAGER:
+            ret = ['15']
+        else:
+            for house_type in house_types:
+                if house_type in self.RET:
+                    ret.append(self.RET.get(house_type))
 
         if len(ret):
             options.append('groupprptypesids=%s' % ','.join(ret))

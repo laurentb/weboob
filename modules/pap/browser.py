@@ -64,9 +64,12 @@ class PapBrowser(PagesBrowser):
             data['tags[]'] = 'meuble'
 
         ret = []
-        for house_type in house_types:
-            if house_type in RET:
-                ret.append(RET.get(house_type))
+        if type == POSTS_TYPES.VIAGER:
+            ret = ['viager']
+        else:
+            for house_type in house_types:
+                if house_type in RET:
+                    ret.append(RET.get(house_type))
 
         _data = '%s%s%s' % (urlencode(data), '&typesbien%5B%5D=', '&typesbien%5B%5D='.join(ret))
         return self.search_page.go(data=_data).iter_housings(

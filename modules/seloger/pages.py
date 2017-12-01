@@ -26,7 +26,8 @@ from weboob.browser.filters.standard import (CleanText, CleanDecimal, Currency,
                                              DateTime, Format, Regexp)
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.housing import (Housing, HousingPhoto, City,
-                                         UTILITIES, ENERGY_CLASS, POSTS_TYPES)
+                                         UTILITIES, ENERGY_CLASS, POSTS_TYPES,
+                                         ADVERT_TYPES)
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 
 from .constants import TYPES, RET
@@ -64,7 +65,12 @@ class SeLogerItem(ItemElement):
             # furnished.
             return POSTS_TYPES.RENT
         return type
-    obj_advert_type = NotAvailable
+    def obj_advert_type(self):
+        idTiers = CleanText('idTiers')(self)
+        if idTiers:
+            return ADVERT_TYPES.PROFESSIONAL
+        else:
+            return ADVERT_TYPES.PERSONAL
     def obj_house_type(self):
         idType = CleanText('idTypeBien')(self)
         try:

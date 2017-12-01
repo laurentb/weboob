@@ -204,7 +204,11 @@ class HousingPage2(JsonPage):
                 else:
                     return POSTS_TYPES.RENT
             elif transaction == 'vente':
-                return POSTS_TYPES.SALE
+                type = Dict('characteristics/estateType')(self).lower()
+                if 'viager' in type:
+                    return POSTS_TYPES.VIAGER
+                else:
+                    return POSTS_TYPES.SALE
             else:
                 return NotAvailable
 
