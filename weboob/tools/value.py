@@ -61,6 +61,8 @@ class Value(object):
     :param regexp: if specified, on load the specified value is checked against this regexp, and an error is raised if it doesn't match
     :type regexp: str
     :param choices: if this parameter is set, the value must be in the list
+    :param aliases: mapping of old choices values that should be accepted but not presented
+    :type aliases: dict
     :param tiny: the value of choices can be entered by an user (as they are small)
     :type choices: (list,dict)
     """
@@ -77,6 +79,7 @@ class Value(object):
             self.default = to_unicode(self.default)
         self.regexp = kwargs.get('regexp', None)
         self.choices = kwargs.get('choices', None)
+        self.aliases = kwargs.get('aliases')
         if isinstance(self.choices, (list, tuple)):
             self.choices = OrderedDict(((v, v) for v in self.choices))
         self.tiny = kwargs.get('tiny', None)
@@ -105,8 +108,9 @@ class Value(object):
         if self.regexp is not None and not re.match(self.regexp + '$', unicode(v)):
             raise ValueError('Value "%s" does not match regexp "%s"' % (self.show_value(v), self.regexp))
         if self.choices is not None and v not in self.choices:
-            raise ValueError('Value "%s" is not in list: %s' % (
-                self.show_value(v), ', '.join(unicode(s) for s in self.choices)))
+            if not self.aliases or v not in self.aliases:
+                raise ValueError('Value "%s" is not in list: %s' % (
+                    self.show_value(v), ', '.join(unicode(s) for s in self.choices)))
 
     def load(self, domain, v, requests):
         """
@@ -127,6 +131,8 @@ class Value(object):
         if isinstance(v, str):
             v = to_unicode(v)
         self.check_valid(v)
+        if self.aliases and v in self.aliases:
+            v = self.aliases[v]
         self._value = v
 
     def dump(self):
