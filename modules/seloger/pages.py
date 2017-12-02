@@ -66,8 +66,12 @@ class SeLogerItem(ItemElement):
             return POSTS_TYPES.RENT
         return type
     def obj_advert_type(self):
-        idTiers = CleanText('idTiers')(self)
-        if idTiers:
+        is_agency = (
+            CleanText('contact/rcsSiren')(self) or
+            CleanText('contact/rcsNic')(self) or
+            CleanText('contact/idAnnuaire')(self)
+        )
+        if is_agency:
             return ADVERT_TYPES.PROFESSIONAL
         else:
             return ADVERT_TYPES.PERSONAL
@@ -121,6 +125,12 @@ class SearchResultsPage(XMLPage):
                 return page
 
         class item(SeLogerItem):
+            def condition(self):
+                if self.env['query_type'] == POSTS_TYPES.SALE:
+                    # Ignore VIAGER
+                    return CleanText('idTypeTransaction')(self) == '2'
+                return True
+
             def obj_photos(self):
                 photos = []
 

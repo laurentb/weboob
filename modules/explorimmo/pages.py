@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import math
 import re
 from decimal import Decimal
 from datetime import datetime
@@ -63,14 +64,33 @@ class SearchPage(HTMLPage):
         item_xpath = '//div[starts-with(@id, "bloc-vue-")]'
 
         def next_page(self):
-            js_datas = CleanText('//div[@id="js-data"]/@data-rest-search-request')(self)
-            total_page = self.page.browser.get_total_page(js_datas.split('?')[-1])
-            m = re.match(".*page=(\d?)(?:&.*)?", self.page.url)
-            if m:
-                current_page = int(m.group(1))
-                next_page = current_page + 1
-                if next_page <= total_page:
-                    return self.page.url.replace('page=%d' % current_page, 'page=%d' % next_page)
+            js_datas = CleanText(
+                '//div[@id="js-data"]/@data-rest-search-request'
+            )(self).split('?')[-1].split('&')
+
+            try:
+                resultsPerPage = next(
+                    x for x in js_datas if 'resultsPerPage' in x
+                ).split('=')[-1]
+                currentPageNumber = next(
+                    x for x in js_datas if 'currentPageNumber' in x
+                ).split('=')[-1]
+                resultCount = CleanText(
+                    '//div[@id="js-data"]/@data-result-count'
+                )(self)
+
+                totalPageNumber = math.ceil(
+                    int(resultCount) / int(resultsPerPage)
+                )
+
+                next_page = int(currentPageNumber) + 1
+                if next_page <= totalPageNumber:
+                    return self.page.url.replace(
+                        'page=%s' % currentPageNumber,
+                        'page=%d' % next_page
+                    )
+            except StopIteration:
+                pass
 
         class item(ItemElement):
             klass = Housing
@@ -90,11 +110,13 @@ class SearchPage(HTMLPage):
 
             obj_id = CleanText('./@data-classified-id')
             obj_type = Env('query_type')
+
             def obj_advert_type(self):
                 if self.is_agency():
                     return ADVERT_TYPES.PROFESSIONAL
                 else:
                     return ADVERT_TYPES.PERSONAL
+
             def obj_house_type(self):
                 type = self.obj_title(self).split()[0].lower()
                 if type == "appartement" or type == "studio" or type == "chambre":
@@ -108,7 +130,7 @@ class SearchPage(HTMLPage):
                 else:
                     return HOUSE_TYPES.OTHER
             obj_title = CleanText('./div/h2[@itemprop="name"]/a')
-            obj_location = CleanText('./div/h2[@itemprop="name"]/span[@class="item-localisation"]/span[@class="localisation-label"]/strong')
+            obj_location = CleanText('.//span[@class="item-localisation"]/span[@class="localisation-label"]/strong')
             obj_cost = CleanDecimal('./div/div/span[@class="price-label"]|./div/div[@class="item-price-pdf"]',
                                     default=NotAvailable)
             obj_currency = Currency(
@@ -196,6 +218,7 @@ class HousingPage2(JsonPage):
             return Dict('agency/isParticulier')(self) == 'false'
 
         obj_id = Env('_id')
+
         def obj_type(self):
             transaction = Dict('characteristics/transaction')(self)
             if transaction == 'location':
@@ -251,13 +274,13 @@ class HousingPage2(JsonPage):
         obj_url = BrowserURL('housing_html', _id=Env('_id'))
         obj_area = TypeDecimal(Dict('characteristics/area'))
         obj_date = FromTimestamp(Dict('characteristics/date'))
-        obj_bedrooms = Dict('characteristics/bedroomCount')
+        obj_bedrooms = TypeDecimal(Dict('characteristics/bedroomCount'))
 
         def obj_rooms(self):
             # TODO: Why is roomCount a list?
             rooms = Dict('characteristics/roomCount', default=[])(self)
             if rooms:
-                return rooms[0]
+                return TypeDecimal(rooms[0])(self)
             return NotAvailable
 
         obj_price_per_meter = PricePerMeterFilter()

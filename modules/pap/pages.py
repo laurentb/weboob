@@ -66,6 +66,33 @@ class SearchResultsPage(HTMLPage):
                     and isNotFurnishedOk
                 )
 
+            def parse(self, el):
+                rooms_bedrooms_area = el.xpath(
+                    './div[@class="box-body"]/div/div/div[@class="clearfix"]/ul[has-class("item-summary")]/li'
+                )
+                self.env['rooms'] = NotAvailable
+                self.env['bedrooms'] = NotAvailable
+                self.env['area'] = NotAvailable
+                for item in rooms_bedrooms_area:
+                    name = CleanText('.')(item)
+                    if 'chambre' in name.lower():
+                        name = 'bedrooms'
+                        value = CleanDecimal('./strong')(item)
+                    elif 'pièce' in name.lower():
+                        name = 'rooms'
+                        value = CleanDecimal('./strong')(item)
+                    else:
+                        name = 'area'
+                        value = CleanDecimal(
+                            Regexp(
+                                CleanText(
+                                    '.'
+                                ),
+                                r'(.*?)(\d*) m\xb2(.*?)', '\\2'
+                            )
+                        )
+                    self.env[name] = value
+
             obj_id = Regexp(Link('./div[has-class("box-header")]/a[@class="title-item"]'), '/annonces/(.*)')
             obj_type = Env('query_type')
             obj_advert_type = ADVERT_TYPES.PERSONAL
@@ -109,23 +136,9 @@ class SearchResultsPage(HTMLPage):
             obj_station = CleanText('./div[@class="box-body"]/div/div/p[@class="item-transports"]', default=NotAvailable)
             obj_location = CleanText('./div[@class="box-body"]/div/div/p[@class="item-description"]/strong')
             obj_text = CleanText('./div[@class="box-body"]/div/div/p[@class="item-description"]')
-            obj_rooms = CleanDecimal(
-                './div[@class="box-body"]/div/div/div[@class="clearfix"]/ul[has-class("item-summary")]/li[1]/strong',
-                default=NotAvailable
-            )
+            obj_rooms = Env('rooms')
+            obj_bedrooms = Env('bedrooms')
             obj_price_per_meter = PricePerMeterFilter()
-
-            def obj_bedrooms(self):
-                rooms_bedrooms_area = XPath(
-                    './div[@class="box-body"]/div/div/div[@class="clearfix"]/ul[has-class("item-summary")]/li'
-                )(self)
-                if len(rooms_bedrooms_area) > 2:
-                    return CleanDecimal(
-                        './div[@class="box-body"]/div/div/div[@class="clearfix"]/ul[has-class("item-summary")]/li[2]/strong',
-                        default=NotAvailable
-                    )(self)
-                else:
-                    return NotAvailable
 
             obj_url = Format(
                 u'http://www.pap.fr%s',
@@ -215,8 +228,8 @@ class HousingPage(HTMLPage):
             else:
                 return NotAvailable
 
-        obj_rooms = CleanText('//ul[has-class("item-summary")]/li[1]/strong',
-                              default=NotAvailable)
+        obj_rooms = CleanDecimal('//ul[has-class("item-summary")]/li[1]/strong',
+                                 default=NotAvailable)
         obj_price_per_meter = PricePerMeterFilter()
         obj_location = CleanText('//div[@class="item-geoloc"]/h2')
         obj_text = CleanText(CleanHTML('//p[@class="item-description"]'))
