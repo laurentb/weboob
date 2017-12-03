@@ -527,6 +527,10 @@ class Regexp(Filter):
     u'1988'
     >>> (Regexp(CleanText('//body'), r'(\d+)', template='[\\1]', nth='*'))(doc)
     [u'[13]', u'[08]', u'[1988]']
+    >>> (Regexp(CleanText('//body'), r'Date:.*'))(doc)
+    u'Date: 13/08/1988'
+    >>> (Regexp(CleanText('//body'), r'^(?!Date:).*', default=None))(doc)
+    >>>
     """
 
     def __init__(self, selector=None, pattern=None, template=None, nth=0, flags=0, default=_NO_DEFAULT):
@@ -539,7 +543,10 @@ class Regexp(Filter):
 
     def expand(self, m):
         if self.template is None:
-            return next(g for g in m.groups() if g is not None)
+            try:
+                return next(g for g in m.groups() if g is not None)
+            except StopIteration:
+                return m.string
         return self.template(m) if callable(self.template) else m.expand(self.template)
 
     @debug()
