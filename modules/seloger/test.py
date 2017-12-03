@@ -94,7 +94,6 @@ class SeLogerTest(BackendTest):
         results = self.check_housing_lists(query)
 
         housing = self.backend.get_housing(results[0].id)
-        self.backend.fillobj(housing, 'phone')
         self.check_single_housing(housing, results[0].advert_type)
         self.assertTrue(housing.location)
 
@@ -110,7 +109,6 @@ class SeLogerTest(BackendTest):
         results = self.check_housing_lists(query)
 
         housing = self.backend.get_housing(results[0].id)
-        self.backend.fillobj(housing, 'phone')
         self.check_single_housing(housing, results[0].advert_type)
 
     def test_seloger_furnished_rent(self):
@@ -126,7 +124,6 @@ class SeLogerTest(BackendTest):
         results = self.check_housing_lists(query)
 
         housing = self.backend.get_housing(results[0].id)
-        self.backend.fillobj(housing, 'phone')
         self.check_single_housing(housing, results[0].advert_type)
         self.assertTrue(housing.location)
 
@@ -141,7 +138,6 @@ class SeLogerTest(BackendTest):
         results = self.check_housing_lists(query)
 
         housing = self.backend.get_housing(results[0].id)
-        self.backend.fillobj(housing, 'phone')
         self.check_single_housing(housing, results[0].advert_type)
 
     def test_seloger_rent_personal(self):
@@ -158,5 +154,4 @@ class SeLogerTest(BackendTest):
         results = self.check_housing_lists(query)
 
         housing = self.backend.get_housing(results[0].id)
-        self.backend.fillobj(housing, 'phone')
         self.check_single_housing(housing, results[0].advert_type)

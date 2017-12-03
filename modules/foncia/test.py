@@ -28,68 +28,110 @@ from weboob.capabilities.housing import Query, POSTS_TYPES, ADVERT_TYPES
 class FonciaTest(BackendTest):
     MODULE = 'foncia'
 
-    def test_city(self):
-        # Paris search has multiple entries in the response
-        self.assertGreater(len(list(self.backend.search_city(u'Paris'))), 1)
-
-        # Postal code query has a single entry in the response
-        montrouge = list(self.backend.search_city(u'92120'))
-        self.assertEqual(len(montrouge), 1)
-        self.assertIn("Montrouge", montrouge[0].name)
-
-        # Also check everything is working with departements
-        loiret_dept = list(self.backend.search_city(u'Loiret'))
-        self.assertEqual(len(loiret_dept), 1)
-        self.assertIn("Loiret", loiret_dept[0].name)
-
-    def test_search_housings_sale(self):
-        query = Query()
-        query.cities = []
-        query.type = POSTS_TYPES.SALE
-        for city in self.backend.search_city('92120'):
-            city.backend = self.backend.name
-            query.cities.append(city)
-
-        results = list(itertools.islice(self.backend.search_housings(query), 0, 20))
+    def check_housing_lists(self, query):
+        results = list(itertools.islice(
+            self.backend.search_housings(query),
+            20
+        ))
         self.assertGreater(len(results), 0)
-        obj = self.backend.fillobj(results[0])
-        self.assertTrue(obj.url is not None, 'Missing url for "%s"' % (obj.id))
 
-    def test_search_housings_rent(self):
+        self.assertTrue(any(x.photos for x in results))
+        self.assertTrue(any(x.rooms for x in results))
+
+        for x in results:
+            self.assertIn(x.house_type, [
+                str(y) for y in query.house_types
+            ])
+            self.assertTrue(x.date)
+            self.assertTrue(x.text)
+            self.assertTrue(x.location)
+            self.assertTrue(x.utilities)
+            self.assertTrue(x.area)
+            self.assertTrue(x.cost)
+            self.assertTrue(x.currency)
+            self.assertTrue(x.title)
+            self.assertEqual(x.type, query.type)
+            self.assertTrue(x.id)
+            self.assertTrue(x.url)
+            self.assertTrue(x.details.keys())
+            self.assertIn(x.advert_type, query.advert_types)
+
+        return results
+
+    def check_single_housing(self, housing, advert_type):
+        self.assertTrue(housing.id)
+        self.assertTrue(housing.type)
+        self.assertEqual(housing.advert_type, advert_type)
+        self.assertTrue(housing.house_type)
+        self.assertTrue(housing.title)
+        self.assertTrue(housing.cost)
+        self.assertTrue(housing.currency)
+        self.assertTrue(housing.area)
+        self.assertTrue(housing.date)
+        self.assertTrue(housing.location)
+        self.assertTrue(housing.rooms)
+        self.assertTrue(housing.text)
+        self.assertTrue(housing.url)
+        self.assertTrue(housing.phone)
+        self.assertTrue(housing.utilities)
+        self.assertTrue(housing.photos)
+        self.assertTrue(housing.details.keys())
+        # No tests for DPE, GES, bedrooms
+
+    def test_foncia_rent(self):
         query = Query()
-        query.cities = []
+        query.area_min = 20
+        query.cost_max = 1500
         query.type = POSTS_TYPES.RENT
-        for city in self.backend.search_city('92120'):
+        query.cities = []
+        for city in self.backend.search_city('paris'):
             city.backend = self.backend.name
             query.cities.append(city)
 
-        results = list(itertools.islice(self.backend.search_housings(query), 0, 20))
-        self.assertGreater(len(results), 0)
-        obj = self.backend.fillobj(results[0])
-        self.assertTrue(obj.url is not None, 'Missing url for "%s"' % (obj.id))
+        results = self.check_housing_lists(query)
 
-    def test_search_housings_personal(self):
+        housing = self.backend.get_housing(results[0].id)
+        self.check_single_housing(housing, results[0].advert_type)
+
+    def test_foncia_sale(self):
         query = Query()
+        query.area_min = 20
+        query.type = POSTS_TYPES.SALE
         query.cities = []
+        for city in self.backend.search_city('paris'):
+            city.backend = self.backend.name
+            query.cities.append(city)
+
+        results = self.check_housing_lists(query)
+
+        housing = self.backend.get_housing(results[0].id)
+        self.check_single_housing(housing, results[0].advert_type)
+
+    def test_foncia_furnished_rent(self):
+        query = Query()
+        query.area_min = 20
+        query.cost_max = 1500
+        query.type = POSTS_TYPES.FURNISHED_RENT
+        query.cities = []
+        for city in self.backend.search_city('paris'):
+            city.backend = self.backend.name
+            query.cities.append(city)
+
+        results = self.check_housing_lists(query)
+
+        housing = self.backend.get_housing(results[0].id)
+        self.check_single_housing(housing, results[0].advert_type)
+
+    def test_foncia_personal(self):
+        query = Query()
+        query.area_min = 20
+        query.cost_max = 900
         query.type = POSTS_TYPES.RENT
         query.advert_types = [ADVERT_TYPES.PERSONAL]
-        for city in self.backend.search_city('92120'):
-            city.backend = self.backend.name
-            query.cities.append(city)
-
-        results = list(itertools.islice(self.backend.search_housings(query), 0, 20))
-        self.assertEqual(len(results), 0)
-
-    def test_get_housing(self):
-        query = Query()
         query.cities = []
-        query.type = POSTS_TYPES.RENT
-        for city in self.backend.search_city('92120'):
+        for city in self.backend.search_city('paris'):
             city.backend = self.backend.name
             query.cities.append(city)
 
-        result = next(self.backend.search_housings(query))
-        obj = self.backend.fillobj(result)
-        housing = self.backend.get_housing(result.id)
-        obj = self.backend.fillobj(housing)
-        self.assertTrue(obj.url is not None, 'Missing url for "%s"' % (obj.id))
+        results = list(self.backend.search_housings(query))
+        self.assertEqual(len(results), 0)

@@ -29,8 +29,8 @@ from weboob.browser.filters.html import AbsoluteLink, Attr, Link
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.housing import (
-    City, Housing, HousingPhoto, UTILITIES, ENERGY_CLASS, POSTS_TYPES,
-    ADVERT_TYPES
+    City, Housing, HousingPhoto,
+    UTILITIES, ENERGY_CLASS, POSTS_TYPES, ADVERT_TYPES
 )
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 
@@ -257,7 +257,7 @@ class SearchResultsPage(HTMLPage):
             obj_advert_type = ADVERT_TYPES.PROFESSIONAL
 
             def obj_house_type(self):
-                url = self.obj_url()
+                url = self.obj_url(self)
                 for house_type, types in QUERY_HOUSE_TYPES.items():
                     for type in types:
                         if ('/%s/' % type) in url:

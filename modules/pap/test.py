@@ -85,7 +85,6 @@ class PapTest(BackendTest):
         self.assertTrue(any(x.station for x in results))
 
         housing = self.backend.get_housing(results[0].id)
-        self.backend.fillobj(housing, 'phone')
         self.check_single_housing(housing)
 
     def test_pap_sale(self):
@@ -101,7 +100,6 @@ class PapTest(BackendTest):
         self.assertTrue(any(x.station for x in results))
 
         housing = self.backend.get_housing(results[0].id)
-        self.backend.fillobj(housing, 'phone')
         self.check_single_housing(housing)
 
     def test_pap_furnished_rent(self):
@@ -118,7 +116,6 @@ class PapTest(BackendTest):
         self.assertTrue(any(x.station for x in results))
 
         housing = self.backend.get_housing(results[0].id)
-        self.backend.fillobj(housing, 'phone')
         self.check_single_housing(housing)
 
     def test_pap_viager(self):
@@ -132,7 +129,6 @@ class PapTest(BackendTest):
         results = self.check_housing_lists(query)
 
         housing = self.backend.get_housing(results[0].id)
-        self.backend.fillobj(housing, 'phone')
         self.check_single_housing(housing)
 
     def test_pap_professional(self):
