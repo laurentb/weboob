@@ -276,7 +276,22 @@ class TitreDetails(LoggedPage, HTMLPage):
 class ASVInvest(LoggedPage, HTMLPage):
     @method
     class iter_investments(TableElement):
-        item_xpath = '//table[@class="Tableau"]//tr[position()>2]'
+        # Ignore the first line:
+        # <tr>
+        #     <td colspan="5" class="enteteTableau metaEnteteTableau enteteTableauFirstCol metaEnteteTableauFirstCol">R&eacute;partition de
+        #         l'investissement
+        #     </td>
+        #     <td colspan="3" class="enteteTableau metaEnteteTableau enteteTableauFirstCol metaEnteteTableauFirstCol">
+        #         Plus/moins-values&nbsp;(**)
+        #     </td>
+        # </tr>
+        # Then, there is the line of column heads.
+        # Ignore also information lines like that:
+        # <tr>
+        #       <td colspan="8" class="liTableau" align="left">Gestion Pilotée
+        #       <td>
+        # </tr>
+        item_xpath = '//table[@class="Tableau"]//tr[position()>2 and count(./td) >= 8]'
         head_xpath = '//table[@class="Tableau"]//tr[position()=2]/td'
 
         col_label = u'Support(s)'
