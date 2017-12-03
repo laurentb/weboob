@@ -38,14 +38,14 @@ class IndexPage(HTMLPage):
             klass = YoupornVideo
 
             def obj_thumbnail(self):
-                thumbnail_url = Attr('.//img', 'src')(self)
+                thumbnail_url = Attr('.//img', 'data-original')(self)
                 thumbnail = Thumbnail(thumbnail_url)
                 thumbnail.url = thumbnail.id
                 return thumbnail
 
             obj_author = NotAvailable
-            obj_duration = CleanText('.//span[has-class("video-box-duration")]') & Duration()
+            obj_duration = CleanText('.//div[has-class("video-duration")]') & Duration()
             obj_id = Attr('.', 'data-video-id')
-            obj_rating = CleanText('.//span[has-class("video-box-percentage")]') & Regexp(pattern=r'(..)%') & Type(type=int)
+            obj_rating = CleanText('.//span[has-class("video-box-percentage")]') & Regexp(pattern=r'(\d+)%') & Type(type=int)
             obj_rating_max = 100
             obj_title = CleanText('.//div[has-class("video-box-title")]')

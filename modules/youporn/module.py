@@ -50,7 +50,10 @@ class YoupornModule(Module, CapVideo, CapCollection):
         return self.browser.search_videos(pattern, self.SORTBY[sortby])
 
     def fill_video(self, video, fields):
-        return self.browser.get_video(video.id)
+        if 'url' in fields:
+            return self.browser.get_video(video.id)
+        if 'thumbnail' in fields:
+            video.thumbnail.data = self.browser.open(video.thumbnail.url).content
 
     def iter_resources(self, objs, split_path):
         if BaseVideo in objs:
