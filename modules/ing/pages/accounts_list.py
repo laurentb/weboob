@@ -305,7 +305,12 @@ class ASVInvest(LoggedPage, HTMLPage):
 
         class item(ItemElement):
             klass = Investment
-            load_details = Link('.//td[1]//a') & AsyncLoad
+
+            # Euro funds links are like that:
+            # <td class="lpTableau lpTableauFirstCol"><a href="javascript:alert('Les performances de ce fond ne sont pas consultables.')" onclick="">Eurossima
+            # </a></td>
+            # So ignore them.
+            load_details = Link('.//td[1]//a') & Regexp(pattern='^((?!javascript:).*)', default=NotAvailable) & AsyncLoad
 
             def obj_code(self):
                 val = Async('details', CleanText('//td[@class="libelle-normal" and contains(.,"CodeISIN")]', default=NotAvailable))(self)
