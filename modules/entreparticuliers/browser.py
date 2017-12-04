@@ -73,7 +73,7 @@ class EntreparticuliersBrowser(PagesBrowser):
                 if bien['Idchoix'] == int(id_type):
                     data['lstSSTbien'] = bien['SsTypebien']
                     data['lstTbien'] = bien['TypeBien']
-                    data['Caracteristique'] = bien['Idchoix']
+                    data['Caracteristique'] = bien['Rubrique']
 
             data['OrigineAlerte'] = "SaveSearchMoteurHome"
             data['pays'] = "fra"
@@ -107,7 +107,7 @@ class EntreparticuliersBrowser(PagesBrowser):
             data['lstLocalisationId'] = ','.join(cities)
             data['photos'] = 0
             data['colocation'] = ''
-            data['meuble'] = 'nc'
+            data['meuble'] = ''
             data['pageNumber'] = 1
             data['order_by'] = 1
             data['sort_order'] = 1
@@ -116,7 +116,7 @@ class EntreparticuliersBrowser(PagesBrowser):
             data['EmailUser'] = ""
             data['GSMUser'] = ""
             data['CapaciteMin'] = None
-            data['progneuf'] = "false"
+            # data['progneuf'] = "false"
 
             self.search.go(data="{'p_SearchParams':'%s', 'forcealerte':'0'}" % json.dumps(data))
 

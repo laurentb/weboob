@@ -22,7 +22,7 @@ from datetime import datetime
 from weboob.browser.pages import JsonPage, HTMLPage
 from weboob.browser.elements import ItemElement, ListElement, DictElement, method
 from weboob.browser.filters.json import Dict
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, Format
 from weboob.browser.filters.html import CleanHTML
 from weboob.capabilities.housing import Housing, HousingPhoto, City, UTILITIES
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
@@ -46,16 +46,31 @@ class CitiesPage(JsonPage):
 class SearchPage(HTMLPage):
     @method
     class iter_housings(ListElement):
-        item_xpath = '//li[@id="0"]'
+        item_xpath = '//li[@id]'
 
         class item(ItemElement):
             klass = Housing
 
-            obj_id = Regexp(CleanText('./a/@href'), '/annonces-immobilieres/(.*).html')
-            obj_title = CleanText('./a/div/p/span[@class="item title"]')
-            obj_cost = CleanDecimal('./a/div/p/span[@class="item prix"]')
+            def condition(self):
+                return CleanText("./@id")(self) != "pnlInfo"
+
+            obj_id = Regexp(CleanText('./a/@href',
+                                      replace=[('/annonces-immobilieres/', ''), ('/location/', '')]),
+                            '(.*).html')
+
+            def obj_title(self):
+                title = CleanText('./a/div/p/span[@class="item title"]')(self)
+                if title == "":
+                    title = CleanText('./a/div/p/span[@class="item loc"]')(self)
+                return title
+
+            obj_cost = CleanDecimal(CleanText('./a/div/p/span[@class="item prix"]', children=False))
             obj_currency = u'EUR'
-            obj_text = CleanText('./a/div[@class="txt-xs"]')
+            obj_text = Format('%s / %s / %s / %s',
+                              CleanText('./a/div/p/span[@class="item type"]/img/@alt'),
+                              CleanText('./a/div/p/span[@id="divnbpieces"]', children=False),
+                              CleanText('./a/div/p/span[@id="divsurface"]', children=False),
+                              CleanText('./a/div/p/span[@class="item prix"]/span'))
             obj_utilities = UTILITIES.UNKNOWN
 
 
@@ -67,10 +82,10 @@ class HousingPage(HTMLPage):
         obj_id = Env('_id')
         obj_title = CleanText('h1')
 
-        obj_rooms = CleanDecimal('//div[@class="stats"]/section/div[@id="divpieces"]/span[@class="stat"]')
+        obj_rooms = CleanDecimal('//div[@class="stats"]/section/div[@id="divpieces"]/span[@class="stat"]', default=0)
 
-        obj_cost = CleanDecimal('(//div[@class="stats"]/div/h2)[2]')
         obj_currency = u'EUR'
+        obj_cost = CleanDecimal('(//div[@class="stats"]/div/h2)[2]/em')
         obj_utilities = UTILITIES.UNKNOWN
         obj_text = CleanHTML('//div[@class="textes"]')
         obj_location = CleanText('//input[@id="adressegeo"]/@value')
