@@ -45,7 +45,7 @@ class TrackingPage(HTMLPage):
 
 
 class ColissimoBrowser(PagesBrowser):
-    BASEURL = 'http://www.laposte.fr'
+    BASEURL = 'https://www.laposte.fr'
     PROFILE = Firefox()
 
     tracking_url = URL('/particulier/outils/suivre-vos-envois\?code=(?P<_id>.*)', TrackingPage)
