@@ -19,7 +19,7 @@
 
 from weboob.browser.pages import HTMLPage, pagination
 from weboob.browser.elements import ItemElement, ListElement, method
-from weboob.browser.filters.standard import Regexp, CleanText, Format, Env, BrowserURL, CleanDecimal, Eval
+from weboob.browser.filters.standard import Regexp, CleanText, Format, Env, CleanDecimal, Eval
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.recipe import Recipe, Comment
 from weboob.tools.json import json
@@ -32,23 +32,20 @@ class ResultsPage(HTMLPage):
     @pagination
     @method
     class iter_recipes(ListElement):
-        item_xpath = '//div[@class="m_resultats_liste_recherche"]/div[has-class("recette_classique")]'
+        item_xpath = "//div[@class='recipe-results ']/a"
 
         def next_page(self):
-            str_results = Regexp(CleanText('//div[@class="m_resultats_recherche_titre"]'),
-                                 '.* - (\d* / \d*) .*')(self)
-            results = str_results.split('/')
-            if int(results[0]) - int(results[1]) < 10:
-                return BrowserURL('search', pattern=Env('pattern'), start=int(results[0]))(self)
+            return CleanText('//nav/ul/li[@class="next-page"]/a/@href', default="")(self)
 
         class item(ItemElement):
             klass = Recipe
-            obj_id = Regexp(CleanText('./div/div[@class="m_titre_resultat"]/a/@href'),
+            obj_id = Regexp(CleanText('./@href'),
                             '/recettes/recette_(.*).aspx')
-            obj_title = CleanText('./div/div[@class="m_titre_resultat"]/a')
+            obj_title = CleanText('./div/h4')
             obj_short_description = Format('%s. %s',
-                                           CleanText('./div/div[@class="m_detail_recette"]'),
-                                           CleanText('./div/div[@class="m_texte_resultat"]'))
+                                           CleanText('./div/div[@class="recipe-card__description"]',
+                                                     replace=[(u'Ingrédients : ', ''), ('...', '')]),
+                                           CleanText('./div/div[@class="recipe-card__duration"]'))
 
 
 class RecipePage(HTMLPage):
