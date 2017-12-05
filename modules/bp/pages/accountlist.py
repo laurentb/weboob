@@ -98,6 +98,7 @@ class item_account_generic(ItemElement):
         types = {'comptes? bancaires?': Account.TYPE_CHECKING,
                  'livrets?': Account.TYPE_SAVINGS,
                  'epargnes? logement': Account.TYPE_SAVINGS,
+                 "autres produits d'epargne": Account.TYPE_SAVINGS,
                  'comptes? titres? et pea': Account.TYPE_MARKET,
                  'assurances? vie et retraite': Account.TYPE_LIFE_INSURANCE,
                  u'prêt': Account.TYPE_LOAN,
