@@ -31,7 +31,7 @@ from weboob.browser.elements import method, ListElement, ItemElement, TableEleme
 from weboob.capabilities.bank import Account
 from weboob.browser.filters.html import Link, Attr, TableCell
 from weboob.browser.filters.standard import (
-    CleanText, Regexp, Field, Map, CleanDecimal, Date,
+    CleanText, Regexp, Field, Map, CleanDecimal, Date, Format,
 )
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.compat import urlencode, urlparse, urlunparse, parse_qsl, urljoin
@@ -181,8 +181,7 @@ class LoanHistoryPage(LoggedPage, HTMLPage):
             obj_amount = MyDecimal('./td[4]', replace_dots=True)
             obj_date = Transaction.Date('./td[2]')
             obj_vdate = Transaction.Date('./td[3]')
-            obj_raw = Transaction.Raw('./td[1]')
-
+            obj_raw = Transaction.Raw(Format('%s %s', CleanText('./td[1]'), CleanText('./following-sibling::tr[contains(@class, "tr-more")]/td/p/span')))
 
 class HistoryPage(LoggedPage, HTMLPage):
     @pagination
