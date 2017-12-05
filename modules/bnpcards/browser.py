@@ -108,7 +108,15 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
         if self.type == '2':
             for rib in self.page.get_rib_list():
                 self.page.expand(rib=rib)
-                for account in self.page.iter_accounts(rib=rib):
+
+                accounts = list(self.page.iter_accounts(rib=rib))
+                ids = {}
+                for account in accounts:
+                    if account.id in ids:
+                        self.logger.warning('duplicate account %r', account.id)
+                        account.id += '_%s' % ''.join(account.label.split())
+
+                    ids[account.id] = account
                     yield account
 
     # Could be the very same as non corporate but this shitty website seems
@@ -138,14 +146,14 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
         transactions = []
         self.coming.go()
         self.page.expand(rib=account._rib)
-        link = self.page.get_link(account.id)
+        link = self.page.get_link(account)
         if link:
             self.location(link)
             transactions += self.page.get_history()
         self.history.go()
         for period in self.page.get_periods():
             self.page.expand(period, rib=account._rib)
-            link = self.page.get_link(account.id)
+            link = self.page.get_link(account)
             if link:
                 self.location(link)
                 transactions += self.page.get_history()

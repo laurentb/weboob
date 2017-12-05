@@ -23,7 +23,7 @@ from datetime import date
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Field, Env, Format
-from weboob.browser.filters.html import Link, Attr
+from weboob.browser.filters.html import Link, Attr, AbsoluteLink
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
@@ -62,8 +62,10 @@ class ExpandablePage(LoggedPage, HTMLPage):
 
 
 class GetableLinksPage(LoggedPage, HTMLPage):
-    def get_link(self, account_id):
-        el = self.doc.xpath('.//a[contains(text(), "%s")]' % account_id)
+    def get_link(self, account):
+        # FIXME this will probably crash on 'titulaire' space but all credentials are wrong pass so cannot test
+        number, holder = account._completeid.split(':')
+        el = self.doc.xpath('.//tr[.//a[text()=$card]][.//td[1][text()=$name]]//a', card=number, name=holder)
         if not el:
             return
         return el[0].get("href")
@@ -96,6 +98,8 @@ class AccountsPage(ExpandablePage, GetableLinksPage):
 
         next_page = Link('//table[@id="datas"]/tfoot//b/following-sibling::a[1]')
 
+        ignore_duplicate = True
+
         class item(ItemElement):
             klass = Account
 
@@ -104,11 +108,20 @@ class AccountsPage(ExpandablePage, GetableLinksPage):
             obj_type = Account.TYPE_CARD
             obj__rib = Env('rib')
             obj_currency = u'EUR'
+            obj_number = CleanText('./td[2]', replace=[(' ', '')])
+            obj_url = AbsoluteLink('./td[2]/a')
+
+            obj__completeid = Format('%s:%s', obj_id, obj_label)
+
+        def store(self, obj):
+            return obj
 
 
 class ComingPage(ExpandablePage):
-    def get_link(self, account_id):
-        el = self.doc.xpath('.//a[contains(text(), "%s")]' % account_id)
+    def get_link(self, account):
+        # FIXME this will probably crash on 'titulaire' space but all credentials are wrong pass so cannot test
+        card, holder = account._completeid.split(':')
+        el = self.doc.xpath('.//tr[.//a[text()=$card]][.//td[1][text()=$name]]//a', card=card, name=holder)
         if not el:
             return
         link = re.search(r",'(.*)'\);", el[0].get("href"))
