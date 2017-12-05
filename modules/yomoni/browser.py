@@ -109,6 +109,7 @@ class YomoniBrowser(APIBrowser):
                      Account.TYPE_PEA if "pea" in a.label.lower() else \
                      Account.TYPE_UNKNOWN
             a.balance = CleanDecimal().filter(me['solde'])
+            a.currency = u'EUR' # performanceEuro, montantEuro everywhere in Yomoni JSON
             a.iban = me['ibancompteTitre'] or NotAvailable
             a.number = project['projectId']
             a.valuation_diff = CleanDecimal().filter(me['performanceEuro'])
