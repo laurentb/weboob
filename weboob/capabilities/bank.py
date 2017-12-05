@@ -241,6 +241,8 @@ class Account(BaseAccount):
     #  - ...
     parent = Field('Parent account', BaseAccount)
 
+    opening_date = DateField('Date when the account contract was created on the bank')
+
     def __repr__(self):
         return "<%s id=%r label=%r>" % (type(self).__name__, self.id, self.label)
 
