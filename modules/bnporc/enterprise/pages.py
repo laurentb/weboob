@@ -239,7 +239,7 @@ class AccountHistoryPage(LoggedPage, JsonPage):
             klass = Transaction
 
             obj_original_currency = CleanText(Dict('montant/devise'))
-            obj__coming = Dict('aVenir')
+            obj__coming = Dict('avenir')
 
             def obj_raw(self):
                 nature = CleanText(Dict('nature/libelle'))(self)
