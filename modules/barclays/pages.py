@@ -104,6 +104,7 @@ class AccountsPage(StatefulPage):
                      'Engagement/Crédits': Account.TYPE_LOAN,
                     }
     ACCOUNT_EXTRA_TYPES = {'BMOOVIE': Account.TYPE_LIFE_INSURANCE,
+                           'B. GESTION VIE': Account.TYPE_LIFE_INSURANCE
                           }
     ACCOUNT_TYPE_TO_STR = {Account.TYPE_MARKET: 'TTR',
                            Account.TYPE_CARD: 'CRT'
