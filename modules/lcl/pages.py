@@ -657,8 +657,11 @@ class AVPage(LoggedPage, HTMLPage):
                     if not _id:
                         ac_details_page = self.page.browser.open(Link('.//td/a')(self)).page
                     else:
-                        split = _id.split('-')
-                        ac_details_page = self.page.browser.open('/outil/UWVI/AssuranceVie/accesDetail?ID_CONTRAT=%s&PRODUCTEUR=%s' % (split[0], split[1])).page
+                        if '-' in _id:
+                            split = _id.split('-')
+                            ac_details_page = self.page.browser.open('/outil/UWVI/AssuranceVie/accesDetail?ID_CONTRAT=%s&PRODUCTEUR=%s' % (split[0], split[1])).page
+                        else:
+                            ac_details_page = self.page.browser.open('/outil/UWVI/AssuranceVie/accesDetail?ID_CONTRAT=%s' % (_id)).page
                     return CleanText('(//tr[3])/td[2]')(ac_details_page.doc)
                 except ServerError:
                     self.logger.debug("link didn't work, trying with the form instead")
@@ -673,8 +676,12 @@ class AVPage(LoggedPage, HTMLPage):
             def obj__form(self):
                 form_id = Attr('.//td/a', 'id', default=None)(self)
                 if form_id:
-                    id_contrat = re.search(r'^(.*?)-', form_id).group(1)
-                    producteur = re.search(r'-(.*?)$', form_id).group(1)
+                    if '-' in form_id:
+                        id_contrat = re.search(r'^(.*?)-', form_id).group(1)
+                        producteur = re.search(r'-(.*?)$', form_id).group(1)
+                    else:
+                        id_contrat = form_id
+                        producteur = None
                 else:
                     if len(self.xpath('.//td/a[has-class("clickPopupDetail")]')):
                         # making a form of this link sometimes makes the site return an empty response...
