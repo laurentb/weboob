@@ -65,7 +65,11 @@ class AmazonBrowser(LoginBrowser, StatesMixin):
         self.to_english(self.LANGUAGE)
 
         if not self.login.is_here():
-            self.location(self.home.go().get_login_link())
+            self.location(self.panel.go().get_sub_link())
+            if self.subscriptions.is_here():
+                return
+            if not self.login.is_here():
+                self.location(self.home.go().get_login_link())
             self.page.login(self.username, self.password)
         elif self.config['captcha_response'].get():
             self.page.login(self.username, self.password, self.config['captcha_response'].get())

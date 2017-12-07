@@ -44,6 +44,7 @@ class SecurityPage(HTMLPage, LoggedPage):
     def push_otp(self, otp):
         form = self.get_form(id='auth-mfa-form')
         form['otpCode'] = otp
+        form['rememberDevice'] = ""
         form.submit()
 
     def get_otp_message(self):
