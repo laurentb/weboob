@@ -178,6 +178,7 @@ class BforbankBrowser(LoginBrowser):
             raise NotImplementedError()
 
     def goto_spirica(self, account):
+        self.location('https://client.bforbank.com/espace-client/assuranceVie')
         assert account.type == Account.TYPE_LIFE_INSURANCE
         self.lifeinsurance_list.go()
 
@@ -188,7 +189,6 @@ class BforbankBrowser(LoginBrowser):
             self.spirica.session.cookies.clear()
 
             self.do_login()
-        self.lifeinsurance_list.go()
 
         if self.lifeinsurance_list.is_here():
             self.logger.debug('multiple life insurances, searching for %r', account)

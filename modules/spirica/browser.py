@@ -59,24 +59,30 @@ class SpiricaBrowser(LoginBrowser):
     def iter_investment(self, account):
         if account.id not in self.cache['invs']:
             # Get form to show PRM
-            form = self.location(account.url).page.get_investment_form()
-            invs = [i for i in self.location(form.url, data=dict(form)).page.iter_investment()]
+            self.location(account.url)
+            self.page.goto_unitprice()
+            invs = [i for i in self.page.iter_investment()]
+            invs_pm = [i for i in self.page.iter_pm_investment()]
+            self.fill_from_list(invs, invs_pm)
             self.cache['invs'][account.id] = invs
         return self.cache['invs'][account.id]
 
     @need_login
     def iter_history(self, account):
         if account.id not in self.cache['trs']:
-            # Get form to go to History's tab
-            form = self.location(account.url).page.get_historytab_form()
+            self.location(account.url)
+            self.page.go_historytab()
             # Get form to show all transactions
-            form = self.location(form.url, data=dict(form)).page.get_historyallpages_form()
-            if form:
-                self.location(form.url, data=dict(form))
-            # Get forms to expand details of all transactions
-            for form in self.page.get_historyexpandall_form():
-                # Can't async because of ReadTimeout
-                self.location(form.url, data=dict(form))
+            self.page.go_historyall()
             trs = [t for t in self.page.iter_history()]
             self.cache['trs'][account.id] = trs
         return self.cache['trs'][account.id]
+
+    def fill_from_list(self, invs, objects_list):
+        matching_fields = ['code', 'unitvalue', 'label']
+        for inv in invs:
+            obj_from_list = [o for o in objects_list if all(getattr(o, field) == getattr(inv, field) for field in matching_fields)]
+            assert len(obj_from_list) == 1
+            for name, field_value in obj_from_list[0].iter_fields():
+                if field_value:
+                    setattr(inv, name, field_value)

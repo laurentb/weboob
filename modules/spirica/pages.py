@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 import re
 
 from weboob.browser.pages import HTMLPage, LoggedPage
@@ -102,6 +104,7 @@ class ItemInvestment(ItemElement):
     obj_quantity = MyDecimal(TableCell('quantity', default=None))
     obj_unitvalue = MyDecimal(TableCell('unitvalue', default=None))
     obj_vdate = Date(CleanText(TableCell('vdate', default="")), dayfirst=True, default=NotAvailable)
+    obj_code = Regexp(CleanText('.//td[contains(text(), "Isin")]'), ':[\s]+([\w]+)', default=NotAvailable)
 
     def obj_valuation(self):
         valuation = MyDecimal(TableCell('valuation', default=None))(self)
@@ -132,13 +135,16 @@ class ProfileTableInvestment(TableInvestment):
 class DetailsPage(LoggedPage, HTMLPage):
     DEBIT_WORDS = [u'arrêté', 'rachat', 'frais', u'désinvestir']
 
-    def get_investment_form(self):
-        form = self.get_form('//form[contains(@id, "j_idt")]')
-        form['ongletSituation:ongletContratTab_newTab'] = \
-                Link().filter(self.doc.xpath('//a[contains(text(), "Prix de revient moyen")]'))[1:]
-        form['javax.faces.source'] = "ongletSituation:ongletContratTab"
-        form['javax.faces.behavior.event'] = "tabChange"
-        return form
+    def goto_unitprice(self):
+        form = self.get_form(id='ongletSituation:syntheseContrat')
+        form['javax.faces.source'] = 'ongletSituation:ongletContratTab'
+        form['javax.faces.partial.execute'] = 'ongletSituation:ongletContratTab'
+        form['javax.faces.partial.render'] = 'ongletSituation:ongletContratTab'
+        form['javax.faces.behavior.event'] = 'tabChange'
+        form['javax.faces.partial.event'] = 'tabChange'
+        form['ongletSituation:ongletContratTab_newTab'] = 'ongletSituation:ongletContratTab:PRIX_REVIENT_MOYEN'
+        form['ongletSituation:ongletContratTab_tabindex'] = '1'
+        form.submit()
 
     @method
     class iter_investment(TableInvestment):
@@ -148,25 +154,6 @@ class DetailsPage(LoggedPage, HTMLPage):
         col_valuation = re.compile('Contre')
 
         class item(ItemInvestment):
-            obj_code = Regexp(CleanText('.//td[contains(text(), "Isin")]'), ':[\s]+([\w]+)', default=NotAvailable)
-
-            def invest_link(self):
-                label = Field('label')(self)
-                for a in self.el.xpath('//div[contains(@id, "PRIX_REVIENT")]//a'):
-                    if label in CleanText('.')(a):
-                        return a
-                assert 'fonds euro' in label.lower()
-
-            def obj_unitprice(self):
-                link = self.invest_link()
-                if link:
-                    return MyDecimal('./ancestor::tr/td[5]')(link)
-
-            def obj_diff(self):
-                link = self.invest_link()
-                if link:
-                    return MyDecimal('./ancestor::tr/td[6]')(link)
-
             def obj_portfolio_share(self):
                 inv_share = ItemInvestment.obj_portfolio_share(self)
                 if self.xpath('ancestor::tbody[ends-with(@id, "contratProfilTable_data")]'):
@@ -186,6 +173,27 @@ class DetailsPage(LoggedPage, HTMLPage):
                 else:
                     return inv_share
 
+    @method
+    class iter_pm_investment(TableInvestment):
+        item_xpath = '//div[contains(@id,"PRIX_REVIENT_MOYEN")]//div[ends-with(@id, ":tableDetailSituationCompte")]//table/tbody/tr[@data-ri]'
+        head_xpath = '//div[contains(@id,"PRIX_REVIENT_MOYEN")]//div[ends-with(@id, ":tableDetailSituationCompte")]//table/thead/tr/th'
+
+        col_diff = re.compile(u'.*PRM en €')
+        col_diff_percent = re.compile('.*PRM en %')
+        col_unitprice = re.compile('.*Prix de Revient Moyen')
+
+        class item(ItemInvestment):
+            obj_diff = MyDecimal(TableCell('diff'), default=NotAvailable)
+            obj_diff_percent = Eval(lambda x: x/100, MyDecimal(TableCell('diff_percent')))
+            obj_unitprice = MyDecimal(TableCell('unitprice'))
+
+            def obj_diff_percent(self):
+                diff_percent = MyDecimal(TableCell('diff_percent'))(self)
+                if diff_percent:
+                    return diff_percent / 100
+                else:
+                    return NotAvailable
+
     def get_historytab_form(self):
         form = self.get_form('//form[contains(@id, "j_idt")]')
         idt = Attr(None, 'name').filter(self.doc.xpath('//input[contains(@name, "j_idt") \
@@ -197,28 +205,45 @@ class DetailsPage(LoggedPage, HTMLPage):
         form['javax.faces.behavior.event'] = "tabChange"
         return form
 
-    def get_historyallpages_form(self):
-        onclick = self.doc.xpath('//a[contains(text(), "Tout")]/@onclick')
-        if onclick:
-            idt = re.search('{[^\w]+([\w\d:]+)', onclick[0]).group(1)
-            form = self.get_form('//form[contains(@id, "j_idt")]')
-            form[idt] = idt
-            return form
-        return False
+    def go_historytab(self):
+        form = self.get_form(id='ongletSituation:syntheseContrat')
+        form['javax.faces.source'] = 'tabsPrincipauxConsultationContrat'
+        form['javax.faces.partial.execute'] = 'tabsPrincipauxConsultationContrat'
+        form['javax.faces.partial.render'] = 'tabsPrincipauxConsultationContrat'
+        form['javax.faces.behavior.event'] = 'tabChange'
+        form['javax.faces.partial.event'] = 'tabChange'
+        form['tabsPrincipauxConsultationContrat_contentLoad'] = 'true'
+        form['tabsPrincipauxConsultationContrat_newTab'] = 'HISTORIQUE_OPERATIONS'
+        form['ongletSituation:ongletContratTab_tabindex'] = '1'
+        form.submit()
 
-    def get_historyexpandall_form(self):
-        form = self.get_form('//form[contains(@id, "j_idt")]')
-        form['javax.faces.source'] = "ongletHistoOperations:newoperations"
-        form['javax.faces.behavior.event'] = "rowToggle"
-        form['ongletHistoOperations:newoperations_rowExpansion'] = "true"
-        for data in self.doc.xpath('//tr[@data-ri]/@data-ri'):
-            form['ongletHistoOperations:newoperations_expandedRowIndex'] = data
-            yield form
+    def go_historyall(self):
+        id_ = Attr('//a[contains(text(), "Tout afficher")]', 'id', default=None)(self.doc)
+        if id_:
+            form = self.get_form(xpath='//form[contains(@id, "ongletHistoOperations:ongletHistoriqueOperations")]')
+            form['javax.faces.partial.execute'] = '@all'
+            form['javax.faces.partial.render'] = 'ongletHistoOperations:ongletHistoriqueOperations:newoperations'
+            form[id_] = id_
+            form['javax.faces.source'] = id_
+            form.submit()
+
+    def get_historyexpandall_form(self, data):
+        form = self.get_form(xpath='//form[contains(@id, "ongletHistoOperations:ongletHistoriqueOperations")]')
+        form['javax.faces.behavior.event'] = 'rowToggle'
+        form['javax.faces.partial.event'] = 'rowToggle'
+        id_ = Attr('//div[contains(@id, "ongletHistoOperations:ongletHistoriqueOperations")][has-class("listeAvecDetail")]', 'id')(self.doc)
+        form['javax.faces.source'] = id_
+        form['javax.faces.partial.execute'] = id_
+        form['javax.faces.partial.render'] = id_ + ':detail ' + id_
+        form[id_ + '_rowExpansion'] = 'true'
+        form[id_ + '_encodeFeature'] = 'true'
+        form[id_ + '_expandedRowIndex'] = data
+        return form
 
     @method
     class iter_history(TableElement):
-        item_xpath = '//table/tbody[@id and not(contains(@id, "j_idt"))]/tr[@data-ri]'
-        head_xpath = '//table/thead[@id and not(contains(@id, "j_idt"))]/tr/th'
+        item_xpath = '//table[@role]/tbody[@id]/tr[@data-ri]'
+        head_xpath = '//table[@role]/thead[@id]/tr/th'
 
         col_label = u'Type'
         col_status = u'Etat'
@@ -245,7 +270,10 @@ class DetailsPage(LoggedPage, HTMLPage):
                 return u"Validé" in CleanText(TableCell('status'))(self) and u"Arrêté annuel" not in Field('label')(self)
 
             def obj_investments(self):
+                data = Attr('.', 'data-ri')(self)
+                form = self.page.get_historyexpandall_form(data)
+                page = self.page.browser.open(form.url, data=dict(form)).page
                 investments = []
-                for table in self.el.xpath('./following-sibling::tr[1]//span[contains(text(), "ISIN")]/ancestor::table[1]'):
+                for table in page.doc.xpath('//following-sibling::tr[1]//span[contains(text(), "ISIN")]/ancestor::table[1]'):
                     investments.extend(TableTransactionsInvestment(self.page, el=table)())
                 return investments
