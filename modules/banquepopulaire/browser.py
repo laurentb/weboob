@@ -176,7 +176,9 @@ class BanquePopulaire(LoginBrowser):
     @no_need_login
     def do_login(self):
         self.location(self.BASEURL)
-
+        # avoids trying to relog in while it's already on home page
+        if self.home_page.is_here():
+            return
         self.page.login(self.username, self.password)
 
         if self.login_page.is_here():
