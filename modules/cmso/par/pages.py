@@ -139,6 +139,18 @@ class AccountsPage(LoggedPage, JsonPage):
         def item_xpath(self):
             return "%s/*/savingsProducts" % Env('key')(self)
 
+        def store(self, obj):
+            id = obj.id
+            n = 1
+            while id in self.objects:
+                self.logger.warning('There are two objects with the same ID! %s' % id)
+                n += 1
+                id = '%s-%s' % (obj.id, n)
+
+            obj.id = id
+            self.objects[obj.id] = obj
+            return obj
+
         # the accounts really are deeper, but the account type is in a middle-level
         class iter_accounts(DictElement):
             item_xpath = 'savingsAccounts'
@@ -146,6 +158,18 @@ class AccountsPage(LoggedPage, JsonPage):
             def parse(self, el):
                 # accounts may have a user-entered label, so it shouldn't be relied too much on for parsing the account type
                 self.env['type_label'] = el['libelleProduit']
+
+            def store(self, obj):
+                id = obj.id
+                n = 1
+                while id in self.objects:
+                    self.logger.warning('There are two objects with the same ID! %s' % id)
+                    n += 1
+                    id = '%s-%s' % (obj.id, n)
+
+                obj.id = id
+                self.objects[obj.id] = obj
+                return obj
 
             class item(ItemElement):
                 klass = Account
