@@ -225,9 +225,6 @@ class item_account_generic(ItemElement):
 
         # Handle cards
         if id in self.parent.objects:
-            # be sure that we don't have that case anymore
-            assert not page.is_fleet()
-
             # on old website we want card's history in account's history
             if not page.browser.is_new_website:
                 account = self.parent.objects[id]
@@ -672,9 +669,6 @@ class ComingPage(OperationsPage, LoggedPage):
 
 
 class CardPage(OperationsPage, LoggedPage):
-    def is_fleet(self):
-        return len(self.doc.xpath('//table[has-class("liste")]/tbody/tr/td/a')) >= 5
-
     def select_card(self, card_number):
         for option in self.doc.xpath('//select[@name="Data_SelectedCardItemKey"]/option'):
             card_id = Regexp(CleanText('.', symbols=' '), '([\dx]+)')(option)
