@@ -111,8 +111,8 @@ class InvestmentPage(LoggedPage, HTMLPage):
             )
             obj_unitprice = Async('details') & CleanDecimal('//td[@class="donnees"]/span[@id="VL_achat"]',
                                                             default=NotAvailable)
-            obj_diff_percent = Async('details') & CleanDecimal('//td[@class="donnees"]/span[@id="Performance"]',
-                                                               default=NotAvailable)
+            obj_diff_percent = Async('details') & Eval(lambda k: k / 100, CleanDecimal('//td[@class="donnees"]/span[@id="Performance"]',
+                                                               default=NotAvailable))
             obj_description = Async('details') & CleanText('//td[@class="donnees"]/span[@id="Nature"]',
                                                            default=NotAvailable)
 
