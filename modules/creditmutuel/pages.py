@@ -237,7 +237,7 @@ class item_account_generic(ItemElement):
             else:
                 card_xpath = '//div[contains(@class, "title")]/div//*[self::span or self::option][contains(text(), "Carte")]'
                 for elem in page.doc.xpath(card_xpath):
-                    card_id = Regexp(CleanText('.', symbols=' '), '([\dx]+)')(elem)
+                    card_id = Regexp(CleanText('.', symbols=' '), '([\dx]{16})')(elem)
                     if any(card_id in a.id for a in page.browser.accounts_list):
                         continue
 
