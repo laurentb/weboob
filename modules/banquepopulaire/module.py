@@ -41,9 +41,11 @@ class BanquePopulaireModule(Module, CapBank, CapContact):
     website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
         'www.ibps.alpes.banquepopulaire.fr': u'Alpes',
         'www.ibps.alsace.banquepopulaire.fr': u'Alsace Lorraine Champagne',
+        'www.ibps.bpalc.banquepopulaire.fr' : u'Alsace Lorraine Champagne',
         'www.ibps.bpaca.banquepopulaire.fr': u'Aquitaine Centre atlantique',
         'www.ibps.atlantique.banquepopulaire.fr': u'Atlantique',
         'www.ibps.loirelyonnais.banquepopulaire.fr': u'Auvergne Rhône Alpes',
+        'www.ibps.bpaura.banquepopulaire.fr': u'Auvergne Rhône Alpes',
         'www.ibps.banquedesavoie.banquepopulaire.fr': u'Banque de Savoie',
         'www.ibps.bpbfc.banquepopulaire.fr': u'Bourgogne Franche-Comté',
         'www.ibps.bretagnenormandie.cmm.groupe.banquepopulaire.fr': u'Crédit Maritime Bretagne Normandie',
