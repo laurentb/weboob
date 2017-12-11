@@ -27,6 +27,7 @@ import re
 from optparse import OptionGroup, OptionParser, IndentedHelpFormatter
 from datetime import datetime
 import os
+import shlex
 
 from weboob.capabilities.base import FieldNotFound, BaseObject, UserError
 from weboob.core import CallErrors
@@ -41,10 +42,19 @@ from .formatters.load import FormattersLoader, FormatterLoadError
 from .results import ResultsCondition, ResultsConditionError
 
 
-__all__ = ['NotEnoughArguments', 'ReplApplication']
+__all__ = ['NotEnoughArguments', 'TooManyArguments', 'ArgSyntaxError',
+           'ReplApplication']
 
 
 class NotEnoughArguments(Exception):
+    pass
+
+
+class TooManyArguments(Exception):
+    pass
+
+
+class ArgSyntaxError(Exception):
     pass
 
 
@@ -379,11 +389,13 @@ class ReplApplication(ConsoleApplication, MyCmd):
 
     # -- command tools ------------
     def parse_command_args(self, line, nb, req_n=None):
-        if line.strip() == '':
-            # because ''.split() = ['']
-            args = []
-        else:
-            args = line.strip().split(' ', nb - 1)
+        try:
+            args = shlex.split(line)
+        except ValueError as e:
+            raise ArgSyntaxError(str(e))
+
+        if nb < len(args):
+            raise TooManyArguments('Command takes at most %d arguments' % nb)
         if req_n is not None and (len(args) < req_n):
             raise NotEnoughArguments('Command needs %d arguments' % req_n)
 
@@ -441,6 +453,10 @@ class ReplApplication(ConsoleApplication, MyCmd):
                 print('Error: %s' % str(e), file=self.stderr)
             except NotEnoughArguments as e:
                 print('Error: not enough arguments. %s' % str(e), file=self.stderr)
+            except TooManyArguments as e:
+                print('Error: too many arguments. %s' % str(e), file=self.stderr)
+            except ArgSyntaxError as e:
+                print('Error: invalid arguments. %s' % str(e), file=self.stderr)
             except (KeyboardInterrupt, EOFError):
                 # ^C during a command process doesn't exit application.
                 print('\nAborted.')
