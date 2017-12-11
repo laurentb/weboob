@@ -181,7 +181,7 @@ class LoanHistoryPage(LoggedPage, HTMLPage):
             obj_amount = MyDecimal('./td[4]', replace_dots=True)
             obj_date = Transaction.Date('./td[2]')
             obj_vdate = Transaction.Date('./td[3]')
-            obj_raw = Transaction.Raw(Format('%s %s', CleanText('./td[1]'), CleanText('./following-sibling::tr[contains(@class, "tr-more")]/td/p/span')))
+            obj_raw = Transaction.Raw(Format('%s %s', CleanText('./td[1]'), CleanText('./following-sibling::tr[contains(@class, "tr-more")]/td/p[1]/span')))
 
 class HistoryPage(LoggedPage, HTMLPage):
     @pagination
@@ -204,7 +204,7 @@ class HistoryPage(LoggedPage, HTMLPage):
             def obj_date(self):
                 return Transaction.Date(Regexp(CleanText('./preceding::tr[has-class("tr-section")][1]/th'), r'(\d+/\d+/\d+)'))(self)
 
-            obj_raw = Transaction.Raw('./td[1]')
+            obj_raw = Transaction.Raw(Format('%s %s', CleanText('./td[1]'), CleanText('./following-sibling::tr[contains(@class, "tr-more")]/td/p[1]/span')))
             obj_amount = MyDecimal('./td[2]', replace_dots=True)
 
 
