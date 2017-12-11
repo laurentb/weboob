@@ -320,12 +320,15 @@ class ASVInvest(LoggedPage, HTMLPage):
                     return NotAvailable
 
             def obj_diff_percent(self):
-                return CleanDecimal(TableCell('diff_percent'), replace_dots=True, default=NotAvailable)(self)
+                diff = CleanDecimal(TableCell('diff_percent'), replace_dots=True, default=NotAvailable)(self)
+                if not diff:
+                    return diff
+                return diff / 100
 
             obj_label = CleanText(TableCell('label'))
             obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True)
-            obj_unitvalue = CleanDecimal(TableCell('unitvalue'), replace_dots=True, default=NotAvailable)
-            obj_quantity = CleanDecimal(TableCell('quantity'), replace_dots=True, default=NotAvailable)
+            obj_unitvalue = CleanDecimal(TableCell('unitvalue'), default=NotAvailable)
+            obj_quantity = CleanDecimal(TableCell('quantity'), default=NotAvailable)
             obj_valuation = CleanDecimal(TableCell('valuation'), replace_dots=True)
             obj_unitprice = CleanDecimal(TableCell('unitprice', default=None), replace_dots=True, default=NotAvailable)
             obj_diff = CleanDecimal(TableCell('diff'), replace_dots=True, default=NotAvailable)
