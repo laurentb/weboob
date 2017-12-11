@@ -38,7 +38,7 @@ from .pages import (
     MessagePage, LoginPage,
     TransferPage, ProTransferPage, TransferConfirmPage, TransferSummaryPage,
     SmsPage, SmsPageOption, SmsRequest, AuthentPage, RecipientPage, CanceledAuth, CaissedepargneKeyboard,
-    TransactionsDetailsPage,
+    TransactionsDetailsPage, LoadingPage, ConsLoanPage
 )
 
 
@@ -56,6 +56,8 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     login = URL('/authentification/manage\?step=identification&identifiant=(?P<login>.*)',
                 'https://.*/login.aspx', LoginPage)
     account_login = URL('/authentification/manage\?step=account&identifiant=(?P<login>.*)&account=(?P<accountType>.*)', LoginPage)
+    loading = URL('https://.*/CreditConso/ReroutageCreditConso.aspx', LoadingPage)
+    cons_loan = URL('https://www.credit-conso-cr.caisse-epargne.fr/websavcr-web/rest/contrat/getContrat\?datePourIe(?P<datepourie>)', ConsLoanPage)
     transaction_detail = URL('https://.*/Portail.aspx.*', TransactionsDetailsPage)
     recipient = URL('https://.*/Portail.aspx.*', RecipientPage)
     transfer = URL('https://.*/Portail.aspx.*', TransferPage)
@@ -173,6 +175,14 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             self.home.go()
         except BrowserHTTPNotFound:
             raise BrowserIncorrectPassword()
+
+    def loans_conso(self):
+        days = ('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun')
+        month = ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul' , 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
+        now = datetime.datetime.today()
+        d = '%s %s %s %s:%s:%s GMT 0100 (CET)' % (days[now.weekday()], month[now.month - 1], now.year, now.hour, format(now.minute, "02"), now.second)
+        self.cons_loan.go(datepourie = d)
+        return self.page.get_conso()
 
     @need_login
     def get_accounts_list(self):

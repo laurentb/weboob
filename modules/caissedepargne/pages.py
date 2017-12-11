@@ -33,7 +33,7 @@ from weboob.browser.filters.standard import Date, CleanDecimal, Regexp, CleanTex
 from weboob.browser.filters.html import Link, Attr, TableCell
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, TransferBankError, Transfer,\
-                                     AddRecipientError
+                                     AddRecipientError, Loan
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_rib_valid, rib2iban, is_iban_valid
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
@@ -332,6 +332,19 @@ class IndexPage(LoggedPage, HTMLPage):
 
         return False
 
+    def go_loans_conso(self, tr):
+
+        link = tr.xpath('./td/a[contains(@id, "IdaCreditPerm")]')
+        m = re.search('CREDITCONSO&(\w+)', link[0].attrib['href'])
+        if m:
+            account = m.group(1)
+
+        form = self.get_form(name="main")
+        form['__EVENTTARGET'] = 'MM$SYNTHESE_CREDITS'
+        form['__EVENTARGUMENT'] = 'ACTIVDESACT_CREDITCONSO&%s' % account
+        form['m_ScriptManager'] = 'MM$m_UpdatePanel|MM$SYNTHESE_CREDITS'
+        form.submit()
+
     def get_loan_list(self):
         accounts = OrderedDict()
 
@@ -367,15 +380,28 @@ class IndexPage(LoggedPage, HTMLPage):
                         balance = Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-2]))) - Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-1])))
                     else:
                         balance = Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-1])))
-                    account = Account()
+                    account = Loan()
                     account.id = label.split(' ')[-1]
                     account.label = unicode(label)
                     account.type = account_type
                     account.balance = -abs(balance)
                     account.currency = account.get_currency(CleanText('.')(tds[-1]))
                     account._card_links = []
+                    if "immobiliers" in CleanText('.')(title):
+                        xp = './/div[contains(@id, "IdDivDetail")]/table/tbody/tr[contains(@id, "%s")]/td'
+                        account.maturity_date = Date(CleanText(xp % 'IdDerniereEcheance'), default=NotAvailable)(tr)
+                        account.total_amount = CleanDecimal(CleanText(xp % 'IdCapitalEmprunte'), replace_dots = True, default=NotAvailable)(tr)
+                        account.subscription_date = Date(CleanText(xp % 'IdDateOuverture'), default=NotAvailable)(tr)
+                        account.next_payment_date = Date(CleanText(xp % 'IdDateProchaineEcheance'), default=NotAvailable)(tr)
+                        account.rate = CleanDecimal(CleanText(xp % 'IdTaux'), replace_dots=True, default=NotAvailable)(tr)
+                        account.next_payment_amount = CleanDecimal(CleanText(xp % 'IdMontantEcheance'), replace_dots = True, default=NotAvailable)(tr)
+                    elif "renouvelables" in CleanText('.')(title):
+                        self.go_loans_conso(tr)
+                        d = self.browser.loans_conso()
+                        account.total_amount = d['contrat']['creditMaxAutorise']
+                        account.available_amount = d['situationCredit']['disponible']
+                        account.next_payment_amount = d['situationCredit']['mensualiteEnCours']
                     accounts[account.id] = account
-
         return accounts.values()
 
     def go_list(self):
@@ -566,6 +592,17 @@ class IndexPage(LoggedPage, HTMLPage):
 
     def transfer_unavailable(self):
         return CleanText(u'//li[contains(text(), "Pour accéder à cette fonctionnalité, vous devez disposer d’un moyen d’authentification renforcée")]')(self.doc)
+
+
+class ConsLoanPage(JsonPage):
+    def get_conso(self):
+        return self.doc
+
+
+class LoadingPage(HTMLPage):
+    def on_load(self):
+        form = self.get_form(id="REROUTAGE")
+        form.submit()
 
 
 class MarketPage(LoggedPage, HTMLPage):
