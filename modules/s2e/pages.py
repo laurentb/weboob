@@ -23,7 +23,7 @@ from io import BytesIO
 from decimal import Decimal
 from lxml import objectify
 
-from weboob.browser.pages import HTMLPage, XMLPage, RawPage, LoggedPage, pagination
+from weboob.browser.pages import HTMLPage, XMLPage, RawPage, LoggedPage, pagination, FormNotFound
 from weboob.browser.elements import ItemElement, TableElement, SkipItem, method
 from weboob.browser.filters.standard import CleanText, Date, Regexp, Eval, CleanDecimal, Env, Field
 from weboob.browser.filters.html import Attr, TableCell
@@ -106,8 +106,15 @@ class LoginPage(HTMLPage):
         return cgu or CleanText('//div[contains(text(), "Erreur")]', default='')(self.doc)
 
     def send_otp(self, otp):
-        form = self.get_form(xpath='//form[.//div[has-class("authentification-bloc-content-btn-bloc")]]',
-                             submit='//div[has-class("authentification-bloc-content-btn-bloc")]//input[@type="submit"]')
+        try:
+            form = self.get_form(xpath='//form[.//div[has-class("authentification-bloc-content-btn-bloc")]]',
+                                submit='//div[has-class("authentification-bloc-content-btn-bloc")]//input[@type="submit"]')
+        except FormNotFound:
+            form = self.get_form(xpath='//form[.//div[contains(@class, "otp")]]')
+            input_validate = Attr('//a[.//span[contains(text(), "VALIDATE")]]', 'onclick')(self.doc)
+            m = re.search(r"{\\'([^\\]+)\\':\\'([^\\]+)\\'}", input_validate)
+            form[m.group(1)] = m.group(2)
+            del form['pb12876:j_idt3:j_idt158:j_idt159:j_idt244:j_idt273']
         input_otp = Attr('//input[contains(@id, "otp")]', 'id')(self.doc)
         input_id = Attr('//input[@type="checkbox"]', 'id')(self.doc)
         form[input_otp] = otp

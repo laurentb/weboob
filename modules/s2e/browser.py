@@ -43,6 +43,8 @@ class S2eBrowser(LoginBrowser, StatesMixin):
     history = URL('/portal/salarie-(?P<slug>\w+)/operations/consulteroperations', HistoryPage)
     error = URL('/maintenance/HSBC/', ErrorPage)
 
+    STATE_DURATION = 10
+
     def __init__(self, config=None, *args, **kwargs):
         self.config = config
         kwargs['username'] = self.config['login'].get()
