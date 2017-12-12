@@ -26,6 +26,7 @@ from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, Dat
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.capabilities.bank import Account, Investment, Transaction
 from weboob.capabilities.base import NotAvailable
+from weboob.exceptions import BrowserUnavailable
 
 
 class LoginPage(HTMLPage):
@@ -40,6 +41,13 @@ class LoginPage(HTMLPage):
 
 
 class IndexPage(LoggedPage, HTMLPage):
+    def on_load(self):
+        HTMLPage.on_load(self)
+
+        # website sometime crash
+        if self.doc.xpath(u'//div[@id="divError"]/span[contains(text(),"Une erreur est survenue")]'):
+            raise BrowserUnavailable()
+
     def is_here(self):
         return bool(self.doc.xpath('//img[contains(@src, "deconnexion.jpg")]'))
 
