@@ -524,7 +524,21 @@ class RecipientsPage(LoggedPage, JsonPage):
         if 'listCompteTitulaireCotitulaire' not in self.doc and 'exception' in self.doc:
             raise NoAccountsException()
 
-        return {
+        ret = {}
+
+        ret.update({
             d['index']: d['numeroContratSouscrit']
             for d in self.doc['listCompteTitulaireCotitulaire']
-        }
+        })
+        ret.update({
+            d['index']: d['numeroContratSouscrit']
+            for p in self.doc['listCompteMandataire'].values()
+            for d in p
+        })
+        ret.update({
+            d['index']: d['numeroContratSouscrit']
+            for p in self.doc['listCompteLegalRep'].values()
+            for d in p
+        })
+
+        return ret
