@@ -68,7 +68,7 @@ class ComparisonResultsPage(HTMLPage):
                 return shop
 
             obj_date = Date(CleanText('(./td)[7]'), dayfirst=True)
-            obj_currency = u'€'
+            obj_currency = u'EUR'
             obj_cost = CleanDecimal('(./td)[6]')
 
     def get_product_name(self):

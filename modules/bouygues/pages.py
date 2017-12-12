@@ -121,7 +121,7 @@ class DocumentsPage(LoggedPage, HTMLPage):
             obj_label = CleanText('./text()')
             obj_type = u"bill"
             obj_price = CleanDecimal(CleanText('./span', replace=[(u' € ', '.')]))
-            obj_currency = u"€"
+            obj_currency = u'EUR'
 
             def parse(self, el):
                 self.env['date'] = parse_french_date('01 %s' % CleanText('./text()')(self)).date()

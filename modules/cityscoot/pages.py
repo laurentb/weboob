@@ -71,4 +71,4 @@ class DocumentsPage(LoggedPage, HTMLPage):
             obj_type = 'bill'
             obj_price = Async('details') & CleanDecimal('.//td[.="Total"]/following-sibling::td')
             obj_vat = Async('details') & CleanDecimal('.//td[contains(text(), "TVA")]/following-sibling::td')
-            obj_currency = u'€'
+            obj_currency = u'EUR'

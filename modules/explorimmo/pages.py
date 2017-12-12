@@ -163,7 +163,7 @@ class HousingPage2(JsonPage):
                               Dict('location/postalCode'))
         obj_cost = TypeDecimal(Dict('characteristics/price'))
 
-        obj_currency = u'€'
+        obj_currency = u'EUR'
         def obj_utilities(self):
             are_fees_included = Dict('characteristics/areFeesIncluded',
                                      default=None)(self)

@@ -88,7 +88,7 @@ class DocumentsPage(LoggedPage, HTMLPage):
             obj_label = Async('details') & CleanText('//table/tr/td[@class="Prod"]')
             obj_type = u"bill"
             obj_price = CleanDecimal(TableCell('price'), replace_dots=True)
-            obj_currency = u"€"
+            obj_currency = u'EUR'
 
             def parse(self, el):
                 self.env['email'] = self.page.browser.username

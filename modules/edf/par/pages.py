@@ -86,7 +86,7 @@ class DocumentsPage(LoggedPage, JsonPage):
             obj_label = Format('Facture %s', Dict('documentNumber'))
             obj_type = u"bill"
             obj_price = Env('price')
-            obj_currency = u"€"
+            obj_currency = u'EUR'
             obj_vat = NotAvailable
             obj__doc_number = Dict('documentNumber')
             obj__par_number = Dict('parNumber')

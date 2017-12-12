@@ -80,7 +80,7 @@ class MesChargesPage(HTMLPage):
             obj_price = CleanDecimal('.//span[has-class("nbPrice")]',
                                      replace_dots=(',', '€'))
 
-            obj_currency = "€"
+            obj_currency = u'EUR'
 
             def obj_income(self):
                 price = CleanText('.//span[has-class("nbPrice")]')(self)

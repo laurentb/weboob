@@ -70,7 +70,7 @@ class DocumentsPage(LoggedPage, HTMLPage):
             obj_label = Format('Facture %s', CleanDecimal(TableCell('id')))
             obj_type = u"bill"
             obj_price = CleanDecimal(TableCell('price'))
-            obj_currency = u"€"
+            obj_currency = u'EUR'
 
             def condition(self):
                 return CleanText(TableCell('id'))(self) != "No bills"

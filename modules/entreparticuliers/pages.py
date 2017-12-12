@@ -54,7 +54,7 @@ class SearchPage(HTMLPage):
             obj_id = Regexp(CleanText('./a/@href'), '/annonces-immobilieres/(.*).html')
             obj_title = CleanText('./a/div/p/span[@class="item title"]')
             obj_cost = CleanDecimal('./a/div/p/span[@class="item prix"]')
-            obj_currency = u'€'
+            obj_currency = u'EUR'
             obj_text = CleanText('./a/div[@class="txt-xs"]')
             obj_utilities = UTILITIES.UNKNOWN
 
@@ -70,7 +70,7 @@ class HousingPage(HTMLPage):
         obj_rooms = CleanDecimal('//div[@class="stats"]/section/div[@id="divpieces"]/span[@class="stat"]')
 
         obj_cost = CleanDecimal('(//div[@class="stats"]/div/h2)[2]')
-        obj_currency = u'€'
+        obj_currency = u'EUR'
         obj_utilities = UTILITIES.UNKNOWN
         obj_text = CleanHTML('//div[@class="textes"]')
         obj_location = CleanText('//input[@id="adressegeo"]/@value')
