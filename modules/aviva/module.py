@@ -20,7 +20,7 @@
 
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
-from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.bank import CapBankWealth, AccountNotFound
 from weboob.capabilities.base import find_object
 
 from .browser import AvivaBrowser
@@ -29,7 +29,7 @@ from .browser import AvivaBrowser
 __all__ = ['AvivaModule']
 
 
-class AvivaModule(Module, CapBank):
+class AvivaModule(Module, CapBankWealth):
     NAME = 'aviva'
     DESCRIPTION = u'Aviva'
     MAINTAINER = u'Edouard Lambert'
