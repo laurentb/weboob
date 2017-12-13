@@ -302,9 +302,15 @@ class HistoryPage(LoggedPage, JsonPage):
         def parse(self, el):
             # Key only if coming
             key = Env('key', default=None)(self)
-            self.item_xpath = "%s/operationList" % key if key and "CardList" not in key else \
-                              "%s/currentMonthCardList/*/listeOperations" % key if key else \
-                              "listOperationProxy"
+            if key:
+                if "CardList" in key:
+                    self.item_xpath = "%s/currentMonthCardList/*/listeOperations" % key
+                elif "futureOperationList" in key:
+                    self.item_xpath = "%s/futurePrelevementList" % key
+                else:
+                    self.item_xpath = "%s/operationList" % key
+            else:
+                self.item_xpath = "listOperationProxy"
 
         class item(ItemElement):
             klass = Transaction
