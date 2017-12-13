@@ -23,7 +23,7 @@ from decimal import Decimal
 from datetime import datetime, timedelta
 
 from weboob.capabilities.bank import (
-    CapBankTransferAddRecipient, AccountNotFound, Account, TransferError, RecipientNotFound,
+    CapBankWealth, CapBankTransferAddRecipient, AccountNotFound, Account, TransferError, RecipientNotFound,
     TransferInvalidLabel,
 )
 from weboob.capabilities.messages import CapMessages, Thread
@@ -41,7 +41,7 @@ from .pp.browser import BNPPartPro, HelloBank
 __all__ = ['BNPorcModule']
 
 
-class BNPorcModule(Module, CapBankTransferAddRecipient, CapMessages, CapContact, CapProfile):
+class BNPorcModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapMessages, CapContact, CapProfile):
     NAME = 'bnporc'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

@@ -21,7 +21,7 @@
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
-from weboob.capabilities.bank import CapBank
+from weboob.capabilities.bank import CapBankWealth
 
 from .browser import CreditdunordpeeBrowser
 
@@ -29,7 +29,7 @@ from .browser import CreditdunordpeeBrowser
 __all__ = ['CreditdunordpeeModule']
 
 
-class CreditdunordpeeModule(Module, CapBank):
+class CreditdunordpeeModule(Module, CapBankWealth):
     NAME = 'creditdunordpee'
     DESCRIPTION = u'Site de gestion du PEE du groupe Credit du nord'
     MAINTAINER = u'Bezleputh'

@@ -510,6 +510,18 @@ class CapBank(CapCollection):
         """
         raise NotImplementedError()
 
+
+class CapCgp(CapBank):
+    """
+    Capability of cgp website to see accounts and transactions.
+    """
+
+
+class CapBankWealth(CapBank):
+    """
+    Capability of bank websites to see investment.
+    """
+
     def iter_investment(self, account):
         """
         Iter investment of a market account
@@ -521,6 +533,12 @@ class CapBank(CapCollection):
         """
         raise NotImplementedError()
 
+
+class CapBankPockets(CapBankWealth):
+    """
+    Capability of bank websites to see pockets.
+    """
+
     def iter_pocket(self, account):
         """
         Iter pocket
@@ -531,12 +549,6 @@ class CapBank(CapCollection):
         :raises: :class:`AccountNotFound`
         """
         raise NotImplementedError()
-
-
-class CapCgp(CapBank):
-    """
-    Capability of cgp website to see accounts and transactions.
-    """
 
 
 class CapBankTransfer(CapBank):

@@ -20,7 +20,7 @@
 
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
-from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.bank import CapBankWealth, AccountNotFound
 from weboob.capabilities.base import find_object
 
 from .browser import CmesBrowser
@@ -29,7 +29,7 @@ from .browser import CmesBrowser
 __all__ = ['CmesModule']
 
 
-class CmesModule(Module, CapBank):
+class CmesModule(Module, CapBankWealth):
     NAME = 'cmes'
     DESCRIPTION = u'Crédit Mutuel Épargne Salariale'
     MAINTAINER = u'Edouard Lambert'

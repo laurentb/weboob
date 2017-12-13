@@ -22,7 +22,7 @@ from decimal import Decimal
 from functools import wraps
 import re
 
-from weboob.capabilities.bank import CapBankTransferAddRecipient, AccountNotFound, \
+from weboob.capabilities.bank import CapBankWealth, CapBankTransferAddRecipient, AccountNotFound, \
                                      RecipientNotFound, TransferError, Account
 from weboob.capabilities.bill import CapDocument, Subscription, SubscriptionNotFound, \
                                      Document, DocumentNotFound
@@ -53,7 +53,7 @@ def only_for_websites(*cfg):
     return decorator
 
 
-class LCLModule(Module, CapBankTransferAddRecipient, CapContact, CapProfile, CapDocument):
+class LCLModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapContact, CapProfile, CapDocument):
     NAME = 'lcl'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

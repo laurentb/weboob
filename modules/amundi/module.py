@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.bank import CapBankWealth, AccountNotFound
 from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
@@ -28,7 +28,7 @@ from .browser import AmundiBrowser
 __all__ = ['AmundiModule']
 
 
-class AmundiModule(Module, CapBank):
+class AmundiModule(Module, CapBankWealth):
     NAME = 'amundi'
     DESCRIPTION = u'amundi website'
     MAINTAINER = u'James GALT'

@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.base import find_object
-from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.bank import CapBankWealth, AccountNotFound
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -29,7 +29,7 @@ from .browser import Fortuneo
 __all__ = ['FortuneoModule']
 
 
-class FortuneoModule(Module, CapBank):
+class FortuneoModule(Module, CapBankWealth):
     NAME = 'fortuneo'
     MAINTAINER = u'Gilles-Alexandre Quenot'
     EMAIL = 'gilles.quenot@gmail.com'

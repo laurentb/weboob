@@ -19,7 +19,7 @@
 
 
 from weboob.tools.backend import Module, BackendConfig
-from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.bank import CapBankWealth, AccountNotFound
 from weboob.capabilities.base import find_object
 from weboob.tools.value import ValueBackendPassword, ValueDate
 from .browser import BforbankBrowser
@@ -28,7 +28,7 @@ from .browser import BforbankBrowser
 __all__ = ['BforbankModule']
 
 
-class BforbankModule(Module, CapBank):
+class BforbankModule(Module, CapBankWealth):
     NAME = 'bforbank'
     DESCRIPTION = u'BforBank'
     MAINTAINER = u'Baptiste Delpey'

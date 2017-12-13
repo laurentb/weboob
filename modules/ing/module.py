@@ -20,7 +20,7 @@
 import re
 from datetime import timedelta
 
-from weboob.capabilities.bank import CapBankTransfer, Account, AccountNotFound, RecipientNotFound
+from weboob.capabilities.bank import CapBankWealth, CapBankTransfer, Account, AccountNotFound, RecipientNotFound
 from weboob.capabilities.bill import CapDocument, Bill, Subscription,\
     SubscriptionNotFound, DocumentNotFound
 from weboob.capabilities.profile import CapProfile
@@ -34,7 +34,7 @@ from .browser import IngBrowser
 __all__ = ['INGModule']
 
 
-class INGModule(Module, CapBankTransfer, CapDocument, CapProfile):
+class INGModule(Module, CapBankWealth, CapBankTransfer, CapDocument, CapProfile):
     NAME = 'ing'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'

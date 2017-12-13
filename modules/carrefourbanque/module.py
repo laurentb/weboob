@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.base import find_object
-from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.bank import CapBankWealth, AccountNotFound
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -29,7 +29,7 @@ from .browser import CarrefourBanque
 __all__ = ['CarrefourBanqueModule']
 
 
-class CarrefourBanqueModule(Module, CapBank):
+class CarrefourBanqueModule(Module, CapBankWealth):
     NAME = 'carrefourbanque'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

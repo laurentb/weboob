@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.bank import CapBankWealth, AccountNotFound
 from weboob.capabilities.base import find_object, NotAvailable
 from weboob.capabilities.bank import Account
 from weboob.capabilities.bill import CapDocument, Subscription, Document, DocumentNotFound, SubscriptionNotFound
@@ -31,7 +31,7 @@ from .browser import AXABanque, AXAAssurance
 __all__ = ['AXABanqueModule']
 
 
-class AXABanqueModule(Module, CapBank, CapDocument):
+class AXABanqueModule(Module, CapBankWealth, CapDocument):
     NAME = 'axabanque'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

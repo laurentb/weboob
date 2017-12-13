@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.bank import CapBankWealth, AccountNotFound
 from weboob.capabilities.contact import CapContact
 from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
@@ -31,7 +31,7 @@ from .pro.browser import CmsoProBrowser
 __all__ = ['CmsoModule']
 
 
-class CmsoModule(Module, CapBank, CapContact):
+class CmsoModule(Module, CapBankWealth, CapContact):
     NAME = 'cmso'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

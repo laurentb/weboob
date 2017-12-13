@@ -19,11 +19,11 @@
 
 
 from weboob.tools.backend import Module
-from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.bank import CapBankPockets, AccountNotFound
 from weboob.capabilities.base import find_object
 
 
-class S2eModule(Module, CapBank):
+class S2eModule(Module, CapBankPockets):
     NAME = 's2e'
     DESCRIPTION = u'Épargne Salariale'
     MAINTAINER = u'Edouard Lambert'

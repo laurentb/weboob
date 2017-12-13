@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.bank import CapBankWealth, AccountNotFound
 from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
@@ -29,7 +29,7 @@ from .browser import GroupamaBrowser
 __all__ = ['GroupamaModule']
 
 
-class GroupamaModule(Module, CapBank):
+class GroupamaModule(Module, CapBankWealth):
     NAME = 'groupama'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

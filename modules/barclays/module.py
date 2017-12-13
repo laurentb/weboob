@@ -20,7 +20,7 @@
 
 from __future__ import unicode_literals
 
-from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.bank import CapBankWealth, AccountNotFound
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 from weboob.capabilities.base import find_object
@@ -31,7 +31,7 @@ from .browser import Barclays
 __all__ = ['BarclaysModule']
 
 
-class BarclaysModule(Module, CapBank):
+class BarclaysModule(Module, CapBankWealth):
     NAME = 'barclays'
     MAINTAINER = u'Jean Walrave'
     EMAIL = 'jwalrave@budget-insight.com'

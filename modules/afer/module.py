@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.base import find_object
-from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.bank import CapBankWealth, AccountNotFound
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -29,7 +29,7 @@ from .browser import AferBrowser
 __all__ = ['AferModule']
 
 
-class AferModule(Module, CapBank):
+class AferModule(Module, CapBankWealth):
     NAME = 'afer'
     DESCRIPTION = u'afer website'
     MAINTAINER = u'James GALT'

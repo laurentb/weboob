@@ -20,7 +20,7 @@
 
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
-from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.bank import CapBankWealth, AccountNotFound
 from weboob.capabilities.base import find_object
 
 from .browser import YomoniBrowser
@@ -29,7 +29,7 @@ from .browser import YomoniBrowser
 __all__ = ['YomoniModule']
 
 
-class YomoniModule(Module, CapBank):
+class YomoniModule(Module, CapBankWealth):
     NAME = 'yomoni'
     DESCRIPTION = u'Yomoni'
     MAINTAINER = u'Edouard Lambert'

@@ -21,7 +21,7 @@ from collections import OrderedDict
 from functools import wraps
 import re
 
-from weboob.capabilities.bank import CapBankTransferAddRecipient, AccountNotFound, Account, RecipientNotFound
+from weboob.capabilities.bank import CapBankWealth, CapBankTransferAddRecipient, AccountNotFound, Account, RecipientNotFound
 from weboob.capabilities.contact import CapContact
 from weboob.capabilities.profile import CapProfile
 from weboob.capabilities.base import find_object
@@ -66,7 +66,7 @@ def check_browser_type(func):
     return wrapper
 
 
-class CaisseEpargneModule(Module, CapBankTransferAddRecipient, CapContact, CapProfile):
+class CaisseEpargneModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapContact, CapProfile):
     NAME = 'caissedepargne'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'

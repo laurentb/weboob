@@ -19,7 +19,7 @@
 
 from collections import OrderedDict
 
-from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.bank import CapBankWealth, AccountNotFound
 from weboob.capabilities.profile import CapProfile
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
@@ -30,7 +30,7 @@ from .browser import CreditDuNordBrowser
 __all__ = ['CreditDuNordModule']
 
 
-class CreditDuNordModule(Module, CapBank, CapProfile):
+class CreditDuNordModule(Module, CapBankWealth, CapProfile):
     NAME = 'creditdunord'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
