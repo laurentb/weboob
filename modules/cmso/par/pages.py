@@ -500,10 +500,10 @@ class MarketPage(LoggedPage, HTMLPage):
 
             obj_label = Upper(TableCell('label'))
             obj_code = CleanText(TableCell('code'))
-            obj_quantity = CleanDecimal(TableCell('quantity'), default=NotAvailable)
+            obj_quantity = MyDecimal(TableCell('quantity'))
             obj_unitprice = MyDecimal(TableCell('unitprice'))
             obj_unitvalue = MyDecimal(TableCell('unitvalue'))
-            obj_valuation = CleanDecimal(TableCell('valuation'))
+            obj_valuation = CleanDecimal(TableCell('valuation'), replace_dots=True)
             obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True, default=NotAvailable)
 
 
