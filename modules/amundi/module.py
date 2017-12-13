@@ -77,7 +77,9 @@ class AmundiModule(Module, CapBank):
         :rtype: iter[:class:`Investment`]
         :raises: :class:`AccountNotFound`
         """
-        return self.browser.iter_investments(account)
+        for inv in self.browser.iter_investments(account):
+            if inv.valuation != 0:
+                yield inv
 
     def iter_history(self, account):
         """
@@ -89,5 +91,3 @@ class AmundiModule(Module, CapBank):
         :raises: :class:`AccountNotFound`
         """
         return self.browser.iter_history(account)
-
-
