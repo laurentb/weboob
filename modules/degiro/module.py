@@ -20,7 +20,7 @@
 
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
-from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.bank import CapBankWealth, AccountNotFound
 from weboob.capabilities.base import find_object
 
 from .browser import DegiroBrowser
@@ -29,7 +29,7 @@ from .browser import DegiroBrowser
 __all__ = ['DegiroModule']
 
 
-class DegiroModule(Module, CapBank):
+class DegiroModule(Module, CapBankWealth):
     NAME = 'degiro'
     DESCRIPTION = u'De giro'
     MAINTAINER = u'Jean Walrave'
