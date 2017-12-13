@@ -174,8 +174,8 @@ class IngBrowser(LoginBrowser):
         self.accountspage.go(data=data)
         card_list = self.page.get_card_list()
         if card_list:
-            self.only_deferred_cards[account._id] = any(
-                [card['kind'] != self.DEFERRED_CB for card in card_list]
+            self.only_deferred_cards[account._id] = all(
+                [card['kind'] == self.DEFERRED_CB for card in card_list]
             )
         self.where = "history"
 
