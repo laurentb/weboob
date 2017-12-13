@@ -36,6 +36,14 @@ class INGTest(BackendTest):
             # Methods can use Account objects or id. Try one of them
             id_or_account = random.choice([account, account.id])
             history = list(self.backend.iter_history(id_or_account))
+
+            deferred_cards_only = self.backend.browser.only_deferred_cards.get(account._id)
+            if deferred_cards_only:
+                self.assertTrue(
+                    all([transaction.type != Transaction.TYPE_CARD for transaction in history]),
+                    "deferred_cards_only should not be true"
+                )
+
             if account.type == Account.TYPE_CHECKING or account.type == Account.TYPE_SAVINGS:
                 self.assertTrue(len(history) > 0)
                 date = history[0].date
@@ -44,7 +52,7 @@ class INGTest(BackendTest):
                     # more than 7 days older than the first fetched transaction
                     self.assertTrue(
                         date + timedelta(days=7) >= elem.date,
-                        msg="there's a serious time gap here"
+                        "there's a serious time gap here"
                     )
                     date = elem.date
                 # recipients = list(self.backend.iter_transfer_recipients(id_or_account))
@@ -53,9 +61,6 @@ class INGTest(BackendTest):
                 invest = list(self.backend.iter_investment(id_or_account))
                 self.backend.iter_history(id_or_account)  # can be empty. Only try to call it
                 self.assertTrue(len(invest) > 0)
-                deferred_cards_only = self.browser.only_deferred_cards.get(account._id)
-                if deferred_cards_only:
-                    self.assertTrue(all([transaction.type != Transaction.TYPE_CARD for transaction in history]))
 
     def test_subscriptions(self):
         l = list(self.backend.iter_subscription())
