@@ -32,7 +32,7 @@ from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages import (
     LoginPage, AuthPage, AccountsPage, AccountHistoryViewPage, AccountHistoryPage,
-    ActionNeededPage, CardListPage, CardHistoryPage, merge_cards
+    ActionNeededPage, CardListPage, CardHistoryPage, merge_cards, TransactionPage,
 )
 
 
@@ -62,6 +62,7 @@ class BNPEnterprise(LoginBrowser):
     card_init2 = URL(r'https://secure1.entreprises.bnpparibas.net/NCCPresentationWeb/e13_cartes/change_common.do', CardListPage)
     card_list = URL(r'/NCCPresentationWeb/e13_cartes/liste_cartes.do\?Ligne_Encour=Global', CardListPage)
     init_card_history = URL(r'/NCCPresentationWeb/e13_encours/init.do\?Id_Carte=(?P<card_id>)&Ligne_Encour=Global', CardHistoryPage)
+    transaction_detail = URL(r'/NCCPresentationWeb/e21/getOptBDDF.do', TransactionPage)
 
     card_history = URL(r'/NCCPresentationWeb/e13_encours/liste_operations.do', CardHistoryPage)
 
@@ -99,6 +100,14 @@ class BNPEnterprise(LoginBrowser):
                     card.parent = account
                 accounts.extend(cards)
 
+                if len(cards) != len(set(card._redacted_card for card in cards)):
+                    # since transactions have only the redacted number, we wouldn't be able to distinguish the cards
+                    self.logger.error('account %r has multiple cards with same redacted id', account.id)
+                    assert False, 'account has multiple cards with same redacted id'
+
+        # a card appears in the cards page only if it has coming transactions
+        # thus, some card accounts may disappear occasionally
+
         return accounts
 
     @need_login
@@ -109,9 +118,23 @@ class BNPEnterprise(LoginBrowser):
 
     @need_login
     def iter_history(self, account):
-        if account.type == Account.TYPE_CARD:
-            return []
+        # warning: history of card transactions doesn't appear on card page but on checking page
+        # sometimes there are single transactions, sometimes there's only a summary
 
+        # deferred card transactions must appear in card account
+        # but some card accounts may disappear from time to time (see get_accounts_list)
+        # we mustn't return the transactions in checking account if card disappeared
+
+        if account.type == Account.TYPE_CARD:
+            for tr in self._iter_card_history(account):
+                yield tr
+            return
+
+        for tr in self._iter_history_base(account):
+            if not tr._redacted_card:
+                yield tr
+
+    def _iter_history_base(self, account):
         history = []
         dformat = "%Y%m%d"
 
@@ -128,6 +151,15 @@ class BNPEnterprise(LoginBrowser):
                     continue
                 history.append(transaction)
         return sorted_transactions(history)
+
+    def _iter_card_history(self, account):
+        assert account.type == Account.TYPE_CARD
+        assert account.parent.type == Account.TYPE_CHECKING
+        assert account._redacted_card
+
+        for tr in self._iter_history_base(account.parent):
+            if tr._redacted_card == account._redacted_card:
+                yield tr
 
     @need_login
     def iter_coming_operations(self, account):

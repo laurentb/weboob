@@ -28,7 +28,10 @@ from decimal import Decimal
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage
 from weboob.browser.filters.json import Dict
 from weboob.browser.elements import DictElement, ItemElement, method, SkipItem
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Regexp, Format, Eval, BrowserURL, Field, Env
+from weboob.browser.filters.standard import (
+    CleanText, CleanDecimal, Date, Regexp, Format, Eval, BrowserURL, Field, Env,
+    Async,
+)
 from weboob.capabilities.bank import Transaction, Account
 from weboob.capabilities.profile import Profile
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
@@ -238,6 +241,16 @@ class AccountHistoryPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Transaction
 
+            def load_details(self):
+                if 'FACTURE CARTE' not in Field('raw')(self):
+                    return
+
+                url = self.page.browser.transaction_detail.build()
+                return self.page.browser.open(url, is_async=True, data={
+                    'type_mvt': 1,
+                    'numero_mvt': Field('_trid')(self),
+                })
+
             obj_original_currency = CleanText(Dict('montant/devise'))
             obj__coming = Dict('avenir')
 
@@ -280,6 +293,15 @@ class AccountHistoryPage(LoggedPage, JsonPage):
                     CleanDecimal(Dict('montant/nb_dec'))
                 )(self)
 
+            obj__trid = Dict('id')
+
+            def obj__redacted_card(self):
+                if 'FACTURE CARTE' not in Field('raw')(self):
+                    return
+
+                page = Async('details').loaded_page(self)
+                return page.get_redacted_card()
+
     @method
     class iter_coming(DictElement):
         item_xpath = "infoOperationsAvenir/operationsAvenir"
@@ -319,8 +341,10 @@ class CardListPage(LoggedPage, JsonPage):
 
         class item(ItemElement):
             klass = Account
+
             obj_type = Account.TYPE_CARD
             obj_number = Dict('numCarte')
+            obj__redacted_card = Dict('formatedNumCarte')
             obj_id = Format('%s.%s.%s', Env('account_id'), Dict('numCarte'), Dict('idCarte'))
             obj_label = Format('%s %s', Dict('typeCarte'), Dict('nomPorteur'))
             obj__index = Dict('idCarte')
@@ -344,3 +368,9 @@ class CardHistoryPage(LoggedPage, JsonPage):
             def obj_amount(self):
                 amount = Dict('debit', default=None)(self) or Dict('credit')(self)
                 return Eval(lambda x, y: x / 10**y, Decimal(amount['montant']), Decimal(amount['nb_dec']))(self)
+
+
+class TransactionPage(LoggedPage, JsonPage):
+    def get_redacted_card(self):
+        # warning: the account on which the transaction is returned depends on this data!
+        return self.doc['carteNum']
