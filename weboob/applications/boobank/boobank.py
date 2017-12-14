@@ -31,7 +31,8 @@ from weboob.browser.profiles import Weboob
 from weboob.exceptions import BrowserHTTPError
 from weboob.capabilities.base import empty, find_object
 from weboob.capabilities.bank import CapBank, Account, Transaction, CapBankTransfer, \
-                                     Transfer, TransferStep, Recipient, AddRecipientStep
+                                     Transfer, TransferStep, Recipient, AddRecipientStep, \
+                                     CapBankWealth, CapBankPockets
 from weboob.capabilities.contact import CapContact, Advisor
 from weboob.capabilities.profile import CapProfile
 from weboob.tools.application.repl import ReplApplication, defaultcount
@@ -701,8 +702,13 @@ class Boobank(ReplApplication):
             print('Error: account "%s" not found (Hint: try the command "list")' % id, file=self.stderr)
             return 2
 
+        caps = {
+            'iter_investment': CapBankWealth,
+            'iter_pocket': CapBankPockets,
+        }
+
         self.start_format()
-        for el in self.do(command, account, backends=account.backend):
+        for el in self.do(command, account, backends=account.backend, caps=caps[command]):
             self.format(el)
 
     def do_investment(self, id):
