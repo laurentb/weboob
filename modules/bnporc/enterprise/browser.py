@@ -173,6 +173,8 @@ class BNPEnterprise(LoginBrowser):
 
         for tr in self._iter_history_base(account.parent):
             if tr._redacted_card == account._redacted_card:
+                if tr.type == Transaction.TYPE_CARD:
+                    tr.type = Transaction.TYPE_DEFERRED_CARD
                 yield tr
 
     @need_login
@@ -192,6 +194,8 @@ class BNPEnterprise(LoginBrowser):
             self.account_coming.go(identifiant=account.iban)
             for tr in self.page.iter_coming():
                 if not tr._redacted_card or self.debitinfo.get(tr._redacted_card) == 'immediate':
+                    if tr.type == Transaction.TYPE_DEFERRED_CARD:
+                        tr.type = Transaction.TYPE_CARD
                     yield tr
 
     def _guess_card_debitting(self, accounts):
