@@ -173,6 +173,8 @@ class InvestmentHistoryPage(LoggedPage, HTMLPage):
             inv.vdate = Date(CleanText(cols[self.COL_DATE], default=NotAvailable), default=NotAvailable)(self.doc)
             inv.valuation = self.parse_decimal(cols[self.COL_VALUATION])
             inv.diff = self.parse_decimal(cols[self.COL_PERF])
+            diff_percent =  self.parse_decimal(cols[self.COL_PERF_PERCENT])
+            inv.diff_percent = diff_percent / 100 if diff_percent else NotAvailable
 
             yield inv
 
