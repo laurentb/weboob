@@ -18,17 +18,18 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from dateutil.rrule import rrule, MONTHLY
 from dateutil.relativedelta import relativedelta
 
 from weboob.browser import LoginBrowser, need_login
 from weboob.capabilities import NotAvailable
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, Transaction
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.url import URL
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
+from weboob.tools.date import new_date
 
 from .pages import (
     LoginPage, AuthPage, AccountsPage, AccountHistoryViewPage, AccountHistoryPage,
@@ -68,6 +69,10 @@ class BNPEnterprise(LoginBrowser):
 
     renew_pass = URL('/sommaire/PseRedirectPasswordConnect', ActionNeededPage)
 
+    def __init__(self, *args, **kwargs):
+        super(BNPEnterprise, self).__init__(*args, **kwargs)
+        self.debitinfo = {}
+
     def do_login(self):
         self.login.go()
 
@@ -105,8 +110,17 @@ class BNPEnterprise(LoginBrowser):
                     self.logger.error('account %r has multiple cards with same redacted id', account.id)
                     assert False, 'account has multiple cards with same redacted id'
 
+        self.logger.debug('found %d checking accounts', len([acc for acc in accounts if acc.type == Account.TYPE_CHECKING]))
+        self.logger.debug('found %d card accounts', len([acc for acc in accounts if acc.type == Account.TYPE_CARD]))
+        self.logger.debug('searching for immediate debit cards')
         # a card appears in the cards page only if it has coming transactions
         # thus, some card accounts may disappear occasionally
+
+        self.debitinfo = self._guess_card_debitting(accounts)
+        nb = len(accounts)
+        accounts = [account for account in accounts if self.debitinfo.get(getattr(account, '_redacted_card', None)) != 'immediate']
+        self.logger.debug('detected %d immediate cards', len([v for v in self.debitinfo.values() if v == 'immediate']))
+        self.logger.debug('removed %d immediate card accounts', nb - len(accounts))
 
         return accounts
 
@@ -131,7 +145,7 @@ class BNPEnterprise(LoginBrowser):
             return
 
         for tr in self._iter_history_base(account):
-            if not tr._redacted_card:
+            if not tr._redacted_card or self.debitinfo.get(tr._redacted_card) == 'immediate':
                 yield tr
 
     def _iter_history_base(self, account):
@@ -171,11 +185,53 @@ class BNPEnterprise(LoginBrowser):
             self.init_card_history.go(card_id=account._index)
             self.open('/NCCPresentationWeb/m99_pagination/setStatutPagination.do?ecran=e13_encours&nbEntreesParPage=TOUS&numPage=1')
             self.card_history.go()
+            for tr in self.page.iter_coming():
+                yield tr
         else:
             self.account_coming_view.go(identifiant=account.iban)
             self.account_coming.go(identifiant=account.iban)
+            for tr in self.page.iter_coming():
+                if not tr._redacted_card or self.debitinfo.get(tr._redacted_card) == 'immediate':
+                    yield tr
 
-        return self.page.iter_coming()
+    def _guess_card_debitting(self, accounts):
+        # the site doesn't indicate if cards are immediate or deferred
+        # try to guess it by looking at history of checking account
+
+        cards = {}
+        checkings = [account for account in accounts if account.type == Account.TYPE_CHECKING]
+        card_account_ids = [account._redacted_card for account in accounts if account.type == Account.TYPE_CARD]
+        limit = new_date(datetime.now() - timedelta(days=90))
+
+        for account in checkings:
+            card_dates = {}
+            for tr in self._iter_history_base(account):
+                if new_date(tr.date) < limit:
+                    break
+                if tr.type == Transaction.TYPE_CARD and tr._redacted_card:
+                    card_dates.setdefault(tr._redacted_card, []).append((tr.date, tr.rdate))
+
+            for card, dates in card_dates.items():
+                debit_dates = set(d[0] for d in dates)
+                if len(debit_dates) != len(set((d.year, d.month) for d in debit_dates)):
+                    self.logger.debug('card %r has multiple debit dates per month -> immediate debit', card)
+                    cards[card] = 'immediate'
+                    continue
+
+                cards[card] = 'deferred'
+
+                # checking diff between date and rdate may not be a good clue
+                # there has been a transaction with:
+                # dateOpt: 2017-10-25
+                # dateValeur: 2017-10-18
+                # dateIntro: 2017-10-30
+                # carteDateFacturette: 2017-10-13
+
+        for card in cards:
+            if cards[card] != 'immediate' and card not in card_account_ids:
+                self.logger.warning("card %s seems deferred but account not found, its transactions will be skipped...", card)
+
+        return cards
 
     @need_login
     def iter_investment(self, account):

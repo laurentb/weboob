@@ -27,7 +27,7 @@ from decimal import Decimal
 
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage
 from weboob.browser.filters.json import Dict
-from weboob.browser.elements import DictElement, ItemElement, method, SkipItem
+from weboob.browser.elements import DictElement, ItemElement, method
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Date, Regexp, Format, Eval, BrowserURL, Field, Env,
     Async,
@@ -212,6 +212,25 @@ class BnpHistoryItem(ItemElement):
         return x / 10 ** y
 
 
+class CardItemElement(ItemElement):
+    def load_details(self):
+        if 'FACTURE CARTE' not in Field('raw')(self):
+            return
+
+        url = self.page.browser.transaction_detail.build()
+        return self.page.browser.open(url, is_async=True, data={
+            'type_mvt': self.detail_type_mvt,
+            'numero_mvt': Field('_trid')(self),
+        })
+
+    def obj__redacted_card(self):
+        if 'FACTURE CARTE' not in Field('raw')(self):
+            return
+
+        page = Async('details').loaded_page(self)
+        return page.get_redacted_card()
+
+
 class AccountHistoryPage(LoggedPage, JsonPage):
     TYPES = {
         u'CARTE': Transaction.TYPE_DEFERRED_CARD,  # Cartes
@@ -238,18 +257,10 @@ class AccountHistoryPage(LoggedPage, JsonPage):
     class iter_history(DictElement):
         item_xpath = "mouvementsBDDF"
 
-        class item(ItemElement):
+        class item(CardItemElement):
             klass = Transaction
 
-            def load_details(self):
-                if 'FACTURE CARTE' not in Field('raw')(self):
-                    return
-
-                url = self.page.browser.transaction_detail.build()
-                return self.page.browser.open(url, is_async=True, data={
-                    'type_mvt': 1,
-                    'numero_mvt': Field('_trid')(self),
-                })
+            detail_type_mvt = 1
 
             obj_original_currency = CleanText(Dict('montant/devise'))
             obj__coming = Dict('avenir')
@@ -295,19 +306,14 @@ class AccountHistoryPage(LoggedPage, JsonPage):
 
             obj__trid = Dict('id')
 
-            def obj__redacted_card(self):
-                if 'FACTURE CARTE' not in Field('raw')(self):
-                    return
-
-                page = Async('details').loaded_page(self)
-                return page.get_redacted_card()
-
     @method
     class iter_coming(DictElement):
         item_xpath = "infoOperationsAvenir/operationsAvenir"
 
-        class item(ItemElement):
+        class item(CardItemElement):
             klass = Transaction
+
+            detail_type_mvt = 2
 
             obj_date = Date(Dict('dateOpeMvmt'))
             obj_rdate = Date(Dict('dateCreatMvmt'))
@@ -329,9 +335,7 @@ class AccountHistoryPage(LoggedPage, JsonPage):
                     CleanDecimal(Dict('montantMvmt/nb_dec'))
                 )(self)
 
-            def parse(self, obj):
-                if Dict('natureLibelleMvt')(self) == 'FACTURE CARTE':
-                    raise SkipItem
+            obj__trid = Dict('idMouvement')
 
 
 class CardListPage(LoggedPage, JsonPage):
