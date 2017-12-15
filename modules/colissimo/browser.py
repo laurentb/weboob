@@ -20,7 +20,7 @@
 from weboob.capabilities.parcel import Event, ParcelNotFound
 from weboob.browser import PagesBrowser, URL
 from weboob.browser.elements import ItemElement, ListElement, method
-from weboob.browser.filters.standard import CleanText, Date
+from weboob.browser.filters.standard import CleanText, Date, Eval, Regexp
 from weboob.browser.pages import HTMLPage
 from weboob.browser.profiles import Firefox
 
@@ -38,7 +38,16 @@ class TrackingPage(HTMLPage):
 
             obj_date = Date(CleanText('td[1]'), dayfirst=True)
             obj_activity = CleanText('td[2]')
-            obj_location = CleanText('td[3]')
+            obj_location = Eval(
+                lambda a, b: a or b,
+                Regexp(
+                    CleanText('td[3]//a/@title'),
+                    r"Horaires et adresse - (.+)",
+                    r"\1",
+                    default=None
+                ),
+                CleanText('td[3]'),
+            )
 
     def get_error(self):
         return CleanText('//div[has-class("error-suivi")]')(self.doc)
