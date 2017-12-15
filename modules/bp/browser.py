@@ -75,7 +75,8 @@ class BPBrowser(LoginBrowser, StatesMixin):
                             '/voscomptes/canalXHTML/pret/encours/detaillerOffrePretConsoListe-encoursPrets.ea',
                             '/voscomptes/canalXHTML/pret/creditRenouvelable/init-consulterCreditRenouvelable.ea', AccountList)
 
-    accounts_rib = URL(r'.*voscomptes/canalXHTML/comptesCommun/imprimerRIB/init-imprimer_rib.ea.*', AccountRIB)
+    accounts_rib = URL(r'.*voscomptes/canalXHTML/comptesCommun/imprimerRIB/init-imprimer_rib.ea.*',
+                       '/voscomptes/canalXHTML/comptesCommun/imprimerRIB/init-selection_rib.ea', AccountRIB)
 
     saving_summary = URL(r'/voscomptes/canalXHTML/assurance/vie/reafficher-assuranceVie.ea(\?numContrat=(?P<id>\w+))?',
                          r'/voscomptes/canalXHTML/assurance/retraiteUCEuro/afficher-assuranceRetraiteUCEuros.ea(\?numContrat=(?P<id>\w+))?',

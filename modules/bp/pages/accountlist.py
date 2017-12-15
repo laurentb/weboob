@@ -89,9 +89,8 @@ class item_account_generic(ItemElement):
 
     def obj_iban(self):
         response = self.page.browser.open(
-            '/voscomptes/canalXHTML/comptesCommun/imprimerRIB/init-imprimer_rib.ea?compte.numero=%s' % Field('id')(
+                '/voscomptes/canalXHTML/comptesCommun/imprimerRIB/init-imprimer_rib.ea?numeroCompte=%s' % Field('id')(
                 self))
-
         return response.page.get_iban()
 
     def obj_type(self):
