@@ -190,3 +190,60 @@ Some sites do not even do that and may use Javascript to follow a link. The ``on
     class PortalPage(HTMLPage):
         def on_load(self):
             self.browser.location(Link('//a[@id="target"]')(self.doc))
+
+Handle pagination
+-----------------
+
+For a simple case where there's a "Next" link in the page::
+
+    class MyPage(HTMLPage):
+        @pagination
+        @method
+        class iter_stuff(ListElement):
+            next_page = AbsoluteLink('//a[text()="Next"]', default=None)
+            # when it evaluates to None, pagination stops
+
+            item_xpath = '//ul/li'
+
+            class item(ItemElement):
+                klass = SomeClass
+                obj_text = CleanText('.')
+
+Handle pagination with POST
+---------------------------
+
+When going to next page requires making a ``POST``::
+
+    class MyPage(JsonPage):
+        @pagination
+        @method
+        class iter_stuff(ListElement):
+            def next_page(self):
+                if self.doc.get('next_page_params'):
+                    return requests.Request('POST', self.page.url, data=self.doc.get('next_page_params'))
+
+            item_xpath = 'items'
+
+            class item(ItemElement):
+                klass = SomeClass
+                obj_text = Dict('text')
+
+Handle HTTP errors
+------------------
+
+HTTP errors raise exceptions that can be caught::
+
+    class MyBrowser(PagesBrowser):
+        def do_stuff(self):
+            try:
+                self.location('/')
+            except HTTPNotFound: # in case of 404
+                pass
+            except ClientError as e: # in case of 4xx
+                # for all these exceptions, the response attribute is set
+                self.logger.warning('failed with code %d', e.response.status_code)
+                pass
+            except ServerError: # in case of 5xx
+                raise
+            except HTTPError: # other cases
+                raise
