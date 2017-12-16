@@ -24,6 +24,7 @@ import logging
 import os
 import re
 import shlex
+import signal
 import sys
 from cmd import Cmd
 from collections import OrderedDict
@@ -455,15 +456,20 @@ class ReplApplication(ConsoleApplication, MyCmd):
                 self.bcall_errors_handler(e)
             except BackendNotGiven as e:
                 print('Error: %s' % str(e), file=self.stderr)
+                return os.EX_DATAERR
             except NotEnoughArguments as e:
                 print('Error: not enough arguments. %s' % str(e), file=self.stderr)
+                return os.EX_USAGE
             except TooManyArguments as e:
                 print('Error: too many arguments. %s' % str(e), file=self.stderr)
+                return os.EX_USAGE
             except ArgSyntaxError as e:
                 print('Error: invalid arguments. %s' % str(e), file=self.stderr)
+                return os.EX_USAGE
             except (KeyboardInterrupt, EOFError):
                 # ^C during a command process doesn't exit application.
                 print('\nAborted.')
+                return signal.SIGINT + 128
         finally:
             self.flush()
 
@@ -481,7 +487,7 @@ class ReplApplication(ConsoleApplication, MyCmd):
             names = set(name[3:] for name in self.get_names() if name.startswith('do_' + cmd))
             if len(names) > 0:
                 print('Do you mean: %s?' % ', '.join(names), file=self.stderr)
-        return 2
+        return os.EX_USAGE
 
     def completenames(self, text, *ignored):
         return [name for name in Cmd.completenames(self, text, *ignored) if name not in self.hidden_commands]
