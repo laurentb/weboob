@@ -67,6 +67,7 @@ class OfxFormatter(IFormatter):
 
     balance = Decimal(0)
     coming = Decimal(0)
+    account_type = ''
     seen = set()
 
     def start_format(self, **kwargs):
@@ -85,16 +86,28 @@ class OfxFormatter(IFormatter):
         self.output(u'NEWFILEUID:%s\n' % uuid.uuid1())
         self.output(u'<OFX><SIGNONMSGSRSV1><SONRS><STATUS><CODE>0<SEVERITY>INFO</STATUS>')
         self.output(u'<DTSERVER>%s113942<LANGUAGE>ENG</SONRS></SIGNONMSGSRSV1>' % datetime.date.today().strftime('%Y%m%d'))
-        self.output(u'<BANKMSGSRSV1><STMTTRNRS><TRNUID>%s' % uuid.uuid1())
-        self.output(u'<STATUS><CODE>0<SEVERITY>INFO</STATUS><CLTCOOKIE>null<STMTRS>')
-        self.output(u'<CURDEF>%s<BANKACCTFROM>' % (account.currency or 'EUR'))
-        self.output(u'<BANKID>null')
-        self.output(u'<BRANCHID>null')
-        self.output(u'<ACCTID>%s' % account.id)
-        account_type = self.TYPES_ACCTS.get(account.type, 'CHECKING')
-        self.output(u'<ACCTTYPE>%s' % account_type)
-        self.output(u'<ACCTKEY>null')
-        self.output('</BANKACCTFROM>')
+
+        if self.account_type == Account.TYPE_CARD:
+            self.output(u'<CREDITCARDMSGSRSV1><CCSTMTTRNRS><TRNUID>%s' % uuid.uuid1())
+            self.output(u'<STATUS><CODE>0<SEVERITY>INFO</STATUS><CLTCOOKIE>null<CCSTMTRS>')
+            self.output(u'<CURDEF>%s<CCACCTFROM>' % (account.currency or 'EUR'))
+            self.output(u'<BANKID>null')
+            self.output(u'<BRANCHID>null')
+            self.output(u'<ACCTID>%s' % account.id)
+            self.output(u'<ACCTTYPE>%s' % self.account_type)
+            self.output(u'<ACCTKEY>null')
+            self.output('</CCACCTFROM>')
+        else:
+            self.output(u'<BANKMSGSRSV1><STMTTRNRS><TRNUID>%s' % uuid.uuid1())
+            self.output(u'<STATUS><CODE>0<SEVERITY>INFO</STATUS><CLTCOOKIE>null<STMTRS>')
+            self.output(u'<CURDEF>%s<BANKACCTFROM>' % (account.currency or 'EUR'))
+            self.output(u'<BANKID>null')
+            self.output(u'<BRANCHID>null')
+            self.output(u'<ACCTID>%s' % account.id)
+            self.output(u'<ACCTTYPE>%s' % self.account_type)
+            self.output(u'<ACCTKEY>null')
+            self.output('</BANKACCTFROM>')
+
         self.output(u'<BANKTRANLIST>')
         self.output(u'<DTSTART>%s' % datetime.date.today().strftime('%Y%m%d'))
         self.output(u'<DTEND>%s' % datetime.date.today().strftime('%Y%m%d'))
@@ -135,9 +148,12 @@ class OfxFormatter(IFormatter):
             self.output(u'<AVAILBAL><BALAMT>%s' % (self.balance + self.coming))
         except TypeError:
             self.output(u'<AVAILBAL><BALAMT>%s' % self.balance)
-
         self.output(u'<DTASOF>%s</AVAILBAL>' % datetime.date.today().strftime('%Y%m%d'))
-        self.output(u'</STMTRS></STMTTRNRS></BANKMSGSRSV1></OFX>')
+
+        if self.account_type == Account.TYPE_CARD:
+            self.output(u'</CCSTMTRS></CCSTMTTRNRS></CREDITCARDMSGSRSV1></OFX>')
+        else:
+            self.output(u'</STMTRS></STMTTRNRS></BANKMSGSRSV1></OFX>')
 
 
 class QifFormatter(IFormatter):
