@@ -66,6 +66,7 @@ class LoginPage(HTMLPage):
 
         form['email'] = login
         form['password'] = password
+        form['rememberMe'] = "true"
 
         if captcha:
             form['guess'] = captcha
