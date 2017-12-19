@@ -224,7 +224,7 @@ class CachemireCatalogPage(LoggedPage, MyHTMLPage):
 
 class LifeInsuranceInvest(LoggedPage, MyHTMLPage):
     def has_error(self):
-        return 'erreur' in CleanText('//p[has-class("titlePage")]')(self.doc)
+        return 'erreur' in CleanText('//p[has-class("titlePage")]')(self.doc) or 'ERREUR' in CleanText('//h2')(self.doc)
 
     def get_cachemire_link(self):
         return Link('//a[contains(@title, "espace cachemire")]', default=None)(self.doc)
