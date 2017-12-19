@@ -95,6 +95,7 @@ class TableInvestment(TableElement):
     col_unitvalue = u'Valeur de part'
     col_quantity = u'Nombre de parts'
     col_portfolio_share = u'%'
+    col__gestion_type = re.compile('Nom du profil')
 
 
 class ItemInvestment(ItemElement):
@@ -114,6 +115,18 @@ class ItemInvestment(ItemElement):
     def obj_portfolio_share(self):
         ps = MyDecimal(TableCell('portfolio_share', default=None))(self)
         return Eval(lambda x: x / 100, ps)(self) if not empty(ps) else NotAvailable
+
+    def obj__gestion_type(self):
+        if self.xpath('ancestor::tbody[ends-with(@id, "contratProfilTable_data")]'):
+            # investments are nested in profiles, get profile type
+            profile_table_el = self.xpath('ancestor::tr/ancestor::table[position() = 1]')[0]
+            profile_table = ProfileTableInvestment(self.page, self, profile_table_el)
+            gestion_type = profile_table.get_colnum('_gestion_type')
+            assert gestion_type
+
+            path = 'ancestor::tr/preceding-sibling::tr[@data-ri][position() = 1][1]/td[%d]' % (gestion_type + 1)
+            return CleanText(path)(self)
+        return NotAvailable
 
 
 class TableTransactionsInvestment(TableInvestment):

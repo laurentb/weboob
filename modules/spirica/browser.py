@@ -79,7 +79,7 @@ class SpiricaBrowser(LoginBrowser):
         return self.cache['trs'][account.id]
 
     def fill_from_list(self, invs, objects_list):
-        matching_fields = ['code', 'unitvalue', 'label']
+        matching_fields = ['code', 'unitvalue', 'label', '_gestion_type']
         for inv in invs:
             obj_from_list = [o for o in objects_list if all(getattr(o, field) == getattr(inv, field) for field in matching_fields)]
             assert len(obj_from_list) == 1
