@@ -111,10 +111,17 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
 
                 accounts = list(self.page.iter_accounts(rib=rib))
                 ids = {}
+                prev_rib = None
                 for account in accounts:
                     if account.id in ids:
                         self.logger.warning('duplicate account %r', account.id)
                         account.id += '_%s' % ''.join(account.label.split())
+
+                    if prev_rib != account._rib:
+                        self.coming.go()
+                        self.page.expand(rib=account._rib)
+                    account.coming = self.page.get_balance(account)
+                    prev_rib = account._rib
 
                     ids[account.id] = account
                     yield account

@@ -128,6 +128,14 @@ class ComingPage(ExpandablePage):
         if link:
             return link.group(1)
 
+    def get_balance(self, account):
+        # TODO find how pagination works on this page and find account with pagination
+        card, holder = account._completeid.split(':')
+        el = self.doc.xpath('.//tr[.//a[text()=$card]][.//td[1][text()=$name]]/td[4]', card=card, name=holder)
+        if not el:
+            return
+        return CleanDecimal('.', replace_dots=(',', '.'))(el[0])
+
 
 class HistoPage(GetableLinksPage, PeriodsPage):
     pass
