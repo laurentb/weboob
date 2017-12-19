@@ -250,20 +250,23 @@ class item_account_generic(ItemElement):
                     pattern = 'Carte\s(\w+).*\d{4}\s([A-Za-z\s]+)(.*)'
                     m = re.search(pattern, CleanText('.')(elem))
                     card.label = "%s %s %s" % (m.group(1), card_id, m.group(2))
-                    card.balance = CleanDecimal(replace_dots=True).filter(m.group(3))
+                    card.balance = Decimal('0.0')
                     card.currency = card.get_currency(m.group(3))
                     card._card_pages = [page]
+                    card.coming = Decimal('0.0')
+                    #handling the case were the month is the coming one. There won't be next_month here.
+                    date = parse_french_date(Regexp(Field('label'), 'Fin (.+) (\d{4})', '01 \\1 \\2')(self)) + relativedelta(day=31)
+                    if date > datetime.now() - relativedelta(day=1):
+                        card.coming = CleanDecimal(replace_dots=True).filter(m.group(3))
                     next_month = Link('./following-sibling::tr[contains(@class, "encours")][1]/td[1]//a', default=None)(self)
                     if next_month:
                         card_page = page.browser.open(next_month).page
-                        # retrieving coming from next month matching on id
-                        card.coming = Decimal('0.0')
                         for e in card_page.doc.xpath(card_xpath):
                             if card.id == Regexp(CleanText('.', symbols=' '), '([\dx]{16})')(e):
+                                m = re.search(pattern, CleanText('.')(e))
                                 card._card_pages.append(card_page)
-                                continue
-                            m = re.search(pattern, CleanText('.')(e))
-                            card.coming += CleanDecimal(replace_dots=True).filter(m.group(3))
+                                card.coming += CleanDecimal(replace_dots=True).filter(m.group(3))
+                                break
 
                     self.page.browser.accounts_list.append(card)
 
