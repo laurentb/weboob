@@ -538,6 +538,7 @@ class Currency(object):
         (u'MYR', (u'RM',)),
         (u'HUF', (u'Ft',)),
         (u'HKD', (u'HK$',)),
+        (u'TWD', (u'NT$',)),
         (u'QAR', (u'QR',)),
         (u'MAD', (u'MAD',)),
         (u'ARS', (u'ARS',)),
@@ -552,6 +553,14 @@ class Currency(object):
         (u'PLN', (u'PLN',)),
         (u'ILS', (u'ILS',)),
         (u'THB', (u'THB',)),
+        (u'INR', (u'₹', u'INR')),
+        (u'PEN', (u'S/',)),
+        (u'IDR', (u'Rp',)),
+        (u'KWD', (u'KD',)),
+        (u'KRW', (u'₩',)),
+        (u'CZK', (u'Kč',)),
+        (u'EGP', (u'E£',)),
+        (u'ISK', (u'Íkr', u'kr')),
     ])
 
     EXTRACTOR = re.compile(r'[\d\s,\.\-]', re.UNICODE)
