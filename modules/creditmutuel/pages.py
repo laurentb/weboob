@@ -130,8 +130,11 @@ class item_account_generic(ItemElement):
         ('Etalis',                  Account.TYPE_SAVINGS),
         ('Ldd',                     Account.TYPE_SAVINGS),
         ('Livret',                  Account.TYPE_SAVINGS),
-        ("Plan D'Epargne",         Account.TYPE_SAVINGS),
+        ("Plan D'Epargne",          Account.TYPE_SAVINGS),
         ('Tonic Croissance',        Account.TYPE_SAVINGS),
+        ('Comptes courants',        Account.TYPE_CHECKING),
+        ('\xc9pargne',              Account.TYPE_SAVINGS),
+        ('Compte Garantie Titres',  Account.TYPE_MARKET),
         ])
 
     REVOLVING_LOAN_LABELS = [
@@ -167,7 +170,13 @@ class item_account_generic(ItemElement):
     obj_currency = FrenchTransaction.Currency('./td[2] | ./td[3]')
     obj__link_id = Link('./td[1]//a')
     obj__card_links = []
-    obj_type = Type(Field('label'))
+    def obj_type(self):
+        t = self.Type(Field('label'))(self)
+        # sometimes, using the label is not enough to infer the account's type.
+        # this is a fallback that uses the account's group label
+        if t == 0:
+            return self.Type(CleanText('./preceding-sibling::tr/th[contains(@class, "rupture eir_tblshowth")][1]'))(self)
+        return t
     obj__is_inv = False
     obj__is_webid = Env('_is_webid')
 
