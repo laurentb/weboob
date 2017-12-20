@@ -82,6 +82,9 @@ class GarbagePage(LoggedPage, HTMLPage):
 
 
 class MessagePage(GarbagePage):
+    def get_message(self):
+        return CleanText('//form[contains(@name, "leForm")]//span')(self.doc)
+
     def submit(self):
         form = self.get_form(name='leForm')
 
@@ -973,4 +976,3 @@ class TransactionsDetailsPage(LoggedPage, HTMLPage):
         form = self.get_form(name='main')
         form['__EVENTTARGET'] = "MM$ECRITURE_GLOBALE$lnkRetourHisto"
         form.submit()
-
