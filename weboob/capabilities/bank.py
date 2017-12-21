@@ -163,8 +163,7 @@ class BaseAccount(BaseObject, Currency):
     """
     label =          StringField('Pretty label')
     currency =       StringField('Currency', default=None)
-    iban =           StringField('International Bank Account Number')
-    bank_name =      StringField('Bank Name')
+    bank_name =      StringField('Bank Name', mandatory=False)
 
     def __init__(self, id='0', url=None):
         super(BaseAccount, self).__init__(id, url)
@@ -187,6 +186,7 @@ class Recipient(BaseAccount):
     """
     enabled_at =     DateField('Date of availability')
     category =       StringField('Recipient category')
+    iban =           StringField('International Bank Account Number')
 
 
 class Account(BaseAccount):
@@ -237,6 +237,7 @@ class Account(BaseAccount):
     type =      IntField('Type of account', default=TYPE_UNKNOWN)
     balance =   DecimalField('Balance on this bank account')
     coming =    DecimalField('Sum of coming movements')
+    iban =      StringField('International Bank Account Number', mandatory=False)
 
     # card attributes
     paydate =   DateField('For credit cards. When next payment is due.')
