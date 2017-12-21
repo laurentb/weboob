@@ -21,6 +21,8 @@ from decimal import Decimal
 from datetime import date
 import re
 
+from collections import OrderedDict
+
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import TableElement, ItemElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Env, Regexp, Field
@@ -44,6 +46,11 @@ class LoginErrorPage(HTMLPage):
 class GroupamaesPage(LoggedPage, HTMLPage):
     NEGATIVE_AMOUNT_LABELS = [u'Retrait', u'Transfert sortant', u'Frais']
 
+    TYPES = OrderedDict([
+        ('perco', Account.TYPE_PERCO),
+        ('pee',   Account.TYPE_PEE),
+    ])
+
     @method
     class iter_accounts(TableElement):
         item_xpath = u'//table[@summary="Liste des échéances"]/tbody/tr'
@@ -58,11 +65,15 @@ class GroupamaesPage(LoggedPage, HTMLPage):
             def condition(self):
                 return u'Vous n\'avez pas d\'avoirs.' not in CleanText(TableCell('name'))(self)
 
-            obj_id = CleanText(TableCell('name'))
-            obj_label = CleanText(TableCell('name'))
+            obj_id = obj_label = CleanText(TableCell('name'))
             obj_balance = CleanDecimal(TableCell('value'), replace_dots=True, default=Decimal(0))
             obj_currency = CleanText(u'//table[@summary="Liste des échéances"]/thead/tr/th/small/text()')
-            obj_type = Account.TYPE_PEE
+
+            def obj_type(self):
+                for k, v in self.page.TYPES.items():
+                    if k in Field('label')(self).lower():
+                        return v
+                return Account.TYPE_PEE
 
     def iter_investment(self):
         item = self.doc.xpath(u'//table[@summary="Liste des échéances"]/tfoot/tr/td[@class="tot _c1 d _c1"]')[0]
@@ -148,9 +159,10 @@ class GroupamaesPage(LoggedPage, HTMLPage):
 
 
 class GroupamaesPocketPage(LoggedPage, HTMLPage):
-    CONDITIONS = {u'immédiate': Pocket.CONDITION_AVAILABLE,
-                  u'à':   Pocket.CONDITION_RETIREMENT,
-                 }
+    CONDITIONS = {
+        u'immédiate': Pocket.CONDITION_AVAILABLE,
+        u'à':         Pocket.CONDITION_RETIREMENT,
+    }
 
     def iter_investment(self, label):
         for tr in self.doc.xpath(u'//table[@summary="Liste des échéances"]/tbody/tr'):
@@ -181,18 +193,18 @@ class GroupamaesPocketPage(LoggedPage, HTMLPage):
             pocket = Pocket()
             i = 0
 
-            if len(tds) <= 2 :
+            if len(tds) <= 2:
                 continue
             elif len(tds) < 6:
                 pocket.availability_date = date_available
                 pocket.condition = condition
             else:
-                i+=1
+                i += 1
                 pocket.availability_date = Date(Regexp(CleanText(tds[0]), '([\d\/]+)', default=NotAvailable), default=NotAvailable)(tr)
                 date_available = pocket.availability_date
 
-                pocket.condition = Pocket.CONDITION_DATE if pocket.availability_date is not NotAvailable else \
-                                            self.CONDITIONS.get(CleanText(tds[0])(tr).lower().split()[0], Pocket.CONDITION_UNKNOWN)
+                pocket.condition = (Pocket.CONDITION_DATE if pocket.availability_date is not NotAvailable else
+                                    self.CONDITIONS.get(CleanText(tds[0])(tr).lower().split()[0], Pocket.CONDITION_UNKNOWN))
                 condition = pocket.condition
 
             pocket.label = CleanText(tds[i])(tr)
