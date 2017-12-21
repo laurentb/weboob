@@ -25,13 +25,8 @@ from .pages import CityListPage, HousingListPage, HousingPage, PhonePage
 class LeboncoinBrowser(PagesBrowser):
     BASEURL = 'https://www.leboncoin.fr/'
     city = URL('ajax/location_list.html\?city=(?P<city>.*)&zipcode=(?P<zip>.*)', CityListPage)
-    # Note: There is "ile_de_france" explicitly mentionned in the URL below.
-    # This was a useful parameter in a previous version of Leboncoin, where
-    # regions actually had some implications on the fetched posts. This is no
-    # longer the case, and we can actually use any valid region to lookup post
-    # in *any* region on Leboncoin. Then, we default to "ile_de_france".
-    search = URL('(?P<type>.*)/offres/ile_de_france/occasions/\?(?P<_ps>ps|mrs)=(?P<ps>.*)&(?P<_pe>pe|mre)=(?P<pe>.*)&ros=(?P<ros>.*)&location=(?P<location>.*)&sqs=(?P<sqs>.*)&sqe=(?P<sqe>.*)&ret=(?P<ret>.*)&f=(?P<advert_type>.*)',
-                 '(?P<_type>.*)/offres/ile_de_france/occasions.*?',
+    search = URL('(?P<type>.*)/offres/\?(?P<_ps>ps|mrs)=(?P<ps>.*)&(?P<_pe>pe|mre)=(?P<pe>.*)&ros=(?P<ros>.*)&location=(?P<location>.*)&sqs=(?P<sqs>.*)&sqe=(?P<sqe>.*)&ret=(?P<ret>.*)&f=(?P<advert_type>.*)',
+                 '(?P<_type>.*)/offres/occasions.*?',
                  HousingListPage)
     housing = URL('ventes_immobilieres/(?P<_id>.*).htm', HousingPage)
     phone = URL('https://api.leboncoin.fr/api/utils/phonenumber.json', PhonePage)
