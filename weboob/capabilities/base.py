@@ -28,7 +28,7 @@ from weboob.tools.compat import unicode, long, with_metaclass, StrConv
 from weboob.tools.misc import to_unicode
 
 
-__all__ = ['UserError', 'FieldNotFound', 'NotAvailable',
+__all__ = ['UserError', 'FieldNotFound', 'NotAvailable', 'FetchError',
            'NotLoaded', 'Capability', 'Field', 'IntField', 'DecimalField',
            'FloatField', 'StringField', 'BytesField', 'BoolField',
            'empty', 'BaseObject']
@@ -56,7 +56,7 @@ def empty(value):
 
     :rtype: :class:`bool`
     """
-    for cls in (None, NotLoaded, NotAvailable):
+    for cls in (None, NotLoaded, NotAvailable, FetchError):
         if value is cls:
             return True
     return False
@@ -114,9 +114,9 @@ class AttributeCreationWarning(UserWarning):
     """
 
 
-class NotAvailableType(object):
+class EmptyType(object):
     """
-    NotAvailable is a constant to use on non available fields.
+    Parent class for NotAvailableType, NotLoadedType and FetchErrorType.
     """
 
     def __str__(self):
@@ -127,6 +127,17 @@ class NotAvailableType(object):
 
     def __deepcopy__(self, memo):
         return self
+
+    def __nonzero__(self):
+        return False
+
+    __bool__ = __nonzero__
+
+
+class NotAvailableType(EmptyType):
+    """
+    NotAvailable is a constant to use on non available fields.
+    """
 
     def __repr__(self):
         return 'NotAvailable'
@@ -134,15 +145,11 @@ class NotAvailableType(object):
     def __unicode__(self):
         return u'Not available'
 
-    def __nonzero__(self):
-        return False
-
-    __bool__ = __nonzero__
 
 NotAvailable = NotAvailableType()
 
 
-class NotLoadedType(object):
+class NotLoadedType(EmptyType):
     """
     NotLoaded is a constant to use on not loaded fields.
 
@@ -150,27 +157,29 @@ class NotLoadedType(object):
     it will request all fields with this value.
     """
 
-    def __str__(self):
-        return repr(self)
-
-    def __copy__(self):
-        return self
-
-    def __deepcopy__(self, memo):
-        return self
-
     def __repr__(self):
         return 'NotLoaded'
 
     def __unicode__(self):
         return u'Not loaded'
 
-    def __nonzero__(self):
-        return False
-
-    __bool__ = __nonzero__
 
 NotLoaded = NotLoadedType()
+
+
+class FetchErrorType(EmptyType):
+    """
+    FetchError is a constant to use when parsing a non-mandatory field raises an exception.
+    """
+
+    def __repr__(self):
+        return 'FetchError'
+
+    def __unicode__(self):
+        return u'Not mandatory'
+
+
+FetchError = FetchErrorType()
 
 
 class Capability(object):
@@ -199,6 +208,7 @@ class Field(object):
         self.types = ()
         self.value = kwargs.get('default', NotLoaded)
         self.doc = doc
+        self.mandatory = kwargs.get('mandatory', True)
 
         for arg in args:
             if isinstance(arg, type) or isinstance(arg, str):

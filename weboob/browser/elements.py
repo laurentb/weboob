@@ -31,6 +31,7 @@ import lxml.html
 from weboob.tools.log import getLogger, DEBUG_FILTERS
 from weboob.tools.compat import basestring, unicode, with_metaclass
 from weboob.browser.pages import NextPage
+from weboob.capabilities.base import FetchError
 
 from .filters.standard import _Filter, CleanText
 from .filters.html import AttributeNotFound, XPathNotFound
@@ -236,6 +237,7 @@ class ItemElement(with_metaclass(_ItemElementMeta, AbstractElement)):
     _loaders = None
     klass = None
     validate = None
+    skip_optional_fields_errors = False
 
     class Index(object):
         pass
@@ -329,7 +331,10 @@ class ItemElement(with_metaclass(_ItemElementMeta, AbstractElement)):
         except Exception as e:
             # If we are here, we have probably a real parsing issue
             self.logger.warning('Attribute %s (in %s:%s) raises %s', key, self._class_file, self._class_line, repr(e))
-            raise
+            if not self.skip_optional_fields_errors or key not in self.obj._fields or self.obj._fields[key].mandatory:
+                raise
+            else:
+                value = FetchError
         logger = getLogger('b2filters')
         logger.log(DEBUG_FILTERS, "%s.%s = %r" % (self._random_id, key, value))
         setattr(self.obj, key, value)
