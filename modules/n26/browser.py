@@ -139,8 +139,8 @@ class Number26Browser(DomainBrowser):
 
             new = Transaction()
 
-            new.date = datetime.fromtimestamp(t["visibleTS"] / 1000)
-            new.rdate = datetime.fromtimestamp(t["createdTS"] / 1000)
+            new.date = datetime.fromtimestamp(t["createdTS"] / 1000)
+            new.rdate = datetime.fromtimestamp(t["visibleTS"] / 1000)
             new.id = t['id']
 
             new.amount = Decimal(str(t["amount"]))
