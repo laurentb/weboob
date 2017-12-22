@@ -23,8 +23,8 @@ from __future__ import unicode_literals
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ItemElement, method, ListElement
 from weboob.browser.filters.standard import (
-    CleanText, CleanDecimal, Format, Field,
-    Regexp, Slugify, DateGuesser
+    CleanText, CleanDecimal, Format,
+    Regexp, DateGuesser
 )
 from weboob.capabilities.bank import Account, Transaction
 from weboob.capabilities.base import NotAvailable
@@ -71,12 +71,7 @@ class TransactionsPage(LoggedPage, HTMLPage):
 
             # We have no better id than date-hour-marketname slugified
             # [edit] Wow, seems like it's not enough, let's add the price then.
-            obj__newid = Format('%s%s%s%s',
-                                CleanText('.//span[contains(., "/")]', replace=[('/', '')]),
-                                Regexp(CleanText('.//h3', replace=[('h', '')]), '(.*) - '),
-                                CleanText('.//h3/strong'),
-                                CleanText('./td[@class="al-r"]', replace=[('-', ''), (',', '')]))
-            obj_id = Slugify(Field('_newid'))
+            # Well, now we have doublons even with the price.
             obj_date = DateGuesser(CleanText('.//span[contains(., "/")]'), LinearDateGuesser(date_max_bump=timedelta(45)))
             obj_label = Format('Facture %s', CleanText('.//h3/strong'))
             obj_type = Transaction.TYPE_CARD
