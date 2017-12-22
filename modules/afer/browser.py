@@ -19,7 +19,7 @@
 
 from random import randint
 from weboob.browser import URL, LoginBrowser, need_login
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 
 from .pages import LoginPage, IndexPage, BadLogin, AccountDetailPage, AccountHistoryPage
 
@@ -44,7 +44,11 @@ class AferBrowser(LoginBrowser):
         assert isinstance(self.password, basestring)
         self.login.go()
 
-        self.page.login(self.username, self.password)
+        try:
+            self.page.login(self.username, self.password)
+        except BrowserUnavailable:
+            raise BrowserIncorrectPassword()
+
         if self.bad_login.is_here():
             raise BrowserIncorrectPassword()
 
