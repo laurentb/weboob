@@ -115,7 +115,10 @@ class LoginPage(HTMLPage):
                               Attr('//a[.//span[contains(text(), "Confirm")]]', 'onclick')(self.doc))
             m = re.search(r"{\\'([^\\]+)\\':\\'([^\\]+)\\'}", input_validate)
             form[m.group(1)] = m.group(2)
-            del form['pb12876:j_idt3:j_idt158:j_idt159:j_idt244:j_idt273']
+            form.pop('pb12876:j_idt3:j_idt158:j_idt159:j_idt244:j_idt273', None)
+
+        # TODO remove the need help button?
+
         input_otp = Attr('//input[contains(@id, "otp")]', 'id')(self.doc)
         input_id = Attr('//input[@type="checkbox"]', 'id')(self.doc)
         form[input_otp] = otp
@@ -125,7 +128,7 @@ class LoginPage(HTMLPage):
     def check_error(self):
         if bool(self.doc.xpath('//span[@class="operation-bloc-content-message-erreur-text"][contains(text(), "est incorrect")]')) or \
            bool(self.doc.xpath('//span[@class="operation-bloc-content-message-erreur-text"][contains(text(), "is incorrect")]')):
-                raise BrowserIncorrectAuthenticationCode('Invalid OTP')
+            raise BrowserIncorrectAuthenticationCode('Invalid OTP')
         elif bool(self.doc.xpath('//span[@class="operation-bloc-content-message-erreur-text"][contains(text(), "Technical error")]')):
             raise BrowserUnavailable()
 
@@ -141,6 +144,7 @@ class LoginPage(HTMLPage):
             raise BrowserQuestion(Value('otp', label=u'Veuillez saisir votre code de sécurité'))
 
         send_code_form = bool(self.doc.xpath('//form[.//div[has-class("authentification-bloc-content-btn-bloc")]]'))
+        # TODO move this code in browser
         otp = self.browser.config['otp'].get() if 'otp' in self.browser.config else None
         if send_code_form and otp:
             self.check_error()
