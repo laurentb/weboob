@@ -111,7 +111,8 @@ class LoginPage(HTMLPage):
                                 submit='//div[has-class("authentification-bloc-content-btn-bloc")]//input[@type="submit"]')
         except FormNotFound:
             form = self.get_form(xpath='//form[.//div[contains(@class, "otp")]]')
-            input_validate = Attr('//a[.//span[contains(text(), "VALIDATE")]]', 'onclick')(self.doc)
+            input_validate = (Attr('//a[.//span[contains(text(), "VALIDATE")]]', 'onclick', default=None)(self.doc) or
+                              Attr('//a[.//span[contains(text(), "Confirm")]]', 'onclick')(self.doc))
             m = re.search(r"{\\'([^\\]+)\\':\\'([^\\]+)\\'}", input_validate)
             form[m.group(1)] = m.group(2)
             del form['pb12876:j_idt3:j_idt158:j_idt159:j_idt244:j_idt273']
