@@ -93,13 +93,24 @@ class InvestmentPage(LoggedPage, HTMLPage):
             obj_vdate = Date(
                 CleanText('./td[@data-label="Date de valeur"]'), dayfirst=True, default=NotAvailable
             )
-            obj_unitprice = Async('details') & CleanDecimal('//td[@class="donnees"]/span[@id="VL_achat"]',
-                                                            default=NotAvailable)
-            obj_diff_percent = Async('details') & Eval(lambda k: k / 100, CleanDecimal('//td[@class="donnees"]/span[@id="Performance"]',
-                                                               default=NotAvailable))
-            obj_description = Async('details') & CleanText('//td[@class="donnees"]/span[@id="Nature"]',
-                                                           default=NotAvailable)
 
+            def obj_unitprice(self):
+                unitprice = (Async('details') & CleanDecimal('//td[@class="donnees"]/span[@id="VL_achat"]',
+                                                                default=NotAvailable))(self)
+                return unitprice or NotAvailable
+
+            def obj_diff_percent(self):
+                diff_percent = (Async('details') & CleanDecimal('//td[@class="donnees"]/span[@id="Performance"]', default=NotAvailable))(self)
+                # idem
+                if not diff_percent:
+                    return NotAvailable
+                return diff_percent / 100
+
+            def obj_description(self):
+                # idem
+                description = (Async('details') & CleanText('//td[@class="donnees"]/span[@id="Nature"]',
+                                                               default=NotAvailable))(self)
+                return description or NotAvailable
 
 class InvestmentElement(ItemElement):
     klass = Investment
