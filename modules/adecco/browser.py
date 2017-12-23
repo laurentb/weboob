@@ -31,7 +31,7 @@ class AdeccoBrowser(PagesBrowser):
     BASEURL = 'https://www.adecco.fr'
     TIMEOUT = 30
 
-    search_page = URL('/resultats-offres-emploi/\?k=(?P<job>.*)&l=(?P<town>.*)&pageNum=1&display=50', SearchPage)
+    search_page = URL('/resultats-offres-emploi/\?k=(?P<job>.*)&l=(?P<town>.*)&display=50', SearchPage)
     json_page = URL('/AdeccoGroup.Global/api/Job/AsynchronousJobSearch/', AdvertsJsonPage)
     advert_page = URL('/offres-d-emploi/\?ID=(?P<_id>.*)',
                       '/offres-d-emploi/.*',
