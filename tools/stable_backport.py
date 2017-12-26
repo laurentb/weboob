@@ -94,6 +94,29 @@ class Error(object):
                % (self.linenum, path.basename(dirname), self.filename))
 
 
+def remove_block(name, start):
+    lines = []
+    with open(name, 'r') as fd:
+        it = iter(fd)
+        for n in range(start - 1):
+            lines.append(next(it))
+        line = next(it)
+
+        level = len(re.match(r'^( *)', line).group(1))
+        for line in it:
+            if not line.strip():
+                continue
+            new = len(re.match(r'^( *)', line).group(1))
+            if new <= level:
+                lines.append(line)
+                break
+
+        lines.extend(it)
+
+    with open(name, 'w') as fd:
+        fd.write(''.join(lines))
+
+
 class NoNameInModuleError(Error):
     def fixup(self):
         m = re.match(r"No name '(\w+)' in module '([\w\.]+)'", self.message)
@@ -115,6 +138,8 @@ def replace_all(expr, dest):
                done""")
 
 
+def output_lines(cmd):
+    return check_output(cmd, shell=True, stderr=STDOUT).decode('utf-8').rstrip().split('\n')
 
 
 class StableBackport(object):
@@ -162,6 +187,11 @@ class StableBackport(object):
 
         with log('Custom fixups'):
             replace_all(r'Investment.CODE_TYPE_\([A-Z]\+\)', r"'\1'")
+
+            for line in output_lines('git grep -n iter_resources -- "modules/*/compat/bank.py"'):
+                filename, linenum, _ = line.split(':', maxsplit=2)
+                linenum = int(linenum)
+                remove_block(filename, linenum)
 
         system('git add -u')
 
