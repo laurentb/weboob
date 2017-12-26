@@ -133,7 +133,8 @@ class AccountList(LoggedPage, MyHTMLPage):
 
     @property
     def no_accounts(self):
-        return len(self.doc.xpath('//iframe[contains(@src, "/comptes_contrats/sans_")]')) > 0
+        return len(self.doc.xpath('//iframe[contains(@src, "/comptes_contrats/sans_")] |\
+                                   //iframe[contains(@src, "bel_particuliers/prets/prets_nonclient")]')) > 0
 
     @property
     def has_mandate_management_space(self):
