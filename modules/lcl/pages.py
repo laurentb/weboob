@@ -997,7 +997,7 @@ class DocumentsPage(LoggedPage, HTMLPage):
 
             obj_id = Slugify(Format('%s_%s', CleanText(TableCell('id')), CleanText(TableCell('date'))))
             obj_label = Format('%s %s', CleanText(TableCell('label')), CleanText(TableCell('date')))
-            obj_date = Date(CleanText(TableCell('date')))
+            obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
             obj_format = "pdf"
 
             def obj_url(self):
