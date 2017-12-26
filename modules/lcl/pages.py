@@ -532,9 +532,7 @@ class BoursePage(LoggedPage, HTMLPage):
             obj__market_link = Regexp(Attr(TableCell('label'), 'onclick'), "'(.*?)'")
             obj__link_id = Async('details') & Link(u'//a[text()="Historique"]')
             obj__transfer_id = None
-
-            def obj_balance(self):
-                return Field('_especes')(self) + Field('_titres')(self)
+            obj_balance = Field('_titres')
 
             def obj_currency(self):
                 return Currency.get_currency(CleanText(TableCell('titres'))(self))
