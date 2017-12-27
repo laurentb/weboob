@@ -190,7 +190,6 @@ class _AccountsPage(MyLoggedPage, BasePage):
 
     TYPES = {u'CCHQ':       Account.TYPE_CHECKING, # par
              u'CCOU':       Account.TYPE_CHECKING, # pro
-             u'DAV PEA':    Account.TYPE_SAVINGS,
              u'LIV A':      Account.TYPE_SAVINGS,
              u'LDD':        Account.TYPE_SAVINGS,
              u'PEL':        Account.TYPE_SAVINGS,
@@ -213,6 +212,7 @@ class _AccountsPage(MyLoggedPage, BasePage):
              u'INV PRO':    Account.TYPE_LOAN,
              u'TRES. PRO':  Account.TYPE_LOAN,
              u'PEA':        Account.TYPE_PEA,
+             u'DAV PEA':    Account.TYPE_PEA,
              u'CPS':        Account.TYPE_MARKET,
              u'TITR':       Account.TYPE_MARKET,
              u'TITR CTD':   Account.TYPE_MARKET,
