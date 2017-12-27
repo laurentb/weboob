@@ -25,7 +25,6 @@ from weboob.browser.filters.standard import (
     CleanText, Capitalize, Format, Date, Regexp, CleanDecimal, Env,
     Field, Async, Eval
 )
-from weboob.browser.filters.html import Attr
 from weboob.capabilities.bank import Investment, Transaction
 from weboob.capabilities.base import NotAvailable
 from weboob.exceptions import ActionNeeded, BrowserUnavailable
@@ -51,25 +50,10 @@ class PrevoyancePage(LoggedPage, HTMLPage):
 
 
 class LoginPage(BasePage, HTMLPage):
-    def get_values(self):
-        values = {}
-        virtual_keyboard = self.doc.xpath('//input[@keypad]')
-        for input in virtual_keyboard:
-            value = Attr(None, 'value').filter(input.xpath('.'))
-            index = Attr(None, 'data-index').filter(input.xpath('.'))
-            values[value] = index
-        return values
-
-    def get_password(self, password):
-        values = self.get_values()
-        if values:
-            password = [values[c] for c in password]
-        return "".join(password)
-
     def login(self, login, password):
         form = self.get_form(id="loginForm")
         form['username'] = login
-        form['password'] = self.get_password(password)
+        form['password'] = password
         form.submit()
 
 

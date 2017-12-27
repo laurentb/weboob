@@ -44,8 +44,6 @@ class AvivaBrowser(LoginBrowser):
     invest_detail = URL(r'https://aviva.sixtelekurs.fr/.*', InvestDetail)
 
     def do_login(self):
-        if not self.password.isdigit():
-            raise BrowserIncorrectPassword()
         self.login.go().login(self.username, self.password)
         if self.login.is_here():
             if "acceptation" in self.url:
