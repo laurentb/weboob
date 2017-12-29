@@ -153,7 +153,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
         try:
             res = self.location(data['url'], params=playload)
-        except json.decoder.JSONDecodeError:
+        except ValueError:
             raise BrowserUnavailable()
         if not res.page:
             raise BrowserUnavailable()
