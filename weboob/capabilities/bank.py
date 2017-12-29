@@ -220,6 +220,13 @@ class Account(BaseAccount):
     "Retirement savings"
     TYPE_MADELIN          = 16
     "Complementary retirement savings"
+    TYPE_MORTGAGE         = 17
+    "Mortgage"
+    TYPE_CONSUMER_CREDIT  = 18
+    "Consumer credit"
+    TYPE_REVOLVING_CREDIT = 19
+    "Revolving credit"
+
 
     type =      IntField('Type of account', default=TYPE_UNKNOWN)
     balance =   DecimalField('Balance on this bank account')
