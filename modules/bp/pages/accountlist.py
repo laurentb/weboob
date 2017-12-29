@@ -203,7 +203,7 @@ class Advisor(LoggedPage, MyHTMLPage):
 
 
 class AccountRIB(LoggedPage, RawPage):
-    iban_regexp = r'Identifiantinternationaldecompte(\w+)BIC'
+    iban_regexp = r'[A-Z]{2}\d{12}[0-9A-Z]{11}\d{2}'
 
     def __init__(self, *args, **kwargs):
         super(AccountRIB, self).__init__(*args, **kwargs)
@@ -252,7 +252,7 @@ class AccountRIB(LoggedPage, RawPage):
     def get_iban(self):
         m = re.search(self.iban_regexp, self.parsed_text.decode('utf-8'))
         if m:
-            return unicode(m.group(1))
+            return unicode(m.group(0))
         return None
 
 
