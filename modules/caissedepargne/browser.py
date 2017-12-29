@@ -21,6 +21,8 @@ import re
 import datetime
 import json
 
+from decimal import Decimal
+
 from weboob.browser import LoginBrowser, need_login, StatesMixin
 from weboob.browser.switch import SiteSwitch
 from weboob.browser.url import URL
@@ -29,7 +31,7 @@ from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.profile import Profile
 from weboob.browser.exceptions import BrowserHTTPNotFound, ClientError
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded
-from weboob.tools.capabilities.bank.transactions import sorted_transactions
+from weboob.tools.capabilities.bank.transactions import sorted_transactions, FrenchTransaction
 from weboob.tools.compat import urljoin
 from weboob.tools.value import Value
 from weboob.tools.decorators import retry
@@ -39,7 +41,7 @@ from .pages import (
     MessagePage, LoginPage,
     TransferPage, ProTransferPage, TransferConfirmPage, TransferSummaryPage,
     SmsPage, SmsPageOption, SmsRequest, AuthentPage, RecipientPage, CanceledAuth, CaissedepargneKeyboard,
-    TransactionsDetailsPage, LoadingPage, ConsLoanPage
+    TransactionsDetailsPage, LoadingPage, ConsLoanPage, MeasurePage
 )
 
 
@@ -61,6 +63,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     transfer_summary = URL('https://.*/Portail.aspx.*', TransferSummaryPage)
     transfer_confirm = URL('https://.*/Portail.aspx.*', TransferConfirmPage)
     pro_transfer = URL('https://.*/Portail.aspx.*', ProTransferPage)
+    measure_page = URL('https://.*/Portail.aspx.*', MeasurePage)
     authent = URL('https://.*/Portail.aspx.*', AuthentPage)
     home = URL('https://.*/Portail.aspx.*', IndexPage)
     home_tache = URL('https://.*/Portail.aspx\?tache=(?P<tache>).*', IndexPage)
@@ -181,8 +184,45 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         self.cons_loan.go(datepourie = d)
         return self.page.get_conso()
 
+    # On home page there is a list of "measure" links, each one leading to one person accounts list.
+    # Iter over each 'measure' and navigate to it to get all accounts
+    @need_login
+    def get_measure_accounts_list(self):
+        self.home.go()
+
+        # Make sure we are on list of measures page
+        if self.measure_page.is_here():
+            self.page.check_no_accounts()
+            measure_ids = self.page.get_measure_ids()
+            self.accounts = []
+            for measure_id in measure_ids:
+                self.page.go_measure_accounts_list(measure_id)
+                if self.page.check_measure_accounts():
+                    for account in list(self.page.get_list()):
+                        account._info['measure_id'] = measure_id
+                        self.accounts.append(account)
+                self.page.go_measure_list()
+
+            for account in self.accounts:
+                if 'acc_type' in account._info and account._info['acc_type'] == Account.TYPE_LIFE_INSURANCE:
+                    self.page.go_measure_list()
+                    self.page.go_measure_accounts_list(account._info['measure_id'])
+                    self.page.go_history(account._info)
+
+                    if self.message.is_here():
+                        self.page.submit()
+                        self.page.go_history(account._info)
+
+                    balance = self.page.get_measure_balance(account)
+                    account.balance = Decimal(FrenchTransaction.clean_amount(balance))
+                    account.currency = account.get_currency(balance)
+
+        return self.accounts
+
     @need_login
     def get_accounts_list(self):
+        if self.accounts is None:
+            self.accounts = self.get_measure_accounts_list()
         if self.accounts is None:
             if self.home.is_here():
                 self.page.check_no_accounts()
@@ -251,7 +291,10 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             info['link'] = info['link'][0]
         if not info['link'].startswith('HISTORIQUE'):
             return
-        if self.home.is_here():
+        if 'measure_id' in info:
+            self.page.go_measure_list()
+            self.page.go_measure_accounts_list(info['measure_id'])
+        elif self.home.is_here():
             self.page.go_list()
         else:
             self.home_tache.go(tache='CPTSYNT0')
@@ -328,7 +371,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     def get_history(self, account):
         if not hasattr(account, '_info'):
             raise NotImplementedError
-        if account.type is Account.TYPE_LIFE_INSURANCE:
+        if account.type is Account.TYPE_LIFE_INSURANCE and 'measure_id' not in account._info:
             return self._get_history_invests(account)
         return self._get_history(account._info)
 
@@ -348,7 +391,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
     @need_login
     def get_investment(self, account):
-        if account.type not in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET, Account.TYPE_PEA):
+        if account.type not in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET, Account.TYPE_PEA) or 'measure_id' in account._info:
             raise NotImplementedError()
         if self.home.is_here():
             self.page.go_list()
@@ -417,7 +460,11 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
     def pre_transfer(self, account):
         if self.home.is_here():
-            self.page.go_list()
+            if 'measure_id' in account._info:
+                self.page.go_measure_list()
+                self.page.go_measure_accounts_list(account._info['measure_id'])
+            else:
+                self.page.go_list()
         else:
             self.home.go()
         self.page.go_transfer(account)

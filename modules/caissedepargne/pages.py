@@ -184,6 +184,9 @@ class IndexPage(LoggedPage, HTMLPage):
         return not bool(CleanText(u'//table[@class="menu"]//div[contains(., "Crédits")]')(self.doc)) and \
                not bool(CleanText(u'//table[@class="header-navigation_main"]//a[contains(., "Crédits")]')(self.doc))
 
+    def check_measure_accounts(self):
+        return not CleanText(u'//div[@class="MessageErreur"]/ul/li[contains(text(), "Aucun compte disponible")]')(self.doc)
+
     def check_no_accounts(self):
         no_account_message = CleanText(u'//span[@id="MM_LblMessagePopinError"]/p[contains(text(), "Aucun compte disponible")]')(self.doc)
 
@@ -222,7 +225,7 @@ class IndexPage(LoggedPage, HTMLPage):
             else:
                 info['type'] = link
                 info['id'] = info['_id'] = id.group(1)
-            if info['type'] in ('SYNTHESE_ASSURANCE_CNP','SYNTHESE_EPARGNE'):
+            if info['type'] in ('SYNTHESE_ASSURANCE_CNP','SYNTHESE_EPARGNE', 'ASSURANCE_VIE'):
                 info['acc_type'] = Account.TYPE_LIFE_INSURANCE
             if info['type'] in ('BOURSE', 'COMPTE_TITRE'):
                 info['acc_type'] = Account.TYPE_MARKET
@@ -271,6 +274,18 @@ class IndexPage(LoggedPage, HTMLPage):
             balance = NotAvailable
         self.go_list()
         return balance
+
+    def get_measure_balance(self, account):
+        for tr in self.doc.xpath('//table[@cellpadding="1"]/tr[not(@class)]'):
+            if re.search('[A-Z]*(\d{3,})', CleanText('./td/a[@class="NumeroDeCompte"]')(tr)).group() in account.id:
+                return re.search('\s\d{1,3}(?:[\s.,]\d{3})*(?:[\s.,]\d{2})', CleanText('./td/a[@class="NumeroDeCompte"]')(tr)).group()
+        return NotAvailable
+
+    def get_measure_ids(self):
+        accounts_id = []
+        for a in self.doc.xpath('//table[@cellpadding="1"]/tr/td[2]/a'):
+            accounts_id.append(re.search("(\d{10})", Attr('.', 'href')(a)).group(1))
+        return accounts_id
 
     def get_list(self):
         accounts = OrderedDict()
@@ -427,6 +442,48 @@ class IndexPage(LoggedPage, HTMLPage):
 
         form.submit()
 
+    # On some pages, navigate to indexPage does not lead to the list of measures, so we need this form ...
+    def go_measure_list(self):
+        form = self.get_form(name='main')
+
+        form['__EVENTARGUMENT'] = "MESLIST0"
+        form['__EVENTTARGET'] = 'Menu_AJAX'
+        form['m_ScriptManager'] = 'm_ScriptManager|Menu_AJAX'
+
+        for name in ['MM$HISTORIQUE_COMPTE$btnCumul','Cartridge$imgbtnMessagerie','MM$m_CH$ButtonImageFondMessagerie',
+                     'MM$m_CH$ButtonImageMessagerie']:
+            try:
+                del form[name]
+            except KeyError:
+                pass
+
+        form.submit()
+
+    # This function goes to the accounts page of one measure giving its id
+    def go_measure_accounts_list(self, measure_id):
+        form = self.get_form(name='main')
+
+        form['__EVENTARGUMENT'] = "CPTSYNT0"
+
+        if "MM$m_CH$IsMsgInit" in form:
+            # Old website
+            form['__EVENTTARGET'] = "MM$SYNTHESE_MESURES"
+            form['m_ScriptManager'] = "MM$m_UpdatePanel|MM$SYNTHESE_MESURES"
+            form['__EVENTARGUMENT'] = measure_id
+        else:
+            # New website
+            form['__EVENTTARGET'] = "MM$m_PostBack"
+            form['m_ScriptManager'] = "MM$m_UpdatePanel|MM$m_PostBack"
+
+        for name in ['MM$HISTORIQUE_COMPTE$btnCumul','Cartridge$imgbtnMessagerie','MM$m_CH$ButtonImageFondMessagerie',\
+                     'MM$m_CH$ButtonImageMessagerie']:
+            try:
+                del form[name]
+            except KeyError:
+                pass
+
+        form.submit()
+
     def go_loan_list(self):
         form = self.get_form(name='main')
 
@@ -460,7 +517,7 @@ class IndexPage(LoggedPage, HTMLPage):
         form['__EVENTTARGET'] = 'MM$%s' % (info['type'] if is_cbtab else 'SYNTHESE')
         form['__EVENTARGUMENT'] = info['link']
 
-        if "MM$m_CH$IsMsgInit" in form and form['MM$m_CH$IsMsgInit'] == "0":
+        if "MM$m_CH$IsMsgInit" in form and (form['MM$m_CH$IsMsgInit'] == "0" or info['type'] == 'ASSURANCE_VIE'):
             form['m_ScriptManager'] = "MM$m_UpdatePanel|MM$SYNTHESE"
 
         self._fix_form(form)
@@ -554,6 +611,10 @@ class IndexPage(LoggedPage, HTMLPage):
         return True
 
     def go_life_insurance(self, account):
+        # The site shows nothing about life insurance accounts except balance, links are disabled
+        if 'measure_id' in account._info:
+            return
+
         link = self.doc.xpath('//tr[td[contains(., ' + account.id + ') ]]//a')[0]
         m = re.search("PostBackOptions?\([\"']([^\"']+)[\"'],\s*['\"](REDIR_ASS_VIE[\d\w&]+)?['\"]", link.attrib.get('href', ''))
         if m is not None:
@@ -712,6 +773,11 @@ class TransferErrorPage(object):
         error = CleanText('//span[@id="MM_LblMessagePopinError"]/p | //div[h2[contains(text(), "Erreur de saisie")]]/p[1] | //span[@class="error"]/strong')(self.doc)
         if error:
             raise TransferBankError(message=error)
+
+
+class MeasurePage(IndexPage):
+    def is_here(self):
+        return self.doc.xpath('//span[contains(text(), "Liste de vos mesures")]')
 
 
 class TransferPage(TransferErrorPage, IndexPage):

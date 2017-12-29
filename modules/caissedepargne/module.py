@@ -82,7 +82,7 @@ class CaisseEpargneModule(Module, CapBankWealth, CapBankTransferAddRecipient, Ca
 
     def iter_transfer_recipients(self, origin_account):
         if not isinstance(origin_account, Account):
-            origin_account = find_object(self.iter_accounts(), id=origin_account, error=AccountNotFound)
+            origin_account = self.get_account(origin_account)
         return self.browser.iter_recipients(origin_account)
 
     def init_transfer(self, transfer, **params):
