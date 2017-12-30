@@ -90,7 +90,7 @@ class AccountsPage(LoggedPage, HTMLPage):
 
 
 class TableInvestment(TableElement):
-    col_label = u'Support'
+    col_label = re.compile(r'Supports?')
     col_vdate = u'Date de valeur'
     col_unitvalue = u'Valeur de part'
     col_quantity = u'Nombre de parts'
