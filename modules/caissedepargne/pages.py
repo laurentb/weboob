@@ -614,9 +614,11 @@ class MarketPage(LoggedPage, HTMLPage):
         except AssertionError:
             return True
 
-    def parse_decimal(self, td):
+    def parse_decimal(self, td, percentage=False):
         value = CleanText('.')(td)
         if value and value != '-':
+            if percentage:
+                return Decimal(FrenchTransaction.clean_amount(value)) / 100
             return Decimal(FrenchTransaction.clean_amount(value))
         else:
             return NotAvailable
@@ -683,6 +685,7 @@ class LifeInsurance(MarketPage):
             date = CleanText('.')(tr.xpath('./td[4]')[0])
             inv.vdate = Date(dayfirst=True).filter(date) if date and date != '-' else NotAvailable
             inv.valuation = self.parse_decimal(tr.xpath('./td[5]')[0])
+            inv.diff_percent = self.parse_decimal(tr.xpath('./td[6]')[0], percentage=True)
 
             yield inv
 
