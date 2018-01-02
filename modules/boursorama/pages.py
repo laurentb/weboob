@@ -250,6 +250,9 @@ class AccountsPage(LoggedPage, HTMLPage):
             def obj_id(self):
                 type = Field('type')(self)
                 if type == Account.TYPE_CARD:
+                    # When card is opposed it still appears on accounts page with a dead link and so, no id. Skip it.
+                    if Attr('.//a[has-class("account--name")]', 'href')(self) == '#':
+                        raise SkipItem()
                     return self.obj__idparts()[1]
 
                 id = Async('details', Regexp(CleanText('//h3[has-class("account-number")]'), r'(\d+)', default=NotAvailable))(self)
