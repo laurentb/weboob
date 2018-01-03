@@ -485,8 +485,8 @@ class MarketPage(LoggedPage, HTMLPage):
 
     @method
     class iter_investment(TableElement):
-        item_xpath = '//table/tr[not(has-class("LnTit") or has-class("LnTot"))]'
-        head_xpath = '//table/tr[1]/td'
+        item_xpath = '//table[has-class("domifrontTb")]/tr[not(has-class("LnTit") or has-class("LnTot"))]'
+        head_xpath = '//table[has-class("domifrontTb")]/tr[1]/td'
 
         col_label = u'Valeur'
         col_code = u'Code'
