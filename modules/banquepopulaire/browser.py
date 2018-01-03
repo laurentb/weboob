@@ -186,6 +186,7 @@ class BanquePopulaire(LoginBrowser):
 
     ACCOUNT_URLS = ['mesComptes', 'mesComptesPRO', 'maSyntheseGratuite', 'accueilSynthese', 'equipementComplet']
 
+    @retry(BrokenPageError)
     @need_login
     def go_on_accounts_list(self):
         for taskInfoOID in self.ACCOUNT_URLS:
