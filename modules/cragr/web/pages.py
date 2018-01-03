@@ -574,6 +574,13 @@ class AccountsPage(_AccountsPage):
             if isinstance(page, UnavailablePage):
                 raise BrowserUnavailable()
 
+            if not account.type:
+                # some accounts have funny names and are not detected as checking
+                # the page breadcrumb may be a hint of the account type
+                m = re.search(r'breadCrumbs = \[[^]]*\]', page.text, re.DOTALL)
+                if m and 'Compte courant' in m.group(0):
+                    account.type = Account.TYPE_CHECKING
+
             # TODO move this code to avoid the use_link stuff?
             url = page.get_iban_url()
             if url:
