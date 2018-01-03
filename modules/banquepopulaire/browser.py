@@ -331,7 +331,10 @@ class BanquePopulaire(LoginBrowser):
         else:
             params = account._invest_params
             params['token'] = self.page.build_token(params['token'])
-            self.location(self.absurl('/cyber/internet/ContinueTask.do', base=True), data=params)
+            try:
+                self.location(self.absurl('/cyber/internet/ContinueTask.do', base=True), data=params)
+            except BrowserUnavailable:
+                return False
 
         if self.error_page.is_here():
             raise NotImplementedError()
