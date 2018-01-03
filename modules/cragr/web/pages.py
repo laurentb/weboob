@@ -208,6 +208,7 @@ class _AccountsPage(MyLoggedPage, BasePage):
              u'CPTEXCPRO':  Account.TYPE_SAVINGS,
              u'CPTEXCENT':  Account.TYPE_SAVINGS,
              u'PRET PERSO': Account.TYPE_LOAN,
+             u'P. ENTREPR': Account.TYPE_LOAN,
              u'P. HABITAT': Account.TYPE_LOAN,
              u'PRET 0%':    Account.TYPE_LOAN,
              u'INV PRO':    Account.TYPE_LOAN,

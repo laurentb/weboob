@@ -24,10 +24,9 @@ from datetime import date, datetime, timedelta
 
 from weboob.capabilities.bank import (
     Account, AddRecipientStep, AddRecipientError, RecipientInvalidLabel,
-    Recipient,
+    Recipient, AccountNotFound,
 )
 from weboob.capabilities.base import NotLoaded, find_object
-from weboob.capabilities.bank import AccountNotFound
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.browser.pages import FormNotFound
 from weboob.exceptions import BrowserIncorrectPassword
@@ -303,6 +302,9 @@ class Cragr(LoginBrowser, StatesMixin):
         if self.loans.is_here():
             for account in self.page.get_list():
                 if account not in accounts_list:
+                    if not account.type:
+                        account.type = Account.TYPE_LOAN
+
                     accounts_list.append(account)
 
         # savings accounts
