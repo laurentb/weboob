@@ -35,7 +35,7 @@ from weboob.capabilities.bank import Account, Investment, Loan
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.exceptions import BrowserIncorrectPassword, NoAccountsException
+from weboob.exceptions import BrowserIncorrectPassword, NoAccountsException, ParseError
 
 
 def MyDecimal(*args, **kwargs):
@@ -317,11 +317,14 @@ class HistoryPage(LoggedPage, JsonPage):
 
             class FromTimestamp(Filter):
                 def filter(self, timestamp):
-                    return dt.date.fromtimestamp(int(timestamp[:-3]))
+                    try:
+                        return dt.date.fromtimestamp(int(timestamp[:-3]))
+                    except TypeError:
+                        return self.default_or_raise(ParseError('Element %r not found' % self.selector))
 
-            obj_date = FromTimestamp(Dict('dateOperation'))
+            obj_date = FromTimestamp(Dict('dateOperation', default=NotAvailable), default=NotAvailable)
             obj_raw = Transaction.Raw(Dict('libelleCourt'))
-            obj_vdate = Date(Dict('dateValeur'), dayfirst=True)
+            obj_vdate = Date(Dict('dateValeur', NotAvailable), dayfirst=True, default=NotAvailable)
             obj_amount = CleanDecimal(Dict('montantEnEuro'), default=NotAvailable)
 
             def parse(self, el):
@@ -335,7 +338,7 @@ class HistoryPage(LoggedPage, JsonPage):
 
                 # Skip duplicate transactions
                 amount = Dict('montantEnEuro', default=None)(self)
-                tr = Dict('libelleCourt')(self) + Dict('dateOperation')(self) + str(amount)
+                tr = Dict('libelleCourt')(self) + Dict('dateOperation', '')(self) + str(amount)
                 if amount is None or (tr in self.page.browser.trs['list'] and self.page.browser.trs['lastdate'] <= Field('date')(self)):
                     raise SkipItem()
 
