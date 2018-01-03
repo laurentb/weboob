@@ -119,6 +119,7 @@ class item_account_generic(ItemElement):
         ('Catip',                   Account.TYPE_DEPOSIT),
         ('Cic Immo',                Account.TYPE_LOAN),
         ('Credit',                  Account.TYPE_LOAN),
+        ('Crédits',                 Account.TYPE_LOAN),
         ('Eco-Prêt',                Account.TYPE_LOAN),
         ('Mcne',                    Account.TYPE_LOAN),
         ('Nouveau Prêt',            Account.TYPE_LOAN),
