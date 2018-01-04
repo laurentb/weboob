@@ -224,7 +224,8 @@ class CardItemElement(ItemElement):
         })
 
     def obj__redacted_card(self):
-        if 'FACTURE CARTE' not in Field('raw')(self):
+        raw = Field('raw')(self)
+        if 'FACTURE CARTE' not in raw or ' SUIVANT RELEVE DU ' in raw:
             return
 
         page = Async('details').loaded_page(self)
