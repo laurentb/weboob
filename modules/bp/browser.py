@@ -344,12 +344,12 @@ class BPBrowser(LoginBrowser, StatesMixin):
         if account.type != Account.TYPE_LIFE_INSURANCE:
             return iter([])
 
+        investments = []
+
         self.lifeinsurance_invest.go(id=account.id)
         assert self.lifeinsurance_invest.is_here()
-        if self.page.has_error():
-            raise NotImplementedError()
-
-        investments = list(self.page.iter_investments())
+        if not self.page.has_error():
+            investments = list(self.page.iter_investments())
 
         if not investments:
             self.lifeinsurance_invest2.go(id=account.id)
