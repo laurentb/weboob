@@ -102,6 +102,7 @@ class AccountsPage(GenericLandingPage):
                 PATTERNS = [
                     ('Pea', Account.TYPE_PEA),
                     ('invest', Account.TYPE_MARKET),
+                    ('ptf', Account.TYPE_MARKET),
                     ('ldd', Account.TYPE_SAVINGS),
                     ('livret', Account.TYPE_SAVINGS),
                     ('compte', Account.TYPE_CHECKING),
