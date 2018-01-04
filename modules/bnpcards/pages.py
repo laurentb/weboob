@@ -20,6 +20,7 @@
 import re
 from datetime import date
 
+from weboob.exceptions import BrowserPasswordExpired
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Field, Env, Format
@@ -171,7 +172,10 @@ class TransactionsPage(LoggedPage, HTMLPage):
 
 
 class ErrorPage(HTMLPage):
-    pass
+    def on_load(self):
+        msg = CleanText('//div[@id="errors"]')(self.doc)
+        if msg == 'Your password has expired: you must change it.':
+            raise BrowserPasswordExpired(msg)
 
 
 class TiCardPage(ExpandablePage, TransactionsPage):

@@ -33,6 +33,7 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
     error = URL('.*.seConnecter.event.do',
                 '.*.compteGestChgPWD.builder.do',
                 '/ce_internet_prive_ti/compteTituChgPWD.builder.do',
+                r'/ce_internet_corporate_ti/compteTituChgPWDCorporate.builder.do',
                 ErrorPage)
     home = URL('/ce_internet_prive_ge/accueilInternetGe.builder.do',
                '/ce_internet_(prive|corporate)_ti/accueilInternetTi(Corporate)?.builder.do', HomePage)
