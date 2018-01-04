@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from collections import OrderedDict
-from functools import wraps
 import re
 
 from weboob.capabilities.bank import CapBankWealth, CapBankTransferAddRecipient, AccountNotFound, Account, RecipientNotFound
@@ -28,42 +27,9 @@ from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
 
-from .browser import CaisseEpargne, ChangeBrowser
-from .cenet.browser import CenetBrowser
+from .proxy_browser import ProxyBrowser
 
 __all__ = ['CaisseEpargneModule']
-
-
-def check_browser_type_iter(func):
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        returned = False
-        try:
-            for obj in func(self, *args, **kwargs):
-                yield obj
-                returned = True
-        except ChangeBrowser:
-            assert not returned, 'cannot change browser type in the middle of the iteration'
-
-            self.BROWSER = CenetBrowser
-            self._browser = self.create_default_browser()
-            for obj in func(self, *args, **kwargs):
-                yield obj
-
-    return wrapper
-
-
-def check_browser_type(func):
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-        try:
-            return func(self, *args, **kwargs)
-        except ChangeBrowser:
-            self.BROWSER = CenetBrowser
-            self._browser = self.create_default_browser()
-            return func(self, *args, **kwargs)
-
-    return wrapper
 
 
 class CaisseEpargneModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapContact, CapProfile):
@@ -73,7 +39,7 @@ class CaisseEpargneModule(Module, CapBankWealth, CapBankTransferAddRecipient, Ca
     VERSION = '1.4'
     DESCRIPTION = u'Caisse d\'Épargne'
     LICENSE = 'AGPLv3+'
-    BROWSER = CaisseEpargne
+    BROWSER = ProxyBrowser
     website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
         'www.caisse-epargne.fr':     u'Caisse d\'Épargne',
         'www.banquebcp.fr':          u'Banque BCP',
@@ -90,7 +56,6 @@ class CaisseEpargneModule(Module, CapBankWealth, CapBankTransferAddRecipient, Ca
                                    password=self.config['password'].get(),
                                    domain=self.config['website'].get())
 
-    @check_browser_type_iter
     def iter_accounts(self):
         for account in self.browser.get_accounts_list():
             yield account
@@ -100,33 +65,26 @@ class CaisseEpargneModule(Module, CapBankWealth, CapBankTransferAddRecipient, Ca
     def get_account(self, _id):
         return find_object(self.iter_accounts(), id=_id, error=AccountNotFound)
 
-    @check_browser_type_iter
     def iter_history(self, account):
         return self.browser.get_history(account)
 
-    @check_browser_type_iter
     def iter_coming(self, account):
         return self.browser.get_coming(account)
 
-    @check_browser_type_iter
     def iter_investment(self, account):
         return self.browser.get_investment(account)
 
-    @check_browser_type_iter
     def iter_contacts(self):
         return self.browser.get_advisor()
 
-    @check_browser_type
     def get_profile(self):
         return self.browser.get_profile()
 
-    @check_browser_type_iter
     def iter_transfer_recipients(self, origin_account):
         if not isinstance(origin_account, Account):
             origin_account = find_object(self.iter_accounts(), id=origin_account, error=AccountNotFound)
         return self.browser.iter_recipients(origin_account)
 
-    @check_browser_type
     def init_transfer(self, transfer, **params):
         self.logger.info('Going to do a new transfer')
         transfer.label = ' '.join(w for w in re.sub('[^0-9a-zA-Z/\-\?:\(\)\.,\'\+ ]+', '', transfer.label).split()).upper()
@@ -142,11 +100,9 @@ class CaisseEpargneModule(Module, CapBankWealth, CapBankTransferAddRecipient, Ca
 
         return self.browser.init_transfer(account, recipient, transfer)
 
-    @check_browser_type
     def execute_transfer(self, transfer, **params):
         return self.browser.execute_transfer(transfer)
 
-    @check_browser_type
     def new_recipient(self, recipient, **params):
         #recipient.label = ' '.join(w for w in re.sub('[^0-9a-zA-Z:\/\-\?\(\)\.,\'\+ ]+', '', recipient.label).split())
         return self.browser.new_recipient(recipient, **params)

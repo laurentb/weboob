@@ -22,6 +22,7 @@ import datetime
 import json
 
 from weboob.browser import LoginBrowser, need_login, StatesMixin
+from weboob.browser.switch import SiteSwitch
 from weboob.browser.url import URL
 from weboob.capabilities.bank import Account, AddRecipientStep, Recipient, TransferBankError, Transaction
 from weboob.capabilities.base import NotAvailable
@@ -43,10 +44,6 @@ from .pages import (
 
 
 __all__ = ['CaisseEpargne']
-
-
-class ChangeBrowser(Exception):
-    pass
 
 
 class CaisseEpargne(LoginBrowser, StatesMixin):
@@ -124,7 +121,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             raise BrowserIncorrectPassword()
 
         if "authMode" in data and data['authMode'] == 'redirect':
-            raise ChangeBrowser()
+            raise SiteSwitch('cenet')
 
         if len(data['account']) > 1:
             self.multi_type = True
