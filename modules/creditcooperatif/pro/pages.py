@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from decimal import Decimal
 import re
@@ -48,7 +49,10 @@ class LoginPage(HTMLPage):
 
 
 class AccountsPage(LoggedPage, HTMLPage):
-    ACCOUNT_TYPES = {u'COMPTE NEF': Account.TYPE_CHECKING}
+    ACCOUNT_TYPES = {
+        'COMPTE NEF': Account.TYPE_CHECKING,
+        'CPTE A VUE': Account.TYPE_CHECKING,
+    }
 
     CPT_ROW_ID = 0
     CPT_ROW_NAME = 1
