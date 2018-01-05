@@ -20,7 +20,7 @@
 from __future__ import unicode_literals
 
 
-from weboob.browser.pages import HTMLPage, LoggedPage
+from weboob.browser.pages import HTMLPage, LoggedPage, FormNotFound
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Env, Regexp, Format,
@@ -42,8 +42,12 @@ class PanelPage(HTMLPage, LoggedPage):
 
 class SecurityPage(HTMLPage, LoggedPage):
     def push_otp(self, otp):
-        form = self.get_form(id='auth-mfa-form')
-        form['otpCode'] = otp
+        try:
+            form = self.get_form(id='auth-mfa-form')
+            form['otpCode'] = otp
+        except FormNotFound:
+            form = self.get_form(nr=0)
+            form['code'] = otp
         form['rememberDevice'] = ""
         form.submit()
 
