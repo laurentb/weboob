@@ -222,7 +222,12 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
         for t in self.page.iter_history(is_card=True):
             yield t
 
-        self.location(account.url, params={'movementSearch[period]': 'previousPeriod'})
+        params = {}
+        params['movementSearch[toDate]'] = (date.today() + relativedelta(days=40)).strftime('%d/%m/%Y')
+        params['movementSearch[fromDate]'] = (date.today() - relativedelta(years=3)).strftime('%d/%m/%Y')
+        params['fullSearch'] = 1
+
+        self.location(account.url, params=params)
         for t in self.page.iter_history(is_card=True, is_previous=True):
             yield t
 
