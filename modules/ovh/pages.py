@@ -42,11 +42,25 @@ class LoginPage(HTMLPage):
         form[pwd] = password
         form.submit()
 
-    def check_double_auth(self):
+    # There is 2 double auth method
+    # One activated by the user, that we don't handle,
+    # The other, spawning sometimes at first login, that we can handle.
+
+    def check_user_double_auth(self):
         double_auth = self.doc.xpath('//input[@id="codeSMS"]')
 
         if double_auth:
             raise ActionNeeded(CleanText('(//div[contains(., "Two-Factor")])[5]')(self.doc))
+
+    def check_website_double_auth(self):
+        double_auth = self.doc.xpath('//input[@id="emailCode"]')
+
+        return bool(double_auth)
+
+    def validate_double_auth(self, code):
+        form = self.get_form()
+        form['emailCode'] = code
+        form.submit()
 
 
 class ProfilePage(LoggedPage, JsonPage):

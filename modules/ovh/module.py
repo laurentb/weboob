@@ -37,12 +37,13 @@ class OvhModule(Module, CapDocument):
     LICENSE = 'AGPLv3+'
     VERSION = '1.4'
     CONFIG = BackendConfig(Value('login', label='Account ID'),
-                                   ValueBackendPassword('password', label='Password'))
+                           ValueBackendPassword('password', label='Password'),
+                           Value('pin_code', label='Code PIN / Email', required=False, default=''))
 
     BROWSER = OvhBrowser
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(), self.config['password'].get())
+        return self.create_browser(self.config)
 
     def iter_subscription(self):
         return self.browser.get_subscription_list()

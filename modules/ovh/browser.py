@@ -16,16 +16,17 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
+import time
+from datetime import datetime, timedelta
 
-
-from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
+from weboob.exceptions import BrowserIncorrectPassword, BrowserQuestion
+from weboob.tools.value import Value
 
 from .pages import LoginPage, ProfilePage, BillsPage
-from datetime import datetime, timedelta
-import time
 
-class OvhBrowser(LoginBrowser):
+
+class OvhBrowser(LoginBrowser, StatesMixin):
     BASEURL = 'https://www.ovh.com'
 
     login = URL('/auth/',
@@ -33,7 +34,21 @@ class OvhBrowser(LoginBrowser):
     profile = URL('/engine/api/me', ProfilePage)
     documents = URL('/engine/2api/sws/billing/bills\?count=0&date=(?P<fromDate>.*)&dateTo=(?P<toDate>.*)&offset=0', BillsPage)
 
+    def __init__(self, config=None, *args, **kwargs):
+        self.config = config
+        kwargs['username'] = self.config['login'].get()
+        kwargs['password'] = self.config['password'].get()
+        super(OvhBrowser, self).__init__(*args, **kwargs)
+
     def do_login(self):
+        if self.config['pin_code'].get():
+            self.page.validate_double_auth(self.config['pin_code'])
+
+            if not self.page.is_logged():
+                raise BrowserIncorrectPassword("Login / Password or authentication pin_code incorrect")
+            else:
+                return
+
         self.login.go()
 
         if self.page.is_logged():
@@ -41,7 +56,10 @@ class OvhBrowser(LoginBrowser):
 
         self.page.login(self.username, self.password)
 
-        self.page.check_double_auth()
+        self.page.check_user_double_auth()
+
+        if self.page.check_website_double_auth():
+            raise BrowserQuestion(Value('pin_code', label=self.page.get_otp_message() or 'Please type the OTP you received'))
 
         if not self.page.is_logged():
             raise BrowserIncorrectPassword
