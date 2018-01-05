@@ -117,7 +117,11 @@ class LoginPage(HTMLPage):
             form[m.group(1)] = m.group(2)
             form.pop('pb12876:j_idt3:j_idt158:j_idt159:j_idt244:j_idt273', None)
 
-        # TODO remove the need help button?
+        for k in form:
+            if 'need help' in form[k].lower():
+                del form[k]
+                break
+
 
         input_otp = Attr('//input[contains(@id, "otp")]', 'id')(self.doc)
         input_id = Attr('//input[@type="checkbox"]', 'id')(self.doc)

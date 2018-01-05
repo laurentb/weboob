@@ -62,6 +62,8 @@ class S2eBrowser(LoginBrowser, StatesMixin):
         if self.login.is_here() and otp:
             self.page.check_error()
             self.page.send_otp(otp)
+            if self.login.is_here():
+                self.page.check_error()
         else:
             self.login.go(slug=self.SLUG).login(self.username, self.password, self.secret)
 
