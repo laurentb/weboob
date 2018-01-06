@@ -130,6 +130,7 @@ class Repository(object):
         self.local = None
         self.signed = False
         self.key_update = 0
+        self.obsolete = False
         self.logger = getLogger('repository')
 
         self.modules = {}
@@ -237,6 +238,7 @@ class Repository(object):
             self.maintainer = items['maintainer']
             self.signed = bool(int(items.get('signed', '0')))
             self.key_update = int(items.get('key_update', '0'))
+            self.obsolete = bool(int(items.get('obsolete', '0')))
         except KeyError as e:
             raise RepositoryUnavailable('Missing global parameters in repository: %s' % e)
         except ValueError as e:
@@ -607,6 +609,10 @@ class Repositories(object):
                 progress.error('Unable to load repository: %s' % e)
             else:
                 self.repositories.append(repository)
+                if repository.obsolete:
+                    last_update = datetime.strptime(str(repository.update), '%Y%m%d%H%M').strftime('%Y-%m-%d')
+                    progress.error('This repository does not receive updates anymore (since %s).\n'
+                                   'Your weboob version is probably obsolete and should be upgraded.' % last_update)
 
     def check_repositories(self):
         """
