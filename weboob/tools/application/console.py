@@ -37,8 +37,6 @@ from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, Brow
                               BrowserSSLError, BrowserQuestion, BrowserHTTPSDowngrade, \
                               ModuleInstallError, ModuleLoadError, NoAccountsException, \
                               ActionNeeded, CaptchaQuestion
-from weboob.capabilities.bank import TransferInvalidLabel, TransferInvalidAmount, TransferInvalidDate, \
-                                     TransferInvalidEmitter, TransferInvalidRecipient
 from weboob.tools.value import Value, ValueBool, ValueFloat, ValueInt, ValueBackendPassword
 from weboob.tools.misc import to_unicode
 from weboob.tools.compat import unicode, long
@@ -612,16 +610,6 @@ class ConsoleApplication(Application):
             print(u'Error(%s): this feature is not supported yet by this backend.' % backend.name, file=self.stderr)
             print(u'      %s   To help the maintainer of this backend implement this feature,' % (' ' * len(backend.name)), file=self.stderr)
             print(u'      %s   please contact us on the project mailing list' % (' ' * len(backend.name)), file=self.stderr)
-        elif isinstance(error, TransferInvalidAmount):
-            print(u'Error(%s): %s' % (backend.name, to_unicode(error) or 'The transfer amount is invalid'), file=self.stderr)
-        elif isinstance(error, TransferInvalidLabel):
-            print(u'Error(%s): %s' % (backend.name, to_unicode(error) or 'The transfer label is invalid'), file=self.stderr)
-        elif isinstance(error, TransferInvalidEmitter):
-            print(u'Error(%s): %s' % (backend.name, to_unicode(error) or 'The transfer emitter is invalid'), file=self.stderr)
-        elif isinstance(error, TransferInvalidRecipient):
-            print(u'Error(%s): %s' % (backend.name, to_unicode(error) or 'The transfer recipient is invalid'), file=self.stderr)
-        elif isinstance(error, TransferInvalidDate):
-            print(u'Error(%s): %s' % (backend.name, to_unicode(error) or 'The transfer execution date is invalid'), file=self.stderr)
         elif isinstance(error, UserError):
             print(u'Error(%s): %s' % (backend.name, to_unicode(error)), file=self.stderr)
         elif isinstance(error, MoreResultsAvailable):

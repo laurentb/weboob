@@ -30,13 +30,18 @@ from weboob.browser.browsers import APIBrowser
 from weboob.browser.profiles import Weboob
 from weboob.exceptions import BrowserHTTPError
 from weboob.capabilities.base import empty, find_object
-from weboob.capabilities.bank import CapBank, Account, Transaction, CapBankTransfer, \
-                                     Transfer, TransferStep, Recipient, AddRecipientStep, \
-                                     CapBankWealth, CapBankPockets
+from weboob.capabilities.bank import (
+    Account, Transaction,
+    Transfer, TransferStep, Recipient, AddRecipientStep,
+    CapBank, CapBankTransfer, CapBankWealth, CapBankPockets,
+    TransferInvalidLabel, TransferInvalidAmount, TransferInvalidDate,
+    TransferInvalidEmitter, TransferInvalidRecipient,
+)
 from weboob.capabilities.contact import CapContact, Advisor
 from weboob.capabilities.profile import CapProfile
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
+from weboob.tools.misc import to_unicode
 
 
 __all__ = ['Boobank']
@@ -471,8 +476,18 @@ class Boobank(ReplApplication):
                 if v:
                     params[field.id] = v
             next(iter(self.do('add_recipient', error.recipient, **params)))
+        elif isinstance(error, TransferInvalidAmount):
+            print(u'Error(%s): %s' % (backend.name, to_unicode(error) or 'The transfer amount is invalid'), file=self.stderr)
+        elif isinstance(error, TransferInvalidLabel):
+            print(u'Error(%s): %s' % (backend.name, to_unicode(error) or 'The transfer label is invalid'), file=self.stderr)
+        elif isinstance(error, TransferInvalidEmitter):
+            print(u'Error(%s): %s' % (backend.name, to_unicode(error) or 'The transfer emitter is invalid'), file=self.stderr)
+        elif isinstance(error, TransferInvalidRecipient):
+            print(u'Error(%s): %s' % (backend.name, to_unicode(error) or 'The transfer recipient is invalid'), file=self.stderr)
+        elif isinstance(error, TransferInvalidDate):
+            print(u'Error(%s): %s' % (backend.name, to_unicode(error) or 'The transfer execution date is invalid'), file=self.stderr)
         else:
-            return ReplApplication.bcall_error_handler(self, backend, error, backtrace)
+            return super(Boobank, self).bcall_error_handler(backend, error, backtrace)
 
     def load_default_backends(self):
         self.load_backends(CapBank, storage=self.create_storage())
