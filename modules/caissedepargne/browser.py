@@ -438,7 +438,9 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     def get_profile(self):
         from weboob.tools.misc import to_unicode
         profile = Profile()
-        if 'username=' in self.session.cookies.get('CTX', ''):
+        if len([k for k in self.session.cookies.keys() if k == 'CTX']) > 1:
+            del self.session.cookies['CTX']
+        elif 'username=' in self.session.cookies.get('CTX', ''):
             profile.name = to_unicode(re.search('username=([^&]+)', self.session.cookies['CTX']).group(1))
         elif 'nomusager=' in self.session.cookies.get('headerdei'):
             profile.name = to_unicode(re.search('nomusager=(?:[^&]+/ )?([^&]+)', self.session.cookies['headerdei']).group(1))
