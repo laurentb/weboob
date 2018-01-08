@@ -81,8 +81,10 @@ class SpiricaBrowser(LoginBrowser):
     def fill_from_list(self, invs, objects_list):
         matching_fields = ['code', 'unitvalue', 'label', '_gestion_type']
         for inv in invs:
-            obj_from_list = [o for o in objects_list if all(getattr(o, field) == getattr(inv, field) for field in matching_fields)]
-            assert len(obj_from_list) == 1
-            for name, field_value in obj_from_list[0].iter_fields():
-                if field_value:
-                    setattr(inv, name, field_value)
+            # Some investments don't have PRM
+            if inv._invest_type != 'Fonds en euros':
+                obj_from_list = [o for o in objects_list if all(getattr(o, field) == getattr(inv, field) for field in matching_fields)]
+                assert len(obj_from_list) == 1
+                for name, field_value in obj_from_list[0].iter_fields():
+                    if field_value:
+                        setattr(inv, name, field_value)

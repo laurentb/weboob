@@ -106,6 +106,7 @@ class ItemInvestment(ItemElement):
     obj_unitvalue = MyDecimal(TableCell('unitvalue', default=None))
     obj_vdate = Date(CleanText(TableCell('vdate', default="")), dayfirst=True, default=NotAvailable)
     obj_code = Regexp(CleanText('.//td[contains(text(), "Isin")]'), ':[\s]+([\w]+)', default=NotAvailable)
+    obj__invest_type = Regexp(CleanText('.//td[contains(text(), "Type")]'), ':[\s]+([\w ]+)', default=NotAvailable)
 
     def obj_valuation(self):
         valuation = MyDecimal(TableCell('valuation', default=None))(self)
