@@ -94,7 +94,7 @@ class CurrencyPage(LoggedPage, JsonPage):
 
 class JsonPeriods(LoggedPage, JsonPage):
     def get_periods(self):
-        return [(p['statement_start_date'], p['statement_end_date']) for p in self.doc]
+        return [p['statement_end_date'] for p in self.doc]
 
 
 class JsonHistory(LoggedPage, JsonPage):

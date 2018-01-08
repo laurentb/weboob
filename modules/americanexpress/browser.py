@@ -111,7 +111,7 @@ class AmericanExpressBrowser(LoginBrowser):
         except HTTPNotFound:
             self.js_periods.go(headers={'account_token': accounts[0]._token})
             periods = self.page.get_periods()
-            self.js_balances2.go(date=periods[1][1], headers={'account_tokens': accounts[0]._token})
+            self.js_balances2.go(date=periods[1], headers={'account_tokens': accounts[0]._token})
         self.page.set_balances(accounts)
 
         # get currency
@@ -158,7 +158,7 @@ class AmericanExpressBrowser(LoginBrowser):
         periods = self.page.get_periods()
         for p in periods:
             # TODO handle pagination
-            self.js_posted.go(offset=0, end=p[1], headers={'account_token': account._token})
+            self.js_posted.go(offset=0, end=p, headers={'account_token': account._token})
             for tr in self.page.iter_history():
                 yield tr
 
@@ -166,7 +166,7 @@ class AmericanExpressBrowser(LoginBrowser):
     def iter_coming_new(self, account):
         # "pending" have no vdate and debit date is in future
         self.js_periods.go(headers={'account_token': account._token})
-        date = datetime.datetime.strptime(self.page.get_periods()[0][1], '%Y-%m-%d').date()
+        date = datetime.datetime.strptime(self.page.get_periods()[0], '%Y-%m-%d').date()
 
         self.js_pending.go(offset=0, headers={'account_token': account._token})
         for tr in self.page.iter_history():
