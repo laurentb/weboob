@@ -272,7 +272,7 @@ class _AccountsPage(MyLoggedPage, BasePage):
             # we have to ignore those accounts, because using NotAvailable
             # makes boobank and probably many others crash
             # we should consider market accounts without balance and update them after
-            if balance in ('indisponible', '') and account.type is not Account.TYPE_MARKET:
+            if balance in ('indisponible', '') and account.type not in (Account.TYPE_MARKET, Account.TYPE_PEA):
                 continue
             elif balance:
                 account.balance = Decimal(Transaction.clean_amount(balance))

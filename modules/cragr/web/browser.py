@@ -316,7 +316,7 @@ class Cragr(LoginBrowser, StatesMixin):
 
         # update market accounts
         for account in accounts_list:
-            if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
+            if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA) and account.url:
                 try:
                     new_location = self.moveto_market_website(account, home=True)
                 except WebsiteNotSupported:
