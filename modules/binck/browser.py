@@ -18,9 +18,12 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from lxml import etree
+from io import StringIO
+
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import BrowserIncorrectPassword
-from weboob.browser.exceptions import HTTPNotFound
+from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
+from weboob.browser.exceptions import HTTPNotFound, ServerError
 
 from .pages import LoginPage, AccountsPage, InvestmentPage, HistoryPage, QuestionPage,\
                    ChangePassPage, LogonFlowPage
@@ -52,7 +55,18 @@ class BinckBrowser(LoginBrowser):
     @need_login
     def iter_accounts(self):
         for a in self.accounts.go().iter_accounts():
-            self.accounts.stay_or_go().go_toaccount(a.id)
+            try:
+                self.accounts.stay_or_go().go_toaccount(a.id)
+            except ServerError as exception:
+                # get html error to parse
+                parser = etree.HTMLParser()
+                html_error = etree.parse(StringIO(exception.response.text), parser)
+                account_error = html_error.xpath('//p[contains(text(), "Votre compte est")]/text()')
+                if account_error:
+                    raise ActionNeeded(account_error[0])
+                else:
+                    raise
+
             a.iban = self.page.get_iban()
             # Get token
             token = self.page.get_token()
