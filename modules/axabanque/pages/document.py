@@ -19,7 +19,7 @@
 
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.filters.standard import CleanText, Env, Regexp, Format
-from weboob.browser.elements import ListElement, ItemElement, method
+from weboob.browser.elements import ListElement, ItemElement, method, SkipItem
 from weboob.capabilities.bill import Document
 from weboob.tools.compat import urljoin
 
@@ -38,8 +38,11 @@ class DocumentsPage(LoggedPage, HTMLPage):
             obj_type = u"document"
 
             def obj_url(self):
-                url = CleanText('./@data-url')(self)
-                return urljoin(self.page.browser.BASEURL, url)
+                url = urljoin(self.page.browser.BASEURL, CleanText('./@data-url')(self))
+                self.page.browser.location(url)
+                if self.page.doc.xpath('//form[contains(., "Afficher")]'):
+                    return url
+                raise SkipItem()
 
 
 class DownloadPage(LoggedPage, HTMLPage):
