@@ -124,6 +124,7 @@ class item_account_generic(ItemElement):
         ('Mcne',                    Account.TYPE_LOAN),
         ('Nouveau Prêt',            Account.TYPE_LOAN),
         ('Passeport Credit',        Account.TYPE_LOAN),
+        ('Allure Libre',            Account.TYPE_LOAN),
         ('Pret',                    Account.TYPE_LOAN),
         ('Regroupement De Credits', Account.TYPE_LOAN),
         ('P.E.A',                   Account.TYPE_PEA),
@@ -139,7 +140,8 @@ class item_account_generic(ItemElement):
         ])
 
     REVOLVING_LOAN_LABELS = [
-        'Passeport Credit'
+        'Passeport Credit',
+        'Allure Libre',
     ]
 
     def condition(self):
@@ -297,6 +299,11 @@ class item_account_generic(ItemElement):
         self.env['balance'] = balance
         self.env['coming'] = coming or NotAvailable
 
+    def is_revolving(self, label):
+        return any(revolving_loan_label in label
+                   for revolving_loan_label in item_account_generic.REVOLVING_LOAN_LABELS)
+
+
 class AccountsPage(LoggedPage, HTMLPage):
     def on_load(self):
         super(AccountsPage, self).on_load()
@@ -356,7 +363,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                             '//form[@id="P:F"]//div[@class="blocmsg info"]//p', default='')(details.page.doc)
                 return (item_account_generic.condition(self)
                         and type == Account.TYPE_LOAN
-                        and label not in self.REVOLVING_LOAN_LABELS
+                        and not self.is_revolving(label)
                         and not closed_loan)
 
         class item_revolving_loan(item_account_generic):
@@ -372,7 +379,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                 type = Field('type')(self)
                 label = Field('label')(self)
                 return (item_account_generic.condition(self) and type == Account.TYPE_LOAN
-                        and label in self.REVOLVING_LOAN_LABELS)
+                        and self.is_revolving(label))
 
     def get_advisor_link(self):
         return Link('//div[@id="e_conseiller"]/a', default=None)(self.doc)

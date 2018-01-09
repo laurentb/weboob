@@ -102,7 +102,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
     new_accounts = URL('/(?P<subbank>.*)fr/banque/comptes-et-contrats.html', NewAccountsPage)
     new_operations = URL('/(?P<subbank>.*)fr/banque/mouvements.cgi',
                          '/fr/banque/nr/nr_devbooster.aspx.*',
-                         '/(?P<subbank>.*)fr/banque/RE/aiguille.asp',
+                         '/(?P<subbank>.*)fr/banque/RE/aiguille(liste)?.asp',
                          '/fr/banque/mouvements.html',
                          '/(?P<subbank>.*)fr/banque/consultation/operations', OperationsPage)
 
