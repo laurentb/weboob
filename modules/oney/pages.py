@@ -168,7 +168,7 @@ class OperationsPage(LoggedPage, HTMLPage):
         def flush(self):
             # As transactions are unordered on the page, we flush only at end
             # the sorted list of them.
-            return sorted_transactions(self.objects.itervalues())
+            return sorted_transactions(self.objects.values())
 
         def store(self, obj):
             # It stores only objects with an ID. To be sure it works, use the

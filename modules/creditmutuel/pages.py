@@ -158,7 +158,7 @@ class item_account_generic(ItemElement):
 
     class Type(Filter):
         def filter(self, label):
-            for pattern, actype in item_account_generic.TYPES.iteritems():
+            for pattern, actype in item_account_generic.TYPES.items():
                 if label.startswith(pattern):
                     return actype
             return Account.TYPE_UNKNOWN
@@ -845,7 +845,7 @@ class PorPage(LoggedPage, HTMLPage):
             }
 
     def get_type(self, label):
-        for pattern, actype in self.TYPES.iteritems():
+        for pattern, actype in self.TYPES.items():
             if label.startswith(pattern):
                 return actype
         return Account.TYPE_MARKET
@@ -1296,7 +1296,7 @@ class RecipientsListPage(LoggedPage, HTMLPage):
             return True
 
     def set_browser_form(self, form):
-        self.browser.form = dict((k, v) for k, v in form.iteritems() if v)
+        self.browser.form = dict((k, v) for k, v in form.items() if v)
         self.browser.form['url'] = form.url
         self.browser.page = None
         self.browser.logged = 1

@@ -47,7 +47,7 @@ class AmazonModule(Module, CapDocument):
                         'www.amazon.fr': u'Amazon France',
                         'www.amazon.de': u'Amazon.de',
                         'www.amazon.co.uk': u'Amazon UK',
-                      }.iteritems())])
+                      }.items())])
 
     BROWSERS = {
         'www.amazon.fr': AmazonBrowser,

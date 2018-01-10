@@ -412,7 +412,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
 
     def send_sms(self, sms):
         data = {}
-        for k, v in self.form.iteritems():
+        for k, v in self.form.items():
             if k != 'url':
                 data[k] = v
         data['otp_password'] = sms
@@ -430,7 +430,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
 
     def post_with_bic(self, recipient, **params):
         data = {}
-        for k, v in self.form.iteritems():
+        for k, v in self.form.items():
             if k != 'url':
                 data[k] = v
         data['[t:dbt%3astring;x(11)]data_input_BIC'] = params[u'Bic']

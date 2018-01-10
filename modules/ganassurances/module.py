@@ -40,7 +40,7 @@ class GanAssurancesModule(AbstractModule, CapBank):
         'espaceclient.groupama.fr':             u'Groupama Banque',
         'espaceclient.ganassurances.fr':        u'Gan Assurances',
         'espaceclient.ganpatrimoine.fr':        U'Gan Patrimoine',
-        }.iteritems(), key=lambda k_v: (k_v[1], k_v[0]))])
+        }.items(), key=lambda k_v: (k_v[1], k_v[0]))])
     CONFIG = BackendConfig(Value('website',  label='Banque', choices=website_choices, default='espaceclient.ganassurances.fr'),
                            ValueBackendPassword('login',    label=u'Numéro client', masked=False),
                            ValueBackendPassword('password', label=u"Code d'accès"))

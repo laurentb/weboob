@@ -302,7 +302,7 @@ class MultiPage(HTMLPage):
     def go_multi(self, id):
         if Attr('//select[@class="ComboEntreprise"]/option[@selected]', 'value')(self.doc) != id:
             form = self.get_form('//select[@class="ComboEntreprise"]/ancestor::form[1]')
-            key = [k for k, v in dict(form).iteritems() if "SelectItems" in k][0]
+            key = [k for k, v in dict(form).items() if "SelectItems" in k][0]
             form[key] = id
             form['javax.faces.source'] = key
             form.submit()
@@ -386,7 +386,7 @@ class AccountsPage(LoggedPage, MultiPage):
             form['visualisationMontant'] = "true" if valuation else "false"
         else:
             form['valorisationMontant'] = "true" if valuation else "false"
-        data = {k: v for k, v in dict(form).iteritems() if "blocages" not in v}
+        data = {k: v for k, v in dict(form).items() if "blocages" not in v}
         self.browser.location(form.url, data=data)
 
     @method

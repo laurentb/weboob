@@ -148,7 +148,7 @@ class BNPKeyboard(GridVirtKeyboard):
 class LoginPage(JsonPage):
     @staticmethod
     def render_template(tmpl, **values):
-        for k, v in values.iteritems():
+        for k, v in values.items():
             tmpl = tmpl.replace('{{ ' + k + ' }}', v)
         return tmpl
 

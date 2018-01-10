@@ -44,7 +44,7 @@ class PaypalModule(Module, CapBank):
                                    self.config['password'].get())
 
     def iter_accounts(self):
-        return self.browser.get_accounts().itervalues()
+        return self.browser.get_accounts().values()
 
     def get_account(self, _id):
         account = self.browser.get_account(_id)
