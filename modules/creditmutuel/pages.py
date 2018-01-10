@@ -439,12 +439,12 @@ class CardsActivityPage(LoggedPage, HTMLPage):
 class Pagination(object):
     def next_page(self):
         try:
-            form = self.page.get_form('//form[@id="paginationForm"]')
+            form = self.page.get_form('//form[@id="paginationForm" or @id="frmSTARCpag"]')
         except FormNotFound:
             return self.next_month()
 
         text = CleanText.clean(form.el)
-        m = re.search('(\d+) / (\d+)', text or '', flags=re.MULTILINE)
+        m = re.search('(\d+)/(\d+)', text or '', flags=re.MULTILINE)
         if not m:
             return self.next_month()
 
@@ -453,6 +453,9 @@ class Pagination(object):
 
         if cur == last:
             return self.next_month()
+
+        form['imgOpePagSui.x'] = randint(1, 29)
+        form['imgOpePagSui.y'] = randint(1, 17)
 
         form['page'] = str(cur + 1)
         return form.request
@@ -465,6 +468,7 @@ class Pagination(object):
 
         try:
             form['moi'] = self.page.doc.xpath('//select[@id="moi"]/option[@selected]/following-sibling::option')[0].attrib['value']
+            form['page'] = 1
         except IndexError:
             return
 
