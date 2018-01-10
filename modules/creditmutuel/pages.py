@@ -505,7 +505,8 @@ class CardsListPage(LoggedPage, HTMLPage):
             obj__card_number = Env('id', default="")
             obj_id = Format('%s%s', Env('id', default=""), Field('number'))
             obj_label = Format('%s %s %s', CleanText(TableCell('card')), Env('id', default=""), CleanText(TableCell('owner')))
-            obj_balance = CleanDecimal('./td[small][1]', replace_dots=True, default=NotAvailable)
+            obj_coming = CleanDecimal('./td[@class="i d" or @class="p d"][2]', replace_dots=True, default=NotAvailable)
+            obj_balance = Decimal('0.00')
             obj_currency = FrenchTransaction.Currency(CleanText('./td[small][1]'))
             obj_type = Account.TYPE_CARD
             obj__card_pages = Env('page')
@@ -529,18 +530,20 @@ class CardsListPage(LoggedPage, HTMLPage):
                 options = page.doc.xpath('//select[@id="iso"]/option')
                 for option in options:
                     card = Account()
-
-                    for attr in self._attrs:
-                        self.handle_attr(attr, getattr(self, 'obj_%s' % attr))
-                        setattr(card, attr, getattr(self.obj, attr))
-
+                    card_list_page = page.browser.open(Link('//form//a[text()="Contrat"]', default=None)(page.doc)).page
+                    xpath = '//table[has-class("liste")]/tbody/tr'
+                    active_card = CleanText('%s[td[text()="Active"]][1]/td[2]' % xpath, replace=[(' ', '')], default=None)(card_list_page.doc)
                     _id = CleanText('.', replace=[(' ', '')])(option)
-                    card._card_number = _id
-                    card.id = _id + card.number
-                    card.label = card.label.replace('  ', ' %s ' % _id)
-                    card.balance = NotAvailable
+                    if active_card == _id:
+                        for attr in self._attrs:
+                            self.handle_attr(attr, getattr(self, 'obj_%s' % attr))
+                            setattr(card, attr, getattr(self.obj, attr))
 
-                    self.page.browser.accounts_list.append(card)
+                        card._card_number = _id
+                        card.id = _id + card.number
+                        card.label = card.label.replace('  ', ' %s ' % _id)
+
+                        self.page.browser.accounts_list.append(card)
 
                 # Skip multi and expired cards
                 if len(options) or len(page.doc.xpath('//span[@id="ERREUR"]')):
