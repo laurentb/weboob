@@ -915,9 +915,15 @@ class PorPage(LoggedPage, HTMLPage):
             obj_code = CleanText('.//td[1]/a/@title') & Regexp(pattern='^([^ ]+)')
             obj_quantity = CleanDecimal(TableCell('quantity'), default=Decimal(0), replace_dots=True)
             obj_unitprice = CleanDecimal(TableCell('unitprice'), default=Decimal(0), replace_dots=True)
-            obj_unitvalue = CleanDecimal(TableCell('unitvalue'), default=Decimal(0), replace_dots=True)
             obj_valuation = CleanDecimal(TableCell('valuation'), default=Decimal(0), replace_dots=True)
             obj_diff = CleanDecimal(TableCell('diff'), default=Decimal(0), replace_dots=True)
+
+            def obj_unitvalue(self):
+                r = CleanText(TableCell('unitvalue'))(self)
+                if r[-1] == '%':
+                    return None
+                else:
+                    return CleanDecimal(TableCell('unitvalue'), default=Decimal(0), replace_dots=True)(self)
 
             def obj_vdate(self):
                 td = TableCell('unitvalue')(self)[0]
