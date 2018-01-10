@@ -674,6 +674,7 @@ class AVPage(LoggedPage, HTMLPage):
 
             def obj__form(self):
                 form_id = Attr('.//td/a', 'id', default=None)(self)
+                form_class = Attr('.//td/a', 'class', default=None)(self)
                 if form_id:
                     if '-' in form_id:
                         id_contrat = re.search(r'^(.*?)-', form_id).group(1)
@@ -697,10 +698,19 @@ class AVPage(LoggedPage, HTMLPage):
                     id_contrat = params['ID_CONTRAT'][0]
                     producteur = params['PRODUCTEUR'][0]
 
-                form = self.page.get_form('//form[@id="formRoutage"]')
+                if 'redirect' in form_class:
+                    form = self.page.get_form('//form[@id="formRedirectPart"]')
+                else:
+                    form = self.page.get_form('//form[@id="formRoutage"]')
+                    form['PRODUCTEUR'] = producteur
                 form['ID_CONTRAT'] = id_contrat
-                form['PRODUCTEUR'] = producteur
                 return form
+
+
+class SendTokenPage(LoggedPage, LCLBasePage):
+    def on_load(self):
+        form = self.get_form('//form')
+        return form.submit()
 
 
 class Form2Page(LoggedPage, LCLBasePage):
@@ -712,6 +722,16 @@ class Form2Page(LoggedPage, LCLBasePage):
             form['cValue'] = self.get_from_js('.cValue.value  = "', '";')
             form['cMaxAge'] = '-1'
         return form.submit()
+
+
+class CaliePage(LoggedPage, HTMLPage):
+    def on_load(self):
+        if self.doc.xpath('//button[@id="acceptDisclaimerButton"]'):
+            self.logger.warning('Action Needed on website: %s', CleanText('//div[@class="data-header"]')(self.doc))
+    # TODO
+    # See on what page the site redirects after validation of the terms of use
+    # and then parse it. Luckily it will be a classic AVDetailPage, if so there
+    # will be pretty much nothing to do
 
 
 class AVDetailPage(LoggedPage, LCLBasePage):

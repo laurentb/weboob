@@ -35,7 +35,8 @@ from .pages import LoginPage, AccountsPage, AccountHistoryPage, \
                    AVPage, AVDetailPage, DiscPage, NoPermissionPage, RibPage, \
                    HomePage, LoansPage, TransferPage, AddRecipientPage, \
                    RecipientPage, RecipConfirmPage, SmsPage, RecipRecapPage, \
-                   LoansProPage, Form2Page, DocumentsPage, ClientPage
+                   LoansProPage, Form2Page, DocumentsPage, ClientPage, SendTokenPage, \
+                   CaliePage
 
 
 __all__ = ['LCLBrowser','LCLProBrowser', 'ELCLBrowser']
@@ -82,6 +83,8 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                '/outil/UAUT/RetourPartenaire/retourCar', DiscPage)
 
     form2 = URL(r'/outil/UWVI/Routage/', Form2Page)
+    send_token = URL('/outil/UWVI/AssuranceVie/envoyerJeton', SendTokenPage)
+    calie = URL('https://www.my-calie.fr/FO.HoldersWebSite/Disclaimer/Disclaimer.aspx.*', CaliePage)
 
     assurancevie = URL('/outil/UWVI/AssuranceVie/accesSynthese',
                         '/outil/UWVI/AssuranceVie/accesDetail.*',
@@ -258,6 +261,8 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         elif account.type == Account.TYPE_LIFE_INSURANCE and account._form:
             self.assurancevie.stay_or_go()
             account._form.submit()
+            if self.calie.is_here():
+                return
             try:
                 self.page.get_details(account, "OHIPU")
             except FormNotFound:
