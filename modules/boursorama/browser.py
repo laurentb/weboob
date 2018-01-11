@@ -18,13 +18,16 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import requests
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 from dateutil import parser
 
-from weboob.browser.browsers import LoginBrowser, need_login, StatesMixin
+from weboob.browser.retry import login_method, retry_on_logout, RetryLoginBrowser
+from weboob.browser.browsers import need_login, StatesMixin
 from weboob.browser.url import URL
 from weboob.exceptions import BrowserIncorrectPassword, BrowserHTTPNotFound
+from weboob.browser.exceptions import LoggedOut
 from weboob.capabilities.bank import (
     Account, AccountNotFound, TransferError, TransferInvalidAmount,
     TransferInvalidEmitter, TransferInvalidLabel, TransferInvalidRecipient,
@@ -51,7 +54,7 @@ class BrowserIncorrectAuthenticationCode(BrowserIncorrectPassword):
     pass
 
 
-class BoursoramaBrowser(LoginBrowser, StatesMixin):
+class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
     BASEURL = 'https://clients.boursorama.com'
     TIMEOUT = 60.0
     STATE_DURATION = 10
@@ -122,6 +125,12 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
         kwargs['password'] = self.config['password'].get()
         super(BoursoramaBrowser, self).__init__(*args, **kwargs)
 
+    def locate_browser(self, state):
+        try:
+            self.location(state['url'])
+        except (requests.exceptions.HTTPError, requests.exceptions.TooManyRedirects, LoggedOut):
+            pass
+
     def load_state(self, state):
         if ('expire' in state and parser.parse(state['expire']) > datetime.now()) or state.get('auth_token'):
             return super(BoursoramaBrowser, self).load_state(state)
@@ -137,6 +146,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
                     """ You will receive SMS code but are limited in request per day (around 15)"""
                 )
 
+    @login_method
     def do_login(self):
         assert isinstance(self.config['device'].get(), basestring)
         assert isinstance(self.config['enable_twofactors'].get(), bool)
@@ -170,6 +180,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
         self.location(link)
         self.location(self.page.get_cards_number_link())
 
+    @retry_on_logout()
     @need_login
     def get_accounts_list(self):
         self.status.go()
@@ -258,6 +269,7 @@ class BoursoramaBrowser(LoginBrowser, StatesMixin):
             for t in self.page.iter_history(coming=True):
                 yield t
 
+    @retry_on_logout()
     @need_login
     def get_history(self, account, coming=False):
         if account.type is Account.TYPE_LOAN or '/compte/derive' in account.url:

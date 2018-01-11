@@ -26,7 +26,7 @@ import re
 from io import BytesIO
 from datetime import date
 
-from weboob.browser.pages import HTMLPage, LoggedPage, pagination, NextPage, FormNotFound, PartialHTMLPage
+from weboob.browser.pages import HTMLPage, LoggedPage, pagination, NextPage, FormNotFound, PartialHTMLPage, LoginPage
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement, SkipItem
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Field, Format,
@@ -165,7 +165,7 @@ class BoursoramaVirtKeyboard(VirtKeyboard):
         return code
 
 
-class LoginPage(HTMLPage):
+class LoginPage(LoginPage, HTMLPage):
     TO_DIGIT = {'2': ['a', 'b', 'c'],
                 '3': ['d', 'e', 'f'],
                 '4': ['g', 'h', 'i'],
