@@ -166,21 +166,23 @@ class GroupamaesPocketPage(LoggedPage, HTMLPage):
 
     def iter_investment(self, label):
         for tr in self.doc.xpath(u'//table[@summary="Liste des échéances"]/tbody/tr'):
-            tds = tr.findall('td')
-
+            # list containing the numerical values
+            # element 1 is the quantity
+            # element 2 is the valuation
+            tds = tr.findall('td[@class="i d"]')
+            # var containing the label
+            td_label = tr.find('td[@class="i g"]')
             inv = Investment()
-            i = 1
 
             if len(tds) <= 2:
                 continue
 
-            inv.label = CleanText(tds[i])(tr)
-            inv.quantity = CleanDecimal(tds[i+3], replace_dots=True)(tr)
-            inv.valuation = CleanDecimal(tds[i+4], replace_dots=True)(tr)
-
+            inv.label = CleanText(td_label)(tr)
+            inv.quantity = CleanDecimal(tds[1], replace_dots=True)(tr)
+            inv.valuation = CleanDecimal(tds[2], replace_dots=True)(tr)
             if 'PEI' in label.split()[0]:
                 label = 'PEE'
-            if Regexp(CleanText(tds[i]), '\(([\w]+).*\)$')(tr) not in label.split()[0]:
+            if Regexp(CleanText(td_label), '\(([\w]+).*\)$')(tr) not in label.split()[0]:
                 continue
 
             yield inv
