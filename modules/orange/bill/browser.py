@@ -22,7 +22,7 @@ from __future__ import unicode_literals
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 from .pages import LoginPage, ProfilPage, BillsPage
-from .pages.bills import SubscriptionsPage
+from .pages.bills import SubscriptionsPage, BillsApiPage, ContractPage
 
 __all__ = ['OrangeBillBrowser']
 
@@ -33,6 +33,8 @@ class OrangeBillBrowser(LoginBrowser):
     loginpage = URL('https://id.orange.fr/auth_user/bin/auth_user.cgi', LoginPage)
     profilpage = URL('https://espaceclientv3.orange.fr/\?page=profil-infosPerso',
                      'https://espaceclientv3.orange.fr/ajax.php', ProfilPage)
+
+    contractpage = URL('https://espaceclientpro.orange.fr/api/contracts', ContractPage)
 
     subscriptions = URL(r'https://espaceclientv3.orange.fr/js/necfe.php\?zonetype=bandeau&idPage=gt-home-page', SubscriptionsPage)
 
@@ -46,6 +48,8 @@ class OrangeBillBrowser(LoginBrowser):
                     'https://espaceclientv3.orange.fr/maf.php',
                     'https://espaceclientv3.orange.fr/\?idContrat=(?P<subid>.*)&page=factures-historique',
                      BillsPage)
+
+    bills_api = URL('https://espaceclientpro.orange.fr/api/contract/(?P<subid>\d+)/bills', BillsApiPage)
 
     def do_login(self):
         assert isinstance(self.username, basestring)
@@ -70,6 +74,8 @@ class OrangeBillBrowser(LoginBrowser):
         self.location('https://espaceclientv3.orange.fr/?page=gt-home-page&orange&pro')
         self.subscriptions.go()
         for sub in self.page.iter_subscription():
+            self.contractpage.go()
+            sub._is_pro = self.page.is_pro(sub.id)
             ids.add(sub.id)
             yield sub
 
@@ -82,9 +88,13 @@ class OrangeBillBrowser(LoginBrowser):
     @need_login
     def iter_documents(self, subscription):
         documents = []
-        for d in self.billspage.go(subid=subscription.id).get_documents(subid=subscription.id):
-            documents.append(d)
-        for b in self.billspage.go(subid=subscription.id).get_bills(subid=subscription.id):
-            documents.append(b)
+        if subscription._is_pro:
+            for d in self.bills_api.go(subid=subscription.id).get_bills(subid=subscription.id):
+                documents.append(d)
+        else:
+            for d in self.billspage.go(subid=subscription.id).get_documents(subid=subscription.id):
+                documents.append(d)
+            for b in self.billspage.go(subid=subscription.id).get_bills(subid=subscription.id):
+                documents.append(b)
         return iter(documents)
 

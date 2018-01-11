@@ -22,19 +22,52 @@ from __future__ import unicode_literals
 import re
 import HTMLParser
 
-from weboob.browser.pages import HTMLPage, LoggedPage
+from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage
 from weboob.capabilities.bill import Subscription
-from weboob.browser.elements import ListElement, ItemElement, method, TableElement
+from weboob.browser.elements import DictElement, ListElement, ItemElement, method, TableElement
 from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Field, Regexp, Date, Currency
 from weboob.browser.filters.html import Link, TableCell
 from weboob.browser.filters.javascript import JSValue
+from weboob.browser.filters.json import Dict
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bill import Bill, Document
 from weboob.tools.date import parse_french_date
+from weboob.tools.compat import urlencode
 
 
 class ProfilPage(HTMLPage):
     pass
+
+
+class ContractPage(LoggedPage, JsonPage):
+    def is_pro(self, subid):
+        if self.doc and Dict('id')(self.doc[0]) == subid and Dict('offerNature')(self.doc[0]):
+            return True
+
+
+class BillsApiPage(LoggedPage, JsonPage):
+    @method
+    class get_bills(DictElement):
+        item_xpath = 'bills'
+
+        class item(ItemElement):
+            klass = Bill
+
+            obj_duedate = Date(Dict('dueDate'), parse_func=parse_french_date, dayfirst=True,  default=NotAvailable)
+            obj_price = CleanDecimal(Dict('amountIncludingTax'))
+            obj_type = "bill"
+            obj_format = "pdf"
+
+            def obj_label(self):
+                return "Facture du %s" % Field('duedate')(self)
+
+            def obj_id(self):
+                return "%s_%s" % (Env('subid')(self), Field('duedate')(self).strftime('%d%m%Y'))
+
+            def obj_url(self):
+                billdate = urlencode({'billDate': Dict('dueDate')(self)})
+                url = 'https://espaceclientpro.orange.fr/api/contract/%s/bill/%s/facture?billId=&%s' % (Env('subid')(self), Dict('mainDir')(self.el['documents'][0]), billdate)
+                return url
 
 
 class BillsPage(LoggedPage, HTMLPage):
