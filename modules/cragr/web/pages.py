@@ -945,7 +945,8 @@ class LifeInsurancePage(MarketPage):
             inv.valuation = self.parse_decimal(cells[self.COL_VALUATION].text_content())
             inv.unitprice = NotAvailable
             inv.diff = NotAvailable
-            inv.vdate = Date('.', dayfirst=True, default=NotAvailable)(cells[self.COL_VDATE])
+            # clean text before filtering the date
+            inv.vdate = Date(CleanText('.'), dayfirst=True, default=NotAvailable)(cells[self.COL_VDATE])
             inv.portfolio_share = self.parse_decimal(cells[self.COL_PSHARE].text_content()) / 100
 
             yield inv
