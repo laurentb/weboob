@@ -34,7 +34,7 @@ from weboob.browser.filters.standard import (
     Currency as CleanCurrency,
 )
 from weboob.browser.filters.html import Attr, Link, TableCell
-from weboob.capabilities.bank import Account, Investment, Recipient, Transfer, AccountNotFound, AddRecipientError
+from weboob.capabilities.bank import Account, Investment, Recipient, Transfer, AccountNotFound, AddRecipientError, TransferInvalidAmount
 from weboob.capabilities.base import NotAvailable, empty
 from weboob.capabilities.profile import Person
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -772,6 +772,11 @@ class TransferCharac(LoggedPage, HTMLPage):
 
 
 class TransferConfirm(LoggedPage, HTMLPage):
+    def on_load(self):
+        errors = CleanText('//li[contains(text(), "Le montant du virement est inférieur au minimum")]')(self.doc)
+        if errors:
+            raise TransferInvalidAmount(errors)
+
     @method
     class get_transfer(ItemElement):
         klass = Transfer
