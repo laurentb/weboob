@@ -19,6 +19,7 @@
 
 from __future__ import unicode_literals
 
+from decimal import Decimal
 import re
 
 from weboob.browser.pages import JsonPage, LoggedPage
@@ -48,12 +49,21 @@ class LoginPage(JsonPage):
         return Dict(information, default=None)(self.doc)
 
 
+def list_to_dict(l):
+    return {d['name']: d.get('value') for d in l}
+
+
 class AccountsPage(LoggedPage, JsonPage):
     @method
     class get_account(ItemElement):
         klass = Account
 
-        obj_balance = CleanDecimal(Dict('totalPortfolio/value/2/value'))
+        def obj_balance(self):
+            d = list_to_dict(self.el['totalPortfolio']['value'])
+            if 'reportNetliq' in d:
+                return Decimal(str(d['reportNetliq']))
+
+            return CleanDecimal(Dict('totalPortfolio/value/2/value'))(self)
 
         def obj_id(self):
             return str(self.page.browser.intAccount)
@@ -76,10 +86,17 @@ class AccountsPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Investment
 
-            obj__product_id = Dict('value/0/value')
-            obj_quantity = CleanDecimal(Dict('value/2/value'))
-            obj_unitvalue = CleanDecimal(Dict('value/3/value'))
-            obj_valuation = CleanDecimal(Dict('value/6/value'))
+            def obj__product_id(self):
+                return str(list_to_dict(self.el['value'])['id'])
+
+            def obj_quantity(self):
+                return Decimal(str(list_to_dict(self.el['value'])['size']))
+
+            def obj_unitvalue(self):
+                return Decimal(str(list_to_dict(self.el['value'])['price']))
+
+            def obj_valuation(self):
+                return Decimal(str(list_to_dict(self.el['value'])['value']))
 
             def obj_code(self):
                 return self._product()['isin']
