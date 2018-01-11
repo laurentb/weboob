@@ -20,7 +20,7 @@
 import requests
 
 from weboob.browser.pages import HTMLPage, CsvPage, pagination
-from weboob.exceptions import BrowserIncorrectPassword, BrowserPasswordExpired
+from weboob.exceptions import BrowserIncorrectPassword, BrowserPasswordExpired, NoAccountsException
 from weboob.browser.elements import DictElement, ItemElement, method, TableElement
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Env
 from weboob.browser.filters.html import TableCell
@@ -58,6 +58,11 @@ class AccountsPage(SogeLoggedPage, HTMLPage):
 
         col_id = 'card iconetriwbeb(2);'
         col_label = 'name iconetriwbeb(1);'
+
+        def parse(self, el):
+            msg = CleanText('//font[@color="#FF0000"]')(self)
+            if msg and 'NO INFORMATION AVAILABLE.' in msg:
+                raise NoAccountsException()
 
         def next_page(self):
             array_page = self.page.doc.xpath('//table[3]')[0]
