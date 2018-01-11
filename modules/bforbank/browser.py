@@ -177,10 +177,14 @@ class BforbankBrowser(LoginBrowser):
         else:
             raise NotImplementedError()
 
-    def goto_spirica(self, account):
+
+    def goto_lifeinsurance(self, account):
         self.location('https://client.bforbank.com/espace-client/assuranceVie')
-        assert account.type == Account.TYPE_LIFE_INSURANCE
         self.lifeinsurance_list.go()
+
+    def goto_spirica(self, account):
+        assert account.type == Account.TYPE_LIFE_INSURANCE
+        self.goto_lifeinsurance(account)
 
         if self.login.is_here():
             self.logger.info('was logged out, relogging')
@@ -189,6 +193,7 @@ class BforbankBrowser(LoginBrowser):
             self.spirica.session.cookies.clear()
 
             self.do_login()
+            self.goto_lifeinsurance(account)
 
         if self.lifeinsurance_list.is_here():
             self.logger.debug('multiple life insurances, searching for %r', account)
