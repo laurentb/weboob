@@ -52,6 +52,11 @@ class AccountSuspendedPage(HTMLPage):
     pass
 
 
+class NoCardPage(HTMLPage):
+    def on_load(self):
+        raise ActionNeeded()
+
+
 class LoginPage(HTMLPage):
     def login(self, username, password):
         form = self.get_form(name='ssoform')

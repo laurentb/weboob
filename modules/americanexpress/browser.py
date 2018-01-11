@@ -28,7 +28,7 @@ from weboob.tools.compat import urlsplit, parse_qsl, urlencode
 
 from .pages.base import (
     LoginPage, AccountsPage, TransactionsPage, WrongLoginPage, AccountSuspendedPage,
-    AccountsPage2, ActionNeededPage,
+    AccountsPage2, ActionNeededPage, NoCardPage
 )
 from .pages.json import (
     AccountsPage3, JsonBalances, DashboardPage, JsonPeriods, JsonHistory,
@@ -64,6 +64,8 @@ class AmericanExpressBrowser(LoginBrowser):
                     JsonHistory)
     js_periods = URL(r'/account-data/v1/financials/statement_periods', JsonPeriods)
     currency_page = URL(r'https://www.aexp-static.com/cdaas/axp-app/modules/axp-offers/1.11.1/fr-fr/axp-offers.json', CurrencyPage)
+
+    no_card = URL('https://www.americanexpress.com/us/content/no-card/', NoCardPage)
 
     SUMMARY_CARD_LABEL = [
         u'PAYMENT RECEIVED - THANK YOU',
