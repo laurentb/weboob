@@ -247,7 +247,8 @@ class AVHistoryPage(LoggedPage, HTMLPage):
 class FormPage(LoggedPage, HTMLPage):
     def get_av_balance(self):
         balance_xpath = u'//p[contains(text(), "montant de votre épargne")]'
-        balance = CleanDecimal(Regexp(CleanText(balance_xpath), r'est de ([\s\d,]+)'), replace_dots=True)(self.doc)
+        balance = CleanDecimal(Regexp(CleanText(balance_xpath), r'est de ([\s\d,]+)', default=NotAvailable),
+                               replace_dots=True, default=NotAvailable)(self.doc)
         currency = Account.get_currency(CleanText(balance_xpath)(self.doc))
         return balance, currency
 
