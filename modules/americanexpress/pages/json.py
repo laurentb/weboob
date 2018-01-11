@@ -116,7 +116,7 @@ class JsonHistory(LoggedPage, JsonPage):
                 else:
                     return Transaction.TYPE_DEFERRED_CARD
 
-            obj_raw = CleanText(Dict('description'))
+            obj_raw = CleanText(Dict('description', default=''))
             obj_date = Date(Dict('statement_end_date', default=None), default=None)
             obj_rdate = Date(Dict('charge_date'))
             obj_vdate = Date(Dict('post_date', default=None), default=NotAvailable)
