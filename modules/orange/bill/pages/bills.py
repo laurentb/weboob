@@ -25,12 +25,12 @@ import HTMLParser
 from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage
 from weboob.capabilities.bill import Subscription
 from weboob.browser.elements import DictElement, ListElement, ItemElement, method, TableElement
-from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Field, Regexp, Date, Currency
+from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Field, Regexp, Date, Currency, BrowserURL
 from weboob.browser.filters.html import Link, TableCell
 from weboob.browser.filters.javascript import JSValue
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.bill import Bill, Document
+from weboob.capabilities.bill import Bill
 from weboob.tools.date import parse_french_date
 from weboob.tools.compat import urlencode
 
@@ -41,8 +41,10 @@ class ProfilPage(HTMLPage):
 
 class ContractPage(LoggedPage, JsonPage):
     def is_pro(self, subid):
-        if self.doc and Dict('id')(self.doc[0]) == subid and Dict('offerNature')(self.doc[0]):
-            return True
+        if self.doc:
+            for elem in self.doc:
+                if subid == elem['id']:
+                    return True
 
 
 class BillsApiPage(LoggedPage, JsonPage):
@@ -64,10 +66,11 @@ class BillsApiPage(LoggedPage, JsonPage):
             def obj_id(self):
                 return "%s_%s" % (Env('subid')(self), Field('duedate')(self).strftime('%d%m%Y'))
 
-            def obj_url(self):
-                billdate = urlencode({'billDate': Dict('dueDate')(self)})
-                url = 'https://espaceclientpro.orange.fr/api/contract/%s/bill/%s/facture?billId=&%s' % (Env('subid')(self), Dict('mainDir')(self.el['documents'][0]), billdate)
-                return url
+            def get_params(self):
+                params = {'billid': Dict('id')(self), 'billDate': Dict('dueDate')(self)}
+                return urlencode(params)
+
+            obj_url = BrowserURL('doc_api', subid=Env('subid'), dir=Dict('documents/0/mainDir'), fact_type=Dict('documents/0/subDir'), billparams=get_params)
 
 
 class BillsPage(LoggedPage, HTMLPage):
@@ -117,7 +120,7 @@ class BillsPage(LoggedPage, HTMLPage):
                     # URL won't work if HTML is not unescape
                     return HTMLParser.HTMLParser().unescape(str(Field('_url_base')(self)))
                 else :
-                    return Link(TableCell(Field('_cell')(self))(self)[0].xpath('./a'))(self)
+                    return Link(TableCell(Field('_cell')(self))(self)[0].xpath('./a'), default=NotAvailable)(self)
 
             obj__label_base = Regexp(CleanText('.//ul[@class="liste"]/script', default=None), '.*</span>(.*?)</a.*', default=None)
 
@@ -139,40 +142,6 @@ class BillsPage(LoggedPage, HTMLPage):
                 else:
                     return '%s_%s%s' % (Env('subid')(self), Field('date')(self).strftime('%d%m%Y'), Field('price')(self))
 
-    @method
-    class get_documents(ListElement):
-        item_xpath = '//table[has-class("table-hover")]/div/div/tr//ul[@class="liste"]/script | \
-                      //table[has-class("table-hover")]/div/tr//ul[@class="liste"]/script'
-
-        class item(ItemElement):
-            klass = Document
-
-            def obj_date(self):
-                # Get bill from list of documents and get the correct date
-                for bill in self.page.get_bills():
-                    # url change is only the doc id, last int in url, but slice 2 char for security
-                    if str(Field('url')(self)[:-2]) in bill.url:
-                        return bill.date
-
-            obj_url_base = Regexp(CleanText('.'), '.*?contentList[\d]+ \+= \'<li><a href="(.*?)"')
-            def obj_url(self):
-                # URL won't work if HTML is not unescape
-                return HTMLParser.HTMLParser().unescape(str(Field('url_base')(self)))
-
-            obj__label_base = Regexp(CleanText('.'), '.*?</span>(.*?)</a.*')
-
-            def obj_label(self):
-                return HTMLParser.HTMLParser().unescape(str(Field('_label_base')(self)))
-
-            obj__id_doc = Regexp(Field('url'), '.*?idDocument=([\d]+)')
-            def obj_id(self):
-                return '%s_%s%s' % (Env('subid')(self), Field('date')(self).strftime('%d%m%Y'), Field('_id_doc')(self))
-
-            obj_type = u"document"
-            obj_format = u"pdf"
-
-            def condition(self):
-                return 'Votre duplicata de facture' not in Regexp(CleanText('.'), '.*?</span>(.*?)</a.*')(self)
 
 class SubscriptionsPage(LoggedPage, HTMLPage):
     def build_doc(self, data):
@@ -193,6 +162,7 @@ class SubscriptionsPage(LoggedPage, HTMLPage):
             obj_id = Regexp(Link('.'), r'\bidContrat=(\d+)', default='')
             obj__page = Regexp(Link('.'), r'\bpage=([^&]+)', default='')
             obj_label = CleanText('.')
+            obj__is_pro = False
 
             def validate(self, obj):
                 # unsubscripted contracts may still be there, skip them else

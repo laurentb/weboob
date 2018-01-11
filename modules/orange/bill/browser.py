@@ -49,7 +49,11 @@ class OrangeBillBrowser(LoginBrowser):
                     'https://espaceclientv3.orange.fr/\?idContrat=(?P<subid>.*)&page=factures-historique',
                      BillsPage)
 
-    bills_api = URL('https://espaceclientpro.orange.fr/api/contract/(?P<subid>\d+)/bills', BillsApiPage)
+    bills_api = URL('https://espaceclientpro.orange.fr/api/contract/(?P<subid>\d+)/bills\?count=(?P<count>)',
+                    BillsApiPage)
+
+    doc_api = URL('https://espaceclientpro.orange.fr/api/contract/(?P<subid>\d+)/bill/(?P<dir>.*)/(?P<fact_type>.*)/\?(?P<billparams>)')
+
 
     def do_login(self):
         assert isinstance(self.username, basestring)
@@ -89,12 +93,13 @@ class OrangeBillBrowser(LoginBrowser):
     def iter_documents(self, subscription):
         documents = []
         if subscription._is_pro:
-            for d in self.bills_api.go(subid=subscription.id).get_bills(subid=subscription.id):
+            for d in self.bills_api.go(subid=subscription.id, count=72).get_bills(subid=subscription.id):
                 documents.append(d)
+            # check pagination for this subscription
+            assert len(documents) != 72
         else:
-            for d in self.billspage.go(subid=subscription.id).get_documents(subid=subscription.id):
-                documents.append(d)
-            for b in self.billspage.go(subid=subscription.id).get_bills(subid=subscription.id):
+            self.billspage.go(subid=subscription.id)
+            for b in self.page.get_bills(subid=subscription.id):
                 documents.append(b)
         return iter(documents)
 
