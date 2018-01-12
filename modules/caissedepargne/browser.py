@@ -30,7 +30,7 @@ from weboob.capabilities.bank import Account, AddRecipientStep, Recipient, Trans
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.profile import Profile
 from weboob.browser.exceptions import BrowserHTTPNotFound, ClientError
-from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.tools.capabilities.bank.transactions import sorted_transactions, FrenchTransaction
 from weboob.tools.compat import urljoin
 from weboob.tools.value import Value
@@ -408,7 +408,10 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                 return
             self.location('https://www.caisse-epargne.offrebourse.com/Portefeuille')
             if self.message.is_here():
-                raise ActionNeeded(self.page.get_message())
+                return
+                # TODO reraise ActionNeeded when catch by the backend at this stage
+                # raise ActionNeeded(self.page.get_message())
+
             if not self.page.is_on_right_portfolio(account):
                 self.location('https://www.caisse-epargne.offrebourse.com/Portefeuille?compte=%s' % self.page.get_compte(account))
         elif account.type is Account.TYPE_LIFE_INSURANCE:
