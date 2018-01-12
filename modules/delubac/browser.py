@@ -23,7 +23,7 @@ import time
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import AccountNotFound
-from weboob.capabilities.base import find_object
+from weboob.capabilities.base import find_object, NotAvailable
 
 
 from .pages import LoginPage, MenuPage, AccountsPage, HistoryPage, IbanPage, ErrorPage
@@ -68,7 +68,11 @@ class DelubacBrowser(LoginBrowser):
 
     @need_login
     def iter_history(self, account):
-        self.location(account._link)
+        if account._link is not NotAvailable:
+            self.location(account._link)
+        else:
+            return []
+
         if self.error.is_here():
             return iter([])
         return self.page.get_transactions()
