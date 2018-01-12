@@ -726,12 +726,9 @@ class Form2Page(LoggedPage, LCLBasePage):
 
 class CaliePage(LoggedPage, HTMLPage):
     def on_load(self):
+        # TODO raise the ActionNeeded when backend handles it.
         if self.doc.xpath('//button[@id="acceptDisclaimerButton"]'):
             self.logger.warning('Action Needed on website: %s', CleanText('//div[@class="data-header"]')(self.doc))
-    # TODO
-    # See on what page the site redirects after validation of the terms of use
-    # and then parse it. Luckily it will be a classic AVDetailPage, if so there
-    # will be pretty much nothing to do
 
 
 class AVDetailPage(LoggedPage, LCLBasePage):

@@ -262,6 +262,8 @@ class LCLBrowser(LoginBrowser, StatesMixin):
             self.assurancevie.stay_or_go()
             account._form.submit()
             if self.calie.is_here():
+                # come back to syntese
+                self.assurancevie.go()
                 return
             try:
                 self.page.get_details(account, "OHIPU")
@@ -306,6 +308,12 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         if account.type == Account.TYPE_LIFE_INSURANCE and account._form:
             self.assurancevie.stay_or_go()
             account._form.submit()
+
+            if self.calie.is_here():
+                # come back to syntese
+                self.assurancevie.go()
+                return
+
             if self.page.is_restricted():
                 self.logger.warning('restricted access to account %s', account)
             else:
