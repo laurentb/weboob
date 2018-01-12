@@ -42,7 +42,7 @@ class Transaction(FrenchTransaction):
 
 class DelubacVirtKeyboard(GridVirtKeyboard):
     symbols = {'0': ('ad0ae6278e58bf2300cb7e0b87729e4d', '33e6fecddeb02ad3756570b541320914', '9f47d540a8bf89056106bc2c06fdea2e',
-                     '176c63721c61da6cbae04ed95b36a343', '6af3ed27e718a93acc8923abebef4734'),
+                     '176c63721c61da6cbae04ed95b36a343', '6af3ed27e718a93acc8923abebef4734', '0f8aa934a28d0a3dc989b3d6889d5964'),
                '1': ('ba6ca06344687bd2337e2bfb39e2378a', 'cef70da6fb76b8bb90c025d4e62db7f6'),
                '2': ('c442cd1cee0c95d8423665983e9e45b7', '38aac4c0dcc1c40bfa0173bb2fc959f6', '8be33fe7de693d8d1404c0b51ce6f893',
                      '85bf89cc03d7d772f7b0b4aa9a7897c6', '955423582ae4cde07b0831eee879c068', '19712acd76beedef3038b131ee9b5f19',
