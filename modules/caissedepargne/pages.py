@@ -413,9 +413,9 @@ class IndexPage(LoggedPage, HTMLPage):
                     elif "renouvelables" in CleanText('.')(title):
                         self.go_loans_conso(tr)
                         d = self.browser.loans_conso()
-                        account.total_amount = d['contrat']['creditMaxAutorise']
-                        account.available_amount = d['situationCredit']['disponible']
-                        account.next_payment_amount = d['situationCredit']['mensualiteEnCours']
+                        account.total_amount = Decimal(d['contrat']['creditMaxAutorise'])
+                        account.available_amount = Decimal(d['situationCredit']['disponible'])
+                        account.next_payment_amount = Decimal(d['situationCredit']['mensualiteEnCours'])
                     accounts[account.id] = account
         return accounts.values()
 
