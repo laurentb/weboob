@@ -142,7 +142,6 @@ class CardHistoryPage(LoggedPage, SGPEPage):
             obj_raw = Transaction.Raw(CleanText('./td[2]'))
             obj_type = Transaction.TYPE_DEFERRED_CARD
             obj__coming = True
-            obj_nopurge = True
 
             def obj_amount(self):
                 return CleanDecimal('./td[3]', replace_dots=True, default=NotAvailable)(self)  \
