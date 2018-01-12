@@ -29,7 +29,7 @@ from .pages.accounts_list import (
     LoansPage,
 )
 from .pages.transfer import RecipientsPage, TransferPage, AddRecipientPage, RecipientJson
-from .pages.login import LoginPage, BadLoginPage, ReinitPasswordPage, CCTPage
+from .pages.login import LoginPage, BadLoginPage, ReinitPasswordPage, ActionNeededPage
 
 
 __all__ = ['SocieteGenerale']
@@ -40,7 +40,9 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     STATE_DURATION = 5
 
     login = URL('https://particuliers.societegenerale.fr/index.html', LoginPage)
-    cct = URL('/com/icd-web/forms/cct-index.html', CCTPage)
+    action_needed = URL('/com/icd-web/forms/cct-index.html',
+                        '/com/icd-web/gdpr/gdpr-recueil-consentements.html',
+                        ActionNeededPage)
     bad_login = URL('\/acces/authlgn.html', '/error403.html', BadLoginPage)
     reinit = URL('/acces/changecodeobligatoire.html', ReinitPasswordPage)
     accounts = URL('/restitution/cns_listeprestation.html', AccountsList)

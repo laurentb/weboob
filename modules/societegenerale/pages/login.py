@@ -115,7 +115,7 @@ class ReinitPasswordPage(BasePage):
         raise BrowserPasswordExpired()
 
 
-class CCTPage(BasePage):
+class ActionNeededPage(BasePage):
     # Mise à jour des conditions particulières de vos sonventions de comptes titres
     def on_load(self):
         raise ActionNeeded()
