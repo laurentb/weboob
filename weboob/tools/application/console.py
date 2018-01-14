@@ -501,10 +501,11 @@ class ConsoleApplication(Application):
 
         while True:
             if v.masked:
-                if sys.platform == 'win32':
-                    line = getpass.getpass(str(question))
-                else:
-                    line = getpass.getpass(question)
+                if sys.version_info.major < 3 and isinstance(question, unicode):
+                    question = question.encode(self.encoding)
+
+                line = getpass.getpass(question)
+                if sys.platform != 'win32':
                     if isinstance(line, bytes): # only for python2
                         line = line.decode(self.encoding)
             else:
