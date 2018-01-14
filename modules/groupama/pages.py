@@ -27,8 +27,8 @@ from decimal import Decimal
 
 from weboob.browser.pages import HTMLPage, pagination, LoggedPage, FormNotFound
 from weboob.browser.elements import method, TableElement, ItemElement
-from weboob.browser.filters.standard import Env, CleanDecimal, CleanText, TableCell, Date, Regexp, Eval, Field
-from weboob.browser.filters.html import Attr, Link
+from weboob.browser.filters.standard import Env, CleanDecimal, CleanText, Date, Regexp, Eval, Field
+from weboob.browser.filters.html import Attr, Link, TableCell
 from weboob.browser.filters.javascript import JSVar
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
