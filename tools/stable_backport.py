@@ -68,9 +68,11 @@ class Error(object):
         with open(target, 'w') as fp:
             for line in r.split('\n'):
                 # Replace relative imports to absolute ones
-                m = re.match(r'^from \.([\w_\.]+) import (.*)', line)
+                m = re.match(r'^from (\.\.?)([\w_\.]+) import (.*)', line)
                 if m:
-                    fp.write('from %s.%s import %s\n' % (base_module, m.group(1), m.group(2)))
+                    if m.group(1) == '..':
+                        base_module = '.'.join(base_module.split('.')[:-1])
+                    fp.write('from %s.%s import %s\n' % (base_module, m.group(2), m.group(3)))
                     continue
 
                 # Inherit all classes by previous ones, if they already existed.
@@ -186,7 +188,9 @@ class StableBackport(object):
                 system('git add %s' % compat_dirname)
 
         with log('Custom fixups'):
-            replace_all(r'Investment.CODE_TYPE_\([A-Z]\+\)', r"'\1'")
+            replace_all("""super(Attr, self).__init__(selector, default=default)""", """super(Attr, self).__init__(selector, attr, default=default)""")
+            replace_all("""super(Link, self).__init__(selector, 'href', default=default)""", """super(Link, self).__init__(selector, default=default)""")
+            replace_all("""from weboob.browser.exceptions import LoggedOut""", """from .exceptions import LoggedOut""")
 
             for line in output_lines('git grep -n iter_resources -- "modules/*/compat/bank.py"'):
                 filename, linenum, _ = line.split(':', maxsplit=2)
