@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from collections import OrderedDict
 from decimal import Decimal, InvalidOperation
 import datetime
 import re
@@ -354,6 +354,31 @@ def sorted_transactions(iterable):
     """Sort an iterable of transactions in reverse chronological order"""
     return sorted(iterable, reverse=True, key=lambda tr: (tr.date, new_datetime(tr.rdate) if tr.rdate else datetime.datetime.min))
 
+
+def merge_iterators(*iterables):
+    """Merge transactions iterators keeping sort order.
+
+    Each iterator must already be sorted in reverse chronological order.
+    """
+
+    def keyfunc(kv):
+        return (kv[1].date, kv[1].rdate)
+
+    its = OrderedDict((iter(it), None) for it in iterables)
+    for k in list(its):
+        try:
+            its[k] = next(k)
+        except StopIteration:
+            del its[k]
+
+    while its:
+        k, v = max(its.items(), key=keyfunc)
+        yield v
+
+        try:
+            its[k] = next(k)
+        except StopIteration:
+            del its[k]
 
 def test():
     clean_amount = AmericanTransaction.clean_amount

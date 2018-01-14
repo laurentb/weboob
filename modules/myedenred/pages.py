@@ -23,8 +23,8 @@ from __future__ import unicode_literals
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ItemElement, method, ListElement
 from weboob.browser.filters.standard import (
-    CleanText, CleanDecimal, Format,
-    Regexp, DateGuesser
+    CleanText, CleanDecimal,
+    Regexp, DateGuesser, Field
 )
 from weboob.capabilities.bank import Account, Transaction
 from weboob.capabilities.base import NotAvailable
@@ -69,10 +69,12 @@ class TransactionsPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Transaction
 
-            # We have no better id than date-hour-marketname slugified
-            # [edit] Wow, seems like it's not enough, let's add the price then.
-            # Well, now we have doublons even with the price.
             obj_date = DateGuesser(CleanText('.//span[contains(., "/")]'), LinearDateGuesser(date_max_bump=timedelta(45)))
-            obj_label = Format('Facture %s', CleanText('.//h3/strong'))
-            obj_type = Transaction.TYPE_CARD
-            obj_amount = MyDecimal('./td[@class="al-r"]')
+            obj_label = CleanText('.//h3/strong')
+            obj_amount = MyDecimal('./td[@class="al-r"]/div/span[has-class("badge")]')
+            def obj_type(self):
+                amount = Field('amount')(self)
+                if amount < 0:
+                    return Transaction.TYPE_CARD
+                else:
+                    return Transaction.TYPE_TRANSFER

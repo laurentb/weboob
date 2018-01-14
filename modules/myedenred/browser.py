@@ -21,6 +21,7 @@ from __future__ import unicode_literals
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
+from weboob.tools.capabilities.bank.transactions import merge_iterators
 from .pages import LoginPage, AccountsPage, TransactionsPage
 
 
@@ -50,17 +51,21 @@ class MyedenredBrowser(LoginBrowser):
 
     @need_login
     def iter_history(self, account):
-        history = self.transactions.go(data={'command': 'Charger les 10 transactions suivantes',
-                                            'ErfBenId': account._product_token,
-                                            'ProductCode': account._product_type,
-                                            'SortBy': 'DateOperation',
-                                            'StartDate': '',
-                                            'EndDate': '',
-                                            'PageNum': 10,
-                                            'OperationType': 'Debit',
-                                            'failed': 'false',
-                                            'X-Requested-With': 'XMLHttpRequest'
-                                            })
+        def iter_transactions_by_type(type):
+            history = self.transactions.go(data={'command': 'Charger les 10 transactions suivantes',
+                                                'ErfBenId': account._product_token,
+                                                'ProductCode': account._product_type,
+                                                'SortBy': 'DateOperation',
+                                                'StartDate': '',
+                                                'EndDate': '',
+                                                'PageNum': 10,
+                                                'OperationType': type,
+                                                'failed': 'false',
+                                                'X-Requested-With': 'XMLHttpRequest'
+                                                })
+            return history.iter_transactions(subid=account.id)
+
         if account.id not in self.docs:
-            self.docs[account.id] = [d for d in history.iter_transactions(subid=account.id)]
+            iterator = merge_iterators(iter_transactions_by_type(type='Debit'), iter_transactions_by_type(type='Credit'))
+            self.docs[account.id] = list(iterator)
         return self.docs[account.id]
