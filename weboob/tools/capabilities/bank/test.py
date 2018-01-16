@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.base import empty
-from weboob.capabilities.bank import CapBankTransfer
+from weboob.capabilities.bank import CapBankTransfer, CapBankWealth, CapBankPockets
 from weboob.exceptions import NoAccountsException
 
 
@@ -43,6 +43,7 @@ class BankStandardTest(object):
     allow_notimplemented_history = False
     allow_notimplemented_coming = False
     allow_notimplemented_investments = False
+    allow_notimplemented_pockets = False
     allow_notimplemented_recipients = False
 
     def test_basic(self):
@@ -75,6 +76,12 @@ class BankStandardTest(object):
                     raise
 
             try:
+                self.check_pockets(account)
+            except NotImplementedError:
+                if not self.allow_notimplemented_pockets:
+                    raise
+
+            try:
                 self.check_recipients(account)
             except NotImplementedError:
                 if not self.allow_notimplemented_recipients:
@@ -104,12 +111,24 @@ class BankStandardTest(object):
             assert inv.valuation
 
     def check_investments(self, account):
+        if not isinstance(self.backend, CapBankWealth):
+            return
         for inv in self.backend.iter_investment(account):
             self.check_investment(account, inv)
 
     def check_investment(self, account, inv):
         assert inv.label
         assert inv.valuation
+
+    def check_pockets(self, account):
+        if not isinstance(self.backend, CapBankPockets):
+            return
+        for pocket in self.backend.iter_pocket(account):
+            self.check_pocket(account, pocket)
+
+    def check_pocket(self, account, pocket):
+        assert pocket.amount
+        assert not empty(pocket.label)
 
     def check_recipients(self, account):
         if not isinstance(self.backend, CapBankTransfer):
