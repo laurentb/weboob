@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
 import re
 
 from datetime import datetime
@@ -214,7 +213,7 @@ class BnpHistoryItem(ItemElement):
 
 class CardItemElement(ItemElement):
     def load_details(self):
-        if 'FACTURE CARTE' not in Field('raw')(self):
+        if not Field('raw')(self).startswith('FACTURE CARTE'):
             return
 
         url = self.page.browser.transaction_detail.build()
@@ -225,7 +224,7 @@ class CardItemElement(ItemElement):
 
     def obj__redacted_card(self):
         raw = Field('raw')(self)
-        if 'FACTURE CARTE' not in raw or ' SUIVANT RELEVE DU ' in raw:
+        if not raw.startswith('FACTURE CARTE') or ' SUIVANT RELEVE DU ' in raw:
             return
 
         page = Async('details').loaded_page(self)
