@@ -89,6 +89,7 @@ class BredBrowser(DomainBrowser):
     ACCOUNT_TYPES = {'000': Account.TYPE_CHECKING,
                      '999': Account.TYPE_MARKET,
                      '011': Account.TYPE_CARD,
+                     '021': Account.TYPE_SAVINGS,
                      '023': Account.TYPE_SAVINGS,
                      '078': Account.TYPE_SAVINGS,
                      '080': Account.TYPE_SAVINGS,
