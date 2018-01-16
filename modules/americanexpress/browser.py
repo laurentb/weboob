@@ -21,7 +21,7 @@ import datetime
 
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.browsers import LoginBrowser, need_login
-from weboob.browser.exceptions import HTTPNotFound
+from weboob.browser.exceptions import HTTPNotFound, ServerError
 from weboob.browser.url import URL
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 from weboob.tools.compat import urlsplit, parse_qsl, urlencode
@@ -160,7 +160,11 @@ class AmericanExpressBrowser(LoginBrowser):
         periods = self.page.get_periods()
         for p in periods:
             # TODO handle pagination
-            self.js_posted.go(offset=0, end=p, headers={'account_token': account._token})
+            try:
+                # can't get transactions of some accounts on new website for the moment
+                self.js_posted.go(offset=0, end=p, headers={'account_token': account._token})
+            except ServerError:
+                return
             for tr in self.page.iter_history():
                 yield tr
 
@@ -170,7 +174,12 @@ class AmericanExpressBrowser(LoginBrowser):
         self.js_periods.go(headers={'account_token': account._token})
         date = datetime.datetime.strptime(self.page.get_periods()[0], '%Y-%m-%d').date()
 
-        self.js_pending.go(offset=0, headers={'account_token': account._token})
+        try:
+            # can't get transactions of some accounts on new website for the moment
+            self.js_pending.go(offset=0, headers={'account_token': account._token})
+        except ServerError:
+            return
+
         for tr in self.page.iter_history():
             tr.date = date
             yield tr
