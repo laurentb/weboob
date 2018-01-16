@@ -17,10 +17,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from datetime import date
 
 from weboob.capabilities.base import empty
 from weboob.capabilities.bank import CapBankTransfer, CapBankWealth, CapBankPockets
 from weboob.exceptions import NoAccountsException
+from weboob.tools.date import new_date
 
 
 __all__ = ('BankStandardTest',)
@@ -52,7 +54,7 @@ class BankStandardTest(object):
         except NoAccountsException:
             return
 
-        assert accounts
+        self.assertTrue(accounts)
 
         for account in accounts:
             self.check_account(account)
@@ -60,37 +62,32 @@ class BankStandardTest(object):
             try:
                 self.check_history(account)
             except NotImplementedError:
-                if not self.allow_notimplemented_history:
-                    raise
+                self.assertTrue(self.allow_notimplemented_history, 'iter_history should not raise NotImplementedError')
 
             try:
                 self.check_coming(account)
             except NotImplementedError:
-                if not self.allow_notimplemented_coming:
-                    raise
+                self.assertTrue(self.allow_notimplemented_coming, 'iter_coming should not raise NotImplementedError')
 
             try:
                 self.check_investments(account)
             except NotImplementedError:
-                if not self.allow_notimplemented_investments:
-                    raise
+                self.assertTrue(self.allow_notimplemented_investments, 'iter_investment should not raise NotImplementedError')
 
             try:
                 self.check_pockets(account)
             except NotImplementedError:
-                if not self.allow_notimplemented_pockets:
-                    raise
+                self.assertTrue(self.allow_notimplemented_pockets, 'iter_pocket should not raise NotImplementedError')
 
             try:
                 self.check_recipients(account)
             except NotImplementedError:
-                if not self.allow_notimplemented_recipients:
-                    raise
+                self.assertTrue(self.allow_notimplemented_recipients, 'iter_transfer_recipients should not raise NotImplementedError')
 
     def check_account(self, account):
-        assert account.id
-        assert account.label
-        assert not empty(account.balance)
+        self.assertTrue(account.id, 'account %r has no id' % account)
+        self.assertTrue(account.label, 'account %r has no label' % account)
+        self.assertFalse(empty(account.balance) and empty(account.coming), 'account %r should have balance or coming' % account)
 
     def check_history(self, account):
         for tr in self.backend.iter_history(account):
@@ -101,14 +98,20 @@ class BankStandardTest(object):
             self.check_transaction(account, tr, True)
 
     def check_transaction(self, account, tr, coming):
-        assert not empty(tr.date)
-        assert tr.amount
-        assert tr.raw or tr.label
-        assert tr.date
+        today = date.today()
+
+        self.assertFalse(empty(tr.date), 'transaction %r has no debit date' % tr)
+        self.assertTrue(tr.amount, 'transaction %r has no amount' % tr)
+        self.assertFalse(empty(tr.raw) and empty(tr.label), 'transaction %r has no raw or label' % tr)
+
+        if coming:
+            self.assertGreaterEqual(new_date(tr.date), today, 'coming transaction %r should be in the future' % tr)
+        else:
+            self.assertLessEqual(new_date(tr.date), today, 'history transaction %r should be in the past' % tr)
 
         for inv in (tr.investments or []):
-            assert inv.label
-            assert inv.valuation
+            self.assertTrue(inv.label, 'transaction %r investment %r has no label' % (tr, inv))
+            self.assertTrue(inv.valuation, 'transaction %r investment %r has no valuation' % (tr, inv))
 
     def check_investments(self, account):
         if not isinstance(self.backend, CapBankWealth):
@@ -117,8 +120,8 @@ class BankStandardTest(object):
             self.check_investment(account, inv)
 
     def check_investment(self, account, inv):
-        assert inv.label
-        assert inv.valuation
+        self.assertTrue(inv.label, 'investment %r has no label' % inv)
+        self.assertTrue(inv.valuation, 'investment %r has no valuation' % inv)
 
     def check_pockets(self, account):
         if not isinstance(self.backend, CapBankPockets):
@@ -127,8 +130,8 @@ class BankStandardTest(object):
             self.check_pocket(account, pocket)
 
     def check_pocket(self, account, pocket):
-        assert pocket.amount
-        assert not empty(pocket.label)
+        self.assertTrue(pocket.amount, 'pocket %r has no amount' % pocket)
+        self.assertTrue(pocket.label, 'pocket %r has no label' % pocket)
 
     def check_recipients(self, account):
         if not isinstance(self.backend, CapBankTransfer):
@@ -137,5 +140,5 @@ class BankStandardTest(object):
             self.check_recipient(account, rcpt)
 
     def check_recipient(self, account, rcpt):
-        assert rcpt.id
-        assert rcpt.label
+        self.assertTrue(rcpt.id, 'recipient %r has no id' % rcpt)
+        self.assertTrue(rcpt.label, 'recipient %r has no label' % rcpt)
