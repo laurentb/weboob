@@ -33,16 +33,6 @@ from weboob.tools.json import json
 from .base import parse_decimal
 
 
-def flatten(l):
-    if not isinstance(l, list):
-        yield l
-        return
-
-    for e in l:
-        for s in flatten(e):
-            yield s
-
-
 def float_to_decimal(f):
     return Decimal(str(f))
 
@@ -56,19 +46,28 @@ class AccountsPage3(LoggedPage, HTMLPage):
         for line in self.doc.xpath('//script[@id="initial-state"]')[0].text.split('\n'):
             m = re.search('window.__INITIAL_STATE__ = (.*);', line)
             if m:
-                data = list(flatten(json.loads(literal_eval(m.group(1)))))
+                data = json.loads(literal_eval(m.group(1)))
                 break
         else:
             assert False, "data was not found"
+        assert data[13] == 'core'
+        assert len(data[14]) == 3
+        assert len(data[14][2]) == 85
+        assert data[14][2][63] == 'products'
+        assert len(data[14][2][64]) == 2
+        assert data[14][2][64][1][4] == 'productsList'
 
-        assert data.count('display_account_number') == 1, 'there should be exactly one card'
+        accounts_data = data[14][2][64][1][5]
 
-        acc = Account()
-        acc.id = 'XXX-%s' % data[1 + data.index('display_account_number')]
-        acc.label = '%s %s' % (data[1 + data.index('description')], data[1 + data.index('embossed_name')])
-        acc._index = data[1 + data.index('sorted_index')]
-        acc._token = data[1 + data.index('account_token')]
-        yield acc
+        for account_data in accounts_data:
+            if isinstance(account_data, str):
+                token = account_data
+            elif isinstance(account_data, list):
+                acc = Account()
+                acc.number = '-%s' % account_data[2][2]
+                acc.label = '%s %s' % (account_data[6][4], account_data[10][14])
+                acc._token = acc.id = token
+                yield acc
 
 
 class JsonBalances(LoggedPage, JsonPage):

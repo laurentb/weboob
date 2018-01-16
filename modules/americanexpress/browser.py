@@ -106,15 +106,15 @@ class AmericanExpressBrowser(LoginBrowser):
     def get_accounts_new(self):
         self.accounts3.go()
         accounts = list(self.page.iter_accounts())
-        assert len(accounts) == 1 # FIXME how to pass multiple tokens?
 
-        try:
-            self.js_balances.go(headers={'account_tokens': accounts[0]._token})
-        except HTTPNotFound:
-            self.js_periods.go(headers={'account_token': accounts[0]._token})
-            periods = self.page.get_periods()
-            self.js_balances2.go(date=periods[1], headers={'account_tokens': accounts[0]._token})
-        self.page.set_balances(accounts)
+        for account in accounts:
+            try:
+                self.js_balances.go(headers={'account_tokens': account._token})
+            except HTTPNotFound:
+                self.js_periods.go(headers={'account_token': account._token})
+                periods = self.page.get_periods()
+                self.js_balances2.go(date=periods[1], headers={'account_tokens': account._token})
+            self.page.set_balances(accounts)
 
         # get currency
         self.currency_page.go()
