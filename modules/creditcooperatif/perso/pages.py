@@ -58,6 +58,7 @@ class AddType(Filter):
              u'LIVRET AGIR': Account.TYPE_SAVINGS,
              u'LIVRET A PART': Account.TYPE_SAVINGS,
              u'PEL': Account.TYPE_SAVINGS,
+             u'LDDS': Account.TYPE_SAVINGS,
              }
 
     def filter(self, str_type):
