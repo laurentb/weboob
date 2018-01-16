@@ -284,7 +284,7 @@ class IndexPage(LoggedPage, HTMLPage):
     def get_measure_ids(self):
         accounts_id = []
         for a in self.doc.xpath('//table[@cellpadding="1"]/tr/td[2]/a'):
-            accounts_id.append(re.search("(\d{10})", Attr('.', 'href')(a)).group(1))
+            accounts_id.append(re.search("(\d{8,})", Attr('.', 'href')(a)).group(1))
         return accounts_id
 
     def get_list(self):
