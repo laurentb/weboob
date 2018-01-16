@@ -22,6 +22,8 @@ from datetime import date
 from weboob.capabilities.base import empty
 from weboob.capabilities.bank import CapBankTransfer, CapBankWealth, CapBankPockets
 from weboob.exceptions import NoAccountsException
+from weboob.tools.capabilities.bank.iban import is_iban_valid
+from weboob.tools.capabilities.bank.investments import is_isin_valid
 from weboob.tools.date import new_date
 
 
@@ -88,6 +90,15 @@ class BankStandardTest(object):
         self.assertTrue(account.id, 'account %r has no id' % account)
         self.assertTrue(account.label, 'account %r has no label' % account)
         self.assertFalse(empty(account.balance) and empty(account.coming), 'account %r should have balance or coming' % account)
+        self.assertTrue(account.type, 'account %r is untyped' % account)
+        self.assertTrue(account.currency, 'account %r has no currency' % account)
+        if account.iban:
+            self.assertTrue(is_iban_valid(account.iban), 'account %r IBAN is invalid: %r' % (account, account.iban))
+
+        if account.type in (account.TYPE_LOAN,):
+            self.assertLessEqual(account.balance, 0, 'loan %r should not have positive balance' % account)
+        elif account.type == account.TYPE_CHECKING:
+            self.assertTrue(account.iban, 'account %r has no IBAN' % account)
 
     def check_history(self, account):
         for tr in self.backend.iter_history(account):
@@ -109,6 +120,12 @@ class BankStandardTest(object):
         else:
             self.assertLessEqual(new_date(tr.date), today, 'history transaction %r should be in the past' % tr)
 
+        if tr.rdate:
+            self.assertGreaterEqual(new_date(tr.date), new_date(tr.rdate), 'transaction %r rdate should be before date' % tr)
+
+        if tr.original_amount or tr.original_currency:
+            self.generic_check(tr.original_amount and tr.original_currency, 'transaction %r has missing foreign info' % tr)
+
         for inv in (tr.investments or []):
             self.assertTrue(inv.label, 'transaction %r investment %r has no label' % (tr, inv))
             self.assertTrue(inv.valuation, 'transaction %r investment %r has no valuation' % (tr, inv))
@@ -122,6 +139,12 @@ class BankStandardTest(object):
     def check_investment(self, account, inv):
         self.assertTrue(inv.label, 'investment %r has no label' % inv)
         self.assertTrue(inv.valuation, 'investment %r has no valuation' % inv)
+        if inv.code:
+            self.assertTrue(inv.code_type, 'investment %r has code but no code type' % inv)
+        if inv.code_type == inv.CODE_TYPE_ISIN and inv.code and not inv.code.startswith('XX'):
+            self.assertTrue(is_isin_valid(inv.code), 'investment %r has invalid ISIN: %r' % (inv, inv.code))
+        if not empty(inv.portfolio_share):
+            self.assertTrue(0 < inv.portfolio_share <= 1, 'investment %r has invalid portfolio_share' % inv)
 
     def check_pockets(self, account):
         if not isinstance(self.backend, CapBankPockets):
