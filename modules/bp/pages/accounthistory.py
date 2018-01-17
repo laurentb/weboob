@@ -17,18 +17,22 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 import datetime
 import re
 
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.bank import Investment, Transaction as BaseTransaction
+from weboob.capabilities.bank import Investment, Transaction as BaseTransaction, Account
 from weboob.exceptions import BrowserUnavailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.browser.pages import LoggedPage
 from weboob.browser.elements import TableElement, ItemElement, method
 from weboob.browser.filters.html import Link, TableCell
-from weboob.browser.filters.standard import CleanDecimal, CleanText, Eval, Field, Async, AsyncLoad, Date, Env
+from weboob.browser.filters.standard import (
+    CleanDecimal, CleanText, Eval, Field, Async, AsyncLoad, Date, Env, Format,
+    Regexp,
+)
 from weboob.tools.compat import urljoin
 
 from .base import MyHTMLPage
@@ -87,7 +91,7 @@ class AccountHistory(LoggedPage, MyHTMLPage):
 
         if deferred:
             # look for the card number, debit date, and if it is already debited
-            txt = u''.join([txt.strip() for txt in self.doc.xpath('//div[@class="infosynthese"]')[0].itertext()])
+            txt = CleanText('//div[@class="infosynthese"]')(self.doc)
             m = re.search(u'sur votre carte n°\*\*\*\*\*\*(\d+)\*', txt)
             card_no = u'inconnu'
             if m:
@@ -97,6 +101,14 @@ class AccountHistory(LoggedPage, MyHTMLPage):
             if m:
                 debit_date = datetime.date(*map(int, reversed(m.groups())))
             coming = 'En cours' in txt
+
+            if not coming:
+                # we must be on card account history: create a fake summary transaction
+                tr = self.generate_card_summary()
+                if tr.amount:
+                    operations.append(tr)
+                else:
+                    assert not self.has_transactions()
         else:
             coming = False
 
@@ -138,8 +150,19 @@ class AccountHistory(LoggedPage, MyHTMLPage):
             operations.append(op)
         return operations
 
+    def generate_card_summary(self):
+        tr = Transaction()
+        text = CleanText('//div[@class="infosynthese"]')
+        # card account: positive summary amount
+        tr.amount = abs(CleanDecimal(Regexp(text, r'Montant imputé le \d+/\d+/\d+ : (.*) euros'), replace_dots=True)(self.doc))
+        tr.date = tr.rdate = Date(Regexp(text, r'Montant imputé le (\d+/\d+/\d+)'), dayfirst=True)(self.doc)
+        tr.type = tr.TYPE_CARD_SUMMARY
+        tr.label = 'DEBIT CARTE BANCAIRE DIFFERE'
+        tr._coming = False
+        return tr
+
     def has_transactions(self):
-        return not CleanText(u'//table[@id="mouvementsTable"]/tbody//tr[contains(., "pas d\'opérations") or contains(., "Pas d\'opération")]')(self.doc)
+        return not CleanText(u'//table[@id="mouvementsTable" or @id="mouvements"]//tr[contains(., "pas d\'opérations") or contains(., "Pas d\'opération")]')(self.doc)
 
     @method
     class iter_transactions(TableElement):
@@ -168,19 +191,47 @@ class AccountHistory(LoggedPage, MyHTMLPage):
 
                 return CleanText(TableCell('label')(self)[0].xpath('./noscript'))(self) or label
 
+    def get_single_card(self, parent_id):
+        div, = self.doc.xpath('//div[@class="infosynthese"]')
+
+        ret = Account()
+        ret.type = Account.TYPE_CARD
+        ret.coming = CleanDecimal(Regexp(CleanText('.'), 'En cours prélevé au \d+/\d+/\d+ : (.*) euros soit'), replace_dots=True)(div)
+        ret.number = Regexp(CleanText('.'), 'sur votre carte n°([\d*]+)')(div)
+        ret.id = '%s.%s' % (parent_id, ret.number)
+        ret.currency = 'EUR'
+        ret.label = 'CARTE %s' % ret.number
+        ret.url = self.url
+        return ret
+
 
 class CardsList(LoggedPage, MyHTMLPage):
     def is_here(self):
         return bool(CleanText(u'//h1[contains(text(), "tail de vos cartes")]')(self.doc)) and not\
                bool(CleanText(u'//h1[contains(text(), "tail de vos op")]')(self.doc))
 
-    def get_cards(self):
-        cards = []
-        for tr in self.doc.xpath('//table[@class="dataNum"]/tbody/tr'):
-            cards.append(urljoin(self.url, Link('.//a')(tr)))
+    @method
+    class get_cards(TableElement):
+        item_xpath = '//table[@class="dataNum"]/tbody/tr'
+        head_xpath = '//table[@class="dataNum"]/thead/tr/th'
 
-        assert cards
-        return cards
+        col_label = re.compile('Vos cartes Encours actuel prélevé au')
+        col_balance = 'Euros'
+        col_number = 'Numéro'
+
+        class item(ItemElement):
+            klass = Account
+
+            obj_type = Account.TYPE_CARD
+            obj_currency = 'EUR'
+            obj_number = CleanText(TableCell('number'))
+            obj_label = Format('%s %s', CleanText(TableCell('label')), obj_number)
+            obj_coming = CleanDecimal(TableCell('balance'), replace_dots=True)
+            obj_id = Format('%s.%s', Env('parent_id'), obj_number)
+
+            def obj_url(self):
+                td = TableCell('label')(self)[0].xpath('.//a')[0]
+                return urljoin(self.page.url, td.attrib['href'])
 
 
 class SavingAccountSummary(LoggedPage, MyHTMLPage):

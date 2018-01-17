@@ -22,7 +22,7 @@ from datetime import datetime, timedelta
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.browsers import StatesMixin
-from weboob.capabilities import NotAvailable
+from weboob.capabilities.base import NotAvailable
 from weboob.exceptions import BrowserIncorrectPassword, BrowserBanned, NoAccountsException, BrowserUnavailable
 from weboob.tools.compat import urlsplit, parse_qsl
 
@@ -43,7 +43,6 @@ from .linebourse_browser import LinebourseBrowser
 
 from weboob.capabilities.bank import TransferError, Account, Recipient, AddRecipientStep
 from weboob.tools.value import Value
-from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 __all__ = ['BPBrowser', 'BProBrowser']
 
@@ -201,6 +200,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
     def get_accounts_list(self):
         if self.accounts is None:
             accounts = []
+            to_check = []
 
             self.par_accounts_checking.go()
 
@@ -225,11 +225,17 @@ class BPBrowser(LoginBrowser, StatesMixin):
                                 accounts.append(loan)
                     else:
                         accounts.append(account)
+                        if account.type == Account.TYPE_CHECKING and account._has_cards:
+                            to_check.append(account)
 
                 if self.page.has_mandate_management_space:
                     self.location(self.page.mandate_management_space_link())
                     for mandate_account in self.page.iter_accounts():
                         accounts.append(mandate_account)
+
+                for account in to_check:
+                    accounts.extend(self.iter_cards(account))
+                to_check = []
 
             self.accounts = accounts
 
@@ -239,6 +245,20 @@ class BPBrowser(LoginBrowser, StatesMixin):
                 raise NoAccountsException()
 
         return self.accounts
+
+    def iter_cards(self, account):
+        self.deferred_card_history.go(accountId=account.id, type=0, cardIndex=0)
+        if self.cards_list.is_here():
+            self.logger.debug('multiple cards for account %r', account)
+            for card in self.page.get_cards(parent_id=account.id):
+                card.parent = account
+                yield card
+        else:
+            self.logger.debug('single card for account %r', account)
+            self.logger.debug('parsing %r', self.url)
+            card = self.page.get_single_card(parent_id=account.id)
+            card.parent = account
+            yield card
 
     @need_login
     def get_history(self, account):
@@ -251,9 +271,12 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
             return self.linebourse.iter_history(account.id)
 
-        transactions = []
+        if account.type == Account.TYPE_LOAN:
+            return
 
-        if account.type is not Account.TYPE_LOAN:
+        if account.type == Account.TYPE_CARD:
+            return (tr for tr in self.iter_card_transactions(account) if not tr._coming)
+        else:
             self.location(account.url)
 
             history = {Account.TYPE_CHECKING: self.par_account_checking_history,
@@ -264,18 +287,12 @@ class BPBrowser(LoginBrowser, StatesMixin):
             if history is not None:
                 history.go(accountId=account.id)
 
+            # TODO be smarter by avoid fetching all, sorting all and returning all if only coming were desired
             if hasattr(self.page, 'iter_transactions') and self.page.has_transactions():
-                for tr in self.page.iter_transactions():
-                    transactions.append(tr)
+                return self.page.iter_transactions()
 
-            for tr in self.iter_card_transactions(account):
-                if not tr._coming:
-                    transactions.append(tr)
+            return []
 
-        # TODO be smarter by avoid fetching all, sorting all and returning all if only coming were desired
-        transactions = sorted_transactions(transactions)
-
-        return transactions
 
     @need_login
     def go_linebourse(self, account):
@@ -298,15 +315,16 @@ class BPBrowser(LoginBrowser, StatesMixin):
         if 'gestion-sous-mandat' in account.url:
             return []
 
-        transactions = list(self._get_coming_transactions(account))
+        if account.type == Account.TYPE_CHECKING:
+            return self._get_coming_transactions(account)
+        elif account.type == Account.TYPE_CARD:
+            transactions = []
+            for tr in self.iter_card_transactions(account):
+                if tr._coming:
+                    transactions.append(tr)
+            return transactions
 
-        for tr in self.iter_card_transactions(account):
-            if tr._coming:
-                transactions.append(tr)
-
-        transactions = sorted_transactions(transactions)
-
-        return transactions
+        return []
 
     @need_login
     def iter_card_transactions(self, account):
@@ -318,7 +336,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
             for t in range(6):
                 try:
-                    urlobj.go(accountId=account.id, type=t, cardIndex=ncard)
+                    urlobj.go(accountId=account.parent.id, type=t, cardIndex=ncard)
                 except BrowserUnavailable:
                     self.logger.debug("deferred card history stop at %s", t)
                     break
@@ -327,21 +345,9 @@ class BPBrowser(LoginBrowser, StatesMixin):
                     for tr in self.page.get_history(deferred=True):
                         yield tr
 
-        if not account._has_cards:
-            self.logger.debug('no card for account %r', account)
-            return
-
-        self.deferred_card_history.go(accountId=account.id, type=0, cardIndex=0)
-        if self.cards_list.is_here():
-            self.logger.debug('multiple cards for account %r', account)
-            for link in self.page.get_cards():
-                for tr in iter_transactions(link, self.deferred_card_history_multi):
-                    yield tr
-        else:
-            self.logger.debug('single card for account %r', account)
-            self.logger.debug('parsing %r', self.url)
-            for tr in iter_transactions(self.url, self.deferred_card_history):
-                yield tr
+        assert account.type == Account.TYPE_CARD
+        for tr in iter_transactions(account.url, self.deferred_card_history_multi):
+            yield tr
 
     @need_login
     def iter_investment(self, account):
@@ -374,24 +380,6 @@ class BPBrowser(LoginBrowser, StatesMixin):
                 inv.code = product_codes.get(inv.label.upper(), NotAvailable)
 
         return investments
-
-    @need_login
-    def _iter_card_tr(self):
-        """
-        Iter all pages until there are no transactions.
-        """
-        ops = self.page.get_history(deferred=True)
-
-        while True:
-            for tr in ops:
-                yield tr
-
-            link = self.page.get_next_link()
-            if link is None:
-                return
-
-            self.location(link)
-            ops = self.page.get_history(deferred=True)
 
     @need_login
     def iter_recipients(self, account_id):
