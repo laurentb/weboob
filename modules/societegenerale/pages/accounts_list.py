@@ -407,7 +407,8 @@ class Market(LoggedPage, BasePage, Invest):
                     except KeyError: # ok.. take it from the page
                         inv.valuation = MyDecimal('.')(tr.xpath('./following-sibling::tr/td[4]')[0])
 
-                    inv.diff = MyDecimal('.')(tr.xpath('./following-sibling::tr/td[5]')[0])
+                    inv.diff = MyDecimal('.')(tr.xpath('./following-sibling::tr/td[5]')[0]) or \
+                               MyDecimal('.')(tr.xpath('./following-sibling::tr/td[6]')[0])
                 else:
                     inv.quantity = MyDecimal('.')(cells[self.COL_QUANTITY])
                     inv.diff = MyDecimal('.')(cells[self.COL_DIFF])
