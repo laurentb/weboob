@@ -182,7 +182,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         month = ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul' , 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
         now = datetime.datetime.today()
         d = '%s %s %s %s:%s:%s GMT 0100 (CET)' % (days[now.weekday()], month[now.month - 1], now.year, now.hour, format(now.minute, "02"), now.second)
-        if self.page.doc.xpath('//span[@id="MM_LblMessagePopinError"]'):
+        if self.home.is_here() and self.page.doc.xpath('//span[@id="MM_LblMessagePopinError"]'):
             self.logger.warning("%s", CleanText('//span[@id="MM_LblMessagePopinError"]')(self.page.doc))
             return None
         self.cons_loan.go(datepourie = d)
