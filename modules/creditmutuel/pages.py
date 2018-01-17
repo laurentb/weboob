@@ -840,7 +840,7 @@ class LIAccountsPage(LoggedPage, HTMLPage):
 
             obj_label = CleanText(TableCell('label'))
             obj_unitprice = CleanDecimal(TableCell('unitprice', default=NotAvailable), default=NotAvailable, replace_dots=True)
-            obj_vdate = Date(CleanText(TableCell('vdate'), replace=[('-', '')]), default=NotAvailable)
+            obj_vdate = Date(CleanText(TableCell('vdate'), replace=[('-', '')]), default=NotAvailable, dayfirst=True)
             obj_unitvalue = CleanDecimal(TableCell('unitvalue'), default=NotAvailable, replace_dots=True)
             obj_quantity = CleanDecimal(TableCell('quantity'), default=NotAvailable, replace_dots=True)
             obj_valuation = CleanDecimal(TableCell('valuation'), default=Decimal(0), replace_dots=True)
