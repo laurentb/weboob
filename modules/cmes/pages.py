@@ -23,7 +23,7 @@ import re
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement
 from weboob.browser.filters.standard import CleanText, Upper, Date, Regexp, Field, \
-                                            CleanDecimal, Env, Async, AsyncLoad, Currency
+                                            CleanDecimal, Env, Async, AsyncLoad
 from weboob.browser.filters.html import Link, TableCell, Attr
 from weboob.capabilities.bank import Account, Investment, Pocket
 from weboob.capabilities.base import NotAvailable
@@ -57,17 +57,15 @@ class AccountsPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Account
 
-            obj_id = Regexp(Upper(Field('raw')), '[\s]+([^\s]+)[\s]+([^\s]+).*:[\s]+([^\s]+)', '\\1\\2\\3')
+            obj_id = Regexp(Upper(Field('label')), '[\s]+([^\s]+)[\s]+([^\s]+).*:[\s]+([^\s]+)', '\\1\\2\\3')
             obj_type = Account.TYPE_PEE
-            obj_raw = CleanText('//table[@class="fiche"]//td')
-            obj_label = Regexp(Field('raw'), '[^:]\s*(.+)\s+Montant', '\\1')
-            obj_balance = MyDecimal('//th[contains(., "Montant total")]//em')
+            obj_label = CleanText('(//table[@class="fiche"]//td)[1]')
 
-            def obj_currency(self):
-                currency = CleanText('//th[contains(text(), "Montant total")]/small')(self)
-                if currency:
-                    return Currency().filter(currency)
-                return Currency().filter(CleanText('//table[@class="fiche"]//td/small')(self))
+            def obj_balance(self):
+                balance = MyDecimal('//table[@class="fiche"]//td/em')(self)
+                if not balance:
+                    balance = MyDecimal('//th[contains(text(), "Montant total")]/em')(self)
+                return balance
 
 
 class AlertPage(LoggedPage, HTMLPage):
