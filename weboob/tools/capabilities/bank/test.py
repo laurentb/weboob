@@ -124,7 +124,7 @@ class BankStandardTest(object):
             self.assertGreaterEqual(new_date(tr.date), new_date(tr.rdate), 'transaction %r rdate should be before date' % tr)
 
         if tr.original_amount or tr.original_currency:
-            self.generic_check(tr.original_amount and tr.original_currency, 'transaction %r has missing foreign info' % tr)
+            self.assertTrue(tr.original_amount and tr.original_currency, 'transaction %r has missing foreign info' % tr)
 
         for inv in (tr.investments or []):
             self.assertTrue(inv.label, 'transaction %r investment %r has no label' % (tr, inv))
