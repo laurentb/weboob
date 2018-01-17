@@ -199,7 +199,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
         if paths[0] in ["fr", "mabanque"]:
             self.is_new_website = True
 
-    def list_operations(self, page):
+    def list_operations(self, page, account):
         if isinstance(page, basestring):
             if page.startswith('/') or page.startswith('https') or page.startswith('?'):
                 self.location(page)
@@ -207,6 +207,10 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                 self.location('%s/%sfr/banque/%s' % (self.BASEURL, self.currentSubBank, page))
         else:
             self.page = page
+
+        # on some savings accounts, the page lands on the contract tab, and we want the situation
+        if account.type == Account.TYPE_SAVINGS and "Capital Expansion" in account.label:
+            self.page.go_on_history_tab()
 
         # getting about 6 months history on new website
         if self.is_new_website and self.page:
@@ -273,7 +277,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
             self.location(account._pre_link)
 
         if not hasattr(account, '_card_pages'):
-            for tr in self.list_operations(account._link_id):
+            for tr in self.list_operations(account._link_id, account):
                 transactions.append(tr)
 
         coming_link = self.page.get_coming_link() if self.operations.is_here() else None

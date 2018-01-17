@@ -134,6 +134,7 @@ class item_account_generic(ItemElement):
         ('Livret',                  Account.TYPE_SAVINGS),
         ("Plan D'Epargne",          Account.TYPE_SAVINGS),
         ('Tonic Croissance',        Account.TYPE_SAVINGS),
+        ('Capital Expansion',       Account.TYPE_SAVINGS),
         ('Comptes courants',        Account.TYPE_CHECKING),
         ('\xc9pargne',              Account.TYPE_SAVINGS),
         ('Compte Garantie Titres',  Account.TYPE_MARKET),
@@ -579,6 +580,11 @@ class Transaction(FrenchTransaction):
 
 
 class OperationsPage(LoggedPage, HTMLPage):
+    def go_on_history_tab(self):
+        form = self.get_form(id='I1:fm')
+        form['_FID_DoShowListView'] = ''
+        form.submit()
+
     @method
     class get_history(Pagination, Transaction.TransactionsElement):
         head_xpath = '//table[has-class("liste")]//thead//tr/th'
