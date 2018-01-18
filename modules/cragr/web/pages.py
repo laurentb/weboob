@@ -405,7 +405,6 @@ class CardsPage(MyLoggedPage, BasePage):
                 '_id': './caption/span[@class="tdb-cartes-num"]',
                 'label1': './caption/span[contains(@class, "tdb-cartes-carte")]',
                 'label2': './caption/span[@class="tdb-cartes-prop"]',
-                'balance': './/tr/td[@class="cel-num"]',
                 'currency': '//table/caption//span/text()[starts-with(.,"Montants en ")]',
                 'link': './/tr//a/@href[contains(., "fwkaction=Detail")]',
             }
@@ -415,9 +414,6 @@ class CardsPage(MyLoggedPage, BasePage):
                 '_id': './/tr/td[@class="cel-texte"]',
                 'label1': './/tr[@class="ligne-impaire ligne-bleu"]/th',
                 'label2': './caption/span[@class="tdb-cartes-prop"]/b',
-                'balance': './/tr[last()-1]/td[@class="cel-num"] | '
-                           './/tr[last()-2]/td[@class="cel-num"] | '
-                           './following-sibling::table[1]//tr[1][td[has-class("cel-neg")]]/td[@class="cel-num"]',
                 'currency': '//table/caption//span/text()[starts-with(.,"Montants en ")]',
             }
             TABLE_XPATH = '(//table[@class="ca-table"])[1]'
@@ -435,25 +431,17 @@ class CardsPage(MyLoggedPage, BasePage):
             account.label = '%s - %s' % (get('label1'),
                                          re.sub('\s*-\s*$', '', get('label2')))
 
-            try:
-                # set balance at 0 if there is no deferred transactions for the new month
-                date_guesser = LinearDateGuesser()
-                tr = None
-                for _, tr in self.get_history(date_guesser, fetch_summary=True):
-                    assert tr.type == Transaction.TYPE_CARD_SUMMARY
-                    break
-                # test present date and summary date from card account
-                if tr is None or tr.date < datetime.today():
-                    account.balance = Decimal(0.0)
-                else:
-                    account.balance = Decimal(Transaction.clean_amount(table.xpath(xpaths['balance'])[-1].text))
+            if table.xpath('.//td[has-class("cel-num")]'):
+                account.coming = CleanDecimal('.//tr[@class="ligne-paire"]/td[@class="cel-num"]', replace_dots=True)(table)
+            else:
+                continue
 
-                account.currency = account.get_currency(self.doc
+            account.balance = Decimal('0.0')
+
+            account.currency = account.get_currency(self.doc
                         .xpath(xpaths['currency'])[0].replace("Montants en ", ""))
-                if not account.currency and currency:
-                    account.currency = Account.get_currency(currency)
-            except IndexError:
-                account.balance = Decimal('0.0')
+            if not account.currency and currency:
+                account.currency = Account.get_currency(currency)
 
             if 'link' in xpaths:
                 try:
