@@ -874,7 +874,9 @@ class MarketPage(MyLoggedPage, AutoEncodingMixin, BasePage):
         v = value.strip()
         if v == '-' or v == '' or v == '_':
             return NotAvailable
-        return Decimal(Transaction.clean_amount(value))
+        if '.' in value and not ',' in value:
+            return CleanDecimal().filter(value)
+        return MyDecimal().filter(value)
 
 
 class MarketHomePage(MarketPage):
