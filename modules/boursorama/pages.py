@@ -139,9 +139,9 @@ class BoursoramaVirtKeyboard(VirtKeyboard):
 
     def __init__(self, page):
         self.md5 = {}
-        for button in page.doc.xpath('//button')[1:]:
+        for button in page.doc.xpath('//ul[@class="password-input"]//button'):
             c = button.attrib['data-matrix-key']
-            txt = re.search('base64,([^\)]+)', button.attrib['style'], re.MULTILINE).groups()[0].replace('data:image/png;base64,', '')
+            txt = button.attrib['style'].replace('background-image:url(data:image/png;base64,', '').rstrip(');')
             img = BytesIO(b64decode(txt.encode('ascii')))
             self.load_image(img, self.color, convert='RGB')
             self.load_symbols((0, 0, 42, 42), c)
