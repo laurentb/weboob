@@ -234,6 +234,11 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
         content = re.sub(br'\*<E040032TC MSBILL.INFO', b'*', content)
         return super(AccountHistoryPage, self).build_doc(content)
 
+    def get_coming(self):
+        for tr in self.doc.xpath('//table[@id="tableauConsultationHisto"]/tbody/tr'):
+            if 'Encours' in CleanText('./td')(tr):
+                return CleanDecimal('./td//strong', replace_dots=True, default=NotAvailable)(tr)
+
     def get_balance(self):
         for tr in self.doc.xpath('//table[@id="tableauConsultationHisto"]/tbody/tr'):
             if 'Solde' in CleanText('./td')(tr):
@@ -447,6 +452,7 @@ class AccountsList(LoggedPage, HTMLPage):
                     self.browser.investments[account.id] = list(self.browser.open(account._investment_link).page.get_investments(account))
             else:
                 balance = self.browser.open(account._history_link).page.get_balance()
+                account.coming = self.browser.open(account._history_link).page.get_coming()
 
             if account.type in {Account.TYPE_PEA, Account.TYPE_MARKET}:
                 account.currency = self.browser.open(account._investment_link).page.get_currency()
