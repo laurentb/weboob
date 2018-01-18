@@ -563,7 +563,7 @@ class Currency(object):
         (u'ISK', (u'Íkr', u'kr')),
     ])
 
-    EXTRACTOR = re.compile(r'[\d\s,\.\-]', re.UNICODE)
+    EXTRACTOR = re.compile(r'[()\d\s,\.\-]', re.UNICODE)
 
     @classmethod
     def get_currency(klass, text):
