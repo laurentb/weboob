@@ -90,7 +90,6 @@ class AccountsPage(LoggedPage, JsonPage):
             obj_valuation = Dict('mtBrut') & CleanDecimal
             obj_code = Dict('codeIsin', default=NotAvailable)
             obj_vdate = Date(Dict('dtVl'))
-            obj_diff = Dict('mtPMV') & CleanDecimal
 
 
 class AccountHistoryPage(LoggedPage, JsonPage):
