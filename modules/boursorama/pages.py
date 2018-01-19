@@ -139,13 +139,12 @@ class BoursoramaVirtKeyboard(VirtKeyboard):
 
     def __init__(self, page):
         self.md5 = {}
-        for span in page.doc.xpath('//span'):
-            c = span.attrib['data-matrix-key']
-
-            txt = span.xpath('./img/@src')[0].replace('data:image/png;base64,', '')
+        for button in page.doc.xpath('//button')[1:]:
+            c = button.attrib['data-matrix-key']
+            txt = re.search('base64,([^\)]+)', button.attrib['style'], re.MULTILINE).groups()[0].replace('data:image/png;base64,', '')
             img = BytesIO(b64decode(txt.encode('ascii')))
             self.load_image(img, self.color, convert='RGB')
-            self.load_symbols((0,0,42,42), c)
+            self.load_symbols((0, 0, 42, 42), c)
 
     def load_symbols(self, coords, c):
         coord = self.get_symbol_coords(coords)
