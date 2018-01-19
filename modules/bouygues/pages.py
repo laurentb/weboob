@@ -30,11 +30,14 @@ from weboob.browser.elements import DictElement, ItemElement, ListElement, metho
 from weboob.tools.date import parse_french_date
 
 class LoginPage(HTMLPage):
-    def login(self, login, password):
+    def login(self, login, password, lastname):
         form = self.get_form('//form[@id="log_data"]')
 
         form['username'] = login
         form['password'] = password
+
+        if 'lastname' in form:
+            form['lastname'] = lastname
 
         form.submit()
 

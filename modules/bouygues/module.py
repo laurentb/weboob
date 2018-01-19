@@ -38,11 +38,12 @@ class BouyguesModule(Module, CapMessages, CapMessagesPost, CapDocument):
     DESCRIPTION = u'Bouygues Télécom French mobile phone provider'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(Value('login', label='Login/Phone number'),
-                           ValueBackendPassword('password', label='Password'))
+                           ValueBackendPassword('password', label='Password'),
+                           ValueBackendPassword('lastname', label='Last name', default=u''))
     BROWSER = BouyguesBrowser
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(), self.config['password'].get())
+        return self.create_browser(username=self.config['login'].get(), password=self.config['password'].get(), lastname=self.config['lastname'].get())
 
     def post_message(self, message):
         if not message.content.strip():
