@@ -52,10 +52,11 @@ class AccountsPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Account
 
-            obj_id = Regexp(Upper(Field('label')), '[\s]+([^\s]+)[\s]+([^\s]+).*:[\s]+([^\s]+)', '\\1\\2\\3')
+            obj_id = Regexp(Upper(Field('raw')), '[\s]+([^\s]+)[\s]+([^\s]+).*:[\s]+([^\s]+)', '\\1\\2\\3')
             obj_type = Account.TYPE_PEE
-            obj_label = CleanText('//table[@class="fiche"]//td')
-            obj_balance = MyDecimal('//th[contains(text(), "Montant total")]/em')
+            obj_raw = CleanText('//table[@class="fiche"]//td')
+            obj_label = Regexp(Field('raw'), '[^:]\s*(.+)\s+Montant', '\\1')
+            obj_balance = MyDecimal('//th[contains(., "Montant total")]//em')
 
 
 class InvestmentPage(LoggedPage, HTMLPage):
