@@ -27,7 +27,8 @@ from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, Env
+from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, Env, \
+                                            Currency
 from weboob.browser.filters.html import Attr
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -182,6 +183,8 @@ class AccountsPage(LoggedPage, HTMLPage):
             balance -= CleanDecimal('.', replace_dots=False)(right)
         return balance
 
+    def get_currency(self):
+        return Currency().filter(self.doc.xpath('//section[@id="onglet-detailcompte"]//td[@class="droite"]')[0])
 
 class OperationsPage(LoggedPage, HTMLPage):
     @method

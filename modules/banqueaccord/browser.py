@@ -65,6 +65,7 @@ class BanqueAccordBrowser(LoginBrowser):
             else:
                 self.accounts.go()
                 a.balance = self.page.get_balance()
+                a.currency = self.page.get_currency()
                 a.type = Account.TYPE_CARD
             if a.balance is None:
                 continue
