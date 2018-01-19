@@ -302,20 +302,23 @@ class AVPage(LoggedPage, CDNBasePage):
         return url, args
 
     def get_av_accounts(self):
-        for tr in self.doc.xpath('//table[@class="datas"]/tr[not(@class)]'):
-            cols = tr.findall('td')
-            if len(cols) != 4:
-                continue
+        for table in self.doc.xpath('//table[@class="datas"]'):
+            head_cols = table.xpath('./tr[@class="entete"]/td')
+            for tr in table.xpath('./tr[not(@class)]'):
+                cols = tr.findall('td')
+                if len(cols) != 4:
+                    continue
 
-            a = Account()
-            a.label = CleanText('.')(cols[self.COL_LABEL])
-            a.type = Account.TYPE_LIFE_INSURANCE
-            a.balance = MyDecimal('.')(cols[self.COL_BALANCE])
-            a._link, a._args = self.get_params(cols[self.COL_LABEL].find('span/a').attrib['href'])
-            a.id = a._args['IndiceSupport'] + a._args['NumPolice']
-            a._acc_nb = None
-            a._inv = True
-            yield a
+                a = Account()
+                a.label = CleanText('.')(cols[self.COL_LABEL])
+                a.type = Account.TYPE_LIFE_INSURANCE
+                a.balance = MyDecimal('.')(cols[self.COL_BALANCE])
+                a.currency = a.get_currency(CleanText('.')(head_cols[self.COL_BALANCE]))
+                a._link, a._args = self.get_params(cols[self.COL_LABEL].find('span/a').attrib['href'])
+                a.id = a._args['IndiceSupport'] + a._args['NumPolice']
+                a._acc_nb = None
+                a._inv = True
+                yield a
 
 
 class ProAccountsPage(AccountsPage):
