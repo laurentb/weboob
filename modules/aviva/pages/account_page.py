@@ -23,7 +23,7 @@ from __future__ import unicode_literals
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import (
-    CleanText, Env, Field, Async, AsyncLoad,
+    CleanText, Env, Field, Async, AsyncLoad, Currency
 )
 from weboob.browser.filters.html import AbsoluteLink
 from weboob.capabilities.bank import Account
@@ -53,6 +53,7 @@ class AccountsPage(LoggedPage, BasePage, HTMLPage):
             obj_balance = Async('details') & InvestmentPage.balance_filter
             obj_valuation_diff = Async('details') & InvestmentPage.valuation_filter
             obj__link = AbsoluteLink(u'.//a[contains(text(), "Détail")]')
+            obj_currency = Async('details') & Currency('//ul[has-class("data-group")]//strong')
             # Additional waranty : need to know what to do with this
             obj__additionalwaranty = Env('additionalwaranty')
 
