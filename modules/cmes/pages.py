@@ -23,7 +23,7 @@ import re
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement
 from weboob.browser.filters.standard import CleanText, Upper, Date, Regexp, Field, \
-                                            CleanDecimal, Env, Async, AsyncLoad
+                                            CleanDecimal, Env, Async, AsyncLoad, Currency
 from weboob.browser.filters.html import Link, TableCell, Attr
 from weboob.capabilities.bank import Account, Investment, Pocket
 from weboob.capabilities.base import NotAvailable
@@ -69,6 +69,12 @@ class AccountsPage(LoggedPage, HTMLPage):
                 if not balance:
                     balance = MyDecimal('//th[contains(text(), "Montant total")]/em')(self)
                 return balance
+
+            def obj_currency(self):
+                currency = CleanText('//th[contains(text(), "Montant total")]/small')(self)
+                if currency:
+                    return Currency().filter(currency)
+                return Currency().filter(CleanText('//table[@class="fiche"]//td/small')(self))
 
 
 class AlertPage(LoggedPage, HTMLPage):
