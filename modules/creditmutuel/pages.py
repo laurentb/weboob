@@ -31,7 +31,7 @@ from collections import OrderedDict
 from weboob.browser.pages import HTMLPage, FormNotFound, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, SkipItem, method, TableElement
 from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, \
-    Regexp, Async, AsyncLoad, Date, Format, Type
+    Regexp, Async, AsyncLoad, Date, Format, Type, Currency
 from weboob.browser.filters.html import Link, Attr, TableCell, ColumnNotFound
 from weboob.exceptions import BrowserIncorrectPassword, ParseError, NoAccountsException, ActionNeeded
 from weboob.capabilities import NotAvailable
@@ -901,8 +901,11 @@ class PorPage(LoggedPage, HTMLPage):
         ele = self.browser.page.doc.xpath('.//table[has-class("fiche bourse")]')[0]
         balance = CleanDecimal(ele.xpath('.//td[contains(@id, "Valorisation")]'), default=Decimal(0), replace_dots=True)(ele)
         acc.balance = balance + acc.balance if acc.balance else balance
-        acc.currency = FrenchTransaction.Currency('.')(ele)
         acc.valuation_diff = CleanDecimal(ele.xpath('.//td[contains(@id, "Variation")]'), default=Decimal(0), replace_dots=True)(ele)
+        if balance:
+            acc.currency = Currency('.//td[contains(@id, "Valorisation")]')(ele)
+        else:
+            acc.currency = Currency('.')(ele)
 
     def send_form(self, account):
         form = self.get_form(name="frmMere")
