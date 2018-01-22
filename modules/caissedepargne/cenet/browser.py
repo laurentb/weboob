@@ -23,12 +23,13 @@ from weboob.browser import LoginBrowser, need_login, StatesMixin
 from weboob.browser.url import URL
 from weboob.browser.exceptions import ClientError
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
-from weboob.tools.capabilities.bank.transactions import sorted_transactions
+from weboob.tools.capabilities.bank.transactions import sorted_transactions, FrenchTransaction
 
 from .pages import (
     ErrorPage,
     LoginPage, CenetLoginPage, CenetHomePage,
     CenetAccountsPage, CenetAccountHistoryPage, CenetCardsPage,
+    CenetCardSummaryPage,
 )
 from ..pages import CaissedepargneKeyboard
 
@@ -49,6 +50,7 @@ class CenetBrowser(LoginBrowser, StatesMixin):
     cenet_accounts = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiComptes.asmx/ChargerSyntheseComptes', CenetAccountsPage)
     cenet_account_history = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiComptes.asmx/ChargerHistoriqueCompte', CenetAccountHistoryPage)
     cenet_account_coming = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiCartesBanquaires.asmx/ChargerEnCoursCarte', CenetAccountHistoryPage)
+    cenet_tr_detail = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiComptes.asmx/ChargerDetailOperation', CenetCardSummaryPage)
     cenet_cards = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiCartesBanquaires.asmx/ChargerCartes', CenetCardsPage)
     error = URL('https://.*/login.aspx',
                 'https://.*/Pages/logout.aspx.*',
@@ -144,11 +146,29 @@ class CenetBrowser(LoginBrowser, StatesMixin):
         }
 
         items = []
+        self.cenet_account_history.go(data=json.dumps(data), headers=headers)
         while True:
-            self.cenet_account_history.go(data=json.dumps(data), headers=headers)
+            data_out = self.page.doc['DonneesSortie']
             for tr in self.page.get_history():
                 items.append(tr)
 
+                if tr.type is FrenchTransaction.TYPE_CARD_SUMMARY:
+                    tr.deleted = True
+                    tr_dict = [tr_dict for tr_dict in data_out if tr_dict['Libelle'] == tr.label]
+                    donneesEntree = {}
+                    donneesEntree['Compte'] = account._formated
+                    donneesEntree['ListeOperations'] = [tr_dict[0]]
+                    data = {
+                        'contexte': '',
+                        'dateEntree': None,
+                        'donneesEntree': json.dumps(donneesEntree).replace('/', '\\/'),
+                        'filtreEntree': json.dumps(tr_dict[0]).replace('/', '\\/')
+                    }
+                    self.cenet_tr_detail.go(data=json.dumps(data), headers=headers)
+                    for tr in self.page.get_history():
+                        items.append(tr)
+
+            self.cenet_account_history.go(data=json.dumps(data), headers=headers)
             offset = self.page.next_offset()
             if not offset:
                 break

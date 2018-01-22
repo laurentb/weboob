@@ -179,6 +179,34 @@ class CenetAccountHistoryPage(LoggedPage, CenetJsonPage):
         return offset
 
 
+class CenetCardSummaryPage(LoggedPage, CenetJsonPage):
+    @method
+    class get_history(DictElement):
+        item_xpath = "DonneesSortie/OperationsCB"
+
+        class item(ItemElement):
+            klass = Transaction
+
+            obj_raw = Format('%s %s', Dict('Libelle'), Dict('Libelle2'))
+            obj_label = CleanText(Dict('Libelle'))
+            obj_date = Date(Dict('DateGroupImputation'), dayfirst=True)
+            obj_type = Transaction.TYPE_DEFERRED_CARD
+
+            def obj_rdate(self):
+                rdate = re.search('(FACT\s)(\d{6})', Field('label')(self))
+                if rdate.group(2):
+                    return Date(dayfirst=True).filter(rdate.group(2))
+                return NotAvailable
+
+            def obj_original_currency(self):
+                return CleanText(Dict('Montant/Devise'))(self).upper()
+
+            def obj_amount(self):
+                amount = CleanDecimal(Dict('Montant/Valeur'))(self)
+
+                return -amount if Dict('Montant/CodeSens')(self) == "D" else amount
+
+
 class _LogoutPage(HTMLPage):
     def on_load(self):
         raise BrowserUnavailable(CleanText('//*[@class="messErreur"]')(self.doc))
