@@ -63,7 +63,7 @@ class AccountsPage(LoggedPage, JsonPage):
             if 'reportNetliq' in d:
                 return Decimal(str(d['reportNetliq']))
 
-            return CleanDecimal(Dict('totalPortfolio/value/2/value'))(self)
+            return CleanDecimal(Dict('totalPortfolio/value/0/value'))(self)
 
         def obj_id(self):
             return str(self.page.browser.intAccount)
