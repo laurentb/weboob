@@ -28,6 +28,7 @@ class LeboncoinBrowser(PagesBrowser):
     city = URL('ajax/location_list.html\?city=(?P<city>.*)&zipcode=(?P<zip>.*)', CityListPage)
     search = URL('(?P<type>.*)/offres/\?(?P<_ps>ps|mrs)=(?P<ps>.*)&(?P<_pe>pe|mre)=(?P<pe>.*)&ros=(?P<ros>.*)&location=(?P<location>.*)&sqs=(?P<sqs>.*)&sqe=(?P<sqe>.*)&ret=(?P<ret>.*)&f=(?P<advert_type>.*)',
                  '(?P<_type>.*)/offres/occasions.*?',
+                 HousingListPage)
     housing = URL('ventes_immobilieres/(?P<_id>.*).htm', HousingPage)
     phone = URL('https://api.leboncoin.fr/api/utils/phonenumber.json', PhonePage)
 
