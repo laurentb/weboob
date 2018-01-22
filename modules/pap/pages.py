@@ -48,7 +48,7 @@ class SearchResultsPage(HTMLPage):
     @pagination
     @method
     class iter_housings(ListElement):
-        item_xpath = '//div[has-class("search-results-item")]'
+        item_xpath = '//div[has-class("search-list-item")]'
 
         def next_page(self):
             return Link('//ul[@class="pagination"]/li[@class="next"]/a')(self)
@@ -62,17 +62,18 @@ class SearchResultsPage(HTMLPage):
                 if self.env['query_type'] == POSTS_TYPES.RENT:
                     isNotFurnishedOk = 'meublé' not in title.lower()
                 return (
-                    Regexp(Link('./div[has-class("box-header")]/a[@class="title-item"]'), '/annonces/(.*)', default=None)(self)
+                    Regexp(Link('./div/a[@class="item-title"]'), '/annonces/(.*)', default=None)(self)
                     and isNotFurnishedOk
                 )
 
             def parse(self, el):
                 rooms_bedrooms_area = el.xpath(
-                    './div[@class="box-body"]/div/div/div[@class="clearfix"]/ul[has-class("item-summary")]/li'
+                    './/div[@class="clearfix"]/ul[has-class("item-tags")]/li'
                 )
                 self.env['rooms'] = NotAvailable
                 self.env['bedrooms'] = NotAvailable
                 self.env['area'] = NotAvailable
+
                 for item in rooms_bedrooms_area:
                     name = CleanText('.')(item)
                     if 'chambre' in name.lower():
@@ -88,16 +89,17 @@ class SearchResultsPage(HTMLPage):
                                 CleanText(
                                     '.'
                                 ),
-                                r'(.*?)(\d*) m\xb2(.*?)', '\\2'
+                                r'(\d*\.*\d*) .*'
                             )
-                        )
+                        )(item)
                     self.env[name] = value
 
-            obj_id = Regexp(Link('./div[has-class("box-header")]/a[@class="title-item"]'), '/annonces/(.*)')
+            obj_id = Regexp(Link('./div/a[@class="item-title"]'), '/annonces/(.*)')
             obj_type = Env('query_type')
             obj_advert_type = ADVERT_TYPES.PERSONAL
+
             def obj_house_type(self):
-                item_link = Link('.//a[has-class("title-item")]')(self)
+                item_link = Link('./div/a[@class="item-title"]')(self)
                 house_type = item_link.split('/')[-1].split('-')[0]
                 if 'parking' in house_type:
                     return HOUSE_TYPES.PARKING
@@ -110,46 +112,38 @@ class SearchResultsPage(HTMLPage):
                 else:
                     return HOUSE_TYPES.OTHER
 
-
-            obj_title = CleanText('./div[has-class("box-header")]/a[@class="title-item"]')
-            obj_area = CleanDecimal(
-                Regexp(
-                    CleanText(
-                        './div[has-class("box-header")]/a/span[@class="h1"]'),
-                    '(.*?)(\d*) m\xb2(.*?)', '\\2',
-                    default=NotAvailable
-                ),
-                default=NotAvailable
-            )
-            obj_cost = CleanDecimal(CleanText('./div[has-class("box-header")]/a/span[@class="price"]'),
+            obj_title = CleanText('./div/a[@class="item-title"]')
+            obj_area = Env('area')
+            obj_cost = CleanDecimal(CleanText('./div/a[@class="item-title"]/span[@class="item-price"]'),
                                     replace_dots=True, default=Decimal(0))
             obj_currency = Currency(
-                './div[has-class("box-header")]/a/span[@class="price"]'
+                './div/a[@class="item-title"]/span[@class="item-price"]'
             )
             obj_utilities = UTILITIES.UNKNOWN
 
             def obj_date(self):
-                _date = Regexp(CleanText('./div[has-class("box-header")]/p[@class="date"]'),
+                _date = Regexp(CleanText('./div/p[@class="item-date"]'),
                                '.* / (.*)')(self)
                 return parse_french_date(_date)
 
-            obj_station = CleanText('./div[@class="box-body"]/div/div/p[@class="item-transports"]', default=NotAvailable)
-            obj_location = CleanText('./div[@class="box-body"]/div/div/p[@class="item-description"]/strong')
-            obj_text = CleanText('./div[@class="box-body"]/div/div/p[@class="item-description"]')
+            obj_station = CleanText('./div/p[@class="item-transports"]', default=NotAvailable)
+
+            def obj_location(self):
+                return CleanText('./div/p[@class="item-description"]')(self).split(".")[0]
+
+            obj_text = CleanText('./div/p[@class="item-description"]', replace=[(' Lire la suite', '')])
             obj_rooms = Env('rooms')
             obj_bedrooms = Env('bedrooms')
             obj_price_per_meter = PricePerMeterFilter()
 
             obj_url = Format(
                 u'http://www.pap.fr%s',
-                Link(
-                    './div[@class="box-body"]/div/div/div[@class="clearfix"]/div[@class="float-right"]/a'
-                )
+                Link('./div/a[@class="item-title"]')
             )
 
             def obj_photos(self):
                 photos = []
-                for img in XPath('./div[@class="box-body"]/div/div/a/img/@src')(self):
+                for img in XPath('./a/img/@src')(self):
                     photos.append(HousingPhoto(u'%s' % img))
                 return photos
 

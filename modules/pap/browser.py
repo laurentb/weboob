@@ -32,9 +32,9 @@ __all__ = ['PapBrowser']
 class PapBrowser(PagesBrowser):
 
     BASEURL = 'https://www.pap.fr'
-    search_page = URL('annonce/.*', SearchResultsPage)
-    housing = URL('annonces/(?P<_id>.*)', HousingPage)
-    cities = URL('index/ac-geo2\?q=(?P<pattern>.*)', CitiesPage)
+    search_page = URL('/annonce/.*', SearchResultsPage)
+    housing = URL('/annonces/(?P<_id>.*)', HousingPage)
+    cities = URL('/index/ac-geo2\?q=(?P<pattern>.*)', CitiesPage)
 
     def search_geo(self, pattern):
         return self.cities.open(pattern=pattern).iter_cities()
