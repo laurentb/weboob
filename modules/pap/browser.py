@@ -22,7 +22,7 @@ from weboob.browser import PagesBrowser, URL
 from weboob.capabilities.housing import TypeNotSupported, POSTS_TYPES
 from weboob.tools.compat import urlencode
 
-from .pages import SearchResultsPage, HousingPage, CitiesPage
+from .pages import HousingPage, CitiesPage
 from .constants import TYPES, RET
 
 
@@ -32,8 +32,8 @@ __all__ = ['PapBrowser']
 class PapBrowser(PagesBrowser):
 
     BASEURL = 'https://www.pap.fr'
-    search_page = URL('/annonce/.*', SearchResultsPage)
     housing = URL('/annonces/(?P<_id>.*)', HousingPage)
+    search_page = URL('/annonce/.*', HousingPage)
     cities = URL('/index/ac-geo2\?q=(?P<pattern>.*)', CitiesPage)
 
     def search_geo(self, pattern):

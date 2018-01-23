@@ -44,7 +44,7 @@ class CitiesPage(JsonPage):
             obj_name = Dict('name')
 
 
-class SearchResultsPage(HTMLPage):
+class HousingPage(HTMLPage):
     @pagination
     @method
     class iter_housings(ListElement):
@@ -144,11 +144,11 @@ class SearchResultsPage(HTMLPage):
             def obj_photos(self):
                 photos = []
                 for img in XPath('./a/img/@src')(self):
+                    if img.endswith("visuel-nophoto.png"):
+                        continue
                     photos.append(HousingPhoto(u'%s' % img))
                 return photos
 
-
-class HousingPage(HTMLPage):
     @method
     class get_housing(ItemElement):
         klass = Housing
@@ -187,17 +187,21 @@ class HousingPage(HTMLPage):
 
 
         obj_title = CleanText(
-            '//div[has-class("box-header")]/h1[@class="clearfix"]'
+            '//h1[@class="item-title"]'
         )
-        obj_cost = CleanDecimal('//h1[@class="clearfix"]/span[@class="price"]',
-                                replace_dots=True)
+        obj_cost = CleanDecimal(
+            '//h1[@class="item-title"]/span[@class="item-price"]',
+            replace_dots=True
+        )
         obj_currency = Currency(
-            '//h1[@class="clearfix"]/span[@class="price"]'
+            '//h1[@class="item-title"]/span[@class="item-price"]'
         )
         obj_utilities = UTILITIES.UNKNOWN
         obj_area = CleanDecimal(
             Regexp(
-                CleanText('//h1[@class="clearfix"]/span[@class="title"]'),
+                CleanText(
+                    '//h1[@class="item-title"]/span[@class="h1"]'
+                ),
                 '(.*?)(\d*) m\xb2(.*?)', '\\2',
                 default=NotAvailable
             ),
@@ -206,56 +210,56 @@ class HousingPage(HTMLPage):
 
         def obj_date(self):
             date = CleanText(
-                '//div[has-class("box-header")]//p[has-class("date")]'
+                '//p[@class="item-date"]'
             )(self).split("/")[-1].strip()
             return parse_french_date(date)
 
         def obj_bedrooms(self):
             rooms_bedrooms_area = XPath(
-                '//div[has-class("box-body")]//ul[has-class("item-summary")]/li'
+                '//ul[@class="item-tags"]/li'
             )(self)
             if len(rooms_bedrooms_area) > 2:
                 return CleanDecimal(
-                    '//div[has-class("box-body")]//ul[has-class("item-summary")]/li[2]/strong',
+                    '//ul[@class="item-tags"]/li[2]/strong',
                     default=NotAvailable
                 )(self)
             else:
                 return NotAvailable
 
-        obj_rooms = CleanDecimal('//ul[has-class("item-summary")]/li[1]/strong',
+        obj_rooms = CleanDecimal('//ul[@class="item-tags"]/li[1]/strong',
                                  default=NotAvailable)
         obj_price_per_meter = PricePerMeterFilter()
-        obj_location = CleanText('//div[@class="item-geoloc"]/h2')
-        obj_text = CleanText(CleanHTML('//p[@class="item-description"]'))
+        obj_location = CleanText('//div[has-class("item-description")]/h2')
+        obj_text = CleanText(CleanHTML('//div[has-class("item-description")]/div/p'))
 
         def obj_station(self):
             return ", ".join([
                 station.text
                 for station in XPath(
-                    '//ul[has-class("item-metro")]//span[has-class("label")]'
+                    '//ul[has-class("item-transports")]//span[has-class("label")]'
                 )(self)
             ])
 
         def obj_phone(self):
-            phone = CleanText('(//div[has-class("tel-wrapper")])[1]')(self)
+            phone = CleanText('(//div[has-class("contact-proprietaire-box")]//strong[@class="tel-wrapper"])[1]')(self)
             phone = phone.replace(' ', ', ')
-            return phone.strip()
+            return phone
 
         obj_url = BrowserURL('housing', _id=Env('_id'))
 
         def obj_DPE(self):
             DPE = Attr(
-                '//div[has-class("energy-box")]//div[has-class("rank")]',
+                '//div[has-class("energy-box")]//div[has-class("energy-rank")]',
                 'class',
                 default=""
             )(self)
             if DPE:
-                DPE = [x.replace("rank-", "").upper()
-                       for x in DPE.split() if x.startswith("rank-")][0]
+                DPE = [x.replace("energy-rank-", "").upper()
+                       for x in DPE.split() if x.startswith("energy-rank-")][0]
             return getattr(ENERGY_CLASS, DPE, NotAvailable)
 
         def obj_photos(self):
             photos = []
-            for img in XPath('//div[has-class("owl-thumbs")]//img/@src')(self):
+            for img in XPath('//div[@class="owl-thumbs"]/a/img/@src')(self):
                 photos.append(HousingPhoto(u'%s' % img))
             return photos
