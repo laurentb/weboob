@@ -28,6 +28,7 @@ from optparse import OptionGroup, OptionParser, IndentedHelpFormatter
 from datetime import datetime
 import os
 import shlex
+import sys
 
 from weboob.capabilities.base import FieldNotFound, BaseObject, UserError
 from weboob.core import CallErrors
@@ -390,7 +391,10 @@ class ReplApplication(ConsoleApplication, MyCmd):
     # -- command tools ------------
     def parse_command_args(self, line, nb, req_n=None):
         try:
-            args = shlex.split(line)
+            if sys.version_info.major >= 3:
+                args = shlex.split(line)
+            else:
+                args = [arg.decode('utf-8') for arg in shlex.split(line.encode('utf-8'))]
         except ValueError as e:
             raise ArgSyntaxError(str(e))
 
