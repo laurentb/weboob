@@ -28,3 +28,6 @@ class NovaTest(BackendTest):
     def test_nova(self):
         l = list(self.backend.iter_resources((Radio, ), []))
         self.assertTrue(len(l) > 0)
+        for r in l:
+            self.assertTrue(r.title)
+            self.assertTrue(r.streams[0].url)

@@ -17,16 +17,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
-from io import BytesIO
+from __future__ import unicode_literals
 
 from weboob.capabilities.radio import CapRadio, Radio
 from weboob.capabilities.audiostream import BaseAudioStream
 from weboob.tools.capabilities.streaminfo import StreamInfo
 from weboob.capabilities.collection import CapCollection
 from weboob.tools.backend import Module
-from weboob.deprecated.browser import StandardBrowser
-from weboob.deprecated.browser.parsers import get_parser
+from weboob.browser.browsers import APIBrowser
 
 
 __all__ = ['NovaModule']
@@ -39,19 +37,22 @@ class NovaModule(Module, CapRadio, CapCollection):
     VERSION = '1.4'
     DESCRIPTION = u'Nova French radio'
     LICENSE = 'AGPLv3+'
-    BROWSER = StandardBrowser
+    BROWSER = APIBrowser
 
-    _RADIOS = {'nova':     (u'Radio Nova',  u'Radio nova',   u'http://broadcast.infomaniak.net:80/radionova-high.mp3'),
-              }
-
-    def create_default_browser(self):
-        return self.create_browser(parser='json')
+    RADIOS = {
+        '19577': 'Radio Nova',
+        '19578': 'Nova Bordeaux',
+        '23678': 'Nova Lyon',
+        '23929': 'Nova V.F.',
+        '23932': 'Nova la Nuit',
+        '23935': 'Nova Vintage',
+    }
 
     def iter_resources(self, objs, split_path):
         if Radio in objs:
             self._restrict_level(split_path)
 
-            for id in self._RADIOS:
+            for id in self.RADIOS:
                 yield self.get_radio(id)
 
     def iter_radios_search(self, pattern):
@@ -61,43 +62,33 @@ class NovaModule(Module, CapRadio, CapCollection):
 
     def get_radio(self, radio):
         if not isinstance(radio, Radio):
+            if radio == 'nova': # old id
+                radio = '19577'
             radio = Radio(radio)
 
-        if radio.id not in self._RADIOS:
+        if radio.id not in self.RADIOS:
             return None
 
-        title, description, url = self._RADIOS[radio.id]
-        radio.title = title
-        radio.description = description
+        json = self.browser.open('http://www.nova.fr/radio/%s/player' % radio.id).json()
+        radio.title = radio.description = json['radio']['name']
 
-        artist, title = self.get_current()
-        current = StreamInfo(0)
-        current.who = artist
-        current.what = title
-        radio.current = current
+        if 'currentTrack' in json:
+            current = StreamInfo(0)
+            current.who = json['currentTrack']['artist']
+            current.what = json['currentTrack']['title']
+            radio.current = current
 
         stream = BaseAudioStream(0)
-        stream.bitrate=128
-        stream.format=u'mp3'
-        stream.title = u'128kbits/s'
-        stream.url = url
+        stream.bitrate = 128
+        stream.format = 'mp3'
+        stream.title = '128kbits/s'
+        stream.url = json['radio']['high_def_stream_url']
         radio.streams = [stream]
         return radio
 
-    def get_current(self):
-        doc = self.browser.location('http://www.novaplanet.com/radionova/ontheair?origin=/')
-        html = doc['track']['markup']
-        parser = get_parser()()
-        doc = parser.parse(BytesIO(html))
-        artist = u' '.join([txt.strip() for txt in doc.xpath('//div[@class="artist"]')[0].itertext()])
-        title = u' '.join([txt.strip() for txt in doc.xpath('//div[@class="title"]')[0].itertext()])
-        return unicode(artist).strip(), unicode(title).strip()
-
     def fill_radio(self, radio, fields):
         if 'current' in fields:
-            if not radio.current:
-                radio.current = StreamInfo(0)
-            radio.current.who, radio.current.what = self.get_current()
+            radio.current = self.get_radio(radio.id).current
         return radio
 
     OBJECTS = {Radio: fill_radio}
