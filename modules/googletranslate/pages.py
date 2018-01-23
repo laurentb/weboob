@@ -18,13 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.browser.pages import RawPage
-
-import re
+from weboob.browser.pages import JsonPage
 
 
-class TranslatePage(RawPage):
+class TranslatePage(JsonPage):
     def get_translation(self):
-        m = re.search('\[\[\[\"(.*)\",\".*\",,,\d\]\],,".*"\]', self.doc)
-        if m:
-            return m.group(1).decode('utf-8')
+        return self.doc[0][0][0]

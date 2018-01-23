@@ -36,9 +36,9 @@ class GoogleTranslateBrowser(PagesBrowser):
         """
         translate 'text' from 'source' language to 'to' language
         """
-        t = text.encode('utf-8')
+        t = text
         tk = Token().calculate_token(t)
-        return self.translate_page.go(source=source.encode('utf-8'),
-                                      to=to.encode('utf-8'),
+        return self.translate_page.go(source=source,
+                                      to=to,
                                       text=t,
                                       token=tk).get_translation()

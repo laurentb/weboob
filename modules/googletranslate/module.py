@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 "backend for http://translate.google.com"
 
+from __future__ import unicode_literals
 
 from weboob.capabilities.translate import CapTranslate, Translation, TranslationFail, LanguageNotSupported
 from weboob.capabilities.base import empty
@@ -112,8 +113,8 @@ class GoogleTranslateModule(Module, CapTranslate):
             raise LanguageNotSupported()
 
         translation = Translation(0)
-        translation.lang_src = unicode(self.GOOGLELANGUAGE[lan_from])
-        translation.lang_dst = unicode(self.GOOGLELANGUAGE[lan_to])
+        translation.lang_src = self.GOOGLELANGUAGE[lan_from]
+        translation.lang_dst = self.GOOGLELANGUAGE[lan_to]
         translation.text = self.browser.translate(self.GOOGLELANGUAGE[lan_from], self.GOOGLELANGUAGE[lan_to], text)
 
         if empty(translation.text):
