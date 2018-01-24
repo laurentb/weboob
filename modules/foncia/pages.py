@@ -25,7 +25,7 @@ from weboob.browser.pages import JsonPage, HTMLPage, pagination
 from weboob.browser.filters.standard import (
     CleanDecimal, CleanText, Currency, Date, Env, Format, Regexp
 )
-from weboob.browser.filters.html import AbsoluteLink, Attr, Link
+from weboob.browser.filters.html import AbsoluteLink, Attr, Link, XPathNotFound
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.housing import (
@@ -142,11 +142,14 @@ class HousingPage(HTMLPage):
         )
 
         def obj_DPE(self):
-            electric_consumption = CleanDecimal(Regexp(
-                Attr('//div[has-class("OfferDetails-content")]//img', 'src'),
-                r'https://dpe.foncia.net\/(\d+)\/.*',
-                default=None
-            ))(self)
+            try:
+                electric_consumption = CleanDecimal(Regexp(
+                    Attr('//div[has-class("OfferDetails-content")]//img', 'src'),
+                    r'https://dpe.foncia.net\/(\d+)\/.*',
+                    default=None
+                ))(self)
+            except XPathNotFound:
+                electric_consumption = None
             DPE = ""
             if electric_consumption is not None:
                 if electric_consumption <= 50:
@@ -187,11 +190,14 @@ class HousingPage(HTMLPage):
                 for detail_item in item.xpath('.//ul[has-class("List--bullet")]/li'):
                     detail_title = CleanText('.')(detail_item)
                     details[category][detail_title] = True
-            electric_consumption = CleanDecimal(Regexp(
-                Attr('//div[has-class("OfferDetails-content")]//img', 'src'),
-                r'https://dpe.foncia.net\/(\d+)\/.*',
-                default=None
-            ))(self)
+            try:
+                electric_consumption = CleanDecimal(Regexp(
+                    Attr('//div[has-class("OfferDetails-content")]//img', 'src'),
+                    r'https://dpe.foncia.net\/(\d+)\/.*',
+                    default=None
+                ))(self)
+            except XPathNotFound:
+                electric_consumption = None
             if electric_consumption is not None:
                 details["electric_consumption"] = '{} kWhEP/m².an'.format(electric_consumption)
             else:
