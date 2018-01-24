@@ -30,8 +30,8 @@ from weboob.browser.browsers import LoginBrowser, need_login, StatesMixin
 from weboob.browser.profiles import Wget
 from weboob.browser.url import URL
 from weboob.browser.pages import FormNotFound
-from weboob.browser.exceptions import ClientError
-from weboob.exceptions import BrowserIncorrectPassword, AuthMethodNotImplemented
+from weboob.browser.exceptions import ClientError, ServerError
+from weboob.exceptions import BrowserIncorrectPassword, AuthMethodNotImplemented, BrowserUnavailable
 from weboob.capabilities.bank import Account, AddRecipientStep, AddRecipientError, Recipient
 from weboob.capabilities import NotAvailable
 from weboob.tools.compat import urlparse
@@ -204,7 +204,11 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
             if page.startswith('/') or page.startswith('https') or page.startswith('?'):
                 self.location(page)
             else:
-                self.location('%s/%sfr/banque/%s' % (self.BASEURL, self.currentSubBank, page))
+                try:
+                    self.location('%s/%sfr/banque/%s' % (self.BASEURL, self.currentSubBank, page))
+                except ServerError as e:
+                    self.logger.warning('Page cannot be visited: %s/%sfr/banque/%s: %s', self.BASEURL, self.currentSubBank, page, e)
+                    raise BrowserUnavailable()
         else:
             self.page = page
 
