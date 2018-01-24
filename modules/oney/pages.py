@@ -31,7 +31,7 @@ from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardEr
 from weboob.tools.date import parse_french_date
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination, XLSPage
 from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import Env, CleanDecimal, CleanText, Field, Format
+from weboob.browser.filters.standard import Env, CleanDecimal, CleanText, Field, Format, Currency
 from weboob.browser.filters.html import Attr
 from weboob.exceptions import BrowserIncorrectPassword
 
@@ -225,6 +225,7 @@ class CreditAccountPage(LoggedPage, HTMLPage):
         obj_id = CleanText('//tr[td[text()="Mon numéro de compte"]]/td[@class="droite"]', replace=[(' ', '')])
         obj_balance = CleanDecimal('''//div[@id="mod-paiementcomptant"]//tr[td[starts-with(normalize-space(text()),"Disponible jusqu'au")]]/td[@class="droite"]''')
         obj_coming = CleanDecimal('''//div[@id="mod-paiementcomptant"]//tr[td[span[contains(text(),"prélevé le")]]]/td[@class="droite"]''', sign=lambda _: -1, default=0)
+        obj_currency = Currency('''//div[@id="mod-paiementcomptant"]//tr[td[starts-with(normalize-space(text()),"Disponible jusqu'au")]]/td[@class="droite"]''')
         # what's the balance anyway?
         # there's "Paiements au comptant" and sometimes "Retraits d'argent au comptant"
 
