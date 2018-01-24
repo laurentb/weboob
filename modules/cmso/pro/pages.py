@@ -24,7 +24,8 @@ import datetime
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.pages import HTMLPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, TableElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, DateGuesser, Env, Field, Filter, Regexp
+from weboob.browser.filters.standard import CleanText, CleanDecimal, DateGuesser, Env, Field, Filter, Regexp, \
+                                            Currency
 from weboob.browser.filters.html import Link, Attr, TableCell
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
@@ -101,6 +102,7 @@ class AccountsPage(CMSOPage):
 
             obj__history_url = Link('./td[1]/a')
             obj_label = CleanText('./td[1]')
+            obj_currency = Currency('//span[contains(text(), "Solde")]')
             obj_balance = CleanDecimal('./td[2]', replace_dots=True)
             obj_type = Type(Field('label'))
             # Last numbers replaced with XX... or we have to send sms to get RIB.
