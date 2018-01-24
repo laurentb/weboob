@@ -19,6 +19,8 @@
 
 from __future__ import print_function
 
+import sys
+
 from weboob.capabilities.subtitle import CapSubtitle
 from weboob.capabilities.base import empty
 from weboob.tools.application.repl import ReplApplication, defaultcount
@@ -149,10 +151,13 @@ class Suboob(ReplApplication):
         for buf in self.do('get_subtitle_file', subtitle.id, backends=subtitle.backend):
             if buf:
                 if dest == '-':
-                    self.stdout.write(buf)
+                    if sys.version_info.major >= 3:
+                        self.stdout.buffer.write(buf)
+                    else:
+                        self.stdout.stream.write(buf)
                 else:
                     try:
-                        with open(dest, 'w') as f:
+                        with open(dest, 'wb') as f:
                             f.write(buf)
                     except IOError as e:
                         print('Unable to write file in "%s": %s' % (dest, e), file=self.stderr)

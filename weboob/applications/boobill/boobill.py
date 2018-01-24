@@ -20,6 +20,7 @@
 from __future__ import print_function
 
 from decimal import Decimal
+import sys
 
 from weboob.capabilities.bill import CapDocument, Detail, Subscription
 from weboob.tools.application.repl import ReplApplication, defaultcount
@@ -219,7 +220,10 @@ class Boobill(ReplApplication):
         for buf in self.do('download_document' if not force_pdf else 'download_document_pdf', document, backends=names):
             if buf:
                 if dest == "-":
-                    print(buf)
+                    if sys.version_info.major >= 3:
+                        self.stdout.buffer.write(buf)
+                    else:
+                        self.stdout.stream.write(buf)
                 else:
                     try:
                         with open(dest, 'wb') as f:
