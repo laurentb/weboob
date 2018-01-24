@@ -76,8 +76,29 @@ else:
 
 
 try:
-    from urllib import quote, quote_plus, unquote, unquote_plus, urlencode
+    from urllib import quote as _quote, quote_plus as _quote_plus, unquote, unquote_plus, urlencode as _urlencode
     from urlparse import urlparse, urlunparse, urljoin, urlsplit, urlunsplit, parse_qsl, parse_qs
+
+    def _reencode(s):
+        if isinstance(s, unicode):
+            s = s.encode('utf-8')
+        return s
+
+    def quote(p, *args, **kwargs):
+        return _quote(_reencode(p), *args, **kwargs)
+
+    def quote_plus(p, *args, **kwargs):
+        return _quote_plus(_reencode(p), *args, **kwargs)
+
+    def urlencode(d, *args, **kwargs):
+        if hasattr(d, 'items'):
+            d = list(d.items())
+        else:
+            d = list(d)
+
+        d = [(_reencode(k), _reencode(v)) for k, v in d]
+
+        return _urlencode(d, *args, **kwargs)
 except ImportError:
     from urllib.parse import (
         urlparse, urlunparse, urlsplit, urlunsplit, urljoin, urlencode,
