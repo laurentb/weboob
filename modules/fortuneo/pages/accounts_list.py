@@ -380,7 +380,7 @@ class AccountsList(LoggedPage, HTMLPage):
                      'mes-comptes/livret':                             Account.TYPE_SAVINGS,
                      'mes-comptes/pea':                                Account.TYPE_PEA,
                      'mes-comptes/ppe':                                Account.TYPE_PEA,
-                     'mes-comptes/compte-titres-pea':                  Account.TYPE_MARKET
+                     'mes-comptes/compte-titres-pea':                  Account.TYPE_MARKET,
                     }
 
     def get_list(self):
@@ -411,11 +411,13 @@ class AccountsList(LoggedPage, HTMLPage):
                 account.id = CleanText('(//p[@id="c_montantEmprunte"]//span[@class="valStatic"]//strong)[1]')(cpt)
                 account.label = CleanText('(//p[@id="c_montantEmprunte"]//span[@class="valStatic"]//strong)[1]')(cpt)
                 account.type = Account.TYPE_LOAN
-                account.total_amount = self.browser.open(account._history_link).page.get_total_amount()
-                account.next_payment_amount = self.browser.open(account._history_link).page.get_next_payment_amount()
-                account.account_label = self.browser.open(account._history_link).page.get_account_label()
-                account.subscription_date = self.browser.open(account._history_link).page.get_subscription_date()
-                account.maturity_date = self.browser.open(account._history_link).page.get_maturity_date()
+                account_history_page = self.browser.open(account._history_link).page
+                account.total_amount = account_history_page.get_total_amount()
+                account.next_payment_amount = account_history_page.get_next_payment_amount()
+                account.next_payment_date = account_history_page.get_next_payment_date()
+                account.account_label = account_history_page.get_account_label()
+                account.subscription_date = account_history_page.get_subscription_date()
+                account.maturity_date = account_history_page.get_maturity_date()
 
             if len(accounts) == 0:
                 global_error_message = page.doc.xpath('//div[@id="as_renouvellementMIFID.do_"]/div[contains(text(), "Bonjour")] '
@@ -452,7 +454,8 @@ class AccountsList(LoggedPage, HTMLPage):
                     self.browser.investments[account.id] = list(self.browser.open(account._investment_link).page.get_investments(account))
             else:
                 balance = self.browser.open(account._history_link).page.get_balance()
-                account.coming = self.browser.open(account._history_link).page.get_coming()
+                if account.type is not Account.TYPE_LOAN:
+                    account.coming = self.browser.open(account._history_link).page.get_coming()
 
             if account.type in {Account.TYPE_PEA, Account.TYPE_MARKET}:
                 account.currency = self.browser.open(account._investment_link).page.get_currency()
@@ -482,6 +485,9 @@ class LoanPage(LoggedPage, HTMLPage):
 
     def get_next_payment_amount(self):
         return CleanDecimal(Regexp(CleanText(u'//p[@id="c_prochaineEcheance"]//strong'), u'(.*) le'), replace_dots=True)(self.doc)
+
+    def get_next_payment_date(self):
+        return Date(CleanText(u'//p[@id="c_prochaineEcheance"]//strong/strong'), dayfirst=True)(self.doc)
 
     def get_account_label(self):
         return CleanText(u'//p[@id="c_comptePrelevementl"]//strong')(self.doc)
