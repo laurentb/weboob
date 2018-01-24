@@ -37,9 +37,9 @@ class BouyguesModule(Module, CapMessages, CapMessagesPost, CapDocument):
     VERSION = '1.4'
     DESCRIPTION = u'Bouygues Télécom French mobile phone provider'
     LICENSE = 'AGPLv3+'
-    CONFIG = BackendConfig(Value('login', label='Login/Phone number'),
-                           ValueBackendPassword('password', label='Password'),
-                           ValueBackendPassword('lastname', label='Last name', default=u''))
+    CONFIG = BackendConfig(Value('login', label='E-mail / N° de Téléphone'),
+                           ValueBackendPassword('password', label='Mot de passe'),
+                           ValueBackendPassword('lastname', label='Nom de famille', default=u''))
     BROWSER = BouyguesBrowser
 
     def create_default_browser(self):
