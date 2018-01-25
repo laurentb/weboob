@@ -19,7 +19,6 @@
 
 from weboob.capabilities.subtitle import CapSubtitle, LanguageNotSupported
 from weboob.tools.backend import Module
-from weboob.tools.compat import quote_plus
 
 from .browser import TvsubtitlesBrowser, LANGUAGE_LIST
 
@@ -44,9 +43,9 @@ class TvsubtitlesModule(Module, CapSubtitle):
         if not subtitle:
             return None
 
-        return self.browser.openurl(subtitle.url.encode('utf-8')).read()
+        return self.browser.open(subtitle.url).content
 
     def iter_subtitles(self, language, pattern):
         if language not in LANGUAGE_LIST:
             raise LanguageNotSupported()
-        return self.browser.iter_subtitles(language, quote_plus(pattern.encode('utf-8')))
+        return self.browser.iter_subtitles(language, pattern)

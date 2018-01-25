@@ -17,8 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
-from weboob.deprecated.browser import Browser, BrowserHTTPNotFound
+from weboob.browser import PagesBrowser, URL
+from weboob.browser.exceptions import BrowserHTTPNotFound
 
 from .pages import SeriePage, SearchPage, SeasonPage, HomePage
 
@@ -30,27 +32,23 @@ LANGUAGE_LIST = ['en', 'es', 'fr', 'de', 'br', 'ru', 'ua', 'it', 'gr',
                  'ko', 'cn', 'jp', 'bg', 'cz', 'ro']
 
 
-class TvsubtitlesBrowser(Browser):
-    DOMAIN = 'www.tvsubtitles.net'
-    PROTOCOL = 'http'
-    ENCODING = 'utf-8'
-    USER_AGENT = Browser.USER_AGENTS['wget']
-    PAGES = {
-        'http://www.tvsubtitles.net': HomePage,
-        'http://www.tvsubtitles.net/search.php': SearchPage,
-        'http://www.tvsubtitles.net/tvshow-.*.html': SeriePage,
-        'http://www.tvsubtitles.net/subtitle-[0-9]*-[0-9]*-.*.html': SeasonPage
-    }
+class TvsubtitlesBrowser(PagesBrowser):
+    BASEURL = 'http://www.tvsubtitles.net'
+
+    search = URL(r'/search.php', SearchPage)
+    serie = URL(r'/tvshow-.*.html', SeriePage)
+    season = URL(r'/subtitle-(?P<id>[0-9]*-[0-9]*-.*).html', SeasonPage)
+    home = URL(r'/', HomePage)
 
     def iter_subtitles(self, language, pattern):
-        self.location('http://www.tvsubtitles.net')
-        assert self.is_on_page(HomePage)
+        self.home.go()
+        assert self.home.is_here()
         return self.page.iter_subtitles(language, pattern)
 
     def get_subtitle(self, id):
         try:
-            self.location('http://www.tvsubtitles.net/subtitle-%s.html' % id)
+            self.season.go(id=id)
         except BrowserHTTPNotFound:
             return
-        if self.is_on_page(SeasonPage):
+        if self.season.is_here():
             return self.page.get_subtitle()
