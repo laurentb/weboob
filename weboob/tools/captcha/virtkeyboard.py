@@ -245,3 +245,62 @@ class GridVirtKeyboard(VirtKeyboard):
         super(GridVirtKeyboard, self).__init__()
 
         self.load_symbols(coords)
+
+
+class SplitKeyboard(object):
+    """Virtual keyboard for when the chars are in individual images, not a single grid"""
+
+    char_to_hash = None
+
+    """dict mapping password characters to image hashes"""
+
+    codesep = ''
+
+    """Output separator between symbols"""
+
+    def __init__(self, code_to_filedata):
+        """Create a SplitKeyboard
+
+        :param code_to_filedata: dict mapping site codes to images data
+        :type code_to_filedata: dict[str, str]
+        """
+
+        hash_to_code = {
+            self.checksum(data): code for code, data in code_to_filedata.items()
+        }
+
+        self.char_to_code = {}
+        for char, hashes in self.char_to_hash.items():
+            if isinstance(hashes, basestring):
+                hashes = (hashes,)
+
+            for hash in hash_to_code:
+                if hash in hashes:
+                    self.char_to_code[char] = hash_to_code.pop(hash)
+                    break
+            else:
+                path = tempfile.mkdtemp(prefix='weboob_session_')
+                self.dump(code_to_filedata.values(), path)
+                raise VirtKeyboardError("Symbol '%s' not found; all symbol hashes are available in %s" % (char, path))
+
+    def checksum(self, buffer):
+        return hashlib.md5(buffer).hexdigest()
+
+    def dump(self, files, path):
+        for dat in files:
+            md5 = hashlib.md5(dat).hexdigest()
+            with open('%s/%s.png' % (path, md5), 'wb') as fd:
+                fd.write(dat)
+
+    def get_string_code(self, password):
+        symbols = []
+        for c in password:
+            symbols.append(self.char_to_code[c])
+        return self.codesep.join(symbols)
+
+    @classmethod
+    def create_from_url(cls, browser, code_to_url):
+        code_to_file = {
+            code: browser.open(url).content for code, url in code_to_url
+        }
+        return cls(code_to_file)
