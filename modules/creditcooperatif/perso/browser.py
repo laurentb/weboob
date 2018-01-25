@@ -24,6 +24,7 @@ from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import TransferInvalidDate
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.tools.date import new_date
+from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages import (
     LoginPage, CreditLoggedPage, AccountsPage, TransactionsPage,
@@ -46,6 +47,7 @@ class CreditCooperatif(LoginBrowser):
     transactjsonpage = URL('/portail/particuliers/mescomptes/relevedesoperationsjson.do', TransactionsJSONPage)
     pre_comingpage = URL('/portail/particuliers/mescomptes/synthese/operationsencourslien.do', ComingTransactionsPage)
     comingpage = URL('/portail/particuliers/mescomptes/operationsavenir/avenir.do', ComingTransactionsPage)
+    deffered_transactionpage = URL('/portail/particuliers/mescomptes/synthese/encourscblien.do', ComingTransactionsPage)
     iban = URL('/portail/particuliers/mesoperations/ribiban/telechargementribajax.do\?accountExternalNumber=(?P<account_id>.*)', IbanPage)
 
     transfer_start = URL(r'/portail/particuliers/mesoperations/virement/creer.do', TransferPage)
@@ -95,6 +97,7 @@ class CreditCooperatif(LoginBrowser):
 
     @need_login
     def get_coming(self, account):
+        transactions = []
         data = {'accountExternalNumber': account.id}
         self.pre_comingpage.go(data=data)
         assert self.comingpage.is_here()
@@ -103,8 +106,10 @@ class CreditCooperatif(LoginBrowser):
 
         self.comingpage.go()
         assert self.comingpage.is_here()
-        for tr in self.page.get_transactions():
-            yield tr
+        transactions += self.page.get_transactions(pattern='var jsonData =')
+        self.deffered_transactionpage.go(data=data)
+        transactions += self.page.get_transactions(pattern='var jsonData1 =', is_deffered=True)
+        return sorted_transactions(transactions)
 
     @need_login
     def iter_recipients(self, account_id):

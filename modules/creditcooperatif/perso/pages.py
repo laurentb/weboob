@@ -102,6 +102,8 @@ class Transaction(FrenchTransaction):
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile('^CARTE (?P<dd>\d{2})(?P<mm>\d{2}) \d+ (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_CARD),
+                (re.compile('^ACHAT CARTE BLEUE'),
+                                                            FrenchTransaction.TYPE_CARD_SUMMARY),
                 (re.compile('^VIR COOPA (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_TRANSFER),
                 (re.compile('^COOPA (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'),
@@ -144,20 +146,23 @@ class TransactionsJSONPage(LoggedPage, JsonPage):
 
 
 class ComingTransactionsPage(LoggedPage, HTMLPage):
-    ROW_REF =     0
-    ROW_TEXT =    1
-    ROW_DATE =    2
-    ROW_CREDIT = -1
-    ROW_DEBIT =  -2
+    ROW_COMING_REF =     0
+    ROW_COMING_TEXT =    1
+    ROW_COMING_DATE =    2
+    ROW_COMING_CREDIT = -1
+    ROW_COMING_DEBIT =  -2
 
-    def get_transactions(self):
+    ROW_DEFFERED_TEXT =    1
+    ROW_DEFFERED_DATE =    0
+    ROW_DEFFERED_DEBIT =  -1
+
+    def get_transactions(self, pattern, is_deffered=False):
         data = []
         for script in self.doc.xpath('//script'):
             txt = script.text
             if txt is None:
                 continue
 
-            pattern = 'var jsonData ='
             start = txt.find(pattern)
             if start < 0:
                 continue
@@ -167,14 +172,29 @@ class ComingTransactionsPage(LoggedPage, HTMLPage):
             break
 
         for tr in data:
-            if tr[self.ROW_DATE] == 'En attente de comptabilisation':
-                self.logger.debug('skipping transaction without a date: %r', tr[self.ROW_TEXT])
+            if tr[self.ROW_COMING_DATE] == 'En attente de comptabilisation':
+                self.logger.debug('skipping transaction without a date: %r', tr[self.ROW_COMING_TEXT])
                 continue
 
             t = Transaction()
-            t.parse(tr[self.ROW_DATE], tr[self.ROW_TEXT])
-            t.set_amount(tr[self.ROW_CREDIT], tr[self.ROW_DEBIT])
+            if is_deffered:
+                t.parse(Regexp(CleanText('//span[@id="dateDebitFlow1"]'), '(\d{2}/\d{2}/\d{4})')(self.doc),
+                               self.clean_row_text(tr[self.ROW_DEFFERED_TEXT]))
+                t.set_amount(tr[self.ROW_DEFFERED_DEBIT])
+                t.rdate = Date(dayfirst=True).filter(tr[self.ROW_DEFFERED_DATE])
+                t.type = Transaction.TYPE_DEFERRED_CARD
+            else:
+                t.parse(tr[self.ROW_COMING_DATE], self.clean_row_text(tr[self.ROW_COMING_TEXT]))
+                t.set_amount(tr[self.ROW_COMING_CREDIT], tr[self.ROW_COMING_DEBIT])
+                if t.type == Transaction.TYPE_CARD_SUMMARY:
+                    continue
             yield t
+
+    def clean_row_text(self, txt):
+        if '<a href' in txt:
+            txt = txt[txt.find('>')+1:txt.find('</')]
+        txt = re.sub(r'\s+', r' ', txt)
+        return txt
 
 
 class RecipientsPage(LoggedPage, PartialHTMLPage):
