@@ -73,7 +73,9 @@ class BPBrowser(LoginBrowser, StatesMixin):
                             '/voscomptes/canalXHTML/pret/encours/detaillerPretPartenaireListe-encoursPrets.ea',
                             '/voscomptes/canalXHTML/pret/encours/detaillerOffrePretImmoListe-encoursPrets.ea',
                             '/voscomptes/canalXHTML/pret/encours/detaillerOffrePretConsoListe-encoursPrets.ea',
-                            '/voscomptes/canalXHTML/pret/creditRenouvelable/init-consulterCreditRenouvelable.ea', AccountList)
+                            '/voscomptes/canalXHTML/pret/creditRenouvelable/init-consulterCreditRenouvelable.ea',
+                            '/voscomptes/canalXHTML/pret/encours/rechercherPret-encoursPrets.ea',
+                            AccountList)
 
     accounts_rib = URL(r'.*voscomptes/canalXHTML/comptesCommun/imprimerRIB/init-imprimer_rib.ea.*',
                        '/voscomptes/canalXHTML/comptesCommun/imprimerRIB/init-selection_rib.ea', AccountRIB)
@@ -213,7 +215,16 @@ class BPBrowser(LoginBrowser, StatesMixin):
                     continue
 
                 for account in self.page.iter_accounts():
-                    accounts.append(account)
+                    if account.type == Account.TYPE_LOAN:
+                        self.location(account.url)
+                        if 'CreditRenouvelable' not in account.url:
+                            for loan in self.page.iter_loans():
+                                accounts.append(loan)
+                        else:
+                            for loan in self.page.iter_revolving_loans():
+                                accounts.append(loan)
+                    else:
+                        accounts.append(account)
 
                 if self.page.has_mandate_management_space:
                     self.location(self.page.mandate_management_space_link())

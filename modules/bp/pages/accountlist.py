@@ -24,11 +24,11 @@ import re
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Account, Loan
 from weboob.capabilities.contact import Advisor
-from weboob.browser.elements import ListElement, ItemElement, method
+from weboob.browser.elements import ListElement, ItemElement, method, TableElement
 from weboob.browser.pages import LoggedPage, RawPage, PartialHTMLPage, HTMLPage
-from weboob.browser.filters.html import Link
+from weboob.browser.filters.html import Link, TableCell
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, Field, BrowserURL, Currency, \
-    Async, AsyncLoad, Date
+    Async, Date
 from weboob.exceptions import BrowserUnavailable
 from weboob.tools.compat import urljoin, unicode
 
@@ -148,24 +148,107 @@ class AccountList(LoggedPage, MyHTMLPage):
         item_xpath = u'//ul/li//div[contains(@class, "account-resume")]'
         class item_account(item_account_generic):
             def condition(self):
-                type = Field('type')(self)
-                return item_account_generic.condition(self) and type != Account.TYPE_LOAN
+                return item_account_generic.condition(self)
 
-        class item_loans(item_account_generic):
+    @method
+    class iter_revolving_loans(ListElement):
+        item_xpath = '//div[@class="bloc Tmargin"]//dl'
+        class item_account(ItemElement):
             klass = Loan
 
-            obj_total_amount = MyDecimal('.//dd[1]')
+            obj_id = CleanText('./dd[1]//em')
+            obj_total_amount = MyDecimal('./dd[2]/span')
+            obj_used_amount = MyDecimal('./dd[3]/span')
+            obj_available_amount = MyDecimal('./dd[4]//em')
+            obj_insurance_label = CleanText('./dd[5]//em', children=False)
+            obj__has_cards = False
+            obj_type = Account.TYPE_LOAN
 
-            load_details = Link('.//a') & AsyncLoad
-            obj_maturity_date = Async('details') & MyDate(CleanText('//table[@id="pret"]/tbody/tr/td[5]/span[1]'))
-            obj_subscription_date = Async('details') & MyDate(Regexp(CleanText(
-                '//form[@id="selection_offre"]/div[1]/div[2]/span'), ' (\d{2}/\d{2}/\d{4})', default=NotAvailable))
-            obj_next_payment_amount = Async('details') & MyDecimal('//table[@id="pret"]/tbody/tr/td[3]/span')
-            obj_next_payment_date = Async('details') & MyDate(CleanText('//table[@id="pret"]/tbody/tr/td[4]/span'))
+            def obj_url(self):
+                return self.page.url
 
-            def condition(self):
-                type = Field('type')(self)
-                return item_account_generic.condition(self) and type == Account.TYPE_LOAN
+    @method
+    class iter_loans(TableElement):
+        head_xpath = '//table[@id="pret"]/thead//th'
+        item_xpath = '//table[@id="pret"]/tbody/tr'
+
+        col_label = u'NUMÉRO DU PRÊT'
+        col_total_amount = u'MONTANT INITIAL EMPRUNTÉ'
+        col_subscription_date = u'MONTANT INITIAL EMPRUNTÉ'
+        col_next_payment_amount = u'MONTANT PROCHAINE ÉCHÉANCE'
+        col_next_payment_date = u'DATE PROCHAINE ÉCHÉANCE'
+        col_balance = re.compile('Capital')
+        col_maturity_date = re.compile(u'Date dernière')
+
+        class item_loans(ItemElement):
+            # there is two cases : the mortgage and the consumption loan. These cases have differents way to get the details
+            klass = Loan
+
+            def load_details(self):
+                url = Link('.//a', default=NotAvailable)(self)
+                if url:
+                    return self.page.browser.async_open(url=url)
+                return None
+
+            obj_total_amount = CleanDecimal(TableCell('total_amount'), replace_dots=True)
+
+            def obj_id(self):
+                cell = TableCell('label', default=None)(self)
+                if cell:
+                    id = Regexp(CleanText(Field('label'), default=NotAvailable), '- (\w{16})')(self)
+                else:
+                    id = CleanText('//form[@id="selection_offre"]/div[@class="bloc Tmargin"]/div[@class="formline"][2]/span/strong')(self)
+                return id
+
+            obj_type = Account.TYPE_LOAN
+
+            def obj_label(self):
+                cell = TableCell('label', default=None)(self)
+                if cell:
+                    lab = CleanText(cell, default=NotAvailable)(self)
+                else:
+                    lab = CleanText('//form[@id="selection_offre"]/div[@class="bloc Tmargin"]/h2[@class="title-level2"]')(self)
+                return lab
+
+            def obj_balance(self):
+                return -abs(CleanDecimal(TableCell('balance'), replace_dots=True)(self))
+
+            def obj_subscription_date(self):
+                xpath = '//form[@id="selection_offre"]/div[1]/div[2]/span'
+                if 'souscrite le' in CleanText(xpath)(self):
+                    return MyDate(Regexp(CleanText(xpath), ' (\d{2}/\d{2}/\d{4})', default=NotAvailable))(self)
+                else:
+                    return NotAvailable
+
+            obj_next_payment_amount = CleanDecimal(TableCell('next_payment_amount'), replace_dots=True)
+
+            def obj_maturity_date(self):
+                if Field('subscription_date')(self):
+                    async_page = Async('details').loaded_page(self)
+                    date = MyDate(CleanText('//div[@class="bloc Tmargin"]/dl[2]/dd[4]', default=NotAvailable))(async_page.doc)
+                    return date
+                else:
+                    return MyDate(CleanText(TableCell('maturity_date')))(self)
+                return NotAvailable
+
+            def obj_last_payment_date(self):
+                xpath = '//div[@class="bloc Tmargin"]/div[@class="formline"][2]/span'
+                if 'dont le dernier' in CleanText(xpath)(self):
+                    return MyDate(Regexp(CleanText(xpath), ' (\d{2}/\d{2}/\d{4})', default=NotAvailable))(self)
+                else:
+                    async_page = Async('details').loaded_page(self)
+                    return MyDate(CleanText('//div[@class="bloc Tmargin"]/dl[1]/dd[2]'), default=NotAvailable)(async_page.doc)
+
+            obj_next_payment_date = MyDate(CleanText(TableCell('next_payment_date')))
+
+            def obj_url(self):
+                url = Link(u'.//a', default=None)(self)
+                if url:
+                    return urljoin(self.page.url, url)
+                return self.page.url
+
+            obj__has_cards = False
+
 
 class Advisor(LoggedPage, MyHTMLPage):
     @method
