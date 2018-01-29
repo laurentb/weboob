@@ -43,7 +43,7 @@ class Subtitle(BaseObject):
     language =  StringField('Language of the subtitle')
     description=StringField('Description of corresponding video')
 
-    def __init__(self, id, name, url=None):
+    def __init__(self, id='', name='', url=None):
         super(Subtitle, self).__init__(id, url)
         self.name = name
 
