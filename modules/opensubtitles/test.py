@@ -31,7 +31,7 @@ class OpensubtitlesTest(BackendTest):
         for i in range(5):
             subtitle = subtitles.next()
             lsub.append(subtitle)
-            assert subtitle.url.startswith('http')
+            assert subtitle.url.startswith('https')
         assert (len(lsub) > 0)
 
         # get the file of a random sub

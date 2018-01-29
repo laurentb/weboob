@@ -41,11 +41,7 @@ class OpensubtitlesModule(Module, CapSubtitle):
         return self.browser.get_subtitle(id)
 
     def get_subtitle_file(self, id):
-        subtitle = self.browser.get_subtitle(id)
-        if not subtitle:
-            return None
-
-        return self.browser.openurl(subtitle.url.encode('utf-8')).read()
+        return self.browser.get_file(id)
 
     def iter_subtitles(self, language, pattern):
         if language not in LANGUAGE_CONV.keys():

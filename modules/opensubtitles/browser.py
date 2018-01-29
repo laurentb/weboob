@@ -18,38 +18,29 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import Browser, BrowserHTTPNotFound
+from weboob.browser import PagesBrowser, URL
 from weboob.applications.suboob.suboob import LANGUAGE_CONV
 
-from .pages import SubtitlesPage, SearchPage, SubtitlePage
+from .pages import SubtitlesPage, SearchPage, SubtitlePage, SeriesSubtitlePage
 
 
 __all__ = ['OpensubtitlesBrowser']
 
 
-class OpensubtitlesBrowser(Browser):
-    DOMAIN = 'www.opensubtitles.org'
-    PROTOCOL = 'http'
-    ENCODING = 'utf-8'
-    USER_AGENT = Browser.USER_AGENTS['wget']
-    PAGES = {
-        'http://www.opensubtitles.org.*search2/sublanguageid.*moviename.*': SearchPage,
-        'http://www.opensubtitles.org.*search/sublanguageid.*idmovie.*': SubtitlesPage,
-        'http://www.opensubtitles.org.*search/imdbid.*/sublanguageid.*/moviename.*': SubtitlesPage,
-        'http://www.opensubtitles.org.*subtitles/[0-9]*/.*': SubtitlePage
-    }
+class OpensubtitlesBrowser(PagesBrowser):
+    BASEURL = 'https://www.opensubtitles.org'
+    search = URL('/en/search2/sublanguageid-(?P<language>.*)/moviename-(?P<movie>.*)(/offset-\d*)?', SearchPage)
+    subtitles = URL('/en/search/sublanguageid-(?P<language>.*)/idmovie-(?P<id_movie>.*)', SubtitlesPage)
+    subtitle = URL('/en/subtitles/(?P<id>.*)', SubtitlePage)
+    series_subtitle = URL('/en/ssearch/sublanguageid-(?P<language>.*)/idmovie-(?P<id_movie>.*)', SeriesSubtitlePage)
+    file = URL('/en/subtitleserve/sub/(?P<id>.+)')
 
     def iter_subtitles(self, language, pattern):
         lang = LANGUAGE_CONV[language]
-        self.location('http://www.opensubtitles.org/search2/sublanguageid-%s/moviename-%s' % (
-            lang, pattern.encode('utf-8')))
-        assert self.is_on_page(SearchPage) or self.is_on_page(SubtitlesPage) or self.is_on_page(SubtitlePage)
-        return self.page.iter_subtitles()
+        return self.search.go(language=lang, movie=pattern).iter_subtitles()
 
     def get_subtitle(self, id):
-        try:
-            self.location('http://www.opensubtitles.org/subtitles/%s' % id)
-        except BrowserHTTPNotFound:
-            return
-        if self.is_on_page(SubtitlePage):
-            return self.page.get_subtitle()
+        return self.subtitle.go(id=id).get_subtitle(id)
+
+    def get_file(self, id):
+        return self.file.go(id=id).content
