@@ -20,7 +20,6 @@
 
 from time import sleep
 
-from weboob.deprecated.browser import BrokenPageError
 from weboob.browser.filters.standard import CleanText
 from weboob.tools.compat import urlsplit, parse_qs
 
@@ -94,7 +93,7 @@ class TopicPage(PhpBBPage):
 
         try:
             url = self.doc.xpath('//h2/a')[-1].attrib['href']
-        except BrokenPageError:
+        except (IndexError, KeyError):
             url = self.url
         v = urlsplit(url)
         args = parse_qs(v.query)
@@ -116,7 +115,7 @@ class TopicPage(PhpBBPage):
     def next_page_url(self):
         try:
             return self.doc.xpath('//a[has-class("right-box")]')[0].attrib['href']
-        except BrokenPageError:
+        except (IndexError, KeyError):
             a_list = self.doc.xpath('//div[has-class("pagination")]')[0].findall('a')
             if self.cur_page == self.tot_pages:
                 return '#'
@@ -125,7 +124,7 @@ class TopicPage(PhpBBPage):
     def prev_page_url(self):
         try:
             return self.doc.xpath('//a[has-class("left-box")]')[0].attrib['href']
-        except BrokenPageError:
+        except (IndexError, KeyError):
             a_list = self.doc.xpath('//div[has-class("pagination")]')[0].findall('a')
             if self.cur_page == self.tot_pages:
                 a = a_list[-1]
