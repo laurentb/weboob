@@ -20,7 +20,7 @@
 
 from datetime import date
 
-from weboob.browser.pages import HTMLPage, JsonPage, RawPage, LoggedPage
+from weboob.browser.pages import JsonPage, RawPage, LoggedPage
 from weboob.browser.elements import DictElement, ItemElement, method
 from weboob.browser.filters.standard import CleanDecimal, CleanText
 from weboob.browser.filters.html import CleanHTML
@@ -29,14 +29,13 @@ from weboob.capabilities.bill import Subscription, Bill
 from weboob.exceptions import ActionNeeded
 
 
-class LoginPage(HTMLPage):
-    def login(self, login, password):
-        form = self.get_form(id='form-authenticate-entreprise')
+class LoginPage(JsonPage):
+    def get_json_data(self, login, password):
+        login_data = self.doc
+        login_data['callbacks'][0]['input'][0]['value'] = login
+        login_data['callbacks'][1]['input'][0]['value'] = password
+        return login_data
 
-        form['IDToken1'] = login
-        form['IDToken2'] = password
-
-        form.submit(allow_redirects=False)
 
 class AuthPage(RawPage):
     pass

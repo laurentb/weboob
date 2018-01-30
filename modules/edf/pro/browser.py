@@ -25,7 +25,7 @@ from datetime import datetime, timedelta
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.capabilities.base import NotAvailable
 from weboob.exceptions import BrowserIncorrectPassword
-from weboob.browser.exceptions import ServerError
+from weboob.browser.exceptions import ServerError, ClientError
 
 from .pages import LoginPage, AuthPage, SubscriptionsPage, BillsPage, DocumentsPage
 
@@ -33,7 +33,7 @@ from .pages import LoginPage, AuthPage, SubscriptionsPage, BillsPage, DocumentsP
 class EdfproBrowser(LoginBrowser):
     BASEURL = 'https://www.edfentreprises.fr'
 
-    login = URL('https://www.edf.fr/entreprises', LoginPage)
+    login = URL('/openam/json/authenticate', LoginPage)
     auth = URL('/openam/UI/Login.*',
                '/ice/rest/aiguillagemp/redirect', AuthPage)
     contracts = URL('/rest/contratmp/detaillercontrat', SubscriptionsPage)
@@ -49,7 +49,13 @@ class EdfproBrowser(LoginBrowser):
         super(EdfproBrowser, self).__init__(*args, **kwargs)
 
     def do_login(self):
-        self.login.go().login(self.username, self.password)
+        login_data = self.login.go('/openam/json/authenticate', method='POST').get_json_data(self.username, self.password)
+        try:
+            self.login.go(data=json.dumps(login_data), headers={'Content-Type': 'application/json'})
+        except ClientError as e:
+            raise BrowserIncorrectPassword(e.response.json()['message'])
+
+        self.session.cookies['iPlanetDirectoryPro'] = self.page.doc['tokenId']
         self.location(self.absurl('/ice/rest/aiguillagemp/redirect'), allow_redirects=True)
 
         if self.auth.is_here() and self.page.response.status_code != 303:
