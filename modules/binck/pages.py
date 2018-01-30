@@ -93,6 +93,7 @@ class AccountsPage(LoggedPage, HTMLPage):
 
         col_label = u'Intitulé du compte'
         col_balance = u'Total Portefeuille'
+        col_liquidity = u'Espèces'
 
         class item(ItemElement):
             klass = Account
@@ -100,6 +101,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_id = Attr('.', 'data-accountnumber')
             obj_label = CleanText(TableCell('label'))
             obj_balance = MyDecimal(TableCell('balance'))
+            obj_liquidity = MyDecimal(TableCell('liquidity'))
 
             def obj_type(self):
                 return self.page.TYPES.get(CleanText('./ancestor::section[h1]/h1')(self).upper(), Account.TYPE_UNKNOWN)
