@@ -80,6 +80,7 @@ class AccountsPage(LoggedPage, MyHTMLPage):
         ('pel',                Account.TYPE_SAVINGS),
         ('pea',                Account.TYPE_PEA),
         ('titres',             Account.TYPE_MARKET),
+        ('Valorisation',       Account.TYPE_MARKET),
     ))
 
     def get_tabs(self):
@@ -158,10 +159,10 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                         script = filter(lambda x: "src" in x, scripts)[0]
                         iframe_url = re.search("src:(.*),", script).group()[6:-2]
                         account_details_iframe = self.browser.open(iframe_url, data=args)
-                        account.id = account_details_iframe.page.doc.xpath('//span[contains(@id,"NumeroContrat")]/text()')[0]
+                        account.id = CleanText('//span[contains(@id,"NumeroContrat")]/text()')(account_details_iframe.page.doc)
                         account._url = iframe_url
                         account.type = account.TYPE_LIFE_INSURANCE
-                        account.balance = MyDecimal().filter(account_details_iframe.page.doc.xpath('//span[contains(@id,"MontantEpargne")]/text()')[0])
+                        account.balance = MyDecimal('//span[contains(@id,"MontantEpargne")]/text()')(account_details_iframe.page.doc)
                         account._acctype = "bank"
                     else:
                         try:
@@ -172,6 +173,20 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                         continue
 
                 if account.type != account.TYPE_LIFE_INSURANCE:
+                    # get accounts type
+                    account_type_str = ''
+                    for l in table.attrib['class'].split(' '):
+                        if 'tableaux-comptes-' in l:
+                            account_type_str = l[len('tableaux-comptes-'):].lower()
+                            break
+
+                    account.type = Account.TYPE_UNKNOWN
+                    for pattern, type in self.ACCOUNT_TYPES.items():
+                        if pattern in account_type_str or pattern in account.label.lower():
+                            account.type = type
+                            break
+
+                    # get accounts id
                     try:
                         account.id = args['paramNumCompte'] + args['paramNumContrat']
                         if 'Visa' in account.label:
@@ -183,37 +198,17 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                     except KeyError:
                         account.id = args['paramNumCompte']
 
+                    # get accounts balance
                     try:
                         account.balance = Decimal(FrenchTransaction.clean_amount(self.parse_number(u''.join([txt.strip() for txt in box.cssselect("td.montant")[0].itertext()]))))
                     except InvalidOperation:
                         #The account doesn't have a amount
                         pass
 
-                    for l in table.attrib['class'].split(' '):
-                        if 'tableaux-comptes-' in l:
-                            account_type_str = l[len('tableaux-comptes-'):].lower()
-                            break
-                    else:
-                        account_type_str = ''
-                    for pattern, type in self.ACCOUNT_TYPES.items():
-                        if pattern in account_type_str or pattern in account.label.lower():
-                            account.type = type
-                            break
-                    else:
-                        account.type = Account.TYPE_UNKNOWN
-
-                    types = [('Valorisation', Account.TYPE_MARKET),
-                             ('Visa', Account.TYPE_CARD),
-                            ]
-
-                    for sub, t in types:
-                        if sub in account.label:
-                            account.type = t
-                            break
-
                     account._url = self.doc.xpath('//form[contains(@action, "panorama")]/@action')[0]
                     account._acctype = "bank"
 
+                # get accounts currency
                 currency_title = table.xpath('./thead//th[@class="montant"]')[0].text.strip()
                 m = re.match('Montant \((\w+)\)', currency_title)
                 if not m:
