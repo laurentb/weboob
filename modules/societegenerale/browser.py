@@ -94,6 +94,8 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
                 raise BrowserUnavailable('Session has expired')
             elif error.startswith('Le service est momentan'):
                 raise BrowserUnavailable(error)
+            elif 'niv_auth_insuff' in error:
+                raise BrowserIncorrectPassword("Niveau d'authentification insuffisant")
             else:
                 raise BrowserIncorrectPassword(error)
 
