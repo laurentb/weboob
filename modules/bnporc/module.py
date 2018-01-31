@@ -23,7 +23,7 @@ from decimal import Decimal
 from datetime import datetime, timedelta
 
 from weboob.capabilities.bank import (
-    CapBankWealth, CapBankTransferAddRecipient, AccountNotFound, Account, TransferError, RecipientNotFound,
+    CapBankWealth, CapBankTransferAddRecipient, AccountNotFound, Account, RecipientNotFound,
     TransferInvalidLabel,
 )
 from weboob.capabilities.messages import CapMessages, Thread
@@ -129,12 +129,9 @@ class BNPorcModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapMessag
         else:
             recipient = find_object(self.iter_transfer_recipients(account.id), id=transfer.recipient_id, error=RecipientNotFound)
 
-        try:
-            assert account.id.isdigit()
-            # quantize to show 2 decimals.
-            amount = Decimal(transfer.amount).quantize(Decimal(10) ** -2)
-        except (AssertionError, ValueError):
-            raise TransferError('something went wrong')
+        assert account.id.isdigit()
+        # quantize to show 2 decimals.
+        amount = Decimal(transfer.amount).quantize(Decimal(10) ** -2)
 
         return self.browser.init_transfer(account, recipient, amount, transfer.label)
 
