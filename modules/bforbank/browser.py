@@ -19,7 +19,7 @@
 
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.capabilities.bank import Account, AccountNotFound
+from weboob.capabilities.bank import Account, AccountNotFound, Investment
 from weboob.capabilities.base import empty
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
@@ -254,6 +254,15 @@ class BforbankBrowser(LoginBrowser):
 
             self.location(bourse_account._market_link)
             assert self.bourse.is_here()
-            return self.page.iter_investment()
+            invs = list(self.page.iter_investment())
+            # _especes is set during BoursePage accounts parsing. BoursePage
+            # inherits from lcl module BoursePage
+            if bourse_account._especes:
+                i = Investment()
+                i.valuation = bourse_account._especes
+                i.code = u"XX-liquidity"
+                i.label = u"Liquidités"
+                invs.append(i)
+            return invs
 
         raise NotImplementedError()
