@@ -432,6 +432,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                 self.logger.error(e)
                 return
         if self.garbage.is_here():
+            self.page.come_back()
             return
         for i in self.page.iter_investment():
             yield i
