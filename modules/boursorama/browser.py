@@ -37,13 +37,14 @@ from weboob.capabilities.contact import Advisor
 from weboob.tools.captcha.virtkeyboard import VirtKeyboardError
 from weboob.tools.value import Value
 from weboob.tools.compat import basestring, urlsplit, urlunsplit
+from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages import (
     LoginPage, VirtKeyboardPage, AccountsPage, AsvPage, HistoryPage, AccbisPage, AuthenticationPage,
     MarketPage, LoanPage, SavingMarketPage, ErrorPage, IncidentPage, IbanPage, ProfilePage, ExpertPage,
     CardsNumberPage, CalendarPage, HomePage, PEPPage,
     TransferAccounts, TransferRecipients, TransferCharac, TransferConfirm, TransferSent,
-    AddRecipientPage, RecipientCreated, StatusPage,
+    AddRecipientPage, RecipientCreated, StatusPage, CardHistoryPage,
 )
 
 
@@ -72,6 +73,7 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
     acc_rep = URL('/comptes/representative/(?P<webid>.*)\?_hinclude=1', AccbisPage)
     history = URL('/compte/(cav|epargne)/(?P<webid>.*)/mouvements.*',  HistoryPage)
     card_transactions = URL('/compte/cav/(?P<webid>.*)/carte/.*', HistoryPage)
+    deffered_card_history = URL('https://api.boursorama.com/services/api/files/download.phtml.*', CardHistoryPage)
     budget_transactions = URL('/budget/compte/(?P<webid>.*)/mouvements.*', HistoryPage)
     other_transactions = URL('/compte/cav/(?P<webid>.*)/mouvements.*', HistoryPage)
     saving_transactions = URL('/compte/epargne/csl/(?P<webid>.*)/mouvements.*', HistoryPage)
@@ -224,8 +226,13 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
             if i[0].date() < debit_date <= j[0].date():
                 return j[1].date()
 
-    def get_card_transactions(self, account):
-        self.location(account.url, params={'movementSearch[period]': 'currentPeriod'})
+    def get_closing_date(self):
+        for i, j in zip(self.deferred_card_calendar, self.deferred_card_calendar[1:]):
+            if i[0].date() < date.today() <= j[0].date():
+                return i[0].date()
+
+    def get_card_transactions(self, account, coming):
+        self.location(account.url)
         if self.home.is_here():
             # for some cards, the site redirects us to '/'...
             return
@@ -233,14 +240,23 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
         for t in self.page.iter_history(is_card=True):
             yield t
 
-        params = {}
-        params['movementSearch[toDate]'] = (date.today() + relativedelta(days=40)).strftime('%d/%m/%Y')
-        params['movementSearch[fromDate]'] = (date.today() - relativedelta(years=3)).strftime('%d/%m/%Y')
-        params['fullSearch'] = 1
+        # For card old history, the page doesn't show the real debit date,
+        # so we need to parse a csv page
+        if not coming:
+            if self.deferred_card_calendar is None:
+                self.location(self.page.get_calendar_link())
+            params = {}
+            params['movementSearch[toDate]'] = self.get_closing_date().strftime('%d/%m/%Y')
+            params['movementSearch[fromDate]'] = (date.today() - relativedelta(years=3)).strftime('%d/%m/%Y')
+            params['fullSearch'] = 1
 
-        self.location(account.url, params=params)
-        for t in self.page.iter_history(is_card=True, is_previous=True):
-            yield t
+            self.location(account.url, params=params)
+            csv_link = self.page.get_csv_link()
+            if csv_link:
+                self.location(csv_link)
+                for t in sorted_transactions(self.page.iter_history(account_number=account.number)):
+                    yield t
+        return
 
     def get_invest_transactions(self, account, coming):
         if coming:
@@ -279,7 +295,7 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
         if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET):
             return self.get_invest_transactions(account, coming)
         elif account.type == Account.TYPE_CARD:
-            return self.get_card_transactions(account)
+            return self.get_card_transactions(account, coming)
         return self.get_regular_transactions(account, coming)
 
     @need_login

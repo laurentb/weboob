@@ -26,13 +26,14 @@ import re
 from io import BytesIO
 from datetime import date
 
-from weboob.browser.pages import HTMLPage, LoggedPage, pagination, NextPage, FormNotFound, PartialHTMLPage, LoginPage
-from weboob.browser.elements import ListElement, ItemElement, method, TableElement, SkipItem
+from weboob.browser.pages import HTMLPage, LoggedPage, pagination, NextPage, FormNotFound, PartialHTMLPage, LoginPage, CsvPage
+from weboob.browser.elements import ListElement, ItemElement, method, TableElement, SkipItem, DictElement
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Field, Format,
     Regexp, Date, AsyncLoad, Async, Eval, RegexpError, Env,
     Currency as CleanCurrency,
 )
+from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import Attr, Link, TableCell
 from weboob.capabilities.bank import Account, Investment, Recipient, Transfer, AccountNotFound, AddRecipientError, TransferInvalidAmount
 from weboob.capabilities.base import NotAvailable, empty
@@ -353,28 +354,20 @@ class HistoryPage(LoggedPage, HTMLPage):
                     return Field('date')(self)
                 s = s.replace('/', '')
                 # Sometimes the user enters an invalid date 16/17/19 for example
-                return Date(dayfirst=True, default=NotAvailable).filter('%s%s%s%s%s' % (s[:2], '-', s[2:4], '-', s[4:]))
+                return Date(dayfirst=True, default=NotAvailable).filter('%s-%s-%s' % (s[:2], s[2:4], s[4:]))
 
             def obj__is_coming(self):
                 return Env('coming', default=False)(self) or len(self.xpath(u'.//span[@title="Mouvement à débit différé"]')) or self.obj_date() > date.today()
 
             def obj_date(self):
+                date = Date(Attr('.//time', 'datetime'))(self)
                 if Env('is_card', default=False)(self):
-                    month = CleanText('//label[@for="movementSearch_period_%s"]' % ('1' if Env('is_previous', default=False)(self) else '0'),
-                                      replace=[(u'Débit ', '')])(self)
-                    date_text = CleanText(u'//li[h3]/h4[@class="summary__title" and contains(text(), "Solde débité au")and contains(text(), "%s")]' % month,
-                                                            replace=[(u'Solde débité au ', '')])(self)
-                    if not date_text:
-                        date = Date(Attr('.//time', 'datetime'))(self)
-                        if self.page.browser.deferred_card_calendar is None:
-                            self.page.browser.location(Link('//a[contains(text(), "calendrier")]')(self))
-                        closest = self.page.browser.get_debit_date(date)
-                        if closest:
-                            return closest
-                        return date
-                    debit_date = parse_french_date(date_text)
-                    return debit_date.date()
-                return Date(Attr('.//time', 'datetime'))(self)
+                    if self.page.browser.deferred_card_calendar is None:
+                        self.page.browser.location(Link('//a[contains(text(), "calendrier")]')(self))
+                    closest = self.page.browser.get_debit_date(date)
+                    if closest:
+                        return closest
+                return date
 
             # These are on deffered cards accounts.
             def condition(self):
@@ -383,6 +376,63 @@ class HistoryPage(LoggedPage, HTMLPage):
 
     def get_cards_number_link(self):
         return Link('//a[small[span[contains(text(), "carte bancaire")]]]', default=NotAvailable)(self.doc)
+
+    def get_csv_link(self):
+        return Link('//a[@data-operations-export-button]')(self.doc)
+
+    def get_calendar_link(self):
+        return Link('//a[contains(text(), "calendrier")]')(self.doc)
+
+
+class CardHistoryPage(LoggedPage, CsvPage):
+    ENCODING = 'latin-1'
+    FMTPARAMS = {'delimiter': str(';')}
+    HEADER = 1
+
+    @method
+    class iter_history(DictElement):
+        class item(ItemElement):
+            klass = Transaction
+
+            obj_raw = Transaction.Raw(Dict('label'))
+            obj_date = Date(Dict('dateVal'), dayfirst=True)
+            obj__account_label = Dict('accountLabel')
+            obj__is_coming = False
+
+            def obj_amount(self):
+                if Field('type')(self) == Transaction.TYPE_CARD_SUMMARY:
+                    return abs(CleanDecimal(Dict('amount'), replace_dots=True)(self))
+                return CleanDecimal(Dict('amount'), replace_dots=True)(self)
+
+            def obj_rdate(self):
+                if self.obj.rdate:
+                    # Transaction.Raw may have already set it
+                    return self.obj.rdate
+
+                s = Regexp(Field('raw'), ' (\d{2}/\d{2}/\d{2}) | (?!NUM) (\d{6}) ', default=NotAvailable)(self)
+                if not s:
+                    return Field('date')(self)
+                s = s.replace('/', '')
+                # Sometimes the user enters an invalid date 16/17/19 for example
+                return Date(dayfirst=True, default=NotAvailable).filter('%s%s%s%s%s' % (s[:2], '-', s[2:4], '-', s[4:]))
+
+            def obj_type(self):
+                if 'PAIEMENT CARTE' in self.obj.raw:
+                    return Transaction.TYPE_DEFERRED_CARD
+                return self.obj.type
+
+            def obj_category(self):
+                return Dict('category')(self)
+
+            # The csv page shows every transactions of the card account AND the associated
+            # check account. Here we want only the card transactions.
+            # Also, if there is more than one card account, the csv page will show
+            # transactions of every card account (smart) ... So we need to check for
+            # account number.
+            def validate(self, obj):
+                if "Relevé" in obj.raw:
+                    return Env('account_number')(self) in obj.raw
+                return "CARTE" in obj._account_label and Env('account_number')(self) in Dict('accountNum')(self)
 
 
 class Myiter_investment(TableElement):
