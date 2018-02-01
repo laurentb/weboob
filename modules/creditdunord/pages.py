@@ -501,6 +501,12 @@ class TransactionsPage(LoggedPage, CDNBasePage):
             t.parse(date, raw, vdate=vdate)
             t.set_amount(line[self.COL_VALUE])
 
+            if t.amount == 0 and t.label.startswith('FRAIS DE '):
+                m = re.search(r'(\b\d+,\d+)E\b', t.label)
+                if m:
+                    t.amount = -CleanDecimal(replace_dots=True).filter(m.group(1))
+                    self.logger.info('parsing amount in transaction label: %r', t)
+
             if self.condition(t, acc_type):
                 continue
 
