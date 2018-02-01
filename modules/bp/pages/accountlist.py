@@ -186,29 +186,22 @@ class AccountList(LoggedPage, MyHTMLPage):
 
             def load_details(self):
                 url = Link('.//a', default=NotAvailable)(self)
-                if url:
-                    return self.page.browser.async_open(url=url)
-                return None
+                return self.page.browser.async_open(url=url)
 
             obj_total_amount = CleanDecimal(TableCell('total_amount'), replace_dots=True)
 
             def obj_id(self):
-                cell = TableCell('label', default=None)(self)
-                if cell:
-                    id = Regexp(CleanText(Field('label'), default=NotAvailable), '- (\w{16})')(self)
-                else:
-                    id = CleanText('//form[@id="selection_offre"]/div[@class="bloc Tmargin"]/div[@class="formline"][2]/span/strong')(self)
-                return id
+                if TableCell('label', default=None)(self):
+                    return Regexp(CleanText(Field('label'), default=NotAvailable), '- (\w{16})')(self)
+                return CleanText('//form[@id="selection_offre"]/div[@class="bloc Tmargin"]/div[@class="formline"][2]/span/strong')(self)
 
             obj_type = Account.TYPE_LOAN
 
             def obj_label(self):
                 cell = TableCell('label', default=None)(self)
                 if cell:
-                    lab = CleanText(cell, default=NotAvailable)(self)
-                else:
-                    lab = CleanText('//form[@id="selection_offre"]/div[@class="bloc Tmargin"]/h2[@class="title-level2"]')(self)
-                return lab
+                    return CleanText(cell, default=NotAvailable)(self)
+                return CleanText('//form[@id="selection_offre"]/div[@class="bloc Tmargin"]/h2[@class="title-level2"]')(self)
 
             def obj_balance(self):
                 return -abs(CleanDecimal(TableCell('balance'), replace_dots=True)(self))
@@ -217,8 +210,7 @@ class AccountList(LoggedPage, MyHTMLPage):
                 xpath = '//form[@id="selection_offre"]/div[1]/div[2]/span'
                 if 'souscrite le' in CleanText(xpath)(self):
                     return MyDate(Regexp(CleanText(xpath), ' (\d{2}/\d{2}/\d{4})', default=NotAvailable))(self)
-                else:
-                    return NotAvailable
+                return NotAvailable
 
             obj_next_payment_amount = CleanDecimal(TableCell('next_payment_amount'), replace_dots=True)
 
@@ -227,17 +219,14 @@ class AccountList(LoggedPage, MyHTMLPage):
                     async_page = Async('details').loaded_page(self)
                     date = MyDate(CleanText('//div[@class="bloc Tmargin"]/dl[2]/dd[4]', default=NotAvailable))(async_page.doc)
                     return date
-                else:
-                    return MyDate(CleanText(TableCell('maturity_date')))(self)
-                return NotAvailable
+                return MyDate(CleanText(TableCell('maturity_date')))(self)
 
             def obj_last_payment_date(self):
                 xpath = '//div[@class="bloc Tmargin"]/div[@class="formline"][2]/span'
                 if 'dont le dernier' in CleanText(xpath)(self):
                     return MyDate(Regexp(CleanText(xpath), ' (\d{2}/\d{2}/\d{4})', default=NotAvailable))(self)
-                else:
-                    async_page = Async('details').loaded_page(self)
-                    return MyDate(CleanText('//div[@class="bloc Tmargin"]/dl[1]/dd[2]'), default=NotAvailable)(async_page.doc)
+                async_page = Async('details').loaded_page(self)
+                return MyDate(CleanText('//div[@class="bloc Tmargin"]/dl[1]/dd[2]'), default=NotAvailable)(async_page.doc)
 
             obj_next_payment_date = MyDate(CleanText(TableCell('next_payment_date')))
 
