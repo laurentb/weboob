@@ -1,13 +1,24 @@
 How to contribute
 =================
 
+Whenever you start working on a bug or an issue, please mention it in the
+corresponding issue on this repo. If there is not an already opened issue for
+this bug, please open a MR as soon as possible (with the `WIP:` prefix
+mentionning it is a work in progress) to let others know you are working on
+this module and fixing things.
+
+This way, everyone is aware of the changes you are making and this avoid doing
+a lot of duplicate work.
+
+
 Write a patch
 -------------
 
 Help yourself with the `documentation <http://docs.weboob.org/>`_.
 
-Find an opened issue on `this website <https://git.weboob.org/weboob/devel/issues>`_, or write your own bugfix or feature.
-Then, once it is necessary, commit with::
+Find an opened issue on `this website
+<https://git.weboob.org/weboob/devel/issues>`_, or write your own bugfix or
+feature. Then, once it is necessary, commit with::
 
     $ git commit -a
 
@@ -30,9 +41,10 @@ Perhaps you should also write or fix tests. These tests are automatically run by
 Create a merge request or send a patch
 --------------------------------------
 
-The easiest way to send your patch is to create a fork on `the Weboob Gitlab <https://git.weboob.org>`_ and create a merge
-request from there. This way, the code review process is easier and continuous integration is run automatically (see
-previous section).
+The easiest way to send your patch is to create a fork on `the Weboob Gitlab
+<https://git.weboob.org>`_ and create a merge request from there. This way,
+the code review process is easier and continuous integration is run
+automatically (see previous section).
 
 If you prefer good old email patches, just use
 
