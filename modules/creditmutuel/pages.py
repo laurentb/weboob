@@ -1313,6 +1313,15 @@ class RecipientsListPage(LoggedPage, HTMLPage):
         del form['_FID_GoI%5fRechercheBIC']
         form['[t:dbt%3astring;x(70)]data_input_nom'] = recipient.label
         form['[t:dbt%3astring;x(34)]data_input_IBANBBAN'] = recipient.iban
+        form['_FID_DoValidate'] = ''
+
+        # Needed because it requires that \xe9 is encoded %E9 instead of %C3%A9
+        try:
+            del form[u'data_pilotageAffichage_habilitéSaisieInternationale']
+        except KeyError:
+            pass
+        else:
+            form[b'data_pilotageAffichage_habilit\xe9SaisieInternationale'] = ''
         return form
 
     def add_recipient(self, recipient):
