@@ -23,8 +23,9 @@ from datetime import date
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, CaptchaQuestion, BrowserQuestion
 from weboob.tools.value import Value
+from weboob.browser.browsers import ClientError
 
-from .pages import LoginPage, SubscriptionsPage, DocumentsPage, HomePage, PanelPage, SecurityPage, LanguagePage
+from .pages import LoginPage, SubscriptionsPage, DocumentsPage, HomePage, PanelPage, SecurityPage, LanguagePage, HistoryPage
 
 
 class AmazonBrowser(LoginBrowser, StatesMixin):
@@ -46,6 +47,14 @@ class AmazonBrowser(LoginBrowser, StatesMixin):
                    '/ap/mfa',
                    SecurityPage)
     language = URL(r'/gp/customer-preferences/save-settings/ref=icp_lop_(?P<language>.*)_tn', LanguagePage)
+    history = URL('https://www.amazon.fr/gp/your-account/order-history\?ref_=ya_d_c_yo', HistoryPage)
+
+    __states__ = ('otp_form', 'otp_url')
+
+    STATE_DURATION = 10
+
+    otp_form = None
+    otp_url = None
 
     def __init__(self, config, *args, **kwargs):
         self.config = config
@@ -53,39 +62,95 @@ class AmazonBrowser(LoginBrowser, StatesMixin):
         kwargs['password'] = self.config['password'].get()
         super(AmazonBrowser, self).__init__(*args, **kwargs)
 
+    def locate_browser(self, state):
+        pass
+
+    def push_captcha_otp(self, captcha):
+        res_form = self.otp_form
+        res_form['email'] = self.username
+        res_form['password'] = self.password
+        res_form['guess'] = captcha
+
+        self.location(self.otp_url, data=res_form)
+
+    def push_security_otp(self, pin_code):
+        res_form = self.otp_form
+        res_form['code'] = pin_code
+        res_form['otpCode'] = pin_code
+        res_form['rememberDevice'] = ""
+
+        headers = {
+            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+            'accept-encoding': 'gzip, deflate, br',
+            'accept-language': 'en-US,en;q=0.9',
+            'referer': 'https://www.amazon.fr/ap/cvf/verify',
+            'upgrade-insecure-requests': '1'
+        }
+        self.location(self.otp_url, data=res_form, headers=headers)
+
+    def handle_security(self):
+        if self.page.doc.xpath('//span[@class="a-button-text"]'):
+            self.page.send_code()
+            self.otp_form = self.page.get_response_form()
+            self.otp_url = self.url
+
+            raise BrowserQuestion(Value('pin_code', label=self.page.get_otp_message() if self.page.get_otp_message() else 'Please type the OTP you received'))
+
+    def handle_captcha(self, captcha):
+        self.otp_form = self.page.get_response_form()
+        self.otp_url = self.url
+        raise CaptchaQuestion('image_captcha', image_url=captcha[0])
+
     def do_login(self):
-        if self.security.is_here() and self.config['pin_code'].get():
-            self.page.push_otp(self.config['pin_code'].get())
+        if self.config['pin_code'].get():
+            # Resolve pin_code
+            self.push_security_otp(self.config['pin_code'].get())
 
-            if not self.security.is_here():
-                return
+            if self.security.is_here() or self.login.is_here():
+                # Something went wrong, probably a wrong OTP code
+                raise BrowserIncorrectPassword('OTP incorrect')
             else:
-                raise BrowserIncorrectPassword("The OTP you entered is incorrect")
-
-        self.to_english(self.LANGUAGE)
-
-        if not self.login.is_here():
-            self.location(self.home.go().get_login_link())
-
-            if not self.login.is_here():
+                # Means security was passed, we're logged
                 return
-            self.page.login(self.username, self.password)
-        elif self.config['captcha_response'].get():
+
+        if self.config['captcha_response'].get():
+            # Resolve captcha code
             self.page.login(self.username, self.password, self.config['captcha_response'].get())
 
-        if self.security.is_here():
-            if self.page.doc.xpath('//span[@class="a-button-text"]'):
-                self.page.send_code()
-                raise BrowserQuestion(Value('pin_code', label=self.page.get_otp_message() if self.page.get_otp_message() else 'Please type the OTP you received'))
+            if self.security.is_here():
+                # Raise security management
+                self.handle_security()
+
+            if self.login.is_here():
+                raise BrowserIncorrectPassword()
+            else:
+                return
+
+        # Change language so everything is handled the same way
+        self.to_english(self.LANGUAGE)
+
+        # To see if we're connected. If not, we land on LoginPage
+        try:
+            self.history.go()
+        except ClientError:
+            pass
+
 
         if not self.login.is_here():
             return
 
-        captcha = self.page.has_captcha()
-        if captcha and not self.config['captcha_response'].get():
-            raise CaptchaQuestion('image_captcha', image_url=captcha[0])
-        else:
-            raise BrowserIncorrectPassword()
+        self.page.login(self.username, self.password)
+
+        if self.security.is_here():
+            # Raise security management
+            self.handle_security()
+
+        if self.login.is_here():
+            captcha = self.page.has_captcha()
+            if captcha and not self.config['captcha_response'].get():
+                self.handle_captcha(captcha)
+            else:
+                raise BrowserIncorrectPassword()
 
     def is_login(self):
         if self.login.is_here():

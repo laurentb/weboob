@@ -41,16 +41,6 @@ class PanelPage(HTMLPage, LoggedPage):
 
 
 class SecurityPage(HTMLPage, LoggedPage):
-    def push_otp(self, otp):
-        try:
-            form = self.get_form(id='auth-mfa-form')
-            form['otpCode'] = otp
-        except FormNotFound:
-            form = self.get_form(nr=0)
-            form['code'] = otp
-        form['rememberDevice'] = ""
-        form.submit()
-
     def get_otp_message(self):
         message = self.doc.xpath('//div[@class="a-box-inner"]/p')
         return message[0] if message else None
@@ -59,8 +49,20 @@ class SecurityPage(HTMLPage, LoggedPage):
         form = self.get_form()
         form.submit()
 
+    def get_response_form(self):
+        try:
+            form = self.get_form(id='auth-mfa-form')
+            return form
+        except FormNotFound:
+            form = self.get_form(nr=0)
+            return form
+
 
 class LanguagePage(HTMLPage):
+    pass
+
+
+class HistoryPage(HTMLPage):
     pass
 
 
@@ -78,6 +80,14 @@ class LoginPage(HTMLPage):
 
     def has_captcha(self):
         return self.doc.xpath('//div[@id="image-captcha-section"]//img[@id="auth-captcha-image"]/@src')
+
+    def get_response_form(self):
+        try:
+            form = self.get_form(id='auth-mfa-form')
+            return form
+        except FormNotFound:
+            form = self.get_form(nr=0)
+            return form
 
 
 class SubscriptionsPage(LoggedPage, HTMLPage):
