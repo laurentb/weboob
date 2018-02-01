@@ -654,6 +654,11 @@ class IndexPage(LoggedPage, HTMLPage):
     def transfer_unavailable(self):
         return CleanText(u'//li[contains(text(), "Pour accéder à cette fonctionnalité, vous devez disposer d’un moyen d’authentification renforcée")]')(self.doc)
 
+    def loan_unavailable_msg(self):
+        msg = CleanText('//span[@id="MM_LblMessagePopinError"] | //p[@id="MM_ERREUR_PAGE_BLANCHE_pAlert"]')(self.doc)
+        if msg:
+            return msg
+
 
 class ConsLoanPage(JsonPage):
     def get_conso(self):

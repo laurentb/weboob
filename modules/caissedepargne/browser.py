@@ -30,7 +30,6 @@ from weboob.capabilities.bank import Account, AddRecipientStep, Recipient, Trans
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.profile import Profile
 from weboob.browser.exceptions import BrowserHTTPNotFound, ClientError
-from weboob.browser.filters.standard import CleanText
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.tools.capabilities.bank.transactions import sorted_transactions, FrenchTransaction
 from weboob.tools.compat import urljoin
@@ -182,9 +181,11 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         month = ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul' , 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
         now = datetime.datetime.today()
         d = '%s %s %s %s:%s:%s GMT 0100 (CET)' % (days[now.weekday()], month[now.month - 1], now.year, now.hour, format(now.minute, "02"), now.second)
-        if self.home.is_here() and self.page.doc.xpath('//span[@id="MM_LblMessagePopinError"]'):
-            self.logger.warning("%s", CleanText('//span[@id="MM_LblMessagePopinError"]')(self.page.doc))
-            return None
+        if self.home.is_here() and self.page.loan_unavailable():
+            msg = self.page.loan_unavailable_msg()
+            if msg:
+                self.logger.warning('%s' % msg)
+                return None
         self.cons_loan.go(datepourie = d)
         return self.page.get_conso()
 
