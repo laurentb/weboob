@@ -157,6 +157,11 @@ class IndexPage(LoggedPage, HTMLPage):
         tr.amount = total_amount
         yield tr
 
+    def get_loan_currency(self):
+        loan_currency_xpath = '//section[@id="detail-compte"]//td/\
+                strong[contains(text(), "emprunt")]/../following-sibling::td/strong'
+        return Currency(loan_currency_xpath)(self.doc)
+
     def get_card_name(self):
         return CleanText('//h1[1]')(self.doc)
 
@@ -184,7 +189,8 @@ class AccountsPage(LoggedPage, HTMLPage):
         return balance
 
     def get_currency(self):
-        return Currency().filter(self.doc.xpath('//section[@id="onglet-detailcompte"]//td[@class="droite"]')[0])
+        return Currency('//section[@id="onglet-detailcompte"]//td[@class="droite"]')(self.doc)
+
 
 class OperationsPage(LoggedPage, HTMLPage):
     @method

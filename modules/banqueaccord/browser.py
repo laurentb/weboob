@@ -62,6 +62,7 @@ class BanqueAccordBrowser(LoginBrowser):
             a.balance = self.page.get_loan_balance()
             if a.balance is not None:
                 a.type = Account.TYPE_LOAN
+                a.currency = self.page.get_loan_currency()
             else:
                 self.accounts.go()
                 a.balance = self.page.get_balance()
