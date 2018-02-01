@@ -30,11 +30,21 @@ from weboob.browser.filters.html import TableCell
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Investment
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
+from weboob.exceptions import ActionNeeded
 
 
 def MyDecimal(*args, **kwargs):
     kwargs['replace_dots'] = True
     return CleanDecimal(*args, **kwargs)
+
+
+class MainPage(LoggedPage, HTMLPage):
+    pass
+
+
+class FirstConnectionPage(LoggedPage, HTMLPage):
+    def on_load(self):
+        raise ActionNeeded(CleanText('//p[contains(text(), "prendre connaissance")]')(self.doc))
 
 
 class AccountPage(LoggedPage, HTMLPage):

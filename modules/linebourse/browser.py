@@ -24,13 +24,16 @@ from weboob.exceptions import BrowserUnavailable
 from weboob.tools.compat import quote_plus
 
 from .pages import (
-    MessagePage, InvestmentPage, HistoryPage, BrokenPage
+    MessagePage, InvestmentPage, HistoryPage, BrokenPage,
+    MainPage, FirstConnectionPage
 )
 
 
 class LinebourseBrowser(LoginBrowser):
     BASEURL = 'https://www.linebourse.fr'
 
+    main = URL(r'/Main$', MainPage)
+    first = URL(r'/GuidesPremiereConnexion$', FirstConnectionPage)
     invest = URL(r'/Portefeuille$', r'/Portefeuille\?compte=(?P<id>[^&]+)', InvestmentPage)
     message = URL(r'/DetailMessage.*', MessagePage)
     history = URL(r'/HistoriqueOperations',
@@ -47,6 +50,7 @@ class LinebourseBrowser(LoginBrowser):
         raise BrowserUnavailable()
 
     def iter_investment(self, account_id):
+        self.main.go()
         self.invest.go()
         if self.message.is_here():
             self.page.submit()
@@ -61,6 +65,7 @@ class LinebourseBrowser(LoginBrowser):
         return self.page.iter_investment()
 
     def iter_history(self, account_id):
+        self.main.go()
         self.history.go()
         if self.message.is_here():
             self.page.submit()
