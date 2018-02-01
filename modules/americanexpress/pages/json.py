@@ -65,7 +65,7 @@ class AccountsPage3(LoggedPage, HTMLPage):
             elif isinstance(account_data, list):
                 acc = Account()
                 acc.number = '-%s' % account_data[2][2]
-                acc.label = '%s %s' % (account_data[6][4], account_data[10][14])
+                acc.label = '%s %s' % (account_data[6][4], account_data[10][-1])
                 acc._token = acc.id = token
                 yield acc
 
