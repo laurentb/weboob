@@ -798,7 +798,7 @@ class LIAccountsPage(LoggedPage, HTMLPage):
 
             load_details = Attr('.//a', 'href', default=NotAvailable) & AsyncLoad
 
-            obj__link_id = Async('details', Link('//li/a[contains(text(), "Mouvements")]'))
+            obj__link_id = Async('details', Link('//li/a[contains(text(), "Mouvements")]', default=NotAvailable))
             obj__link_inv = Link('./td[1]/a', default=NotAvailable)
             obj_id = CleanText('./td[2]', replace=[(' ', '')])
             obj_label = CleanText('./td[1]')
