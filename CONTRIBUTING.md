@@ -13,6 +13,7 @@ Then, once it is necessary, commit with::
 
 Do not forget to write a helpful commit message.
 
+
 Check your patch
 ----------------
 
@@ -24,6 +25,7 @@ You can run these scripts to be sure your patch doesn't break anything::
 
 Perhaps you should also write or fix tests. These tests are automatically run by
 `Gitlab CI <https://git.weboob.org/weboob/devel/pipelines>`_ at each commit and merge requests.
+
 
 Create a merge request or send a patch
 --------------------------------------
@@ -43,3 +45,20 @@ Then, send them with this command::
     $ git send-email --to=weboob@weboob.org *.patch
 
 You can also send the files by yourself if you haven't any configured MTA on your system.
+
+
+Notes on merging a merge request
+--------------------------------
+
+Few people (members of the [Weboob group on this
+repo](https://git.weboob.org/groups/weboob/group_members)) have the right to
+merge a MR.
+
+Anyone is welcome to review and comment pending merge requests. A merge
+request should in principle have at least two reviewers before getting merged.
+
+Weboob `devel` repo should keep an history as linear as possible. Then,
+merging a merge request should be done locally, with prior rebasing upon the
+`master` branch and take care of using the `-ff-only` merge option. Merge
+requests should **NOT** be merged through the Gitlab UI, which would result in
+an extra "merge" commit.
