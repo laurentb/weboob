@@ -228,7 +228,7 @@ class ItemInvestment(ItemElement):
 
     def obj_label(self):
         return CleanText(TableCell('label')(self)[0].xpath('.//div[contains(@style, \
-            "text-align")][1]'))(self).rsplit(' - ', 1)[0]
+            "text-align")][1]'))(self)
 
     def obj_valuation(self):
         return MyDecimal(TableCell('valuation')(self)[0].xpath('.//div[not(.//div)]'))(self)
