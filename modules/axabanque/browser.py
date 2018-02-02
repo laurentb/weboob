@@ -19,6 +19,8 @@
 
 from __future__ import unicode_literals
 
+from datetime import date
+
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import ClientError
 from weboob.capabilities.base import NotAvailable
@@ -32,7 +34,7 @@ from .pages.bank import (
 )
 from .pages.wealth import AccountsPage as WealthAccountsPage, InvestmentPage, HistoryPage
 from .pages.document import DocumentsPage, DownloadPage
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, Transaction
 
 
 class AXABrowser(LoginBrowser):
@@ -120,6 +122,11 @@ class AXABanque(AXABrowser):
                         if a.id in ids:
                             # the "-comptes" page may return the same accounts as other pages, skip them
                             continue
+
+                        # Some card are not deferred debit card, skip them
+                        if a._is_debit_card:
+                            continue
+
                         ids.add(a.id)
 
                         #The url giving life insurrance investments seems to be temporary.
@@ -161,6 +168,7 @@ class AXABanque(AXABrowser):
         self.bank_accounts.go(tab=tab)
         args = account._args
         args['javax.faces.ViewState'] = self.page.get_view_state()
+
         # Nav for accounts in tab pages
         if tab != "comptes" and hasattr(account, '_url') \
                 and hasattr(account, '_purl') and hasattr(account, '_pargs'):
@@ -254,13 +262,40 @@ class AXABanque(AXABrowser):
             if self.page.more_history():
                 for tr in self.page.get_history():
                     yield tr
+        # Get deferred card history
+        elif account._acctype == "bank" and account.type == Account.TYPE_CARD:
+            for tr in self.deferred_card_transactions(account):
+                if tr.date < date.today():
+                    yield tr
+
+
+    def deferred_card_transactions(self, account):
+        summary_date = NotAvailable
+
+        self.go_account_pages(account, "history")
+        if self.page.get_deferred_card_history():
+            for tr in self.page.get_history():
+                # only deferred card accounts are typed TYPE_CARD
+                if tr.type == Transaction.TYPE_CARD:
+                    tr.type = Transaction.TYPE_DEFERRED_CARD
+
+                # fix date of deferred card transactions
+                if tr.type == Transaction.TYPE_CARD_SUMMARY:
+                    summary_date = tr.date
+                else:
+                    tr.date = summary_date
+
+                if tr.date is not NotAvailable:
+                    yield tr
+                else:
+                    # if date of summary is not available, skip transactions
+                    self.logger.debug("Skip the transaction %s: the card summary is not available yet." % tr)
 
     def iter_coming(self, account):
         if account._acctype == "bank" and account.type == Account.TYPE_CARD:
-            self.go_account_pages(account, "history")
-
-            if self.page.more_history():
-                for tr in self.page.get_history():
+            for tr in self.deferred_card_transactions(account):
+                # if date of summary is available, skip the variable summary
+                if tr.date >= date.today() and tr.type != Transaction.TYPE_CARD_SUMMARY:
                     yield tr
 
     @need_login

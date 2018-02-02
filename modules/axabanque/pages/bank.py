@@ -80,7 +80,7 @@ class AccountsPage(LoggedPage, MyHTMLPage):
         ('pel',                Account.TYPE_SAVINGS),
         ('pea',                Account.TYPE_PEA),
         ('titres',             Account.TYPE_MARKET),
-        ('Valorisation',       Account.TYPE_MARKET),
+        ('valorisation',       Account.TYPE_MARKET),
     ))
 
     def get_tabs(self):
@@ -130,6 +130,7 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                     account.type = Account.TYPE_LOAN
                     account._acctype = "bank"
                     account._hasinv = False
+                    account._is_debit_card = False
                     yield account
 
                 continue
@@ -164,6 +165,7 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                         account.type = account.TYPE_LIFE_INSURANCE
                         account.balance = MyDecimal('//span[contains(@id,"MontantEpargne")]/text()')(account_details_iframe.page.doc)
                         account._acctype = "bank"
+                        account._is_debit_card = False
                     else:
                         try:
                             label = unicode(table.xpath('./caption')[0].text.strip())
@@ -200,7 +202,14 @@ class AccountsPage(LoggedPage, MyHTMLPage):
 
                     # get accounts balance
                     try:
-                        account.balance = Decimal(FrenchTransaction.clean_amount(self.parse_number(u''.join([txt.strip() for txt in box.cssselect("td.montant")[0].itertext()]))))
+                        balance_value = CleanText('.//td[has-class("montant")]')(box)
+
+                        if balance_value == u'Débit immédiat':
+                            account._is_debit_card = True
+                        else:
+                            account._is_debit_card = False
+
+                        account.balance = Decimal(FrenchTransaction.clean_amount(self.parse_number(balance_value)))
                     except InvalidOperation:
                         #The account doesn't have a amount
                         pass
@@ -250,6 +259,7 @@ class BankTransaction(FrenchTransaction):
                                                               FrenchTransaction.TYPE_ORDER),
                 (re.compile('^.* LE (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})$'),
                                                               FrenchTransaction.TYPE_UNKNOWN),
+                (re.compile('^ACHATS (CARTE|CB)'),                  FrenchTransaction.TYPE_CARD_SUMMARY),
                ]
 
 
@@ -345,6 +355,26 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
                    }
 
         self.browser.location(form.attrib['action'], data=args)
+        return True
+
+    def get_deferred_card_history(self):
+        # get all transactions
+        form = self.get_form(id="hiddenCB")
+        form['periodeMouvementSelectionnePagination'] = 4
+        form['nbLigneParPageSelectionneHautPagination'] = -1
+        form['nbLigneParPageSelectionneBasPagination'] = -1
+        form['periodeMouvementSelectionneComponent'] = 4
+        form['categorieMouvementSelectionneComponent'] = ''
+        form['nbLigneParPageSelectionneComponent'] = -1
+        form['idDetail:btnRechercherParNbLigneParPage'] = ''
+        form['idDetail:btnRechercherParPeriode'] = ''
+        form['idDetail_SUBMIT'] = 1
+        form['idDetail:_idcl'] = ''
+        form['paramNumCompte'] = ''
+        form['idDetail:_link_hidden_'] = ''
+        form['javax.faces.ViewState'] = self.get_view_state()
+        form.submit()
+
         return True
 
     def get_history(self):
