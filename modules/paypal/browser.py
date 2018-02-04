@@ -39,7 +39,7 @@ class Paypal(LoginBrowser):
                 '/cgi-bin/webscr\?cmd=_login-submit.+$',
                 '/fr/webapps/mpp/home', LoginPage)
     landing = URL('/home',
-                  '/\w+/home', # locale home
+                  '/(?!myaccount)\w+/home', # locale home
                   '/$', LandingPage)
     useless = URL('/cgi-bin/webscr\?cmd=_login-processing.+$',
                   '/cgi-bin/webscr\?cmd=_account.*$',
@@ -55,6 +55,7 @@ class Paypal(LoginBrowser):
                '/myaccount/?\?country_lang.x=true',
                '/businessexp/fees/interchange-fees',
                '/mep/dashboard',
+               '/myaccount/home',
                HomePage)
     error = URL('/auth/validatecaptcha$', ErrorPage)
     history_details = URL('https://\w+.paypal.com/cgi-bin/webscr\?cmd=_history-details-from-hub&id=[\-A-Z0-9]+$',
