@@ -43,7 +43,18 @@ class Javascript(object):
     return new Buffer(str, 'base64').toString('binary');
   }
 
-  var document = {};
+  document = {};
+
+  /* JS code checks that some PhantomJS globals aren't defined on the
+   * global window object; put an empty window object, so that all these
+   * tests fail.
+   * It then tests the user agent against some known scrappers; just put
+   * the default Tor user agent in there.
+   */
+  window = {};
+  navigator = {
+      userAgent: "Mozilla/5.0 (Windows NT 6.1; rv:52.0) Gecko/20100101 Firefox/52.0"
+  };
     """
 
     def __init__(self, script, logger=None):

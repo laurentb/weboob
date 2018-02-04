@@ -77,22 +77,10 @@ class LoginPage(HTMLPage):
         # e+=function(e,t){return typeof navigator!="undefined"?e:t}
         code1 = re.sub(r'if\((?:typeof |document)[^)]*\)', 'if(true)', code1)
 
-        # JS code checks that some PhantomJS globals aren't defined on the
-        # global window object; put an empty window object, so that all these
-        # tests fail.
-        # It then tests the user agent against some known scrappers; just put
-        # the default Tor user agent in there.
-        code1 = """
-        window = {};
-        navigator = {
-            userAgent: "Mozilla/5.0 (Windows NT 6.1; rv:52.0) Gecko/20100101 Firefox/52.0"
-        };
-        """ + code1
-
         js = Javascript(code1)
         func_name = re.search(r'function (\w+)\(\)', code1).group(1)
 
-        cookie = re.search('xppcts = (\w+);', cleaner_code).group(1)
+        cookie = re.search(r'xppcts = (\w+);', cleaner_code).group(1)
         sessionID = re.search(r"%s'([^']+)'" % re.escape("'&_sessionID='+encodeURIComponent("), cleaner_code).group(1)
         csrf = re.search(r"%s'([^']+)'" % re.escape("'&_csrf='+encodeURIComponent("), cleaner_code).group(1)
 
