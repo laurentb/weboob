@@ -73,7 +73,7 @@ def exception_to_job(exc):
         job.site_url = exc.website_url
         job.site_key = exc.website_key
     elif isinstance(exc, NocaptchaQuestion):
-        job = RecaptchaJob()
+        job = NocaptchaJob()
         job.site_url = exc.website_url
         job.site_key = exc.website_key
     elif isinstance(exc, ImageCaptchaQuestion):
