@@ -21,12 +21,17 @@ from __future__ import print_function
 
 from decimal import Decimal
 import sys
+from threading import Lock, Event
 
 from weboob.capabilities.bill import CapDocument, Detail, Subscription
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import PrettyFormatter
 from weboob.tools.application.base import MoreResultsAvailable
 from weboob.core import CallErrors
+from weboob.exceptions import CaptchaQuestion
+from weboob.capabilities.captcha import exception_to_job, CapCaptchaSolver
+from weboob.core.ouiboube import Weboob
+
 
 __all__ = ['Boobill']
 
@@ -54,6 +59,11 @@ class Boobill(ReplApplication):
     COMMANDS_FORMATTERS = {'subscriptions':   'subscriptions',
                            'ls':              'subscriptions',
                           }
+
+    def __init__(self, *args, **kwargs):
+        super(Boobill, self).__init__(*args, **kwargs)
+        self.captcha_weboob = Weboob()
+        self.captcha_weboob.load_backends(caps=[CapCaptchaSolver])
 
     def main(self, argv):
         self.load_config()
@@ -269,3 +279,47 @@ class Boobill(ReplApplication):
                     print('Unable to write bill in "%s": %s' % (dest, e), file=self.stderr)
                     return False
         return True
+
+    def bcall_error_handler(self, backend, error, backtrace):
+        """
+        Handler for an exception inside the CallErrors exception.
+
+        This method can be overridden to support more exceptions types.
+        """
+        if isinstance(error, CaptchaQuestion):
+            if not self.captcha_weboob.count_backends():
+                print('Error(%s): Site requires solving a CAPTCHA but no CapCaptchaSolver backends were configured' % backend.name,
+                      file=self.stderr)
+                return False
+
+            print('Info(%s): Encountered CAPTCHA, please wait for its resolution, it can take dozens of seconds' % backend.name, file=self.stderr)
+            job = exception_to_job(error)
+            self.solve_captcha(job, backend)
+            return False
+
+        return super(ReplApplication, self).bcall_error_handler(backend, error, backtrace)
+
+    def solve_captcha(self, job, backend):
+        def call_solver(solver_backend, job):
+            with lock:
+                if solved.is_set():
+                    solver_backend.logger.info('already solved, ignoring')
+                    return
+
+                ret = solver_backend.solve_catpcha_blocking(job)
+                if ret:
+                    solver_backend.logger.info('backend solved job')
+                    backend.config['captcha_response'].set(ret.solution)
+                    solved.set()
+
+        def all_solvers_finished():
+            if not solved.is_set():
+                print('Error(%s): CAPTCHA could not be solved.' % backend.name, file=self.stderr)
+            else:
+                print('Info(%s): CAPTCHA was successfully solved. Please retry operation.' % backend.name, file=self.stderr)
+
+        lock = Lock()
+        solved = Event()
+
+        bres = self.captcha_weboob.do(call_solver, job)
+        bres.callback_thread(None, None, all_solvers_finished)
