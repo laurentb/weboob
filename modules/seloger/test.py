@@ -49,11 +49,7 @@ class SeLogerTest(BackendTest):
             self.assertTrue(x.text)
             self.assertTrue(x.cost)
             self.assertTrue(x.currency)
-            try:
-                self.assertEqual(x.type, type)
-            except:
-                print(x.url)
-                raise
+            self.assertEqual(x.type, type, 'Wrong type on %s' % x.url)
             self.assertTrue(x.id)
             self.assertTrue(x.area)
             self.assertTrue(x.title)

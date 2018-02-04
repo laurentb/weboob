@@ -19,8 +19,7 @@
 
 import decimal
 import itertools
-from weboob.capabilities.housing import (Query, POSTS_TYPES, ADVERT_TYPES,
-                                         UTILITIES)
+from weboob.capabilities.housing import Query, POSTS_TYPES, UTILITIES
 from weboob.tools.test import BackendTest
 
 

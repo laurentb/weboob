@@ -29,7 +29,7 @@ from weboob.browser.filters.json import Dict
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.housing import (Housing, City, HousingPhoto,
                                          UTILITIES, ENERGY_CLASS, POSTS_TYPES,
-                                         ADVERT_TYPES, HOUSE_TYPES, POSTS_TYPES)
+                                         ADVERT_TYPES, HOUSE_TYPES)
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 
 

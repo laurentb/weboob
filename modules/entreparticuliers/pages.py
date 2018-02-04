@@ -23,8 +23,7 @@ from weboob.browser.pages import JsonPage, HTMLPage
 from weboob.browser.elements import ItemElement, ListElement, DictElement, method
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, Format
-from weboob.browser.filters.html import CleanHTML, XPath, Link, Attr, AbsoluteLink
-from weboob.capabilities.base import Currency
+from weboob.browser.filters.html import CleanHTML, XPath, Attr, AbsoluteLink
 from weboob.capabilities.housing import (Housing, HousingPhoto, City,
                                          UTILITIES, ADVERT_TYPES, HOUSE_TYPES)
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
@@ -59,9 +58,6 @@ class SearchPage(HTMLPage):
                 return False
 
             klass = Housing
-
-            def condition(self):
-                return CleanText("./@id")(self) != "pnlInfo"
 
             obj_id = Regexp(CleanText('./a/@href',
                                       replace=[('/annonces-immobilieres/', ''), ('/location/', '')]),
