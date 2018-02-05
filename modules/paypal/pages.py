@@ -19,6 +19,7 @@
 
 from ast import literal_eval
 from decimal import Decimal, ROUND_DOWN
+import json
 import re
 
 from weboob.capabilities.bank import Account
@@ -56,6 +57,15 @@ class LoginPage(HTMLPage):
         decoder_name = mtc.group(1)
 
         decoder_code = re.search(r'var _0x\w{4}=\[.*var (_0x\w{4})=function.*?\};', code).group(0)
+        decoder_code += """
+        ;function mapDecoder(array) {
+            var map = {};
+            for (var key in array) {
+                map[key] = %s(key);
+            }
+            return map;
+        }
+        """ % decoder_name
         decoder_js = Javascript(decoder_code)
 
         # clean string obfuscation like: '\x70\x61\x79\x70\x61\x6c\x20\x73\x75\x63\x6b\x73'
@@ -64,9 +74,22 @@ class LoginPage(HTMLPage):
         cleaner_code = re.sub(r"'.*?(?<!\\)'", basic_decoder, code)
 
         # clean other obfuscation like: _0x1234('0x42')
+        # Do only one call to JS by putting all the elements to decode in an
+        # array that will be mapped in JS to a structure of the form {encoded:
+        # decoded}.
+        to_decode = set()
+        for m in re.finditer(r"%s\('([^']+)'\)" % re.escape(decoder_name), cleaner_code):
+            to_decode.add(literal_eval(m.group(1)))
+
+        decoded_map = decoder_js.call('mapDecoder', [k for k in to_decode])
+
         def exec_decoder(mtc):
-            return repr(decoder_js.call(decoder_name, literal_eval(mtc.group(1))).encode('utf-8'))
-        cleaner_code = re.sub(r"%s\(('[^']+')\)" % re.escape(decoder_name), exec_decoder, cleaner_code)
+            key = repr(literal_eval(mtc.group(1)))
+            # Use json.dumps to force utf8 encoding.
+            ret = json.dumps(str(decoded_map[key]))
+            # Force simple quoting around the string.
+            return "'" + ret[1:-1] + "'"
+        cleaner_code = re.sub(r"%s\('([^']+)'\)" % re.escape(decoder_name), exec_decoder, cleaner_code)
 
         code1 = re.search(r'(.*function .*?\})\(function\(\)', cleaner_code).group(1)
 
