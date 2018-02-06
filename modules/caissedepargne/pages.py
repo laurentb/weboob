@@ -145,6 +145,7 @@ class IndexPage(LoggedPage, HTMLPage):
     ACCOUNT_TYPES = {u'Epargne liquide':            Account.TYPE_SAVINGS,
                      u'Compte Courant':             Account.TYPE_CHECKING,
                      u'COMPTE A VUE':               Account.TYPE_CHECKING,
+                     u'COMPTE CHEQUE':              Account.TYPE_CHECKING,
                      u'Mes comptes':                Account.TYPE_CHECKING,
                      u'CPT DEPOT PART.':            Account.TYPE_CHECKING,
                      u'CPT DEPOT PROF.':            Account.TYPE_CHECKING,
