@@ -130,7 +130,16 @@ class SearchPage(HTMLPage):
                 else:
                     return HOUSE_TYPES.OTHER
             obj_title = CleanText('./div/h2[@itemprop="name"]/a')
-            obj_location = CleanText('.//span[@class="item-localisation"]/span[@class="localisation-label"]/strong')
+
+            def obj_location(self):
+                location = CleanText(
+                    './/span[@class="item-localisation"]/span[@class="localisation-label"]/strong'
+                )(self)
+                if not location:
+                    location = CleanText('.//h2[@itemprop="name"]',
+                                         children=False)(self)
+                return location
+
             obj_cost = CleanDecimal('./div/div/span[@class="price-label"]|./div/div[@class="item-price-pdf"]',
                                     default=NotAvailable)
             obj_currency = Currency(

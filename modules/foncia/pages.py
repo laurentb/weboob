@@ -116,7 +116,7 @@ class HousingPage(HTMLPage):
 
         def obj_photos(self):
             photos = []
-            for photo in self.xpath('//li[has-class("OfferSlider-thumbs-item")]/img'):
+            for photo in self.xpath('//div[has-class("OfferSlider")]//img'):
                 photo_url = Attr('.', 'src')(photo)
                 photo_url = photo_url.replace('640/480', '800/600')
                 photos.append(HousingPhoto(photo_url))

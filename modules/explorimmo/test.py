@@ -43,7 +43,6 @@ class ExplorimmoTest(BackendTest):
             ])
             self.assertTrue(x.text)
             self.assertTrue(x.location)
-            self.assertTrue(x.area)
             self.assertTrue(x.cost)
             self.assertTrue(x.currency)
             self.assertTrue(x.title)
@@ -51,6 +50,8 @@ class ExplorimmoTest(BackendTest):
             self.assertTrue(x.id)
             self.assertTrue(x.url)
             self.assertIn(x.advert_type, query.advert_types)
+
+        self.assertTrue(any(x.area for x in results))
 
         return results
 

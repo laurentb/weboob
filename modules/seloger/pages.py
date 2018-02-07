@@ -65,16 +65,7 @@ class SeLogerItem(ItemElement):
             # furnished.
             return POSTS_TYPES.RENT
         return type
-    def obj_advert_type(self):
-        is_agency = (
-            CleanText('contact/rcsSiren')(self) or
-            CleanText('contact/rcsNic')(self) or
-            CleanText('contact/idAnnuaire')(self)
-        )
-        if is_agency:
-            return ADVERT_TYPES.PROFESSIONAL
-        else:
-            return ADVERT_TYPES.PERSONAL
+
     def obj_house_type(self):
         idType = CleanText('idTypeBien')(self)
         try:
@@ -131,6 +122,15 @@ class SearchResultsPage(XMLPage):
                     return CleanText('idTypeTransaction')(self) == '2'
                 return True
 
+            def obj_advert_type(self):
+                is_agency = (
+                    ';' not in CleanText('contact/nom')(self)
+                )
+                if is_agency:
+                    return ADVERT_TYPES.PROFESSIONAL
+                else:
+                    return ADVERT_TYPES.PERSONAL
+
             def obj_photos(self):
                 photos = []
 
@@ -162,6 +162,17 @@ class HousingPage(XMLPage):
                     url = CleanText('stdUrl', default=None)(photo)
                 photos.append(HousingPhoto(url))
             return photos
+
+        def obj_advert_type(self):
+            is_agency = (
+                CleanText('contact/rcsSiren')(self) or
+                CleanText('contact/rcsNic')(self) or
+                CleanText('contact/idAnnuaire')(self)
+            )
+            if is_agency:
+                return ADVERT_TYPES.PROFESSIONAL
+            else:
+                return ADVERT_TYPES.PERSONAL
 
         def obj_DPE(self):
             DPE = CleanText('//bilanConsoEnergie', default="")(self)
