@@ -192,6 +192,17 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
             self.accounts_list = []
             self.accounts_list.extend(self.pro_accounts.go().iter_accounts())
             self.accounts_list.extend(self.accounts.go().iter_accounts())
+
+            # opposed cards are sometimes only detectable on the AccbisPage
+            for account in self.accounts_list:
+                if account.type == Account.TYPE_CHECKING:
+                    self.location(account.url)
+                    # the acc_tit contains the opposed card accounts
+                    self.acc_tit.go(webid=self.page.params['webid'])
+                    opposed = set(card.url for card in self.page.iter_opposed_cards())
+                    self.accounts_list = [account for account in self.accounts_list if account.url not in opposed]
+                    break
+
             cards = [acc for acc in self.accounts_list if acc.type == Account.TYPE_CARD]
             if cards:
                 self.go_cards_number(cards[0].url)

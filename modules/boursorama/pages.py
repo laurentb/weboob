@@ -34,7 +34,7 @@ from weboob.browser.filters.standard import (
     Currency as CleanCurrency,
 )
 from weboob.browser.filters.json import Dict
-from weboob.browser.filters.html import Attr, Link, TableCell
+from weboob.browser.filters.html import Attr, Link, TableCell, AbsoluteLink
 from weboob.capabilities.bank import Account, Investment, Recipient, Transfer, AccountNotFound, AddRecipientError, TransferInvalidAmount
 from weboob.capabilities.base import NotAvailable, empty
 from weboob.capabilities.profile import Person
@@ -629,6 +629,39 @@ class AsvPage(MarketPage):
 
 
 class AccbisPage(LoggedPage, HTMLPage):
+    @method
+    class iter_opposed_cards(ListElement):
+        # the only purpose of this is to detect opposed cards
+        # because cards have an 'OPPOSÉE' label on this page only, not on AccountsPage...
+
+        item_xpath = '//ul[@id="nav-category__BANK"]/li'
+
+        ignore_duplicate = True
+
+        class item(ItemElement):
+            klass = Account
+
+            obj_label = CleanText('.//span[has-class("nav-category__name")]')
+            obj_url = AbsoluteLink('.//a', default=NotAvailable)
+
+            def obj_type(self):
+                # card url is /compte/cav/xxx/carte/yyy so reverse to match "carte" before "cav"
+                for word in Field('url')(self).lower().split('/')[::-1]:
+                    v = AccountsPage.ACCOUNT_TYPES.get(word)
+                    if v:
+                        return v
+
+                for word in Field('label')(self).replace('_', ' ').lower().split():
+                    v = self.page.ACCOUNT_TYPES.get(word)
+                    if v:
+                        return v
+
+            def validate(self, obj):
+                if obj.type != Account.TYPE_CARD:
+                    return False
+
+                return obj.label.endswith(' OPPOSÉE')
+
     def populate(self, accounts):
         cards = []
         for account in accounts:
