@@ -122,6 +122,7 @@ class BankStandardTest(object):
 
         if tr.rdate:
             self.assertGreaterEqual(new_date(tr.date), new_date(tr.rdate), 'transaction %r rdate should be before date' % tr)
+            self.assertLess(abs(tr.date.year - tr.rdate.year), 2, 'transaction %r date (%r) and rdate (%r) are too far away' % (tr, tr.date, tr.rdate))
 
         if tr.original_amount or tr.original_currency:
             self.assertTrue(tr.original_amount and tr.original_currency, 'transaction %r has missing foreign info' % tr)
