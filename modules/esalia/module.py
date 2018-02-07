@@ -19,7 +19,7 @@
 
 
 from weboob.tools.backend import AbstractModule, BackendConfig
-from weboob.tools.value import ValueBackendPassword
+from weboob.tools.value import ValueBackendPassword, Value
 from weboob.capabilities.bank import CapBank
 
 from .browser import EsaliaBrowser
@@ -37,7 +37,9 @@ class EsaliaModule(AbstractModule, CapBank):
     VERSION = '1.4'
     CONFIG = BackendConfig(
              ValueBackendPassword('login',    label='Identifiant', masked=False),
-             ValueBackendPassword('password', label='Code secret', regexp='^(\d{6})$'))
+             ValueBackendPassword('password', label='Code secret', regexp='^(\d{6})$'),
+             Value('otp', label='Code unique temporaire', default=''),
+    )
 
     BROWSER = EsaliaBrowser
     PARENT = 's2e'
