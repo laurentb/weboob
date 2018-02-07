@@ -55,6 +55,8 @@ class FonciaTest(BackendTest):
             self.assertTrue(x.url)
             self.assertTrue(x.details.keys())
             self.assertIn(x.advert_type, query.advert_types)
+            for photo in x.photos:
+                self.assertRegexpMatches(photo.url, r'^http(s?)://')
 
         return results
 
@@ -75,6 +77,8 @@ class FonciaTest(BackendTest):
         self.assertTrue(housing.phone)
         self.assertTrue(housing.utilities)
         self.assertTrue(housing.photos)
+        for photo in housing.photos:
+            self.assertRegexpMatches(photo.url, r'^http(s?)://')
         self.assertTrue(housing.details.keys())
         # No tests for DPE, GES, bedrooms
 

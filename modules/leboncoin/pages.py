@@ -177,9 +177,7 @@ class HousingListPage(HTMLPage):
                 if url:
                     photos.append(
                         HousingPhoto(
-                            "https:{}".format(
-                                url.replace("ad-thumb", "ad-image")
-                            )
+                            url.replace("ad-thumb", "ad-image")
                         )
                     )
                 return photos
@@ -243,6 +241,7 @@ class HousingPage(HTMLPage):
             self.env['details'] = details
 
         obj_id = Env('_id')
+
         def obj_type(self):
             breadcrumb = Link('(//nav[has-class("breadcrumbsNav")]//a)[last()]')(self)
             if 'colocations' in breadcrumb:
@@ -254,12 +253,14 @@ class HousingPage(HTMLPage):
                     return POSTS_TYPES.RENT
             else:
                 return POSTS_TYPES.SALE
+
         def obj_advert_type(self):
             line_pro = XPath('.//span[has-class("ispro")]', default=None)(self)
             if line_pro:
                 return ADVERT_TYPES.PROFESSIONAL
             else:
                 return ADVERT_TYPES.PERSONAL
+
         obj_house_type = Env('typeBien')
 
         obj_title = CleanText('//h1[@itemprop="name"]')

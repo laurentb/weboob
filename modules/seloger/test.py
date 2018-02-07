@@ -56,6 +56,8 @@ class SeLogerTest(BackendTest):
             self.assertTrue(x.date)
             self.assertTrue(x.location)
             self.assertIn(x.advert_type, query.advert_types)
+            for photo in x.photos:
+                self.assertRegexpMatches(photo.url, r'^http(s?)://')
 
         return results
 
@@ -75,6 +77,8 @@ class SeLogerTest(BackendTest):
         self.assertTrue(housing.text)
         self.assertTrue(housing.url)
         self.assertTrue(len(housing.photos) > 0)
+        for photo in housing.photos:
+            self.assertRegexpMatches(photo.url, r'^http(s?)://')
         # No tests for DPE, bedrooms, station
 
     def test_seloger_rent(self):

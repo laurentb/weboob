@@ -51,6 +51,8 @@ class PapTest(BackendTest):
             self.assertTrue(x.date)
             self.assertTrue(x.rooms or x.bedrooms)
             self.assertEqual(x.advert_type, ADVERT_TYPES.PERSONAL)
+            for photo in x.photos:
+                self.assertRegexpMatches(photo.url, r'^http(s?)://')
 
         return results
 
@@ -69,6 +71,8 @@ class PapTest(BackendTest):
         self.assertTrue(housing.text)
         self.assertTrue(housing.url)
         self.assertTrue(housing.photos)
+        for photo in housing.photos:
+            self.assertRegexpMatches(photo.url, r'^http(s?)://')
         # TODO: No tests for station, bedrooms, rooms, DPE, phone
 
     def test_pap_rent(self):

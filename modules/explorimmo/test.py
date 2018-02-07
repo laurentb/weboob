@@ -50,6 +50,8 @@ class ExplorimmoTest(BackendTest):
             self.assertTrue(x.id)
             self.assertTrue(x.url)
             self.assertIn(x.advert_type, query.advert_types)
+            for photo in x.photos:
+                self.assertRegexpMatches(photo.url, r'^http(s?)://')
 
         self.assertTrue(any(x.area for x in results))
 
@@ -72,6 +74,8 @@ class ExplorimmoTest(BackendTest):
         self.assertTrue(housing.text)
         self.assertTrue(housing.url)
         self.assertTrue(housing.photos)
+        for photo in housing.photos:
+            self.assertRegexpMatches(photo.url, r'^http(s?)://')
         self.assertTrue(housing.details.keys())
         # No tests for DPE, GES
 

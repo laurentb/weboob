@@ -57,6 +57,8 @@ class LeboncoinTest(BackendTest):
             self.assertTrue(x.url)
             self.assertTrue(x.text)
             self.assertIn(x.advert_type, query.advert_types)
+            for photo in x.photos:
+                self.assertRegexpMatches(photo.url, r'^http(s?)://')
 
         return results
 
@@ -71,9 +73,10 @@ class LeboncoinTest(BackendTest):
         self.assertTrue(housing.area)
         self.assertTrue(housing.date)
         self.assertTrue(housing.location)
-        self.assertTrue(housing.rooms)
         self.assertTrue(housing.text)
         self.assertTrue(housing.url)
+        for photo in housing.photos:
+            self.assertRegexpMatches(photo.url, r'^http(s?)://')
         #self.assertTrue(housing.photos)
         self.assertTrue(housing.details.keys())
         # No tests for DPE, GES, rooms

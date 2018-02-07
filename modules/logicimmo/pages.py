@@ -31,6 +31,7 @@ from weboob.capabilities.housing import (Housing, HousingPhoto, City,
                                          ADVERT_TYPES, HOUSE_TYPES)
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
+from weboob.tools.compat import urljoin
 
 
 class CitiesPage(JsonPage):
@@ -131,7 +132,9 @@ class HousingPage(HTMLPage):
         def obj_photos(self):
             photos = []
             for img in XPath('//div[has-class("carousel-content")]//img/@src')(self):
-                photos.append(HousingPhoto(u'%s' % img.replace('75x75', '800x600')))
+                url = u'%s' % img.replace('75x75', '800x600')
+                url = urljoin(self.page.url, url)  # Ensure URL is absolute
+                photos.append(HousingPhoto(url))
             return photos
 
         def obj_DPE(self):
@@ -342,6 +345,7 @@ class SearchPage(HTMLPage):
                 )(self)
                 if url:
                     url = url.replace('400x267', '800x600')
+                    url = urljoin(self.page.url, url)  # Ensure URL is absolute
                     photos.append(HousingPhoto(url))
                 return photos
 
