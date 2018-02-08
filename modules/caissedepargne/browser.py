@@ -358,18 +358,20 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
         self.page.go_history(account._info)
 
-        try:
-            self.page.go_life_insurance(account)
+        if account.type == Account.TYPE_LIFE_INSURANCE:
+            try:
+                self.page.go_life_insurance(account)
 
-            if self.market.is_here() is False and self.message.is_here() is False:
+                if not self.market.is_here() and not self.message.is_here():
+                    # life insurance website is not always available
+                    raise BrowserUnavailable()
+
+                self.page.submit()
+                self.location('https://www.extranet2.caisse-epargne.fr%s' % self.page.get_cons_histo())
+
+            except (IndexError, AttributeError) as e:
+                self.logger.error(e)
                 return iter([])
-
-            self.page.submit()
-            self.location('https://www.extranet2.caisse-epargne.fr%s' % self.page.get_cons_histo())
-
-        except (IndexError, AttributeError) as e:
-            self.logger.error(e)
-            return iter([])
         return self.page.iter_history()
 
     @need_login
@@ -419,12 +421,13 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
             if not self.page.is_on_right_portfolio(account):
                 self.location('https://www.caisse-epargne.offrebourse.com/Portefeuille?compte=%s' % self.page.get_compte(account))
-        elif account.type is Account.TYPE_LIFE_INSURANCE:
+        elif account.type == Account.TYPE_LIFE_INSURANCE:
             try:
                 self.page.go_life_insurance(account)
 
-                if self.market.is_here() is False and self.message.is_here() is False:
-                    return
+                if not self.market.is_here() and not self.message.is_here():
+                    # life insurance website is not always available
+                    raise BrowserUnavailable()
 
                 self.page.submit()
                 self.location('https://www.extranet2.caisse-epargne.fr%s' % self.page.get_cons_repart())
