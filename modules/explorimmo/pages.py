@@ -27,7 +27,7 @@ from weboob.browser.pages import JsonPage, HTMLPage, pagination
 from weboob.browser.filters.standard import (CleanText, CleanDecimal, Currency,
                                              Regexp, Env, BrowserURL, Filter,
                                              Format)
-from weboob.browser.filters.html import Attr, CleanHTML, Link, XPath
+from weboob.browser.filters.html import Attr, CleanHTML, XPath
 from weboob.capabilities.base import NotAvailable, NotLoaded, Currency as BaseCurrency
 from weboob.capabilities.housing import (Housing, HousingPhoto, City,
                                          UTILITIES, ENERGY_CLASS, POSTS_TYPES,
@@ -150,10 +150,12 @@ class SearchPage(HTMLPage):
                                            '(.*?)([\d,\.]*) m2(.*?)', '\\2', default=None),
                                     replace_dots=True,
                                     default=NotAvailable)
+
             obj_url = Format(
-                "http://www.explorimmo.com%s",
-                Link('./div/div/ul/li/a[has-class("js-goto-classified")]')
+                "http://www.explorimmo.com/annonce-%s.html",
+                CleanText('./@data-classified-id')
             )
+
             obj_price_per_meter = PricePerMeterFilter()
 
             def obj_phone(self):
