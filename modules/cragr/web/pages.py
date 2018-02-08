@@ -432,7 +432,10 @@ class CardsPage(MyLoggedPage, BasePage):
                                          re.sub('\s*-\s*$', '', get('label2')))
 
             if table.xpath('.//td[has-class("cel-num")]'):
-                account.coming = CleanDecimal('.//tr[@class="ligne-paire"]/td[@class="cel-num"]', replace_dots=True)(table)
+                if table.xpath('.//tr[@class="ligne-paire"]/td[@class="cel-num"]'):
+                    account.coming = CleanDecimal('.//tr[@class="ligne-paire"]/td[@class="cel-num"]', replace_dots=True)(table)
+                else:
+                    account.coming = Decimal('0.0')
             else:
                 continue
 
