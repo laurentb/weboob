@@ -652,7 +652,7 @@ class AccbisPage(LoggedPage, HTMLPage):
                         return v
 
                 for word in Field('label')(self).replace('_', ' ').lower().split():
-                    v = self.page.ACCOUNT_TYPES.get(word)
+                    v = AccountsPage.ACCOUNT_TYPES.get(word)
                     if v:
                         return v
 
