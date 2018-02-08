@@ -52,6 +52,7 @@ class AccountsList(LoggedPage, BasePage):
              u'Compte Epargne':      Account.TYPE_SAVINGS,
              u'Compte Sur Livret':   Account.TYPE_SAVINGS,
              u'Compte Titres':       Account.TYPE_MARKET,
+             u'Compte Alterna':      Account.TYPE_REVOLVING_CREDIT,
              u'Crédit':              Account.TYPE_LOAN,
              u'Ldd':                 Account.TYPE_SAVINGS,
              u'Livret':              Account.TYPE_SAVINGS,
