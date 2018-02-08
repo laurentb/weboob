@@ -26,7 +26,7 @@ from weboob.exceptions import ParseError
 from weboob.browser.elements import ItemElement, ListElement, method, DictElement
 from weboob.browser.pages import HTMLPage, pagination, JsonPage, XMLPage
 from weboob.browser.filters.standard import Regexp, Env, CleanText, DateTime, Duration, Field, BrowserURL
-from weboob.browser.filters.html import Attr, Link, XPath
+from weboob.browser.filters.html import Attr, Link
 from weboob.browser.filters.json import Dict
 
 import re
@@ -99,14 +99,18 @@ class VideoJsonPage(JsonPage):
             # Choosen method is not available, we choose an other one
             method = self.obj._method
             if method not in data['request']['files']:
-                method = data['request']['files'].keys()[0]
+                method = list(data['request']['files'].keys())[0]
 
             streams = data['request']['files'][method]
             if not streams:
                 raise ValueError('There is no url available for id: %r' % (int(Field('id')(self))))
 
-            # stream is single for hls, just return the url
-            stream = streams['url'] if method == 'hls' else None
+            stream = None
+            if method == 'hls':
+                if 'url' in streams:
+                    stream = streams['url']
+                else:
+                    stream = streams['cdns'][streams['default_cdn']]['url']
 
             # ...but a list for progressive
             # we assume the list is sorted by quality with best first
@@ -115,8 +119,6 @@ class VideoJsonPage(JsonPage):
                 stream = streams[quality]['url'] if quality < len(streams) else streams[0]['url']
 
             return stream
-
-        obj_ext = Regexp(Field('url'), '.*\.(.*)\?.*$', '\\1')
 
 
 class CategoriesPage(HTMLPage):
@@ -168,7 +170,7 @@ class XMLAPIPage(XMLPage):
     class fill_video_infos(VimeoItem):
         def __init__(self, *args, **kwargs):
             super(VimeoItem, self).__init__(*args, **kwargs)
-            self.el = XPath('/rsp/video')(self.el)[0]
+            self.el = self.el.xpath('/rsp/video')[0]
 
     @pagination
     @method

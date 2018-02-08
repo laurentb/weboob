@@ -45,7 +45,7 @@ class VimeoModule(Module, CapVideo, CapCollection):
     SORTBY = ['relevance', 'rating', 'views', 'time']
 
     quality_choice = OrderedDict([(k, v) for k, v in sorted(
-        {u'0': u'hight', u'1': u'medium', u'2': u'low'}.iteritems())])
+        {u'0': u'high', u'1': u'medium', u'2': u'low'}.items())])
 
     method_choice = [u'hls', u'progressive']
 

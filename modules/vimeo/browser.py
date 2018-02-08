@@ -18,10 +18,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from base64 import b64encode
+
 from weboob.browser import PagesBrowser, URL
 from weboob.browser.exceptions import HTTPNotFound
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.compat import urljoin, quote_plus
+
 from .pages import VideoJsonPage, CategoriesPage, ListPage, APIPage, XMLAPIPage
 
 import time
@@ -77,15 +80,14 @@ class VimeoBrowser(PagesBrowser):
             if self.method == u'hls':
                 streams = []
                 for item in self.read_url(video.url):
-                    if not item.startswith('#'):
+                    item = item.decode('ascii')
+                    if not item.startswith('#') and item.strip():
                         streams.append(item)
+
                 if streams:
                     streams.reverse()
                     url = streams[self.quality] if self.quality < len(streams) else streams[0]
-                    if url.startswith('..'):
-                        video.url = urljoin(video.url, url)
-                    else:
-                        video.url = url
+                    video.url = urljoin(video.url, url)
                 else:
                     video.url = NotAvailable
             return video
@@ -139,10 +141,6 @@ class VimeoBrowser(PagesBrowser):
 
     def _create_authorization(self, url, method, params=None):
         def _percent_encode(s):
-            if isinstance(s, unicode):
-                s = s.encode('utf-8')
-                pass
-
             result = quote_plus(s).replace('+', '%20').replace('*', '%2A').replace('%7E', '~')
             # the implementation of the app has a bug. someone double escaped the '@' so we have to correct this
             # on our end.
@@ -151,8 +149,12 @@ class VimeoBrowser(PagesBrowser):
 
         def _compute_signature(s):
             key = _percent_encode(self.CONSUMER_SECRET) + '&' + _percent_encode('')
+            key = key.encode('ascii')
+            s = s.encode('ascii')
             a = hmac.new(key, s, sha1)
-            return a.digest().encode("base64").rstrip('\n')
+            sig = b64encode(a.digest()).decode('ascii')
+            sig = sig.rstrip('\n')
+            return sig
 
         def _normalize_parameters(_params):
             sorted_keys = sorted(_params.keys())
