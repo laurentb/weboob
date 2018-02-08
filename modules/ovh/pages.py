@@ -26,6 +26,7 @@ from weboob.browser.filters.json import Dict
 from weboob.browser.elements import ListElement, ItemElement, method, DictElement
 from weboob.exceptions import ActionNeeded, AuthMethodNotImplemented
 
+
 class LoginPage(HTMLPage):
     def on_load(self):
         if self.doc.xpath('//p[contains(text(), "You have activated the double factor authentication")]'):
@@ -57,10 +58,11 @@ class LoginPage(HTMLPage):
 
         return bool(double_auth)
 
-    def validate_double_auth(self, code):
-        form = self.get_form()
-        form['emailCode'] = code
-        form.submit()
+    def get_otp_message(self):
+        return self.doc.xpath('//div[@class="control-group" and contains(., "email")]')
+
+    def get_security_form(self):
+        return self.get_form(nr=1)
 
 
 class ProfilePage(LoggedPage, JsonPage):

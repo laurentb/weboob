@@ -34,15 +34,29 @@ class OvhBrowser(LoginBrowser, StatesMixin):
     profile = URL('/engine/api/me', ProfilePage)
     documents = URL('/engine/2api/sws/billing/bills\?count=0&date=(?P<fromDate>.*)&dateTo=(?P<toDate>.*)&offset=0', BillsPage)
 
+    __states__ = ('otp_form', 'otp_url')
+
+    otp_form = None
+    otp_url = None
+
     def __init__(self, config=None, *args, **kwargs):
         self.config = config
         kwargs['username'] = self.config['login'].get()
         kwargs['password'] = self.config['password'].get()
         super(OvhBrowser, self).__init__(*args, **kwargs)
 
+    def locate_browser(self, state):
+        pass
+
+    def validate_security_form(self):
+        res_form = self.otp_form
+        res_form['emailCode'] = self.config['pin_code'].get()
+
+        self.location(self.url, data=res_form)
+
     def do_login(self):
         if self.config['pin_code'].get():
-            self.page.validate_double_auth(self.config['pin_code'])
+            self.validate_security_form()
 
             if not self.page.is_logged():
                 raise BrowserIncorrectPassword("Login / Password or authentication pin_code incorrect")
@@ -59,6 +73,9 @@ class OvhBrowser(LoginBrowser, StatesMixin):
         self.page.check_user_double_auth()
 
         if self.page.check_website_double_auth():
+            self.otp_form = self.page.get_security_form()
+            self.otp_url = self.url
+
             raise BrowserQuestion(Value('pin_code', label=self.page.get_otp_message() or 'Please type the OTP you received'))
 
         if not self.page.is_logged():
