@@ -99,13 +99,16 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
             self.ti_card_go()
         elif self.type == '2':
             self.accounts.go()
+
         if self.error.is_here():
             raise BrowserPasswordExpired()
+
         if self.type == '1':
             for account in self.page.iter_accounts(rib=None):
                 yield account
         if self.type == '2':
             for rib in self.page.get_rib_list():
+                self.accounts.stay_or_go()
                 self.page.expand(rib=rib)
 
                 accounts = list(self.page.iter_accounts(rib=rib))
