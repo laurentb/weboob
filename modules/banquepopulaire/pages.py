@@ -791,7 +791,7 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
     def get_investment_page_params(self):
         script = self.doc.xpath('//body')[0].attrib['onload']
         url = None
-        m = re.search(r"','(.+?)',\[", script, re.MULTILINE)
+        m = re.search(r"','([^']+?)',\[", script, re.MULTILINE)
         if m:
             url = m.group(1)
         params = {}
