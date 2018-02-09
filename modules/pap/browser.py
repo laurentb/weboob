@@ -34,7 +34,7 @@ class PapBrowser(PagesBrowser):
     BASEURL = 'https://www.pap.fr'
     housing = URL('/annonces/(?P<_id>.*)', HousingPage)
     search_page = URL('/annonce/.*', HousingPage)
-    cities = URL('/index/ac-geo2\?q=(?P<pattern>.*)', CitiesPage)
+    cities = URL('/json/ac-geo\?q=(?P<pattern>.*)', CitiesPage)
 
     def search_geo(self, pattern):
         return self.cities.open(pattern=pattern).iter_cities()
