@@ -22,7 +22,9 @@ feature. Then, once it is necessary, commit with::
 
     $ git commit -a
 
-Do not forget to write a helpful commit message.
+Do not forget to write a helpful commit message. If you are fixing a bug in a
+specific module, the first line of your commit message should read
+`[module_name] Description of the fix`.
 
 
 Check your patch
