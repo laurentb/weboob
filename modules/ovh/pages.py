@@ -62,7 +62,7 @@ class LoginPage(HTMLPage):
         return self.doc.xpath('//div[@class="control-group" and contains(., "email")]')
 
     def get_security_form(self):
-        return self.get_form(nr=1)
+        return self.get_form()
 
 
 class ProfilePage(LoggedPage, JsonPage):
