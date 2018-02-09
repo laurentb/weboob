@@ -19,6 +19,7 @@
 
 import re
 from datetime import date
+from decimal import Decimal
 
 from weboob.exceptions import BrowserPasswordExpired
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
@@ -190,6 +191,11 @@ class TiCardPage(ExpandablePage, TransactionsPage):
             obj_type = Account.TYPE_CARD
             obj__nav_num = Attr('.', 'value')
             obj_currency = u'EUR'
+
+    def get_balance(self):
+        if self.doc.xpath('//div[@class="messageaucunedonnee"]'):
+            return Decimal(0)
+        return CleanDecimal('//div[@class="titre-datas"][1]/b')(self.doc)
 
 
 class TiHistoPage(PeriodsPage, TransactionsPage):

@@ -105,6 +105,8 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
 
         if self.type == '1':
             for account in self.page.iter_accounts(rib=None):
+                self.page.expand(account=account)
+                account.coming = self.page.get_balance()
                 yield account
         if self.type == '2':
             for rib in self.page.get_rib_list():
