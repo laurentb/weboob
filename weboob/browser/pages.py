@@ -853,7 +853,7 @@ class AbstractPage(Page):
         return object.__new__(cls)
 
 
-class LoginPage(Page):
+class LoginPage(object):
     def on_load(self):
         if not self.browser.logging_in:
             raise LoggedOut()
