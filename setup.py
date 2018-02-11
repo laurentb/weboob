@@ -135,19 +135,10 @@ def install_weboob():
         'html2text>=3.200',
         'six',
         'unidecode',
+        'Pillow',
         'mechanize; python_version < "3.0"',
         'futures; python_version < "3.2"',
     ]
-    try:
-        import Image
-    except ImportError:
-        requirements.append('Pillow')
-    else:
-        # detect Pillow-only feature, or weird Debian stuff
-        if hasattr(Image, 'alpha_composite') or 'PILcompat' in Image.__file__:
-            requirements.append('Pillow')
-        else:
-            requirements.append('PIL')
 
     if not options.deps:
         requirements = []
