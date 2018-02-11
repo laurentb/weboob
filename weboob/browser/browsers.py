@@ -661,6 +661,7 @@ class PagesBrowser(DomainBrowser):
         """
 
         callback = kwargs.pop('callback', lambda response: response)
+        page_class = kwargs.pop('page', None)
 
         # Have to define a callback to seamlessly process synchronous and
         # asynchronous requests, see :meth:`Browser.open` and its `is_async`
@@ -668,11 +669,14 @@ class PagesBrowser(DomainBrowser):
         def internal_callback(response):
             # Try to handle the response page with an URL instance.
             response.page = None
+            if page_class:
+                response.page = page_class(self, response)
+                return callback(response)
+
             for url in self._urls.values():
-                page = url.handle(response)
-                if page is not None:
-                    self.logger.debug('Handle %s with %s' % (response.url, page.__class__.__name__))
-                    response.page = page
+                response.page = url.handle(response)
+                if response.page is not None:
+                    self.logger.debug('Handle %s with %s', response.url, response.page.__class__.__name__)
                     break
 
             if response.page is None:
@@ -686,7 +690,7 @@ class PagesBrowser(DomainBrowser):
                     if proto_base == 'https' and proto_response != 'https':
                         raise BrowserHTTPSDowngrade()
 
-                self.logger.debug('Unable to handle %s' % response.url)
+                self.logger.debug('Unable to handle %s', response.url)
 
             return callback(response)
 
