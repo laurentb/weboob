@@ -132,9 +132,6 @@ def install_weboob():
         'futures; python_version < "3.2"',
     ]
 
-    if not options.deps:
-        requirements = []
-
     try:
         if sys.argv[1] == 'requirements':
             print('\n'.join(requirements))
@@ -181,7 +178,6 @@ def install_weboob():
 class Options(object):
     qt = False
     xdg = True
-    deps = True
 
 
 options = Options()
@@ -211,9 +207,6 @@ elif '--no-xdg' in args:
     options.xdg = False
     args.remove('--no-xdg')
 
-if '--nodeps' in args:
-    options.deps = False
-    args.remove('--nodeps')
 
 sys.argv = [sys.argv[0]] + args
 
