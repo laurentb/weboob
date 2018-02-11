@@ -135,6 +135,8 @@ def install_weboob():
         'html2text>=3.200',
         'six',
         'unidecode',
+        'mechanize; python_version < "3.0"',
+        'futures; python_version < "3.2"',
     ]
     try:
         import Image
@@ -146,16 +148,6 @@ def install_weboob():
             requirements.append('Pillow')
         else:
             requirements.append('PIL')
-
-    if sys.version_info < (3, 0):
-        requirements.append('mechanize')
-
-    if sys.version_info < (3, 2):
-        requirements.append('futures')
-
-    if sys.version_info < (2, 7):
-        print('Python older than 2.7 is not supported.', file=sys.stderr)
-        sys.exit(1)
 
     if not options.deps:
         requirements = []
