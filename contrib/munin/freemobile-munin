@@ -48,7 +48,7 @@ use strict;
 use warnings;
 use Carp;
 use English qw(-no_match_vars);
-use encoding 'iso-8859-1';    # Munin doesn't like utf-8 :-(
+#use encoding 'iso-8859-15';    # Munin doesn't like utf-8 :-(
 use Encode;
 
 my @monitored = split / /, $ENV{'freemonitored'} || 'voice sms';
