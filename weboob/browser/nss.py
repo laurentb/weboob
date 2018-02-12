@@ -33,6 +33,7 @@ import os
 import socket
 import ssl as basessl
 import subprocess
+from tempfile import NamedTemporaryFile
 
 try:
     import nss.ssl
@@ -173,6 +174,10 @@ def auth_cert_pinning(sock, check_sig, is_server, path):
     return (expected.signed_data.data == cert.signed_data.data)
 
 
+DEFAULT_CA_CERTIFICATES = (
+    '/etc/ssl/certs/ca-certificates.crt',
+    '/etc/pki/tls/certs/ca-bundle.crt',
+)
 def ssl_wrap_socket(sock, *args, **kwargs):
     reinit_if_needed()
 
@@ -194,7 +199,7 @@ def ssl_wrap_socket(sock, *args, **kwargs):
         nsssock.set_hostname(hostname)
     if ossl_ctx and not ossl_ctx.verify_mode:
         nsssock.set_auth_certificate_callback(lambda *args: True)
-    elif kwargs.get('ca_certs') and kwargs['ca_certs'] != '/etc/ssl/certs/ca-certificates.crt':
+    elif kwargs.get('ca_certs') and kwargs['ca_certs'] not in DEFAULT_CA_CERTIFICATES:
         nsssock.set_auth_certificate_callback(auth_cert_pinning, kwargs['ca_certs'])
 
     nsssock.reset_handshake(False) # marks handshake as not-done
@@ -235,6 +240,10 @@ def init_nss(path, rw=False):
     nss.nss.enable_ocsp_checking()
 
 
+def add_nss_cert(path, filename):
+    subprocess.check_call(['certutil', '-A', '-d', path, '-i', filename, '-n', filename, '-t', 'TC,C,T'])
+
+
 def create_cert_db(path):
     try:
         subprocess.check_call(['certutil', '-N', '--empty-password', '-d', path])
@@ -244,9 +253,36 @@ def create_cert_db(path):
     cert_dir = '/etc/ssl/certs'
     for f in os.listdir(cert_dir):
         f = os.path.join(cert_dir, f)
-        if os.path.isdir(f):
+        if os.path.isdir(f) or '.' not in f:
             continue
-        subprocess.check_call(['certutil', '-A', '-d', path, '-i', f, '-n', f, '-t', 'TC,C,T'])
+
+        with open(f) as fd:
+            content = fd.read()
+
+        separators = [
+            '-----END CERTIFICATE-----',
+            '-----END TRUSTED CERTIFICATE-----',
+        ]
+        for sep in separators:
+            if sep in content:
+                separator = sep
+                break
+        else:
+            continue
+
+        try:
+            nb_certs = content.count(separator)
+            if nb_certs == 1:
+                add_nss_cert(path, f)
+            elif nb_certs > 1:
+                for cert in content.split(separator)[:-1]:
+                    cert += separator
+                    with NamedTemporaryFile() as fd:
+                        fd.write(cert)
+                        fd.flush()
+                        add_nss_cert(path, fd.name)
+        except subprocess.CalledProcessError:
+            LOGGER.warning('Unable to handle ca file {}'.format(f))
 
 
 def reinit_if_needed():
