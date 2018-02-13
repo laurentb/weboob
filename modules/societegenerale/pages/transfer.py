@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from ast import literal_eval
 from datetime import datetime, timedelta
 import re
 from collections import OrderedDict
@@ -141,19 +142,44 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
                 self.env['label'] = account.label
                 self.env['iban'] = account.iban
 
+    # param names can be found in: https://particuliers.secure.societegenerale.fr/js/v28/virement/vipon_saisie_opAVenir.js
+    EMITTER_PARAMS = ['solde', 'Alterna', 'SRD', 'cdbqem', 'cdguem', 'nucpem', 'clriem',
+                      'libeem', 'grroem', 'cdprem', 'liprem', 'codeBICEmet', 'codeIBANEmet', 'formatCpteEmet']
+    RECIPIENT_PARAMS = ['solde', 'Alterna', 'PEP', 'SRD', 'toprib', 'idprde', 'cdbqde',
+                        'cdgude', 'nucpde', 'clride', 'libede', 'grrode', 'cdprde',
+                        'liprde', 'tycpde', 'libqde', 'formatCompteBenef', 'nomBenef',
+                        'paysBenef', 'adresseBenef', 'villeBenef', 'codePaysBenef',
+                        'codeBICBenef', 'codeIBANBenef']
+
     def iter_params_by_type(self, _type):
         for script in [sc for sc in self.doc.xpath('//script') if sc.text]:
             accounts = re.findall('TableauComptes%s.*?\);' % _type, script.text)
             if accounts:
                 break
-        for account in accounts:
-            params = re.findall('"(.*?)"', account)
-            yield params
+        for n, account in enumerate(accounts):
+            params = re.search(r'\(indic\d?,(.*)\)', account).group(1)
+            params = literal_eval('[%s]' % params)
+            assert len(params) > 12
+
+            if _type == 'Emetteurs':
+                assert len(params) == len(self.EMITTER_PARAMS)
+                ret = OrderedDict(zip(self.EMITTER_PARAMS, params))
+            elif _type == 'Destinataires':
+                assert len(params) == len(self.RECIPIENT_PARAMS)
+                ret = OrderedDict(zip(self.RECIPIENT_PARAMS, params))
+            else:
+                assert False, 'unhandled param type'
+
+            ret['ordre'] = n
+            yield ret
 
     def get_params(self, _id, _type):
         for params in self.iter_params_by_type(_type):
-            if params[2] + params[3] == _id or params[3] + params[4] == _id or params[-2] == _id:
+            if _type == 'Emetteurs' and (params['cdguem'] + params['nucpem']) == _id:
                 return params
+            elif _type == 'Destinataires' and ((params['cdgude'] + params['nucpde']) == _id or params['codeIBANBenef'] == _id):
+                return params
+
         raise TransferError(u'Paramètres pour le compte %s numéro %s introuvable.' % (_type, _id))
 
     def get_account_value(self, _id):
@@ -180,44 +206,32 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
         data['src'] = re.search('src=(.*?)(&|$)', value).group(1)
         data['sign'] = re.search('sign=(.*?)(&|$)', value).group(1)
 
-        # TODO fetch param names from js function so it's more readable?
-        data['cdbqem'] = origin_params[1]
-        data['cdguem'] = origin_params[2]
-        data['nucpem'] = origin_params[3]
-        data['clriem'] = origin_params[4]
-        data['libeem'] = origin_params[5]
-        data['grroem'] = origin_params[6]
-        data['cdprem'] = origin_params[7]
-        data['liprem'] = origin_params[8]
+        # order of params does not seem to matter
+        emit_keys = ('cdbqem', 'cdguem', 'nucpem', 'clriem', 'libeem', 'grroem', 'cdprem', 'liprem', 'codeBICEmet', 'codeIBANEmet', 'formatCpteEmet')
+        for k in emit_keys:
+            data[k] = origin_params[k]
+        rcpt_keys = ('idprde', 'tycpde', 'libqde', 'cdbqde', 'cdgude', 'nucpde', 'clride', 'libede', 'grrode', 'paysBenef', 'cdprde', 'liprde', 'formatCompteBenef', 'nomBenef', 'adresseBenef', 'villeBenef', 'codePaysBenef', 'codeBICBenef', 'codeIBANBenef')
+        for k in rcpt_keys:
+            data[k] = recipient_params[k]
 
         # This one seem to be set in stone.
         data['inrili'] = 'N'
-        data['toprib'] = '0'
 
-        if recipient_params[1]:
-            data['idprde'] = recipient_params[1]
-        data['cdbqde'] = recipient_params[2]
-        data['cdgude'] = recipient_params[3]
-        data['nucpde'] = recipient_params[4]
-        data['clride'] = recipient_params[5]
-        data['libede'] = recipient_params[6]
-        data['grrode'] = recipient_params[7]
-        if recipient_params[8]:
-            data['cdprde'] = recipient_params[8]
-        if recipient_params[9]:
-            data['liprde'] = recipient_params[9]
-        if recipient_params[10]:
-            data['tycpde'] = recipient_params[10]
-        data['formatCompteBenef'] = recipient_params[12]
-        data['nomBenef'] = recipient_params[13]
-        data['codeBICBenef'] = recipient_params[18]
-        data['codeIBANBenef'] = recipient_params[19]
+        # TODO vipon_saisie_opAVenir.js seems to define different behaviours depending on that value
+        data['toprib'] = recipient_params['toprib']
+
         # This needs the currency to be euro.
         data['mntval'] = int(transfer.amount * 100)
         data['mntcdc'] = '2'
         data['mntcdv'] = 'EUR'
         data['datvir'] = transfer.exec_date.strftime('%Y%m%d')
         data['motvir'] = transfer.label
+
+        data['ordre'] = recipient_params['ordre']
+        data['nomMem'] = ''
+
+        data['banqueBenef'] = recipient_params['libqde']
+
         # Initiate transfer
         self.browser.location('/lgn/url.html', params=data)
 
