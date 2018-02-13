@@ -41,7 +41,7 @@ class S2eBrowser(LoginBrowser, StatesMixin):
     pdf_file_ecofi = URL(r'http://www.ecofi.fr/sites/.*', EcofiDummyPage)
     lyxorfcpe = URL('http://www.lyxorfcpe.com/part', LyxorfcpePage)
     history = URL('/portal/salarie-(?P<slug>\w+)/operations/consulteroperations', HistoryPage)
-    error = URL('/maintenance/HSBC/', ErrorPage)
+    error = URL('/maintenance/.+/', ErrorPage)
 
     STATE_DURATION = 10
 
