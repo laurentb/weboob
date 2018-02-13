@@ -99,6 +99,12 @@ class Browser(object):
     Controls the behavior of get_referrer.
     """
 
+    COOKIE_POLICY = None
+    """
+    Default CookieJar policy.
+    Example: weboob.browser.cookies.BlockAllCookies()
+    """
+
     @classmethod
     def asset(cls, localfile):
         """
@@ -225,6 +231,8 @@ class Browser(object):
         self.session = session
 
         session.cookies = WeboobCookieJar()
+        if self.COOKIE_POLICY:
+            session.cookies.set_policy(self.COOKIE_POLICY)
 
     def set_profile(self, profile):
         profile.setup_session(self.session)
@@ -316,10 +324,9 @@ class Browser(object):
             # The _cookies attribute is not present in requests < 2.2. As in
             # previous version it doesn't calls extract_cookies_to_jar(), it is
             # not a problem as we keep our own cookiejar instance.
-            pcookies = WeboobCookieJar.from_cookiejar(preq._cookies)
-            if hasattr(preq._cookies, '_policy'):
-                pcookies.set_policy(preq._cookies._policy)
-            preq._cookies = pcookies
+            preq._cookies = WeboobCookieJar.from_cookiejar(preq._cookies)
+            if self.COOKIE_POLICY:
+                preq._cookies.set_policy(self.COOKIE_POLICY)
 
         if proxies is None:
             proxies = self.PROXIES

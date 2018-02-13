@@ -23,7 +23,7 @@ except ImportError:
     import http.cookiejar as cookielib
 
 
-__all__ = ['WeboobCookieJar']
+__all__ = ['WeboobCookieJar', 'BlockAllCookies']
 
 
 class WeboobCookieJar(requests.cookies.RequestsCookieJar):
@@ -46,3 +46,9 @@ class WeboobCookieJar(requests.cookies.RequestsCookieJar):
         new_cj = type(self)()
         new_cj.update(self)
         return new_cj
+
+
+class BlockAllCookies(cookielib.CookiePolicy):
+    return_ok = set_ok = domain_return_ok = path_return_ok = lambda self, *args, **kwargs: False
+    netscape = True
+    rfc2965 = hide_cookie2 = False
