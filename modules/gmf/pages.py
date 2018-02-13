@@ -49,4 +49,4 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_label = CleanText('.//div[@class="type-contrat"]//h2')
             obj_type = Account.TYPE_LIFE_INSURANCE
             obj_balance = CleanDecimal(CleanText('.//div[@class="col-right"]', children=False), replace_dots=True, default=NotAvailable)
-            obj_currency = Currency(CleanText(u'.//div[@class="col-right"]', replace=[("Au", "")]))
+            obj_currency = Currency(CleanText(u'.//div[@class="col-right"]', children=False, replace=[("Au", "")]))
