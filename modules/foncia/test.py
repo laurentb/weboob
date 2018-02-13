@@ -22,7 +22,8 @@ from __future__ import unicode_literals
 import itertools
 
 from weboob.tools.test import BackendTest
-from weboob.capabilities.housing import Query, POSTS_TYPES, ADVERT_TYPES
+from weboob.capabilities.housing import (Query, POSTS_TYPES, ADVERT_TYPES,
+                                         HOUSE_TYPES)
 
 
 class FonciaTest(BackendTest):
@@ -71,7 +72,8 @@ class FonciaTest(BackendTest):
         self.assertTrue(housing.area)
         self.assertTrue(housing.date)
         self.assertTrue(housing.location)
-        self.assertTrue(housing.rooms)
+        if housing.type in [HOUSE_TYPES.APART, HOUSE_TYPES.HOUSE]:
+            self.assertTrue(housing.rooms)
         self.assertTrue(housing.text)
         self.assertTrue(housing.url)
         self.assertTrue(housing.phone)

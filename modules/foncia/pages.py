@@ -134,7 +134,8 @@ class HousingPage(HTMLPage):
                 return UTILITIES.EXCLUDED
 
         obj_rooms = CleanDecimal(
-            '//div[has-class("MiniData")]//p[has-class("MiniData-item")][2]'
+            '//div[has-class("MiniData")]//p[has-class("MiniData-item")][2]',
+            default=NotAvailable
         )
         obj_bedrooms = CleanDecimal(
             '//div[has-class("MiniData")]//p[has-class("MiniData-item")][3]',

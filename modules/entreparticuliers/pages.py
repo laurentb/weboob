@@ -90,7 +90,10 @@ class SearchPage(HTMLPage):
                               CleanText('./a/div/p/span[@class="item prix"]/span'))
             obj_location = CleanText('./a/div/p/span[@class="item loc"]/text()[position() > 1]')
             obj_area = CleanDecimal('./a/div/p/span[@class="item surf"]/text()[last()]')
-            obj_rooms = CleanDecimal('./a/div/p/span[@class="item nb"]/text()[last()]')
+            obj_rooms = CleanDecimal(
+                './a/div/p/span[@class="item nb"]/text()[last()]',
+                default=NotAvailable
+            )
             obj_currency = Currency.get_currency(u'€')
             obj_utilities = UTILITIES.UNKNOWN
             obj_url = AbsoluteLink('./a')
