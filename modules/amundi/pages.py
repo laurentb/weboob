@@ -36,8 +36,9 @@ class LoginPage(JsonPage):
 class AccountsPage(LoggedPage, JsonPage):
     ACCOUNT_TYPES = {'PEE': Account.TYPE_PEE,
                      'PEG': Account.TYPE_PEE,
+                     'PEI': Account.TYPE_PEE,
                      'PERCO': Account.TYPE_PERCO,
-                     'RSP': Account.TYPE_RSP
+                     'RSP': Account.TYPE_RSP,
                     }
 
     @method
