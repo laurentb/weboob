@@ -321,22 +321,25 @@ class AccountsPage(LoggedPage, MultiPage):
                      '          contains(text(), "I ACCEPT THE GENERAL CONDITIONS OF USE")]')(self.doc):
             raise ActionNeeded("Veuillez valider les conditions générales d'utilisation")
 
-    TYPES = {'PEE': Account.TYPE_PEE,
-             'PEI': Account.TYPE_PEE,
-             'PEEG': Account.TYPE_PEE,
-             'PEG': Account.TYPE_PEE,
-             'PLAN': Account.TYPE_PEE,
-             'PERCO': Account.TYPE_PERCO,
-             'PERCOI': Account.TYPE_PERCO,
-             'SWISS': Account.TYPE_MARKET
-            }
+    TYPES = {
+        'PEE': Account.TYPE_PEE,
+        'PEI': Account.TYPE_PEE,
+        'PEEG': Account.TYPE_PEE,
+        'PEG': Account.TYPE_PEE,
+        'PLAN': Account.TYPE_PEE,
+        'PERCO': Account.TYPE_PERCO,
+        'PERCOI': Account.TYPE_PERCO,
+        'SWISS': Account.TYPE_MARKET,
+        'RSP': Account.TYPE_RSP,
+    }
 
-    CONDITIONS = {u'disponible': Pocket.CONDITION_AVAILABLE,
-                  u'épargne':    Pocket.CONDITION_AVAILABLE,
-                  u'available':  Pocket.CONDITION_AVAILABLE,
-                  u'withdrawal': Pocket.CONDITION_RETIREMENT,
-                  u'retraite':   Pocket.CONDITION_RETIREMENT,
-                 }
+    CONDITIONS = {
+        u'disponible': Pocket.CONDITION_AVAILABLE,
+        u'épargne': Pocket.CONDITION_AVAILABLE,
+        u'available': Pocket.CONDITION_AVAILABLE,
+        u'withdrawal': Pocket.CONDITION_RETIREMENT,
+        u'retraite': Pocket.CONDITION_RETIREMENT,
+    }
 
     @method
     class iter_accounts(TableElement):
