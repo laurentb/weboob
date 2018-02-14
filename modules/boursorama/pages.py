@@ -630,7 +630,7 @@ class AsvPage(MarketPage):
 
 class AccbisPage(LoggedPage, HTMLPage):
     @method
-    class iter_opposed_cards(ListElement):
+    class iter_unvalid_cards(ListElement):
         # the only purpose of this is to detect opposed cards
         # because cards have an 'OPPOSÉE' label on this page only, not on AccountsPage...
 
@@ -641,8 +641,12 @@ class AccbisPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Account
 
+            def condition(self):
+                return "add-card" not in self.el.attrib['class']
+
             obj_label = CleanText('.//span[has-class("nav-category__name")]')
             obj_url = AbsoluteLink('.//a', default=NotAvailable)
+            obj__tooltip = CleanText(Attr('.', 'title'))
 
             def obj_type(self):
                 # card url is /compte/cav/xxx/carte/yyy so reverse to match "carte" before "cav"
@@ -657,10 +661,18 @@ class AccbisPage(LoggedPage, HTMLPage):
                         return v
 
             def validate(self, obj):
+                # keep only NON-VALID account
+                # a valid account:
+                # - is related to a credit card
+                # - the card must not be blocked
+                # - the card has to be already activated
                 if obj.type != Account.TYPE_CARD:
                     return False
+                if obj.label.endswith(' OPPOSÉE'):
+                    return True
+                # not activated when tooltip hides the 4 digits
+                return obj._tooltip.endswith('****')
 
-                return obj.label.endswith(' OPPOSÉE')
 
     def populate(self, accounts):
         cards = []
@@ -746,13 +758,15 @@ class ProfilePage(LoggedPage, HTMLPage):
 class CardsNumberPage(LoggedPage, HTMLPage):
     def populate_cards_number(self, cards):
         labels = [
-            (CleanText('.', replace=[('DEBIT DIFFERE ', '')])(o), re.search(r'/limite/(\w+)/', o.attrib['href']).group(1))
+            CleanText('.', replace=[('DEBIT DIFFERE ', '')])(o)
             for o in self.doc.xpath('//select//option')
         ]
+        # remove cards whose number ends with **** (means it is not activated yet)
+        labels = [label for label in labels if not label.endswith('****')]
         for card in cards:
-            match = [label[0] for label in labels if card.label in label[0] and label[1] in card.url]
-            if len(match) == 1:
-                card.number = re.search('(\d{4}\*{8}(\d{4}|\*{4}))', match[0]).group(1)
+            match = [label for label in labels if card.label in label]
+            assert len(match) == 1, "only one card should be matched"
+            card.number = re.search('(\d{4}\*{8}(\d{4}|\*{4}))', match[0]).group(1)
 
 
 class HomePage(LoggedPage, HTMLPage):
