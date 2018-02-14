@@ -261,6 +261,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_currency = FrenchTransaction.Currency('.//td[has-class("right")]')
             obj_type = Map(Regexp(Field('_link_id'), r'.*nature=(\w+)'), NATURE2TYPE, default=Account.TYPE_UNKNOWN)
             obj__market_link = None
+            obj_number = Field('id')
 
         class card(ItemElement):
             def condition(self):
@@ -311,6 +312,7 @@ class LoansPage(LoggedPage, HTMLPage):
             obj_type = Account.TYPE_LOAN
             obj_id = Env('id')
             obj__transfer_id = None
+            obj_number = Regexp(Field('id'), r'(\d{11}[A-Z])')
 
             def obj_label(self):
                 has_type = CleanText('./ancestor::table[.//th[contains(text(), "Type")]]', default=None)(self)
@@ -537,11 +539,14 @@ class BoursePage(LoggedPage, HTMLPage):
             def obj_currency(self):
                 return Currency.get_currency(CleanText(TableCell('titres'))(self))
 
+            def obj_number(self):
+                return "".join(CleanText((TableCell('label')(self)[0]).xpath('./div[not(b)]'))(self).split(' - '))
+
             def obj_id(self):
-                return "%sbourse" % "".join(CleanText().filter((TableCell('label')(self)[0]).xpath('./div[not(b)]')).split(' - '))
+                return "%sbourse" % Field('number')(self)
 
             def obj_label(self):
-                return "%s Bourse" % CleanText().filter((TableCell('label')(self)[0]).xpath('./div[b]'))
+                return "%s Bourse" % CleanText((TableCell('label')(self)[0]).xpath('./div[b]'))(self)
 
             def obj_type(self):
                 return self.page.TYPES.get(' '.join(Field('label')(self).split()[:-1]).lower(), Account.TYPE_MARKET)
@@ -649,6 +654,7 @@ class AVPage(LoggedPage, HTMLPage):
             obj__market_link = None
             obj__coming_links = []
             obj__transfer_id = None
+            obj_number = Field('id')
 
             def obj_id(self):
                 try:
