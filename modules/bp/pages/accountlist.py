@@ -20,6 +20,7 @@
 
 from io import BytesIO
 import re
+from decimal import Decimal
 
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Account, Loan
@@ -204,7 +205,9 @@ class AccountList(LoggedPage, MyHTMLPage):
                 return CleanText('//form[@id="selection_offre"]/div[@class="bloc Tmargin"]/h2[@class="title-level2"]')(self)
 
             def obj_balance(self):
-                return -abs(CleanDecimal(TableCell('balance'), replace_dots=True)(self))
+                if CleanText(TableCell('balance'))(self) != u'Remboursé intégralement':
+                    return -abs(CleanDecimal(TableCell('balance'), replace_dots=True)(self))
+                return Decimal(0)
 
             def obj_subscription_date(self):
                 xpath = '//form[@id="selection_offre"]/div[1]/div[2]/span'
@@ -212,14 +215,14 @@ class AccountList(LoggedPage, MyHTMLPage):
                     return MyDate(Regexp(CleanText(xpath), ' (\d{2}/\d{2}/\d{4})', default=NotAvailable))(self)
                 return NotAvailable
 
-            obj_next_payment_amount = CleanDecimal(TableCell('next_payment_amount'), replace_dots=True)
+            obj_next_payment_amount = CleanDecimal(TableCell('next_payment_amount'), replace_dots=True, default=NotAvailable)
 
             def obj_maturity_date(self):
                 if Field('subscription_date')(self):
                     async_page = Async('details').loaded_page(self)
                     date = MyDate(CleanText('//div[@class="bloc Tmargin"]/dl[2]/dd[4]', default=NotAvailable))(async_page.doc)
                     return date
-                return MyDate(CleanText(TableCell('maturity_date')))(self)
+                return MyDate(CleanText(TableCell('maturity_date')), defaut=NotAvailable)(self)
 
             def obj_last_payment_date(self):
                 xpath = '//div[@class="bloc Tmargin"]/div[@class="formline"][2]/span'
@@ -228,7 +231,7 @@ class AccountList(LoggedPage, MyHTMLPage):
                 async_page = Async('details').loaded_page(self)
                 return MyDate(CleanText('//div[@class="bloc Tmargin"]/dl[1]/dd[2]'), default=NotAvailable)(async_page.doc)
 
-            obj_next_payment_date = MyDate(CleanText(TableCell('next_payment_date')))
+            obj_next_payment_date = MyDate(CleanText(TableCell('next_payment_date')), default=NotAvailable)
 
             def obj_url(self):
                 url = Link(u'.//a', default=None)(self)
