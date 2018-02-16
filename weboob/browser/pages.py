@@ -74,8 +74,11 @@ def pagination(func):
                 for r in func(page, *args, **kwargs):
                     yield r
             except NextPage as e:
-                result = page.browser.location(e.request)
-                page = result.page
+                if isinstance(e.request, Page):
+                    page = e.request
+                else:
+                    result = page.browser.location(e.request)
+                    page = result.page
             else:
                 return
 
