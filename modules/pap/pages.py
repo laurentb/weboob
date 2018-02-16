@@ -62,8 +62,8 @@ class HousingPage(HTMLPage):
                 if self.env['query_type'] == POSTS_TYPES.RENT:
                     isNotFurnishedOk = 'meublé' not in title.lower()
                 return (
-                    Regexp(Link('./div/a[@class="item-title"]'), '/annonces/(.*)', default=None)(self)
-                    and isNotFurnishedOk
+                    Regexp(Link('./div/a[@class="item-title"]'), '/annonces/(.*)', default=None)(self) and
+                    isNotFurnishedOk
                 )
 
             def parse(self, el):
@@ -122,9 +122,13 @@ class HousingPage(HTMLPage):
             obj_utilities = UTILITIES.UNKNOWN
 
             def obj_date(self):
-                _date = Regexp(CleanText('./div/p[@class="item-date"]'),
-                               '.* / (.*)')(self)
-                return parse_french_date(_date)
+                date = CleanText(
+                    './div/p[@class="item-date"]'
+                )(self).split(" / ")
+                if len(date) > 1:
+                    return parse_french_date(date[1].strip())
+                else:
+                    return NotAvailable
 
             obj_station = CleanText('./div/p[@class="item-transports"]', default=NotAvailable)
 
@@ -154,6 +158,7 @@ class HousingPage(HTMLPage):
         klass = Housing
 
         obj_id = Env('_id')
+
         def obj_type(self):
             prev_link = Link('//ol[has-class("breadcrumb")]/li[1]/a')(self)
             if 'location' in prev_link:
@@ -171,6 +176,7 @@ class HousingPage(HTMLPage):
             else:
                 return NotAvailable
         obj_advert_type = ADVERT_TYPES.PERSONAL
+
         def obj_house_type(self):
             prev_link = Link('//ol[has-class("breadcrumb")]/li[1]/a')(self)
             house_type = prev_link.split('-')[-1]
@@ -184,7 +190,6 @@ class HousingPage(HTMLPage):
                 return HOUSE_TYPES.HOUSE
             else:
                 return HOUSE_TYPES.OTHER
-
 
         obj_title = CleanText(
             '//h1[@class="item-title"]'
