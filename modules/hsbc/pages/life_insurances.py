@@ -74,14 +74,15 @@ class LifeInsurancesPage(LoggedPage, HTMLPage):
     @method
     class iter_investments(TableElement):
         head_xpath = '//div[contains(., "Détail de vos supports")]/following-sibling::div/table/thead/tr/th'
-        item_xpath = '//div[contains(., "Détail de vos supports")]/following-sibling::div/table/tbody/tr'
+        item_xpath = '//div[contains(., "Détail de vos supports")]/following-sibling::div/table\
+                      /tbody/tr[not(contains(@class, "light-yellow"))]'
 
         col_label = "Support"
         col_vdate = "Date de valorisation *"
-        col_quantity = "Nombre d'unités de compte"
+        col_quantity = ["Nombre d'unités de compte", re.compile("Nombre de parts")]
         col_portfolio_share = "Répartition"
-        col_unitvalue = "Valeur liquidative"
-        col_support_value = "Valeur support"
+        col_unitvalue = ["Valeur liquidative", re.compile("Valeur de la part")]
+        col_support_value = re.compile("Valeur support")
 
         class item(ItemElement):
             klass = Investment
