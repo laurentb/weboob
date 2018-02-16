@@ -668,6 +668,11 @@ class ConsLoanPage(JsonPage):
 
 class LoadingPage(HTMLPage):
     def on_load(self):
+        # CTX cookie seems to corrupt the request fetching info about "credit
+        # renouvelable" and to lead to a 409 error
+        if 'CTX' in self.browser.session.cookies.keys():
+            del self.browser.session.cookies['CTX']
+
         form = self.get_form(id="REROUTAGE")
         form.submit()
 
