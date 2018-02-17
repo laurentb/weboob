@@ -19,6 +19,7 @@
 
 
 from weboob.browser import PagesBrowser, URL
+from weboob.browser.profiles import Wget
 from weboob.capabilities.housing import (TypeNotSupported, POSTS_TYPES,
                                          HOUSE_TYPES)
 from .pages import CitiesPage, SearchPage, HousingPage, PhonePage
@@ -44,6 +45,8 @@ class LogicimmoBrowser(PagesBrowser):
            HOUSE_TYPES.LAND: '3',
            HOUSE_TYPES.PARKING: '10',
            HOUSE_TYPES.OTHER: '14'}
+
+    PROFILE = Wget()
 
     def get_cities(self, pattern):
         if pattern:
