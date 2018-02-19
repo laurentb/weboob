@@ -204,7 +204,9 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                     try:
                         balance_value = CleanText('.//td[has-class("montant")]')(box)
 
-                        if balance_value == u'Débit immédiat':
+                        # skip debit card
+                        # some cards don't have information in balance tab, skip them
+                        if balance_value == u'Débit immédiat' or balance_value == '':
                             account._is_debit_card = True
                         else:
                             account._is_debit_card = False
