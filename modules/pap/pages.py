@@ -157,6 +157,34 @@ class HousingPage(HTMLPage):
     class get_housing(ItemElement):
         klass = Housing
 
+        def parse(self, el):
+            rooms_bedrooms_area = el.xpath(
+                './/ul[has-class("item-tags")]/li'
+            )
+            self.env['rooms'] = NotAvailable
+            self.env['bedrooms'] = NotAvailable
+            self.env['area'] = NotAvailable
+
+            for item in rooms_bedrooms_area:
+                name = CleanText('.')(item)
+                if 'chambre' in name.lower():
+                    name = 'bedrooms'
+                    value = CleanDecimal('./strong')(item)
+                elif 'pièce' in name.lower():
+                    name = 'rooms'
+                    value = CleanDecimal('./strong')(item)
+                elif ' m²' in name and 'le m²' not in name:
+                    name = 'area'
+                    value = CleanDecimal(
+                        Regexp(
+                            CleanText(
+                                '.'
+                            ),
+                            r'(\d*\.*\d*) .*'
+                        )
+                    )(item)
+                self.env[name] = value
+
         obj_id = Env('_id')
 
         def obj_type(self):
@@ -202,16 +230,7 @@ class HousingPage(HTMLPage):
             '//h1[@class="item-title"]/span[@class="item-price"]'
         )
         obj_utilities = UTILITIES.UNKNOWN
-        obj_area = CleanDecimal(
-            Regexp(
-                CleanText(
-                    '//h1[@class="item-title"]/span[@class="h1"]'
-                ),
-                '(.*?)(\d*) m\xb2(.*?)', '\\2',
-                default=NotAvailable
-            ),
-            default=NotAvailable
-        )
+        obj_area = Env('area')
 
         def obj_date(self):
             date = CleanText(
@@ -219,20 +238,8 @@ class HousingPage(HTMLPage):
             )(self).split("/")[-1].strip()
             return parse_french_date(date)
 
-        def obj_bedrooms(self):
-            rooms_bedrooms_area = XPath(
-                '//ul[@class="item-tags"]/li'
-            )(self)
-            if len(rooms_bedrooms_area) > 2:
-                return CleanDecimal(
-                    '//ul[@class="item-tags"]/li[2]/strong',
-                    default=NotAvailable
-                )(self)
-            else:
-                return NotAvailable
-
-        obj_rooms = CleanDecimal('//ul[@class="item-tags"]/li[1]/strong',
-                                 default=NotAvailable)
+        obj_rooms = Env('rooms')
+        obj_bedrooms = Env('bedrooms')
         obj_price_per_meter = PricePerMeterFilter()
         obj_location = CleanText('//div[has-class("item-description")]/h2')
         obj_text = CleanText(CleanHTML('//div[has-class("item-description")]/div/p'))
