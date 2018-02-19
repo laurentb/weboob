@@ -312,7 +312,7 @@ class LoansPage(LoggedPage, HTMLPage):
             obj_type = Account.TYPE_LOAN
             obj_id = Env('id')
             obj__transfer_id = None
-            obj_number = Regexp(Field('id'), r'(\d{11}[A-Z])')
+            obj_number = Regexp(CleanText(TableCell('id'), replace=[(' ', ''),('-', '')]), r'(\d{11}[A-Z])')
 
             def obj_label(self):
                 has_type = CleanText('./ancestor::table[.//th[contains(text(), "Type")]]', default=None)(self)
@@ -345,6 +345,7 @@ class LoansProPage(LoggedPage, HTMLPage):
             obj_type = Account.TYPE_LOAN
             obj_id = Env('id')
             obj__transfer_id = None
+            obj_number = Regexp(CleanText(TableCell('id'), replace=[(' ', ''),('-', '')]), r'(\d{11}[A-Z])')
 
             def obj_label(self):
                 has_type = CleanText('./ancestor::table[.//th[contains(text(), "Nature libell")]]', default=None)(self)
