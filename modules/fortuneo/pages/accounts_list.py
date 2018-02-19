@@ -411,7 +411,7 @@ class AccountsList(LoggedPage, HTMLPage):
                 account.id = CleanText('(//p[@id="c_montantEmprunte"]//span[@class="valStatic"]//strong)[1]')(cpt)
                 account.label = CleanText('(//p[@id="c_montantEmprunte"]//span[@class="valStatic"]//strong)[1]')(cpt)
                 account.type = Account.TYPE_LOAN
-                account_history_page = self.browser.open(account._history_link).page
+                account_history_page = page
                 account.total_amount = account_history_page.get_total_amount()
                 account.next_payment_amount = account_history_page.get_next_payment_amount()
                 account.next_payment_date = account_history_page.get_next_payment_date()
@@ -447,18 +447,20 @@ class AccountsList(LoggedPage, HTMLPage):
                     account.type = type
                     break
 
+            investment_page = None
             if account.type in {Account.TYPE_PEA, Account.TYPE_MARKET, Account.TYPE_LIFE_INSURANCE}:
                 account._investment_link = Link('./ul/li/a[contains(@id, "portefeuille")]')(cpt)
-                balance = self.browser.open(account._investment_link).page.get_balance(account.type)
+                investment_page = self.browser.open(account._investment_link).page
+                balance = investment_page.get_balance(account.type)
                 if account.type in {Account.TYPE_PEA, Account.TYPE_MARKET}:
                     self.browser.investments[account.id] = list(self.browser.open(account._investment_link).page.get_investments(account))
             else:
-                balance = self.browser.open(account._history_link).page.get_balance()
+                balance = page.get_balance()
                 if account.type is not Account.TYPE_LOAN:
-                    account.coming = self.browser.open(account._history_link).page.get_coming()
+                    account.coming = page.get_coming()
 
             if account.type in {Account.TYPE_PEA, Account.TYPE_MARKET}:
-                account.currency = self.browser.open(account._investment_link).page.get_currency()
+                account.currency = investment_page.get_currency()
             else:
                 account.currency = account.get_currency(balance)
             account.balance = CleanDecimal(None, replace_dots=True).filter(balance)
