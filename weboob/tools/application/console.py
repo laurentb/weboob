@@ -647,15 +647,21 @@ class ConsoleApplication(Application):
         """
         ask_debug_mode = False
         more_results = set()
+        err = 0
+
         for backend, error, backtrace in errors.errors:
             if isinstance(error, MoreResultsAvailable):
                 more_results.add(backend.name)
             elif isinstance(error, ignore):
                 continue
-            elif self.bcall_error_handler(backend, error, backtrace):
-                ask_debug_mode = True
+            else:
+                err = 1
+                if self.bcall_error_handler(backend, error, backtrace):
+                    ask_debug_mode = True
 
         if ask_debug_mode:
             print(debugmsg, file=self.stderr)
         elif len(more_results) > 0:
             print('Hint: There are more results available for %s (use option -n or count command)' % (', '.join(more_results)), file=self.stderr)
+
+        return err

@@ -453,7 +453,7 @@ class ReplApplication(ConsoleApplication, MyCmd):
             try:
                 return super(ReplApplication, self).onecmd(line)
             except CallErrors as e:
-                self.bcall_errors_handler(e)
+                return self.bcall_errors_handler(e)
             except BackendNotGiven as e:
                 print('Error: %s' % str(e), file=self.stderr)
                 return os.EX_DATAERR
@@ -550,9 +550,9 @@ class ReplApplication(ConsoleApplication, MyCmd):
 
     def bcall_errors_handler(self, errors, ignore=()):
         if self.interactive:
-            ConsoleApplication.bcall_errors_handler(self, errors, 'Use "logging debug" option to print backtraces.', ignore)
+            return super(ReplApplication, self).bcall_errors_handler(errors, 'Use "logging debug" option to print backtraces.', ignore)
         else:
-            ConsoleApplication.bcall_errors_handler(self, errors, ignore=ignore)
+            return super(ReplApplication, self).bcall_errors_handler(errors, ignore=ignore)
 
     # -- options related methods -------------
     def _handle_options(self):

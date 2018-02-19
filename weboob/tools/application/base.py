@@ -344,6 +344,8 @@ class Application(object):
         :param ignore: Exceptions to ignore
         :type ignore: tuple[:class:`Exception`]
         """
+        err = 0
+
         ask_debug_mode = False
         for backend, error, backtrace in errors.errors:
             if isinstance(error, ignore):
@@ -351,8 +353,13 @@ class Application(object):
             elif self.bcall_error_handler(backend, error, backtrace):
                 ask_debug_mode = True
 
+            if not isinstance(error, MoreResultsAvailable):
+                err = 1
+
         if ask_debug_mode:
             print(debugmsg, file=self.stderr)
+
+        return err
 
     def _shell_completion_items(self):
         items = set()
@@ -506,9 +513,11 @@ class Application(object):
                 sys.exit(1)
             except CallErrors as e:
                 try:
-                    app.bcall_errors_handler(e)
+                    ret = app.bcall_errors_handler(e)
                 except KeyboardInterrupt:
                     pass
+                else:
+                    sys.exit(ret)
                 sys.exit(1)
             except ResultsConditionError as e:
                 print('%s' % e, file=cls.stderr)
