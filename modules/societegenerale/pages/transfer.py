@@ -125,10 +125,12 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
                     # the accounts list contains "<label>" and the id
                     # put all this data together
                     for params in self.page.iter_params_by_type('Emetteurs'):
-                        param_label = '%s - %s' % (params[8], params[5])
+                        if not params['ordre']:
+                            continue  # ignore the first js entry, it's empty
+                        param_label = '%s - %s' % (params['liprem'], params['libeem'])
                         if param_label != rcpt_label:
                             continue
-                        param_id = params[1] + params[2] + params[3]
+                        param_id = params['cdbqem'] + params['cdguem'] + params['nucpem']
                         for ac in self.page.browser.get_accounts_list():
                             if ac.id in param_id:
                                 account = ac
