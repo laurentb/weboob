@@ -164,11 +164,10 @@ class CenetBrowser(LoginBrowser, StatesMixin):
                         'donneesEntree': json.dumps(donneesEntree).replace('/', '\\/'),
                         'filtreEntree': json.dumps(tr_dict[0]).replace('/', '\\/')
                     }
-                    self.cenet_tr_detail.go(data=json.dumps(data), headers=headers)
-                    for tr in self.page.get_history():
+                    tr_detail_page = self.cenet_tr_detail.open(data=json.dumps(data), headers=headers)
+                    for tr in tr_detail_page.get_history():
                         items.append(tr)
 
-            self.cenet_account_history.go(data=json.dumps(data), headers=headers)
             offset = self.page.next_offset()
             if not offset:
                 break
@@ -176,6 +175,8 @@ class CenetBrowser(LoginBrowser, StatesMixin):
             data['filtreEntree'] = json.dumps({
                 'Offset': offset,
             })
+
+            self.cenet_account_history.go(data=json.dumps(data), headers=headers)
 
         return items
 
