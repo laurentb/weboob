@@ -35,6 +35,7 @@ from weboob.capabilities.housing import (Housing, HousingPhoto, City,
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 from weboob.tools.compat import unquote
 
+
 class CitiesPage(JsonPage):
 
     ENCODING = u'UTF-8'
@@ -76,9 +77,8 @@ class SearchPage(HTMLPage):
                     x for x in js_datas if 'currentPageNumber' in x
                 ).split('=')[-1]
                 resultCount = CleanText(
-                    '//div[@id="js-data"]/@data-result-count'
+                    '(//div[@id="js-data"]/@data-result-count)[1]'
                 )(self)
-
                 totalPageNumber = math.ceil(
                     int(resultCount) / int(resultsPerPage)
                 )
@@ -106,9 +106,9 @@ class SearchPage(HTMLPage):
                         return not is_agency
                     elif self.env['advert_types'][0] == ADVERT_TYPES.PROFESSIONAL:
                         return is_agency
-                return True
+                return Attr('.', 'data-classified-id', default=False)(self)
 
-            obj_id = CleanText('./@data-classified-id')
+            obj_id = Attr('.', 'data-classified-id')
             obj_type = Env('query_type')
 
             def obj_advert_type(self):
@@ -129,7 +129,8 @@ class SearchPage(HTMLPage):
                     return HOUSE_TYPES.LAND
                 else:
                     return HOUSE_TYPES.OTHER
-            obj_title = CleanText('./div/h2[@itemprop="name"]/a')
+
+            obj_title = CleanText('.//*[has-class("js-item-title")]')
 
             def obj_location(self):
                 location = CleanText(
@@ -140,15 +141,23 @@ class SearchPage(HTMLPage):
                                          children=False)(self)
                 return location
 
-            obj_cost = CleanDecimal('./div/div/span[@class="price-label"]|./div/div[@class="item-price-pdf"]',
-                                    default=NotAvailable)
+            def obj_cost(self):
+                selector = './div/div/span[@class="price-label"]|./div/div[@class="item-price-pdf"]|./div/div/span[@class="item-price"]'
+                cost = CleanDecimal(Regexp(CleanText(selector, default=''),
+                                           u'de (.*) à .*',
+                                           default=0))(self)
+                if cost == 0:
+                    return CleanDecimal(selector, default=NotAvailable)(self)
+                else:
+                    return cost
+
             obj_currency = Currency(
-                './div/div/span[@class="price-label"]|./div/div[@class="item-price-pdf"]'
+                './div/div/span[@class="price-label"]|./div/div[@class="item-price-pdf"]|./div/div/span[@class="item-price"]'
             )
 
             def obj_utilities(self):
                 utilities = Regexp(CleanText('./div/div/span[@class="price-label"]|./div/div[@class="item-price-pdf"]'),
-                                  '.*[%s%s%s](.*)' % (u'€', u'$', u'£'), default=u'')(self)
+                                   '.*[%s%s%s](.*)' % (u'€', u'$', u'£'), default=u'')(self)
                 if "CC" in utilities:
                     return UTILITIES.INCLUDED
                 else:
@@ -269,7 +278,12 @@ class HousingPage2(JsonPage):
         obj_location = Format('%s %s %s', Dict('location/address'),
                               Dict('location/cityLabel'),
                               Dict('location/postalCode'))
-        obj_cost = TypeDecimal(Dict('characteristics/price'))
+
+        def obj_cost(self):
+            cost = TypeDecimal(Dict('characteristics/price'))(self)
+            if cost == 0:
+                cost = TypeDecimal(Dict('characteristics/priceMin'))(self)
+            return cost
 
         obj_currency = BaseCurrency.get_currency(u'€')
 
@@ -283,7 +297,13 @@ class HousingPage2(JsonPage):
 
         obj_text = CleanHTML(Dict('characteristics/description'))
         obj_url = BrowserURL('housing_html', _id=Env('_id'))
-        obj_area = TypeDecimal(Dict('characteristics/area'))
+
+        def obj_area(self):
+            area = TypeDecimal(Dict('characteristics/area'))(self)
+            if area == 0:
+                area = TypeDecimal(Dict('characteristics/areaMin'))(self)
+            return area
+
         obj_date = FromTimestamp(Dict('characteristics/date'))
         obj_bedrooms = TypeDecimal(Dict('characteristics/bedroomCount'))
 
@@ -334,8 +354,11 @@ class HousingPage2(JsonPage):
             details['bathrooms'] = Dict(
                 'characteristics/bathroomCount', default=NotAvailable
             )(self)
-            details['creationDate'] = Dict(
-                'characteristics/creationDate', default=NotAvailable
+            details['creationDate'] = FromTimestamp(
+                                          Dict(
+                                              'characteristics/creationDate', default=NotAvailable
+                                          ),
+                                          default=NotAvailable
             )(self)
             details['availabilityDate'] = Dict(
                 'characteristics/estateAvailabilityDate', default=NotAvailable
