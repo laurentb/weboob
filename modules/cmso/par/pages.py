@@ -35,7 +35,7 @@ from weboob.capabilities.bank import Account, Investment, Loan
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.exceptions import BrowserIncorrectPassword, NoAccountsException, ParseError
+from weboob.exceptions import BrowserIncorrectPassword, ParseError
 
 
 def MyDecimal(*args, **kwargs):
@@ -530,8 +530,12 @@ class AdvisorPage(LoggedPage, JsonPage):
 
 class RecipientsPage(LoggedPage, JsonPage):
     def get_numbers(self):
+        # If account information is not available when asking for the
+        # recipients (server error for ex.), return an empty dictionary
+        # that will be filled later after being returned the json of the
+        # account page (containing the accounts IDs too).
         if 'listCompteTitulaireCotitulaire' not in self.doc and 'exception' in self.doc:
-            raise NoAccountsException()
+            return {}
 
         ret = {}
 
