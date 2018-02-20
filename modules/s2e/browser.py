@@ -23,7 +23,7 @@ from weboob.exceptions import BrowserIncorrectPassword
 
 from .pages import (
     LoginPage, AccountsPage, AMFHSBCPage, AMFAmundiPage, AMFSGPage, HistoryPage,
-    ErrorPage, LyxorfcpePage, EcofiPage, EcofiDummyPage, LandingPage
+    ErrorPage, LyxorfcpePage, EcofiPage, EcofiDummyPage, LandingPage, SwissLifePage,
 )
 
 
@@ -42,6 +42,7 @@ class S2eBrowser(LoginBrowser, StatesMixin):
     lyxorfcpe = URL('http://www.lyxorfcpe.com/part', LyxorfcpePage)
     history = URL('/portal/salarie-(?P<slug>\w+)/operations/consulteroperations', HistoryPage)
     error = URL('/maintenance/.+/', ErrorPage)
+    swisslife = URL('http://fr.swisslife-am.com/fr/produits/.*', SwissLifePage)
 
     STATE_DURATION = 10
 

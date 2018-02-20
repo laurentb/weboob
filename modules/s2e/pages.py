@@ -283,6 +283,10 @@ class ItemInvestment(ItemElement):
                     self.env['code_type'] = Investment.CODE_TYPE_ISIN
                     return
 
+                if url.startswith('http://fr.swisslife-am.com/fr/'):
+                    self.page.browser.session.cookies.set('location', 'fr')
+                    self.page.browser.session.cookies.set('prof', 'undefined')
+
                 page = self.page.browser.open(url).page
 
         try:
@@ -556,3 +560,13 @@ class HistoryPage(LoggedPage, MultiPage):
 
                 self.env['investments'] = list(page.get_investments(accid=Env('accid')(self)))
                 self.env['amount'] = sum([i.valuation or Decimal('0') for i in self.env['investments']])
+
+
+class SwissLifePage(HTMLPage):
+    CODE_TYPE = Investment.CODE_TYPE_ISIN
+
+    def get_code(self):
+        code = CleanText('//span[contains(text(), "Code ISIN")]/following-sibling::span[@class="data"]', default=NotAvailable)(self.doc)
+        if code == "n/a":
+            return NotAvailable
+        return code
