@@ -22,6 +22,7 @@ from datetime import date
 
 from weboob.browser.pages import JsonPage, HTMLPage
 from weboob.browser.elements import ItemElement, ListElement, DictElement, method
+from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.weather import Forecast, Current, City, Temperature
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Format, Eval
@@ -67,16 +68,22 @@ class WeatherPage(HTMLPage):
                 return base_date
 
             def obj_low(self):
-                temp = CleanDecimal(Regexp(CleanText('./dl/dd/span[@class="min-temp"]'),
-                                           u'(\d*)\xb0\w Minimale.*'))(self)
-                unit = Regexp(CleanText('./dl/dd/span[@class="min-temp"]'), u'.*\xb0(\w) Minimale.*')(self)
-                return Temperature(float(temp), unit)
+                temp = Regexp(CleanText('./dl/dd/span[@class="min-temp"]'),
+                                           u'(\d*)\xb0\w Minimale.*')
+                if temp != "-":  # Sometimes website does not return low
+                    temp = CleanDecimal(temp)(self)
+                    unit = Regexp(CleanText('./dl/dd/span[@class="min-temp"]'), u'.*\xb0(\w) Minimale.*')(self)
+                    return Temperature(float(temp), unit)
+                return NotAvailable
 
             def obj_high(self):
-                temp = CleanDecimal(Regexp(CleanText('./dl/dd/span[@class="max-temp"]'),
-                                           u'(.*)\xb0\w Maximale.*'))(self)
-                unit = Regexp(CleanText('./dl/dd/span[@class="max-temp"]'), u'.*\xb0(\w) Maximale.*')(self)
-                return Temperature(float(temp), unit)
+                temp = Regexp(CleanText('./dl/dd/span[@class="max-temp"]'),
+                                           u'(.*)\xb0\w Maximale.*')(self)
+                if temp != "-":  # Sometimes website does not return high
+                    temp = CleanDecimal(temp)(self)
+                    unit = Regexp(CleanText('./dl/dd/span[@class="max-temp"]'), u'.*\xb0(\w) Maximale.*')(self)
+                    return Temperature(float(temp), unit)
+                return NotAvailable
 
             obj_text = CleanText('./@title')
 
