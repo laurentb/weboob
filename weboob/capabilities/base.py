@@ -548,7 +548,7 @@ class Currency(object):
         (u'BHD', (u'BHD',)),
         (u'SEK', (u'SEK',)),
         (u'DKK', (u'DKK',)),
-        (u'LUF', (u'F', u'fr.', u'LUF',)),
+        (u'LUF', (u'LUF',)),
         (u'KZT', (u'KZT',)),
         (u'PLN', (u'PLN',)),
         (u'ILS', (u'ILS',)),
