@@ -24,7 +24,7 @@ from PyQt5.QtCore import Qt, pyqtSlot as Slot
 from weboob.tools.compat import range
 from weboob.tools.application.qt5 import QtMainWindow, QtDo, HTMLDelegate
 from weboob.tools.application.qt5.backendcfg import BackendCfg
-from weboob.capabilities.housing import CapHousing, Query, City
+from weboob.capabilities.housing import CapHousing, Query, City, POSTS_TYPES
 from weboob.capabilities.base import NotLoaded, NotAvailable, empty
 
 from .ui.main_window_ui import Ui_MainWindow
@@ -203,7 +203,7 @@ class MainWindow(QtMainWindow):
         self.ui.bookmarksButton.setEnabled(False)
 
         query = Query()
-        query.type = int(q.get('type', 0))
+        query.type = POSTS_TYPES.values[-q.get('type', 1)]
         query.cities = []
         for c in q['cities']:
             city = City(c['id'])
