@@ -52,10 +52,10 @@ class SecurityPage(HTMLPage, LoggedPage):
     def get_response_form(self):
         try:
             form = self.get_form(id='auth-mfa-form')
-            return form
+            return {'form': form, 'style': 'userDFA'}
         except FormNotFound:
             form = self.get_form(nr=0)
-            return form
+            return {'form': form, 'style': 'amazonDFA'}
 
 
 class LanguagePage(HTMLPage):

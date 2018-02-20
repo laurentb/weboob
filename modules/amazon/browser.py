@@ -41,7 +41,9 @@ class AmazonBrowser(LoginBrowser, StatesMixin):
     home = URL(r'/$', HomePage)
     panel = URL('/gp/css/homepage.html/ref=nav_youraccount_ya', PanelPage)
     subscriptions = URL(r'/ap/cnep(.*)', SubscriptionsPage)
-    documents = URL(r'/gp/your-account/order-history\?opt=ab&digitalOrders=1(.*)&orderFilter=year-(?P<year>.*)', DocumentsPage)
+    documents = URL(r'/gp/your-account/order-history\?opt=ab&digitalOrders=1(.*)&orderFilter=year-(?P<year>.*)',
+                    r'https://www.amazon.fr/gp/your-account/order-history',
+                    DocumentsPage)
     security = URL('/ap/dcq',
                    '/ap/cvf/',
                    '/ap/mfa',
@@ -49,12 +51,14 @@ class AmazonBrowser(LoginBrowser, StatesMixin):
     language = URL(r'/gp/customer-preferences/save-settings/ref=icp_lop_(?P<language>.*)_tn', LanguagePage)
     history = URL('https://www.amazon.fr/gp/your-account/order-history\?ref_=ya_d_c_yo', HistoryPage)
 
-    __states__ = ('otp_form', 'otp_url')
+    __states__ = ('otp_form', 'otp_url', 'otp_style', 'otp_headers')
 
     STATE_DURATION = 10
 
     otp_form = None
     otp_url = None
+    otp_style = None
+    otp_headers = None
 
     def __init__(self, config, *args, **kwargs):
         self.config = config
@@ -65,34 +69,26 @@ class AmazonBrowser(LoginBrowser, StatesMixin):
     def locate_browser(self, state):
         pass
 
-    def push_captcha_otp(self, captcha):
-        res_form = self.otp_form
-        res_form['email'] = self.username
-        res_form['password'] = self.password
-        res_form['guess'] = captcha
-
-        self.location(self.otp_url, data=res_form)
-
     def push_security_otp(self, pin_code):
         res_form = self.otp_form
-        res_form['code'] = pin_code
-        res_form['otpCode'] = pin_code
         res_form['rememberDevice'] = ""
 
-        headers = {
-            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-            'accept-encoding': 'gzip, deflate, br',
-            'accept-language': 'en-US,en;q=0.9',
-            'referer': 'https://www.amazon.fr/ap/cvf/verify',
-            'upgrade-insecure-requests': '1'
-        }
-        self.location(self.otp_url, data=res_form, headers=headers)
+        if self.otp_style == 'amazonDFA':
+            res_form['code'] = pin_code
+            self.location(self.otp_url, data=res_form, headers=self.otp_headers)
+        else:
+            res_form['otpCode'] = pin_code
+            self.location('https://www.amazon.fr/ap/signin', data=res_form, headers=self.otp_headers)
 
     def handle_security(self):
         if self.page.doc.xpath('//span[@class="a-button-text"]'):
             self.page.send_code()
-            self.otp_form = self.page.get_response_form()
+
+            form = self.page.get_response_form()
+            self.otp_form = form['form']
             self.otp_url = self.url
+            self.otp_style = form['style']
+            self.otp_headers = dict(self.session.headers)
 
             raise BrowserQuestion(Value('pin_code', label=self.page.get_otp_message() if self.page.get_otp_message() else 'Please type the OTP you received'))
 
@@ -134,7 +130,6 @@ class AmazonBrowser(LoginBrowser, StatesMixin):
             self.history.go()
         except ClientError:
             pass
-
 
         if not self.login.is_here():
             return
