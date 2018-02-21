@@ -51,6 +51,10 @@ class BillsApiPage(LoggedPage, JsonPage):
     @method
     class get_bills(DictElement):
         item_xpath = 'bills'
+        # orange's API will sometimes return the temporary bill for the current month along with other bills
+        # in the json. The url will lead to the exact same document, this is probably not intended behaviour and
+        # causes weboob to raise a DataError as they'll have identical ids.
+        ignore_duplicate = True
 
         class item(ItemElement):
             klass = Bill
@@ -168,4 +172,3 @@ class SubscriptionsPage(LoggedPage, HTMLPage):
                 # unsubscripted contracts may still be there, skip them else
                 # facture-historique could yield wrong bills
                 return bool(obj.id) and obj._page != 'nec-tdb-ouvert'
-
