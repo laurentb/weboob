@@ -44,7 +44,7 @@ from .pages import (
     MarketPage, LoanPage, SavingMarketPage, ErrorPage, IncidentPage, IbanPage, ProfilePage, ExpertPage,
     CardsNumberPage, CalendarPage, HomePage, PEPPage,
     TransferAccounts, TransferRecipients, TransferCharac, TransferConfirm, TransferSent,
-    AddRecipientPage, RecipientCreated, StatusPage, CardHistoryPage,
+    AddRecipientPage, StatusPage, CardHistoryPage,
 )
 
 
@@ -91,9 +91,6 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
                            TransferConfirm)
     transfer_sent = URL(r'/compte/(?P<type>[^/]+)/(?P<webid>\w+)/virements/nouveau/(?P<id>\w+)/5',
                         TransferSent)
-
-    rcpt_created = URL(r'/compte/(?P<type>[^/]+)/(?P<webid>\w+)/virements/comptes-externes/nouveau/(?P<id>\w+)/5',
-                       RecipientCreated)
     rcpt_page = URL(r'/compte/(?P<type>[^/]+)/(?P<webid>\w+)/virements/comptes-externes/nouveau/(?P<id>\w+)/\d',
                     AddRecipientPage)
 
@@ -471,5 +468,5 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
         ret = self.page.get_recipient()
         self.page.confirm()
 
-        assert self.rcpt_created.is_here()
+        assert self.page.is_created()
         return ret

@@ -964,9 +964,8 @@ class AddRecipientPage(LoggedPage, HTMLPage):
         assert ret.label
         return ret
 
-
-class RecipientCreated(LoggedPage, HTMLPage):
-    pass
+    def is_created(self):
+        return CleanText('//p[text()="Le bénéficiaire a bien été ajouté."]')(self.doc) is not None
 
 
 class PEPPage(LoggedPage, HTMLPage):
