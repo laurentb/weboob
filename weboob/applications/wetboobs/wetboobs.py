@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from weboob.capabilities.base import empty
 from weboob.capabilities.weather import CapWeather
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
@@ -32,7 +33,15 @@ class ForecastsFormatter(IFormatter):
     temperature_display = staticmethod(lambda t: u'%s' % t.value)
 
     def format_obj(self, obj, alias):
-        result = u'%s* %-15s%s (%s - %s)' % (self.BOLD, '%s:' % obj.date, self.NC, self.temperature_display(obj.low), self.temperature_display(obj.high))
+        result = (
+            u'%s* %-15s%s (%s - %s)' % (
+                self.BOLD,
+                '%s:' % obj.date,
+                self.NC,
+                self.temperature_display(obj.low) if empty(obj.low) else '?',
+                self.temperature_display(obj.high) if empty(obj.high) else '?'
+            )
+        )
         if hasattr(obj, 'text') and obj.text:
             result += ' %s' % obj.text
         return result
