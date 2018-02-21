@@ -23,7 +23,7 @@ import json
 
 from functools import wraps
 
-from weboob.browser import LoginBrowser, URL, need_login
+from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.browser.exceptions import ClientError, ServerError
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.capabilities.bank import Account, Transaction, AccountNotFound
@@ -70,7 +70,11 @@ def retry(exc_check, tries=4):
     return decorator
 
 
-class CmsoParBrowser(LoginBrowser):
+class CmsoParBrowser(LoginBrowser, StatesMixin):
+    __states__ = ('headers',)
+    STATE_DURATION = 1
+    headers = None
+
     login = URL('/securityapi/tokens',
                 '/auth/checkuser', LoginPage)
     logout = URL('/securityapi/revoke',
@@ -101,41 +105,37 @@ class CmsoParBrowser(LoginBrowser):
         self.accounts_list = []
         self.logged = False
 
-    def deinit(self):
-        if self.page and self.page.logged:
-            try:
-                self.logout.go(method='DELETE')
-            except ClientError:
-                pass
-
-        super(CmsoParBrowser, self).deinit()
-
     def do_login(self):
-        self.set_profile(self.PROFILE) # reset headers but don't clear them
-        self.session.cookies.clear()
-        self.accounts_list = []
+        if self.headers:
+            self.session.headers = self.headers
+        else:
+            self.set_profile(self.PROFILE) # reset headers but don't clear them
+            self.session.cookies.clear()
+            self.accounts_list = []
 
-        data = {
-            'accessCode': self.username,
-            'password': self.password,
-            'clientId': 'com.arkea.%s.siteaccessible' % self.name,
-            'redirectUri': '%s/auth/checkuser' % self.BASEURL,
-            'errorUri': '%s/auth/errorauthn' % self.BASEURL
-        }
+            data = {
+                'accessCode': self.username,
+                'password': self.password,
+                'clientId': 'com.arkea.%s.siteaccessible' % self.name,
+                'redirectUri': '%s/auth/checkuser' % self.BASEURL,
+                'errorUri': '%s/auth/errorauthn' % self.BASEURL
+            }
 
-        self.login.go(data=data)
+            self.login.go(data=data)
 
-        if self.logout.is_here():
-            raise BrowserIncorrectPassword
+            if self.logout.is_here():
+                raise BrowserIncorrectPassword()
 
-        m = re.search('access_token=([^&]+).*id_token=(.*)', self.url)
+            m = re.search('access_token=([^&]+).*id_token=(.*)', self.url)
 
-        self.session.headers.update({
-            'Authentication': "Bearer %s" % m.group(2),
-            'Authorization': "Bearer %s" % m.group(1),
-            'X-ARKEA-EFS': self.arkea,
-            'X-Csrf-Token': m.group(1)
-        })
+            self.session.headers.update({
+                'Authentication': "Bearer %s" % m.group(2),
+                'Authorization': "Bearer %s" % m.group(1),
+                'X-ARKEA-EFS': self.arkea,
+                'X-Csrf-Token': m.group(1)
+            })
+
+            self.headers = self.session.headers
 
     def get_account(self, _id):
         return find_object(self.iter_accounts(), id=_id, error=AccountNotFound)
