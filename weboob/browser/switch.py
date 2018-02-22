@@ -64,13 +64,14 @@ class SwitchingBrowser(object):
         super(SwitchingBrowser, self).__init__()
         self._browser_args = args
         self._browser_kwargs = kwargs
+        self._browser = None
 
         self.set_browser('main')
 
     def set_browser(self, name):
         klass = self.BROWSERS[name]
         obj = klass(*self._browser_args, **self._browser_kwargs)
-        if self.KEEP_SESSION:
+        if self.KEEP_SESSION and self._browser is not None:
             obj.session = self._browser.session
 
         self._browser = obj
