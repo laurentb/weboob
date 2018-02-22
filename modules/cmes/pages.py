@@ -28,6 +28,7 @@ from weboob.browser.filters.html import Link, TableCell
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.exceptions import ActionNeeded
 
 
 def MyDecimal(*args, **kwargs):
@@ -44,6 +45,10 @@ class LoginPage(HTMLPage):
 
 
 class AccountsPage(LoggedPage, HTMLPage):
+    def on_load(self):
+        if self.doc.xpath('//label[contains(@for, "AcceptCGU")]'):
+            raise ActionNeeded(CleanText('//table[contains(@summary, "Conditions g")]')(self.doc))
+
     def get_investment_link(self):
         return Link('//a[contains(text(), "Par fonds")][contains(@href,"GoPositionsParFond")]', default=None)(self.doc)
 
