@@ -100,10 +100,13 @@ class AccountsPage(GenericLandingPage):
 
             class Type(Filter):
                 PATTERNS = [
-                    ('Pea', Account.TYPE_PEA),
+                    ('pea', Account.TYPE_PEA),
                     ('invest', Account.TYPE_MARKET),
                     ('ptf', Account.TYPE_MARKET),
+                    ('scpi', Account.TYPE_MARKET),
                     ('ldd', Account.TYPE_SAVINGS),
+                    ('cel', Account.TYPE_SAVINGS),
+                    ('pel', Account.TYPE_SAVINGS),
                     ('livret', Account.TYPE_SAVINGS),
                     ('compte', Account.TYPE_CHECKING),
                     ('account', Account.TYPE_CHECKING),
@@ -117,6 +120,7 @@ class AccountsPage(GenericLandingPage):
                     ('lae option assurance', Account.TYPE_LIFE_INSURANCE),
                     ('carte ', Account.TYPE_CARD),
                     ('plan assur. innovat.', Account.TYPE_LIFE_INSURANCE),
+                    ('hsbc evol pat transf', Account.TYPE_LIFE_INSURANCE),
                 ]
 
                 def filter(self, label):
