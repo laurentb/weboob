@@ -298,10 +298,13 @@ class AccountHistoryPage(LoggedPage, JsonPage):
                 return fromtimestamp(Dict('dateValeur')(self))
 
             def obj_amount(self):
+                decimal_nb = Dict('montant/nbDec', default=None)(self)\
+                                or Dict('montant/nb_dec')(self)
+
                 return Eval(
                     lambda x, y: x / 10**y,
                     CleanDecimal(Dict('montant/montant')),
-                    CleanDecimal(Dict('montant/nb_dec'))
+                    decimal_nb
                 )(self)
 
             obj__trid = Dict('id')
@@ -329,10 +332,13 @@ class AccountHistoryPage(LoggedPage, JsonPage):
                 return self.page.COMING_TYPES.get(Dict('codeMouvement')(self), Transaction.TYPE_UNKNOWN)
 
             def obj_amount(self):
+                decimal_nb = Dict('montantMvmt/nbDec', default=None)(self)\
+                                or Dict('montantMvmt/nb_dec')(self)
+
                 return Eval(
                     lambda x, y: x / 10**y,
                     CleanDecimal(Dict('montantMvmt/montant')),
-                    CleanDecimal(Dict('montantMvmt/nb_dec'))
+                    decimal_nb
                 )(self)
 
             obj__trid = Dict('idMouvement')
@@ -371,7 +377,14 @@ class CardHistoryPage(LoggedPage, JsonPage):
 
             def obj_amount(self):
                 amount = Dict('debit', default=None)(self) or Dict('credit')(self)
-                return Eval(lambda x, y: x / 10**y, Decimal(amount['montant']), Decimal(amount['nb_dec']))(self)
+                decimal_nb = Dict('nbDec', default=None)(amount)\
+                                or Dict('nb_dec')(amount)
+
+                return Eval(
+                    lambda x, y: x / 10**y,
+                    Decimal(amount['montant']),
+                    decimal_nb
+                )(self)
 
 
 class TransactionPage(LoggedPage, JsonPage):
