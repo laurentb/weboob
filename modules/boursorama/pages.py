@@ -965,7 +965,7 @@ class AddRecipientPage(LoggedPage, HTMLPage):
         return ret
 
     def is_created(self):
-        return CleanText('//p[text()="Le bénéficiaire a bien été ajouté."]')(self.doc) is not None
+        return CleanText('//p[contains(text(), "Le bénéficiaire a bien été ajouté.")]')(self.doc) != ""
 
 
 class PEPPage(LoggedPage, HTMLPage):
