@@ -50,14 +50,19 @@ class AccountsPage3(LoggedPage, HTMLPage):
                 break
         else:
             assert False, "data was not found"
+
         assert data[13] == 'core'
         assert len(data[14]) == 3
-        assert len(data[14][2]) == 85
-        assert data[14][2][63] == 'products'
-        assert len(data[14][2][64]) == 2
-        assert data[14][2][64][1][4] == 'productsList'
 
-        accounts_data = data[14][2][64][1][5]
+        # search for products to get products list
+        for index, el in enumerate(data[14][2]):
+            if 'products' in el:
+                accounts_data = data[14][2][index+1]
+
+        assert len(accounts_data) == 2
+        assert accounts_data[1][4] == 'productsList'
+
+        accounts_data = accounts_data[1][5]
 
         for account_data in accounts_data:
             if isinstance(account_data, str):
