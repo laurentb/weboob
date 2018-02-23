@@ -123,8 +123,7 @@ class DocumentsPage(LoggedPage, HTMLPage):
             obj_type = 'bill'
 
             def obj_date(self):
-                currency = Env('currency')(self)
-                return parse_french_date(CleanText('.//div[has-class("a-col-left")]//span[has-class("value") and not(contains(., "%s"))]' % currency)(self))
+                return parse_french_date(CleanText('.//div[has-class("a-span3") and not(has-class("recipient"))]/div[2]')(self))
 
             def obj_price(self):
                 currency = Env('currency')(self)
