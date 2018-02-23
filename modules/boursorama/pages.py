@@ -636,13 +636,17 @@ class AccbisPage(LoggedPage, HTMLPage):
 
         item_xpath = '//ul[@id="nav-category__BANK"]/li'
 
-        ignore_duplicate = True
-
         class item(ItemElement):
             klass = Account
 
             def condition(self):
                 return "add-card" not in self.el.attrib['class']
+
+            # need a falsy value to circumvent detection of duplicates
+            # since obj_id() not implemented and all card IDs would
+            # be equal the default value
+            # (see method weboob.browser.elements.ListElement.store)
+            obj_id = None
 
             obj_label = CleanText('.//span[has-class("nav-category__name")]')
             obj_url = AbsoluteLink('.//a', default=NotAvailable)
@@ -757,16 +761,30 @@ class ProfilePage(LoggedPage, HTMLPage):
 
 class CardsNumberPage(LoggedPage, HTMLPage):
     def populate_cards_number(self, cards):
-        labels = [
-            CleanText('.', replace=[('DEBIT DIFFERE ', '')])(o)
+        # Checking account ID used to match credit cards
+        # Label useful when several cards on the same checking account
+        labels_ids = [
+            (
+                CleanText('.', replace=[('DEBIT DIFFERE ', '')])(o),
+                re.search(r'/limite/(\w+)/', o.attrib['href']).group(1)
+            )
             for o in self.doc.xpath('//select//option')
         ]
+
         # remove cards whose number ends with **** (means it is not activated yet)
-        labels = [label for label in labels if not label.endswith('****')]
+        labels_ids = [
+            label_id for label_id in labels_ids
+            if not label_id[0].endswith('****')
+        ]
+
         for card in cards:
-            match = [label for label in labels if card.label in label]
+            match = [
+                label for label, account_id in labels_ids
+                if card.label in label and account_id in card.url
+            ]
             assert len(match) == 1, "only one card should be matched"
-            card.number = re.search('(\d{4}\*{8}(\d{4}|\*{4}))', match[0]).group(1)
+            card_label = match[0]
+            card.number = re.search('(\d{4}\*{8}(\d{4}|\*{4}))', card_label).group(1)
 
 
 class HomePage(LoggedPage, HTMLPage):
