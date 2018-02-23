@@ -133,9 +133,8 @@ class TransactionsPage(ITransactionsPage):
             tds = tr.findall('td')
 
             get_content = CleanText('.')
-
             date = get_content(tds[self.TR_DATE])
-            raw = get_content(tds[self.TR_TEXT])
+            raw = CleanText('.//td[3]//td[@class="txt"]', children=False)(tr)
 
             debit = get_content(tds[self.TR_DEBIT])
             credit = get_content(tds[self.TR_CREDIT])
