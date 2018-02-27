@@ -335,7 +335,8 @@ class AXAAssurance(AXABrowser):
     @need_login
     def iter_accounts(self):
         if 'accs' not in self.cache.keys():
-            self.cache['accs'] = list(self.accounts.stay_or_go().iter_accounts())
+            self.accounts.go()
+            self.cache['accs'] = list(self.page.iter_accounts())
         return self.cache['accs']
 
     @need_login

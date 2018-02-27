@@ -45,26 +45,24 @@ class AccountsPage(LoggedPage, HTMLPage):
 
     @method
     class iter_accounts(ListElement):
-        item_xpath = '//section[has-class("contracts")]/article'
+        item_xpath = '//div[contains(@data-route, "/assurance-vie/")]'
 
         class item(ItemElement):
             klass = Account
 
             condition = lambda self: Field('balance')(self) is not NotAvailable
 
-            obj_id = Regexp(CleanText('.//h2/small'), '(\d+)')
-            obj_label = CleanText('.//h2/text()')
-            obj_balance = MyDecimal('.//span[has-class("card-amount")]')
-            obj_valuation_diff = MyDecimal('.//p[@class="card-description"]')
-            obj_url = Attr('.', 'data-redirect')
+            obj_id = Regexp(CleanText('.//span[has-class("small-title")]'), '(\d+)')
+            obj_label = CleanText('.//h3[has-class("card-title")]')
+            obj_balance = MyDecimal('.//p[has-class("amount-card")]')
+            obj_valuation_diff = MyDecimal('.//p[@class="performance"]')
+            obj_url = Attr('.', 'data-route')
+            obj_currency = Currency('.//p[has-class("amount-card")]')
             obj__acctype = "investment"
 
             def obj_type(self):
                 types = [v for k, v in self.page.TYPES.items() if k in Field('label')(self).lower()]
                 return types[0] if len(types) else Account.TYPE_UNKNOWN
-
-            def obj_currency(self):
-                return Account.get_currency(CleanText('.//span[has-class("card-amount")]')(self))
 
 
 class InvestmentPage(LoggedPage, HTMLPage):
@@ -165,10 +163,10 @@ class HistoryPage(LoggedPage, HTMLPage):
         return Attr(u'//a[@href="%s"]' % url, 'data-target')(self.doc)
 
     def get_investment_url(self):
-        return Attr('//article[has-class("card-distribution")]', 'data-url', default=None)(self.doc)
+        return Attr('//div[has-class("card-distribution")]', 'data-url', default=None)(self.doc)
 
     def get_pagination_url(self):
-        return Attr('//div[contains(@class, "default")][@data-current-page]', 'data-url')(self.doc)
+        return Attr('//div[contains(@class, "default")][@data-module-card-list--current-page]', 'data-module-card-list--url')(self.doc)
 
     @method
     class get_investments(ListElement):
