@@ -45,6 +45,12 @@ class LoginConfirmPage(HTMLPage):
 
 
 class AccountsPage(LoggedPage, HTMLPage):
+    def get_acc_link(self):
+        msg = CleanText('//body[@class="message"]')(self.doc)
+        if msg:
+            acc_link = Link('//div[@class="Boutons"]/a', 'href')(self.doc)
+            return acc_link
+
     @method
     class iter_accounts(ListElement):
         item_xpath = '//table[has-class("TableBicolore")]//tr[@id and count(td) > 4]'

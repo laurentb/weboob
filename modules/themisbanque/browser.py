@@ -19,6 +19,7 @@
 
 
 from weboob.browser import LoginBrowser, URL, need_login
+from weboob.tools.compat import urljoin
 
 from .pages import LoginPage, LoginConfirmPage, AccountsPage, RibPage, HistoryPage
 
@@ -29,7 +30,9 @@ class ThemisBrowser(LoginBrowser):
     home = URL('/es@b/fr/esab.jsp')
     login = URL('/es@b/fr/codeident.jsp', LoginPage)
     login_confirm = URL('/es@b/servlet/internet0.ressourceWeb.servlet.Login', LoginConfirmPage)
-    accounts = URL(r'/es@b/servlet/internet0.ressourceWeb.servlet.PremierePageServlet\?pageToTreatError=fr/Infos.jsp&dummyDate=', AccountsPage)
+    accounts = URL(r'/es@b/servlet/internet0.ressourceWeb.servlet.PremierePageServlet\?pageToTreatError=fr/Infos.jsp&dummyDate=',
+                r'/es@b/servlet/internet0.ressourceWeb.servlet.PremierePageServlet\?cryptpara=.*',
+                AccountsPage)
     history = URL('/es@b/servlet/internet0.ressourceWeb.servlet.ListeDesMouvementsServlet.*', HistoryPage)
     rib = URL(r'/es@b/fr/rib.jsp\?cryptpara=.*', RibPage)
 
@@ -41,6 +44,13 @@ class ThemisBrowser(LoginBrowser):
     @need_login
     def iter_accounts(self):
         self.accounts.stay_or_go()
+        # sometimes when the user has messages, accounts's page will redirect
+        # to the message page and the user will have to click "ok" to access his accounts
+        # this will happen as long as the messages aren't deleted.
+        # In this case, accounts may be reached through a different link (in the "ok" button)
+        acc_link = self.page.get_acc_link()
+        if acc_link:
+            self.location(urljoin(self.BASEURL, acc_link))
         return self.page.iter_accounts()
 
     @need_login
