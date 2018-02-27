@@ -23,7 +23,7 @@ from datetime import date as ddate, datetime
 from decimal import Decimal
 import re
 
-from weboob.browser.pages import HTMLPage, FormNotFound
+from weboob.browser.pages import HTMLPage, FormNotFound, pagination
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.base import Currency
 from weboob.capabilities.bank import (
@@ -36,10 +36,28 @@ from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, Acti
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
 from weboob.tools.date import parse_french_date, LinearDateGuesser
 from weboob.tools.compat import urlparse, urljoin, unicode
-from weboob.browser.elements import TableElement, ItemElement, method
+from weboob.browser.elements import ListElement, TableElement, ItemElement, method
 from weboob.browser.filters.standard import Date, CleanText, CleanDecimal, Currency as CleanCurrency, \
                                             Regexp, Format, Field
-from weboob.browser.filters.html import Link, TableCell
+from weboob.browser.filters.html import Link, TableCell, ColumnNotFound
+
+
+class TableCellSpan(TableCell):
+    def __call__(self, item):
+        for name in self.names:
+            # TableElement starts at 0
+            idx = item.parent.get_colnum(name)
+            if idx is not None:
+                colnum = 0
+                for el in item.xpath('./td'):
+                    if colnum == idx:
+                        return [el]
+                    try:
+                        colnum += int(el.attrib.get('colspan', 1))
+                    except (ValueError, AttributeError):
+                        colnum += 1
+
+        return self.default_or_raise(ColumnNotFound('Unable to find column %s' % ' or '.join(self.names)))
 
 
 def MyDecimal(*args, **kwargs):
@@ -180,14 +198,7 @@ class FirstVisitPage(BasePage):
         raise ActionNeeded(u'Veuillez vous connecter au site du Crédit Agricole pour valider vos données personnelles, et réessayer ensuite.')
 
 
-class _AccountsPage(MyLoggedPage, BasePage):
-    COL_LABEL    = 0
-    COL_ID       = 2
-    COL_VALUE    = 4
-    COL_CURRENCY = 5
-
-    NB_COLS = 7
-
+class AccountsPage(MyLoggedPage, BasePage):
     TYPES = {u'CCHQ':       Account.TYPE_CHECKING, # par
              u'CCOU':       Account.TYPE_CHECKING, # pro
              u'EKO' :       Account.TYPE_CHECKING,
@@ -225,78 +236,71 @@ class _AccountsPage(MyLoggedPage, BasePage):
              u'épargne à terme':        Account.TYPE_DEPOSIT,
              u'épargne boursière':      Account.TYPE_MARKET,
              u'assurance vie et capitalisation': Account.TYPE_LIFE_INSURANCE,
-
             }
 
-    def get_list(self, use_links=True):
-        # use_links: some info needs to be fetched on a dedicated account page
-        # but sometimes the page url/form works only once, so we may want to keep it for later
+    @pagination
+    @method
+    class iter_accounts(TableElement):
+        head_xpath = '//table[@class="ca-table"]//tr/th'
+        item_xpath = '//table[@class="ca-table"]//tr[contains(@class, "colcelligne")]'
 
-        account_type = Account.TYPE_UNKNOWN
+        col_id = 'N° de compte'
+        col_label = 'Type de compte'
+        col_balance_op = 'En opération'
+        col_balance_value = 'En valeur'
+        col_currency = 'Devise'
 
-        for tr in self.doc.xpath('//table[@class="ca-table"]/tr'):
-            try:
-                title = tr.xpath('.//h3/text()')[0].lower().strip()
-            except IndexError:
-                pass
-            else:
-                account_type = self.TYPES.get(title, Account.TYPE_UNKNOWN)
+        next_page =  Link('//div[@class="boutons-navig"]//div[@class="btnsuiteliste"]/a[@class="btnsuiteliste"]', default=None)
 
-            if not tr.attrib.get('class', '').startswith('colcelligne'):
-                continue
+        class item(ItemElement):
+            klass = Account
 
-            cols = tr.findall('td')
-            if not cols or len(cols) < self.NB_COLS:
-                continue
+            obj_label = CleanText(TableCellSpan('label'))
+            obj_id = CleanText(TableCellSpan('id'))
+            obj_currency = CleanCurrency(TableCellSpan('currency'))
 
-            cleaner = CleanText().filter
+            def obj_balance(self):
+                td = TableCellSpan('balance_op', default=NotAvailable)(self)
+                if td:
+                    return MyDecimal(td, default=NotAvailable)(self)
+                return MyDecimal(TableCellSpan('balance_value'), default=NotAvailable)(self)
 
-            label = cleaner(cols[self.COL_LABEL])
-            type = self.TYPES.get(label, Account.TYPE_UNKNOWN) or account_type
-            url = Link('.//a', default=None)(tr)
-            if type == Account.TYPE_LOAN and url is not None:
-                details = self.browser.open(url)
-                if not details.page.get_error():
-                    account = details.page.item_loan()
-                else:
-                    account = Loan()
-                    account.total_amount = MyDecimal().filter(cols[self.COL_INITIAL_AMOUNT])
-                    account.next_payment_amount = account.last_payment_amount = MyDecimal().filter(cols[self.COL_MONTHLY_PAYMENT])
-            else:
-                account = Account()
+            def obj_type(self):
+                return self.page.TYPES.get(Field('label')(self), Account.TYPE_UNKNOWN)
 
-            account.id = cleaner(cols[self.COL_ID])
-            account.label = cleaner(cols[self.COL_LABEL])
-            account.type = self.TYPES.get(account.label, Account.TYPE_UNKNOWN) or account_type
-            balance = cleaner(cols[self.COL_VALUE])
-            # we have to ignore those accounts, because using NotAvailable
-            # makes boobank and probably many others crash
-            # we should consider market accounts without balance and update them after
-            if balance in ('indisponible', '') and account.type not in (Account.TYPE_MARKET, Account.TYPE_PEA):
-                continue
-            elif balance:
-                account.balance = Decimal(Transaction.clean_amount(balance))
+            def obj__perimeter(self):
+                return self.page.browser.current_perimeter
 
-            account.currency = account.get_currency(cleaner(cols[self.COL_CURRENCY]))
-            account.url = None
+            def obj__form(self):
+                td = TableCell('id')(self)
+                a = Link('.//a')(td[0])
+                form = None
+                if a.startswith('javascript:'):
+                    form_name = re.search(r'frm\d+', a).group(0)
+                    form = self.page.history_form(form_name)
+                return form
 
-            self.set_link(account, cols, use_links)
+            def obj_url(self):
+                url = None
+                td = TableCell('id')(self)
+                a = Link('.//a')(td[0])
+                if not a.startswith('javascript:'):
+                    url = urljoin(self.url, a.replace(' ', '%20'))
+                    url = re.sub('sessionSAG=[^&]+', 'sessionSAG={0}', url)
+                return url
 
-            account._perimeter = self.browser.current_perimeter
-            yield account
+    def history_form(self, name):
+        form = self.get_form(name=name)
+        form['fwkaction'] = 'Releves'
+        form['fwkcodeaction'] = 'Executer'
+        return form
 
-        # Checking pagination
-        next_link = self.doc.xpath('//a[@class="btnsuiteliste"]/@href')
-        if next_link:
-            self.browser.location(next_link[0])
-            for account in self.browser.page.get_list():
-                yield account
-
-    def set_link(self, account, cols, use_link):
-        raise NotImplementedError()
+    def get_code_caisse(self):
+        scripts = self.doc.xpath('//script[contains(., " codeCaisse")]')
+        return re.search('var +codeCaisse *= *"([0-9]+)"', scripts[0].text).group(1)
 
     def _iter_idelcos_ids(self):
-        for line in self.doc.xpath('//table[@class="ca-table"]/tr[@class="ligne-connexe"]'):
+        for line in self.doc.xpath('//table[@class="ca-table"]//tr[@class="ligne-connexe"]'):
             # ignore line if preceding line is also a link to deferred card
             if line.xpath('./preceding-sibling::tr')[-1].attrib.get('class') == 'ligne-connexe':
                 continue

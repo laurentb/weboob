@@ -288,9 +288,23 @@ class Cragr(LoginBrowser, StatesMixin):
     def get_list(self):
         accounts_list = []
         # regular accounts
-        if not self.accounts.is_here():
+        self.location(self.accounts_url.format(self.sag))
+
+        accounts_list.extend(self.page.iter_accounts())
+
+        for account in accounts_list:
             self.location(self.accounts_url.format(self.sag))
-        accounts_list.extend(self.page.get_list())
+            # after visiting any url/form, all other url/forms become invalid
+            # so we need to go back to accounts list and get a new one each time
+            updated_account = find_object(self.page.iter_accounts(), id=account.id)
+            if updated_account.url:
+                self.location(updated_account.url)
+            elif account._form:
+                self.location(updated_account._form.request)
+            iban_url = self.page.get_iban_url()
+            if iban_url:
+                self.location(iban_url)
+                account.iban = self.page.get_iban()
 
         # credit cards
         # reseting location in case of pagination
@@ -341,22 +355,21 @@ class Cragr(LoginBrowser, StatesMixin):
             raise NotImplementedError()
 
         # some accounts may exist without a link to any history page
-        if not hasattr(account, '_form') and (not account.url or 'CATITRES' in account.url):
+        if not account._form and (not account.url or 'CATITRES' in account.url):
             return
 
         if account._perimeter != self.current_perimeter:
             self.go_perimeter(account._perimeter)
 
-        if hasattr(account, '_form'):
+        if account.type not in (Account.TYPE_LOAN, Account.TYPE_CARD) and account._form:
             # the account needs a form submission to go to the history
             # but we need to get the latest form data
             self.location(self.accounts_url.format(self.sag))
-            accounts = self.page.get_list(use_links=False)
+            accounts = self.page.iter_accounts()
             new_account = find_object(accounts, AccountNotFound, id=account.id)
-
             self.location(new_account._form.request)
-
         # card accounts need to get an updated link
+
         if account.type == Account.TYPE_CARD:
             account = self.get_card(account.id)
 
