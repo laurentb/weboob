@@ -184,7 +184,8 @@ class HSBC(LoginBrowser):
 
         if iban:
             self.location(self.js_url, params={'debr': 'COMPTES_RIB'})
-            self.page.get_rib(self.accounts_list)
+            if self.rib.is_here():
+                self.page.get_rib(self.accounts_list)
 
     @need_login
     def _quit_li_space(self):
