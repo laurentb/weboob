@@ -63,7 +63,9 @@ class AccountsPage(LoggedPage, JsonPage):
             if 'reportNetliq' in d:
                 return Decimal(str(d['reportNetliq']))
 
-            return CleanDecimal(Dict('totalPortfolio/value/0/value'))(self)
+            return CleanDecimal().filter(sum(
+                [abs(round(y['value']['EUR'], 2)) for x in Dict('portfolio/value')(self) for y in x['value'] if y['name'] == 'todayPlBase']
+                ))
 
         def obj_id(self):
             return str(self.page.browser.intAccount)
