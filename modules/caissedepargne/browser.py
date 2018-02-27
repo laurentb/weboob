@@ -323,6 +323,9 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             # add detail card to list of transactions
             for form in list_form:
                 form.submit()
+                if self.home.is_here() and self.page.is_access_error():
+                    self.logger.warning('Access to card details is unavailable for this user')
+                    continue
                 assert self.transaction_detail.is_here()
                 for tr in self.page.get_detail():
                     tr.type = Transaction.TYPE_DEFERRED_CARD
