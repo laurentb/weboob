@@ -237,7 +237,7 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
     def get_coming(self):
         for tr in self.doc.xpath('//table[@id="tableauConsultationHisto"]/tbody/tr'):
             if 'Encours' in CleanText('./td')(tr):
-                return CleanDecimal('./td//strong', replace_dots=True, default=NotAvailable)(tr)
+                return CleanDecimal('./td//strong', replace_dots=True, sign=lambda x: -1, default=NotAvailable)(tr)
 
     def get_balance(self):
         for tr in self.doc.xpath('//table[@id="tableauConsultationHisto"]/tbody/tr'):
