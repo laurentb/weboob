@@ -234,36 +234,6 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
         return iter([])
 
     @need_login
-    def iter_recipients(self, origin_account):
-        raise NotImplementedError()
-
-    @need_login
-    def transfer(self, account, recipient, amount, reason):
-        raise NotImplementedError()
-
-    @need_login
-    def iter_threads(self):
-        raise NotImplementedError()
-
-    @need_login
-    def get_thread(self, thread):
-        raise NotImplementedError()
-
-
-class BNPPartPro(BNPParibasBrowser):
-    BASEURL_TEMPLATE = r'https://%s.bnpparibas/'
-    BASEURL = BASEURL_TEMPLATE % 'mabanque'
-
-    def __init__(self, config=None, *args, **kwargs):
-        self.config = config
-        kwargs['username'] = self.config['login'].get()
-        kwargs['password'] = self.config['password'].get()
-        super(BNPPartPro, self).__init__(*args, **kwargs)
-
-    def switch(self, subdomain):
-        self.BASEURL = self.BASEURL_TEMPLATE % subdomain
-
-    @need_login
     def iter_recipients(self, origin_account_id):
         try:
             if not origin_account_id in self.transfer_init.go(data=JSON({'modeBeneficiaire': '0'})).get_ibans_dict('Debiteur'):
@@ -276,6 +246,23 @@ class BNPPartPro(BNPParibasBrowser):
         if self.page.can_transfer_to_recipients(origin_account_id):
             for recipient in self.recipients.go(data=JSON({'type': 'TOUS'})).iter_recipients():
                 yield recipient
+
+    @need_login
+    def new_recipient(self, recipient, **params):
+        if 'code' in params:
+            return self.send_code(recipient, **params)
+        # needed to get the phone number, enabling the possibility to send sms.
+        self.recipients.go(data=JSON({'type': 'TOUS'}))
+        # post recipient data sending sms with same request
+        data = {}
+        data['adresseBeneficiaire'] = ''
+        data['iban'] = recipient.iban
+        data['libelleBeneficiaire'] = recipient.label
+        data['notification'] = True
+        data['typeBeneficiaire'] = ''
+        data['typeEnvoi'] = 'SMS'
+        recipient = self.add_recip.go(data=json.dumps(data), headers={'Content-Type': 'application/json'}).get_recipient(recipient)
+        raise AddRecipientStep(recipient, Value('code', label='Saississez le code.'))
 
     @need_login
     def prepare_transfer(self, account, recipient, amount, reason):
@@ -298,11 +285,6 @@ class BNPPartPro(BNPParibasBrowser):
         return self.validate_transfer.go(data=JSON(data)).handle_response(account, recipient, amount, reason)
 
     @need_login
-    def execute_transfer(self, transfer):
-        self.register_transfer.go(data=JSON({'referenceVirement': transfer.id}))
-        return self.page.handle_response(transfer)
-
-    @need_login
     def send_code(self, recipient, **params):
         # depending on whether recipient is a weboob or a budgea backend object.
         _id = recipient.webid if hasattr(recipient, 'webid') else recipient.id
@@ -313,21 +295,9 @@ class BNPPartPro(BNPParibasBrowser):
         return self.activate_recip.go(data=json.dumps(data), headers={'Content-Type': 'application/json'}).get_recipient(recipient)
 
     @need_login
-    def new_recipient(self, recipient, **params):
-        if 'code' in params:
-            return self.send_code(recipient, **params)
-        # needed to get the phone number, enabling the possibility to send sms.
-        self.recipients.go(data=JSON({'type': 'TOUS'}))
-        # post recipient data sending sms with same request
-        data = {}
-        data['adresseBeneficiaire'] = ''
-        data['iban'] = recipient.iban
-        data['libelleBeneficiaire'] = recipient.label
-        data['notification'] = True
-        data['typeBeneficiaire'] = ''
-        data['typeEnvoi'] = 'SMS'
-        recipient = self.add_recip.go(data=json.dumps(data), headers={'Content-Type': 'application/json'}).get_recipient(recipient)
-        raise AddRecipientStep(recipient, Value('code', label='Saississez le code.'))
+    def execute_transfer(self, transfer):
+        self.register_transfer.go(data=JSON({'referenceVirement': transfer.id}))
+        return self.page.handle_response(transfer)
 
     @need_login
     def get_advisor(self):
@@ -335,6 +305,28 @@ class BNPPartPro(BNPParibasBrowser):
         if self.page.has_error():
             return None
         return self.page.get_advisor()
+
+    @need_login
+    def iter_threads(self):
+        raise NotImplementedError()
+
+    @need_login
+    def get_thread(self, thread):
+        raise NotImplementedError()
+
+
+class BNPPartPro(BNPParibasBrowser):
+    BASEURL_TEMPLATE = r'https://%s.bnpparibas/'
+    BASEURL = BASEURL_TEMPLATE % 'mabanque'
+
+    def __init__(self, config=None, *args, **kwargs):
+        self.config = config
+        kwargs['username'] = self.config['login'].get()
+        kwargs['password'] = self.config['password'].get()
+        super(BNPPartPro, self).__init__(*args, **kwargs)
+
+    def switch(self, subdomain):
+        self.BASEURL = self.BASEURL_TEMPLATE % subdomain
 
 
 class HelloBank(BNPParibasBrowser):
