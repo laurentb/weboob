@@ -473,9 +473,7 @@ class CardsPage(MyLoggedPage, BasePage):
 
 
     def several_cards(self):
-        if self.doc.xpath('//table[caption[@class="caption tdb-cartes-caption" or @class="ca-table caption"]]'):
-            return True
-        return False
+        return bool(self.doc.xpath('//table[caption[@class="caption tdb-cartes-caption" or @class="ca-table caption"]]'))
 
     def order_transactions(self):
         pass
@@ -547,32 +545,125 @@ class CardsPage(MyLoggedPage, BasePage):
                len(self.doc.xpath(u'//td[contains(text(), $number)] | //td[contains(text(), $id)] ', number=account.number, id=account._spaced_number))
 
 
-class AccountsPage(_AccountsPage):
-    def history_form(self, name):
-        form = self.get_form(name=name)
-        form['fwkaction'] = 'Releves'
-        form['fwkcodeaction'] = 'Executer'
-        return form
+class LoansPage(AccountsPage):
+    @method
+    class iter_loans(ListElement):
+        '''
+        The cragr website shows informations on a single table, we can't use TableElement the way we do in a normal case.
+        The colums we need are in some special tr: the ones with the "tr-thead" class, when the informations we need are in the trs between each tr-thead.
+        We are using TableElement as if it was a table each time between tr-thead.
+        '''
+        item_xpath = '//table[@class="ca-table"]//tr[@class="tr-thead"]'
 
-    def set_link(self, account, cols, use_link):
-        try:
-            a = cols[0].xpath('.//a')[0]
-        except IndexError:
-            return
+        class iter_item(TableElement):
+            head_xpath = './th'
 
-        if a.attrib['href'].startswith('javascript:'):
-            form_name = re.search(r'frm\d+', a.attrib['href']).group(0)
+            def find_elements(self):
+                item_xpath = './following-sibling::tr'
+                for el in self.el.xpath(item_xpath):
+                    if not el.attrib.get('class', '').startswith('colcelligne'):
+                        return
+                    yield el
 
-            accounts_page = self.browser.open(self.browser.accounts_url.format(self.browser.sag)).page
-            account._form = accounts_page.history_form(form_name)
+            col_label = re.compile('.*n°')
+            col_next_payment_amount = 'Mensualité'
+            col_total_amount = 'Montant initial'
+            col_available_amount = 'Montant disponible'
+            col_balance = 'Capital restant dû'
+            col_currency = 'Devise'
 
-<<<<<<< HEAD
-            if use_link:
-                page = self.browser.open(account._form.request).page
-                account._form = None
-        else:
-            account.url = urljoin(self.url, a.attrib['href'].replace(' ', '%20'))
-=======
+            class item(ItemElement):
+                klass = Loan
+
+                def parse(self, el):
+                    td = TableCell('label')(self)
+                    link = Link('.//a', default=None)(td[0])
+                    # if js is in link it is a conso loans
+                    # TODO support the loans_conso
+                    self.env['details'] = None
+                    if link and not 'javascript' in link:
+                        details = self.page.browser.open(link)
+                        if not details.page.get_error():
+                            self.env['details'] = details.page
+
+
+                obj_total_amount = MyDecimal(TableCellSpan('total_amount', default=NotAvailable), default=NotAvailable)
+
+                obj_next_payment_amount = MyDecimal(TableCellSpan('next_payment_amount', default=NotAvailable), default=NotAvailable)
+
+                def obj_balance(self):
+                    td = TableCellSpan('balance', default=NotAvailable)(self)
+                    if td:
+                        return -abs(MyDecimal(td)(self))
+                    return Decimal('0.00')
+
+                obj_currency = CleanCurrency(TableCellSpan('currency'))
+                obj_label = CleanText(TableCellSpan('label'))
+
+                def obj_available_amount(self):
+                    return MyDecimal(TableCellSpan('available_amount', default=NotAvailable), default=NotAvailable)(self)
+
+                def obj_id(self):
+                    td = TableCellSpan('label')(self)
+                    return CleanText('./following-sibling::td[1]')(td[0])
+
+                def obj_maturity_date(self):
+                    if self.env['details']:
+                        m = re.search('(\d{2}/\d{2}/\d{4})', CleanText('//div[@id="trPagePu"]//td[contains(., "Fin le") or contains(., "Date de remboursement")]', default=NotAvailable)(self.env['details'].doc))
+                        if m:
+                            return MyDate().filter(m.group(1))
+                    return NotAvailable
+
+                def obj_subscription_date(self):
+                    if self.env['details']:
+                        m = re.search('(\d{2}/\d{2}/\d{4})', CleanText('//div[@id="trPagePu"]//td[contains(., "Début") or contains(., "Date de souscription")]', symbols=':', default=NotAvailable)(self.env['details'].doc))
+                        if m:
+                            return MyDate().filter(m.group(1))
+                    return NotAvailable
+
+                obj_rate = MyDecimal('//div[@id="trPagePu"]//td[contains(., "Taux")]', default=NotAvailable)
+
+                def obj_duration(self):
+                    if self.env['details']:
+                        return MyDecimal(Regexp(CleanText(
+                    '//div[@id="trPagePu"]//td[contains(., "Durée")]', default=NotAvailable), r' (\d+) ', default=NotAvailable), default=NotAvailable)(self.env['details'].doc)
+
+                def obj_next_payment_date(self):
+                    if self.env['details']:
+                        return MyDate(Regexp(CleanText('//div[@id="trPagePu"]//td[contains(., "Prochaine")]'),
+                                              r'(\d{2}/\d{2}/\d{4})', default=NotAvailable), default=NotAvailable)(self.env['details'].doc)
+
+                def obj__perimeter(self):
+                    return self.page.browser.current_perimeter
+
+                def obj_rate(self):
+                    if self.env['details']:
+                        return MyDecimal('//div[@id="trPagePu"]//td[contains(., "Taux")]')(self.env['details'].doc)
+
+                def obj_type(self):
+                    if Field('available_amount')(self):
+                        return Account.TYPE_REVOLVING_CREDIT
+
+                obj__form = None
+
+
+
+class SavingsPage(AccountsPage):
+    @pagination
+    @method
+    class iter_accounts(TableElement):
+        head_xpath = '//table[@class="ca-table"]//tr/th'
+        item_xpath = '//table[@class="ca-table"]//tr[contains(@class, "colcelligne")]'
+
+        col_balance_op = 'En opération'
+        col_balance_value = 'En valeur'
+        col_currency = 'Devise'
+
+        next_page = Link('//div[@class="btnsuiteliste"]/a[@class="btnsuiteliste"]', default=None)
+
+        class item(ItemElement):
+            klass = Account
+
             def condition(self):
                 return self.el.xpath('./td[contains(@class, "cel-texte")]')
 
@@ -584,96 +675,46 @@ class AccountsPage(_AccountsPage):
                 if td:
                     return MyDecimal(td, default=NotAvailable)(self)
                 return MyDecimal(TableCellSpan('balance_value'), default=NotAvailable)(self)
->>>>>>> 5a32f4c0b... better card
 
-            if use_link:
-                page = self.browser.open(account.url).page
-                account.url = re.sub('sessionSAG=[^&]+', 'sessionSAG={0}', account.url)
+            obj_currency = CleanCurrency(TableCellSpan('currency'))
 
-        if use_link:
-            if isinstance(page, UnavailablePage):
-                raise BrowserUnavailable()
+            def obj_type(self):
+                type = self.page.TYPES.get(Field('label')(self), Account.TYPE_UNKNOWN)
+                if not type:
+                    return self.page.TYPES.get(CleanText('(./preceding-sibling::tr//td/h3)[last()]')(self).lower(), Account.TYPE_UNKNOWN)
+                return type
 
-            if not account.type:
-                # some accounts have funny names and are not detected as checking
-                # the page breadcrumb may be a hint of the account type
-                m = re.search(r'breadCrumbs = \[[^]]*\]', page.text, re.DOTALL)
-                if m and 'Compte courant' in m.group(0):
-                    account.type = Account.TYPE_CHECKING
+            def obj_url(self):
+                url = None
+                origin = urlparse(self.page.url)
+                link = Link('./td[2]//a', default=None)(self)
+                # Sometimes there is no link.
+                if (link and 'CATITRES' in link) or Field('type')(self) in (Account.TYPE_MARKET, Account.TYPE_PEA):
+                    url = 'https://%s/stb/entreeBam?sessionSAG=%%s&stbpg=pagePU&site=CATITRES&typeaction=reroutage_aller'
+                    url = url % origin.netloc
 
-            # TODO move this code to avoid the use_link stuff?
-            url = page.get_iban_url()
-            if url:
-                page = self.browser.open(url).page
-                account.iban = page.get_iban()
+                if link:
+                    if 'PREDICA' in link or 'CONTRAT' in link:
+                        # account.type = Account.TYPE_LIFE_INSURANCE
+                        url = 'https://%s/stb/entreeBam?sessionSAG=%%s&stbpg=pagePU&site=PREDICA&' \
+                              'typeaction=reroutage_aller&sdt=CONTRAT&parampartenaire=%s'
+                        url = url % (origin.netloc, Field('id')(self))
+                    # This aims to handle bgpi-gestionprivee.
+                    elif 'javascript' in  link:
+                        m = re.findall("'([^']*)'", link)
+                        if len(m) == 3:
+                            url = 'https://%s/stb/entreeBam?sessionSAG=%%s&stbpg=pagePU&typeaction=reroutage_aller&site=%s&sdt=%s&parampartenaire=%s'
+                            url = url % (origin.netloc, m[0], m[1], m[2])
+                    elif 'javascript' not in link and url is None:
+                        url = urljoin(self.page.url, link.replace(' ', '%20'))
+                        url = re.sub('sessionSAG=[^&]+', 'sessionSAG={0}', url)
 
-    def get_code_caisse(self):
-        scripts = self.doc.xpath('//script[contains(., " codeCaisse")]')
-        return re.search('var +codeCaisse *= *"([0-9]+)"', scripts[0].text).group(1)
+                return url
 
+            def obj__perimeter(self):
+                return self.page.browser.current_perimeter
 
-class LoansPage(_AccountsPage):
-    COL_ID = 1
-    NB_COLS = 6
-
-    # IMMO LOAN
-    COL_MONTHLY_PAYMENT = 2
-    COL_INITIAL_AMOUNT = 3
-    COL_AMOUNT_LEFT_TO_PAY = 4
-
-    def set_link(self, account, cols, use_link):
-        account.balance = -abs(account.balance)
-
-    @method
-    class item_loan(ItemElement):
-        klass = Loan
-
-        obj_total_amount = MyDecimal('//div[@class="ca-table"]//td[contains(., "Montant :") or contains(., "Montant emprunté")] | \
-                            //table[@class="ca-table"][1]//td[contains(., "Montant :") or contains(., "Montant emprunté")] | \
-                            //div[@id="trPagePu"]//td[contains(., "Montant emprunté")]')
-        obj_subscription_date = MyDate(Regexp(
-            CleanText('//div[@id="trPagePu"]//td[contains(., "Début") or contains(., "Date de souscription")]', symbols=':'), r'(\d{2}/\d{2}/\d{4})'), default=NotAvailable)
-        obj_maturity_date = MyDate(Regexp(
-            CleanText('//div[@id="trPagePu"]//td[contains(., "Fin le") or contains(., "Date de remboursement")]', symbols=':'), r'(\d{2}/\d{2}/\d{4})'), default=NotAvailable)
-        obj_rate = MyDecimal('//div[@id="trPagePu"]//td[contains(., "Taux")]')
-        # following data are not always available
-        # todo handle duration as a relativedelta
-        obj_duration = MyDecimal(Regexp(CleanText(
-            '//div[@id="trPagePu"]//td[contains(., "Durée")]', default=NotAvailable), r' (\d+) ', default=NotAvailable), default=NotAvailable)
-        obj_next_payment_amount = MyDecimal('//div[@id="trPagePu"]//td[contains(., "Remboursement")]', default=NotAvailable)
-        obj_next_payment_date = MyDate(Regexp(CleanText('//div[@id="trPagePu"]//td[contains(., "Prochaine")]'),
-                                              r'(\d{2}/\d{2}/\d{4})', default=NotAvailable), default=NotAvailable)
-
-class SavingsPage(_AccountsPage):
-    COL_ID = 1
-
-    def set_link(self, account, cols, use_link):
-        origin = urlparse(self.url)
-        if not account.url:
-            a = cols[0].xpath('descendant::a[contains(@href, "CATITRES")]')
-            # Sometimes there is no link.
-            if a or account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
-                url = 'https://%s/stb/entreeBam?sessionSAG=%%s&stbpg=pagePU&site=CATITRES&typeaction=reroutage_aller'
-                account.url = url % origin.netloc
-
-            a = cols[0].xpath("descendant::a[contains(@href, \"'PREDICA','CONTRAT'\")]")
-            if a:
-                account.type = Account.TYPE_LIFE_INSURANCE
-                url = 'https://%s/stb/entreeBam?sessionSAG=%%s&stbpg=pagePU&site=PREDICA&' \
-                      'typeaction=reroutage_aller&sdt=CONTRAT&parampartenaire=%s'
-                account.url = url % (origin.netloc, account.id)
-            a = cols[0].xpath('descendant::a[not(contains(@href, "javascript"))]')
-            if len(a) == 1 and not account.url:
-                account.url = urljoin(self.url, a[0].attrib['href'].replace(' ', '%20'))
-                account.url = re.sub('sessionSAG=[^&]+', 'sessionSAG={0}', account.url)
-            a = cols[0].xpath('descendant::a[(contains(@href, "javascript"))]')
-            # This aims to handle bgpi-gestionprivee.
-            if len(a) == 1 and not account.url:
-                m = re.findall("'([^']*)'", a[0].attrib['href'])
-                if len(m) == 3:
-                    url = 'https://%s/stb/entreeBam?sessionSAG=%%s&stbpg=pagePU&typeaction=reroutage_aller&site=%s&sdt=%s&parampartenaire=%s'
-                    account.url = url % (origin.netloc, m[0], m[1], m[2])
-
+            obj__form = None
 
 class TransactionsPage(MyLoggedPage, BasePage):
     def get_iban_url(self):

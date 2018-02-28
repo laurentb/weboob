@@ -318,7 +318,7 @@ class Cragr(LoginBrowser, StatesMixin):
         # loan accounts
         self.location(self.loans_url.format(self.sag))
         if self.loans.is_here():
-            for account in self.page.get_list():
+            for account in self.page.iter_loans():
                 if account not in accounts_list:
                     if not account.type:
                         account.type = Account.TYPE_LOAN
@@ -328,7 +328,7 @@ class Cragr(LoginBrowser, StatesMixin):
         # savings accounts
         self.location(self.savings_url.format(self.sag))
         if self.savings.is_here():
-            for account in self.page.get_list():
+            for account in self.page.iter_accounts():
                 if account not in accounts_list:
                     accounts_list.append(account)
 
@@ -372,8 +372,8 @@ class Cragr(LoginBrowser, StatesMixin):
             accounts = self.page.iter_accounts()
             new_account = find_object(accounts, AccountNotFound, id=account.id)
             self.location(new_account._form.request)
-        # card accounts need to get an updated link
 
+        # card accounts need to get an updated link
         if account.type == Account.TYPE_CARD:
             account = self.get_card(account.id)
 
