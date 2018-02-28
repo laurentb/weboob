@@ -313,7 +313,7 @@ class CardHistoryPage(LoggedPage, HTMLPage):
             tr = Transaction()
             tr.parse(date=date, raw=raw)
             tr.rdate = tr.parse_date(rdate)
-            tr.type = tr.TYPE_CARD
+            tr.type = tr.TYPE_DEFERRED_CARD
             if credit:
                 tr.amount = CleanDecimal(None, replace_dots=True).filter(credit)
             elif debit:
