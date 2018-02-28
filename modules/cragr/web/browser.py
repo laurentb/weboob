@@ -267,8 +267,7 @@ class Cragr(LoginBrowser, StatesMixin):
 
     @need_login
     def get_cards(self):
-        if not self.accounts.is_here():
-            self.location(self.accounts_url.format(self.sag))
+        self.location(self.accounts_url.format(self.sag))
 
         for idelco in self.page.iter_idelcos():
             if not self.accounts.is_here():
@@ -281,8 +280,13 @@ class Cragr(LoginBrowser, StatesMixin):
                 self.page.submit_card(obj)
 
             assert self.cards.is_here() or self.cards2.is_here()
-            for account in self.page.get_list():
-                yield account
+            if self.page.several_cards():
+                for account in self.page.iter_cards():
+                    yield account
+            else:
+                for account in self.page.iter_card():
+                    yield account
+
 
     @need_login
     def get_list(self):

@@ -389,6 +389,29 @@ class ChgPerimeterPage(PerimeterPage):
             self.browser.perimeters.append(self.browser.current_perimeter)
 
 
+class CardElement(ItemElement):
+    obj_coming = MyDecimal('.//tr[@class="ligne-paire"]/td[@class="cel-num"]', replace_dots=True, default=Decimal('0'))
+
+    obj__form = None
+
+    obj_balance = Decimal('0')
+
+    def obj_currency(self):
+        cur = self.page.doc.xpath('//table/caption//span/text()[starts-with(.,"Montants en ")]')[0].replace("Montants en ", "")
+        return Account.get_currency(cur)
+
+    def obj__idelco(self):
+        m = re.search('IDELCO=(\d+)&', self.page.url)
+        if m:
+            idelco = m.group(1)
+        else:
+            idelco = None
+        return idelco
+
+    def obj__perimeter(self):
+        return self.page.browser.current_perimeter
+
+
 class CardsPage(MyLoggedPage, BasePage):
     # cragr sends us this shit: <td  class="cel-texte"  >
     # Msft *<e01002ymrk,E010
@@ -397,75 +420,62 @@ class CardsPage(MyLoggedPage, BasePage):
         content = re.sub(br'\*<e[a-z\d]{9},E\d{3}', b'*', content)
         return super(CardsPage, self).build_doc(content)
 
-    def get_list(self):
-        TABLE_XPATH = '//table[caption[@class="caption tdb-cartes-caption" or @class="ca-table caption"]]'
+    @method
+    class iter_card(ListElement):
+        item_xpath = '//table[@class="ca-table"][1]'
 
-        cards_tables = self.doc.xpath(TABLE_XPATH)
+        class item(CardElement):
+            klass = Account
+            obj_type = Account.TYPE_CARD
 
-        currency = self.doc.xpath('//table/caption//span/text()[starts-with(.,"Montants en ")]')[0].replace("Montants en ", "") or None
-        if cards_tables:
-            self.logger.debug('There are several cards')
-            xpaths = {
-                '_id': './caption/span[@class="tdb-cartes-num"]',
-                'label1': './caption/span[contains(@class, "tdb-cartes-carte")]',
-                'label2': './caption/span[@class="tdb-cartes-prop"]',
-                'currency': '//table/caption//span/text()[starts-with(.,"Montants en ")]',
-                'link': './/tr//a/@href[contains(., "fwkaction=Detail")]',
-            }
-        else:
-            self.logger.debug('There is only one card')
-            xpaths = {
-                '_id': './/tr/td[@class="cel-texte"]',
-                'label1': './/tr[@class="ligne-impaire ligne-bleu"]/th',
-                'label2': './caption/span[@class="tdb-cartes-prop"]/b',
-                'currency': '//table/caption//span/text()[starts-with(.,"Montants en ")]',
-            }
-            TABLE_XPATH = '(//table[@class="ca-table"])[1]'
-            cards_tables = self.doc.xpath(TABLE_XPATH)
+            # example: 123456xxxxxx9878
+            obj_number = CleanText('.//tr[@class="ligne-impaire"]/td[@class="cel-texte"]', replace=[(' ', ''), ('n°', '')])
+            obj_id = Format('%s%s', Field('number'), CleanText('./caption/span[@class="tdb-cartes-prop"]/b', replace=[(' ', '')]))
 
-        for table in cards_tables:
-            get = lambda name: CleanText().filter(table.xpath(xpaths[name])[0])
+            # this field is needed to check if we are on the right detail page.
+            # example: 1234 56xx xxxx 9878
+            def obj__spaced_number(self):
+                return ' '.join(CleanText('.//tr[@class="ligne-impaire"]/td[@class="cel-texte"]')(self).split()[1:])
 
-            account = Account()
-            account.type = account.TYPE_CARD
-            account.number = ''.join(get('_id').split()[1:])
-            # account.number might be the same for two different cards ..
-            account.id = '%s%s' % (account.number, get('label2').replace(' ', ''))
-            account._id = ' '.join(get('_id').split()[1:])
-            account.label = '%s - %s' % (get('label1'),
-                                         re.sub('\s*-\s*$', '', get('label2')))
+            obj_label = Format('%s - %s', CleanText('.//tr[@class="ligne-impaire ligne-bleu"]/th[@id="compte-1"]'), Regexp(CleanText('./caption/span[@class="tdb-cartes-prop"]/b'), '^(.*)\s*-\s*$'))
 
-            if table.xpath('.//td[has-class("cel-num")]'):
-                if table.xpath('.//tr[@class="ligne-paire"]/td[@class="cel-num"]'):
-                    account.coming = CleanDecimal('.//tr[@class="ligne-paire"]/td[@class="cel-num"]', replace_dots=True)(table)
-                else:
-                    account.coming = Decimal('0.0')
-            else:
-                continue
+            def obj_url(self):
+                return self.page.url
 
-            account.balance = Decimal('0.0')
+    @method
+    class iter_cards(ListElement):
+        item_xpath = '//table[caption[@class="caption tdb-cartes-caption" or @class="ca-table caption"]]'
 
-            account.currency = account.get_currency(self.doc
-                        .xpath(xpaths['currency'])[0].replace("Montants en ", ""))
-            if not account.currency and currency:
-                account.currency = Account.get_currency(currency)
+        class item(CardElement):
 
-            if 'link' in xpaths:
-                try:
-                    account.url = table.xpath(xpaths['link'])[-1]
-                except IndexError:
-                    account.url = None
-                else:
-                    account.url = urljoin(self.url, re.sub('[\n\r\t]+', '', account.url))
-            else:
-                account.url = self.url
-            # deferred cards do not necessary have an idelco.
-            try:
-                account._idelco = re.search('IDELCO=(\d+)&', self.url).group(1)
-            except AttributeError:
-                pass
-            account._perimeter = self.browser.current_perimeter
-            yield account
+            def condition(self):
+                return self.el.xpath('.//tr[@class="ligne-paire"]/td[has-class("cel-num")]')
+
+            klass = Account
+            obj_type = Account.TYPE_CARD
+
+            # example: 123456xxxxxx9878
+            obj_number = CleanText('./caption/span[@class="tdb-cartes-num"]', replace=[(' ', ''), ('n°', '')])
+
+            obj_id = Format('%s%s', Field('number'), CleanText('./caption/span[@class="tdb-cartes-prop"]', replace=[(' ', '')]))
+
+            # this field is needed to check if we are on the right detail page
+            # example: 1234 56xx xxxx 9878
+            def obj__spaced_number(self):
+                return ' '.join(CleanText('./caption/span[@class="tdb-cartes-num"]')(self).split())
+
+            obj_label = Format('%s - %s', CleanText('./caption/span[contains(@class, "tdb-cartes-carte")]'), Regexp(CleanText('./caption/span[@class="tdb-cartes-prop"]'), '^(.*)\s*$'))
+
+            def obj_url(self):
+                link = Link('.//tr[@class="ligne-paire"]//a')(self)
+                return urljoin(self.page.url, re.sub('[\n\r\t]+', '', link))
+
+
+
+    def several_cards(self):
+        if self.doc.xpath('//table[caption[@class="caption tdb-cartes-caption" or @class="ca-table caption"]]'):
+            return True
+        return False
 
     def order_transactions(self):
         pass
@@ -534,7 +544,7 @@ class CardsPage(MyLoggedPage, BasePage):
 
     def is_on_right_detail(self, account):
         return len(self.doc.xpath(u'//h1[contains(text(), "Cartes - détail")]')) and\
-               len(self.doc.xpath(u'//td[contains(text(), $number)] | //td[contains(text(), $id)] ', number=account.number, id=account._id))
+               len(self.doc.xpath(u'//td[contains(text(), $number)] | //td[contains(text(), $id)] ', number=account.number, id=account._spaced_number))
 
 
 class AccountsPage(_AccountsPage):
@@ -556,11 +566,25 @@ class AccountsPage(_AccountsPage):
             accounts_page = self.browser.open(self.browser.accounts_url.format(self.browser.sag)).page
             account._form = accounts_page.history_form(form_name)
 
+<<<<<<< HEAD
             if use_link:
                 page = self.browser.open(account._form.request).page
                 account._form = None
         else:
             account.url = urljoin(self.url, a.attrib['href'].replace(' ', '%20'))
+=======
+            def condition(self):
+                return self.el.xpath('./td[contains(@class, "cel-texte")]')
+
+            obj_label = CleanText('./td[1]')
+            obj_id = CleanText('./td[2]')
+
+            def obj_balance(self):
+                td = TableCellSpan('balance_op', default=NotAvailable)(self)
+                if td:
+                    return MyDecimal(td, default=NotAvailable)(self)
+                return MyDecimal(TableCellSpan('balance_value'), default=NotAvailable)(self)
+>>>>>>> 5a32f4c0b... better card
 
             if use_link:
                 page = self.browser.open(account.url).page
