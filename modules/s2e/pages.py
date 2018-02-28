@@ -145,7 +145,7 @@ class LoginPage(HTMLPage):
 
             # sending mail with code
             form.submit()
-            raise BrowserQuestion(Value('otp', label=u'Veuillez saisir votre code de sécurité'))
+            raise BrowserQuestion(Value('otp', label=u'Veuillez saisir votre code de sécurité (reçu par mail ou par sms)'))
 
         send_code_form = bool(self.doc.xpath('//form[.//div[has-class("authentification-bloc-content-btn-bloc")]]'))
         # TODO move this code in browser
