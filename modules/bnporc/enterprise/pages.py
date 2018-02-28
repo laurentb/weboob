@@ -213,6 +213,10 @@ class BnpHistoryItem(ItemElement):
 
 class CardItemElement(ItemElement):
     def load_details(self):
+        # to avoid loading coming details
+        if Field('_coming')(self):
+            return
+
         if not Field('raw')(self).startswith('FACTURE CARTE'):
             return
 
@@ -224,6 +228,10 @@ class CardItemElement(ItemElement):
 
     def obj__redacted_card(self):
         raw = Field('raw')(self)
+        # loading coming details is not necessary here
+        if Field('_coming')(self):
+            return
+
         if not raw.startswith('FACTURE CARTE') or ' SUIVANT RELEVE DU ' in raw:
             return
 
@@ -317,6 +325,8 @@ class AccountHistoryPage(LoggedPage, JsonPage):
             klass = Transaction
 
             detail_type_mvt = 2
+
+            obj__coming = True
 
             obj_date = Date(Dict('dateOpeMvmt'))
             obj_rdate = Date(Dict('dateCreatMvmt'))
