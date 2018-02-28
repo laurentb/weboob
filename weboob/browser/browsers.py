@@ -36,6 +36,7 @@ from copy import deepcopy
 import inspect
 from datetime import datetime, timedelta
 from dateutil import parser
+from threading import Lock
 
 try:
     import requests
@@ -118,6 +119,7 @@ class Browser(object):
         self.logger = getLogger('browser', logger)
         self.responses_dirname = responses_dirname
         self.responses_count = 1
+        self.responses_count_lock = Lock()
 
         if isinstance(self.VERIFY, basestring):
             self.VERIFY = self.asset(self.VERIFY)
@@ -151,11 +153,15 @@ class Browser(object):
             # try to get an extension (and avoid adding 'None')
             ext = mimetypes.guess_extension(mimetype, False) or ''
 
+        with self.responses_count_lock:
+            counter = self.responses_count
+            self.responses_count += 1
+
         path = re.sub(r'[^A-z0-9\.-_]+', '_', urlparse(response.url).path.rpartition('/')[2])[-10:]
         if path.endswith(ext):
             ext = ''
         filename = '%02d-%d%s%s%s' % \
-            (self.responses_count, response.status_code, '-' if path else '', path, ext)
+            (counter, response.status_code, '-' if path else '', path, ext)
 
         response_filepath = os.path.join(self.responses_dirname, filename)
 
@@ -180,7 +186,6 @@ class Browser(object):
         with open(match_filepath, 'a') as f:
             f.write('# %d %s %s\n' % (response.status_code, response.reason, response.headers.get('Content-Type', '')))
             f.write('%s\t%s\n' % (response.url, filename))
-        self.responses_count += 1
 
         msg = u'Response saved to %s' % response_filepath
         if warning:
