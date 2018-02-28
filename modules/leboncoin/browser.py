@@ -62,6 +62,7 @@ class LeboncoinBrowser(PagesBrowser):
             return TypeNotSupported()
 
         type, cities, nb_rooms, area_min, area_max, cost_min, cost_max, ret, furn = self.decode_query(query, module_name)
+
         if len(cities) == 0 or len(ret) == 0:
             return list()
 

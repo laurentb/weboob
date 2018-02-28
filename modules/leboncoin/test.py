@@ -37,14 +37,7 @@ class LeboncoinTest(BackendTest):
             20
         ))
         self.assertTrue(len(results) > 0)
-
-        #self.assertTrue(any(
-        #    x.house_type in [
-        #        str(y) for y in query.house_types
-        #    ] for x in results
-        #))
         self.assertTrue(any(x.photos for x in results))
-        #self.assertTrue(any(x.rooms for x in results))
 
         for x in results:
             self.assertTrue(x.date)
@@ -77,8 +70,8 @@ class LeboncoinTest(BackendTest):
         self.assertTrue(housing.url)
         for photo in housing.photos:
             self.assertRegexpMatches(photo.url, r'^http(s?)://')
-        #self.assertTrue(housing.photos)
-        self.assertTrue(housing.details.keys())
+        # self.assertTrue(housing.photos)
+        # self.assertTrue(housing.details.keys())
         # No tests for DPE, GES, rooms
 
     def test_leboncoin_rent(self):

@@ -20,10 +20,10 @@ from __future__ import unicode_literals
 
 from weboob.browser.pages import HTMLPage, pagination, JsonPage
 from weboob.browser.elements import ItemElement, ListElement, method
-from weboob.browser.filters.standard import (CleanText, Currency, Regexp,
+from weboob.capabilities.base import Currency as BaseCurrency
+from weboob.browser.filters.standard import (CleanText, Regexp, Currency,
                                              CleanDecimal, Env, DateTime,
-                                             BrowserURL, Format, Join)
-from weboob.browser.filters.javascript import JSVar
+                                             Format, Join)
 from weboob.browser.filters.html import Attr, Link, XPath
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.housing import (City, Housing, HousingPhoto,
@@ -32,12 +32,11 @@ from weboob.capabilities.housing import (City, Housing, HousingPhoto,
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 from weboob.tools.date import DATE_TRANSLATE_FR, LinearDateGuesser
-from weboob.tools.compat import unicode
 
 from decimal import Decimal
 from datetime import date, timedelta
-import re
 from lxml import etree
+import json
 
 
 class CityListPage(HTMLPage):
@@ -185,12 +184,15 @@ class HousingListPage(HTMLPage):
 
 class HousingPage(HTMLPage):
 
-    ENCODING = 'iso-8859-1'
+    def __init__(self, *args, **kwargs):
+        HTMLPage.__init__(self, *args, **kwargs)
 
-    def get_api_key(self):
-        return JSVar(CleanText('//script'),
-                     var='apiKey',
-                     default=None)(self.doc)
+        add_content = CleanText('(//body/script)[3]', replace=[('window.FLUX_STATE = ', '')])(self.doc)
+
+        api_content = CleanText('(//body/script)[2]', replace=[('window.APP_CONFIG = ', '')])(self.doc)
+
+        self.api_content = json.loads(api_content)
+        self.doc = json.loads(add_content)
 
     @method
     class get_housing(ItemElement):
@@ -202,14 +204,14 @@ class HousingPage(HTMLPage):
             self.env['GES'] = NotAvailable
             self.env['DPE'] = NotAvailable
             self.env['typeBien'] = NotAvailable
-            for item in el.xpath('//div[@class="line"]/h2'):
-                property = CleanText('./span[@class="property"]')(item)
-                if 'Surface' in property:
-                    self.env['area'] = CleanDecimal(Regexp(CleanText('./span[@class="value"]'), '(.*)m.*'),
-                                                    replace_dots=(',', '.'))(item)
+            self.env['utilities'] = UTILITIES.UNKNOWN
 
-                elif 'Type de bien' in property:
-                    value = CleanText('./span[@class="value"]')(item).lower()
+            for item in Dict('adview/attributes')(self):
+                key = item['key']
+                value = item['value_label']
+
+                if key == u'real_estate_type':
+                    value = value.lower()
                     if value == 'parking':
                         self.env['typeBien'] = HOUSE_TYPES.PARKING
                     elif value == 'appartement':
@@ -220,33 +222,63 @@ class HousingPage(HTMLPage):
                         self.env['typeBien'] = HOUSE_TYPES.LAND
                     else:
                         self.env['typeBien'] = HOUSE_TYPES.OTHER
-                elif 'Meublé' in property:
-                    value = CleanText('./span[@class="value"]')(item).lower()
-                    self.env['isFurnished'] = (value == 'meublé')
-                else:
-                    key = u'%s' % CleanText('./span[@class="property"]')(item)
-                    if 'GES' in key or 'Classe' in key:
-                        if 'Classe' in key:
-                            key = 'DPE'
-
-                        value = (
-                            CleanText('./span[@class="value"]')(item).strip()
-                        )
-                        if len(value):
-                            self.env[key] = getattr(ENERGY_CLASS, value[0],
-                                            NotAvailable)
+                elif key == u'rooms':
+                    self.env['rooms'] = value
+                elif key == u'square':
+                    self.env['area'] = Decimal(item['value'])
+                elif key == u'ges':
+                    self.env['GES'] = value
+                elif key == u'energy_rate':
+                    self.env['DPE'] = getattr(ENERGY_CLASS, item['value'].upper() ,NotAvailable)
+                elif key == u'furnished':
+                    self.env['isFurnished'] = (value == u'meublé')
+                elif key == u'charges_included':
+                    if value == "Oui":
+                        self.env['utilities'] = UTILITIES.INCLUDED
                     else:
-                        details[key] = CleanText('./span[@class="value"]')(item)
+                        self.env['utilities'] = UTILITIES.EXCLUDED
+                elif 'key_label' in item:
+                        details[item['key_label']] = value
 
             self.env['details'] = details
 
         obj_id = Env('_id')
+        obj_area = Env('area')
+        obj_details = Env('details')
+        obj_GES = Env('GES')
+        obj_DPE = Env('DPE')
+        obj_house_type = Env('typeBien')
+        obj_utilities = Env('utilities')
+        obj_title = Dict('adview/subject')
+        obj_cost = CleanDecimal(Dict('adview/price/0'), default=Decimal(0))
+        obj_currency = BaseCurrency.get_currency(u'€')
+        obj_text = Dict('adview/body')
+        obj_location = Dict('adview/location/city_label')
+        obj_type = POSTS_TYPES.SALE
+
+        def obj_advert_type(self):
+            line_pro = Dict('adview/owner/type')(self)
+            if line_pro == u'pro':
+                return ADVERT_TYPES.PROFESSIONAL
+            else:
+                return ADVERT_TYPES.PERSONAL
+
+        obj_price_per_meter = PricePerMeterFilter()
+        obj_url = Dict('adview/url')
+
+        obj_date = DateTime(Dict('adview/first_publication_date'))
+
+        def obj_photos(self):
+            photos = []
+            for img in Dict('adview/images/urls_large')(self):
+                photos.append(HousingPhoto(img))
+            return photos
 
         def obj_type(self):
-            breadcrumb = Link('(//nav[has-class("breadcrumbsNav")]//a)[last()]')(self)
-            if 'colocations' in breadcrumb:
+            breadcrumb = Dict('adview/category_id')(self)
+            if breadcrumb == 11:
                 return POSTS_TYPES.SHARING
-            elif 'locations' in breadcrumb:
+            elif breadcrumb == 10:
                 if self.env['isFurnished']:
                     return POSTS_TYPES.FURNISHED_RENT
                 else:
@@ -254,76 +286,10 @@ class HousingPage(HTMLPage):
             else:
                 return POSTS_TYPES.SALE
 
-        def obj_advert_type(self):
-            line_pro = XPath('.//span[has-class("ispro")]', default=None)(self)
-            if line_pro:
-                return ADVERT_TYPES.PROFESSIONAL
-            else:
-                return ADVERT_TYPES.PERSONAL
-
-        obj_house_type = Env('typeBien')
-
-        obj_title = CleanText('//h1[@itemprop="name"]')
-        obj_cost = CleanDecimal('//h2[@itemprop="price"]/@content', default=Decimal(0))
-
-        obj_currency = Currency(
-            '//h2[@itemprop="price"]/span[@class="value"]'
-        )
-
-        def obj_utilities(self):
-            utilities = Regexp(
-                CleanText(
-                    '//h2[@itemprop="price"]/span[@class="value"]'
-                ),
-                '.*[%s%s%s](.*)' % (u'€', u'$', u'£'),
-                default=u''
-            )(self)
-            if "C.C." in utilities:
-                return UTILITIES.INCLUDED
-            elif "H.C." in utilities:
-                return UTILITIES.EXCLUDED
-            else:
-                return UTILITIES.UNKNOWN
-
-        obj_DPE = Env('DPE')
-        obj_GES = Env('GES')
-
-        obj_text = CleanText('//p[@itemprop="description"]')
-        obj_location = CleanText('//span[@itemprop="address"]')
-        obj_details = Env('details')
-
-        def obj_rooms(self):
-            rooms = self.env["details"].get(u"Pièces", None)
-            return Decimal(rooms) if rooms else NotAvailable
-
-        obj_area = Env('area')
-        obj_price_per_meter = PricePerMeterFilter()
-        obj_url = BrowserURL('housing', _id=Env('_id'))
-
-        def obj_date(self):
-            _date = Regexp(CleanText('//p[has-class("line")]', replace=[(u'à', '')]),
-                           '.*Mise en ligne le (.*)')(self)
-
-            for fr, en in DATE_TRANSLATE_FR:
-                _date = fr.sub(en, _date)
-
-            self.env['tmp'] = _date
-            return DateTime(Env('tmp'), LinearDateGuesser())(self)
-
-        def obj_photos(self):
-            items = re.findall(r'images\[\d\]\s*=\s*"([\w:\/\.-]*\.jpg)";',
-                               CleanText('//script')(self))
-            photos = [HousingPhoto(unicode(item)) for item in items]
-            if not photos:
-                img = CleanText('//meta[@itemprop="image"]/@content',
-                                default=None)(self)
-                if img:
-                    photos.append(HousingPhoto(img))
-
-            return photos
+    def get_api_key(self):
+        return Dict('API/KEY_JSON')(self.api_content)
 
 
-# TODO
 class PhonePage(JsonPage):
     def get_phone(self):
         if Dict('utils/status')(self.doc) == u'OK':
