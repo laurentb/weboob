@@ -305,10 +305,12 @@ class Cragr(LoginBrowser, StatesMixin):
                 self.location(updated_account.url)
             elif account._form:
                 self.location(updated_account._form.request)
-            iban_url = self.page.get_iban_url()
-            if iban_url:
-                self.location(iban_url)
-                account.iban = self.page.get_iban()
+
+            if updated_account.url or updated_account._form:
+                iban_url = self.page.get_iban_url()
+                if iban_url:
+                    self.location(iban_url)
+                    account.iban = self.page.get_iban()
 
         # credit cards
         # reseting location in case of pagination

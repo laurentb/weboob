@@ -273,9 +273,9 @@ class AccountsPage(MyLoggedPage, BasePage):
 
             def obj__form(self):
                 td = TableCell('id')(self)
-                a = Link('.//a')(td[0])
+                a = Link('.//a', default=None)(td[0])
                 form = None
-                if a.startswith('javascript:'):
+                if a and a.startswith('javascript:'):
                     form_name = re.search(r'frm\d+', a).group(0)
                     form = self.page.history_form(form_name)
                 return form
@@ -283,8 +283,8 @@ class AccountsPage(MyLoggedPage, BasePage):
             def obj_url(self):
                 url = None
                 td = TableCell('id')(self)
-                a = Link('.//a')(td[0])
-                if not a.startswith('javascript:'):
+                a = Link('.//a', default=None)(td[0])
+                if a and not a.startswith('javascript:'):
                     url = urljoin(self.url, a.replace(' ', '%20'))
                     url = re.sub('sessionSAG=[^&]+', 'sessionSAG={0}', url)
                 return url
