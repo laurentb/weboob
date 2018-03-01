@@ -28,7 +28,7 @@ __all__ = ['CuisineazBrowser']
 
 class CuisineazBrowser(PagesBrowser):
 
-    BASEURL = 'http://www.cuisineaz.com'
+    BASEURL = 'https://www.cuisineaz.com'
     TIMEOUT = 20
     search = URL('recettes/recherche_v2.aspx\?recherche=(?P<pattern>.*)', ResultsPage)
     recipe = URL('recettes/(?P<_id>.*).aspx', RecipePage)
