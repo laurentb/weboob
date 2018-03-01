@@ -35,7 +35,10 @@ class BinckBrowser(LoginBrowser):
 
     login = URL('/Logon', LoginPage)
     logon_flow = URL('/AmlQuestionnairesOverview/LogonFlow$', LogonFlowPage)
-    accounts = URL('/AccountsOverview', '/$', AccountsPage)
+    accounts = URL('/AccountsOverview',
+                   '/$',
+                   '/Home/Index',
+                   AccountsPage)
     investment = URL('/PortfolioOverview/GetPortfolioOverview', InvestmentPage)
     history = URL('/TransactionsOverview/GetTransactions',
                   '/TransactionsOverview/FilteredOverview', HistoryPage)
