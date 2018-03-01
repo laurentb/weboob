@@ -101,14 +101,17 @@ class Barclays(LoginBrowser):
         return not any(a for a in accounts if a.id in self.cache['history'])
 
     def do_login(self):
-        self.login.go().login(self.username, self.password)
+        self.login.go()
+        self.page.login(self.username, self.password)
 
         if self.page.has_error():
             raise BrowserIncorrectPassword()
 
         self.login_client_acess.open()
 
-        self.page.login_secret(self.secret)
+        # can't login if there is ' ' in the 2 characters asked
+        if not self.page.login_secret(self.secret):
+            self.do_login()
 
         if self.login.is_here():
             raise BrowserIncorrectPassword()

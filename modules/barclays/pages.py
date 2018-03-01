@@ -86,12 +86,15 @@ class LoginPage(HTMLPage):
         letters = ''
         for n in re.findall('(\d+)', label):
             letters += secret[int(n) - 1]
-        form = self.get_form(id='form1')
 
+        if ' ' in letters:
+            return False
+
+        form = self.get_form(id='form1')
         form['MODE'] = 'C1____09AE2D522D145CD3 FormButton 29'
         form['C1__IOPARAMETERWS[1].INPUTPARAMETER[1].LETTERSSECSUP'] = letters
-
         form.submit()
+        return True
 
     def has_error(self):
         return bool(CleanText('//div[@class="bloc-message error" and not(@style)]')(self.doc))
