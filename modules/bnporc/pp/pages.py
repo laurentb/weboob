@@ -610,7 +610,7 @@ class AddRecipPage(BNPPage):
     def on_load(self):
         code = cast(self.get('codeRetour'), int)
         if code:
-            raise AddRecipientError(self.get('message'))
+            raise AddRecipientError(message=self.get('message'))
 
     def get_recipient(self, recipient):
         r = Recipient()
