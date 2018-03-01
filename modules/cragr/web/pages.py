@@ -621,8 +621,6 @@ class LoansPage(AccountsPage):
                             return MyDate().filter(m.group(1))
                     return NotAvailable
 
-                obj_rate = MyDecimal('//div[@id="trPagePu"]//td[contains(., "Taux")]', default=NotAvailable)
-
                 def obj_duration(self):
                     if self.env['details']:
                         return MyDecimal(Regexp(CleanText(
@@ -638,7 +636,7 @@ class LoansPage(AccountsPage):
 
                 def obj_rate(self):
                     if self.env['details']:
-                        return MyDecimal('//div[@id="trPagePu"]//td[contains(., "Taux")]')(self.env['details'].doc)
+                        return MyDecimal('//div[@id="trPagePu"]//tr[contains(@class, "ligne")]/td[contains(., "Taux")]', default=NotAvailable)(self.env['details'].doc)
 
                 def obj_type(self):
                     if Field('available_amount')(self):
