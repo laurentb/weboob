@@ -429,13 +429,13 @@ class CardsPage(MyLoggedPage, BasePage):
             obj_type = Account.TYPE_CARD
 
             # example: 123456xxxxxx9878
-            obj_number = CleanText('.//tr[@class="ligne-impaire"]/td[@class="cel-texte"]', replace=[(' ', ''), ('n°', '')])
+            obj_number = CleanText('.//tr[@class="ligne-impaire"]/td[@class="cel-texte"][1]', replace=[(' ', ''), ('n°', '')])
             obj_id = Format('%s%s', Field('number'), CleanText('./caption/span[@class="tdb-cartes-prop"]/b', replace=[(' ', '')]))
 
             # this field is needed to check if we are on the right detail page.
             # example: 1234 56xx xxxx 9878
             def obj__spaced_number(self):
-                return ' '.join(CleanText('.//tr[@class="ligne-impaire"]/td[@class="cel-texte"]')(self).split()[1:])
+                return ' '.join(CleanText('.//tr[@class="ligne-impaire"]/td[@class="cel-texte"][1]')(self).split()[1:])
 
             obj_label = Format('%s - %s', CleanText('.//tr[@class="ligne-impaire ligne-bleu"]/th[@id="compte-1"]'), Regexp(CleanText('./caption/span[@class="tdb-cartes-prop"]/b'), '^(.*)\s*-\s*$'))
 
@@ -449,7 +449,7 @@ class CardsPage(MyLoggedPage, BasePage):
         class item(CardElement):
 
             def condition(self):
-                return self.el.xpath('.//tr[@class="ligne-paire"]/td[has-class("cel-num")]')
+                return self.el.xpath('.//tr[contains(@class, "ligne")]/td[has-class("cel-num")]')
 
             klass = Account
             obj_type = Account.TYPE_CARD
