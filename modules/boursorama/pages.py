@@ -106,6 +106,8 @@ class Transaction(FrenchTransaction):
                                                             FrenchTransaction.TYPE_CARD),
                 (re.compile(r'^(?P<text>.+)?(ACHAT|PAIEMENT) CARTE (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{4}) (?P<text2>.*)'),
                                                             FrenchTransaction.TYPE_CARD),
+                (re.compile(r'^(?P<text>.+)?((ACHAT|PAIEMENT)\s)?CARTE (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{4}) (?P<text2>.*)'),
+                                                            FrenchTransaction.TYPE_DEFERRED_CARD),
                 (re.compile('^(PRLV SEPA |PRLV |TIP )(?P<text>.*)'),
                                                             FrenchTransaction.TYPE_ORDER),
                 (re.compile('^RETRAIT DAB (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (?P<text>.*)'),
@@ -417,7 +419,7 @@ class CardHistoryPage(LoggedPage, CsvPage):
                 return Date(dayfirst=True, default=NotAvailable).filter('%s%s%s%s%s' % (s[:2], '-', s[2:4], '-', s[4:]))
 
             def obj_type(self):
-                if 'PAIEMENT CARTE' in self.obj.raw:
+                if 'CARTE' in self.obj.raw:
                     return Transaction.TYPE_DEFERRED_CARD
                 return self.obj.type
 
