@@ -24,8 +24,8 @@ from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement
 from weboob.browser.filters.standard import CleanText, Upper, Date, Regexp, Field, \
                                             CleanDecimal, Env, Async, AsyncLoad, Currency
-from weboob.browser.filters.html import Link, TableCell
-from weboob.capabilities.bank import Account, Investment
+from weboob.browser.filters.html import Link, TableCell, Attr
+from weboob.capabilities.bank import Account, Investment, Pocket
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.exceptions import ActionNeeded
@@ -52,6 +52,9 @@ class AccountsPage(LoggedPage, HTMLPage):
     def get_investment_link(self):
         return Link('//a[contains(text(), "Par fonds")][contains(@href,"GoPositionsParFond")]', default=None)(self.doc)
 
+    def get_pocket_link(self):
+        return Link('//a[contains(@href,"GoCCB")]')(self.doc)
+
     @method
     class iter_accounts(ListElement):
         class item(ItemElement):
@@ -70,7 +73,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                 return Currency().filter(CleanText('//table[@class="fiche"]//td/small')(self))
 
 
-class InvestmentPage(LoggedPage, HTMLPage):
+class FCPEInvestmentPage(LoggedPage, HTMLPage):
     @method
     class iter_investment(ListElement):
         item_xpath = '//tr[td[contains(text(), "total")]]'
@@ -83,6 +86,53 @@ class InvestmentPage(LoggedPage, HTMLPage):
             obj_unitvalue = MyDecimal('./preceding-sibling::tr[td[6]][1]/td[3]')
             obj_valuation = MyDecimal('./td[last()]')
             obj_vdate = Date(Regexp(CleanText(u'//p[contains(text(), "financière au ")]'), 'au[\s]+(.*)'), dayfirst=True)
+
+
+class CCBInvestmentPage(LoggedPage, HTMLPage):
+    def iter_investment(self):
+        el_list = self.doc.xpath('//table[@class="liste"]/tbody/tr')
+
+        for index, el in enumerate(el_list):
+            try:
+                rowspan = int(Attr(el.xpath('./td[has-class("g")]'), 'rowspan')(self))
+            except:
+                continue
+
+            inv = Investment()
+            inv.label = CleanText(el.xpath('./td[has-class("g")]'))(self.doc)
+            inv.valuation = MyDecimal(el.xpath('./td[last()]'))(self.doc)
+            i = 1
+            while i < rowspan:
+                # valuation is not directly written on website, but it's separated by pocket, so we compute it here,
+                # and is also written in footer so it's sum of all valuation, not just one
+                inv.valuation += MyDecimal(el_list[index+i].xpath('./td[last()]'))(self.doc)
+                i += 1
+
+            yield inv
+
+    @method
+    class iter_pocket(ListElement):
+        item_xpath = '//table[@class="liste"]/tbody/tr'
+
+        class item(ItemElement):
+            klass = Pocket
+
+            def parse(self, obj):
+                label = CleanText('./td[has-class("g")]')(self)
+                if not label:
+                    label = CleanText('./preceding-sibling::tr/td[has-class("g")]')(self)
+                    availability_date = Date(Regexp(CleanText('./td[1]'), 'au[\s]+(.*)'), dayfirst=True)(self)
+                else:
+                    availability_date = Date(Regexp(CleanText('./td[2]'), 'au[\s]+(.*)'), dayfirst=True)(self)
+
+                self.env['label'] = label
+                self.env['availability_date'] = availability_date
+
+            obj_label = Env('label')
+            obj_amount = MyDecimal('./td[last()]')
+            obj_availability_date = Env('availability_date')
+            obj_condition = Pocket.CONDITION_DATE
+            obj_investment = Env('inv')
 
 
 class Transaction(FrenchTransaction):

@@ -21,13 +21,14 @@
 from weboob.exceptions import  BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
 
-from .pages import LoginPage, AccountsPage, InvestmentPage, HistoryPage
+from .pages import LoginPage, AccountsPage, FCPEInvestmentPage, CCBInvestmentPage, HistoryPage
 
 
 class CmesBrowser(LoginBrowser):
     login = URL('(?P<subsite>.*)fr/identification/default.cgi', LoginPage)
     accounts = URL('(?P<subsite>.*)fr/espace/devbavoirs.aspx\?mode=net&menu=cpte$', AccountsPage)
-    investment = URL('(?P<subsite>.*)fr/.*GoPositionsParFond.*', InvestmentPage)
+    fcpe_investment = URL('(?P<subsite>.*)fr/.*GoPositionsParFond.*', FCPEInvestmentPage)
+    ccb_investment = URL('(?P<subsite>.*)fr/.*GoCCB.*', CCBInvestmentPage)
     history = URL('(?P<subsite>.*)fr/espace/devbavoirs.aspx\?mode=net&menu=cpte&page=operations',
                   '(?P<subsite>.*)fr/.*GoOperationsTraitees',
                   '(?P<subsite>.*)fr/.*GoOperationDetails', HistoryPage)
@@ -51,10 +52,29 @@ class CmesBrowser(LoginBrowser):
 
     @need_login
     def iter_investment(self, account):
-        link = self.accounts.stay_or_go(subsite=self.subsite).get_investment_link()
-        if link:
-            return self.location(link).page.iter_investment()
-        return iter([])
+        fcpe_link = self.accounts.stay_or_go(subsite=self.subsite).get_investment_link()
+        ccb_link = self.page.get_pocket_link()
+
+        if fcpe_link or ccb_link:
+            return self._iter_investment(fcpe_link, ccb_link)
+        else:
+            return []
+
+    def _iter_investment(self, fcpe_link, ccb_link):
+        if fcpe_link:
+            for inv in self.location(fcpe_link).page.iter_investment():
+                yield inv
+
+        if ccb_link:
+            for inv in self.location(ccb_link).page.iter_investment():
+                yield inv
+
+    @need_login
+    def iter_pocket(self, account):
+        ccb_link = self.accounts.stay_or_go(subsite=self.subsite).get_pocket_link()
+        for inv in self.location(ccb_link).page.iter_investment():
+            for poc in self.page.iter_pocket(inv=inv):
+                yield poc
 
     @need_login
     def iter_history(self, account):
