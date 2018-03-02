@@ -70,6 +70,7 @@ class HSBC(LoginBrowser):
     appGone =     URL(r'/.*_absente.html',
                       r'/pm_absent_inter.html',
                       '/appli_absente_MBEL.html',
+                      '/pm_absent_inter_MBEL.html',
                         AppGonePage)
     rib =             URL(r'/cgi-bin/emcgi', RibPage)
     accounts =        URL(r'/cgi-bin/emcgi', AccountsPage)

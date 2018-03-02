@@ -13,7 +13,7 @@ from weboob.capabilities.bank import Account, Investment
 from weboob.browser.elements import ItemElement, DictElement, method
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
 from weboob.browser.filters.standard import (
-    CleanText, CleanDecimal, Regexp, Eval, Currency
+    CleanText, CleanDecimal, Regexp, Currency
 )
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.javascript import JSVar
@@ -292,7 +292,11 @@ class RetrieveAccountsPage(LoggedPage, JsonPage):
             klass = Account
 
             def condition(self):
-                return len(Dict('accountListInformation')(self)) == 1
+                # Insurance life invest is on life insurance page
+                # Loan don't have invest
+                account_type_to_avoid = ("INVSTLKDINSURANCE", "LOANMORTGAGE", "NONINVSTLINKEDINSURANCE")
+                return (len(Dict('accountListInformation')(self)) == 1 and
+                       not bool(Dict('dashboardAccountSubGroupIdentifier')(self) in account_type_to_avoid))
 
             def obj_type(self):
                 return self.parent.TYPE_ACCOUNTS.get(Dict(
@@ -331,10 +335,14 @@ class RetrieveInvestmentsPage(LoggedPage, JsonPage):
             obj_code = CleanText(Dict('productIdInformation/0/productAlternativeNumber'))
             obj_code_type = Investment.CODE_TYPE_ISIN
             obj_quantity = CleanDecimal(Dict('holdingDetailInformation/0/productHoldingQuantityCount'))
-            obj_vdate = Eval(
-                lambda x: datetime.datetime.fromtimestamp(x // 1000),
-                Dict('holdingDetailInformation/0/productPriceUpdateDate')
-            )
+
+            def obj_vdate(self):
+                vdate = Dict('holdingDetailInformation/0/productPriceUpdateDate')(self)
+                # vdate can be 'None'
+                if vdate:
+                    return datetime.datetime.fromtimestamp(int(vdate)/1000).date()
+                return NotAvailable
+
             obj_diff = CleanDecimal(Dict(
                 'holdingDetailInformation/0/holdingDetailMultipleCurrencyInformation/0/profitLossUnrealizedAmount'
             ), default=NotAvailable)
@@ -350,6 +358,7 @@ class RetrieveInvestmentsPage(LoggedPage, JsonPage):
                 '/profitLossUnrealizedPercent'
             ), default=NotAvailable)
             obj_portfolio_share = NotAvailable  # must be computed from the sum of iter_investments
+
             def obj_original_currency(self):
                 currency_text = Dict('holdingDetailInformation/0/holdingDetailMultipleCurrencyInformation/1/currencyProductHoldingBookValueAmountCode')(self)
                 if currency_text:
@@ -389,6 +398,7 @@ class RetrieveLiquidityPage(LoggedPage, JsonPage):
             def condition(self):
                 return Dict('productTypeCode')(self) == 'INVCASH'
 
+            obj_id = CleanText(Dict('productAlternativeNumber'))
             obj_label = CleanText(Dict('productShortName'))
             obj_balance = CleanDecimal(
                 Dict(
