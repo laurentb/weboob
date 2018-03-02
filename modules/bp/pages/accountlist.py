@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from io import BytesIO
 import re
@@ -155,10 +156,12 @@ class AccountList(LoggedPage, MyHTMLPage):
     @method
     class iter_revolving_loans(ListElement):
         item_xpath = '//div[@class="bloc Tmargin"]//dl'
+
         class item_account(ItemElement):
             klass = Loan
 
             obj_id = CleanText('./dd[1]//em')
+            obj_label = 'Crédit renouvelable'
             obj_total_amount = MyDecimal('./dd[2]/span')
             obj_used_amount = MyDecimal('./dd[3]/span')
             obj_available_amount = MyDecimal('./dd[4]//em')
