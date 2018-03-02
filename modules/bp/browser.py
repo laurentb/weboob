@@ -272,7 +272,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
             return self.linebourse.iter_history(account.id)
 
         if account.type == Account.TYPE_LOAN:
-            return
+            return []
 
         if account.type == Account.TYPE_CARD:
             return (tr for tr in self.iter_card_transactions(account) if not tr._coming)
