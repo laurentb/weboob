@@ -467,10 +467,15 @@ class CardsPage(MyLoggedPage, BasePage):
             obj_label = Format('%s - %s', CleanText('./caption/span[contains(@class, "tdb-cartes-carte")]'), Regexp(CleanText('./caption/span[@class="tdb-cartes-prop"]'), '^(.*)\s*$'))
 
             def obj_url(self):
-                link = Link('.//tr[@class="ligne-paire"]//a')(self)
-                return urljoin(self.page.url, re.sub('[\n\r\t]+', '', link))
+                # "paire" is for the coming month
+                link = Link('.//tr[@class="ligne-paire"]//a[text()="Carte"]', default=None)(self)
+                if link is None:
+                    # but sometimes only the history month is present
+                    link = Link('.//tr[@class="ligne-impaire"]//a[text()="Carte"]')(self)
 
-
+                link = urljoin(self.page.url, re.sub(r'\s+', '', link))
+                link = re.sub(r'sessionSAG=[^&]+', r'sessionSAG={0}', link)
+                return link
 
     def several_cards(self):
         return bool(self.doc.xpath('//table[caption[@class="caption tdb-cartes-caption" or @class="ca-table caption"]]'))
