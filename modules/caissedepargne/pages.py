@@ -166,7 +166,7 @@ class IndexPage(LoggedPage, HTMLPage):
                     }
 
     def build_doc(self, content):
-        content = content.strip('\x00')
+        content = content.strip(b'\x00')
         return super(IndexPage, self).build_doc(content)
 
     def on_load(self):
