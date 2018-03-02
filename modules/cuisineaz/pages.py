@@ -85,15 +85,15 @@ class RecipePage(HTMLPage):
                                    CleanText('//img[@id="shareimg" and @src!=""]/@src', default=None))
 
         def obj_preparation_time(self):
-            _prep = CuisineazDuration(CleanText('//span[@id="ctl00_ContentPlaceHolder_LblRecetteTempsPrepa"]'))(self)
+            _prep = CuisineazDuration(CleanText('//span[@id="ContentPlaceHolder_LblRecetteTempsPrepa"]'))(self)
             return int(_prep.total_seconds() / 60)
 
         def obj_cooking_time(self):
-            _cook = CuisineazDuration(CleanText('//span[@id="ctl00_ContentPlaceHolder_LblRecetteTempsCuisson"]'))(self)
+            _cook = CuisineazDuration(CleanText('//span[@id="ContentPlaceHolder_LblRecetteTempsCuisson"]'))(self)
             return int(_cook.total_seconds() / 60)
 
         def obj_nb_person(self):
-            nb_pers = CleanText('//span[@id="ctl00_ContentPlaceHolder_LblRecetteNombre"]')(self)
+            nb_pers = CleanText('//span[@id="ContentPlaceHolder_LblRecetteNombre"]')(self)
             return [nb_pers] if nb_pers else NotAvailable
 
         def obj_ingredients(self):
