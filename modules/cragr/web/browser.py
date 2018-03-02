@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 import re
 import hashlib
 from html2text import unescape
@@ -566,6 +568,11 @@ class Cragr(LoginBrowser, StatesMixin):
     @need_login
     def iter_transfer_recipients(self, account):
         self.transfer_init_page.go(sag=self.sag)
+
+        if self.page.get_error() == 'Fonctionnalité Indisponible':
+            self.location(self.accounts_url.format(self.sag))
+            return
+
         for rcpt in self.page.iter_emitters():
             if rcpt.id == account.id:
                 break
