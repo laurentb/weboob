@@ -196,7 +196,7 @@ class AccountHistory(LoggedPage, MyHTMLPage):
 
         ret = Account()
         ret.type = Account.TYPE_CARD
-        ret.coming = CleanDecimal(Regexp(CleanText('.'), 'En cours prélevé au \d+/\d+/\d+ : (.*) euros soit'), replace_dots=True)(div)
+        ret.coming = CleanDecimal(Regexp(CleanText('.'), r'En cours prélevé au \d+/\d+/\d+ : ([\d\s,-]+) euros'), replace_dots=True)(div)
         ret.number = Regexp(CleanText('.'), 'sur votre carte n°([\d*]+)')(div)
         ret.id = '%s.%s' % (parent_id, ret.number)
         ret.currency = 'EUR'
