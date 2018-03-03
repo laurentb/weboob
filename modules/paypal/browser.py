@@ -67,7 +67,7 @@ class Paypal(LoginBrowser):
                   'https://www.paypal.com/webapps/business/money', AccountPage)
     pro_history = URL('https://\w+.paypal.com/businessexp/transactions/activity\?.*',
                       ProHistoryPage)
-    part_history = URL('https://\w+.paypal.com/myaccount/activity/.*', PartHistoryPage)
+    part_history = URL('https://\w+.paypal.com/myaccount/(activity|transactions)/.*', PartHistoryPage)
     old_website = URL('https://paypalmanager.paypal.com/login.do', OldWebsitePage)
 
     TIMEOUT = 180.0
