@@ -30,6 +30,7 @@ from weboob.browser.filters.json import Dict
 from weboob.capabilities.bank import Account, Transaction
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.json import json
+from weboob.tools.compat import basestring
 from .base import parse_decimal
 
 
@@ -65,7 +66,7 @@ class AccountsPage3(LoggedPage, HTMLPage):
         accounts_data = accounts_data[1][5]
 
         for account_data in accounts_data:
-            if isinstance(account_data, str):
+            if isinstance(account_data, basestring):
                 token = account_data
             elif isinstance(account_data, list):
                 acc = Account()
