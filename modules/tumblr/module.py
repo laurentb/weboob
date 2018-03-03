@@ -39,16 +39,24 @@ class TumblrModule(Module, CapGallery):
     EMAIL = 'dev@indigo.re'
     LICENSE = 'AGPLv3+'
     VERSION = '1.4'
-    CONFIG = BackendConfig(Value('url', label='URL of the tumblr', regexp='https?://[^.]+.tumblr.com/?'))
+    CONFIG = BackendConfig(Value('url', label='URL of the tumblr', regexp='https?://.+'))
 
     BROWSER = TumblrBrowser
 
     def create_default_browser(self):
-        return self.create_browser(self.config['url'].get())
+        return self.create_browser(self.url())
+
+    def url(self):
+        return self.config['url'].get()
 
     def get_gallery(self, _id):
-        url = self.config['url'].get()
-        return BaseGallery(_id, title=urlparse(url).netloc, url=url)
+        return BaseGallery(_id, title=self.browser.get_title(), url=self.url())
+
+    def search_galleries(self, pattern, sortby=CapGallery.SEARCH_RELEVANCE):
+        pattern = pattern.lower()
+        url = self.url()
+        if pattern in url or pattern in self.browser.get_title().lower():
+            yield self.get_gallery(urlparse(url).netloc)
 
     def iter_gallery_images(self, gallery):
         for img in self.browser.iter_images(gallery):
@@ -60,6 +68,8 @@ class TumblrModule(Module, CapGallery):
                 img.data = self.browser.open(img.url).content
             except (ClientError, HTTPNotFound):
                 img.data = b''
+        if 'thumbnail' in fields and img.thumbnail:
+            self.fill_img(img.thumbnail, ('data',))
 
     OBJECTS = {
         BaseImage: fill_img,

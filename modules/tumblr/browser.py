@@ -19,44 +19,66 @@
 
 from __future__ import unicode_literals
 
+import re
 
-from weboob.browser import PagesBrowser, URL
+from weboob.tools.json import json
+from weboob.browser.browsers import APIBrowser
+from weboob.browser.filters.standard import CleanText
 from weboob.capabilities.gallery import BaseImage
-from weboob.tools.compat import range
-
-from .pages import MainPage, FramePage
+from weboob.capabilities.image import Thumbnail
 
 
-class TumblrBrowser(PagesBrowser):
-    main = URL(r'/page/(?P<page>\d+)', MainPage)
-    frame = URL(r'/post/.*/photoset_iframe/.*', r'https?://www.tumblr.com/video/.*/', FramePage)
-
+class TumblrBrowser(APIBrowser):
     def __init__(self, baseurl, *args, **kwargs):
         super(TumblrBrowser, self).__init__(*args, **kwargs)
         self.BASEURL = baseurl
 
+    def request(self, *args, **kwargs):
+        # JSONP
+        r = super(TumblrBrowser, self).open(*args, **kwargs).text
+        r = re.sub(r'^var tumblr_api_read = (.*);$', r'\1', r)
+        return json.loads(r)
+
+    def get_title(self):
+        r = self.request('/api/read/json?type=photo&num=1&start=0&filter=text')
+        return r['tumblelog']['title']
+
     def iter_images(self, gallery):
-        page = 0
         index = 0
-        empty = 0
+        offset = 0
+        step = 50
 
-        for page in range(1000):
-            if page == 1:
-                continue # page 1 doesn't exist, don't ask why
+        while True:
+            r = self.request('/api/read/json?type=photo&filter=text', params={'start': offset, 'num': step})
+            for post in r['posts']:
+                # main photo only if single
+                if not post['photos']:
+                    img = BaseImage(
+                        index=index,
+                        gallery=gallery,
+                        url=post['photo-url-1280'],
+                        thumbnail=Thumbnail(post['photo-url-250']),
+                    )
+                    index += 1
+                    img.title = CleanText().filter(post['photo-caption'])
+                    #img.date = post['date-gmt']
+                    img._page_url = post["url"]
+                    yield img
 
-            self.main.go(page=page)
+                # if multiple
+                for photo in post['photos']:
+                    img = BaseImage(
+                        index=index,
+                        gallery=gallery,
+                        url=photo['photo-url-1280'],
+                        thumbnail=Thumbnail(photo['photo-url-250']),
+                    )
+                    index += 1
+                    img.title = CleanText().filter(photo['caption'] or post['photo-caption'])
+                    #img.date = post['date-gmt']
+                    img._page_url = post["url"]
+                    yield img
 
-            empty += 1
-            for url in self.page.get_content():
-                img = BaseImage(url, index=index, gallery=gallery)
-                img.url = url
-                yield img
-                index += 1
-                empty = 0
-
-            if empty > 10:
-                self.logger.warning("10 empty pages, considering it's the end")
+            offset += step
+            if not r['posts'] or offset >= r['posts-total']:
                 break
-
-        else:
-            assert False, "that's a lot of pages, misdetected end?"
