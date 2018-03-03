@@ -81,7 +81,7 @@ class SeLogerItem(ItemElement):
         CleanText('ville'),
     )
     obj_date = DateTime(CleanText('dtFraicheur'))
-    obj_cost = CleanDecimal('prix')
+    obj_cost = CleanDecimal('prix', default=NotAvailable)
 
     obj_currency = Currency('prixUnite')
 
