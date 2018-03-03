@@ -16,7 +16,9 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
+from __future__ import unicode_literals
 
+import json
 import math
 import re
 from decimal import Decimal
@@ -38,7 +40,7 @@ from weboob.tools.compat import unquote
 
 class CitiesPage(JsonPage):
 
-    ENCODING = u'UTF-8'
+    ENCODING = 'UTF-8'
 
     def build_doc(self, content):
         content = super(CitiesPage, self).build_doc(content)
@@ -133,18 +135,20 @@ class SearchPage(HTMLPage):
             obj_title = CleanText('.//*[has-class("js-item-title")]')
 
             def obj_location(self):
-                location = CleanText(
-                    './/span[@class="item-localisation"]/span[@class="localisation-label"]/strong'
-                )(self)
-                if not location:
-                    location = CleanText('.//h2[@itemprop="name"]',
-                                         children=False)(self)
-                return location
+                script = CleanText('./script')(self)
+                try:
+                    script = json.loads(script)
+                    return '%s (%s)' % (
+                        script['address']['addressLocality'],
+                        script['address']['postalCode']
+                    )
+                except (ValueError, KeyError):
+                    return NotAvailable
 
             def obj_cost(self):
                 selector = './div/div/span[@class="price-label"]|./div/div[@class="item-price-pdf"]|./div/div/span[@class="item-price"]'
                 cost = CleanDecimal(Regexp(CleanText(selector, default=''),
-                                           u'de (.*) à .*',
+                                           r'de (.*) à .*',
                                            default=0))(self)
                 if cost == 0:
                     return CleanDecimal(selector, default=NotAvailable)(self)
@@ -156,18 +160,27 @@ class SearchPage(HTMLPage):
             )
 
             def obj_utilities(self):
-                utilities = Regexp(CleanText('./div/div/span[@class="price-label"]|./div/div[@class="item-price-pdf"]'),
-                                   '.*[%s%s%s](.*)' % (u'€', u'$', u'£'), default=u'')(self)
+                utilities = CleanText(
+                    './div/div/span[@class="price-label"]|'
+                    './div/div[@class="item-price-pdf"]|'
+                    './div/div/span[@class="item-price"]'
+                )(self)
                 if "CC" in utilities:
                     return UTILITIES.INCLUDED
                 else:
                     return UTILITIES.UNKNOWN
 
             obj_text = CleanText('./div/div/div[@itemprop="description"]')
-            obj_area = CleanDecimal(Regexp(CleanText('./div/h2[@itemprop="name"]/a'),
-                                           '(.*?)([\d,\.]*) m2(.*?)', '\\2', default=None),
-                                    replace_dots=True,
-                                    default=NotAvailable)
+            obj_area = CleanDecimal(
+                Regexp(
+                    obj_title,
+                    r'(.*?)([\d,\.]*) m2(.*?)',
+                    '\\2',
+                    default=None
+                ),
+                replace_dots=True,
+                default=NotAvailable
+            )
 
             obj_url = Format(
                 "http://www.explorimmo.com/annonce-%s.html",
@@ -178,7 +191,7 @@ class SearchPage(HTMLPage):
 
             def obj_phone(self):
                 phone = CleanText('./div/div/ul/li[has-class("js-clickphone")]',
-                                  replace=[(u'Téléphoner : ', u'')],
+                                  replace=[('Téléphoner : ', '')],
                                   default=NotAvailable)(self)
 
                 if '...' in phone:
@@ -187,7 +200,7 @@ class SearchPage(HTMLPage):
                 return phone
 
             def obj_details(self):
-                charges = CleanText('./div/div/span[@class="price-fees"]',
+                charges = CleanText('.//span[@class="price-fees"]',
                                     default=None)(self)
                 if charges:
                     return {
@@ -198,8 +211,8 @@ class SearchPage(HTMLPage):
 
             def obj_photos(self):
                 url = Attr(
-                    './div/div/a/div/img[@itemprop="image"]',
-                    'src',
+                    '.',
+                    'data-img',
                     default=None
                 )(self)
                 if url:
@@ -285,7 +298,7 @@ class HousingPage2(JsonPage):
                 cost = TypeDecimal(Dict('characteristics/priceMin'))(self)
             return cost
 
-        obj_currency = BaseCurrency.get_currency(u'€')
+        obj_currency = BaseCurrency.get_currency('€')
 
         def obj_utilities(self):
             are_fees_included = Dict('characteristics/areFeesIncluded',
@@ -412,13 +425,13 @@ class HousingPage(HTMLPage):
         obj_text = CleanHTML('//div[@itemprop="description"]')
         obj_url = BrowserURL('housing', _id=Env('_id'))
         obj_area = CleanDecimal(Regexp(CleanText('//h1[@itemprop="name"]'),
-                                       '(.*?)(\d*) m2(.*?)', '\\2'), default=NotAvailable)
+                                       r'(.*?)(\d*) m2(.*?)', '\\2'), default=NotAvailable)
         obj_price_per_meter = PricePerMeterFilter()
 
         def obj_photos(self):
             photos = []
             for img in XPath('//a[@class="thumbnail-link"]/img[@itemprop="image"]')(self):
-                url = Regexp(CleanText('./@src'), 'http://thbr\.figarocms\.net.*(http://.*)')(img)
+                url = Regexp(CleanText('./@src'), r'http://thbr\.figarocms\.net.*(http://.*)')(img)
                 photos.append(HousingPhoto(url))
             return photos
 
