@@ -9,6 +9,7 @@ from contextlib import contextmanager
 from os import system, path, makedirs
 from subprocess import check_output, STDOUT, CalledProcessError
 from collections import defaultdict
+import shutil
 
 from termcolor import colored
 
@@ -41,12 +42,26 @@ def create_compat_dir(name):
             pass
 
 
+MANUAL_PORTS = [
+    'weboob.capabilities.bank',
+    'weboob.browser.pages',
+    'weboob.browser.exceptions',
+    'weboob.exceptions',
+    'weboob.browser.filters.html',
+]
+
+MANUAL_PORT_DIR = path.join(path.dirname(__file__), 'stable_backport_data')
+
+
 class Error(object):
     def __init__(self, filename, linenum, message):
         self.filename = filename
         self.linenum = linenum
         self.message = message
         self.compat_dir = path.join(path.dirname(filename), 'compat')
+
+    def __repr__(self):
+        return '<%s filename=%r linenum=%s message=%r>' % (type(self).__name__, self.filename, self.linenum, self.message)
 
     def reimport_module(self, module):
         # not a weboob module, probably a false positive.
@@ -65,27 +80,30 @@ class Error(object):
             # this file does not exist, perhaps a directory.
             return
 
-        # Copy module from devel to a compat/ sub-module
-        with open(target, 'w') as fp:
-            for line in r.split('\n'):
-                # Replace relative imports to absolute ones
-                m = re.match(r'^from (\.\.?)([\w_\.]+) import (.*)', line)
-                if m:
-                    if m.group(1) == '..':
-                        base_module = '.'.join(base_module.split('.')[:-1])
-                    fp.write('from %s.%s import %s\n' % (base_module, m.group(2), m.group(3)))
-                    continue
+        if module in MANUAL_PORTS:
+            shutil.copyfile(path.join(MANUAL_PORT_DIR, path.basename(target)), target)
+        else:
+            # Copy module from devel to a compat/ sub-module
+            with open(target, 'w') as fp:
+                for line in r.split('\n'):
+                    # Replace relative imports to absolute ones
+                    m = re.match(r'^from (\.\.?)([\w_\.]+) import (.*)', line)
+                    if m:
+                        if m.group(1) == '..':
+                            base_module = '.'.join(base_module.split('.')[:-1])
+                        fp.write('from %s.%s import %s\n' % (base_module, m.group(2), m.group(3)))
+                        continue
 
-                # Inherit all classes by previous ones, if they already existed.
-                m = re.match(r'^class (\w+)\(([\w,\s]+)\):(.*)', line)
-                if m and path.exists(filename) and system('grep "^class %s" %s >/dev/null' % (m.group(1), filename)) == 0:
-                    symbol = m.group(1)
-                    trailing = m.group(3)
-                    fp.write('from %s import %s as _%s\n' % (module, symbol, symbol))
-                    fp.write('class %s(_%s):%s\n' % (symbol, symbol, trailing))
-                    continue
+                    # Inherit all classes by previous ones, if they already existed.
+                    m = re.match(r'^class (\w+)\(([\w,\s]+)\):(.*)', line)
+                    if m and path.exists(filename) and system('grep "^class %s" %s >/dev/null' % (m.group(1), filename)) == 0:
+                        symbol = m.group(1)
+                        trailing = m.group(3)
+                        fp.write('from %s import %s as _%s\n' % (module, symbol, symbol))
+                        fp.write('class %s(_%s):%s\n' % (symbol, symbol, trailing))
+                        continue
 
-                fp.write('%s\n' % line)
+                    fp.write('%s\n' % line)
 
         # Particular case, in devel some imports have been added to
         # weboob/browser/__init__.py
@@ -189,14 +207,7 @@ class StableBackport(object):
                 system('git add %s' % compat_dirname)
 
         with log('Custom fixups'):
-            replace_all("""super(Attr, self).__init__(selector, default=default)""", """super(Attr, self).__init__(selector, attr, default=default)""")
-            replace_all("""super(Link, self).__init__(selector, 'href', default=default)""", """super(Link, self).__init__(selector, default=default)""")
-            replace_all("""from weboob.browser.exceptions import LoggedOut""", """from .exceptions import LoggedOut""")
-
-            for line in output_lines('git grep -n iter_resources -- "modules/*/compat/bank.py"'):
-                filename, linenum, _ = line.split(':', maxsplit=2)
-                linenum = int(linenum)
-                remove_block(filename, linenum)
+            replace_all("from weboob.browser.exceptions import LoggedOut", "from .weboob_browser_exceptions import LoggedOut")
 
         system('git add -u')
 
