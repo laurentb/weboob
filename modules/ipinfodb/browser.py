@@ -19,11 +19,10 @@
 
 
 from weboob.browser import PagesBrowser
-from weboob.browser.exceptions import BrowserHTTPNotFound
 from weboob.browser.url import URL
 from weboob.browser.profiles import Firefox
 
-from .pages import HomePage, LocationPage
+from .pages import LocationPage
 
 
 __all__ = ['IpinfodbBrowser']
@@ -34,16 +33,9 @@ class IpinfodbBrowser(PagesBrowser):
     TIMEOUT = 30
 
     BASEURL = 'https://ipinfodb.com/'
-    home = URL('$', HomePage)
-    search = URL('ip_locator.php',
-                 LocationPage)
+    home = URL('$', LocationPage)
 
     def get_location(self, ipaddr):
-        try:
-            self.home.go()
-            self.page.search(ipaddr)
-            iploc = self.page.get_location()
-            return iploc
-        except BrowserHTTPNotFound:
-            return
+        self.home.go(data={'ip': ipaddr})
+        return self.page.get_location()
 

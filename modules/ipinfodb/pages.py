@@ -25,38 +25,19 @@ from weboob.browser.filters.standard import Regexp, CleanText, Type
 from weboob.capabilities.base import NotAvailable
 
 
-class HomePage(HTMLPage):
-    def search(self, ipaddr):
-        form = self.get_form(xpath='//form[contains(@id, "search_form")]')
-        form['ip'] = ipaddr
-        form.submit()
-
-
 class LocationPage(HTMLPage):
     @method
     class get_location(ItemElement):
         klass = IpLocation
 
-        obj_id = CleanText('//ul/li[starts-with(.,"IP address :")]/strong')
+        obj_id = Regexp(CleanText('//h1/strong[starts-with(.,"IP Address Information")]'), r'- ([.\d]+)')
 
-        obj_city = CleanText(Regexp(CleanText('//ul/li[starts-with(.,"City :")]/text()'),
-            'City : (.*)'), default=NotAvailable)
-
-        obj_country = CleanText(Regexp(CleanText('//ul/li[starts-with(.,"Country :")]/text()'),
-            'Country : (.*)'), default=NotAvailable)
-
-        obj_region = CleanText(Regexp(CleanText('//ul/li[starts-with(.,"State/Province :")]/text()'),
-            'State/Province : (.*)'), default=NotAvailable)
-
-        obj_lt = CleanText(Regexp(CleanText('//ul/li[starts-with(.,"Latitude :")]/text()'),
-            'Latitude : (.*)'), default=NotAvailable) & Type(type=float)
-
-        obj_lg = CleanText(Regexp(CleanText('//ul/li[starts-with(.,"Longitude :")]/text()'),
-            'Longitude : (.*)'), default=NotAvailable) & Type(type=float)
-
-        obj_zipcode = CleanText(Regexp(CleanText('//ul/li[starts-with(.,"Zip or postal code :")]/text()'),
-            'Zip or postal code : (.*)'), default=NotAvailable)
-
-        obj_host = CleanText(Regexp(CleanText('//ul/li[starts-with(.,"Hostname :")]/text()'),
-            'Hostname : (.*)'), default=NotAvailable)
+        obj_city = CleanText('//td[.//strong[text()="City"]]', children=False)
+        obj_country = CleanText('//td[.//strong[text()="Country"]]', children=False)
+        obj_region = CleanText('//td[.//strong[text()="Region"]]', children=False)
+        obj_zipcode = CleanText('//td[.//strong[text()="Postcode"]]', children=False)
+        obj_host = CleanText('//td[.//strong[text()="Domain Name"]]', children=False, default=NotAvailable)
+        obj_isp = CleanText('//td[.//strong[text()="ISP"]]', children=False)
+        obj_lt = Regexp(CleanText('//td[.//strong[text()="Coordinates of City"]]', children=False), r'\(([\d.-]+), [\d.-]+\)') & Type(type=float)
+        obj_lg = Regexp(CleanText('//td[.//strong[text()="Coordinates of City"]]', children=False), r'\([\d.-]+, ([\d.-])+\)') & Type(type=float)
 

@@ -20,7 +20,8 @@
 
 from weboob.capabilities.geolocip import CapGeolocIp
 from weboob.tools.backend import Module
-from browser import IpinfodbBrowser
+
+from .browser import IpinfodbBrowser
 
 
 __all__ = ['IpinfodbModule']
