@@ -55,7 +55,8 @@ class Error(object):
 
         dirname = module.replace('.', '/')
         filename = dirname + '.py'
-        target = path.join(self.compat_dir, path.basename(filename))
+        new_module = module.replace('.', '_')
+        target = path.join(self.compat_dir, '%s.py' % new_module)
         base_module = '.'.join(module.split('.')[:-1])
 
         try:
@@ -93,7 +94,7 @@ class Error(object):
         # Replace import to this module by a relative import to the copy in
         # compat/
         system(r'sed -i -e "%ss/from \([A-Za-z0-9_\.]\+\) import \(.*\)/from .compat.%s import \2/g" %s'
-               % (self.linenum, path.basename(dirname), self.filename))
+               % (self.linenum, new_module, self.filename))
 
 
 def remove_block(name, start):
