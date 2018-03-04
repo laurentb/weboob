@@ -33,11 +33,10 @@ from weboob.tools.misc import to_unicode
 __all__ = ['Recipe', 'CapRecipe']
 
 
-class Comment(StrConv, object):
-    def __init__(self, author=None, rate=None, text=None):
-        self.author = to_unicode(author or '')
-        self.rate = to_unicode(rate or '')
-        self.text = to_unicode(text or '')
+class Comment(BaseObject):
+    author = StringField('Author of the comment')
+    rate = StringField('Rating')
+    text = StringField('Comment')
 
     def __unicode__(self):
         result = u''
