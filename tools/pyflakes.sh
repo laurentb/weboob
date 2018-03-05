@@ -10,7 +10,7 @@ cd $(dirname $0)/..
 MODULE_FILES=$(git ls-files|grep '^modules/.*\.py$')
 MODULE_FILES3=$(printf "%s\n" $MODULE_FILES|grep -F -f $PY3MODS)
 
-PYFILES=$(git ls-files | grep '^scripts\|\.py$'|grep -v boilerplate_data|grep -v '^modules'|grep -v '^contrib')
+PYFILES=$(git ls-files | grep '^scripts\|\.py$'|grep -v boilerplate_data|grep -v stable_backport_data|grep -v '^modules'|grep -v '^contrib')
 PYFILES3="$(printf "%s\n" $PYFILES | grep -v /deprecated/) $MODULE_FILES3"
 PYFILES="$PYFILES $MODULE_FILES"
 grep -n 'class [^( ]\+:$' ${PYFILES} && echo 'Error: old class style found, always inherit object' && err=3
