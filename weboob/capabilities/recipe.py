@@ -26,9 +26,6 @@ import requests
 import base64
 import re
 
-from weboob.tools.compat import StrConv
-from weboob.tools.misc import to_unicode
-
 
 __all__ = ['Recipe', 'CapRecipe']
 
