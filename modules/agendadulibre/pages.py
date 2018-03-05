@@ -17,14 +17,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+
+import re
+
+from datetime import time, datetime, date
+
 from weboob.browser.pages import HTMLPage, pagination
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.filters.standard import Regexp, CleanText, DateTime, Env, Format, BrowserURL
 from weboob.browser.filters.html import Link, XPath, CleanHTML
+from weboob.tools.date import parse_french_date
 
 from .calendar import AgendaDuLibreCalendarEvent
-from datetime import time, datetime, date
-import re
 
 
 class EventPage(HTMLPage):
@@ -42,24 +46,30 @@ class EventPage(HTMLPage):
         obj_city = CleanText('//meta[@name="geo:placename"]/@content')
 
         def obj_start_date(self):
-            m = re.findall(u'(\w* \w* \d?\d \w* \d{4} \w* \d{2}h\d{2})', (CleanText('(//p)[1]')(self)))
+            m = re.findall(r'\w* \w* \d?\d \w* \d{4} \w* \d{2}h\d{2}', CleanText('(//p)[1]')(self), re.UNICODE)
             if m:
                 return DateTime(Regexp(CleanText('(//p)[1]'),
-                                       '\w* \w* (\d?\d \w* \d{4}) \w* (\d{2}h\d{2})',
-                                       '\\1 \\2'))(self)
+                                       '\w* \w* (\d?\d \w* \d{4}) \w* (\d{2}h\d{2}).*',
+                                       '\\1 \\2',
+                                       flags=re.UNICODE),
+                                parse_func=parse_french_date)(self)
 
         def obj_end_date(self):
-            m = re.findall(u'(\w* \w* \d?\d \w* \d{4} \w* \d{2}h\d{2})', (CleanText('(//p)[1]')(self)))
+            m = re.findall(r'\w* \w* \d?\d \w* \d{4} \w* \d{2}h\d{2}', CleanText('(//p)[1]')(self), re.UNICODE)
             if m:
                 if len(m) == 1:
                     return DateTime(Regexp(CleanText('(//p)[1]'),
-                                           '\w* \w* (\d?\d \w* \d{4}) \w* \d{2}h\d{2} \w* (\d{2}h\d{2})',
-                                           '\\1 \\2'))(self)
+                                           r'\w* \w* (\d?\d \w* \d{4}) \w* \d{2}h\d{2} \w* (\d{2}h\d{2})',
+                                           '\\1 \\2',
+                                           flags=re.UNICODE),
+                                    parse_func=parse_french_date)(self)
                 else:
-                    return DateTime(Regexp(Regexp(CleanText('(//p)[1]'),
-                                                  '(\w* \w* \d?\d \w* \d{4} \w* \d{2}h\d{2})', nth=-1),
-                                           '\w* \w* (\d?\d \w* \d{4}) \w* (\d{2}h\d{2})',
-                                           '\\1 \\2'))(self)
+                    return DateTime(Regexp(CleanText('(//p)[1]'),
+                                           r'\w* \w* (\d?\d \w* \d{4}) \w* (\d{2}h\d{2})',
+                                           '\\1 \\2',
+                                           nth=-1,
+                                           flags=re.UNICODE),
+                                    parse_func=parse_french_date)(self)
 
 
 class EventListPage(HTMLPage):
@@ -99,24 +109,30 @@ class EventListPage(HTMLPage):
             obj_summary = CleanText('./a')
 
             def obj_start_date(self):
-                m = re.findall(u'(\w* \w* \d?\d \w* \d{4} \w* \d{2}h\d{2})', (CleanText('./@title')(self)))
+                m = re.findall(r'\w* \w* \d?\d \w* \d{4} \w* \d{2}h\d{2}', CleanText('./@title')(self), re.UNICODE)
                 if m:
                     return DateTime(Regexp(CleanText('./@title'),
-                                           '\w* \w* (\d?\d \w* \d{4}) \w* (\d{2}h\d{2})',
-                                           '\\1 \\2'))(self)
+                                           '\w* \w* (\d?\d \w* \d{4}) \w* (\d{2}h\d{2}).*',
+                                           '\\1 \\2',
+                                           flags=re.UNICODE),
+                                    parse_func=parse_french_date)(self)
 
             def obj_end_date(self):
-                m = re.findall(u'(\w* \w* \d?\d \w* \d{4} \w* \d{2}h\d{2})', (CleanText('./@title')(self)))
+                m = re.findall(r'\w* \w* \d?\d \w* \d{4} \w* \d{2}h\d{2}', CleanText('./@title')(self), re.UNICODE)
                 if m:
                     if len(m) == 1:
                         return DateTime(Regexp(CleanText('./@title'),
-                                               '\w* \w* (\d?\d \w* \d{4}) \w* \d{2}h\d{2} \w* (\d{2}h\d{2})',
-                                               '\\1 \\2'))(self)
+                                               r'\w* \w* (\d?\d \w* \d{4}) \w* \d{2}h\d{2} \w* (\d{2}h\d{2})',
+                                               '\\1 \\2',
+                                               flags=re.UNICODE),
+                                        parse_func=parse_french_date)(self)
                     else:
-                        return DateTime(Regexp(Regexp(CleanText('./@title'),
-                                                      '(\w* \w* \d?\d \w* \d{4} \w* \d{2}h\d{2})', nth=-1),
-                                               '\w* \w* (\d?\d \w* \d{4}) \w* (\d{2}h\d{2})',
-                                               '\\1 \\2'))(self)
+                        return DateTime(Regexp(CleanText('./@title'),
+                                               r'\w* \w* (\d?\d \w* \d{4}) \w* (\d{2}h\d{2})',
+                                               '\\1 \\2',
+                                               nth=-1,
+                                               flags=re.UNICODE),
+                                        parse_func=parse_french_date)(self)
 
             def validate(self, obj):
                 return (self.is_valid_event(obj, self.env['city'], self.env['categories']) and
