@@ -336,7 +336,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
     def send_code(self, recipient, **params):
         res = self.open('/outil/UWBE/Otp/getValidationCodeOtp?codeOtp=%s' % params['code'])
         if res.text == 'false':
-            raise AddRecipientError('Mauvais code sms.')
+            raise AddRecipientError(message='Mauvais code sms.')
         self.recip_recap.go().check_values(recipient.iban, recipient.label)
         return self.get_recipient_object(recipient.iban, recipient.label)
 
@@ -359,7 +359,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         try:
             assert recipient.iban[:2] in ['FR', 'MC']
         except AssertionError:
-            raise AddRecipientError(u"LCL n'accepte que les iban commençant par MC ou FR.")
+            raise AddRecipientError(message=u"LCL n'accepte que les iban commençant par MC ou FR.")
         for _ in range(2):
             self.add_recip.go()
             if self.add_recip.is_here():

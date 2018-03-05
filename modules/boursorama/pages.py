@@ -926,7 +926,7 @@ class AddRecipientPage(LoggedPage, HTMLPage):
 
         err = CleanText('//div[@class="form-errors"]', default=None)(self.doc)
         if err:
-            raise AddRecipientError(err)
+            raise AddRecipientError(message=err)
 
     def _is_form(self, **kwargs):
         try:

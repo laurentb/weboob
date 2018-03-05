@@ -1261,7 +1261,7 @@ class VerifCodePage(LoggedPage, HTMLPage):
     def on_load(self):
         error = CleanText('//p[contains(text(), "Clé invalide !")] | //p[contains(text(), "Vous n\'avez pas saisi de clé!")]')(self.doc)
         if error:
-            raise AddRecipientError(error)
+            raise AddRecipientError(message=error)
 
         action_needed = CleanText('//p[contains(text(), "Carte de CLÉS PERSONNELLES révoquée")]')(self.doc)
         if action_needed:
@@ -1293,7 +1293,7 @@ class RecipientsListPage(LoggedPage, HTMLPage):
 
         error = CleanText('//div[@class="blocmsg err"]/p')(self.doc)
         if error and error != 'Veuillez renseigner le BIC ou les coordonnées de la banque':
-            raise AddRecipientError(error)
+            raise AddRecipientError(message=error)
 
     def has_list(self):
         return bool(CleanText('//th[contains(text(), "Listes pour virements ordinaires")]')(self.doc))

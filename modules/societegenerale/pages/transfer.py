@@ -87,7 +87,7 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
         ]
         error_msg = CleanText('//span[@class="error_msg"]')(self.doc)
         if error_msg and error_msg not in excluded_errors:
-            raise TransferBankError(error_msg)
+            raise TransferBankError(message=error_msg)
 
     def is_able_to_transfer(self, account):
         numbers = [''.join(Regexp(CleanText('.'), '(\d+)', nth='*', default=None)(opt)) for opt in self.doc.xpath('.//select[@id="SelectEmet"]//option')]
@@ -301,7 +301,7 @@ class AddRecipientPage(LoggedPage, BasePage):
     def on_load(self):
         error_msg = CleanText(u'//span[@class="error_msg"]')(self.doc)
         if error_msg:
-            raise AddRecipientError(error_msg)
+            raise AddRecipientError(message=error_msg)
 
     def is_here(self):
         return bool(CleanText(u'//h3[contains(text(), "Ajouter un compte bénéficiaire de virement")]')(self.doc)) or \

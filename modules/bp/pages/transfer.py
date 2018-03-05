@@ -188,7 +188,7 @@ class CreateRecipient(LoggedPage, MyHTMLPage):
         # if this is present, we can't add recipient currently
         more_security_needed = self.doc.xpath(u'//iframe[@title="Sécurité renforcée non adhérents"]')
         if more_security_needed:
-            raise AddRecipientError(u"Pour activer le service Certicode, nous vous invitons à vous rapprocher de votre Conseiller en Bureau de Poste.")
+            raise AddRecipientError(message=u"Pour activer le service Certicode, nous vous invitons à vous rapprocher de votre Conseiller en Bureau de Poste.")
 
         form = self.get_form(name='SaisiePaysBeneficiaireVirement')
         form['compteLBP'] = str(is_bp_account).lower()

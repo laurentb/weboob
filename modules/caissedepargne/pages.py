@@ -1018,7 +1018,7 @@ class RecipientPage(LoggedPage, HTMLPage):
     def on_load(self):
         error = CleanText('//span[@id="MM_LblMessagePopinError"]')(self.doc)
         if error:
-            raise AddRecipientError(error)
+            raise AddRecipientError(message=error)
 
     def is_here(self):
         return bool(CleanText(u'//h2[contains(text(), "Ajouter un compte bénéficiaire")] |\
