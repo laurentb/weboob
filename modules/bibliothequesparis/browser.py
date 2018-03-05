@@ -41,7 +41,7 @@ class BibliothequesparisBrowser(LoginBrowser):
             'username': self.username,
             'password': self.password,
         }
-        self.login.go(data=d)
+        self.login.go(data=d, headers={'Accept': 'application/json, text/javascript'})
 
     @need_login
     def get_loans(self):
