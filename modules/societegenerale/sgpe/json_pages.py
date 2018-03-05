@@ -125,9 +125,8 @@ class HistoryJsonPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Transaction
 
-            # This is 'Date de valeur'
-            obj_date = Date(Dict('dVl'), dayfirst=True)
-            obj__date = Date(Dict('date', default=None), dayfirst=True, default=NotAvailable)
+            obj_rdate = Date(Dict('date', default=None), dayfirst=True, default=NotAvailable)
+            obj_date = Date(Dict('dVl', default=None), dayfirst=True, default=NotAvailable)
             obj__coming = False
             obj_raw = Transaction.Raw(Format('%s %s %s', Dict('l1'), Dict('l2'), Dict('l3')))
             # We have l4 and l5 too most of the time, but it seems to be unimportant and would make label too long.

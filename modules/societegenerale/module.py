@@ -25,6 +25,7 @@ from datetime import timedelta
 from weboob.capabilities.bank import CapBankWealth, CapBankTransferAddRecipient, AccountNotFound, Account, RecipientNotFound
 from weboob.capabilities.contact import CapContact
 from weboob.capabilities.profile import CapProfile
+from weboob.tools.capabilities.bank.transactions import sorted_transactions
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
 from weboob.capabilities.base import find_object
@@ -62,19 +63,12 @@ class SocieteGeneraleModule(Module, CapBankWealth, CapBankTransferAddRecipient, 
     def get_account(self, _id):
         return find_object(self.browser.get_accounts_list(), id=_id, error=AccountNotFound)
 
-    def key(self, tr):
-        # Can't compare datetime and date, so cast them.
-        try:
-            return tr.rdate.date()
-        except AttributeError:
-            return tr.rdate
-
     def iter_coming(self, account):
         if hasattr(self.browser, 'get_cb_operations'):
             transactions = list(self.browser.get_cb_operations(account))
         else:
             transactions = [tr for tr in self.browser.iter_history(account) if tr._coming]
-        transactions.sort(key=self.key, reverse=True)
+        transactions = sorted_transactions(transactions)
         return transactions
 
     def iter_history(self, account):
@@ -82,7 +76,7 @@ class SocieteGeneraleModule(Module, CapBankWealth, CapBankTransferAddRecipient, 
             transactions = list(self.browser.iter_history(account))
         else:
             transactions = [tr for tr in self.browser.iter_history(account) if not tr._coming]
-        transactions.sort(key=self.key, reverse=True)
+        transactions = sorted_transactions(transactions)
         return transactions
 
     def iter_investment(self, account):
