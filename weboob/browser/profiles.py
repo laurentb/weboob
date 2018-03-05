@@ -73,6 +73,7 @@ class Firefox(Profile):
             'Accept-Encoding': 'gzip, deflate',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0',
+            'Upgrade-Insecure-Requests' : '1',
             'DNT': '1'}
 
 
@@ -131,7 +132,9 @@ class Android(Profile):
         Set up user agent.
         """
         session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (Linux; U; Android 4.0.3; fr-fr; LG-L160L Build/IML74K) AppleWebkit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30'})
+            'User-Agent': 'Mozilla/5.0 (Linux; U; Android 4.0.3; fr-fr; LG-L160L Build/IML74K) AppleWebkit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30',
+            'Upgrade-Insecure-Requests' : '1',
+        })
 
 
 class IPhone(Profile):
@@ -147,3 +150,4 @@ class IPhone(Profile):
         session.headers["Accept"] = "*/*"
         session.headers["User-Agent"] = "%s (iPhone; iOS 7.1; Scale/2.00)" % self.application
         session.headers["Accept-Encoding"] = "gzip, deflate"
+        session.headers["Upgrade-Insecure-Requests"] = '1'
