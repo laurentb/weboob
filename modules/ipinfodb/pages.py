@@ -39,5 +39,5 @@ class LocationPage(HTMLPage):
         obj_host = CleanText('//td[.//strong[text()="Domain Name"]]', children=False, default=NotAvailable)
         obj_isp = CleanText('//td[.//strong[text()="ISP"]]', children=False)
         obj_lt = Regexp(CleanText('//td[.//strong[text()="Coordinates of City"]]', children=False), r'\(([\d.-]+), [\d.-]+\)') & Type(type=float)
-        obj_lg = Regexp(CleanText('//td[.//strong[text()="Coordinates of City"]]', children=False), r'\([\d.-]+, ([\d.-])+\)') & Type(type=float)
+        obj_lg = Regexp(CleanText('//td[.//strong[text()="Coordinates of City"]]', children=False), r'\([\d.-]+, ([\d.-]+)\)') & Type(type=float)
 
