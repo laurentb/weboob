@@ -20,12 +20,14 @@
 from time import sleep
 
 from .base import Capability, BaseObject, StringField, UserError, BytesField
+from ..exceptions import RecaptchaQuestion, NocaptchaQuestion, ImageCaptchaQuestion
 
 
 __all__ = [
     'CapCaptchaSolver',
     'SolverJob', 'RecaptchaJob', 'NocaptchaJob', 'ImageCaptchaJob',
     'CaptchaError', 'UnsolvableCaptcha', 'InvalidCaptcha', 'InsufficientFunds',
+    'exception_to_job',
 ]
 
 
@@ -63,6 +65,24 @@ class UnsolvableCaptcha(CaptchaError):
 
 class InsufficientFunds(CaptchaError):
     """Not enough funds to pay solution"""
+
+
+def exception_to_job(exc):
+    if isinstance(exc, RecaptchaQuestion):
+        job = RecaptchaJob()
+        job.site_url = exc.website_url
+        job.site_key = exc.website_key
+    elif isinstance(exc, NocaptchaQuestion):
+        job = RecaptchaJob()
+        job.site_url = exc.website_url
+        job.site_key = exc.website_key
+    elif isinstance(exc, ImageCaptchaQuestion):
+        job = ImageCaptchaJob()
+        job.image = exc.image_data
+    else:
+        raise NotImplementedError()
+
+    return job
 
 
 class CapCaptchaSolver(Capability):
