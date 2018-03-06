@@ -177,17 +177,20 @@ class AccountList(LoggedPage, MyHTMLPage):
         head_xpath = '//table[@id="pret"]/thead//th'
         item_xpath = '//table[@id="pret"]/tbody/tr'
 
-        col_label = u'NUMÉRO DU PRÊT'
-        col_total_amount = u'MONTANT INITIAL EMPRUNTÉ'
+        col_label = u'Numéro du prêt'
+        col_total_amount = u'Montant initial emprunté'
         col_subscription_date = u'MONTANT INITIAL EMPRUNTÉ'
-        col_next_payment_amount = u'MONTANT PROCHAINE ÉCHÉANCE'
-        col_next_payment_date = u'DATE PROCHAINE ÉCHÉANCE'
+        col_next_payment_amount = u'Montant prochaine échéance'
+        col_next_payment_date = u'Date prochaine échéance'
         col_balance = re.compile('Capital')
         col_maturity_date = re.compile(u'Date dernière')
 
         class item_loans(ItemElement):
             # there is two cases : the mortgage and the consumption loan. These cases have differents way to get the details
             klass = Loan
+
+            def condition(self):
+                return CleanText(TableCell('balance'))(self) != u'Prêt non débloqué'
 
             def load_details(self):
                 url = Link('.//a', default=NotAvailable)(self)
