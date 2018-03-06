@@ -23,6 +23,7 @@ import re
 
 from weboob.tools.json import json
 from weboob.capabilities.bank import Account, NotAvailable, Recipient, TransferBankError, Transfer
+from weboob.capabilities.profile import Profile
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage, PartialHTMLPage
 from weboob.browser.filters.html import Attr
@@ -40,6 +41,18 @@ class LoginPage(HTMLPage):
         form['j_username'] = login
         form['j_password'] = password
         form.submit()
+
+
+class ProfilePage(LoggedPage, HTMLPage):
+    @method
+    class get_profile(ItemElement):
+        klass = Profile
+
+        obj_name = CleanText('(//div[contains(text(),"Nom")])[1]/following-sibling::div')
+        obj_email = CleanText('(//div[contains(text(),"Adresse e-mail")])[1]/following-sibling::div')
+        obj_phone = CleanText('(//div[contains(text(),"Portable")])[1]/following-sibling::div')
+        obj_address = Format('%s %s', CleanText('(//div[contains(text(),"Adresse")])[1]/following-sibling::div'),
+                                       CleanText('(//div[contains(text(),"Code postal / Ville")])[1]/following-sibling::div'))
 
 
 class CreditLoggedPage(HTMLPage):

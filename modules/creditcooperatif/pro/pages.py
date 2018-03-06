@@ -24,11 +24,15 @@ import re
 from datetime import date as ddate, timedelta
 
 from weboob.browser.pages import HTMLPage, LoggedPage
-from weboob.browser.filters.standard import CleanText
+from weboob.browser.filters.standard import CleanText, Format
+from weboob.browser.filters.html import Attr
 from weboob.capabilities.bank import Account
+from weboob.capabilities.profile import Profile
+from weboob.browser.elements import ItemElement, method
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.date import parse_date
 from weboob.tools.compat import unicode
+from weboob.capabilities import NotAvailable
 
 
 class TechnicalErrorPage(LoggedPage, HTMLPage):
@@ -46,6 +50,18 @@ class LoginPage(HTMLPage):
 
         assert form['identType'] == indentType
         form.submit()
+
+
+class ProfilePage(LoggedPage, HTMLPage):
+    @method
+    class get_profile(ItemElement):
+        klass = Profile
+        obj_name = CleanText('//td[contains(text(), "Emetteur")]/following-sibling::td', default=NotAvailable)
+        obj_email = Attr('//input[@name="email"]', 'value', default=NotAvailable)
+        obj_phone = Attr('//input[@name="telephone"]', 'value', default=NotAvailable)
+        obj_address = Format('%s %s %s', Attr('//input[@name="adresse"]', 'value'),
+                                         Attr('//input[@name="ville"]', 'value'),
+                                         Attr('//input[@name="codePostal"]', 'value'))
 
 
 class AccountsPage(LoggedPage, HTMLPage):

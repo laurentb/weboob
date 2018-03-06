@@ -19,6 +19,7 @@
 
 from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import CapBankTransfer, AccountNotFound
+from weboob.capabilities.profile import CapProfile
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.date import new_date
 from weboob.tools.value import ValueBackendPassword, Value
@@ -30,7 +31,7 @@ from .pro.browser import CreditCooperatif as CreditCooperatifPro
 __all__ = ['CreditCooperatifModule']
 
 
-class CreditCooperatifModule(Module, CapBankTransfer):
+class CreditCooperatifModule(Module, CapBankTransfer, CapProfile):
     NAME = 'creditcooperatif'
     MAINTAINER = u'Kevin Pouget'
     EMAIL = 'weboob@kevin.pouget.me'
@@ -55,6 +56,9 @@ class CreditCooperatifModule(Module, CapBankTransfer):
                                        self.config['login'].get(),
                                        self.config['password'].get(),
                                        strong_auth=self.config['auth_type'].get() == "strong")
+
+    def get_profile(self):
+        return self.browser.get_profile()
 
     def iter_accounts(self):
         return self.browser.get_accounts_list()

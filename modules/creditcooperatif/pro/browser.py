@@ -19,9 +19,10 @@
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
+from weboob.tools.compat import urljoin
 
 from .pages import LoginPage, AccountsPage, ITransactionsPage, TransactionsPage, ComingTransactionsPage, CardTransactionsPage, \
-                   TechnicalErrorPage
+                   TechnicalErrorPage, ProfilePage
 
 
 __all__ = ['CreditCooperatif']
@@ -41,11 +42,19 @@ class CreditCooperatif(LoginBrowser):
                   r'https?://[^/]+/banque/cpt/cpt/operationEnCours.do.*',
                   ComingTransactionsPage)
     error = URL(r'https?://[^/]+/PbTechniqueCoopanet.htm', TechnicalErrorPage)
+    profile = URL(r'https?://[^/]+/banque/cdc/incoopanetj2ee.do\?ssomode=true&idMenu=48&idParent=13',
+                  r'https?://[^/]+/banque/cpt/cpt/menucptaction.do\?idMenu=48&idParent=13', ProfilePage)
 
     def __init__(self, baseurl, *args, **kwargs):
         self.BASEURL = baseurl
         self.strong_auth = kwargs.pop('strong_auth', False)
         super(CreditCooperatif, self).__init__(*args, **kwargs)
+
+    @need_login
+    def get_profile(self):
+        self.location(urljoin(self.url, r'/banque/cpt/cpt/menucptaction.do?idMenu=48&idParent=13'))
+        self.location(urljoin(self.url ,r'/banque/cdc/incoopanetj2ee.do?ssomode=true&idMenu=48&idParent=13'))
+        return self.page.get_profile()
 
     def home(self):
         self.location("/banque/sso/")

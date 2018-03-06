@@ -31,6 +31,7 @@ from .pages import (
     TransactionsJSONPage, ComingTransactionsPage, IbanPage,
     RecipientsPage, TransferPage, EmittersPage, TransferDatesPage,
     TransferValidatePage, TransferPostPage, TransferFinishPage,
+    ProfilePage,
 )
 
 
@@ -59,6 +60,8 @@ class CreditCooperatif(LoginBrowser):
     transfer_post = URL(r'/portail/particuliers/mesoperations/virement/creer/challenge.do', TransferPostPage)
     transfer_finish = URL(r'/portail/particuliers/mesoperations/virement/creer/executerajax.do', TransferFinishPage)
 
+    profile = URL(r'/portail/particuliers/profil/monprofil.do', ProfilePage)
+
     def do_login(self):
         self.loginpage.stay_or_go()
         self.page.login(self.username, self.password)
@@ -71,6 +74,11 @@ class CreditCooperatif(LoginBrowser):
             raise BrowserUnavailable("not on the login page")
 
         raise BrowserIncorrectPassword(error)
+
+    @need_login
+    def get_profile(self):
+        self.profile.go()
+        return self.page.get_profile()
 
     @need_login
     def get_accounts_list(self):
