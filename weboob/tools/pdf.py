@@ -211,6 +211,10 @@ def build_rows(lines):
     for plines in points.values():
         if not (plines[ANGLE_HORIZONTAL] and plines[ANGLE_VERTICAL]):
             continue
+
+        plines[ANGLE_HORIZONTAL].sort(key=lambda l: (l.y0, l.x1))
+        plines[ANGLE_VERTICAL].sort(key=lambda l: (l.x0, l.y1))
+
         for hline in plines[ANGLE_HORIZONTAL]:
             try:
                 vparallels = points[hline.x1, hline.y0][ANGLE_VERTICAL]
@@ -242,8 +246,14 @@ def build_rows(lines):
                 boxes.setdefault((vline.y0, vline.y1), []).append(box)
 
     rows = list(boxes.values())
+    new_rows = []
     for row in rows:
         row.sort(key=lambda box: box.x0)
+        if row:
+            row = [row[0]] + [c for n, c in enumerate(row[1:], 1) if row[n-1].x0 != c.x0]
+        new_rows.append(row)
+
+    rows = new_rows
     rows.sort(key=lambda row: row[0].y0)
 
     return rows
