@@ -319,9 +319,9 @@ class HSBC(LoginBrowser):
         for tr in self.page.get_history():
             yield tr
 
-    def get_investments(self, account):
+    def get_investments(self, account, retry_li=True):
         if account.type == Account.TYPE_LIFE_INSURANCE:
-            return self.get_life_investments(account)
+            return self.get_life_investments(account, retry_li=retry_li)
         elif account.type in (Account.TYPE_PEA,):
             return self.get_pea_investments(account)
         else:
