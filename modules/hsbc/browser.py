@@ -331,7 +331,9 @@ class HSBC(LoginBrowser):
         assert account.type in (Account.TYPE_PEA, Account.TYPE_MARKET)
         if not self.PEA_LISTING:
             self._go_to_wealth_accounts()
-        return self.PEA_LISTING['investments']
+        if 'investments' in self.PEA_LISTING:
+            return self.PEA_LISTING['investments']
+        return []
 
     def get_life_investments(self, account, retry_li=True):
 
@@ -372,12 +374,13 @@ class HSBC(LoginBrowser):
             self.update_accounts_list()
 
         self.location(self.page.get_middle_frame_url())
-        self.location(self.page.get_patrimoine_url())
-        self.page.go_next()
-        self.page.go_to_logon()
-        helper = ProductViewHelper(self)
-        # we need to go there to initialize the session
-        self.PEA_LISTING['accounts'] = list(helper.retrieve_accounts())
-        self.PEA_LISTING['liquidities'] = list(helper.retrieve_liquidity_account())
-        self.PEA_LISTING['investments'] = list(helper.retrieve_invests())
-        self.connection.go()
+        if self.page.get_patrimoine_url():
+            self.location(self.page.get_patrimoine_url())
+            self.page.go_next()
+            self.page.go_to_logon()
+            helper = ProductViewHelper(self)
+            # we need to go there to initialize the session
+            self.PEA_LISTING['accounts'] = list(helper.retrieve_accounts())
+            self.PEA_LISTING['liquidities'] = list(helper.retrieve_liquidity_account())
+            self.PEA_LISTING['investments'] = list(helper.retrieve_invests())
+            self.connection.go()
