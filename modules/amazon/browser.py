@@ -95,7 +95,8 @@ class AmazonBrowser(LoginBrowser, StatesMixin):
     def handle_captcha(self, captcha):
         self.otp_form = self.page.get_response_form()
         self.otp_url = self.url
-        raise CaptchaQuestion('image_captcha', image_url=captcha[0])
+        image = self.open(captcha[0]).content
+        raise CaptchaQuestion('image_captcha', image_data=image)
 
     def do_login(self):
         if self.config['pin_code'].get():
