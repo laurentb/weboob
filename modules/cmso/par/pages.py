@@ -35,7 +35,7 @@ from weboob.capabilities.bank import Account, Investment, Loan
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.exceptions import BrowserIncorrectPassword, ParseError
+from weboob.exceptions import ParseError
 
 
 def MyDecimal(*args, **kwargs):
@@ -83,7 +83,10 @@ class AccountsPage(LoggedPage, JsonPage):
 
     def check_response(self):
         if "exception" in self.doc:
-            raise BrowserIncorrectPassword("Vous n'avez pas de comptes sur l'espace particulier de ce site.")
+            self.logger.warning("There are no checking accounts: exception '{}' with code {}".format(
+                                self.doc['exception']['message'],
+                                self.doc['exception']['code'])
+                            )
 
     def get_numbers(self):
         keys = self.get_keys()
