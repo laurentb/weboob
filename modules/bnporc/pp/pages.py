@@ -31,11 +31,12 @@ from weboob.browser.pages import JsonPage, LoggedPage, HTMLPage
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment, Recipient, Transfer, TransferError, TransferBankError, AddRecipientError
 from weboob.capabilities.contact import Advisor
+from weboob.capabilities.profile import Person
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, BrowserPasswordExpired, ActionNeeded
 from weboob.tools.capabilities.bank.iban import rib2iban, rebuild_rib, is_iban_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
-from weboob.tools.date import parse_french_date as Date
+from weboob.tools.date import parse_french_date
 
 
 class ConnectionThresholdPage(HTMLPage):
@@ -228,6 +229,33 @@ class BNPPage(LoggedPage, JsonPage):
             return (self.get('message'), code)
 
 
+class ProfilePage(LoggedPage, JsonPage):
+    @method
+    class get_profile(ItemElement):
+        klass = Person
+
+        def obj_birth_date(self):
+            date = parse_french_date(self.page.doc['data']['initialisation']['informationsClient']['etatCivil']['dateNaissance']).date()
+            return date
+
+        obj_name = Format('%s %s', Dict('data/initialisation/informationsClient/etatCivil/prenom'), Dict('data/initialisation/informationsClient/etatCivil/nom'))
+        obj_spouse_name = Dict('data/initialisation/informationsClient/etatCivil/nomMarital', default=NotAvailable)
+        obj_nationality = Dict('data/initialisation/informationsClient/etatCivil/nationnalite')
+
+        obj_phone = Dict('data/initialisation/informationsClient/etatCivil/numMobile')
+        obj_job = Dict('data/initialisation/informationsClient/situationPro/activiteExercee')
+
+        def obj_job_start_date(self):
+            return parse_french_date(Dict('data/initialisation/informationsClient/situationPro/dateDebut')(self.page.doc)).date()
+
+        obj_email = Dict('data/initialisation/informationsClient/etatCivil/mail')
+        obj_company_name = Dict('data/initialisation/informationsClient/situationPro/nomEmployeur')
+
+        def obj_company_siren(self):
+            siren = Dict('data/initialisation/informationsClient/monEntreprise/siren')(self.page.doc)
+            return siren or NotAvailable
+
+
 class AccountsPage(BNPPage):
     FAMILY_TO_TYPE = {
         1: Account.TYPE_CHECKING,
@@ -359,7 +387,7 @@ class ValidateTransferPage(BNPPage):
         elif 'ibanCompteCrediteur' in transfer_data and transfer_data['ibanCompteCrediteur'] is not None:
             assert transfer_data['ibanCompteCrediteur'] == recipient.iban
 
-        exec_date = Date(transfer_data['dateExecution']).date()
+        exec_date = parse_french_date(transfer_data['dateExecution']).date()
         today = datetime.today().date()
         if transfer_data['typeOperation'] == '1':
             assert exec_date == today
@@ -400,10 +428,10 @@ class RegisterTransferPage(ValidateTransferPage):
         transfer_data = self.doc['data']['enregistrementVirement']
 
         transfer.id = transfer_data['reference']
-        assert transfer.exec_date == Date(self.doc['data']['enregistrementVirement']['dateExecution']).date()
+        assert transfer.exec_date == parse_french_date(self.doc['data']['enregistrementVirement']['dateExecution']).date()
         # Timestamp at which the bank registered the transfer
         register_date = re.sub(' 24:', ' 00:', self.doc['data']['enregistrementVirement']['dateEnregistrement'])
-        transfer._register_date = Date(register_date)
+        transfer._register_date = parse_french_date(register_date)
 
         return transfer
 
@@ -475,8 +503,8 @@ class HistoryPage(BNPPage):
                 'amount': self.one('montant.montant', op),
             })
             tr.parse(raw=op.get('libelleOperation'),
-                     date=Date(op.get('dateOperation')),
-                     vdate=Date(self.one('montant.valueDate', op)))
+                     date=parse_french_date(op.get('dateOperation')),
+                     vdate=parse_french_date(self.one('montant.valueDate', op)))
             if tr.type == Transaction.TYPE_CARD and tr.raw.startswith('FACTURE CARTE SELON RELEVE DU'):
                 tr.type = Transaction.TYPE_CARD_SUMMARY
                 tr.deleted = True
@@ -491,8 +519,8 @@ class HistoryPage(BNPPage):
                 'amount': op.get('montant'),
                 'card': op.get('numeroPorteurCarte'),
             })
-            tr.parse(date=Date(op.get('dateOperation')),
-                     vdate=Date(op.get('valueDate')),
+            tr.parse(date=parse_french_date(op.get('dateOperation')),
+                     vdate=parse_french_date(op.get('valueDate')),
                      raw=op.get('libelle'))
             if tr.type == Transaction.TYPE_CARD:
                 tr.type = Transaction.TYPE_DEFERRED_CARD
@@ -533,8 +561,8 @@ class LifeInsurancesHistoryPage(BNPPage):
             if op.get('statut') == 'Sans suite':
                 continue
 
-            tr.parse(date=Date(op.get('dateSaisie')),
-                     vdate = Date(op.get('dateEffet')) if op.get('dateEffet') else None,
+            tr.parse(date=parse_french_date(op.get('dateSaisie')),
+                     vdate = parse_french_date(op.get('dateEffet')) if op.get('dateEffet') else None,
                      raw='%s %s' % (op.get('libelleMouvement'), op.get('canalSaisie') or ''))
             tr._op = op
 

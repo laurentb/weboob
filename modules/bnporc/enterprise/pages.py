@@ -32,7 +32,7 @@ from weboob.browser.filters.standard import (
     Async,
 )
 from weboob.capabilities.bank import Transaction, Account
-from weboob.capabilities.profile import Profile
+from weboob.capabilities.profile import Person
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 from weboob.tools.date import parse_french_date
 from weboob.capabilities import NotAvailable
@@ -179,9 +179,9 @@ class AccountsPage(LoggedPage, JsonPage):
 class AccountHistoryViewPage(LoggedPage, HTMLPage):
     @method
     class get_profile(ItemElement):
-        klass = Profile
+        klass = Person
 
-        obj_name = Regexp(CleanText('//table[@class="table_info_connecte"]//td'), '(.+?)\s-', default=NotAvailable)
+        obj_name = Regexp(CleanText('//p[@class="brandbar-info"]'), '(.+?)\s-')
 
 
 class BnpHistoryItem(ItemElement):

@@ -38,7 +38,7 @@ from .pages import LoginPage, AccountsPage, AccountsIBANPage, HistoryPage, Trans
                    ConnectionThresholdPage, LifeInsurancesPage, LifeInsurancesHistoryPage, \
                    LifeInsurancesDetailPage, MarketListPage, MarketPage, MarketHistoryPage, \
                    MarketSynPage, RecipientsPage, ValidateTransferPage, RegisterTransferPage, \
-                   AdvisorPage, AddRecipPage, ActivateRecipPage
+                   AdvisorPage, AddRecipPage, ActivateRecipPage, ProfilePage
 
 
 __all__ = ['BNPPartPro', 'HelloBank']
@@ -100,6 +100,8 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
 
     advisor = URL('/conseiller-wspl/rest/monConseiller', AdvisorPage)
 
+    profile = URL(r'https://mabanque.bnpparibas/kyc-wspl/rest/informationsClient', ProfilePage)
+
     accounts_list = None
 
     @retry(ConnectionError, tries=3)
@@ -113,6 +115,12 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
         self.login.go(timestamp=timestamp())
         if self.login.is_here():
             self.page.login(self.username, self.password)
+
+    @need_login
+    def get_profile(self):
+        self.location(r'https://mabanque.bnpparibas/kyc-wspl/rest/informationsClient', data=JSON({}))
+        profile = self.page.get_profile()
+        return profile
 
     @need_login
     def get_accounts_list(self):
