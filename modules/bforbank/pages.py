@@ -294,8 +294,9 @@ class CardPage(LoggedPage, HTMLPage):
     def get_cards(self, account_id):
         divs = self.doc.xpath('//div[@class="content-boxed"]')
         assert len(divs)
-
-        msgs = re.compile(u'Vous avez fait opposition sur cette carte bancaire.|Votre carte bancaire a été envoyée.')
+        msgs = re.compile(u'Vous avez fait opposition sur cette carte bancaire.' +
+                           '|Votre carte bancaire a été envoyée.' +
+                           '|BforBank a fait opposition sur votre carte')
         divs = [d for d in divs if not msgs.search(CleanText('.//div[has-class("alert")]', default='')(d))]
         divs = [d.xpath('.//div[@class="m-card-infos"]')[0] for d in divs]
         divs = [d for d in divs if not d.xpath('.//div[@class="m-card-infos-body-text"][text()="Débit immédiat"]')]
