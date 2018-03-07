@@ -259,7 +259,11 @@ class LoginPage(HTMLPage):
 
     def on_load(self):
         for message in self.doc.xpath('//div[has-class("csPanelErrors")]'):
-            raise BrowserIncorrectPassword(CleanText('.')(message))
+            error_msg = CleanText('.')(message)
+            if 'mot de passe invalide' in error_msg:
+                raise BrowserIncorrectPassword(error_msg)
+            else:
+                raise BrowserUnavailable(error_msg)
 
     def is_here(self):
         return not self.doc.xpath('//form[@name="launch"]')
