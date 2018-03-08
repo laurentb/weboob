@@ -27,7 +27,7 @@ from weboob.capabilities.base import NotAvailable
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.exceptions import ServerError, ClientError
 
-from .pages import LoginPage, AuthPage, SubscriptionsPage, BillsPage, DocumentsPage
+from .pages import LoginPage, HomePage, AuthPage, SubscriptionsPage, BillsPage, DocumentsPage
 
 
 class EdfproBrowser(LoginBrowser):
@@ -36,6 +36,7 @@ class EdfproBrowser(LoginBrowser):
     login = URL('/openam/json/authenticate', LoginPage)
     auth = URL('/openam/UI/Login.*',
                '/ice/rest/aiguillagemp/redirect', AuthPage)
+    home = URL('/ice/content/ice-pmse/homepage.html', HomePage)
     contracts = URL('/rest/contratmp/detaillercontrat', SubscriptionsPage)
     bills = URL('/rest/facturemp/getnomtelechargerfacture', BillsPage)
     documents = URL('/rest/facturemp/recherchefacture', DocumentsPage)

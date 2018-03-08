@@ -20,7 +20,7 @@
 
 from datetime import date
 
-from weboob.browser.pages import JsonPage, RawPage, LoggedPage
+from weboob.browser.pages import JsonPage, HTMLPage, RawPage, LoggedPage
 from weboob.browser.elements import DictElement, ItemElement, method
 from weboob.browser.filters.standard import CleanDecimal, CleanText
 from weboob.browser.filters.html import CleanHTML
@@ -38,6 +38,10 @@ class LoginPage(JsonPage):
 
 
 class AuthPage(RawPage):
+    pass
+
+
+class HomePage(LoggedPage, HTMLPage):
     pass
 
 
