@@ -245,7 +245,7 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
             raise TransferError('data consistency failed, %s changed from %s to %s' % ('amount', transfer.amount, amount))
         if transfer.label not in label:
             raise TransferError('data consistency failed, %s changed from %s to %s' % ('label', transfer.label, label))
-        if not (transfer.exec_date <= exec_date <= transfer.exec_date + timedelta(days=2)):
+        if not (transfer.exec_date <= exec_date <= transfer.exec_date + timedelta(days=3)):
             raise TransferError('data consistency failed, %s changed from %s to %s' % ('exec_date', transfer.exec_date, exec_date))
 
     def create_transfer(self, account, recipient, transfer):
