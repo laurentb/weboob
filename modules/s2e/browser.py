@@ -19,11 +19,11 @@
 
 
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 
 from .pages import (
     LoginPage, AccountsPage, AMFHSBCPage, AMFAmundiPage, AMFSGPage, HistoryPage,
-    ErrorPage, LyxorfcpePage, EcofiPage, EcofiDummyPage, LandingPage, SwissLifePage,
+    ErrorPage, LyxorfcpePage, EcofiPage, EcofiDummyPage, LandingPage, SwissLifePage, LoginErrorPage,
 )
 
 
@@ -31,6 +31,7 @@ class S2eBrowser(LoginBrowser, StatesMixin):
     login = URL('/portal/salarie-(?P<slug>\w+)/authentification',
                 '(.*)portal/salarie-(?P<slug>\w+)/authentification',
                 '/portal/j_security_check', LoginPage)
+    login_error = URL('/portal/login', LoginErrorPage)
     landing = URL('(.*)portal/salarie-bnp/accueil', LandingPage)
     accounts = URL('/portal/salarie-(?P<slug>\w+)/monepargne/mesavoirs\?language=(?P<lang>)',
                    '/portal/salarie-(?P<slug>\w+)/monepargne/mesavoirs', AccountsPage)
@@ -68,9 +69,12 @@ class S2eBrowser(LoginBrowser, StatesMixin):
         else:
             self.login.go(slug=self.SLUG).login(self.username, self.password, self.secret)
 
+            if self.login_error.is_here():
+                raise BrowserIncorrectPassword()
             if self.login.is_here():
                 error = self.page.get_error()
-                raise BrowserIncorrectPassword(error)
+                if error:
+                    raise ActionNeeded(error)
 
     @need_login
     def iter_accounts(self):

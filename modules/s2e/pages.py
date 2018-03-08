@@ -23,7 +23,7 @@ from io import BytesIO
 from decimal import Decimal
 from lxml import objectify
 
-from weboob.browser.pages import HTMLPage, XMLPage, RawPage, LoggedPage, pagination, FormNotFound
+from weboob.browser.pages import HTMLPage, XMLPage, RawPage, LoggedPage, pagination, FormNotFound, PartialHTMLPage
 from weboob.browser.elements import ItemElement, TableElement, SkipItem, method
 from weboob.browser.filters.standard import CleanText, Date, Regexp, Eval, CleanDecimal, Env, Field
 from weboob.browser.filters.html import Attr, TableCell
@@ -76,6 +76,10 @@ class S2eVirtKeyboard(MappedVirtKeyboard):
 
 
 class BrowserIncorrectAuthenticationCode(BrowserIncorrectPassword):
+    pass
+
+
+class LoginErrorPage(PartialHTMLPage):
     pass
 
 
