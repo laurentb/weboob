@@ -644,8 +644,9 @@ class LoansPage(AccountsPage):
                         return MyDecimal('//div[@id="trPagePu"]//tr[contains(@class, "ligne")]/td[contains(., "Taux")]', default=NotAvailable)(self.env['details'].doc)
 
                 def obj_type(self):
+                    # TODO set back Account.TYPE_REVOLVING CREDIT
                     if Field('available_amount')(self):
-                        return Account.TYPE_REVOLVING_CREDIT
+                        return Account.TYPE_LOAN
 
                 obj__form = None
 
