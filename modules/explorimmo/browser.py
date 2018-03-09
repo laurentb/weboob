@@ -25,7 +25,7 @@ from .pages import CitiesPage, SearchPage, HousingPage, HousingPage2, PhonePage
 
 
 class ExplorimmoBrowser(PagesBrowser):
-    BASEURL = 'http://www.explorimmo.com/'
+    BASEURL = 'https://www.explorimmo.com/'
 
     cities = URL('rest/locations\?q=(?P<city>.*)', CitiesPage)
     search = URL('resultat/annonces.html\?(?P<query>.*)', SearchPage)
