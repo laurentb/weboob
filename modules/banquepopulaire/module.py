@@ -22,6 +22,7 @@ from functools import reduce
 
 from weboob.capabilities.bank import CapBankWealth, AccountNotFound
 from weboob.capabilities.contact import CapContact
+from weboob.capabilities.profile import CapProfile
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
@@ -31,7 +32,7 @@ from .browser import BanquePopulaire
 __all__ = ['BanquePopulaireModule']
 
 
-class BanquePopulaireModule(Module, CapBankWealth, CapContact):
+class BanquePopulaireModule(Module, CapBankWealth, CapContact, CapProfile):
     NAME = 'banquepopulaire'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -101,3 +102,6 @@ class BanquePopulaireModule(Module, CapBankWealth, CapContact):
 
     def iter_contacts(self):
         return self.browser.get_advisor()
+
+    def get_profile(self):
+        return self.browser.get_profile()

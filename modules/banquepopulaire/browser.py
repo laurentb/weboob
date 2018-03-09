@@ -455,6 +455,11 @@ class BanquePopulaire(LoginBrowser):
                 for tr in history:
                     yield tr
 
+    @need_login
+    def get_profile(self):
+        self.location('/cyber/internet/StartTask.do?taskInfoOID=accueil&token=%s' % self.token)
+        return self.page.get_profile()
+
     @retry(LoggedOut)
     @need_login
     def get_advisor(self):

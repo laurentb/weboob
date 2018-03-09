@@ -34,6 +34,7 @@ from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, Acti
 from weboob.browser.pages import HTMLPage, LoggedPage, FormNotFound, JsonPage, RawPage, XMLPage
 
 from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities.profile import Person
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -1017,3 +1018,23 @@ class AdvisorPage(LoggedPage, MyHTMLPage):
         obj_phone = CleanText(u'//div[label[contains(text(), "Téléphone")]]/span', replace=[('.', '')])
         obj_fax = CleanText(u'//div[label[contains(text(), "Fax")]]/span', replace=[('.', '')])
         obj_address = CleanText(u'//div[div[contains(text(), "Votre agence")]]/following-sibling::div[1]//div[not(label)]/span')
+
+    def get_profile(self):
+        profile = Person()
+
+        # the name is only available in a welcome message. Sometimes, the message will look like that :
+        # "Bienvenue M <first> <lastname> - <company name>" and sometimes just "Bienvenue M <firstname> <lastname>"
+        # We need to detect wether the company name is there, and where it begins.
+        # relying on the dash only is dangerous as people may have dashes in their name and so may companies.
+        # but we can detect company name from a dash between space
+        # because we consider that impossible to be called jean - charles but only jean-charles
+        welcome_msg = CleanText('//div[@id="BlcBienvenue"]/div[@class="btit"]')(self.doc)
+
+        full_name_re = re.search(r'Bienvenue\s(((?! - ).)*)( - )?(.*)', welcome_msg)
+        name_re = re.search(r'M(?:me|lle)? (.*)', full_name_re.group(1))
+
+        profile.name = name_re.group(1)
+        profile.company_name = full_name_re.group(4)
+        profile.email = CleanText('//span[@id="fld8"]')(self.doc)
+
+        return profile
