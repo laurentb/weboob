@@ -23,7 +23,7 @@ import datetime
 
 from weboob.browser.pages import JsonPage, HTMLPage, pagination
 from weboob.browser.filters.standard import (
-    CleanDecimal, CleanText, Currency, Date, Env, Format, Regexp
+    CleanDecimal, CleanText, Currency, Date, Env, Format, Regexp, RegexpError
 )
 from weboob.browser.filters.html import AbsoluteLink, Attr, Link, XPathNotFound
 from weboob.browser.elements import ItemElement, ListElement, method
@@ -146,11 +146,11 @@ class HousingPage(HTMLPage):
             try:
                 electric_consumption = CleanDecimal(Regexp(
                     Attr('//div[has-class("OfferDetails-content")]//img', 'src'),
-                    r'https://dpe.foncia.net\/(\d+)\/.*',
-                    default=None
+                    r'https://dpe.foncia.net\/(\d+)\/.*'
                 ))(self)
-            except XPathNotFound:
+            except (RegexpError, XPathNotFound):
                 electric_consumption = None
+
             DPE = ""
             if electric_consumption is not None:
                 if electric_consumption <= 50:
@@ -167,42 +167,66 @@ class HousingPage(HTMLPage):
                     DPE = "F"
                 else:
                     DPE = "G"
-            return getattr(ENERGY_CLASS, DPE, NotAvailable)
+                return getattr(ENERGY_CLASS, DPE, NotAvailable)
+            return NotAvailable
 
         def obj_details(self):
-            details = {
-                "dispo": Date(
-                    Regexp(
-                        CleanText('//p[has-class("OfferTop-dispo")]'),
-                        r'.* (\d\d\/\d\d\/\d\d\d\d)',
-                        default=datetime.date.today().isoformat()
-                    )
-                )(self),
-                "priceMentions": CleanText('//p[has-class("OfferTop-mentions")]')(self),
-                "agency": CleanText('//p[has-class("OfferContact-address")]')(self)
-            }
+            details = {}
+
+            dispo = Date(
+                Regexp(
+                    CleanText('//p[has-class("OfferTop-dispo")]'),
+                    r'.* (\d\d\/\d\d\/\d\d\d\d)',
+                    default=datetime.date.today().isoformat()
+                )
+            )(self)
+            if dispo is not None:
+                details["dispo"] = dispo
+
+            priceMentions = CleanText(
+                '//p[has-class("OfferTop-mentions")]',
+                default=None
+            )(self)
+            if priceMentions is not None:
+                details["priceMentions"] = priceMentions
+
+            agency = CleanText(
+                '//p[has-class("OfferContact-address")]',
+                default=None
+            )(self)
+            if agency is not None:
+                details["agency"] = agency
+
             for item in self.xpath('//div[has-class("OfferDetails-columnize")]/div'):
-                category = CleanText('./h3[has-class("OfferDetails-title--2")]')(item)
+                category = CleanText(
+                    './h3[has-class("OfferDetails-title--2")]',
+                    default=None
+                )(item)
+                if not category:
+                    continue
+
                 details[category] = {}
+
                 for detail_item in item.xpath('.//ul[has-class("List--data")]/li'):
                     detail_title = CleanText('.//span[has-class("List-data")]')(detail_item)
                     detail_value = CleanText('.//*[has-class("List-value")]')(detail_item)
                     details[category][detail_title] = detail_value
+
                 for detail_item in item.xpath('.//ul[has-class("List--bullet")]/li'):
                     detail_title = CleanText('.')(detail_item)
                     details[category][detail_title] = True
+
             try:
                 electric_consumption = CleanDecimal(Regexp(
                     Attr('//div[has-class("OfferDetails-content")]//img', 'src'),
-                    r'https://dpe.foncia.net\/(\d+)\/.*',
-                    default=None
+                    r'https://dpe.foncia.net\/(\d+)\/.*'
                 ))(self)
-            except XPathNotFound:
-                electric_consumption = None
-            if electric_consumption is not None:
-                details["electric_consumption"] = '{} kWhEP/m².an'.format(electric_consumption)
-            else:
-                details["electric_consumption"] = NotAvailable
+                details["electric_consumption"] = (
+                    '{} kWhEP/m².an'.format(electric_consumption)
+                )
+            except (RegexpError, XPathNotFound):
+                pass
+
             return details
 
 
