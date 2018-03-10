@@ -22,7 +22,10 @@ from __future__ import unicode_literals
 import re
 
 from weboob.tools.json import json
-from weboob.capabilities.bank import Account, NotAvailable, Recipient, TransferBankError, Transfer
+from weboob.capabilities.bank import (
+    Account, NotAvailable, Recipient, TransferBankError, Transfer,
+    AddRecipientError,
+)
 from weboob.capabilities.profile import Profile
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage, PartialHTMLPage
@@ -311,4 +314,53 @@ class TransferPostPage(LoggedPage, PartialHTMLPage):
 
 class TransferFinishPage(LoggedPage, PartialHTMLPage):
     def on_load(self):
+        msg = CleanText('//li')(self.doc)
+        if msg:
+            raise TransferBankError(message=msg)
+
         assert b'Votre demande a bien &eacute;t&eacute; prise en compte' in self.data
+
+
+class RecipientStartPage(LoggedPage, HTMLPage):
+    def prepare_country(self, country):
+        form = self.get_form(id="formCreateBenef")
+        form['codePays'] = country
+        return form
+
+
+class RecipientIbanPage(LoggedPage, HTMLPage):
+    def prepare_recipient(self, iban, label):
+        form = self.get_form(id="formCreateBenef")
+        for i in range(0, len(iban), 4):
+            form['iban%s' % (1 + (i // 4))] = iban[i:i + 4]
+        form['nom'] = label
+        return form
+
+
+class RecipientChallengePage(LoggedPage, HTMLPage):
+    def get_challenge(self):
+        form = self.get_form(id='challengeForm')
+        return form['challengeCode']
+
+    def prepare_otp(self, code):
+        form = self.get_form(id="challengeForm")
+        form.url = '/portail/particuliers/mesoperations/beneficiaire/creer/challenge.do'
+        form['singleCode'] = code
+        return form
+
+
+class RecipientFinishedPage(LoggedPage, PartialHTMLPage):
+    def on_load(self):
+        msg = CleanText('//li', children=False)(self.doc)
+        if msg:
+            raise AddRecipientError(message=msg)
+
+        assert b'Le b&eacute;n&eacute;ficiaire a bien &eacute;t&eacute; ajout&eacute;.' in self.data
+
+
+class RecipientValidatePage(LoggedPage, PartialHTMLPage):
+    def on_load(self):
+        msg = CleanText('//li', children=False)(self.doc)
+        if msg:
+            raise AddRecipientError(message=msg)
+

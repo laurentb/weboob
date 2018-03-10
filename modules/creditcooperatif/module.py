@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.base import find_object
-from weboob.capabilities.bank import CapBankTransfer, AccountNotFound
+from weboob.capabilities.bank import CapBankTransferAddRecipient, AccountNotFound
 from weboob.capabilities.profile import CapProfile
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.date import new_date
@@ -31,7 +31,7 @@ from .pro.browser import CreditCooperatif as CreditCooperatifPro
 __all__ = ['CreditCooperatifModule']
 
 
-class CreditCooperatifModule(Module, CapBankTransfer, CapProfile):
+class CreditCooperatifModule(Module, CapBankTransferAddRecipient, CapProfile):
     NAME = 'creditcooperatif'
     MAINTAINER = u'Kevin Pouget'
     EMAIL = 'weboob@kevin.pouget.me'
@@ -87,3 +87,11 @@ class CreditCooperatifModule(Module, CapBankTransfer, CapProfile):
     def transfer_check_exec_date(self, old, new):
         delta = new_date(new) - new_date(old)
         return delta.days <= 2
+
+    def new_recipient(self, recipient, **kwargs):
+        assert self.browser
+        if self.BROWSER is not CreditCooperatifPerso:
+            raise NotImplementedError()
+        self.browser.new_recipient(recipient, kwargs)
+        return [recipient]
+

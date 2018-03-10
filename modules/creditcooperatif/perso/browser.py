@@ -19,11 +19,12 @@
 
 from datetime import datetime
 
-from weboob.browser import LoginBrowser, URL, need_login
+from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.capabilities.base import find_object
-from weboob.capabilities.bank import TransferInvalidDate
+from weboob.capabilities.bank import TransferInvalidDate, AddRecipientStep
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.tools.date import new_date
+from weboob.tools.value import Value
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages import (
@@ -32,14 +33,17 @@ from .pages import (
     RecipientsPage, TransferPage, EmittersPage, TransferDatesPage,
     TransferValidatePage, TransferPostPage, TransferFinishPage,
     ProfilePage,
+    RecipientStartPage, RecipientIbanPage, RecipientChallengePage,
+    RecipientFinishedPage, RecipientValidatePage,
 )
 
 
 __all__ = ['CreditCooperatif']
 
 
-class CreditCooperatif(LoginBrowser):
+class CreditCooperatif(StatesMixin, LoginBrowser):
     BASEURL = "https://www.credit-cooperatif.coop"
+    STATE_DURATION = 5
 
     loginpage = URL('/portail//particuliers/login.do', LoginPage)
     loggedpage = URL('/portail/particuliers/authentification.do', CreditLoggedPage)
@@ -61,6 +65,13 @@ class CreditCooperatif(LoginBrowser):
     transfer_finish = URL(r'/portail/particuliers/mesoperations/virement/creer/executerajax.do', TransferFinishPage)
 
     profile = URL(r'/portail/particuliers/profil/monprofil.do', ProfilePage)
+
+    recipient_start = URL(r'/portail/particuliers/mesoperations/beneficiaire/creeretape1.do', RecipientStartPage)
+    recipient_iban = URL(r'/portail/particuliers/mesoperations/beneficiaire/creer.do', RecipientIbanPage)
+    recipient_challenge = URL(r'/portail/particuliers/mesoperations/beneficiaire/creer/challenge.do', RecipientChallengePage)
+    recipient_finished = URL(r'/portail/particuliers/mesoperations/beneficiaire/creer/validationetexecutionajax.do', RecipientFinishedPage)
+    recipient_validate_country = URL(r'/portail/particuliers/mesoperations/beneficiaire/creer/validerbanqueajax.do', RecipientValidatePage)
+    recipient_validate_iban = URL(r'/portail/particuliers/mesoperations/beneficiaire/creer/validerajax.do', RecipientValidatePage)
 
     def do_login(self):
         self.loginpage.stay_or_go()
@@ -186,3 +197,38 @@ class CreditCooperatif(LoginBrowser):
         assert self.transfer_finish.is_here()
         self.accountspage.go()
         return transfer
+
+    @need_login
+    def new_recipient(self, recipient, kwargs):
+        if not kwargs.get('otp'):
+            self.recipient_start.go()
+
+            country = recipient.iban[:2]
+            form = self.page.prepare_country(country)
+            form.url = self.recipient_validate_country.build()
+            form.submit()
+
+            form.url = self.recipient_iban.build()
+            form.req = None
+            form.submit()
+
+            form = self.page.prepare_recipient(recipient.iban, recipient.label)
+
+            form.url = self.recipient_validate_iban.build()
+            form.submit()
+
+            form.url = self.recipient_challenge.build()
+            form.req = None
+            form.submit()
+
+            challenge = self.page.get_challenge()
+            msg = u'''Insérer votre carte dans le lecteur Sésame, Appuyez sur la touche "Réponse", Entrez votre code et validez, Entrez "%s" et validez, enfin renseignez le résultat''' % challenge
+
+            raise AddRecipientStep(recipient, Value('otp', label=msg))
+        else:
+            form = self.page.prepare_otp(kwargs['otp'])
+            form.url = self.recipient_finished.build()
+            form.submit()
+
+            self.accountspage.go()
+
