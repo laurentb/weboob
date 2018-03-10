@@ -31,13 +31,13 @@ __all__ = ['ZerobinModule']
 
 class ZerobinModule(Module, CapPaste):
     NAME = 'zerobin'
-    DESCRIPTION = u'ZeroBin/0bin encrypted pastebin'
+    DESCRIPTION = u'ZeroBin/0bin/PrivateBin encrypted pastebin'
     MAINTAINER = u'Vincent A'
     EMAIL = 'dev@indigo.re'
     LICENSE = 'AGPLv3+'
     VERSION = '1.4'
     CONFIG = BackendConfig(
-        Value('url', label='URL of the zerobin/0bin', regexp='https?://.*', default='https://zerobin.net'),
+        Value('url', label='URL of the zerobin/0bin/privatebin', regexp='https?://.*', default='https://zerobin.net'),
         ValueBool('discussion', label='Allow paste comments (ZeroBin only)', default=False),
     )
 

@@ -30,15 +30,23 @@ from .crypto import decrypt, encrypt
 
 
 class ReadPageZero(HTMLPage):
-    # for zerobin
-    def decode_paste(self, key):
+    # for zerobin/privatebin
+    def _get_dict(self):
         d = json.loads(CleanText('//div[@id="cipherdata"]')(self.doc))
-        subd = json.loads(d[0]['data'])
+        if isinstance(d, list):
+            # zerobin
+            return d[0]
+        else:
+            # privatebin
+            return d
+
+    def decode_paste(self, key):
+        subd = json.loads(self._get_dict()['data'])
         decr = decrypt(key, subd)
         return decompress(b64decode(decr), -MAX_WBITS)
 
     def get_expire(self):
-        d = json.loads(CleanText('//div[@id="cipherdata"]')(self.doc))[0]['meta']
+        d = self._get_dict()['meta']
         if 'expire_date' in d:
             return datetime.fromtimestamp(d['expire_date'])
 
@@ -84,7 +92,9 @@ class WritePageZero(HTMLPage):
     }
 
     def is_here(self):
-        return 'zerobin' in self.text and self.doc.xpath('//select[@id="pasteExpiration"]')
+        if not self.doc.xpath('//select[@id="pasteExpiration"]'):
+            return False
+        return 'zerobin' in self.text or 'privatebin' in self.text
 
     def post(self, contents, max_age):
         compressor = compressobj(-1, DEFLATED, -MAX_WBITS)
@@ -99,7 +109,10 @@ class WritePageZero(HTMLPage):
             'opendiscussion': str(int(self.browser.opendiscussion)),
             'syntaxcoloring': '1',
         }
-        response = self.browser.location(self.url, data=data)
+        headers = {
+            'Accept': 'application/json',
+        }
+        response = self.browser.location(self.url, data=data, headers=headers)
         j = response.json()
 
         assert j['status'] == 0
