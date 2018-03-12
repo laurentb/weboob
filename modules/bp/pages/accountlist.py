@@ -174,7 +174,7 @@ class AccountList(LoggedPage, MyHTMLPage):
 
     @method
     class iter_loans(TableElement):
-        head_xpath = '//table[@id="pret"]/thead//th'
+        head_xpath = '//table[@id="pret" or @class="dataNum"]/thead//th'
         item_xpath = '//table[@id="pret"]/tbody/tr'
 
         col_label = u'Numéro du prêt'
@@ -190,6 +190,8 @@ class AccountList(LoggedPage, MyHTMLPage):
             klass = Loan
 
             def condition(self):
+                if CleanText(TableCell('balance'))(self) != u'Prêt non débloqué':
+                    return bool(not self.xpath('//caption[contains(text(), "Période de franchise du")]'))
                 return CleanText(TableCell('balance'))(self) != u'Prêt non débloqué'
 
             def load_details(self):
@@ -247,6 +249,57 @@ class AccountList(LoggedPage, MyHTMLPage):
                 return self.page.url
 
             obj__has_cards = False
+
+    @method
+    class get_student_loan(ItemElement):
+        klass = Loan
+
+        def condition(self):
+            return bool(self.xpath('//caption[contains(text(), "Période de franchise du")]'))
+
+        # get all table headers
+        def obj__heads(self):
+            heads_xpath = '//table[@class="dataNum"]/thead//th'
+            return [CleanText('.')(head) for head in self.xpath(heads_xpath)]
+
+        # get all table elements
+        def obj__items(self):
+            items_xpath = '//table[@class="dataNum"]/tbody//td'
+            return [CleanText('.')(item) for item in self.xpath(items_xpath)]
+
+        def get_element(self, header_name):
+            for index, head in enumerate(Field('_heads')(self)):
+                if header_name in head:
+                    return Field('_items')(self)[index]
+            assert False
+
+        obj_id = Regexp(CleanText('//select[@id="numOffrePretSelection"]/option[@selected="selected"]'), r'(\d+)')
+        obj_type = Account.TYPE_LOAN
+        obj__has_cards = False
+
+        def obj_total_amount(self):
+            return CleanDecimal(replace_dots=True).filter(self.get_element('Montant initial'))
+
+        def obj_label(self):
+            return Regexp(CleanText('//h2[@class="title-level2"]'), r'([\w ]+)', flags=re.U)(self)
+
+        def obj_balance(self):
+            return -CleanDecimal(replace_dots=True).filter(self.get_element('Capital restant'))
+
+        def obj_maturity_date(self):
+            return Date(dayfirst=True).filter(self.get_element('Date derni'))
+
+        def obj_duration(self):
+            return CleanDecimal().filter(self.get_element("de l'amortissement"))
+
+        def obj_next_payment_date(self):
+            return Date(dayfirst=True).filter(self.get_element('Date de prochaine'))
+
+        def obj_next_payment_amount(self):
+            return CleanDecimal(replace_dots=True).filter(self.get_element('Montant prochaine'))
+
+        def obj_url(self):
+            return self.page.url
 
 
 class Advisor(LoggedPage, MyHTMLPage):
