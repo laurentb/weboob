@@ -28,13 +28,14 @@ import re
 from weboob.capabilities.base import empty, NotAvailable
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.contact import Advisor
+from weboob.capabilities.profile import Person
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.compat import parse_qs, urlparse, parse_qsl, urlunparse, urlencode, unicode
 from weboob.browser.elements import DictElement, ItemElement, method
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, RegexpError
 from weboob.browser.filters.html import Link
-from weboob.browser.pages import JsonPage, LoggedPage
+from weboob.browser.pages import HTMLPage, XMLPage, JsonPage, LoggedPage
 from weboob.exceptions import NoAccountsException, BrowserUnavailable
 
 from .base import BasePage
@@ -544,6 +545,23 @@ class AdvisorPage(BasePage):
             a.mobile = a.email = NotAvailable
             a.role = u"wealth" if "patrimoine" in CleanText('./div[1]')(div) else u"bank"
             yield a
+
+
+class HTMLProfilePage(LoggedPage, HTMLPage):
+    def get_profile(self):
+        profile = Person()
+        profile.name = Regexp(CleanText('//div[@id="dcr-conteneur"]//div[contains(text(), "PROFIL DE")]'), r'PROFIL DE (.*)')(self.doc)
+        profile.address = CleanText('//div[@id="dcr-conteneur"]//div[contains(text(), "ADRESSE")]/following::table//tr[3]/td[2]')(self.doc)
+        profile.address += ' ' + CleanText('//div[@id="dcr-conteneur"]//div[contains(text(), "ADRESSE")]/following::table//tr[5]/td[2]')(self.doc)
+        profile.address += ' ' + CleanText('//div[@id="dcr-conteneur"]//div[contains(text(), "ADRESSE")]/following::table//tr[6]/td[2]')(self.doc)
+        profile.country = CleanText('//div[@id="dcr-conteneur"]//div[contains(text(), "ADRESSE")]/following::table//tr[7]/td[2]')(self.doc)
+
+        return profile
+
+
+class XMLProfilePage(LoggedPage, XMLPage):
+    def get_email(self):
+        return CleanText('//AdresseEmailExterne')(self.doc)
 
 
 class LoansPage(LoggedPage, JsonPage):

@@ -26,7 +26,7 @@ from weboob.browser.exceptions import BrowserHTTPNotFound
 from .pages.accounts_list import (
     AccountsList, AccountHistory, CardsList, LifeInsurance,
     LifeInsuranceHistory, LifeInsuranceInvest, Market, ListRibPage, AdvisorPage,
-    LoansPage,
+    HTMLProfilePage, XMLProfilePage, LoansPage,
 )
 from .pages.transfer import RecipientsPage, TransferPage, AddRecipientPage, RecipientJson
 from .pages.login import LoginPage, BadLoginPage, ReinitPasswordPage, ActionNeededPage
@@ -61,6 +61,8 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     json_recipient = URL('/sec/getsigninfo.json', '/sec/csa/send.json', '/sec/oob_sendoob.json', '/sec/oob_polling.json', RecipientJson)
 
     loans = URL(r'/abm/restit/listeRestitutionPretsNET.json\?a100_isPretConso=(?P<conso>\w+)', LoansPage)
+    html_profile_page = URL(r'/com/dcr-web/dcr/dcr-coordonnees.html', HTMLProfilePage)
+    xml_profile_page = URL(r'/gms/gmsRestituerAdresseNotificationServlet.xml', XMLProfilePage)
 
     accounts_list = None
     context = None
@@ -232,3 +234,11 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
         self.page.post_iban(recipient)
         self.page.post_label(recipient)
         self.page.double_auth(recipient)
+
+    @need_login
+    def get_profile(self):
+        self.html_profile_page.go()
+        profile = self.page.get_profile()
+        self.xml_profile_page.go()
+        profile.email = self.page.get_email()
+        return profile
