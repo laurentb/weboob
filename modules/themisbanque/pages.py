@@ -24,9 +24,19 @@ from weboob.browser.pages import LoggedPage, HTMLPage, pagination
 from weboob.browser.elements import method, ListElement, ItemElement
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.profile import Profile
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Map, Async, AsyncLoad, Regexp, Join
 from weboob.browser.filters.html import Attr, Link
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+
+
+class MyCleanText(CleanText):
+    @classmethod
+    def clean(cls, txt, children=True, newlines=True, normalize='NFC'):
+        if not isinstance(txt, basestring):
+            txt = u'\n'.join([t.strip() for t in txt.itertext()])
+
+        return txt
 
 
 class LoginPage(HTMLPage):
@@ -70,6 +80,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_balance = CleanDecimal('./td[5]', replace_dots=True)
             obj_type = Map(CleanText('./td[3]'), TYPE, default=Account.TYPE_UNKNOWN)
             obj__link = Attr('./td[1]/a', 'href')
+            obj__url = Link('./td[last()]/a[img[starts-with(@alt, "RIB")]]', default=None)
 
             load_iban = Link('./td[last()]/a[img[starts-with(@alt, "RIB")]]', default=None) & AsyncLoad
 
@@ -78,7 +89,30 @@ class AccountsPage(LoggedPage, HTMLPage):
 
 
 class RibPage(LoggedPage, HTMLPage):
-    pass
+    def get_profile(self):
+        profile = Profile()
+
+        # profile is inside a <td> separated with a simple <br> without <span> or <div>
+        profile_txt = MyCleanText('//div[@class="TableauAffichage"]/table/tr[3]/td[1]')(self.doc).split('\n')
+        i_name = 0
+        profile.name = u''
+        # name can be on one, two, (more ?) lines, so we stop when line start by a number, we suppose it's the address number
+        while not re.search('^\d', profile_txt[i_name]):
+            profile.name += ' ' + profile_txt[i_name]
+            i_name += 1
+
+        profile.name = profile.name.strip()
+        profile.address = u''
+        # address is not always on two lines, so we consider every lines from here to before last are address, (last one is country)
+        for i in range(i_name, len(profile_txt)-1):
+            profile.address += ' ' + profile_txt[i]
+
+        profile.address = profile.address.strip()
+        profile.country = profile_txt[-1]
+
+        profile.name = profile.name.replace('MONSIEUR ', '').replace('MADAME ', '')
+
+        return profile
 
 
 class Transaction(FrenchTransaction):

@@ -21,6 +21,7 @@
 from weboob.tools.backend import Module, BackendConfig
 from weboob.capabilities.bank import CapBank, AccountNotFound
 from weboob.capabilities.base import find_object
+from weboob.capabilities.profile import CapProfile
 from weboob.tools.value import ValueBackendPassword
 from .browser import ThemisBrowser
 
@@ -28,7 +29,7 @@ from .browser import ThemisBrowser
 __all__ = ['ThemisModule']
 
 
-class ThemisModule(Module, CapBank):
+class ThemisModule(Module, CapBank, CapProfile):
     NAME = 'themisbanque'
     DESCRIPTION = u'Themis'
     MAINTAINER = u'Romain Bignon'
@@ -59,3 +60,6 @@ class ThemisModule(Module, CapBank):
 
     def iter_investment(self, account):
         raise NotImplementedError()
+
+    def get_profile(self):
+        return self.browser.get_profile()

@@ -57,3 +57,9 @@ class ThemisBrowser(LoginBrowser):
     def get_history(self, account):
         self.location(account._link)
         return self.page.get_operations()
+
+    @need_login
+    def get_profile(self):
+        accounts = list(self.iter_accounts())
+        self.location(accounts[0]._url)
+        return self.page.get_profile()
