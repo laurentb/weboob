@@ -20,6 +20,7 @@
 
 from weboob.capabilities.bank import CapBank, AccountNotFound
 from weboob.capabilities.base import find_object
+from weboob.capabilities.profile import CapProfile
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
@@ -30,7 +31,7 @@ from .dispobank import DispoBankBrowser
 __all__ = ['BredModule']
 
 
-class BredModule(Module, CapBank):
+class BredModule(Module, CapBank, CapProfile):
     NAME = 'bred'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -65,3 +66,6 @@ class BredModule(Module, CapBank):
 
     def iter_coming(self, account):
         return self.browser.get_history(account, coming=True)
+
+    def get_profile(self):
+        return self.browser.get_profile()

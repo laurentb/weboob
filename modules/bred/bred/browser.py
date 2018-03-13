@@ -27,6 +27,8 @@ from decimal import Decimal
 
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Account
+from weboob.capabilities.profile import Person
+from weboob.tools.date import parse_french_date
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction, sorted_transactions
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded, ParseError
 from weboob.browser import DomainBrowser
@@ -303,3 +305,19 @@ class BredBrowser(DomainBrowser):
             offset += 50
 
             assert offset < 30000, 'the site may be doing an infinite loop'
+
+    def get_profile(self):
+        self.get_universes()
+        profile = Person()
+
+        content = self.location('/transactionnel/services/rest/User/user').json()['content']
+
+        profile.name = content['prenom'] + ' ' + content['nom']
+        profile.address = content['adresse'] + ' ' + content['codePostal'] + ' ' + content['ville']
+        profile.country = content['pays']
+        profile.birth_date = parse_french_date(content['dateNaissance']).date()
+
+        content = self.location('/transactionnel/services/applications/gestionEmail/getAdressesMails').json()['content']
+        profile.email = content['emailPart']
+
+        return profile
