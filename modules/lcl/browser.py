@@ -36,7 +36,7 @@ from .pages import LoginPage, AccountsPage, AccountHistoryPage, \
                    HomePage, LoansPage, TransferPage, AddRecipientPage, \
                    RecipientPage, RecipConfirmPage, SmsPage, RecipRecapPage, \
                    LoansProPage, Form2Page, DocumentsPage, ClientPage, SendTokenPage, \
-                   CaliePage
+                   CaliePage, ProfilePage
 
 
 __all__ = ['LCLBrowser','LCLProBrowser', 'ELCLBrowser']
@@ -104,6 +104,8 @@ class LCLBrowser(LoginBrowser, StatesMixin):
     documents = URL('/outil/UWDM/ConsultationDocument/derniersReleves',
                     '/outil/UWDM/Recherche/afficherPlus',
                     '/outil/UWDM/Recherche/rechercherAll', DocumentsPage)
+
+    profile = URL('/outil/UWIP/Accueil/rafraichir', ProfilePage)
 
     __states__ = ('contracts', 'current_contract',)
 
@@ -422,6 +424,15 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         for document in self.page.get_list():
             documents.append(document)
         return documents
+
+    @need_login
+    def get_profile(self):
+        self.accounts.stay_or_go()
+        name = self.page.get_name()
+        self.profile.go(method="POST")
+        profile = self.page.get_profile()
+        profile.name = name
+        return profile
 
 
 class LCLProBrowser(LCLBrowser):

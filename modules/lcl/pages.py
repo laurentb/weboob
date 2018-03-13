@@ -31,6 +31,7 @@ from weboob.capabilities import NotAvailable
 from weboob.capabilities.base import find_object, Currency
 from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, TransferBankError, Transfer, AddRecipientError
 from weboob.capabilities.bill import Document, Subscription
+from weboob.capabilities.profile import Person
 from weboob.capabilities.contact import Advisor
 from weboob.browser.elements import method, ListElement, TableElement, ItemElement, SkipItem
 from weboob.exceptions import ParseError
@@ -214,6 +215,10 @@ class AccountsPage(LoggedPage, HTMLPage):
         warn = self.doc.xpath('//div[@id="attTxt"]')
         if len(warn) > 0:
             raise BrowserIncorrectPassword(warn[0].text)
+
+    def get_name(self):
+        split_name = CleanText('//li[@id="nomClient"]/p')(self.doc).split(' ')
+        return ' '.join(split_name[1:])
 
     @method
     class get_list(ListElement):
@@ -1052,3 +1057,11 @@ class SmsPage(LoggedPage, HTMLPage):
 
 class RecipRecapPage(CheckValuesPage):
     pass
+
+
+class ProfilePage(LoggedPage, HTMLPage):
+    def get_profile(self):
+        profile = Person()
+        profile.email = Attr('//input[@id="textMail"]', 'value')(self.doc)
+        profile.children = Decimal(Attr('//input[@id="nbEnfant"]', 'value')(self.doc))
+        return profile
