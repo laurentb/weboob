@@ -26,11 +26,11 @@ from decimal import Decimal
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Account, Loan
 from weboob.capabilities.contact import Advisor
+from weboob.capabilities.profile import Person
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement
 from weboob.browser.pages import LoggedPage, RawPage, PartialHTMLPage, HTMLPage
 from weboob.browser.filters.html import Link, TableCell
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, Field, BrowserURL, Currency, \
-    Async, Date
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, Field, BrowserURL, Currency, Async, Date, Format
 from weboob.exceptions import BrowserUnavailable
 from weboob.tools.compat import urljoin, unicode
 
@@ -345,3 +345,15 @@ class MarketLoginPage(LoggedPage, PartialHTMLPage):
 
 class UselessPage(LoggedPage, HTMLPage):
     pass
+
+
+class ProfilePage(LoggedPage, HTMLPage):
+    def get_profile(self):
+        profile = Person()
+
+        profile.name = Format('%s %s', CleanText('//div[@id="persoIdentiteDetail"]//dd[3]'), CleanText('//div[@id="persoIdentiteDetail"]//dd[2]'))(self.doc)
+        profile.address = CleanText('//div[@id="persoAdresseDetail"]//dd')(self.doc)
+        profile.email = CleanText('//div[@id="persoEmailDetail"]//td[2]')(self.doc)
+        profile.job = CleanText('//div[@id="persoIdentiteDetail"]//dd[4]')(self.doc)
+
+        return profile

@@ -36,7 +36,7 @@ from .pages.accounthistory import (
     LifeInsuranceInvest, LifeInsuranceHistory, LifeInsuranceHistoryInv, RetirementHistory,
     SavingAccountSummary, CachemireCatalogPage,
 )
-from .pages.accountlist import MarketLoginPage, UselessPage
+from .pages.accountlist import MarketLoginPage, UselessPage, ProfilePage
 from .pages.pro import RedirectPage, ProAccountsList, ProAccountHistory, DownloadRib, RibPage
 from .pages.mandate import MandateAccountsList, PreMandate, PreMandateBis, MandateLife, MandateMarket
 from .linebourse_browser import LinebourseBrowser
@@ -163,6 +163,8 @@ class BPBrowser(LoginBrowser, StatesMixin):
     mandate_market = URL(r'https://www.gestion-sous-mandat.labanquepostale-gestionprivee.fr/lbpgp/secure_account/selectedAccountDetail.html', MandateMarket)
     mandate_life = URL(r'https://www.gestion-sous-mandat.labanquepostale-gestionprivee.fr/lbpgp/secure_main/asvContratClient.html',
                        r'https://www.gestion-sous-mandat.labanquepostale-gestionprivee.fr/lbpgp/secure_ajax/asvSupportsDetail.html', MandateLife)
+
+    profile = URL('/voscomptes/canalXHTML/donneesPersonnelles/consultationDonneesPersonnellesSB490A/init-consulterDonneesPersonnelles.ea', ProfilePage)
 
     accounts = None
 
@@ -445,6 +447,10 @@ class BPBrowser(LoginBrowser, StatesMixin):
     @need_login
     def get_advisor(self):
         return iter([self.advisor.go().get_advisor()])
+
+    @need_login
+    def get_profile(self):
+        return self.profile.go().get_profile()
 
 
 class BProBrowser(BPBrowser):
