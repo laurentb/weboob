@@ -921,7 +921,17 @@ class PorPage(LoggedPage, HTMLPage):
         if balance:
             acc.currency = Currency('.//td[contains(@id, "Valorisation")]')(ele)
         else:
-            acc.currency = Currency('.')(ele)
+            # - Table element's textual content also contains dates with slashes.
+            # They produce a false match when looking for the currency
+            # (Slashes are matched with the Peruvian currency 'S/').
+            # - The remaining part of the table textual may contain different
+            # balances with their currencies though, so keep this part.
+            #
+            # Solution: remove the date
+            text_content = CleanText('.')(ele)
+            date_pattern = r"\d{2}/\d{2}/\d{4}"
+            no_date = re.sub(date_pattern, '', text_content)
+            acc.currency = Currency().filter(no_date)
 
     def send_form(self, account):
         form = self.get_form(name="frmMere")
