@@ -34,6 +34,7 @@ from weboob.browser.exceptions import ServerError
 from weboob.capabilities.bank import Account, Investment, Loan
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.profile import Profile
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.exceptions import ParseError
 
@@ -558,3 +559,13 @@ class RecipientsPage(LoggedPage, JsonPage):
         })
 
         return ret
+
+
+class ProfilePage(LoggedPage, JsonPage):
+    @method
+    class get_profile(ItemElement):
+        klass = Profile
+
+        obj_id = Dict('identifiantExterne')
+        obj_name = Format('%s %s', Dict('firstName'), Dict('lastName'))
+        obj_email = Dict('email')

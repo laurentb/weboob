@@ -32,7 +32,7 @@ from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages import (
     LogoutPage, InfosPage, AccountsPage, HistoryPage, LifeinsurancePage, MarketPage,
-    AdvisorPage, LoginPage, RecipientsPage,
+    AdvisorPage, LoginPage, RecipientsPage, ProfilePage,
 )
 
 
@@ -91,6 +91,8 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
     advisor = URL('/edrapi/v(?P<version>\w+)/oauth/(?P<page>\w+)', AdvisorPage)
 
     recipients = URL(r'/domiapi/oauth/json/transfer/transferinfos', RecipientsPage)
+
+    profile = URL(r'/domiapi/oauth/json/edr/infosPerson', ProfilePage)
 
     json_headers = {'Content-Type': 'application/json'}
 
@@ -279,6 +281,11 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
     def get_advisor(self):
         advisor = self.advisor.go(version="2", page="conseiller").get_advisor()
         return iter([self.advisor.go(version="1", page="agence").update_agency(advisor)])
+
+    @retry((ClientError, ServerError))
+    @need_login
+    def get_profile(self):
+        return self.profile.go(data=json.dumps({})).get_profile()
 
 
 class iter_retry(object):
