@@ -615,14 +615,14 @@ class LoansPage(AccountsPage):
                 def obj_maturity_date(self):
                     if self.env['details']:
                         m = re.search('(\d{2}/\d{2}/\d{4})', CleanText('//div[@id="trPagePu"]//td[contains(., "Fin le") or contains(., "Date de remboursement")]', default=NotAvailable)(self.env['details'].doc))
-                        if m:
+                        if m and (m.group(1) != '00/00/0000'):
                             return MyDate().filter(m.group(1))
                     return NotAvailable
 
                 def obj_subscription_date(self):
                     if self.env['details']:
                         m = re.search('(\d{2}/\d{2}/\d{4})', CleanText('//div[@id="trPagePu"]//td[contains(., "Début") or contains(., "Date de souscription")]', symbols=':', default=NotAvailable)(self.env['details'].doc))
-                        if m:
+                        if m and (m.group(1) != '00/00/0000'):
                             return MyDate().filter(m.group(1))
                     return NotAvailable
 
