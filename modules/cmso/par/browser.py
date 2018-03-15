@@ -95,6 +95,7 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
     profile = URL(r'/domiapi/oauth/json/edr/infosPerson', ProfilePage)
 
     json_headers = {'Content-Type': 'application/json'}
+    ARKEA = {'cmso.com': "03", 'cmb.fr': "01", 'cmmc.fr': '02'}
 
     def __init__(self, website, *args, **kwargs):
         super(CmsoParBrowser, self).__init__(*args, **kwargs)
@@ -102,8 +103,7 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
         self.BASEURL = "https://mon.%s" % website
         self.name = website.split('.')[0]
         self.website = website
-        arkea = {'cmso.com': "03", 'cmb.fr': "01", 'cmmc.fr': '02'}
-        self.arkea = arkea[website]
+        self.arkea = self.ARKEA[website]
         self.accounts_list = []
         self.logged = False
 

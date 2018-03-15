@@ -26,8 +26,15 @@ from weboob.exceptions import BrowserHTTPError, BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import ServerError
 from weboob.tools.date import LinearDateGuesser
+from weboob.tools.compat import urljoin
 
-from .pages import LoginPage, AccountsPage, HistoryPage, ChoiceLinkPage, SubscriptionPage, InvestmentPage, InvestmentAccountPage, UselessPage
+from .pages import (
+    LoginPage, AccountsPage, HistoryPage, ChoiceLinkPage, SubscriptionPage, InvestmentPage,
+    InvestmentAccountPage, UselessPage, TokenPage,
+)
+
+from ..par.pages import ProfilePage
+from ..par.browser import CmsoParBrowser
 
 
 class CmsoProBrowser(LoginBrowser):
@@ -41,10 +48,19 @@ class CmsoProBrowser(LoginBrowser):
     investment = URL('/domiweb/prive/particulier/portefeuilleSituation/0-situationPortefeuille.act', InvestmentPage)
     invest_account = URL(r'/domiweb/prive/particulier/portefeuilleSituation/2-situationPortefeuille.act\?(?:csrf=[^&]*&)?indiceCompte=(?P<idx>\d+)&idRacine=(?P<idroot>\d+)', InvestmentAccountPage)
 
+    profile = URL('https://pro.cmb.fr/domiapi/oauth/json/edr/infosPerson',
+                  'https://pro.cmso.fr/domiapi/oauth/json/edr/infosPerson',
+                  'https://pro.cmmc.fr/domiapi/oauth/json/edr/infosPerson',
+                  ProfilePage)
+
+    tokens = URL('/domiweb/prive/espacesegment/selectionnerAbonnement/3-selectionnerAbonnement.act', TokenPage)
+
     def __init__(self, website, *args, **kwargs):
         super(CmsoProBrowser, self).__init__(*args, **kwargs)
         self.BASEURL = "https://www.%s" % website
+        self.PROBASE = "https://pro.%s" % website
         self.areas = None
+        self.arkea = CmsoParBrowser.ARKEA[website]
 
     def do_login(self):
         self.login.stay_or_go()
@@ -148,3 +164,20 @@ class CmsoProBrowser(LoginBrowser):
         invests = list(self.page.iter_investments())
         assert len(invests) < 2, 'implementation should be checked with more than 1 investment' # FIXME
         return invests
+
+    @need_login
+    def get_profile(self):
+        # this code is copied from CmsoParBrowser
+        tokens = self.tokens.go().get_tokens()
+        headers = {
+            'Authentication': 'Bearer %s' % tokens[0],
+            'Authorization': 'Bearer %s' % tokens[1],
+            'X-ARKEA-EFS': self.arkea,
+            'X-Csrf-Token': tokens[1],
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-REFERER-TOKEN': 'RWDPRO',
+        }
+
+        url = urljoin(self.PROBASE, '/domiapi/oauth/json/edr/infosPerson')
+        return self.open(url, data='{}', headers=headers).page.get_profile()

@@ -562,10 +562,12 @@ class RecipientsPage(LoggedPage, JsonPage):
 
 
 class ProfilePage(LoggedPage, JsonPage):
+    # be careful, this page is used in CmsoProBrowser too!
+
     @method
     class get_profile(ItemElement):
         klass = Profile
 
         obj_id = Dict('identifiantExterne')
         obj_name = Format('%s %s', Dict('firstName'), Dict('lastName'))
-        obj_email = Dict('email')
+        obj_email = Dict('email', default=NotAvailable) # can be unavailable on pro website for example

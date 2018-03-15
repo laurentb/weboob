@@ -75,6 +75,4 @@ class CmsoModule(Module, CapBankWealth, CapContact, CapProfile):
         return self.browser.get_advisor()
 
     def get_profile(self):
-        if self.config['website'].get() != "par":
-            raise NotImplementedError()
         return self.browser.get_profile()

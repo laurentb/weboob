@@ -266,3 +266,8 @@ class HistoryPage(CMSOPage):
             obj_vdate = Transaction.Date('./td[1]')
             obj_raw = Transaction.Raw('./td[3]')
             obj_amount = Transaction.Amount('./td[5]', './td[4]')
+
+
+class TokenPage(CMSOPage):
+    def get_tokens(self):
+        return re.search(r'id_token=([^&]+)&access_token=([^&]+)', self.text).groups()
