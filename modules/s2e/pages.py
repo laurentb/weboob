@@ -425,7 +425,7 @@ class AccountsPage(LoggedPage, MultiPage):
     def update_invs_quantity(self, invs):
         for inv in invs:
             inv.quantity = MyDecimal().filter(CleanText('//div[contains(@id, "ongletDetailParSupport")] \
-                 //tr[.//div[contains(text(), "%s")]]/td[last()]//div/text()' % inv.label)(self.doc))
+                       //tr[.//div[contains(replace(text(), "\xa0", " "), "%s")]]/td[last()]//div/text()' % inv.label)(self.doc))
         return invs
 
     @method
@@ -465,7 +465,7 @@ class AccountsPage(LoggedPage, MultiPage):
         for pocket in pockets:
             # not so pretty
             pocket.quantity = MyDecimal(CleanText('//div[contains(@id, "detailParSupportEtDate")] \
-                //tbody[.//div[contains(text(), "%s")]]/following-sibling::tbody[1]//tr[.//span[contains(text(), \
+                //tbody[.//div[contains(replace(text(), "\xa0", " "), "%s")]]/following-sibling::tbody[1]//tr[.//span[contains(text(), \
                 "%s")]]/td[last()]//div/text()' % (pocket.investment.label, pocket._matching_txt)))(self.doc)
         return pockets
 
