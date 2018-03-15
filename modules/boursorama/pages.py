@@ -232,7 +232,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             load_details = Field('url') & AsyncLoad
 
             def condition(self):
-                return not self.is_external()
+                return not self.is_external() and not 'automobile' in Field('url')(self)
 
             obj_label = CleanText('.//a[has-class("account--name")] | .//div[has-class("account--name")]')
             obj_balance = CleanDecimal('.//a[has-class("account--balance")]', replace_dots=True)
