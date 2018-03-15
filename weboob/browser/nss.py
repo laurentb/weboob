@@ -41,7 +41,7 @@ try:
     import nss.nss
 except ImportError:
     raise ImportError('Please install python-nss')
-
+from requests.packages.urllib3.util.ssl_ import ssl_wrap_socket as old_ssl_wrap_socket
 from weboob.tools.log import getLogger
 
 
@@ -179,6 +179,11 @@ DEFAULT_CA_CERTIFICATES = (
     '/etc/pki/tls/certs/ca-bundle.crt',
 )
 def ssl_wrap_socket(sock, *args, **kwargs):
+    if kwargs.get('certfile'):
+        LOGGER.info('a client certificate is used, falling back to OpenSSL')
+        # TODO implement NSS client certificate support
+        return old_ssl_wrap_socket(sock, *args, **kwargs)
+
     reinit_if_needed()
 
     # TODO handle more options?
