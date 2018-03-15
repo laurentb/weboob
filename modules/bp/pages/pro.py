@@ -25,6 +25,7 @@ from weboob.browser.filters.standard import CleanText, CleanDecimal, Date
 from weboob.browser.filters.html import Link
 from weboob.browser.pages import LoggedPage, pagination
 from weboob.capabilities.bank import Account
+from weboob.capabilities.profile import Company
 from weboob.tools.compat import urljoin, unicode
 
 from .accounthistory import Transaction
@@ -103,3 +104,10 @@ class RibPage(LoggedPage, MyHTMLPage):
                 .filter(self.doc.xpath('//div[@class="blocbleu"][2]//table[@class="datalist"]')[0])\
                 .replace(' ', '').strip()
         return None
+
+    @method
+    class get_profile(ItemElement):
+        klass = Company
+
+        obj_name = CleanText('//table[@class="datalistecart"]//td[@class="nom"]')
+        obj_address = CleanText('//table[@class="datalistecart"]//td[@class="adr"]')

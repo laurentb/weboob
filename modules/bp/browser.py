@@ -536,3 +536,14 @@ class BProBrowser(BPBrowser):
             self.accounts = accounts
 
         return self.accounts
+
+    @need_login
+    def get_profile(self):
+        acc = self.get_accounts_list()[0]
+        self.location('%s/voscomptes/rib/init-rib.ea' % self.base_url)
+        value = self.page.get_rib_value(acc.id)
+        if value:
+            self.location('%s/voscomptes/rib/preparerRIB-rib.ea?%s' % (self.base_url, value))
+            if self.rib.is_here():
+                return self.page.get_profile()
+
