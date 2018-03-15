@@ -217,8 +217,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             raise BrowserIncorrectPassword(warn[0].text)
 
     def get_name(self):
-        split_name = CleanText('//li[@id="nomClient"]/p')(self.doc).split(' ')
-        return ' '.join(split_name[1:])
+        return CleanText('//li[@id="nomClient"]/p')(self.doc)
 
     @method
     class get_list(ListElement):
@@ -1063,5 +1062,7 @@ class ProfilePage(LoggedPage, HTMLPage):
     def get_profile(self):
         profile = Person()
         profile.email = Attr('//input[@id="textMail"]', 'value')(self.doc)
-        profile.children = Decimal(Attr('//input[@id="nbEnfant"]', 'value')(self.doc))
+        nb = Attr('//input[@id="nbEnfant"]', 'value', default=NotAvailable)(self.doc)
+        if nb:
+            profile.children = Decimal(nb)
         return profile
