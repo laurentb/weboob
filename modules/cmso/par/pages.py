@@ -134,6 +134,10 @@ class AccountsPage(LoggedPage, JsonPage):
                 balance = CleanDecimal(Dict('soldeEuro', default="0"))(self)
                 return -abs(balance) if Field('type')(self) == Account.TYPE_LOAN else balance
 
+            # It can have revolving credit on this page
+            def obj__total_amount(self):
+                return CleanDecimal(Dict('grantedAmount', default=None), default=NotAvailable)(self)
+
             def obj_type(self):
                 return self.page.TYPES.get(Dict('accountType', default=None)(self).lower(), Account.TYPE_UNKNOWN)
 

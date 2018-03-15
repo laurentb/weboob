@@ -175,6 +175,24 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
         # Then, get loans
         for key in self.loans.go().get_keys():
             for a in self.page.iter_loans(key=key):
+                if a.id in seen:
+                    self.logger.warning('skipping %s because it seems to be a duplicate of %s', seen[a.id], a)
+
+                    account_found = False
+                    for account in list(self.accounts_list):
+                        # Loan id can be not unique when it also appears in json account page
+                        if a.id == account._index:
+                            account_found = True
+                            # Merge information from account to loan
+                            a.id = account.id
+                            a.currency = account.currency
+                            a.coming = account.coming
+                            a.total_amount = account._total_amount
+                            a._index = account._index
+                            self.accounts_list.remove(account)
+                            break
+                    assert account_found
+
                 self.accounts_list.append(a)
         return self.accounts_list
 
