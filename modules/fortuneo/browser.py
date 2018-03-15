@@ -91,7 +91,10 @@ class Fortuneo(LoginBrowser):
     @need_login
     def get_coming(self, account):
         for cb_link in account._card_links:
-            self.location(cb_link)
+            for _ in range(3):
+                self.location(cb_link)
+                if not self.page.is_loading():
+                    break
 
             for tr in sorted_transactions(self.page.get_operations()):
                 yield tr

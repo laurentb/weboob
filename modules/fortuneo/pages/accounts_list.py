@@ -320,6 +320,9 @@ class CardHistoryPage(LoggedPage, HTMLPage):
                 tr.amount = -abs(CleanDecimal(None, replace_dots=True).filter(debit))
             yield tr
 
+    def is_loading(self):
+        return bool(self.doc.xpath('//span[@class="loading"]'))
+
 
 class AccountsList(LoggedPage, HTMLPage):
     def on_load(self):
