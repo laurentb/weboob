@@ -26,6 +26,7 @@ from weboob.browser.pages import LoggedPage, HTMLPage, RawPage, FormNotFound
 from weboob.browser.filters.standard import CleanText
 from weboob.tools.misc import to_unicode
 from weboob.capabilities.bank import Account
+from weboob.capabilities.profile import Profile
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
@@ -170,6 +171,15 @@ class AccountsPage(BredBasePage):
             account.balance = amount
             account.currency = [account.get_currency(txt) for txt in cols[-1].itertext() if len(txt.strip()) > 0][0]
             yield account
+
+    def get_profile(self):
+        profile = Profile()
+
+        text = CleanText('//span[@id="intituleAuth"]')(self.doc)
+        name_re = re.search(r'M(ME|R|LE) (.*)', text)
+        profile.name = name_re.group(2)
+
+        return profile
 
 
 class Transaction(FrenchTransaction):

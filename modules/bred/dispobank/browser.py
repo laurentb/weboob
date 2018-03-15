@@ -97,3 +97,10 @@ class DispoBankBrowser(LoginBrowser):
 
         assert self.transactions_page.is_here()
         return self.page.get_history()
+
+    @need_login
+    def get_profile(self):
+        if not self.accounts_page.is_here():
+            self.location('https://www.%s.fr/Andromede/Main' % self.website)
+
+        return self.page.get_profile()
