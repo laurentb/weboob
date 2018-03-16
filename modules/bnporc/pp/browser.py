@@ -100,7 +100,7 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
 
     advisor = URL('/conseiller-wspl/rest/monConseiller', AdvisorPage)
 
-    profile = URL(r'https://mabanque.bnpparibas/kyc-wspl/rest/informationsClient', ProfilePage)
+    profile = URL(r'/kyc-wspl/rest/informationsClient', ProfilePage)
 
     accounts_list = None
 
@@ -118,9 +118,11 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
 
     @need_login
     def get_profile(self):
-        self.location(r'https://mabanque.bnpparibas/kyc-wspl/rest/informationsClient', data=JSON({}))
+        self.profile.go(data=JSON({}))
         profile = self.page.get_profile()
-        return profile
+        if profile:
+            return profile
+        raise NotImplementedError()
 
     @need_login
     def get_accounts_list(self):

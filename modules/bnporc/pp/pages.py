@@ -26,7 +26,7 @@ from datetime import datetime, timedelta
 
 from weboob.browser.elements import DictElement, ListElement, ItemElement, method
 from weboob.browser.filters.json import Dict
-from weboob.browser.filters.standard import Format, Regexp, CleanText
+from weboob.browser.filters.standard import Format, Regexp, CleanText, Date
 from weboob.browser.pages import JsonPage, LoggedPage, HTMLPage
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment, Recipient, Transfer, TransferError, TransferBankError, AddRecipientError
@@ -232,24 +232,25 @@ class BNPPage(LoggedPage, JsonPage):
 class ProfilePage(LoggedPage, JsonPage):
     @method
     class get_profile(ItemElement):
+        def condition(self):
+            return Dict('codeRetour')(self) == '0'
+
+        item_path = 'data/initialisation/informationsClient/'
+
         klass = Person
 
-        def obj_birth_date(self):
-            date = parse_french_date(self.page.doc['data']['initialisation']['informationsClient']['etatCivil']['dateNaissance']).date()
-            return date
+        obj_name = Format('%s %s', Dict(item_path + 'etatCivil/prenom'), Dict(item_path + 'etatCivil/nom'))
+        obj_spouse_name = Dict(item_path + 'etatCivil/nomMarital', default=NotAvailable)
+        obj_birth_date = Date(Dict(item_path + 'etatCivil/dateNaissance'), dayfirst=True)
+        obj_nationality = Dict(item_path + 'etatCivil/nationnalite')
 
-        obj_name = Format('%s %s', Dict('data/initialisation/informationsClient/etatCivil/prenom'), Dict('data/initialisation/informationsClient/etatCivil/nom'))
-        obj_spouse_name = Dict('data/initialisation/informationsClient/etatCivil/nomMarital', default=NotAvailable)
-        obj_nationality = Dict('data/initialisation/informationsClient/etatCivil/nationnalite')
+        obj_phone = Dict(item_path + 'etatCivil/numMobile')
+        obj_email = Dict(item_path + 'etatCivil/mail')
 
-        obj_phone = Dict('data/initialisation/informationsClient/etatCivil/numMobile')
-        obj_job = Dict('data/initialisation/informationsClient/situationPro/activiteExercee')
+        obj_job = Dict(item_path + 'situationPro/activiteExercee')
+        obj_job_start_date = Date(Dict(item_path + 'situationPro/dateDebut'), dayfirst=True, default=NotAvailable)
 
-        def obj_job_start_date(self):
-            return parse_french_date(Dict('data/initialisation/informationsClient/situationPro/dateDebut')(self.page.doc)).date()
-
-        obj_email = Dict('data/initialisation/informationsClient/etatCivil/mail')
-        obj_company_name = Dict('data/initialisation/informationsClient/situationPro/nomEmployeur')
+        obj_company_name = Dict(item_path + 'situationPro/nomEmployeur')
 
         def obj_company_siren(self):
             siren = Dict('data/initialisation/informationsClient/monEntreprise/siren')(self.page.doc)
