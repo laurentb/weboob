@@ -142,8 +142,7 @@ class BNPorcModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapMessag
         if not hasattr(self.browser, 'get_advisor'):
             raise NotImplementedError()
 
-        advisor = self.browser.get_advisor()
-        if advisor:
+        for advisor in self.browser.get_advisor():
             yield advisor
 
     def get_profile(self):
