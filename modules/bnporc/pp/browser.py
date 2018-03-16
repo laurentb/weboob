@@ -270,7 +270,7 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
         data['typeBeneficiaire'] = ''
         data['typeEnvoi'] = 'SMS'
         recipient = self.add_recip.go(data=json.dumps(data), headers={'Content-Type': 'application/json'}).get_recipient(recipient)
-        raise AddRecipientStep(recipient, Value('code', label='Saississez le code.'))
+        raise AddRecipientStep(recipient, Value('code', label='Saisissez le code.'))
 
     @need_login
     def prepare_transfer(self, account, recipient, amount, reason):
