@@ -19,6 +19,7 @@
 
 from __future__ import unicode_literals
 
+from datetime import datetime
 import re
 
 from weboob.tools.json import json
@@ -59,9 +60,10 @@ class TumblrBrowser(APIBrowser):
                         url=post['photo-url-1280'],
                         thumbnail=Thumbnail(post['photo-url-250']),
                     )
+                    img.id = post['id']
                     index += 1
                     img.title = CleanText().filter(post['photo-caption'])
-                    #img.date = post['date-gmt']
+                    img.date = datetime.strptime(post['date-gmt'], '%Y-%m-%d %H:%M:%S %Z')
                     img._page_url = post["url"]
                     yield img
 
@@ -73,9 +75,10 @@ class TumblrBrowser(APIBrowser):
                         url=photo['photo-url-1280'],
                         thumbnail=Thumbnail(photo['photo-url-250']),
                     )
+                    img.id = '%s.%s' % (post['id'], photo['offset'])
                     index += 1
                     img.title = CleanText().filter(photo['caption'] or post['photo-caption'])
-                    #img.date = post['date-gmt']
+                    img.date = datetime.strptime(post['date-gmt'], '%Y-%m-%d %H:%M:%S %Z')
                     img._page_url = post["url"]
                     yield img
 
