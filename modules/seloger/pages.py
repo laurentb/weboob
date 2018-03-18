@@ -23,7 +23,7 @@ from weboob.browser.elements import ItemElement, ListElement, DictElement, metho
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import XPath
 from weboob.browser.filters.standard import (CleanText, CleanDecimal, Currency,
-                                             DateTime, Format)
+                                             DateTime, Env, Format)
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.housing import (Housing, HousingPhoto, City,
                                          UTILITIES, ENERGY_CLASS, POSTS_TYPES,
@@ -121,6 +121,8 @@ class SearchResultsPage(XMLPage):
                     # Ignore VIAGER
                     return CleanText('idTypeTransaction')(self) == '2'
                 return True
+
+            obj_type = Env('query_type')
 
             def obj_advert_type(self):
                 is_agency = (
