@@ -158,14 +158,21 @@ class MainWindow(QtMainWindow):
             self.ui.labelTitle.setText(obj.title or '')
             self.ui.labelDescription.setText(obj.description or '')
             self.ui.labelAuthor.setText(obj.author or '')
+
+            size = '-'
             if obj.size:
-                self.ui.labelSize.setText(size_format(obj.size) or '')
-            else:
-                self.ui.labelSize.setText('-')
+                size = size_format(obj.size) or ''
+            self.ui.labelSize.setText(size)
+
+            url = ''
             if obj.url:
-                self.ui.labelLink.setText('<a href="%s">Link</a>' % obj.url)
-            else:
-                self.ui.labelLink.setText('')
+                url = '<a href="%s">Link</a>' % obj.url
+            self.ui.labelLink.setText(url)
+
+            date = ''
+            if obj.date:
+                date = obj.date.strftime('%Y-%m-%d')
+            self.ui.labelDate.setText(date)
         elif isinstance(obj, BaseGallery):
             pass
 
