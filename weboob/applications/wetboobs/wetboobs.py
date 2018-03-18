@@ -38,8 +38,8 @@ class ForecastsFormatter(IFormatter):
                 self.BOLD,
                 '%s:' % obj.date,
                 self.NC,
-                self.temperature_display(obj.low) if empty(obj.low) else '?',
-                self.temperature_display(obj.high) if empty(obj.high) else '?'
+                self.temperature_display(obj.low) if not empty(obj.low) else '?',
+                self.temperature_display(obj.high) if not empty(obj.high) else '?'
             )
         )
         if hasattr(obj, 'text') and obj.text:
