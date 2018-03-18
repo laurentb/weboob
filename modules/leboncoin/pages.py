@@ -29,7 +29,7 @@ from weboob.browser.filters.json import Dict
 from weboob.capabilities.housing import (City, Housing, HousingPhoto,
                                          UTILITIES, ENERGY_CLASS, POSTS_TYPES,
                                          ADVERT_TYPES, HOUSE_TYPES)
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable, empty
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 from weboob.tools.date import DATE_TRANSLATE_FR, LinearDateGuesser
 
@@ -131,7 +131,18 @@ class HousingListPage(HTMLPage):
             obj_title = CleanText('./@title|./section/p[@class="item_title"]')
             obj_cost = CleanDecimal('./section[@class="item_infos"]/*[@class="item_price"]/text()',
                                     replace_dots=(',', '.'),
-                                    default=Decimal(0))
+                                    default=NotAvailable)
+            obj_price_per_meter = PricePerMeterFilter()
+            obj_area = CleanDecimal(
+                Regexp(
+                    obj_title,
+                    r'(.*?)([\d,\.]*) m²(.*?)',
+                    '\\2',
+                    default=None
+                ),
+                replace_dots=True,
+                default=NotAvailable
+            )
             obj_location = CleanText(
                 './section[@class="item_infos"]/*[@itemtype="http://schema.org/Place"]/text()'
             )
@@ -205,6 +216,7 @@ class HousingPage(HTMLPage):
             self.env['DPE'] = NotAvailable
             self.env['typeBien'] = NotAvailable
             self.env['utilities'] = UTILITIES.UNKNOWN
+            self.env['rooms'] = NotAvailable
 
             for item in Dict('adview/attributes')(self):
                 key = item['key']
@@ -231,7 +243,7 @@ class HousingPage(HTMLPage):
                 elif key == u'energy_rate':
                     self.env['DPE'] = getattr(ENERGY_CLASS, item['value'].upper() ,NotAvailable)
                 elif key == u'furnished':
-                    self.env['isFurnished'] = (value == u'meublé')
+                    self.env['isFurnished'] = (value.lower() == u'meublé')
                 elif key == u'charges_included':
                     if value == "Oui":
                         self.env['utilities'] = UTILITIES.INCLUDED
@@ -247,6 +259,13 @@ class HousingPage(HTMLPage):
         obj_details = Env('details')
         obj_GES = Env('GES')
         obj_DPE = Env('DPE')
+
+        def obj_rooms(self):
+            if not empty(self.env['rooms']):
+                return CleanDecimal(Env('rooms'))(self)
+            else:
+                return NotAvailable
+
         obj_house_type = Env('typeBien')
         obj_utilities = Env('utilities')
         obj_title = Dict('adview/subject')
@@ -254,7 +273,6 @@ class HousingPage(HTMLPage):
         obj_currency = BaseCurrency.get_currency(u'€')
         obj_text = Dict('adview/body')
         obj_location = Dict('adview/location/city_label')
-        obj_type = POSTS_TYPES.SALE
 
         def obj_advert_type(self):
             line_pro = Dict('adview/owner/type')(self)
@@ -270,12 +288,16 @@ class HousingPage(HTMLPage):
 
         def obj_photos(self):
             photos = []
-            for img in Dict('adview/images/urls_large')(self):
+            for img in Dict('adview/images/urls_large', default=[])(self):
                 photos.append(HousingPhoto(img))
             return photos
 
         def obj_type(self):
-            breadcrumb = Dict('adview/category_id')(self)
+            try:
+                breadcrumb = int(Dict('adview/category_id')(self))
+            except ValueError:
+                breadcrumb = None
+
             if breadcrumb == 11:
                 return POSTS_TYPES.SHARING
             elif breadcrumb == 10:
