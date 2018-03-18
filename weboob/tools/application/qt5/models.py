@@ -152,45 +152,11 @@ class DoQueue(QObject):
             do.stop()
 
 
-class ByIdDict(dict):
-    """dict keeping objects by their `id()`
-
-    This is used to store BaseObjects as key, because they are unhashable and
-    so can't be put in a regular dict else.
-    """
-
-    def __init__(self):
-        super(ByIdDict, self).__init__()
-        self.objs = {}
-
-    def __getitem__(self, k):
-        return super(ByIdDict, self).__getitem__(id(k))
-
-    def get(self, k, default=None):
-        return super(ByIdDict, self).get(id(k), default)
-
-    def __contains__(self, k):
-        return super(ByIdDict, self).__contains__(id(k))
-
-    def __setitem__(self, k, v):
-        super(ByIdDict, self).__setitem__(id(k), v)
-        self.objs[id(k)] = k
-
-    def setdefault(self, k, v):
-        self.objs[id(k)] = k
-        return super(ByIdDict, self).setdefault(id(k), v)
-
-    def __delitem__(self, k):
-        super(ByIdDict, self).__delitem__(id(k))
-        del self.objs[id(k)]
-
-    def pop(self, k, *args, **kwargs):
-        self.objs.pop(id(k), None)
-        return super(ByIdDict, self).pop(id(k), *args, **kwargs)
-
-    def clear(self):
-        super(ByIdDict, self).clear()
-        self.objs.clear()
+class Item(object):
+    def __init__(self, obj, parent):
+        self.obj = obj
+        self.parent = parent
+        self.children = None
 
 
 class ResultModel(QAbstractItemModel):
@@ -207,8 +173,7 @@ class ResultModel(QAbstractItemModel):
         super(ResultModel, self).__init__(*args, **kwargs)
         self.weboob = weboob
         self.resource_classes = []
-        self.children = ByIdDict()
-        self.parents = ByIdDict()
+        self.root = Item(None, None)
         self.columns = []
 
         self.limit = None
@@ -234,8 +199,7 @@ class ResultModel(QAbstractItemModel):
         self.beginResetModel()
         #if n:
         #    self.beginRemoveRows(QModelIndex(), 0, max(0, n - 1))
-        self.children.clear()
-        self.parents.clear()
+        self.root = Item(None, None)
         self.endResetModel()
         #if n:
         #    self.endRemoveRows()
@@ -274,42 +238,49 @@ class ResultModel(QAbstractItemModel):
         self.resource_classes = classes
 
     def removeItem(self, qidx):
-        obj = qidx.internalPointer()
-        assert obj
+        item = qidx.internalPointer()
+        assert item
         # TODO recursive?
         parent_qidx = qidx.parent()
-        parent_obj = parent_qidx.internalPointer()
+        parent_item = item.parent
+        assert parent_item is parent_qidx.internalPointer()
 
-        n = self.children[parent_obj].index(obj)
+        n = parent_item.children.index(item)
 
         self.beginRemoveRows(parent_qidx, n, n)
-        self.parents.pop(obj, None)
-        self.children.pop(obj, None)
-        del self.children[parent_obj][n]
+        del parent_item.children[n]
+        item.parent = None
         self.endRemoveRows()
 
     # internal operation
     def _addToRoot(self, obj):
-        self._addItem(obj, None, QModelIndex())
+        self._addItem(obj, self.root, QModelIndex())
 
     def _addItem(self, obj, parent, parent_qidx):
-        children = self.children.setdefault(parent, [])
+        item = Item(obj, parent)
+
+        if parent.children is None:
+            parent.children = []
+        children = parent.children
         n = len(children)
         self.beginInsertRows(parent_qidx, n, n)
-        children.append(obj)
-        self.parents[obj] = parent
+        children.append(item)
         self.endInsertRows()
 
     @Slot(object)
     def _expanderGotResponse(self, obj):
-        parent, parent_qidx = self.jobExpanders[self.sender()]
-        self._addItem(obj, parent, parent_qidx)
+        parent_obj, parent_item = self.jobExpanders[self.sender()]
+        row = parent_item.parent.children.index(parent_item)
+        parent_qidx = self.createIndex(row, 0, parent_item)
+        self._addItem(obj, parent_item, parent_qidx)
 
-    def _prepareExpanderJob(self, parent, parent_qidx):
+    def _prepareExpanderJob(self, obj, qidx):
+        item = qidx.internalPointer()
+
         process = DoWrapper(self.weboob, None)
         process.finished.connect(self.jobFinished)
         process.gotResponse.connect(self._expanderGotResponse)
-        self.jobExpanders[process] = (parent, parent_qidx)
+        self.jobExpanders[process] = (obj, item)
         return process
 
     def _expandableFields(self, cls):
@@ -366,14 +337,17 @@ class ResultModel(QAbstractItemModel):
 
     def _getBackend(self, qidx):
         while qidx.isValid():
-            obj = qidx.internalPointer()
-            if obj.backend:
-                return obj.backend
+            item = qidx.internalPointer()
+            if item.obj.backend:
+                return item.obj.backend
             qidx = qidx.parent()
 
     def fillObj(self, obj, fields, qidx):
+        assert qidx.isValid()
+        item = qidx.internalPointer()
+
         process = DoWrapper(self.weboob, None)
-        self.jobFillers[process] = qidx
+        self.jobFillers[process] = item
         process.gotResponse.connect(self._fillerGotResponse)
         process.finished.connect(self.jobFinished)
 
@@ -382,29 +356,31 @@ class ResultModel(QAbstractItemModel):
         self.jobs.add(process)
 
     @Slot(object)
-    def _fillerGotResponse(self, _):
-        qidx = self.jobFillers[self.sender()]
+    def _fillerGotResponse(self, new_obj):
+        item = self.jobFillers[self.sender()]
+        if new_obj is not None:
+            item.obj = new_obj
+
+        row = item.parent.children.index(item)
+        qidx = self.createIndex(row, 0, item) # FIXME col 0 ?
         self.dataChanged.emit(qidx, qidx)
 
     # Qt model methods
     def index(self, row, col, parent_qidx):
-        parent = parent_qidx.internalPointer()
-        children = self.children.get(parent, ())
-        if row >= len(children):
+        parent = parent_qidx.internalPointer() or self.root
+        children = parent.children or ()
+        if row >= len(children) or col >= len(self.columns):
             return QModelIndex()
         return self.createIndex(row, col, children[row])
 
     def parent(self, qidx):
-        obj = qidx.internalPointer()
-        if obj is None:
+        item = qidx.internalPointer() or self.root
+        parent = item.parent
+        if parent is None or parent.parent is None:
             return QModelIndex()
 
-        parent = self.parents.get(obj)
-        if parent is None:
-            return QModelIndex()
-
-        gparent = self.parents[parent]
-        row = self.children[gparent].index(parent)
+        gparent = parent.parent
+        row = gparent.children.index(parent)
         return self.createIndex(row, 0, parent)
 
     def flags(self, qidx):
@@ -417,8 +393,8 @@ class ResultModel(QAbstractItemModel):
     def rowCount(self, qidx):
         if qidx.column() != 0 and qidx.isValid():
             return 0
-        obj = qidx.internalPointer()
-        return len(self.children.get(obj, []))
+        item = qidx.internalPointer() or self.root
+        return len(item.children or ())
 
     def columnCount(self, qidx):
         if qidx.column() != 0 and qidx.isValid():
@@ -426,9 +402,11 @@ class ResultModel(QAbstractItemModel):
         return len(self.columns)
 
     def data(self, qidx, role):
-        obj = qidx.internalPointer()
-        if obj is None:
+        item = qidx.internalPointer()
+        if item is None or item.obj is None:
             return QVariant()
+
+        obj = item.obj
 
         if role == self.RoleBackendName:
             return QVariant(self._getBackend(qidx))
@@ -448,28 +426,30 @@ class ResultModel(QAbstractItemModel):
         return '/'.join(self.columns[section])
 
     def hasChildren(self, qidx):
-        obj = qidx.internalPointer()
+        item = qidx.internalPointer() or self.root
+
+        obj = item.obj
 
         if isinstance(obj, BaseFile):
             return False
         # assume there are children, so a view may ask fetching
-        children = self.children.get(obj, [True])
+        children = item.children or [True]
         return bool(len(children))
 
     def canFetchMore(self, qidx):
-        obj = qidx.internalPointer()
-        if obj is None:
+        item = qidx.internalPointer()
+        if item is None:
             return False
-        return obj not in self.children
+        return item.children is None
 
     def fetchMore(self, qidx):
         if not self.canFetchMore(qidx):
             return
 
-        obj = qidx.internalPointer()
-        if obj is not None:
-            self.children.setdefault(obj, [])
-            self.expandObj(obj, qidx)
+        item = qidx.internalPointer()
+        if item.children is None:
+            item.children = []
+        self.expandObj(item.obj, qidx)
 
     # overridable
     def _dataText(self, obj, qidx):
