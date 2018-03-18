@@ -137,12 +137,24 @@ class SearchPage(HTMLPage):
             def obj_location(self):
                 script = CleanText('./script')(self)
                 try:
+                    # Should be standard JSON+LD data
                     script = json.loads(script)
+                except ValueError:
+                    try:
+                        # But explorimmo can't write JSON correctly and there
+                        # is a trailing "}"
+                        script = json.loads(script.strip().rstrip('}'))
+                    except ValueError:
+                        script = None
+                if not script:
+                    return NotAvailable
+
+                try:
                     return '%s (%s)' % (
                         script['address']['addressLocality'],
                         script['address']['postalCode']
                     )
-                except (ValueError, KeyError):
+                except (KeyError):
                     return NotAvailable
 
             def obj_cost(self):
@@ -255,7 +267,7 @@ class HousingPage2(JsonPage):
         def obj_type(self):
             transaction = Dict('characteristics/transaction')(self)
             if transaction == 'location':
-                if Dict('characteristics/isFurnished')(self) == 'true':
+                if Dict('characteristics/isFurnished')(self) == True:
                     return POSTS_TYPES.FURNISHED_RENT
                 else:
                     return POSTS_TYPES.RENT

@@ -17,67 +17,33 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import decimal
-import itertools
-from weboob.capabilities.housing import Query, POSTS_TYPES, UTILITIES
+from weboob.capabilities.housing import Query, ADVERT_TYPES, POSTS_TYPES
+from weboob.tools.capabilities.housing.housing_test import HousingTest
 from weboob.tools.test import BackendTest
 
 
-class ExplorimmoTest(BackendTest):
+class ExplorimmoTest(BackendTest, HousingTest):
     MODULE = 'explorimmo'
 
-    def check_housing_lists(self, query):
-        results = list(itertools.islice(
-            self.backend.search_housings(query),
-            20
-        ))
-        self.assertTrue(len(results) > 0)
-
-        self.assertTrue(any(x.photos for x in results))
-
-        # TODO: No tests for phone
-
-        for x in results:
-            self.assertIn(x.house_type, [
-                str(y) for y in query.house_types
-            ])
-            self.assertTrue(x.text)
-            self.assertTrue(x.location)
-            self.assertTrue(x.cost)
-            self.assertTrue(x.currency)
-            self.assertTrue(x.title)
-            self.assertEqual(x.type, query.type)
-            self.assertTrue(x.id)
-            self.assertTrue(x.url)
-            self.assertIn(x.advert_type, query.advert_types)
-            for photo in x.photos:
-                self.assertRegexpMatches(photo.url, r'^http(s?)://')
-
-        self.assertTrue(any(x.area for x in results))
-
-        return results
-
-    def check_single_housing(self, housing, advert_type):
-        self.assertTrue(housing.id)
-        self.assertTrue(housing.type)
-        self.assertEqual(housing.advert_type, advert_type)
-        self.assertTrue(housing.house_type)
-        self.assertTrue(housing.title)
-        self.assertTrue(housing.cost)
-        self.assertTrue(housing.currency)
-        self.assertTrue(housing.area)
-        self.assertTrue(housing.date)
-        self.assertTrue(housing.location)
-        self.assertTrue(housing.rooms)
-        self.assertEqual(type(housing.bedrooms), decimal.Decimal)
-        self.assertTrue(housing.phone)
-        self.assertTrue(housing.text)
-        self.assertTrue(housing.url)
-        self.assertTrue(housing.photos)
-        for photo in housing.photos:
-            self.assertRegexpMatches(photo.url, r'^http(s?)://')
-        self.assertTrue(housing.details.keys())
-        # No tests for DPE, GES
+    FIELDS_ALL_HOUSINGS_LIST = [
+        "id", "type", "advert_type", "house_type", "title", "location",
+        "cost", "currency", "utilities", "text", "area", "url"
+    ]
+    FIELDS_ANY_HOUSINGS_LIST = [
+        "photos"
+    ]
+    FIELDS_ALL_SINGLE_HOUSING = [
+        "id", "url", "type", "advert_type", "house_type", "title", "area",
+        "cost", "currency", "utilities", "date", "location", "text", "rooms",
+        "details"
+    ]
+    FIELDS_ANY_SINGLE_HOUSING = [
+        "bedrooms",
+        "photos",
+        "DPE",
+        "GES",
+        "phone"
+    ]
 
     def test_explorimmo_rent(self):
         query = Query()
@@ -88,14 +54,7 @@ class ExplorimmoTest(BackendTest):
         for city in self.backend.search_city('paris'):
             city.backend = self.backend.name
             query.cities.append(city)
-
-        results = self.check_housing_lists(query)
-        self.assertTrue(any(x.utilities == UTILITIES.INCLUDED for x in results))
-
-        housing = self.backend.get_housing(results[0].id)
-        self.backend.fillobj(housing, 'phone')
-        self.check_single_housing(housing, results[0].advert_type)
-        self.assertEqual(housing.utilities, results[0].utilities)
+        self.check_against_query(query)
 
     def test_explorimmo_sale(self):
         query = Query()
@@ -105,12 +64,7 @@ class ExplorimmoTest(BackendTest):
         for city in self.backend.search_city('paris'):
             city.backend = self.backend.name
             query.cities.append(city)
-
-        results = self.check_housing_lists(query)
-
-        housing = self.backend.get_housing(results[0].id)
-        self.backend.fillobj(housing, 'phone')
-        self.check_single_housing(housing, results[0].advert_type)
+        self.check_against_query(query)
 
     def test_explorimmo_furnished_rent(self):
         query = Query()
@@ -121,14 +75,7 @@ class ExplorimmoTest(BackendTest):
         for city in self.backend.search_city('paris'):
             city.backend = self.backend.name
             query.cities.append(city)
-
-        results = self.check_housing_lists(query)
-        self.assertTrue(any(x.utilities == UTILITIES.INCLUDED for x in results))
-
-        housing = self.backend.get_housing(results[0].id)
-        self.backend.fillobj(housing, 'phone')
-        self.check_single_housing(housing, results[0].advert_type)
-        self.assertEqual(housing.utilities, results[0].utilities)
+        self.check_against_query(query)
 
     def test_explorimmo_viager(self):
         query = Query()
@@ -137,9 +84,18 @@ class ExplorimmoTest(BackendTest):
         for city in self.backend.search_city('85'):
             city.backend = self.backend.name
             query.cities.append(city)
+        self.check_against_query(query)
 
-        results = self.check_housing_lists(query)
+    def test_explorimmo_personal(self):
+        query = Query()
+        query.area_min = 20
+        query.cost_max = 900
+        query.type = POSTS_TYPES.RENT
+        query.advert_types = [ADVERT_TYPES.PERSONAL]
+        query.cities = []
+        for city in self.backend.search_city('paris'):
+            city.backend = self.backend.name
+            query.cities.append(city)
 
-        housing = self.backend.get_housing(results[0].id)
-        self.backend.fillobj(housing, 'phone')
-        self.check_single_housing(housing, results[0].advert_type)
+        results = list(self.backend.search_housings(query))
+        self.assertEqual(len(results), 0)
