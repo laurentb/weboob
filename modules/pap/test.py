@@ -16,64 +16,37 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
-import itertools
 
 from weboob.capabilities.housing import Query, POSTS_TYPES, ADVERT_TYPES
 from weboob.tools.test import BackendTest
+from weboob.tools.capabilities.housing.housing_test import HousingTest
 
 
-class PapTest(BackendTest):
+class PapTest(BackendTest, HousingTest):
     MODULE = 'pap'
 
-    def check_housing_lists(self, query):
-        results = list(itertools.islice(
-            self.backend.search_housings(query),
-            20
-        ))
-        self.assertTrue(len(results) > 0)
-
-        self.assertTrue(any(x.photos for x in results))
-
-        for x in results:
-            self.assertIn(x.house_type, [
-                str(y) for y in query.house_types
-            ])
-            self.assertTrue(x.area)
-            self.assertTrue(x.location)
-            self.assertTrue(x.text)
-            self.assertTrue(x.cost)
-            self.assertEqual(x.utilities, '')
-            self.assertTrue(x.currency)
-            self.assertTrue(x.title)
-            self.assertEqual(x.type, query.type)
-            self.assertTrue(x.id)
-            self.assertTrue(x.url)
-            self.assertTrue(x.date)
-            self.assertTrue(x.rooms or x.bedrooms)
-            self.assertEqual(x.advert_type, ADVERT_TYPES.PERSONAL)
-            for photo in x.photos:
-                self.assertRegexpMatches(photo.url, r'^http(s?)://')
-
-        return results
-
-    def check_single_housing(self, housing):
-        self.assertTrue(housing.id)
-        self.assertTrue(housing.type)
-        self.assertEqual(housing.advert_type, ADVERT_TYPES.PERSONAL)
-        self.assertTrue(housing.house_type)
-        self.assertTrue(housing.title)
-        self.assertTrue(housing.cost)
-        self.assertTrue(housing.currency)
-        self.assertEqual(housing.utilities, '')
-        self.assertTrue(housing.area)
-        self.assertTrue(housing.date)
-        self.assertTrue(housing.location)
-        self.assertTrue(housing.text)
-        self.assertTrue(housing.url)
-        self.assertTrue(housing.photos)
-        for photo in housing.photos:
-            self.assertRegexpMatches(photo.url, r'^http(s?)://')
-        # TODO: No tests for station, bedrooms, rooms, DPE, phone
+    FIELDS_ALL_HOUSINGS_LIST = [
+        "id", "type", "advert_type", "house_type", "url", "title", "area",
+        "cost", "currency", "utilities", "date", "location", "text"
+    ]
+    FIELDS_ANY_HOUSINGS_LIST = [
+        "photos",
+        "station",
+        "rooms",
+        "bedrooms"
+    ]
+    FIELDS_ALL_SINGLE_HOUSING = [
+        "id", "url", "type", "advert_type", "house_type", "title", "area",
+        "cost", "currency", "utilities", "date", "location", "text",
+        "phone"
+    ]
+    FIELDS_ANY_SINGLE_HOUSING = [
+        "photos",
+        "rooms",
+        "bedrooms",
+        "station",
+        "DPE"
+    ]
 
     def test_pap_rent(self):
         query = Query()
@@ -84,12 +57,7 @@ class PapTest(BackendTest):
         for city in self.backend.search_city('paris'):
             city.backend = self.backend.name
             query.cities.append(city)
-
-        results = self.check_housing_lists(query)
-        self.assertTrue(any(x.station for x in results))
-
-        housing = self.backend.get_housing(results[0].id)
-        self.check_single_housing(housing)
+        self.check_against_query(query)
 
     def test_pap_sale(self):
         query = Query()
@@ -99,12 +67,7 @@ class PapTest(BackendTest):
         for city in self.backend.search_city('paris'):
             city.backend = self.backend.name
             query.cities.append(city)
-
-        results = self.check_housing_lists(query)
-        self.assertTrue(any(x.station for x in results))
-
-        housing = self.backend.get_housing(results[0].id)
-        self.check_single_housing(housing)
+        self.check_against_query(query)
 
     def test_pap_furnished_rent(self):
         query = Query()
@@ -115,12 +78,7 @@ class PapTest(BackendTest):
         for city in self.backend.search_city('paris'):
             city.backend = self.backend.name
             query.cities.append(city)
-
-        results = self.check_housing_lists(query)
-        self.assertTrue(any(x.station for x in results))
-
-        housing = self.backend.get_housing(results[0].id)
-        self.check_single_housing(housing)
+        self.check_against_query(query)
 
     def test_pap_viager(self):
         query = Query()
@@ -129,11 +87,19 @@ class PapTest(BackendTest):
         for city in self.backend.search_city('85'):
             city.backend = self.backend.name
             query.cities.append(city)
-
-        results = self.check_housing_lists(query)
-
-        housing = self.backend.get_housing(results[0].id)
-        self.check_single_housing(housing)
+        # Remove rooms from the tested fields as viager never have them
+        self.FIELDS_ANY_HOUSINGS_LIST = [
+            "photos",
+            "station",
+            "bedrooms"
+        ]
+        self.FIELDS_ANY_SINGLE_HOUSING = [
+            "photos",
+            "bedrooms",
+            "station",
+            "DPE"
+        ]
+        self.check_against_query(query)
 
     def test_pap_professional(self):
         query = Query()

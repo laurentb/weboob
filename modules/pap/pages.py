@@ -57,7 +57,7 @@ class HousingPage(HTMLPage):
             klass = Housing
 
             def condition(self):
-                title = CleanText('./div[has-class("box-header")]/a[@class="title-item"]')(self)
+                title = self.obj_title(self)
                 isNotFurnishedOk = True
                 if self.env['query_type'] == POSTS_TYPES.RENT:
                     isNotFurnishedOk = 'meublé' not in title.lower()
@@ -190,9 +190,7 @@ class HousingPage(HTMLPage):
         def obj_type(self):
             prev_link = Link('//ol[has-class("breadcrumb")]/li[1]/a')(self)
             if 'location' in prev_link:
-                title = CleanText(
-                    '//div[has-class("box-header")]/h1[@class="clearfix"]'
-                )(self)
+                title = self.obj_title(self)
                 if 'meublé' in title.lower():
                     return POSTS_TYPES.FURNISHED_RENT
                 else:
