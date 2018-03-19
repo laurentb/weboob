@@ -194,7 +194,12 @@ def ssl_wrap_socket(sock, *args, **kwargs):
     # so the Socket could close the fd, then a file could be opened,
     # obtaining the same file descriptor, then NSS would use the file, thinking
     # it's a network file descriptor... dup the fd to make it independant
-    fileno = os.dup(sock.fileno())
+    fileno = sock.fileno()
+    if hasattr(sock, 'detach'):
+        # socket.detach only exists in py3.
+        sock.detach()
+    else:
+        fileno = os.dup(fileno)
 
     nsssock = nss.ssl.SSLSocket.import_tcp_socket(fileno)
     wrapper = Wrapper(nsssock)
@@ -208,7 +213,13 @@ def ssl_wrap_socket(sock, *args, **kwargs):
         nsssock.set_auth_certificate_callback(auth_cert_pinning, kwargs['ca_certs'])
 
     nsssock.reset_handshake(False) # marks handshake as not-done
-    wrapper.send(b'') # performs handshake
+    try:
+        wrapper.send(b'') # performs handshake
+    except:
+        # If there is an exception during the handshake, correctly close the
+        # duplicated/detached socket as it isn't known by the caller.
+        wrapper.close()
+        raise
 
     return wrapper
 
