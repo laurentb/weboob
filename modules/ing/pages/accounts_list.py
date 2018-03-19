@@ -328,7 +328,7 @@ class ASVInvest(LoggedPage, HTMLPage):
 
             obj_label = CleanText(TableCell('label'))
             obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True)
-            obj_unitvalue = CleanDecimal(TableCell('unitvalue'), default=NotAvailable)
+            obj_unitvalue = CleanDecimal(TableCell('unitvalue'), replace_dots=True, default=NotAvailable)
             obj_quantity = CleanDecimal(TableCell('quantity'), default=NotAvailable)
             obj_valuation = CleanDecimal(TableCell('valuation'), replace_dots=True)
             obj_unitprice = CleanDecimal(TableCell('unitprice', default=None), replace_dots=True, default=NotAvailable)
