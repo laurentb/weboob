@@ -59,16 +59,16 @@ class BillsApiPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Bill
 
-            obj_duedate = Date(Dict('dueDate'), parse_func=parse_french_date, dayfirst=True,  default=NotAvailable)
+            obj_date = Date(Dict('dueDate'), parse_func=parse_french_date, dayfirst=True,  default=NotAvailable)
             obj_price = CleanDecimal(Dict('amountIncludingTax'))
             obj_type = "bill"
             obj_format = "pdf"
 
             def obj_label(self):
-                return "Facture du %s" % Field('duedate')(self)
+                return "Facture du %s" % Field('date')(self)
 
             def obj_id(self):
-                return "%s_%s" % (Env('subid')(self), Field('duedate')(self).strftime('%d%m%Y'))
+                return "%s_%s" % (Env('subid')(self), Field('date')(self).strftime('%d%m%Y'))
 
             def get_params(self):
                 params = {'billid': Dict('id')(self), 'billDate': Dict('dueDate')(self)}
