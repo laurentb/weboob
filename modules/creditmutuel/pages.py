@@ -265,7 +265,9 @@ class item_account_generic(ItemElement):
                     account.coming += balance
                 account._card_links.append(link)
             else:
-                card_xpath = '//div[contains(@class, "title")]/div//*[self::span or self::option][contains(text(), "Carte")]'
+                multiple_cards_xpath = '//select[@name="Data_SelectedCardItemKey"]/option[contains(text(),"Carte")]'
+                single_card_xpath = '//span[has-class("_c1 fg _c1")]'
+                card_xpath = multiple_cards_xpath + ' | ' + single_card_xpath
                 for elem in page.doc.xpath(card_xpath):
                     card_id = Regexp(CleanText('.', symbols=' '), '([\dx]{16})')(elem)
                     if any(card_id in a.id for a in page.browser.accounts_list):
