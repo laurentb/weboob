@@ -216,7 +216,7 @@ class CardsList(LoggedPage, MyHTMLPage):
         head_xpath = '//table[@class="dataNum"]/thead/tr/th'
 
         col_label = re.compile('Vos cartes Encours actuel prélevé au')
-        col_balance = 'Euros'
+        col_balance = ['Débit (euro)', 'Crédit (euro)', 'Euros']
         col_number = 'Numéro'
 
         class item(ItemElement):
