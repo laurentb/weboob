@@ -617,9 +617,9 @@ class Boobank(ReplApplication):
 
     def _build_transfer(self, line):
         if self.interactive:
-            id_from, id_to, amount, reason = self.parse_command_args(line, 4, 0)
+            id_from, id_to, amount, reason, exec_date = self.parse_command_args(line, 5, 0)
         else:
-            id_from, id_to, amount, reason = self.parse_command_args(line, 4, 3)
+            id_from, id_to, amount, reason, exec_date = self.parse_command_args(line, 5, 3)
 
         missing = not bool(id_from and id_to and amount)
 
@@ -674,8 +674,20 @@ class Boobank(ReplApplication):
 
         if missing:
             reason = self.ask('Label of the transfer (seen by the recipient)', default='')
+            exec_date = self.ask('Execution date of the transfer (YYYY-MM-DD format, empty for today)', default='')
 
-        exec_date = datetime.date.today()
+        today = datetime.date.today()
+        if exec_date:
+            try:
+                exec_date = datetime.datetime.strptime(exec_date, '%Y-%m-%d').date()
+            except ValueError:
+                print('Error: execution date must be valid and in YYYY-MM-DD format', file=self.stderr)
+                return
+            if exec_date < today:
+                print('Error: execution date cannot be in the past', file=self.stderr)
+                return
+        else:
+            exec_date = today
 
         transfer = Transfer()
         transfer.backend = account.backend
@@ -697,13 +709,14 @@ class Boobank(ReplApplication):
 
     def do_transfer(self, line):
         """
-        transfer [ACCOUNT RECIPIENT AMOUNT [LABEL]]
+        transfer [ACCOUNT RECIPIENT AMOUNT [LABEL [EXEC_DATE]]]
 
         Make a transfer beetwen two account
         - ACCOUNT    the source account
         - RECIPIENT  the recipient
         - AMOUNT     amount to transfer
         - LABEL      label of transfer
+        - EXEC_DATE  date when to execute the transfer
         """
 
         transfer = self._build_transfer(line)
