@@ -254,6 +254,7 @@ def init_nss(path, rw=False):
     CTX = nss.nss.nss_init_context(path, flags=flags)
 
     nss.nss.enable_ocsp_checking()
+    nss.nss.set_ocsp_failure_mode(nss.nss.ocspMode_FailureIsNotAVerificationFailure)
 
 
 def add_nss_cert(path, filename):
