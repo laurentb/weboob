@@ -175,20 +175,20 @@ class Boobill(ReplApplication):
 
     def do_download(self, line, force_pdf=False):
         """
-        download [ID | all] [FILENAME]
+        download [DOC_ID | all] [FILENAME]
 
-        download ID [FILENAME]
+        download DOC_ID [FILENAME]
 
         download the document
-        id is the identifier of the document (hint: try documents command)
+        DOC_ID is the identifier of the document (hint: try documents command)
         FILENAME is where to write the file. If FILENAME is '-',
         the file is written to stdout.
 
-        download all [ID]
+        download all [SUB_ID]
 
         You can use special word "all" and download all documents of
-        subscription identified by ID.
-        If Id not given, download documents of all subscriptions.
+        subscription identified by SUB_ID.
+        If SUB_ID is not given, download documents of all subscriptions.
         """
         id, dest = self.parse_command_args(line, 2, 1)
         id, backend_name = self.parse_id(id)
@@ -196,26 +196,18 @@ class Boobill(ReplApplication):
             print('Error: please give a document ID (hint: use documents command)', file=self.stderr)
             return 2
 
+        if id == 'all':
+            return self.download_all(dest, force_pdf)
+
         names = (backend_name,) if backend_name is not None else None
 
-        # Special keywords, download all documents of all subscriptions
-        if id == "all":
-            callback = self.download_all if not force_pdf else self.download_all_pdf
-
-            if dest is None:
-                for subscription in self.do('iter_subscription', backends=names):
-                    callback(subscription.id, names)
-                return
-            else:
-                callback(dest, names)
-                return
+        document, = self.do('get_document', id, backends=names)
+        if not document:
+            print('Error: document not found')
+            return 1
 
         if dest is None:
-            for document in self.do('get_document', id, backends=names):
-                dest = id + "." + (document.format if not force_pdf else 'pdf')
-
-        if 'document' not in locals():
-            document = id
+            dest = id + "." + (document.format if not force_pdf else 'pdf')
 
         for buf in self.do('download_document' if not force_pdf else 'download_document_pdf', document, backends=names):
             if buf:
@@ -242,30 +234,38 @@ class Boobill(ReplApplication):
 
         return self.do_download(line, force_pdf=True)
 
-    def download_all(self, id, names, force_pdf=False):
-        id, backend_name = self.parse_id(id)
+    def download_all(self, sub_id, force_pdf):
+        if sub_id:
+            sub_id, backend_name = self.parse_id(sub_id)
+            names = (backend_name,) if backend_name else None
+            subscription, = self.do('get_subscription', sub_id, backends=names)
+            if not self.download_subscription(subscription, force_pdf):
+                return 1
+        else:
+            for subscription in self.do('iter_subscription'):
+                if not self.download_subscription(subscription, force_pdf):
+                    return 1
 
-        for document in self.do('iter_documents', id, backends=names):
-            dest = document.id + "." + (document.format if not force_pdf else 'pdf')
+    def download_subscription(self, subscription, force_pdf):
+        for document in self.do('iter_documents', subscription, backends=(subscription.backend,)):
+            if not self.download_doc(document, force_pdf):
+                return False
+        return True
 
-            for buf in self.do('download_document' if not force_pdf else 'download_document_pdf', document, backends=names):
-                if buf:
-                    if dest == "-":
-                        print(buf)
-                    else:
-                        try:
-                            with open(dest, 'wb') as f:
-                                f.write(buf)
-                        except IOError as e:
-                            print('Unable to write bill in "%s": %s' % (dest, e), file=self.stderr)
-                            return 1
-        return
+    def download_doc(self, document, force_pdf):
+        if force_pdf:
+            method = 'download_document_pdf'
+        else:
+            method = 'download_document'
 
-    def download_all_pdf(self, id, names):
-        """
-        download_pdf all
+        dest = document.id + "." + (document.format if not force_pdf else 'pdf')
 
-        download_all function with forced PDF conversion.
-        """
-
-        return self.download_all(id, names, force_pdf=True)
+        for buf in self.do(method, document, backends=(document.backend,)):
+            if buf:
+                try:
+                    with open(dest, 'wb') as f:
+                        f.write(buf)
+                except IOError as e:
+                    print('Unable to write bill in "%s": %s' % (dest, e), file=self.stderr)
+                    return False
+        return True
