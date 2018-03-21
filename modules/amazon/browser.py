@@ -21,7 +21,7 @@ from __future__ import unicode_literals
 from datetime import date
 
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
-from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, CaptchaQuestion, BrowserQuestion
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ImageCaptchaQuestion, BrowserQuestion
 from weboob.tools.value import Value
 from weboob.browser.browsers import ClientError
 
@@ -96,7 +96,7 @@ class AmazonBrowser(LoginBrowser, StatesMixin):
         self.otp_form = self.page.get_response_form()
         self.otp_url = self.url
         image = self.open(captcha[0]).content
-        raise CaptchaQuestion('image_captcha', image_data=image)
+        raise ImageCaptchaQuestion(image)
 
     def do_login(self):
         if self.config['pin_code'].get():

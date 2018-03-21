@@ -21,7 +21,7 @@
 from time import time
 
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import BrowserIncorrectPassword, CaptchaQuestion
+from weboob.exceptions import BrowserIncorrectPassword, RecaptchaQuestion
 from weboob.tools.json import json
 from .pages import HomePage, LoginPage, ProfilPage, DocumentsPage, WelcomePage, UnLoggedPage
 
@@ -67,7 +67,7 @@ class EdfBrowser(LoginBrowser):
             if self.page.has_captcha_request():
                 website_key = self.page.get_recaptcha_key()  # google recaptcha plubic key
                 website_url = "https://particulier.edf.fr/fr/accueil.html"
-                raise CaptchaQuestion('g_recaptcha', website_key=website_key, website_url=website_url)
+                raise RecaptchaQuestion(website_key=website_key, website_url=website_url)
             else:
                 raise BrowserIncorrectPassword()
         else:
