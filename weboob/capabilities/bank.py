@@ -34,12 +34,18 @@ from .date import DateField
 from .collection import CapCollection
 
 
-__all__ = ['AccountNotFound', 'TransferError', 'TransferStep', 'Recipient',
-           'Account', 'Transaction', 'Investment', 'Transfer', 'CapBank',
-           'CapBankTransfer', 'CapBankTransferAddRecipient',
-           'RecipientNotFound', 'AddRecipientError', 'AddRecipientStep',
-           'BaseAccount',
-          ]
+__all__ = [
+    'CapBank', 'BaseAccount', 'Account', 'Loan', 'Transaction', 'AccountNotFound',
+    'CapBankWealth', 'Investment', 'CapBankPockets', 'Pocket',
+    'CapBankTransfer', 'Transfer', 'Recipient',
+    'TransferError', 'TransferBankError', 'TransferInvalidAmount', 'TransferInsufficientFunds',
+    'TransferInvalidCurrency', 'TransferInvalidLabel',
+    'TransferInvalidEmitter', 'TransferInvalidRecipient',
+    'TransferStep',
+    'CapBankTransferAddRecipient',
+    'RecipientNotFound', 'AddRecipientError', 'AddRecipientStep',
+    'RecipientInvalidIban', 'RecipientInvalidLabel',
+]
 
 
 class AccountNotFound(UserError):
