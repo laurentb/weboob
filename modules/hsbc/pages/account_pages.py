@@ -100,6 +100,7 @@ class AccountsPage(GenericLandingPage):
 
             class Type(Filter):
                 PATTERNS = [
+                    ('c.aff', Account.TYPE_CHECKING),
                     ('pea', Account.TYPE_PEA),
                     ('invest', Account.TYPE_MARKET),
                     ('ptf', Account.TYPE_MARKET),
