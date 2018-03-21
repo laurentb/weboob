@@ -269,7 +269,7 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
         form = self.get_form(id='authentification')
 
         url = self.browser.BASEURL + '//sec/vkm/gen_crypto?estSession=0'
-        infos_data = self.browser.open(url).content
+        infos_data = self.browser.open(url).text
         infos_data = re.match('^_vkCallback\((.*)\);$', infos_data).group(1)
         infos = json.loads(infos_data.replace("'", '"'))
         infos['grid'] = self.decode_grid(infos)
