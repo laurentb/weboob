@@ -18,6 +18,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import time
+
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import AuthMethodNotImplemented, BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
@@ -95,6 +97,7 @@ class Fortuneo(LoginBrowser):
                 self.location(cb_link)
                 if not self.page.is_loading():
                     break
+                time.sleep(1)
 
             for tr in sorted_transactions(self.page.get_operations()):
                 yield tr
