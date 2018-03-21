@@ -36,7 +36,7 @@ from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, RegexpError
 from weboob.browser.filters.html import Link
 from weboob.browser.pages import HTMLPage, XMLPage, JsonPage, LoggedPage
-from weboob.exceptions import NoAccountsException, BrowserUnavailable
+from weboob.exceptions import NoAccountsException, BrowserUnavailable, ActionNeeded
 
 from .base import BasePage
 
@@ -565,6 +565,11 @@ class XMLProfilePage(LoggedPage, XMLPage):
 
 
 class LoansPage(LoggedPage, JsonPage):
+    def on_load(self):
+        if 'action' in self.doc['commun'] and self.doc['commun']['action'] == 'BLOCAGE':
+            raise ActionNeeded()
+        assert self.doc['commun']['statut'] != 'nok'
+
     @method
     class iter_accounts(DictElement):
         item_xpath = 'donnees/tabPrestations'
