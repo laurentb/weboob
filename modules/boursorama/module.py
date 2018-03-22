@@ -20,6 +20,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from __future__ import unicode_literals
+
+import re
+
 from weboob.capabilities.bank import CapBankWealth, CapBankTransferAddRecipient, Account, AccountNotFound
 from weboob.capabilities.profile import CapProfile
 from weboob.capabilities.contact import CapContact
@@ -92,3 +96,7 @@ class BoursoramaModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapPr
 
     def execute_transfer(self, transfer, **kwargs):
         return self.browser.execute_transfer(transfer, **kwargs)
+
+    def transfer_check_label(self, old, new):
+        old = re.sub(r'[€#&$£%]', '', old)
+        return super(BoursoramaModule, self).transfer_check_label(old, new)
