@@ -23,15 +23,16 @@ from weboob.capabilities.torrent import Torrent
 from weboob.capabilities.base import NotLoaded, NotAvailable
 
 from weboob.browser.elements import ItemElement, ListElement, method
-from weboob.browser.pages import HTMLPage, LoggedPage, RawPage
-from weboob.browser.filters.standard import Regexp, CleanText, CleanDecimal, Type, Format
-from weboob.browser.filters.html import CleanHTML
+from weboob.browser.pages import HTMLPage, LoggedPage, RawPage, pagination
+from weboob.browser.filters.standard import Regexp, CleanText, CleanDecimal, Format
+from weboob.browser.filters.html import CleanHTML, AbsoluteLink
 
 
 class SearchPage(LoggedPage, HTMLPage):
-
+    @pagination
     @method
     class iter_torrents(ListElement):
+        next_page = AbsoluteLink('//a[@rel="next"]')
         item_xpath = '//table[contains(@class,"table")]/tbody/tr'
 
         class item(ItemElement):
