@@ -17,17 +17,30 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from weboob.browser.pages import JsonPage, HTMLPage
 from weboob.browser.elements import ItemElement, ListElement, DictElement, method
 from weboob.browser.filters.json import Dict
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, Format
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, Format, Filter
 from weboob.browser.filters.html import CleanHTML, XPath, Attr, AbsoluteLink
-from weboob.capabilities.housing import (Housing, HousingPhoto, City,
-                                         UTILITIES, ADVERT_TYPES, HOUSE_TYPES)
+from weboob.capabilities.housing import (Housing, HousingPhoto, City, UTILITIES,
+                                         POSTS_TYPES, ADVERT_TYPES, HOUSE_TYPES,
+                                         ENERGY_CLASS)
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
-from weboob.capabilities.base import NotAvailable, Currency
+from weboob.capabilities.base import NotAvailable, Currency, empty
+
+
+class EPHouseType(Filter):
+    def filter(self, type):
+        if type == 'Appartement':
+            return HOUSE_TYPES.APART
+        elif type == 'Maison /villa':
+            return HOUSE_TYPES.HOUSE
+        elif type == 'Terrain / autreinfosaccesepc':
+            return HOUSE_TYPES.LAND
+        else:
+            return HOUSE_TYPES.OTHER
 
 
 class CitiesPage(JsonPage):
@@ -64,16 +77,11 @@ class SearchPage(HTMLPage):
                             '(.*).html')
             obj_type = Env('query_type')
             obj_advert_type = ADVERT_TYPES.PERSONAL
-            def obj_house_type(self):
-                type = Attr('./a/div/p/span[@class="item type"]/img', 'alt')(self)
-                if type == 'Appartement':
-                    return HOUSE_TYPES.APART
-                elif type == 'Maison /villa':
-                    return HOUSE_TYPES.HOUSE
-                elif type == 'Terrain / autreinfosaccesepc':
-                    return HOUSE_TYPES.LAND
-                else:
-                    return HOUSE_TYPES.OTHER
+
+            obj_house_type = EPHouseType(
+                Attr('./a/div/p/span[@class="item type"]/img',
+                     'alt')
+            )
 
             def obj_title(self):
                 title = CleanText('./a/div/p/span[@class="item title"]')(self)
@@ -94,9 +102,26 @@ class SearchPage(HTMLPage):
                 './a/div/p/span[@class="item nb"]/text()[last()]',
                 default=NotAvailable
             )
-            obj_currency = Currency.get_currency(u'€')
             obj_utilities = UTILITIES.UNKNOWN
             obj_url = AbsoluteLink('./a')
+            obj_price_per_meter = PricePerMeterFilter()
+
+            def obj_date(self):
+                days_to_subtract = Regexp(CleanText('./a/span[@id="spanhistoriqueT"]'),
+                                          "En vente depuis (\d*) jours ",
+                                          "\\1",
+                                          default=0)(self)
+                return datetime.today() - timedelta(days=days_to_subtract)
+
+            def obj_photos(self):
+                photos = []
+                photo = Regexp(CleanText('./a/div/p[@class="visuel"]/@style'),
+                               ".*(http.*\.jpg).*",
+                               "\\1",
+                               default=NotAvailable)(self)
+                if not empty(photo):
+                    photos.append(HousingPhoto(photo))
+                return photos
 
 
 class HousingPage(HTMLPage):
@@ -105,9 +130,20 @@ class HousingPage(HTMLPage):
         klass = Housing
 
         obj_id = Env('_id')
-        obj_type = NotAvailable  # TODO
+
+        def obj_type(self):
+            type = self.obj_id(self).split('/')[1]
+            if type == 'a-vendre':
+                return POSTS_TYPES.SALE
+            else:
+                return POSTS_TYPES.RENT
+
         obj_advert_type = ADVERT_TYPES.PERSONAL
-        obj_house_type = NotAvailable  # TODO
+        obj_house_type = EPHouseType(
+            Attr('//div[@id="divtbien"]/span[@class="stat"]/img',
+                 'alt')
+        )
+
         obj_title = CleanText('h1')
 
         obj_rooms = CleanDecimal('//div[@class="stats"]/section/div[@id="divpieces"]/span[@class="stat"]', default=0)
@@ -136,3 +172,16 @@ class HousingPage(HTMLPage):
             for photo in self.xpath('//div[@id="plistimage"]/a/@urlbig'):
                 photos.append(HousingPhoto(u"http://www.entreparticuliers.com/%s" % photo))
             return photos
+
+        def obj_DPE(self):
+            value  = Regexp(CleanHTML('//div[@class="textes"]'),
+                            ".*DPE : (\w) .*",
+                            "\\1",
+                            default = "")(self)
+            return  getattr(ENERGY_CLASS, value.upper() ,NotAvailable)
+
+
+        obj_GES = Regexp(CleanHTML('//div[@class="textes"]'),
+                         ".*GES : (\w) .*",
+                         "\\1",
+                         default = NotAvailable)

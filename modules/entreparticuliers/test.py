@@ -17,16 +17,33 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import itertools
 from weboob.tools.test import BackendTest
-from weboob.capabilities.housing import (Query, POSTS_TYPES, ADVERT_TYPES,
-                                         HOUSE_TYPES)
+from weboob.capabilities.housing import (Query, POSTS_TYPES)
+from weboob.tools.capabilities.housing.housing_test import HousingTest
 
 
-class EntreparticuliersTest(BackendTest):
+class EntreparticuliersTest(BackendTest, HousingTest):
     MODULE = 'entreparticuliers'
 
-    def test_entreparticuliers(self):
+    FIELDS_ALL_HOUSINGS_LIST = [
+        "id", "type", "advert_type", "house_type", "url", "title", "area",
+        "cost", "currency", "utilities", "date", "location", "text"
+    ]
+
+    FIELDS_ANY_HOUSINGS_LIST = [
+        "photos", "rooms"
+    ]
+
+    FIELDS_ALL_SINGLE_HOUSING = [
+        "id", "url", "type", "advert_type", "house_type", "title", "area",
+        "cost", "currency", "utilities", "date", "location", "text"
+    ]
+
+    FIELDS_ANY_SINGLE_HOUSING = [
+        "photos", "phone", "DPE", "GES", "rooms"
+    ]
+
+    def test_entreparticuliers_sale(self):
         query = Query()
         query.cities = []
         for city in self.backend.search_city('lille'):
@@ -34,22 +51,21 @@ class EntreparticuliersTest(BackendTest):
             query.cities.append(city)
 
         query.type = POSTS_TYPES.SALE
-        query.house_types = [HOUSE_TYPES.HOUSE]
-        results = list(itertools.islice(self.backend.search_housings(query), 0, 20))
-        self.assertTrue(len(results) > 0)
 
-        obj = self.backend.fillobj(results[0])
-        self.assertTrue(obj.area is not None, 'Area for "%s"' % (obj.id))
+        self.check_against_query(query)
 
-    def test_entreparticuliers_professional(self):
+    def test_entreparticuliers_rent(self):
         query = Query()
         query.cities = []
+
+        self.FIELDS_ANY_SINGLE_HOUSING = [
+            "photos", "phone", "rooms"
+        ]
+
         for city in self.backend.search_city('lille'):
             city.backend = self.backend.name
             query.cities.append(city)
 
-        query.type = POSTS_TYPES.SALE
-        query.house_types = [HOUSE_TYPES.HOUSE]
-        query.advert_types = [ADVERT_TYPES.PROFESSIONAL]
-        results = list(itertools.islice(self.backend.search_housings(query), 0, 20))
-        self.assertEqual(len(results), 0)
+        query.type = POSTS_TYPES.RENT
+
+        self.check_against_query(query)
