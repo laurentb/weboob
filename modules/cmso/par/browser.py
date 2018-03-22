@@ -159,8 +159,10 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
         self.page.check_response()
         for key in self.page.get_keys():
             for a in self.page.iter_accounts(key=key):
-                self.accounts_list.append(a)
-                seen[a._index] = a
+                # Can have duplicate account, avoid them
+                if a._index not in seen:
+                    self.accounts_list.append(a)
+                    seen[a._index] = a
 
         # Next, get saving accounts
         numbers.update(self.page.get_numbers())
