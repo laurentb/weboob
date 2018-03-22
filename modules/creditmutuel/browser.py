@@ -127,7 +127,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
     form = None
     logged = None
 
-    __states__ = ['currentSubBank', 'form', 'logged']
+    __states__ = ['currentSubBank', 'form', 'logged', 'is_new_website']
 
     accounts_list = None
 
