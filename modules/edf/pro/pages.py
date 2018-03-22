@@ -45,6 +45,12 @@ class HomePage(LoggedPage, HTMLPage):
     pass
 
 
+class LireSitePage(LoggedPage, JsonPage):
+    # id site is not about website but geographical site
+    def get_id_site_list(self):
+        return [site['idSite'] for site in self.doc['site']]
+
+
 class SubscriptionsPage(LoggedPage, JsonPage):
     def build_doc(self, text):
         if self.content == 'REDIRECT_CGU':

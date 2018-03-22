@@ -24,10 +24,10 @@ from datetime import datetime, timedelta
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.capabilities.base import NotAvailable
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from weboob.browser.exceptions import ServerError, ClientError
 
-from .pages import LoginPage, HomePage, AuthPage, SubscriptionsPage, BillsPage, DocumentsPage
+from .pages import LoginPage, HomePage, AuthPage, LireSitePage, SubscriptionsPage, BillsPage, DocumentsPage
 
 
 class EdfproBrowser(LoginBrowser):
@@ -37,7 +37,8 @@ class EdfproBrowser(LoginBrowser):
     auth = URL('/openam/UI/Login.*',
                '/ice/rest/aiguillagemp/redirect', AuthPage)
     home = URL('/ice/content/ice-pmse/homepage.html', HomePage)
-    contracts = URL('/rest/contratmp/detaillercontrat', SubscriptionsPage)
+    liresite = URL(r'/rest/homepagemp/liresite', LireSitePage)
+    contracts = URL('/rest/contratmp/consultercontrats', SubscriptionsPage)
     bills = URL('/rest/facturemp/getnomtelechargerfacture', BillsPage)
     documents = URL('/rest/facturemp/recherchefacture', DocumentsPage)
 
@@ -56,8 +57,8 @@ class EdfproBrowser(LoginBrowser):
         except ClientError as e:
             raise BrowserIncorrectPassword(e.response.json()['message'])
 
-        self.session.cookies['iPlanetDirectoryPro'] = self.page.doc['tokenId']
-        self.location(self.absurl('/ice/rest/aiguillagemp/redirect'), allow_redirects=True)
+        self.session.cookies['ICESSOsession'] = self.page.doc['tokenId']
+        self.location(self.absurl('/rest/aiguillagemp/redirect'), allow_redirects=True)
 
         if self.auth.is_here() and self.page.response.status_code != 303:
             raise BrowserIncorrectPassword
@@ -67,8 +68,13 @@ class EdfproBrowser(LoginBrowser):
 
     @need_login
     def get_subscription_list(self):
+        self.liresite.go(data=json.dumps({"numPremierSitePage":0,"pageSize":100000,"idTdg":None,"critereFiltre":[],"critereTri":[]}))
+        id_site_list = self.page.get_id_site_list()
+        if not id_site_list:
+            raise ActionNeeded("Vous ne disposez d'aucun contrat actif relatif à vos sites")
+
         if "subs" not in self.cache.keys():
-            self.contracts.go(data=json.dumps({'listeContrat': [{'refDevis': ''}]}))
+            self.contracts.go(data=json.dumps({'refDevisOMList':[], 'refDevisOHList': id_site_list}))
 
             self.cache['subs'] = [s for s in self.page.get_subscriptions()]
         return self.cache['subs']
