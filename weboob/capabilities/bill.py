@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import BaseObject, StringField, DecimalField, BoolField, UserError, Currency
+from .base import BaseObject, StringField, DecimalField, BoolField, UserError, Currency, Field
 from .date import DateField
 from .collection import CapCollection
 
@@ -66,6 +66,7 @@ class Document(BaseObject):
     format =        StringField('file format of the document')
     label =         StringField('label of document')
     type =          StringField('type of document')
+    transactions =  Field('List of transaction ID related to the document', list, default=[])
 
 
 class Bill(Document, Currency):
