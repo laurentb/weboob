@@ -198,7 +198,7 @@ class AccountList(LoggedPage, MyHTMLPage):
                 url = Link('.//a', default=NotAvailable)(self)
                 return self.page.browser.async_open(url=url)
 
-            obj_total_amount = CleanDecimal(TableCell('total_amount'), replace_dots=True)
+            obj_total_amount = CleanDecimal(TableCell('total_amount'), replace_dots=True, default=NotAvailable)
 
             def obj_id(self):
                 if TableCell('label', default=None)(self):
