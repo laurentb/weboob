@@ -115,7 +115,8 @@ class TransferPage(LoggedPage, HTMLPage):
         form.submit()
 
         form = self.get_transfer_form('SetCreditAccount')
-        form['selectedCreditAccountNumber'] = recipient.id
+        # intern id is like XX-XXXXXXXXXXXX but in request, only the second part is necessary
+        form['selectedCreditAccountNumber'] = recipient.id.split('-')[-1]
         form.submit()
 
         form = self.get_transfer_form('ReRenderAccountList')
