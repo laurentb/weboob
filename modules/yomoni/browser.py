@@ -132,6 +132,7 @@ class YomoniBrowser(APIBrowser):
                 i = Investment()
                 i.label = "%s - %s" % (inv['classification'], inv['description'])
                 i.code = inv['isin']
+                i.code_type = Investment.CODE_TYPE_ISIN
                 i.quantity = CleanDecimal().filter(inv['nombreParts'])
                 i.unitprice = CleanDecimal().filter(inv['prixMoyenAchat'])
                 i.unitvalue = CleanDecimal().filter(inv['valeurCotation'])
