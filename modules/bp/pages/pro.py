@@ -26,6 +26,7 @@ from weboob.browser.filters.html import Link
 from weboob.browser.pages import LoggedPage, pagination
 from weboob.capabilities.bank import Account
 from weboob.capabilities.profile import Company
+from weboob.capabilities.base import NotAvailable
 from weboob.tools.compat import urljoin, unicode
 
 from .accounthistory import Transaction
@@ -85,7 +86,8 @@ class ProAccountHistory(LoggedPage, MyHTMLPage):
 
             obj_date = Date(CleanText('.//td[@headers="date"]'), dayfirst=True)
             obj_raw = Transaction.Raw('.//td[@headers="libelle"]')
-            obj_amount = CleanDecimal('.//td[@headers="debit" or @headers="credit"]', replace_dots=True)
+            obj_amount = CleanDecimal('.//td[@headers="debit" or @headers="credit"]',
+                                      replace_dots=True, default=NotAvailable)
 
 
 class DownloadRib(LoggedPage, MyHTMLPage):
