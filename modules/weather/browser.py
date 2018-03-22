@@ -26,7 +26,7 @@ __all__ = ['WeatherBrowser']
 
 class WeatherBrowser(PagesBrowser):
     BASEURL = 'https://www.weather.com'
-    API_KEY = 'c1ea9f47f6a88b9acb43aba7faf389d4'
+    API_KEY = 'd522aa97197fd864d36b418f39ebb323'
 
     city_page = URL('https://dsx\.weather\.com/x/v2/web/loc/fr_FR/1/4/5/9/11/13/19/21/1000/1001/1003/fr%5E/\((?P<pattern>.*)\)', CityPage)
 
