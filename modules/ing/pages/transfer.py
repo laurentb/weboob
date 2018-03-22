@@ -187,5 +187,7 @@ class TransferPage(LoggedPage, HTMLPage):
         t.recipient_id = recipient.id
 
         t.exec_date = parse_french_date(CleanText('//p[has-class("exec-date")]', children=False,
-                replace=[('le', ''), (u'exécuté', ''), ('demain', ''), ('(', ''), (')', '')])(self.doc)).date()
+                replace=[('le', ''), (u'exécuté', ''), ('demain', ''), ('(', ''), (')', ''),
+                ("aujourd'hui", '')])(self.doc)).date()
+
         return t
