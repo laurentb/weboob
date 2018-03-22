@@ -24,9 +24,10 @@ from weboob.browser.pages import HTMLPage, LoggedPage, FormNotFound
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Env, Regexp, Format,
-    Field, Currency, RegexpError
+    Field, Currency, RegexpError, Date
 )
 from weboob.capabilities.bill import Bill, Subscription
+from weboob.capabilities.base import NotAvailable
 from weboob.tools.date import parse_french_date
 
 
@@ -123,7 +124,12 @@ class DocumentsPage(LoggedPage, HTMLPage):
             obj_type = 'bill'
 
             def obj_date(self):
-                return parse_french_date(CleanText('.//div[has-class("a-span4") and not(has-class("recipient"))]/div[2]')(self)).date()
+                date = Date(CleanText('.//div[has-class("a-span4") and not(has-class("recipient"))]/div[2]'),
+                            parse_func=parse_french_date, dayfirst=True, default=NotAvailable)(self)
+                if date is NotAvailable:
+                    return Date(CleanText('.//div[has-class("a-span3") and not(has-class("recipient"))]/div[2]'),
+                                parse_func=parse_french_date, dayfirst=True)(self)
+                return date
 
             def obj_price(self):
                 currency = Env('currency')(self)
