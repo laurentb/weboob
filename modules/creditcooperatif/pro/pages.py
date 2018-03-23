@@ -105,7 +105,7 @@ class AccountsPage(LoggedPage, HTMLPage):
 
 
 class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile('^RETRAIT DAB (?P<text>.*?).*'),
+    PATTERNS = [(re.compile('^RETRAIT DAB (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile('^(?P<text>.*) RETRAIT DU (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) .*'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
