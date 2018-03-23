@@ -567,6 +567,9 @@ class Cragr(LoginBrowser, StatesMixin):
 
     @need_login
     def iter_transfer_recipients(self, account):
+        if account._perimeter != self.current_perimeter:
+            self.go_perimeter(account._perimeter)
+
         self.transfer_init_page.go(sag=self.sag)
 
         if self.page.get_error() == 'Fonctionnalité Indisponible':
@@ -586,10 +589,14 @@ class Cragr(LoginBrowser, StatesMixin):
 
     @need_login
     def init_transfer(self, transfer, **params):
-        accounts = self.get_accounts_list()
+        accounts = list(self.get_accounts_list())
 
         assert transfer.recipient_id
         assert transfer.account_id
+
+        account = find_object(accounts, id=transfer.account_id, error=AccountNotFound)
+        if account._perimeter != self.current_perimeter:
+            self.go_perimeter(account._perimeter)
 
         self.transfer_init_page.go(sag=self.sag)
         assert self.transfer_init_page.is_here()
