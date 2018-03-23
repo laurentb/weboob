@@ -149,7 +149,11 @@ class LCLModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapContact, 
     def get_profile(self):
         if not hasattr(self.browser, 'get_profile'):
             raise NotImplementedError()
-        return self.browser.get_profile()
+
+        profile = self.browser.get_profile()
+        if profile:
+            return profile
+        raise NotImplementedError()
 
     @only_for_websites('par')
     def get_document(self, _id):

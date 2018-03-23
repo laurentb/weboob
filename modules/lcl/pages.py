@@ -1059,8 +1059,13 @@ class RecipRecapPage(CheckValuesPage):
 
 
 class ProfilePage(LoggedPage, HTMLPage):
-    def get_profile(self):
+    def get_profile(self, name):
+        error_xpath = '//div[contains(text(), "Nous vous invitons à prendre contact avec votre conseiller")]'
+        if self.doc.xpath(error_xpath):
+            return False
+
         profile = Person()
+        profile.name = name
         profile.email = Attr('//input[@id="textMail"]', 'value')(self.doc)
         nb = Attr('//input[@id="nbEnfant"]', 'value', default=NotAvailable)(self.doc)
         if nb:

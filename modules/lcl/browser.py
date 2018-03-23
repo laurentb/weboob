@@ -430,8 +430,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         self.accounts.stay_or_go()
         name = self.page.get_name()
         self.profile.go(method="POST")
-        profile = self.page.get_profile()
-        profile.name = name
+        profile = self.page.get_profile(name=name)
         return profile
 
 
