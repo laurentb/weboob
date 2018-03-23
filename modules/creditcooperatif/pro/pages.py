@@ -110,6 +110,7 @@ class Transaction(FrenchTransaction):
                 (re.compile('^(?P<text>.*) RETRAIT DU (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) .*'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile('^CARTE \d+ .*'),               FrenchTransaction.TYPE_CARD),
+                (re.compile('^ACHAT CARTE BLEUE'),               FrenchTransaction.TYPE_CARD_SUMMARY),
                 (re.compile('^VIR(EMENT)? (?P<text>.*)'),   FrenchTransaction.TYPE_TRANSFER),
                 (re.compile('^(PRLV|PRELEVEMENT) (?P<text>.*)'),          FrenchTransaction.TYPE_ORDER),
                 (re.compile('^CHEQUE.*'),                   FrenchTransaction.TYPE_CHECK),
@@ -150,7 +151,11 @@ class TransactionsPage(ITransactionsPage):
 
             get_content = CleanText('.')
             date = get_content(tds[self.TR_DATE])
-            raw = CleanText('.//td[3]//td[@class="txt"]', children=False)(tr)
+
+            if CleanText('.//td[3]//td[@class="txt"]', children=False)(tr):
+                raw = CleanText('.//td[3]//td[@class="txt"]', children=False)(tr)
+            else:
+                raw = get_content(tds[self.TR_TEXT])
 
             debit = get_content(tds[self.TR_DEBIT])
             credit = get_content(tds[self.TR_CREDIT])
@@ -215,5 +220,6 @@ class CardTransactionsPage(ITransactionsPage):
             t.parse(debit_date or date, re.sub(r'[ ]+', ' ', raw), vdate=date)
             t.rdate = t.vdate or t.date
             t.set_amount("", debit)
+            t.type = FrenchTransaction.TYPE_CARD
 
             yield t
