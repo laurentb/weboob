@@ -252,7 +252,8 @@ class ReplApplication(ConsoleApplication, MyCmd):
                         return None
                     else:
                         if callable(actual_method):
-                            return backend.fillobj(obj, fields)
+                            obj, = self.do('fillobj', obj, fields, backends=backend)
+                            return obj
                         else:
                             return None
                 except UserError as e:
