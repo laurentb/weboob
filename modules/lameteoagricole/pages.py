@@ -24,32 +24,8 @@ from datetime import date, time, datetime, timedelta
 from weboob.browser.elements import method, ListElement, ItemElement
 from weboob.browser.filters.standard import CleanText, Field
 from weboob.browser.pages import HTMLPage
-from weboob.capabilities.base import FloatField, IntField, Field as BaseField
-from weboob.capabilities.weather import City, Forecast, Temperature, Current
-from weboob.tools.compat import quote, unicode
-
-
-class DIRECTION(object):
-    S = 'South'
-    N = 'North'
-    E = 'East'
-    W = 'West'
-    SE = 'South-East'
-    SW = 'South-West'
-    NW = 'North-West'
-    NE = 'North-East'
-
-
-class FullForecast(Forecast):
-    wind_speed = IntField('Wind speed (in m/s)')
-    wind_direction = BaseField('Wind direction', unicode)
-    humidity = FloatField('Relative humidity ratio')
-
-
-class FullCurrent(Current):
-    wind_speed = IntField('Wind speed (in m/s)')
-    wind_direction = BaseField('Wind direction', unicode)
-    humidity = FloatField('Relative humidity ratio')
+from weboob.capabilities.weather import City, Forecast, Temperature, Current, Direction
+from weboob.tools.compat import quote
 
 
 class CitiesPage(HTMLPage):
@@ -65,7 +41,7 @@ class CitiesPage(HTMLPage):
             obj_name = CleanText('.')
 
             def obj_id(self):
-                return quote(Field('name')(self).encode('utf-8'))
+                return quote(Field('name')(self))
 
 
 def temp(v):
@@ -85,8 +61,8 @@ class WeatherPage(HTMLPage):
             humidity = self.get_cell(self.titles['Humidité relative'], n)
         obj.humidity = float(humidity.strip('%')) / 100
 
-        direction = self.get_cell(self.titles['Direction du vent'], n)[-2:].replace('O', 'W')
-        obj.wind_direction = getattr(DIRECTION, direction)
+        direction = self.get_cell(self.titles['Direction du vent'], n).replace('O', 'W')
+        obj.wind_direction = getattr(Direction, direction)
 
         if 'Vitesse du vent' in self.titles:
             speed_text = self.get_cell(self.titles['Vitesse du vent'], n)
@@ -94,7 +70,15 @@ class WeatherPage(HTMLPage):
             speed_text = self.get_cell(self.titles['Vitesse Moy. du vent'], n)
         else:
             speed_text = self.get_cell(self.titles['Vitesse moyenne du vent'], n)
-        obj.wind_speed = 1000 * int(speed_text.replace('km/h', '').strip())
+        obj.wind_speed = int(speed_text.replace('km/h', '').strip())
+
+        if 'Probabilité de précipitations' in self.titles:
+            txt = self.get_cell(self.titles['Probabilité de précipitations'], n)
+            obj.precipitation_probability = float(txt.strip('<%')) / 100
+
+        if 'Nébulosité' in self.titles:
+            txt = self.get_cell(self.titles['Nébulosité'], n).rstrip('%')
+            obj.cloud = int(round(float(txt) / 100 * 8))
 
 
 class HourPage(WeatherPage):
@@ -106,7 +90,7 @@ class HourPage(WeatherPage):
 
     def get_current(self):
         fore = next(iter(self.iter_forecast()))
-        ret = FullCurrent()
+        ret = Current()
         for f in ('date', 'text', 'wind_direction', 'wind_speed', 'humidity'):
             setattr(ret, f, getattr(fore, f))
         ret.temp = fore.high
@@ -121,7 +105,7 @@ class HourPage(WeatherPage):
 
         day_str = None
         for n in range(len(self.doc.xpath('//table[@id="meteoHour"]/tr[1]/td'))):
-            obj = FullForecast()
+            obj = Forecast()
 
             t = time(int(self.get_cell(self.titles['Heure'], n).rstrip('h')), 0)
 
@@ -152,7 +136,7 @@ class Days5Page(WeatherPage):
             self.titles[CleanText('.')(tr)] = n
 
         for n in range(1, len(self.doc.xpath('//table[@id="meteo2"]/tr[1]/td'))):
-            obj = FullForecast()
+            obj = Forecast()
             obj.low = temp(int(self.get_cell(self.titles['Température Mini'], n).rstrip('°')))
             obj.high = temp(int(self.get_cell(self.titles['Température Maxi'], n).rstrip('°')))
             obj.date = d
@@ -178,7 +162,7 @@ class Days10Page(WeatherPage):
 
         cols = len(self.doc.xpath('//table[@id="meteo2"]//td/table'))
         for n in range(1, cols):
-            obj = FullForecast()
+            obj = Forecast()
             obj.low = temp(int(self.get_cell(self.titles['Température Mini'], n).rstrip('°C')))
             obj.high = temp(int(self.get_cell(self.titles['Température Maxi'], n).rstrip('°C')))
             obj.date = d
