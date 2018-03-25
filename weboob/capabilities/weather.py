@@ -23,14 +23,48 @@ from datetime import datetime, date
 from weboob.tools.compat import basestring, unicode
 
 from .base import Capability, BaseObject, Field, FloatField, \
-                  StringField, UserError, NotLoaded
+                  StringField, IntField, UserError, NotLoaded, EnumField, Enum
 from .date import DateField
 
-__all__ = ['Forecast', 'Current', 'City', 'CityNotFound', 'Temperature', 'CapWeather']
+__all__ = [
+    'Forecast', 'Current', 'City', 'CityNotFound', 'Temperature', 'CapWeather',
+    'BaseWeather', 'Direction', 'Precipitation',
+]
+
+
+class Direction(Enum):
+    S = 'South'
+    N = 'North'
+    E = 'East'
+    W = 'West'
+    SE = 'Southeast'
+    SW = 'Southwest'
+    NW = 'Northwest'
+    NE = 'Northeast'
+    SSE = 'South-Southeast'
+    SSW = 'South-Southwest'
+    NNW = 'North-Northwest'
+    NNE = 'North-Northeast'
+    ESE = 'East-Southeast'
+    ENE = 'East-Northeast'
+    WSW = 'West-Southwest'
+    WNW = 'West-Northwest'
+
+
+# METAR keys
+class Precipitation(Enum):
+    RA = 'Rain'
+    SN = 'Snow'
+    GR = 'Hail'
+    PL = 'Ice pellets'
+    GS = 'Small hail'
+    DZ = 'Drizzle'
+    IC = 'Ice cristals'
+    SG = 'Small grains'
+    UP = 'Unknown precipiation'
 
 
 class Temperature(BaseObject):
-
     value =      FloatField('Temperature value')
     unit =       StringField('Input unit')
 
@@ -63,7 +97,21 @@ class Temperature(BaseObject):
         return ''
 
 
-class Forecast(BaseObject):
+class BaseWeather(BaseObject):
+    precipitation = EnumField('Precipitation type', Precipitation)
+    precipitation_probability = FloatField('Probability of precipitation (ratio)')
+
+    wind_direction = EnumField('Wind direction', Direction)
+    wind_speed = FloatField('Wind speed (in km/h)')
+
+    humidity = FloatField('Relative humidity (ratio)')
+    pressure = FloatField('Atmospheric pressure (in hPa)')
+
+    visibility = FloatField('Horizontal visibility distance (in km)')
+    cloud = IntField('Cloud coverage (in okta (0-8))')
+
+
+class Forecast(BaseWeather):
     """
     Weather forecast.
     """
@@ -80,7 +128,7 @@ class Forecast(BaseObject):
         self.text = text
 
 
-class Current(BaseObject):
+class Current(BaseWeather):
     """
     Current weather.
     """
