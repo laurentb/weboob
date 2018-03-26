@@ -111,7 +111,9 @@ class Cragr(LoginBrowser, StatesMixin):
 
     recipient_misc = URL(r'/stb/collecteNI\?fwkaid=([\d_]+)&fwkpid=([\d_]+)$', RecipientMiscPage)
     recipientlist = URL(r'/stb/collecteNI\?.*&act=Vilistedestinataires.*', RecipientListPage)
-    recipient_page = URL(r'/stb/collecteNI\?.*fwkaction=Ajouter.*', RecipientPage)
+    recipient_page = URL(r'/stb/collecteNI\?.*fwkaction=Ajouter.*',
+                         r'/stb/collecteNI.*&IDENT=LI_VIR_RIB1&VIR_VIR1_FR3_LE=0&T3SEF_MTT_EURO=&T3SEF_MTT_CENT=&VICrt_REFERENCE=$',
+                         RecipientPage)
 
     unavailable_page = URL(r'/stb/collecteNI\?fwkaid=([\d_]+)&fwkpid=([\d_]+)$', UnavailablePage)
 
@@ -658,7 +660,22 @@ class Cragr(LoginBrowser, StatesMixin):
             raise AddRecipientError('SMS verification code is invalid')
 
         self.transfer_init_page.go(sag=self.sag)
+        assert self.transfer_init_page.is_here()
+
         self.location(self.page.url_list_recipients())
+        # there are 2 pages from where we can add a new recipient:
+        # - RecipientListPage, but the link is sometimes missing
+        # - TransferPage, start making a transfer with a new recipient but don't complete the transfer
+        #   but it seems dangerous since we have to set an amount, etc.
+        # so we implement it in 2 ways with a preference for RecipientListPage
+        if self.page.url_add_recipient():
+            self.logger.debug('good, we can add a recipient from the recipient list')
+        else:
+            # in this case, the link was missing
+            self.logger.warning('cannot add a recipient from the recipient list page, pretending to make a transfer in order to add it')
+            self.transfer_init_page.go(sag=self.sag)
+            assert self.transfer_init_page.is_here()
+
         self.location(self.page.url_add_recipient())
 
         if not ('sms_code' in params and self.page.can_send_code()):
@@ -676,6 +693,11 @@ class Cragr(LoginBrowser, StatesMixin):
             self.page.submit_recipient(recipient.label, recipient.iban)
             self.page.confirm_recipient()
             self.page.check_recipient_error()
+            if self.transfer_page.is_here():
+                # in this case, we were pretending to make a transfer, just to add the recipient
+                # go back to transfer page to abort the transfer and see the new recipient
+                self.transfer_init_page.go(sag=self.sag)
+                assert self.transfer_init_page.is_here()
 
             res = self.page.find_recipient(recipient.iban)
             if res is None:

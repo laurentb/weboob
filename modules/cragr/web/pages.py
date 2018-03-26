@@ -1193,13 +1193,32 @@ class TransferInit(MyLoggedPage, BasePage):
     def url_list_recipients(self):
         return CleanText(u'(//a[contains(text(),"Liste des bénéficiaires")])[1]/@href')(self.doc)
 
+    def url_add_recipient(self):
+        link = Link('//a[text()="+ Saisir un autre compte bénéficiaire"]')(self.doc)
+        return link + '&IDENT=LI_VIR_RIB1&VIR_VIR1_FR3_LE=0&T3SEF_MTT_EURO=&T3SEF_MTT_CENT=&VICrt_REFERENCE='
+
 
 class RecipientListPage(MyLoggedPage, BasePage):
     def url_add_recipient(self):
         return CleanText(u'//a[contains(text(),"Ajouter un compte destinataire")]/@href')(self.doc)
 
 
-class TransferPage(CollectePageMixin, MyLoggedPage, BasePage):
+class RecipientAddingMixin(object):
+    def submit_recipient(self, label, iban):
+        try:
+            form = self.get_form(name='frm_fwk')
+        except FormNotFound:
+            raise AddRecipientError('An error occurred before sending recipient')
+
+        form['NOM_BENEF'] = label
+        for i in range(9):
+            form['CIBAN%d' % (i + 1)] = iban[i * 4:(i + 1) * 4]
+        form['fwkaction'] = 'VerifCodeIBAN'
+        form['fwkcodeaction'] = 'Executer'
+        form.submit()
+
+
+class TransferPage(RecipientAddingMixin, CollectePageMixin, MyLoggedPage, BasePage):
     IS_HERE_TEXT = 'Virement'
 
     ### for transfers
@@ -1283,8 +1302,26 @@ class TransferPage(CollectePageMixin, MyLoggedPage, BasePage):
         if err:
             raise TransferBankError(message=err)
 
+    ### add a recipient by faking a transfer
+    def confirm_recipient(self):
+        # pretend to make a transfer
+        form = self.get_form(name='frm_fwk')
+        form['AJOUT_BENEF_CHECK'] = 'on'
+        form['fwkcodeaction'] = 'Executer'
+        form['fwkaction'] = 'Suite'
+        form['T3SEF_MTT_EURO'] = '1'
+        form['DEVISE'] = 'EUR'
+        form.submit()
 
-class RecipientMiscPage(CollectePageMixin, MyLoggedPage, BasePage):
+    def check_recipient_error(self):
+        # this is a copy-paste from RecipientMiscPage, i can't test if it works on this page...
+
+        msg = CleanText('//tr[@bgcolor="#C74545"]', default='')(self.doc) # there is no id, class or anything...
+        if msg:
+            raise AddRecipientError(message=msg)
+
+
+class RecipientMiscPage(RecipientAddingMixin, CollectePageMixin, MyLoggedPage, BasePage):
     IS_HERE_TEXT = 'Liste des comptes bénéficiaires'
 
     ### for adding recipients
@@ -1298,19 +1335,6 @@ class RecipientMiscPage(CollectePageMixin, MyLoggedPage, BasePage):
 
     def get_sms_error(self):
         return CleanText('//div[@class="blc-choix-wrap-erreur"]')(self.doc)
-
-    def submit_recipient(self, label, iban):
-        try:
-            form = self.get_form(name='frm_fwk')
-        except FormNotFound:
-            raise AddRecipientError('An error occurred before sending recipient')
-
-        form['NOM_BENEF'] = label
-        for i in range(9):
-            form['CIBAN%d' % (i + 1)] = iban[i * 4:(i + 1) * 4]
-        form['fwkaction'] = 'VerifCodeIBAN'
-        form['fwkcodeaction'] = 'Executer'
-        form.submit()
 
     def confirm_recipient(self):
         try:
