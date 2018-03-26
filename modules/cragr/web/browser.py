@@ -585,8 +585,12 @@ class Cragr(LoginBrowser, StatesMixin):
             # couldn't find the account as emitter
             return
 
+        # set of recipient id to not return or already returned
+        seen = set([account.id])
+
         for rcpt in self.page.iter_recipients():
-            if rcpt.iban or rcpt.id != account.id:
+            if rcpt.id not in seen:
+                seen.add(rcpt.id)
                 yield rcpt
 
     @need_login
