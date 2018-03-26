@@ -96,6 +96,7 @@ class SearchPage(HTMLPage):
 
         class item(ItemElement):
             klass = Housing
+            price_selector = './/span[@class="price-label"]|./div/div[@class="item-price-pdf"]'
 
             def is_agency(self):
                 agency = CleanText('.//span[has-class("item-agency-name")]')(self.el)
@@ -158,18 +159,15 @@ class SearchPage(HTMLPage):
                     return NotAvailable
 
             def obj_cost(self):
-                selector = './div/div/span[@class="price-label"]|./div/div[@class="item-price-pdf"]|./div/div/span[@class="item-price"]'
-                cost = CleanDecimal(Regexp(CleanText(selector, default=''),
+                cost = CleanDecimal(Regexp(CleanText(self.price_selector, default=''),
                                            r'de (.*) à .*',
                                            default=0))(self)
                 if cost == 0:
-                    return CleanDecimal(selector, default=NotAvailable)(self)
+                    return CleanDecimal(self.price_selector, default=NotAvailable)(self)
                 else:
                     return cost
 
-            obj_currency = Currency(
-                './div/div/span[@class="price-label"]|./div/div[@class="item-price-pdf"]|./div/div/span[@class="item-price"]'
-            )
+            obj_currency = Currency(price_selector)
 
             def obj_utilities(self):
                 utilities = CleanText(
@@ -267,7 +265,7 @@ class HousingPage2(JsonPage):
         def obj_type(self):
             transaction = Dict('characteristics/transaction')(self)
             if transaction == 'location':
-                if Dict('characteristics/isFurnished')(self) == True:
+                if Dict('characteristics/isFurnished')(self):
                     return POSTS_TYPES.FURNISHED_RENT
                 else:
                     return POSTS_TYPES.RENT
