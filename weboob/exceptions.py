@@ -63,7 +63,7 @@ class ImageCaptchaQuestion(CaptchaQuestion):
 
 
 class NocaptchaQuestion(CaptchaQuestion):
-    type = 'nocaptcha'
+    type = 'g_recaptcha'
 
     website_key = None
     website_url = None
