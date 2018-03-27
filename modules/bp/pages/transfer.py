@@ -186,7 +186,7 @@ class TransferSummary(LoggedPage, CheckTransferError):
 class CreateRecipient(LoggedPage, MyHTMLPage):
     def choose_country(self, recipient, is_bp_account):
         # if this is present, we can't add recipient currently
-        more_security_needed = self.doc.xpath(u'//iframe[@title="Sécurité renforcée non adhérents"]')
+        more_security_needed = self.doc.xpath(u'//iframe[@title="Gestion de compte par Internet"]')
         if more_security_needed:
             raise AddRecipientError(message=u"Pour activer le service Certicode, nous vous invitons à vous rapprocher de votre Conseiller en Bureau de Poste.")
 
@@ -221,6 +221,12 @@ class ValidateRecipient(LoggedPage, MyHTMLPage):
 
 
 class ConfirmPage(LoggedPage, MyHTMLPage):
+    def on_load(self):
+        error_msg = CleanText('//h2[contains(text(), "Compte rendu")]/following-sibling::p')(self.doc)
+
+        if error_msg:
+            raise AddRecipientError(message=error_msg)
+
     def set_browser_form(self):
         form = self.get_form(name='SaisieOTP')
         self.browser.recipient_form = dict((k, v) for k, v in form.items() if v)
