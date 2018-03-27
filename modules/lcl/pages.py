@@ -725,7 +725,13 @@ class SendTokenPage(LoggedPage, LCLBasePage):
 
 
 class Form2Page(LoggedPage, LCLBasePage):
+    def assurancevie_hist_not_available(self):
+        msg = "Ne détenant pas de compte dépôt chez LCL, l'accès à ce service vous est indisponible"
+        return msg in CleanText('//div[@id="attTxt"]')(self.doc)
+
     def on_load(self):
+        if self.assurancevie_hist_not_available():
+            return
         form = self.get_form(name="formulaire")
         cName = self.get_from_js('.cName.value  = "', '";')
         if cName:

@@ -267,6 +267,12 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                 # come back to syntese
                 self.assurancevie.go()
                 return
+
+            # certain users will get a message : "Ne détenant pas de compte dépôt
+            # chez LCL, l'accès à ce service vous est indisponible."
+            if self.form2.is_here() and self.page.assurancevie_hist_not_available():
+                return
+
             try:
                 self.page.get_details(account, "OHIPU")
             except FormNotFound:
