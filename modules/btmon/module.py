@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2013 Julien Veyssier
+# Copyright(C) 2018 Julien Veyssier
 #
 # This file is part of weboob.
 #
@@ -30,7 +30,7 @@ __all__ = ['BtmonModule']
 class BtmonModule(Module, CapTorrent):
     NAME = 'btmon'
     MAINTAINER = u'Julien Veyssier'
-    EMAIL = 'julien.veyssier@aiur.fr'
+    EMAIL = 'eneiluj@posteo.net'
     VERSION = '1.4'
     DESCRIPTION = 'BTMon BitTorrent database'
     LICENSE = 'AGPLv3+'
@@ -43,7 +43,9 @@ class BtmonModule(Module, CapTorrent):
         torrent = self.browser.get_torrent(id)
         if not torrent:
             return None
-        return self.browser.openurl(torrent.url.encode('utf-8')).read()
+
+        resp = self.browser.open(torrent.url)
+        return resp.content
 
     def iter_torrents(self, pattern):
         return self.browser.iter_torrents(quote_plus(pattern.encode('utf-8')))

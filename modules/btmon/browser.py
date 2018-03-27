@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2013 Julien Veyssier
+# Copyright(C) 2018 Julien Veyssier
 #
 # This file is part of weboob.
 #
@@ -18,33 +18,41 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import Browser, BrowserHTTPNotFound
+from weboob.browser.exceptions import BrowserHTTPNotFound
+from weboob.browser import PagesBrowser
+from weboob.browser.url import URL
+from weboob.browser.profiles import Wget
 
-from .pages import TorrentsPage, TorrentPage
+from .pages import SearchPage, TorrentPage, HomePage
 
 
 __all__ = ['BtmonBrowser']
 
 
-class BtmonBrowser(Browser):
-    DOMAIN = 'www.btmon.com'
-    PROTOCOL = 'http'
-    ENCODING = 'utf-8'
-    USER_AGENT = Browser.USER_AGENTS['wget']
-    PAGES = {
-        'http://www.btmon.com/torrent/\?f=.*': TorrentsPage,
-        'http://www.btmon.com/.*torrent.html': TorrentPage,
-        }
+class BtmonBrowser(PagesBrowser):
+    PROFILE = Wget()
+    TIMEOUT = 30
+
+    BASEURL = 'http://www.btmon.com/'
+    home = URL('$', HomePage)
+    search = URL(r'/torrent/\?sort=relevance&f=(?P<pattern>.*)', SearchPage)
+    torrent = URL(r'/(?P<torrent_id>.*)\.torrent\.html', TorrentPage)
+
+    def get_bpc_cookie(self):
+        if 'BPC' not in self.session.cookies:
+            self.home.go()
+            bpcCookie = str(self.page.content).split('BPC=')[-1].split('"')[0]
+            self.session.cookies['BPC'] = bpcCookie
 
     def iter_torrents(self, pattern):
-        self.location('http://www.btmon.com/torrent/?f=%s' % pattern.encode('utf-8'))
-        assert self.is_on_page(TorrentsPage)
-        return self.page.iter_torrents()
+        self.get_bpc_cookie()
+        return self.search.go(pattern=pattern).iter_torrents()
 
     def get_torrent(self, id):
         try:
-            self.location('http://www.btmon.com/%s.html' % id)
+            self.get_bpc_cookie()
+            self.torrent.go(torrent_id=id)
+            torrent = self.page.get_torrent()
+            return torrent
         except BrowserHTTPNotFound:
             return
-        if self.is_on_page(TorrentPage):
-            return self.page.get_torrent()

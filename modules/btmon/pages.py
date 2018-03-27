@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2013 Julien Veyssier
+# Copyright(C) 2018 Julien Veyssier
 #
 # This file is part of weboob.
 #
@@ -16,97 +16,66 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
+import re
 
-
-import string
-
-from weboob.capabilities.torrent import Torrent
-from weboob.capabilities.base import NotAvailable, NotLoaded
-from weboob.deprecated.browser import Page
 from weboob.tools.misc import get_bytes_size
+from weboob.capabilities.torrent import Torrent
+from weboob.capabilities.base import NotAvailable
+
+from weboob.browser.elements import ItemElement, ListElement, method
+from weboob.browser.pages import HTMLPage, pagination
+from weboob.browser.filters.standard import Regexp, CleanText, CleanDecimal, Format
+from weboob.browser.filters.html import AbsoluteLink
 
 
-class TorrentsPage(Page):
-    def iter_torrents(self):
-        for div in self.parser.select(self.document.getroot(),'div.list_tor'):
-            name = NotAvailable
-            size = NotAvailable
-            seeders = NotAvailable
-            leechers = NotAvailable
-            right_div = self.parser.select(div,'div.list_tor_right',1)
-            try:
-                seeders = int(self.parser.select(right_div,'b.green',1).text)
-            except ValueError:
-                seeders = 0
-            try:
-                leechers = int(self.parser.select(right_div,'b.red',1).text)
-            except ValueError:
-                leechers = 0
-            sizep = self.parser.select(right_div,'p')[0]
-            sizespan = self.parser.select(sizep,'span')[0]
-            nsize = float(sizespan.text_content().split(':')[1].split()[0])
-            usize = sizespan.text_content().split()[-1].upper()
-            size = get_bytes_size(nsize,usize)
-            a = self.parser.select(div,'a.list_tor_title',1)
-            href = a.attrib.get('href','')
-            name = unicode(a.text_content())
-            id = unicode(href.strip('/').split('.html')[0])
-            torrent = Torrent(id,name)
-            torrent.url = NotLoaded
-            torrent.filename = id
-            torrent.magnet = NotLoaded
-            torrent.size = size
-            torrent.seeders = seeders
-            torrent.leechers = leechers
-            torrent.description = NotLoaded
-            torrent.files = NotLoaded
-            yield torrent
+class SearchPage(HTMLPage):
+    @pagination
+    @method
+    class iter_torrents(ListElement):
+        next_page = AbsoluteLink('//div[has-class("pagination")]/a[last()]')
+        item_xpath = '//div[has-class("list_tor")]'
+
+        class item(ItemElement):
+            klass = Torrent
+            obj_id = Regexp(CleanText('.//a[has-class("list_tor_title")]/@href'), '/(.*)\.torrent\.html$', '\\1')
+            obj_name = CleanText('.//a[has-class("list_tor_title")]')
+            obj_seeders = CleanDecimal('.//b[has-class("green")]/text()', default=0)
+            obj_leechers = CleanDecimal('.//b[has-class("red")]/text()', default=0)
+            obj_filename = Format('%s.torrent', obj_name)
+            obj_url = AbsoluteLink('.//a[@title="Download torrent"]')
+
+            def obj_size(self):
+                rawsize = Regexp(CleanText('.//div[has-class("list_tor_right")]/p[1]/span[1]'), 'Size: (.*)$', '\\1')(self)
+                nsize = float(re.sub(r'[A-Za-z]', '', rawsize))
+                usize = re.sub(r'[.0-9 ]', '', rawsize).upper()
+                size = get_bytes_size(nsize, usize)
+                return size
 
 
-class TorrentPage(Page):
-    def get_torrent(self):
-        seed = 0
-        leech = 0
-        description = NotAvailable
-        url = NotAvailable
-        magnet = NotAvailable
-        title = NotAvailable
-        id = unicode(self.browser.geturl().split('.html')[0].split('/')[-1])
+class TorrentPage(HTMLPage):
+    @method
+    class get_torrent(ItemElement):
+        klass = Torrent
+        obj_name = CleanText('.//div[@id="middle_content"]/h1')
+        obj_description = CleanText('//div[@id="descriptionContent"]', default=NotAvailable)
+        obj_id = Regexp(CleanText('//div[@id="middle_content"]/a[@title="Download torrent"]/@href'), '/(.*)\.torrent', '\\1')
+        obj_url = AbsoluteLink('//div[@id="middle_content"]/a[@title="Download torrent"]')
+        obj_filename = Format('%s.torrent', obj_name)
+        def obj_size(self):
+            rawsize = CleanText('//div[has-class("files")]/../h5')(self)
+            s = rawsize.split(',')[-1].replace(')', '')
+            nsize = float(re.sub(r'[A-Za-z]', '', s))
+            usize = re.sub(r'[.0-9 ]', '', s).upper()
+            size = get_bytes_size(nsize, usize)
+            return size
+        def obj_files(self):
+            res = []
+            for f in self.xpath('//div[has-class("files")]//div[not(has-class("wrapper"))]'):
+                res.append(CleanText(f)(self))
+            return res
+        obj_seeders = CleanDecimal('//div[has-class("sl_block")]/b[1]', default=0)
+        obj_leechers = CleanDecimal('//div[has-class("sl_block")]/b[2]', default=0)
+        obj_magnet = CleanText('.//a[has-class("magnet")]/@href')
 
-        div = self.parser.select(self.document.getroot(),'div#middle_content',1)
-        title = u'%s'%self.parser.select(self.document.getroot(),'div#middle_content > h1',1).text
-        slblock_values = self.parser.select(div,'div.sl_block b')
-        if len(slblock_values) >= 2:
-            seed = slblock_values[0].text
-            leech = slblock_values[1].text
-        href_t = self.parser.select(div,'a.down',1).attrib.get('href','')
-        url = u'http://%s%s'%(self.browser.DOMAIN,href_t)
-        magnet = unicode(self.parser.select(div,'a.magnet',1).attrib.get('href',''))
-
-        divtabs = self.parser.select(div,'div#tabs',1)
-        files_div = self.parser.select(divtabs,'div.body > div.doubleblock > div.leftblock')
-        files = []
-        if len(files_div) > 0:
-            size_text = self.parser.select(files_div,'h5',1).text
-            for b in self.parser.select(files_div,'b'):
-                div = b.getparent()
-                files.append(div.text_content())
-        else:
-            size_text = self.parser.select(divtabs,'h5',1).text_content()
-        size_text = size_text.split('(')[1].split(')')[0].strip()
-        size = float(size_text.split(',')[1].strip(string.letters))
-        u = size_text.split(',')[1].strip().translate(None,string.digits).strip('.').strip().upper()
-        div_desc = self.parser.select(divtabs,'div#descriptionContent')
-        if len(div_desc) > 0:
-            description = unicode(div_desc[0].text_content())
-
-        torrent = Torrent(id, title)
-        torrent.url = url
-        torrent.filename = id
-        torrent.magnet = magnet
-        torrent.size = get_bytes_size(size, u)
-        torrent.seeders = int(seed)
-        torrent.leechers = int(leech)
-        torrent.description = description
-        torrent.files = files
-        return torrent
+class HomePage(HTMLPage):
+    pass

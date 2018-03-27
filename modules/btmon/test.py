@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2013 Julien Veyssier
+# Copyright(C) 2018 Julien Veyssier
 #
 # This file is part of weboob.
 #
@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.tools.test import BackendTest
-from weboob.capabilities.base import NotLoaded
 
 from random import choice
 
@@ -28,11 +27,11 @@ class BtmonTest(BackendTest):
 
     def test_torrent(self):
         torrents = list(self.backend.iter_torrents('spiderman'))
+        assert len(torrents) > 0
         for torrent in torrents:
             assert torrent.id
             assert torrent.name
-            assert torrent.description is NotLoaded
-            assert torrent.files is NotLoaded
+            assert torrent.url
 
         # get the file of a random torrent
         # from the list (getting them all would be too long)
