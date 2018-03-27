@@ -216,7 +216,13 @@ class CreditAccountPage(LoggedPage, HTMLPage):
     class get_account(ItemElement):
         klass = Account
 
-        obj_type = Account.TYPE_CARD
+        def obj_type(self):
+            msg = u'Crédit renouvelable auquel la carte est associée'
+            revolving_info_title = CleanText('//div[@id="mod-creditrenouvelable"]//span[@class="titre"]')(self)
+            if msg in revolving_info_title:
+                return Account.TYPE_REVOLVING_CREDIT
+            return Account.TYPE_CARD
+
         obj__site = 'other'
 
         def obj_label(self):
