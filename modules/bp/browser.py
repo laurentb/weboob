@@ -174,7 +174,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
         dirname = self.responses_dirname
         if dirname:
             dirname += '/bourse'
-        self.linebourse = LinebourseBrowser('https://labanquepostale.offrebourse.com/', logger=self.logger, responses_dirname=dirname, weboob=self.weboob)
+        self.linebourse = LinebourseBrowser('https://labanquepostale.offrebourse.com/', logger=self.logger, responses_dirname=dirname, weboob=self.weboob, proxy=self.PROXIES)
         self.recipient_form = None
 
     def load_state(self, state):

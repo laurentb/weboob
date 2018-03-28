@@ -160,7 +160,7 @@ class BanquePopulaire(LoginBrowser):
         dirname = self.responses_dirname
         if dirname:
             dirname += '/bourse'
-        self.linebourse = LinebourseBrowser('https://www.linebourse.fr', logger=self.logger, responses_dirname=dirname, weboob=self.weboob)
+        self.linebourse = LinebourseBrowser('https://www.linebourse.fr', logger=self.logger, responses_dirname=dirname, weboob=self.weboob, proxy=self.PROXIES)
 
         self.investments = {}
 
