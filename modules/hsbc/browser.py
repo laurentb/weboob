@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import re
 import ssl
 from datetime import timedelta, date
 from lxml.etree import XMLSyntaxError
@@ -335,11 +336,33 @@ class HSBC(LoginBrowser):
 
     def get_pea_investments(self, account):
         assert account.type in (Account.TYPE_PEA, Account.TYPE_MARKET)
+
         if not self.PEA_LISTING:
             self._go_to_wealth_accounts()
+
+        # Get account number without "EUR"
+        account_id = re.search(r'\d{4,}', account.id).group(0)
+        pea_invests = []
+        account = None
+
+        if 'accounts' in self.PEA_LISTING:
+            for acc in self.PEA_LISTING['accounts']:
+                # acc.id is like XXX<account number>
+                if account_id in acc.id:
+                    account = acc
+                    break
+        # Account should be found
+        assert account
+
+        if 'liquidities' in self.PEA_LISTING:
+            for liquidity in self.PEA_LISTING['liquidities']:
+                if liquidity._invest_account_id == account.number:
+                    pea_invests.append(liquidity)
         if 'investments' in self.PEA_LISTING:
-            return self.PEA_LISTING['investments']
-        return []
+            for invest in self.PEA_LISTING['investments']:
+                if invest._invest_account_id == account.id:
+                    pea_invests.append(invest)
+        return pea_invests
 
     def get_life_investments(self, account, retry_li=True):
 
@@ -387,6 +410,6 @@ class HSBC(LoginBrowser):
             helper = ProductViewHelper(self)
             # we need to go there to initialize the session
             self.PEA_LISTING['accounts'] = list(helper.retrieve_accounts())
-            self.PEA_LISTING['liquidities'] = list(helper.retrieve_liquidity_account())
+            self.PEA_LISTING['liquidities'] = list(helper.retrieve_liquidity())
             self.PEA_LISTING['investments'] = list(helper.retrieve_invests())
             self.connection.go()

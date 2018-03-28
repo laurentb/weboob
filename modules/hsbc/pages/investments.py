@@ -13,7 +13,7 @@ from weboob.capabilities.bank import Account, Investment
 from weboob.browser.elements import ItemElement, DictElement, method
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
 from weboob.browser.filters.standard import (
-    CleanText, CleanDecimal, Regexp, Currency
+    CleanText, CleanDecimal, Regexp, Currency, Field,
 )
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.javascript import JSVar
@@ -143,7 +143,7 @@ class ProductViewHelper():
         })
         return raw_data
 
-    def liquidity_account_post_data(self):
+    def liquidity_list_post_data(self):
         base_data = self.investment_list_post_data()
         base_data.update({
             "segmentFilter": [{"dataSegmentGroupIdentifier": "HLDORDRINF"}],
@@ -224,7 +224,7 @@ class ProductViewHelper():
         if kind == 'account_list':
             holdingAccountInformation.update(self.raw_post_data()['holdingAccountInformation'])
             request_data.update(self.raw_post_data())
-        elif kind == 'investment_list' or kind == 'liquidity_account':
+        elif kind == 'investment_list' or kind == 'liquidity_list':
             """ Build request data to fetch the list of investments """
             request_data.pop("localeCode")
 
@@ -232,9 +232,9 @@ class ProductViewHelper():
                 holdingAccountInformation.update(self.investment_list_post_data()['holdingAccountInformation'])
                 request_data.update(self.investment_list_post_data())
 
-            elif kind == 'liquidity_account':
-                holdingAccountInformation.update(self.liquidity_account_post_data()['holdingAccountInformation'])
-                request_data.update(self.liquidity_account_post_data())
+            elif kind == 'liquidity_list':
+                holdingAccountInformation.update(self.liquidity_list_post_data()['holdingAccountInformation'])
+                request_data.update(self.liquidity_list_post_data())
 
             if 'req_id' in self.browser.SESSION_INFO:  # update request identification number
                 holdingAccountInformation['requestIdentificationNumber'] = self.browser.SESSION_INFO['req_id']
@@ -264,10 +264,10 @@ class ProductViewHelper():
         assert isinstance(self.browser.page, RetrieveInvestmentsPage)
         return self.browser.page.iter_investments()
 
-    def retrieve_liquidity_account(self):
-        self.retrieve_products(kind='liquidity_account')
+    def retrieve_liquidity(self):
+        self.retrieve_products(kind='liquidity_list')
         assert isinstance(self.browser.page, RetrieveLiquidityPage)
-        return self.browser.page.iter_liquidity_accounts()
+        return self.browser.page.iter_liquidity()
 
     def retrieve_accounts(self):
         self.retrieve_products(kind='account_list')
@@ -289,37 +289,38 @@ class RetrieveAccountsPage(LoggedPage, JsonPage):
     @method
     class iter_accounts(DictElement):
         TYPE_ACCOUNTS = {
-            'INVESTMENT': Account.TYPE_PEA,
-            'CURRENT': Account.TYPE_CHECKING,
+            'SEC': Account.TYPE_MARKET, # also PEA type
+            'CHK': Account.TYPE_CHECKING,
+            'INV': Account.TYPE_LIFE_INSURANCE,
+            'SAV': Account.TYPE_SAVINGS,
+            'MTG': Account.TYPE_MORTGAGE,
+            'LNS': Account.TYPE_LOAN,
         }
 
-        item_xpath = 'accountGroupInformation'
+        # Contains information for all accounts (except defered cards)
+        item_xpath = 'accountFilterInformation'
 
         class item(ItemElement):
-
             klass = Account
 
-            def condition(self):
-                # Insurance life invest is on life insurance page
-                # Loan don't have invest
-                account_type_to_avoid = ("INVSTLKDINSURANCE", "LOANMORTGAGE", "NONINVSTLINKEDINSURANCE")
-                return (len(Dict('accountListInformation')(self)) == 1 and
-                       not bool(Dict('dashboardAccountSubGroupIdentifier')(self) in account_type_to_avoid))
+            def obj_id(self):
+                acc_id = CleanText(Dict('accountNumber'))(self)
+                return acc_id.split(' ')[0]
+
+            def obj_number(self):
+                if Dict('accountListInformation')(self):
+                    for el in Dict('accountListInformation')(self):
+                        if Dict('groupMemberInvestmentAccountCode')(el):
+                            # Required to map liquidities to accounts
+                            return Dict('accountNumber')(el)
+                return Field('id')(self)
 
             def obj_type(self):
-                return self.parent.TYPE_ACCOUNTS.get(Dict(
-                    'dashboardAccountSubGroupIdentifier'
-                )(self))
+                return self.parent.TYPE_ACCOUNTS.get(Dict('accountTypeCode')(self))
 
-            obj_number = CleanText(Dict('accountListInformation/0/accountNumber'))
-            obj_id = CleanText(Dict('accountListInformation/0/accountNickName'))
-            obj_currency = Currency(Dict('accountListInformation/0/currencyAccountCode'))
+            obj_currency = Currency(Dict('currencyAccountCode'))
             obj_balance = CleanDecimal(
-                Dict('accountGroupMultipleCurrencyInformation/0/accountMarketValueAmount')
-            )
-            obj_valuation_diff = CleanDecimal(
-                Dict('accountGroupMultipleCurrencyInformation/0/profitLossUnrealizedAmount'),
-                default=NotAvailable
+                Dict('accountFilterMultipleCurrencyInformation/0/accountMarketValueAmount')
             )
 
 
@@ -388,6 +389,12 @@ class RetrieveInvestmentsPage(LoggedPage, JsonPage):
                 'holdingDetailInformation/0/holdingDetailMultipleCurrencyInformation/1/profitLossUnrealizedAmount'
             ), default=NotAvailable)
 
+            def obj__invest_account_id(self):
+                invest_account_id = CleanText(Dict(
+                    'holdingSummaryInformation/0/accountNumber'
+                ))(self)
+                return invest_account_id.split(' ')[0]
+
 
 class RetrieveLiquidityPage(LoggedPage, JsonPage):
 
@@ -401,33 +408,31 @@ class RetrieveLiquidityPage(LoggedPage, JsonPage):
         )
 
     @method
-    class iter_liquidity_accounts(DictElement):
+    class iter_liquidity(DictElement):
         item_xpath = 'holdingOrderInformation'
 
         class item(ItemElement):
-            klass = Account
+            klass = Investment
 
             def condition(self):
                 return Dict('productTypeCode')(self) == 'INVCASH'
 
-            obj_id = CleanText(Dict('productAlternativeNumber'))
             obj_label = CleanText(Dict('productShortName'))
-            obj_balance = CleanDecimal(
+            obj_valuation = CleanDecimal(
                 Dict(
                     'holdingDetailInformation/0/holdingDetailMultipleCurrencyInformation/1'
                     '/productHoldingMarketValueAmount'
 
                 )
             )
-            obj_currency = Currency(
+            obj_original_currency = Currency(
                 Dict(
                     'holdingDetailInformation/0/holdingDetailMultipleCurrencyInformation/1'
                     '/currencyProductHoldingMarketValueAmountCode'
                 )
             )
-            obj_number = CleanText(Dict('productAlternativeNumber'))
-            obj_type = Account.TYPE_PEA
-            obj_parent = NotAvailable
+
+            obj__invest_account_id = CleanText(Dict('productAlternativeNumber'))
 
 
 class RetrieveUselessPage(LoggedPage, JsonPage):
