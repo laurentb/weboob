@@ -83,6 +83,11 @@ class YomoniBrowser(APIBrowser):
         except ClientError:
             raise BrowserIncorrectPassword()
 
+    waiting_statuses = (
+        'RETURN_CUSTOMER_SERVICE', 'SUBSCRIPTION_STEP_2', 'SUBSCRIPTION_STEP_3',
+        'SUBSCRIPTION_STEP_4',
+    )
+
     @need_login
     def iter_accounts(self):
         if self.accounts:
@@ -95,7 +100,7 @@ class YomoniBrowser(APIBrowser):
             self.open('/user/%s/project/%s/' % (self.users['userId'], project['projectId']), method="OPTIONS")
             me = self.request('/user/%s/project/%s/' % (self.users['userId'], project['projectId']), headers=self.request_headers)
 
-            waiting = (me['status'] in ('RETURN_CUSTOMER_SERVICE', 'SUBSCRIPTION_STEP_3', 'SUBSCRIPTION_STEP_4'))
+            waiting = (me['status'] in self.waiting_statuses)
 
             # Check project in progress
             if not me['numeroContrat'] or not me['dateAdhesion']:
