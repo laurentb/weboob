@@ -17,6 +17,7 @@ from weboob.browser.filters.standard import (
 )
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.javascript import JSVar
+from weboob.exceptions import BrowserUnavailable
 
 
 class LogonInvestmentPage(LoggedPage, HTMLPage):
@@ -257,6 +258,9 @@ class ProductViewHelper():
 
     def retrieve_invests(self):
         self.retrieve_products(kind='investment_list')
+        # Invest account can not have invests
+        if self.browser.retrieve_useless_page.is_here():
+            return []
         assert isinstance(self.browser.page, RetrieveInvestmentsPage)
         return self.browser.page.iter_investments()
 
@@ -275,8 +279,12 @@ class RetrieveAccountsPage(LoggedPage, JsonPage):
 
     def is_here(self):
         # We should never have both informations at the same time
-        assert bool(self.response.json()['holdingOrderInformation']) != bool(self.response.json()['accountFilterInformation'])
-        return bool(self.response.json()['accountFilterInformation'])
+        is_holding_order_information = bool(self.response.json()['holdingOrderInformation'])
+        is_account_filter_information = bool(self.response.json()['accountFilterInformation'])
+        return (
+            (is_holding_order_information != is_account_filter_information) and
+            self.response.json()['accountFilterInformation']
+        )
 
     @method
     class iter_accounts(DictElement):
@@ -318,8 +326,10 @@ class RetrieveAccountsPage(LoggedPage, JsonPage):
 class RetrieveInvestmentsPage(LoggedPage, JsonPage):
 
     def is_here(self):
-        assert bool(self.response.json()['holdingOrderInformation']) != bool(self.response.json()['accountFilterInformation'])
+        is_holding_order_information = bool(self.response.json()['holdingOrderInformation'])
+        is_account_filter_information = bool(self.response.json()['accountFilterInformation'])
         return (
+            (is_holding_order_information != is_account_filter_information) and
             bool(self.response.json()['holdingOrderInformation']) and
             self.response.json()['holdingOrderInformation'][0]['accountTypeCode'] != 'OTH'
         )
@@ -382,8 +392,10 @@ class RetrieveInvestmentsPage(LoggedPage, JsonPage):
 class RetrieveLiquidityPage(LoggedPage, JsonPage):
 
     def is_here(self):
-        assert bool(self.response.json()['holdingOrderInformation']) != bool(self.response.json()['accountFilterInformation'])
+        is_holding_order_information = bool(self.response.json()['holdingOrderInformation'])
+        is_account_filter_information = bool(self.response.json()['accountFilterInformation'])
         return (
+            (is_holding_order_information != is_account_filter_information) and
             bool(self.response.json()['holdingOrderInformation']) and
             self.response.json()['holdingOrderInformation'][0]['accountTypeCode'] == 'OTH'
         )
@@ -416,3 +428,19 @@ class RetrieveLiquidityPage(LoggedPage, JsonPage):
             obj_number = CleanText(Dict('productAlternativeNumber'))
             obj_type = Account.TYPE_PEA
             obj_parent = NotAvailable
+
+
+class RetrieveUselessPage(LoggedPage, JsonPage):
+    def is_here(self):
+        is_holding_order_information = bool(self.response.json()['holdingOrderInformation'])
+        is_account_filter_information = bool(self.response.json()['accountFilterInformation'])
+        # We should never have both informations at the same time
+        assert not is_holding_order_information
+        return is_holding_order_information == is_account_filter_information
+
+    def on_load(self):
+        # Invest account is sometime not available
+        if self.response.json()['responseCode'] == "004":
+            raise BrowserUnavailable()
+
+        assert self.response.json()['responseCode'] == "000"

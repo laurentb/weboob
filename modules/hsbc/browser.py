@@ -40,7 +40,8 @@ from .pages.life_insurances import (
     LifeNotFound,
 )
 from .pages.investments import (
-    LogonInvestmentPage, ProductViewHelper, RetrieveAccountsPage, RetrieveInvestmentsPage, RetrieveLiquidityPage
+    LogonInvestmentPage, ProductViewHelper, RetrieveAccountsPage, RetrieveInvestmentsPage,
+    RetrieveLiquidityPage, RetrieveUselessPage
 )
 from .pages.landing_pages import JSMiddleFramePage, JSMiddleAuthPage, InvestmentFormPage
 
@@ -103,6 +104,10 @@ class HSBC(LoginBrowser):
     retrieve_liquidity_page = URL(
         r'https://investissements.clients.hsbc.fr/group-wd-gateway-war/gateway/wd/RetrieveProductView',
         RetrieveLiquidityPage
+    )
+    retrieve_useless_page = URL(
+        r'https://investissements.clients.hsbc.fr/group-wd-gateway-war/gateway/wd/RetrieveProductView',
+        RetrieveUselessPage
     )
 
 
