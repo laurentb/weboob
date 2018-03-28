@@ -39,7 +39,7 @@ class LCLEnterpriseBrowser(LoginBrowser):
         self.accounts = None
 
     def deinit(self):
-        if self.page.logged:
+        if self.page and self.page.logged:
             self.login.go(page="logout")
             self.login.go(page="logoutOk")
             assert self.login.is_here(page="logoutOk") or self.login.is_here(page="sessionExpiree")
