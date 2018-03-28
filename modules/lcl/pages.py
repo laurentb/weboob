@@ -37,7 +37,7 @@ from weboob.browser.elements import method, ListElement, TableElement, ItemEleme
 from weboob.exceptions import ParseError
 from weboob.browser.exceptions import ServerError
 from weboob.browser.pages import LoggedPage, HTMLPage, FormNotFound, pagination
-from weboob.browser.filters.html import Attr, Link, TableCell
+from weboob.browser.filters.html import Attr, Link, TableCell, AttributeNotFound
 from weboob.browser.filters.standard import CleanText, Field, Regexp, Format, Date, \
                                             CleanDecimal, Map, AsyncLoad, Async, Env, \
                                             Eval, Slugify
@@ -1072,7 +1072,10 @@ class ProfilePage(LoggedPage, HTMLPage):
 
         profile = Person()
         profile.name = name
-        profile.email = Attr('//input[@id="textMail"]', 'value')(self.doc)
+        try:
+            profile.email = Attr('//input[@id="textMail"]', 'value')(self.doc)
+        except AttributeNotFound:
+            pass
         nb = Attr('//input[@id="nbEnfant"]', 'value', default=NotAvailable)(self.doc)
         if nb:
             profile.children = Decimal(nb)
