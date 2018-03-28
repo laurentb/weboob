@@ -59,7 +59,7 @@ class AccountsPage(LoggedPage, BasePage, HTMLPage):
 
             def condition(self):
                 # 'Prévoyance' div is for insurance contracts -- they are not bank accounts and thus are skipped
-                to_skip = ('Prévoyance', 'Responsabilité civile', 'Complémentaire santé', 'Protection juridique')
+                to_skip = ('Prévoyance', 'Responsabilité civile', 'Complémentaire santé', 'Protection juridique', 'Habitation')
                 kind = CleanText('../../div[has-class("product-tab-category")]', default=NotAvailable)(self)
                 return (kind not in to_skip)
 
