@@ -669,7 +669,14 @@ class SavingsPage(AccountsPage):
             klass = Account
 
             def condition(self):
-                return self.el.xpath('./td[contains(@class, "cel-texte")]')
+                if not self.el.xpath('./td[contains(@class, "cel-texte")]'):
+                    return False
+
+                if Field('label')(self).startswith('RENTE'):
+                    # RENTE account doesn't seem to have any balance or currency
+                    return False
+
+                return True
 
             obj_label = CleanText('./td[1]')
             obj_id = CleanText('./td[2]')
