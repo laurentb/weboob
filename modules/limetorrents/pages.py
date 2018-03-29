@@ -20,7 +20,6 @@ import re
 
 from weboob.tools.misc import get_bytes_size
 from weboob.capabilities.torrent import Torrent
-from weboob.capabilities.base import NotAvailable
 
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.pages import HTMLPage, pagination
