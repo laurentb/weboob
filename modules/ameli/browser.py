@@ -27,7 +27,7 @@ __all__ = ['AmeliBrowser']
 class AmeliBrowser(LoginBrowser):
     BASEURL = 'https://assure.ameli.fr'
 
-    loginp = URL('https://assure.ameli.fr/PortailAS/appmanager/PortailAS/assure\?.*_pageLabel=as_login_page', LoginPage)
+    loginp = URL('/PortailAS/appmanager/PortailAS/assure\?.*_pageLabel=as_login_page', LoginPage)
     homep = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_accueil_page', HomePage)
     accountp = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_info_perso_page', AccountPage)
     paymentsp = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_paiements_page', PaymentsPage)
@@ -38,6 +38,8 @@ class AmeliBrowser(LoginBrowser):
     def do_login(self):
         self.logger.debug('call Browser.do_login')
 
+        # set this cookie to get login form in response
+        self.session.cookies['hbc'] = ''
         self.loginp.stay_or_go()
         if self.homep.is_here():
             return True

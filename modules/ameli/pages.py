@@ -90,7 +90,7 @@ class LastPaymentsPage(LoggedPage, AmeliBasePage):
     def iter_last_payments(self):
         elts = self.doc.xpath('//li[@class="rowitem remboursement"]')
         for elt in elts:
-            items = Regexp(CleanText('./@onclick'), r'.*ajaxCallRemoteChargerDetailPaiement \(\'(\w+)\', \'(\w+)\', \'(\d+)\', \'(\d+)\'\).*', '\\1,\\2,\\3,\\4')(elt).split(',')
+            items = Regexp(CleanText('./@onclick'), r'.*ajaxCallRemoteChargerDetailPaiement \(\'(\w+=?)\', \'(\w+)\', \'(\d+)\', \'(\d+)\'\).*', '\\1,\\2,\\3,\\4')(elt).split(',')
             yield "/PortailAS/paiements.do?actionEvt=chargerDetailPaiements&idPaiement=" + items[0] + "&naturePaiement=" + items[1] + "&indexGroupe=" + items[2] + "&indexPaiement=" + items[3]
 
     def iter_documents(self, sub):
