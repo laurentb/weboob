@@ -282,6 +282,11 @@ class Module(object):
         self.storage = BackendStorage(self.name, storage)
         self.storage.load(self.STORAGE)
 
+    def dump_state(self):
+        if hasattr(self.browser, 'dump_state'):
+            self.storage.set('browser_state', self.browser.dump_state())
+            self.storage.save()
+
     def deinit(self):
         """
         This abstract method is called when the backend is unloaded.
@@ -289,9 +294,8 @@ class Module(object):
         if self._browser is None:
             return
 
-        if hasattr(self.browser, 'dump_state'):
-            self.storage.set('browser_state', self.browser.dump_state())
-            self.storage.save()
+        self.dump_state()
+
         if hasattr(self.browser, 'deinit'):
             self.browser.deinit()
 
