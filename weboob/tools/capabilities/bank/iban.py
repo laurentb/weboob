@@ -38,7 +38,7 @@ def clean(iban):
 def is_iban_valid(iban):
     # Ensure upper alphanumeric input.
     iban = clean(iban)
-    if not re.match(r'^[\dA-Z]+$', iban):
+    if not re.match(r'^[A-Z]{2}\d{2}[\dA-Z]+$', iban):
         return False
 
     # Validate country code against expected length.
