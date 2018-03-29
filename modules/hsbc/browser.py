@@ -42,7 +42,7 @@ from .pages.life_insurances import (
 )
 from .pages.investments import (
     LogonInvestmentPage, ProductViewHelper, RetrieveAccountsPage, RetrieveInvestmentsPage,
-    RetrieveLiquidityPage, RetrieveUselessPage
+    RetrieveLiquidityPage, RetrieveUselessPage, ScpiInvestmentPage,
 )
 from .pages.landing_pages import JSMiddleFramePage, JSMiddleAuthPage, InvestmentFormPage
 
@@ -55,6 +55,7 @@ class HSBC(LoginBrowser):
 
     app_gone = False
 
+    scpi_investment_page = URL(r'https://www.hsbc.fr/1/[0-9]/.*', ScpiInvestmentPage)
     connection =      URL(r'https://www.hsbc.fr/1/2/hsbc-france/particuliers/connexion', LoginPage)
     login =           URL(r'https://www.hsbc.fr/1/*', LoginPage)
     cptPage =         URL(r'/cgi-bin/emcgi.*\&Cpt=.*',
@@ -329,10 +330,30 @@ class HSBC(LoginBrowser):
     def get_investments(self, account, retry_li=True):
         if account.type == Account.TYPE_LIFE_INSURANCE:
             return self.get_life_investments(account, retry_li=retry_li)
-        elif account.type in (Account.TYPE_PEA,):
+        elif account.type == Account.TYPE_PEA:
             return self.get_pea_investments(account)
+        elif account.type == Account.TYPE_MARKET:
+            # 'BOURSE_INV' need more security to get invest page
+            if 'BOURSE_INV' in account.url:
+                return self.get_pea_investments(account)
+            return self.get_scpi_investments(account)
         else:
             raise NotImplementedError()
+
+    def get_scpi_investments(self, account):
+        # Clean account url
+        account_url = re.search(r"'(.*)'", account.url).group(0)
+        account_url = account_url.replace("'", '')
+
+        # Need to be on accounts page to go on scpi page
+        self.accounts.go()
+        # Go on scpi page
+        self.location(account_url)
+        # Go on scpi details page
+        self.page.go_scpi_detail_page()
+        # If there is more details page, go on that page
+        self.page.go_more_scpi_detail_page()
+        return self.page.iter_scpi_investment()
 
     def get_pea_investments(self, account):
         assert account.type in (Account.TYPE_PEA, Account.TYPE_MARKET)

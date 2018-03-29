@@ -135,7 +135,7 @@ class AccountsPage(GenericLandingPage):
             obj_coming = Env('coming')
             obj_currency = FrenchTransaction.Currency('./td[2]')
 
-            obj_url = AbsoluteLink('./td[1]/a')
+            obj_url = CleanText(AbsoluteLink('./td[1]/a'), replace=[('\n', '')])
 
             obj_type = Type(Field('label'))
             obj_coming = NotAvailable

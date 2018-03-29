@@ -10,11 +10,12 @@ import time
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment
 
-from weboob.browser.elements import ItemElement, DictElement, method
+from weboob.browser.elements import ItemElement, TableElement, DictElement, method
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Regexp, Currency, Field,
 )
+from weboob.browser.filters.html import TableCell
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.javascript import JSVar
 from weboob.exceptions import BrowserUnavailable
@@ -449,3 +450,47 @@ class RetrieveUselessPage(LoggedPage, JsonPage):
             raise BrowserUnavailable()
 
         assert self.response.json()['responseCode'] == "000"
+
+
+class ScpiInvestmentPage(LoggedPage, HTMLPage):
+    def is_here(self):
+        return self.doc.xpath('//h3[contains(text(), "PARTS DE SCPI")]')
+
+    def go_scpi_detail_page(self):
+        is_on_detail_page = self.doc.xpath('//a[contains(text(), "Quantité")]')
+        if not is_on_detail_page:
+            invest_element = self.doc.xpath('//table//a')
+            assert len(invest_element) == 1
+            self.browser.location('https://www.hsbc.fr' + CleanText('./@href')(invest_element[0]))
+
+    def go_more_scpi_detail_page(self):
+        detail_page = self.doc.xpath('//a[contains(@id, "productDetailForm") and contains(text(), "Consultez le détail")]')
+        if detail_page:
+            assert len(detail_page) == 1
+            self.browser.location('https://www.hsbc.fr' + CleanText('./@href')(detail_page[0]))
+
+    @method
+    class iter_scpi_investment(TableElement):
+        item_xpath = '//table[@class="csTable"]//tbody//tr'
+        head_xpath = '//table[@class="csTable"]//thead//th/a'
+
+        col_label = u'Nature'
+        col_quantity = u'Quantité'
+        col_unitprice = u'Prix de revient (en €)'
+        col_unitvalue = [u"Prix de retrait (en €)", u"Valeur d'expertise (en €) *"]
+        col_diff_percent = u'(+/-) value en %'
+
+        class item(ItemElement):
+            klass = Investment
+
+            obj_label = CleanText(TableCell('label'))
+            obj_quantity = CleanDecimal(TableCell('quantity'))
+            obj_unitprice = CleanDecimal(TableCell('unitprice'), replace_dots=True)
+            obj_unitvalue = CleanDecimal(TableCell('unitvalue'), replace_dots=True)
+
+            def obj_diff_percent(self):
+                diff_percent = CleanDecimal(
+                    Regexp(CleanText(TableCell('diff_percent')), r'\d+,\d+'),
+                    replace_dots=True
+                )(self)
+                return diff_percent / 100
