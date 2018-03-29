@@ -98,18 +98,18 @@ ${PYTHON} "${WEBOOB_DIR}/scripts/weboob-config" update
 set +e
 set -o pipefail
 if [ -n "${BACKEND}" ]; then
-    ${PYTHON} -m nose -c /dev/null -sv "${WEBOOB_MODULES}/${BACKEND}/test.py" ${XUNIT_ARGS}
+    ${PYTHON} -m nose -c /dev/null --logging-level=DEBUG -sv "${WEBOOB_MODULES}/${BACKEND}/test.py" ${XUNIT_ARGS}
     STATUS=$?
     STATUS_CORE=0
 else
     echo "=== Weboob ==="
     CORE_TESTS=$(mktemp)
-    ${PYTHON} -m nose --cover-package weboob -c ${WEBOOB_DIR}/setup.cfg -sv 2>&1 | tee "${CORE_TESTS}"
+    ${PYTHON} -m nose --cover-package weboob -c ${WEBOOB_DIR}/setup.cfg --logging-level=DEBUG -sv 2>&1 | tee "${CORE_TESTS}"
     STATUS_CORE=$?
     echo "=== Modules ==="
     MODULES_TESTS=$(mktemp)
     MODULES_TO_TEST=$(find "${WEBOOB_MODULES}" -name "test.py" | sort | xargs echo)
-    ${PYTHON} -m nose --with-coverage --cover-package modules -c /dev/null -sv ${XUNIT_ARGS} ${MODULES_TO_TEST} 2>&1 | tee ${MODULES_TESTS}
+    ${PYTHON} -m nose --with-coverage --cover-package modules -c /dev/null --logging-level=DEBUG -sv ${XUNIT_ARGS} ${MODULES_TO_TEST} 2>&1 | tee ${MODULES_TESTS}
     STATUS=$?
 
     # Compute total coverage
