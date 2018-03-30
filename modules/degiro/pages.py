@@ -162,17 +162,11 @@ class HistoryPage(LoggedPage, JsonPage):
                 isin = Field('_isin')(self)
                 action = Field('_action')(self)
                 if isin and action:
-                    number = float(Field('_number')(self).replace(',', '.'))
                     tr_inv_key = (isin, action, Field('_datetime')(self))
-                    if number > 0:
+                    try:
                         return [tr_investment_list[tr_inv_key]]
-                    else:
-                        try:
-                            return [tr_investment_list[tr_inv_key]]
-                        except KeyError:
-                            # number==0 => it's normal tr_inv_key is not found
-                            # but we try in case it's here
-                            pass
+                    except KeyError:
+                        pass
                 return []
 
     @method
