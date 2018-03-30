@@ -189,7 +189,7 @@ class AccountHistory(LoggedPage, BasePage):
     def on_load(self):
         msg = CleanText('//span[@class="error_msg"]', default='')(self.doc)
         if 'Le service est momentanément indisponible' in msg:
-            raise BrowserUnavailable()
+            raise BrowserUnavailable(msg)
 
     debit_date =  None
     def get_part_url(self):
