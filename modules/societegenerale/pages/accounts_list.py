@@ -548,6 +548,11 @@ class AdvisorPage(BasePage):
 
 
 class HTMLProfilePage(LoggedPage, HTMLPage):
+    def on_load(self):
+        msg = CleanText('//div[@id="connecteur_partenaire"]', default='')(self.doc)
+        if 'Erreur' in msg:
+            raise BrowserUnavailable(msg)
+
     def get_profile(self):
         profile = Person()
         profile.name = Regexp(CleanText('//div[@id="dcr-conteneur"]//div[contains(text(), "PROFIL DE")]'), r'PROFIL DE (.*)')(self.doc)
