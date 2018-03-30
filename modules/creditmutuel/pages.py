@@ -1069,9 +1069,6 @@ class InternalTransferPage(LoggedPage, HTMLPage):
     def get_to_account_index(self, account):
         return self.get_account_index(self.RECIPIENT_STRING, account)
 
-    def get_unicode_content(self):
-        return self.content.decode(self.detect_encoding())
-
     def prepare_transfer(self, account, to, amount, reason):
         form = self.get_form(id='P:F', submit='//input[@type="submit" and contains(@value, "Valider")]')
         form['data_input_indiceCompteADebiter'] = self.get_from_account_index(account.id)
@@ -1085,7 +1082,7 @@ class InternalTransferPage(LoggedPage, HTMLPage):
 
     def check_errors(self):
         # look for known errors
-        content = self.get_unicode_content()
+        content = self.text
         messages = ['Le montant du virement doit être positif, veuillez le modifier',
                     'Montant maximum autorisé au débit pour ce compte',
                     'Dépassement du montant journalier autorisé',
@@ -1142,7 +1139,7 @@ class InternalTransferPage(LoggedPage, HTMLPage):
     def create_transfer(self, transfer):
         self.check_errors()
         # look for the known "everything went well" message
-        content = self.get_unicode_content()
+        content = self.text
         transfer_ok_message = ['Votre virement a &#233;t&#233; ex&#233;cut&#233;',
                                'Ce virement a &#233;t&#233; enregistr&#233; ce jour',
                                'Ce virement a été enregistré ce jour']
