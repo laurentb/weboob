@@ -434,7 +434,7 @@ class CardHistoryPage(LoggedPage, CsvPage):
             def validate(self, obj):
                 if "Relevé" in obj.raw:
                     return Env('account_number')(self) in obj.raw
-                return "CARTE" in obj._account_label and Env('account_number')(self) in Dict('accountNum')(self)
+                return ("CARTE" in obj.raw or "CARTE" in obj._account_label) and Env('account_number')(self) in Dict('accountNum')(self)
 
 
 class Myiter_investment(TableElement):
