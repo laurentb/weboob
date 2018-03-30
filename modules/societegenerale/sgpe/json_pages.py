@@ -26,6 +26,7 @@ from weboob.browser.filters.json import Dict
 from weboob.capabilities.base import Currency
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account
+from weboob.exceptions import BrowserUnavailable
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
@@ -81,6 +82,10 @@ class AccountsJsonPage(LoggedPage, JsonPage):
 
 
 class BalancesJsonPage(LoggedPage, JsonPage):
+    def on_load(self):
+        if self.doc['commun']['statut'] == 'NOK':
+            raise BrowserUnavailable(self.doc['commun']['raison'])
+
     def populate_balances(self, accounts):
         for account in accounts:
             acc_dict = self.doc['donnees']['compteSoldesMap'][account._id]
