@@ -517,6 +517,9 @@ class TransactionsPage(LoggedPage, CDNBasePage):
 
             yield t
 
+    def can_iter_investments(self):
+        return 'Vous ne pouvez pas utiliser les fonctions de bourse.' not in CleanText('//div[@id="contenusavoir"]')(self.doc)
+
     def get_market_investment(self):
         if CleanText('//div[contains(text(), "restreint aux fonctions de bourse")]')(self.doc):
             return

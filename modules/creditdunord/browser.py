@@ -153,11 +153,13 @@ class CreditDuNordBrowser(LoginBrowser):
 
         if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
             self.location(account._link, data=account._args)
-            investments = [i for i in self.page.get_market_investment()]
+            if self.page.can_iter_investments():
+                investments = [i for i in self.page.get_market_investment()]
         elif (account.type == Account.TYPE_LIFE_INSURANCE):
             self.location(account._link, data=account._args)
             self.location(account._link.replace("_attente", "_detail_contrat_rep"), data=account._args)
-            investments = [i for i in self.page.get_deposit_investment()]
+            if self.page.can_iter_investments():
+                investments = [i for i in self.page.get_deposit_investment()]
         return investments
 
     @need_login
