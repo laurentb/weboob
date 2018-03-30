@@ -82,6 +82,9 @@ class SGPEBrowser(LoginBrowser):
     def get_cb_operations(self, account):
         self.location('/Pgn/NavigationServlet?PageID=Cartes&MenuID=%sOPF&Classeur=1&NumeroPage=1&Rib=%s&Devise=%s' % (self.MENUID, account.id, account.currency))
         for coming in self.page.get_coming_list():
+            if coming['date'] == 'Non definie':
+                # this is a very recent transaction and we don't know his date yet
+                continue
             for tr in self.card_history(account, coming):
                 yield tr
 
