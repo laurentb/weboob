@@ -19,7 +19,7 @@
 
 
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
-from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded
 from weboob.capabilities.bank import Account, AddRecipientError
 from weboob.browser.exceptions import BrowserHTTPNotFound
 
@@ -98,6 +98,8 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
                 raise BrowserUnavailable(error)
             elif 'niv_auth_insuff' in error:
                 raise BrowserIncorrectPassword("Niveau d'authentification insuffisant")
+            elif 'Veuillez contacter' in error:
+                raise ActionNeeded(error)
             else:
                 raise BrowserIncorrectPassword(error)
 
