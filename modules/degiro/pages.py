@@ -153,6 +153,7 @@ class HistoryPage(LoggedPage, JsonPage):
                     'Achat': 'B',
                     'Vente': 'S',
                     'Taxe': None,
+                    'Frais': None,
                     # make sure we don't miss transactions labels specifying an ISIN
                 }[label]
 
