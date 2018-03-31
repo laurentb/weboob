@@ -187,6 +187,8 @@ class AccountHistory(LoggedPage, BasePage):
             not bool(Link('//a[contains(@href, "per_cptBen_ajouterFrBic")]', default=NotAvailable)(self.doc))
 
     def on_load(self):
+        super(AccountHistory, self).on_load()
+
         msg = CleanText('//span[@class="error_msg"]', default='')(self.doc)
         if 'Le service est momentanément indisponible' in msg:
             raise BrowserUnavailable(msg)

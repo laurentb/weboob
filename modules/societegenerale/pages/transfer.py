@@ -33,7 +33,7 @@ from weboob.capabilities.bank import (
 from weboob.capabilities.base import find_object, NotAvailable, empty
 from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, \
                                             Env, Date
-from weboob.browser.filters.html import Attr, Link
+from weboob.browser.filters.html import Attr, Link, XPathNotFound
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.value import Value, ValueBool
@@ -78,7 +78,15 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
             not bool(CleanText(u'//h1[contains(text(), "Ajouter un compte bénéficiaire de virement")]')(self.doc))
 
     def get_add_recipient_link(self):
-        return Regexp(Link('//a[img[@src="/img/personnalisation/btn_ajouter_beneficiaire.jpg"]]'), 'javascript:window.location="([^"]+)"')(self.doc)
+        try:
+            link = Regexp(Link('//a[img[@src="/img/personnalisation/btn_ajouter_beneficiaire.jpg"]]'), 'javascript:window.location="([^"]+)"')(self.doc)
+        except XPathNotFound:
+            link = Regexp(Link(u'//a[contains(text(), "Ajouter un compte b")]'), 'javascript:window.location="([^"]+)"')(self.doc)
+        else:
+            # XXX check in logs if this message is visible. If not, we can remove the first xpath.
+            self.logger.debug('Old link found to add a recipient.')
+
+        return link
 
     def on_load(self):
         excluded_errors = [

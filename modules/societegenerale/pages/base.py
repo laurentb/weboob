@@ -27,6 +27,10 @@ from weboob.browser.filters.standard import CleanText
 
 
 class BasePage(HTMLPage):
+    def on_load(self):
+        if self.doc.xpath('//script[contains(text(), "gdpr/recueil")]'):
+            self.browser.open('https://particuliers.secure.societegenerale.fr/icd/gdpr/data/gdpr-update-compteur-clicks-client.json')
+
     def get_error(self):
         try:
             return self.doc.xpath('//span[@class="error_msg"]')[0].text.strip()
