@@ -37,6 +37,7 @@ from weboob.capabilities.gauge import Gauge, GaugeSensor
 # TODO expand other cap objects when needed
 
 from .qt import QtDo
+from .thumbnails import try_get_thumbnail, store_thumbnail
 
 
 __all__ = ['BackendListModel', 'ResultModel', 'FilterTypeModel']
@@ -465,6 +466,10 @@ class ResultModel(QAbstractItemModel):
         if qidx.column() != 0:
             return QVariant()
 
+        var = try_get_thumbnail(obj)
+        if var:
+            return var
+
         try:
             thumbnail = obj.thumbnail
         except AttributeError:
@@ -478,7 +483,10 @@ class ResultModel(QAbstractItemModel):
         elif thumbnail.data is NotAvailable:
             return QVariant()
         else:
-            return QVariant(QIcon(QPixmap(QImage.fromData(thumbnail.data))))
+            img = QImage.fromData(thumbnail.data)
+            store_thumbnail(obj)
+            return QVariant(QIcon(QPixmap(img)))
+
         return QVariant()
 
 
