@@ -26,6 +26,7 @@ from PyQt5.QtCore import pyqtSlot as Slot, pyqtSignal as Signal
 from weboob.capabilities.gallery import CapGallery
 from weboob.capabilities.image import CapImage
 from weboob.tools.application.qt5 import QtApplication
+from weboob.tools.application.qt5.thumbnails import try_get_thumbnail, store_thumbnail
 from weboob.tools.config.yamlconfig import YamlConfig
 
 from .main_window import MainWindow
@@ -86,9 +87,18 @@ class QGalleroob(QtApplication):
     dataChanged = Signal(int)
 
     def _do_complete_obj(self, backend, fields, obj):
+        has_thumbnail = try_get_thumbnail(obj)
+        if has_thumbnail:
+            fields = fields - {'thumbnail'}
+
         obj = super(QGalleroob, self)._do_complete_obj(backend, fields, obj)
+
+        if has_thumbnail:
+            return obj
+
         if getattr(obj, 'thumbnail', None) and not obj.thumbnail.data:
             obj.thumbnail = super(QGalleroob, self)._do_complete_obj(backend, None, obj.thumbnail)
+            store_thumbnail(obj)
         return obj
 
     def _do_complete_iter(self, backend, count, fields, res):
@@ -113,7 +123,7 @@ class QGalleroob(QtApplication):
             fields = set(obj._fields)
             fields.discard('data')
             obj = self._do_complete_obj(backend, fields, obj)
-            if getattr(obj, 'thumbnail', None) and not obj.thumbnail.data:
+            if getattr(obj, 'thumbnail', None) and not obj.thumbnail.data and not try_get_thumbnail(obj):
                 obj.thumbnail = self._do_complete_obj(backend, None, obj.thumbnail)
             yield obj
 
