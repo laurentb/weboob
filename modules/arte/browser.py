@@ -67,12 +67,8 @@ class ArteBrowser(PagesBrowser):
         return self.webservice.go(class_name=class_name, method_name=method_name, parameters=parameters).iter_videos()
 
     def get_video(self, id, video=None):
-        class_name = 'videos'
-        method_name = 'stream/player'
-        parameters = '/'.join([self.lang.get('webservice'), id, 'ALL', 'ALL'])
-        video = self.webservice.go(class_name=class_name,
-                                   method_name=method_name,
-                                   parameters=parameters).get_video(obj=video)
+        self.webservice.go(__lang=self.lang['site'], vid=id, ___site='ARTEPLUS7')
+
         video.ext, video.url = self.get_url()
         return video
 
