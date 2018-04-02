@@ -21,7 +21,7 @@ from __future__ import unicode_literals
 
 
 from weboob.browser.exceptions import ClientError, HTTPNotFound
-from weboob.capabilities.gallery import CapGallery, BaseGallery, BaseImage
+from weboob.capabilities.gallery import CapGallery, BaseGallery, BaseImage, Thumbnail
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.compat import urlparse
 from weboob.tools.value import Value
@@ -50,7 +50,10 @@ class TumblrModule(Module, CapGallery):
         return self.config['url'].get()
 
     def get_gallery(self, _id):
-        return BaseGallery(_id, title=self.browser.get_title(), url=self.url())
+        title, icon = self.browser.get_title_icon()
+        if icon:
+            icon = Thumbnail(icon)
+        return BaseGallery(_id, title=title, url=self.url(), thumbnail=icon)
 
     def search_galleries(self, pattern, sortby=CapGallery.SEARCH_RELEVANCE):
         pattern = pattern.lower()
@@ -73,4 +76,5 @@ class TumblrModule(Module, CapGallery):
 
     OBJECTS = {
         BaseImage: fill_img,
+        BaseGallery: fill_img,
     }

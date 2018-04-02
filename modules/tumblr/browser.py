@@ -40,9 +40,12 @@ class TumblrBrowser(APIBrowser):
         r = re.sub(r'^var tumblr_api_read = (.*);$', r'\1', r)
         return json.loads(r)
 
-    def get_title(self):
+    def get_title_icon(self):
         r = self.request('/api/read/json?type=photo&num=1&start=0&filter=text')
-        return r['tumblelog']['title']
+        icon = None
+        if r['posts']:
+            icon = r['posts'][0]['tumblelog']['avatar_url_512']
+        return (r['tumblelog']['title'], icon)
 
     def iter_images(self, gallery):
         index = 0
