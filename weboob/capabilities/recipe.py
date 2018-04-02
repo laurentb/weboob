@@ -19,6 +19,7 @@
 
 
 from .base import Capability, BaseObject, StringField, IntField, Field
+from .image import BaseImage
 
 
 __all__ = ['CapRecipe', 'Recipe', 'Comment']
@@ -46,8 +47,7 @@ class Recipe(BaseObject):
     """
     title =             StringField('Title of the recipe')
     author =            StringField('Author name of the recipe')
-    thumbnail_url =     StringField('Direct url to recipe thumbnail')
-    picture_url =       StringField('Direct url to recipe picture')
+    picture =           Field('Picture of the dish', BaseImage)
     short_description = StringField('Short description of a recipe')
     nb_person =         Field('The recipe was made for this amount of persons', list)
     preparation_time =  IntField('Preparation time of the recipe in minutes')

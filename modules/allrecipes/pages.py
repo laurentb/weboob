@@ -22,7 +22,8 @@ from weboob.browser.pages import HTMLPage, JsonPage, pagination
 from weboob.browser.elements import ItemElement, DictElement, method
 from weboob.capabilities.recipe import Recipe, Comment
 from weboob.capabilities.base import NotAvailable
-from weboob.browser.filters.standard import Env, Format, Join
+from weboob.capabilities.image import BaseImage, Thumbnail
+from weboob.browser.filters.standard import Env, Format, Join, Eval
 from weboob.browser.filters.json import Dict
 
 
@@ -76,8 +77,11 @@ class RecipePage(JsonPage):
             ins = [Dict('displayValue')(el) for el in Dict('directions')(self)]
             return Join('\n * ', ins, addBefore=' * ', addAfter='\n')(self)
 
-        obj_thumbnail_url = Dict('photo/photoDetailUrl')
-        obj_picture_url = Dict('photo/photoDetailUrl')
+        class obj_picture(ItemElement):
+            klass = BaseImage
+
+            obj_url = Dict('photo/photoDetailUrl')
+            obj_thumbnail = Eval(Thumbnail, obj_url)
 
     @method
     class get_comments(DictElement):

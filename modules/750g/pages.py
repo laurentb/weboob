@@ -20,9 +20,10 @@
 
 from weboob.capabilities.recipe import Recipe, Comment
 from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.image import BaseImage, Thumbnail
 from weboob.browser.pages import HTMLPage, pagination
 from weboob.browser.elements import ItemElement, ListElement, method
-from weboob.browser.filters.standard import CleanText, Regexp, Env, CleanDecimal
+from weboob.browser.filters.standard import CleanText, Regexp, Env, CleanDecimal, Eval
 from weboob.browser.filters.json import Dict, NotFound
 from datetime import datetime, date, time
 from dateutil.parser import parse as parse_date
@@ -59,7 +60,12 @@ class ResultsPage(HTMLPage):
             obj_id = Regexp(CleanText('./div/h2/a/@href'),
                             '/(.*).htm')
             obj_title = CleanText('./div/h2/a')
-            obj_thumbnail_url = CleanText('./div/img/@src')
+
+            class obj_picture(ItemElement):
+                klass = BaseImage
+
+                obj_thumbnail = Eval(Thumbnail, CleanText('./div/img/@src'))
+
             obj_short_description = CleanText('./div/p')
 
 
@@ -98,5 +104,12 @@ class RecipePage(HTMLPage):
             return [CleanDecimal(Dict('recipeYield'), default=0)(self)]
 
         obj_instructions = Dict('recipeInstructions')
-        obj_picture_url = Dict('image', default='')
         obj_author = Dict('author/name', default=NotAvailable)
+
+        def obj_picture(self):
+            img = BaseImage()
+            try:
+                img.url = self.el['image']
+            except KeyError:
+                return
+            return img

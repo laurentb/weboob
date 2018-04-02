@@ -87,8 +87,13 @@ class Recipe(QFrame):
         self.ui.verticalLayout_2.setAlignment(Qt.AlignTop)
 
     def gotThumbnail(self):
-        if self.recipe.picture_url and not empty(self.recipe.picture_url):
-            data = requests.get(self.recipe.picture_url).content
+        try:
+            url = self.recipe.picture.url
+        except AttributeError:
+            return
+
+        if not empty(url):
+            data = requests.get(url).content
             img = QImage.fromData(data)
             self.ui.imageLabel.setPixmap(QPixmap.fromImage(img).scaledToWidth(250, Qt.SmoothTransformation))
 

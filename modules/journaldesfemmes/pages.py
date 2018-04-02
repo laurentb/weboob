@@ -22,13 +22,14 @@ from __future__ import unicode_literals
 
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.filters.standard import (
-    CleanText, CleanDecimal, Env, Regexp
+    CleanText, CleanDecimal, Env, Regexp, Eval,
 )
 from weboob.browser.filters.html import Attr, Link, XPath
 from weboob.browser.pages import HTMLPage
 
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.recipe import Comment, Recipe
+from weboob.capabilities.image import BaseImage, Thumbnail
 
 
 class SearchPage(HTMLPage):
@@ -57,14 +58,18 @@ class SearchPage(HTMLPage):
             obj_author = NotAvailable
             obj_ingredients = NotAvailable
 
-            def obj_thumbnail_url(self):
-                style = Attr(
-                    './/a[has-class("bu_cuisine_recette_img")]/span',
-                    'style'
-                )(self)
-                return style.replace("background-image:url(", "").rstrip(");")
+            class obj_picture(ItemElement):
+                klass = BaseImage
 
-            obj_picture_url = NotAvailable
+                obj_url = NotAvailable
+
+                def obj_thumbnail(self):
+                    style = Attr(
+                        './/a[has-class("bu_cuisine_recette_img")]/span',
+                        'style'
+                    )(self)
+                    return Thumbnail(style.replace("background-image:url(", "").rstrip(");"))
+
             obj_instructions = NotAvailable
             obj_preparation_time = CleanDecimal(
                 '(.//span[has-class("bu_cuisine_recette_carnet_duree")])[1]'
@@ -105,12 +110,15 @@ class RecipePage(HTMLPage):
                 for ingredients_item in ingredients_items
             ]
 
-        obj_thumbnail_url = Attr(
-            '//article[has-class("bu_cuisine_main_recipe")]'
-            '//img[has-class("bu_cuisine_img_noborder")]',
-            'src'
-        )
-        obj_picture_url = obj_thumbnail_url
+        class obj_picture(ItemElement):
+            klass = BaseImage
+
+            obj_url = Attr(
+                '//article[has-class("bu_cuisine_main_recipe")]'
+                '//img[has-class("bu_cuisine_img_noborder")]',
+                'src'
+            )
+            obj_thumbnail = Eval(Thumbnail, obj_url)
 
         def obj_instructions(self):
             instructions = ''

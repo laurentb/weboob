@@ -43,7 +43,7 @@ class SupertoinetteModule(Module, CapRecipe):
     def fill_recipe(self, recipe, fields):
         if 'nb_person' in fields or 'instructions' in fields:
             rec = self.get_recipe(recipe.id)
-            recipe.picture_url = rec.picture_url
+            recipe.picture = rec.picture
             recipe.instructions = rec.instructions
             recipe.ingredients = rec.ingredients
             recipe.comments = rec.comments

@@ -63,8 +63,13 @@ class MiniRecipe(QFrame):
 
     @Slot()
     def gotThumbnail(self):
-        if not empty(self.recipe.thumbnail_url):
-            data = requests.get(self.recipe.thumbnail_url).content
+        try:
+            url = self.recipe.picture.thumbnail.url
+        except AttributeError:
+            return
+
+        if not empty(url):
+            data = requests.get(url).content
             img = QImage.fromData(data)
             self.ui.imageLabel.setPixmap(QPixmap.fromImage(img).scaledToHeight(100,Qt.SmoothTransformation))
 

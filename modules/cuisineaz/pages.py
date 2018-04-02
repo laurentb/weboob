@@ -20,9 +20,12 @@
 
 from weboob.capabilities.recipe import Recipe, Comment
 from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.image import BaseImage, Thumbnail
 from weboob.browser.pages import HTMLPage, pagination
 from weboob.browser.elements import ItemElement, method, ListElement
-from weboob.browser.filters.standard import CleanText, Regexp, Env, Time, Join, Format
+from weboob.browser.filters.standard import (
+    CleanText, Regexp, Env, Time, Join, Format, Eval,
+)
 from weboob.browser.filters.html import XPath
 
 import re
@@ -62,8 +65,15 @@ class ResultsPage(HTMLPage):
                             '/recettes/(.*).aspx')
             obj_title = CleanText('./div/h2/a')
 
-            obj_thumbnail_url = Format('http:%s', CleanText('./div[has-class("searchImg")]/span/img[@data-src!=""]/@data-src|./div[has-class("searchImg")]/div/span/img[@src!=""]/@src',
-                                                            default=None))
+            class obj_picture(ItemElement):
+                klass = BaseImage
+
+                url = CleanText('./div[has-class("searchImg")]/span/img[@data-src!=""]/@data-src|./div[has-class("searchImg")]/div/span/img[@src!=""]/@src',
+                                default=None)
+                obj_thumbnail = Eval(Thumbnail, Format('http:%s', url))
+
+                def validate(self, obj):
+                    return obj.thumbnail.url != 'http:'
 
             obj_short_description = CleanText('./div[has-class("show-for-medium")]')
 
@@ -78,11 +88,15 @@ class RecipePage(HTMLPage):
         obj_id = Env('_id')
         obj_title = CleanText('//h1')
 
-        obj_picture_url = Format('http:%s',
-                                 CleanText('//img[@id="shareimg" and @src!=""]/@src', default=None))
+        class obj_picture(ItemElement):
+            klass = BaseImage
 
-        obj_thumbnail_url = Format('http:%s',
-                                   CleanText('//img[@id="shareimg" and @src!=""]/@src', default=None))
+            obj_url = Format('http:%s',
+                             CleanText('//img[@id="shareimg" and @src!=""]/@src', default=None))
+            obj_thumbnail = Eval(Thumbnail, obj_url)
+
+            def validate(self, obj):
+                return obj.url != 'http:'
 
         def obj_preparation_time(self):
             _prep = CuisineazDuration(CleanText('//span[@id="ContentPlaceHolder_LblRecetteTempsPrepa"]'))(self)

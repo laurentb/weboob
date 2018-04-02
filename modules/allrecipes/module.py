@@ -43,7 +43,7 @@ class AllrecipesModule(Module, CapRecipe):
         return self.browser.iter_recipes(quote_plus(pattern.encode('utf-8')))
 
     def fill_recipe(self, recipe, fields):
-        if 'nb_person' in fields or 'instructions' in fields or 'thumbnail_url' in fields:
+        if 'nb_person' in fields or 'instructions' in fields or 'picture' in fields:
             recipe = self.browser.get_recipe(recipe.id, recipe)
         return recipe
 

@@ -22,6 +22,7 @@ from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.filters.standard import Regexp, CleanText, Format, Env, CleanDecimal, Eval
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.recipe import Recipe, Comment
+from weboob.capabilities.image import BaseImage, Thumbnail
 from weboob.tools.json import json
 import re
 
@@ -66,8 +67,11 @@ class RecipePage(HTMLPage):
         obj_title = Dict('name')
         obj_ingredients = Dict('recipeIngredient')
 
-        obj_thumbnail_url = Dict('image')
-        obj_picture_url = Dict('image')
+        class obj_picture(ItemElement):
+            klass = BaseImage
+
+            obj_url = Dict('image')
+            obj_thumbnail = Eval(Thumbnail, obj_url)
 
         def obj_instructions(self):
             str = Dict('recipeInstructions')(self)

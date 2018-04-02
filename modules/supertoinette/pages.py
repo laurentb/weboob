@@ -19,9 +19,12 @@
 
 from weboob.capabilities.recipe import Recipe
 from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.image import BaseImage, Thumbnail
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.pages import HTMLPage
-from weboob.browser.filters.standard import CleanText, Env, Regexp, Type, Join
+from weboob.browser.filters.standard import (
+    CleanText, Env, Regexp, Type, Join, Eval,
+)
 from weboob.browser.filters.html import XPath
 
 
@@ -74,5 +77,8 @@ class RecipePage(HTMLPage):
 
         obj_instructions = Join(u'\n- ', '//div[@class="recipe-prepa"]/ol/li', newline=True, addBefore='- ')
 
-        obj_thumbnail_url = CleanText('//div[has-class("toprecipeImage")]/img/@src', default=NotAvailable)
-        obj_picture_url = CleanText('//div[has-class("toprecipeImage")]/img/@src', default=NotAvailable)
+        class obj_picture(ItemElement):
+            klass = BaseImage
+
+            obj_url = CleanText('//div[has-class("toprecipeImage")]/img/@src', default=NotAvailable)
+            obj_thumbnail = Eval(Thumbnail, obj_url)
