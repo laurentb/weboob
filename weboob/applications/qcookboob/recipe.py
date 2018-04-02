@@ -28,6 +28,7 @@ from PyQt5.QtWidgets import QFrame, QFileDialog
 
 from weboob.applications.qcookboob.ui.recipe_ui import Ui_Recipe
 from weboob.capabilities.base import empty
+from weboob.tools.capabilities.recipe import recipe_to_krecipes_xml
 
 
 class Recipe(QFrame):
@@ -106,7 +107,7 @@ class Recipe(QFrame):
             dest = result[0]
             if not dest.endswith('.kreml'):
                 dest += '.kreml'
-            data = self.recipe.toKrecipesXml(author=self.backend.name)
+            data = recipe_to_krecipes_xml(self.recipe, author=self.backend.name)
             try:
                 with codecs.open(dest, 'w', 'utf-8') as f:
                     f.write(data)

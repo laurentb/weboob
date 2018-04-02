@@ -25,6 +25,7 @@ from weboob.capabilities.recipe import CapRecipe
 from weboob.capabilities.base import empty
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
+from weboob.tools.capabilities.recipe import recipe_to_krecipes_xml
 
 __all__ = ['Cookboob']
 
@@ -129,7 +130,7 @@ class Cookboob(ReplApplication):
         recipe = self.get_object(id, 'get_recipe')
 
         if recipe:
-            xmlstring = recipe.toKrecipesXml(backend_name or None)
+            xmlstring = recipe_to_krecipes_xml(recipe, backend_name or None)
             if dest == '-':
                 print(xmlstring)
             else:
