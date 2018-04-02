@@ -91,6 +91,7 @@ class WeboobSession(Session):
             url=request.url,
             files=request.files,
             data=request.data,
+            json=request.json,
             headers=merge_setting(request.headers, self.headers, dict_class=CaseInsensitiveDict),
             params=merge_setting(request.params, self.params),
             auth=merge_setting(auth, self.auth),

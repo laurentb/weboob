@@ -408,7 +408,7 @@ class Browser(object):
 
         # guess method
         if req.method is None:
-            if req.data:
+            if req.data or req.json:
                 req.method = 'POST'
             else:
                 req.method = 'GET'
