@@ -21,7 +21,9 @@
 import datetime
 from dateutil.relativedelta import relativedelta
 from itertools import chain
+import re
 
+from weboob.capabilities.base import find_object
 from weboob.exceptions import BrowserHTTPError, BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import ServerError
@@ -30,7 +32,7 @@ from weboob.tools.compat import urljoin
 
 from .pages import (
     LoginPage, AccountsPage, HistoryPage, ChoiceLinkPage, SubscriptionPage, InvestmentPage,
-    InvestmentAccountPage, UselessPage, TokenPage,
+    InvestmentAccountPage, UselessPage, TokenPage, SSODomiPage,
 )
 
 from ..par.pages import ProfilePage
@@ -48,12 +50,10 @@ class CmsoProBrowser(LoginBrowser):
     investment = URL('/domiweb/prive/particulier/portefeuilleSituation/0-situationPortefeuille.act', InvestmentPage)
     invest_account = URL(r'/domiweb/prive/particulier/portefeuilleSituation/2-situationPortefeuille.act\?(?:csrf=[^&]*&)?indiceCompte=(?P<idx>\d+)&idRacine=(?P<idroot>\d+)', InvestmentAccountPage)
 
-    profile = URL('https://pro.cmb.fr/domiapi/oauth/json/edr/infosPerson',
-                  'https://pro.cmso.fr/domiapi/oauth/json/edr/infosPerson',
-                  'https://pro.cmmc.fr/domiapi/oauth/json/edr/infosPerson',
-                  ProfilePage)
+    profile = URL('https://pro.\w+.fr/domiapi/oauth/json/edr/infosPerson', ProfilePage)
 
     tokens = URL('/domiweb/prive/espacesegment/selectionnerAbonnement/3-selectionnerAbonnement.act', TokenPage)
+    ssoDomiweb = URL('https://pro.\w+.fr/domiapi/oauth/json/ssoDomiwebEmbedded', SSODomiPage)
 
     def __init__(self, website, *args, **kwargs):
         super(CmsoProBrowser, self).__init__(*args, **kwargs)
@@ -61,6 +61,8 @@ class CmsoProBrowser(LoginBrowser):
         self.PROBASE = "https://pro.%s" % website
         self.areas = None
         self.arkea = CmsoParBrowser.ARKEA[website]
+        self.csrf = None
+        self.token = None
 
     def do_login(self):
         self.login.stay_or_go()
@@ -76,8 +78,48 @@ class CmsoProBrowser(LoginBrowser):
 
     def fetch_areas(self):
         if self.areas is None:
-            self.subscription.go()
+            self.subscription.stay_or_go()
             self.areas = list(self.page.get_areas())
+
+    def go_on_url(self, path):
+        if isinstance(path, URL):
+            path = path.urls[0]
+        if path.startswith('/domiweb'):
+            path = path[len('/domiweb'):]
+
+        url = self.open(urljoin(self.PROBASE, '/domiapi/oauth/json/ssoDomiwebEmbedded'),
+                        headers={'Authentication': 'Bearer %s' % self.token,
+                                 'Authorization': 'Bearer %s' % self.csrf,
+                                 'X-Csrf-Token': self.csrf,
+                                 'Accept': 'application/json',
+                                 'X-REFERER-TOKEN': 'RWDPRO',
+                                 'X-ARKEA-EFS': self.arkea,
+                                 'ADRIM': 'isAjax:true',
+                                },
+                        json={'rwdStyle': 'true',
+                              'service': path}).page.get_sso_url()
+        return self.location(url).page
+
+    def go_on_area(self, area):
+        #self.subscription.stay_or_go()
+        if not self.subscription.is_here():
+            self.go_on_url(self.subscription)
+
+        area = re.sub(r'csrf=(\w+)', 'csrf=' + self.page.get_csrf(), area)
+        self.logger.info('Go on area %s', area)
+        self.location(area)
+        self.location('/domiweb/accueil.jsp')
+        self.open(urljoin(self.PROBASE, '/auth/checkuser'))
+        self.open(urljoin(self.PROBASE, '/securityapi/checkuser'),
+                  json={'appOrigin': 'domiweb', 'espaceApplication': 'PRO'},
+                  headers={'Authentication': 'Bearer %s' % self.token,
+                           'Authorization': 'Bearer %s' % self.csrf,
+                           'X-Csrf-Token': self.csrf,
+                           'Accept': 'application/json',
+                           'X-REFERER-TOKEN': 'RWDPRO',
+                           'X-ARKEA-EFS': self.arkea,
+                           'ADRIM': 'isAjax:true',
+                          })
 
     @need_login
     def iter_accounts(self):
@@ -89,10 +131,9 @@ class CmsoProBrowser(LoginBrowser):
 
         seen = set()
         for area in self.areas:
-            self.subscription.stay_or_go()
-            self.location(area)
+            self.go_on_area(area)
             try:
-                for a in self.accounts.go().iter_accounts():
+                for a in self.go_on_url(self.accounts).iter_accounts():
                     seenkey = (a.id, a._owner)
                     if seenkey in seen:
                         self.logger.warning('skipping seemingly duplicate account %r', a)
@@ -106,19 +147,15 @@ class CmsoProBrowser(LoginBrowser):
 
     @need_login
     def iter_history(self, account):
-        self.fetch_areas()
-
         if account._history_url.startswith('javascript:'):
             raise NotImplementedError()
 
-        # Manage multiple areas
-        self.subscription.go()
-        self.location(account._area)
-        self.accounts.go()
+        account = find_object(self.iter_accounts(), id=account.id)
 
         # Query history for 6 last months
         def format_date(d):
             return datetime.date.strftime(d, '%d/%m/%Y')
+
         today = datetime.date.today()
         period = (today - relativedelta(months=6), today)
         query = {'date': ''.join(map(format_date, period))}
@@ -126,7 +163,7 @@ class CmsoProBrowser(LoginBrowser):
         # Let's go
         self.location(account._history_url)
         first_page = self.page
-        rest_page = self.history.go(data=query)
+        rest_page = self.location(account._history_url, data=query).page
         date_guesser = LinearDateGuesser()
 
         return chain(first_page.iter_history(date_guesser=date_guesser), reversed(list(rest_page.iter_history(date_guesser=date_guesser))))
@@ -137,12 +174,9 @@ class CmsoProBrowser(LoginBrowser):
 
     @need_login
     def iter_investment(self, account):
-        self.fetch_areas()
+        self.go_on_area(account._area)
 
-        self.subscription.go()
-        self.location(account._area)
-
-        self.investment.go()
+        self.go_on_url(self.investment)
         assert self.investment.is_here()
         for page_account in self.page.iter_accounts():
             if page_account.id == account.id:
@@ -168,12 +202,13 @@ class CmsoProBrowser(LoginBrowser):
     @need_login
     def get_profile(self):
         # this code is copied from CmsoParBrowser
-        tokens = self.tokens.go().get_tokens()
+        if self.token is None:
+            self.tokens.go()
         headers = {
-            'Authentication': 'Bearer %s' % tokens[0],
-            'Authorization': 'Bearer %s' % tokens[1],
+            'Authentication': 'Bearer %s' % self.token,
+            'Authorization': 'Bearer %s' % self.csrf,
             'X-ARKEA-EFS': self.arkea,
-            'X-Csrf-Token': tokens[1],
+            'X-Csrf-Token': self.csrf,
             'Content-Type': 'application/json',
             'Accept': 'application/json',
             'X-REFERER-TOKEN': 'RWDPRO',

@@ -22,7 +22,7 @@ import re
 import datetime
 
 from weboob.exceptions import BrowserIncorrectPassword
-from weboob.browser.pages import HTMLPage, pagination
+from weboob.browser.pages import HTMLPage, JsonPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, TableElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, DateGuesser, Env, Field, Filter, Regexp, \
                                             Currency
@@ -50,6 +50,11 @@ class SubscriptionPage(HTMLPage):
     def on_load(self):
         if u"Vous ne disposez d'aucun contrat sur cet accès." in CleanText(u'.')(self.doc):
             raise BrowserIncorrectPassword()
+
+    def get_csrf(self):
+        div = self.doc.xpath('.//div[@onclick]')[0]
+        m = re.search(r'csrf=(\w+)', div.attrib['onclick'])
+        return m.group(1)
 
     def get_areas(self):
         for div in self.doc.xpath('//div[@class="listeAbonnementsBox"]'):
@@ -90,6 +95,8 @@ class AccountsPage(CMSOPage):
 
     @method
     class iter_accounts(CmsoListElement):
+        item_xpath = '//div[has-class("groupe-comptes")]//li'
+
         class item(ItemElement):
             klass = Account
 
@@ -100,38 +107,17 @@ class AccountsPage(CMSOPage):
                             return actype
                     return Account.TYPE_UNKNOWN
 
-            obj__history_url = Link('./td[1]/a')
-            obj_label = CleanText('./td[1]')
-            obj_currency = Currency('//span[contains(text(), "Solde")]')
-            obj_balance = CleanDecimal('./td[2]', replace_dots=True)
+            obj__history_url = Link('.//a[1]')
+            obj_id = CleanText('.//span[has-class("numero-compte")]') & Regexp(pattern=r'(\d+)', default='')
+            obj_label = CleanText('.//span[has-class("libelle")][1]')
+            obj_currency = Currency('//span[has-class("montant")]')
+            obj_balance = CleanDecimal('.//span[has-class("montant")]', replace_dots=True)
             obj_type = Type(Field('label'))
             # Last numbers replaced with XX... or we have to send sms to get RIB.
             obj_iban = NotAvailable
 
             # some accounts may appear on multiple areas, but the area where they come from is indicated
             obj__owner = CleanText('(./preceding-sibling::tr[@class="LnMnTiers"])[last()]')
-
-            def obj_id(self):
-                history_url = Field('_history_url')(self)
-                if history_url.startswith('javascript:'):
-                    # Market account
-                    page = self.page.browser.investment.go()
-
-                    area_id = Regexp(CleanText('//span[@class="CelMnTiersT1"]'), r'\((\d+)\)', default='')(page.doc)
-
-                    for tr in page.doc.xpath('.//table/tr[not(has-class("LnTit")) and not(has-class("LnTot"))]'):
-                        # Try to match account with id and balance.
-                        if CleanText('./td[2]//a')(tr) == Field('label')(self) \
-                            and CleanDecimal('./td[3]//a')(tr) == Field('balance')(self):
-
-                            acc_id = CleanText('./td[1]', replace=[(' ', '')])(tr)
-                            if area_id:
-                                # because the acc_id can be the same between multiple areas
-                                return '%s.%s' % (area_id, acc_id)
-                            return acc_id
-                else:
-                    page = self.page.browser.open(history_url).page
-                    return Regexp(CleanText('//span[has-class("Rappel")]'), '(\d{18}) | (\d{3}\w\d{15})')(page.doc)
 
             def validate(self, obj):
                 if obj.id is None:
@@ -268,6 +254,19 @@ class HistoryPage(CMSOPage):
             obj_amount = Transaction.Amount('./td[5]', './td[4]')
 
 
-class TokenPage(CMSOPage):
-    def get_tokens(self):
-        return re.search(r'id_token=([^&]+)&access_token=([^&]+)', self.text).groups()
+class UpdateTokenMixin(object):
+    def on_load(self):
+        if 'Authentication' in self.response.headers:
+            self.browser.token = self.response.headers['Authentication'].split(' ')[-1]
+
+
+class SSODomiPage(JsonPage, UpdateTokenMixin):
+    def get_sso_url(self):
+        return self.doc['urlSSO']
+
+
+class TokenPage(CMSOPage, UpdateTokenMixin):
+    def on_load(self):
+        d = re.search(r'id_token=(?P<id_token>[^&]+)&access_token=(?P<access_token>[^&]+)', self.text).groupdict()
+        self.browser.token = d['id_token']
+        self.browser.csrf = d['access_token']
