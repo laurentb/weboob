@@ -167,7 +167,7 @@ class HistoryPage(LoggedPage, BadUTF8Page):
 
             obj_id = None
             obj_datetime = DateTime(CleanText('td[1]', symbols=u'à'), dayfirst=True)
-            obj_label = Format(u'%s %s %s', CleanText('td[2]'), CleanText('td[3]'),
+            obj_label = Format(u'%s %s %s', CleanText('td[3]'), CleanText('td[2]'),
                                CleanText('td[4]'))
             obj_price = CleanDecimal('td[5]', default=Decimal(0), replace_dots=True)
             obj_currency = Currency('td[5]')
