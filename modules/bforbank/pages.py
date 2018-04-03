@@ -289,7 +289,6 @@ class CardHistoryPage(LoggedPage, HTMLPage):
                 return CleanText('.')(self) != u'Aucune opération effectuée'
 
             obj_type = Transaction.TYPE_DEFERRED_CARD
-
             obj_raw = CleanText(TableCell('raw'))
             obj_vdate = obj_rdate = Date(CleanText(TableCell('vdate')), dayfirst=True)
             obj_amount = MyDecimal(TableCell('amount'), replace_dots=True)

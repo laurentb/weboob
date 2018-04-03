@@ -16,6 +16,8 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
+import datetime
+from dateutil.relativedelta import relativedelta
 
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
@@ -112,6 +114,8 @@ class BforbankBrowser(LoginBrowser):
                         card._index = indexes[card.number]
 
                         self.location(account.url.replace('tableauDeBord', 'encoursCarte') + '/%s' % card._index)
+                        if self.page.get_debit_date().month == (datetime.date.today() + relativedelta(months=1)).month:
+                            self.location(account.url.replace('tableauDeBord', 'encoursCarte') + '/%s?month=1' % card._index)
                         card.balance = self.page.get_balance()
                         assert not empty(card.balance)
 
@@ -159,11 +163,10 @@ class BforbankBrowser(LoginBrowser):
         else:
             # for summary transactions, the transactions must be on both accounts:
             # negative amount on checking account, positive on card account
-
-            transactions = list(self._get_card_transactions(account))
+            transactions = []
+            self.location(account.url.replace('tableauDeBord', 'encoursCarte') + '/%s?month=1' % account._index)
             summary = self.page.create_summary()
-            transactions = sorted_transactions(transactions)
-            if summary.amount:
+            if summary:
                 transactions.insert(0, summary)
             return transactions
 
@@ -174,7 +177,10 @@ class BforbankBrowser(LoginBrowser):
             return self.page.get_operations()
         elif account.type == Account.TYPE_CARD:
             self.location(account.url.replace('tableauDeBord', 'encoursCarte') + '/%s' % account._index)
-            return self.page.get_operations()
+            if self.page.get_debit_date().month == (datetime.date.today() + relativedelta(months=1)).month:
+                self.location(account.url.replace('tableauDeBord', 'encoursCarte') + '/%s?month=1' % account._index)
+            transactions = list(self.page.get_operations())
+            return transactions
         else:
             raise NotImplementedError()
 
