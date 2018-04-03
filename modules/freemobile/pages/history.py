@@ -25,8 +25,8 @@ from decimal import Decimal
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.filters.standard import Date, CleanText, Filter,\
-    CleanDecimal, Regexp, Field, DateTime, Format, Env
-from weboob.browser.filters.html import Attr
+    CleanDecimal, Currency, Regexp, Field, DateTime, Format, Env
+from weboob.browser.filters.html import AbsoluteLink, Attr
 from weboob.capabilities.bill import Detail, Bill
 from weboob.capabilities.base import NotAvailable
 from weboob.exceptions import ParseError
@@ -85,6 +85,7 @@ class DetailsPage(LoggedPage, BadUTF8Page):
                 detail.id = detail.id + "-inter"
             detail.infos = CleanText('div[@class="conso"]/p')(div)
             detail.price = CleanDecimal('div[@class="horsForfait"]/p/span', default=Decimal(0), replace_dots=True)(div)
+            detail.currency = Currency('div[@class="horsForfait"]/p/span')(div)
 
             self.details[num].append(detail)
 
@@ -97,6 +98,7 @@ class DetailsPage(LoggedPage, BadUTF8Page):
             voice.label = voice.label + " (international)"
             voice.id = voice.id + "-inter"
         voice.price = CleanDecimal('div[@class="horsForfait"]/p/span', default=Decimal(0), replace_dots=True)(div)
+        voice.currency = Currency('div[@class="horsForfait"]/p/span')(div)
         voice1 = CleanText('.//span[@class="actif"][1]')(voicediv)
         voice2 = CleanText('.//span[@class="actif"][2]')(voicediv)
         voice.infos = unicode(string) % (voice1, voice2)
@@ -120,7 +122,7 @@ class DetailsPage(LoggedPage, BadUTF8Page):
                 num = Attr('.', 'data-fact_ligne', default='')(self)
                 return self.env['subid'] == num
 
-            obj_url = Attr('.//div[@class="pdf"]/a', 'href')
+            obj_url = AbsoluteLink('.//div[@class="pdf"]/a')
             obj__localid = Regexp(Field('url'), '&id=(.*)&date', u'\\1')
             obj_label = Regexp(Field('url'), '&date=(\d*)', u'\\1')
             obj_id = Format('%s.%s', Env('subid'), Field('_localid'))
@@ -128,6 +130,7 @@ class DetailsPage(LoggedPage, BadUTF8Page):
             obj_format = u"pdf"
             obj_type = u"bill"
             obj_price = CleanDecimal('div[@class="montant"]', default=Decimal(0), replace_dots=False)
+            obj_currency = Currency('div[@class="montant"]')
 
     def get_renew_date(self, subscription):
         div = self.doc.xpath('//div[@login=$login]', login=subscription._login)[0]
@@ -167,3 +170,4 @@ class HistoryPage(LoggedPage, BadUTF8Page):
             obj_label = Format(u'%s %s %s', CleanText('td[2]'), CleanText('td[3]'),
                                CleanText('td[4]'))
             obj_price = CleanDecimal('td[5]', default=Decimal(0), replace_dots=True)
+            obj_currency = Currency('td[5]')
