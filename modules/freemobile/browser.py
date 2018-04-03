@@ -20,6 +20,7 @@
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.capabilities.messages import CantSendMessage
 from weboob.exceptions import BrowserIncorrectPassword
+from weboob.tools.compat import basestring
 from .pages import HomePage, LoginPage, HistoryPage, DetailsPage, OptionsPage
 
 __all__ = ['Freemobile']

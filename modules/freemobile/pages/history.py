@@ -30,6 +30,7 @@ from weboob.browser.filters.html import Attr
 from weboob.capabilities.bill import Detail, Bill
 from weboob.capabilities.base import NotAvailable
 from weboob.exceptions import ParseError
+from weboob.tools.compat import unicode
 
 
 class FormatDate(Filter):
