@@ -77,10 +77,11 @@ class HousingPage(HTMLPage):
                 else:
                     return POSTS_TYPES.RENT
             elif 'vente' in url:
-                if(
-                    'viager' in self.obj_text(self).lower()
-                    and 'rente' in self.obj_text(self).lower()
-                ):
+                offertype = Attr(
+                    '//button[has-class("offer-contact-vertical-phone")][1]',
+                     'data-offertransactiontype'
+                )(self)
+                if offertype == '4':
                     return POSTS_TYPES.VIAGER
                 else:
                     return POSTS_TYPES.SALE
