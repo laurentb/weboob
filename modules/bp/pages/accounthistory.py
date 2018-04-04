@@ -22,7 +22,7 @@ from __future__ import unicode_literals
 import datetime
 import re
 
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable, empty
 from weboob.capabilities.bank import Investment, Transaction as BaseTransaction, Account
 from weboob.exceptions import BrowserUnavailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -216,8 +216,10 @@ class CardsList(LoggedPage, MyHTMLPage):
         head_xpath = '//table[@class="dataNum"]/thead/tr/th'
 
         col_label = re.compile('Vos cartes Encours actuel prélevé au')
-        col_balance = ['Débit (euro)', 'Crédit (euro)', 'Euros']
+        col_balance = 'Euros'
         col_number = 'Numéro'
+        col__credit = 'Crédit (euro)'
+        col__debit = 'Débit (euro)'
 
         class item(ItemElement):
             klass = Account
@@ -226,8 +228,21 @@ class CardsList(LoggedPage, MyHTMLPage):
             obj_currency = 'EUR'
             obj_number = CleanText(TableCell('number'))
             obj_label = Format('%s %s', CleanText(TableCell('label')), obj_number)
-            obj_coming = CleanDecimal(TableCell('balance'), replace_dots=True)
             obj_id = Format('%s.%s', Env('parent_id'), obj_number)
+
+            def obj_coming(self):
+                comings = (
+                    CleanDecimal(TableCell('balance', default=None), replace_dots=True, default=None)(self),
+                    CleanDecimal(TableCell('_credit', default=None), replace_dots=True, default=None)(self),
+                    CleanDecimal(TableCell('_debit', default=None), replace_dots=True, default=None)(self)
+                )
+
+                for coming in comings:
+                    if not empty(coming):
+                        return coming
+                else:
+                    # There should have at least 0.00 in debit column
+                    assert False
 
             def obj_url(self):
                 td = TableCell('label')(self)[0].xpath('.//a')[0]
