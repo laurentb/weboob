@@ -109,6 +109,7 @@ class AccountsPage(GenericLandingPage):
                     ('cel', Account.TYPE_SAVINGS),
                     ('pel', Account.TYPE_SAVINGS),
                     ('livret', Account.TYPE_SAVINGS),
+                    ('livjeu', Account.TYPE_SAVINGS),
                     ('compte', Account.TYPE_CHECKING),
                     ('account', Account.TYPE_CHECKING),
                     ('pret', Account.TYPE_LOAN),
