@@ -18,19 +18,19 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.browser.pages import HTMLPage
+from weboob.browser.pages import HTMLPage, RawPage
 
 
-class LoginPage(HTMLPage):
+class LoginPage(RawPage):
+    pass
+
+class HomePage(HTMLPage):
     def login(self, login, password):
-        form = self.get_form(xpath='//form[@action="https://yggtorrent.com/user/login"]')
+        form = self.get_form(xpath='//form[@action="https://yggtorrent.is/user/login"]')
         form['id'] = login
         form['pass'] = password
         form.submit(format_url='utf-8')
-
-
-class HomePage(LoginPage):
     @property
     def logged(self):
-        return bool(self.doc.xpath('//a[@href="https://yggtorrent.com/user/logout"]'))
+        return bool(self.doc.xpath('//a[@href="https://yggtorrent.is/user/logout"]'))
 

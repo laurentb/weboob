@@ -33,12 +33,12 @@ class SearchPage(LoggedPage, HTMLPage):
     @method
     class iter_torrents(ListElement):
         next_page = AbsoluteLink('//a[@rel="next"]')
-        item_xpath = '//table[contains(@class,"table")]/tbody/tr'
+        item_xpath = '//table[has-class("table")]/tbody/tr'
 
         class item(ItemElement):
             klass = Torrent
             obj_id = CleanText('.//a[@id="get_nfo"]/@target')
-            obj_name = CleanText('.//a[@class="torrent-name"]/text()')
+            obj_name = CleanText('.//td[2]//text()')
             obj_seeders = CleanDecimal('./td[last()-1]/text()', default=0)
             obj_leechers = CleanDecimal('./td[last()]/text()', default=0)
             obj_description = NotLoaded
@@ -46,9 +46,10 @@ class SearchPage(LoggedPage, HTMLPage):
             obj_filename = Format('%s.torrent', obj_name)
             obj_magnet = NotAvailable
             obj_url = CleanText('.//a/@href[contains(.,"download_torrent")]')
+            obj_url = Format('https://yggtorrent.is/engine/download_torrent?id=%s', obj_id)
 
             def obj_size(self):
-                rawsize = CleanText('./td[last()-2]')(self)
+                rawsize = CleanText('./td[last()-3]')(self)
                 nsize = float(re.sub(r'[A-Za-z]', '', rawsize))
                 usize = re.sub(r'[.0-9]', '', rawsize).upper()
                 size = get_bytes_size(nsize, usize)
@@ -60,20 +61,20 @@ class TorrentPage(LoggedPage, HTMLPage):
     @method
     class get_torrent(ItemElement):
         klass = Torrent
-        obj_description = CleanHTML('//div[@id="description"]')
-        obj_name = CleanText('/html/head/title/text()')
-        obj_id = Regexp(CleanText('//a/@href[contains(.,"download_torrent")]'), '/download_torrent\?id=([0-9]+)', '\\1')
-        obj_url = CleanText('//a/@href[contains(.,"download_torrent")]')
-        obj_filename = CleanText('//input[@id="torrent_id"]/../div[has-class("panel-title")]/b', default=NotAvailable)
+        obj_description = CleanHTML('//div[has-class("description-header")]/following-sibling::div[1]')
+        obj_name = CleanText('//div[@id="title"]')
+        obj_id = Regexp(CleanText('//a[has-class("butt")]/@href'), '/download_torrent\?id=([0-9]+)', '\\1')
+        obj_url = CleanText('//a[has-class("butt")]/@href')
+        obj_filename = obj_name
         def obj_size(self):
-            rawsize = CleanText('//tr[@id="vpn_link"]/../tr[7]/td[2]')(self)
+            rawsize = CleanText('//table[has-class("informations")]//td[text()="Taille totale"]/following-sibling::td')(self)
             nsize = float(re.sub(r'[A-Za-z]', '', rawsize))
             usize = re.sub(r'[.0-9]', '', rawsize).upper()
             size = get_bytes_size(nsize, usize)
             return size
         obj_files = NotAvailable
-        obj_seeders = CleanDecimal('//span[has-class("seed")]/text()', default=0)
-        obj_leechers = CleanDecimal('//span[has-class("leech")]/text()', default=0)
+        obj_seeders = CleanDecimal('//table[has-class("infos-torrent")]//tr[@id="adv_search_cat"]/td[text()="Seeders"]/following-sibling::td[1]', default=0)
+        obj_leechers = CleanDecimal('//table[has-class("infos-torrent")]//tr[@id="adv_search_cat"]/td[text()="Leechers"]/following-sibling::td[1]', default=0)
         obj_magnet = NotAvailable
 
 
