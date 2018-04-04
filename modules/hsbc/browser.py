@@ -79,7 +79,8 @@ class HSBC(LoginBrowser):
     accounts =        URL(r'/cgi-bin/emcgi', AccountsPage)
     life_insurance_useless = URL(r'/cgi-bin/emcgi', LifeInsuranceUseless)
     unavailable = URL(r'/cgi-bin/emcgi', UnavailablePage)
-    frame_page = URL(r'/cgi-bin/emcgi', FrameContainer)
+    frame_page = URL(r'/cgi-bin/emcgi',
+                     r'https://clients.hsbc.fr/cgi-bin/emcgi', FrameContainer)
 
     # other site
     life_insurance_portal = URL(r'/cgi-bin/emcgi', LifeInsurancePortal)
@@ -150,6 +151,11 @@ class HSBC(LoginBrowser):
         for _ in range(3):
             if self.login.is_here():
                 self.page.useless_form()
+
+        # This shitty website has 2 baseurl with only one difference: the 's' at the end of 'client'
+        new_base_url = 'https://clients.hsbc.fr/'
+        if new_base_url in self.url:
+            self.BASEURL = new_base_url
 
         self.js_url = self.page.get_js_url()
         home_url = self.page.get_frame()

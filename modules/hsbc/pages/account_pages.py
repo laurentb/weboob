@@ -307,6 +307,8 @@ class LoginPage(HTMLPage):
 
     def useless_form(self):
         form = self.get_form(nr=0)
+        # There is space added at the end of the url
+        form.url = form.url.rstrip()
         form.submit()
 
 
