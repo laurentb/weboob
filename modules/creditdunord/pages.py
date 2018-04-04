@@ -438,6 +438,11 @@ class TransactionsPage(LoggedPage, CDNBasePage):
     COL_LABEL = -3
     COL_VALUE = -1
 
+    def on_load(self):
+        msg = CleanText('//h1[contains(text(), "Avenant")]')(self.doc)
+        if msg:
+            raise ActionNeeded(msg)
+
     def get_next_args(self, args):
         if self.is_last():
             return None
