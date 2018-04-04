@@ -153,7 +153,9 @@ class LCLBrowser(LoginBrowser, StatesMixin):
             return False
         next_page = self.page.get_next()
         if next_page:
-            self.location(self.page.get_next())
+            # go on a intermediate page to get a session cookie (jsessionid)
+            self.location(next_page)
+            # go to bourse page
             self.bourse.stay_or_go()
             return True
 

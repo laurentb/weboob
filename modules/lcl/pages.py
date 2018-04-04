@@ -498,6 +498,18 @@ class BoursePage(LoggedPage, HTMLPage):
     TYPES = {u'plan épargne en actions': Account.TYPE_PEA
             }
 
+    def on_load(self):
+        """
+        Sometimes we are directed towards a prior html page before accessing Bourse Page.
+        Submit the form to access the page that contains the Bourse Page's session cookie.
+        """
+        try:
+            form = self.get_form(id='form')
+        except FormNotFound:  # already on the targetted page
+            pass
+        else:
+            form.submit()
+
     def open_iframe(self):
         # should be done always (in on_load)?
         for iframe in self.doc.xpath('//iframe[@id="mainIframe"]'):
