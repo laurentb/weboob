@@ -26,6 +26,7 @@ from base64 import b64decode
 
 from PIL import Image
 
+from weboob.exceptions import ActionNeeded
 from weboob.browser.pages import LoggedPage, HTMLPage, pagination, AbstractPage
 from weboob.browser.elements import method, ListElement, ItemElement, TableElement
 from weboob.capabilities.bank import Account
@@ -99,6 +100,13 @@ class LoginPage(HTMLPage):
 
 class ErrorPage(HTMLPage):
     pass
+
+
+class UserValidationPage(HTMLPage):
+    def on_load(self):
+        # JS page so hard coding
+        error_msg = """Les dispositions règlementaires imposent aux établissements financiers de transmettre à l’administration des informations complémentaires concernant les titulaires de compte."""
+        raise ActionNeeded(error_msg)
 
 
 class MyDecimal(CleanDecimal):

@@ -26,7 +26,7 @@ from weboob.tools.capabilities.bank.transactions import sorted_transactions
 from .pages import (
     LoginPage, ErrorPage, AccountsPage, HistoryPage, LoanHistoryPage, RibPage,
     LifeInsuranceList, LifeInsuranceIframe, LifeInsuranceRedir,
-    BoursePage, CardHistoryPage, CardPage,
+    BoursePage, CardHistoryPage, CardPage, UserValidationPage,
 )
 from .spirica_browser import SpiricaBrowser
 
@@ -39,6 +39,7 @@ class BforbankBrowser(LoginBrowser):
                 r'https://secure.bforbank.com/connexion-client/service/login\?urlBack=',
                 LoginPage)
     error = URL('/connexion-client/service/auth', ErrorPage)
+    user_validation = URL(r'https://client.bforbank.com/profil-client/', UserValidationPage)
     home = URL('/espace-client/$', AccountsPage)
     rib = URL('/espace-client/rib',
               '/espace-client/rib/(?P<id>\d+)', RibPage)
