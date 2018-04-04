@@ -19,10 +19,9 @@
 
 
 import re
-import datetime
 
 from weboob.exceptions import BrowserIncorrectPassword
-from weboob.browser.pages import HTMLPage, JsonPage, pagination
+from weboob.browser.pages import HTMLPage, JsonPage
 from weboob.browser.elements import ListElement, ItemElement, TableElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, DateGuesser, Env, Field, Filter, Regexp, \
                                             Currency
@@ -83,10 +82,6 @@ class CMSOPage(HTMLPage):
         return True
 
 
-class CmsoListElement(ListElement):
-    item_xpath = '//table[@class="Tb" and tr[1][@class="LnTit"]]/tr[@class="LnA" or @class="LnB"]'
-
-
 class AccountsPage(CMSOPage):
     TYPES = {u'COMPTE CHEQUES':               Account.TYPE_CHECKING,
              u'COMPTE TITRES':                Account.TYPE_MARKET,
@@ -94,7 +89,7 @@ class AccountsPage(CMSOPage):
             }
 
     @method
-    class iter_accounts(CmsoListElement):
+    class iter_accounts(ListElement):
         item_xpath = '//div[has-class("groupe-comptes")]//li'
 
         class item(ItemElement):
@@ -135,7 +130,9 @@ class InvestmentPage(CMSOPage):
         return CleanText('//span[@id="id_error_msg"]')(self.doc)
 
     @method
-    class iter_accounts(CmsoListElement):
+    class iter_accounts(ListElement):
+        item_xpath = '//table[@class="Tb" and tr[1][@class="LnTit"]]/tr[@class="LnA" or @class="LnB"]'
+
         class item(ItemElement):
             klass = Account
 
@@ -186,9 +183,9 @@ class InvestmentAccountPage(CMSOPage):
 
             obj_label = CleanText(TableCell('label'))
             obj_code = CleanText(TableCell('isin'))
-            obj_quantity = CleanDecimal(TableCell('quantity'), replace_dots=(',', '.'))
-            obj_unitvalue = CleanDecimal(TableCell('unitvalue'), replace_dots=('', ','))
-            obj_valuation = CleanDecimal(TableCell('valuation'), replace_dots=(' ', '.'))
+            obj_quantity = CleanDecimal(TableCell('quantity'), replace_dots=True)
+            obj_unitvalue = CleanDecimal(TableCell('unitvalue'), replace_dots=True)
+            obj_valuation = CleanDecimal(TableCell('valuation'), replace_dots=True)
 
 
 class Transaction(FrenchTransaction):
@@ -208,6 +205,8 @@ class Transaction(FrenchTransaction):
                                                               FrenchTransaction.TYPE_ORDER),
                 (re.compile('^.* LE (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})$'),
                                                               FrenchTransaction.TYPE_UNKNOWN),
+                (re.compile('^.* PAIEMENT (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'),
+                                                              FrenchTransaction.TYPE_UNKNOWN),
                ]
 
 
@@ -219,39 +218,25 @@ class CmsoTransactionElement(ItemElement):
 
 
 class HistoryPage(CMSOPage):
-    def iter_history(self, *args, **kwargs):
-        if self.doc.xpath('//a[contains(., "Revenir")]'):
-            return self.iter_history_rest_page(*args, **kwargs)
-        return self.iter_history_first_page(*args, **kwargs)
+    def get_date_range_list(self):
+        return self.doc.xpath('//select[@name="date"]/option/@value')
 
     @method
-    class iter_history_first_page(CmsoListElement):
+    class iter_history(ListElement):
+        item_xpath = '//div[contains(@class, "master-table")]//ul/li'
+
         class item(CmsoTransactionElement):
-            def validate(self, obj):
-                return obj.date >= datetime.date.today().replace(day=1)
 
             def date(selector):
-                return DateGuesser(CleanText(selector), Env('date_guesser')) | Transaction.Date(selector)
+                return DateGuesser(CleanText(selector, children=False), Env('date_guesser')) | Transaction.Date(selector)
 
-            obj_date = date('./td[1]')
-            obj_vdate = date('./td[2]')
-            # Each row is followed by a "long labelled" version
-            obj_raw = Transaction.Raw('./following-sibling::tr[1][starts-with(@id, "libelleLong")]/td[3]')
-            obj_amount = Transaction.Amount('./td[5]', './td[4]')
-
-            def condition(self):
-                return len(self.el) >= 5 and not self.el.get('id', '').startswith('libelleLong') and len(self.el.xpath('.//i')) > 0
-
-    @pagination
-    @method
-    class iter_history_rest_page(CmsoListElement):
-        next_page = Link('//span[has-class("Rappel")]/following-sibling::*[1][@href]')
-
-        class item(CmsoTransactionElement):
-            obj_date = Transaction.Date('./td[2]')
-            obj_vdate = Transaction.Date('./td[1]')
-            obj_raw = Transaction.Raw('./td[3]')
-            obj_amount = Transaction.Amount('./td[5]', './td[4]')
+            # CAUTION: this fucking website write a 'Date valeur' inside a div with a class == 'c-ope'
+            # and a 'Date opération' inside a div with a class == 'c-val'
+            # so actually i assume 'c-val' class is the real operation date and 'c-ope' is value date
+            obj_date = date('./div[contains(@class, "c-val")]')
+            obj_vdate = date('./div[contains(@class, "c-ope")]')
+            obj_raw = Transaction.Raw('./div[contains(@class, "c-libelle-long")]', children=False)
+            obj_amount = Transaction.Amount('./div[contains(@class, "c-credit")]', './div[contains(@class, "c-debit")]')
 
 
 class UpdateTokenMixin(object):
@@ -270,3 +255,11 @@ class TokenPage(CMSOPage, UpdateTokenMixin):
         d = re.search(r'id_token=(?P<id_token>[^&]+)&access_token=(?P<access_token>[^&]+)', self.text).groupdict()
         self.browser.token = d['id_token']
         self.browser.csrf = d['access_token']
+
+
+class AuthCheckUser(HTMLPage):
+    pass
+
+
+class SecurityCheckUser(JsonPage):
+    pass
