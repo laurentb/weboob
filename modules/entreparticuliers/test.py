@@ -40,7 +40,7 @@ class EntreparticuliersTest(BackendTest, HousingTest):
     ]
 
     FIELDS_ANY_SINGLE_HOUSING = [
-        "photos", "phone", "DPE", "GES", "rooms"
+        "photos", "phone", "rooms"
     ]
 
     def test_entreparticuliers_sale(self):
