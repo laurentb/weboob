@@ -532,7 +532,7 @@ class ListRibPage(LoggedPage, BasePage):
                     return m.group(1)
 
 
-class AdvisorPage(BasePage):
+class AdvisorPage(LoggedPage, BasePage):
     def get_advisor(self):
         fax = CleanText('//div[contains(text(), "Fax")]/following-sibling::div[1]', replace=[(' ', '')])(self.doc)
         agency = CleanText('//div[contains(@class, "agence")]/div[last()]')(self.doc)
