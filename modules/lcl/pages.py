@@ -741,6 +741,9 @@ class Form2Page(LoggedPage, LCLBasePage):
         msg = "Ne détenant pas de compte dépôt chez LCL, l'accès à ce service vous est indisponible"
         return msg in CleanText('//div[@id="attTxt"]')(self.doc)
 
+    def is_restricted(self):
+        return self.assurancevie_hist_not_available()
+
     def on_load(self):
         if self.assurancevie_hist_not_available():
             return

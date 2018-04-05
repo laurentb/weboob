@@ -329,7 +329,8 @@ class LCLBrowser(LoginBrowser, StatesMixin):
             else:
                 for inv in self.page.iter_investment():
                     yield inv
-            self.page.come_back()
+            if self.avdetail.is_here():
+                self.page.come_back()
         elif hasattr(account, '_market_link') and account._market_link:
             self.connexion_bourse()
             for inv in self.location(account._market_link).page.iter_investment():
