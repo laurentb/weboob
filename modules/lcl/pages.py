@@ -31,7 +31,7 @@ from weboob.capabilities import NotAvailable
 from weboob.capabilities.base import find_object, Currency
 from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, TransferBankError, Transfer, AddRecipientError
 from weboob.capabilities.bill import Document, Subscription
-from weboob.capabilities.profile import Person
+from weboob.capabilities.profile import Person, ProfileMissing
 from weboob.capabilities.contact import Advisor
 from weboob.browser.elements import method, ListElement, TableElement, ItemElement, SkipItem
 from weboob.exceptions import ParseError
@@ -1068,7 +1068,7 @@ class ProfilePage(LoggedPage, HTMLPage):
     def get_profile(self, name):
         error_xpath = '//div[contains(text(), "Nous vous invitons à prendre contact avec votre conseiller")]'
         if self.doc.xpath(error_xpath):
-            return False
+            raise ProfileMissing(CleanText(error_xpath, children=False)(self.doc))
 
         profile = Person()
         profile.name = name
