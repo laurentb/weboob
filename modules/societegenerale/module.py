@@ -128,4 +128,4 @@ class SocieteGeneraleModule(Module, CapBankWealth, CapBankTransferAddRecipient, 
         return self.browser.execute_transfer(transfer)
 
     def transfer_check_exec_date(self, old_exec_date, new_exec_date):
-        return old_exec_date <= new_exec_date <= old_exec_date + timedelta(days=2)
+        return old_exec_date <= new_exec_date <= old_exec_date + timedelta(days=4)
