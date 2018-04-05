@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from weboob.capabilities.bill import CapDocument, Subscription, Document, SubscriptionNotFound, DocumentNotFound
 from weboob.capabilities.messages import CantSendMessage, CapMessages, CapMessagesPost
