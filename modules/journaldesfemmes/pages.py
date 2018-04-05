@@ -120,7 +120,7 @@ class RecipePage(HTMLPage):
             )(self)
             for item in instructions_items:
                 instructions += '\n\n%s' % (
-                    CleanText('./div')(item).strip()
+                    CleanText('.')(item)
                 )
             return instructions.strip()
 
