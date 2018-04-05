@@ -18,10 +18,16 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import Capability, BaseObject, DecimalField, StringField
+from .base import Capability, BaseObject, DecimalField, StringField, UserError
 from .date import DateField
 
 __all__ = ['Profile', 'Person', 'Company', 'CapProfile']
+
+
+class ProfileMissing(UserError):
+    """
+    Raised when profile is not accessible
+    """
 
 
 class Profile(BaseObject):
