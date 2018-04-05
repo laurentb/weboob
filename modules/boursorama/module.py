@@ -98,5 +98,5 @@ class BoursoramaModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapPr
         return self.browser.execute_transfer(transfer, **kwargs)
 
     def transfer_check_label(self, old, new):
-        old = re.sub(r'[€#&$£%]', '', old)
+        old = re.sub(r'[€#&$£%><~"\{\}\[\]=@^\\_`|°µ§!;]', '', old)
         return super(BoursoramaModule, self).transfer_check_label(old, new)
