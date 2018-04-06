@@ -230,6 +230,9 @@ class BNPPage(LoggedPage, JsonPage):
 
 
 class ProfilePage(LoggedPage, JsonPage):
+    def get_error_message(self):
+        return Dict('message')(self.doc)
+
     @method
     class get_profile(ItemElement):
         def condition(self):

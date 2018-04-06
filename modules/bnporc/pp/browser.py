@@ -27,6 +27,7 @@ from requests.exceptions import ConnectionError
 from weboob.browser.browsers import LoginBrowser, URL, need_login
 from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import AccountNotFound, Account, TransferError, AddRecipientStep
+from weboob.capabilities.profile import ProfileMissing
 from weboob.tools.decorators import retry
 from weboob.tools.json import json
 from weboob.browser.exceptions import ServerError
@@ -122,7 +123,7 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
         profile = self.page.get_profile()
         if profile:
             return profile
-        raise NotImplementedError()
+        raise ProfileMissing(self.page.get_error_message())
 
     @need_login
     def get_accounts_list(self):
