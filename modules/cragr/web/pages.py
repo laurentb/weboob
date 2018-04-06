@@ -672,7 +672,8 @@ class SavingsPage(AccountsPage):
                 if not self.el.xpath('./td[contains(@class, "cel-texte")]'):
                     return False
 
-                if Field('label')(self).startswith('RENTE'):
+                label = Field('label')(self)
+                if label.startswith('RENT') or label.startswith('RENV'):
                     # RENTE account doesn't seem to have any balance or currency
                     return False
 
