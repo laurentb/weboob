@@ -158,13 +158,13 @@ class CenetBrowser(LoginBrowser, StatesMixin):
                     donneesEntree = {}
                     donneesEntree['Compte'] = account._formated
                     donneesEntree['ListeOperations'] = [tr_dict[0]]
-                    data = {
+                    deferred_data = {
                         'contexte': '',
                         'dateEntree': None,
                         'donneesEntree': json.dumps(donneesEntree).replace('/', '\\/'),
                         'filtreEntree': json.dumps(tr_dict[0]).replace('/', '\\/')
                     }
-                    tr_detail_page = self.cenet_tr_detail.open(data=json.dumps(data), headers=headers)
+                    tr_detail_page = self.cenet_tr_detail.open(data=json.dumps(deferred_data), headers=headers)
                     for tr in tr_detail_page.get_history():
                         items.append(tr)
 
