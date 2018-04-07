@@ -226,7 +226,7 @@ class MainWindow(QtMainWindow):
         if backend:
             backends = [backend]
         else:
-            backends = [b for b in self.weboob.iter_backends(caps=[cap]) if b.has_caps(CapCollection)]
+            backends = [b for b in self.weboob.iter_backends(caps=(cap,)) if b.has_caps(CapCollection)]
 
         res_classes = [BaseImage, BaseGallery]
         self.mdl.setResourceClasses(res_classes)
