@@ -458,8 +458,9 @@ class Module(object):
             if isinstance(obj, key):
                 self.logger.debug(u'Fill %r with fields: %s' % (obj, missing_fields))
                 obj = value(self, obj, missing_fields) or obj
-                missing_fields = filter_missing_fields(obj, fields, not_loaded)
                 break
+
+        missing_fields = filter_missing_fields(obj, fields, not_loaded)
 
         # Object is not supported by backend. Do not notice it to avoid flooding user.
         # That's not so bad.
