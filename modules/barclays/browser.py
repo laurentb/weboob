@@ -156,36 +156,36 @@ class Barclays(LoginBrowser):
         elif account.type == Account.TYPE_LOAN:
             return []
 
-        if account.id not in self.cache['history']:
-            self._go_to_account(account)
+        self._go_to_account(account)
 
-            if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET):
-                if not self._go_to_account_space('Mouvements', account):
-                    self.logger.warning('cannot go to history page for %r', account)
-                    return []
+        if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET):
+            if not self._go_to_account_space('Mouvements', account):
+                self.logger.warning('cannot go to history page for %r', account)
+                return []
 
-            history_page = self.page
+        history_page = self.page
 
-            if account.type != Account.TYPE_LIFE_INSURANCE:
-                for _ in range(100): # on new history page they take previous results too, so go to the last page before starts recover history
-                    form = history_page.form_to_history_page()
+        if account.type != Account.TYPE_LIFE_INSURANCE:
+            for _ in range(100): # on new history page they take previous results too, so go to the last page before starts recover history
+                form = history_page.form_to_history_page()
 
-                    if not form:
-                        break
+                if not form:
+                    break
 
-                    try:
-                        history_page = self.account.open(data=form)
-                    except ConnectionError: # Sometime accounts have too much history and website crash
-                        # Need to relogin
-                        self._relogin()
+                try:
+                    history_page = self.account.open(data=form)
+                except ConnectionError: # Sometime accounts have too much history and website crash
+                    # Need to relogin
+                    self._relogin()
 
-                        break
-                else:
-                    assert False, "Too many iterations"
+                    break
+            else:
+                assert False, "Too many iterations"
 
-            self.cache['history'][account.id] = list(history_page.iter_history()) if history_page.has_history() else []
-
-        return self.cache['history'][account.id]
+        if history_page.has_history():
+            return list(history_page.iter_history())
+        else:
+            return []
 
     @need_login
     def iter_coming(self, account):
