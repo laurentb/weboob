@@ -39,10 +39,10 @@ class HomePage(LoggedPage, HTMLPage):
 class LoginPage(HTMLPage):
     def login(self, username, password):
         form = self.get_form(xpath='//form[@id="aspnetForm"]')
-        form["ctl00$cphMainContent$txbMail"] = username
-        form["ctl00$cphMainContent$txbPassword"] = password
-        form["__EVENTTARGET"] = "ctl00$cphMainContent$butConnexion"
-        form["ctl00_actScriptManager_HiddenField"] = self.get_ctl00_actScriptManager_HiddenField()
+        form["ctl00$ctl00$cphMainContent$cphMainContent$txbMail"] = username
+        form["ctl00$ctl00$cphMainContent$cphMainContent$txbPassword"] = password
+        form["__EVENTTARGET"] = "ctl00$ctl00$cphMainContent$cphMainContent$butConnexion"
+        form["ctl00_ctl00_actScriptManager_HiddenField"] = self.get_ctl00_actScriptManager_HiddenField()
         form.submit()
 
     def get_ctl00_actScriptManager_HiddenField(self):
