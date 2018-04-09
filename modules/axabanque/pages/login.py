@@ -20,9 +20,10 @@
 
 from io import BytesIO
 
-from weboob.exceptions import BrowserBanned, ActionNeeded
+from weboob.exceptions import BrowserBanned, ActionNeeded, BrowserUnavailable
 from weboob.browser.pages import HTMLPage, RawPage, JsonPage
 from weboob.browser.filters.json import Dict
+from weboob.browser.filters.standard import CleanText
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard, VirtKeyboardError
 
 
@@ -108,3 +109,18 @@ class PredisconnectedPage(HTMLPage):
 class DeniedPage(HTMLPage):
     def on_load(self):
         raise ActionNeeded()
+
+
+class AccountSpaceLogin(JsonPage):
+    def on_load(self):
+        if 'informationUrl' in self.doc:
+            # Go on information page to get possible error message
+            self.browser.location(self.doc['informationUrl'])
+
+
+class ErrorPage(HTMLPage):
+    def on_load(self):
+        error_msg = CleanText('//p[contains(text(), "temporairement indisponible")]')(self.doc)
+
+        if error_msg:
+            raise BrowserUnavailable(error_msg)

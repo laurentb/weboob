@@ -27,7 +27,10 @@ from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bill import Subscription
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 
-from .pages.login import KeyboardPage, LoginPage, ChangepasswordPage, PredisconnectedPage, DeniedPage
+from .pages.login import (
+    KeyboardPage, LoginPage, ChangepasswordPage, PredisconnectedPage, DeniedPage,
+    AccountSpaceLogin, ErrorPage,
+)
 from .pages.bank import (
     AccountsPage as BankAccountsPage, CBTransactionsPage, TransactionsPage,
     UnavailablePage, IbanPage, LifeInsuranceIframe, BoursePage,
@@ -46,6 +49,8 @@ class AXABrowser(LoginBrowser):
                           'https://www.axa.fr/axa-postmaw-predisconnect.html', PredisconnectedPage)
 
     denied = URL('https://connect.axa.fr/Account/AccessDenied', DeniedPage)
+    account_space_login = URL('https://connect.axa.fr/api/accountspace', AccountSpaceLogin)
+    errors = URL('https://espaceclient.axa.fr/content/ecc-public/accueil-axa-connect/_jcr_content/par/text.html', ErrorPage)
 
     def do_login(self):
         # due to the website change, login changed too, this is for don't try to login with the wrong login
@@ -53,6 +58,8 @@ class AXABrowser(LoginBrowser):
             raise ActionNeeded()
 
         if self.password.isdigit():
+            self.account_space_login.go()
+
             vk_passwd = self.keyboard.go().get_password(self.password)
 
             login_data = {
