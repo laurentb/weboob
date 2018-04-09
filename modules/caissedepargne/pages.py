@@ -927,7 +927,8 @@ class TransferConfirmPage(TransferErrorPage, IndexPage):
         transfer.recipient_id = unicode(recipient.id)
         transfer.exec_date = Date(CleanText('.//tr[th[contains(text(), "En date du")]]/td[not(@class)]'), dayfirst=True)(self.doc)
         transfer.label = CleanText(u'.//tr[td[contains(text(), "Motif de l\'opération")]]/td[not(@class)] | \
-                                     .//tr[td[contains(text(), "Libellé")]]/td[not(@class)]')(self.doc)
+                                     .//tr[td[contains(text(), "Libellé")]]/td[not(@class)] | \
+                                     .//tr[th[contains(text(), "Libellé")]]/td[not(@class)]')(self.doc)
         transfer.account_label = account.label
         transfer.recipient_label = recipient.label
         transfer._account = account
