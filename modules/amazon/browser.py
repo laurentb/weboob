@@ -49,7 +49,7 @@ class AmazonBrowser(LoginBrowser, StatesMixin):
                    '/ap/mfa',
                    SecurityPage)
     language = URL(r'/gp/customer-preferences/save-settings/ref=icp_lop_(?P<language>.*)_tn', LanguagePage)
-    history = URL('https://www.amazon.fr/gp/your-account/order-history\?ref_=ya_d_c_yo', HistoryPage)
+    history = URL(r'/gp/your-account/order-history\?ref_=ya_d_c_yo', HistoryPage)
 
     __states__ = ('otp_form', 'otp_url', 'otp_style', 'otp_headers')
 
