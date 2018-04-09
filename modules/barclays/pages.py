@@ -427,6 +427,17 @@ class CardPage(AbstractAccountPage):
             def obj_amount(self):
                 return MyDecimal('./td[5]//div/span')(self)
 
+    def get_space_attrs(self, space):
+        a = self.doc.xpath('//a[contains(span, $space)]', space=space)
+        if not a:
+            self.logger.debug('there is no %r link on this page', space)
+            return None
+
+        a = Regexp(Attr('.', 'onclick'), r'\((.*?)\)')(a[0]).replace('\'', '').split(', ')
+        form = self.get_form(id='form1')
+
+        return (a[1], 'C4__WORKING[1].LISTCONTRATS', form['C4__WORKING[1].LISTCONTRATS'], a[2])
+
 
 class IbanPDFPage(LoggedPage, PDFPage):
     def get_iban(self):

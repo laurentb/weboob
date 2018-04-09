@@ -150,8 +150,7 @@ class Barclays(LoginBrowser):
 
     @need_login
     def iter_history(self, account):
-        if account.type == Account.TYPE_CARD or (account._multiple_type and not self._multiple_account_choice(account)):
-            # warning: this shit code is not idempotent ^
+        if account._multiple_type and not self._multiple_account_choice(account):
             return []
         elif account.type == Account.TYPE_LOAN:
             return []
@@ -161,6 +160,11 @@ class Barclays(LoginBrowser):
         if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET):
             if not self._go_to_account_space('Mouvements', account):
                 self.logger.warning('cannot go to history page for %r', account)
+                return []
+
+        if account.type == Account.TYPE_CARD:
+            if not self._go_to_account_space('Échéance précédente', account):
+                self.logger.warning('Could not go to history page for %r', account)
                 return []
 
         history_page = self.page
