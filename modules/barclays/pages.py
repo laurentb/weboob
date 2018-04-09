@@ -422,10 +422,16 @@ class CardPage(AbstractAccountPage):
 
             obj_label = CleanText(TableCell('label'))
             obj_type = Transaction.TYPE_DEFERRED_CARD
-            obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
+            obj_rdate = Date(CleanText(TableCell('date')), dayfirst=True)
+
+            def obj_date(self):
+                return self.page.get_debit_date()
 
             def obj_amount(self):
                 return MyDecimal('./td[5]//div/span')(self)
+
+    def get_debit_date(self):
+        return Date(Regexp(CleanText('//label[starts-with(text(),"Echéance au ")]'), r'(\d{2}/\d{2}/\d{4})'), dayfirst=True)(self.doc)
 
     def get_space_attrs(self, space):
         a = self.doc.xpath('//a[contains(span, $space)]', space=space)
