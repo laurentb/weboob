@@ -22,6 +22,7 @@ import datetime
 import json
 
 from decimal import Decimal
+from dateutil import parser
 
 from weboob.browser import LoginBrowser, need_login, StatesMixin
 from weboob.browser.switch import SiteSwitch
@@ -83,7 +84,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     sms = URL('https://www.icgauth.caisse-epargne.fr/dacswebssoissuer/AuthnRequestServlet', SmsPage)
     sms_option = URL('https://www.icgauth.caisse-epargne.fr/dacstemplate-SOL/index.html\?transactionID=.*', SmsPageOption)
     request_sms = URL('https://www.icgauth.caisse-epargne.fr/dacsrest/api/v1u0/transaction/(?P<param>)', SmsRequest)
-    __states__ = ('BASEURL', 'multi_type', 'typeAccount', 'is_cenet_website', 'recipient_form')
+    __states__ = ('BASEURL', 'multi_type', 'typeAccount', 'is_cenet_website', 'recipient_form', 'is_send_sms')
 
     def __init__(self, nuser, *args, **kwargs):
         self.BASEURL = kwargs.pop('domain', self.BASEURL)
@@ -97,13 +98,22 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         self.typeAccount = 'WE'
         self.nuser = nuser
         self.recipient_form = None
+        self.is_send_sms = None
 
         super(CaisseEpargne, self).__init__(*args, **kwargs)
 
     def load_state(self, state):
-        if 'recipient_form' in state and state['recipient_form'] is not None:
-            super(CaisseEpargne, self).load_state(state)
-            self.logged = True
+        if 'expire' in state and parser.parse(state['expire']) < datetime.datetime.now():
+            return self.logger.info('State expired, not reloading it from storage')
+
+        # Reload session only for add recipient step
+        transfer_states = ('recipient_form', 'is_send_sms')
+
+        for transfer_state in transfer_states:
+            if transfer_state in state and state[transfer_state] is not None:
+                super(CaisseEpargne, self).load_state(state)
+                self.logged = True
+                break
 
     def do_login(self):
         """
@@ -561,7 +571,8 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         self.pre_transfer(next(acc for acc in self.get_accounts_list() if acc.type in (Account.TYPE_CHECKING, Account.TYPE_SAVINGS)))
         # This send sms to user.
         self.page.go_add_recipient()
-        if self.sms_option.is_here() :
+        if self.sms_option.is_here():
+            self.is_send_sms = True
             raise AddRecipientStep(self.get_recipient_obj(recipient), Value('otp_sms',
             label=u'Veuillez renseigner le mot de passe unique qui vous a été envoyé par SMS dans le champ réponse.'))
 
