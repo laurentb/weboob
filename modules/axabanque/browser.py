@@ -36,6 +36,10 @@ from .pages.bank import (
     UnavailablePage, IbanPage, LifeInsuranceIframe, BoursePage,
 )
 from .pages.wealth import AccountsPage as WealthAccountsPage, InvestmentPage, HistoryPage
+from .pages.transfer import (
+    RecipientsPage, ValidateTransferPage, RegisterTransferPage,
+    ConfirmTransferPage,
+)
 from .pages.document import DocumentsPage, DownloadPage
 from weboob.capabilities.bank import Account, Transaction
 
@@ -111,6 +115,14 @@ class AXABanque(AXABrowser):
                                'https://assurance-vie.axabanque.fr/Consultation/HistoriqueOperations.aspx', LifeInsuranceIframe)
 
     bourse = URL(r'https://bourse.axabanque.fr/netfinca-titres/servlet/com.netfinca.*', BoursePage)
+
+    # Transfer
+    recipients = URL('/transactionnel/client/enregistrer-nouveau-beneficiaire.html', RecipientsPage)
+    validate_transfer = URL('/webapp/axabanque/jsp/virementSepa/saisieVirementSepa.faces', ValidateTransferPage)
+    register_transfer = URL('/transactionnel/client/virement.html',
+                            'webapp/axabanque/jsp/virementSepa/saisieVirementSepa.faces',
+                            RegisterTransferPage)
+    confirm_transfer = URL('/webapp/axabanque/jsp/virementSepa/confirmationVirementSepa.faces', ConfirmTransferPage)
 
     def __init__(self, *args, **kwargs):
         super(AXABanque, self).__init__(*args, **kwargs)
@@ -211,6 +223,7 @@ class AXABanque(AXABrowser):
 
     @need_login
     def iter_investment(self, account):
+        self.transactions.go()
         if account._acctype == 'bank' and account.type == account.TYPE_PEA:
             if 'Liquidités' in account.label:
                 return []
@@ -308,6 +321,37 @@ class AXABanque(AXABrowser):
                 # if date of summary is available, skip the variable summary
                 if tr.date >= date.today() and tr.type != Transaction.TYPE_CARD_SUMMARY:
                     yield tr
+
+    @need_login
+    def iter_recipients(self, origin_account_id):
+        seen = set()
+
+        # go on recipient page to get external recipient ibans
+        self.recipients.go()
+        for iban in self.page.get_extenal_recipient_ibans():
+            seen.add(iban)
+
+        # go on transfer page to get all accounts transfer possible
+        self.register_transfer.go()
+        if self.page.is_transfer_account(acc_id=origin_account_id):
+            self.page.set_account(acc_id=origin_account_id)
+
+            for recipient in self.page.get_recipients():
+                if recipient.iban in seen:
+                    recipient.category = u'EXTERNE'
+                yield recipient
+
+    @need_login
+    def init_transfer(self, account, recipient, amount, reason):
+        self.register_transfer.go()
+        self.page.set_account(account.id)
+        self.page.fill_transfer_form(account.id, recipient.iban, amount, reason)
+        return self.page.handle_response(account, recipient, amount, reason)
+
+    @need_login
+    def execute_transfer(self, transfer, **params):
+        self.page.validate_transfer(self.password)
+        return transfer
 
     @need_login
     def get_subscription_list(self):

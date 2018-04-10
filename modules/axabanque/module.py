@@ -18,9 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bank import CapBankWealth, AccountNotFound
+from weboob.capabilities.bank import CapBankWealth, CapBankTransfer, AccountNotFound, RecipientNotFound
 from weboob.capabilities.base import find_object, NotAvailable
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, TransferInvalidLabel
 from weboob.capabilities.bill import CapDocument, Subscription, Document, DocumentNotFound, SubscriptionNotFound
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
@@ -31,7 +31,7 @@ from .browser import AXABanque, AXAAssurance
 __all__ = ['AXABanqueModule']
 
 
-class AXABanqueModule(Module, CapBankWealth, CapDocument):
+class AXABanqueModule(Module, CapBankWealth, CapBankTransfer, CapDocument):
     NAME = 'axabanque'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -62,6 +62,45 @@ class AXABanqueModule(Module, CapBankWealth, CapDocument):
 
     def iter_coming(self, account):
         return self.browser.iter_coming(account)
+
+    def iter_transfer_recipients(self, origin_account):
+        if isinstance(origin_account, Account):
+            origin_account = origin_account.id
+        # Only 11 first character are required to iter recipient
+        origin_account = origin_account[:11]
+        return self.browser.iter_recipients(origin_account)
+
+    def init_transfer(self, transfer, **params):
+        if not transfer.label:
+            raise TransferInvalidLabel()
+
+        self.logger.info('Going to do a new transfer')
+        if transfer.account_iban:
+            account = find_object(self.iter_accounts(), iban=transfer.account_iban, error=AccountNotFound)
+        else:
+            account = find_object(self.iter_accounts(), id=transfer.account_id, error=AccountNotFound)
+
+        if transfer.recipient_iban:
+            recipient = find_object(self.iter_transfer_recipients(account.id), iban=transfer.recipient_iban, error=RecipientNotFound)
+        else:
+            recipient = find_object(self.iter_transfer_recipients(account.id), id=transfer.recipient_id, error=RecipientNotFound)
+
+        assert account.id.isdigit()
+        # Only 11 first character are required to do transfer
+        account.id = account.id[:11]
+
+        return self.browser.init_transfer(account, recipient, transfer.amount, transfer.label)
+
+    def execute_transfer(self, transfer, **params):
+        return self.browser.execute_transfer(transfer)
+
+    def transfer_check_label(self, old, new):
+        old = old.upper()
+        return super(AXABanqueModule, self).transfer_check_label(old, new)
+
+    def transfer_check_account_id(self, old, new):
+        old = old[:11]
+        return super(AXABanqueModule, self).transfer_check_label(old, new)
 
     def iter_subscription(self):
         return self.browser.get_subscription_list()
