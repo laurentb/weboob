@@ -1239,3 +1239,21 @@ class ReplApplication(ConsoleApplication, MyCmd):
 
     def flush(self):
         self.formatter.flush()
+
+    def do_debug(self, line):
+        """
+        debug
+
+        Launch a debug Python shell
+        """
+
+        from weboob.applications.weboobdebug import weboobdebug
+
+        app = weboobdebug.WeboobDebug()
+        locs = dict(application=self, weboob=self.weboob)
+        banner = ('Weboob debug shell\n\nAvailable variables:\n'
+         + '\n'.join(['  %s: %s' % (k, v) for k, v in locs.items()]))
+
+        funcs = [app.ipython, app.bpython, app.python]
+        app.launch(funcs, locs, banner)
+

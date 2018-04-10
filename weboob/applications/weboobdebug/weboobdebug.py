@@ -65,7 +65,9 @@ class WeboobDebug(Application):
             funcs = [self.bpython, self.ipython, self.python]
         else:
             funcs = [self.ipython, self.bpython, self.python]
+        self.launch(funcs, locs, banner)
 
+    def launch(self, funcs, locs, banner):
         for func in funcs:
             try:
                 func(locs, banner)
