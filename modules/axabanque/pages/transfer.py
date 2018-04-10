@@ -120,7 +120,7 @@ class RegisterTransferPage(LoggedPage, HTMLPage):
             yield rcpt
 
     # To do a transfer
-    def fill_transfer_form(self, acc_id, recipient_iban, amount, reason):
+    def fill_transfer_form(self, acc_id, recipient_iban, amount, reason, exec_date=None):
         form = self.get_form(id='idFormSaisieVirement')
         form['compteEmetteurSelectionne'] = acc_id
         form['compteDestinataireSelectionne'] = recipient_iban
@@ -128,11 +128,20 @@ class RegisterTransferPage(LoggedPage, HTMLPage):
         form['idFormSaisieVirement:libelleVirement'] = reason
         form['idFormSaisieVirement:idBtnValider'] = ' '
 
-        form.pop('effetVirementDiffere')
+        form.pop('idFormSaisieVirement:idBtnAnnuler')
         form.pop('effetVirementPermanent')
         form.pop('periodicite')
         form.pop('fin')
-        form.pop('idFormSaisieVirement:idBtnAnnuler')
+
+        # Deferred transfer
+        if exec_date:
+            form['effetVirementDiffere'] = exec_date.strftime('%d/%m/%Y')
+            form['typeVirement'] = 2
+
+            form.submit()
+            return
+
+        form.pop('effetVirementDiffere')
 
         form.submit()
 

@@ -342,10 +342,14 @@ class AXABanque(AXABrowser):
                 yield recipient
 
     @need_login
-    def init_transfer(self, account, recipient, amount, reason):
+    def init_transfer(self, account, recipient, amount, reason, exec_date):
+        if exec_date == date.today():
+            # Avoid to chose deferred transfer
+            exec_date = None
+
         self.register_transfer.go()
         self.page.set_account(account.id)
-        self.page.fill_transfer_form(account.id, recipient.iban, amount, reason)
+        self.page.fill_transfer_form(account.id, recipient.iban, amount, reason, exec_date)
         return self.page.handle_response(account, recipient, amount, reason)
 
     @need_login

@@ -89,7 +89,7 @@ class AXABanqueModule(Module, CapBankWealth, CapBankTransfer, CapDocument):
         # Only 11 first character are required to do transfer
         account.id = account.id[:11]
 
-        return self.browser.init_transfer(account, recipient, transfer.amount, transfer.label)
+        return self.browser.init_transfer(account, recipient, transfer.amount, transfer.label, transfer.exec_date)
 
     def execute_transfer(self, transfer, **params):
         return self.browser.execute_transfer(transfer)
