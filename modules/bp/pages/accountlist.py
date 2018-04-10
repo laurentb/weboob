@@ -74,6 +74,7 @@ class item_account_generic(ItemElement):
             has_coming = False
             coming = 0
 
+            self.page.browser.open(Field('url')(self))
             coming_operations = self.page.browser.open(
                 BrowserURL('par_account_checking_coming', accountId=Field('id'))(self))
 
