@@ -21,17 +21,23 @@
 from weboob.exceptions import  BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
 
-from .pages import LoginPage, AccountsPage, FCPEInvestmentPage, CCBInvestmentPage, HistoryPage
+from .pages import (
+    LoginPage, AccountsPage, FCPEInvestmentPage,
+    CCBInvestmentPage, HistoryPage, AlertPage,
+    )
 
 
 class CmesBrowser(LoginBrowser):
+    BASEURL = 'https://www.cic-epargnesalariale.fr'
+
     login = URL('(?P<subsite>.*)fr/identification/default.cgi', LoginPage)
     accounts = URL('(?P<subsite>.*)fr/espace/devbavoirs.aspx\?mode=net&menu=cpte$', AccountsPage)
-    fcpe_investment = URL('(?P<subsite>.*)fr/.*GoPositionsParFond.*', FCPEInvestmentPage)
-    ccb_investment = URL('(?P<subsite>.*)fr/.*GoCCB.*', CCBInvestmentPage)
+    fcpe_investment = URL(r'/fr/.*GoPositionsParFond.*', FCPEInvestmentPage)
+    ccb_investment = URL('(?P<subsite>.*)fr/.*LstSuppCCB.*', CCBInvestmentPage)
     history = URL('(?P<subsite>.*)fr/espace/devbavoirs.aspx\?mode=net&menu=cpte&page=operations',
                   '(?P<subsite>.*)fr/.*GoOperationsTraitees',
                   '(?P<subsite>.*)fr/.*GoOperationDetails', HistoryPage)
+    supp_alert = URL(r'/fr/espace/LstSuppAlerte.asp', AlertPage)
 
     def __init__(self, website, username, password, subsite="", *args, **kwargs):
         super(LoginBrowser, self).__init__(*args, **kwargs)
@@ -53,7 +59,7 @@ class CmesBrowser(LoginBrowser):
     @need_login
     def iter_investment(self, account):
         fcpe_link = self.accounts.stay_or_go(subsite=self.subsite).get_investment_link()
-        ccb_link = self.page.get_pocket_link()
+        ccb_link = self.supp_alert.go().get_pocket_link()
 
         if fcpe_link or ccb_link:
             return self._iter_investment(fcpe_link, ccb_link)

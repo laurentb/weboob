@@ -50,10 +50,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             raise ActionNeeded(CleanText('//table[contains(@summary, "Conditions g")]')(self.doc))
 
     def get_investment_link(self):
-        return Link('//a[contains(text(), "Par fonds")][contains(@href,"GoPositionsParFond")]', default=None)(self.doc)
-
-    def get_pocket_link(self):
-        return Link('//a[contains(@href,"GoCCB")]')(self.doc)
+        return Link('//a[contains(text(), "Par fonds") or contains(@href,"GoPositionsParFond")]', default=None)(self.doc)
 
     @method
     class iter_accounts(ListElement):
@@ -73,18 +70,39 @@ class AccountsPage(LoggedPage, HTMLPage):
                 return Currency().filter(CleanText('//table[@class="fiche"]//td/small')(self))
 
 
+class AlertPage(LoggedPage, HTMLPage):
+    def get_pocket_link(self):
+        return Link('//a[contains(@href, "CCB")]', default=None)(self.doc)
+
+
 class FCPEInvestmentPage(LoggedPage, HTMLPage):
     @method
-    class iter_investment(ListElement):
-        item_xpath = '//tr[td[contains(text(), "total")]]'
+    class iter_investment(TableElement):
+        item_xpath = '//tbody/tr'
+        head_xpath = '//table/thead/tr/th'
+
+        # forced to write the currency
+        col_label = 'Fonds'
+        col_quantity = 'Nombre de parts'
+        col_unitprice = re.compile('Net investi en EUR')
+        col_diff = re.compile('Valeur liquidative \(VL\) en EUR')
+        col_valuation = re.compile('Evaluation en EUR')
+        col_diff_percent = re.compile('\+\/- values latentes')
 
         class item(ItemElement):
             klass = Investment
 
-            obj_label = CleanText('./preceding-sibling::tr[td[6]][1]/td[1]')
-            obj_quantity = CleanDecimal('./td[last() - 1]')
-            obj_unitvalue = MyDecimal('./preceding-sibling::tr[td[6]][1]/td[3]')
-            obj_valuation = MyDecimal('./td[last()]')
+            # array starts at 1
+            # can not use TableCell here because there is 2 sub columns
+            obj_label = CleanText('./td[2]')
+            obj_quantity = MyDecimal(TableCell('quantity'))
+            # displays only with table format
+            obj_unitprice = MyDecimal(TableCell('unitprice'))
+            obj_diff = MyDecimal(TableCell('diff'))
+            # take only the plain text
+            obj_valuation = MyDecimal('./td[7]/text()')
+            obj_diff_percent = MyDecimal(TableCell('diff_percent'))
+            # good vdate?
             obj_vdate = Date(Regexp(CleanText(u'//p[contains(text(), "financière au ")]'), 'au[\s]+(.*)'), dayfirst=True)
 
 
