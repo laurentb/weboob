@@ -38,17 +38,24 @@ class ForkingConfig(object):
     """
     process = None
 
+    def __init__(self, *args, **kwargs):
+        self.lock = multiprocessing.RLock()
+        super(ForkingConfig, self).__init__(*args, **kwargs)
+
     def join(self):
-        if self.process:
-            self.process.join()
+        with self.lock:
+            if self.process:
+                self.process.join()
+            self.process = None
 
     def save(self):
         # if a save is already in progress, wait for it to finish
         self.join()
 
         parent_save = super(ForkingConfig, self).save
-        self.process = multiprocessing.Process(target=parent_save, name=u'save %s' % self.path)
-        self.process.start()
+        with self.lock:
+            self.process = multiprocessing.Process(target=parent_save, name=u'save %s' % self.path)
+            self.process.start()
 
     def __exit__(self, t, v, tb):
         self.join()
