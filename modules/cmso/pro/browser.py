@@ -197,8 +197,8 @@ class CmsoProBrowser(LoginBrowser):
             except ServerError as error:
                 if error.response.status_code == 500:
                     if 'RELEVE NON DISPONIBLE A CETTE PERIODE' in error.response.text:
-                        pass
-                        # just pass because it's still possible to have transactions next months
+                        continue
+                        # just skip because it's still possible to have transactions next months
                         # Yes, they really did that heresy...
                     else:
                         raise
