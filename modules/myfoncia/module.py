@@ -21,7 +21,8 @@ from __future__ import unicode_literals
 
 
 from weboob.tools.backend import Module, BackendConfig
-from weboob.capabilities.bill import CapDocument, Bill, DocumentNotFound
+from weboob.capabilities.bill import (CapDocument, Bill, DocumentNotFound,
+                                      Subscription)
 from weboob.tools.value import Value, ValueBackendPassword
 
 from .browser import MyFonciaBrowser
@@ -57,7 +58,11 @@ class MyFonciaModule(Module, CapDocument):
         return self.browser.get_subscriptions()
 
     def iter_documents(self, subscription):
-        return self.browser.get_documents(subscription)
+        if isinstance(subscription, Subscription):
+            subscription_id = subscription.id
+        else:
+            subscription_id = subscription
+        return self.browser.get_documents(subscription_id)
 
     def get_document(self, bill):
         try:
