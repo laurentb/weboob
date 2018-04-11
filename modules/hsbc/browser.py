@@ -364,6 +364,10 @@ class HSBC(LoginBrowser):
     def get_pea_investments(self, account):
         assert account.type in (Account.TYPE_PEA, Account.TYPE_MARKET)
 
+        # When invest balance is 0, there is not link to go on market page
+        if not account.balance:
+            return []
+
         if not self.PEA_LISTING:
             self._go_to_wealth_accounts()
 
