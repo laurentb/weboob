@@ -400,6 +400,12 @@ class SeleniumBrowser(object):
                 self._urls.append(val)
         self._urls.sort(key=lambda u: u._creation_counter)
 
+    def _build_options(self):
+        return OPTIONS_CLASSES[self.DRIVER]()
+
+    def _build_capabilities(self):
+        return CAPA_CLASSES[self.DRIVER].copy()
+
     def _setup_driver(self):
         proxy = Proxy()
         proxy.proxy_type = ProxyType.DIRECT
@@ -408,10 +414,10 @@ class SeleniumBrowser(object):
         if 'https' in self.proxy:
             proxy.ssl_proxy = self.proxy['https']
 
-        capa = CAPA_CLASSES[self.DRIVER].copy()
+        capa = self._build_capabilities()
         proxy.add_to_capabilities(capa)
 
-        options = OPTIONS_CLASSES[self.DRIVER]()
+        options = self._build_options()
         # TODO some browsers don't need headless
         # TODO handle different proxy setting?
         options.set_headless(self.HEADLESS)
