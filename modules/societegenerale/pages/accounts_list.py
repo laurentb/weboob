@@ -31,6 +31,7 @@ from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Person
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.compat import parse_qs, urlparse, parse_qsl, urlunparse, urlencode, unicode
+from weboob.tools.date import parse_date as parse_d
 from weboob.browser.elements import DictElement, ItemElement, method
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, RegexpError
@@ -213,6 +214,16 @@ class AccountHistory(LoggedPage, BasePage):
 
         is_deferred_card = bool(self.doc.xpath(u'//div[contains(text(), "Différé")]'))
         has_summary = False
+
+        if is_deferred_card:
+            coming_debit_date = None
+            # get coming debit date for deferred_card
+            date_string = Regexp(CleanText(u'//option[contains(text(), "détail des factures à débiter le")]'),
+                                r'(\d{2}/\d{2}/\d{4})',
+                                default=NotAvailable)(self.doc)
+            if date_string:
+                coming_debit_date = parse_d(date_string)
+
         while True:
             d = XML(self.browser.open(url).content)
             el = d.xpath('//dataBody')
@@ -229,6 +240,8 @@ class AccountHistory(LoggedPage, BasePage):
                 if is_deferred_card and tr.type is Transaction.TYPE_CARD:
                     tr.type = Transaction.TYPE_DEFERRED_CARD
                     if not has_summary:
+                        if coming_debit_date:
+                            tr.date = coming_debit_date
                         tr._coming = True
                 yield tr
 
