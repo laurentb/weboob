@@ -235,18 +235,23 @@ class AccountsPage(LoggedPage, HTMLPage):
                 return not self.is_external() and not 'automobile' in Field('url')(self)
 
             obj_label = CleanText('.//a[has-class("account--name")] | .//div[has-class("account--name")]')
-            obj_balance = CleanDecimal('.//a[has-class("account--balance")]', replace_dots=True)
+
             obj_currency = FrenchTransaction.Currency('.//a[has-class("account--balance")]')
             obj_valuation_diff = Async('details') & CleanDecimal('//li[h4[text()="Total des +/- values"]]/h3 |\
                         //li[span[text()="Total des +/- values latentes"]]/span[has-class("overview__value")]', replace_dots=True, default=NotAvailable)
-            obj__card = Async('details') & Attr('//a[@data-modal-behavior="credit_card-modal-trigger"]', 'href', default=NotAvailable)
             obj__holder = None
 
+            obj__amount = CleanDecimal('.//a[has-class("account--balance")]', replace_dots=True)
+
+            def obj_balance(self):
+                if Field('type')(self) != Account.TYPE_CARD:
+                    return Field('_amount')(self)
+                return Decimal('0')
+
             def obj_coming(self):
-                # Don't duplicate coming (card balance with account coming)
-                # TODO: fetch coming which is not card coming for account with cards.
-                if self.obj__card(self):
-                    return NotAvailable
+                # report deferred expenses in the coming attribute
+                if Field('type')(self) == Account.TYPE_CARD:
+                    return Field('_amount')(self)
                 return Async('details', CleanDecimal(u'//li[h4[text()="Mouvements à venir"]]/h3', replace_dots=True, default=NotAvailable))(self)
 
             def obj_id(self):
