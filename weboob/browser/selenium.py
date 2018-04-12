@@ -464,7 +464,7 @@ class SeleniumBrowser(object):
         # TODO maybe implement with a new window?
         raise NotImplementedError()
 
-    def location(self, url, data=None, headers=None, params=None, method=None):
+    def location(self, url, data=None, headers=None, params=None, method=None, json=None):
         """Change current url of the browser.
 
         Warning: unlike other requests-based weboob browsers, this function does not block
@@ -476,6 +476,7 @@ class SeleniumBrowser(object):
         assert method is None
         assert params is None
         assert data is None
+        assert json is None
         assert not headers
         self.logger.debug('opening %r', url)
         self.driver.get(url)
