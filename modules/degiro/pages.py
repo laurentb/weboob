@@ -24,12 +24,12 @@ import re
 
 from weboob.browser.pages import JsonPage, LoggedPage
 from weboob.browser.elements import ItemElement, DictElement, method
-from weboob.browser.filters.standard import CleanText, Date, Regexp, CleanDecimal, Env, Field
+from weboob.browser.filters.standard import CleanText, Date, Regexp, CleanDecimal, Env, Field, RegexpError
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.exceptions import AuthMethodNotImplemented
+from weboob.exceptions import AuthMethodNotImplemented, ParseError
 
 
 def MyDecimal(*args, **kwargs):
@@ -135,7 +135,6 @@ class HistoryPage(LoggedPage, JsonPage):
 
             obj_raw = Transaction.Raw(CleanText(Dict('description')))
             obj_date = Date(CleanText(Dict('date')), dayfirst=True)
-            obj_amount = CleanDecimal(Dict('change'))
 
             obj__isin = Regexp(Dict('description'), r'\((.{12}?)\)', nth=-1, default=None)
             obj__number = Regexp(Dict('description'), r'^([Aa]chat|[Vv]ente|[Bb]uy|[Ss]ell) (\d+[,.]?\d*)', template='\\2', default=None)
@@ -168,6 +167,32 @@ class HistoryPage(LoggedPage, JsonPage):
                     except KeyError:
                         pass
                 return []
+
+            def obj_amount(self):
+                # The investment "Conversion Cash Fund" doesn't have any
+                # 'change' key. But quantity and unit value can be found
+                # in the label
+                try:
+                    return CleanDecimal(Dict('change'))(self)
+                except ParseError:
+                    pattern = r"[\s\d,]+@[\s\d,]+"
+                    select_raw = Field('raw')
+                    try:
+                        match = Regexp(select_raw, pattern)(self)
+                    # some operations don't seem to have any amount
+                    # ex: "Variation Cash Fund"
+                    except RegexpError:
+                        return NotAvailable
+                    quantity, unitprice = [
+                        CleanDecimal(replace_dots=True).filter(part)
+                        for part in match.split('@')
+                    ]
+                    amount = quantity * unitprice
+                    raw = select_raw(self).lower()
+                    if 'vente' in raw:
+                        return amount
+                    elif 'achat' in raw:
+                        return -amount
 
     @method
     class iter_transaction_investments(DictElement):
