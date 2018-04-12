@@ -34,7 +34,9 @@ except ImportError:
 
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.common.proxy import Proxy, ProxyType
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.common.exceptions import (
+    NoSuchElementException, TimeoutException, NoSuchFrameException,
+)
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
@@ -137,6 +139,29 @@ class IsHereCondition(CustomCondition):
 
     def __call__(self, driver):
         return self.urlobj.is_here()
+
+
+class WithinFrame(CustomCondition):
+    """Check a condition inside a frame.
+
+    In Selenium, frames are separated from each other and from the main page.
+    This class wraps a condition to execute it within a frame.
+    """
+
+    def __init__(self, selector, condition):
+        self.selector = selector
+        self.condition = condition
+
+    def __call__(self, driver):
+        try:
+            driver.switch_to.frame(self.selector)
+        except NoSuchFrameException:
+            return False
+
+        try:
+            return self.condition(driver)
+        finally:
+            driver.switch_to.default_content()
 
 
 class StablePageCondition(CustomCondition):
@@ -592,3 +617,24 @@ class SeleniumBrowser(object):
         finally:
             self.driver.implicitly_wait(old)
 
+    @contextmanager
+    def in_frame(self, selector):
+        """Context manager to execute a block inside a frame and restore main page after.
+
+        In selenium, to operate on a frame's content, one needs to switch to the frame before
+        and return to main page after.
+
+        :param selector: selector to match the frame
+
+        Example::
+
+            with self.in_frame(xpath_locator('//frame[@id="foo"]')):
+                el = self.find_element_by_xpath('//a[@id="bar"]')
+                el.click()
+        """
+
+        self.driver.switch_to.frame(selector)
+        try:
+            yield
+        finally:
+            self.driver.switch_to.default_content()
