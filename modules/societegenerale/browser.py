@@ -71,6 +71,10 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
 
     __states__ = ('context', 'dup', 'id_transaction')
 
+    def load_state(self, state):
+        if state.get('dup') is not None and state.get('context') is not None:
+            super(SocieteGenerale, self).load_state(state)
+
     def do_login(self):
         if not self.password.isdigit() or len(self.password) != 6:
             raise BrowserIncorrectPassword()
