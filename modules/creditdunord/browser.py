@@ -22,7 +22,7 @@ import re
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, Investment
 
 from .pages import LoginPage, AccountsPage, ProAccountsPage, TransactionsPage, \
                    ProTransactionsPage, IbanPage, RedirectPage, AVPage
@@ -138,10 +138,19 @@ class CreditDuNordBrowser(LoginBrowser):
 
     @need_login
     def get_investment(self, account):
+        investments = []
+
+        if u'LIQUIDIT' in account.label:
+            inv = Investment()
+            inv.code = u'XX-Liquidity'
+            inv.label = u'Liquidité'
+            inv.valuation = account.balance
+            investments.append(inv)
+            return investments
+
         if not account._inv:
             return []
 
-        investments = []
         if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
             self.location(account._link, data=account._args)
             investments = [i for i in self.page.get_market_investment()]

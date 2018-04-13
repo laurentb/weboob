@@ -528,15 +528,6 @@ class TransactionsPage(LoggedPage, CDNBasePage):
         COL_VALUATION = 4
         COL_PERF = 5
 
-        liquidity_xpath = '//div[@id="PortefeuilleEURO"]//span[contains(text(),\
-         "Soldes esp")]/following-sibling::span[1]'
-        liquidity = CleanDecimal(liquidity_xpath, replace_dots=True)(self.doc)
-        if liquidity:
-            inv = Investment()
-            inv.code = u'XX-Liquidity'
-            inv.label = u'Liquidité'
-            inv.valuation = liquidity
-            yield inv
 
         for table in self.doc.xpath('//table[@class="datas-large"]'):
             for tr in table.xpath('.//tr[not(@class="entete")]'):
