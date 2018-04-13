@@ -186,6 +186,9 @@ class HistoryPage(LoggedPage, HTMLPage):
 
         next_page = Link('//a[contains(@href, "Suiv")]', default=None)
 
+        def condition(self):
+            return not CleanText('//td[contains(@class, "vide") and contains(text(), "Aucune op")]')(self)
+
         class item(ItemElement):
             klass = Transaction
 
