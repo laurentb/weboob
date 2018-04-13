@@ -41,6 +41,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
+from selenium.webdriver.remote.command import Command
 from weboob.tools.log import getLogger
 from weboob.tools.compat import urljoin
 
@@ -638,3 +639,30 @@ class SeleniumBrowser(object):
             yield
         finally:
             self.driver.switch_to.default_content()
+
+    def get_storage(self):
+        """Get localStorage content for current domain.
+
+        As for cookies, this method only manipulates data for current domain.
+        It's not possible to get all localStorage content. To get localStorage
+        for multiple domains, the browser must change the url to each domain
+        and call get_storage each time after.
+        To do so, it's wise to choose a neutral URL (like an image file or JS file)
+        to avoid the target page itself changing the cookies.
+        """
+        response = self.driver.execute(Command.GET_LOCAL_STORAGE_KEYS)
+
+        ret = {}
+        for k in response['value']:
+            response = self.driver.execute(Command.GET_LOCAL_STORAGE_ITEM, {'key': k})
+            ret[k] = response['value']
+        return ret
+
+    def update_storage(self, d):
+        """Update local storage content for current domain.
+
+        It has the same restrictions as `get_storage`.
+        """
+
+        for k, v in d.items():
+            self.driver.execute(Command.SET_LOCAL_STORAGE_ITEM, {'key': k, 'value': v})
