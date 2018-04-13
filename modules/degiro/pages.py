@@ -106,6 +106,9 @@ class AccountsPage(LoggedPage, JsonPage):
             def obj_label(self):
                 return self._product()['name']
 
+            def obj_original_currency(self):
+                return self._product()['currency']
+
             def _product(self):
                 return self.page.browser.get_product(str(Field('_product_id')(self)))
 
