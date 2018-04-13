@@ -518,6 +518,9 @@ class TransactionsPage(LoggedPage, CDNBasePage):
             yield t
 
     def get_market_investment(self):
+        if CleanText('//div[contains(text(), "restreint aux fonctions de bourse")]')(self.doc):
+            return
+
         COL_LABEL = 0
         COL_QUANTITY = 1
         COL_UNITPRICE = 2
