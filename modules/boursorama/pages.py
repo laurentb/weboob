@@ -891,7 +891,7 @@ class TransferConfirm(LoggedPage, HTMLPage):
     def on_load(self):
         errors = CleanText('//li[contains(text(), "Le montant du virement est inférieur au minimum")]')(self.doc)
         if errors:
-            raise TransferInvalidAmount(errors)
+            raise TransferInvalidAmount(message=errors)
 
     @method
     class get_transfer(ItemElement):
