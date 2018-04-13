@@ -24,12 +24,13 @@ import re
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ItemElement, TableElement, method
 from weboob.browser.filters.standard import CleanText, Date, Regexp, CleanDecimal, \
-                                            Field, Async, AsyncLoad, Eval
+                                            Field, Async, AsyncLoad, Eval, Currency
 from weboob.browser.filters.html import Attr, Link, TableCell
 from weboob.capabilities.bank import Account, Investment, Transaction
 from weboob.capabilities.base import NotAvailable, empty
 from weboob.exceptions import BrowserUnavailable
 from weboob.tools.compat import urljoin
+
 
 
 def MyDecimal(*args, **kwargs):
@@ -68,7 +69,8 @@ class AccountsPage(LoggedPage, HTMLPage):
 
         col_label = u'Produit'
         col_id = u'Numéro de contrat'
-        col_balance = u'Montant (€)'
+        col_balance = re.compile(u'Montant')
+        col_currency = u'Currency'
 
         class item(ItemElement):
             klass = Account
@@ -80,6 +82,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_balance = MyDecimal(TableCell('balance'))
             obj_valuation_diff = Async('details') & MyDecimal('//tr[1]/td[contains(text(), \
                                     "value du contrat")]/following-sibling::td')
+            obj_currency = Currency('//td[contains(@class,"donneeMontant")]')
 
             def obj_url(self):
                 return urljoin(self.page.url, Link('.//a')(self))
