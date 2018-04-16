@@ -948,7 +948,7 @@ class TransferSummaryPage(TransferErrorPage, IndexPage):
 
 class ProTransferPage(IndexPage):
     def is_here(self):
-        return bool(CleanText(u'//span[contains(text(), "Réalisez un virement")]')(self.doc))
+        return CleanText(u'//span[contains(text(), "Créer une liste de virements")]')(self.doc)
 
     def can_transfer(self, account):
         return False
