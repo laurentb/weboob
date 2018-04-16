@@ -46,7 +46,8 @@ class OvhBrowser(LoginBrowser, StatesMixin):
         super(OvhBrowser, self).__init__(*args, **kwargs)
 
     def locate_browser(self, state):
-        pass
+        # Add Referer to avoid 401 response code when profile url for the second time
+        self.profile.go(headers={'Referer': self.BASEURL + '/manager/dedicated/index.html'})
 
     def validate_security_form(self):
         res_form = self.otp_form
