@@ -145,6 +145,7 @@ class item_account_generic(ItemElement):
         ('Regroupement De Credits', Account.TYPE_LOAN),
         ('Nouveau Pret 0%',         Account.TYPE_LOAN),
         ('P.E.A',                   Account.TYPE_PEA),
+        ('Pea',                     Account.TYPE_PEA),
         ('Compte Epargne',          Account.TYPE_SAVINGS),
         ('Etalis',                  Account.TYPE_SAVINGS),
         ('Ldd',                     Account.TYPE_SAVINGS),
