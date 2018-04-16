@@ -109,4 +109,9 @@ class OrangeModule(Module, CapAccount, CapMessages, CapMessagesPost, CapDocument
             document = self.get_document(document)
         if document.url is NotAvailable:
             return
-        return self.browser.open(document.url).content
+        # real pro subscription
+        if 'certpro' in document.url.lower():
+            return self.browser.open(document.url).content
+        # if the subscription is not pro anymore, the document was fetched from the API
+        # but regular document can only be downloaded from the regular website
+        return self.browser.download_document(document)

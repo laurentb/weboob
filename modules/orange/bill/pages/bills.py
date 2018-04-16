@@ -21,6 +21,7 @@ from __future__ import unicode_literals
 
 import re
 import HTMLParser
+from datetime import datetime
 
 from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage
 from weboob.capabilities.bill import Subscription
@@ -30,7 +31,7 @@ from weboob.browser.filters.html import Link, TableCell
 from weboob.browser.filters.javascript import JSValue
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.bill import Bill
+from weboob.capabilities.bill import Bill, DocumentNotFound
 from weboob.tools.date import parse_french_date
 from weboob.tools.compat import urlencode
 
@@ -59,7 +60,7 @@ class BillsApiPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Bill
 
-            obj_date = Date(Dict('dueDate'), parse_func=parse_french_date, dayfirst=True,  default=NotAvailable)
+            obj_date = Date(Dict('dueDate'), parse_func=parse_french_date,  default=NotAvailable)
             obj_price = CleanDecimal(Dict('amountIncludingTax'))
             obj_type = "bill"
             obj_format = "pdf"
@@ -145,6 +146,27 @@ class BillsPage(LoggedPage, HTMLPage):
                     return '%s_%s%s' % (Env('subid')(self), Field('date')(self).strftime('%d%m%Y'), Field('_ht')(self))
                 else:
                     return '%s_%s%s' % (Env('subid')(self), Field('date')(self).strftime('%d%m%Y'), Field('price')(self))
+
+    def download_document(self, id):
+        # get the date
+        date = datetime.strptime(id.split('_')[-1].split('@')[0], '%d%m%Y')
+        date = date.strftime("%d %B %Y")
+        date = parse_french_date(date).date()
+
+        # get all the bills date
+        bills_date = self.doc.xpath(u'//td[contains(@headers, "date")]/text()')
+
+        # comparing all bills date with the date to have the matching index
+        index = 0
+        while index < len(bills_date):
+            if date == parse_french_date(bills_date[index]).date():
+                break
+            index += 1
+
+        if index >= len(bills_date):
+            raise DocumentNotFound()
+
+        return self.doc.xpath('//a[contains(@href, "facture-telecharger")]/@href')[index]
 
 
 class SubscriptionsPage(LoggedPage, HTMLPage):

@@ -47,6 +47,7 @@ class OrangeBillBrowser(LoginBrowser):
                     'https://espaceclientv3.orange.fr/\?page=facture-telecharger',
                     'https://espaceclientv3.orange.fr/maf.php',
                     'https://espaceclientv3.orange.fr/\?idContrat=(?P<subid>.*)&page=factures-historique',
+                    'https://espaceclientv3.orange.fr/\?page=factures-historique&idContrat=(?P<subid>.*)',
                      BillsPage)
 
     bills_api = URL('https://espaceclientpro.orange.fr/api/contract/(?P<subid>\d+)/bills\?count=(?P<count>)',
@@ -74,7 +75,6 @@ class OrangeBillBrowser(LoginBrowser):
     @need_login
     def get_subscription_list(self):
         ids = set()
-
         self.location('https://espaceclientv3.orange.fr/?page=gt-home-page&orange&pro')
         self.subscriptions.go()
         for sub in self.page.iter_subscription():
@@ -82,7 +82,6 @@ class OrangeBillBrowser(LoginBrowser):
             sub._is_pro = self.page.is_pro(sub.id)
             ids.add(sub.id)
             yield sub
-
         self.location('https://espaceclientv3.orange.fr/?page=gt-home-page&sosh')
         self.subscriptions.go()
         for sub in self.page.iter_subscription():
@@ -103,3 +102,9 @@ class OrangeBillBrowser(LoginBrowser):
                 documents.append(b)
         return iter(documents)
 
+    @need_login
+    def download_document(self, document):
+        id = {'idContrat': document.id.split('_')[0]}
+        self.location('https://espaceclientv3.orange.fr/?page=factures-historique', params=id)
+        url = self.page.download_document(document.id)
+        return self.open(url).content
