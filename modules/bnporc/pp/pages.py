@@ -230,6 +230,8 @@ class BNPPage(LoggedPage, JsonPage):
 
 
 class ProfilePage(LoggedPage, JsonPage):
+    ENCODING = 'utf-8'
+
     def get_error_message(self):
         return Dict('message')(self.doc)
 
