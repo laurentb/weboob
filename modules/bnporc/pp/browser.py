@@ -276,11 +276,11 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
         raise AddRecipientStep(recipient, Value('code', label='Saisissez le code.'))
 
     @need_login
-    def prepare_transfer(self, account, recipient, amount, reason):
+    def prepare_transfer(self, account, recipient, amount, reason, exec_date):
         data = {}
         data['devise'] = account.currency
         data['motif'] = reason
-        data['dateExecution'] = datetime.now().strftime('%d-%m-%Y')
+        data['dateExecution'] = exec_date.strftime('%d-%m-%Y')
         data['compteDebiteur'] = account.id
         data['montant'] = str(amount)
         data['typeVirement'] = 'SEPA'
@@ -291,8 +291,8 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
         return data
 
     @need_login
-    def init_transfer(self, account, recipient, amount, reason):
-        data = self.prepare_transfer(account, recipient, amount, reason)
+    def init_transfer(self, account, recipient, amount, reason, exec_date):
+        data = self.prepare_transfer(account, recipient, amount, reason, exec_date)
         return self.validate_transfer.go(data=JSON(data)).handle_response(account, recipient, amount, reason)
 
     @need_login

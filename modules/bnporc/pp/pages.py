@@ -393,13 +393,6 @@ class ValidateTransferPage(BNPPage):
         elif 'ibanCompteCrediteur' in transfer_data and transfer_data['ibanCompteCrediteur'] is not None:
             assert transfer_data['ibanCompteCrediteur'] == recipient.iban
 
-        exec_date = parse_french_date(transfer_data['dateExecution']).date()
-        today = datetime.today().date()
-        if transfer_data['typeOperation'] == '1':
-            assert exec_date == today
-        else:
-            assert exec_date > today
-
         transfer = Transfer()
         transfer.currency = transfer_data['devise']
         transfer.amount = Decimal(transfer_data['montantEuros'])
@@ -414,7 +407,7 @@ class ValidateTransferPage(BNPPage):
             transfer.recipient_iban = transfer.recipient_id.split('#')[-1] or recipient.iban
         else:
             transfer.recipient_id = recipient.id
-        transfer.exec_date = exec_date
+        transfer.exec_date = parse_french_date(transfer_data['dateExecution']).date()
         transfer.fees = Decimal(transfer_data['montantFrais'])
         transfer.label = transfer_data['motifVirement']
 

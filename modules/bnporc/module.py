@@ -130,7 +130,7 @@ class BNPorcModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapMessag
         # quantize to show 2 decimals.
         amount = Decimal(transfer.amount).quantize(Decimal(10) ** -2)
 
-        return self.browser.init_transfer(account, recipient, amount, transfer.label)
+        return self.browser.init_transfer(account, recipient, amount, transfer.label, transfer.exec_date)
 
     def execute_transfer(self, transfer, **params):
         return self.browser.execute_transfer(transfer)
