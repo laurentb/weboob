@@ -1,6 +1,6 @@
 include COPYING
 include INSTALL
-include README
+include README.md
 include AUTHORS
 include ChangeLog
 include desktop/*
