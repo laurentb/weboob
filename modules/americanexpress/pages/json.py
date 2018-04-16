@@ -80,8 +80,10 @@ class JsonBalances(LoggedPage, JsonPage):
     def set_balances(self, accounts):
         by_token = {a._token: a for a in accounts}
         for d in self.doc:
+            # coming is what should be refunded at a futur deadline
             by_token[d['account_token']].coming = -float_to_decimal(d['total_debits_balance_amount'])
-            by_token[d['account_token']].balance = -float_to_decimal(d['total_payments_credits_amount'])
+            # balance is what is currently due
+            by_token[d['account_token']].balance = -float_to_decimal(d['remaining_statement_balance_amount'])
 
 
 class JsonBalances2(LoggedPage, JsonPage):
