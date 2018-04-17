@@ -455,6 +455,9 @@ class AccountsPage(LoggedPage, MultiPage):
                 assert investment is not None
                 return investment
 
+            def obj_label(self):
+                return Field('investment')(self).label
+
             def parse(self, el):
                 txt = CleanText(TableCell('availability')(self)[0].xpath('./span'))(self)
                 self.env['availability_date'] = Date(dayfirst=True, default=NotAvailable).filter(txt)
