@@ -26,7 +26,7 @@ from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.browser.exceptions import ServerError
 from weboob.browser.pages import FormNotFound
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.bank import Account, AddRecipientError, AddRecipientStep, Recipient
+from weboob.capabilities.bank import Account, Investment, AddRecipientError, AddRecipientStep, Recipient
 from weboob.tools.compat import basestring, urlsplit, parse_qsl, unicode
 from weboob.tools.value import Value
 
@@ -39,7 +39,7 @@ from .pages import LoginPage, AccountsPage, AccountHistoryPage, \
                    CaliePage, ProfilePage
 
 
-__all__ = ['LCLBrowser','LCLProBrowser', 'ELCLBrowser']
+__all__ = ['LCLBrowser', 'LCLProBrowser', 'ELCLBrowser']
 
 
 # Browser
@@ -140,7 +140,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         self.login.go()
 
         if not self.page.login(self.username, self.password) or \
-           (self.login.is_here() and self.page.is_error()) :
+           (self.login.is_here() and self.page.is_error()):
             raise BrowserIncorrectPassword("invalid login/password.\nIf you did not change anything, be sure to check for password renewal request on the original web site.")
 
         self.accounts_list = None
@@ -243,6 +243,13 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                 self.get_accounts()
         return iter(self.accounts_list)
 
+    def get_bourse_accounts_ids(self):
+        bourse_accounts_ids = []
+        for account in self.get_accounts_list():
+            if 'bourse' in account.id:
+                bourse_accounts_ids.append(account.id.split('bourse')[0])
+        return bourse_accounts_ids
+
     @go_contract
     @need_login
     def get_history(self, account):
@@ -336,6 +343,13 @@ class LCLBrowser(LoginBrowser, StatesMixin):
             for inv in self.location(account._market_link).page.iter_investment():
                 yield inv
             self.deconnexion_bourse()
+        elif account.id in self.get_bourse_accounts_ids():
+            inv = Investment()
+            inv.id = account.id
+            inv.code = 'XX-Liquidity'
+            inv.label = "Liquidités"
+            inv.valuation = account.balance
+            yield inv
 
     def locate_browser(self, state):
         if state['url'] == 'https://particuliers.secure.lcl.fr/outil/UWBE/Creation/creationConfirmation':

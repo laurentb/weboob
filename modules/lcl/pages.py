@@ -55,7 +55,7 @@ def MyDecimal(*args, **kwargs):
     return CleanDecimal(*args, **kwargs)
 
 
-def myXOR(value,seed):
+def myXOR(value, seed):
     s = ''
     for i in range(len(value)):
         s += chr(seed^ord(value[i]))
