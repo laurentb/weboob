@@ -101,6 +101,7 @@ class AXABanque(AXABrowser):
                       '.*erreur/erreurBanque.faces', UnavailablePage)
     # Wealth
     wealth_accounts = URL('https://espaceclient.axa.fr/$',
+                          'https://espaceclient.axa.fr/accueil.html',
                           'https://connexion.adis-assurances.com', WealthAccountsPage)
     investment = URL('https://espaceclient.axa.fr/.*content/ecc-popin-cards/savings/(\w+)/repartition', InvestmentPage)
     history = URL('https://espaceclient.axa.fr/.*accueil/savings/(\w+)/contract',
