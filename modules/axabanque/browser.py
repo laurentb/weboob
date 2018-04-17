@@ -59,6 +59,9 @@ class AXABrowser(LoginBrowser):
 
         if self.password.isdigit():
             self.account_space_login.go()
+            if self.page.get_error_link():
+                # Go on information page to get possible error message
+                self.location(self.page.get_error_link())
 
             vk_passwd = self.keyboard.go().get_password(self.password)
 
