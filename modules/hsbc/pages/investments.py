@@ -13,7 +13,7 @@ from weboob.capabilities.bank import Account, Investment
 from weboob.browser.elements import ItemElement, TableElement, DictElement, method
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
 from weboob.browser.filters.standard import (
-    CleanText, CleanDecimal, Regexp, Currency, Field,
+    CleanText, CleanDecimal, Regexp, Currency, Field, Env,
 )
 from weboob.browser.filters.html import TableCell
 from weboob.browser.filters.json import Dict
@@ -263,7 +263,20 @@ class ProductViewHelper():
         if self.browser.retrieve_useless_page.is_here():
             return []
         assert isinstance(self.browser.page, RetrieveInvestmentsPage)
-        return self.browser.page.iter_investments()
+
+        # Invest can have under invest
+        investments = []
+        for index, invest in enumerate(self.browser.page.iter_investments()):
+            if invest._under_invests_number > 1:
+                for under_invest in self.browser.page.iter_under_investments(index=index):
+                    under_invest.label = invest.label
+                    under_invest.code = invest.code
+                    under_invest.code_type = invest.code_type
+                    under_invest.vdate = invest.vdate
+                    investments.append(under_invest)
+            else:
+                investments.append(invest)
+        return investments
 
     def retrieve_liquidity(self):
         self.retrieve_products(kind='liquidity_list')
@@ -396,6 +409,40 @@ class RetrieveInvestmentsPage(LoggedPage, JsonPage):
                 ))(self)
                 return invest_account_id.split(' ')[0]
 
+            def obj__under_invests_number(self):
+                return len(Dict('holdingSummaryInformation')(self))
+
+    @method
+    class iter_under_investments(DictElement):
+        def parse(self, el):
+            self.item_xpath = 'holdingOrderInformation/'+ str(Env('index')(self)) +'/holdingSummaryInformation'
+
+        class item(ItemElement):
+            klass = Investment
+
+            def obj__invest_account_id(self):
+                invest_account_id = CleanText(Dict('accountNumber'))(self)
+                return invest_account_id.split(' ')[0]
+
+            obj_quantity = CleanDecimal(Dict('productHoldingQuantityCount'))
+            obj_unitvalue = CleanDecimal(Dict('holdingMarketPriceAmount'))
+            obj_original_currency = Dict('currencyHoldingMarketPriceCode')
+            obj_valuation = CleanDecimal(Dict(
+                'holdingSummaryMultipleCurrencyInformation/0/productHoldingMarketValueAmount'
+            ))
+            obj_original_valuation = CleanDecimal(Dict(
+                'holdingSummaryMultipleCurrencyInformation/0/productHoldingBookValueAmount'
+            ), default=NotAvailable)
+            obj_unitprice = CleanDecimal(Dict(
+                'holdingSummaryMultipleCurrencyInformation/0/productHoldingUnitCostAverageAmount'
+            ),default=NotAvailable)
+            obj_diff_percent = CleanDecimal(Dict(
+                'holdingSummaryMultipleCurrencyInformation/0/profitLossUnrealizedPercent'
+            ), default=NotAvailable)
+            obj_diff = CleanDecimal(Dict(
+                'holdingSummaryMultipleCurrencyInformation/0/profitLossUnrealizedAmount'
+            ), default=NotAvailable)
+
 
 class RetrieveLiquidityPage(LoggedPage, JsonPage):
 
@@ -423,7 +470,6 @@ class RetrieveLiquidityPage(LoggedPage, JsonPage):
                 Dict(
                     'holdingDetailInformation/0/holdingDetailMultipleCurrencyInformation/1'
                     '/productHoldingMarketValueAmount'
-
                 )
             )
             obj_original_currency = Currency(
