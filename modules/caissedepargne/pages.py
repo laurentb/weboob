@@ -41,6 +41,13 @@ from weboob.tools.compat import unicode
 from weboob.exceptions import NoAccountsException, BrowserUnavailable
 
 
+def fix_form(form):
+    keys = ['MM$HISTORIQUE_COMPTE$btnCumul','Cartridge$imgbtnMessagerie','MM$m_CH$ButtonImageFondMessagerie',
+            'MM$m_CH$ButtonImageMessagerie']
+    for name in keys:
+        form.pop(name, None)
+
+
 class LoginPage(JsonPage):
     def get_response(self):
         return self.doc
@@ -434,12 +441,7 @@ class IndexPage(LoggedPage, HTMLPage):
             form['__EVENTTARGET'] = "MM$m_PostBack"
             form['m_ScriptManager'] = "MM$m_UpdatePanel|MM$m_PostBack"
 
-        for name in ['MM$HISTORIQUE_COMPTE$btnCumul','Cartridge$imgbtnMessagerie','MM$m_CH$ButtonImageFondMessagerie',\
-                     'MM$m_CH$ButtonImageMessagerie']:
-            try:
-                del form[name]
-            except KeyError:
-                pass
+        fix_form(form)
 
         form.submit()
 
@@ -451,12 +453,7 @@ class IndexPage(LoggedPage, HTMLPage):
         form['__EVENTTARGET'] = 'Menu_AJAX'
         form['m_ScriptManager'] = 'm_ScriptManager|Menu_AJAX'
 
-        for name in ['MM$HISTORIQUE_COMPTE$btnCumul','Cartridge$imgbtnMessagerie','MM$m_CH$ButtonImageFondMessagerie',
-                     'MM$m_CH$ButtonImageMessagerie']:
-            try:
-                del form[name]
-            except KeyError:
-                pass
+        fix_form(form)
 
         form.submit()
 
@@ -476,12 +473,7 @@ class IndexPage(LoggedPage, HTMLPage):
             form['__EVENTTARGET'] = "MM$m_PostBack"
             form['m_ScriptManager'] = "MM$m_UpdatePanel|MM$m_PostBack"
 
-        for name in ['MM$HISTORIQUE_COMPTE$btnCumul','Cartridge$imgbtnMessagerie','MM$m_CH$ButtonImageFondMessagerie',\
-                     'MM$m_CH$ButtonImageMessagerie']:
-            try:
-                del form[name]
-            except KeyError:
-                pass
+        fix_form(form)
 
         form.submit()
 
@@ -498,19 +490,9 @@ class IndexPage(LoggedPage, HTMLPage):
             form['__EVENTTARGET'] = "MM$m_PostBack"
             form['m_ScriptManager'] = "MM$m_UpdatePanel|MM$m_PostBack"
 
-        for name in ['MM$HISTORIQUE_COMPTE$btnCumul','Cartridge$imgbtnMessagerie','MM$m_CH$ButtonImageFondMessagerie',\
-                     'MM$m_CH$ButtonImageMessagerie']:
-            try:
-                del form[name]
-            except KeyError:
-                pass
+        fix_form(form)
 
         form.submit()
-
-    def _fix_form(self, form):
-        for name in ['MM$HISTORIQUE_COMPTE$btnCumul','Cartridge$imgbtnMessagerie','MM$m_CH$ButtonImageFondMessagerie',\
-                    'MM$m_CH$ButtonImageMessagerie']:
-            form.pop(name, None)
 
     def go_history(self, info, is_cbtab=False):
         form = self.get_form(name='main')
@@ -521,7 +503,7 @@ class IndexPage(LoggedPage, HTMLPage):
         if "MM$m_CH$IsMsgInit" in form and (form['MM$m_CH$IsMsgInit'] == "0" or info['type'] == 'ASSURANCE_VIE'):
             form['m_ScriptManager'] = "MM$m_UpdatePanel|MM$SYNTHESE"
 
-        self._fix_form(form)
+        fix_form(form)
         return form.submit()
 
     def get_form_to_detail(self, transaction):
@@ -530,7 +512,7 @@ class IndexPage(LoggedPage, HTMLPage):
         form = self.get_form(name='main')
         form['__EVENTTARGET'] =  m.group(1)
         form['__EVENTARGUMENT'] = m.group(2)
-        self._fix_form(form)
+        fix_form(form)
         return form
 
     def get_history(self):
@@ -606,7 +588,7 @@ class IndexPage(LoggedPage, HTMLPage):
         if "MM$m_CH$IsMsgInit" in form and form['MM$m_CH$IsMsgInit'] == "N":
             form['m_ScriptManager'] = "MM$m_UpdatePanel|MM$HISTORIQUE_COMPTE$lnkSuivante"
 
-        self._fix_form(form)
+        fix_form(form)
         form.submit()
 
         return True
@@ -631,7 +613,7 @@ class IndexPage(LoggedPage, HTMLPage):
             form['MM$m_CH$IsMsgInit'] = "0"
             form['m_ScriptManager'] = "MM$m_UpdatePanel|MM$SYNTHESE"
 
-            self._fix_form(form)
+            fix_form(form)
             form.submit()
 
     def go_transfer_via_history(self, account):
@@ -1075,12 +1057,6 @@ class TransactionsDetailsPage(LoggedPage, HTMLPage):
 
             def obj_amount(self):
                 return abs(Field('_credit')(self)) - abs(Field('_debit')(self))
-
-
-    def _fix_form(self, form):
-        for name in ['MM$HISTORIQUE_COMPTE$btnCumul','Cartridge$imgbtnMessagerie','MM$m_CH$ButtonImageFondMessagerie',\
-                'MM$m_CH$ButtonImageMessagerie']:
-            form.pop(name, None)
 
     def go_form_to_summary(self):
         # return to first page
