@@ -31,7 +31,7 @@ __all__ = ['CentQuatreBrowser']
 
 class CentQuatreBrowser(LoginBrowser):
     BASEURL = 'https://billetterie.104.fr'
-    login = URL(r'/account$', LoginPage)
+    login = URL(r'/account/login$', LoginPage)
     tickets = URL(r'/account/tickets', TicketsPage)
     ticketDetails = URL(r'/account/file\?(.*)?fileId=(?P<fileId>)', TicketsDetailsPage)
     unknown = URL(r'*', CentQuatrePage)
