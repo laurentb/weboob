@@ -90,7 +90,8 @@ class JsonBalances2(LoggedPage, JsonPage):
     def set_balances(self, accounts):
         by_token = {a._token: a for a in accounts}
         for d in self.doc:
-            by_token[d['account_token']].balance = -float_to_decimal(d['total']['debits_total_amount'])
+            by_token[d['account_token']].balance = -float_to_decimal(d['total']['payments_credits_total_amount'])
+            by_token[d['account_token']].coming = -float_to_decimal(d['total']['debits_total_amount'])
             # warning: payments_credits_total_amount is not the coming value here
 
 
