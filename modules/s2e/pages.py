@@ -268,6 +268,7 @@ class ItemInvestment(ItemElement):
                     page = page.browser.open('https://www.assetmanagement.hsbc.com/feedRequest?feed_data=gfcFundData&cod=FR&client=FCPE&fId=%s&SH=%s&lId=fr' % m.groups()).page
             elif "consulteroperations" not in self.page.browser.url: # not on history
                 url = Regexp(CleanText('//complete'), r"openUrlFichesFonds\('(.*?)'\)", default=NotAvailable)(page.doc)
+
                 if url is NotAvailable:
                     # redirection to a useless graphplot page with url like /portal/salarie-sg/fichefonds?idFonds=XXX&source=/portal/salarie-sg/monepargne/mesavoirs
                     assert CleanText('//redirect/@url')(page.doc)
@@ -275,11 +276,18 @@ class ItemInvestment(ItemElement):
                     self.env['code_type'] = NotAvailable
                     return
 
-                if url.startswith('http://docfinder.is.bnpparibas-ip.com/'):
+                useless_urls = (
                     # pdf... http://docfinder.is.bnpparibas-ip.com/api/files/040d05b3-1776-4991-aa49-f0cd8717dab8/1536
-                    self.env['code'] = NotAvailable
-                    self.env['code_type'] = NotAvailable
-                    return
+                    'http://docfinder.is.bnpparibas-ip.com/',
+                    # Redirection to a useless page with url like "https://epargne-salariale.axa-im.fr/fr/"
+                    'https://epargne-salariale.axa-im.fr/fr/',
+                )
+
+                for useless_url in useless_urls:
+                    if url.startswith(useless_url):
+                        self.env['code'] = NotAvailable
+                        self.env['code_type'] = NotAvailable
+                        return
 
                 match = re.match(r'http://www.cpr-am.fr/fr/fonds_detail.php\?isin=([A-Z0-9]+)', url)
                 match = match or re.match(r'http://www.cpr-am.fr/particuliers/product/view/([A-Z0-9]+)', url)
