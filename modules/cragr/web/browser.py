@@ -29,6 +29,7 @@ from weboob.capabilities.bank import (
     Recipient, AccountNotFound,
 )
 from weboob.capabilities.base import NotLoaded, find_object
+from weboob.capabilities.profile import ProfileMissing
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.browser.pages import FormNotFound
 from weboob.exceptions import BrowserIncorrectPassword
@@ -470,6 +471,9 @@ class Cragr(LoginBrowser, StatesMixin):
     def get_profile(self):
         if not self.profile.is_here():
             self.location(self.profile_url.format(self.sag))
+
+        if self.page.get_error():
+            raise ProfileMissing(self.page.get_error())
 
         return self.page.get_profile()
 

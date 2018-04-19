@@ -1065,6 +1065,9 @@ class AdvisorPage(MyLoggedPage, BasePage):
 
 
 class ProfilePage(MyLoggedPage, BasePage):
+    def get_error(self):
+        return CleanText('//div[@id="trPagePu"]//h1[text()="Fonctionnalité Indisponible"]/following::p')(self.doc)
+
     @method
     class get_profile(ItemElement):
         klass = Profile
