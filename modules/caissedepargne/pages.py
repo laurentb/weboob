@@ -1043,7 +1043,7 @@ class TransactionsDetailsPage(LoggedPage, HTMLPage):
                 form = self.page.get_form(name='main')
                 form['__EVENTTARGET'] = "MM$ECRITURE_GLOBALE$lnkSuivante"
                 form['__EVENTARGUMENT'] = ''
-                self.page._fix_form(form)
+                fix_form(form)
                 return form.request
             return
 
