@@ -266,7 +266,8 @@ class LoginPage(HTMLPage):
     def on_load(self):
         for message in self.doc.xpath('//div[has-class("csPanelErrors")]'):
             error_msg = CleanText('.')(message)
-            if 'mot de passe invalide' in error_msg:
+            if any(msg in error_msg for msg in ['Please enter valid credentials for memorable answer and password.',
+                                                'mot de passe invalide']):
                 raise BrowserIncorrectPassword(error_msg)
             else:
                 raise BrowserUnavailable(error_msg)
