@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.bank import CapBank
+from weboob.capabilities.profile import CapProfile
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -27,7 +28,7 @@ from .browser import DelubacBrowser
 __all__ = ['DelubacModule']
 
 
-class DelubacModule(Module, CapBank):
+class DelubacModule(Module, CapBank, CapProfile):
     NAME = 'delubac'
     DESCRIPTION = u'Banque Delubac & Cie'
     MAINTAINER = u'Noe Rubinstein'
@@ -51,3 +52,6 @@ class DelubacModule(Module, CapBank):
 
     def iter_history(self, account, coming=False):
         return self.browser.iter_history(account)
+
+    def get_profile(self):
+        return self.browser.get_profile()

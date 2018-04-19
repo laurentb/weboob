@@ -76,3 +76,9 @@ class DelubacBrowser(LoginBrowser):
         if self.error.is_here():
             return iter([])
         return self.page.get_transactions()
+
+    @need_login
+    def get_profile(self):
+        accounts = list(self.iter_accounts())
+        self.location(accounts[0]._rib_link)
+        return self.page.get_profile()
