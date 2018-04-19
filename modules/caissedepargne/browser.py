@@ -327,7 +327,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             list_form = []
             for tr in self.page.get_history():
                 transactions_list.append(tr)
-                if re.match('^CB [\d]{4}\*{6}[\d]{6} TOT DIF ([\w]{3,9})', tr.label, flags=re.IGNORECASE):
+                if tr.type == tr.TYPE_CARD_SUMMARY:
                     list_form.append(self.page.get_form_to_detail(tr))
 
             # add detail card to list of transactions
