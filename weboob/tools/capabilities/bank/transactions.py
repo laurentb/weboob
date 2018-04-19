@@ -34,7 +34,11 @@ from weboob.browser.filters.standard import Filter, CleanText, CleanDecimal
 from weboob.browser.filters.html import TableCell
 
 
-__all__ = ['FrenchTransaction', 'AmericanTransaction']
+__all__ = [
+    'FrenchTransaction', 'AmericanTransaction',
+    'sorted_transactions', 'merge_iterators', 'keep_only_card_transactions',
+    'omit_deferred_transactions',
+]
 
 
 class classproperty(object):
@@ -379,6 +383,46 @@ def merge_iterators(*iterables):
             its[k] = next(k)
         except StopIteration:
             del its[k]
+
+
+def keep_only_card_transactions(it, match_func=None):
+    """Filter iterator to keep transactions with card types.
+
+    This helper should typically be used when a banking site returns card and non-card
+    transactions mixed on the same checking account.
+
+    Types kept are `TYPE_DEFERRED_CARD` and `TYPE_CARD_SUMMARY`.
+    Additionally, the amount is inversed for transactions with type `TYPE_CARD_SUMMARY`.
+    This is because on the deferred debit card account, summaries should be positive
+    as the amount is debitted from checking account to credit the card account.
+
+    The `match_func` can be provided in case of multiple cards, to only return
+    transactions of one card.
+
+    :param match_func: optional function to filter transactions further
+    :type match_func: callable or None
+    """
+
+    for tr in it:
+        if tr.type == tr.TYPE_DEFERRED_CARD:
+            if match_func is None or match_func(tr):
+                yield tr
+        elif tr.type == tr.TYPE_CARD_SUMMARY:
+            if match_func is None or match_func(tr):
+                tr.amount = -tr.amount
+                yield tr
+
+
+def omit_deferred_transactions(it):
+    """Filter iterator to omit transactions with type `TYPE_DEFERRED_CARD`.
+
+    This helper should typically be used when a banking site returns card and non-card
+    transactions mixed on the same checking account.
+    """
+    for tr in it:
+        if tr.type != tr.TYPE_DEFERRED_CARD:
+            yield tr
+
 
 def test():
     clean_amount = AmericanTransaction.clean_amount
