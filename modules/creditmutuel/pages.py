@@ -107,6 +107,12 @@ class LoginErrorPage(HTMLPage):
 class EmptyPage(LoggedPage, HTMLPage):
     REFRESH_MAX = 10.0
 
+    def on_load(self):
+        # Action needed message is like "Votre Carte de Clés Personnelles numéro 3 est révoquée."
+        action_needed = CleanText('//p[contains(text(), "Votre Carte de Clés Personnelles") and contains(text(), "est révoquée")]')(self.doc)
+        if action_needed:
+            raise ActionNeeded(action_needed)
+
 
 class UserSpacePage(LoggedPage, HTMLPage):
     def on_load(self):
