@@ -18,12 +18,39 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import re
+from json import loads
+
 from weboob.browser.pages import HTMLPage
+from weboob.browser.filters.standard import CleanText
 
 
 class LoginPage(HTMLPage):
-    def login(self, login, password):
-        form = self.get_form(xpath='//form[@id="AuthentForm"]')
-        form['credential'] = login
-        form['password'] = password
-        form.submit()
+    def login(self, username, password):
+        for script in self.doc.xpath('//script'):
+            txt = CleanText('.')(script)
+            m = re.search('headers: \'(\{.*?\})', txt)
+            if m:
+                headers = loads(m.group(1))
+                break
+
+        data = {}
+        data['forcePwd'] = False
+        data['login'] = username
+        data['mem'] = True
+        data['params'] = {}
+        data['params']['return_url'] = 'https://www.sosh.fr/'
+        data['params']['service'] = 'sosh'
+        response = self.browser.location('https://login.orange.fr/front/login', json=data, headers=headers)
+
+        headers['x-auth-id'] = response.headers['x-auth-id']
+        headers['x-xsrf-token'] = response.headers['x-xsrf-token']
+
+        data = {}
+        data['login'] = username
+        data['password'] = password
+        data['params'] = {}
+        data['params']['return_url'] = 'https://www.sosh.fr/'
+        data['params']['service'] = 'sosh'
+
+        self.browser.location('https://login.orange.fr/front/password', json=data, headers=headers)

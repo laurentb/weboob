@@ -21,31 +21,18 @@ from __future__ import unicode_literals
 
 import re
 import HTMLParser
-from datetime import datetime
 
 from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage
 from weboob.capabilities.bill import Subscription
 from weboob.browser.elements import DictElement, ListElement, ItemElement, method, TableElement
-from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Field, Regexp, Date, Currency, BrowserURL
+from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Field, Regexp, Date, Currency, BrowserURL, Format
 from weboob.browser.filters.html import Link, TableCell
 from weboob.browser.filters.javascript import JSValue
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.bill import Bill, DocumentNotFound
+from weboob.capabilities.bill import Bill
 from weboob.tools.date import parse_french_date
 from weboob.tools.compat import urlencode
-
-
-class ProfilPage(HTMLPage):
-    pass
-
-
-class ContractPage(LoggedPage, JsonPage):
-    def is_pro(self, subid):
-        if self.doc:
-            for elem in self.doc:
-                if subid == elem['id']:
-                    return True
 
 
 class BillsApiPage(LoggedPage, JsonPage):
@@ -79,7 +66,6 @@ class BillsApiPage(LoggedPage, JsonPage):
 
 
 class BillsPage(LoggedPage, HTMLPage):
-
     @method
     class get_bills(TableElement):
         item_xpath = '//table[has-class("table-hover")]/div/div/tr | //table[has-class("table-hover")]/div/tr'
@@ -147,27 +133,6 @@ class BillsPage(LoggedPage, HTMLPage):
                 else:
                     return '%s_%s%s' % (Env('subid')(self), Field('date')(self).strftime('%d%m%Y'), Field('price')(self))
 
-    def download_document(self, id):
-        # get the date
-        date = datetime.strptime(id.split('_')[-1].split('@')[0], '%d%m%Y')
-        date = date.strftime("%d %B %Y")
-        date = parse_french_date(date).date()
-
-        # get all the bills date
-        bills_date = self.doc.xpath(u'//td[contains(@headers, "date")]/text()')
-
-        # comparing all bills date with the date to have the matching index
-        index = 0
-        while index < len(bills_date):
-            if date == parse_french_date(bills_date[index]).date():
-                break
-            index += 1
-
-        if index >= len(bills_date):
-            raise DocumentNotFound()
-
-        return self.doc.xpath('//a[contains(@href, "facture-telecharger")]/@href')[index]
-
 
 class SubscriptionsPage(LoggedPage, HTMLPage):
     def build_doc(self, data):
@@ -194,3 +159,21 @@ class SubscriptionsPage(LoggedPage, HTMLPage):
                 # unsubscripted contracts may still be there, skip them else
                 # facture-historique could yield wrong bills
                 return bool(obj.id) and obj._page != 'nec-tdb-ouvert'
+
+
+class ContractsPage(LoggedPage, JsonPage):
+    @method
+    class iter_subscriptions(DictElement):
+        item_xpath = 'contracts'
+
+        class item(ItemElement):
+            klass = Subscription
+
+            obj_id = Dict('id')
+            obj_label = Format('%s %s', Dict('name'), Dict('mainLine'))
+
+            def condition(self):
+                return Dict('status')(self) == 'OK'
+
+            def obj__is_pro(self):
+                return Dict('offerNature')(self) == 'PROFESSIONAL'

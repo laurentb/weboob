@@ -21,8 +21,9 @@ from __future__ import unicode_literals
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
-from .pages import LoginPage, ProfilPage, BillsPage
-from .pages.bills import SubscriptionsPage, BillsApiPage, ContractPage
+from .pages import LoginPage, BillsPage
+from .pages.bills import SubscriptionsPage, BillsApiPage, ContractsPage
+from weboob.browser.exceptions import ClientError, ServerError
 
 __all__ = ['OrangeBillBrowser']
 
@@ -30,16 +31,12 @@ __all__ = ['OrangeBillBrowser']
 class OrangeBillBrowser(LoginBrowser):
     BASEURL = 'https://espaceclientv3.orange.fr/'
 
-    loginpage = URL('https://id.orange.fr/auth_user/bin/auth_user.cgi', LoginPage)
-    profilpage = URL('https://espaceclientv3.orange.fr/\?page=profil-infosPerso',
-                     'https://espaceclientv3.orange.fr/ajax.php', ProfilPage)
+    loginpage = URL('https://login.orange.fr/\?service=sosh&return_url=https://www.sosh.fr/',
+                    'https://login.orange.fr/front/login', LoginPage)
 
-    contractpage = URL('https://espaceclientpro.orange.fr/api/contracts', ContractPage)
+    contracts = URL('https://espaceclientpro.orange.fr/api/contracts\?page=1&nbcontractsbypage=15', ContractsPage)
 
     subscriptions = URL(r'https://espaceclientv3.orange.fr/js/necfe.php\?zonetype=bandeau&idPage=gt-home-page', SubscriptionsPage)
-
-    subscriptions1 = URL(r'https://espaceclientv3.orange.fr/\?page=gt-home-page&orange&pro')
-    subscriptions2 = URL(r'https://espaceclientv3.orange.fr/\?page=gt-home-page&sosh')
 
     billspage = URL('https://m.espaceclientv3.orange.fr/\?page=factures-archives',
                     'https://.*.espaceclientv3.orange.fr/\?page=factures-archives',
@@ -60,11 +57,12 @@ class OrangeBillBrowser(LoginBrowser):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
 
-        self.loginpage.stay_or_go().login(self.username, self.password)
-
-        self.billspage.go()
-        if self.loginpage.is_here():
-            raise BrowserIncorrectPassword()
+        try:
+            self.loginpage.stay_or_go().login(self.username, self.password)
+        except ClientError as error:
+            if error.response.status_code == 401:
+                raise BrowserIncorrectPassword()
+            raise
 
     def get_nb_remaining_free_sms(self):
         raise NotImplementedError()
@@ -74,19 +72,20 @@ class OrangeBillBrowser(LoginBrowser):
 
     @need_login
     def get_subscription_list(self):
-        ids = set()
-        self.location('https://espaceclientv3.orange.fr/?page=gt-home-page&orange&pro')
-        self.subscriptions.go()
-        for sub in self.page.iter_subscription():
-            self.contractpage.go()
-            sub._is_pro = self.page.is_pro(sub.id)
-            ids.add(sub.id)
-            yield sub
+        # this only works when there are pro subs.
+        try:
+            for sub in self.contracts.go().iter_subscriptions():
+                yield sub
+            # assert pagination is not needed
+            assert self.page.doc['totalContracts'] < 15
+            return
+        except ServerError:
+            pass
+
         self.location('https://espaceclientv3.orange.fr/?page=gt-home-page&sosh')
         self.subscriptions.go()
         for sub in self.page.iter_subscription():
-            if sub.id not in ids:
-                yield sub
+            yield sub
 
     @need_login
     def iter_documents(self, subscription):
@@ -101,10 +100,3 @@ class OrangeBillBrowser(LoginBrowser):
             for b in self.page.get_bills(subid=subscription.id):
                 documents.append(b)
         return iter(documents)
-
-    @need_login
-    def download_document(self, document):
-        id = {'idContrat': document.id.split('_')[0]}
-        self.location('https://espaceclientv3.orange.fr/?page=factures-historique', params=id)
-        url = self.page.download_document(document.id)
-        return self.open(url).content
