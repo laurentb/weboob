@@ -504,7 +504,9 @@ class HistoryPage(BNPPage):
             tr.parse(raw=op.get('libelleOperation'),
                      date=parse_french_date(op.get('dateOperation')),
                      vdate=parse_french_date(self.one('montant.valueDate', op)))
-            if tr.type == Transaction.TYPE_CARD and tr.raw.startswith('FACTURE CARTE SELON RELEVE DU'):
+
+            raw_is_summary = re.match(r'FACTURE CARTE SELON RELEVE DU\b|FACTURE CARTE CARTE AFFAIRES \d{4}X{8}\d{4} SUIVANT\b', tr.raw)
+            if tr.type == Transaction.TYPE_CARD and raw_is_summary:
                 tr.type = Transaction.TYPE_CARD_SUMMARY
                 tr.deleted = True
             yield tr
