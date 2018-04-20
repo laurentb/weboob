@@ -52,7 +52,7 @@ class BouyguesModule(Module, CapMessages, CapMessagesPost, CapDocument):
         self.browser.post_message(message)
 
     def iter_subscription(self):
-        return self.browser.get_subscription_list()
+        return self.browser.iter_subscriptions()
 
     def get_subscription(self, _id):
         return find_object(self.iter_subscription(), id=_id, error=SubscriptionNotFound)
@@ -70,4 +70,4 @@ class BouyguesModule(Module, CapMessages, CapMessagesPost, CapDocument):
     def download_document(self, document):
         if not isinstance(document, Document):
             document = self.get_document(document)
-        return self.browser.open(document.url).content
+        return self.browser.download_document(document)

@@ -17,9 +17,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from jose import jwt
+
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import BrowserIncorrectPassword
-from .pages import DocumentsPage, HomePage, LoginPage, ProfilePage, SendSMSPage, SendSMSErrorPage, UselessPage
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
+from weboob.tools.compat import urlparse, parse_qs
+from .pages import (
+    DocumentsPage, HomePage, LoginPage, SubscriberPage, SubscriptionPage, SubscriptionDetailPage,
+    SendSMSPage, SendSMSErrorPage, UselessPage, DocumentFilePage
+)
 
 from weboob.capabilities.messages import CantSendMessage
 
@@ -27,14 +33,16 @@ __all__ = ['BouyguesBrowser']
 
 
 class BouyguesBrowser(LoginBrowser):
-    BASEURL = 'https://www.mon-compte.bouyguestelecom.fr/'
+    BASEURL = 'https://api.bouyguestelecom.fr'
     TIMEOUT = 20
 
-    login = URL('cas/login', LoginPage)
+    login = URL('https://www.mon-compte.bouyguestelecom.fr/cas/login', LoginPage)
     home = URL('https://www.bouyguestelecom.fr/mon-compte', HomePage)
-    profile = URL('https://api-mc.bouyguestelecom.fr/client/me/header.json', ProfilePage)
-    documents = URL('https://www.bouyguestelecom.fr/parcours/mes-factures',
-                    'https://www.bouyguestelecom.fr/parcours/mes-factures/historique\?no_reference=(?P<ref>)', DocumentsPage)
+    subscriber = URL('/personnes/(?P<idUser>\d+)$', SubscriberPage)
+    subscriptions = URL('/personnes/(?P<idUser>\d+)/comptes-facturation', SubscriptionPage)
+    subscriptions_details = URL('/comptes-facturation/(?P<idSub>\d+)/contrats-payes', SubscriptionDetailPage)
+    document_file = URL('/comptes-facturation/(?P<idSub>\d+)/factures/\d+/documents', DocumentFilePage)
+    documents = URL('/comptes-facturation/(?P<idSub>\d+)/factures', DocumentsPage)
 
     sms_page = URL('http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/sendSMS.phtml',
                    'http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/confirmSendSMS.phtml',
@@ -46,6 +54,8 @@ class BouyguesBrowser(LoginBrowser):
     def __init__(self, username, password, lastname, *args, **kwargs):
         super(BouyguesBrowser, self).__init__(username, password, *args, **kwargs)
         self.lastname = lastname
+        self.headers = None
+        self.id_user = None
 
     def do_login(self):
         self.login.go()
@@ -57,6 +67,26 @@ class BouyguesBrowser(LoginBrowser):
 
         if not self.home.is_here():
             raise BrowserIncorrectPassword()
+
+        # after login we need to get some tokens to use bouygues api
+        data = {
+            'response_type': 'id_token token',
+            'client_id': 'a360.bouyguestelecom.fr',
+            'redirect_uri': 'https://www.bouyguestelecom.fr/mon-compte/'
+        }
+        self.location('https://oauth2.bouyguestelecom.fr/authorize', params=data)
+
+        parsed_url = urlparse(self.response.url)
+        fragment = parse_qs(parsed_url.fragment)
+
+        if not fragment:
+            query = parse_qs(parsed_url.query)
+            if 'server_error' in query.get('error', []):
+                raise BrowserUnavailable(query['error_description'][0])
+
+        claims = jwt.get_unverified_claims(fragment['id_token'][0])
+        self.headers = {'Authorization': 'Bearer %s' % fragment['access_token'][0]}
+        self.id_user = claims['id_personne']
 
     @need_login
     def post_message(self, message):
@@ -74,16 +104,22 @@ class BouyguesBrowser(LoginBrowser):
         self.confirm.open()
 
     @need_login
-    def get_subscription_list(self):
-        return self.profile.stay_or_go().get_list()
+    def iter_subscriptions(self):
+        self.subscriber.go(idUser=self.id_user, headers=self.headers)
+        subscriber = self.page.get_subscriber()
+
+        self.subscriptions.go(idUser=self.id_user, headers=self.headers)
+        for sub in self.page.iter_subscriptions(subscriber=subscriber):
+            self.subscriptions_details.go(idSub=sub.id, headers=self.headers)
+            sub.label = self.page.get_label()
+            yield sub
 
     @need_login
     def iter_documents(self, subscription):
-        # some accounts get redirected on first request
-        self.documents.go()
-        ref = self.documents.stay_or_go().get_ref(subscription.label)
+        self.location(subscription.url, headers=self.headers)
+        return self.page.iter_documents(subid=subscription.id)
 
-        if not ref:
-            return iter([])
-
-        return self.documents.go(ref=ref).get_documents(subid=subscription.id)
+    @need_login
+    def download_document(self, document):
+        self.location(document.url, headers=self.headers)
+        return self.open(self.page.get_one_shot_download_url()).content

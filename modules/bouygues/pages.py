@@ -16,18 +16,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
 import re
+from datetime import datetime, timedelta
 
 from weboob.capabilities.messages import CantSendMessage
 
+from weboob.capabilities.base import NotLoaded
 from weboob.capabilities.bill import Bill, Subscription
-from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
+from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage, PDFPage
 from weboob.browser.filters.json import Dict
-from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Format, Regexp, Field
-from weboob.browser.filters.html import Link
-from weboob.browser.elements import DictElement, ItemElement, ListElement, method
-from weboob.tools.date import parse_french_date
+from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Format, Regexp
+from weboob.browser.elements import DictElement, ItemElement, method
+
 
 class LoginPage(HTMLPage):
     def login(self, login, password, lastname):
@@ -46,32 +46,36 @@ class HomePage(LoggedPage, HTMLPage):
     pass
 
 
-class ProfilePage(LoggedPage, JsonPage):
-    @method
-    class get_list(DictElement):
-        item_xpath = 'data/lignes'
+class SubscriberPage(LoggedPage, JsonPage):
+    def get_subscriber(self):
+        if self.doc['type'] == 'INDIVIDU':
+            sub_dict = self.doc
+        else:
+            sub_dict = self.doc['representantLegal']
+        return "%s %s %s" % (sub_dict['civilite'], sub_dict['prenom'], sub_dict['nom'])
 
-        def condition(self):
-            return 'lignes' in self.page.doc['data']
+
+class SubscriptionPage(LoggedPage, JsonPage):
+    @method
+    class iter_subscriptions(DictElement):
+        item_xpath = 'items'
 
         class item(ItemElement):
             klass = Subscription
 
-            obj__type = CleanText(Dict('type'))
-            obj_label = Env('label')
-            obj_subscriber = Format("%s %s %s", CleanText(Dict('civilite')),
-                                    CleanText(Dict('prenom')), CleanText(Dict('nom')))
+            obj_id = Dict('id')
+            obj_url = Dict('_links/factures/href')
+            obj_subscriber = Env('subscriber')
 
-            def obj_id(self):
-                if Dict('date-activation')(self) is not None:
-                    return Format('%s-%s', Dict('num_ligne'), Dict('date-activation'))(self)
-                else:
-                    return Format('%s', Dict('num_ligne'))(self)
 
-            def parse(self, el):
-                # add spaces
-                number = iter(Field('id')(self).split('-')[0])
-                self.env['label'] = ' '.join(a+b for a, b in zip(number, number))
+class SubscriptionDetailPage(LoggedPage, JsonPage):
+    def get_label(self):
+        num_tel_list = []
+        for s in self.doc['items']:
+            phone = re.sub(r'^\+\d{2}', '0', s['numeroTel'])
+            num_tel_list.append(' '.join([phone[i:i + 2] for i in range(0, len(phone), 2)]))
+
+        return ' - '.join(num_tel_list)
 
 
 class SendSMSPage(HTMLPage):
@@ -94,45 +98,63 @@ class SendSMSErrorPage(HTMLPage):
         return CleanText('//span[@class="txt12-o"][1]')(self.doc)
 
 
-class DocumentsPage(LoggedPage, HTMLPage):
-    def get_ref(self, label):
-        options = self.doc.xpath('//select[@id="factureMois"]/option[position() > 1]/@value')
-
-        for option in options:
-            for ctr in self.doc.xpath('//div[has-class("eccoetape")]'):
-                if ctr.xpath('.//span[contains(text(), $label)]', label=label):
-                    ref = ctr.xpath('.//a[@id="btnAnciennesFactures"]')
-                    if ref:
-                        return re.search('reference=([\d]+)', Link().filter(ref)).group(1)
-
-            self.logger.debug("couldn't find ref this month, retrying with %s", option)
-            self.doc = self.browser.open('%s?mois=%s' % (self.browser.url, option)).page.doc
-        return None
+class DocumentsPage(LoggedPage, JsonPage):
+    FRENCH_MONTHS = {
+        1: 'Janvier',
+        2: 'Février',
+        3: 'Mars',
+        4: 'Avril',
+        5: 'Mai',
+        6: 'Juin',
+        7: 'Juillet',
+        8: 'Août',
+        9: 'Septembre',
+        10: 'Octobre',
+        11: 'Novembre',
+        12: 'Décembre',
+    }
 
     @method
-    class get_documents(ListElement):
-        item_xpath = '//div[@facture-id]'
+    class iter_documents(DictElement):
+        item_xpath = 'items'
 
         class item(ItemElement):
             klass = Bill
 
-            obj__ref = CleanText('//input[@id="noref"]/@value')
-            obj_id = Format('%s_%s', Env('subid'), CleanText('./@facture-id'))
-            obj_url = Format('http://www.bouyguestelecom.fr/parcours/facture/download/index?id=%s&no_reference=%s', CleanText('./@facture-id'), CleanText('./@facture-ligne'))
+            obj_id = Format('%s_%s', Env('subid'), Dict('idFacture'))
+            obj_url = Format('https://api.bouyguestelecom.fr%s', Dict('_links/facturePDF/href'))
             obj_date = Env('date')
+            obj_duedate = Env('duedate')
             obj_format = u"pdf"
-            obj_label = CleanText('./text()')
+            obj_label = Env('label')
             obj_type = u"bill"
-            obj_price = CleanDecimal(CleanText('./span', replace=[(u' € ', '.')]))
+            obj_price = CleanDecimal(Dict('mntTotFacture'))
             obj_currency = u'EUR'
 
             def parse(self, el):
-                self.env['date'] = parse_french_date('01 %s' % CleanText('./text()')(self)).date()
+                bill_date = datetime.strptime(Dict('dateFacturation')(self), "%Y-%m-%dT%H:%M:%SZ").date()
 
-            def condition(self):
-                # XXX ugly fix to avoid duplicate bills
-                return CleanText('./@facture-id')(self.el) != CleanText('./following-sibling::div[1]/@facture-id')(self.el)
+                # dateFacturation is like: 'YYYY-MM-DDTHH:00:00Z' where Z is UTC time and HH 23 in winter and 22 in summer
+                # which always correspond to the day after at midnight in French time zone
+                # so we remove hour and consider the day after as date (which is also the date inside pdf)
+                self.env['date'] = bill_date + timedelta(days=1)
+
+                duedate = Dict('dateLimitePaieFacture', default=NotLoaded)(self)
+                if duedate:
+                    self.env['duedate'] = datetime.strptime(duedate, "%Y-%m-%dT%H:%M:%SZ").date() + timedelta(days=1)
+                else:
+                    # for some connections we don't have duedate (why ?)
+                    self.env['duedate'] = NotLoaded
+
+                self.env['label'] = "%s %d" % (self.page.FRENCH_MONTHS[self.env['date'].month], self.env['date'].year)
+
+    def get_one_shot_download_url(self):
+        return self.doc['_actions']['telecharger']['action']
 
 
 class UselessPage(HTMLPage):
+    pass
+
+
+class DocumentFilePage(PDFPage):
     pass
