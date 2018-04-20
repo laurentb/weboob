@@ -140,14 +140,6 @@ class InvestmentPage(AccountPage):
             obj_code = Regexp(CleanText('./preceding-sibling::tr/td[1]'), '- (.*)')
 
     def iter_investment(self):
-        valuation = CleanDecimal('//td[contains(text(), "Liquidités")]/following-sibling::td[1]', replace_dots=True, default=None)(self.doc)
-        if valuation:
-            inv = Investment()
-            inv.code = u"XX-liquidity"
-            inv.label = u"Liquidités"
-            inv.valuation = valuation
-            yield inv
-
         for inv in self.get_investment():
             yield inv
 
