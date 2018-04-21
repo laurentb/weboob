@@ -29,7 +29,7 @@ from weboob.browser.filters.json import Dict
 from weboob.capabilities.housing import (City, Housing, HousingPhoto,
                                          UTILITIES, ENERGY_CLASS, POSTS_TYPES,
                                          ADVERT_TYPES, HOUSE_TYPES)
-from weboob.capabilities.base import NotAvailable, empty
+from weboob.capabilities.base import NotAvailable, empty, NotLoaded
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 from weboob.tools.date import DATE_TRANSLATE_FR, LinearDateGuesser
 
@@ -126,12 +126,12 @@ class HousingListPage(HTMLPage):
                 else:
                     return ADVERT_TYPES.PERSONAL
 
-            obj_house_type = NotAvailable
+            obj_house_type = NotLoaded
 
             obj_title = CleanText('./@title|./section/p[@class="item_title"]')
             obj_cost = CleanDecimal('./section[@class="item_infos"]/*[@class="item_price"]/text()',
                                     replace_dots=(',', '.'),
-                                    default=NotAvailable)
+                                    default=NotLoaded)
             obj_price_per_meter = PricePerMeterFilter()
             obj_area = CleanDecimal(
                 Regexp(
@@ -141,7 +141,7 @@ class HousingListPage(HTMLPage):
                     default=None
                 ),
                 replace_dots=True,
-                default=NotAvailable
+                default=NotLoaded
             )
             obj_location = CleanText(
                 './section[@class="item_infos"]/*[@itemtype="http://schema.org/Place"]/text()'
@@ -169,7 +169,7 @@ class HousingListPage(HTMLPage):
                                            ('Hier', str((date.today() - timedelta(1))))])(self)
 
                 if not _date:
-                    return NotAvailable
+                    return NotLoaded
 
                 for fr, en in DATE_TRANSLATE_FR:
                     _date = fr.sub(en, _date)
@@ -241,7 +241,7 @@ class HousingPage(HTMLPage):
                 elif key == u'ges':
                     self.env['GES'] = value
                 elif key == u'energy_rate':
-                    self.env['DPE'] = getattr(ENERGY_CLASS, item['value'].upper() ,NotAvailable)
+                    self.env['DPE'] = getattr(ENERGY_CLASS, item['value'].upper(), NotAvailable)
                 elif key == u'furnished':
                     self.env['isFurnished'] = (value.lower() == u'meublé')
                 elif key == u'charges_included':
