@@ -38,7 +38,7 @@ __all__ = ['Videoob']
 
 class VideoListFormatter(PrettyFormatter):
     MANDATORY_FIELDS = ('id', 'title', 'duration', 'date')
-    DISPLAYED_FIELDS = ('author', 'rating', 'thumbnail')
+    DISPLAYED_FIELDS = ('author', 'rating', 'thumbnail', 'rating_max')
 
     def get_title(self, obj):
         return obj.title
