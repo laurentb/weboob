@@ -40,11 +40,12 @@ class FonciaTest(BackendTest, HousingTest):
     FIELDS_ALL_SINGLE_HOUSING = [
         "id", "url", "type", "advert_type", "house_type", "title", "area",
         "cost", "currency", "utilities", "date", "location", "text", "phone",
-        "rooms", "DPE", "details"
+        "DPE", "details"
     ]
     FIELDS_ANY_SINGLE_HOUSING = [
         "bedrooms",
-        "photos"
+        "photos",
+        "rooms"
     ]
 
     def test_foncia_rent(self):

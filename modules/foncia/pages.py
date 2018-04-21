@@ -27,7 +27,7 @@ from weboob.browser.filters.standard import (
 )
 from weboob.browser.filters.html import AbsoluteLink, Attr, Link, XPathNotFound
 from weboob.browser.elements import ItemElement, ListElement, method
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.capabilities.housing import (
     City, Housing, HousingPhoto,
     UTILITIES, ENERGY_CLASS, POSTS_TYPES, ADVERT_TYPES
@@ -293,7 +293,7 @@ class SearchResultsPage(HTMLPage):
                     for type in types:
                         if ('/%s/' % type) in url:
                             return house_type
-                return NotAvailable
+                return NotLoaded
 
             obj_url = AbsoluteLink('.//h3[has-class("TeaserOffer-title")]/a')
             obj_title = CleanText('.//h3[has-class("TeaserOffer-title")]')
@@ -336,11 +336,11 @@ class SearchResultsPage(HTMLPage):
 
             obj_rooms = CleanDecimal(
                 './/div[has-class("MiniData")]//p[@data-behat="nbPiecesDesBiens"]',
-                default=NotAvailable
+                default=NotLoaded
             )
             obj_bedrooms = CleanDecimal(
                 './/div[has-class("MiniData")]//p[@data-behat="nbChambresDesBiens"]',
-                default=NotAvailable
+                default=NotLoaded
             )
 
             def obj_details(self):

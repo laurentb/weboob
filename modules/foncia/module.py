@@ -66,6 +66,11 @@ class FonciaModule(Module, CapHousing):
             for photo in housing.photos:
                 if not photo.data:
                     photo.data = self.browser.open(photo.url)
+            fields.remove('photos')
+
+        if len(fields) > 0:
+            self.browser.get_housing(housing.id, housing)
+
         return housing
 
     OBJECTS = {Housing: fill_housing}
