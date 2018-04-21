@@ -19,7 +19,7 @@
 
 
 from weboob.browser import PagesBrowser, URL
-from weboob.browser.profiles import Wget
+from weboob.browser.profiles import Firefox
 from weboob.capabilities.housing import (TypeNotSupported, POSTS_TYPES,
                                          HOUSE_TYPES)
 from .pages import CitiesPage, SearchPage, HousingPage, PhonePage
@@ -27,6 +27,7 @@ from .pages import CitiesPage, SearchPage, HousingPage, PhonePage
 
 class LogicimmoBrowser(PagesBrowser):
     BASEURL = 'http://www.logic-immo.com/'
+    PROFILE = Firefox()
 
     city = URL('asset/t9/getLocalityT9.php\?site=fr&lang=fr&json=%22(?P<pattern>.*)%22',
                CitiesPage)
@@ -45,8 +46,6 @@ class LogicimmoBrowser(PagesBrowser):
            HOUSE_TYPES.LAND: '3',
            HOUSE_TYPES.PARKING: '10',
            HOUSE_TYPES.OTHER: '14'}
-
-    PROFILE = Wget()
 
     def get_cities(self, pattern):
         if pattern:

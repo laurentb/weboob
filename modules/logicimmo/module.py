@@ -82,6 +82,11 @@ class LogicimmoModule(Module, CapHousing):
     def fill_housing(self, housing, fields):
         if 'phone' in fields:
             housing.phone = self.browser.get_phone(housing.id)
+            fields.remove('phone')
+
+        if len(fields) > 0:
+            self.browser.get_housing(housing.id, housing)
+
         return housing
 
     def fill_photo(self, photo, fields):

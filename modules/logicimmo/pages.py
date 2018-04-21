@@ -29,7 +29,7 @@ from weboob.browser.filters.html import Attr, XPath, CleanHTML
 from weboob.capabilities.housing import (Housing, HousingPhoto, City,
                                          UTILITIES, ENERGY_CLASS, POSTS_TYPES,
                                          ADVERT_TYPES, HOUSE_TYPES)
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 from weboob.tools.compat import urljoin
 
@@ -60,6 +60,7 @@ class HousingPage(HTMLPage):
         klass = Housing
 
         obj_id = Env('_id')
+
         def obj_type(self):
             url = BrowserURL('housing', _id=Env('_id'))(self)
             if 'colocation' in url:
@@ -79,7 +80,7 @@ class HousingPage(HTMLPage):
             elif 'vente' in url:
                 offertype = Attr(
                     '//button[has-class("offer-contact-vertical-phone")][1]',
-                     'data-offertransactiontype'
+                    'data-offertransactiontype'
                 )(self)
                 if offertype == '4':
                     return POSTS_TYPES.VIAGER
@@ -87,6 +88,7 @@ class HousingPage(HTMLPage):
                     return POSTS_TYPES.SALE
             return NotAvailable
         obj_advert_type = ADVERT_TYPES.PROFESSIONAL
+
         def obj_house_type(self):
             house_type = CleanText('.//div[has-class("offer-type")]')(self).lower()
             if house_type == "appartement":
@@ -105,11 +107,12 @@ class HousingPage(HTMLPage):
                                        '(.*?)(\d*) m\xb2(.*?)', '\\2', default=NotAvailable),
                                 default=NotAvailable)
         obj_rooms = CleanDecimal('//div[has-class("offer-info")]//span[has-class("offer-rooms-number")]',
-                                default=NotAvailable)
+                                 default=NotAvailable)
         obj_cost = CleanDecimal('//*[@itemprop="price"]', default=0)
         obj_currency = Currency(
             '//*[@itemprop="price"]'
         )
+
         def obj_utilities(self):
             notes = CleanText('//p[@class="offer-description-notes"]')(self)
             if "Loyer mensuel charges comprises" in notes:
@@ -232,7 +235,7 @@ class SearchPage(HTMLPage):
 
             obj_text = CleanText(
                 './div/div[@class="content-offer"]/section[has-class("content-desc")]/p/span[has-class("offer-text")]/@title',
-                default=NotAvailable
+                default=NotLoaded
             )
 
             obj_date = Date(Regexp(CleanText('./div/header/section/p[has-class("update-date")]'),
@@ -240,7 +243,7 @@ class SearchPage(HTMLPage):
 
             obj_location = CleanText(
                 '(./div/div[@class="content-offer"]/section[has-class("content-desc")]/p)[1]/span/@title',
-                default=NotAvailable
+                default=NotLoaded
             )
 
     @method
@@ -292,7 +295,7 @@ class SearchPage(HTMLPage):
                     '/div/h3[has-class("offer-attributes")]/span' +
                     '/span[has-class("offer-area-number")]'
                 ),
-                default=NotAvailable
+                default=NotLoaded
             )
             obj_rooms = CleanDecimal(
                 (
@@ -302,7 +305,7 @@ class SearchPage(HTMLPage):
                     '/span[has-class("offer-rooms")]' +
                     '/span[has-class("offer-rooms-number")]'
                 ),
-                default=NotAvailable
+                default=NotLoaded
             )
             obj_price_per_meter = PricePerMeterFilter()
             obj_cost = CleanDecimal(
@@ -312,12 +315,12 @@ class SearchPage(HTMLPage):
                             offer_details_wrapper +
                             '/div/div/p[@class="offer-price"]/span'
                         ),
-                        default=NotAvailable
+                        default=NotLoaded
                     ),
                     '(.*) [%s%s%s]' % (u'€', u'$', u'£'),
-                    default=NotAvailable
+                    default=NotLoaded
                 ),
-                default=NotAvailable
+                default=NotLoaded
             )
             obj_currency = Currency(
                 offer_details_wrapper + '/div/div/p[has-class("offer-price")]/span'
