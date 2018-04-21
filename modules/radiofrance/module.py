@@ -215,14 +215,14 @@ class RadioFranceModule(Module, CapRadio, CapCollection, CapAudio):
 
     def iter_resources(self, objs, split_path):
         if len(split_path) == 0:
-            for _id, item in sorted(self._RADIOS.iteritems()):
+            for _id, item in sorted(self._RADIOS.items()):
                 if not _id.startswith('fb'):
                     yield Collection([_id], item['title'])
             yield Collection([u'francebleu'], u'France Bleu')
 
         elif split_path[0] == u'francebleu':
             if len(split_path) == 1:
-                for _id, item in sorted(self._RADIOS.iteritems()):
+                for _id, item in sorted(self._RADIOS.items()):
                     if _id.startswith('fb'):
                         yield Collection([_id], item['title'])
 
