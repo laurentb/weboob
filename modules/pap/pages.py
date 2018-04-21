@@ -26,7 +26,7 @@ from weboob.browser.filters.standard import (CleanText, CleanDecimal, Regexp,
                                              Env, BrowserURL, Format, Currency)
 from weboob.browser.filters.html import Attr, Link, XPath, CleanHTML
 from weboob.browser.filters.json import Dict
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.capabilities.housing import (Housing, City, HousingPhoto,
                                          UTILITIES, ENERGY_CLASS, POSTS_TYPES,
                                          ADVERT_TYPES, HOUSE_TYPES)
@@ -70,9 +70,9 @@ class HousingPage(HTMLPage):
                 rooms_bedrooms_area = el.xpath(
                     './/div[@class="clearfix"]/ul[has-class("item-tags")]/li'
                 )
-                self.env['rooms'] = NotAvailable
-                self.env['bedrooms'] = NotAvailable
-                self.env['area'] = NotAvailable
+                self.env['rooms'] = NotLoaded
+                self.env['bedrooms'] = NotLoaded
+                self.env['area'] = NotLoaded
 
                 for item in rooms_bedrooms_area:
                     name = CleanText('.')(item)
@@ -128,9 +128,9 @@ class HousingPage(HTMLPage):
                 if len(date) > 1:
                     return parse_french_date(date[1].strip())
                 else:
-                    return NotAvailable
+                    return NotLoaded
 
-            obj_station = CleanText('./div/p[@class="item-transports"]', default=NotAvailable)
+            obj_station = CleanText('./div/p[@class="item-transports"]', default=NotLoaded)
 
             def obj_location(self):
                 return CleanText('./div/p[@class="item-description"]')(self).split(".")[0]
