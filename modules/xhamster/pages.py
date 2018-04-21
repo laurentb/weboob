@@ -39,10 +39,10 @@ class VideoPage(HTMLPage):
         obj_title = Attr('//meta[@property="og:title"]', 'content')
         obj_id = Env('id')
 
-        obj__props = Eval(json.loads, Regexp(RawText('//script[contains(text(),"XPlayerTPL2")]'), r'XPlayerTPL2\(\n[^\n]+\n(.*),\n'))
+        obj__props = Eval(json.loads, Regexp(RawText('//script[contains(text(),"window.initials =")]'), r'window.initials = (.*);\n'))
 
-        obj_duration = Base(Field('_props'), Dict('duration'))
-        obj_url = Base(Field('_props'), Dict('sources/mp4/0/url'))
+        obj_duration = Base(Field('_props'), Dict('videoModel/duration'))
+        obj_url = Base(Field('_props'), Dict('videoModel/mp4File'))
 
         def obj__page(self):
             return self.page.url
@@ -53,7 +53,7 @@ class SearchPage(HTMLPage):
     @method
     class iter_videos(ListElement):
         next_page = AbsoluteLink('//a[text()="Suivant"]')
-        item_xpath = '//div[@class="video"]'
+        item_xpath = '//div[has-class("video-thumb")]'
 
         class item(ItemElement):
             klass = BaseVideo
@@ -61,10 +61,10 @@ class SearchPage(HTMLPage):
             obj_nsfw = True
             obj_ext = 'mp4'
 
-            obj_title = CleanText('./a/u')
-            obj_duration = Duration(CleanText('./a/b'))
+            obj_title = CleanText('.//a[@class="video-thumb-info__name"]')
+            obj_duration = Duration(CleanText('.//div[@class="thumb-image-container__duration"]'))
             obj__page = AbsoluteLink('./a')
             obj_id = Regexp(obj__page, r'/videos/(.+)')
 
             def obj_thumbnail(self):
-                return Thumbnail(Attr('.//img[@class="thumb"]', 'src')(self))
+                return Thumbnail(Attr('.//img[@class="thumb-image-container__image"]', 'src')(self))
