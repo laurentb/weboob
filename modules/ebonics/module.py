@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2012  Romain Bignon
+# Copyright(C) 2012-2018  Romain Bignon, Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -18,14 +18,27 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
-from weboob.capabilities.translate import CapTranslate, Translation, TranslationFail, LanguageNotSupported
+from weboob.browser import URL, PagesBrowser
+from weboob.browser.filters.html import FormValue
+from weboob.browser.pages import HTMLPage
+from weboob.capabilities.translate import CapTranslate, LanguageNotSupported, Translation, TranslationFail
 from weboob.tools.backend import Module
-from weboob.tools.compat import urlencode
-from weboob.deprecated.browser import StandardBrowser
-
 
 __all__ = ['EbonicsModule']
+
+
+class TranslatorPage(HTMLPage):
+    def get_text(self):
+        return FormValue('//textarea[@name="Ebonics"]')(self.doc)
+
+
+class Ebonics(PagesBrowser):
+    translator = URL('http://joel.net/EBONICS/Translator', TranslatorPage)
+
+    def translate(self, text):
+        return self.open(self.translator.build(),
+                         data={'English': text},
+                         data_encoding='UTF-8').page.get_text()
 
 
 class EbonicsModule(Module, CapTranslate):
@@ -35,26 +48,19 @@ class EbonicsModule(Module, CapTranslate):
     VERSION = '1.4'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'English to Ebonics translation service'
-    BROWSER = StandardBrowser
+    BROWSER = Ebonics
 
     def translate(self, lan_from, lan_to, text):
         if lan_from != 'English' or lan_to != 'Nigger!':
             raise LanguageNotSupported()
 
-        with self.browser:
-            data = {'English': text.encode('utf-8')}
-            doc = self.browser.location('http://joel.net/EBONICS/Translator', urlencode(data))
-            try:
-                text = doc.getroot().cssselect('div.translateform div.bubble1 div.bubblemid')[0].text
-            except IndexError:
-                raise TranslationFail()
-
-        if text is None:
+        translated_text = self.browser.translate(text)
+        if not translated_text:
             raise TranslationFail()
 
         translation = Translation(0)
-        translation.lang_src = unicode(lan_from)
-        translation.lang_dst = unicode(lan_to)
-        translation.text = unicode(text).strip()
+        translation.lang_src = lan_from
+        translation.lang_dst = lan_to
+        translation.text = translated_text
 
         return translation
