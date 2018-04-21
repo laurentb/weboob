@@ -24,7 +24,7 @@ from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import XPath
 from weboob.browser.filters.standard import (CleanText, CleanDecimal, Currency,
                                              DateTime, Env, Format)
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.capabilities.housing import (Housing, HousingPhoto, City,
                                          UTILITIES, ENERGY_CLASS, POSTS_TYPES,
                                          ADVERT_TYPES)
@@ -71,7 +71,7 @@ class SeLogerItem(ItemElement):
         try:
             return next(k for k, v in RET.items() if v == idType)
         except StopIteration:
-            return NotAvailable
+            return NotLoaded
 
     obj_title = Format(
         "%s %s%s - %s",
@@ -81,15 +81,15 @@ class SeLogerItem(ItemElement):
         CleanText('ville'),
     )
     obj_date = DateTime(CleanText('dtFraicheur'))
-    obj_cost = CleanDecimal('prix', default=NotAvailable)
+    obj_cost = CleanDecimal('prix', default=NotLoaded)
 
     obj_currency = Currency('prixUnite')
 
-    obj_area = CleanDecimal('surface', default=NotAvailable)
+    obj_area = CleanDecimal('surface', default=NotLoaded)
     obj_price_per_meter = PricePerMeterFilter()
     obj_text = CleanText('descriptif')
-    obj_rooms = CleanDecimal('nbPiece|nbPieces', default=NotAvailable)
-    obj_bedrooms = CleanDecimal('nbChambre|nbChambres', default=NotAvailable)
+    obj_rooms = CleanDecimal('nbPiece|nbPieces', default=NotLoaded)
+    obj_bedrooms = CleanDecimal('nbChambre|nbChambres', default=NotLoaded)
 
     def obj_location(self):
         location = CleanText('adresse', default="")(self)
@@ -100,7 +100,7 @@ class SeLogerItem(ItemElement):
         cp = CleanText('cp')(self)
         return u'%s %s (%s)' % (location, ville, cp)
 
-    obj_station = CleanText('proximite', default=NotAvailable)
+    obj_station = CleanText('proximite', default=NotLoaded)
     obj_url = CleanText('permaLien')
 
 
