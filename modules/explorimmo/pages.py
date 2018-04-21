@@ -148,7 +148,7 @@ class SearchPage(HTMLPage):
                     except ValueError:
                         script = None
                 if not script:
-                    return NotAvailable
+                    return NotLoaded
 
                 try:
                     return '%s (%s)' % (
@@ -156,14 +156,14 @@ class SearchPage(HTMLPage):
                         script['address']['postalCode']
                     )
                 except (KeyError):
-                    return NotAvailable
+                    return NotLoaded
 
             def obj_cost(self):
                 cost = CleanDecimal(Regexp(CleanText(self.price_selector, default=''),
                                            r'de (.*) à .*',
                                            default=0))(self)
                 if cost == 0:
-                    return CleanDecimal(self.price_selector, default=NotAvailable)(self)
+                    return CleanDecimal(self.price_selector, default=NotLoaded)(self)
                 else:
                     return cost
 
@@ -189,7 +189,7 @@ class SearchPage(HTMLPage):
                     default=None
                 ),
                 replace_dots=True,
-                default=NotAvailable
+                default=NotLoaded
             )
 
             obj_url = Format(
@@ -202,7 +202,7 @@ class SearchPage(HTMLPage):
             def obj_phone(self):
                 phone = CleanText('./div/div/ul/li[has-class("js-clickphone")]',
                                   replace=[('Téléphoner : ', '')],
-                                  default=NotAvailable)(self)
+                                  default=NotLoaded)(self)
 
                 if '...' in phone:
                     return NotLoaded
@@ -234,7 +234,7 @@ class SearchPage(HTMLPage):
                         url = url[url.find("http://", 3):rindex]
                     return [HousingPhoto(url)]
                 else:
-                    return NotAvailable
+                    return NotLoaded
 
 
 class TypeDecimal(Filter):
