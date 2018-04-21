@@ -122,7 +122,7 @@ class RadioPage(HTMLPage):
                 return timedelta(seconds=int(_d))
 
     def get_france_culture_podcasts_url(self):
-        for a in XPath('//a[@class="podcast"]')(self.doc):
+        for a in XPath('//a[has-class("podcast-link-rss")]')(self.doc):
             emission_id = Regexp(CleanText('./@href'),
                                  'http://radiofrance-podcast.net/podcast09/rss_(.*).xml', default=None)(a)
             if emission_id:
