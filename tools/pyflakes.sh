@@ -3,12 +3,12 @@
 
 err=0
 
-PY3MODS=./tools/py3-compatible.modules
+PY3MODS=$(grep -v '^#' ./tools/py3-compatible.modules|tr '\n' '|'|sed 's/|$//')
 
 cd $(dirname $0)/..
 
-MODULE_FILES=$(git ls-files|grep '^modules/.*\.py$')
-MODULE_FILES3=$(printf "%s\n" $MODULE_FILES|grep -F -f $PY3MODS)
+MODULE_FILES=$(git ls-files modules|grep '\.py$')
+MODULE_FILES3=$(printf "%s\n" $MODULE_FILES|grep -E -w "^modules/(${PY3MODS})")
 
 PYFILES=$(git ls-files | grep '^scripts\|\.py$'|grep -v boilerplate_data|grep -v stable_backport_data|grep -v '^modules'|grep -v '^contrib')
 PYFILES3="$(printf "%s\n" $PYFILES | grep -v /deprecated/) $MODULE_FILES3"

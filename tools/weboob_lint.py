@@ -23,7 +23,7 @@ modules_using_deprecated = []
 modules_without_py3 = []
 
 with open(os.path.join(os.path.dirname(__file__), 'py3-compatible.modules')) as p:
-    modules_py3_compatible = [m.strip().strip('/')
+    modules_py3_compatible = [m.strip()
                               for m in p.readlines()
                               if not m.startswith('#')]
 
