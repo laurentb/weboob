@@ -623,10 +623,17 @@ class HTMLPage(Page):
                 text = [text]
             return any(reobj.search(t) for t in text)
 
+        def first_non_empty(context, *nodes_list):
+            for nodes in nodes_list:
+                if nodes:
+                    return nodes
+            return []
+
         ns['has-class'] = has_class
         ns['starts-with'] = starts_with
         ns['ends-with'] = ends_with
         ns['matches'] = matches
+        ns['first-non-empty'] = first_non_empty
 
     def build_doc(self, content):
         """
