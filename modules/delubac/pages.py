@@ -26,6 +26,7 @@ from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.exceptions import ParseError, ActionNeeded
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
+from weboob.tools.compat import basestring
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Field, Format, Date, Filter
 from weboob.browser.filters.html import Link
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
