@@ -44,8 +44,8 @@ from .pages import (
     SavingsPage, TransactionsPage, AdvisorPage, UselessPage,
     CardsPage, LifeInsurancePage, MarketPage, LoansPage, PerimeterPage,
     ChgPerimeterPage, MarketHomePage, FirstVisitPage, BGPIPage,
-    TransferInit, TransferPage, RecipientPage, RecipientListPage, ProfilePage,
-    HistoryPostPage, RecipientMiscPage, DeferredCardsPage, UnavailablePage,
+    TransferInit, TransferPage, RecipientPage, RecipientListPage, SendSMSPage,
+    ProfilePage, HistoryPostPage, RecipientMiscPage, DeferredCardsPage, UnavailablePage,
 )
 
 
@@ -115,6 +115,7 @@ class Cragr(LoginBrowser, StatesMixin):
     recipient_page = URL(r'/stb/collecteNI\?.*fwkaction=Ajouter.*',
                          r'/stb/collecteNI.*&IDENT=LI_VIR_RIB1&VIR_VIR1_FR3_LE=0&T3SEF_MTT_EURO=&T3SEF_MTT_CENT=&VICrt_REFERENCE=$',
                          RecipientPage)
+    send_sms_page = URL(r'/stb/collecteNI\?fwkaid=([\d_]+)&fwkpid=([\d_]+)', SendSMSPage)
 
     unavailable_page = URL(r'/stb/collecteNI\?fwkaid=([\d_]+)&fwkpid=([\d_]+)$', UnavailablePage)
 

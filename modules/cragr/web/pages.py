@@ -1391,7 +1391,7 @@ class RecipientPage(MyLoggedPage, BasePage):
             form['fwkaction'] = 'NouvelleDemandeCodeSMS'
             form['fwkcodeaction'] = 'Executer'
             new_page = form.submit().page
-            assert isinstance(new_page, TransferPage)
+            assert isinstance(new_page, TransferPage) or isinstance(new_page, SendSMSPage)
             return new_page.send_sms()
         else:
             form['fwkaction'] = 'DemandeCodeSMSVerifID'
@@ -1404,6 +1404,24 @@ class RecipientPage(MyLoggedPage, BasePage):
         form['fwkaction'] = 'Confirmer'
         form['fwkcodeaction'] = 'Executer'
         form['code'] = code
+        form.submit()
+
+
+class SendSMSPage(MyLoggedPage, BasePage):
+    IS_HERE_TEXT = 'Authentification par sms - demande'
+
+    def on_load(self):
+        # if the otp is incorrect
+        error_msg = CleanText('//div[has-class("blc-choix-erreur")]//span')(self.doc)
+        if error_msg:
+            raise AddRecipientError(message=error_msg)
+
+    def send_sms(self):
+        # when a code is still pending
+        # resend sms to validate recipient
+        form = self.get_form(name='frm_fwk')
+        form['fwkaction'] = 'DemandeCodeSMSVerifID'
+        form['fwkcodeaction'] = 'Executer'
         form.submit()
 
 
