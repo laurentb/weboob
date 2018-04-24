@@ -225,6 +225,7 @@ class AccountsPage(MyLoggedPage, BasePage):
              u'INV PRO':    Account.TYPE_LOAN,
              u'TRES. PRO':  Account.TYPE_LOAN,
              u'PEA':        Account.TYPE_PEA,
+             u'PEAP':       Account.TYPE_PEA,
              u'DAV PEA':    Account.TYPE_PEA,
              u'CPS':        Account.TYPE_MARKET,
              u'TITR':       Account.TYPE_MARKET,
@@ -651,7 +652,6 @@ class LoansPage(AccountsPage):
                 obj__form = None
 
 
-
 class SavingsPage(AccountsPage):
     @pagination
     @method
@@ -726,7 +726,12 @@ class SavingsPage(AccountsPage):
             def obj__perimeter(self):
                 return self.page.browser.current_perimeter
 
+            def obj__liquidity_url(self):
+                if 'COMPTE ESPECE PE' in CleanText('./td[1]//a/@onmouseover', default=None)(self):
+                    return Link('./td[2]//a', default=None)(self)
+
             obj__form = None
+
 
 class TransactionsPage(MyLoggedPage, BasePage):
     def get_iban_url(self):

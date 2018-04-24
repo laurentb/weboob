@@ -26,7 +26,7 @@ from datetime import date, datetime, timedelta
 
 from weboob.capabilities.bank import (
     Account, AddRecipientStep, AddRecipientError, RecipientInvalidLabel,
-    Recipient, AccountNotFound,
+    Recipient, AccountNotFound, Investment,
 )
 from weboob.capabilities.base import NotLoaded, find_object
 from weboob.capabilities.profile import ProfileMissing
@@ -424,6 +424,13 @@ class Cragr(LoginBrowser, StatesMixin):
 
         if account._perimeter != self.current_perimeter:
             self.go_perimeter(account._perimeter)
+
+        if account.type == Account.TYPE_PEA and account._liquidity_url:
+            liquidity_inv = Investment()
+            liquidity_inv.label = account.label
+            liquidity_inv.code = u'XX-liquidity'
+            liquidity_inv.valuation = account.balance
+            yield liquidity_inv
 
         if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
             new_location = self.moveto_market_website(account)
