@@ -38,9 +38,6 @@ class LoginPage(HTMLPage):
         data['forcePwd'] = False
         data['login'] = username
         data['mem'] = True
-        data['params'] = {}
-        data['params']['return_url'] = 'https://www.sosh.fr/'
-        data['params']['service'] = 'sosh'
         response = self.browser.location('https://login.orange.fr/front/login', json=data, headers=headers)
 
         headers['x-auth-id'] = response.headers['x-auth-id']
@@ -49,8 +46,5 @@ class LoginPage(HTMLPage):
         data = {}
         data['login'] = username
         data['password'] = password
-        data['params'] = {}
-        data['params']['return_url'] = 'https://www.sosh.fr/'
-        data['params']['service'] = 'sosh'
 
         self.browser.location('https://login.orange.fr/front/password', json=data, headers=headers)
