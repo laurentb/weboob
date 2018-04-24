@@ -208,7 +208,7 @@ class RedirectPage(LoggedPage, MyHTMLPage):
             name = to_unicode(name).encode('utf-8')
             value = to_unicode(value).encode('utf-8')
         self.browser.logger.debug('adding cookie %r=%r', name, value)
-        self.browser.session.cookies.set(name, value)
+        self.browser.session.cookies.set(name, value, domain=urlsplit(self.url).hostname)
 
     def on_load(self):
         redirect_url = None
