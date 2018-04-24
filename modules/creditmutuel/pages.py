@@ -42,7 +42,7 @@ from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Profile
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.tools.compat import urlparse, parse_qs, range, unicode
+from weboob.tools.compat import urlparse, parse_qs, urljoin, range, unicode
 from weboob.tools.date import parse_french_date
 from weboob.tools.value import Value
 
@@ -138,6 +138,7 @@ class item_account_generic(ItemElement):
         ('Cc Contrat Personnel',    Account.TYPE_CHECKING),
         ('C/C',                     Account.TYPE_CHECKING),
         ('Start',                   Account.TYPE_CHECKING),
+        ('Comptes courants',        Account.TYPE_CHECKING),
         ('Catip',                   Account.TYPE_DEPOSIT),
         ('Cic Immo',                Account.TYPE_LOAN),
         ('Credit',                  Account.TYPE_LOAN),
@@ -145,11 +146,13 @@ class item_account_generic(ItemElement):
         ('Eco-Prêt',                Account.TYPE_LOAN),
         ('Mcne',                    Account.TYPE_LOAN),
         ('Nouveau Prêt',            Account.TYPE_LOAN),
-        ('Passeport Credit',        Account.TYPE_LOAN),
-        ('Allure Libre',            Account.TYPE_LOAN),
         ('Pret',                    Account.TYPE_LOAN),
         ('Regroupement De Credits', Account.TYPE_LOAN),
         ('Nouveau Pret 0%',         Account.TYPE_LOAN),
+        ('Passeport Credit',        Account.TYPE_REVOLVING_CREDIT),
+        ('Allure Libre',            Account.TYPE_REVOLVING_CREDIT),
+        ('Preference',              Account.TYPE_REVOLVING_CREDIT),
+        ('Plan 4',                  Account.TYPE_REVOLVING_CREDIT),
         ('P.E.A',                   Account.TYPE_PEA),
         ('Pea',                     Account.TYPE_PEA),
         ('Compte Epargne',          Account.TYPE_SAVINGS),
@@ -159,7 +162,6 @@ class item_account_generic(ItemElement):
         ("Plan D'Epargne",          Account.TYPE_SAVINGS),
         ('Tonic Croissance',        Account.TYPE_SAVINGS),
         ('Capital Expansion',       Account.TYPE_SAVINGS),
-        ('Comptes courants',        Account.TYPE_CHECKING),
         ('\xc9pargne',              Account.TYPE_SAVINGS),
         ('Compte Garantie Titres',  Account.TYPE_MARKET),
         ])
@@ -167,6 +169,8 @@ class item_account_generic(ItemElement):
     REVOLVING_LOAN_LABELS = [
         'Passeport Credit',
         'Allure Libre',
+        'Preference',
+        'Plan 4',
     ]
 
     def condition(self):
@@ -196,8 +200,14 @@ class item_account_generic(ItemElement):
     obj_coming = Env('coming')
     obj_balance = Env('balance')
     obj_currency = FrenchTransaction.Currency('./td[2] | ./td[3]')
-    obj__link_id = Link('./td[1]//a')
     obj__card_links = []
+
+    def obj__link_id(self):
+        page = self.page.browser.open(Link('./td[1]//a')(self)).page
+        if page and page.doc.xpath('//div[@class="fg"]/a[contains(@href, "%s")]' % Field('id')(self)):
+            return urljoin(page.url, Link('//div[@class="fg"]/a')(page.doc))
+        return Link('./td[1]//a')(self)
+
     def obj_type(self):
         t = self.Type(Field('label'))(self)
         # sometimes, using the label is not enough to infer the account's type.
@@ -205,6 +215,7 @@ class item_account_generic(ItemElement):
         if t == 0:
             return self.Type(CleanText('./preceding-sibling::tr/th[contains(@class, "rupture eir_tblshowth")][1]'))(self)
         return t
+
     obj__is_inv = False
     obj__is_webid = Env('_is_webid')
 
@@ -400,6 +411,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             load_details = Link('.//a') & AsyncLoad
 
             obj_total_amount = Async('details') & MyDecimal('//main[@id="ei_tpl_content"]/div/div[2]/table/tbody/tr/td[3]')
+
             def obj_used_amount(self):
                 return -Field('balance')(self)
 
@@ -628,7 +640,7 @@ class OperationsPage(LoggedPage, HTMLPage):
                     # hideifscript: Date de valeur XX/XX/XXXX
                     # fd: Avis d'opéré
                     # survey to add other regx
-                    parts = [re.sub('Détail|Date de valeur\s+:\s+\d{2}/\d{2}(/\d{4})?', '',txt.strip()) for txt in el.itertext() if len(txt.strip()) > 0]
+                    parts = [re.sub('Détail|Date de valeur\s+:\s+\d{2}/\d{2}(/\d{4})?', '', txt.strip()) for txt in el.itertext() if len(txt.strip()) > 0]
                     # To simplify categorization of CB, reverse order of parts to separate
                     # location and institution.
                     if parts[0] == u"Cliquer pour déplier ou plier le détail de l'opération":
