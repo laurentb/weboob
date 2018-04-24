@@ -189,14 +189,14 @@ class AMFAmundiPage(HTMLPage):
     CODE_TYPE = Investment.CODE_TYPE_AMF
 
     def get_code(self):
-        return CleanText('//span[contains(., "(C)")]', default=NotAvailable)(self.doc)
+        return Regexp(CleanText('//td[@class="bannerColumn"]//li[contains(., "(C)")]', default=NotAvailable), r'(\d+)')(self.doc)
 
 
 class AMFSGPage(HTMLPage):
     CODE_TYPE = Investment.CODE_TYPE_AMF
 
     def get_code(self):
-        return CleanText('//div[@id="header_code"]', default=NotAvailable)(self.doc)
+        return Regexp(CleanText('//div[@id="header_code"]', default=NotAvailable), r'(\d+)')(self.doc)
 
     def build_doc(self, data):
         if not data.strip():
@@ -267,7 +267,7 @@ class ItemInvestment(ItemElement):
                 if m: # had to put full url to skip redirections.
                     page = page.browser.open('https://www.assetmanagement.hsbc.com/feedRequest?feed_data=gfcFundData&cod=FR&client=FCPE&fId=%s&SH=%s&lId=fr' % m.groups()).page
             elif "consulteroperations" not in self.page.browser.url: # not on history
-                url = Regexp(CleanText('//complete'), r"openUrlFichesFonds\('(.*?)'\)", default=NotAvailable)(page.doc)
+                url = Regexp(CleanText('//complete'), r"openUrlFichesFonds\('(.*?)',true\).*", default=NotAvailable)(page.doc)
 
                 if url is NotAvailable:
                     # redirection to a useless graphplot page with url like /portal/salarie-sg/fichefonds?idFonds=XXX&source=/portal/salarie-sg/monepargne/mesavoirs
@@ -360,7 +360,7 @@ class AccountsPage(LoggedPage, MultiPage):
 
     @method
     class iter_accounts(TableElement):
-        item_xpath = '//div[contains(@id, "Dispositif")]//table/tbody/tr[td[2]]'
+        item_xpath = '//div[contains(@id, "Dispositif")]//table/tbody/tr'
         head_xpath = '//div[contains(@id, "Dispositif")]//table/thead/tr/th'
 
         col_label = [u'My schemes', u'Mes dispositifs']
@@ -368,6 +368,11 @@ class AccountsPage(LoggedPage, MultiPage):
 
         class item(ItemElement):
             klass = Account
+
+            # the account has to have a color correspondig to the graph
+            # if not, it may be a duplicate
+            def condition(self):
+                return self.xpath('.//div[contains(@class, "mesavoirs-carre-couleur") and contains(@style, "background-color:#")]')
 
             obj_id = Env('id')
             obj_label = Env('label')
