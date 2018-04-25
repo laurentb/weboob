@@ -1,11 +1,11 @@
-#!/bin/bash
+#!/bin/sh
 #
 # Examples:
 # pyreverse.sh weboob.backends.aum
 #
 # pyreverse is included in pylint Debian package
 
-function usage() {
+usage() {
     echo "pyreverse.sh <package_name>"
     exit
 }

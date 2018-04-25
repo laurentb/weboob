@@ -1,4 +1,4 @@
-#!/bin/bash -u
+#!/bin/sh -u
 . "$(dirname $0)/common.sh"
 
 err=0

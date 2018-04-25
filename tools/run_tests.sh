@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Mai available environment variables
 #   * RSYNC_TARGET: target on which to rsync the xunit output.
