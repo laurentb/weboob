@@ -64,6 +64,7 @@ class YggtorrentBrowser(LoginBrowser):
         except BrowserHTTPNotFound:
             return
 
+    @need_login
     def get_torrent_file(self, id):
         torrent = self.browser.get_torrent(id)
         if not torrent:
