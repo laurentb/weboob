@@ -78,12 +78,12 @@ def iter_fields(obj):
 
 def to_unicode(text):
     r"""
-    >>> to_unicode('ascii')
-    u'ascii'
-    >>> to_unicode(u'utf\xe9'.encode('UTF-8'))
-    u'utf\xe9'
-    >>> to_unicode(u'unicode')
-    u'unicode'
+    >>> to_unicode('ascii') == u'ascii'
+    True
+    >>> to_unicode(u'utf\xe9'.encode('UTF-8')) == u'utf\xe9'
+    True
+    >>> to_unicode(u'unicode') == u'unicode'
+    True
     """
     if isinstance(text, unicode):
         return text

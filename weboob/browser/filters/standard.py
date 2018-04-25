@@ -262,14 +262,14 @@ class CleanText(Filter):
 
     Then it replaces all symbols given in the ``symbols`` argument.
 
-    >>> CleanText().filter('coucou ')
-    u'coucou'
-    >>> CleanText().filter(u'coucou\xa0coucou')
-    u'coucou coucou'
-    >>> CleanText(newlines=True).filter(u'coucou\\r\\n coucou ')
-    u'coucou coucou'
-    >>> CleanText(newlines=False).filter(u'coucou\\r\\n coucou ')
-    u'coucou\\ncoucou'
+    >>> CleanText().filter('coucou ') == u'coucou'
+    True
+    >>> CleanText().filter(u'coucou\xa0coucou') == u'coucou coucou'
+    True
+    >>> CleanText(newlines=True).filter(u'coucou\\r\\n coucou ') == u'coucou coucou'
+    True
+    >>> CleanText(newlines=False).filter(u'coucou\\r\\n coucou ') == u'coucou\\ncoucou'
+    True
     """
 
     def __init__(self, selector=None, symbols='', replace=[], children=True, newlines=True, normalize='NFC', **kwargs):
@@ -518,17 +518,17 @@ class Regexp(Filter):
 
     >>> from lxml.html import etree
     >>> doc = etree.fromstring('<html><body><p>Date: <span>13/08/1988</span></p></body></html>')
-    >>> Regexp(CleanText('//p'), r'Date: (\d+)/(\d+)/(\d+)', '\\3-\\2-\\1')(doc)
-    u'1988-08-13'
+    >>> Regexp(CleanText('//p'), r'Date: (\d+)/(\d+)/(\d+)', '\\3-\\2-\\1')(doc) == u'1988-08-13'
+    True
 
-    >>> (Regexp(CleanText('//body'), r'(\d+)', nth=1))(doc)
-    u'08'
-    >>> (Regexp(CleanText('//body'), r'(\d+)', nth=-1))(doc)
-    u'1988'
-    >>> (Regexp(CleanText('//body'), r'(\d+)', template='[\\1]', nth='*'))(doc)
-    [u'[13]', u'[08]', u'[1988]']
-    >>> (Regexp(CleanText('//body'), r'Date:.*'))(doc)
-    u'Date: 13/08/1988'
+    >>> (Regexp(CleanText('//body'), r'(\d+)', nth=1))(doc) == u'08'
+    True
+    >>> (Regexp(CleanText('//body'), r'(\d+)', nth=-1))(doc) == u'1988'
+    True
+    >>> (Regexp(CleanText('//body'), r'(\d+)', template='[\\1]', nth='*'))(doc) == [u'[13]', u'[08]', u'[1988]']
+    True
+    >>> (Regexp(CleanText('//body'), r'Date:.*'))(doc) == u'Date: 13/08/1988'
+    True
     >>> (Regexp(CleanText('//body'), r'^(?!Date:).*', default=None))(doc)
     >>>
     """
@@ -837,8 +837,8 @@ class QueryValue(Filter):
     >>> from lxml.html import etree
     >>> from .html import Link
     >>> f = QueryValue(Link('//a'), 'id')
-    >>> f(etree.fromstring('<html><body><a href="http://example.org/view?id=1234"></a></body></html>'))
-    u'1234'
+    >>> f(etree.fromstring('<html><body><a href="http://example.org/view?id=1234"></a></body></html>')) == u'1234'
+    True
     """
     def __init__(self, selector, key, default=_NO_DEFAULT):
         super(QueryValue, self).__init__(selector, default=default)
