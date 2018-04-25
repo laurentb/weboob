@@ -632,7 +632,9 @@ class AsvPage(MarketPage):
 
         class item(Myitem):
             obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True, default=NotAvailable)
-            obj_label = CleanText('.//strong/a')
+
+            def obj_label(self):
+                return CleanText('.//strong/a')(self) or CleanText('.//strong', children=False)(self)
 
 
 class AccbisPage(LoggedPage, HTMLPage):
