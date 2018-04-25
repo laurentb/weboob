@@ -20,6 +20,7 @@
 from __future__ import unicode_literals
 
 from weboob.browser import LoginBrowser, URL, need_login
+from weboob.capabilities.base import find_object
 
 from .pages import LoginPage, LoansPage, RenewPage
 
@@ -52,9 +53,9 @@ class BibliothequesparisBrowser(LoginBrowser):
         return self.page.sub.get_loans()
 
     @need_login
-    def do_renew(self, _id):
-        for b in self.get_loans():
-            if b.id == _id:
-                post = u'{"loans":[%s]}' % b._renew_data
-                self.renew.go(data=post.encode('utf-8'), headers=self.json_headers)
-                break
+    def do_renew(self, id):
+        b = find_object(self.get_loans(), id=id)
+        assert b, 'loan not found'
+        assert b._renew_data, 'book has no data'
+        post = u'{"loans":[%s]}' % b._renew_data
+        self.renew.go(data=post.encode('utf-8'), headers=self.json_headers)

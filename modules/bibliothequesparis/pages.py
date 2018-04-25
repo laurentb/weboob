@@ -75,9 +75,9 @@ class LoansPage(LoggedPage, JsonMixin):
                 obj_name = CleanText('.//h3[has-class("title")]')
                 # warning: date span may also contain "(à rendre bientôt)" along with date
                 obj_date = Date(Regexp(CleanText('.//li[has-class("dateretour")]/span[@class="loan-info-value"]'), r'(\d+/\d+/\d+)'), dayfirst=True)
-                obj_location = CleanText('.//li[has-class("localisation")]/span[@class="loan-info-value"]')
+                obj_location = CleanText('.//li[has-class("localisation")]//span[@class="loan-info-value"]')
                 obj_author = Regexp(CleanText('.//div[@class="loan-custom-result"]//p[@class="template-info"]'), '^(.*?) - ')
-                obj__renew_data = CleanText('.//span[@class="loan-data"]')
+                obj__renew_data = CleanText('.//span[has-class("loan-data")]')
 
 
 class RenewPage(LoggedPage, JsonMixin):
