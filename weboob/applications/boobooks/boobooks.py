@@ -81,3 +81,12 @@ class Boobooks(ReplApplication):
 
         for book in self.do('iter_rented', backends=None):
             self.format(book)
+
+    def do_search(self, pattern):
+        """
+        search PATTERN
+
+        Search books
+        """
+        for book in self.do('search_books', pattern):
+            self.format(book)
