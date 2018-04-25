@@ -35,7 +35,7 @@ if [ -z "${WEBOOB_WORKDIR}" ]; then
     [ -d "${XDG_CONFIG_HOME}/weboob" ] && WEBOOB_WORKDIR="${XDG_CONFIG_HOME}/weboob"
 fi
 [ -z "${TMPDIR}" ] && TMPDIR="/tmp"
-WEBOOB_TMPDIR=$(mktemp -d "${TMPDIR}/weboob_test.XXXXX")
+WEBOOB_TMPDIR=$(mktemp -d "${TMPDIR}/weboob_test.XXXXXX")
 [ -z "${WEBOOB_BACKENDS}" ] && WEBOOB_BACKENDS="${WEBOOB_WORKDIR}/backends"
 [ -z "${WEBOOB_MODULES}" ] && WEBOOB_MODULES="${WEBOOB_DIR}/modules"
 [ -z "${PYTHONPATH}" ] && PYTHONPATH=""

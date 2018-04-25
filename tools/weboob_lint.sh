@@ -9,7 +9,7 @@ set -e
 
 # do not allow undefined variables anymore
 set -u
-WEBOOB_TMPDIR=$(mktemp -d "${TMPDIR}/weboob_lint.XXXXX")
+WEBOOB_TMPDIR=$(mktemp -d "${TMPDIR}/weboob_lint.XXXXXX")
 
 # path to sources
 WEBOOB_DIR=$(cd $(dirname $0)/.. && pwd -P)

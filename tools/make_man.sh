@@ -15,7 +15,7 @@ export ANSI_COLORS_DISABLED=1
 
 # do not allow undefined variables anymore
 set -u
-WEBOOB_TMPDIR=$(mktemp -d "${TMPDIR}/weboob_man.XXXXX")
+WEBOOB_TMPDIR=$(mktemp -d "${TMPDIR}/weboob_man.XXXXXX")
 
 # path to sources
 WEBOOB_DIR=$(cd $(dirname $0)/.. && pwd -P)
