@@ -22,7 +22,7 @@ from __future__ import unicode_literals
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.capabilities.base import find_object
 
-from .pages import LoginPage, LoansPage, RenewPage
+from .pages import LoginPage, LoansPage, RenewPage, SearchPage
 
 
 class BibliothequesparisBrowser(LoginBrowser):
@@ -31,6 +31,7 @@ class BibliothequesparisBrowser(LoginBrowser):
     login = URL(r'/Default/Portal/Recherche/logon.svc/logon', LoginPage)
     bookings = URL('/Default/Portal/Recherche/Search.svc/RenderAccountWebFrame', LoansPage)
     renew = URL(r'/Default/Portal/Services/ILSClient.svc/RenewLoans', RenewPage)
+    search = URL(r'/Default/Portal/Recherche/Search.svc/Search', SearchPage)
 
     json_headers = {
         'Accept': 'application/json, text/javascript',
@@ -59,3 +60,26 @@ class BibliothequesparisBrowser(LoginBrowser):
         assert b._renew_data, 'book has no data'
         post = u'{"loans":[%s]}' % b._renew_data
         self.renew.go(data=post.encode('utf-8'), headers=self.json_headers)
+
+    def search_books(self, pattern):
+        max_page = 0
+        page = 0
+        while page <= max_page:
+            d = {
+                "query": {
+                    "Page": page,
+                    "PageRange": 3,
+                    "QueryString": pattern,
+                    "ResultSize": 50,
+                    "ScenarioCode": "CATALOGUE",
+                    "SearchContext": 0,
+                    "SearchLabel": "",
+                    "Url": "https://bibliotheques.paris.fr/Default/search.aspx?SC=CATALOGUE&QUERY={q}&QUERY_LABEL=#/Search/(query:(Page:{page},PageRange:3,QueryString:{q},ResultSize:50,ScenarioCode:CATALOGUE,SearchContext:0,SearchLabel:''))".format(q=pattern, page=page),
+                }
+            }
+            self.location('/Default/Portal/Recherche/Search.svc/Search', json=d, headers=self.json_headers)
+            for book in self.page.iter_books():
+                yield book
+
+            max_page = self.page.get_max_page()
+            page += 1

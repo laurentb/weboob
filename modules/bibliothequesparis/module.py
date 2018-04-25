@@ -62,5 +62,5 @@ class BibliothequesparisModule(Module, CapBook):
     def renew_book(self, _id):
         return self.browser.do_renew(_id)
 
-    def search_books(self, _string):
-        raise NotImplementedError()
+    def search_books(self, pattern):
+        return self.browser.search_books(pattern)

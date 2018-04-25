@@ -20,9 +20,10 @@
 from __future__ import unicode_literals
 
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
-from weboob.browser.elements import ListElement, ItemElement, method
+from weboob.browser.elements import ListElement, ItemElement, method, DictElement
 from weboob.browser.filters.standard import CleanText, Date, Regexp, Field
 from weboob.browser.filters.html import Link
+from weboob.browser.filters.json import Dict
 from weboob.capabilities.base import UserError
 from weboob.capabilities.library import Book
 
@@ -82,3 +83,20 @@ class LoansPage(LoggedPage, JsonMixin):
 
 class RenewPage(LoggedPage, JsonMixin):
     pass
+
+
+class SearchPage(LoggedPage, JsonPage):
+    @method
+    class iter_books(DictElement):
+        item_xpath = 'd/Results'
+
+        class item(ItemElement):
+            klass = Book
+
+            obj_url = Dict('FriendlyUrl')
+            obj_id = Dict('Resource/RscId')
+            obj_name = Dict('Resource/Ttl')
+            obj_author = Dict('Resource/Crtr', default=None)
+
+    def get_max_page(self):
+        return self.doc['d']['SearchInfo']['PageMax']
