@@ -42,7 +42,7 @@ from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Profile
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.tools.compat import urlparse, parse_qs
+from weboob.tools.compat import urlparse, parse_qs, range, unicode
 from weboob.tools.date import parse_french_date
 from weboob.tools.value import Value
 
@@ -653,7 +653,7 @@ class CardsOpePage(OperationsPage):
     def select_card(self, card_number):
         if CleanText('//select[@id="iso"]', default=None)(self.doc):
             form = self.get_form('//p[has-class("restriction")]')
-            card_number = ' '.join([card_number[j*4:j*4+4] for j in xrange(len(card_number)/4+1)]).strip()
+            card_number = ' '.join([card_number[j*4:j*4+4] for j in range(len(card_number)//4+1)]).strip()
             form['iso'] = Attr('//option[text()="%s"]' % card_number, 'value')(self.doc)
             moi = Attr('//select[@id="moi"]/option[@selected]', 'value', default=None)(self.doc)
             if moi:
