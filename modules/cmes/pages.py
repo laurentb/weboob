@@ -62,6 +62,9 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_label = CleanText('(//table[@class="fiche"]//td)[1]')
 
             def obj_balance(self):
+                if CleanText('//td[text()="Vous n\'avez pas d\'avoirs."]')(self):
+                    return 0
+
                 balance = MyDecimal('//table[@class="fiche"]//td/em')(self)
                 if not balance:
                     balance = MyDecimal('//th[contains(text(), "Montant total")]/em')(self)
