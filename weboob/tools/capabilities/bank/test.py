@@ -134,8 +134,15 @@ class BankStandardTest(object):
     def check_investments(self, account):
         if not isinstance(self.backend, CapBankWealth):
             return
+
+        total = 0
         for inv in self.backend.iter_investment(account):
             self.check_investment(account, inv)
+            if not empty(inv.valuation):
+                total += inv.valuation
+
+        if total:
+            self.assertEqual(total, account.balance, 'investments total (%s) is different than account balance (%s)' % (total, account.balance))
 
     def check_investment(self, account, inv):
         self.assertTrue(inv.label, 'investment %r has no label' % inv)
