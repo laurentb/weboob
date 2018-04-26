@@ -89,6 +89,9 @@ class FCPEInvestmentPage(LoggedPage, HTMLPage):
         col_valuation = re.compile('Evaluation en EUR')
         col_diff_percent = re.compile('\+\/- values latentes')
 
+        def condition(self):
+            return not CleanText('//td[text()="Vous n\'avez pas d\'avoirs."]')(self)
+
         class item(ItemElement):
             klass = Investment
 
