@@ -277,12 +277,7 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
 
     def open_market(self):
         # only for netfinca PEA
-        self.get_form(id='_idJsp0').submit()
-
-    def open_market_next(self):
-        # only for netfinca PEA
-        # can't do it in separate page/on_load because there might be history on this page...
-        self.get_form(id='formToSubmit').submit()
+        self.browser.bourse.go()
 
     def go_action(self, action):
         names = {'investment': "Portefeuille", 'history': "Mouvements"}
@@ -323,6 +318,13 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
 
             def condition(self):
                 return CleanText(TableCell('valuation'))(self)
+
+    def get_liquidity_investment(self, account):
+        inv = Investment()
+        inv.label = u'Liquidités'
+        inv.code = 'XX-liquidity'
+        inv.valuation = account.balance
+        return inv
 
     def more_history(self):
         link = None
@@ -541,3 +543,8 @@ class LifeInsuranceIframe(LoggedPage, HTMLPage):
 class BoursePage(AbstractPage):
     PARENT = 'lcl'
     PARENT_URL = 'bourse'
+
+    def open_market_next(self):
+        # only for netfinca PEA
+        # can't do it in separate page/on_load because there might be history on this page...
+        self.get_form(id='formToSubmit').submit()

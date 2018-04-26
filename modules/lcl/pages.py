@@ -510,6 +510,8 @@ class BoursePage(LoggedPage, HTMLPage):
         else:
             form.submit()
 
+        super(BoursePage, self).on_load()
+
     def open_iframe(self):
         # should be done always (in on_load)?
         for iframe in self.doc.xpath('//iframe[@id="mainIframe"]'):

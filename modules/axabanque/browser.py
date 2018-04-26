@@ -114,7 +114,9 @@ class AXABanque(AXABrowser):
     lifeinsurance_iframe = URL('https://assurance-vie.axabanque.fr/Consultation/SituationContrat.aspx',
                                'https://assurance-vie.axabanque.fr/Consultation/HistoriqueOperations.aspx', LifeInsuranceIframe)
 
-    bourse = URL(r'https://bourse.axabanque.fr/netfinca-titres/servlet/com.netfinca.*', BoursePage)
+    bourse = URL(r'/transactionnel/client/homepage_bourseCAT.html',
+                 r'https://bourse.axabanque.fr/netfinca-titres/servlet/com.netfinca.*',
+                 BoursePage)
 
     # Transfer
     recipients = URL('/transactionnel/client/enregistrer-nouveau-beneficiaire.html', RecipientsPage)
@@ -224,9 +226,9 @@ class AXABanque(AXABrowser):
     @need_login
     def iter_investment(self, account):
         self.transactions.go()
-        if account._acctype == 'bank' and account.type == account.TYPE_PEA:
+        if account._acctype == 'bank' and account.type in (Account.TYPE_PEA, Account.TYPE_MARKET):
             if 'Liquidités' in account.label:
-                return []
+                return [self.page.get_liquidity_investment(account)]
 
             account = self.get_netfinca_account(account)
             self.location(account._market_link)
