@@ -81,6 +81,10 @@ class Bill(Document, Currency):
     finishdate =    DateField('The last day the bill applies to')
     income =        BoolField('Boolean to set if bill is income or invoice', default=False)
 
+    def __init__(self, *args, **kwargs):
+        super(Bill, self).__init__(*args, **kwargs)
+        self.type = u'bill'
+
 
 class Subscription(BaseObject):
     """
