@@ -294,10 +294,11 @@ class Module(object):
         if self._browser is None:
             return
 
-        self.dump_state()
-
-        if hasattr(self.browser, 'deinit'):
-            self.browser.deinit()
+        try:
+            self.dump_state()
+        finally:
+            if hasattr(self.browser, 'deinit'):
+                self.browser.deinit()
 
     _browser = None
 
