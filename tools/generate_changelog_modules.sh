@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Usage: weboob$ tools/generate_changelog_modules.sh TAG "list of hash" [show]
 
 

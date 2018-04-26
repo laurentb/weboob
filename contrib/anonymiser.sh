@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # A special file with the list of words to replace. The format is one word per line, with a tabulation as separation
 # Example:

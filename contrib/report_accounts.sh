@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Rapport des comptes bancaires
 # Liste l'intégralité des comptes dans Boobank, leurs dernières opérations et les opérations à venir
 # et envoie ça par mail si --mail machin@example.tld est spécifié, sinon ça affiche
