@@ -465,7 +465,7 @@ class LCLProBrowser(LCLBrowser):
 
     def __init__(self, *args, **kwargs):
         super(LCLProBrowser, self).__init__(*args, **kwargs)
-        self.session.cookies.set("lclgen","professionnels")
+        self.session.cookies.set("lclgen", "professionnels", domain=urlsplit(self.BASEURL).hostname)
 
 
 class ELCLBrowser(LCLBrowser):
@@ -476,4 +476,4 @@ class ELCLBrowser(LCLBrowser):
     def __init__(self, *args, **kwargs):
         super(ELCLBrowser, self).__init__(*args, **kwargs)
 
-        self.session.cookies.set('lclgen', 'ecl')
+        self.session.cookies.set('lclgen', 'ecl', domain=urlsplit(self.BASEURL).hostname)
