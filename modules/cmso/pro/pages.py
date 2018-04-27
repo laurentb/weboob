@@ -45,6 +45,7 @@ class ChoiceLinkPage(HTMLPage):
         if m:
             self.browser.location(m.group(1))
 
+
 class SubscriptionPage(HTMLPage):
     def on_load(self):
         if u"Vous ne disposez d'aucun contrat sur cet accès." in CleanText(u'.')(self.doc):
@@ -103,7 +104,7 @@ class AccountsPage(CMSOPage):
                     return Account.TYPE_UNKNOWN
 
             obj__history_url = Link('.//a[1]')
-            obj_id = CleanText('.//span[has-class("numero-compte")]') & Regexp(pattern=r'(\d+)', default='')
+            obj_id = CleanText('.//span[has-class("numero-compte")]') & Regexp(pattern=r'(\d{3,}[\w]+)', default='')
             obj_label = CleanText('.//span[has-class("libelle")][1]')
             obj_currency = Currency('//span[has-class("montant")]')
             obj_balance = CleanDecimal('.//span[has-class("montant")]', replace_dots=True)
