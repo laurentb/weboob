@@ -188,7 +188,9 @@ class CmsoProBrowser(LoginBrowser):
 
         # a date_range is a couple of date like '01/03/201831/03/2018' but current month is often missing and we have to rebuild it
         # from first one to get very recent transaction without scrap them from 1st page (reached with GET url)
-        date_range_list = [self._build_next_date_range(date_range_list[0])] + date_range_list
+        if len(date_range_list):
+            date_range_list = [self._build_next_date_range(date_range_list[0])] + date_range_list
+
 
         for date_range in date_range_list:
             date_guesser = LinearDateGuesser(datetime.datetime.strptime(date_range[10:], "%d/%m/%Y"))
