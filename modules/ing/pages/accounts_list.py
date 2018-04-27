@@ -22,16 +22,17 @@ from datetime import date, timedelta
 import datetime
 import re
 
-from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities.bank import Account, Investment, Loan
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.profile import Person
-from weboob.browser.pages import HTMLPage, LoggedPage
+from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage
 from weboob.browser.elements import ListElement, TableElement, ItemElement, method, DataError
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Eval, Filter, Field, MultiFilter, Date,
     Lower, Async, AsyncLoad, Format, Env,
     Regexp,
 )
+from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import Attr, Link, TableCell
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
@@ -70,7 +71,8 @@ class AddType(Filter):
              u'Direct Vie': Account.TYPE_LIFE_INSURANCE,
              u'Assurance Vie': Account.TYPE_LIFE_INSURANCE,
              u'Crédit Immobilier': Account.TYPE_LOAN,
-            }
+             u'Prêt Personnel': Account.TYPE_LOAN,
+             }
 
     def filter(self, label):
         for key, acc_type in self.types.items():
@@ -165,18 +167,37 @@ class AccountsList(LoggedPage, HTMLPage):
             klass = Account
 
             obj_currency = u'EUR'
-            obj_label = CleanText('span[@class="title"]')
+            obj_label = CleanText('./span[@class="title"]')
             obj_id = AddPref(Field('_id'), Field('label'))
             obj_type = AddType(Field('label'))
             obj_coming = NotAvailable
             obj__jid = Attr('//input[@name="javax.faces.ViewState"]', 'value')
 
             def obj_balance(self):
-                balance = CleanDecimal('span[@class="solde"]/label', replace_dots=True)(self)
+                balance = CleanDecimal('./span[@class="solde"]/label', replace_dots=True)(self)
                 return -abs(balance) if Field('type')(self) == Account.TYPE_LOAN else balance
 
             def obj__id(self):
-                return CleanText('span[@class="account-number"]')(self) or CleanText('span[@class="life-insurance-application"]')(self)
+                return CleanText('./span[@class="account-number"]')(self) or CleanText('./span[@class="life-insurance-application"]')(self)
+
+    @method
+    class get_detailed_loans(ListElement):
+        item_xpath = '//div[@class="mainclic"]'
+
+        class item(ItemElement):
+            klass = Loan
+
+            obj_currency = u'EUR'
+            obj_label = CleanText('./span[@class="title"]')
+            obj_id = AddPref(Field('_id'), Field('label'))
+            obj_type = AddType(Field('label'))
+            obj_coming = NotAvailable
+            obj__jid = Attr('//input[@name="javax.faces.ViewState"]', 'value')
+            obj__id = CleanText('./span[@class="account-number"]')
+
+            def obj_balance(self):
+                balance = CleanDecimal('./span[@class="solde"]/label', replace_dots=True)(self)
+                return -abs(balance)
 
     class generic_transactions(ListElement):
         class item(ItemElement):
@@ -266,6 +287,24 @@ class IbanPage(LoggedPage, HTMLPage):
         if not iban or 'null' in iban:
             return NotAvailable
         return iban
+
+
+class LoanTokenPage(LoggedPage, HTMLPage):
+    def on_load(self):
+        form = self.get_form()
+        form.submit()
+
+
+class LoanDetailPage(LoggedPage, JsonPage):
+    def getdetails(self, loan):
+        loan.total_amount = CleanDecimal(Dict('amount'))(self.doc)
+        loan.maturity_date = Date(Dict('loanEndDate'))(self.doc)
+        loan.duration = Dict('loanDuration')(self.doc)
+        loan.rate = CleanDecimal(Dict('variableInterestRate'))(self.doc) / 100
+        loan.nb_payments_left = Dict('remainingMonth')(self.doc)
+        loan.last_payment_date = Date(Dict('lastRefundDate'))(self.doc)
+        loan.next_payment_date = Date(Dict('nextRefundDate'))(self.doc)
+        loan.next_payment_amount = CleanDecimal(Dict('monthlyRefund'))(self.doc)
 
 
 class TitreDetails(LoggedPage, HTMLPage):

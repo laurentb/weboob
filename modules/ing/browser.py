@@ -30,10 +30,12 @@ from weboob.capabilities.bank import Account, AccountNotFound
 from weboob.capabilities.base import find_object
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
-from .pages import AccountsList, LoginPage, NetissimaPage, TitrePage, TitreHistory,\
-    TransferPage, BillsPage, StopPage, TitreDetails, TitreValuePage, ASVHistory,\
-    ASVInvest, DetailFondsPage, IbanPage, ActionNeededPage, ReturnPage, ProfilePage
-
+from .pages import (
+    AccountsList, LoginPage, NetissimaPage, TitrePage,
+    TitreHistory, TransferPage, BillsPage, StopPage, TitreDetails,
+    TitreValuePage, ASVHistory, ASVInvest, DetailFondsPage, IbanPage,
+    ActionNeededPage, ReturnPage, ProfilePage, LoanTokenPage, LoanDetailPage,
+)
 
 __all__ = ['IngBrowser']
 
@@ -54,6 +56,9 @@ def start_with_main_site(f):
         elif browser.url and browser.url.startswith('https://ingdirectvie.ingdirect.fr/'):
             browser.lifeback.go()
             browser.where = 'start'
+
+        elif browser.url and browser.url.startswith('https://subscribe.ingdirect.fr/'):
+            browser.return_from_loan_site()
 
         return f(*args, **kwargs)
     return wrapper
@@ -78,6 +83,8 @@ class IngBrowser(LoginBrowser):
                        '/protected/pages/asv/contract/(?P<asvpage>.*).jsf', AccountsList)
     titredetails = URL('/general\?command=display.*', TitreDetails)
     ibanpage = URL('/protected/pages/common/rib/initialRib.jsf', IbanPage)
+    loantokenpage = URL('general\?command=goToConsumerLoanCommand&redirectUrl=account-details', LoanTokenPage)
+    loandetailpage = URL('https://subscribe.ingdirect.fr/consumerloan/consumerloan-v1/consumer/details', LoanDetailPage)
     # CapBank-Market
     netissima = URL('/data/asv/fiches-fonds/fonds-netissima.html', NetissimaPage)
     starttitre = URL('/general\?command=goToAccount&zone=COMPTE', TitrePage)
@@ -155,8 +162,37 @@ class IngBrowser(LoginBrowser):
 
             if get_iban and acc.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
                 self.get_market_balance(acc)
-
             yield acc
+
+        for loan in self.iter_detailed_loans():
+            yield loan
+
+    @need_login
+    @start_with_main_site
+    def iter_detailed_loans(self):
+        self.accountspage.go()
+        self.where = "start"
+
+        for loan in self.page.get_detailed_loans():
+            data = {'AJAXREQUEST': '_viewRoot',
+                    'index': 'index',
+                    'autoScroll': '',
+                    'javax.faces.ViewState': loan._jid,
+                    'accountNumber': loan._id,
+                    'index:goToConsumerLoanUI': 'index:goToConsumerLoanUI'}
+
+            self.accountspage.go(data=data)
+            self.loantokenpage.go(data=data)
+            self.loandetailpage.go().getdetails(loan)
+
+            yield loan
+            self.return_from_loan_site()
+
+    def return_from_loan_site(self):
+        data = {'context': '{"originatingApplication":"SECUREUI"}',
+                    'targetSystem': 'INTERNET'}
+        self.location('https://subscribe.ingdirect.fr/consumerloan/consumerloan-v1/sso/exit', data=data)
+        self.location('https://secure.ingdirect.fr/', data={'token': self.response.text})
 
     def get_account(self, _id):
         return find_object(self.get_accounts_list(get_iban=False), id=_id, error=AccountNotFound)
@@ -338,7 +374,7 @@ class IngBrowser(LoginBrowser):
         self.go_investments(account)
 
         if self.where == u'titre':
-            if self.cache["investments_data"].get(account.id) == None:
+            if self.cache["investments_data"].get(account.id) is None:
                 self.titrerealtime.go()
             for inv in self.page.iter_investments(account):
                 yield inv

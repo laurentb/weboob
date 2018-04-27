@@ -21,8 +21,10 @@ import re
 from datetime import timedelta
 
 from weboob.capabilities.bank import CapBankWealth, CapBankTransfer, Account, AccountNotFound, RecipientNotFound
-from weboob.capabilities.bill import CapDocument, Bill, Subscription,\
+from weboob.capabilities.bill import (
+    CapDocument, Bill, Subscription,
     SubscriptionNotFound, DocumentNotFound
+)
 from weboob.capabilities.profile import CapProfile
 from weboob.capabilities.base import find_object, NotAvailable
 from weboob.tools.backend import Module, BackendConfig
