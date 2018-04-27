@@ -67,7 +67,7 @@ class GroupamaBrowser(LoginBrowser):
                 if self.av_account_form.is_here():
                     self.page.av_account_form()
                     account.balance, account.currency = self.page.get_av_balance()
-                self.location(self.BASEURL)
+                self.accounts.stay_or_go()
             if account.balance or not balance:
                 accounts.append(account)
         return accounts
