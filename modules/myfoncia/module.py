@@ -21,6 +21,7 @@ from __future__ import unicode_literals
 
 
 from weboob.tools.backend import Module, BackendConfig
+from weboob.capabilities.base import find_object
 from weboob.capabilities.bill import (CapDocument, Bill, DocumentNotFound,
                                       Subscription)
 from weboob.tools.value import Value, ValueBackendPassword
@@ -65,14 +66,11 @@ class MyFonciaModule(Module, CapDocument):
         return self.browser.get_documents(subscription_id)
 
     def get_document(self, bill):
-        try:
-            return next(
-                document
-                for document in self.iter_documents(bill.split("#")[0])
-                if document.id == bill
-            )
-        except StopIteration:
-            raise DocumentNotFound
+        return find_object(
+            self.iter_documents(bill.split("#")[0]),
+            id=bill,
+            error=DocumentNotFound
+        )
 
     def download_document(self, bill):
         if not isinstance(bill, Bill):
