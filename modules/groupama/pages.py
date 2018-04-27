@@ -27,7 +27,7 @@ from decimal import Decimal
 
 from weboob.browser.pages import HTMLPage, pagination, LoggedPage, FormNotFound
 from weboob.browser.elements import method, TableElement, ItemElement
-from weboob.browser.filters.standard import Env, CleanDecimal, CleanText, Date, Regexp, Eval, Field
+from weboob.browser.filters.standard import Env, CleanDecimal, CleanText, Date, Regexp, Eval
 from weboob.browser.filters.html import Attr, Link, TableCell
 from weboob.browser.filters.javascript import JSVar
 from weboob.capabilities.bank import Account, Investment
@@ -190,12 +190,12 @@ class AVAccountPage(LoggedPage, HTMLPage):
             klass = Investment
 
             def condition(self):
-                return Field('quantity')(self) is not NotAvailable
+                return CleanText('./th')(self) != 'Total épargne constituée'
 
             obj_label = CleanText('./th')
             obj_quantity = CleanDecimal(TableCell('quantity'), default=NotAvailable)
-            obj_unitvalue = CleanDecimal(TableCell('unitvalue'))
-            obj_valuation = CleanDecimal(TableCell('valuation'))
+            obj_unitvalue = CleanDecimal(TableCell('unitvalue'), default=NotAvailable)
+            obj_valuation = CleanDecimal(TableCell('valuation'), default=NotAvailable)
             obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal(TableCell('portfolio_share')))
             obj_code = Regexp(Link('./th/a'), r'isin=(\w+)|/(\w+)\.pdf')
             obj_code = Regexp(Link('./th/a', default=''), r'isin=(\w+)|/(\w+)\.pdf', default=NotAvailable)
