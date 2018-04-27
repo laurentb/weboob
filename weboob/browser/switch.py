@@ -71,8 +71,11 @@ class SwitchingBrowser(object):
     def set_browser(self, name):
         klass = self.BROWSERS[name]
         obj = klass(*self._browser_args, **self._browser_kwargs)
-        if self.KEEP_SESSION and self._browser is not None:
-            obj.session = self._browser.session
+        if self._browser is not None:
+            if self.KEEP_SESSION:
+                obj.session = self._browser.session
+            else:
+                self._browser.session.close()
 
         self._browser = obj
         self._browser.logger.info('using %r browser', name)
