@@ -151,6 +151,9 @@ class AccountsPage(GenericLandingPage):
             def obj_id(self):
                 # Investment account and main account can have the same id
                 # so we had account type in case of Investment to prevent conflict
+                # and also the same problem with scpi accounts.
+                if "Scpi" in Field('label')(self):
+                    return CleanText(replace=[('.', ''), (' ', '')]).filter(self.el.xpath('./td[2]')) + ".SCPI"
                 if Field('type')(self) == Account.TYPE_MARKET:
                     return CleanText(replace=[('.', ''), (' ', '')]).filter(self.el.xpath('./td[2]')) + ".INVEST"
                 return CleanText(replace=[('.', ''), (' ', '')]).filter(self.el.xpath('./td[2]'))
@@ -324,5 +327,3 @@ class OtherPage(HTMLPage):
         for msg, exc in self.ERROR_CLASSES:
             for tag in self.doc.xpath('//p[@class="debit"]//strong[text()[contains(.,$msg)]]', msg=msg):
                 raise exc(CleanText('.')(tag))
-
-
