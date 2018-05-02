@@ -649,6 +649,9 @@ class LoansPage(AccountsPage):
                     if Field('available_amount')(self):
                         return Account.TYPE_LOAN
 
+                def condition(self):
+                    return 'Billet financier' not in Field('label')(self)
+
                 obj__form = None
 
 
