@@ -118,6 +118,7 @@ class S2eBrowser(LoginBrowser, StatesMixin):
         if account.id not in self.cache['pockets']:
             self.iter_investment(account)
             # Select account
+            self.accounts.stay_or_go(slug=self.SLUG)
             self.page.get_investment_pages(account.id, pocket=True)
             pockets = [p for p in self.page.iter_pocket(accid=account.id)]
             # Get page with quantity
