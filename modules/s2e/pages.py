@@ -258,7 +258,6 @@ class ItemInvestment(ItemElement):
             form = self.page.get_form('//div[@id="operation"]//form')
             form['idFonds'] = inv_id.split('-', 1)[-1]
             form['org.richfaces.ajax.component'] = form[link_id] = link_id
-
             page = self.page.browser.open(form['javax.faces.encodedURL'], data=dict(form)).page
 
             if "hsbc.fr" in self.page.browser.BASEURL: # special space for HSBC
@@ -271,7 +270,8 @@ class ItemInvestment(ItemElement):
 
                 if url is NotAvailable:
                     # redirection to a useless graphplot page with url like /portal/salarie-sg/fichefonds?idFonds=XXX&source=/portal/salarie-sg/monepargne/mesavoirs
-                    assert CleanText('//redirect/@url')(page.doc)
+                    # or on bnp, look for plot display function in a script
+                    assert CleanText('//redirect/@url')(page.doc) or CleanText('//script[contains(text(), "afficherGraphique")]')(page.doc)
                     self.env['code'] = NotAvailable
                     self.env['code_type'] = NotAvailable
                     return
