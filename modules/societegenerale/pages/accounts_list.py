@@ -62,6 +62,7 @@ class AccountsList(LoggedPage, BasePage):
              u'PEL':                 Account.TYPE_SAVINGS,
              u'Plan Epargne':        Account.TYPE_SAVINGS,
              u'Prêt':                Account.TYPE_LOAN,
+             u'Avance Patrimoniale': Account.TYPE_LOAN,
             }
 
     def get_list(self):
@@ -311,12 +312,12 @@ class AccountHistory(LoggedPage, BasePage):
 
 
 class Invest(object):
-    def create_investement(self, cells):
+    def create_investment(self, cells):
         inv = Investment()
-        inv.quantity = MyDecimal('.', replace_dots=True, default=NotAvailable)(cells[self.COL_QUANTITY])
-        inv.unitvalue = MyDecimal('.', replace_dots=True, default=NotAvailable)(cells[self.COL_UNITVALUE])
+        inv.quantity = MyDecimal('.')(cells[self.COL_QUANTITY])
+        inv.unitvalue = MyDecimal('.')(cells[self.COL_UNITVALUE])
         inv.unitprice = NotAvailable
-        inv.valuation = MyDecimal('.', replace_dots=True, default=NotAvailable)(cells[self.COL_VALUATION])
+        inv.valuation = MyDecimal('.')(cells[self.COL_VALUATION])
         inv.diff = NotAvailable
 
         link = cells[self.COL_LABEL].xpath('a[contains(@href, "CDCVAL=")]')[0]
@@ -443,6 +444,9 @@ class LifeInsurance(LoggedPage, BasePage):
         except IndexError:
             return super(LifeInsurance, self).get_error()
 
+    def is_link(self):
+        return Link('//a[@href="asvcns20a.html"]', default=NotAvailable)(self.doc)
+
 
 class LifeInsuranceInvest(LifeInsurance, Invest):
     COL_LABEL = 0
@@ -453,10 +457,22 @@ class LifeInsuranceInvest(LifeInsurance, Invest):
     def iter_investment(self):
         for tr in self.doc.xpath("//table/tbody/tr[starts-with(@class, 'net2g_asv_tableau_ligne_')]"):
             cells = tr.findall('td')
+            inv = self.create_investment(cells)
+            inv.label = unicode(cells[self.COL_LABEL].xpath('a/span')[0].text.strip())
+            inv.description = unicode(cells[self.COL_LABEL].xpath('a//div/b[last()]')[0].tail)
 
-            inv = self.create_investement(cells)
-            inv.label = cells[self.COL_LABEL].xpath('a/span')[0].text.strip()
-            inv.description = cells[self.COL_LABEL].xpath('a//div/b[last()]')[0].tail
+            yield inv
+
+
+class LifeInsuranceInvest2(LifeInsuranceInvest):
+    COL_VALUATION = 1
+
+    def iter_investment(self):
+        for tr in self.doc.xpath("//table/tbody/tr[starts-with(@class, 'net2g_asv_tableau_ligne_')]"):
+            cells = tr.findall('td')
+            inv = Investment()
+            inv.label = unicode(cells[self.COL_LABEL].text.strip())
+            inv.valuation = MyDecimal('.')(cells[self.COL_VALUATION])
 
             yield inv
 

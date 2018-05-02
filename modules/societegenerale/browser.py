@@ -25,8 +25,8 @@ from weboob.browser.exceptions import BrowserHTTPNotFound
 
 from .pages.accounts_list import (
     AccountsList, AccountHistory, CardsList, LifeInsurance,
-    LifeInsuranceHistory, LifeInsuranceInvest, Market, ListRibPage, AdvisorPage,
-    HTMLProfilePage, XMLProfilePage, LoansPage,
+    LifeInsuranceHistory, LifeInsuranceInvest, LifeInsuranceInvest2, Market,
+    ListRibPage, AdvisorPage, HTMLProfilePage, XMLProfilePage, LoansPage,
 )
 from .pages.transfer import RecipientsPage, TransferPage, AddRecipientPage, RecipientJson
 from .pages.login import LoginPage, BadLoginPage, ReinitPasswordPage, ActionNeededPage
@@ -51,6 +51,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     market = URL('/brs/cct/comti20.html', Market)
     life_insurance = URL('/asv/asvcns10.html', '/asv/AVI/asvcns10a.html', '/brs/fisc/fisca10a.html', LifeInsurance)
     life_insurance_invest = URL('/asv/AVI/asvcns20a.html', LifeInsuranceInvest)
+    life_insurance_invest_2 = URL('/asv/PRV/asvcns10priv.html', LifeInsuranceInvest2)
     life_insurance_history = URL('/asv/AVI/asvcns2(?P<n>[0-9])c.html', LifeInsuranceHistory)
     list_rib = URL('/restitution/imp_listeRib.html', ListRibPage)
     advisor = URL('/com/contacts.html', AdvisorPage)
@@ -181,8 +182,11 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
             self.location(account._link_id)
 
         elif account.type == Account.TYPE_LIFE_INSURANCE:
+            # Life Insurance type whose investments require scraping at '/asv/PRV/asvcns10priv.html':
             self.location(account._link_id)
-            self.location('/asv/AVI/asvcns20a.html')
+            if self.page.is_link():
+                # Other Life Insurance pages:
+                self.location('/asv/AVI/asvcns20a.html')
 
         else:
             self.logger.warning('This account is not supported')
