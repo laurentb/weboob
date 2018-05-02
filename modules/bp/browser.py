@@ -17,14 +17,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+import os
 from datetime import datetime, timedelta
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.browsers import StatesMixin
+from weboob.browser.exceptions import ServerError
 from weboob.capabilities.base import NotAvailable
 from weboob.exceptions import BrowserIncorrectPassword, BrowserBanned, NoAccountsException, BrowserUnavailable
-from weboob.tools.compat import urlsplit, parse_qsl
+from weboob.tools.compat import urlsplit, urlunsplit, parse_qsl
 
 from .pages import (
     LoginPage, Initident, CheckPassword, repositionnerCheminCourant, BadLoginPage, AccountDesactivate,
@@ -189,7 +190,17 @@ class BPBrowser(LoginBrowser, StatesMixin):
     def do_login(self):
         self.location(self.login_url)
 
-        self.page.login(self.username, self.password)
+        try:
+            self.page.login(self.username, self.password)
+        except ServerError as err:
+            if "/../" not in err.response.url:
+                raise
+            # this shit website includes ".." in an absolute url in the Location header
+            # requests passes it verbatim, and the site can't handle it
+            self.logger.debug('site has "/../" in their url, fixing url manually')
+            parts = list(urlsplit(err.response.url))
+            parts[2] = os.path.abspath(parts[2])
+            self.location(urlunsplit(parts))
 
         if self.redirect_page.is_here() and self.page.check_for_perso():
             raise BrowserIncorrectPassword(u"L'identifiant utilisé est celui d'un compte de Particuliers.")
