@@ -25,6 +25,7 @@ from contextlib import contextmanager
 from copy import deepcopy
 import os
 import hashlib
+from tempfile import NamedTemporaryFile
 import time
 
 try:
@@ -447,8 +448,9 @@ class SeleniumBrowser(object):
         # TODO some browsers don't need headless
         # TODO handle different proxy setting?
         options.set_headless(self.HEADLESS)
+
         if self.DRIVER is webdriver.Firefox:
-            if self.responses_dirname:
+            if self.responses_dirname and not os.path.isdir(self.responses_dirname):
                 os.makedirs(self.responses_dirname)
 
             options.profile = DirFirefoxProfile(self.responses_dirname)
@@ -458,7 +460,14 @@ class SeleniumBrowser(object):
         elif self.DRIVER is webdriver.Chrome:
             self.driver = self.DRIVER(options=options, desired_capabilities=capa)
         elif self.DRIVER is webdriver.PhantomJS:
-            self.driver = self.DRIVER(desired_capabilities=capa)
+            if self.responses_dirname:
+                if not os.path.isdir(self.responses_dirname):
+                    os.makedirs(self.responses_dirname)
+                log_path = os.path.join(self.responses_dirname, 'selenium.log')
+            else:
+                log_path = NamedTemporaryFile(prefix='weboob_selenium_', suffix='.log', delete=False).name
+
+            self.driver = self.DRIVER(desired_capabilities=capa, service_log_path=log_path)
         else:
             raise NotImplementedError()
 
