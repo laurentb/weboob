@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import division
+from __future__ import unicode_literals
 
 from base64 import b64decode
 from collections import OrderedDict
@@ -763,8 +764,12 @@ class MyRecipient(ItemElement):
 
 class TransferErrorPage(object):
     def on_load(self):
+        warning_recent_add_recipient = CleanText('//div[h2[text()="Information"]]/p[contains(text(), "Il ne pourra pas être crédité avant")]')(self.doc)
         error = CleanText('//span[@id="MM_LblMessagePopinError"]/p | //div[h2[contains(text(), "Erreur de saisie")]]/p[1] | //span[@class="error"]/strong')(self.doc)
-        if error:
+
+        if warning_recent_add_recipient:
+            raise TransferBankError(message=warning_recent_add_recipient)
+        elif error:
             raise TransferBankError(message=error)
 
 
