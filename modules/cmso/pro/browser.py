@@ -25,13 +25,13 @@ import re
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import Account
-from weboob.exceptions import BrowserHTTPError, BrowserIncorrectPassword
+from weboob.exceptions import BrowserHTTPError, BrowserIncorrectPassword, ActionNeeded
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import ServerError
 from weboob.tools.date import LinearDateGuesser
 
 from .pages import (
-    LoginPage, AccountsPage, HistoryPage, ChoiceLinkPage, SubscriptionPage, InvestmentPage,
+    LoginPage, PasswordCreationPage, AccountsPage, HistoryPage, ChoiceLinkPage, SubscriptionPage, InvestmentPage,
     InvestmentAccountPage, UselessPage, TokenPage, SSODomiPage, AuthCheckUser, SecurityCheckUser,
 )
 
@@ -45,6 +45,7 @@ class CmsoProBrowser(LoginBrowser):
     subscription = URL('/domiweb/prive/espacesegment/selectionnerAbonnement/0-selectionnerAbonnement.act', SubscriptionPage)
     accounts = URL('/domiweb/prive/professionnel/situationGlobaleProfessionnel/0-situationGlobaleProfessionnel.act', AccountsPage)
     history = URL('/domiweb/prive/professionnel/situationGlobaleProfessionnel/1-situationGlobaleProfessionnel.act', HistoryPage)
+    password_creation = URL('/domiweb/prive/particulier/modificationMotDePasse/0-creationMotDePasse.act', PasswordCreationPage)
     useless = URL('/domiweb/prive/particulier/modificationMotDePasse/0-expirationMotDePasse.act', UselessPage)
 
     investment = URL('/domiweb/prive/particulier/portefeuilleSituation/0-situationPortefeuille.act', InvestmentPage)
@@ -81,6 +82,10 @@ class CmsoProBrowser(LoginBrowser):
             # user didn't change his password for 6 months and website ask us if we want to change it
             # just skip it by calling this url
             self.location('/domiweb/accueil.jsp', method='POST')
+
+        if self.password_creation.is_here():
+            # user got a temporary password and never changed it, website ask to set a new password before grant access
+            raise ActionNeeded(self.page.get_message())
 
         self.fetch_areas()
 

@@ -23,8 +23,7 @@ import re
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.pages import HTMLPage, JsonPage
 from weboob.browser.elements import ListElement, ItemElement, TableElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, DateGuesser, Env, Field, Filter, Regexp, \
-                                            Currency
+from weboob.browser.filters.standard import CleanText, CleanDecimal, DateGuesser, Env, Field, Filter, Regexp, Currency
 from weboob.browser.filters.html import Link, Attr, TableCell
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
@@ -36,6 +35,12 @@ __all__ = ['LoginPage']
 
 class UselessPage(HTMLPage):
     pass
+
+
+class PasswordCreationPage(HTMLPage):
+    def get_message(self):
+        xpath = '//div[@class="bienvenueMdp"]/following-sibling::div'
+        return '%s%s' % (CleanText(xpath + '/strong')(self.doc), CleanText(xpath, children=False)(self.doc))
 
 
 class ChoiceLinkPage(HTMLPage):
