@@ -572,6 +572,9 @@ class ProfilePage(LoggedPage, JsonPage):
     class get_profile(ItemElement):
         klass = Profile
 
-        obj_id = Dict('identifiantExterne')
+        def obj_id(self):
+            return (Dict('identifiantExterne',default=None)(self)
+                or Dict('login')(self))
+
         obj_name = Format('%s %s', Dict('firstName'), Dict('lastName'))
         obj_email = Dict('email', default=NotAvailable) # can be unavailable on pro website for example
