@@ -112,7 +112,7 @@ class HomePage(LoggedPage, HTMLPage):
     @method
     class iter_saving_accounts(ListElement):  # livrets
         item_xpath = (
-            '//div[div[(contains(./h2, "Livret Carrefour") or contains(./h2, "Epargne PASS")) and contains(./p, "Numéro de compte")]]'
+            '//div[div[(contains(./h2, "Livret Carrefour") or contains(./h2, "Epargne")) and contains(./p, "Numéro de compte")]]'
         )
 
         class item(item_account_generic):

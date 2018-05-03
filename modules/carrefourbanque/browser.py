@@ -41,6 +41,7 @@ class CarrefourBanque(LoginBrowser):
     saving_history = URL(
         r'/espace-client/compte-livret/solde-dernieres-operations\?(.*)',
         r'/espace-client/epargne-pass/historique-des-operations\?(.*)',
+        r'/espace-client/epargne-libre/historique-des-operations\?(.*)',
         SavingHistoryPage
     )
     card_history = URL(r'/espace-client/carte-credit/solde-dernieres-operations\?(.*)', CardHistoryPage)
