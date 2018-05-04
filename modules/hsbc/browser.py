@@ -26,7 +26,7 @@ from itertools import groupby
 
 from weboob.tools.date import LinearDateGuesser
 from weboob.capabilities.bank import Account, AccountNotFound
-from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction, sorted_transactions
 from weboob.tools.compat import parse_qsl, urlparse
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
@@ -308,8 +308,15 @@ class HSBC(LoginBrowser):
                 self.location(url, params=params)
                 if self.cbPage.is_here():
                     history.extend(self.page.get_history(date_guesser=guesser))
+
+            for tr in history:
+                if tr.type == tr.TYPE_UNKNOWN:
+                    tr.type = tr.TYPE_DEFERRED_CARD
+
             history.extend(self.get_monthly_transactions(history))
-            return [tr for tr in history if (coming and tr.date > date.today()) or (not coming and tr.date <= date.today())]
+            history = [tr for tr in history if (coming and tr.date > date.today()) or (not coming and tr.date <= date.today())]
+            history = sorted_transactions(history)
+            return history
         elif not coming:
             return self._get_history()
         else:
