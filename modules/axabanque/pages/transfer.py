@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 import re
 import string
@@ -25,9 +26,16 @@ from PIL import Image, ImageFilter
 from datetime import date
 
 from weboob.browser.pages import HTMLPage, LoggedPage
-from weboob.browser.filters.standard import CleanText, Date, Regexp, CleanDecimal, Currency
-from weboob.capabilities.bank import Recipient, Transfer, TransferError
+from weboob.browser.elements import method, TableElement, ItemElement
+from weboob.browser.filters.html import TableCell
+from weboob.browser.filters.standard import (
+    CleanText, Date, Regexp, CleanDecimal, Currency, Format, Field,
+)
+from weboob.capabilities.bank import (
+    Recipient, Transfer, TransferError, AddRecipientError, RecipientNotFound,
+)
 from weboob.tools.captcha.virtkeyboard import SimpleVirtualKeyboard
+from weboob.capabilities.base import find_object, NotAvailable
 
 
 def remove_useless_form_params(form):
@@ -69,6 +77,137 @@ class RecipientsPage(LoggedPage, HTMLPage):
 
         for iban in self.doc.xpath(ibans_xpath):
             yield CleanText('.', replace=[(' ', '')])(iban)
+
+    @method
+    class iter_recipients(TableElement):
+        item_xpath = '//table[@id="saisieBeneficiaireSepa:idBeneficiaireSepaListe:' \
+                     'table-beneficiaires"]//tbody/tr'
+        head_xpath = '//table[@id="saisieBeneficiaireSepa:idBeneficiaireSepaListe:' \
+                     'table-beneficiaires"]//th'
+
+        col_id = 'IBAN'
+        col__rcpt_name = 'Nom du bénéficiaire'
+        col__acc_name = 'Nom du compte'
+
+        class item(ItemElement):
+            klass = Recipient
+
+            obj_id = CleanText(TableCell('id'), replace=[(' ', '')])
+            obj_iban = Field('id')
+            obj_label = Format('%s - %s', CleanText(TableCell('_acc_name')), CleanText(TableCell('_rcpt_name')))
+            obj_category = 'EXTERNE'
+            obj_enabled_at = date.today()
+            obj_currency = 'EUR'
+            obj_bank_name = NotAvailable
+
+    def go_add_new_recipient_page(self):
+        add_new_recipient_btn_id = CleanText('//input[@class="btn_creer"]/@id')(self.doc)
+
+        form = self.get_form(id='saisieBeneficiaireSepa')
+        form = remove_useless_form_params(form)
+        form[add_new_recipient_btn_id] = ''
+        form.submit()
+
+    def get_rcpt_after_sms(self, recipient):
+        return find_object(self.iter_recipients(), iban=recipient.iban, error=RecipientNotFound)
+
+
+class RecipientConfirmationPage(LoggedPage, HTMLPage):
+    def on_load(self):
+        errors_msg = (
+            CleanText('//div[@class="anomalies"]//p[img]')(self.doc),
+            CleanText('//div[@class="error" and contains(@style, "block")]')(self.doc)
+        )
+
+        if self.doc.xpath('//input[@class="erreur_champs"]'):
+            raise AddRecipientError(message="Le code entré est incorrect.")
+
+        for error_msg in errors_msg:
+            if error_msg:
+                raise AddRecipientError(message=error_msg)
+
+    def continue_new_recipient(self):
+        continue_new_recipient_btn_id = CleanText('//input[@class="btn_continuer"]/@id')(self.doc)
+
+        form = self.get_form(id='saisieBeneficiaireSepa')
+        form = remove_useless_form_params(form)
+        form[continue_new_recipient_btn_id] = ''
+        form.submit()
+
+    def send_code(self, code):
+        confirm_btn_id = CleanText('//div[@id="idBoutonValiderSaisie"]/a[contains(@class, "btn_valider")]/@id')(self.doc)
+
+        form = self.get_form(id='saisieBeneficiaireSepa')
+        form = remove_useless_form_params(form)
+
+        form[':cq_csrf_token'] = 'undefined'
+        form['saisieBeneficiaireSepa:_idcl'] = confirm_btn_id
+        form['saisieBeneficiaireSepa:idBeneficiaireSepaGestion:codeBeneficiaire'] = code
+        form.submit()
+
+    def is_add_recipient_confirmation(self):
+        return self.doc.xpath('//table[@id="idConfirmation"]//p[contains(., "Votre bénéficiaire est en cours de création automatique")]')
+
+
+class AddRecipientPage(LoggedPage, HTMLPage):
+    is_here = '//table[@id="tab_SaisieBenef"]'
+
+    def set_new_recipient_iban(self, rcpt_iban):
+        bank_field_disabled_id = CleanText('//input[@class="banqueFieldDisabled"]/@id')(self.doc)
+
+        form = self.get_form(id='saisieBeneficiaireSepa')
+        form = remove_useless_form_params(form)
+
+        form[bank_field_disabled_id] = 'find_object,'
+        form['ibanContenuZone2'] = form['ibanContenuZone2Hidden'] = rcpt_iban[2:4]
+
+        # fill iban part
+        _iban_rcpt_part = 4
+        for i in range(3,10):
+            form_key = 'ibanContenuZone{}Hidden'.format(i)
+            form[form_key] = rcpt_iban[_iban_rcpt_part: _iban_rcpt_part+4]
+            if form[form_key]:
+                form['ibanContenuZone{}'.format(i)] = form[form_key]
+            _iban_rcpt_part += 4
+
+        form.pop('ibanContenuZone1')
+        form['saisieBeneficiaireSepa:idBeneficiaireSepaGestion:paysIbanSelectionne'] = rcpt_iban[0:2]
+        form.submit()
+
+    def set_new_recipient_label(self, rcpt_label):
+        bank_field_disabled_id = self.doc.xpath('//input[@class="banqueFieldDisabled"]')
+        continue_btn_id = CleanText('//input[@class="btn_continuer_sepa"]/@id')(self.doc)
+
+        form = self.get_form(id='saisieBeneficiaireSepa')
+        form = remove_useless_form_params(form)
+
+        form[CleanText('./@id')(bank_field_disabled_id[0])] = CleanText('./@value')(bank_field_disabled_id[0])
+        form[continue_btn_id] = ''
+        form['intituleCompte'] = rcpt_label
+        form['nomTitulaire'] = rcpt_label
+
+        remove_form_keys = (
+            'bicContenuZone',
+            'ibanContenuZone1',
+            'ibanContenuZone2',
+            'ibanContenuZone3',
+            'ibanContenuZone4',
+            'ibanContenuZone5',
+            'ibanContenuZone6',
+            'ibanContenuZone7',
+            'ibanContenuZone8',
+            'ibanContenuZone9',
+            'saisieBeneficiaireSepa:idBeneficiaireSepaGestion:boutonValiderActifIban',
+            'saisieBeneficiaireSepa:idBeneficiaireSepaGestion:boutonValiderInactifIban',
+            'saisieBeneficiaireSepa:idBeneficiaireSepaGestion:paysIbanSelectionne'
+        )
+
+        for form_key in remove_form_keys:
+            if form_key in form:
+                form.pop(form_key)
+
+        # this send sms to user
+        form.submit()
 
 
 class RegisterTransferPage(LoggedPage, HTMLPage):
@@ -115,7 +254,7 @@ class RegisterTransferPage(LoggedPage, HTMLPage):
             rcpt.iban = CleanText('./@value')(recipient)
             rcpt.id = rcpt.iban
             rcpt.enabled_at = date.today()
-            rcpt.category = u'INTERNE'
+            rcpt.category = 'INTERNE'
 
             yield rcpt
 

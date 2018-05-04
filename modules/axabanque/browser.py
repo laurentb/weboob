@@ -22,11 +22,13 @@ from __future__ import unicode_literals
 from datetime import date
 import re
 
-from weboob.browser import LoginBrowser, URL, need_login
+from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.browser.exceptions import ClientError
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bill import Subscription
+from weboob.capabilities.bank import Account, Transaction, AddRecipientStep, Recipient
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
+from weboob.tools.value import Value
 
 from .pages.login import (
     KeyboardPage, LoginPage, ChangepasswordPage, PredisconnectedPage, DeniedPage,
@@ -38,11 +40,10 @@ from .pages.bank import (
 )
 from .pages.wealth import AccountsPage as WealthAccountsPage, InvestmentPage, HistoryPage
 from .pages.transfer import (
-    RecipientsPage, ValidateTransferPage, RegisterTransferPage,
-    ConfirmTransferPage,
+    RecipientsPage, AddRecipientPage, ValidateTransferPage, RegisterTransferPage,
+    ConfirmTransferPage, RecipientConfirmationPage,
 )
 from .pages.document import DocumentsPage, DownloadPage
-from weboob.capabilities.bank import Account, Transaction
 
 
 class AXABrowser(LoginBrowser):
@@ -86,7 +87,7 @@ class AXABrowser(LoginBrowser):
         self.location('https://espaceclient.axa.fr/')
 
 
-class AXABanque(AXABrowser):
+class AXABanque(AXABrowser, StatesMixin):
     BASEURL = 'https://www.axabanque.fr/'
 
     # Bank
@@ -121,6 +122,8 @@ class AXABanque(AXABrowser):
 
     # Transfer
     recipients = URL('/transactionnel/client/enregistrer-nouveau-beneficiaire.html', RecipientsPage)
+    add_recipient = URL('/webapp/axabanque/jsp/beneficiaireSepa/saisieBeneficiaireSepaOTP.faces', AddRecipientPage)
+    recipient_confirmation_page = URL('/webapp/axabanque/jsp/beneficiaireSepa/saisieBeneficiaireSepaOTP.faces', RecipientConfirmationPage)
     validate_transfer = URL('/webapp/axabanque/jsp/virementSepa/saisieVirementSepa.faces', ValidateTransferPage)
     register_transfer = URL('/transactionnel/client/virement.html',
                             'webapp/axabanque/jsp/virementSepa/saisieVirementSepa.faces',
@@ -349,8 +352,45 @@ class AXABanque(AXABrowser):
 
             for recipient in self.page.get_recipients():
                 if recipient.iban in seen:
-                    recipient.category = u'EXTERNE'
+                    recipient.category = 'EXTERNE'
                 yield recipient
+
+    def copy_recipient_obj(self, recipient):
+        rcpt = Recipient()
+        rcpt.id = recipient.iban
+        rcpt.iban = recipient.iban
+        rcpt.label = recipient.label
+        rcpt.category = 'EXTERNE'
+        rcpt.enabled_at = date.today()
+        rcpt.currency = 'EUR'
+        return rcpt
+
+    @need_login
+    def new_recipient(self, recipient, **params):
+        if 'code' in params:
+            self.page.send_code(params['code'])
+            return self.rcpt_after_sms(recipient)
+
+        self.recipients.go()
+        self.page.go_add_new_recipient_page()
+
+        if self.recipient_confirmation_page.is_here():
+            # Confirm that user want to add recipient
+            self.page.continue_new_recipient()
+
+        assert self.add_recipient.is_here()
+        self.page.set_new_recipient_iban(recipient.iban)
+        rcpt = self.copy_recipient_obj(recipient)
+        # This send the sms to user
+        self.page.set_new_recipient_label(recipient.label)
+
+        raise AddRecipientStep(rcpt, Value('code', label='Veuillez entrer le code reçu par SMS.'))
+
+    @need_login
+    def rcpt_after_sms(self, recipient):
+        assert self.page.is_add_recipient_confirmation()
+        self.recipients.go()
+        return self.page.get_rcpt_after_sms(recipient)
 
     @need_login
     def init_transfer(self, account, recipient, amount, reason, exec_date):

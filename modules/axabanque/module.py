@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bank import CapBankWealth, CapBankTransfer, AccountNotFound, RecipientNotFound
+from weboob.capabilities.bank import CapBankWealth, CapBankTransferAddRecipient, AccountNotFound, RecipientNotFound
 from weboob.capabilities.base import find_object, NotAvailable
 from weboob.capabilities.bank import Account, TransferInvalidLabel
 from weboob.capabilities.bill import CapDocument, Subscription, Document, DocumentNotFound, SubscriptionNotFound
@@ -31,7 +31,7 @@ from .browser import AXABanque, AXAAssurance
 __all__ = ['AXABanqueModule']
 
 
-class AXABanqueModule(Module, CapBankWealth, CapBankTransfer, CapDocument):
+class AXABanqueModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapDocument):
     NAME = 'axabanque'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -69,6 +69,10 @@ class AXABanqueModule(Module, CapBankWealth, CapBankTransfer, CapDocument):
         # Only 11 first character are required to iter recipient
         origin_account = origin_account[:11]
         return self.browser.iter_recipients(origin_account)
+
+    def new_recipient(self, recipient, **params):
+        recipient.label = recipient.label[:24].upper()
+        return self.browser.new_recipient(recipient, **params)
 
     def init_transfer(self, transfer, **params):
         if not transfer.label:
