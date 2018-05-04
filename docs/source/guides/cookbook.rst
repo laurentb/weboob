@@ -36,7 +36,7 @@ POST JSON
 
 Data must be encoded as a string::
 
-    browser.location('/quux', data=json.dumps({'foo': 'bar'}), headers={'Content-Type': 'application/json'})
+    browser.location('/quux', json={'foo': 'bar'})
 
 Will do::
 
@@ -45,9 +45,9 @@ Will do::
 
     {"foo": "bar"}
 
-..
-    Alternatively::
-    browser.location('/quux', json={'foo': 'bar'})
+Equivalent to::
+
+    browser.location('/quux', data=json.dumps({'foo': 'bar'}), headers={'Content-Type': 'application/json'})
 
 
 Add custom headers for one request
@@ -190,6 +190,62 @@ Some sites do not even do that and may use Javascript to follow a link. The ``on
     class PortalPage(HTMLPage):
         def on_load(self):
             self.browser.location(Link('//a[@id="target"]')(self.doc))
+
+Parse data from an HTML table
+-----------------------------
+
+This example code isn't very semantic and could fail silently if columns are changed::
+
+    class MyPage(HTMLPage):
+        @method
+        class iter_stuff(ListElement):
+            item_xpath = '//table/tr[pos() > 1]' # data rows
+
+            class item(ItemElement):
+                klass = Stuff
+
+                obj_id = CleanText('./td[1]')
+                obj_foo = CleanText('./td[2]')
+
+It can be improved by using the column labels::
+
+    class MyPage(HTMLPage):
+        @method
+        class iter_stuff(ListElement):
+            head_xpath = '//table/tr/th' # where to look for column titles
+
+            # these are the column titles from the site
+            col_id = 'Identifier'  # Exact match
+            col_foo = re.compile(r'^Foo value for today \(.*\)')  # regexp for finer matching
+            col_bar = ['Bar', 'Barr']  # Multiple exact matches
+
+            item_xpath = '//table/tr[pos() > 1]' # data rows
+
+            class item(ItemElement):
+                klass = Stuff
+
+                obj_id = CleanText(TableCell('id'))
+                obj_foo = CleanText(TableCell('foo'))
+
+Handle multiple tables with similar headers
+-------------------------------------------
+
+Sometimes, you might encounter a page with multiple tables to parse. The columns are titled the same, but they aren't at the same column index.
+So, it's required to restart :class:`weboob.browser.elements.TableElement` column processing for each table. It's possible to encapsulate elements in other elements::
+
+    class MultiPage(HTMLPage):
+        @method
+        class iter_stuff(ListElement):
+            item_xpath = '//table'
+
+            class one_table(TableElement):
+                head_xpath = './thead/tr/th'
+                item_xpath = './tbody/tr'
+
+                col_foo = 'Foo'
+
+                class item(ItemElement):
+                    obj_foo = CleanText(TableCell('foo'))
 
 Handle pagination
 -----------------
