@@ -19,6 +19,7 @@
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
+from weboob.tools.compat import basestring
 from .pages import LoginPage, HomePage, AccountPage, LastPaymentsPage, PaymentsPage, PaymentDetailsPage, Raw
 
 __all__ = ['AmeliBrowser']

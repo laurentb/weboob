@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from datetime import datetime
 import re
@@ -25,6 +26,7 @@ from decimal import Decimal
 from weboob.browser.pages import HTMLPage, RawPage, LoggedPage
 from weboob.capabilities.bill import Subscription, Detail, Bill
 from weboob.browser.filters.standard import CleanText, Regexp
+from weboob.tools.compat import urljoin
 
 
 # Ugly array to avoid the use of french locale
@@ -72,9 +74,9 @@ class AccountPage(AmeliBasePage):
         number = re.sub('[^\d]+', '', CleanText('//span[@class="blocNumSecu"]', replace=[(' ','')])(self.doc))
         sub = Subscription(number)
         sub._id = number
-        sub.label = unicode(fullname)
+        sub.label = fullname
         firstname = CleanText('//span[@class="prenom-titulaire"]')(self.doc)
-        sub.subscriber = unicode(firstname)
+        sub.subscriber = firstname
         yield sub
 
 
@@ -109,7 +111,7 @@ class LastPaymentsPage(LoggedPage, AmeliBasePage):
             bil.format = u'pdf'
             bil.type = u'bill'
             bil.label = u'' + date.strftime("%Y%m%d")
-            bil.url = unicode('/PortailAS/PDFServletReleveMensuel.dopdf?PDF.moisRecherche='+date.strftime("%m%Y"))
+            bil.url = urljoin(self.url, '/PortailAS/PDFServletReleveMensuel.dopdf?PDF.moisRecherche=%s' % date.strftime("%m%Y"))
             yield bil
 
     def get_document(self, bill):
@@ -144,7 +146,7 @@ class PaymentDetailsPage(AmeliBasePage):
                     if len(tds) == 4:
                         date_str = Regexp(pattern=r'.*<br/>(\d+/\d+/\d+)\).*').filter(tds[0].text)
                         det.id = id + "." + str(line)
-                        det.label = unicode(tds[0].xpath('.//span')[0].text.strip())
+                        det.label = tds[0].xpath('.//span')[0].text.strip()
 
                         jours = tds[1].text
                         if jours is None:
@@ -162,7 +164,7 @@ class PaymentDetailsPage(AmeliBasePage):
                             det.infos = u''
                             det.datetime = last_date
                         else:
-                            det.infos = date_str + u' (' + unicode(re.sub('[^\d,-]+', '', jours)) + u'j) * ' + unicode(re.sub('[^\d,-]+', '', montant)) + u'€'
+                            det.infos = '%s (%sj) * %s€' % (date_str, re.sub(r'[^\d,-]+', '', jours), re.sub(r'[^\d,-]+', '', montant))
                             det.datetime = datetime.strptime(date_str.split(' ')[3], '%d/%m/%Y').date()
                             last_date = det.datetime
                         det.price = Decimal(re.sub('[^\d,-]+', '', price).replace(',', '.'))
@@ -170,7 +172,7 @@ class PaymentDetailsPage(AmeliBasePage):
                     if len(tds) == 5:
                         date_str = Regexp(pattern=r'\w*(\d{2})/(\d{2})/(\d{4}).*', template='\\1/\\2/\\3', default="").filter("".join(tds[0].itertext()))
                         det.id = id + "." + str(line)
-                        det.label = bene + u' - ' + unicode(tds[0].xpath('.//span')[0].text.strip())
+                        det.label = '%s - %s' % (bene, tds[0].xpath('.//span')[0].text.strip())
 
                         paye = tds[1].text
                         if paye is None:
@@ -196,7 +198,7 @@ class PaymentDetailsPage(AmeliBasePage):
                             det.infos = u''
                             det.datetime = last_date
                         else:
-                            det.infos = u' Payé ' + unicode(re.sub('[^\d,-]+', '', paye)) + u'€ / Base ' + unicode(re.sub('[^\d,-]+', '', base)) + u'€ / Taux ' + unicode(re.sub('[^\d,-]+', '', taux)) + '%'
+                            det.infos = u' Payé %s€ / Base %s€ / Taux %s%%' % (re.sub(r'[^\d,-]+', '', paye), re.sub(r'[^\d,-]+', '', base), re.sub('[^\d,-]+', '', taux))
                             det.datetime = datetime.strptime(date_str, '%d/%m/%Y').date()
                             last_date = det.datetime
                         det.price = Decimal(re.sub('[^\d,-]+', '', price).replace(',', '.'))
