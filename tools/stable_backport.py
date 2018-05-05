@@ -169,6 +169,9 @@ class StableBackport(object):
              }
 
     def main(self):
+        with log('Removing previous compat files'):
+            system('git rm -q "modules/*/compat/*.py"')
+
         with log('Copying last version of modules from devel'):
             system('git checkout --theirs %s modules' % DEVEL_BRANCH)
 
