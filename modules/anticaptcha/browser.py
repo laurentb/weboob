@@ -42,7 +42,7 @@ class AnticaptchaBrowser(APIBrowser):
             "clientKey": self.apikey,
             "task": {
                 "type": "ImageToTextTask",
-                "body": b64encode(data),
+                "body": b64encode(data).decode('ascii'),
                 "phrase": False,
                 "case": False,
                 "numeric": False,

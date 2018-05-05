@@ -45,9 +45,9 @@ class DeathbycaptchaBrowser(DomainBrowser):
             raise UnsolvableCaptcha()
 
     def create_job(self, data):
-        data64 = 'base64:%s' % b64encode(data)
+        data64 = b'base64:%s' % b64encode(data)
         files = {
-            'captchafile': ('captcha.jpg', BytesIO(data64.encode('ascii'))),
+            'captchafile': ('captcha.jpg', BytesIO(data64)),
         }
 
         post = OrderedDict([
