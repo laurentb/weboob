@@ -80,8 +80,8 @@ class AccountPage(AmeliBasePage):
 
 class PaymentsPage(AmeliBasePage):
     def get_last_payments_url(self):
-        dateDebut = self.doc.xpath('//input[@id="paiements_1dateDebut"]/@value')[0];
-        dateFin = self.doc.xpath('//input[@id="paiements_1dateFin"]/@value')[0];
+        dateDebut = self.doc.xpath('//input[@id="paiements_1dateDebut"]/@data-mindate')[0]
+        dateFin = self.doc.xpath('//input[@id="paiements_1dateFin"]/@data-maxdate')[0]
         url = "/PortailAS/paiements.do?actionEvt=afficherPaiementsComplementaires&DateDebut=" + dateDebut + "&DateFin=" + dateFin + "&Beneficiaire=tout_selectionner&afficherReleves=false&afficherIJ=false&afficherInva=false&afficherRentes=false&afficherRS=false&indexPaiement=&idNotif="
         return url
 
