@@ -29,13 +29,14 @@ from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.compat import unicode
 
 from .base import BaseObject, Field, StringField, DecimalField, IntField, \
-                  UserError, Currency, NotAvailable
+                  UserError, Currency, NotAvailable, EnumField, IntEnum
 from .date import DateField
 from .collection import CapCollection
 
 
 __all__ = [
     'CapBank', 'BaseAccount', 'Account', 'Loan', 'Transaction', 'AccountNotFound',
+    'AccountType',
     'CapBankWealth', 'Investment', 'CapBankPockets', 'Pocket',
     'CapBankTransfer', 'Transfer', 'Recipient',
     'TransferError', 'TransferBankError', 'TransferInvalidAmount', 'TransferInsufficientFunds',
@@ -189,52 +190,74 @@ class Recipient(BaseAccount):
     iban =           StringField('International Bank Account Number')
 
 
+class AccountType(IntEnum):
+    UNKNOWN          = 0
+    CHECKING         = 1
+    "Transaction, everyday transactions"
+    SAVINGS          = 2
+    "Savings/Deposit, can be used for every banking"
+    DEPOSIT          = 3
+    "Term of Fixed Deposit, has time/amount constraints"
+    LOAN             = 4
+    "Loan account"
+    MARKET           = 5
+    "Stock market or other variable investments"
+    JOINT            = 6
+    "Joint account"
+    CARD             = 7
+    "Card account"
+    LIFE_INSURANCE   = 8
+    "Life insurances"
+    PEE              = 9
+    "Employee savings PEE"
+    PERCO            = 10
+    "Employee savings PERCO"
+    ARTICLE_83       = 11
+    "Article 83"
+    RSP              = 12
+    "Employee savings RSP"
+    PEA              = 13
+    "Share savings"
+    CAPITALISATION   = 14
+    "Life Insurance capitalisation"
+    PERP             = 15
+    "Retirement savings"
+    MADELIN          = 16
+    "Complementary retirement savings"
+    MORTGAGE         = 17
+    "Mortgage"
+    CONSUMER_CREDIT  = 18
+    "Consumer credit"
+    REVOLVING_CREDIT = 19
+    "Revolving credit"
+
+
 class Account(BaseAccount):
     """
     Bank account.
     """
-    TYPE_UNKNOWN          = 0
-    TYPE_CHECKING         = 1
-    "Transaction, everyday transactions"
-    TYPE_SAVINGS          = 2
-    "Savings/Deposit, can be used for every banking"
-    TYPE_DEPOSIT          = 3
-    "Term of Fixed Deposit, has time/amount constraints"
-    TYPE_LOAN             = 4
-    "Loan account"
-    TYPE_MARKET           = 5
-    "Stock market or other variable investments"
-    TYPE_JOINT            = 6
-    "Joint account"
-    TYPE_CARD             = 7
-    "Card account"
-    TYPE_LIFE_INSURANCE   = 8
-    "Life insurances"
-    TYPE_PEE              = 9
-    "Employee savings PEE"
-    TYPE_PERCO            = 10
-    "Employee savings PERCO"
-    TYPE_ARTICLE_83       = 11
-    "Article 83"
-    TYPE_RSP              = 12
-    "Employee savings RSP"
-    TYPE_PEA              = 13
-    "Share savings"
-    TYPE_CAPITALISATION   = 14
-    "Life Insurance capitalisation"
-    TYPE_PERP             = 15
-    "Retirement savings"
-    TYPE_MADELIN          = 16
-    "Complementary retirement savings"
-    TYPE_MORTGAGE         = 17
-    "Mortgage"
-    TYPE_CONSUMER_CREDIT  = 18
-    "Consumer credit"
-    TYPE_REVOLVING_CREDIT = 19
-    "Revolving credit"
+    TYPE_UNKNOWN          = AccountType.UNKNOWN
+    TYPE_CHECKING         = AccountType.CHECKING
+    TYPE_SAVINGS          = AccountType.SAVINGS
+    TYPE_DEPOSIT          = AccountType.DEPOSIT
+    TYPE_LOAN             = AccountType.LOAN
+    TYPE_MARKET           = AccountType.MARKET
+    TYPE_JOINT            = AccountType.JOINT
+    TYPE_CARD             = AccountType.CARD
+    TYPE_LIFE_INSURANCE   = AccountType.LIFE_INSURANCE
+    TYPE_PEE              = AccountType.PEE
+    TYPE_PERCO            = AccountType.PERCO
+    TYPE_ARTICLE_83       = AccountType.ARTICLE_83
+    TYPE_RSP              = AccountType.RSP
+    TYPE_PEA              = AccountType.PEA
+    TYPE_CAPITALISATION   = AccountType.CAPITALISATION
+    TYPE_PERP             = AccountType.PERP
+    TYPE_MADELIN          = AccountType.MADELIN
+    TYPE_MORTGAGE         = AccountType.MORTGAGE
+    TYPE_CONSUMER_CREDIT  = AccountType.CONSUMER_CREDIT
+    TYPE_REVOLVING_CREDIT = AccountType.REVOLVING_CREDIT
 
-
-    type =      IntField('Type of account', default=TYPE_UNKNOWN)
+    type =      EnumField('Type of account', AccountType, default=TYPE_UNKNOWN)
     balance =   DecimalField('Balance on this bank account')
     coming =    DecimalField('Sum of coming movements')
     iban =      StringField('International Bank Account Number', mandatory=False)
@@ -289,28 +312,44 @@ class Loan(Account):
     next_payment_date = DateField('Date of the next payment')
 
 
+class TransactionType(IntEnum):
+    UNKNOWN       = 0
+    TRANSFER      = 1
+    ORDER         = 2
+    CHECK         = 3
+    DEPOSIT       = 4
+    PAYBACK       = 5
+    WITHDRAWAL    = 6
+    CARD          = 7
+    LOAN_PAYMENT  = 8
+    BANK          = 9
+    CASH_DEPOSIT  = 10
+    CARD_SUMMARY  = 11
+    DEFERRED_CARD = 12
+
+
 class Transaction(BaseObject):
     """
     Bank transaction.
     """
-    TYPE_UNKNOWN       = 0
-    TYPE_TRANSFER      = 1
-    TYPE_ORDER         = 2
-    TYPE_CHECK         = 3
-    TYPE_DEPOSIT       = 4
-    TYPE_PAYBACK       = 5
-    TYPE_WITHDRAWAL    = 6
-    TYPE_CARD          = 7
-    TYPE_LOAN_PAYMENT  = 8
-    TYPE_BANK          = 9
-    TYPE_CASH_DEPOSIT  = 10
-    TYPE_CARD_SUMMARY  = 11
-    TYPE_DEFERRED_CARD = 12
+    TYPE_UNKNOWN       = TransactionType.UNKNOWN
+    TYPE_TRANSFER      = TransactionType.TRANSFER
+    TYPE_ORDER         = TransactionType.ORDER
+    TYPE_CHECK         = TransactionType.CHECK
+    TYPE_DEPOSIT       = TransactionType.DEPOSIT
+    TYPE_PAYBACK       = TransactionType.PAYBACK
+    TYPE_WITHDRAWAL    = TransactionType.WITHDRAWAL
+    TYPE_CARD          = TransactionType.CARD
+    TYPE_LOAN_PAYMENT  = TransactionType.LOAN_PAYMENT
+    TYPE_BANK          = TransactionType.BANK
+    TYPE_CASH_DEPOSIT  = TransactionType.CASH_DEPOSIT
+    TYPE_CARD_SUMMARY  = TransactionType.CARD_SUMMARY
+    TYPE_DEFERRED_CARD = TransactionType.DEFERRED_CARD
 
     date =      DateField('Debit date on the bank statement')
     rdate =     DateField('Real date, when the payment has been made; usually extracted from the label or from credit card info')
     vdate =     DateField('Value date, or accounting date; usually for professional accounts')
-    type =      IntField('Type of transaction, use TYPE_* constants', default=TYPE_UNKNOWN)
+    type =      EnumField('Type of transaction, use TYPE_* constants', TransactionType, default=TYPE_UNKNOWN)
     raw =       StringField('Raw label of the transaction')
     category =  StringField('Category of the transaction')
     label =     StringField('Pretty label')
@@ -397,31 +436,49 @@ class Investment(BaseObject):
         return '<Investment label=%r code=%r valuation=%r>' % (self.label, self.code, self.valuation)
 
 
+class PocketCondition(IntEnum):
+    UNKNOWN                    = 0
+    DATE                       = 1
+    AVAILABLE                  = 2
+    RETIREMENT                 = 3
+    WEDDING                    = 4
+    DEATH                      = 5
+    INDEBTEDNESS               = 6
+    DIVORCE                    = 7
+    DISABILITY                 = 8
+    BUSINESS_CREATION          = 9
+    BREACH_EMPLOYMENT_CONTRACT = 10
+    UNLOCKING_EXCEPTIONAL      = 11
+    THIRD_CHILD                = 12
+    EXPIRATION_UNEMPLOYMENT    = 13
+    PURCHASE_APARTMENT         = 14
+
+
 class Pocket(BaseObject):
     """
     Pocket
     """
-    CONDITION_UNKNOWN                    = 0
-    CONDITION_DATE                       = 1
-    CONDITION_AVAILABLE                  = 2
-    CONDITION_RETIREMENT                 = 3
-    CONDITION_WEDDING                    = 4
-    CONDITION_DEATH                      = 5
-    CONDITION_INDEBTEDNESS               = 6
-    CONDITION_DIVORCE                    = 7
-    CONDITION_DISABILITY                 = 8
-    CONDITION_BUSINESS_CREATION          = 9
-    CONDITION_BREACH_EMPLOYMENT_CONTRACT = 10
-    CONDITION_UNLOCKING_EXCEPTIONAL      = 11
-    CONDITION_THIRD_CHILD                = 12
-    CONDITION_EXPIRATION_UNEMPLOYMENT    = 13
-    CONDITION_PURCHASE_APARTMENT         = 14
+    CONDITION_UNKNOWN                    = PocketCondition.UNKNOWN
+    CONDITION_DATE                       = PocketCondition.DATE
+    CONDITION_AVAILABLE                  = PocketCondition.AVAILABLE
+    CONDITION_RETIREMENT                 = PocketCondition.RETIREMENT
+    CONDITION_WEDDING                    = PocketCondition.WEDDING
+    CONDITION_DEATH                      = PocketCondition.DEATH
+    CONDITION_INDEBTEDNESS               = PocketCondition.INDEBTEDNESS
+    CONDITION_DIVORCE                    = PocketCondition.DIVORCE
+    CONDITION_DISABILITY                 = PocketCondition.DISABILITY
+    CONDITION_BUSINESS_CREATION          = PocketCondition.BUSINESS_CREATION
+    CONDITION_BREACH_EMPLOYMENT_CONTRACT = PocketCondition.BREACH_EMPLOYMENT_CONTRACT
+    CONDITION_UNLOCKING_EXCEPTIONAL      = PocketCondition.UNLOCKING_EXCEPTIONAL
+    CONDITION_THIRD_CHILD                = PocketCondition.THIRD_CHILD
+    CONDITION_EXPIRATION_UNEMPLOYMENT    = PocketCondition.EXPIRATION_UNEMPLOYMENT
+    CONDITION_PURCHASE_APARTMENT         = PocketCondition.PURCHASE_APARTMENT
 
     label =             StringField('Label of pocket')
     amount =            DecimalField('Amount of the pocket')
     quantity =          DecimalField('Quantity of stocks')
     availability_date = DateField('Availability date of the pocket')
-    condition =         IntField('Withdrawal condition of the pocket', default=CONDITION_UNKNOWN)
+    condition =         EnumField('Withdrawal condition of the pocket', PocketCondition, default=CONDITION_UNKNOWN)
     investment =        Field('Reference to the investment of the pocket', Investment)
 
 
