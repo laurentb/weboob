@@ -24,26 +24,31 @@ from datetime import date, time, datetime, timedelta
 from weboob.browser.elements import method, ListElement, ItemElement
 from weboob.browser.filters.standard import CleanText, Field
 from weboob.browser.pages import HTMLPage
-from weboob.capabilities.base import FloatField, IntField, enum, Field as BaseField
+from weboob.capabilities.base import FloatField, IntField, Field as BaseField
 from weboob.capabilities.weather import City, Forecast, Temperature, Current
-from weboob.tools.compat import quote
+from weboob.tools.compat import quote, unicode
 
 
-DIRECTION = enum(
-    S='South', N='North', E='East', W='West',
-    SE='South-East', SW='South-West', NW='North-West', NE='North-East',
-)
+class DIRECTION(object):
+    S = 'South'
+    N = 'North'
+    E = 'East'
+    W = 'West'
+    SE = 'South-East'
+    SW = 'South-West'
+    NW = 'North-West'
+    NE = 'North-East'
 
 
 class FullForecast(Forecast):
     wind_speed = IntField('Wind speed (in m/s)')
-    wind_direction = BaseField('Wind direction', *DIRECTION.types)
+    wind_direction = BaseField('Wind direction', unicode)
     humidity = FloatField('Relative humidity ratio')
 
 
 class FullCurrent(Current):
     wind_speed = IntField('Wind speed (in m/s)')
-    wind_direction = BaseField('Wind direction', *DIRECTION.types)
+    wind_direction = BaseField('Wind direction', unicode)
     humidity = FloatField('Relative humidity ratio')
 
 
@@ -81,7 +86,7 @@ class WeatherPage(HTMLPage):
         obj.humidity = float(humidity.strip('%')) / 100
 
         direction = self.get_cell(self.titles['Direction du vent'], n)[-2:].replace('O', 'W')
-        obj.wind_direction = dict(DIRECTION.items)[direction]
+        obj.wind_direction = getattr(DIRECTION, direction)
 
         if 'Vitesse du vent' in self.titles:
             speed_text = self.get_cell(self.titles['Vitesse du vent'], n)

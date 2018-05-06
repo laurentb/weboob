@@ -19,11 +19,14 @@
 
 
 from .base import Capability, BaseObject, Field, IntField, DecimalField, \
-                  StringField, BytesField, enum, UserError
+                  StringField, BytesField, StrEnum, EnumField, UserError
 from .date import DateField
 
-__all__ = ['HousingPhoto', 'Housing', 'Query', 'City', 'CapHousing',
-           'UTILITIES']
+__all__ = [
+    'CapHousing', 'Housing', 'Query', 'City', 'UTILITIES', 'ENERGY_CLASS',
+    'POSTS_TYPES', 'ADVERT_TYPES', 'HOUSE_TYPES', 'TypeNotSupported',
+    'HousingPhoto',
+]
 
 
 class TypeNotSupported(UserError):
@@ -55,39 +58,60 @@ class HousingPhoto(BaseObject):
         return '<HousingPhoto %r data=%do url=%r>' % (self.id, len(self.data) if self.data else 0, self.url)
 
 
-UTILITIES = enum(INCLUDED=u'C.C.', EXCLUDED=u'H.C.', UNKNOWN=u'')
-ENERGY_CLASS = enum(A=u'A', B=u'B', C=u'C', D=u'D', E=u'E', F=u'F', G=u'G')
+class UTILITIES(StrEnum):
+    INCLUDED = u'C.C.'
+    EXCLUDED = u'H.C.'
+    UNKNOWN = u''
 
-POSTS_TYPES = enum(RENT=u'RENT',
-                   SALE=u'SALE',
-                   SHARING=u'SHARING',
-                   FURNISHED_RENT=u'FURNISHED_RENT',
-                   VIAGER=u'VIAGER')
-ADVERT_TYPES = enum(PROFESSIONAL=u'Professional', PERSONAL=u'Personal')
-HOUSE_TYPES = enum(APART=u'Apartment',
-                   HOUSE=u'House',
-                   PARKING=u'Parking',
-                   LAND=u'Land',
-                   OTHER=u'Other',
-                   UNKNOWN=u'Unknown')
+
+class ENERGY_CLASS(StrEnum):
+    A = u'A'
+    B = u'B'
+    C = u'C'
+    D = u'D'
+    E = u'E'
+    F = u'F'
+    G = u'G'
+
+
+class POSTS_TYPES(StrEnum):
+    RENT=u'RENT'
+    SALE = u'SALE'
+    SHARING = u'SHARING'
+    FURNISHED_RENT = u'FURNISHED_RENT'
+    VIAGER = u'VIAGER'
+
+
+class ADVERT_TYPES(StrEnum):
+    PROFESSIONAL = u'Professional'
+    PERSONAL = u'Personal'
+
+
+class HOUSE_TYPES(StrEnum):
+    APART = u'Apartment'
+    HOUSE = u'House'
+    PARKING = u'Parking'
+    LAND = u'Land'
+    OTHER = u'Other'
+    UNKNOWN = u'Unknown'
 
 
 class Housing(BaseObject):
     """
     Content of a housing.
     """
-    type = Field('Type of housing (rent, sale, sharing)',
-                 *POSTS_TYPES.types)
-    advert_type = Field('Type of advert (professional or personal)',
-                        *ADVERT_TYPES.types)
-    house_type = Field(u'Type of house (apartment, house, parking, …)',
-                       *HOUSE_TYPES.types)
+    type = EnumField('Type of housing (rent, sale, sharing)',
+                     POSTS_TYPES)
+    advert_type = EnumField('Type of advert (professional or personal)',
+                            ADVERT_TYPES)
+    house_type = EnumField(u'Type of house (apartment, house, parking, …)',
+                           HOUSE_TYPES)
     title = StringField('Title of housing')
     area = DecimalField('Area of housing, in m2')
     cost = DecimalField('Cost of housing')
     price_per_meter = DecimalField('Price per meter ratio')
     currency = StringField('Currency of cost')
-    utilities = Field('Utilities included or not', *UTILITIES.types)
+    utilities = EnumField('Utilities included or not', UTILITIES)
     date = DateField('Date when the housing has been published')
     location = StringField('Location of housing')
     station = StringField('What metro/bus station next to housing')
@@ -97,25 +121,25 @@ class Housing(BaseObject):
     rooms = DecimalField('Number of rooms')
     bedrooms = DecimalField('Number of bedrooms')
     details = Field('Key/values of details', dict)
-    DPE = Field('DPE (Energy Performance Certificate)', *ENERGY_CLASS.types)
-    GES = Field('GES (Greenhouse Gas Emissions)', *ENERGY_CLASS.types)
+    DPE = EnumField('DPE (Energy Performance Certificate)', ENERGY_CLASS)
+    GES = EnumField('GES (Greenhouse Gas Emissions)', ENERGY_CLASS)
 
 
 class Query(BaseObject):
     """
     Query to find housings.
     """
-    type = Field('Type of housing to find (POSTS_TYPES constants)',
-                 *POSTS_TYPES.types)
+    type = EnumField('Type of housing to find (POSTS_TYPES constants)',
+                     POSTS_TYPES)
     cities = Field('List of cities to search in', list, tuple)
     area_min = IntField('Minimal area (in m2)')
     area_max = IntField('Maximal area (in m2)')
     cost_min = IntField('Minimal cost')
     cost_max = IntField('Maximal cost')
     nb_rooms = IntField('Number of rooms')
-    house_types = Field('List of house types', list, tuple, default=HOUSE_TYPES.values)
+    house_types = Field('List of house types', list, tuple, default=list(HOUSE_TYPES))
     advert_types = Field('List of advert types to filter on', list, tuple,
-                         default=ADVERT_TYPES.values)
+                         default=list(ADVERT_TYPES))
 
 
 class City(BaseObject):

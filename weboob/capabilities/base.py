@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from collections import OrderedDict
+from enum import Enum as _Enum
 import warnings
 import re
 from decimal import Decimal
@@ -31,23 +32,28 @@ from weboob.tools.misc import to_unicode
 __all__ = ['UserError', 'FieldNotFound', 'NotAvailable', 'FetchError',
            'NotLoaded', 'Capability', 'Field', 'IntField', 'DecimalField',
            'FloatField', 'StringField', 'BytesField', 'BoolField',
+           'Enum', 'IntEnum', 'StrEnum', 'EnumField',
            'empty', 'BaseObject']
 
 
-def enum(**enums):
-    _values = list(enums.values())
-    _keys = list(enums.keys())
-    _items = list(enums.items())
-    _types = list((type(value) for value in enums.values()))
-    _index = {(value if not isinstance(value, dict) else next(iter(value.values()))): i
-              for i, value in enumerate(enums.values())}
+class Enum(_Enum):
+    pass
 
-    enums['keys'] = _keys
-    enums['values'] = _values
-    enums['items'] = _items
-    enums['index'] = _index
-    enums['types'] = _types
-    return type('Enum', (), enums)
+
+class StrEnum(unicode, Enum):
+    if sys.version_info.major < 3:
+        # cannot use StrConv helper, else for some reason it will error like:
+        # TypeError: <AccountType.TYPE_UNKNOWN: 0> cannot be pickled
+        def __str__(self):
+            return unicode(self.value).encode('utf-8')
+    else:
+        def __str__(self):
+            return str(self.value)
+
+
+class IntEnum(int, Enum):
+    def __str__(self):
+        return str(self.name)
 
 
 def empty(value):
@@ -297,6 +303,17 @@ class BytesField(Field):
         if isinstance(value, unicode):
             value = value.encode('utf-8')
         return bytes(value)
+
+
+class EnumField(Field):
+    def __init__(self, doc, enum, **kwargs):
+        super(EnumField, self).__init__(doc, enum, **kwargs)
+        if not issubclass(enum, _Enum):
+            raise TypeError('invalid enum type: %r' % enum)
+        self.enum = enum
+
+    def convert(self, value):
+        return self.enum(value)
 
 
 class _BaseObjectMeta(type):

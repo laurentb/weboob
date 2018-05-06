@@ -17,8 +17,24 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.base import enum
 from weboob.capabilities.video import BaseVideo
+
+
+def enum(**enums):
+    _values = list(enums.values())
+    _keys = list(enums.keys())
+    _items = list(enums.items())
+    _types = list((type(value) for value in enums.values()))
+    _index = {(value if not isinstance(value, dict) else next(iter(value.values()))): i
+              for i, value in enumerate(enums.values())}
+
+    enums['keys'] = _keys
+    enums['values'] = _values
+    enums['items'] = _items
+    enums['index'] = _index
+    enums['types'] = _types
+    return type('Enum', (), enums)
+
 
 FORMATS = enum(HTTP_MP4=u'HBBTV', HLS=u'M3U8', RTMP=u'RTMP', HLS_MOBILE=u'MOBILE')
 

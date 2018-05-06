@@ -17,7 +17,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from .base import BaseObject, StringField, IntField, FloatField, Field, enum
+from .base import (
+    BaseObject, StringField, IntField, FloatField, Field, EnumField,
+    StrEnum,
+)
 from .collection import CapCollection, CollectionNotFound, Collection
 from .date import DateField
 
@@ -27,13 +30,36 @@ from weboob.tools.date import parse_date
 __all__ = ['BaseCalendarEvent', 'CapCalendarEvent']
 
 
-CATEGORIES = enum(CONCERT=u'Concert', CINE=u'Cinema', THEATRE=u'Theatre', TELE=u'Television', CONF=u'Conference', AUTRE=u'Autre', EXPO=u'Exposition', SPECTACLE=u'Spectacle', FEST=u'Festival', SPORT=u'Sport')
+class CATEGORIES(StrEnum):
+    CONCERT = u'Concert'
+    CINE = u'Cinema'
+    THEATRE = u'Theatre'
+    TELE = u'Television'
+    CONF = u'Conference'
+    AUTRE = u'Autre'
+    EXPO = u'Exposition'
+    SPECTACLE = u'Spectacle'
+    FEST = u'Festival'
+    SPORT = u'Sport'
+
 
 #the following elements deal with ICalendar stantdards
 #see http://fr.wikipedia.org/wiki/ICalendar#Ev.C3.A9nements_.28VEVENT.29
-TRANSP = enum(OPAQUE=u'OPAQUE', TRANSPARENT=u'TRANSPARENT')
-STATUS = enum(TENTATIVE=u'TENTATIVE', CONFIRMED=u'CONFIRMED', CANCELLED=u'CANCELLED')
-TICKET = enum(AVAILABLE=u'Available', NOTAVAILABLE=u'Not available', CLOSED='Closed')
+class TRANSP(StrEnum):
+    OPAQUE = u'OPAQUE'
+    TRANSPARENT = u'TRANSPARENT'
+
+
+class STATUS(StrEnum):
+    TENTATIVE = u'TENTATIVE'
+    CONFIRMED = u'CONFIRMED'
+    CANCELLED = u'CANCELLED'
+
+
+class TICKET(StrEnum):
+    AVAILABLE = u'Available'
+    NOTAVAILABLE = u'Not available'
+    CLOSED = u'Closed'
 
 
 class BaseCalendarEvent(BaseObject):
@@ -47,7 +73,7 @@ class BaseCalendarEvent(BaseObject):
     summary = StringField('Title of the event')
     city = StringField('Name of the city in witch event will take place')
     location = StringField('Location of the event')
-    category = Field('Category of the event', *CATEGORIES.types)
+    category = EnumField('Category of the event', CATEGORIES)
     description = StringField('Description of the event')
     price = FloatField('Price of the event')
     booked_entries = IntField('Entry number')
@@ -59,11 +85,11 @@ class BaseCalendarEvent(BaseObject):
     sequence = IntField('Number of updates, the first is number 1')
 
     # (TENTATIVE, CONFIRMED, CANCELLED)
-    status = Field('Status of theevent', *STATUS.types)
+    status = EnumField('Status of the event', STATUS)
     # (OPAQUE, TRANSPARENT)
-    transp = Field('Describes if event is available', *TRANSP.types)
+    transp = EnumField('Describes if event is available', TRANSP)
     # (AVAILABLE, NOTAVAILABLE, CLOSED)
-    ticket = Field('Describes if tickets are available', *TICKET.types)
+    ticket = EnumField('Describes if tickets are available', TICKET)
 
     @classmethod
     def id2url(cls, _id):
@@ -86,8 +112,8 @@ class Query(BaseObject):
     start_date = DateField('Start date of the event')
     end_date = DateField('End date of the event')
     city = StringField('Name of the city in witch event will take place')
-    categories = Field('List of categories of the event', list, tuple, default=CATEGORIES.values)
-    ticket = Field('List of status of the tickets sale', list, tuple, default=TICKET.values)
+    categories = Field('List of categories of the event', list, tuple, default=list(CATEGORIES))
+    ticket = Field('List of status of the tickets sale', list, tuple, default=list(TICKET))
     summary = StringField('Title of the event')
 
 

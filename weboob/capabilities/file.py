@@ -19,24 +19,24 @@
 
 from weboob.tools.compat import long
 
-from .base import Capability, BaseObject, NotAvailable, Field, StringField, IntField, enum
+from .base import Capability, BaseObject, NotAvailable, Field, StringField, IntField, StrEnum
 from .date import DateField
 
 
 __all__ = ['BaseFile', 'CapFile']
 
 
-LICENSES = enum(
-    OTHER=u'Other license',
-    PD=u'Public Domain',
-    COPYRIGHT=u'All rights reserved',
-    CCBY=u'Creative Commons BY',
-    CCBYSA=u'Creative Commons BY-SA',
-    CCBYNC=u'Creative Commons BY-NC',
-    CCBYND=u'Creative Commons BY-ND',
-    CCBYNCSA=u'Creative Commons BY-NC-SA',
-    CCBYNCND=u'Creative Commons BY-NC-ND',
-    GFDL=u'GNU Free Documentation License')
+class LICENSES(StrEnum):
+    OTHER = u'Other license'
+    PD = u'Public Domain'
+    COPYRIGHT = u'All rights reserved'
+    CCBY = u'Creative Commons BY'
+    CCBYSA = u'Creative Commons BY-SA'
+    CCBYNC = u'Creative Commons BY-NC'
+    CCBYND = u'Creative Commons BY-ND'
+    CCBYNCSA = u'Creative Commons BY-NC-SA'
+    CCBYNCND = u'Creative Commons BY-NC-ND'
+    GFDL = u'GNU Free Documentation License'
 
 
 class BaseFile(BaseObject):

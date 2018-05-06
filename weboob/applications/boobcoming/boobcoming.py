@@ -225,9 +225,9 @@ class Boobcoming(ReplApplication):
     def select_values(self, values_from, values_to, query_str):
         r = 'notempty'
         while r != '':
-            for value in values_from.values:
+            for i, value in enumerate(values_from, 1):
                 print('  %s%2d)%s [%s] %s' % (self.BOLD,
-                                              values_from.index[value] + 1,
+                                              i,
                                               self.NC,
                                               'x' if value in values_to else ' ',
                                               value))
@@ -236,9 +236,9 @@ class Boobcoming(ReplApplication):
             if not r.isdigit():
                 continue
             r = int(r)
-            if r <= 0 or r > len(values_from.values):
+            if r <= 0 or r > len(values_from):
                 continue
-            value = values_from.values[r - 1]
+            value = list(values_from)[r - 1]
             if value in values_to:
                 values_to.remove(value)
             else:
