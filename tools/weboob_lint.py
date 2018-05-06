@@ -39,7 +39,7 @@ for name, module in weboob.modules_loader.loaded.items():
 
     if subprocess.call(['grep', '-q', '-r', 'weboob.deprecated.browser', path]) == 0:
         modules_using_deprecated.append(name)
-    if name not in modules_without_py3:
+    if name not in modules_py3_compatible:
         modules_without_py3.append(name)
 
 
