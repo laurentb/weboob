@@ -167,9 +167,11 @@ class BforbankBrowser(LoginBrowser):
             # negative amount on checking account, positive on card account
             transactions = []
             self.location(account.url.replace('tableauDeBord', 'encoursCarte') + '/%s?month=1' % account._index)
-            summary = self.page.create_summary()
-            if summary:
-                transactions.insert(0, summary)
+            if self.page.get_debit_date().month == (datetime.date.today() - relativedelta(months=1)).month:
+                transactions = list(self.page.get_operations())
+                summary = self.page.create_summary()
+                if summary:
+                    transactions.insert(0, summary)
             return transactions
 
     @need_login
@@ -179,10 +181,11 @@ class BforbankBrowser(LoginBrowser):
             return self.page.get_operations()
         elif account.type == Account.TYPE_CARD:
             self.location(account.url.replace('tableauDeBord', 'encoursCarte') + '/%s' % account._index)
+            transactions = list(self.page.get_operations())
             if self.page.get_debit_date().month == (datetime.date.today() + relativedelta(months=1)).month:
                 self.location(account.url.replace('tableauDeBord', 'encoursCarte') + '/%s?month=1' % account._index)
-            transactions = list(self.page.get_operations())
-            return transactions
+                transactions += list(self.page.get_operations())
+            return sorted_transactions(transactions)
         else:
             raise NotImplementedError()
 
