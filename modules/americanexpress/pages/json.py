@@ -25,7 +25,7 @@ import re
 
 from weboob.browser.pages import LoggedPage, JsonPage, HTMLPage
 from weboob.browser.elements import ItemElement, DictElement, method
-from weboob.browser.filters.standard import Date, Eval, CleanText, Field
+from weboob.browser.filters.standard import Date, Eval, CleanText, Field, CleanDecimal
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.bank import Account, Transaction
 from weboob.capabilities.base import NotAvailable
@@ -136,7 +136,10 @@ class JsonHistory(LoggedPage, JsonPage):
                 amount = Field("amount")(self)
                 # amount in the transaction's currency
                 original_amount = Dict('foreign_details/amount', default=NotAvailable)(self)
-                if not original_amount:
+                if Field("original_currency")(self) == "XAF":
+                    original_amount = abs(CleanDecimal(replace_dots=('.')).filter(original_amount))
+
+                elif not original_amount:
                     return NotAvailable
                 else:
                     original_amount = abs(parse_decimal(original_amount))
