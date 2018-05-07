@@ -109,6 +109,7 @@ class BforbankBrowser(LoginBrowser):
                     for card in cards:
                         # if there's a credit card (not debit), create a separate, virtual account
                         card.url = account.url
+                        card.parent = account
                         card.currency = account.currency
                         card._checking_account = account
                         card._index = indexes[card.number]
@@ -116,7 +117,7 @@ class BforbankBrowser(LoginBrowser):
                         self.location(account.url.replace('tableauDeBord', 'encoursCarte') + '/%s' % card._index)
                         if self.page.get_debit_date().month == (datetime.date.today() + relativedelta(months=1)).month:
                             self.location(account.url.replace('tableauDeBord', 'encoursCarte') + '/%s?month=1' % card._index)
-                        card.balance = self.page.get_balance()
+                        card.coming = self.page.get_balance()
                         assert not empty(card.balance)
 
                         # insert it near its companion checking account
