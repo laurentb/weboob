@@ -28,14 +28,13 @@ class PodnapisiTest(BackendTest):
     def test_subtitle(self):
         lsub = []
         subtitles = self.backend.iter_subtitles('fr', 'spiderman')
-        for i in range(5):
-            subtitle = subtitles.next()
+        for subtitle in subtitles:
             lsub.append(subtitle)
         assert (len(lsub) > 0)
 
         # get the file of a random sub
         if len(lsub):
             subtitle = choice(lsub)
-            self.backend.get_subtitle_file(subtitle.id)
+            assert(not self.backend.get_subtitle_file(subtitle.id).startswith(b'<'))
             ss = self.backend.get_subtitle(subtitle.id)
-            assert ss.url.startswith('http')
+            assert ss.url.startswith('https')

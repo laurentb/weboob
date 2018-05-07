@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.subtitle import CapSubtitle, LanguageNotSupported, Subtitle
+from weboob.capabilities.subtitle import CapSubtitle, LanguageNotSupported
 from weboob.applications.suboob.suboob import LANGUAGE_CONV
 from weboob.tools.backend import Module
 from weboob.tools.compat import quote_plus
@@ -37,29 +37,13 @@ class PodnapisiModule(Module, CapSubtitle):
     LICENSE = 'AGPLv3+'
     BROWSER = PodnapisiBrowser
 
+    def get_subtitle_file(self, id):
+        return self.browser.get_file(id)
+
     def get_subtitle(self, id):
         return self.browser.get_subtitle(id)
 
-    def get_subtitle_file(self, id):
-        subtitle = self.browser.get_subtitle(id)
-        if not subtitle:
-            return None
-
-        return self.browser.openurl(subtitle.url.encode('utf-8')).read()
-
     def iter_subtitles(self, language, pattern):
-        if language not in LANGUAGE_CONV.keys():
+        if language not in list(LANGUAGE_CONV.keys()):
             raise LanguageNotSupported()
         return self.browser.iter_subtitles(language, quote_plus(pattern.encode('utf-8')))
-
-    def fill_subtitle(self, subtitle, fields):
-        if 'description' in fields or 'url' in fields:
-            sub = self.get_subtitle(subtitle.id)
-            subtitle.description = sub.description
-            subtitle.url = sub.url
-
-        return subtitle
-
-    OBJECTS = {
-        Subtitle: fill_subtitle,
-    }

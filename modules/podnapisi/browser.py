@@ -18,34 +18,26 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import Browser, BrowserHTTPNotFound
-
-from .pages import SearchPage, SubtitlePage, LANGUAGE_NUMBERS
+from weboob.browser import PagesBrowser, URL
+from .pages import SearchPage, SubtitlePage
 
 
 __all__ = ['PodnapisiBrowser']
 
 
-class PodnapisiBrowser(Browser):
-    DOMAIN = 'www.podnapisi.net'
-    PROTOCOL = 'http'
-    ENCODING = 'utf-8'
-    USER_AGENT = Browser.USER_AGENTS['wget']
-    PAGES = {
-        'http://www.podnapisi.net/fr/ppodnapisi/search\?sJ=[0-9]*&sK=.*&sS=downloads&sO=desc': SearchPage,
-        'http://www.podnapisi.net/fr/ppodnapisi/podnapis/i/[0-9]*': SubtitlePage
-    }
+class PodnapisiBrowser(PagesBrowser):
+    BASEURL = 'https://www.podnapisi.net'
+    search = URL('/subtitles/search/advanced\?keywords=(?P<keywords>.*)&language=(?P<language>.*)',
+                 '/en/subtitles/search/advanced\?keywords=(?P<keywords>.*)&language=(?P<language>.*)',
+                 SearchPage)
+    file = URL('/subtitles/(?P<id>-*\w*)/download')
+    subtitle = URL('/subtitles/(?P<id>.*)', SubtitlePage)
 
     def iter_subtitles(self, language, pattern):
-        nlang = LANGUAGE_NUMBERS[language]
-        self.location('http://www.podnapisi.net/fr/ppodnapisi/search?sJ=%s&sK=%s&sS=downloads&sO=desc' % (nlang, pattern.encode('utf-8')))
-        assert self.is_on_page(SearchPage)
-        return self.page.iter_subtitles(unicode(language))
+        return self.search.go(language=language, keywords=pattern).iter_subtitles()
+
+    def get_file(self, id):
+        return self.file.go(id=id).content
 
     def get_subtitle(self, id):
-        try:
-            self.location('http://www.podnapisi.net/fr/ppodnapisi/podnapis/i/%s' % id)
-        except BrowserHTTPNotFound:
-            return
-        if self.is_on_page(SubtitlePage):
-            return self.page.get_subtitle(id)
+        return self.subtitle.go(id=id).get_subtitle()
