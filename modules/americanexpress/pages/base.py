@@ -191,7 +191,12 @@ class TransactionsPage(LoggedPage, HTMLPage):
         except ValueError:
             return cls.US_MONTHS.index(s) + 1
 
-    def get_history(self, currency):
+    def get_next_url(self):
+        options = self.doc.xpath('//select[@id="viewPeriod"]//option')
+        url = 'https://global.americanexpress.com/myca/intl/estatement/emea/statement.do?sorted_index=0&BPIndex={}&Face=fr_FR'
+        return [url.format(option.attrib['value']) for option in options]
+
+    def get_history(self, account):
         # checking if the card is still valid
         if self.doc.xpath('//div[@id="errorbox"]'):
             return
@@ -216,7 +221,8 @@ class TransactionsPage(LoggedPage, HTMLPage):
                 end_of_period = parse_french_date(' '.join(previous_date.split()[:3])) + relativedelta(days=-1) + relativedelta(months=1)
                 end_of_period = end_of_period.date()
 
-        for tr in reversed(self.doc.xpath('//div[@id="txnsSection"]//tbody/tr[@class="tableStandardText"]')):
+        _id = str(int(account._idforold))
+        for tr in reversed(self.doc.xpath('//div[@id="txnsSection"]//tbody[@id="tableBody-txnsCard%s"]/tr[@class="tableStandardText"]' % _id)):
             cols = tr.findall('td')
 
             t = Transaction()

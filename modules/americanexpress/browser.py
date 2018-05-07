@@ -85,7 +85,6 @@ class AmericanExpressBrowser(LoginBrowser):
         if self.wrong_login.is_here() or self.login.is_here() or self.account_suspended.is_here():
             raise BrowserIncorrectPassword()
 
-        self.new_website = self.dashboard.is_here()
 
     @need_login
     def go_on_accounts_list(self):
@@ -104,6 +103,7 @@ class AmericanExpressBrowser(LoginBrowser):
 
     @need_login
     def get_accounts_new(self):
+        self.transactions_url = 'https://global.americanexpress.com/myca/intl/estatement/emea/statement.do?request_type=&Face=fr_FR&account_key=%s&BPIndex=0&linknav=FR-myca-dashboard-estament-title' % (self.dashboard.go().get_user_key())
         self.accounts3.go()
         accounts = list(self.page.iter_accounts())
 
@@ -158,15 +158,24 @@ class AmericanExpressBrowser(LoginBrowser):
     def iter_posted_new(self, account):
         self.js_periods.go(headers={'account_token': account._token})
         periods = self.page.get_periods()
-        for p in periods:
-            # TODO handle pagination
-            try:
-                # can't get transactions of some accounts on new website for the moment
+        # TODO handle pagination
+        try:
+           #newwebsite
+           # can't get transactions of some accounts on new website for the moment
+            for p in periods:
                 self.js_posted.go(offset=0, end=p, headers={'account_token': account._token})
-            except ServerError:
-                return
-            for tr in self.page.iter_history():
-                yield tr
+                for tr in self.page.iter_history():
+                    yield tr
+        except ServerError:
+            #old website
+            if self.transactions_url:
+                self.location(self.transactions_url)
+                urls = self.page.get_next_url()
+                for url in urls:
+                    self.location(url)
+                    for tr in self.page.get_history(account):
+                        yield tr
+
 
     @need_login
     def iter_coming_new(self, account):

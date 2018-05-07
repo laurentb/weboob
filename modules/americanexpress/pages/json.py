@@ -39,7 +39,12 @@ def float_to_decimal(f):
 
 
 class DashboardPage(LoggedPage, HTMLPage):
-    pass
+    def get_user_key(self):
+        script = CleanText('//script[@id="initial-state"]', replace=[('\\', '')])(self.doc)
+        m = re.search(r'account_key\",(\"(.*?)\")', script)
+        if m:
+            return m.group(2)
+        return None
 
 
 class AccountsPage3(LoggedPage, HTMLPage):
@@ -71,6 +76,7 @@ class AccountsPage3(LoggedPage, HTMLPage):
             elif isinstance(account_data, list):
                 acc = Account()
                 acc.number = '-%s' % account_data[2][2]
+                acc._idforold = account_data[2][6]
                 acc.label = '%s %s' % (account_data[6][4], account_data[10][-1])
                 acc._token = acc.id = token
                 yield acc
@@ -138,7 +144,6 @@ class JsonHistory(LoggedPage, JsonPage):
                 original_amount = Dict('foreign_details/amount', default=NotAvailable)(self)
                 if Field("original_currency")(self) == "XAF":
                     original_amount = abs(CleanDecimal(replace_dots=('.')).filter(original_amount))
-
                 elif not original_amount:
                     return NotAvailable
                 else:
