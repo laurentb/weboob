@@ -117,8 +117,9 @@ class BforbankBrowser(LoginBrowser):
                         self.location(account.url.replace('tableauDeBord', 'encoursCarte') + '/%s' % card._index)
                         if self.page.get_debit_date().month == (datetime.date.today() + relativedelta(months=1)).month:
                             self.location(account.url.replace('tableauDeBord', 'encoursCarte') + '/%s?month=1' % card._index)
+                        card.balance = 0
                         card.coming = self.page.get_balance()
-                        assert not empty(card.balance)
+                        assert not empty(card.coming)
 
                         # insert it near its companion checking account
                         self.accounts.append(card)
