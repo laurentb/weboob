@@ -18,14 +18,20 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from collections import OrderedDict
+from datetime import datetime
 
-from weboob.tools.compat import unicode
+from weboob.tools.compat import unicode, basestring
+from dateutil import rrule
 
 from .base import Capability, BaseObject, Field, StringField, BytesField, IntField, \
                   BoolField, UserError
 
 
-__all__ = ['ProfileNode', 'ContactPhoto', 'Contact', 'QueryError', 'Query', 'CapContact']
+__all__ = [
+    'ProfileNode', 'ContactPhoto', 'Contact', 'QueryError', 'Query', 'CapContact',
+    'BaseContact', 'PhysicalEntity', 'Person', 'Place', 'OpeningHours',
+    'OpeningRule', 'RRuleField', 'CapDirectory',
+]
 
 
 class ProfileNode(object):
@@ -77,6 +83,9 @@ class BaseContact(BaseObject):
     This is the blase class for a contact.
     """
     name =      StringField('Name of contact')
+    phone =     StringField('Phone number')
+    email =     StringField('Contact email')
+    website =   StringField('Website URL of the contact')
 
 
 class Advisor(BaseContact):
@@ -244,5 +253,108 @@ class CapContact(Capability):
         :param id: the ID of the contact
         :type id: str
         :returns: the unicode object to save as notes
+        """
+        raise NotImplementedError()
+
+
+class PhysicalEntity(BaseContact):
+    """
+    Contact which has a physical address.
+    """
+    country = StringField('Country')
+    postcode = StringField('Post code')
+    city = StringField('City')
+    address = StringField('Address of the contact')
+    address_notes = StringField('Extra address info')
+
+
+class Person(PhysicalEntity):
+    pass
+
+
+class OpeningHours(BaseObject):
+    """
+    Definition of times when a place is open or closed.
+
+    Consists in a list of :class:`OpeningRule`.
+    Rules should be ordered by priority.
+    If no rule matches the given date, it is considered closed by default.
+    """
+
+    rules = Field('Rules of opening/closing', list)
+
+    def is_open_at(self, query):
+        for rule in self.rules:
+            if query in rule:
+                return rule.is_open
+
+        return False
+
+    @property
+    def is_open_now(self):
+        return self.is_open_at(datetime.now())
+
+
+class RRuleField(Field):
+    def __init__(self, doc, **kargs):
+        super(RRuleField, self).__init__(doc, rrule.rrulebase)
+
+    def convert(self, v):
+        if isinstance(v, basestring):
+            return rrule.rrulestr(v)
+        return v
+
+
+class OpeningRule(BaseObject):
+    """
+    Single rule defining a (recurrent) time interval when a place is open or closed.
+    """
+    dates = RRuleField('Dates on which this rule applies')
+    times = Field('Times of the day this rule applies', list)
+    is_open = BoolField('Is it an opening rule or closing rule?')
+
+    def __contains__(self, dt):
+        date = dt.date()
+        time = dt.time()
+
+        # check times before dates because there are probably fewer entries
+        for start, end in self.times:
+            if start <= time <= end:
+                break
+        else:
+            return False
+
+        # can't use "date in self.dates" because rrule only matches datetimes
+        for occ in self.dates:
+            occ = occ.date()
+            if occ > date:
+                break
+            elif occ == date:
+                return True
+
+        return False
+
+
+class Place(PhysicalEntity):
+    opening = Field('Opening hours', OpeningHours)
+
+
+class SearchQuery(BaseObject):
+    """
+    Parameters to search for contacts.
+    """
+    name = StringField('Name to search for')
+    address = StringField('Address where to look') # optional fields
+    city = StringField('City where to look')
+
+
+class CapDirectory(Capability):
+    def search_contacts(self, query, sortby):
+        """
+        Search contacts matching a query.
+
+        :param query: search parameters
+        :type query: :class:`SearchQuery`
+        :rtype: iter[:class:`PhysicalEntity`]
         """
         raise NotImplementedError()
