@@ -54,6 +54,13 @@ class SubscriberPage(LoggedPage, JsonPage):
             sub_dict = self.doc['representantLegal']
         return "%s %s %s" % (sub_dict['civilite'], sub_dict['prenom'], sub_dict['nom'])
 
+    def get_phone_list(self):
+        num_tel_list = []
+        for phone in self.doc['comptesAcces']:
+            num_tel_list.append(' '.join([phone[i:i + 2] for i in range(0, len(phone), 2)]))
+
+        return ' - '.join(num_tel_list)
+
 
 class SubscriptionPage(LoggedPage, JsonPage):
     @method

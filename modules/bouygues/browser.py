@@ -21,6 +21,7 @@ from jose import jwt
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
+from weboob.browser.exceptions import ClientError
 from weboob.tools.compat import urlparse, parse_qs
 from .pages import (
     DocumentsPage, HomePage, LoginPage, SubscriberPage, SubscriptionPage, SubscriptionDetailPage,
@@ -107,11 +108,16 @@ class BouyguesBrowser(LoginBrowser):
     def iter_subscriptions(self):
         self.subscriber.go(idUser=self.id_user, headers=self.headers)
         subscriber = self.page.get_subscriber()
+        phone_list = self.page.get_phone_list()
 
         self.subscriptions.go(idUser=self.id_user, headers=self.headers)
         for sub in self.page.iter_subscriptions(subscriber=subscriber):
-            self.subscriptions_details.go(idSub=sub.id, headers=self.headers)
-            sub.label = self.page.get_label()
+            try:
+                self.subscriptions_details.go(idSub=sub.id, headers=self.headers)
+                sub.label = self.page.get_label()
+            except ClientError:
+                # if another person pay for your subscription you may not have access to this page with your credentials
+                sub.label = phone_list
             yield sub
 
     @need_login
