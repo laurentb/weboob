@@ -184,9 +184,9 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
         elif account.type == Account.TYPE_LIFE_INSURANCE:
             # Life Insurance type whose investments require scraping at '/asv/PRV/asvcns10priv.html':
             self.location(account._link_id)
-            if self.page.is_link():
+            if self.page.has_link():
                 # Other Life Insurance pages:
-                self.location('/asv/AVI/asvcns20a.html')
+                self.life_insurance_invest.go()
 
         else:
             self.logger.warning('This account is not supported')

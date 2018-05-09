@@ -30,12 +30,13 @@ from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Person
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.capabilities.bank.investments import is_isin_valid
 from weboob.tools.compat import parse_qs, urlparse, parse_qsl, urlunparse, urlencode, unicode
 from weboob.tools.date import parse_date as parse_d
-from weboob.browser.elements import DictElement, ItemElement, method
+from weboob.browser.elements import DictElement, ItemElement, TableElement, method
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, RegexpError
-from weboob.browser.filters.html import Link
+from weboob.browser.filters.html import Link, TableCell
 from weboob.browser.pages import HTMLPage, XMLPage, JsonPage, LoggedPage
 from weboob.exceptions import NoAccountsException, BrowserUnavailable, ActionNeeded
 
@@ -54,6 +55,7 @@ class AccountsList(LoggedPage, BasePage):
              u'Compte Epargne':      Account.TYPE_SAVINGS,
              u'Compte Sur Livret':   Account.TYPE_SAVINGS,
              u'Compte Titres':       Account.TYPE_MARKET,
+             'Déclic Tempo':         Account.TYPE_MARKET,
              u'Compte Alterna':      Account.TYPE_LOAN,
              u'Crédit':              Account.TYPE_LOAN,
              u'Ldd':                 Account.TYPE_SAVINGS,
@@ -62,7 +64,7 @@ class AccountsList(LoggedPage, BasePage):
              u'PEL':                 Account.TYPE_SAVINGS,
              u'Plan Epargne':        Account.TYPE_SAVINGS,
              u'Prêt':                Account.TYPE_LOAN,
-             u'Avance Patrimoniale': Account.TYPE_LOAN,
+             'Avance Patrimoniale':  Account.TYPE_LOAN,
             }
 
     def get_list(self):
@@ -195,7 +197,8 @@ class AccountHistory(LoggedPage, BasePage):
         if 'Le service est momentanément indisponible' in msg:
             raise BrowserUnavailable(msg)
 
-    debit_date =  None
+    debit_date = None
+
     def get_part_url(self):
         for script in self.doc.getiterator('script'):
             if script.text is None:
@@ -337,7 +340,7 @@ class Market(LoggedPage, BasePage, Invest):
     COL_DIFF = 4
 
     def get_balance(self, account_type):
-        return CleanDecimal('//form[@id="listeCTForm"]/table//tr[td[5]]/td[@width="15%"][1]', replace_dots=True, default=None)(self.doc)
+        return CleanDecimal('//form[@id="listeCTForm"]/table//tr[td[5]]/td[@class="TabCelRight"][1]', replace_dots=True, default=None)(self.doc)
 
     def get_not_rounded_valuations(self):
         def prepare_url(url, fields):
@@ -385,6 +388,16 @@ class Market(LoggedPage, BasePage, Invest):
         doc = self.browser.open('/brs/fisc/fisca10a.html').page.doc
         num_page = None
 
+        liquidity = CleanDecimal('//form[@id="listeCTForm"]/table//tr[td[5]]/td[@class="TabCelRight"][2]', replace_dots=True, default=None)(self.doc)
+
+        if liquidity:
+            inv = Investment()
+            inv.code = 'XX-liquidity'
+            inv.code_type = NotAvailable
+            inv.label = 'Liquidités'
+            inv.valuation = liquidity
+            yield inv
+
         try:
             num_page = int(CleanText('.')(doc.xpath(u'.//tr[contains(td[1], "Relevé des plus ou moins values latentes")]/td[2]')[0]).split('/')[1])
         except IndexError:
@@ -409,11 +422,13 @@ class Market(LoggedPage, BasePage, Invest):
                 inv.label = unicode(title_split[0])
 
                 for code in title_split[1:]:
-                    if len(code) == 12:
+                    if is_isin_valid(code):
                         inv.code = unicode(code)
+                        inv.code_type = Investment.CODE_TYPE_ISIN
                         break
-                else:
-                    inv.code = NotAvailable
+                    else:
+                        inv.code = NotAvailable
+                        inv.code_type = NotAvailable
 
                 if is_detailed:
                     inv.quantity = MyDecimal('.')(tr.xpath('./following-sibling::tr/td[2]')[0])
@@ -444,7 +459,7 @@ class LifeInsurance(LoggedPage, BasePage):
         except IndexError:
             return super(LifeInsurance, self).get_error()
 
-    def is_link(self):
+    def has_link(self):
         return Link('//a[@href="asvcns20a.html"]', default=NotAvailable)(self.doc)
 
 
@@ -465,16 +480,18 @@ class LifeInsuranceInvest(LifeInsurance, Invest):
 
 
 class LifeInsuranceInvest2(LifeInsuranceInvest):
-    COL_VALUATION = 1
+    @method
+    class iter_investment(TableElement):
+        item_xpath = '//table/tbody/tr[starts-with(@class, "net2g_asv_tableau_ligne_")]'
+        head_xpath = '//table/thead/tr/td'
 
-    def iter_investment(self):
-        for tr in self.doc.xpath("//table/tbody/tr[starts-with(@class, 'net2g_asv_tableau_ligne_')]"):
-            cells = tr.findall('td')
-            inv = Investment()
-            inv.label = unicode(cells[self.COL_LABEL].text.strip())
-            inv.valuation = MyDecimal('.')(cells[self.COL_VALUATION])
+        col_label = u'Support'
+        col_valuation = u'Montant'
 
-            yield inv
+        class item(ItemElement):
+            klass = Investment
+            obj_label = CleanText(TableCell('label'))
+            obj_valuation = MyDecimal(TableCell('valuation'))
 
 
 class LifeInsuranceHistory(LifeInsurance):
