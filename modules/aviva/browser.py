@@ -41,7 +41,7 @@ class AvivaBrowser(LoginBrowser):
     prevoyance = URL(r'/espaceclient/contrat/prevoyance/-(?P<page_id>[0-9]{10})', PrevoyancePage)
     history = URL(r'/espaceclient/contrat/getOperations\?param1=(?P<history_token>.*)', HistoryPage)
     action_needed = URL(r'/espaceclient/coordonnees/detailspersonne\?majcontacts=true', ActionNeededPage)
-    invest_detail = URL(r'https://aviva.sixtelekurs.fr/.*', InvestDetail)
+    invest_detail = URL(r'http://aviva.sixtelekurs.fr/opcvm.hts.*', InvestDetail)
 
     def do_login(self):
         self.login.go().login(self.username, self.password)

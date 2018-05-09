@@ -40,7 +40,7 @@ class AccountsPage(LoggedPage, BasePage, HTMLPage):
 
     @method
     class iter_accounts(ListElement):
-        item_xpath = '//div[@class="product-tabs__tab"]/div[has-class("product-tabs__tab-content")]/div[@data-policy]'
+        item_xpath = '//div[@class="o-product-tabs__tab"]/div[has-class("o-product-tabs__tab-content")]/div[@data-policy]'
 
         class item(ItemElement):
             klass = Account
@@ -49,22 +49,22 @@ class AccountsPage(LoggedPage, BasePage, HTMLPage):
 
             obj_id = CleanText('./@data-policy')
             obj_number = Field('id')
-            obj_label = CleanText('.//p[has-class("heading")]', default=NotAvailable)
+            obj_label = CleanText('.//p[has-class("a-heading")]', default=NotAvailable)
             obj_balance = Async('details') & InvestmentPage.balance_filter
             obj_valuation_diff = Async('details') & InvestmentPage.valuation_filter
             obj__link = AbsoluteLink(u'.//a[contains(text(), "Détail")]')
-            obj_currency = Async('details') & Currency('//ul[has-class("data-group")]//strong')
+            obj_currency = Async('details') & Currency('//ul[has-class("m-data-group")]//strong')
             # Additional waranty : need to know what to do with this
             obj__additionalwaranty = Env('additionalwaranty')
 
             def condition(self):
                 # 'Prévoyance' div is for insurance contracts -- they are not bank accounts and thus are skipped
                 to_skip = ('Prévoyance', 'Responsabilité civile', 'Complémentaire santé', 'Protection juridique', 'Habitation')
-                kind = CleanText('../../div[has-class("product-tab-category")]', default=NotAvailable)(self)
+                kind = CleanText('../../div[has-class("o-product-tab-category")]', default=NotAvailable)(self)
                 return (kind not in to_skip)
 
             def obj_type(self):
-                kind = CleanText('../../div[has-class("product-tab-category")]', default=NotAvailable)(self)
+                kind = CleanText('../../div[has-class("o-product-tab-category")]', default=NotAvailable)(self)
                 return self.page.TYPES.get(kind, NotAvailable)
 
             def parse(self, el):

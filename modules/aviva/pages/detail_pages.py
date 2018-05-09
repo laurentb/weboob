@@ -23,7 +23,7 @@ from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import (
     CleanText, Capitalize, Format, Date, Regexp, CleanDecimal, Env,
-    Field, Async, Eval
+    Field, Async, Eval, BrowserURL
 )
 from weboob.capabilities.bank import Investment, Transaction
 from weboob.capabilities.base import NotAvailable
@@ -58,7 +58,7 @@ class LoginPage(BasePage, HTMLPage):
 
 
 class InvestmentPage(LoggedPage, HTMLPage):
-    balance_filter = MyDecimal('//ul[has-class("data-group")]//strong')
+    balance_filter = MyDecimal('//ul[has-class("m-data-group")]//strong')
     valuation_filter = MyDecimal('//h3[contains(., "value latente")]/following-sibling::p[1]')
 
     def get_history_link(self):
@@ -67,7 +67,7 @@ class InvestmentPage(LoggedPage, HTMLPage):
 
     @method
     class iter_investment(ListElement):
-        item_xpath = '//div[has-class("table")]/table/tbody/tr[not(has-class("total"))]'
+        item_xpath = '//div[has-class("m-table")]/table/tbody/tr[not(has-class("total"))]'
 
         class item(ItemElement):
             klass = Investment
@@ -76,16 +76,18 @@ class InvestmentPage(LoggedPage, HTMLPage):
                 # create URL with ISIN code if exists
                 code = Field('code')(self)
                 if code:
-                    url = 'https://aviva.sixtelekurs.fr/opcvm.hts?isin=%s' % code
-                    return self.page.browser.async_open(url=url)
+                    return self.page.browser.async_open(BrowserURL('invest_detail')(self), data={'isin': code})
 
             obj_code = Regexp(  # code ISIN
-                CleanText('./th[@data-label="Nom du support"]/a/@onclick'), r'"([A-Z]{2}[0-9]{10})"',
+                CleanText('./td[@data-label="Nom du support"]/a/@onclick'), r'"([A-Z]{2}[0-9]{10})"',
                 default=NotAvailable
             )
-            obj_label = CleanText('./th[@data-label="Nom du support"]')
+            def obj_label(self):
+                if not CleanText('./td[@data-label="Nom du support"]')(self):
+                    return CleanText('./th[@data-label="Nom du support"]/a')(self)
+                return CleanText('./td[@data-label="Nom du support"]')(self)
 
-            obj_quantity = CleanDecimal(
+            obj_quantity = MyDecimal(
                 './td[@data-label="Nombre de parts"]', default=NotAvailable,
             )
             obj_unitvalue = MyDecimal('./td[@data-label="Valeur de la part"]')
@@ -186,7 +188,7 @@ class HistoryPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Transaction
             obj_date = Date(
-                Regexp(CleanText('./div[1]'), r'(\d{2}\/\d{2}\/\d{4})'),
+                Regexp(CleanText('.//div[1]'), r'(\d{2}\/\d{2}\/\d{4})'),
                 dayfirst=True
             )
 
@@ -195,10 +197,10 @@ class HistoryPage(LoggedPage, HTMLPage):
 
             def obj_investments(self):
                 investments = []
-                for elem in self.xpath('./following-sibling::div[1]//ul'):
+                for elem in self.xpath('./following-sibling::div[1]//tbody/tr'):
                     inv = Investment()
-                    inv.valuation = CleanDecimal('./li[2]/p', replace_dots=True)(elem)
-                    inv.label = CleanText('./li[1]/p')(elem)
+                    inv.valuation = CleanDecimal('./td[2]/p', replace_dots=True)(elem)
+                    inv.label = CleanText('./td[1]')(elem)
                     investments.append(inv)
 
                 return investments
