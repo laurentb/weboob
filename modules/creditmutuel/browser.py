@@ -140,6 +140,10 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
         if not self.page.logged:
             self.page.login(self.username, self.password)
 
+            # when people try to log in but there are on a sub site of creditmutuel
+            if not self.page and not self.url.startswith(self.BASEURL):
+                raise BrowserIncorrectPassword()
+
             if not self.page.logged or self.login_error.is_here():
                 raise BrowserIncorrectPassword()
 
