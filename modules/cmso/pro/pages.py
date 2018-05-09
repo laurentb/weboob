@@ -138,7 +138,7 @@ class InvestmentPage(CMSOPage):
             klass = Account
 
             def obj_id(self):
-                area_id = Regexp(CleanText('(./preceding-sibling::tr[1])//span[@class="CelMnTiersT1"]'),
+                area_id = Regexp(CleanText('(./preceding-sibling::tr[@class="LnMnTiers"][1])//span[@class="CelMnTiersT1"]'),
                             r'\((\d+)\)', default='')(self)
                 acc_id = Regexp(CleanText('./td[1]'), r'(\d+)\s*(\d+)', r'\1\2')(self)
                 if area_id:
