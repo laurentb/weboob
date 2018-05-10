@@ -27,6 +27,8 @@ from collections import OrderedDict
 from decimal import Decimal
 import logging
 import os
+import io
+import sys
 
 from weboob.tools.compat import basestring, unicode
 
@@ -49,7 +51,10 @@ class INIConfig(IConfig):
 
         if os.path.exists(self.path):
             logging.debug(u'Loading application configuration file: %s.' % self.path)
-            self.config.read(self.path)
+            if sys.version_info.major < 3:
+                self.config.readfp(io.open(self.path, "r", encoding='utf-8'))
+            else:
+                self.config.read(self.path, encoding='utf-8')
             for section in self.config.sections():
                 args = section.split(':')
                 if args[0] == self.ROOTSECT:
@@ -85,7 +90,7 @@ class INIConfig(IConfig):
                         self.config.add_section(new_section)
                     save_section(v, new_section)
         save_section(self.values)
-        with open(self.path, 'w') as f:
+        with io.open(self.path, 'w', encoding='utf-8') as f:
             self.config.write(f)
 
     def get(self, *args, **kwargs):
