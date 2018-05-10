@@ -30,7 +30,8 @@ __all__ = ['OpensubtitlesBrowser']
 class OpensubtitlesBrowser(PagesBrowser):
     BASEURL = 'https://www.opensubtitles.org'
     search = URL('/en/search2/sublanguageid-(?P<language>.*)/moviename-(?P<movie>.*)(/offset-\d*)?', SearchPage)
-    subtitles = URL('/en/search/sublanguageid-(?P<language>.*)/idmovie-(?P<id_movie>.*)', SubtitlesPage)
+    subtitles = URL('/en/search/sublanguageid-(?P<language>.*)/idmovie-(?P<id_movie>.*)',
+                    '/en/search/imdbid-\d*/sublanguageid-(?P<language>.*)/moviename-(?P<movie>.*)', SubtitlesPage)
     subtitle = URL('/en/subtitles/(?P<id>.*)', SubtitlePage)
     series_subtitle = URL('/en/ssearch/sublanguageid-(?P<language>.*)/idmovie-(?P<id_movie>.*)', SeriesSubtitlePage)
     file = URL('/en/subtitleserve/sub/(?P<id>.+)')
