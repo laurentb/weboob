@@ -23,7 +23,7 @@ from datetime import date
 import re
 
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
-from weboob.browser.exceptions import ClientError
+from weboob.browser.exceptions import ClientError, HTTPNotFound
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bill import Subscription
 from weboob.capabilities.bank import Account, Transaction, AddRecipientStep, Recipient
@@ -342,11 +342,17 @@ class AXABanque(AXABrowser, StatesMixin):
 
         # go on recipient page to get external recipient ibans
         self.recipients.go()
+
         for iban in self.page.get_extenal_recipient_ibans():
             seen.add(iban)
 
-        # go on transfer page to get all accounts transfer possible
-        self.register_transfer.go()
+        # some connections don't have transfer page like connections with pea accounts only
+        try:
+            # go on transfer page to get all accounts transfer possible
+            self.register_transfer.go()
+        except HTTPNotFound:
+            return
+
         if self.page.is_transfer_account(acc_id=origin_account_id):
             self.page.set_account(acc_id=origin_account_id)
 

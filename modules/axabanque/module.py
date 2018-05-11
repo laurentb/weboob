@@ -64,6 +64,8 @@ class AXABanqueModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapDoc
         return self.browser.iter_coming(account)
 
     def iter_transfer_recipients(self, origin_account):
+        if not isinstance(self.browser, AXABanque):
+            raise NotImplementedError()
         if isinstance(origin_account, Account):
             origin_account = origin_account.id
         # Only 11 first character are required to iter recipient
