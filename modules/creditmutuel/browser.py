@@ -126,10 +126,19 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
     is_new_website = False
     form = None
     logged = None
+    need_clear_storage = False
 
-    __states__ = ['currentSubBank', 'form', 'logged', 'is_new_website']
+    __states__ = ['currentSubBank', 'form', 'logged', 'is_new_website', 'need_clear_storage']
 
     accounts_list = None
+
+    def load_state(self, state):
+        # when add recipient fails, state can't be reloaded. If state is reloaded, there is this error message:
+        # "Navigation interdite - Merci de bien vouloir recommencer votre action."
+        if not state.get('need_clear_storage'):
+            super(CreditMutuelBrowser, self).load_state(state)
+        else:
+            self.need_clear_storage = False
 
     def do_login(self):
         # Clear cookies.

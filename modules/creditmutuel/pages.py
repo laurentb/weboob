@@ -1341,6 +1341,8 @@ class RecipientsListPage(LoggedPage, HTMLPage):
 
         error = CleanText('//div[@class="blocmsg err"]/p')(self.doc)
         if error and error != 'Veuillez renseigner le BIC ou les coordonnées de la banque':
+            # don't reload state if it fails because it's not supported by the website
+            self.browser.need_clear_storage = True
             raise AddRecipientError(message=error)
 
     def has_list(self):
@@ -1400,6 +1402,8 @@ class RecipientsListPage(LoggedPage, HTMLPage):
             form = self.get_form(id='P:F')
             self.set_browser_form(form)
             raise AddRecipientStep(recipient, Value('code', label=txt))
+        # don't reload state if it fails because it's not supported by the website
+        self.browser.need_clear_storage = True
         raise AddRecipientError('Was expecting a page where sms code is asked')
 
 class RevolvingLoansList(LoggedPage, HTMLPage):
