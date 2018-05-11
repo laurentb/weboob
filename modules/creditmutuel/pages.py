@@ -285,6 +285,7 @@ class item_account_generic(ItemElement):
                     card.id = card._card_number = card_id
                     card._link_id = link
                     card._is_inv = card._is_webid = False
+                    card.parent = self.parent.objects[id]
 
                     pattern = 'Carte\s(\w+).*\d{4}\s([A-Za-z\s]+)(.*)'
                     m = re.search(pattern, CleanText('.')(elem))
