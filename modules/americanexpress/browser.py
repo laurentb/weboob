@@ -85,6 +85,7 @@ class AmericanExpressBrowser(LoginBrowser):
         if self.wrong_login.is_here() or self.login.is_here() or self.account_suspended.is_here():
             raise BrowserIncorrectPassword()
 
+        self.new_website = self.dashboard.is_here()
 
     @need_login
     def go_on_accounts_list(self):
