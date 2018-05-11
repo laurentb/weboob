@@ -20,6 +20,7 @@
 from __future__ import unicode_literals
 
 from datetime import date
+import re
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import ClientError
@@ -172,6 +173,14 @@ class AXABanque(AXABrowser):
                                 a.iban = r.page.get_iban()
                             except ClientError:
                                 a.iban = NotAvailable
+                        # Get parent account for card accounts
+                        # The parent account must be created before the card account
+                        if a.type == Account.TYPE_CARD:
+                            label_id = re.search(r'(\d{4,})', a.label).group()
+                            for p in accounts:
+                                if label_id in p.label and p.type == Account.TYPE_CHECKING:
+                                    a.parent = p
+                                    break
                         # Need it to get accounts from tabs
                         a._tab, a._pargs, a._purl = tab, page_args, self.url
                         accounts.append(a)
