@@ -217,6 +217,7 @@ class AccountsPage(LoggedPage, CDNBasePage):
 
     def get_list(self):
         accounts = []
+        previous_account = None
 
         noaccounts = self.get_from_js('_js_noMvts =', ';')
         if noaccounts is not None:
@@ -246,6 +247,11 @@ class AccountsPage(LoggedPage, CDNBasePage):
             a.balance = Decimal(FrenchTransaction.clean_amount(line[self.COL_BALANCE]))
             a.currency = a.get_currency(line[self.COL_BALANCE])
             a.type = self.get_account_type(a.label)
+
+            # The parent account must be created right before
+            if a.type == Account.TYPE_CARD:
+                a.parent = previous_account
+
             if line[self.COL_HISTORY] == 'true':
                 a._inv = False
                 a._link = self.get_history_link()
@@ -268,6 +274,7 @@ class AccountsPage(LoggedPage, CDNBasePage):
                 a.balance = Decimal('0.0')
 
             accounts.append(a)
+            previous_account = a
 
         return accounts
 
