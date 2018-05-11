@@ -230,6 +230,7 @@ class AccountsPage(MyLoggedPage, BasePage):
              u'CPS':        Account.TYPE_MARKET,
              u'TITR':       Account.TYPE_MARKET,
              u'TITR CTD':   Account.TYPE_MARKET,
+             u'PVERT VITA':  Account.TYPE_PERP,
              u'réserves de crédit':     Account.TYPE_CHECKING,
              u'prêts personnels':       Account.TYPE_LOAN,
              u'crédits immobiliers':    Account.TYPE_LOAN,
