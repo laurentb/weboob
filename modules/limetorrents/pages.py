@@ -37,7 +37,7 @@ class SearchPage(HTMLPage):
         class item(ItemElement):
             klass = Torrent
             def obj_url(self):
-                url = AbsoluteLink('.//div[has-class("tt-name")]/a[1]')(self)
+                url = Regexp(AbsoluteLink('.//div[has-class("tt-name")]/a[1]'), '(^.*)\?.*', '\\1')(self)
                 return url.replace('http://', 'https://')
             obj_id = Regexp(CleanText('.//div[has-class("tt-name")]/a[2]/@href'), '/.*-torrent-([0-9]+)\.html$', '\\1')
             obj_name = CleanText('.//div[has-class("tt-name")]/a[2]/text()')
@@ -60,7 +60,7 @@ class TorrentPage(HTMLPage):
         obj_name = CleanText('.//div[@id="content"]/h1')
         obj_id = Regexp(CleanText('//div[@id="updatestatslink"]/a/@onclick'), 'torrent_id=([0-9]+)&', '\\1')
         def obj_url(self):
-            url = AbsoluteLink('//div[has-class("torrentinfo")]//div[has-class("dltorrent")]//a[text()="Download torrent"]')(self)
+            url = Regexp(AbsoluteLink('//div[has-class("torrentinfo")]//div[has-class("dltorrent")]//a[text()="Download torrent"]'), '(^.*)\?.*', '\\1')(self)
             return url.replace('http://', 'https://')
         obj_filename = Format('%s.torrent', obj_name)
         def obj_size(self):
