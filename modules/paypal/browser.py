@@ -93,7 +93,10 @@ class Paypal(LoginBrowser):
         data['_csrf'] = csrf
         data['_sessionID'] = sessionID
         data[key] = value
-        self.open('/auth/verifychallenge', data=data)
+        res = self.open('/auth/verifychallenge', data=data)
+        if not 'OK' in res.content:
+            raise BrowserUnavailable('Challenge failed')
+
         res = self.page.login(self.username, self.password)
 
         if 'LoginFailed' in res.content or 'Sorry, we can\'t log you in' in res.content or self.error.is_here():

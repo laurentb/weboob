@@ -91,30 +91,97 @@ class LoginPage(HTMLPage):
             return "'" + ret[1:-1] + "'"
         cleaner_code = re.sub(r"%s\('([^']+)'\)" % re.escape(decoder_name), exec_decoder, cleaner_code)
 
-        code1 = re.search(r'(.*function .*?\})\(function\(\)', cleaner_code).group(1)
-
-        # Another victory for the scrapper team # CommitStrip Data Wars
-        code1 = re.sub('return typeof document!="undefined"&&typeof document.createAttribute!="undefined"', 'return 1==1', code1)
-
-        # now it checks if some browsers-only builtin variables are defined:
-        # e+=function(e,t){return typeof navigator!="undefined"?e:t}
-        code1 = re.sub(r'if\((?:typeof |document)[^)]*\)', 'if(true)', code1)
-
-        js = Javascript(code1)
-        func_name = re.search(r'function (\w+)\(\)', code1).group(1)
-
         cookie = re.search(r'xppcts = (\w+);', cleaner_code).group(1)
         sessionID = re.search(r"%s'([^']+)'" % re.escape("'&_sessionID='+encodeURIComponent("), cleaner_code).group(1)
         csrf = re.search(r"%s'([^']+)'" % re.escape("'&_csrf='+encodeURIComponent("), cleaner_code).group(1)
-
-        token = str(js.call(func_name))
         key, value = re.findall(r"'(\w+)','(\w+)'", cleaner_code)[-1]
+
+        # Detect the name of the function that computes the token, detect the
+        # variable that stores the result and store it as a global.
+        get_token_func_name = re.search(r"ads_token_js='\+encodeURIComponent\((\w+)\)", cleaner_code).group(1)
+        get_token_func_declaration = "var " + get_token_func_name + "="
+        cleaner_code = cleaner_code.replace(get_token_func_declaration, get_token_func_declaration + "window.ADS_JS_TOKEN=")
+
+        # Remove the call to an infinite loop
+        loop_func_name = re.search(r"\(function\(\w+,\s?\w+,\s?\w+,\s?\w+\)\{var\s(\w+)=", cleaner_code).group(1)
+        cleaner_code = cleaner_code.replace(loop_func_name + "();", "")
+        cleaner_code = cleaner_code.replace("data;", "return;")
+
+        # Simulate a browser environment
+        simulate_browser_code = """
+            if (!document.createAttribute) {
+                document.createAttribute = null;
+            }
+
+            if (!document.domain) {
+                document.domain = "paypal.com";
+            }
+
+            if (!document.styleSheets) {
+                document.styleSheets = null;
+            }
+
+            if (!document.characterSet) {
+                document.characterSet = "UTF-8";
+            }
+
+            if (!document.documentElement) {
+                document.documentElement = {};
+            }
+
+            if (!window.innerWidth || !window.innerHeight) {
+                window.innerWidth = 1280;
+                window.innerHeight = 800;
+            }
+
+            if (typeof(screen) === "undefined") {
+                var screen = window.screen = {
+                    width: 1280,
+                    height: 800
+                };
+            }
+
+            if (typeof(history) === "undefined") {
+                var history = window.history = {};
+            }
+
+            if (typeof(location) === "undefined") {
+                var location = window.location = {
+                    host: "paypal.com"
+                };
+            }
+
+            var XMLHttpRequest = function() {};
+            XMLHttpRequest.prototype.onreadystatechange = function(){};
+            XMLHttpRequest.prototype.open = function(){};
+            XMLHttpRequest.prototype.setRequestHeader = function(){};
+            XMLHttpRequest.prototype.send = function(){};
+            window.XMLHttpRequest = XMLHttpRequest;
+
+            if (!navigator.appName) {
+                navigator.appName =  "Netscape";
+            }
+
+            navigator.userAgent = "Mozilla/5.0 (X11; Linux x86_64; rv:61.0) Gecko/20100101 Firefox/61.0";
+        """
+
+        # Add a function that returns the token
+        cleaner_code += """
+        function GET_ADS_JS_TOKEN()
+        {
+            return window.ADS_JS_TOKEN || "INVALID_TOKEN";
+        }
+        """
+
+        token = str(Javascript(simulate_browser_code + cleaner_code).call("GET_ADS_JS_TOKEN"))
         return token, csrf, key, value, sessionID, cookie
 
-    def login(self, login, password):
+    def login(self, login, password, ):
         form = self.get_form(name='login')
         form['login_email'] = login
         form['login_password'] = password
+        form['splitLoginContext'] = 'inputPassword'
+        form['splitLoginCookiedFallback'] = True
         return form.submit(headers={'X-Requested-With': 'XMLHttpRequest'})
 
     def get_script_url(self):
