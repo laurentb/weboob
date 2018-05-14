@@ -381,24 +381,25 @@ class LCLBrowser(LoginBrowser, StatesMixin):
     def new_recipient(self, recipient, **params):
         if 'code' in params:
             return self.send_code(recipient, **params)
-        try:
-            assert recipient.iban[:2] in ['FR', 'MC']
-        except AssertionError:
+
+        if recipient.iban[:2] not in ('FR', 'MC'):
             raise AddRecipientError(message=u"LCL n'accepte que les iban commençant par MC ou FR.")
+
         for _ in range(2):
             self.add_recip.go()
             if self.add_recip.is_here():
                 break
-        try:
-            assert self.add_recip.is_here()
-        except AssertionError:
+
+        if self.no_perm.is_here() and self.page.get_error_msg():
+            raise AddRecipientError(message=self.page.get_error_msg())
+        elif not self.add_recip.is_here():
             raise AddRecipientError('Navigation failed: not on add_recip.')
         self.page.validate(recipient.iban, recipient.label)
-        try:
-            assert self.recip_confirm.is_here()
-        except AssertionError:
+
+        if not self.recip_confirm.is_here():
             raise AddRecipientError('Navigation failed: not on recip_confirm.')
         self.page.check_values(recipient.iban, recipient.label)
+
         # Send sms to user.
         self.open('/outil/UWBE/Otp/envoiCodeOtp?telChoisi=MOBILE')
         raise AddRecipientStep(self.get_recipient_object(recipient.iban, recipient.label), Value('code', label='Saisissez le code.'))

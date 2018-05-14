@@ -647,7 +647,11 @@ class DiscPage(LoggedPage, HTMLPage):
 
 
 class NoPermissionPage(LoggedPage, HTMLPage):
-    pass
+    def get_error_msg(self):
+        error_msg = CleanText(
+            '//div[@id="divContenu"]//div[@id="attTxt" and contains(text(), "vous n\'avez pas accès à cette opération")]'
+        )(self.doc)
+        return error_msg
 
 
 class AVPage(LoggedPage, HTMLPage):
