@@ -23,6 +23,7 @@ import codecs
 from collections import OrderedDict
 from contextlib import contextmanager
 from copy import deepcopy
+from glob import glob
 import os
 import hashlib
 from tempfile import NamedTemporaryFile
@@ -404,6 +405,8 @@ class SeleniumBrowser(object):
 
     BASEURL = None
 
+    MAX_SAVED_RESPONSES = (1 << 30)  # limit to 1GiB
+
     def __init__(self, logger=None, proxy=None, responses_dirname=None, weboob=None):
         super(SeleniumBrowser, self).__init__()
         self.responses_dirname = responses_dirname
@@ -413,6 +416,7 @@ class SeleniumBrowser(object):
         self.proxy = proxy or {}
 
         self.implicit_timeout = 0
+        self.last_page_hash = None
 
         self._setup_driver()
 
@@ -492,9 +496,11 @@ class SeleniumBrowser(object):
                     if isinstance(page.is_here, CustomCondition):
                         if page.is_here(self.driver):
                             self.logger.debug('Now on %s', page)
+                            self.save_response_if_changed()
                             return page
                     elif page.is_here():
                         self.logger.debug('Now on %s', page)
+                        self.save_response_if_changed()
                         return page
                 except NoSuchElementException:
                     pass
@@ -539,10 +545,22 @@ class SeleniumBrowser(object):
         }
         return ret
 
+    def save_response_if_changed(self):
+        hash = hashlib.md5(self.driver.page_source.encode('utf-8')).hexdigest()
+        if self.last_page_hash != hash:
+            self.save_response()
+
+        self.last_page_hash = hash
+
     def save_response(self):
         if self.responses_dirname:
             if not os.path.isdir(self.responses_dirname):
                 os.makedirs(self.responses_dirname)
+
+            total = sum(os.path.getsize(f) for f in glob('%s/*' % self.responses_dirname))
+            if self.MAX_SAVED_RESPONSES is not None and total >= self.MAX_SAVED_RESPONSES:
+                self.logger.info('quota reached, not saving responses')
+                return
 
             self.responses_count += 1
             path = '%s/%02d.html' % (self.responses_dirname, self.responses_count)
