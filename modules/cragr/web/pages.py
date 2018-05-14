@@ -38,7 +38,7 @@ from weboob.tools.date import parse_french_date, LinearDateGuesser
 from weboob.tools.compat import urlparse, urljoin, unicode
 from weboob.browser.elements import ListElement, TableElement, ItemElement, method
 from weboob.browser.filters.standard import Date, CleanText, CleanDecimal, Currency as CleanCurrency, \
-                                            Regexp, Format, Field
+                                            Regexp, Format, Field, Async, AsyncLoad
 from weboob.browser.filters.html import Link, TableCell, ColumnNotFound
 
 
@@ -445,6 +445,9 @@ class CardsPage(MyLoggedPage, BasePage):
             def obj_url(self):
                 return self.page.url
 
+            load_details = Link('.//tr[contains(@class, "ligne-bleu")]/th[@class="cel-texte" and contains(text(), "Solde")]/a') & AsyncLoad
+            obj__parent_id = Async('details') & Regexp(CleanText('//table[@class="ca-table"][1]//tr[@class="ligne-impaire"]/th'), r'(\d+)')
+
     @method
     class iter_cards(ListElement):
         item_xpath = '//table[caption[@class="caption tdb-cartes-caption" or @class="ca-table caption"]]'
@@ -481,6 +484,9 @@ class CardsPage(MyLoggedPage, BasePage):
                 link = urljoin(self.page.url, re.sub(r'\s+', '', link))
                 link = re.sub(r'sessionSAG=[^&]+', r'sessionSAG={0}', link)
                 return link
+
+            def obj__parent_id(self):
+                return Regexp(CleanText('//table[@class="ca-table"][1]//tr[contains(@class, "ligne-bleu")]/th'), r'n°(\d+)')(self)
 
     def several_cards(self):
         return bool(self.doc.xpath('//table[caption[@class="caption tdb-cartes-caption" or @class="ca-table caption"]]'))

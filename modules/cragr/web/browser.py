@@ -275,7 +275,7 @@ class Cragr(LoginBrowser, StatesMixin):
         return find_object(self.get_cards(), id=id)
 
     @need_login
-    def get_cards(self):
+    def get_cards(self, accounts_list):
         self.location(self.accounts_url.format(self.sag))
 
         for idelco in self.page.iter_idelcos():
@@ -291,9 +291,11 @@ class Cragr(LoginBrowser, StatesMixin):
             assert self.cards.is_here() or self.cards2.is_here()
             if self.page.several_cards():
                 for account in self.page.iter_cards():
+                    account.parent = find_object(accounts_list, id=account._parent_id)
                     yield account
             else:
                 for account in self.page.iter_card():
+                    account.parent = find_object(accounts_list, id=account._parent_id)
                     yield account
 
 
@@ -324,7 +326,7 @@ class Cragr(LoginBrowser, StatesMixin):
         # credit cards
         # reseting location in case of pagination
         self.location(self.accounts_url.format(self.sag))
-        accounts_list.extend(self.get_cards())
+        accounts_list.extend(self.get_cards(accounts_list))
 
         # loan accounts
         self.location(self.loans_url.format(self.sag))
