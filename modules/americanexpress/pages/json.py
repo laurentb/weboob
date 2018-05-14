@@ -73,7 +73,7 @@ class AccountsPage3(LoggedPage, HTMLPage):
         for account_data in accounts_data:
             if isinstance(account_data, basestring):
                 token = account_data
-            elif isinstance(account_data, list):
+            elif isinstance(account_data, list) and not account_data[4][2][0]=="Canceled":
                 acc = Account()
                 acc.number = '-%s' % account_data[2][2]
                 acc._idforold = account_data[2][6]
