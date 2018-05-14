@@ -355,8 +355,11 @@ class HSBC(LoginBrowser):
 
     def get_scpi_investments(self, account):
         # Clean account url
-        account_url = re.search(r"'(.*)'", account.url).group(0)
-        account_url = account_url.replace("'", '')
+        m = re.search(r"'(.*)'", account.url)
+        if m:
+            account_url = m.group(1)
+        else:
+            account_url = account.url
 
         # Need to be on accounts page to go on scpi page
         self.accounts.go()
