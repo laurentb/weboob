@@ -324,15 +324,22 @@ class CardHistoryPage(LoggedPage, HTMLPage):
         return bool(self.doc.xpath('//span[@class="loading"]'))
 
 
-class AccountsList(LoggedPage, HTMLPage):
+class WarningPage(LoggedPage, HTMLPage):
     def on_load(self):
-        warn = self.doc.xpath(u'//div[@id="message_renouvellement_mot_passe"] | \
+        warning = self.doc.xpath(u'//div[@id="message_renouvellement_mot_passe"] | \
                                //span[contains(text(), "Votre identifiant change")] | \
                                //span[contains(text(), "Nouveau mot de passe")] | \
                                //span[contains(text(), "Renouvellement de votre mot de passe")] |\
                                //span[contains(text(), "Mieux vous connaître")]')
-        if len(warn) > 0:
-            raise ActionNeeded(warn[0].text)
+        if warning:
+            raise ActionNeeded(warning[0].text)
+
+
+class AccountsList(WarningPage):
+    def get_iframe_url(self):
+        iframe = self.doc.xpath('//iframe[@id="iframe_centrale"]')
+        if iframe:
+            return iframe[0].attrib['src']
 
     def load_async(self, time):
         total = 0

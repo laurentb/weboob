@@ -24,10 +24,13 @@ from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import AuthMethodNotImplemented, BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
+from weboob.tools.compat import urljoin
 
 from .pages.login import LoginPage, UnavailablePage
-from .pages.accounts_list import GlobalAccountsList, AccountsList, AccountHistoryPage, CardHistoryPage, \
-                                 InvestmentHistoryPage, PeaHistoryPage, LoanPage
+from .pages.accounts_list import (
+    GlobalAccountsList, AccountsList, AccountHistoryPage, CardHistoryPage,
+    InvestmentHistoryPage, PeaHistoryPage, LoanPage, WarningPage,
+)
 
 __all__ = ['Fortuneo']
 
@@ -40,6 +43,7 @@ class Fortuneo(LoginBrowser):
     accounts_page = URL(r'.*prive/default\.jsp.*',
                         r'.*/prive/mes-comptes/synthese-mes-comptes\.jsp',
                         AccountsList)
+    iframe_page = URL(r'.*/prive/accueil-informations-client-global\.jsp.*', WarningPage)
     global_accounts = URL(r'.*/prive/mes-comptes/synthese-globale/synthese-mes-comptes\.jsp', GlobalAccountsList)
 
     account_history = URL(r'.*/prive/mes-comptes/livret/consulter-situation/consulter-solde\.jsp.*',
@@ -106,6 +110,13 @@ class Fortuneo(LoginBrowser):
     def get_accounts_list(self):
         self.location('/fr/prive/default.jsp?ANav=1')
 
-        return self.page.get_list()
+        # the Action Needed might be contained in an iframe
+        url = self.page.get_iframe_url()
+        if url:
+            url = urljoin(self.BASEURL, url)
+            # don't go if iframe points to AccountHistoryPage, go if it points
+            # to a Warning Page
+            if self.iframe_page.match(url):
+                self.location(url).page  # an Action Needed is supposed to be raised
 
-# vim:ts=4:sw=4
+        return self.page.get_list()
