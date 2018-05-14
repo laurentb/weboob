@@ -32,7 +32,7 @@ from weboob.browser.filters.standard import CleanText, Date, CleanDecimal, Regex
 from weboob.exceptions import ActionNeeded, BrowserIncorrectPassword, BrowserUnavailable
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.profile import Profile
-from weboob.capabilities.base import Currency
+from weboob.capabilities.base import Currency, find_object
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
@@ -250,6 +250,10 @@ class AccountsPage(LoggedPage, CDNBasePage):
 
             # The parent account must be created right before
             if a.type == Account.TYPE_CARD:
+                # duplicate
+                if find_object(accounts, id=a.id):
+                    self.logger.warning('Ignoring duplicate card %r', a.id)
+                    continue
                 a.parent = previous_account
 
             if line[self.COL_HISTORY] == 'true':
