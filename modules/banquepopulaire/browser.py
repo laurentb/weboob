@@ -317,7 +317,8 @@ class BanquePopulaire(LoginBrowser):
 
     @need_login
     def go_investments(self, account, get_account=False):
-        if not account._invest_params and not account.id.startswith('TIT'):
+
+        if not account._invest_params and not (account.id.startswith('TIT') or account.id.startswith('PRV')):
             raise NotImplementedError()
 
         if get_account:
@@ -376,11 +377,12 @@ class BanquePopulaire(LoginBrowser):
             self.investments[account.id] = []
             try:
                 if self.go_investments(account, get_account=True):
+                    # Redirection URL is https://www.linebourse.fr/ReroutageSJR
                     if "linebourse" in self.url:
-                        for inv in self.linebourse.iter_investment(re.sub('[^0-9]', '', account.id)):
-                            # skip liquidity from linebourse, it's on another account
-                            if inv.code != "XX-liquidity":
-                                self.investments[account.id].append(inv)
+                        # Eliminating the 3 letters prefix to match IDs on Linebourse:
+                        linebourse_id = account.id[3:]
+                        for inv in self.linebourse.iter_investment(linebourse_id):
+                            self.investments[account.id].append(inv)
 
                     if self.etna.is_here():
                         params = self.page.params

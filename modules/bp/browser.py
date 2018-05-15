@@ -372,8 +372,13 @@ class BPBrowser(LoginBrowser, StatesMixin):
             return self.location(account.url).page.iter_investments()
 
         if account.type in (account.TYPE_PEA, account.TYPE_MARKET):
+            investment_list = []
             self.go_linebourse(account)
-            return self.linebourse.iter_investment(account.id)
+            for inv in self.linebourse.iter_investment(account.id):
+                # Liquidities already appear in the current account so we must avoid redundancies:
+                if inv.code != 'XX-liquidity':
+                    investment_list.append(inv)
+            return investment_list
 
         if account.type != Account.TYPE_LIFE_INSURANCE:
             return iter([])
