@@ -308,6 +308,6 @@ def reinit_if_needed():
     # so we should reinit NSS
 
     if INIT_PID and INIT_PID != os.getpid():
-        LOGGER.warning('nss inited in %s but now in %s', INIT_PID, os.getpid())
+        LOGGER.info('nss inited in %s but now in %s', INIT_PID, os.getpid())
         assert INIT_ARGS
         init_nss(*INIT_ARGS)
