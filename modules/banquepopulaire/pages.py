@@ -704,6 +704,9 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
     COL_CREDIT = -1
 
     def get_account_history(self):
+        # Keep track of the order in the transaction list, so details can be retrieve
+        # Because each transaction row has a different id
+        # in the html page for each request of the TransactionPage
         for tr in self.doc.xpath('//table[@id="tbl1"]/tbody/tr'):
             tds = tr.findall('td')
 
@@ -737,6 +740,9 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
             # In rare cases, label is empty ..
             if not t.label:
                 t.label = cleaner(tds[self.COL_REF])
+
+            # To be able to find by ref on the transaction page
+            t._ref = cleaner(tds[self.COL_REF])
 
             yield t
 
@@ -800,6 +806,13 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
             params[key] = value
         return url, params if url and params else None
 
+    def get_transaction_table_id(self, ref):
+        tr = self.doc.xpath('//table[@id="tbl1"]/tbody/tr[.//span[contains(text(), "%s")]]' % ref)[0]
+
+        key = 'attribute($SEL_$%s)' % tr.attrib['id'].split('_')[0]
+        value = tr.attrib['id'].split('_', 1)[1]
+
+        return key, value
 
 class NatixisChoicePage(LoggedPage, HTMLPage):
     def on_load(self):
@@ -1046,3 +1059,8 @@ class AdvisorPage(LoggedPage, MyHTMLPage):
         profile.email = CleanText('//span[contains(text(), "@")]')(self.doc)
 
         return profile
+
+
+class TransactionDetailPage(LoggedPage, MyHTMLPage):
+    def get_reference(self):
+        return CleanText('//div[label[contains(text(), "Référence")]]//text()')(self.doc)

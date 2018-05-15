@@ -33,7 +33,7 @@ from .pages import (
     LoggedOut,
     LoginPage, IndexPage, AccountsPage, AccountsFullPage, CardsPage, TransactionsPage,
     UnavailablePage, RedirectPage, HomePage, Login2Page, ErrorPage,
-    IbanPage, AdvisorPage,
+    IbanPage, AdvisorPage, TransactionDetailPage,
     NatixisPage, EtnaPage, NatixisInvestPage, NatixisHistoryPage, NatixisErrorPage,
     NatixisDetailsPage, NatixisChoicePage, NatixisRedirect,
 )
@@ -115,10 +115,13 @@ class BanquePopulaire(LoginBrowser):
     transactions_page = URL(r'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=SELECTION_ENCOURS_CARTE.*',
                             r'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=SOLDE.*',
                             r'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=CONTRAT.*',
+                            r'https://[^/]+/cyber/internet/ContinueTask.do\?.*ConsultationDetail.*ActionPerformed=BACK.*',
                             r'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=ordreBourseCTJ.*',
                             r'https://[^/]+/cyber/internet/Page.do\?.*',
                             r'https://[^/]+/cyber/internet/Sort.do\?.*',
                             TransactionsPage)
+
+    transaction_detail_page = URL(r'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=DETAIL_ECRITURE.*', TransactionDetailPage)
 
     error_page = URL(r'https://[^/]+/cyber/internet/ContinueTask.do', ErrorPage)
     unavailable_page = URL(r'https://[^/]+/s3f-web/.*',
@@ -267,6 +270,28 @@ class BanquePopulaire(LoginBrowser):
     def get_account(self, id):
         return find_object(self.get_accounts_list(False), id=id)
 
+    def set_gocardless_transaction_details(self, transaction):
+        # Setting references for a GoCardless transaction
+        data = self.page.get_params()
+        data['validationStrategy'] = 'NV'
+        data['dialogActionPerformed'] = 'DETAIL_ECRITURE'
+        attribute_key, attribute_value = self.page.get_transaction_table_id(transaction._ref)
+        data[attribute_key] = attribute_value
+        data['token'] = self.page.build_token(data['token'])
+
+        self.location(self.absurl('/cyber/internet/ContinueTask.do', base=True), data=data)
+        ref = self.page.get_reference()
+        transaction.raw = '%s %s' % (transaction.raw, ref)
+
+        # Needed to preserve navigation.
+        btn = self.page.doc.xpath('.//button[span[text()="Retour"]]')
+        if len(btn):
+            _data = self.page.get_params()
+            actions = self.page.get_button_actions()
+            _data.update(actions[btn[0].attrib['id']])
+            _data['token'] = self.page.build_token(_data['token'])
+            self.location('/cyber/internet/ContinueTask.do', data=_data)
+
     @retry(LoggedOut)
     @need_login
     def get_history(self, account, coming=False):
@@ -306,7 +331,12 @@ class BanquePopulaire(LoginBrowser):
         while True:
             assert self.transactions_page.is_here()
 
-            for tr in self.page.get_history(account, coming):
+            transaction_list = self.page.get_history(account, coming)
+            for tr in transaction_list:
+                # Add informations about GoCardless
+                if 'GoCardless' in tr.label:
+                    self.set_gocardless_transaction_details(tr)
+
                 yield tr
 
             next_params = self.page.get_next_params()
