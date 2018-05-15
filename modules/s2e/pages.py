@@ -267,7 +267,7 @@ class ItemInvestment(ItemElement):
                 if m: # had to put full url to skip redirections.
                     page = page.browser.open('https://www.assetmanagement.hsbc.com/feedRequest?feed_data=gfcFundData&cod=FR&client=FCPE&fId=%s&SH=%s&lId=fr' % m.groups()).page
             elif "consulteroperations" not in self.page.browser.url: # not on history
-                url = Regexp(CleanText('//complete'), r"openUrlFichesFonds\('(.*?)',true\).*", default=NotAvailable)(page.doc)
+                url = Regexp(CleanText('//complete'), r"openUrlFichesFonds\('(.*?)',true|false\).*", default=NotAvailable)(page.doc)
 
                 if url is NotAvailable:
                     # redirection to a useless graphplot page with url like /portal/salarie-sg/fichefonds?idFonds=XXX&source=/portal/salarie-sg/monepargne/mesavoirs
