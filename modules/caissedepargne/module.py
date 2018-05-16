@@ -47,7 +47,7 @@ class CaisseEpargneModule(Module, CapBankWealth, CapBankTransferAddRecipient, Ca
     CONFIG = BackendConfig(Value('website',  label='Banque', choices=website_choices, default='www.caisse-epargne.fr'),
                            ValueBackendPassword('login',    label='Identifiant client', masked=False),
                            ValueBackendPassword('password', label='Code personnel', regexp='\d+'),
-                           Value('nuser',                   label='User ID (optional)', default=''),
+                           Value('nuser',                   label='User ID (optional)', default='', regexp='[0-9a-zA-Z]{,8}'),
                            Value('pincode',                 label='pincode', required=False))
 
     def create_default_browser(self):
