@@ -136,6 +136,7 @@ class JsonHistory(LoggedPage, JsonPage):
             obj_vdate = Date(Dict('post_date', default=None), default=NotAvailable)
             obj_amount = Eval(lambda x: -float_to_decimal(x), Dict('amount'))
             obj_original_currency = Dict('foreign_details/iso_alpha_currency_code', default=NotAvailable)
+            obj_commission = CleanDecimal(Dict('foreign_details/commission_amount', default=NotAvailable), sign=lambda x: -1, default=NotAvailable)
 
             def obj_original_amount(self):
                 # amount in the account's currency
