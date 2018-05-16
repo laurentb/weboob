@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from decimal import Decimal, InvalidOperation
 import re
@@ -127,6 +128,10 @@ class BredBasePage(LoggedPage, HTMLPage):
 
 
 class AccountsPage(BredBasePage):
+    ACCOUNT_TYPES = {
+        'Compte à vue': Account.TYPE_CHECKING,
+    }
+
     def get_list(self):
         for tr in self.doc.xpath('//table[@class="compteTable"]/tr'):
             if not tr.attrib.get('class', '').startswith('ligne_'):
@@ -170,6 +175,7 @@ class AccountsPage(BredBasePage):
             account.label = to_unicode(a.attrib.get('alt', a.text.strip()))
             account.balance = amount
             account.currency = [account.get_currency(txt) for txt in cols[-1].itertext() if len(txt.strip()) > 0][0]
+            account.type = self.ACCOUNT_TYPES.get(account.label, Account.TYPE_UNKNOWN)
             yield account
 
     def get_profile(self):
