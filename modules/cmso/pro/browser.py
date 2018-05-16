@@ -65,6 +65,7 @@ class CmsoProBrowser(LoginBrowser):
         self.areas = None
         self.arkea = CmsoParBrowser.ARKEA[website]
         self.csrf = None
+        self.last_csrf = None
         self.token = None
 
     def do_login(self):
@@ -111,7 +112,10 @@ class CmsoProBrowser(LoginBrowser):
                                           },
                                  json={'rwdStyle': 'true',
                                        'service': path}).get_sso_url()
-        return self.location(url).page
+        page = self.location(url).page
+        # each time we get a new csrf we store it because it can be used in further navigation
+        self.last_csrf = self.url.split('csrf=')[1]
+        return page
 
     def go_on_area(self, area):
         #self.subscription.stay_or_go()
@@ -184,10 +188,15 @@ class CmsoProBrowser(LoginBrowser):
             raise NotImplementedError()
 
         account = find_object(self.iter_accounts(), id=account.id)
-
         # this url (reached with a GET) return some transactions, but not in same format than POST method
         # and some transactions are duplicated and other are missing, don't take them from GET
         # because we don't want to manage both way in iter_history
+
+        # fetch csrf token
+        self.go_with_ssodomi(self.accounts)
+        # we have to update the url at this moment because history consultation has to follow immediatly accounts page consultation.
+        account._history_url = self.update_csrf_token(account._history_url)
+
         self.location(account._history_url)
         date_range_list = self.page.get_date_range_list()
 
@@ -211,6 +220,9 @@ class CmsoProBrowser(LoginBrowser):
                         raise
             for tr in sorted_transactions(self.page.iter_history(date_guesser=date_guesser)):
                 yield tr
+
+    def update_csrf_token(self, history_url):
+        return re.sub('(?<=csrf=)[0-9a-zA-Z]+', self.last_csrf, history_url)
 
     @need_login
     def iter_coming(self, account):
