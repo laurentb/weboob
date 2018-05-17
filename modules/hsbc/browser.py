@@ -31,6 +31,7 @@ from weboob.tools.compat import parse_qsl, urlparse
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import HTTPNotFound
+from weboob.capabilities.base import find_object
 
 from .pages.account_pages import (
     AccountsPage, CBOperationPage, CPTOperationPage, LoginPage, AppGonePage, RibPage,
@@ -170,6 +171,11 @@ class HSBC(LoginBrowser):
         if not self.accounts_list:
             self.update_accounts_list()
         for a in self.accounts_list.values():
+            # Get parent of card account
+            if a.type == Account.TYPE_CARD:
+                card_page = self.open(a.url).page
+                parent_id = card_page.get_parent_id()
+                a.parent = find_object(self.accounts_list.values(), id=parent_id)
             yield a
 
     def go_post(self, url, data=None):

@@ -222,6 +222,11 @@ class CBOperationPage(GenericLandingPage):
             def obj_date(self):
                 return DateGuesser(Regexp(CleanText(self.page.doc.xpath('//table/tr[2]/td[1]')), r'(\d{2}/\d{2})'), Env("date_guesser"))(self)
 
+    def get_parent_id(self):
+        # The parent id is in the details of the card
+        m = re.search(r'Solde du compte (.*)', CleanText('//div[@class="RecentTransactions"]/h2')(self.doc))
+        return m.group(1)
+
 
 class CPTOperationPage(GenericLandingPage):
     is_here = '''//h1[text()="Historique des opérations"] and //h2[text()="Recherche d'opération"]'''
