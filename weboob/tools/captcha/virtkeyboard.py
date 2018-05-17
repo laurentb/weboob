@@ -415,8 +415,6 @@ class SimpleVirtualKeyboard(object):
 
     def get_tiles(self, matching_symbols=None, matching_symbols_coords=None):
         self.tiles = []
-        self.tileW = self.width / self.cols
-        self.tileH = self.height / self.rows
 
         # Tiles coords are given
         if matching_symbols_coords:
@@ -426,9 +424,12 @@ class SimpleVirtualKeyboard(object):
                                  ))
             return
 
-        # Tiles coords aren't given, calculate them
-        assert (self.tileW%1 == 0.0) & (self.tileH%1 == 0.0), \
+        assert (not self.width%self.cols) & (not self.height%self.rows), \
             "Image width and height are not multiple of cols and rows. Please resize image with attribute `margin`."
+
+        # Tiles coords aren't given, calculate them
+        self.tileW = self.width // self.cols
+        self.tileH = self.height // self.rows
 
         # Matching symbols aren't given, default value is range(columns*rows)
         if not matching_symbols:
