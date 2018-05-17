@@ -20,7 +20,7 @@
 
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
-from weboob.capabilities.bank import CapBankWealth, AccountNotFound
+from weboob.capabilities.bank import CapBankPockets, AccountNotFound
 from weboob.capabilities.base import find_object
 
 from .browser import HumanisBrowser
@@ -29,7 +29,7 @@ from .browser import HumanisBrowser
 __all__ = ['HumanisModule']
 
 
-class HumanisModule(Module, CapBankWealth):
+class HumanisModule(Module, CapBankPockets):
     NAME = 'humanis'
     DESCRIPTION = u'Humanis Épargne Salariale'
     MAINTAINER = u'Jean Walrave'
@@ -61,3 +61,6 @@ class HumanisModule(Module, CapBankWealth):
 
     def iter_investment(self, account):
         return self.browser.iter_investment(account)
+
+    def iter_pocket(self, account):
+        return self.browser.iter_pocket(account)
