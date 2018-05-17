@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bank import CapBankWealth, AccountNotFound
+from weboob.capabilities.bank import CapBankPockets, AccountNotFound
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 from weboob.capabilities.base import find_object
@@ -29,7 +29,7 @@ from .browser import CmesBrowser
 __all__ = ['PradoepargneModule']
 
 
-class PradoepargneModule(Module, CapBankWealth):
+class PradoepargneModule(Module, CapBankPockets):
     NAME = 'pradoepargne'
     DESCRIPTION = u'Prado Épargne Salariale'
     MAINTAINER = u'Edouard Lambert'
@@ -60,3 +60,6 @@ class PradoepargneModule(Module, CapBankWealth):
 
     def iter_investment(self, account):
         return self.browser.iter_investment(account)
+
+    def iter_pocket(self, account):
+        return self.browser.iter_pocket(account)

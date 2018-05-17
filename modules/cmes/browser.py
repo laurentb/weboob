@@ -32,7 +32,9 @@ class CmesBrowser(LoginBrowser):
 
     login = URL('(?P<subsite>.*)fr/identification/default.cgi', LoginPage)
     accounts = URL('(?P<subsite>.*)fr/espace/devbavoirs.aspx\?mode=net&menu=cpte$', AccountsPage)
-    fcpe_investment = URL(r'/fr/.*GoPositionsParFond.*', FCPEInvestmentPage)
+    fcpe_investment = URL(r'/fr/.*GoPositionsParFond.*',
+                          r'/fr/espace/devbavoirs.aspx\?.*SituationParFonds.*GoOpenDetailFond.*',
+                          FCPEInvestmentPage)
     ccb_investment = URL('(?P<subsite>.*)fr/.*LstSuppCCB.*', CCBInvestmentPage)
     history = URL('(?P<subsite>.*)fr/espace/devbavoirs.aspx\?mode=net&menu=cpte&page=operations',
                   '(?P<subsite>.*)fr/.*GoOperationsTraitees',
@@ -77,10 +79,19 @@ class CmesBrowser(LoginBrowser):
 
     @need_login
     def iter_pocket(self, account):
-        ccb_link = self.accounts.stay_or_go(subsite=self.subsite).get_pocket_link()
-        for inv in self.location(ccb_link).page.iter_investment():
-            for poc in self.page.iter_pocket(inv=inv):
-                yield poc
+        self.accounts.stay_or_go(subsite=self.subsite)
+        for inv in self.iter_investment(account):
+            self.location(inv._pocket_url)
+            for pocket in self.page.iter_pocket(inv=inv):
+                yield pocket
+
+        # don't know if it is still releavent
+        # need ccb case
+        ccb_link = self.supp_alert.stay_or_go().get_pocket_link()
+        if ccb_link:
+            for inv in self.location(ccb_link).page.iter_pocket():
+                for poc in self.page.iter_pocket(inv=inv):
+                    yield poc
 
     @need_login
     def iter_history(self, account):

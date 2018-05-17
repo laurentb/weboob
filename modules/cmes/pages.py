@@ -17,13 +17,16 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 import re
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement
-from weboob.browser.filters.standard import CleanText, Upper, Date, Regexp, Field, \
-                                            CleanDecimal, Env, Async, AsyncLoad, Currency
+from weboob.browser.filters.standard import (
+    CleanText, Upper, Date, Regexp, Field,
+    CleanDecimal, Env, Async, AsyncLoad, Currency,
+    )
 from weboob.browser.filters.html import Link, TableCell, Attr
 from weboob.capabilities.bank import Account, Investment, Pocket
 from weboob.capabilities.base import NotAvailable
@@ -104,6 +107,7 @@ class FCPEInvestmentPage(LoggedPage, HTMLPage):
 
             # array starts at 1
             # can not use TableCell here because there is 2 sub columns
+            obj__pocket_url = Link('./td[1]/a')
             obj_label = CleanText('./td[2]')
             obj_quantity = MyDecimal(TableCell('quantity'))
             # displays only with table format
@@ -114,6 +118,22 @@ class FCPEInvestmentPage(LoggedPage, HTMLPage):
             obj_diff_percent = MyDecimal(TableCell('diff_percent'))
             # good vdate?
             obj_vdate = Date(Regexp(CleanText(u'//p[contains(text(), "financière au ")]'), 'au[\s]+(.*)'), dayfirst=True)
+
+    @method
+    class iter_pocket(ListElement):
+        # Getting the only tr which is unfolded
+        item_xpath = '//table[@class="liste"]/tbody/tr[td/a/img[@alt="[-] Détail"]]/following::tr[not(td/a/img[@alt="[+] Détail"])]'
+
+        class item(ItemElement):
+            klass = Pocket
+
+            obj_investment = Env('inv')
+            obj_label = CleanText('//table[@class="liste"]/tbody/tr[td/a/img[@alt="[-] Détail"]]/td[2]')
+            obj_amount = MyDecimal('./td[4]')
+            obj_quantity = MyDecimal('./td[3]')
+
+            def obj_availability_date(self):
+                return Date(CleanText('./td[2]'), dayfirst=True, default=NotAvailable)(self)
 
 
 class CCBInvestmentPage(LoggedPage, HTMLPage):
