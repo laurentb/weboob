@@ -101,9 +101,18 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
         numbers = [''.join(Regexp(CleanText('.'), '(\d+)', nth='*', default=None)(opt)) for opt in self.doc.xpath('.//select[@id="SelectEmet"]//option')]
         return bool(CleanText('.//select[@id="SelectEmet"]//option[contains(text(), "%s")]' % account.label)(self.doc)) or bool(account.id in numbers)
 
+    def has_external_recipient_transferable(self):
+        # refere to iter recipient item_xpath
+        internal_rcpt_xpath = '//select[@id="SelectDest"]/optgroup[@label="Vos comptes"]/option | \
+                               //select[@id="SelectDest"]/optgroup[@label="Procurations"]/option'
+
+        return self.doc.xpath(internal_rcpt_xpath) or not self.doc.xpath('//select[@id="SelectDest"]/option[@value=""]')
+
     @method
     class iter_recipients(ListElement):
-        item_xpath = '//select[@id="SelectDest"]/optgroup[@label="Vos comptes"]/option | //select[@id="SelectDest"]/optgroup[@label="Procurations"]/option'
+        item_xpath = '//select[@id="SelectDest"]/optgroup[@label="Vos comptes"]/option | \
+        //select[@id="SelectDest"]/optgroup[@label="Procurations"]/option | \
+        //select[@id="SelectDest"]/option[@value=""]'
 
         class Item(MyRecipient):
             def validate(self, obj):

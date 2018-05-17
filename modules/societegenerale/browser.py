@@ -205,6 +205,9 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
             return
         for recipient in self.page.iter_recipients(account_id=account.id):
             yield recipient
+        # some connections have a lot of recipients but they only can do transfer to their own accounts
+        if not self.page.has_external_recipient_transferable():
+            return
         for recipient in self.recipients.go().iter_recipients():
             yield recipient
 
