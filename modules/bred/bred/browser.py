@@ -32,6 +32,7 @@ from weboob.tools.date import parse_french_date
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction, sorted_transactions
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded, ParseError
 from weboob.browser import DomainBrowser
+from weboob.capabilities.base import find_object
 
 __all__ = ['BredBrowser']
 
@@ -167,6 +168,8 @@ class BredBrowser(DomainBrowser):
         ).json().get('content', [])
         seen = set()
 
+        accounts_list = []
+
         for content in call_response:
             if self.accnum != '00000000000' and content['numero'] != self.accnum:
                 continue
@@ -196,6 +199,9 @@ class BredBrowser(DomainBrowser):
                 else:
                     a.iban = NotAvailable
 
+                if a.type == Account.TYPE_CARD:
+                    a.parent = find_object(accounts_list, _number=a._number, type=Account.TYPE_CHECKING)
+
                 if 'numeroDossier' in poste and poste['numeroDossier']:
                     a._file_number = poste['numeroDossier']
                     a.id += '.%s' % a._file_number
@@ -206,7 +212,7 @@ class BredBrowser(DomainBrowser):
                     a.currency = poste['montantTitres']['monnaie']['code'].strip()
                     if not a.balance and not a.currency and 'dateTitres' not in poste:
                         continue
-                    yield a
+                    accounts_list.append(a)
 
                 if 'libelle' not in poste:
                     continue
@@ -217,7 +223,9 @@ class BredBrowser(DomainBrowser):
                 # Some accounts may have balance currency
                 if 'Solde en devises' in a.label and a.currency != u'EUR':
                     a.id += str(poste['monnaie']['codeSwift'])
-                yield a
+                accounts_list.append(a)
+
+        return accounts_list
 
     def _make_api_call(self, account, start_date, end_date, offset, max_length=50):
         HEADERS = {
