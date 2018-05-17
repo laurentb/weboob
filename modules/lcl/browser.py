@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from functools import wraps
 
 from weboob.exceptions import BrowserIncorrectPassword
@@ -418,13 +418,16 @@ class LCLBrowser(LoginBrowser, StatesMixin):
 
     @go_contract
     @need_login
-    def init_transfer(self, account, recipient, amount, reason=None):
+    def init_transfer(self, account, recipient, amount, reason=None, exec_date=None):
         self.transfer_page.go()
         self.page.choose_origin(account._transfer_id)
         self.page.choose_recip(recipient)
-        self.page.transfer(amount, reason)
-        self.page.check_data_consistency(account, recipient, amount, reason)
-        return self.page.create_transfer(account, recipient, amount, reason)
+
+        if exec_date == date.today():
+            self.page.transfer(amount, reason)
+        else:
+            self.page.deferred_transfer(amount, reason, exec_date)
+        return self.page.handle_response(account, recipient, amount, reason, exec_date)
 
     @need_login
     def execute_transfer(self, transfer):

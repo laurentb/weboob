@@ -25,11 +25,14 @@ import math
 import random
 from decimal import Decimal
 from io import BytesIO
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta
 
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.base import find_object, Currency
-from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, TransferBankError, Transfer, AddRecipientError
+from weboob.capabilities.bank import (
+    Account, Investment, Recipient, TransferError, TransferBankError, Transfer,
+    AddRecipientError,
+)
 from weboob.capabilities.bill import Document, Subscription
 from weboob.capabilities.profile import Person, ProfileMissing
 from weboob.capabilities.contact import Advisor
@@ -38,9 +41,10 @@ from weboob.exceptions import ParseError
 from weboob.browser.exceptions import ServerError
 from weboob.browser.pages import LoggedPage, HTMLPage, FormNotFound, pagination
 from weboob.browser.filters.html import Attr, Link, TableCell, AttributeNotFound
-from weboob.browser.filters.standard import CleanText, Field, Regexp, Format, Date, \
-                                            CleanDecimal, Map, AsyncLoad, Async, Env, \
-                                            Eval, Slugify
+from weboob.browser.filters.standard import (
+    CleanText, Field, Regexp, Format, Date, CleanDecimal, Map, AsyncLoad, Async, Env,
+    Eval, Slugify,
+)
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
@@ -924,6 +928,66 @@ class TransferPage(LoggedPage, HTMLPage):
         form['motifVirement'] = reason
         form.submit()
 
+    def deferred_transfer(self, amount, reason, exec_date):
+        form = self.get_form(id='formulaire')
+        form['libMontant'] = amount
+        form['motifVirement'] = reason
+        form['libDateProg'] = exec_date.strftime('%d/%m/%Y')
+        form['dateFinVirement'] = 'N'
+        form['frequenceVirement'] = 'UD'
+        form['premierJourVirementProg'] = '01'
+        form['typeVirement'] = 'Programme'
+        form.submit()
+
+    def get_id_from_response(self, acc):
+        id_xpath = '//div[@id="contenuPageVirement"]//div[@class="infoCompte" and not(@title)]'
+        acc_ids = [CleanText('.')(acc_id) for acc_id in self.doc.xpath(id_xpath)]
+        # there should have 2 ids, one for account and one for recipient
+        assert len(acc_ids) == 2
+
+        for index, acc_id in enumerate(acc_ids):
+            _id = acc_id.split(' ')
+            if len(_id) == 2:
+                # to match with weboob account id
+                acc_ids[index] = _id[0] + _id[1][4:]
+
+        if acc == 'account':
+            return acc_ids[0]
+        return acc_ids[1]
+
+    def handle_response(self, account, recipient, amount, reason, exec_date):
+        transfer = Transfer()
+
+        transfer._account = account
+        transfer.account_id = self.get_id_from_response('account')
+        transfer.account_iban = account.iban
+        transfer.account_label = account.label
+        transfer.account_balance = account.balance
+        assert account._transfer_id in CleanText(
+            u'//div[div[@class="libelleChoix" and contains(text(), "Compte émetteur")]] \
+            //div[@class="infoCompte" and not(@title)]', replace=[(' ', '')]
+        )(self.doc)
+
+        transfer._recipient = recipient
+        transfer.recipient_id = self.get_id_from_response('recipient')
+        transfer.recipient_iban = recipient.iban
+        transfer.recipient_label = recipient.label
+        assert recipient._transfer_id in CleanText(
+            u'//div[div[@class="libelleChoix" and contains(text(), "Compte destinataire")]] \
+            //div[@class="infoCompte" and not(@title)]', replace=[(' ', '')]
+        )(self.doc)
+
+        transfer.currency = FrenchTransaction.Currency('//div[@class="topBox"]/div[@class="montant"]')(self.doc)
+        transfer.amount = CleanDecimal('//div[@class="topBox"]/div[@class="montant"]', replace_dots=True)(self.doc)
+        transfer.exec_date = Date(
+            Regexp(CleanText('//div[@class="topBox"]/div[@class="date"]'), r'(\d{2}\/\d{2}\/\d{4})'),
+            dayfirst=True
+        )(self.doc)
+        transfer.label = reason
+        assert reason in CleanText('//div[@class="motif"]')(self.doc)
+
+        return transfer
+
     def confirm(self):
         form = self.get_form(id='formulaire')
         form.submit()
@@ -970,34 +1034,6 @@ class TransferPage(LoggedPage, HTMLPage):
                     self.env['category'] = u'Externe'
                     self.env['iban'] = self.obj_id(self)
                     self.env['bank_name'] = NotAvailable
-
-    def check_data_consistency(self, account, recipient, amount, reason):
-        try:
-            assert CleanDecimal('//div[@class="topBox"]/div[@class="montant"]', replace_dots=True)(self.doc) == amount
-            assert reason in CleanText('//div[@class="motif"]')(self.doc)
-            assert account._transfer_id in CleanText(u'//div[div[@class="libelleChoix" and contains(text(), "Compte émetteur")]] \
-                                                    //div[@class="infoCompte" and not(@title)]', replace=[(' ', '')])(self.doc)
-            assert recipient._transfer_id in CleanText(u'//div[div[@class="libelleChoix" and contains(text(), "Compte destinataire")]] \
-                                                    //div[@class="infoCompte" and not(@title)]', replace=[(' ', '')])(self.doc)
-        except AssertionError:
-            raise TransferError('data consistency failed')
-
-    def create_transfer(self, account, recipient, amount, reason):
-        transfer = Transfer()
-        transfer.currency = FrenchTransaction.Currency('//div[@class="topBox"]/div[@class="montant"]')(self.doc)
-        transfer.amount = CleanDecimal('//div[@class="topBox"]/div[@class="montant"]', replace_dots=True)(self.doc)
-        transfer.account_iban = account.iban
-        transfer.recipient_iban = recipient.iban
-        transfer.account_id = account.id
-        transfer.recipient_id = recipient.id
-        transfer.exec_date = date.today()
-        transfer.label = reason
-        transfer.account_label = account.label
-        transfer.recipient_label = recipient.label
-        transfer._account = account
-        transfer._recipient = recipient
-        transfer.account_balance = account.balance
-        return transfer
 
     def fill_transfer_id(self, transfer):
         transfer.id = Regexp(CleanText(u'//div[@class="alertConfirmationVirement"]//p[contains(text(), "référence")]'), u'référence (\d+)')(self.doc)

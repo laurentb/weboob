@@ -108,13 +108,13 @@ class LCLModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapContact, 
             origin_account = find_object(self.iter_accounts(), id=origin_account, error=AccountNotFound)
         return self.browser.iter_recipients(origin_account)
 
-    @only_for_websites('par', 'pro')
+    @only_for_websites('par', 'pro', 'elcl')
     def new_recipient(self, recipient, **params):
         # Recipient label has max 15 alphanumrical chars.
         recipient.label = ' '.join(w for w in re.sub('[^0-9a-zA-Z ]+', '', recipient.label).split())[:15]
         return self.browser.new_recipient(recipient, **params)
 
-    @only_for_websites('par', 'pro')
+    @only_for_websites('par', 'pro', 'elcl')
     def init_transfer(self, transfer, **params):
         # There is a check on the website, transfer can't be done with too long reason.
         if transfer.label:
@@ -137,7 +137,7 @@ class LCLModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapContact, 
         except (AssertionError, ValueError):
             raise TransferError('something went wrong')
 
-        return self.browser.init_transfer(account, recipient, amount, transfer.label)
+        return self.browser.init_transfer(account, recipient, amount, transfer.label, transfer.exec_date)
 
     def execute_transfer(self, transfer, **params):
         return self.browser.execute_transfer(transfer)
