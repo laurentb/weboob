@@ -166,7 +166,11 @@ class AmericanExpressBrowser(LoginBrowser):
             for p in periods:
                 self.js_posted.go(offset=0, end=p, headers={'account_token': account._token})
                 for tr in self.page.iter_history():
-                    yield tr
+                    # as the website is very handy, passing account_token is not enough:
+                    # it will return every transactions of each account, so we
+                    # have to match them manually
+                    if tr._owner == account._owner:
+                        yield tr
         except ServerError:
             #old website
             if self.transactions_url:
@@ -188,11 +192,19 @@ class AmericanExpressBrowser(LoginBrowser):
             # can't get transactions of some accounts on new website for the moment
             self.js_pending.go(offset=0, headers={'account_token': account._token})
         except ServerError:
-            return
+            if self.transactions_url:
+                self.location(self.transactions_url)
+                urls = self.page.get_next_url()
+                for url in urls:
+                    self.location(url)
+                    for tr in self.page.get_history(account):
+                        if tr._is_coming:
+                            yield tr
 
         for tr in self.page.iter_history():
             tr.date = date
-            yield tr
+            if tr._owner == account._owner:
+                yield tr
 
         # "posted" have a vdate but debit date can be future or past
         today = datetime.date.today()

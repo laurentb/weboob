@@ -77,7 +77,8 @@ class AccountsPage3(LoggedPage, HTMLPage):
                 acc = Account()
                 acc.number = '-%s' % account_data[2][2]
                 acc._idforold = account_data[2][6]
-                acc.label = '%s %s' % (account_data[6][4], account_data[10][-1])
+                acc._owner = account_data[10][-1]
+                acc.label = '%s %s' % (account_data[6][4], acc._owner)
                 acc._token = acc.id = token
                 yield acc
 
@@ -137,6 +138,7 @@ class JsonHistory(LoggedPage, JsonPage):
             obj_amount = Eval(lambda x: -float_to_decimal(x), Dict('amount'))
             obj_original_currency = Dict('foreign_details/iso_alpha_currency_code', default=NotAvailable)
             obj_commission = CleanDecimal(Dict('foreign_details/commission_amount', default=NotAvailable), sign=lambda x: -1, default=NotAvailable)
+            obj__owner = CleanText(Dict('embossed_name'))
 
             def obj_original_amount(self):
                 # amount in the account's currency
