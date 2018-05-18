@@ -36,20 +36,13 @@ from .constants import TYPES, RET
 class CitiesPage(JsonPage):
     @method
     class iter_cities(DictElement):
-        item_xpath = '*/values'
         ignore_duplicate = True
 
         class item(ItemElement):
             klass = City
 
-            def condition(self):
-                return (
-                    Dict('value', default=None)(self) and
-                    Dict('name', default=None)(self) == "ci"
-                )
-
-            obj_id = Dict('value')
-            obj_name = Dict('label')
+            obj_id = Dict('Params/ci')
+            obj_name = Dict('Display')
 
 
 class SeLogerItem(ItemElement):

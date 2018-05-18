@@ -32,7 +32,7 @@ __all__ = ['SeLogerBrowser']
 class SeLogerBrowser(PagesBrowser):
     BASEURL = 'http://www.seloger.com'
     PROFILE = Android()
-    cities = URL('js,ajax,villequery_v3.htm\?ville=(?P<pattern>.*)', CitiesPage)
+    cities = URL('https://autocomplete.svc.groupe-seloger.com/auto/complete/0/Ville/6\?text=(?P<pattern>.*)', CitiesPage)
     search = URL('http://ws.seloger.com/search.xml\?(?P<request>.*)', SearchResultsPage)
     housing = URL('http://ws.seloger.com/annonceDetail.xml\?idAnnonce=(?P<_id>\d+)&noAudiotel=(?P<noAudiotel>\d)',
                   HousingPage)
