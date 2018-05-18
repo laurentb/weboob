@@ -88,6 +88,8 @@ class AbstractElement(object):
             value = func(self)
         elif isinstance(func, type) and issubclass(func, ItemElement):
             value = func(self.page, self, self.el)()
+        elif isinstance(func, type) and issubclass(func, ListElement):
+            value = list(func(self.page, self, self.el)())
         elif callable(func):
             value = func()
         else:
