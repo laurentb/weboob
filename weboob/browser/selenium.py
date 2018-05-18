@@ -699,3 +699,44 @@ class SeleniumBrowser(object):
 
         for k, v in d.items():
             self.driver.execute(Command.SET_LOCAL_STORAGE_ITEM, {'key': k, 'value': v})
+
+
+class SubSeleniumMixin(object):
+    """Mixin to have a Selenium browser for performing login."""
+
+    SELENIUM_BROWSER = None
+
+    """Class of Selenium browser to use for the login"""
+
+    __states__ = ('selenium_state',)
+
+    selenium_state = None
+
+    def create_selenium_browser(self):
+        dirname = self.responses_dirname
+        if dirname:
+            dirname += '/selenium'
+
+        return self.SELENIUM_BROWSER(self.config, logger=self.logger, responses_dirname=dirname, proxy=self.PROXIES)
+
+    def do_login(self):
+        sub_browser = self.create_selenium_browser()
+        try:
+            if self.selenium_state and hasattr(sub_browser, 'load_state'):
+                sub_browser.load_state(self.selenium_state)
+            sub_browser.do_login()
+            self.load_selenium_session(sub_browser)
+        finally:
+            try:
+                if hasattr(sub_browser, 'dump_state'):
+                    self.selenium_state = sub_browser.dump_state()
+            finally:
+                sub_browser.deinit()
+
+    def load_selenium_session(self, selenium):
+        d = selenium.export_session()
+        for cookie in d['cookies']:
+            self.session.cookies.set(cookie['name'], cookie['value'], domain=cookie['domain'])
+
+        if hasattr(self, 'locate_browser'):
+            self.locate_browser(d)
