@@ -633,7 +633,7 @@ class AdvisorPage(BNPPage):
             klass = Advisor
 
             obj_name = Format('%s %s %s', Dict('data/civilite'), Dict('data/prenom'), Dict('data/nom'))
-            obj_email = Regexp(Dict('data/mail'), '(?=\w)(.*)')
+            obj_email = Regexp(Dict('data/mail'), '(?=\w)(.*)', default=NotAvailable)
             obj_phone = CleanText(Dict('data/telephone'), replace=[(' ', '')])
             obj_mobile = CleanText(Dict('data/mobile'), replace=[(' ', '')])
             obj_fax = CleanText(Dict('data/fax'), replace=[(' ', '')])
