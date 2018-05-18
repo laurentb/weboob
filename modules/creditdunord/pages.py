@@ -361,11 +361,11 @@ class ProAccountsPage(AccountsPage):
         return url, args
 
     def get_list(self):
-
         no_accounts_message = self.doc.xpath(u'//span/b[contains(text(),"Votre abonnement est clôturé. Veuillez contacter votre conseiller.")]/text()')
         if no_accounts_message:
             raise ActionNeeded(no_accounts_message[0])
 
+        previous_checking_account = None
         for tr in self.doc.xpath('//table[has-class("datas")]//tr'):
             if tr.attrib.get('class', '') == 'entete':
                 continue
@@ -397,7 +397,16 @@ class ProAccountsPage(AccountsPage):
                 a.coming = a.balance
                 a.balance = Decimal('0.0')
 
+                # Take the predecessiong checking account as parent
+                if previous_checking_account:
+                    a.parent = previous_checking_account
+                else:
+                    self.logger.warning('The card account %s has no parent account' % a.id)
+
             a._inv = False
+
+            if a.type == Account.TYPE_CHECKING:
+                previous_checking_account = a
 
             yield a
 
