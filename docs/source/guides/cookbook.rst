@@ -303,3 +303,77 @@ HTTP errors raise exceptions that can be caught::
                 raise
             except HTTPError: # other cases
                 raise
+
+Parse an object from multiple pages
+-----------------------------------
+
+Sometimes, object info is spread across multiple pages::
+
+    class Page1(HTMLPage):
+        @method
+        class get_stuff(ItemElement):
+            klass = Stuff
+
+            obj_foo = CleanText('//h1')
+
+    class Page2(HTMLPage):
+        @method
+        class fill_stuff(ItemElement):
+            klass = Stuff
+            # if we're sure we'll always go on Page1 first, we can omit previous line
+
+            obj_bar = CleanText('//a[@class="bar"]')
+
+Since the pages contain different attributes, info can be merged easily::
+
+    def get_stuff(self):
+        self.page1.go()
+        stuff = self.page.get_stuff()  # get a Stuff object with foo set
+
+        self.page2.go()
+        self.page.fill_stuff(obj=stuff)  # fill existing Stuff object's bar
+
+        return stuff  # foo and bar are set
+
+This can also be useful for implementing ``fillobj``.
+
+Unfortunately, this doesn't work when multiple objects are parsed (for example, in a ``ListElement``).
+In this case, manual merging is required, and linking objects from each page.
+
+Use ``ItemElement`` with non-scalar attributes
+----------------------------------------------
+
+Some ``BaseObject`` subclasses have fields of other ``BaseObject`` types, for example::
+
+    class Foo(BaseObject):
+        name = StringField('name')
+
+    class Bar(BaseObject):
+        simple = StringField('simple')
+        foo = Field('foo', Foo)
+        multiple = Field('multiple foo objects', list)
+
+They may still be parsed with ``ItemElement``::
+
+    class item(ItemElement):
+        klass = Bar
+
+        obj_simple = Attr('span', 'class')
+
+        class obj_foo(ItemElement):
+            klass = Foo
+
+            obj_name = CleanText('span')
+
+This also works for ``ListElement``::
+
+    class item(ItemElement):
+        klass = Bar
+
+        class obj_multiple(ListElement):
+            item_xpath = './/li'
+
+            class item(ItemElement):
+                klass = Foo
+
+                obj_name = CleanText('.')
