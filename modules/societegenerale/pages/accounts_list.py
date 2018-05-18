@@ -25,7 +25,7 @@ from lxml.html import fromstring
 from decimal import Decimal, InvalidOperation
 import re
 
-from weboob.capabilities.base import empty, NotAvailable
+from weboob.capabilities.base import empty, NotAvailable, find_object
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Person
@@ -82,6 +82,8 @@ class AccountsList(LoggedPage, BasePage):
                     return False
             return True
 
+        accounts_list = []
+
         for tr in self.doc.getiterator('tr'):
             if 'LGNTableRow' not in tr.attrib.get('class', '').split():
                 continue
@@ -131,11 +133,24 @@ class AccountsList(LoggedPage, BasePage):
 
             if account._link_id and 'CARTE_' in account._link_id:
                 account.type = account.TYPE_CARD
+                page = self.browser.open(account._link_id).page
+
+                # Layout with several cards
+                line = CleanText('//table//div[contains(text(), "Liste des cartes")]', replace=[(' ', '')])(page.doc)
+                if line:
+                    parent_id = re.search(r'(\d+)', line).group()
+                # Layout with only one card
+                else:
+                    parent_id = CleanText('//div[contains(text(), "Numéro de compte débité")]/following::div[1]', replace=[(' ', '')])(page.doc)
+
+                account.parent = find_object(accounts_list, id=parent_id)
 
             if account.type == Account.TYPE_UNKNOWN:
                 self.logger.debug('Unknown account type: %s', account.label)
 
-            yield account
+            accounts_list.append(account)
+
+        return accounts_list
 
 
 class CardsList(LoggedPage, BasePage):

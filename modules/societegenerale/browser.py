@@ -112,7 +112,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     def get_accounts_list(self):
         if self.accounts_list is None:
             self.accounts.stay_or_go()
-            self.accounts_list = [acc for acc in self.page.get_list()]
+            self.accounts_list = self.page.get_list()
             self.list_rib.go()
             if self.list_rib.is_here():
                 # Caching rib url, so we don't have to go back and forth for each account
