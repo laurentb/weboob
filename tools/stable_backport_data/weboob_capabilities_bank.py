@@ -17,6 +17,17 @@ class CapBankPockets(CapBank):
     pass
 
 
+class CapBankTransfer(OLD.CapBankTransfer):
+    def transfer_check_label(self, old, new):
+        from unidecode import unidecode
+
+        return unidecode(old) == unidecode(new)
+
+
+class CapBankTransferAddRecipient(CapBankTransfer, OLD.CapBankTransferAddRecipient):
+    pass
+
+
 Account.TYPE_MORTGAGE         = 17
 Account.TYPE_CONSUMER_CREDIT  = 18
 Account.TYPE_REVOLVING_CREDIT = 19
