@@ -34,6 +34,7 @@ from weboob.capabilities.collection import BaseCollection
 from weboob.capabilities.file import BaseFile
 from weboob.capabilities.gallery import BaseGallery, BaseImage as GBaseImage
 from weboob.capabilities.gauge import Gauge, GaugeSensor
+from weboob.tools.compat import basestring
 # TODO expand other cap objects when needed
 
 from .qt import QtDo
@@ -232,7 +233,7 @@ class ResultModel(QAbstractItemModel):
             self._addToRoot(obj)
 
     def setColumnFields(self, columns):
-        self.columns = columns
+        self.columns = tuple(((c,) if isinstance(c, basestring) else c) for c in columns)
 
     def setResourceClasses(self, classes):
         """Set accepted object classes for CapCollection.iter_resources"""
