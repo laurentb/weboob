@@ -45,6 +45,8 @@ class Project(BaseObject):
     categories =    Field('All categories', list)
     statuses =      Field('Available statuses for issues', list)
     priorities =    Field('Available priorities for issues', list)
+    tags =          Field('All tags', tuple, list)
+    fields =        Field('Custom fields names', list)
 
     def __init__(self, id, name, url=None):
         super(Project, self).__init__(id, url)
@@ -184,6 +186,9 @@ class Change(BaseObject):
     last =          StringField('Last value of field')
     new =           StringField('New value of field')
 
+    def __repr__(self):
+        return '<%s %r: %r (old: %r)>' % (type(self).__name__, self.field, self.new, self.last)
+
 
 class Update(BaseObject):
     """
@@ -221,19 +226,23 @@ class Issue(BaseObject):
     status =        Field('Status of this issue', Status)
     fields =        Field('Custom fields (key,value)', dict)
     priority =      StringField('Priority of the issue') #XXX
+    tags =          Field('Categories/Tags of the issue', tuple, list)
+    related_issues = Field('Related issues', list)
 
 
 class Query(BaseObject):
     """
     Query to find an issue.
     """
-    project =       StringField('Filter on projects')
+    project =       Field('Filter on projects', str, unicode, Project)
     title =         StringField('Filter on titles')
-    author =        StringField('Filter on authors')
-    assignee =      StringField('Filter on assignees')
-    version =       StringField('Filter on versions')
+    author =        Field('Filter on authors', str, unicode, User)
+    assignee =      Field('Filter on assignees', str, unicode, User)
+    version =       Field('Filter on versions', str, unicode, Version)
     category =      StringField('Filter on categories')
-    status =        StringField('Filter on statuses')
+    status =        Field('Filter on statuses', str, unicode, Status)
+    tags =          Field('Filter on tags', tuple, list)
+    fields =        Field('Filter on custom fields', dict)
 
     def __init__(self, id='', url=None):
         super(Query, self).__init__(id, url)
@@ -244,7 +253,12 @@ class CapBugTracker(Capability):
     Bug trackers websites.
     """
 
-    def iter_issues(self, query):
+    (SORT_RELEVANCE,
+     SORT_RATING,
+     SORT_PRIORITY,
+     SORT_DATE) = range(4)
+
+    def iter_issues(self, query, sortby=SORT_RELEVANCE, ascending=False):
         """
         Iter issues with optionnal patterns.
 
