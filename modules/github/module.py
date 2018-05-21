@@ -20,7 +20,10 @@
 
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
-from weboob.capabilities.bugtracker import CapBugTracker, Issue, Project, User, Version, Status, Update, Attachment
+from weboob.capabilities.base import empty
+from weboob.capabilities.bugtracker import (
+    CapBugTracker, Issue, Project, User, Version, Status, Update, Attachment,
+)
 
 from .browser import GithubBrowser
 
@@ -30,7 +33,6 @@ __all__ = ['GithubModule']
 
 STATUSES = {'open': Status('open', u'open', Status.VALUE_NEW),
             'closed': Status('closed', u'closed', Status.VALUE_RESOLVED)}
-# TODO tentatively parse github "labels"?
 
 
 class GithubModule(Module, CapBugTracker):
@@ -59,8 +61,10 @@ class GithubModule(Module, CapBugTracker):
         project = Project(_id, d['name'])
         project.members = list(self._iter_members(project.id))
         project.statuses = list(STATUSES.values())
+        project.fields = []  # not supported by github
         project.categories = []
         project.versions = list(self._iter_versions(project.id))
+        project.tags = list(self.browser.iter_labels(project.id))
 
         return project
 
@@ -77,15 +81,26 @@ class GithubModule(Module, CapBugTracker):
         return issue
 
     def iter_issues(self, query):
-        if ((query.assignee, query.author, query.status, query.title) ==
-                                             (None, None, None, None)):
-            it = self.browser.iter_project_issues(query.project)
+        if not query.project:
+            return
+
+        query = query.copy()
+        if query.project and not isinstance(query.project, Project):
+            query.project = self.get_project(query.project)
+        if isinstance(query.status, Status):
+            query.status = query.status.name
+        if isinstance(query.author, User):
+            query.author = query.author.name
+        if isinstance(query.assignee, User):
+            query.assignee = query.assignee.name
+
+        if empty(query.assignee) and empty(query.author) and empty(query.status) and empty(query.title) and empty(query.tags):
+            it = self.browser.iter_project_issues(query.project.id)
         else:
             it = self.browser.iter_issues(query)
 
-        project = self.get_project(query.project)
         for d in it:
-            issue = self._make_issue(d, project)
+            issue = self._make_issue(d, query.project)
             yield issue
 
     def create_issue(self, project_id):
@@ -150,6 +165,8 @@ class GithubModule(Module, CapBugTracker):
         issue.category = None
 
         issue.attachments = [self._make_attachment(dattach) for dattach in d['attachments']]
+
+        issue.tags = [t['name'] for t in d['labels']]
 
         return issue
 

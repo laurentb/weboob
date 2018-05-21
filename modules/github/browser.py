@@ -22,6 +22,7 @@ import datetime
 import re
 import os
 
+from weboob.capabilities.base import empty
 from weboob.browser.browsers import APIBrowser
 from weboob.browser.cache import CacheMixin
 from weboob.browser.exceptions import ClientError
@@ -46,6 +47,11 @@ class GithubBrowser(CacheMixin, APIBrowser):
             'id': project_id
         }
 
+    def iter_labels(self, project_id):
+        json = self.request('https://api.github.com/repos/%s/labels' % project_id)
+        for d in json:
+            yield d['name']
+
     def get_issue(self, project_id, issue_number):
         json = self.request('https://api.github.com/repos/%s/issues/%s' % (project_id, issue_number))
         return self._make_issue(project_id, issue_number, json)
@@ -60,7 +66,12 @@ class GithubBrowser(CacheMixin, APIBrowser):
                 break
 
     def iter_issues(self, query):
-        qsparts = ['repo:%s' % query.project]
+        def escape(s):
+            if ' ' in s:
+                return '"%s"' % s
+            return s
+
+        qsparts = ['repo:%s' % query.project.id]
         if query.assignee:
             qsparts.append('assignee:%s' % query.assignee)
         if query.author:
@@ -69,6 +80,8 @@ class GithubBrowser(CacheMixin, APIBrowser):
             qsparts.append('state:%s' % query.status)
         if query.title:
             qsparts.append('%s in:title' % query.title)
+        if query.tags:
+            qsparts.append(' '.join('label:%s' % escape(tag) for tag in query.tags))
 
         qs = quote_plus(' '.join(qsparts))
 
@@ -76,7 +89,7 @@ class GithubBrowser(CacheMixin, APIBrowser):
         for json in self._paginated(base_url):
             for jissue in json['items']:
                 issue_number = jissue['number']
-                yield self._make_issue(query.project, issue_number, jissue)
+                yield self._make_issue(query.project.id, issue_number, jissue)
             if not len(json['items']):
                 break
 
@@ -105,6 +118,8 @@ class GithubBrowser(CacheMixin, APIBrowser):
             data['milestone'] = issue.version.id
         if issue.status:
             data['state'] = issue.status.name # TODO improve if more statuses are implemented
+        if not empty(issue.tags):
+            data['labels'] = [tag.name for tag in issue.tags]
         return data
 
     def post_comment(self, issue_id, comment):
@@ -135,6 +150,7 @@ class GithubBrowser(CacheMixin, APIBrowser):
             d['version'] = None
         d['has_comments'] = (json['comments'] > 0)
         d['attachments'] = list(self._extract_attachments(d['body']))
+        d['labels'] = json['labels']
 
         # TODO fetch other updates?
         return d
