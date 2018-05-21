@@ -22,13 +22,14 @@ from __future__ import unicode_literals
 from PyQt5.QtWidgets import QMessageBox, QInputDialog
 from PyQt5.QtCore import Qt, pyqtSlot as Slot
 
-from weboob.tools.application.qt5 import QtMainWindow
+from weboob.tools.application.qt5 import QtMainWindow, QtDo
 from weboob.tools.application.qt5.backendcfg import BackendCfg
 from weboob.tools.application.qt5.search_history import HistoryCompleter
 from weboob.tools.application.qt5.models import ResultModel
 from weboob.capabilities.bugtracker import CapBugTracker, Query, Change, Update
 
 from .ui.main_window_ui import Ui_MainWindow
+from .details import DetailDialog
 
 import os
 import re
@@ -108,8 +109,30 @@ class MainWindow(QtMainWindow):
         self.mdl.setColumnFields(['id', 'title', 'status', 'creation', 'author', 'updated', 'assignee', 'tags'])
 
         self.ui.bugList.setModel(self.mdl)
+
         self.ui.bugList.addAction(self.ui.actionBulk)
         self.ui.actionBulk.triggered.connect(self.doBulk)
+
+        self.ui.bugList.addAction(self.ui.actionOpen)
+        self.ui.actionOpen.triggered.connect(self.doOpen)
+
+    @Slot()
+    def doOpen(self):
+        qidxes = self.ui.bugList.selectionModel().selectedIndexes()
+        rows = set()
+        for qidx in qidxes:
+            if qidx.row() in rows:
+                continue
+            rows.add(qidx.row())
+
+            issue = qidx.data(ResultModel.RoleObject)
+
+            def onFillobj(issue):
+                dlg = DetailDialog(issue, parent=self)
+                dlg.show()
+
+            process = QtDo(self.weboob, onFillobj)
+            process.do('fillobj', issue, ['history'], backends=(issue.backend,))
 
     @Slot()
     def doBulk(self):

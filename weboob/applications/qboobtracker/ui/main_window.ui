@@ -81,6 +81,7 @@
     <property name="title">
      <string>Issues</string>
     </property>
+    <addaction name="actionOpen"/>
     <addaction name="actionBulk"/>
    </widget>
    <addaction name="menuIssues"/>
@@ -109,6 +110,14 @@
    </property>
    <property name="shortcut">
     <string>Alt+E</string>
+   </property>
+  </action>
+  <action name="actionOpen">
+   <property name="text">
+    <string>&amp;Open</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+O</string>
    </property>
   </action>
  </widget>
