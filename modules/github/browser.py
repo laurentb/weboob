@@ -177,6 +177,48 @@ class GithubBrowser(CacheMixin, APIBrowser):
             if len(json) < 100:
                 break
 
+    EVENTS = {
+        'closed': ('state', 'open', 'closed'),
+        'merged': ('state', 'open', 'closed'),
+        'reopened': ('state', 'closed', 'open'),
+        'assigned': ('assignee', None, lambda j: j['assignee']['login']),
+        'unassigned': ('assignee', lambda j: j['assignee']['login'], None),
+        'labeled': ('tags', None, lambda j: j['label']['name']),
+        'unlabeled': ('tags', lambda j: j['label']['name'], None),
+        'renamed': ('title', lambda j: j['rename']['from'], lambda j: j['rename']['to']),
+        'locked': ('locked', 'unlocked', 'locked'),
+        'unlocked': ('locked', 'locked', 'unlocked'),
+        'milestoned': ('milestone', None, lambda j: j['milestone']['title']),
+        'demilestoned': ('milestone', lambda j: j['milestone']['title'], None),
+        'marked_as_duplicate': ('duplicate', 'no', 'yes'), # no link to other issue?
+        'unmarked_as_duplicate': ('duplicate', 'yes', 'no'),
+    }
+
+    def iter_events(self, project_id, issue_number):
+        url = 'https://api.github.com/repos/%s/issues/%s/events' % (project_id, issue_number)
+        for json in self._paginated(url):
+            for jevent in json:
+                d = {}
+                d['id'] = jevent['id']
+                d['author'] = jevent['actor']['login']
+                d['date'] = parse_date(jevent['created_at'])
+
+                if jevent['event'] not in self.EVENTS:
+                    self.logger.info('ignoring event %r', jevent['event'])
+                    continue
+                d['field'], old, new = self.EVENTS[jevent['event']]
+                if callable(old):
+                    old = old(jevent)
+                if callable(new):
+                    new = new(jevent)
+
+                d['old'] = old
+                d['new'] = new
+                yield d
+
+            if len(json) < 100:
+                break
+
     def _extract_attachments(self, message):
         for attach_url in re.findall(r'https://f.cloud.github.com/assets/[\w/.-]+', message):
             yield {

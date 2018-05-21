@@ -23,6 +23,7 @@ from weboob.tools.value import Value, ValueBackendPassword
 from weboob.capabilities.base import empty
 from weboob.capabilities.bugtracker import (
     CapBugTracker, Issue, Project, User, Version, Status, Update, Attachment,
+    Change,
 )
 
 from .browser import GithubBrowser
@@ -77,6 +78,8 @@ class GithubModule(Module, CapBugTracker):
         issue = self._make_issue(d, project)
         if d['has_comments']:
             self._fetch_comments(issue)
+        self._fetch_events(issue)
+        issue.history.sort(key=lambda u: u.date)
 
         return issue
 
@@ -176,6 +179,12 @@ class GithubModule(Module, CapBugTracker):
             issue.history = []
         issue.history += [self._make_comment(dcomment, issue.project) for dcomment in self.browser.iter_comments(project_id, issue_number)]
 
+    def _fetch_events(self, issue):
+        project_id, issue_number = self._extract_issue_id(issue.id)
+        if not issue.history:
+            issue.history = []
+        issue.history += [self._make_update(dcomment, issue.project) for dcomment in self.browser.iter_events(project_id, issue_number)]
+
     def _make_attachment(self, d):
         a = Attachment(d['url'])
         a.url = d['url']
@@ -194,6 +203,22 @@ class GithubModule(Module, CapBugTracker):
         u.attachments = [self._make_attachment(dattach) for dattach in d['attachments']]
         return u
 
+    def _make_update(self, d, project):
+        u = Update(d['id'])
+        u.author = project.find_user(d['author'], None)
+        if not u.author:
+            # may duplicate users
+            u.author = User(d['author'], d['author'])
+        u.date = d['date']
+
+        c = Change()
+        c.field = d['field']
+        c.last = d['old']
+        c.new = d['new']
+
+        u.changes = [c]
+        return u
+
     @staticmethod
     def _extract_issue_id(_id):
         return _id.rsplit('/', 1)
@@ -201,3 +226,15 @@ class GithubModule(Module, CapBugTracker):
     @staticmethod
     def _build_issue_id(project_id, issue_number):
         return '%s/%s' % (project_id, issue_number)
+
+    def fill_issue(self, issue, fields):
+        if set(['history']) & set(fields):
+            new = self.get_issue(issue.id)
+            for f in fields:
+                if empty(getattr(issue, f)):
+                    setattr(issue, f, getattr(new, f))
+
+    OBJECTS = {
+        Issue: fill_issue,
+    }
+
