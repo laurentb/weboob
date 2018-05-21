@@ -17,16 +17,16 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
-import datetime
 import re
 import os
 
+from dateutil.parser import parse as parse_date
 from weboob.capabilities.base import empty
 from weboob.browser.browsers import APIBrowser
 from weboob.browser.cache import CacheMixin
 from weboob.browser.exceptions import ClientError
-from weboob.tools.compat import quote_plus
 
 __all__ = ['GithubBrowser']
 
@@ -83,10 +83,10 @@ class GithubBrowser(CacheMixin, APIBrowser):
         if query.tags:
             qsparts.append(' '.join('label:%s' % escape(tag) for tag in query.tags))
 
-        qs = quote_plus(' '.join(qsparts))
+        qs = ' '.join(qsparts)
 
-        base_url = 'https://api.github.com/search/issues?q=%s' % qs
-        for json in self._paginated(base_url):
+        base_url = 'https://api.github.com/search/issues'
+        for json in self._paginated(base_url, params={'q': qs}):
             for jissue in json['items']:
                 issue_number = jissue['number']
                 yield self._make_issue(query.project.id, issue_number, jissue)
@@ -184,13 +184,13 @@ class GithubBrowser(CacheMixin, APIBrowser):
                 'filename': os.path.basename(attach_url)
             }
 
-    def _paginated(self, url, start_at=1):
+    def _paginated(self, url, start_at=1, params=None):
+        params = (params or {}).copy()
+        params['per_page'] = 100
+
         while True:
-            if '?' in url:
-                page_url = '%s&per_page=100&page=%s' % (url, start_at)
-            else:
-                page_url = '%s?per_page=100&page=%s' % (url, start_at)
-            yield self.request(page_url)
+            params['page'] = start_at
+            yield self.request(url, params=params)
             start_at += 1
 
     def get_user(self, _id):
@@ -249,11 +249,4 @@ class GithubBrowser(CacheMixin, APIBrowser):
         else:
             return {}
 
-# TODO use a cache for objects and/or pages?
-
-
-def parse_date(s):
-    if s.endswith('Z'):
-        s = s[:-1]
-
-    return datetime.datetime.strptime(s, '%Y-%m-%dT%H:%M:%S')
+# TODO use a cache for objects?

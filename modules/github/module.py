@@ -43,7 +43,7 @@ class GithubModule(Module, CapBugTracker):
     LICENSE = 'AGPLv3+'
     VERSION = '1.4'
     CONFIG = BackendConfig(Value('username', label='Username', default=''),
-                           ValueBackendPassword('password', label='Password', default=''))
+                           ValueBackendPassword('password', label='Password or Personal token', default=''))
 
     BROWSER = GithubBrowser
 
