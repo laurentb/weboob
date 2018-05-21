@@ -35,7 +35,7 @@ import re
 import shlex
 
 
-KEYWORDS = ['project', 'backend', 'category', 'title', 'author', 'assignee', 'status']
+KEYWORDS = ['project', 'backend', 'category', 'title', 'author', 'assignee', 'status', 'tags']
 KWD_MATCH = re.compile(r'^(%s):(.*)$' % '|'.join(KEYWORDS))
 
 
@@ -57,6 +57,9 @@ def string_to_queries(s):
 
     queries = [Query()]
     for k, values in criteria.items():
+        if k == 'tags':
+            values = [tuple(val.split(',')) for val in values]
+
         if len(values) == 1:
             v, = values
             for q in queries:
@@ -102,7 +105,7 @@ class MainWindow(QtMainWindow):
             self.backendsConfig()
 
         self.mdl = ResultModel(self.weboob)
-        self.mdl.setColumnFields(['id', 'title', 'status', 'creation', 'author', 'updated', 'assignee'])
+        self.mdl.setColumnFields(['id', 'title', 'status', 'creation', 'author', 'updated', 'assignee', 'tags'])
 
         self.ui.bugList.setModel(self.mdl)
         self.ui.bugList.addAction(self.ui.actionBulk)
