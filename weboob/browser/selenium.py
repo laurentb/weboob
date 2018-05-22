@@ -486,6 +486,10 @@ class SeleniumBrowser(object):
 
     @property
     def page(self):
+        def do_on_load(page):
+            if hasattr(page, 'on_load'):
+                page.on_load()
+
         for val in self._urls:
             if not val.match(self.url):
                 continue
@@ -497,10 +501,12 @@ class SeleniumBrowser(object):
                         if page.is_here(self.driver):
                             self.logger.debug('Now on %s', page)
                             self.save_response_if_changed()
+                            do_on_load(page)
                             return page
                     elif page.is_here():
                         self.logger.debug('Now on %s', page)
                         self.save_response_if_changed()
+                        do_on_load(page)
                         return page
                 except NoSuchElementException:
                     pass
