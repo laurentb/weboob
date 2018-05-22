@@ -34,7 +34,8 @@ class CmesBrowser(LoginBrowser):
     accounts = URL('(?P<subsite>.*)fr/espace/devbavoirs.aspx\?mode=net&menu=cpte$', AccountsPage)
     fcpe_investment = URL(r'/fr/.*GoPositionsParFond.*',
                           r'/fr/espace/devbavoirs.aspx\?.*SituationParFonds.*GoOpenDetailFond.*',
-                          FCPEInvestmentPage)
+                          'r(?P<subsite>.*)fr/espace/devbavoirs.aspx\?_tabi=C&a_mode=net&a_menu=cpte&_pid=SituationGlobale&_fid=GoPositionsParFond',
+                          r'(?P<subsite>.*)fr/espace/devbavoirs.aspx\?_tabi=C&a_mode=net&a_menu=cpte&_pid=SituationParFonds.*', FCPEInvestmentPage)
     ccb_investment = URL('(?P<subsite>.*)fr/.*LstSuppCCB.*', CCBInvestmentPage)
     history = URL('(?P<subsite>.*)fr/espace/devbavoirs.aspx\?mode=net&menu=cpte&page=operations',
                   '(?P<subsite>.*)fr/.*GoOperationsTraitees',
@@ -81,6 +82,7 @@ class CmesBrowser(LoginBrowser):
     def iter_pocket(self, account):
         self.accounts.stay_or_go(subsite=self.subsite)
         for inv in self.iter_investment(account):
+
             self.location(inv._pocket_url)
             for pocket in self.page.iter_pocket(inv=inv):
                 yield pocket
