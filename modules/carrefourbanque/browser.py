@@ -18,23 +18,24 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
+from weboob.exceptions import BrowserIncorrectPassword, NocaptchaQuestion
 from weboob.capabilities.bank import Account
 
 from .pages import (
-    LoginPage, HomePage, LoanHistoryPage, CardHistoryPage, SavingHistoryPage,
+    LoginPage, HomePage, IncapsulaResourcePage, LoanHistoryPage, CardHistoryPage, SavingHistoryPage,
     LifeInvestmentsPage, LifeHistoryPage
 )
 
 
-__all__ = ['CarrefourBanque']
+__all__ = ['CarrefourBanqueBrowser']
 
 
-class CarrefourBanque(LoginBrowser):
+class CarrefourBanqueBrowser(LoginBrowser, StatesMixin):
     BASEURL = 'https://www.carrefour-banque.fr'
 
     login = URL('/espace-client/connexion', LoginPage)
+    incapsula_ressource = URL('/_Incapsula_Resource', IncapsulaResourcePage)
     home = URL('/espace-client$', HomePage)
 
     loan_history = URL(r'/espace-client/pret-personnel/situation\?(.*)', LoanHistoryPage)
@@ -48,6 +49,15 @@ class CarrefourBanque(LoginBrowser):
     life_history = URL(r'/espace-client/assurance-vie/historique-des-operations\?(.*)', LifeHistoryPage)
     life_investments = URL(r'/espace-client/assurance-vie/solde-dernieres-operations\?(.*)', LifeInvestmentsPage)
 
+    def __init__(self, config, *args, **kwargs):
+        self.config = config
+        kwargs['username'] = self.config['login'].get()
+        kwargs['password'] = self.config['password'].get()
+        super(CarrefourBanqueBrowser, self).__init__(*args, **kwargs)
+
+    def locate_browser(self, state):
+        pass
+
     def do_login(self):
         """
         Attempt to log in.
@@ -56,7 +66,21 @@ class CarrefourBanque(LoginBrowser):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
 
+        if self.config['captcha_response'].get():
+            data = {'g-recaptcha-response': self.config['captcha_response'].get()}
+            self.incapsula_ressource.go(params={'SWCGHOEL': 'v2'}, data=data)
+
         self.login.go()
+        if self.incapsula_ressource.is_here():
+            if self.page.is_javascript:
+                # cookie session hasn't been sent, but still available, we got it and store it
+                self.login.go()
+            else:
+                # cookie session is not available
+                website_key = self.page.get_recaptcha_site_key()
+                website_url = self.login.build()
+                raise NocaptchaQuestion(website_key=website_key, website_url=website_url)
+
         self.page.enter_login(self.username)
         self.page.enter_password(self.password)
 

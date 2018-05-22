@@ -21,9 +21,9 @@
 from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import CapBankWealth, AccountNotFound
 from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.value import ValueBackendPassword
+from weboob.tools.value import ValueBackendPassword, Value
 
-from .browser import CarrefourBanque
+from .browser import CarrefourBanqueBrowser
 
 
 __all__ = ['CarrefourBanqueModule']
@@ -37,12 +37,12 @@ class CarrefourBanqueModule(Module, CapBankWealth):
     DESCRIPTION = u'Carrefour Banque'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label=u'Votre Identifiant Internet', masked=False),
-                           ValueBackendPassword('password', label=u"Code d'accès",    regexp=u'\d+'))
-    BROWSER = CarrefourBanque
+                           ValueBackendPassword('password', label=u"Code d'accès",    regexp=u'\d+'),
+                           Value('captcha_response', label='Captcha Response', default='', required=False))
+    BROWSER = CarrefourBanqueBrowser
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(),
-                                   self.config['password'].get())
+        return self.create_browser(self.config)
 
     def iter_accounts(self):
         return self.browser.get_account_list()

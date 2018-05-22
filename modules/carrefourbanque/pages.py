@@ -26,7 +26,7 @@ from weboob.browser.elements import ListElement, TableElement, ItemElement, meth
 from weboob.browser.filters.standard import (
     Regexp, Field, CleanText, CleanDecimal, Eval, Currency
 )
-from weboob.browser.filters.html import Link, TableCell
+from weboob.browser.filters.html import Link, TableCell, Attr, AttributeNotFound
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -38,6 +38,24 @@ def MyDecimal(*args, **kwargs):
 
 
 class LoginPage(HTMLPage):
+    def on_load(self):
+        # website may have identify us as a robot, if it happens login form won't be available
+        try:
+            attr = Attr('head/meta', 'name')(self.doc)
+        except AttributeNotFound:
+            # website have identify us as a human ;)
+            return
+
+        # sometimes robots is uppercase and there is an iframe
+        # sometimes it's lowercase and there is an encoded javascript
+        if attr == 'ROBOTS':
+            self.browser.location(Attr('//iframe', 'src')(self.doc))
+        elif attr == 'robots':
+            hexa_code = Regexp(CleanText('head/script[contains(text(), "function")]'), r'var b="(.*?)"')(self.doc)
+            code = hexa_code.decode("hex")
+            url = re.search(r'xhr.open\("GET","(.*?)"', code).group(1)
+            self.browser.location(url)
+
     def enter_login(self, username):
         form = self.get_form(nr=1)
         form['name'] = username
@@ -47,6 +65,19 @@ class LoginPage(HTMLPage):
         form = self.get_form(nr=1)
         form['pass'] = password
         form.submit()
+
+
+class IncapsulaResourcePage(HTMLPage):
+    def __init__(self, *args, **kwargs):
+        # this page can be a html page, or just javascript
+        super(IncapsulaResourcePage, self).__init__(*args, **kwargs)
+        self.is_javascript = None
+
+    def on_load(self):
+        self.is_javascript = 'window.location.reload(true);' in CleanText('*')(self.doc)
+
+    def get_recaptcha_site_key(self):
+        return Attr('//div[@class="g-recaptcha"]', 'data-sitekey')(self.doc)
 
 
 class Transaction(FrenchTransaction):
@@ -90,7 +121,6 @@ class iter_history_generic(Transaction.TransactionsElement):
 
 
 class HomePage(LoggedPage, HTMLPage):
-
     @method
     class iter_loan_accounts(ListElement):  # Prêts
         item_xpath = '//div[@class="pp_espace_client"]'
