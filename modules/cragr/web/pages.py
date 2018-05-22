@@ -879,6 +879,10 @@ class TransactionsPage(MyLoggedPage, BasePage):
 
             t.type = self.TYPES.get(t.category, t.TYPE_UNKNOWN)
 
+            # Sometimes, the deffered card summary transaction can be only identified from the label
+            if 'Depenses Carte' in t.label:
+                t.type = t.TYPE_CARD_SUMMARY
+
             # Parse operation date in label (for card transactions for example)
             m = re.match('(?P<text>.*) (?P<dd>[0-3]\d)/(?P<mm>[0-1]\d)$', t.label)
             if not m:
