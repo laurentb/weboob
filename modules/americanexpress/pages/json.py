@@ -69,23 +69,30 @@ class AccountsPage3(LoggedPage, HTMLPage):
         assert accounts_data[1][4] == 'productsList'
 
         accounts_data = accounts_data[1][5]
+        token = []
 
         for account_data in accounts_data:
             if isinstance(account_data, basestring):
-                token = account_data
+                token2 = account_data
+
             elif isinstance(account_data, list) and not account_data[4][2][0]=="Canceled":
                 acc = Account()
+                if len(account_data) > 15:
+                    token.append(account_data[-11])
+                    acc._idforJSON =  account_data[10][-1]
+                else:
+                    acc._idforJSON = account_data[-5][-1]
                 acc.number = '-%s' % account_data[2][2]
                 acc._idforold = account_data[2][6]
-                acc._owner = account_data[10][-1]
-                acc.label = '%s %s' % (account_data[6][4], acc._owner)
-                acc._token = acc.id = token
+                acc.label = '%s %s' % (account_data[6][4], account_data[10][-1])
+                acc._token2 = acc.id = token2
+                acc._token = token[-1]
                 yield acc
 
 
 class JsonBalances(LoggedPage, JsonPage):
     def set_balances(self, accounts):
-        by_token = {a._token: a for a in accounts}
+        by_token = {a._token2: a for a in accounts}
         for d in self.doc:
             # coming is what should be refunded at a futur deadline
             by_token[d['account_token']].coming = -float_to_decimal(d['total_debits_balance_amount'])
@@ -95,7 +102,7 @@ class JsonBalances(LoggedPage, JsonPage):
 
 class JsonBalances2(LoggedPage, JsonPage):
     def set_balances(self, accounts):
-        by_token = {a._token: a for a in accounts}
+        by_token = {a._token2: a for a in accounts}
         for d in self.doc:
             by_token[d['account_token']].balance = -float_to_decimal(d['total']['payments_credits_total_amount'])
             by_token[d['account_token']].coming = -float_to_decimal(d['total']['debits_total_amount'])

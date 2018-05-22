@@ -110,11 +110,11 @@ class AmericanExpressBrowser(LoginBrowser):
 
         for account in accounts:
             try:
-                self.js_balances.go(headers={'account_tokens': account._token})
+                self.js_balances.go(headers={'account_tokens': account._token2})
             except HTTPNotFound:
-                self.js_periods.go(headers={'account_token': account._token})
+                self.js_periods.go(headers={'account_token': account._token2})
                 periods = self.page.get_periods()
-                self.js_balances2.go(date=periods[1], headers={'account_tokens': account._token})
+                self.js_balances2.go(date=periods[1], headers={'account_tokens': account._token2})
             self.page.set_balances(accounts)
 
         # get currency
@@ -169,7 +169,7 @@ class AmericanExpressBrowser(LoginBrowser):
                     # as the website is very handy, passing account_token is not enough:
                     # it will return every transactions of each account, so we
                     # have to match them manually
-                    if tr._owner == account._owner:
+                    if tr._owner == account._idforJSON:
                         yield tr
         except ServerError:
             #old website
@@ -203,7 +203,7 @@ class AmericanExpressBrowser(LoginBrowser):
 
         for tr in self.page.iter_history():
             tr.date = date
-            if tr._owner == account._owner:
+            if tr._owner == account._idforJSON:
                 yield tr
 
         # "posted" have a vdate but debit date can be future or past
