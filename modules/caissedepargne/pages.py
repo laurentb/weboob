@@ -341,7 +341,9 @@ class IndexPage(LoggedPage, HTMLPage):
                     if a is None:
                         continue
 
-                    label = CleanText('.')(tds[0])
+                    # sometimes there's a tooltip span to ignore next to <strong>
+                    # (perhaps only on creditcooperatif)
+                    label = CleanText('./strong')(tds[0])
                     balance = CleanText('.')(tds[-1])
 
                     self._add_account(accounts, a, label, account_type, balance)
