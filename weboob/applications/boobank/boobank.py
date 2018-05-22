@@ -28,7 +28,7 @@ from decimal import Decimal, InvalidOperation
 
 from weboob.browser.browsers import APIBrowser
 from weboob.browser.profiles import Weboob
-from weboob.exceptions import BrowserHTTPError
+from weboob.exceptions import BrowserHTTPError, CaptchaQuestion
 from weboob.capabilities.base import empty, find_object
 from weboob.capabilities.bank import (
     Account, Transaction,
@@ -37,9 +37,11 @@ from weboob.capabilities.bank import (
     TransferInvalidLabel, TransferInvalidAmount, TransferInvalidDate,
     TransferInvalidEmitter, TransferInvalidRecipient,
 )
+from weboob.capabilities.captcha import exception_to_job
 from weboob.capabilities.contact import CapContact, Advisor
 from weboob.capabilities.profile import CapProfile
 from weboob.tools.application.repl import ReplApplication, defaultcount
+from weboob.tools.application.captcha import CaptchaMixin
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
 from weboob.tools.compat import getproxies
 from weboob.tools.log import getLogger
@@ -427,7 +429,7 @@ class AccountListFormatter(IFormatter):
         self.totals.clear()
 
 
-class Boobank(ReplApplication):
+class Boobank(CaptchaMixin, ReplApplication):
     APPNAME = 'boobank'
     VERSION = '1.4'
     COPYRIGHT = 'Copyright(C) 2010-YEAR Romain Bignon, Christophe Benz'
@@ -488,6 +490,15 @@ class Boobank(ReplApplication):
             print(u'Error(%s): %s' % (backend.name, to_unicode(error) or 'The transfer recipient is invalid'), file=self.stderr)
         elif isinstance(error, TransferInvalidDate):
             print(u'Error(%s): %s' % (backend.name, to_unicode(error) or 'The transfer execution date is invalid'), file=self.stderr)
+        elif isinstance(error, CaptchaQuestion):
+            if not self.captcha_weboob.count_backends():
+                print('Error(%s): Site requires solving a CAPTCHA but no CapCaptchaSolver backends were configured' % backend.name, file=self.stderr)
+                return False
+
+            print('Info(%s): Encountered CAPTCHA, please wait for its resolution, it can take dozens of seconds' % backend.name, file=self.stderr)
+            job = exception_to_job(error)
+            self.solve_captcha(job, backend)
+            return False
         else:
             return super(Boobank, self).bcall_error_handler(backend, error, backtrace)
 
