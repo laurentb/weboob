@@ -39,7 +39,7 @@ class CmesBrowser(LoginBrowser):
     history = URL('(?P<subsite>.*)fr/espace/devbavoirs.aspx\?mode=net&menu=cpte&page=operations',
                   '(?P<subsite>.*)fr/.*GoOperationsTraitees',
                   '(?P<subsite>.*)fr/.*GoOperationDetails', HistoryPage)
-    supp_alert = URL(r'/fr/espace/LstSuppAlerte.asp', AlertPage)
+    supp_alert = URL(r'(?P<subsite>.*)fr/espace/LstSuppAlerte.asp', AlertPage)
 
     def __init__(self, website, username, password, subsite="", *args, **kwargs):
         super(LoginBrowser, self).__init__(*args, **kwargs)
@@ -61,7 +61,7 @@ class CmesBrowser(LoginBrowser):
     @need_login
     def iter_investment(self, account):
         fcpe_link = self.accounts.stay_or_go(subsite=self.subsite).get_investment_link()
-        ccb_link = self.supp_alert.go().get_pocket_link()
+        ccb_link = self.supp_alert.go(subsite=self.subsite).get_pocket_link()
 
         if fcpe_link or ccb_link:
             return self._iter_investment(fcpe_link, ccb_link)
@@ -87,7 +87,7 @@ class CmesBrowser(LoginBrowser):
 
         # don't know if it is still releavent
         # need ccb case
-        ccb_link = self.supp_alert.stay_or_go().get_pocket_link()
+        ccb_link = self.supp_alert.stay_or_go(subsite=self.subsite).get_pocket_link()
         if ccb_link:
             for inv in self.location(ccb_link).page.iter_pocket():
                 for poc in self.page.iter_pocket(inv=inv):
