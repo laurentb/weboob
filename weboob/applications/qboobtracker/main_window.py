@@ -19,8 +19,11 @@
 
 from __future__ import unicode_literals
 
-from PyQt5.QtWidgets import QMessageBox, QInputDialog
-from PyQt5.QtCore import Qt, pyqtSlot as Slot
+from ast import literal_eval
+
+from PyQt5.QtWidgets import QMessageBox, QInputDialog, QStyledItemDelegate, QStyle
+from PyQt5.QtCore import Qt, pyqtSlot as Slot, QSize
+from PyQt5.QtGui import QFontMetrics, QPen
 
 from weboob.tools.application.qt5 import QtMainWindow, QtDo
 from weboob.tools.application.qt5.backendcfg import BackendCfg
@@ -79,6 +82,56 @@ def string_to_queries(s):
     return queries
 
 
+class TagDelegate(QStyledItemDelegate):
+    xpadding = 5
+    xmargin = 5
+    ymargin = 5
+    radius = 6
+
+    def _positions(self, option, qidx):
+        fm = QFontMetrics(option.font)
+
+        txt = u'%s' % qidx.data()
+        if not txt.startswith('['):
+            return
+
+        tags = literal_eval(txt)
+        for tag in tags:
+            sz = fm.size(Qt.TextSingleLine, tag)
+            yield sz, tag
+
+    def paint(self, painter, option, qidx):
+        painter.save()
+        try:
+            painter.setClipRect(option.rect)
+            painter.translate(option.rect.topLeft())
+
+            fm = QFontMetrics(option.font)
+
+            if option.state & QStyle.State_Selected:
+                painter.setPen(QPen(option.palette.highlightedText(), 1))
+            else:
+                painter.setPen(QPen(option.palette.text(), 1))
+
+            x = self.xmargin
+            for sz, tag in self._positions(option, qidx):
+                painter.drawRoundedRect(x, self.ymargin, sz.width() + 2 * self.xpadding, fm.height(), self.radius, self.radius)
+                painter.drawText(x + self.xpadding, self.ymargin + fm.ascent(), tag)
+                x += sz.width() + self.xmargin + 2 * self.xpadding
+        finally:
+            painter.restore()
+
+    def sizeHint(self, option, qidx):
+        fm = QFontMetrics(option.font)
+
+        x = self.xmargin
+        y = 0
+        for sz, tag in self._positions(option, qidx):
+            x += sz.width() + self.xmargin + 2 * self.xpadding
+            y = self.ymargin * 2 + fm.height()
+        return QSize(x, y)
+
+
 class MainWindow(QtMainWindow):
     def __init__(self, config, storage, weboob, parent=None):
         super(MainWindow, self).__init__(parent)
@@ -109,6 +162,7 @@ class MainWindow(QtMainWindow):
         self.mdl.setColumnFields(['id', 'title', 'status', 'creation', 'author', 'updated', 'assignee', 'tags'])
 
         self.ui.bugList.setModel(self.mdl)
+        self.ui.bugList.setItemDelegateForColumn(7, TagDelegate())
 
         self.ui.bugList.addAction(self.ui.actionBulk)
         self.ui.actionBulk.triggered.connect(self.doBulk)
