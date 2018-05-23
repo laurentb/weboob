@@ -26,7 +26,7 @@ class EntreparticuliersTest(BackendTest, HousingTest):
     MODULE = 'entreparticuliers'
 
     FIELDS_ALL_HOUSINGS_LIST = [
-        "id", "type", "advert_type", "house_type", "url", "title", "area",
+        "id", "type", "advert_type", "house_type", "title", "area",
         "cost", "currency", "utilities", "date", "location", "text"
     ]
 

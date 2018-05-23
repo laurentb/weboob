@@ -17,171 +17,145 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from datetime import datetime, timedelta
+from lxml import objectify
 
-from weboob.browser.pages import JsonPage, HTMLPage
-from weboob.browser.elements import ItemElement, ListElement, DictElement, method
+from weboob.browser.pages import JsonPage, XMLPage
+from weboob.browser.elements import ItemElement, DictElement, method
 from weboob.browser.filters.json import Dict
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, Format, Filter
-from weboob.browser.filters.html import CleanHTML, XPath, Attr, AbsoluteLink
-from weboob.capabilities.housing import (Housing, HousingPhoto, City, UTILITIES,
-                                         POSTS_TYPES, ADVERT_TYPES, HOUSE_TYPES,
-                                         ENERGY_CLASS)
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Env, Format, Filter, DateTime
+from weboob.capabilities.housing import (Housing, HousingPhoto, City, UTILITIES, ENERGY_CLASS, ADVERT_TYPES)
 from weboob.tools.capabilities.housing.housing import PricePerMeterFilter
 from weboob.capabilities.base import NotAvailable, Currency, empty
 
+from .housing import RET, TYPES
+
 
 class EPHouseType(Filter):
-    def filter(self, type):
-        if type == 'Appartement':
-            return HOUSE_TYPES.APART
-        elif type == 'Maison /villa':
-            return HOUSE_TYPES.HOUSE
-        elif type == 'Terrain / autreinfosaccesepc':
-            return HOUSE_TYPES.LAND
-        else:
-            return HOUSE_TYPES.OTHER
+    def filter(self, _type):
+        _type = str(_type)
+        for key, value in RET.items():
+            if _type == value:
+                return key
+        return NotAvailable
+
+
+class EPAdvertType(Filter):
+    def filter(self, _type):
+        _type = str(_type)
+        for key, value in TYPES.items():
+            if _type == value:
+                return key
+        return NotAvailable
+
+
+class SearchPage(JsonPage):
+    @method
+    class iter_houses(DictElement):
+        class item(ItemElement):
+            klass = Housing
+
+            obj_id = Format("%s#%s", Dict('rubrique'), Dict('idannonce'))
+            obj_type = EPAdvertType(Dict('rubrique'))
+            obj_advert_type = ADVERT_TYPES.PERSONAL
+            obj_house_type = EPHouseType(Dict('tbien'))
+            obj_title = Dict('titre')
+            obj_cost = CleanDecimal(Dict('prix'))
+            obj_currency = Currency.get_currency(u'€')
+            obj_text = Dict('titre')
+            obj_location = Dict('ville')
+            obj_area = CleanDecimal(Dict('surface'))
+            obj_rooms = CleanDecimal(Dict('pieces'))
+            obj_date = DateTime(Dict('creationdate'))
+            obj_utilities = UTILITIES.UNKNOWN
+            obj_price_per_meter = PricePerMeterFilter()
+
+            def obj_photos(self):
+                photos = []
+                photo = Dict('UrlImage',
+                             default=NotAvailable)(self)
+                if not empty(photo):
+                    photos.append(HousingPhoto(photo))
+                return photos
 
 
 class CitiesPage(JsonPage):
+
     @method
     class iter_cities(DictElement):
         class item(ItemElement):
             klass = City
 
             def condition(self):
-                return Dict('id', default=None)(self) and\
-                    Dict('localisationType')(self) == u'ville'
+                return Dict('localisationid', default=None)(self) and\
+                    Dict('localisationType')(self) == 5
 
-            obj_id = Dict('id')
-            obj_name = Dict('libelle')
-
-
-class SearchPage(HTMLPage):
-    @method
-    class iter_housings(ListElement):
-        item_xpath = '//li[@id]'
-
-        class item(ItemElement):
-            def condition(self):
-                has_children = XPath('.//div[@id="spanInfosEpc"]',
-                                     default=False)(self)
-                if has_children:
-                    return True
-                return False
-
-            klass = Housing
-
-            obj_id = Regexp(CleanText('./a/@href',
-                                      replace=[('/annonces-immobilieres/', ''), ('/location/', '')]),
-                            '(.*).html')
-            obj_type = Env('query_type')
-            obj_advert_type = ADVERT_TYPES.PERSONAL
-
-            obj_house_type = EPHouseType(
-                Attr('./a/div/p/span[@class="item type"]/img',
-                     'alt')
-            )
-
-            def obj_title(self):
-                title = CleanText('./a/div/p/span[@class="item title"]')(self)
-                if title == "":
-                    title = CleanText('./a/div/p/span[@class="item loc"]')(self)
-                return title
-
-            obj_cost = CleanDecimal(CleanText('./a/div/p/span[@class="item prix"]', children=False))
-            obj_currency = Currency.get_currency(u'€')
-            obj_text = Format('%s / %s / %s / %s',
-                              CleanText('./a/div/p/span[@class="item type"]/img/@alt'),
-                              CleanText('./a/div/p/span[@id="divnbpieces"]', children=False),
-                              CleanText('./a/div/p/span[@id="divsurface"]', children=False),
-                              CleanText('./a/div/p/span[@class="item prix"]/span'))
-            obj_location = CleanText('./a/div/p/span[@class="item loc"]/text()[position() > 1]')
-            obj_area = CleanDecimal('./a/div/p/span[@class="item surf"]/text()[last()]')
-            obj_rooms = CleanDecimal(
-                './a/div/p/span[@class="item nb"]/text()[last()]',
-                default=NotAvailable
-            )
-            obj_utilities = UTILITIES.UNKNOWN
-            obj_url = AbsoluteLink('./a')
-            obj_price_per_meter = PricePerMeterFilter()
-
-            def obj_date(self):
-                days_to_subtract = Regexp(CleanText('./a/span[@id="spanhistoriqueT"]'),
-                                          "En vente depuis (\d*) jours ",
-                                          "\\1",
-                                          default=0)(self)
-                return datetime.today() - timedelta(days=days_to_subtract)
-
-            def obj_photos(self):
-                photos = []
-                photo = Regexp(CleanText('./a/div/p[@class="visuel"]/@style'),
-                               ".*(http.*\.jpg).*",
-                               "\\1",
-                               default=NotAvailable)(self)
-                if not empty(photo):
-                    photos.append(HousingPhoto(photo))
-                return photos
+            obj_id = Dict('localisationid')
+            obj_name = Dict('label')
 
 
-class HousingPage(HTMLPage):
+class HousingPage(XMLPage):
+
+    def build_doc(self, content):
+        doc = super(HousingPage, self).build_doc(content).getroot()
+        for elem in doc.getiterator():
+            if not hasattr(elem.tag, 'find'):
+                continue
+            i = elem.tag.find('}')
+            if i >= 0:
+                elem.tag = elem.tag[i+1:]
+        objectify.deannotate(doc, cleanup_namespaces=True)
+        return doc
+
     @method
     class get_housing(ItemElement):
         klass = Housing
 
         obj_id = Env('_id')
-
-        def obj_type(self):
-            type = self.obj_id(self).split('/')[1]
-            if type == 'a-vendre':
-                return POSTS_TYPES.SALE
-            else:
-                return POSTS_TYPES.RENT
-
+        obj_type = EPAdvertType(CleanText('//rubrique'))
         obj_advert_type = ADVERT_TYPES.PERSONAL
-        obj_house_type = EPHouseType(
-            Attr('//div[@id="divtbien"]/span[@class="stat"]/img',
-                 'alt')
-        )
-
-        obj_title = CleanText('h1')
-
-        obj_rooms = CleanDecimal('//div[@class="stats"]/section/div[@id="divpieces"]/span[@class="stat"]', default=0)
-
-        obj_cost = CleanDecimal('(//div[@class="stats"]/div/h2)[2]/em')
+        obj_house_type = EPHouseType(CleanText('//tbien'))
+        obj_title = CleanText('//titre')
+        obj_rooms = CleanDecimal('//pieces')
+        obj_cost = CleanDecimal('//prix')
         obj_currency = Currency.get_currency(u'€')
         obj_utilities = UTILITIES.UNKNOWN
-        obj_text = CleanHTML('//div[@class="textes"]')
-        obj_location = CleanText('//input[@id="adressegeo"]/@value')
-        obj_url = CleanText('//input[@id="hfurldetail"]/@value')
-
-        obj_area = CleanDecimal(Regexp(
-                    CleanText('//div[@class="stats"]/section/div[@id="divsurface"]/span[@class="stat"]'),
-                    u'\s?(\d+)\sm\s2',
-                    default=NotAvailable
-                ),
-                default=NotAvailable
-            )
-
+        obj_text = CleanText('//titre')
+        obj_location = CleanText('//ville')
+        obj_url = CleanText('//urlDetailAnnonce')
+        obj_area = CleanDecimal('//surface')
         obj_price_per_meter = PricePerMeterFilter()
-        obj_phone = CleanText('//input[@id="hftelA"]/@value')
-        obj_date = datetime.now
+        obj_phone = CleanText('//telephone1')
+        obj_date = DateTime(CleanText('//DateCheck'))
+        obj_GES = CleanText('//GSE')
 
         def obj_photos(self):
             photos = []
-            for photo in self.xpath('//div[@id="plistimage"]/a/@urlbig'):
-                photos.append(HousingPhoto(u"http://www.entreparticuliers.com/%s" % photo))
+            for photo in ['//UrlImage1', '//UrlImage2', '//UrlImage3']:
+                photos.append(HousingPhoto(CleanText(photo)(self)))
             return photos
 
         def obj_DPE(self):
-            value  = Regexp(CleanHTML('//div[@class="textes"]'),
-                            ".*DPE : (\w) .*",
-                            "\\1",
-                            default = "")(self)
-            return  getattr(ENERGY_CLASS, value.upper() ,NotAvailable)
+            value = CleanText('annonce/DPE')(self)
+            return getattr(ENERGY_CLASS, value.upper(), NotAvailable)
 
+        def obj_details(self):
+            details = dict()
+            d = [('//Nb_Etage', 'Nombre d\'etages'),
+                 ('//Neuf', 'Neuf'),
+                 ('//Ancien_avec_du_Charme', 'Ancien avec charme'),
+                 ('//Avec_terasse', 'Avec Terrasse'),
+                 ('//latitude', 'Latitude'),
+                 ('//longitude', 'Longitude'),
+                 ('//loyer', 'Loyer'),
+                 ('//piscine', 'Piscine'),
+                 ('//surface_balcon', 'Surface du balcon'),
+                 ('//surface_exp', 'Surface exploitable'),
+                 ('//surface_terrain', 'Surface du Terrain'),
+                 ('//Meuble', 'furnished')]
 
-        obj_GES = Regexp(CleanHTML('//div[@class="textes"]'),
-                         ".*GES : (\w) .*",
-                         "\\1",
-                         default = NotAvailable)
+            for key, value in d:
+                key = CleanText(key)(self)
+                if key:
+                    details[value] = key
+
+            return details

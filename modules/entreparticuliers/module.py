@@ -47,14 +47,11 @@ class EntreparticuliersModule(Module, CapHousing):
             # Entreparticuliers is personal only
             return list()
 
-        cities = [c.id for c in query.cities if c.backend == self.name]
+        cities = [c for c in query.cities if c.backend == self.name]
         if len(cities) == 0:
-            return list([])
+            return []
 
-        return self.browser.search_housings(query.type, cities, query.nb_rooms,
-                                            query.area_min, query.area_max,
-                                            query.cost_min, query.cost_max,
-                                            query.house_types)
+        return self.browser.search_housings(query, cities)
 
     def get_housing(self, _id):
         return self.browser.get_housing(_id)
