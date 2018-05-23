@@ -227,7 +227,6 @@ class IngBrowser(LoginBrowser):
         if jid is None:
             self.logger.info('There is no history for this account')
             return
-
         return self.page.get_coming()
 
     @need_login

@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from datetime import date, timedelta
 import datetime
@@ -104,7 +105,6 @@ class INGDate(Date):
             return date.today()
         elif txt == 'demain':
             return date.today() + timedelta(days=1)
-
         frenchmonth = txt.split(' ')[1]
         month = self.monthvalue[frenchmonth]
         txt = txt.replace(' ', '')
@@ -215,7 +215,8 @@ class AccountsList(LoggedPage, HTMLPage):
                 return Transaction.Raw(Lower('.//td[@class="lbl"]'))(self) or Format('%s %s', Field('date'), Field('amount'))(self)
 
             def condition(self):
-                if self.el.find('.//td[@class="date"]') is None:
+                date_field = self.el.find('.//td[@class="date"]')
+                if date_field is None or 'À venir' in CleanText().filter(date_field):
                     return False
                 if 'index' in self.env and self.env['index'] > 0 and self.page.i < self.env['index']:
                     self.page.i += 1
