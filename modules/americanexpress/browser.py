@@ -201,10 +201,12 @@ class AmericanExpressBrowser(LoginBrowser):
                         if tr._is_coming:
                             yield tr
 
-        for tr in self.page.iter_history():
-            tr.date = date
-            if tr._owner == account._idforJSON:
-                yield tr
+        # when the latest period ends today we can't know the coming debit date
+        if date != datetime.date.today():
+            for tr in self.page.iter_history():
+                tr.date = date
+                if tr._owner == account._idforJSON:
+                    yield tr
 
         # "posted" have a vdate but debit date can be future or past
         today = datetime.date.today()
