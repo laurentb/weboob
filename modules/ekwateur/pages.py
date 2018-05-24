@@ -54,6 +54,9 @@ class BillsPage(EkwateurPage):
 
         class item(ItemElement):
             klass = Subscription
+            obj_subscriber = CleanText(
+                '(//h1[has-class("menu__user__infos__title")])[1]'
+            )
 
             def obj_id(self):
                 return Link('.')(self).split('/')[-1]
