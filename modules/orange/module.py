@@ -22,6 +22,7 @@ from weboob.capabilities.bill import CapDocument, Subscription, Document, Subscr
 from weboob.capabilities.messages import CantSendMessage, CapMessages, CapMessagesPost
 from weboob.capabilities.base import find_object, NotAvailable
 from weboob.capabilities.account import CapAccount, StatusField
+from weboob.capabilities.profile import CapProfile
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
@@ -50,7 +51,7 @@ def browser_switcher(b):
     return set_browser
 
 
-class OrangeModule(Module, CapAccount, CapMessages, CapMessagesPost, CapDocument):
+class OrangeModule(Module, CapAccount, CapMessages, CapMessagesPost, CapDocument, CapProfile):
     NAME = 'orange'
     MAINTAINER = u'Lucas Nussbaum'
     EMAIL = 'lucas@lucas-nussbaum.net'
@@ -110,3 +111,7 @@ class OrangeModule(Module, CapAccount, CapMessages, CapMessagesPost, CapDocument
         if document.url is NotAvailable:
             return
         return self.browser.open(document.url).content
+
+    @browser_switcher(OrangeBillBrowser)
+    def get_profile(self):
+        return self.browser.get_profile()

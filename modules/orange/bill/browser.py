@@ -23,6 +23,7 @@ from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 from .pages import LoginPage, BillsPage
 from .pages.bills import SubscriptionsPage, BillsApiPage, ContractsPage
+from .pages.profile import ProfilePage
 from weboob.browser.exceptions import ClientError, ServerError
 
 __all__ = ['OrangeBillBrowser']
@@ -51,6 +52,7 @@ class OrangeBillBrowser(LoginBrowser):
                     BillsApiPage)
 
     doc_api = URL('https://espaceclientpro.orange.fr/api/contract/(?P<subid>\d+)/bill/(?P<dir>.*)/(?P<fact_type>.*)/\?(?P<billparams>)')
+    profile = URL('/\?page=profil-infosPerso', ProfilePage)
 
 
     def do_login(self):
@@ -100,3 +102,7 @@ class OrangeBillBrowser(LoginBrowser):
             for b in self.page.get_bills(subid=subscription.id):
                 documents.append(b)
         return iter(documents)
+
+    @need_login
+    def get_profile(self):
+        return self.profile.go().get_profile()
