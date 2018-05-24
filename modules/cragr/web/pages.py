@@ -902,6 +902,11 @@ class HistoryPostPage(CollectePageMixin, TransactionsPage):
     IS_HERE_TEXT = ('Consultation des comptes', 'Relevé')
 
 
+class NoFixedDepositPage(MyLoggedPage, BasePage):
+    def is_here(self):
+        return 'Vous ne disposez pas de DAT' in CleanText('//div[@class="blc-choix-wrap-valid"]/table/tr/td')(self.doc)
+
+
 class UnavailablePage(CollectePageMixin, BasePage):
     def is_here(self):
         return bool(self.get_error())
@@ -1415,7 +1420,7 @@ class RecipientPage(MyLoggedPage, BasePage):
         form.submit()
 
 
-class SendSMSPage(MyLoggedPage, BasePage):
+class SendSMSPage(MyLoggedPage, CollectePageMixin, BasePage):
     IS_HERE_TEXT = 'Authentification par sms - demande'
 
     def on_load(self):

@@ -46,6 +46,7 @@ from .pages import (
     ChgPerimeterPage, MarketHomePage, FirstVisitPage, BGPIPage,
     TransferInit, TransferPage, RecipientPage, RecipientListPage, SendSMSPage,
     ProfilePage, HistoryPostPage, RecipientMiscPage, DeferredCardsPage, UnavailablePage,
+    NoFixedDepositPage,
 )
 
 
@@ -116,6 +117,8 @@ class Cragr(LoginBrowser, StatesMixin):
                          r'/stb/collecteNI.*&IDENT=LI_VIR_RIB1&VIR_VIR1_FR3_LE=0&T3SEF_MTT_EURO=&T3SEF_MTT_CENT=&VICrt_REFERENCE=$',
                          RecipientPage)
     send_sms_page = URL(r'/stb/collecteNI\?fwkaid=([\d_]+)&fwkpid=([\d_]+)', SendSMSPage)
+
+    no_fixed_deposit_page = URL(r'/stb/collecteNI\?fwkaid=([\d_]+)&fwkpid=([\d_]+)', NoFixedDepositPage)
 
     unavailable_page = URL(r'/stb/collecteNI\?fwkaid=([\d_]+)&fwkpid=([\d_]+)$', UnavailablePage)
 
@@ -312,7 +315,7 @@ class Cragr(LoginBrowser, StatesMixin):
             elif account._form:
                 self.location(updated_account._form.request)
 
-            if updated_account.url or updated_account._form:
+            if (updated_account.url or updated_account._form) and not self.no_fixed_deposit_page.is_here():
                 iban_url = self.page.get_iban_url()
                 if iban_url:
                     self.location(iban_url)
@@ -404,7 +407,7 @@ class Cragr(LoginBrowser, StatesMixin):
 
                 url = self.page.get_next_url()
 
-        elif self.page:
+        elif self.page and not self.no_fixed_deposit_page.is_here():
             date_guesser = LinearDateGuesser()
             self.page.order_transactions()
             while True:
