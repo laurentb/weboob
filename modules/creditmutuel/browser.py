@@ -88,7 +88,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                       '/(?P<subbank>.*)banque/welcome_pack.html', NewHomePage)
     empty =       URL('/(?P<subbank>.*)fr/banques/index.html',
                       '/(?P<subbank>.*)fr/banque/paci_beware_of_phishing.*',
-                      '/(?P<subbank>.*)fr/validation/(?!change_password|verif_code|image_case).*',
+                      '/(?P<subbank>.*)fr/validation/(?!change_password|verif_code|image_case|infos).*',
                       EmptyPage)
     por =         URL('/(?P<subbank>.*)fr/banque/POR_ValoToute.aspx',
                       '/(?P<subbank>.*)fr/banque/POR_SyntheseLst.aspx',

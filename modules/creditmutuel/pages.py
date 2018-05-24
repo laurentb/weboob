@@ -33,7 +33,7 @@ from weboob.browser.elements import ListElement, ItemElement, SkipItem, method, 
 from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, \
     Regexp, Async, AsyncLoad, Date, Format, Type, Currency
 from weboob.browser.filters.html import Link, Attr, TableCell, ColumnNotFound
-from weboob.exceptions import BrowserIncorrectPassword, ParseError, NoAccountsException, ActionNeeded
+from weboob.exceptions import BrowserIncorrectPassword, ParseError, NoAccountsException, ActionNeeded, BrowserUnavailable
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.base import empty
 from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, TransferBankError, \
@@ -112,6 +112,9 @@ class EmptyPage(LoggedPage, HTMLPage):
         action_needed = CleanText('//p[contains(text(), "Votre Carte de Clés Personnelles") and contains(text(), "est révoquée")]')(self.doc)
         if action_needed:
             raise ActionNeeded(action_needed)
+        maintenance = CleanText('//td[@class="ALERTE"]/p/span[contains(text(), "Dans le cadre de l\'amélioration de nos services, nous vous informons que le service est interrompu"]')(self.doc)
+        if maintenance:
+            raise BrowserUnavailable(maintenance)
 
 
 class UserSpacePage(LoggedPage, HTMLPage):
