@@ -34,7 +34,7 @@ from .spirica_browser import SpiricaBrowser
 
 
 class BforbankBrowser(LoginBrowser):
-    BASEURL = 'https://www.bforbank.com'
+    BASEURL = 'https://client.bforbank.com'
 
     login = URL(r'/connexion-client/service/login\?urlBack=%2Fespace-client',
                 r'/connexion-client/service/login\?urlBack=',
