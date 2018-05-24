@@ -99,6 +99,11 @@ class BankStandardTest(object):
             self.assertLessEqual(account.balance, 0, 'loan %r should not have positive balance' % account)
         elif account.type == account.TYPE_CHECKING:
             self.assertTrue(account.iban, 'account %r has no IBAN' % account)
+        elif account.type == account.TYPE_CARD:
+            if not account.parent:
+                self.logger.warning('card account %r has no parent account', account)
+            else:
+                self.assertEqual(account.parent.type, account.TYPE_CHECKING, 'parent account of %r should have checking type' % account)
 
     def check_history(self, account):
         for tr in self.backend.iter_history(account):
