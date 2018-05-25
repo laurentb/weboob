@@ -56,10 +56,7 @@ def empty(value):
 
     :rtype: :class:`bool`
     """
-    for cls in (None, NotLoaded, NotAvailable, FetchError):
-        if value is cls:
-            return True
-    return False
+    return value is None or isinstance(value, EmptyType)
 
 
 def find_object(mylist, error=None, **kwargs):
