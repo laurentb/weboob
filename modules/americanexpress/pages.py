@@ -31,23 +31,45 @@ from weboob.capabilities.bank import Account, Transaction
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.json import json
 from weboob.tools.compat import basestring
-from .base import parse_decimal
+from weboob.exceptions import ActionNeeded
 
 
 def float_to_decimal(f):
     return Decimal(str(f))
 
+def parse_decimal(s):
+    # we might get 1,399,680 in rupie indonésienne
+    if s.count(',') > 1 and not s.count('.'):
+        return CleanDecimal(replace_dots=(',', '.')).filter(s)
+    # we don't know which decimal format this account will use
+    comma = s.rfind(',') > s.rfind('.')
+    return CleanDecimal(replace_dots=comma).filter(s)
 
-class DashboardPage(LoggedPage, HTMLPage):
-    def get_user_key(self):
-        script = CleanText('//script[@id="initial-state"]', replace=[('\\', '')])(self.doc)
-        m = re.search(r'account_key\",(\"(.*?)\")', script)
-        if m:
-            return m.group(2)
-        return None
+
+class WrongLoginPage(HTMLPage):
+    pass
 
 
-class AccountsPage3(LoggedPage, HTMLPage):
+class AccountSuspendedPage(HTMLPage):
+    pass
+
+
+class NoCardPage(HTMLPage):
+    def on_load(self):
+        raise ActionNeeded()
+
+
+class LoginPage(HTMLPage):
+    def login(self, username, password):
+        form = self.get_form(name='ssoform')
+        form['UserID'] = username
+        form['USERID'] = username
+        form['Password'] = password
+        form['PWD'] = password
+        form.submit()
+
+
+class AccountsPage(LoggedPage, HTMLPage):
     def iter_accounts(self):
         for line in self.doc.xpath('//script[@id="initial-state"]')[0].text.split('\n'):
             m = re.search('window.__INITIAL_STATE__ = (.*);', line)
@@ -73,7 +95,7 @@ class AccountsPage3(LoggedPage, HTMLPage):
 
         for account_data in accounts_data:
             if isinstance(account_data, basestring):
-                token2 = account_data
+                balances_token = account_data
 
             elif isinstance(account_data, list) and not account_data[4][2][0]=="Canceled":
                 acc = Account()
@@ -83,16 +105,15 @@ class AccountsPage3(LoggedPage, HTMLPage):
                 else:
                     acc._idforJSON = account_data[-5][-1]
                 acc.number = '-%s' % account_data[2][2]
-                acc._idforold = account_data[2][6]
                 acc.label = '%s %s' % (account_data[6][4], account_data[10][-1])
-                acc._token2 = acc.id = token2
+                acc._balances_token = acc.id = balances_token
                 acc._token = token[-1]
                 yield acc
 
 
 class JsonBalances(LoggedPage, JsonPage):
     def set_balances(self, accounts):
-        by_token = {a._token2: a for a in accounts}
+        by_token = {a._balances_token: a for a in accounts}
         for d in self.doc:
             # coming is what should be refunded at a futur deadline
             by_token[d['account_token']].coming = -float_to_decimal(d['total_debits_balance_amount'])
@@ -102,7 +123,7 @@ class JsonBalances(LoggedPage, JsonPage):
 
 class JsonBalances2(LoggedPage, JsonPage):
     def set_balances(self, accounts):
-        by_token = {a._token2: a for a in accounts}
+        by_token = {a._balances_token: a for a in accounts}
         for d in self.doc:
             by_token[d['account_token']].balance = -float_to_decimal(d['total']['payments_credits_total_amount'])
             by_token[d['account_token']].coming = -float_to_decimal(d['total']['debits_total_amount'])
@@ -163,5 +184,5 @@ class JsonHistory(LoggedPage, JsonPage):
                 else:
                     return original_amount
 
-            #obj__ref = Dict('reference_id')
+            # obj__ref = Dict('reference_id')
             obj__ref = Dict('identifier')
