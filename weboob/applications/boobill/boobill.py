@@ -24,6 +24,7 @@ import sys
 from threading import Lock, Event
 
 from weboob.capabilities.bill import CapDocument, Detail, Subscription
+from weboob.capabilities.profile import CapProfile
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import PrettyFormatter
 from weboob.tools.application.base import MoreResultsAvailable
@@ -279,6 +280,16 @@ class Boobill(ReplApplication):
                     print('Unable to write bill in "%s": %s' % (dest, e), file=self.stderr)
                     return False
         return True
+
+    def do_profile(self, line):
+        """
+        profile
+
+        Display detailed information about person or company.
+        """
+        self.start_format()
+        for profile in self.do('get_profile', caps=CapProfile):
+            self.format(profile)
 
     def bcall_error_handler(self, backend, error, backtrace):
         """
