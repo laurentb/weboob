@@ -103,6 +103,7 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
     market = URL('/compte/(?!assurance|cav|epargne).*/(positions|mouvements)',
                  '/compte/ord/.*/positions', MarketPage)
     loans = URL('/credit/immobilier/.*/informations',
+                '/credit/immobilier/.*/caracteristiques',
                 '/credit/consommation/.*/informations',
                 '/credit/lombard/.*/caracteristiques', LoanPage)
     authentication = URL('/securisation', AuthenticationPage)
