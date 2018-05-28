@@ -56,7 +56,7 @@ class SubscriberPage(LoggedPage, JsonPage):
 
     def get_phone_list(self):
         num_tel_list = []
-        for phone in self.doc['comptesAcces']:
+        for phone in self.doc.get('comptesAcces', []):
             num_tel_list.append(' '.join([phone[i:i + 2] for i in range(0, len(phone), 2)]))
 
         return ' - '.join(num_tel_list)

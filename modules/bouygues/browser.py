@@ -118,6 +118,8 @@ class BouyguesBrowser(LoginBrowser):
             except ClientError:
                 # if another person pay for your subscription you may not have access to this page with your credentials
                 sub.label = phone_list
+            if not sub.label:
+                sub.label = subscriber
             yield sub
 
     @need_login
