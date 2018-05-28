@@ -20,7 +20,7 @@
 from weboob.tools.compat import unicode
 
 from .base import Capability, BaseObject, Field, StringField,\
-                  IntField, UserError
+                  IntField, UserError, IntEnum
 from .date import DateField, DeltaField
 
 
@@ -135,6 +135,13 @@ class Version(BaseObject):
         return '<Version %r>' % self.name
 
 
+class StatusType(IntEnum):
+    NEW      = 0
+    PROGRESS = 1
+    RESOLVED = 2
+    REJECTED = 3
+
+
 class Status(BaseObject):
     """
     Status of an issue.
@@ -142,10 +149,10 @@ class Status(BaseObject):
     **VALUE_** constants are the primary status
     types.
     """
-    (VALUE_NEW,
-     VALUE_PROGRESS,
-     VALUE_RESOLVED,
-     VALUE_REJECTED) = range(4)
+    VALUE_NEW = StatusType.NEW
+    VALUE_PROGRESS = StatusType.PROGRESS
+    VALUE_RESOLVED = StatusType.RESOLVED
+    VALUE_REJECTED = StatusType.REJECTED
 
     name =      StringField('Name of status')
     value =     IntField('Value of status (constants VALUE_*)')

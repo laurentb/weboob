@@ -21,7 +21,7 @@
 from weboob.capabilities.image import BaseImage as CIBaseImage, Thumbnail
 from weboob.tools.compat import unicode
 from .base import Capability, BaseObject, NotLoaded, Field, StringField, \
-                  IntField, FloatField
+                  IntField, FloatField, IntEnum
 from .date import DateField
 
 
@@ -98,14 +98,21 @@ class BaseImage(CIBaseImage):
         return self.data is not NotLoaded
 
 
+class SearchSort(IntEnum):
+    RELEVANCE = 0
+    RATING = 1
+    VIEWS = 2
+    DATE = 3
+
+
 class CapGallery(Capability):
     """
     This capability represents the ability for a website backend to provide videos.
     """
-    (SEARCH_RELEVANCE,
-     SEARCH_RATING,
-     SEARCH_VIEWS,
-     SEARCH_DATE) = range(4)
+    SEARCH_RELEVANCE = SearchSort.RELEVANCE
+    SEARCH_RATING = SearchSort.RATING
+    SEARCH_VIEWS = SearchSort.VIEWS
+    SEARCH_DATE = SearchSort.DATE
 
     def search_galleries(self, pattern, sortby=SEARCH_RELEVANCE):
         """

@@ -19,7 +19,7 @@
 
 from weboob.tools.compat import long
 
-from .base import Capability, BaseObject, NotAvailable, Field, StringField, IntField, StrEnum
+from .base import Capability, BaseObject, NotAvailable, Field, StringField, IntField, StrEnum, IntEnum
 from .date import DateField
 
 
@@ -74,14 +74,21 @@ class BaseFile(BaseObject):
         return self.id2url(self.id)
 
 
+class SearchSort(IntEnum):
+    RELEVANCE = 0
+    RATING = 1
+    VIEWS = 2
+    DATE = 3
+
+
 class CapFile(Capability):
     """
     Provide file download
     """
-    (SEARCH_RELEVANCE,
-     SEARCH_RATING,
-     SEARCH_VIEWS,
-     SEARCH_DATE) = range(4)
+    SEARCH_RELEVANCE = SearchSort.RELEVANCE
+    SEARCH_RATING = SearchSort.RATING
+    SEARCH_VIEWS = SearchSort.VIEWS
+    SEARCH_DATE = SearchSort.DATE
 
     def search_file(self, pattern, sortby=SEARCH_RELEVANCE):
         """

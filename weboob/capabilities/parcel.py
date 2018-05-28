@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import Capability, BaseObject, Field, StringField, UserError
+from .base import Capability, BaseObject, Field, StringField, UserError, IntEnum
 from .date import DateField
 
 
@@ -31,11 +31,18 @@ class Event(BaseObject):
         return '<Event date=%r activity=%r location=%r>' % (self.date, self.activity, self.location)
 
 
+class ParcelState(IntEnum):
+    UNKNOWN = 0
+    PLANNED = 1
+    IN_TRANSIT = 2
+    ARRIVED = 3
+
+
 class Parcel(BaseObject):
-    STATUS_UNKNOWN = 0
-    STATUS_PLANNED = 1
-    STATUS_IN_TRANSIT = 2
-    STATUS_ARRIVED = 3
+    STATUS_UNKNOWN = ParcelState.UNKNOWN
+    STATUS_PLANNED = ParcelState.PLANNED
+    STATUS_IN_TRANSIT = ParcelState.IN_TRANSIT
+    STATUS_ARRIVED = ParcelState.ARRIVED
 
     arrival = DateField('Scheduled arrival date')
     status = Field('Status of parcel', int, default=STATUS_UNKNOWN)
