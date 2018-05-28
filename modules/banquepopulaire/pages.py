@@ -1024,6 +1024,7 @@ class AdvisorPage(LoggedPage, MyHTMLPage):
 
         # the name is only available in a welcome message. Sometimes, the message will look like that :
         # "Bienvenue M <first> <lastname> - <company name>" and sometimes just "Bienvenue M <firstname> <lastname>"
+        # Or even "Bienvenue <company name>"
         # We need to detect wether the company name is there, and where it begins.
         # relying on the dash only is dangerous as people may have dashes in their name and so may companies.
         # but we can detect company name from a dash between space
@@ -1033,8 +1034,15 @@ class AdvisorPage(LoggedPage, MyHTMLPage):
         full_name_re = re.search(r'Bienvenue\s(((?! - ).)*)( - )?(.*)', welcome_msg)
         name_re = re.search(r'M(?:me|lle)? (.*)', full_name_re.group(1))
 
-        profile.name = name_re.group(1)
-        profile.company_name = full_name_re.group(4)
         profile.email = CleanText('//span[@id="fld8"]')(self.doc)
+
+        if name_re:
+            profile.name = name_re.group(1)
+            if full_name_re.group(4):
+                profile.company_name = full_name_re.group(4)
+        else:
+            profile.company_name = full_name_re.group(1)
+
+        profile.email = CleanText('//span[contains(text(), "@")]')(self.doc)
 
         return profile
