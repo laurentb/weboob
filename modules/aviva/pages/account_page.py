@@ -35,7 +35,7 @@ from .detail_pages import InvestmentPage, BasePage
 class AccountsPage(LoggedPage, BasePage, HTMLPage):
     TYPES = {
         'Assurance vie': Account.TYPE_LIFE_INSURANCE,
-        'Epargne – Retraite': Account.TYPE_MADELIN,
+        'Epargne – Retraite': Account.TYPE_PERP,
     }
 
     @method
