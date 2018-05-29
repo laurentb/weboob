@@ -200,6 +200,7 @@ class AccountsPage(LoggedPage, CDNBasePage):
         u'CREDIT':              Account.TYPE_LOAN,
         u'FACILINVEST':         Account.TYPE_LOAN,
         u'TITRES':              Account.TYPE_MARKET,
+        u'COMPTE A TERME':      Account.TYPE_DEPOSIT,
         }
 
     def get_account_type(self, label):
@@ -370,6 +371,10 @@ class ProAccountsPage(AccountsPage):
             raise ActionNeeded(no_accounts_message[0])
 
         previous_checking_account = None
+        # Several deposit accounts ('Compte à terme') have the same id and the same label
+        # So a number is added to distinguish them
+        previous_deposit_account = None
+        deposit_count = 1
         for tr in self.doc.xpath('//table[has-class("datas")]//tr'):
             if tr.attrib.get('class', '') == 'entete':
                 continue
@@ -386,6 +391,10 @@ class ProAccountsPage(AccountsPage):
             a.currency = a.get_currency(balance)
             if cols[self.COL_ID].find('a'):
                 a._link, a._args = self.params_from_js(cols[self.COL_ID].find('a').attrib['href'])
+            # There may be a href with 'javascript:NoDetail();'
+            # The _link and _args should be None
+            else:
+                a._link, a._args = None, None
             a._acc_nb = cols[self.COL_ID].xpath('.//span[@class="right-underline"] | .//span[@class="right"]')[0].text.replace(' ', '').strip()
 
             if hasattr(a, '_args') and a._args:
@@ -395,7 +404,7 @@ class ProAccountsPage(AccountsPage):
             # This account can be multiple life insurance accounts
             if (any(a.label.startswith(lab) for lab in ['ASS.VIE-BONS CAPI-SCPI-DIVERS', 'BONS CAPI-SCPI-DIVERS'])
                 or (u'Aucun d\\351tail correspondant pour ce compte' in tr.xpath('.//a/@href')[0])
-                    and tr.xpath('.//span[contains(@class, "left")]/text()')[0] not in AccountsPage.TYPES.keys()):
+                    and 'COMPTE A TERME' not in tr.xpath('.//span[contains(@class, "left")]/text()')[0]):
                 continue
 
             if a.type is Account.TYPE_CARD:
@@ -412,6 +421,14 @@ class ProAccountsPage(AccountsPage):
 
             if a.type == Account.TYPE_CHECKING:
                 previous_checking_account = a
+
+            if previous_deposit_account and previous_deposit_account.id == a.id:
+                a.id = a.id + '_%s' % deposit_count
+                deposit_count += 1
+                previous_deposit_account = a
+
+            if a.type == Account.TYPE_DEPOSIT:
+                previous_deposit_account = a
 
             yield a
 

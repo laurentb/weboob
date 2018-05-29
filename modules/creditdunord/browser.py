@@ -23,6 +23,7 @@ import re
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities.base import find_object
 
 from .pages import LoginPage, AccountsPage, ProAccountsPage, TransactionsPage, \
                    ProTransactionsPage, IbanPage, RedirectPage, AVPage
@@ -106,10 +107,8 @@ class CreditDuNordBrowser(LoginBrowser):
         return accounts
 
     def get_account(self, id):
-        for a in self._iter_accounts():
-            if a.id == id:
-                return a
-        return None
+        account_list = self.get_accounts_list()
+        return find_object(account_list, id=id)
 
     @need_login
     def iter_transactions(self, link, args, acc_type):
