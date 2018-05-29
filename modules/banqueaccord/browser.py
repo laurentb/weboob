@@ -61,13 +61,13 @@ class BanqueAccordBrowser(LoginBrowser):
 
             a.balance = self.page.get_loan_balance()
             if a.balance is not None:
-                a.type = Account.TYPE_LOAN
+                a.type = Account.TYPE_REVOLVING_CREDIT
                 a.currency = self.page.get_loan_currency()
             else:
                 self.accounts.go()
                 a.balance = self.page.get_balance()
                 a.currency = self.page.get_currency()
-                a.type = Account.TYPE_CARD
+                a.type = Account.TYPE_REVOLVING_CREDIT
             if a.balance is None:
                 continue
             yield a

@@ -137,7 +137,7 @@ class ClientPage(LoggedPage, HTMLPage):
             klass = Account
 
             obj_currency = u'EUR'
-            obj_type = Account.TYPE_CARD
+            obj_type = Account.TYPE_REVOLVING_CREDIT
             obj_label = Env('label')
             obj__num = Env('_num')
             obj_id = Env('id')
@@ -216,12 +216,7 @@ class CreditAccountPage(LoggedPage, HTMLPage):
     class get_account(ItemElement):
         klass = Account
 
-        def obj_type(self):
-            msg = u'Crédit renouvelable auquel la carte est associée'
-            revolving_info_title = CleanText('//div[@id="mod-creditrenouvelable"]//span[@class="titre"]')(self)
-            if msg in revolving_info_title:
-                return Account.TYPE_LOAN
-            return Account.TYPE_CARD
+        obj_type = Account.TYPE_REVOLVING_CREDIT
 
         obj__site = 'other'
 
