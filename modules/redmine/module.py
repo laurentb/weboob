@@ -206,7 +206,7 @@ class RedmineModule(Module, CapContent, CapBugTracker, CapCollection):
         issue.start = params['start_date']
         issue.due = params['due_date']
         issue.fields = {}
-        for key, value in params['fields'].iteritems():
+        for key, value in params['fields'].items():
             issue.fields[key] = value
         issue.attachments = []
         for a in params['attachments']:
