@@ -901,7 +901,7 @@ class TransferPage(TransferErrorPage, IndexPage):
                     self.env['bank_name'] = u"Caisse d'Épargne"
                     self.env['label'] = match.label
                 # Usual case
-                elif Attr('.', 'value')(self)[1] == '-':
+                elif Attr('.', 'value')(self)[1] == '-' or Attr('.', 'value')(self)[2] == '-':
                     full = CleanText('.')(self)
                     if full.startswith('- '):
                         self.logger.warning('skipping recipient without a label: %r', full)
