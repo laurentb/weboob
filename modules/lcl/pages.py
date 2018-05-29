@@ -1137,3 +1137,28 @@ class ProfilePage(LoggedPage, HTMLPage):
         if nb:
             profile.children = Decimal(nb)
         return profile
+
+
+class DepositPage(LoggedPage, HTMLPage):
+    @method
+    class get_list(TableElement):
+        head_xpath = '//table/thead/tr/th'
+        item_xpath = '//table/tbody/tr[not(@class="tableTrSolde")]'
+
+        col_owner = 'Titulaire'
+        col_name = 'Nom du contrat'
+        col_balance = 'Capital investi'
+
+        class item(ItemElement):
+            klass = Account
+
+            obj_type = Account.TYPE_DEPOSIT
+            obj_label = Format('%s %s', CleanText(TableCell('name')), CleanText(TableCell('owner')))
+            obj_balance = MyDecimal(TableCell('balance'))
+            obj__contract = CleanText(TableCell('name'))
+            obj__link_index = Regexp(CleanText('.//a/@id'), r'(\d+)')
+            # So it can be modified later
+            obj_id = None
+
+    def set_deposit_account_id(self, account):
+        account.id = CleanText('//td[contains(text(), "N° contrat")]/following::td[1]//b')(self.doc)

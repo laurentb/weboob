@@ -36,7 +36,7 @@ from .pages import LoginPage, AccountsPage, AccountHistoryPage, \
                    HomePage, LoansPage, TransferPage, AddRecipientPage, \
                    RecipientPage, RecipConfirmPage, SmsPage, RecipRecapPage, \
                    LoansProPage, Form2Page, DocumentsPage, ClientPage, SendTokenPage, \
-                   CaliePage, ProfilePage
+                   CaliePage, ProfilePage, DepositPage
 
 
 __all__ = ['LCLBrowser', 'LCLProBrowser', 'ELCLBrowser']
@@ -106,6 +106,9 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                     '/outil/UWDM/Recherche/rechercherAll', DocumentsPage)
 
     profile = URL('/outil/UWIP/Accueil/rafraichir', ProfilePage)
+
+    deposit = URL('/outil/UWPL/CompteATerme/accesSynthese',
+                  '/outil/UWPL/DetailCompteATerme/accesDetail', DepositPage)
 
     __states__ = ('contracts', 'current_contract',)
 
@@ -185,6 +188,17 @@ class LCLBrowser(LoginBrowser, StatesMixin):
             account._contract = self.current_contract
             self.accounts_list.append(account)
 
+    def set_deposit_account_id(self, account):
+        self.deposit.go()
+        if self.no_perm.is_here():
+            self.logger.warning('Deposits are unavailable.')
+        else:
+            form = self.page.get_form(id='mainform')
+            form['INDEX'] = account._link_index
+            form.submit()
+            self.page.set_deposit_account_id(account)
+        self.deposit.go()
+
     @need_login
     def get_accounts(self):
         self.assurancevie.stay_or_go()
@@ -199,10 +213,12 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         else:
             for a in self.page.get_list():
                 self.update_accounts(a)
+
         self.accounts.stay_or_go()
         for a in self.page.get_list():
             if not self.check_accounts(a):
                 continue
+
             self.location('/outil/UWRI/Accueil/')
             if self.page.has_iban_choice():
                 self.rib.go(data={'compte': '%s/%s/%s' % (a.id[0:5], a.id[5:11], a.id[11:])})
@@ -213,24 +229,37 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                 iban = self.page.check_iban_by_account(a.id)
                 a.iban = iban if iban is not None else NotAvailable
             self.update_accounts(a)
+
         self.loans.stay_or_go()
         if self.no_perm.is_here():
             self.logger.warning('Loans are unavailable.')
         else:
             for a in self.page.get_list():
                 self.update_accounts(a)
+
         self.loans_pro.stay_or_go()
         if self.no_perm.is_here():
             self.logger.warning('Loans are unavailable.')
         else:
             for a in self.page.get_list():
                 self.update_accounts(a)
+
         if self.connexion_bourse():
             for a in self.page.get_list():
                 self.update_accounts(a)
             self.deconnexion_bourse()
             # Disconnecting from bourse portal before returning account list
             # to be sure that we are on the banque portal
+
+        self.deposit.stay_or_go()
+        if self.no_perm.is_here():
+            self.logger.warning('Deposits are unavailable.')
+        else:
+            for a in self.page.get_list():
+                # There is no id on the page listing the 'Compte à terme'
+                # So a form must be submitted to access the id of the contract
+                self.set_deposit_account_id(a)
+                self.update_accounts(a)
 
     @need_login
     def get_accounts_list(self):
