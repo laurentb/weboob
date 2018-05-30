@@ -58,7 +58,7 @@ class BforbankBrowser(LoginBrowser):
                               r'https://client.bforbank.com/client/accounts/lifeInsurance/lifeInsuranceError.action\?errorCode=.*&errorMsg=.*',
                               ErrorPage)
 
-    bourse_login = URL(r'/espace-client/synthese/debranchementCaTitre/(?P<id>\d+)')
+    bourse_login = URL(r'/espace-client/titres/debranchementCaTitre/(?P<id>\d+)')
     bourse = URL('https://bourse.bforbank.com/netfinca-titres/servlet/com.netfinca.frontcr.synthesis.HomeSynthesis',
                  'https://bourse.bforbank.com/netfinca-titres/servlet/com.netfinca.frontcr.account.*',
                  BoursePage)
