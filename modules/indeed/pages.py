@@ -46,8 +46,9 @@ class SearchPage(HTMLPage):
 
         def next_page(self):
             for a in self.page.doc.xpath('//a'):
-                if a.xpath('span[@class="pn"]/span[@class="np"]') and "Suivant" in a.xpath('span[@class="pn"]/span[@class="np"]')[0].text:
-                    return a.attrib['href']
+                if a.xpath('span[@class="pn"]/span[@class="np"]') and \
+                   "Suivant" in a.xpath('span[@class="pn"]/span[@class="np"]')[0].text:
+                    return a.attrib['href'].replace('jobs?', 'emplois?')
 
         class Item(ItemElement):
             klass = BaseJobAdvert

@@ -28,7 +28,8 @@ class IndeedBrowser(PagesBrowser):
 
     BASEURL = 'https://www.indeed.fr'
 
-    search_page = URL('/emplois(?P<parameters>.*)', SearchPage)
+    search_page = URL('/emplois(?P<parameters>.*)',
+                      SearchPage)
     advert_page = URL('/cmp/(?P<company>.*)/jobs/(?P<title>.*)-(?P<nb>.*)', AdvertPage)
 
     def search_job(self, metier='', contrat='', limit_date='', radius='', place=''):
