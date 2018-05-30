@@ -792,9 +792,10 @@ class CardsNumberPage(LoggedPage, HTMLPage):
                 label for label, account_id in labels_ids
                 if card.label in label and account_id in card.url
             ]
-            assert len(match) == 1, "only one card should be matched"
-            card_label = match[0]
-            card.number = re.search('(\d{4}\*{8}(\d{4}|\*{4}))', card_label).group(1)
+            assert len(match) <= 1, "only one card should be matched, or zero if the card is not yet activated"
+            if len(match) == 1 :
+                card_label = match[0]
+                card.number = re.search('(\d{4}\*{8}(\d{4}|\*{4}))', card_label).group(1)
 
 
 class HomePage(LoggedPage, HTMLPage):
