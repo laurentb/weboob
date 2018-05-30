@@ -42,7 +42,7 @@ from .pages import (
     MessagePage, LoginPage,
     TransferPage, ProTransferPage, TransferConfirmPage, TransferSummaryPage,
     SmsPage, SmsPageOption, SmsRequest, AuthentPage, RecipientPage, CanceledAuth, CaissedepargneKeyboard,
-    TransactionsDetailsPage, LoadingPage, ConsLoanPage, MeasurePage
+    TransactionsDetailsPage, LoadingPage, ConsLoanPage, MeasurePage, NatixisLIHis, NatixisLIInv, NatixisRedirectPage
 )
 
 
@@ -75,8 +75,13 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     market = URL('https://.*/Pages/Bourse.*',
                  'https://www.caisse-epargne.offrebourse.com/ReroutageSJR',
                  'https://www.caisse-epargne.offrebourse.com/Portefeuille.*', MarketPage)
+    natixis_redirect = URL(r'/NaAssuranceRedirect/NaAssuranceRedirect.aspx',
+                           r'https://www.espace-assurances.caisse-epargne.fr/espaceinternet-ce/views/common/routage-itce.xhtml\?windowId=automatedEntryPoint',
+                           NatixisRedirectPage)
     life_insurance = URL('https://.*/Assurance/Pages/Assurance.aspx',
                          'https://www.extranet2.caisse-epargne.fr.*', LifeInsurance)
+    natixis_life_ins_his = URL('https://www.espace-assurances.caisse-epargne.fr/espaceinternet-ce/rest/v2/contratVie/load-operation/ESS/EN/(?P<id>)', NatixisLIHis)
+    natixis_life_ins_inv = URL('https://www.espace-assurances.caisse-epargne.fr/espaceinternet-ce/rest/v2/contratVie/load/ESS/EN/(?P<id>)', NatixisLIInv)
     message = URL('https://www.caisse-epargne.offrebourse.com/DetailMessage\?refresh=O', MessagePage)
     garbage = URL('https://www.caisse-epargne.offrebourse.com/Portefeuille',
                   'https://www.caisse-epargne.fr/particuliers/.*/emprunter.aspx',
@@ -270,6 +275,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                     if self.garbage.is_here():
                         continue
                     self.page.get_valuation_diff(account)
+
         return iter(self.accounts)
 
     @need_login
@@ -373,9 +379,11 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         self.page.go_history(account._info)
 
         if account.type == Account.TYPE_LIFE_INSURANCE:
-            try:
+            if "MILLEVIE" in account.label:
                 self.page.go_life_insurance(account)
+                return sorted_transactions(self.natixis_life_ins_his.go(id=account.id).get_history())
 
+            try:
                 if not self.market.is_here() and not self.message.is_here():
                     # life insurance website is not always available
                     raise BrowserUnavailable()
@@ -390,9 +398,14 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
     @need_login
     def get_history(self, account):
+        self.home.go()
+
         if not hasattr(account, '_info'):
             raise NotImplementedError
         if account.type is Account.TYPE_LIFE_INSURANCE and 'measure_id' not in account._info:
+            if len([k for k in self.session.cookies.keys() if k == 'CTX']) > 1:
+                del self.session.cookies['CTX']
+
             return self._get_history_invests(account)
         return self._get_history(account._info)
 
@@ -435,7 +448,16 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
             if not self.page.is_on_right_portfolio(account):
                 self.location('https://www.caisse-epargne.offrebourse.com/Portefeuille?compte=%s' % self.page.get_compte(account))
+
         elif account.type == Account.TYPE_LIFE_INSURANCE:
+            if len([k for k in self.session.cookies.keys() if k == 'CTX']) > 1:
+                del self.session.cookies['CTX']
+            if "MILLEVIE" in account.label:
+                self.page.go_life_insurance(account)
+                for tr in self.natixis_life_ins_inv.go(id=account.id).get_investments():
+                    yield tr
+                return
+
             try:
                 self.page.go_life_insurance(account)
 

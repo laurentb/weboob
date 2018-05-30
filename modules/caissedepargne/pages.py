@@ -28,9 +28,9 @@ from io import BytesIO
 from decimal import Decimal
 from datetime import datetime
 
-from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage, pagination
-from weboob.browser.elements import ItemElement, method, ListElement, TableElement, SkipItem
-from weboob.browser.filters.standard import Date, CleanDecimal, Regexp, CleanText, Env, Upper, Field
+from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage, pagination, FormNotFound
+from weboob.browser.elements import ItemElement, method, ListElement, TableElement, SkipItem, DictElement
+from weboob.browser.filters.standard import Date, CleanDecimal, Regexp, CleanText, Env, Upper, Field, Eval
 from weboob.browser.filters.html import Link, Attr, TableCell
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, TransferBankError, Transfer,\
@@ -40,6 +40,7 @@ from weboob.tools.capabilities.bank.iban import is_rib_valid, rib2iban, is_iban_
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
 from weboob.tools.compat import unicode
 from weboob.exceptions import NoAccountsException, BrowserUnavailable
+from weboob.browser.filters.json import Dict
 
 
 def fix_form(form):
@@ -47,6 +48,10 @@ def fix_form(form):
             'MM$m_CH$ButtonImageMessagerie']
     for name in keys:
         form.pop(name, None)
+
+
+def float_to_decimal(f):
+    return Decimal(str(f))
 
 
 class LoginPage(JsonPage):
@@ -602,7 +607,7 @@ class IndexPage(LoggedPage, HTMLPage):
             return
 
         link = self.doc.xpath('//tr[td[contains(., ' + account.id + ') ]]//a')[0]
-        m = re.search("PostBackOptions?\([\"']([^\"']+)[\"'],\s*['\"](REDIR_ASS_VIE[\d\w&]+)?['\"]", link.attrib.get('href', ''))
+        m = re.search("PostBackOptions?\([\"']([^\"']+)[\"'],\s*['\"]((REDIR_ASS_VIE)?[\d\w&]+)?['\"]", link.attrib.get('href', ''))
         if m is not None:
             form = self.get_form(name='main')
 
@@ -659,6 +664,14 @@ class LoadingPage(HTMLPage):
             del self.browser.session.cookies['CTX']
 
         form = self.get_form(id="REROUTAGE")
+        form.submit()
+
+class NatixisRedirectPage(LoggedPage, HTMLPage):
+    def on_load(self):
+        try:
+            form = self.get_form(id="NaAssurance")
+        except FormNotFound:
+            form = self.get_form(id="formRoutage")
         form.submit()
 
 
@@ -752,6 +765,48 @@ class LifeInsurance(MarketPage):
             return ' '.join(libelle[:-1]), libelle[-1]
         else:
             return ' '.join(libelle), NotAvailable
+
+
+class NatixisLIHis(LoggedPage, JsonPage):
+    @method
+    class get_history(DictElement):
+        item_xpath = None
+
+        class item(ItemElement):
+            klass = Transaction
+
+            obj_amount = Eval(float_to_decimal, Dict('montantNet'))
+            obj_raw = CleanText(Dict('libelle', default=''))
+            obj_vdate = Date(Dict('dateValeur', default=NotAvailable), default=NotAvailable)
+            obj_date = Date(Dict('dateEffet', default=NotAvailable), default=NotAvailable)
+            obj_investments = NotAvailable
+            obj_type = Transaction.TYPE_BANK
+
+            def validate(self, obj):
+                return obj.raw and obj.date
+
+
+class NatixisLIInv(LoggedPage, JsonPage):
+    @method
+    class get_investments(DictElement):
+        item_xpath = 'detailContratVie/valorisation/supports'
+
+        class item(ItemElement):
+            klass = Investment
+
+            obj_label = CleanText(Dict('nom'))
+            obj_code = CleanText(Dict('codeIsin'))
+
+            def obj_vdate(self):
+                dt = Dict('dateValeurUniteCompte', default=None)(self)
+                if dt is None:
+                    dt = self.page.doc['detailContratVie']['valorisation']['date']
+                return Date().filter(dt)
+
+            obj_valuation = Eval(float_to_decimal, Dict('montant'))
+            obj_quantity = Eval(float_to_decimal, Dict('nombreUnitesCompte'))
+            obj_unitvalue = Eval(float_to_decimal, Dict('valeurUniteCompte'))
+            obj_portfolio_share = Eval(lambda x: float_to_decimal(x) / 100, Dict('repartition'))
 
 
 class MyRecipient(ItemElement):
