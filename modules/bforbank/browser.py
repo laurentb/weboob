@@ -62,6 +62,7 @@ class BforbankBrowser(LoginBrowser):
     bourse = URL('https://bourse.bforbank.com/netfinca-titres/servlet/com.netfinca.frontcr.synthesis.HomeSynthesis',
                  'https://bourse.bforbank.com/netfinca-titres/servlet/com.netfinca.frontcr.account.*',
                  BoursePage)
+    bourse_titre = URL(r'https://bourse.bforbank.com/netfinca-titres/servlet/com.netfinca.frontcr.navigation.Titre', BoursePage)  # to get logout link
 
     def __init__(self, birthdate, username, password, *args, **kwargs):
         super(BforbankBrowser, self).__init__(username, password, *args, **kwargs)
@@ -142,7 +143,10 @@ class BforbankBrowser(LoginBrowser):
 
             self.location(bourse_account._link_id)
             assert self.bourse.is_here()
-            return self.page.iter_history()
+            history = list(self.page.iter_history())
+            self.leave_espace_bourse()
+
+            return history
         elif account.type == Account.TYPE_LIFE_INSURANCE:
             if not self.goto_spirica(account):
                 return iter([])
@@ -237,7 +241,7 @@ class BforbankBrowser(LoginBrowser):
         return True
 
     def get_bourse_account(self, account):
-        self.bourse_login.go(id=account.id) # "login" to bourse page
+        self.bourse_login.go(id=account.id)  # "login" to bourse page
 
         self.bourse.go()
         assert self.bourse.is_here()
@@ -275,6 +279,20 @@ class BforbankBrowser(LoginBrowser):
                 i.code = u"XX-liquidity"
                 i.label = u"Liquidités"
                 invs.append(i)
+
+            self.leave_espace_bourse()
+
             return invs
 
         raise NotImplementedError()
+
+    def leave_espace_bourse(self):
+        # To enter the Espace Bourse from the standard Espace Client,
+        # you need to logout first from the Espace Bourse, otherwise
+        # a 500 ServerError is returned.
+        # Typically needed between iter_history and iter_investments when dealing
+        # with a market or PEA account, or when running them twice in a row
+        if self.bourse.is_here():
+            self.location(self.bourse_titre.build())
+            self.location(self.page.get_logout_link())
+            self.do_login()

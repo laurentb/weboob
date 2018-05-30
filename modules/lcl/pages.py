@@ -574,6 +574,9 @@ class BoursePage(LoggedPage, HTMLPage):
             def obj_type(self):
                 return self.page.TYPES.get(' '.join(Field('label')(self).split()[:-1]).lower(), Account.TYPE_MARKET)
 
+    def get_logout_link(self):
+        return Link('//a[@class="link-underline" and contains(text(), "espace client")]')(self.doc)
+
     @method
     class iter_investment(ListElement):
         item_xpath = '//table[@id="tableValeurs"]/tbody/tr[@id and count(descendant::td) > 1]'
