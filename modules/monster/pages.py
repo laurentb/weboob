@@ -48,30 +48,25 @@ class AdvSearchPage(HTMLPage):
     @pagination
     @method
     class iter_job_adverts(ListElement):
-        item_xpath = '//article[@class="js_result_row"]'
+        item_xpath = '//div[@id="SearchResults"]/section[@data-jobid]'
 
         def next_page(self):
-            page = Regexp(CleanText('//link[@rel="next"]/@href', default=''),
+            page = Regexp(CleanText('//a[@data-action="fetch"]/@href', default=''),
                           '.*page=(\d*)', default=None)(self)
             if page:
                 return BrowserURL('adv_search', search=Env('search'), page=int(page))(self)
 
         class item(ItemElement):
-
-            def condition(self):
-                return u'Désolé' not in CleanText('//h1')(self)
-
             klass = BaseJobAdvert
 
-            obj_id = CleanText('.//div[@class="jobTitle"]/h2/a/@data-m_impr_j_jobid')
-            obj_society_name = CleanText('.//div[@class="company"]/span[@itemprop="name"]|.//div[@class="company"]/a/span[@itemprop="name"]',
-                                         replace=[(u'Trouvée sur : ', u'')],
+            obj_id = CleanText('./@data-jobid')
+            obj_society_name = CleanText('./div/div/div[@class="company"]',
                                          default=NotAvailable)
-            obj_title = CleanText('.//div[@class="jobTitle"]/h2/a/span',
+            obj_title = CleanText('./div/div/header/h2[@class="title"]/a',
                                   default=NotAvailable)
-            obj_publication_date = DateTime(CleanText('.//div[has-class("job-specs-date")]/p/time/@datetime|./div[@class="extras"]/div[@class="postedDate"]/time/@datetime'),
+            obj_publication_date = DateTime(CleanText('./div/div[has-class("meta")]/time/@datetime'),
                                             default=NotAvailable)
-            obj_place = CleanText('.//div[has-class("job-specs-location")]|.//div[has-class("location")]',
+            obj_place = CleanText('./div/div/div[@class="location"]',
                                   default=NotAvailable)
 
 
@@ -82,13 +77,13 @@ class AdvertPage(HTMLPage):
 
         obj_id = Env('_id')
         obj_url = BrowserURL('advert', _id=Env('_id'))
-        obj_title = CleanText('//h2')
+        obj_title = CleanText('//h1[@class="title"]')
         obj_description = Format('%s\n%s',
                                  CleanHTML('//div[@id="JobDescription"]'),
                                  CleanText('//dl'))
         obj_contract_type = CleanText('(//dl/dt[text()="Type de contrat"]/following-sibling::dd)[1]')
         obj_society_name = CleanText('//div[@data-jsux="aboutCompany"]/div/dl/dd')
-        obj_place = CleanText('//h3')
+        obj_place = CleanText('//h2[@class="subtitle"]')
         obj_publication_date = MonsterDate(CleanText('(//dl/dt[starts-with(text(),"Publi")]/following-sibling::dd)[1]'))
 
 
