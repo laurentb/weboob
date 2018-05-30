@@ -18,18 +18,17 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.base import find_object
-from weboob.capabilities.bank import CapBank, AccountNotFound
-from weboob.tools.backend import Module, BackendConfig
+from weboob.capabilities.bank import CapBank
+from weboob.tools.backend import AbstractModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
-from .browser import CreditCooperatif as CreditCooperatifPro
+from .browser import CreditCooperatif
 
 
 __all__ = ['BtpbanqueModule']
 
 
-class BtpbanqueModule(Module, CapBank):
+class BtpbanqueModule(AbstractModule, CapBank):
     NAME = 'btpbanque'
     DESCRIPTION = u'BTP Banque'
     MAINTAINER = u'Edouard Lambert'
@@ -41,23 +40,9 @@ class BtpbanqueModule(Module, CapBank):
     CONFIG = BackendConfig(Value('auth_type', label='Type de compte', choices=auth_type, default="weak"),
                            ValueBackendPassword('login', label='Code utilisateur', masked=False),
                            ValueBackendPassword('password', label='Code confidentiel ou code PIN'))
+    PARENT = 'caissedepargne'
+    BROWSER = CreditCooperatif
 
     def create_default_browser(self):
-        self.BROWSER = CreditCooperatifPro
-        return self.create_browser("https://www.btpnet.tm.fr",
-                                   self.config['login'].get(),
-                                   self.config['password'].get(),
-                                   strong_auth=self.config['auth_type'].get() == "strong",
-                                   weboob=self.weboob)
-
-    def iter_accounts(self):
-        return self.browser.get_accounts_list()
-
-    def get_account(self, _id):
-        return find_object(self.browser.get_accounts_list(), id=_id, error=AccountNotFound)
-
-    def iter_history(self, account):
-        return self.browser.get_history(account)
-
-    def iter_coming(self, account):
-        return self.browser.get_coming(account)
+        return self.create_browser(self.config['login'].get(),
+                                   self.config['password'].get(), weboob=self.weboob)

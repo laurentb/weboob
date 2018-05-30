@@ -25,5 +25,11 @@ __all__ = ['CreditCooperatif']
 
 
 class CreditCooperatif(AbstractBrowser):
-    PARENT = 'creditcooperatif'
-    PARENT_ATTR = 'package.pro.browser.CreditCooperatif'
+    PARENT = 'caissedepargne'
+    PARENT_ATTR = 'package.browser.CaisseEpargne'
+    BASEURL = 'https://www.btp-banque.fr'
+
+    def __init__(self, *args, **kwargs):
+        # have to pass 'nuser'
+        super(CreditCooperatif, self).__init__('', *args, **kwargs)
+
