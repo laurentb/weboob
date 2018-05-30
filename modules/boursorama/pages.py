@@ -408,7 +408,8 @@ class CardHistoryPage(LoggedPage, CsvPage):
 
             def obj_amount(self):
                 if Field('type')(self) == Transaction.TYPE_CARD_SUMMARY:
-                    return abs(CleanDecimal(Dict('amount'), replace_dots=True)(self))
+                    # '-' so the reimbursements appear positively in the card transactions:
+                    return -CleanDecimal(Dict('amount'), replace_dots=True)(self)
                 return CleanDecimal(Dict('amount'), replace_dots=True)(self)
 
             def obj_rdate(self):
