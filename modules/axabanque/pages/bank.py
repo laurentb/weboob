@@ -408,16 +408,15 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
             debit = self.parse_number(u''.join([txt.strip() for txt in tds[self.COL_DEBIT].itertext()]))
             credit = self.parse_number(u''.join([txt.strip() for txt in tds[self.COL_CREDIT].itertext()]))
 
-            t.parse(date, re.sub(r'[ ]+', ' ', raw))
+            t.parse(date, re.sub(r'[ ]+', ' ', raw), vdate=date)
             t.set_amount(credit, debit)
-
             yield t
 
 
 class CBTransactionsPage(TransactionsPage):
     COL_CB_CREDIT = 2
 
-    def get_history(self):
+    def get_summary(self):
         tables = self.doc.xpath('//table[@id="idDetail:dataCumulAchat"]')
         transactions = list()
 
@@ -437,7 +436,10 @@ class CBTransactionsPage(TransactionsPage):
             t.parse(date, re.sub(r'[ ]+', ' ', raw))
             t.set_amount(credit, debit)
             transactions.append(t)
+        return transactions
 
+    def get_history(self):
+        transactions = self.get_summary()
         for histo in super(CBTransactionsPage, self).get_history():
             transactions.append(histo)
 

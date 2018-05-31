@@ -20,6 +20,8 @@
 from __future__ import unicode_literals
 
 from datetime import date
+from calendar import day_name
+from dateutil.relativedelta import relativedelta
 import re
 
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
@@ -29,6 +31,7 @@ from weboob.capabilities.bill import Subscription
 from weboob.capabilities.bank import Account, Transaction, AddRecipientStep, Recipient
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from weboob.tools.value import Value
+from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages.login import (
     KeyboardPage, LoginPage, ChangepasswordPage, PredisconnectedPage, DeniedPage,
@@ -302,33 +305,65 @@ class AXABanque(AXABrowser, StatesMixin):
                     yield tr
         # Get deferred card history
         elif account._acctype == "bank" and account.type == Account.TYPE_CARD:
-            for tr in self.deferred_card_transactions(account):
-                if tr.date < date.today():
+            for tr in sorted_transactions(self.deferred_card_transactions(account)):
+                if tr.date <= date.today():
                     yield tr
-
 
     def deferred_card_transactions(self, account):
         summary_date = NotAvailable
-
         self.go_account_pages(account, "history")
+
         if self.page.get_deferred_card_history():
             for tr in self.page.get_history():
                 # only deferred card accounts are typed TYPE_CARD
                 if tr.type == Transaction.TYPE_CARD:
                     tr.type = Transaction.TYPE_DEFERRED_CARD
 
-                # fix date of deferred card transactions
+                # set summary date for deferred card transactions
                 if tr.type == Transaction.TYPE_CARD_SUMMARY:
                     summary_date = tr.date
                 else:
-                    tr.date = summary_date
+                    if summary_date == tr.date:
+                        # search if summary date is already given for the next month
+                        tr.date = self.get_transaction_summary_date(tr)
+                    else:
+                        tr.date = summary_date
 
                 if tr.date is not NotAvailable:
                     yield tr
                 else:
-                    # if date of summary is not available, skip transactions
-                    self.logger.debug("Skip the transaction %s: the card summary is not available yet." % tr)
+                    """
+                    Because axa is stupid, they don't know that their own shitty website doesn't give
+                    summary date for the current month and they absolutely want coming transactions
+                    without the real date of debit.
+                    Search for the coming date ...
+                    """
+                    tr.date = self.get_month_last_working_day_date(tr)
+                    yield tr
 
+    def get_transaction_summary_date(self, tr):
+        tr_next_month = tr.vdate + relativedelta(months=1)
+
+        for summary in self.page.get_summary():
+            if (summary.date.year == tr_next_month.year) and (summary.date.month == tr_next_month.month):
+                return summary.date
+        return NotAvailable
+
+    def get_month_last_working_day_date(self, tr):
+        # search for the last day of the month which is not Saturday or Sunday.
+        if date.today().month != tr.vdate.month:
+            last_day_month = tr.vdate + relativedelta(day=1, months=2) - relativedelta(days=1)
+        else:
+            last_day_month = tr.vdate + relativedelta(day=1, months=1) - relativedelta(days=1)
+
+        if day_name[last_day_month.weekday()].upper() == 'SATURDAY':
+            return last_day_month - relativedelta(days=1)
+        elif day_name[last_day_month.weekday()].upper() == 'SUNDAY':
+            return last_day_month - relativedelta(days=2)
+        else:
+            return last_day_month
+
+    @need_login
     def iter_coming(self, account):
         if account._acctype == "bank" and account.type == Account.TYPE_CARD:
             for tr in self.deferred_card_transactions(account):
