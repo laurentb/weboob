@@ -42,7 +42,7 @@ class PornhubBrowser(PagesBrowser):
 
     def search_videos(self, pattern):
         self.search.go(pattern=pattern, pagenum=1)
-        assert self.search.is_here(pattern=pattern, pagenum=1)
+        assert self.search.is_here()
 
         return self.page.iter_videos()
 
