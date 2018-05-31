@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 import time
+from requests.exceptions import HTTPError, TooManyRedirects
 from datetime import datetime, timedelta
 
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
@@ -35,6 +36,7 @@ class OvhBrowser(LoginBrowser, StatesMixin):
     documents = URL('/engine/2api/sws/billing/bills\?count=0&date=(?P<fromDate>.*)&dateTo=(?P<toDate>.*)&offset=0', BillsPage)
 
     __states__ = ('otp_form', 'otp_url')
+    STATE_DURATION = 10
 
     otp_form = None
     otp_url = None
@@ -46,8 +48,11 @@ class OvhBrowser(LoginBrowser, StatesMixin):
         super(OvhBrowser, self).__init__(*args, **kwargs)
 
     def locate_browser(self, state):
-        # Add Referer to avoid 401 response code when profile url for the second time
-        self.profile.go(headers={'Referer': self.BASEURL + '/manager/dedicated/index.html'})
+        # Add Referer to avoid 401 response code when call url for the second time
+        try:
+            self.location(state['url'], headers={'Referer': self.absurl('/manager/dedicated/index.html')})
+        except (HTTPError, TooManyRedirects):
+            pass
 
     def validate_security_form(self):
         res_form = self.otp_form
