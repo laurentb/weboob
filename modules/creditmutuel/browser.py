@@ -126,7 +126,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
     is_new_website = False
     form = None
     logged = None
-    need_clear_storage = False
+    need_clear_storage = None
 
     __states__ = ['currentSubBank', 'form', 'logged', 'is_new_website', 'need_clear_storage']
 
@@ -138,7 +138,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
         if not state.get('need_clear_storage'):
             super(CreditMutuelBrowser, self).load_state(state)
         else:
-            self.need_clear_storage = False
+            self.need_clear_storage = None
 
     def do_login(self):
         # Clear cookies.
