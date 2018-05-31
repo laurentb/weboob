@@ -134,6 +134,9 @@ class Barclays(LoginBrowser):
                     self._go_to_account(account)
 
                 if account.type == Account.TYPE_CARD:
+                    if self.page.is_immediate_card():
+                        account.type = Account.TYPE_CHECKING
+
                     if not self.page.has_history():
                         continue
 

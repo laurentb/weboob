@@ -383,6 +383,10 @@ class CardPage(AbstractAccountPage):
     def is_here(self):
         return bool(CleanText('//span[contains(., "Détail carte")]')(self.doc))
 
+    def is_immediate_card(self):
+        # If the label is "Echéance au  :" without a date, it's not a deferred card.
+        return bool(CleanText('//div[@class="echeance"]//label[.="Echéance au  :"]')(self.doc))
+
     def has_iban(self):
         return False
 
