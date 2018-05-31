@@ -89,7 +89,7 @@ class Value(object):
 
     def show_value(self, v):
         if self.masked:
-            return len(unicode(v)) * '*'
+            return u''
         else:
             return v
 
