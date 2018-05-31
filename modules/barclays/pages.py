@@ -123,7 +123,6 @@ class AccountsPage(StatefulPage):
         class item(ItemElement):
             klass = Account
 
-            obj_balance = MyDecimal('.//td[4]//div[1]/a')
             obj_label = CleanText('.//td[1]//span')
             obj__uncleaned_id = CleanText('.//td[2]//a')
             obj__btn = Attr('.//button', 'name', default=None)
@@ -132,11 +131,24 @@ class AccountsPage(StatefulPage):
             def obj_id(self):
                 return re.sub(r'\s', '', str(Field('_uncleaned_id')(self))) + self.page.ACCOUNT_TYPE_TO_STR.get(Field('type')(self), '')
 
+            def is_card(self):
+                return bool(self.xpath('.//div[contains(@id, "9385968FC88E7527131931") and not(contains(@style, "display: none;"))]'))
+
+            def obj_balance(self):
+                if self.is_card():
+                    return 0
+                return MyDecimal('.//td[4]//div[1]/a')(self)
+
+            def obj_coming(self):
+                if self.is_card():
+                    return MyDecimal('.//td[4]//div[1]/a')(self)
+                return NotAvailable
+
             def obj_currency(self):
                 return Account.get_currency(CleanText('.//td[5]//div[1]/a')(self))
 
             def obj_type(self):
-                if self.xpath('.//div[contains(@id, "9385968FC88E7527131931") and not(contains(@style, "display: none;"))]'):
+                if self.is_card():
                     return Account.TYPE_CARD
 
                 type = CleanText('./ancestor::node()[7]//button[contains(@id, "C4__BUT_787E7BC48BF75E723710")]')(self)
