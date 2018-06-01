@@ -186,6 +186,9 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                     self.accounts_list.append(a)
                 self.iban.go(subbank=self.currentSubBank).fill_iban(self.accounts_list)
                 self.por.go(subbank=self.currentSubBank).add_por_accounts(self.accounts_list)
+                self.new_accounts.stay_or_go(subbank=self.currentSubBank)
+                for a in self.page.get_accounts_withoutdetails():
+                    self.accounts_list.append(a)
 
             for acc in self.li.go(subbank=self.currentSubBank).iter_li_accounts():
                 self.accounts_list.append(acc)

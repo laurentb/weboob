@@ -457,6 +457,35 @@ class NewAccountsPage(NewHomePage, AccountsPage):
 
         obj_name = CleanText('//p[contains(@class, "master_nom")]')
 
+    # There are accounts whitout details or history page
+    @method
+    class get_accounts_withoutdetails(ListElement):
+        item_xpath = '//div[has-class("a_blocappli")]//tr'
+
+        class item_account(ItemElement):
+            klass = Account
+
+            def condition(self):
+                if len(CleanText('./td')(self)) < 2:
+                    return False
+                # At this time only this type of account has no detail page
+                return ("EPARGNE LOGEMENT" in CleanText('./td//span')(self))
+
+            obj_id = CleanText('./td//span[@class="nowrap doux"]', replace=[(' ', '')])
+            obj_label = CleanText('./td[1]/span[@class="ei_sdsf_title"]')
+            obj_balance = MyDecimal('./td//span[contains(@class, "ei_sdsf_montant")]')
+            obj_currency = Currency(CleanText('./td//span[contains(@class, "ei_sdsf_montant")]'))
+            obj__link_id = None
+            obj__is_inv = False
+            obj__is_webid = False
+            obj__card_number = None
+            obj__card_links = []
+
+            def obj_type(self):
+                if "EPARGNE LOGEMENT" in Field('label')(self):
+                    return Account.TYPE_SAVINGS
+                else:
+                    return Account.TYPE_UNKNOWN
 
 class AdvisorPage(LoggedPage, HTMLPage):
     @method
