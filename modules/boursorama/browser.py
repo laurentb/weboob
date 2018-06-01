@@ -195,9 +195,8 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
             # activated)
             for account in self.accounts_list:
                 if account.type == Account.TYPE_CHECKING:
-                    self.location(account.url)
                     # the acc_tit contains the non-valid card accounts
-                    self.acc_tit.go(webid=self.page.params['webid'])
+                    self.acc_tit.go(webid=account._webid)
                     unvalid = set(card.url for card in self.page.iter_unvalid_cards())
                     self.accounts_list = [account for account in self.accounts_list
                                           if account.url not in unvalid]
@@ -209,12 +208,7 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
                     self.page.populate_cards_number(cards)
 
             for account in self.accounts_list:
-                if account.type in [Account.TYPE_PEA, Account.TYPE_LIFE_INSURANCE]:
-                    self.location(account.url)
-                    if isinstance(self.page, MarketPage):
-                        account.balance = self.page.get_balance(account.type) or account.balance
-
-                if account.type != Account.TYPE_CARD:
+                if account.type not in (Account.TYPE_CARD, Account.TYPE_LOAN, Account.TYPE_LIFE_INSURANCE):
                     account.iban = self.iban.go(webid=account._webid).get_iban()
 
             for card in cards:

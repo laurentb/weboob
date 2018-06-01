@@ -245,7 +245,12 @@ class AccountsPage(LoggedPage, HTMLPage):
 
             def obj_balance(self):
                 if Field('type')(self) != Account.TYPE_CARD:
-                    return Field('_amount')(self)
+                    balance = Field('_amount')(self)
+                    if Field('type')(self) in [Account.TYPE_PEA, Account.TYPE_LIFE_INSURANCE]:
+                        page = Async('details').loaded_page(self)
+                        if isinstance(page, MarketPage):
+                            return page.get_balance(Field('type')(self)) or balance
+                    return balance
                 return Decimal('0')
 
             def obj_coming(self):
