@@ -24,7 +24,6 @@ from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import AuthMethodNotImplemented, BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
-from weboob.tools.compat import urljoin
 
 from .pages.login import LoginPage, UnavailablePage
 from .pages.accounts_list import (
@@ -40,10 +39,11 @@ class Fortuneo(LoginBrowser):
 
     login_page = URL(r'.*identification\.jsp.*', LoginPage)
 
-    accounts_page = URL(r'.*prive/default\.jsp.*',
+    accounts_page = URL(r'/fr/prive/default.jsp\?ANav=1',
+                        r'.*prive/default\.jsp.*',
                         r'.*/prive/mes-comptes/synthese-mes-comptes\.jsp',
                         AccountsList)
-    iframe_page = URL(r'.*/prive/accueil-informations-client-global\.jsp.*', WarningPage)
+    warning_page = URL(r'.*/prive/accueil-informations-client-global\.jsp.*', WarningPage)
     global_accounts = URL(r'.*/prive/mes-comptes/synthese-globale/synthese-mes-comptes\.jsp', GlobalAccountsList)
 
     account_history = URL(r'.*/prive/mes-comptes/livret/consulter-situation/consulter-solde\.jsp.*',
@@ -108,15 +108,17 @@ class Fortuneo(LoginBrowser):
 
     @need_login
     def get_accounts_list(self):
-        self.location('/fr/prive/default.jsp?ANav=1')
+        self.accounts_page.go()
 
         # the Action Needed might be contained in an iframe
         url = self.page.get_iframe_url()
         if url:
-            url = urljoin(self.BASEURL, url)
-            # don't go if iframe points to AccountHistoryPage, go if it points
-            # to a Warning Page
-            if self.iframe_page.match(url):
-                self.location(url).page  # an Action Needed is supposed to be raised
+            url = self.absurl(url, base=True)
+            # Either go to the iframe if it points to a warning page
+            # and skip the action needed if possible,
+            # Or don't go and resume scrapping as usual if it doesn't
+            if self.warning_page.match(url):
+                self.location(url)
 
+        assert self.accounts_page.is_here()
         return self.page.get_list()

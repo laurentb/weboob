@@ -326,13 +326,20 @@ class CardHistoryPage(LoggedPage, HTMLPage):
 
 class WarningPage(LoggedPage, HTMLPage):
     def on_load(self):
-        warning = self.doc.xpath(u'//div[@id="message_renouvellement_mot_passe"] | \
-                               //span[contains(text(), "Votre identifiant change")] | \
-                               //span[contains(text(), "Nouveau mot de passe")] | \
-                               //span[contains(text(), "Renouvellement de votre mot de passe")] |\
-                               //span[contains(text(), "Mieux vous connaître")]')
-        if warning:
-            raise ActionNeeded(warning[0].text)
+        # if we can skip the CGU, then skip it
+        if self.doc.xpath(u'//input[@class="bouton_valid01" and contains(@title, "Me le demander ultérieurement")]'):
+            # Look for the request in the event listener registered to the button, can be harcoded, no variable part.
+            # It is a POST request without data.
+            url = self.browser.absurl('ReloadContext?action=1&', base=True)
+            self.browser.location(url, method='POST')
+        else:
+            warning = self.doc.xpath(u'//div[@id="message_renouvellement_mot_passe"] | \
+                                   //span[contains(text(), "Votre identifiant change")] | \
+                                   //span[contains(text(), "Nouveau mot de passe")] | \
+                                   //span[contains(text(), "Renouvellement de votre mot de passe")] |\
+                                   //span[contains(text(), "Mieux vous connaître")]')
+            if warning:
+                raise ActionNeeded(warning[0].text)
 
 
 class AccountsList(WarningPage):
@@ -485,7 +492,9 @@ class AccountsList(WarningPage):
 
 
 class GlobalAccountsList(LoggedPage, HTMLPage):
-    pass
+    def on_load(self):
+        # Once the action needed is skipped, we can go to the accounts page
+        self.browser.accounts_page.go()
 
 
 class LoanPage(LoggedPage, HTMLPage):
