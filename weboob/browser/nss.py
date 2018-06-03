@@ -29,6 +29,7 @@
 from __future__ import absolute_import
 
 from functools import wraps
+from io import RawIOBase, BufferedRWPair
 import os
 import socket
 import ssl as basessl
@@ -114,47 +115,63 @@ ERROR_MAP = {
 def wrap_callable(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except nss.error.NSPRError as e:
-            if e.error_desc.startswith('(SEC_ERROR_') or e.error_desc.startswith('(SSL_ERROR_'):
-                raise basessl.SSLError(0, e.error_message or e.error_desc, e)
-
-            for k in ERROR_MAP:
-                if k == e.error_code:
-                    raise ERROR_MAP[k][0]
-
+        return exc_wrap(func, *args, **kwargs)
     return wrapper
 
 
-class FileWrapper(object):
+def exc_wrap(func, *args, **kwargs):
+    try:
+        return func(*args, **kwargs)
+    except nss.error.NSPRError as e:
+        if e.error_desc.startswith('(SEC_ERROR_') or e.error_desc.startswith('(SSL_ERROR_'):
+            raise basessl.SSLError(0, e.error_message or e.error_desc, e)
+
+        for k in ERROR_MAP:
+            if k == e.error_code:
+                raise ERROR_MAP[k][0]
+
+
+class NSSFile(RawIOBase):
     def __init__(self, obj):
-        self.__obj = obj
+        self.obj = obj
+        self.open = True
 
-    def __getattr__(self, attr):
-        ret = getattr(self.__obj, attr)
-        if callable(ret):
-            ret = wrap_callable(ret)
-        return ret
+    def close(self):
+        super(NSSFile, self).close()
+        if self.open:
+            self.obj.close()
+            self.open = False
 
-    # for python3 only
-    def readinto(self, b):
-        data = self.read(len(b))
-        b[:len(data)] = data
-        return len(data)
+    def read(self, amount):
+        return self.obj.recv(amount)
 
-    # for python3 only
-    def flush(self):
-        pass # nss always flushes data?
+    def readinto(self, buf):
+        amount = len(buf)
+        chunk = self.obj.recv(amount)
+        # TODO handle timeout by returning None?
+        buf[:len(chunk)] = chunk
+        return len(chunk)
+
+    def write(self, buf):
+        self.obj.send(buf)
+        return len(buf)
+
+    def readable(self):
+        return self.open
+
+    writable = readable
 
 
 class Wrapper(object):
     def __init__(self, obj):
         self.__obj = obj
+        self.__timeout = nss.io.PR_INTERVAL_NO_TIMEOUT
 
     def settimeout(self, t):
-        # there is no nss option for that
-        pass
+        if t is None:
+            self.__timeout = nss.io.PR_INTERVAL_NO_TIMEOUT
+        else:
+            self.__timeout = nss.io.milliseconds_to_interval(int(t * 1000))
 
     def __getattr__(self, attr):
         ret = getattr(self.__obj, attr)
@@ -172,7 +189,20 @@ class Wrapper(object):
             return cert_to_dict(cert)
 
     def makefile(self, *args, **kwargs):
-        return FileWrapper(self.__obj.makefile(*args, **kwargs))
+        made = self.__obj.makefile(*args, **kwargs)
+        # NSS.io.Socket returns the same object, but increments its internal ref counter
+        # close() decreases the counter, and closes if there are no more refs
+        # see python NSS source
+        assert made is self.__obj
+
+        rw_wrapper = NSSFile(self)
+        return BufferedRWPair(rw_wrapper, rw_wrapper)
+
+    def recv(self, amount):
+        return exc_wrap(self.__obj.recv, amount, self.__timeout)
+
+    def send(self, s):
+        return exc_wrap(self.__obj.send, s, self.__timeout)
 
 
 def auth_cert_pinning(sock, check_sig, is_server, path):
