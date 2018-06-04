@@ -29,17 +29,20 @@ from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import AccountNotFound, Account, TransferError, AddRecipientStep
 from weboob.capabilities.profile import ProfileMissing
 from weboob.tools.decorators import retry
+from weboob.tools.capabilities.bank.transactions import sorted_transactions
 from weboob.tools.json import json
 from weboob.browser.exceptions import ServerError
 from weboob.browser.elements import DataError
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.tools.value import Value
 
-from .pages import LoginPage, AccountsPage, AccountsIBANPage, HistoryPage, TransferInitPage, \
-                   ConnectionThresholdPage, LifeInsurancesPage, LifeInsurancesHistoryPage, \
-                   LifeInsurancesDetailPage, MarketListPage, MarketPage, MarketHistoryPage, \
-                   MarketSynPage, RecipientsPage, ValidateTransferPage, RegisterTransferPage, \
-                   AdvisorPage, AddRecipPage, ActivateRecipPage, ProfilePage
+from .pages import (
+    LoginPage, AccountsPage, AccountsIBANPage, HistoryPage, TransferInitPage,
+    ConnectionThresholdPage, LifeInsurancesPage, LifeInsurancesHistoryPage,
+    LifeInsurancesDetailPage, MarketListPage, MarketPage, MarketHistoryPage,
+    MarketSynPage, RecipientsPage, ValidateTransferPage, RegisterTransferPage,
+    AdvisorPage, AddRecipPage, ActivateRecipPage, ProfilePage, ListDetailCardPage,
+)
 
 
 __all__ = ['BNPPartPro', 'HelloBank']
@@ -102,8 +105,12 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
     advisor = URL('/conseiller-wspl/rest/monConseiller', AdvisorPage)
 
     profile = URL(r'/kyc-wspl/rest/informationsClient', ProfilePage)
+    list_detail_card = URL(r'/udcarte-wspl/rest/listeDetailCartes', ListDetailCardPage)
 
-    accounts_list = None
+    def __init__(self, *args, **kwargs):
+        super(BNPParibasBrowser, self).__init__(*args, **kwargs)
+        self.accounts_list = None
+        self.card_to_transaction_type = {}
 
     @retry(ConnectionError, tries=3)
     def open(self, *args, **kwargs):
@@ -186,6 +193,10 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
                     return self.page.iter_history()
             return iter([])
         else:
+            if not self.card_to_transaction_type:
+                self.list_detail_card.go()
+                self.card_to_transaction_type = self.page.get_card_to_transaction_type()
+
             self.history.go(data=JSON({
                 "ibanCrypte": account.id,
                 "pastOrPending": 1,
@@ -193,7 +204,11 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
                 "startDate": (datetime.now() - relativedelta(years=2)).strftime('%d%m%Y'),
                 "endDate": datetime.now().strftime('%d%m%Y')
             }))
-        return self.page.iter_coming() if coming else self.page.iter_history()
+
+            if coming:
+                return sorted_transactions(self.page.iter_coming())
+            else:
+                return sorted_transactions(self.page.iter_history())
 
     @need_login
     def iter_lifeinsurance_history(self, account, coming=False):
@@ -210,7 +225,6 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
             }))
             tr.investments = list(page.iter_investments())
             yield tr
-
 
     @need_login
     def iter_coming_operations(self, account):

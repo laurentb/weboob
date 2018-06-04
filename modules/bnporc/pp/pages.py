@@ -288,7 +288,7 @@ class AccountsPage(BNPPage):
                 if iban is not None and not is_iban_valid(iban):
                     iban = rib2iban(rebuild_rib(iban))
 
-                yield Account.from_dict({
+                acc = Account.from_dict({
                     'id': a.get('key'),
                     'label': a.get('libellePersoProduit') or a.get('libelleProduit'),
                     'currency': a.get('devise'),
@@ -299,11 +299,16 @@ class AccountsPage(BNPPage):
                     'iban': iban,
                     'number': a.get('value')
                 })
+                # softcap not used TODO don't pass this key when backend is ready
+                # deferred cb can disappear the day after the appear, so 0 as day_for_softcap
+                acc._bisoftcap = {'deferred_cb': {'softcap_day': 1000, 'day_for_softcap': 0, 'date_field': 'rdate'}}
+                yield acc
 
 
 class AccountsIBANPage(BNPPage):
     def get_ibans_dict(self):
         return dict([(a['ibanCrypte'], a['iban']) for a in self.path('data.listeRib.*.infoCompte')])
+
 
 class MyRecipient(ItemElement):
     klass = Recipient
@@ -315,6 +320,7 @@ class MyRecipient(ItemElement):
         # For the moment, we skip this kind of recipient:
         # {"nomBeneficiaire":"Aircraft Guaranty Holdings LLC","idBeneficiaire":"00002##00002##FRSTUS44XXX##130018430","ibanNumCompte":"130018430","typeIban":"0","bic":"FRSTUS44XXX","statut":"1","numListe":"00002","typeBeneficiaire":"INTER","devise":"USD","tauxConversion":"1.047764","nbDecimale":"2","typeFrais":"","adresseBeneficiaire":"","nomBanque":"Frost National Bank","adresseBanque":"100 West Houston Street San Antonio, Texas 78205 USA ","canalActivation":"1","libelleStatut":"Activé"}
         return is_iban_valid(el.iban)
+
 
 class TransferInitPage(BNPPage):
     def on_load(self):
@@ -524,9 +530,21 @@ class HistoryPage(BNPPage):
                      vdate=parse_french_date(op.get('valueDate')),
                      raw=op.get('libelle'))
             if tr.type == Transaction.TYPE_CARD:
-                tr.type = Transaction.TYPE_DEFERRED_CARD
-                tr.nopurge = True
+                tr.type = self.browser.card_to_transaction_type.get(op.get('keyCarte'),
+                                                                    Transaction.TYPE_DEFERRED_CARD)
             yield tr
+
+
+class ListDetailCardPage(BNPPage):
+    def get_card_to_transaction_type(self):
+        d = {}
+        for card in self.path('data.responseRestitutionCarte.listeCartes.*'):
+            if 'DIFFERE' in card['typeDebit']:
+                tr_type = Transaction.TYPE_DEFERRED_CARD
+            else:
+                tr_type = Transaction.TYPE_CARD
+            d = tr_type
+        return d
 
 
 class LifeInsurancesPage(BNPPage):
