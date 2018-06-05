@@ -77,7 +77,7 @@ class AccountDetailPage(LoggedPage, HTMLPage):
         return bool(self.doc.xpath('//*[@id="linkadhesion"]/a'))
 
     @method
-    class iter_investments(ListElement):
+    class iter_investment(ListElement):
         item_xpath = '//div[@id="savingBalance"]/table[1]//tr'
 
         class item(ItemElement):

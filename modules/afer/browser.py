@@ -58,9 +58,9 @@ class AferBrowser(LoginBrowser):
         return self.page.iter_accounts()
 
     @need_login
-    def iter_investments(self, account):
+    def iter_investment(self, account):
         self.account_detail.go(params={'nads': account.id})
-        return self.page.iter_investments()
+        return self.page.iter_investment()
 
     @need_login
     def iter_history(self, account):

@@ -60,4 +60,4 @@ class AferModule(Module, CapBankWealth):
         return self.browser.iter_history(account)
 
     def iter_investment(self, account):
-        return self.browser.iter_investments(account)
+        return self.browser.iter_investment(account)
