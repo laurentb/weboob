@@ -38,28 +38,31 @@ __all__ = ['CenetBrowser']
 
 
 class CenetBrowser(LoginBrowser, StatesMixin):
-    BASEURL = "https://www.caisse-epargne.fr"
+    BASEURL = "https://www.cenet.caisse-epargne.fr"
     STATE_DURATION = 5
 
-    login = URL('/authentification/manage\?step=identification&identifiant=(?P<login>.*)',
-                'https://.*/login.aspx', LoginPage)
+    login = URL(r'https://(?P<domain>[^/]+)/authentification/manage\?step=identification&identifiant=(?P<login>.*)',
+                r'https://.*/authentification/manage\?step=identification&identifiant=.*',
+                r'https://.*/login.aspx', LoginPage)
     account_login = URL('/authentification/manage\?step=account&identifiant=(?P<login>.*)&account=(?P<accountType>.*)', LoginPage)
-    cenet_login = URL('https://www.cenet.caisse-epargne.fr/$', CenetLoginPage)
     cenet_vk = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiAuthentification.asmx/ChargerClavierVirtuel')
-    cenet_home = URL('https://www.cenet.caisse-epargne.fr/Default.aspx$', CenetHomePage)
-    cenet_accounts = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiComptes.asmx/ChargerSyntheseComptes', CenetAccountsPage)
-    cenet_account_history = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiComptes.asmx/ChargerHistoriqueCompte', CenetAccountHistoryPage)
-    cenet_account_coming = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiCartesBanquaires.asmx/ChargerEnCoursCarte', CenetAccountHistoryPage)
-    cenet_tr_detail = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiComptes.asmx/ChargerDetailOperation', CenetCardSummaryPage)
-    cenet_cards = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiCartesBanquaires.asmx/ChargerCartes', CenetCardsPage)
-    error = URL('https://.*/login.aspx',
-                'https://.*/Pages/logout.aspx.*',
-                'https://.*/particuliers/Page_erreur_technique.aspx.*', ErrorPage)
+    cenet_home = URL('/Default.aspx$', CenetHomePage)
+    cenet_accounts = URL('/Web/Api/ApiComptes.asmx/ChargerSyntheseComptes', CenetAccountsPage)
+    cenet_account_history = URL('/Web/Api/ApiComptes.asmx/ChargerHistoriqueCompte', CenetAccountHistoryPage)
+    cenet_account_coming = URL('/Web/Api/ApiCartesBanquaires.asmx/ChargerEnCoursCarte', CenetAccountHistoryPage)
+    cenet_tr_detail = URL('/Web/Api/ApiComptes.asmx/ChargerDetailOperation', CenetCardSummaryPage)
+    cenet_cards = URL('/Web/Api/ApiCartesBanquaires.asmx/ChargerCartes', CenetCardsPage)
+    error = URL(r'https://.*/login.aspx',
+                r'https://.*/Pages/logout.aspx.*',
+                r'https://.*/particuliers/Page_erreur_technique.aspx.*', ErrorPage)
+    cenet_login = URL(r'https://.*/$',
+                      r'https://.*/default.aspx', CenetLoginPage)
 
     __states__ = ('BASEURL',)
 
     def __init__(self, nuser, *args, **kwargs):
-        self.BASEURL = kwargs.pop('domain', self.BASEURL)
+        # The URL to log in and to navigate are different
+        self.login_domain = kwargs.pop('domain', self.BASEURL)
         if not self.BASEURL.startswith('https://'):
             self.BASEURL = 'https://%s' % self.BASEURL
 
@@ -69,7 +72,7 @@ class CenetBrowser(LoginBrowser, StatesMixin):
         super(CenetBrowser, self).__init__(*args, **kwargs)
 
     def do_login(self):
-        data = self.login.go(login=self.username).get_response()
+        data = self.login.go(login=self.username, domain=self.login_domain).get_response()
 
         if data is None:
             raise BrowserIncorrectPassword()

@@ -20,15 +20,9 @@
 from weboob.browser import AbstractBrowser
 
 
-__all__ = ['CreditCooperatif']
+__all__ = ['CaisseEpargneBrowser']
 
 
-class CreditCooperatif(AbstractBrowser):
+class CaisseEpargneBrowser(AbstractBrowser):
     PARENT = 'caissedepargne'
     PARENT_ATTR = 'package.browser.CaisseEpargne'
-    BASEURL = 'https://www.credit-cooperatif.coop/'
-
-    def __init__(self, *args, **kwargs):
-        # have to pass 'nuser'
-        super(CreditCooperatif, self).__init__('', *args, **kwargs)
-
