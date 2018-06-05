@@ -212,6 +212,10 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                             account._is_debit_card = False
 
                         account.balance = Decimal(FrenchTransaction.clean_amount(self.parse_number(balance_value)))
+                        if account.type == Account.TYPE_CARD:
+                            account.coming = account.balance
+                            account.balance = Decimal(0)
+
                     except InvalidOperation:
                         #The account doesn't have a amount
                         pass
