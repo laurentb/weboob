@@ -175,6 +175,7 @@ class AddRecipientPage(LoggedPage, HTMLPage):
         form.submit()
 
     def set_new_recipient_label(self, rcpt_label):
+        self.browser.reload_state = True
         bank_field_disabled_id = self.doc.xpath('//input[@class="banqueFieldDisabled"]')
         continue_btn_id = CleanText('//input[@class="btn_continuer_sepa"]/@id')(self.doc)
 

@@ -92,6 +92,7 @@ class AXABrowser(LoginBrowser):
 
 class AXABanque(AXABrowser, StatesMixin):
     BASEURL = 'https://www.axabanque.fr/'
+    STATE_DURATION = 5
 
     # Bank
     bank_accounts = URL('transactionnel/client/liste-comptes.html',
@@ -132,6 +133,16 @@ class AXABanque(AXABrowser, StatesMixin):
                             'webapp/axabanque/jsp/virementSepa/saisieVirementSepa.faces',
                             RegisterTransferPage)
     confirm_transfer = URL('/webapp/axabanque/jsp/virementSepa/confirmationVirementSepa.faces', ConfirmTransferPage)
+
+    reload_state = None
+
+    __states__ = ['reload_state']
+
+    def load_state(self, state):
+        # reload state for add recipient step only
+        if state.get('reload_state'):
+            super(AXABanque, self).load_state(state)
+        self.reload_state = None
 
     def __init__(self, *args, **kwargs):
         super(AXABanque, self).__init__(*args, **kwargs)
