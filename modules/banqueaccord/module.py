@@ -18,18 +18,14 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.base import find_object
-from weboob.capabilities.bank import CapBank, AccountNotFound
-from weboob.tools.backend import Module, BackendConfig
+from weboob.tools.backend import AbstractModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword
-
-from .browser import BanqueAccordBrowser
 
 
 __all__ = ['BanqueAccordModule']
 
 
-class BanqueAccordModule(Module, CapBank):
+class BanqueAccordModule(AbstractModule):
     NAME = 'banqueaccord'
     DESCRIPTION = u'Banque Accord'
     MAINTAINER = u'Romain Bignon'
@@ -39,17 +35,4 @@ class BanqueAccordModule(Module, CapBank):
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', regexp='\d+', masked=False),
                            ValueBackendPassword('password', label=u"Code d'accès", regexp='\d+'))
 
-    BROWSER = BanqueAccordBrowser
-
-    def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(),
-                                   self.config['password'].get())
-
-    def iter_accounts(self):
-        return self.browser.get_accounts_list()
-
-    def get_account(self, _id):
-        return find_object(self.browser.get_accounts_list(), id=_id, error=AccountNotFound)
-
-    def iter_history(self, account):
-        return self.browser.iter_history(account)
+    PARENT = 'oney'
