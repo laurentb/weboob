@@ -52,6 +52,7 @@ __all__ = ['CaisseEpargne']
 class CaisseEpargne(LoginBrowser, StatesMixin):
     BASEURL = "https://www.caisse-epargne.fr"
     STATE_DURATION = 5
+    HISTORY_MAX_PAGE = 200
 
     login = URL('/authentification/manage\?step=identification&identifiant=(?P<login>.*)',
                 'https://.*/login.aspx', LoginPage)
@@ -318,7 +319,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
         info['link'] = [info['link']]
 
-        for i in range(100):
+        for i in range(self.HISTORY_MAX_PAGE):
 
             assert self.home.is_here()
 
@@ -360,7 +361,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             if not self.page.go_next():
                 return
 
-        assert False, 'More than 100 history pages'
+        assert False, 'More than {} history pages'.format(self.HISTORY_MAX_PAGE)
 
     @need_login
     def _get_history_invests(self, account):
