@@ -73,6 +73,7 @@ class AmeliBrowser(LoginBrowser):
 
     @need_login
     def iter_history(self, sub):
+        transactions = []
         self.logger.debug('call Browser.iter_history')
         self.paymentsp.stay_or_go()
         payments_url = self.page.get_last_payments_url()
@@ -83,7 +84,14 @@ class AmeliBrowser(LoginBrowser):
             self.location(url)
             assert self.paymentdetailsp.is_here()
             for payment in self.page.iter_payment_details(sub):
-                 yield payment
+                transactions.append(payment)
+
+        # go to a page with a "deconnexion" link so that logged property
+        # stays True and next call to do_login doesn't crash when using the
+        # blackbox
+        self.accountp.go()
+
+        return transactions
 
     @need_login
     def iter_documents(self, sub):
