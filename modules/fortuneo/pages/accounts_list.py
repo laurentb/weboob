@@ -34,6 +34,7 @@ from weboob.browser.pages import HTMLPage, LoggedPage, FormNotFound
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.json import json
 from weboob.exceptions import ActionNeeded, BrowserUnavailable
+from weboob.tools.capabilities.bank.investments import is_isin_valid
 
 
 class Transaction(FrenchTransaction):
@@ -90,6 +91,9 @@ class PeaHistoryPage(LoggedPage, HTMLPage):
                 inv.diff = NotAvailable
             else:
                 inv.diff = CleanDecimal(None, replace_dots=True).filter(diff)
+
+            if is_isin_valid(inv.code):
+                inv.code_type = Investment.CODE_TYPE_ISIN
 
             yield inv
         if not account.type == account.TYPE_MARKET:
@@ -175,6 +179,8 @@ class InvestmentHistoryPage(LoggedPage, HTMLPage):
             inv.diff = self.parse_decimal(cols[self.COL_PERF])
             diff_percent =  self.parse_decimal(cols[self.COL_PERF_PERCENT])
             inv.diff_percent = diff_percent / 100 if diff_percent else NotAvailable
+            if is_isin_valid(inv.code):
+                inv.code_type = Investment.CODE_TYPE_ISIN
 
             yield inv
 
