@@ -1159,6 +1159,7 @@ class DepositPage(LoggedPage, HTMLPage):
             obj__link_index = Regexp(CleanText('.//a/@id'), r'(\d+)')
             # So it can be modified later
             obj_id = None
+            obj__transfer_id = None
 
     def set_deposit_account_id(self, account):
         account.id = CleanText('//td[contains(text(), "N° contrat")]/following::td[1]//b')(self.doc)
