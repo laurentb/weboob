@@ -20,7 +20,7 @@
 from __future__ import unicode_literals
 
 
-from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.bank import CapBankWealth, AccountNotFound
 from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
@@ -31,7 +31,7 @@ from .browser import GmfBrowser
 __all__ = ['GmfModule']
 
 
-class GmfModule(Module, CapBank):
+class GmfModule(Module, CapBankWealth):
     NAME = 'gmf'
     DESCRIPTION = 'GMF'
     MAINTAINER = 'Tony Malto'
@@ -52,3 +52,10 @@ class GmfModule(Module, CapBank):
     def iter_accounts(self):
         for account in self.browser.iter_accounts():
             yield account
+
+    def iter_history(self, account):
+        return self.browser.iter_history(account)
+
+    def iter_investment(self, account):
+        return self.browser.iter_investment(account)
+

@@ -22,14 +22,16 @@ from __future__ import unicode_literals
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 
-from .pages import LoginPage, AccountsPage
+from .pages import LoginPage, AccountsPage, TransactionsInvestmentsPage, AllTransactionsPage
 
 
 class GmfBrowser(LoginBrowser):
-    BASEURL = 'http://www.gmf.com'
+    BASEURL = 'https://espace-assure.gmf.fr'
 
-    login = URL(r'https://espace-assure.gmf.fr/public/pages/securite/IC2.faces', LoginPage)
-    accounts = URL(r'https://espace-assure.gmf.fr/pointentree/client/homepage', AccountsPage)
+    login = URL(r'/public/pages/securite/IC2.faces', LoginPage)
+    accounts = URL(r'/pointentree/client/homepage', AccountsPage)
+    transactions_investments = URL(r'/pointentree/contratvie/detailsContrats', TransactionsInvestmentsPage)
+    all_transactions = URL(r'/pages/contratvie/detailscontrats/.*\.faces', AllTransactionsPage)
 
     def do_login(self):
         self.login.go().login(self.username, self.password)
@@ -39,3 +41,25 @@ class GmfBrowser(LoginBrowser):
     @need_login
     def iter_accounts(self):
         return self.accounts.stay_or_go().iter_accounts()
+
+    def go_details_page(self, account):
+        self.accounts.go()
+        assert self.accounts.is_here()
+        if self.accounts.is_here():
+            url, data = self.page.get_detail_page_parameters(account)
+            self.location(url, method='POST', data=data)
+        assert self.transactions_investments.is_here()
+
+    @need_login
+    def iter_history(self, account):
+        self.go_details_page(account)
+        self.page.show_all_transactions()
+        return self.page.iter_history()
+
+    @need_login
+    def iter_investment(self, account):
+        self.go_details_page(account)
+        assert self.transactions_investments.is_here()
+        if self.page.has_investments():
+            return self.page.iter_investments()
+        return []
