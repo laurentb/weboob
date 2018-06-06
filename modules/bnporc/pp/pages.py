@@ -543,7 +543,7 @@ class ListDetailCardPage(BNPPage):
                 tr_type = Transaction.TYPE_DEFERRED_CARD
             else:
                 tr_type = Transaction.TYPE_CARD
-            d = tr_type
+            d[card['numCarteCrypte']] = tr_type
         return d
 
 
