@@ -253,6 +253,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         return self.accounts
 
     @need_login
+    @retry(ClientError, tries=3)
     def get_accounts_list(self):
         if self.accounts is None:
             self.accounts = self.get_measure_accounts_list()
