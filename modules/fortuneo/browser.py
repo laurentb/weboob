@@ -43,7 +43,9 @@ class Fortuneo(LoginBrowser):
                         r'.*prive/default\.jsp.*',
                         r'.*/prive/mes-comptes/synthese-mes-comptes\.jsp',
                         AccountsList)
-    warning_page = URL(r'.*/prive/accueil-informations-client-global\.jsp.*', WarningPage)
+    iframe_page = URL(r'.*/prive/accueil-informations-client-global\.jsp.*',
+                      r'.*/prive/epargner/livrets/livret-plus/ouvrir-livret-plus-push-client\.jsp.*', WarningPage)
+
     global_accounts = URL(r'.*/prive/mes-comptes/synthese-globale/synthese-mes-comptes\.jsp', GlobalAccountsList)
 
     account_history = URL(r'.*/prive/mes-comptes/livret/consulter-situation/consulter-solde\.jsp.*',

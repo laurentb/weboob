@@ -332,6 +332,7 @@ class CardHistoryPage(LoggedPage, HTMLPage):
 
 class WarningPage(LoggedPage, HTMLPage):
     def on_load(self):
+
         # if we can skip the CGU, then skip it
         if self.doc.xpath(u'//input[@class="bouton_valid01" and contains(@title, "Me le demander ultérieurement")]'):
             # Look for the request in the event listener registered to the button, can be harcoded, no variable part.
@@ -343,7 +344,9 @@ class WarningPage(LoggedPage, HTMLPage):
                                    //span[contains(text(), "Votre identifiant change")] | \
                                    //span[contains(text(), "Nouveau mot de passe")] | \
                                    //span[contains(text(), "Renouvellement de votre mot de passe")] |\
-                                   //span[contains(text(), "Mieux vous connaître")]')
+                                   //span[contains(text(), "Mieux vous connaître")] |\
+                                   //span[contains(text(), "Souscrivez au Livret + en quelques clics")]'
+                                   )
             if warning:
                 raise ActionNeeded(warning[0].text)
 

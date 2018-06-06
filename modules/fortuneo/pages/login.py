@@ -39,6 +39,3 @@ class LoginPage(HTMLPage):
 class UnavailablePage(HTMLPage):
     def on_load(self):
         raise BrowserUnavailable(CleanText('//h2[@class="titre"]')(self.doc))
-
-
-# vim:ts=4:sw=4
