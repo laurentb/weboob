@@ -403,16 +403,6 @@ class Market(LoggedPage, BasePage, Invest):
         doc = self.browser.open('/brs/fisc/fisca10a.html').page.doc
         num_page = None
 
-        liquidity = CleanDecimal('//form[@id="listeCTForm"]/table//tr[td[5]]/td[@class="TabCelRight"][2]', replace_dots=True, default=None)(self.doc)
-
-        if liquidity:
-            inv = Investment()
-            inv.code = 'XX-liquidity'
-            inv.code_type = NotAvailable
-            inv.label = 'Liquidités'
-            inv.valuation = liquidity
-            yield inv
-
         try:
             num_page = int(CleanText('.')(doc.xpath(u'.//tr[contains(td[1], "Relevé des plus ou moins values latentes")]/td[2]')[0]).split('/')[1])
         except IndexError:
