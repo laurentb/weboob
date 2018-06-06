@@ -591,12 +591,13 @@ class Currency(object):
         None
         """
         curtexts = klass.EXTRACTOR.sub(' ', text.upper()).split()
-        for curtext in curtexts:
-            for currency, symbols in klass.CURRENCIES.items():
-                if curtext in currency:
+
+        for currency, symbols in klass.CURRENCIES.items():
+            for curtext in curtexts:
+                if curtext == currency:
                     return currency
                 for symbol in symbols:
-                    if curtext in symbol or symbol in curtext:
+                    if curtext == symbol:
                         return currency
         return None
 
