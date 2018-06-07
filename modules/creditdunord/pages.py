@@ -338,6 +338,10 @@ class ProAccountsPage(AccountsPage):
 
     ARGS = ['Banque', 'Agence', 'Classement', 'Serie', 'SSCompte', 'Devise', 'CodeDeviseCCB', 'LibelleCompte', 'IntituleCompte', 'Indiceclassement', 'IndiceCompte', 'NomClassement']
 
+    def on_load(self):
+        if self.doc.xpath('//h1[contains(text(), "Erreur")]'):
+            raise BrowserUnavailable(CleanText('//h1[contains(text(), "Erreur")]//span')(self.doc))
+
     def params_from_js(self, text):
         l = []
         for sub in re.findall("'([^']*)'", text):
@@ -389,8 +393,9 @@ class ProAccountsPage(AccountsPage):
             else:
                 a.id = a._acc_nb
             # This account can be multiple life insurance accounts
-            if any(a.label.startswith(lab) for lab in ['ASS.VIE-BONS CAPI-SCPI-DIVERS', 'BONS CAPI-SCPI-DIVERS']) or \
-               u'Aucun d\\351tail correspondant pour ce compte' in tr.xpath('.//a/@href')[0]:
+            if (any(a.label.startswith(lab) for lab in ['ASS.VIE-BONS CAPI-SCPI-DIVERS', 'BONS CAPI-SCPI-DIVERS'])
+                or (u'Aucun d\\351tail correspondant pour ce compte' in tr.xpath('.//a/@href')[0])
+                    and tr.xpath('.//span[contains(@class, "left")]/text()')[0] not in AccountsPage.TYPES.keys()):
                 continue
 
             if a.type is Account.TYPE_CARD:
