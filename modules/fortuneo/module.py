@@ -19,7 +19,10 @@
 
 
 from weboob.capabilities.base import find_object
-from weboob.capabilities.bank import CapBankWealth, AccountNotFound
+from weboob.capabilities.bank import (
+    CapBankWealth, CapBankTransferAddRecipient, AccountNotFound, RecipientNotFound,
+    TransferInvalidLabel, Account,
+)
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -29,7 +32,7 @@ from .browser import Fortuneo
 __all__ = ['FortuneoModule']
 
 
-class FortuneoModule(Module, CapBankWealth):
+class FortuneoModule(Module, CapBankWealth, CapBankTransfer):
     NAME = 'fortuneo'
     MAINTAINER = u'Gilles-Alexandre Quenot'
     EMAIL = 'gilles.quenot@gmail.com'
@@ -63,5 +66,35 @@ class FortuneoModule(Module, CapBankWealth):
 
     def iter_investment(self, account):
         return self.browser.get_investments(account)
+
+    def iter_transfer_recipients(self, origin_account):
+        if isinstance(origin_account, Account):
+            origin_account = origin_account.id
+        return self.browser.iter_recipients(self.get_account(origin_account))
+
+    def new_recipient(self, recipient, **params):
+        raise NotImplementedError()
+
+    def init_transfer(self, transfer, **params):
+        if not transfer.label:
+            raise TransferInvalidLabel()
+
+        self.logger.info('Going to do a new transfer')
+        if transfer.account_iban:
+            account = find_object(self.iter_accounts(), iban=transfer.account_iban, error=AccountNotFound)
+        else:
+            account = find_object(self.iter_accounts(), id=transfer.account_id, error=AccountNotFound)
+
+        if transfer.recipient_iban:
+            recipient = find_object(self.iter_transfer_recipients(account.id), iban=transfer.recipient_iban, error=RecipientNotFound)
+        else:
+            recipient = find_object(self.iter_transfer_recipients(account.id), id=transfer.recipient_id, error=RecipientNotFound)
+
+        assert account.id.isdigit()
+
+        return self.browser.init_transfer(account, recipient, transfer.amount, transfer.label, transfer.exec_date)
+
+    def execute_transfer(self, transfer, **params):
+        return self.browser.execute_transfer(transfer)
 
 # vim:ts=4:sw=4

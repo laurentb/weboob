@@ -457,6 +457,7 @@ class AccountsList(LoggedPage, HTMLPage):
             number = RawText('./a[contains(@class, "numero_compte")]')(cpt).replace(u'N° ', '')
 
             account.id = CleanText(None).filter(number).replace(u'N°', '')
+            account._ca = CleanText('./a[contains(@class, "numero_compte")]/@rel')(cpt)
 
             account._card_links = []
             card_link = Link('./ul/li/a[contains(text(), "Carte bancaire")]', default='')(cpt)

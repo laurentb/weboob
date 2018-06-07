@@ -29,6 +29,9 @@ from .pages.login import LoginPage, UnavailablePage
 from .pages.accounts_list import (
     AccountsList, AccountHistoryPage, CardHistoryPage, InvestmentHistoryPage, PeaHistoryPage, LoanPage,
 )
+from .pages.transfer import (
+    RegisterTransferPage, ValidateTransferPage, ConfirmTransferPage, RecipientsPage,
+)
 
 __all__ = ['Fortuneo']
 
@@ -53,6 +56,21 @@ class Fortuneo(LoginBrowser):
     invest_history = URL(r'.*/prive/mes-comptes/assurance-vie/.*', InvestmentHistoryPage)
     loan_contract = URL(r'/fr/prive/mes-comptes/credit-immo/contrat-credit-immo/contrat-pret-immobilier.jsp.*', LoanPage)
     unavailable = URL(r'/customError/indispo.html', UnavailablePage)
+
+    # transfer
+    recipients = URL(
+        r'/fr/prive/mes-comptes/compte-courant/realiser-operations/gerer-comptes-externes/consulter-comptes-externes.jsp',
+        RecipientsPage)
+    register_transfer = URL(
+        r'/fr/prive/mes-comptes/compte-courant/realiser-operations/saisie-virement.jsp\?ca=(?P<ca>)',
+        RegisterTransferPage)
+    validate_transfer = URL(
+        r'/fr/prive/mes-comptes/compte-courant/.*/verifier-saisie-virement.jsp',
+        ValidateTransferPage)
+    confirm_transfer = URL(
+        r'fr/prive/mes-comptes/compte-courant/.*/init-confirmer-saisie-virement.jsp',
+        r'/fr/prive/mes-comptes/compte-courant/.*/confirmer-saisie-virement.jsp',
+        ConfirmTransferPage)
 
     def __init__(self, *args, **kwargs):
         LoginBrowser.__init__(self, *args, **kwargs)
@@ -127,3 +145,26 @@ class Fortuneo(LoginBrowser):
             self.accounts_page.go()  # go back to the accounts page whenever there was an iframe or not
 
         self.action_needed_processed = True
+
+    @need_login
+    def iter_recipients(self, origin_account):
+        self.register_transfer.go(ca=origin_account._ca)
+        if self.page.is_account_transferable(origin_account):
+            for internal_recipient in self.page.iter_internal_recipients(origin_account_id=origin_account.id):
+                yield internal_recipient
+
+            self.recipients.go()
+            for external_recipients in self.page.iter_external_recipients():
+                yield external_recipients
+
+    @need_login
+    def init_transfer(self, account, recipient, amount, label, exec_date):
+        self.register_transfer.go(ca=account._ca)
+        self.page.fill_transfer_form(account, recipient, amount, label, exec_date)
+        return self.page.handle_response(account, recipient, amount, label, exec_date)
+
+    @need_login
+    def execute_transfer(self, transfer):
+        self.page.validate_transfer()
+        self.page.confirm_transfer()
+        return self.page.transfer_confirmation(transfer)
