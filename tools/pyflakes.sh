@@ -3,9 +3,9 @@
 
 err=0
 
-PY3MODS=$(grep -v '^#' ./tools/py3-compatible.modules|tr '\n' '|'|sed 's/|$//')
-
 cd $(dirname $0)/..
+
+PY3MODS=$(grep -v '^#' ./tools/py3-compatible.modules|tr '\n' '|'|sed 's/|$//')
 
 MODULE_FILES=$(git ls-files modules|grep '\.py$')
 MODULE_FILES3=$(printf "%s\n" $MODULE_FILES|grep -E -w "^modules/(${PY3MODS})")
