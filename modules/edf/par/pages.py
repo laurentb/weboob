@@ -27,6 +27,7 @@ from weboob.browser.elements import ItemElement, DictElement, method
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.bill import Bill, Subscription
 from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.profile import Profile
 
 
 class HomePage(HTMLPage):
@@ -105,3 +106,15 @@ class DocumentsPage(LoggedPage, JsonPage):
             'numAcc': Dict('numAcc')(self.doc),
             'parNumber': Dict('parNumber')(self.doc)
         }
+
+class ProfilePage(LoggedPage, JsonPage):
+    def get_profile(self):
+        data = self.doc['bp']
+        p = Profile()
+
+        p.address = '%s %s %s %s' % (data['streetNumber'], data['streetName'], data['postCode'], data['city'])
+        p.name = '%s %s' % (data['lastName'], data['firstName'])
+        p.phone = data['mobilePhoneNumber'] or data['fixPhoneNumber']
+        p.email = data['mail']
+
+        return p

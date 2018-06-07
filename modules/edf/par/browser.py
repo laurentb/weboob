@@ -23,7 +23,10 @@ from time import time
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword, NocaptchaQuestion
 from weboob.tools.json import json
-from .pages import HomePage, LoginPage, ProfilPage, DocumentsPage, WelcomePage, UnLoggedPage
+from .pages import (
+    HomePage, LoginPage, ProfilPage,
+    DocumentsPage, WelcomePage, UnLoggedPage, ProfilePage,
+)
 
 
 class EdfBrowser(LoginBrowser):
@@ -39,6 +42,7 @@ class EdfBrowser(LoginBrowser):
     bills = URL('/services/rest/edoc/getBillsDocuments', DocumentsPage)
     bill_informations = URL('/services/rest/document/dataUserDocumentGetX', DocumentsPage)
     bill_download = URL('/services/rest/document/getDocumentGetXByData\?csrfToken=(?P<csrf_token>.*)&dn=(?P<dn>.*)&pn=(?P<pn>.*)&di=(?P<di>.*)&bn=(?P<bn>.*)&an=(?P<an>.*)')
+    profile = URL('/services/rest/context/getCustomerContext', ProfilePage)
 
     def __init__(self, config, *args, **kwargs):
         self.config = config
@@ -103,3 +107,8 @@ class EdfBrowser(LoginBrowser):
                                      dn='FACTURE', pn=document._par_number, \
                                      di=document._doc_number, bn=bills_informations.get('bpNumber'), \
                                      an=bills_informations.get('numAcc')).content
+
+    @need_login
+    def get_profile(self):
+        self.profile.go()
+        return self.page.get_profile()

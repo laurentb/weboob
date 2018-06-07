@@ -28,7 +28,10 @@ from weboob.capabilities.base import NotAvailable
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from weboob.browser.exceptions import ServerError, ClientError
 
-from .pages import LoginPage, HomePage, AuthPage, LireSitePage, SubscriptionsPage, BillsPage, DocumentsPage
+from .pages import (
+    LoginPage, HomePage, AuthPage, LireSitePage,
+    SubscriptionsPage, BillsPage, DocumentsPage, ProfilePage,
+)
 
 
 class EdfproBrowser(LoginBrowser):
@@ -42,6 +45,7 @@ class EdfproBrowser(LoginBrowser):
     contracts = URL('/rest/contratmp/consultercontrats', SubscriptionsPage)
     bills = URL('/rest/facturemp/getnomtelechargerfacture', BillsPage)
     documents = URL('/rest/facturemp/recherchefacture', DocumentsPage)
+    profile = URL('/rest/servicemp/consulterinterlocuteur', ProfilePage)
 
     def __init__(self, config, *args, **kwargs):
         self.config = config
@@ -106,3 +110,9 @@ class EdfproBrowser(LoginBrowser):
                 return self.open('%s/rest/facturemp/telechargerfichier?fname=%s' % (self.BASEURL, self.page.get_bill_name())).content
             except ServerError:
                 return NotAvailable
+
+    @need_login
+    def get_profile(self):
+        self.profile.go(json={'idSpcInterlocuteur':''})
+
+        return self.page.get_profile()

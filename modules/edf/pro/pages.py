@@ -27,6 +27,7 @@ from weboob.browser.filters.html import CleanHTML
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.bill import Subscription, Bill
 from weboob.exceptions import ActionNeeded
+from weboob.capabilities.profile import Profile
 
 
 class LoginPage(JsonPage):
@@ -97,3 +98,16 @@ class DocumentsPage(LoggedPage, JsonPage):
             documents.append(doc)
 
         return documents
+
+
+class ProfilePage(LoggedPage, JsonPage):
+    def get_profile(self):
+        data = self.doc
+        p = Profile()
+
+        p.name = '%s %s %s' % (data['civilite'], data['nom'], data['prenom'])
+        p.address = '%s %s %s' % (data['adresse'], data['codeSpcPostal'], data['commune'])
+        p.phone = data['telMobile'] or data['telBureau']
+        p.email = data['email'].replace('&#x40;', '@')
+
+        return p

@@ -22,6 +22,7 @@ from weboob.capabilities.bill import CapDocument, Subscription, Document, Subscr
 from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
+from weboob.capabilities.profile import CapProfile
 
 from .par.browser import EdfBrowser
 from .pro.browser import EdfproBrowser
@@ -30,7 +31,7 @@ from .pro.browser import EdfproBrowser
 __all__ = ['EdfModule']
 
 
-class EdfModule(Module, CapDocument):
+class EdfModule(Module, CapDocument, CapProfile):
     NAME = 'edf'
     DESCRIPTION = u'EDF'
     MAINTAINER = u'Edouard Lambert'
@@ -70,3 +71,6 @@ class EdfModule(Module, CapDocument):
         if not isinstance(document, Document):
             document = self.get_document(document)
         return self.browser.download_document(document)
+
+    def get_profile(self):
+        return self.browser.get_profile()
