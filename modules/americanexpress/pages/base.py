@@ -73,8 +73,7 @@ class AccountsPage(LoggedPage, PartialHTMLPage):
             a = Account()
             a.id = CleanText().filter(div.xpath('.//span[@class="acc-num"]'))
             a.label = CleanText().filter(div.xpath('.//span[@class="card-desc"]'))
-            if "carte" in a.label.lower():
-                a.type = Account.TYPE_CARD
+            a.type = Account.TYPE_CARD
             balance = CleanText().filter(div.xpath('.//span[@class="balance-data"]'))
             if balance in (u'Indisponible', u'Indisponible Facturation en cours', ''):
                 a.balance = NotAvailable
