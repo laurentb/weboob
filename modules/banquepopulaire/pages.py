@@ -840,6 +840,11 @@ class NatixisPage(LoggedPage, HTMLPage):
         form.submit()
 
 
+class TransactionsBackPage(TransactionsPage):
+    def is_here(self):
+        return self.doc.xpath('//div[text()="Liste des écritures"]')
+
+
 class NatixisRedirect(LoggedPage, XMLPage):
     def get_redirect(self):
         url = self.doc.xpath('/partial-response/redirect/@url')[0]

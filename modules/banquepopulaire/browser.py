@@ -33,7 +33,7 @@ from .pages import (
     LoggedOut,
     LoginPage, IndexPage, AccountsPage, AccountsFullPage, CardsPage, TransactionsPage,
     UnavailablePage, RedirectPage, HomePage, Login2Page, ErrorPage,
-    IbanPage, AdvisorPage, TransactionDetailPage,
+    IbanPage, AdvisorPage, TransactionDetailPage, TransactionsBackPage,
     NatixisPage, EtnaPage, NatixisInvestPage, NatixisHistoryPage, NatixisErrorPage,
     NatixisDetailsPage, NatixisChoicePage, NatixisRedirect,
 )
@@ -120,6 +120,8 @@ class BanquePopulaire(LoginBrowser):
                             r'https://[^/]+/cyber/internet/Page.do\?.*',
                             r'https://[^/]+/cyber/internet/Sort.do\?.*',
                             TransactionsPage)
+
+    transactions_back_page = URL(r'https://[^/]+/cyber/internet/ContinueTask.do\?.*ActionPerformed=BACK.*', TransactionsBackPage)
 
     transaction_detail_page = URL(r'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=DETAIL_ECRITURE.*', TransactionDetailPage)
 
