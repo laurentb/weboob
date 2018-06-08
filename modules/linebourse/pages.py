@@ -53,8 +53,10 @@ class AccountPage(LoggedPage, HTMLPage):
 
     def get_compte(self, account_id):
         values = self.doc.xpath('//option[contains(text(), $id)]/@value', id=account_id)
-
         assert len(values) == 1, 'could not find account %r' % account_id
+        if re.search(r'[0-9]\+', values[0]):
+            # When the last character of the left is numeric we add the Hex value of "+" (requests specificity)
+            values = [values[0].replace("+", "%2B")]
 
         return values[0]
 
