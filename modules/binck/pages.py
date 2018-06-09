@@ -29,8 +29,6 @@ from weboob.capabilities.bank import Account, Transaction, Investment
 from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage
 from weboob.browser.elements import method, ItemElement, DictElement
 
-import lxml
-
 
 class LoginPage(HTMLPage):
     def login(self, login, passwd):
