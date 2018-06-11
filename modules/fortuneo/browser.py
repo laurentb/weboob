@@ -18,26 +18,32 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import time
+from __future__ import unicode_literals
 
-from weboob.browser import LoginBrowser, URL, need_login
+import time
+import json
+from datetime import datetime, timedelta
+
+from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.exceptions import AuthMethodNotImplemented, BrowserIncorrectPassword
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, AddRecipientStep, Recipient
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
+from weboob.tools.value import Value
 
 from .pages.login import LoginPage, UnavailablePage
 from .pages.accounts_list import (
     AccountsList, AccountHistoryPage, CardHistoryPage, InvestmentHistoryPage, PeaHistoryPage, LoanPage,
 )
 from .pages.transfer import (
-    RegisterTransferPage, ValidateTransferPage, ConfirmTransferPage, RecipientsPage,
+    RegisterTransferPage, ValidateTransferPage, ConfirmTransferPage, RecipientsPage, RecipientSMSPage
 )
 
 __all__ = ['Fortuneo']
 
 
-class Fortuneo(LoginBrowser):
+class Fortuneo(LoginBrowser, StatesMixin):
     BASEURL = 'https://mabanque.fortuneo.fr'
+    STATE_DURATION = 5
 
     login_page = URL(r'.*identification\.jsp.*', LoginPage)
 
@@ -60,7 +66,13 @@ class Fortuneo(LoginBrowser):
     # transfer
     recipients = URL(
         r'/fr/prive/mes-comptes/compte-courant/realiser-operations/gerer-comptes-externes/consulter-comptes-externes.jsp',
+        r'/fr/prive/verifier-compte-externe.jsp',
+        r'fr/prive/mes-comptes/compte-courant/.*/gestion-comptes-externes.jsp',
         RecipientsPage)
+    recipient_sms = URL(
+        r'/fr/prive/appel-securite-forte-otp-bankone.jsp',
+        r'/fr/prive/mes-comptes/compte-courant/.*/confirmer-ajout-compte-externe.jsp',
+        RecipientSMSPage)
     register_transfer = URL(
         r'/fr/prive/mes-comptes/compte-courant/realiser-operations/saisie-virement.jsp\?ca=(?P<ca>)',
         RegisterTransferPage)
@@ -72,10 +84,15 @@ class Fortuneo(LoginBrowser):
         r'/fr/prive/mes-comptes/compte-courant/.*/confirmer-saisie-virement.jsp',
         ConfirmTransferPage)
 
+    need_reload_state = None
+
+    __states__ = ['need_reload_state', 'add_recipient_form']
+
     def __init__(self, *args, **kwargs):
         LoginBrowser.__init__(self, *args, **kwargs)
         self.investments = {}
         self.action_needed_processed = False
+        self.add_recipient_form = None
 
     def do_login(self):
         if not self.login_page.is_here():
@@ -89,6 +106,13 @@ class Fortuneo(LoginBrowser):
         self.location('/fr/prive/default.jsp?ANav=1')
         if self.accounts_page.is_here() and self.page.need_sms():
             raise AuthMethodNotImplemented('Authentification with sms is not supported')
+
+    def load_state(self, state):
+        # reload state only for new recipient feature
+        if state.get('need_reload_state'):
+            # don't use locate browser for add recipient step
+            state.pop('url', None)
+            super(Fortuneo, self).load_state(state)
 
     @need_login
     def get_investments(self, account):
@@ -156,6 +180,69 @@ class Fortuneo(LoginBrowser):
             self.recipients.go()
             for external_recipients in self.page.iter_external_recipients():
                 yield external_recipients
+
+    def copy_recipient(self, recipient):
+        rcpt = Recipient()
+        rcpt.iban = recipient.iban
+        rcpt.id = recipient.iban
+        rcpt.label = recipient.label
+        rcpt.category = recipient.category
+        rcpt.enabled_at = datetime.now().replace(microsecond=0) + timedelta(days=1)
+        rcpt.currency = u'EUR'
+        return rcpt
+
+    def new_recipient(self, recipient, **params):
+        if 'code' in params:
+            self.need_reload_state = None
+            # to drop and use self.add_recipient_form instead in send_code()
+            recipient_form = json.loads(self.add_recipient_form)
+            self.send_code(recipient_form ,params['code'])
+            assert self.page.rcpt_after_sms()
+            return self.copy_recipient(recipient)
+        return self.new_recipient_before_otp(recipient, **params)
+
+    @need_login
+    def new_recipient_before_otp(self, recipient, **params):
+        self.recipients.go()
+        self.page.check_external_iban_form(recipient)
+        self.page.check_recipient_iban()
+
+        # fill form
+        self.page.fill_recipient_form(recipient)
+        rcpt = self.page.get_new_recipient(recipient)
+
+        # get first part of confirm form
+        send_code_form = self.page.get_send_code_form()
+
+        data = {
+            'appelAjax': 'true',
+            'domicileUpdated': 'false',
+            'numeroSelectionne.value': '',
+            'portableUpdated': 'false',
+            'proUpdated': 'false',
+            'typeOperationSensible': 'AJOUT_BENEFICIAIRE'
+        }
+        # this send sms to user
+        self.location(self.absurl('/fr/prive/appel-securite-forte-otp-bankone.jsp', base=True) , data=data)
+        # get second part of confirm form
+        send_code_form.update(self.page.get_send_code_form_input())
+
+        # save form value and url for statesmixin
+        self.add_recipient_form = dict(send_code_form)
+        self.add_recipient_form.update({'url': send_code_form.url})
+
+        # storage can't handle dict with '.' in key
+        # to drop when dict with '.' in key is handled
+        self.add_recipient_form = json.dumps(self.add_recipient_form)
+
+        self.need_reload_state = True
+        raise AddRecipientStep(rcpt, Value('code', label='Veuillez saisir le code reçu.'))
+
+    def send_code(self, form_data, code):
+        form_url = form_data['url']
+        form_data['otp'] = code
+        form_data.pop('url')
+        self.location(self.absurl(form_url, base=True), data=form_data)
 
     @need_login
     def init_transfer(self, account, recipient, amount, label, exec_date):

@@ -32,7 +32,7 @@ from .browser import Fortuneo
 __all__ = ['FortuneoModule']
 
 
-class FortuneoModule(Module, CapBankWealth, CapBankTransfer):
+class FortuneoModule(Module, CapBankWealth, CapBankTransferAddRecipient):
     NAME = 'fortuneo'
     MAINTAINER = u'Gilles-Alexandre Quenot'
     EMAIL = 'gilles.quenot@gmail.com'
@@ -73,7 +73,8 @@ class FortuneoModule(Module, CapBankWealth, CapBankTransfer):
         return self.browser.iter_recipients(self.get_account(origin_account))
 
     def new_recipient(self, recipient, **params):
-        raise NotImplementedError()
+        recipient.label = recipient.label[:35].upper()
+        return self.browser.new_recipient(recipient, **params)
 
     def init_transfer(self, transfer, **params):
         if not transfer.label:

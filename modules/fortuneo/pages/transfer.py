@@ -20,14 +20,14 @@
 from __future__ import unicode_literals
 
 import re
-from datetime import date
+from datetime import date, timedelta
 
 from weboob.browser.pages import HTMLPage, PartialHTMLPage, LoggedPage
 from weboob.browser.elements import method, ListElement, ItemElement
 from weboob.browser.filters.standard import (
     CleanText, Date, Regexp, CleanDecimal, Currency, Field, Env,
 )
-from weboob.capabilities.bank import Recipient, Transfer, TransferBankError
+from weboob.capabilities.bank import Recipient, Transfer, TransferBankError, AddRecipientError
 from weboob.capabilities.base import NotAvailable
 
 
@@ -57,6 +57,63 @@ class RecipientsPage(LoggedPage, HTMLPage):
             obj_enabled_at = date.today()
             obj_currency = 'EUR'
             obj_bank_name = CleanText('./td[1]')
+
+    def check_external_iban_form(self, recipient):
+        form = self.get_form(id='CompteExterneActionForm')
+        form['codePaysBanque'] = recipient.iban[:2]
+        form['codeIban'] = recipient.iban
+        form.url = self.browser.BASEURL + '/fr/prive/verifier-compte-externe.jsp'
+        form.submit()
+
+    def check_recipient_iban(self):
+        if not CleanText('//input[@name="codeBic"]/@value')(self.doc):
+            raise AddRecipientError('Recipient already exist or invalid iban')
+
+    def fill_recipient_form(self, recipient) :
+        form = self.get_form(id='CompteExterneActionForm')
+        form['codePaysBanque'] = recipient.iban[:2]
+        form['codeIban'] = recipient.iban
+        form['libelleCompte'] = recipient.label
+        form['nomTitulaireCompte'] = recipient.label
+        form['methode'] = 'verifierAjout'
+        form.submit()
+
+    def get_new_recipient(self, recipient):
+        recipient_xpath = '//form[@id="CompteExterneActionForm"]//ul'
+
+        rcpt = Recipient()
+        rcpt.label = Regexp(CleanText(
+            recipient_xpath + '/li[contains(text(), "Nom du titulaire")]', replace=[(' ', '')]
+        ), r'(?<=Nomdutitulaire:)(\w+)')(self.doc)
+        rcpt.iban = Regexp(CleanText(
+            recipient_xpath + '/li[contains(text(), "IBAN")]', replace=[(' ', '')]
+        ), r'(?<=IBAN:)([A-Z]{2}\d+)')(self.doc)
+        rcpt.id = rcpt.iban
+        rcpt.category = 'Externe'
+        rcpt.enabled_at = date.today() + timedelta(1)
+        rcpt.currency = 'EUR'
+        return rcpt
+
+    def get_send_code_form(self):
+        return self.get_form(id='CompteExterneActionForm')
+
+
+class RecipientSMSPage(LoggedPage, PartialHTMLPage):
+    def on_load(self):
+        if not self.doc.xpath('//input[@id="otp"]') and not self.doc.xpath('//div[@class="confirmationAjoutCompteExterne"]'):
+            raise AddRecipientError(CleanText('//div[@id="aidesecuforte"]/p[contains("Nous vous invitons")]')(self.doc))
+
+    def build_doc(self, content):
+        content = '<form>' + content.decode('latin-1') + '</form>'
+        return super(RecipientSMSPage, self).build_doc(content.encode('latin-1'))
+
+    def get_send_code_form_input(self):
+        form = self.get_form()
+        return form
+
+    def rcpt_after_sms(self):
+        return self.doc.xpath('//div[@class="confirmationAjoutCompteExterne"]\
+            /h2[contains(text(), "ajout de compte externe a bien été prise en compte")]')
 
 
 class RegisterTransferPage(LoggedPage, HTMLPage):
