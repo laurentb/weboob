@@ -17,16 +17,16 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 import re
 import ssl
 from datetime import timedelta, date
 from lxml.etree import XMLSyntaxError
-from itertools import groupby
 
 from weboob.tools.date import LinearDateGuesser
 from weboob.capabilities.bank import Account, AccountNotFound
-from weboob.tools.capabilities.bank.transactions import FrenchTransaction, sorted_transactions
+from weboob.tools.capabilities.bank.transactions import sorted_transactions, keep_only_card_transactions
 from weboob.tools.compat import parse_qsl, urlparse
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
@@ -319,7 +319,12 @@ class HSBC(LoginBrowser):
                 if tr.type == tr.TYPE_UNKNOWN:
                     tr.type = tr.TYPE_DEFERRED_CARD
 
-            history.extend(self.get_monthly_transactions(history))
+            if account.parent:
+                # Fetching the card summaries from the parent account using the card id in the transaction labels:
+                def match_card(tr):
+                    return (account.id in tr.label.replace(' ', ''))
+                history.extend(keep_only_card_transactions(self.get_history(account.parent), match_card))
+
             history = [tr for tr in history if (coming and tr.date > date.today()) or (not coming and tr.date <= date.today())]
             history = sorted_transactions(history)
             return history
@@ -327,20 +332,6 @@ class HSBC(LoginBrowser):
             return self._get_history()
         else:
             raise NotImplementedError()
-
-    def get_monthly_transactions(self, trs):
-        groups = [list(g) for k, g in groupby(sorted(trs, key=lambda tr: tr.date), lambda tr: tr.date)]
-        trs = []
-        for group in groups:
-            if group[0].date > date.today():
-                continue
-            tr = FrenchTransaction()
-            tr.raw = tr.label = u"RELEVE CARTE %s" % group[0].date
-            tr.amount = -sum([t.amount for t in group])
-            tr.date = tr.rdate = tr.vdate = group[0].date
-            tr.type = FrenchTransaction.TYPE_CARD_SUMMARY
-            trs.append(tr)
-        return trs
 
     def _get_history(self):
         for tr in self.page.get_history():
