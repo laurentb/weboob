@@ -345,7 +345,7 @@ class Cragr(LoginBrowser, StatesMixin):
 
         # update market accounts
         for account in accounts_list:
-            if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA) and account.url:
+            if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA) and account.url and account.label != 'DAV PEA':
                 try:
                     new_location = self.moveto_market_website(account, home=True)
                 except WebsiteNotSupported:
@@ -353,15 +353,24 @@ class Cragr(LoginBrowser, StatesMixin):
                     self.update_sag()
                 else:
                     self.location(new_location)
-                    for acc in self.page.get_list():
-                        if account.id == acc.id:
-                            account.balance = acc.balance or account.balance
-                            account.label = acc.label or account.label
+                    market_accounts_list = self.page.get_list()
+                    self.market_accounts_matching(accounts_list, market_accounts_list)
                     self.quit_market_website()
                     break
 
         # be sure that we send accounts with balance
         return [acc for acc in accounts_list if acc.balance is not NotLoaded]
+
+    @need_login
+    def market_accounts_matching(self, accounts_list, market_accounts_list):
+        for account in accounts_list:
+            for market_account in market_accounts_list:
+                if account.id == market_account.id:
+                    account.label = market_account.label or account.label
+                    # Update accounts balance only for TYPE_MARKET because PEA accounts are fused
+                    # with their related DAV PEA here, therefore the balance includes liquidities:
+                    if account.type == Account.TYPE_MARKET:
+                        account.balance = market_account.balance or account.balance
 
     @need_login
     def get_history(self, account):
