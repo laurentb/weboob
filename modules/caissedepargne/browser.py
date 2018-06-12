@@ -45,6 +45,8 @@ from .pages import (
     TransactionsDetailsPage, LoadingPage, ConsLoanPage, MeasurePage, NatixisLIHis, NatixisLIInv, NatixisRedirectPage
 )
 
+from .linebourse_browser import LinebourseBrowser
+
 
 __all__ = ['CaisseEpargne']
 
@@ -105,8 +107,18 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         self.nuser = nuser
         self.recipient_form = None
         self.is_send_sms = None
-
+        self.weboob = kwargs['weboob']
         super(CaisseEpargne, self).__init__(*args, **kwargs)
+
+        dirname = self.responses_dirname
+        if dirname:
+            dirname += '/bourse'
+        self.linebourse = LinebourseBrowser('https://www.caisse-epargne.offrebourse.com', logger=self.logger, responses_dirname=dirname, weboob=self.weboob, proxy=self.PROXIES)
+
+    def deleteCTX(self):
+        # For connection to offrebourse and natixis, we need to delete duplicate of CTX cookie
+        if len([k for k in self.session.cookies.keys() if k == 'CTX']) > 1:
+            del self.session.cookies['CTX']
 
     def load_state(self, state):
         if 'expire' in state and parser.parse(state['expire']) < datetime.datetime.now():
@@ -402,14 +414,19 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     @need_login
     def get_history(self, account):
         self.home.go()
+        self.deleteCTX()
 
         if not hasattr(account, '_info'):
             raise NotImplementedError
         if account.type is Account.TYPE_LIFE_INSURANCE and 'measure_id' not in account._info:
-            if len([k for k in self.session.cookies.keys() if k == 'CTX']) > 1:
-                del self.session.cookies['CTX']
 
             return self._get_history_invests(account)
+        if account.type == Account.TYPE_MARKET:
+            self.page.go_history(account._info)
+            if "Bourse" in self.url:
+                self.page.submit()
+                self.linebourse.session.cookies.update(self.session.cookies)
+                return self.linebourse.iter_history(re.sub('[^0-9]', '', account.id))
         return self._get_history(account._info)
 
     @need_login
@@ -428,6 +445,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
     @need_login
     def get_investment(self, account):
+        self.deleteCTX()
         if account.type not in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET, Account.TYPE_PEA) or 'measure_id' in account._info:
             raise NotImplementedError()
         if self.home.is_here():
@@ -453,8 +471,6 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                 self.location('https://www.caisse-epargne.offrebourse.com/Portefeuille?compte=%s' % self.page.get_compte(account))
 
         elif account.type == Account.TYPE_LIFE_INSURANCE:
-            if len([k for k in self.session.cookies.keys() if k == 'CTX']) > 1:
-                del self.session.cookies['CTX']
             if "MILLEVIE" in account.label:
                 self.page.go_life_insurance(account)
                 for tr in self.natixis_life_ins_inv.go(id=account.id).get_investments():

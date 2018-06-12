@@ -54,7 +54,8 @@ class CaisseEpargneModule(Module, CapBankWealth, CapBankTransferAddRecipient, Ca
         return self.create_browser(nuser=self.config['nuser'].get(),
                                    username=self.config['login'].get(),
                                    password=self.config['password'].get(),
-                                   domain=self.config['website'].get())
+                                   domain=self.config['website'].get(),
+                                   weboob=self.weboob)
 
     def iter_accounts(self):
         for account in self.browser.get_accounts_list():
