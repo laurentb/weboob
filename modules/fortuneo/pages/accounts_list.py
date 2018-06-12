@@ -330,15 +330,14 @@ class CardHistoryPage(LoggedPage, HTMLPage):
         return bool(self.doc.xpath('//span[@class="loading"]'))
 
 
-class WarningPage(LoggedPage, HTMLPage):
-    def on_load(self):
-
-        # if we can skip the CGU, then skip it
-        if self.doc.xpath(u'//input[@class="bouton_valid01" and contains(@title, "Me le demander ultérieurement")]'):
-            # Look for the request in the event listener registered to the button, can be harcoded, no variable part.
-            # It is a POST request without data.
-            url = self.browser.absurl('ReloadContext?action=1&', base=True)
-            self.browser.location(url, method='POST')
+class AccountsList(LoggedPage, HTMLPage):
+    def has_action_needed(self):
+        # NB: The CGUs happens on every page as long as it is not skipped or
+        # validated. The implementation is done in the Accounts page because
+        # we decide to skip the CGUs in browser.iter_accounts()
+        skip_button = self.doc.xpath(u'//input[@class="bouton_valid01" and contains(@title, "Me le demander ultérieurement")]')
+        if skip_button:
+            return True
         else:
             warning = self.doc.xpath(u'//div[@id="message_renouvellement_mot_passe"] | \
                                    //span[contains(text(), "Votre identifiant change")] | \
@@ -350,8 +349,6 @@ class WarningPage(LoggedPage, HTMLPage):
             if warning:
                 raise ActionNeeded(warning[0].text)
 
-
-class AccountsList(WarningPage):
     def get_iframe_url(self):
         iframe = self.doc.xpath('//iframe[@id="iframe_centrale"]')
         if iframe:
@@ -498,12 +495,6 @@ class AccountsList(WarningPage):
             if (account.label, account.id, account.balance) not in [(a.label, a.id, a.balance) for a in accounts]:
                 accounts.append(account)
         return accounts
-
-
-class GlobalAccountsList(LoggedPage, HTMLPage):
-    def on_load(self):
-        # Once the action needed is skipped, we can go to the accounts page
-        self.browser.accounts_page.go()
 
 
 class LoanPage(LoggedPage, HTMLPage):

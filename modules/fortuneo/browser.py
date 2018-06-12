@@ -27,8 +27,7 @@ from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages.login import LoginPage, UnavailablePage
 from .pages.accounts_list import (
-    GlobalAccountsList, AccountsList, AccountHistoryPage, CardHistoryPage,
-    InvestmentHistoryPage, PeaHistoryPage, LoanPage, WarningPage,
+    AccountsList, AccountHistoryPage, CardHistoryPage, InvestmentHistoryPage, PeaHistoryPage, LoanPage,
 )
 
 __all__ = ['Fortuneo']
@@ -43,11 +42,6 @@ class Fortuneo(LoginBrowser):
                         r'.*prive/default\.jsp.*',
                         r'.*/prive/mes-comptes/synthese-mes-comptes\.jsp',
                         AccountsList)
-    warning_page = URL(r'.*/prive/accueil-informations-client-global\.jsp.*',
-                      r'.*/prive/epargner/livrets/livret-plus/ouvrir-livret-plus-push-client\.jsp.*', WarningPage)
-
-    global_accounts = URL(r'.*/prive/mes-comptes/synthese-globale/synthese-mes-comptes\.jsp', GlobalAccountsList)
-
     account_history = URL(r'.*/prive/mes-comptes/livret/consulter-situation/consulter-solde\.jsp.*',
                           r'.*/prive/mes-comptes/compte-courant/consulter-situation/consulter-solde\.jsp.*',
                           r'.*/prive/mes-comptes/compte-especes.*',
@@ -63,6 +57,7 @@ class Fortuneo(LoginBrowser):
     def __init__(self, *args, **kwargs):
         LoginBrowser.__init__(self, *args, **kwargs)
         self.investments = {}
+        self.action_needed_processed = False
 
     def do_login(self):
         if not self.login_page.is_here():
@@ -112,15 +107,23 @@ class Fortuneo(LoginBrowser):
     def get_accounts_list(self):
         self.accounts_page.go()
 
-        # the Action Needed might be contained in an iframe
-        url = self.page.get_iframe_url()
-        if url:
-            url = self.absurl(url, base=True)
-            # Either go to the iframe if it points to a warning page
-            # and skip the action needed if possible,
-            # Or don't go and resume scrapping as usual if it doesn't
-            if self.warning_page.match(url):
-                self.location(url)
+        if not self.action_needed_processed:
+            self.process_action_needed()
 
         assert self.accounts_page.is_here()
         return self.page.get_list()
+
+    def process_action_needed(self):
+        # we have to go in an iframe to know if there are CGUs
+        url = self.page.get_iframe_url()
+        if url:
+            self.location(self.absurl(url, base=True)) # beware, the landing page might vary according to the referer page. So far I didn't figure out how the landing page is chosen.
+
+            # if there are skippable CGUs, skip them
+            if self.page.has_action_needed():
+                # Look for the request in the event listener registered to the button
+                # can be harcoded, no variable part. It is a POST request without data.
+                self.location(self.absurl('ReloadContext?action=1&', base=True), method='POST')
+            self.accounts_page.go()  # go back to the accounts page whenever there was an iframe or not
+
+        self.action_needed_processed = True
