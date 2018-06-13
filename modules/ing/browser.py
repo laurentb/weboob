@@ -151,10 +151,15 @@ class IngBrowser(LoginBrowser):
 
     @need_login
     @start_with_main_site
-    def get_accounts_list(self, get_iban=True):
+    def load_account_page(self):
+        # Go through a form to have the layout showing multiple users
         self.accountspage.go()
         self.where = "start"
+        self.page.load_account_page()
 
+    @need_login
+    @start_with_main_site
+    def get_accounts_on_page(self, get_iban=True):
         for acc in self.page.get_list():
             if get_iban and acc.type in [Account.TYPE_CHECKING, Account.TYPE_SAVINGS]:
                 self.go_account_page(acc)
@@ -162,6 +167,61 @@ class IngBrowser(LoginBrowser):
 
             if get_iban and acc.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
                 self.get_market_balance(acc)
+
+            yield acc
+
+    @need_login
+    @start_with_main_site
+    def iter_accounts(self, get_iban=True):
+        self.load_account_page()
+        if self.page.get_user_list():
+            return self.get_accounts_all_users(get_iban)
+        return self.get_accounts_only_user(get_iban)
+
+    @need_login
+    @start_with_main_site
+    def back_to_first_user(self, user_list=None):
+        self.load_account_page()
+
+        if not user_list:
+            user_list = self.page.get_user_list()
+
+        first_user = self.page.get_first_user(user_list)
+        self.page.change_user(first_user)
+
+    @need_login
+    @start_with_main_site
+    def get_accounts_all_users(self, get_iban=True):
+        self.load_account_page()
+        accounts_list = []
+
+        user_list = self.page.get_user_list()
+        for user in user_list:
+            if self.page.is_active(user):
+                self.load_account_page()
+                self.page.change_user(user)
+
+            for acc in self.get_accounts_on_page():
+                # Check that the loops on several users does not create duplicate
+                assert not find_object(accounts_list, id=acc.id), 'There is a duplicate account.'
+                accounts_list.append(acc)
+
+                yield acc
+
+            # Several users not tested for loan
+            # Need a case
+            for loan in self.iter_detailed_loans():
+                yield loan
+
+        self.back_to_first_user(user_list)
+
+    @need_login
+    @start_with_main_site
+    def get_accounts_only_user(self, get_iban=True):
+        self.accountspage.go()
+        self.where = "start"
+
+        for acc in self.get_accounts_on_page():
             yield acc
 
         for loan in self.iter_detailed_loans():
@@ -195,7 +255,11 @@ class IngBrowser(LoginBrowser):
         self.location('https://secure.ingdirect.fr/', data={'token': self.response.text})
 
     def get_account(self, _id):
-        return find_object(self.get_accounts_list(get_iban=False), id=_id, error=AccountNotFound)
+        # so that the back_to_user_list is always executed
+        # if not, there can be duplicates
+        account = find_object(self.iter_accounts(get_iban=False), id=_id, error=AccountNotFound)
+        self.back_to_first_user()
+        return account
 
     def go_account_page(self, account):
         data = {"AJAX:EVENTS_COUNT": 1,
