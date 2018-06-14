@@ -265,6 +265,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
             self.accounts = list(self.page.get_list())
             for account in self.accounts:
+                self.deleteCTX()
                 if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
                     self.home_tache.go(tache='CPTSYNT0')
                     self.page.go_history(account._info)
