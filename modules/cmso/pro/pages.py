@@ -93,6 +93,7 @@ class AccountsPage(CMSOPage):
     TYPES = {u'COMPTE CHEQUES':               Account.TYPE_CHECKING,
              u'COMPTE TITRES':                Account.TYPE_MARKET,
              u"ACTIV'EPARGNE":                Account.TYPE_SAVINGS,
+             u"TRESO'VIV":                    Account.TYPE_SAVINGS,
             }
 
     @method
