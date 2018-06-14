@@ -21,13 +21,14 @@
 import re
 
 from weboob.exceptions import BrowserIncorrectPassword
-from weboob.browser.pages import HTMLPage, JsonPage
+from weboob.browser.pages import HTMLPage, JsonPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, TableElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, DateGuesser, Env, Field, Filter, Regexp, Currency
 from weboob.browser.filters.html import Link, Attr, TableCell
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.compat import urljoin
 
 
 __all__ = ['LoginPage']
@@ -227,9 +228,21 @@ class HistoryPage(CMSOPage):
     def get_date_range_list(self):
         return self.doc.xpath('//select[@name="date"]/option/@value')
 
+    @pagination
     @method
     class iter_history(ListElement):
         item_xpath = '//div[contains(@class, "master-table")]//ul/li'
+
+        def next_page(self):
+            pager = self.page.doc.xpath('//div[@class="pager"]')
+            if pager:  # more than one page if only enough transactions
+                assert len(pager) == 1
+
+                next_links = pager[0].xpath('./span/following-sibling::a[@class="page"]')
+                if next_links:
+                    url_next_page = Link('.')(next_links[0])
+                    url_next_page = urljoin(self.page.url, url_next_page)
+                    return self.page.browser.build_request(url_next_page)
 
         class item(CmsoTransactionElement):
 
