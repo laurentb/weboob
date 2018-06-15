@@ -21,7 +21,7 @@ from __future__ import print_function
 
 import sys
 from collections import defaultdict
-from logging import addLevelName, Formatter, getLogger as _getLogger
+from logging import addLevelName, Formatter, getLogger as _getLogger, LoggerAdapter
 
 __all__ = ['getLogger', 'createColoredFormatter', 'settings']
 
@@ -47,10 +47,22 @@ settings = defaultdict(lambda: None)
 
 
 def getLogger(name, parent=None):
+    if isinstance(parent, LoggerAdapter):
+        klass = type(parent)
+        extra = parent.extra
+        parent = parent.logger
+    else:
+        klass = None
+        extra = None
+
     if parent:
         name = parent.name + '.' + name
     logger = _getLogger(name)
     logger.settings = settings
+
+    if extra:
+        logger = klass(logger, extra)
+        logger.settings = settings
     return logger
 
 
