@@ -26,12 +26,13 @@ from decimal import Decimal
 
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage
 from weboob.browser.filters.json import Dict
-from weboob.browser.elements import DictElement, ItemElement, method
+from weboob.browser.filters.html import TableCell, Attr
+from weboob.browser.elements import DictElement, ItemElement, method, TableElement
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Date, Regexp, Format, Eval, BrowserURL, Field, Env,
     Async,
 )
-from weboob.capabilities.bank import Transaction, Account
+from weboob.capabilities.bank import Transaction, Account, Investment
 from weboob.capabilities.profile import Person
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 from weboob.tools.date import parse_french_date
@@ -126,7 +127,8 @@ class ActionNeededPage(HTMLPage):
 
 
 class AccountsPage(LoggedPage, JsonPage):
-    TYPES = {u'Compte chèque': Account.TYPE_CHECKING}
+    TYPES = {u'Compte chèque': Account.TYPE_CHECKING,
+             u'Compte à vue': Account.TYPE_CHECKING}
 
     @method
     class iter_accounts(DictElement):
@@ -404,3 +406,54 @@ class TransactionPage(LoggedPage, JsonPage):
     def get_redacted_card(self):
         # warning: the account on which the transaction is returned depends on this data!
         return self.doc['carteNum']
+
+
+class TokenPage(LoggedPage, HTMLPage):
+    def get_token(self):
+        return Attr('//meta[@name="_csrf"]', 'content')(self.doc)
+
+    def get_id(self, label):
+        id_simple = re.search(r'[0-9]+', label).group(0)
+        for options in self.doc.xpath('//div[@class="filterbox-content hide"]//select[@id="numero-compte-titre"]//option'):
+            if id_simple in CleanText(options)(self.doc):
+                return CleanText(options.xpath('./@value'))(self)
+
+    def market_search(self):
+        marketaccount = []
+        for account in self.doc.xpath('//div[@class="filterbox-content hide"]//select[@id="numero-compte-titre"]//option'):
+            account = CleanText(account)(self.doc)
+            temp = re.search(r'[0-9]+', account)
+            if temp != None:
+                marketaccount.append(temp.group(0))
+
+        return marketaccount
+
+
+class InvestPage(LoggedPage, HTMLPage):
+    @method
+    class iter_investment(TableElement):
+        item_xpath = '//table[@class="csv-data-container hide"]//tr'
+        head_xpath = '//table[@class="csv-data-container hide"]//th'
+
+        col_quantity = 'Nombre de parts'
+        col_label = 'Fonds'
+        col_unitprice = 'PAMP'
+        col_unitvalue = 'Valeur de la part'
+        col_valuation = 'Valorisation'
+        col_diff = '+/- value'
+
+        class item(ItemElement):
+            klass = Investment
+
+            obj_quantity = CleanDecimal(TableCell('quantity'), replace_dots=True)
+            obj_label = CleanText(TableCell('label'))
+            obj_unitprice = CleanDecimal(TableCell('unitprice'), replace_dots=True)
+            obj_unitvalue = CleanDecimal(TableCell('unitvalue'), replace_dots=True)
+            obj_valuation = CleanDecimal(TableCell('valuation'), replace_dots=True)
+            obj_diff = CleanDecimal(TableCell('diff'), replace_dots=True)
+            obj_code_type = lambda self: Investment.CODE_TYPE_ISIN if Field('code')(self) is not NotAvailable else NotAvailable
+
+            def obj_code(self):
+                chaine = CleanText(TableCell('label'))(self)
+                return re.search(r'(\w+) - ', chaine).group(0)[:-3]
+

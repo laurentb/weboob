@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import re
 
 from datetime import datetime, timedelta
 
@@ -25,7 +26,7 @@ from dateutil.relativedelta import relativedelta
 
 from weboob.browser import LoginBrowser, need_login
 from weboob.capabilities.bank import Account, Transaction
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, BrowserForbidden
 from weboob.browser.url import URL
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 from weboob.tools.date import new_date
@@ -33,6 +34,7 @@ from weboob.tools.date import new_date
 from .pages import (
     LoginPage, AuthPage, AccountsPage, AccountHistoryViewPage, AccountHistoryPage,
     ActionNeededPage, CardListPage, CardHistoryPage, merge_cards, TransactionPage,
+    TokenPage, InvestPage
 )
 
 
@@ -63,6 +65,8 @@ class BNPEnterprise(LoginBrowser):
     card_list = URL(r'/NCCPresentationWeb/e13_cartes/liste_cartes.do\?Ligne_Encour=Global', CardListPage)
     init_card_history = URL(r'/NCCPresentationWeb/e13_encours/init.do\?Id_Carte=(?P<card_id>)&Ligne_Encour=Global', CardHistoryPage)
     transaction_detail = URL(r'/NCCPresentationWeb/e21/getOptBDDF.do', TransactionPage)
+    invest = URL(r'/opcvm/lister-composition/afficher.do', InvestPage)
+    token_inv = URL(r'/opcvm/lister-portefeuilles/afficher.do', TokenPage)
 
     card_history = URL(r'/NCCPresentationWeb/e13_encours/liste_operations.do', CardHistoryPage)
 
@@ -92,8 +96,16 @@ class BNPEnterprise(LoginBrowser):
     @need_login
     def get_accounts_list(self):
         accounts = []
+        try:
+            marketaccount = self.token_inv.go().market_search()
+        except BrowserForbidden:
+            marketaccount = []
         for account in self.accounts.stay_or_go().iter_accounts():
+            label_tmp = re.search(r'[0-9]+', account.label).group(0)
+            if label_tmp in marketaccount:
+                account.type = Account.TYPE_MARKET
             accounts.append(account)
+
             if account._has_cards:
                 self.card_init.go(identifiant=account.iban)
                 self.card_init2.go()
@@ -238,7 +250,14 @@ class BNPEnterprise(LoginBrowser):
 
     @need_login
     def iter_investment(self, account):
-        raise NotImplementedError()
+        if account.type == Account.TYPE_MARKET:
+            token = self.token_inv.go().get_token()
+            id_invest = self.page.get_id(label=account.label)
+            data = {"numeroCompte": id_invest, "_csrf": token}
+            headers = {"Host": "secure1.entreprises.bnpparibas.net"}
+            self.location('/opcvm/lister-composition/redirect-afficher.do', data=data, headers=headers)
+            for tr in self.page.iter_investment():
+                yield tr
 
     @need_login
     def get_profile(self):
