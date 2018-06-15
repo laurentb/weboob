@@ -36,12 +36,12 @@ class HomePage(HTMLPage):
         return self.doc.xpath('//a[./span[contains(., "%s")]]/@href' % self.browser.L_SIGNIN)[0]
 
 
-class PanelPage(HTMLPage, LoggedPage):
+class PanelPage(LoggedPage, HTMLPage):
     def get_sub_link(self):
-        return self.doc.xpath('//a[.//h3[contains(., "%s")]]/@href' % self.browser.L_LOGIN)[0]
+        return CleanText('//a[@class="ya-card__whole-card-link" and contains(@href, "cnep")]/@href')(self.doc)
 
 
-class SecurityPage(HTMLPage, LoggedPage):
+class SecurityPage(LoggedPage, HTMLPage):
     def get_otp_message(self):
         message = self.doc.xpath('//div[@class="a-box-inner"]/p')
         return message[0] if message else None
