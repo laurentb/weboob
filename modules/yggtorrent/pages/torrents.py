@@ -45,8 +45,8 @@ class SearchPage(LoggedPage, HTMLPage):
             obj_files = NotLoaded
             obj_filename = Format('%s.torrent', obj_name)
             obj_magnet = NotAvailable
-            obj_url = CleanText('.//a/@href[contains(.,"download_torrent")]')
-            obj_url = Format('https://yggtorrent.is/engine/download_torrent?id=%s', obj_id)
+            def obj_url(self):
+                return '%sengine/download_torrent?id=%s' % (self.page.browser.BASEURL, self.obj_id)
 
             def obj_size(self):
                 rawsize = CleanText('./td[last()-3]')(self)

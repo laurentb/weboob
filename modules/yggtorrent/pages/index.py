@@ -26,11 +26,11 @@ class LoginPage(RawPage):
 
 class HomePage(HTMLPage):
     def login(self, login, password):
-        form = self.get_form(xpath='//form[@action="https://yggtorrent.is/user/login"]')
+        form = self.get_form(xpath='//form[@action="%suser/login"]' % self.browser.BASEURL)
         form['id'] = login
         form['pass'] = password
         form.submit(format_url='utf-8')
     @property
     def logged(self):
-        return bool(self.doc.xpath('//a[@href="https://yggtorrent.is/user/logout"]'))
+        return bool(self.doc.xpath('//a[@href="%suser/logout"]' % self.browser.BASEURL))
 
