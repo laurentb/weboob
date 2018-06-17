@@ -383,6 +383,9 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                 self.page.go_life_insurance(account)
                 return sorted_transactions(self.natixis_life_ins_his.go(id=account.id).get_history())
 
+            if "NUANCES 3D" in account.label:
+                self.page.go_life_insurance(account)
+
             try:
                 if not self.market.is_here() and not self.message.is_here():
                     # life insurance website is not always available
