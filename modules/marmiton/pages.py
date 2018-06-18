@@ -20,11 +20,11 @@
 from weboob.browser.pages import HTMLPage, pagination
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.filters.standard import Regexp, CleanText, Format, Env, CleanDecimal, Eval
+from weboob.browser.filters.html import XPath
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.recipe import Recipe, Comment
 from weboob.capabilities.image import BaseImage, Thumbnail
 from weboob.tools.json import json
-import re
 
 
 class ResultsPage(HTMLPage):
@@ -58,9 +58,11 @@ class RecipePage(HTMLPage):
         klass = Recipe
 
         def parse(self, el):
-            json_content = CleanText(u'//script[@type="application/ld+json"]',
+            item = XPath(u'//script[@type="application/ld+json"]')(self)
+
+            json_content = CleanText(u'.',
                                      replace=[('//<![CDATA[ ', ''),
-                                              (' //]]>', '')])(self)
+                                              (' //]]>', '')])(item[0])
             self.el = json.loads(json_content)
 
         obj_id = Env('id')
@@ -74,8 +76,10 @@ class RecipePage(HTMLPage):
             obj_thumbnail = Eval(Thumbnail, obj_url)
 
         def obj_instructions(self):
-            str = Dict('recipeInstructions')(self)
-            return re.sub(r'(\d+\.)', r'\n\1', str)
+            instructions = ''
+            for item in Dict('recipeInstructions')(self):
+                instructions = u"{0} - {1}\n\n".format(instructions, item['text'])
+            return instructions
 
         obj_preparation_time = Eval(int, CleanDecimal(Dict('prepTime')))
         obj_cooking_time = Eval(int, CleanDecimal(Dict('cookTime')))

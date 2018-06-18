@@ -31,4 +31,4 @@ class MarmitonTest(BackendTest):
             assert full_recipe.instructions
             assert full_recipe.ingredients
             assert full_recipe.title
-            assert full_recipe.preparation_time
+            # assert full_recipe.preparation_time (not always filled)
