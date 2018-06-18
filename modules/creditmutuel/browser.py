@@ -32,7 +32,7 @@ from weboob.browser.url import URL
 from weboob.browser.pages import FormNotFound
 from weboob.browser.exceptions import ClientError, ServerError
 from weboob.exceptions import BrowserIncorrectPassword, AuthMethodNotImplemented, BrowserUnavailable
-from weboob.capabilities.bank import Account, AddRecipientStep, AddRecipientError, Recipient
+from weboob.capabilities.bank import Account, AddRecipientStep, AddRecipientError, Recipient, Investment
 from weboob.capabilities import NotAvailable
 from weboob.tools.compat import urlparse
 
@@ -339,6 +339,12 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                     return iter([])
                 self.location(account._link_inv)
             return self.page.iter_investment()
+        if account.type is Account.TYPE_PEA:
+            liquidity_inv = Investment()
+            liquidity_inv.label = account.label
+            liquidity_inv.code = u'XX-liquidity'
+            liquidity_inv.valuation = account.balance
+            return [liquidity_inv]
         return iter([])
 
     @need_login

@@ -158,6 +158,7 @@ class item_account_generic(ItemElement):
         ('Plan 4',                  Account.TYPE_REVOLVING_CREDIT),
         ('P.E.A',                   Account.TYPE_PEA),
         ('Pea',                     Account.TYPE_PEA),
+        ('Compte De Liquidite Pea', Account.TYPE_PEA),
         ('Compte Epargne',          Account.TYPE_SAVINGS),
         ('Etalis',                  Account.TYPE_SAVINGS),
         ('Ldd',                     Account.TYPE_SAVINGS),
