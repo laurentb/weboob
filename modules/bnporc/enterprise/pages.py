@@ -204,7 +204,9 @@ class BnpHistoryItem(ItemElement):
             date = '%s/%s/%s' % (mtc.group(1), mtc.group(2), mtc.group(3))
             return parse_french_date(date)
 
-        return fromtimestamp(Dict('dateCreation')(self))
+        # The date can be truncated, so it is not retrieved
+        if 'dateCreation' in self.el:
+            return fromtimestamp(Dict('dateCreation')(self))
 
     @staticmethod
     def calculate_decimal(x, y):
@@ -377,6 +379,10 @@ class CardHistoryPage(LoggedPage, JsonPage):
         item_xpath = 'listOperationCarteDataBean'
 
         class item(BnpHistoryItem):
+            def condition(self):
+                # No coming if no date
+                return Dict('valeur')(self)
+
             klass = Transaction
 
             obj_type = Transaction.TYPE_DEFERRED_CARD
