@@ -16,7 +16,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
-
+from time import sleep
 
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.exceptions import BrowserIncorrectPassword, NocaptchaQuestion
@@ -73,13 +73,19 @@ class CarrefourBanqueBrowser(LoginBrowser, StatesMixin):
         self.login.go()
         if self.incapsula_ressource.is_here():
             if self.page.is_javascript:
-                # cookie session hasn't been sent, but still available, we got it and store it
+                # wait several seconds and we'll get a recaptcha instead of obfuscated javascript code,
+                # (which is simpler to resolve)
+                sleep(5)
                 self.login.go()
-            else:
+
+            if not self.page.is_javascript:
                 # cookie session is not available
                 website_key = self.page.get_recaptcha_site_key()
                 website_url = self.login.build()
                 raise NocaptchaQuestion(website_key=website_key, website_url=website_url)
+            else:
+                # we got javascript page again, this shouldn't happen
+                assert False, "obfuscated javascript not managed"
 
         self.page.enter_login(self.username)
         self.page.enter_password(self.password)

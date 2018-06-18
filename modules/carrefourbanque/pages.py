@@ -39,7 +39,10 @@ def MyDecimal(*args, **kwargs):
 
 class LoginPage(HTMLPage):
     def on_load(self):
-        # website may have identify us as a robot, if it happens login form won't be available
+        """
+        website may have identify us as a robot, if it happens login form won't be available in login page
+        and there will be nothing on body except a meta tag with robot name
+        """
         try:
             attr = Attr('head/meta', 'name')(self.doc)
         except AttributeNotFound:
@@ -47,14 +50,11 @@ class LoginPage(HTMLPage):
             return
 
         # sometimes robots is uppercase and there is an iframe
-        # sometimes it's lowercase and there is an encoded javascript
+        # sometimes it's lowercase and there is a script
         if attr == 'ROBOTS':
             self.browser.location(Attr('//iframe', 'src')(self.doc))
         elif attr == 'robots':
-            hexa_code = Regexp(CleanText('head/script[contains(text(), "function")]'), r'var b="(.*?)"')(self.doc)
-            code = hexa_code.decode("hex")
-            url = re.search(r'xhr.open\("GET","(.*?)"', code).group(1)
-            self.browser.location(url)
+            self.browser.location(Attr('//script', 'src')(self.doc))
 
     def enter_login(self, username):
         form = self.get_form(nr=1)
@@ -74,7 +74,7 @@ class IncapsulaResourcePage(HTMLPage):
         self.is_javascript = None
 
     def on_load(self):
-        self.is_javascript = 'window.location.reload(true);' in CleanText('*')(self.doc)
+        self.is_javascript = 'html' not in CleanText('*')(self.doc)
 
     def get_recaptcha_site_key(self):
         return Attr('//div[@class="g-recaptcha"]', 'data-sitekey')(self.doc)
