@@ -45,10 +45,10 @@ class ResultsPage(HTMLPage):
     @pagination
     @method
     class iter_recipes(ListElement):
-        item_xpath = '//div[@id="divRecette"]'
+        item_xpath = '//article[@id]'
 
         def next_page(self):
-            next = CleanText('//li[@class="next"]/span/a/@href',
+            next = CleanText('//li[@class="pagination-next"]/span/a/@href',
                              default=None)(self)
             if next:
                 return next
