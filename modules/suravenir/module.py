@@ -39,7 +39,7 @@ class SuravenirModule(Module, CapBankWealth):
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'Assurance-vie Suravenir à travers différents courtiers (assurancevie.com, linxea, ...)'
     CONFIG = BackendConfig(
-                ValueBackendPassword('broker',    label='Courtier', choices=['assurancevie.com', 'linxea'], masked=False, required=True),
+                ValueBackendPassword('broker',    label='Courtier', choices=Suravenir.broker_to_instance.keys(), masked=False, required=True),
                 ValueBackendPassword('login',     label='Identifiant', masked=False, required=True),
                 ValueBackendPassword('password',  label='Mot de passe', required=True))
     BROWSER = Suravenir
