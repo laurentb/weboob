@@ -178,7 +178,7 @@ class AccountList(LoggedPage, MyHTMLPage):
         head_xpath = '//table[@id="pret" or @class="dataNum"]/thead//th'
         item_xpath = '//table[@id="pret"]/tbody/tr'
 
-        col_label = u'Numéro du prêt'
+        col_label = (u'Numéro du prêt', "Numéro de l'offre")
         col_total_amount = u'Montant initial emprunté'
         col_subscription_date = u'MONTANT INITIAL EMPRUNTÉ'
         col_next_payment_amount = u'Montant prochaine échéance'
@@ -204,7 +204,7 @@ class AccountList(LoggedPage, MyHTMLPage):
             def obj_id(self):
                 if TableCell('label', default=None)(self):
                     return Regexp(CleanText(Field('label'), default=NotAvailable), '- (\w{16})')(self)
-                return CleanText('//form[@id="selection_offre"]/div[@class="bloc Tmargin"]/div[@class="formline"][2]/span/strong')(self)
+                return CleanText('//form[contains(@action, "detaillerOffre")]/div[@class="bloc Tmargin"]/div[@class="formline"][2]/span/strong')(self)
 
             obj_type = Account.TYPE_LOAN
 
@@ -212,7 +212,7 @@ class AccountList(LoggedPage, MyHTMLPage):
                 cell = TableCell('label', default=None)(self)
                 if cell:
                     return CleanText(cell, default=NotAvailable)(self)
-                return CleanText('//form[@id="selection_offre"]/div[@class="bloc Tmargin"]/h2[@class="title-level2"]')(self)
+                return CleanText('//form[contains(@action, "detaillerOffre")]/div[@class="bloc Tmargin"]/h2[@class="title-level2"]')(self)
 
             def obj_balance(self):
                 if CleanText(TableCell('balance'))(self) != u'Remboursé intégralement':
@@ -220,7 +220,7 @@ class AccountList(LoggedPage, MyHTMLPage):
                 return Decimal(0)
 
             def obj_subscription_date(self):
-                xpath = '//form[@id="selection_offre"]/div[1]/div[2]/span'
+                xpath = '//form[contains(@action, "detaillerOffre")]/div[1]/div[2]/span'
                 if 'souscrite le' in CleanText(xpath)(self):
                     return MyDate(Regexp(CleanText(xpath), ' (\d{2}/\d{2}/\d{4})', default=NotAvailable))(self)
                 return NotAvailable
