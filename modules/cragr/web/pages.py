@@ -201,6 +201,7 @@ class FirstVisitPage(BasePage):
 class AccountsPage(MyLoggedPage, BasePage):
     TYPES = {u'CCHQ':       Account.TYPE_CHECKING, # par
              u'CCOU':       Account.TYPE_CHECKING, # pro
+             u'AUTO ENTRP': Account.TYPE_CHECKING, # pro
              u'EKO' :       Account.TYPE_CHECKING,
              u'LIV A':      Account.TYPE_SAVINGS,
              u'LDD':        Account.TYPE_SAVINGS,
