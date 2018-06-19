@@ -52,8 +52,7 @@ class StrEnum(unicode, Enum):
 
 
 class IntEnum(int, Enum):
-    def __str__(self):
-        return str(self.name)
+    __str__ = int.__str__
 
 
 def empty(value):
