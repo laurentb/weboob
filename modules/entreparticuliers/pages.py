@@ -126,16 +126,21 @@ class HousingPage(XMLPage):
         obj_price_per_meter = PricePerMeterFilter()
         obj_phone = CleanText('//telephone1')
         obj_date = DateTime(CleanText('//DateCheck'))
-        obj_GES = CleanText('//GSE')
+
+        def obj_GES(self):
+            value = CleanText('//GSE')(self)
+            return getattr(ENERGY_CLASS, value.upper(), NotAvailable)
 
         def obj_photos(self):
             photos = []
             for photo in ['//UrlImage1', '//UrlImage2', '//UrlImage3']:
-                photos.append(HousingPhoto(CleanText(photo)(self)))
+                p = CleanText(photo)(self)
+                if p:
+                    photos.append(HousingPhoto(p))
             return photos
 
         def obj_DPE(self):
-            value = CleanText('annonce/DPE')(self)
+            value = CleanText('//DPE')(self)
             return getattr(ENERGY_CLASS, value.upper(), NotAvailable)
 
         def obj_details(self):
