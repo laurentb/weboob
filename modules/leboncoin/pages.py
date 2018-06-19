@@ -239,7 +239,7 @@ class HousingPage(HTMLPage):
                 elif key == u'square':
                     self.env['area'] = Decimal(item['value'])
                 elif key == u'ges':
-                    self.env['GES'] = value
+                    self.env['GES'] = getattr(ENERGY_CLASS, item['value'].upper(), NotAvailable)
                 elif key == u'energy_rate':
                     self.env['DPE'] = getattr(ENERGY_CLASS, item['value'].upper(), NotAvailable)
                 elif key == u'furnished':
@@ -250,8 +250,7 @@ class HousingPage(HTMLPage):
                     else:
                         self.env['utilities'] = UTILITIES.EXCLUDED
                 elif 'key_label' in item:
-                        details[item['key_label']] = value
-
+                    details[item['key_label']] = value
             self.env['details'] = details
 
         obj_id = Env('_id')
