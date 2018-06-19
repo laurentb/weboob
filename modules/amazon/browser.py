@@ -78,7 +78,7 @@ class AmazonBrowser(LoginBrowser, StatesMixin):
             self.location(self.otp_url, data=res_form, headers=self.otp_headers)
         else:
             res_form['otpCode'] = pin_code
-            self.location('https://www.amazon.fr/ap/signin', data=res_form, headers=self.otp_headers)
+            self.location('/ap/signin', data=res_form, headers=self.otp_headers)
 
     def handle_security(self):
         if self.page.doc.xpath('//span[@class="a-button-text"]'):

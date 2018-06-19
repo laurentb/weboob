@@ -41,13 +41,17 @@ class PanelPage(LoggedPage, HTMLPage):
         return CleanText('//a[@class="ya-card__whole-card-link" and contains(@href, "cnep")]/@href')(self.doc)
 
 
-class SecurityPage(LoggedPage, HTMLPage):
+class SecurityPage(HTMLPage):
     def get_otp_message(self):
         message = self.doc.xpath('//div[@class="a-box-inner"]/p')
         return message[0] if message else None
 
     def send_code(self):
         form = self.get_form()
+        if form.el.attrib.get('id') == 'auth-mfa-form':
+            # when code is sent by sms, server send it automatically, nothing to do here
+            return
+        # by email, we have to confirm code sending
         form.submit()
 
     def get_response_form(self):
