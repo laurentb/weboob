@@ -193,6 +193,9 @@ class BredBrowser(DomainBrowser):
                 seen.add(a.id)
 
                 a.type = self.ACCOUNT_TYPES.get(poste['codeNature'], Account.TYPE_UNKNOWN)
+                if a.type == Account.TYPE_UNKNOWN:
+                    self.logger.warning("unknown type %s" % poste['codeNature'])
+
                 if a.type == Account.TYPE_CHECKING:
                     iban_response = self.location(
                         '/transactionnel/services/rest/Account/account/%s/iban' % a._number
