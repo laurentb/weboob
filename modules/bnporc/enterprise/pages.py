@@ -22,14 +22,12 @@ import re
 from datetime import datetime
 from io import BytesIO
 
-from decimal import Decimal
-
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import TableCell, Attr
 from weboob.browser.elements import DictElement, ItemElement, method, TableElement
 from weboob.browser.filters.standard import (
-    CleanText, CleanDecimal, Date, Regexp, Format, Eval, BrowserURL, Field, Env,
+    CleanText, CleanDecimal, Date, Regexp, Format, Eval, BrowserURL, Field,
     Async,
 )
 from weboob.capabilities.bank import Transaction, Account, Investment
@@ -38,28 +36,6 @@ from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardEr
 from weboob.tools.date import parse_french_date
 from weboob.capabilities import NotAvailable
 from weboob.exceptions import ActionNeeded, BrowserForbidden
-
-
-def merge_cards(input_list):
-    final_card_set = {}
-
-    # step 1: merge cards
-    for card in input_list:
-        card_number = card.number
-        if card_number in final_card_set:
-            if card._coming_amount:
-                final_card_set[card_number] = card
-        else:
-            final_card_set[card_number] = card
-
-    # step 2: update card.id
-    output = []
-    for card in final_card_set.values():
-        card.id, _index = card.id.rsplit('.', 1)
-        assert card._index == _index
-        output.append(card)
-
-    return output
 
 def fromtimestamp(milliseconds):
     return datetime.fromtimestamp(milliseconds/1000)
@@ -137,8 +113,6 @@ class AccountsPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Account
 
-            obj__has_cards = Dict('encoursCB')
-
             def obj_id(self):
                 return CleanText(Dict('numeroCompte'))(self)[2:]
 
@@ -158,22 +132,18 @@ class AccountsPage(LoggedPage, JsonPage):
                 page = self.page.browser.open(
                     BrowserURL('account_coming', identifiant=Field('iban'))(self)
                 ).page
+
+                nb_decimal = 0
+                if 'nb_dec' in Dict('infoOperationsAvenir/cumulTotal')(page.doc):
+                    nb_decimal = Dict('infoOperationsAvenir/cumulTotal/nb_dec')
+                elif 'nbDec' in Dict('infoOperationsAvenir/cumulTotal')(page.doc):
+                    nb_decimal = Dict('infoOperationsAvenir/cumulTotal/nbDec')
+
                 coming = Eval(
                     lambda x, y: x / 10**y,
                     CleanDecimal(Dict('infoOperationsAvenir/cumulTotal/montant', default='0')),
-                    CleanDecimal(Dict('infoOperationsAvenir/cumulTotal/nb_dec', default='0'))
+                    CleanDecimal(nb_decimal)
                 )(page.doc)
-
-                # this so that card coming transactions aren't accounted twice in the total incoming amount
-                for el in Dict('infoOperationsAvenir/natures')(page.doc):
-                    if Dict('nature/libelle')(el) == "Factures / Retraits cartes":
-                        coming_carte = Eval(
-                            lambda x, y: x / 10**y,
-                            CleanDecimal(Dict('cumulNatureMere/montant', default='0')),
-                            CleanDecimal(Dict('cumulNatureMere/nb_dec', default='0'))
-                        )(el)
-                        coming -= coming_carte
-                        break
 
                 return coming
 
@@ -353,53 +323,6 @@ class AccountHistoryPage(LoggedPage, JsonPage):
                 )(self)
 
             obj__trid = Dict('idMouvement')
-
-
-class CardListPage(LoggedPage, JsonPage):
-    @method
-    class iter_accounts(DictElement):
-        item_xpath = 'listEncourCartes'
-
-        class item(ItemElement):
-            klass = Account
-
-            obj_type = Account.TYPE_CARD
-            obj_number = Dict('numCarte')
-            obj__redacted_card = Dict('formatedNumCarte')
-            obj_id = Format('%s.%s.%s', Env('account_id'), Dict('numCarte'), Dict('idCarte'))
-            obj_label = Format('%s %s', Dict('typeCarte'), Dict('nomPorteur'))
-            obj__index = Dict('idCarte')
-            obj__coming_amount = Dict('montantLigneEncours')
-            obj__parent_iban = Env('parent_iban')
-            obj_coming = Eval(lambda x: Decimal(x)/100, Dict('montant/montant'))
-            obj_currency = CleanText(Dict('montant/devise'))
-
-
-class CardHistoryPage(LoggedPage, JsonPage):
-    @method
-    class iter_coming(DictElement):
-        item_xpath = 'listOperationCarteDataBean'
-
-        class item(BnpHistoryItem):
-            def condition(self):
-                # No coming if no date
-                return Dict('valeur')(self)
-
-            klass = Transaction
-
-            obj_type = Transaction.TYPE_DEFERRED_CARD
-            obj_date = obj_vdate = Date(Dict('valeur'), dayfirst=True)
-
-            def obj_amount(self):
-                amount = Dict('debit', default=None)(self) or Dict('credit')(self)
-                decimal_nb = Dict('nbDec', default=None)(amount)\
-                                or Dict('nb_dec')(amount)
-
-                return Eval(
-                    lambda x, y: x / 10**y,
-                    Decimal(amount['montant']),
-                    decimal_nb
-                )(self)
 
 
 class TransactionPage(LoggedPage, JsonPage):
