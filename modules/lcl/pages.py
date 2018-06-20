@@ -767,6 +767,10 @@ class Form2Page(LoggedPage, LCLBasePage):
     def on_load(self):
         if self.assurancevie_hist_not_available():
             return
+        error = CleanText('//div[@id="attTxt"]/text()[1]')(self.doc)
+        if "L’accès au service est momentanément indisponible" in error:
+            raise BrowserUnavailable(error)
+
         form = self.get_form(name="formulaire")
         cName = self.get_from_js('.cName.value  = "', '";')
         if cName:
