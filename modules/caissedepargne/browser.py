@@ -40,7 +40,8 @@ from weboob.tools.decorators import retry
 from .pages import (
     IndexPage, ErrorPage, MarketPage, LifeInsurance, GarbagePage,
     MessagePage, LoginPage,
-    TransferPage, ProTransferPage, TransferConfirmPage, TransferSummaryPage,
+    TransferPage, ProTransferPage, TransferConfirmPage, TransferSummaryPage, ProTransferConfirmPage,
+    ProTransferSummaryPage, ProAddRecipientOtpPage, ProAddRecipientPage,
     SmsPage, SmsPageOption, SmsRequest, AuthentPage, RecipientPage, CanceledAuth, CaissedepargneKeyboard,
     TransactionsDetailsPage, LoadingPage, ConsLoanPage, MeasurePage, NatixisLIHis, NatixisLIInv, NatixisRedirectPage
 )
@@ -67,6 +68,10 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     transfer_summary = URL('https://.*/Portail.aspx.*', TransferSummaryPage)
     transfer_confirm = URL('https://.*/Portail.aspx.*', TransferConfirmPage)
     pro_transfer = URL('https://.*/Portail.aspx.*', ProTransferPage)
+    pro_transfer_confirm = URL('https://.*/Portail.aspx.*', ProTransferConfirmPage)
+    pro_transfer_summary = URL('https://.*/Portail.aspx.*', ProTransferSummaryPage)
+    pro_add_recipient_otp = URL('https://.*/Portail.aspx.*', ProAddRecipientOtpPage)
+    pro_add_recipient = URL('https://.*/Portail.aspx.*', ProAddRecipientPage)
     measure_page = URL('https://.*/Portail.aspx.*', MeasurePage)
     authent = URL('https://.*/Portail.aspx.*', AuthentPage)
     home = URL('https://.*/Portail.aspx.*', IndexPage)
@@ -132,6 +137,10 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                 super(CaisseEpargne, self).load_state(state)
                 self.logged = True
                 break
+
+    # need to post to valid otp when adding recipient.
+    def locate_browser(self, state):
+        pass
 
     def do_login(self):
         """
@@ -543,8 +552,6 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         else:
             self.home.go()
         self.page.go_transfer(account)
-        if self.pro_transfer.is_here():
-            raise NotImplementedError()
 
     @need_login
     def init_transfer(self, account, recipient, transfer):
@@ -569,13 +576,14 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         r.bank_name = NotAvailable
         return r
 
-    def post_sms_password(self, sms_password):
+    def post_sms_password(self, otp, otp_field_xpath):
         data = {}
         for k, v in self.recipient_form.items():
             if k != 'url':
                 data[k] = v
-        data['uiAuthCallback__1_'] = sms_password
+        data[otp_field_xpath] = otp
         self.location(self.recipient_form['url'], data=data)
+        self.recipient_form = None
 
     def facto_post_recip(self, recipient):
         self.page.post_recipient(recipient)
@@ -583,11 +591,14 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         return self.get_recipient_obj(recipient)
 
     def end_sms_recipient(self, recipient, **params):
-        self.post_sms_password(params['sms_password'])
-        self.recipient_form = None
+        self.post_sms_password(params['sms_password'], 'uiAuthCallback__1_')
         self.page.post_form()
         self.page.go_on()
         self.facto_post_recip(recipient)
+
+    def end_pro_recipient(self, recipient, **params):
+        self.post_sms_password(params['pro_password'], 'MM$ANR_WS_AUTHENT$ANR_WS_AUTHENT_SAISIE$txtReponse')
+        return self.facto_post_recip(recipient)
 
     @retry(CanceledAuth)
     @need_login
@@ -616,13 +627,22 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                 self.page.go_on()
                 return self.facto_post_recip(recipient)
 
+        if 'pro_password' in params:
+            return self.end_pro_recipient(recipient, **params)
+
         self.pre_transfer(next(acc for acc in self.get_accounts_list() if acc.type in (Account.TYPE_CHECKING, Account.TYPE_SAVINGS)))
         # This send sms to user.
         self.page.go_add_recipient()
+
         if self.sms_option.is_here():
             self.is_send_sms = True
             raise AddRecipientStep(self.get_recipient_obj(recipient), Value('otp_sms',
             label=u'Veuillez renseigner le mot de passe unique qui vous a été envoyé par SMS dans le champ réponse.'))
+
+        # pro add recipient.
+        elif self.page.need_auth():
+            self.page.set_browser_form()
+            raise AddRecipientStep(self.get_recipient_obj(recipient), Value('pro_password', label=self.page.get_prompt_text()))
 
         else:
             self.page.check_canceled_auth()
