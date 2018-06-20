@@ -702,6 +702,7 @@ class AVPage(LoggedPage, HTMLPage):
                 try:
                     _id = CleanText('.//td/a/@id')(self)
                     if not _id:
+                        self.page.browser.assurancevie.go()
                         ac_details_page = self.page.browser.open(Link('.//td/a')(self)).page
                     else:
                         if '-' in _id:
@@ -735,7 +736,7 @@ class AVPage(LoggedPage, HTMLPage):
                         # making a form of this link sometimes makes the site return an empty response...
                         # the link is a link to some info, not full AV website
                         # it's probably an indication the account is restricted anyway, so avoid it
-                        self.logger.debug("account %r is probably restricted, don't try its form", Field('id')(self))
+                        self.logger.debug("account is probably restricted, don't try its form")
                         return None
 
                     # sometimes information are not in id but in href
