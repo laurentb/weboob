@@ -82,8 +82,8 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                            NatixisRedirectPage)
     life_insurance = URL('https://.*/Assurance/Pages/Assurance.aspx',
                          'https://www.extranet2.caisse-epargne.fr.*', LifeInsurance)
-    natixis_life_ins_his = URL('https://www.espace-assurances.caisse-epargne.fr/espaceinternet-ce/rest/v2/contratVie/load-operation/ESS/EN/(?P<id>)', NatixisLIHis)
-    natixis_life_ins_inv = URL('https://www.espace-assurances.caisse-epargne.fr/espaceinternet-ce/rest/v2/contratVie/load/ESS/EN/(?P<id>)', NatixisLIInv)
+    natixis_life_ins_his = URL('https://www.espace-assurances.caisse-epargne.fr/espaceinternet-ce/rest/v2/contratVie/load-operation/(?P<id1>\w+)/(?P<id2>\w+)/(?P<id3>)', NatixisLIHis)
+    natixis_life_ins_inv = URL('https://www.espace-assurances.caisse-epargne.fr/espaceinternet-ce/rest/v2/contratVie/load/(?P<id1>\w+)/(?P<id2>\w+)/(?P<id3>)', NatixisLIInv)
     message = URL('https://www.caisse-epargne.offrebourse.com/DetailMessage\?refresh=O', MessagePage)
     garbage = URL('https://www.caisse-epargne.offrebourse.com/Portefeuille',
                   'https://www.caisse-epargne.fr/particuliers/.*/emprunter.aspx',
@@ -395,7 +395,9 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         if account.type == Account.TYPE_LIFE_INSURANCE:
             if "MILLEVIE" in account.label:
                 self.page.go_life_insurance(account)
-                return sorted_transactions(self.natixis_life_ins_his.go(id=account.id).get_history())
+                label = account.label.split()[-1]
+                self.natixis_life_ins_his.go(id1=label[:3], id2=label[3:5], id3=account.id)
+                return sorted_transactions(self.page.get_history())
 
             if "NUANCES 3D" in account.label:
                 self.page.go_life_insurance(account)
@@ -475,7 +477,9 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         elif account.type == Account.TYPE_LIFE_INSURANCE:
             if "MILLEVIE" in account.label:
                 self.page.go_life_insurance(account)
-                for tr in self.natixis_life_ins_inv.go(id=account.id).get_investments():
+                label = account.label.split()[-1]
+                self.natixis_life_ins_inv.go(id1=label[:3], id2=label[3:5], id3=account.id)
+                for tr in self.page.get_investments():
                     yield tr
                 return
 
