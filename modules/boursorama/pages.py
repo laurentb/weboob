@@ -26,7 +26,7 @@ import re
 from io import BytesIO
 from datetime import date
 
-from weboob.browser.pages import HTMLPage, LoggedPage, pagination, NextPage, FormNotFound, PartialHTMLPage, LoginPage, CsvPage
+from weboob.browser.pages import HTMLPage, LoggedPage, pagination, NextPage, FormNotFound, PartialHTMLPage, LoginPage, CsvPage, RawPage
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement, SkipItem, DictElement
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Field, Format,
@@ -323,11 +323,33 @@ class AccountsPage(LoggedPage, HTMLPage):
                 yield m.groups()
 
 
+class CardCalendarPage(LoggedPage, RawPage):
+    def is_here(self):
+        return b'VCALENDAR' in self.doc
+
+    def on_load(self):
+        page_content = self.content.decode('utf-8')
+        self.browser.deferred_card_calendar = []
+
+        # handle ics calendar
+        dates = page_content.split('BEGIN:VEVENT')[1:]
+        assert len(dates)%2 == 0, 'List lenght should be even-numbered'
+
+        # get all dates
+        dates = [re.search(r'(?<=VALUE\=DATE:)(\d{8})', el).group(1) for el in dates]
+        dates.sort()
+
+        for i in range(0, len(dates), 2):
+            if len(dates[i:i+2]) == 2:
+                # list contains tuple like (vdate, date)
+                self.browser.deferred_card_calendar.append((Date().filter(dates[i]), Date().filter(dates[i+1])))
+
+
 class CalendarPage(LoggedPage, HTMLPage):
     def on_load(self):
-        self.browser.deferred_card_calendar = []
-        for tr in self.doc.xpath('//div[h3[contains(text(), "CALENDRIER")]]//tr[contains(@class, "table__line")]'):
-            self.browser.deferred_card_calendar.append((parse_french_date(CleanText('./td[2]')(tr)), parse_french_date(CleanText('./td[3]')(tr))))
+        # redirect
+        calendar_ics_url = urljoin(self.browser.BASEURL, CleanText('//a[contains(@href, "calendrier.ics")]/@href')(self.doc))
+        self.browser.location(calendar_ics_url)
 
 
 class HistoryPage(LoggedPage, HTMLPage):

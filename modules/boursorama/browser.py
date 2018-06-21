@@ -44,7 +44,7 @@ from .pages import (
     MarketPage, LoanPage, SavingMarketPage, ErrorPage, IncidentPage, IbanPage, ProfilePage, ExpertPage,
     CardsNumberPage, CalendarPage, HomePage, PEPPage,
     TransferAccounts, TransferRecipients, TransferCharac, TransferConfirm, TransferSent,
-    AddRecipientPage, StatusPage, CardHistoryPage,
+    AddRecipientPage, StatusPage, CardHistoryPage, CardCalendarPage,
 )
 
 
@@ -64,6 +64,7 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
     keyboard = URL('/connexion/clavier-virtuel\?_hinclude=300000', VirtKeyboardPage)
     status = URL(r'/aide/messages/dashboard\?showza=0&_hinclude=1', StatusPage)
     calendar = URL('/compte/cav/.*/calendrier', CalendarPage)
+    card_calendar = URL('https://api.boursorama.com/services/api/files/download.phtml.*', CardCalendarPage)
     error = URL('/connexion/compte-verrouille',
                 '/infos-profil', ErrorPage)
     login = URL('/connexion/', LoginPage)
@@ -227,13 +228,13 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
 
     def get_debit_date(self, debit_date):
         for i, j in zip(self.deferred_card_calendar, self.deferred_card_calendar[1:]):
-            if i[0].date() < debit_date <= j[0].date():
-                return j[1].date()
+            if i[0] < debit_date <= j[0]:
+                return j[1]
 
     def get_closing_date(self):
         for i, j in zip(self.deferred_card_calendar, self.deferred_card_calendar[1:]):
-            if i[0].date() < date.today() <= j[0].date():
-                return i[0].date()
+            if i[0] < date.today() <= j[0]:
+                return i[0]
 
     def get_card_transactions(self, account, coming):
         self.location(account.url)
