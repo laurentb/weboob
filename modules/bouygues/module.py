@@ -22,6 +22,7 @@ from __future__ import unicode_literals
 from weboob.capabilities.bill import CapDocument, Subscription, Document, SubscriptionNotFound, DocumentNotFound
 from weboob.capabilities.messages import CantSendMessage, CapMessages, CapMessagesPost
 from weboob.capabilities.base import find_object
+from weboob.capabilities.profile import CapProfile
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
@@ -31,7 +32,7 @@ from .browser import BouyguesBrowser
 __all__ = ['BouyguesModule']
 
 
-class BouyguesModule(Module, CapMessages, CapMessagesPost, CapDocument):
+class BouyguesModule(Module, CapMessages, CapMessagesPost, CapDocument, CapProfile):
     NAME = 'bouygues'
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
@@ -71,3 +72,6 @@ class BouyguesModule(Module, CapMessages, CapMessagesPost, CapDocument):
         if not isinstance(document, Document):
             document = self.get_document(document)
         return self.browser.download_document(document)
+
+    def get_profile(self):
+        return self.browser.get_profile()

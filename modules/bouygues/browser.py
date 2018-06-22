@@ -25,7 +25,7 @@ from weboob.browser.exceptions import ClientError
 from weboob.tools.compat import urlparse, parse_qs
 from .pages import (
     DocumentsPage, HomePage, LoginPage, SubscriberPage, SubscriptionPage, SubscriptionDetailPage,
-    SendSMSPage, SendSMSErrorPage, UselessPage, DocumentFilePage
+    SendSMSPage, SendSMSErrorPage, UselessPage, DocumentFilePage, ProfilePage,
 )
 
 from weboob.capabilities.messages import CantSendMessage
@@ -51,6 +51,7 @@ class BouyguesBrowser(LoginBrowser):
     confirm = URL('http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/resultSendSMS.phtml', UselessPage)
     sms_error_page = URL('http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/SMS_erreur.phtml',
                          SendSMSErrorPage)
+    profile = URL('/personnes/(?P<idUser>\d+)/coordonnees', ProfilePage)
 
     def __init__(self, username, password, lastname, *args, **kwargs):
         super(BouyguesBrowser, self).__init__(username, password, *args, **kwargs)
@@ -131,3 +132,12 @@ class BouyguesBrowser(LoginBrowser):
     def download_document(self, document):
         self.location(document.url, headers=self.headers)
         return self.open(self.page.get_one_shot_download_url()).content
+
+    @need_login
+    def get_profile(self):
+        self.subscriber.go(idUser=self.id_user, headers=self.headers)
+        subscriber = self.page.get_subscriber()
+
+        self.profile.go(idUser=self.id_user, headers=self.headers)
+
+        return self.page.get_profile(subscriber=subscriber)

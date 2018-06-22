@@ -23,6 +23,7 @@ from weboob.capabilities.messages import CantSendMessage
 
 from weboob.capabilities.base import NotLoaded
 from weboob.capabilities.bill import Bill, Subscription
+from weboob.capabilities.profile import Profile
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage, PDFPage
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Format, Regexp
@@ -157,6 +158,35 @@ class DocumentsPage(LoggedPage, JsonPage):
 
     def get_one_shot_download_url(self):
         return self.doc['_actions']['telecharger']['action']
+
+
+class ProfilePage(LoggedPage, JsonPage):
+    def get_profile(self, subscriber):
+        data = self.doc
+
+        last_address = data['adressesPostales'][0]
+        for address in data['adressesPostales']:
+            if address['dateMiseAJour'] > last_address['dateMiseAJour']:
+                last_address = address
+
+        p = Profile()
+        p.name = subscriber
+        p.address = '%s %s %s %s' % (last_address['numero'], last_address['rue'],
+                                     last_address['codePostal'], last_address['ville'])
+        p.country = last_address['pays']
+
+        for email in data['emails']:
+            if email['emailPrincipal']:
+                p.email = email['email']
+                break
+
+        if 'telephones' in data:
+            for phone in data['telephones']:
+                if phone['telephonePrincipal']:
+                    p.phone = phone['numero']
+                    break
+
+        return p
 
 
 class UselessPage(HTMLPage):
