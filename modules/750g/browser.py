@@ -26,7 +26,7 @@ __all__ = ['SevenFiftyGramsBrowser']
 
 
 class SevenFiftyGramsBrowser(PagesBrowser):
-    BASEURL = 'http://www.750g.com'
+    BASEURL = 'https://www.750g.com'
 
     search = URL('/recettes_(?P<pattern>.*).htm', ResultsPage)
     recipe = URL('/(?P<id>.*).htm', RecipePage)
