@@ -444,6 +444,7 @@ class Cragr(LoginBrowser, StatesMixin):
             liquidity_inv.code = u'XX-liquidity'
             liquidity_inv.valuation = account.balance
             yield liquidity_inv
+            return
 
         if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
             new_location = self.moveto_market_website(account)
