@@ -667,7 +667,7 @@ class AsvPage(MarketPage):
 
 class AccbisPage(LoggedPage, HTMLPage):
     @method
-    class iter_unvalid_cards(ListElement):
+    class iter_valid_cards_url(ListElement):
         # the only purpose of this is to detect opposed cards
         # because cards have an 'OPPOSÉE' label on this page only, not on AccountsPage...
 
@@ -702,7 +702,7 @@ class AccbisPage(LoggedPage, HTMLPage):
                         return v
 
             def validate(self, obj):
-                # keep only NON-VALID account
+                # keep only VALID account
                 # a valid account:
                 # - is related to a credit card
                 # - the card must not be blocked
@@ -710,9 +710,9 @@ class AccbisPage(LoggedPage, HTMLPage):
                 if obj.type != Account.TYPE_CARD:
                     return False
                 if obj.label.endswith(' OPPOSÉE'):
-                    return True
+                    return False
                 # not activated when tooltip hides the 4 digits
-                return obj._tooltip.endswith('****')
+                return not obj._tooltip.endswith('****')
 
 
     def populate(self, accounts):

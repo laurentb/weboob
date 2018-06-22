@@ -192,16 +192,21 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
             self.accounts_list.extend(self.pro_accounts.go().iter_accounts())
             self.accounts_list.extend(self.accounts.go().iter_accounts())
 
-            # discard all unvalid card accounts (if opposed or not yet
-            # activated)
+            # discard all unvalid card accounts (if opposed or not yet activated)
+            valid_card_url = []
             for account in self.accounts_list:
                 if account.type == Account.TYPE_CHECKING:
                     # the acc_tit contains the non-valid card accounts
                     self.acc_tit.go(webid=account._webid)
-                    unvalid = set(card.url for card in self.page.iter_unvalid_cards())
-                    self.accounts_list = [account for account in self.accounts_list
-                                          if account.url not in unvalid]
+                    # search for all valid card
+                    valid_card_url.extend([card.url for card in self.page.iter_valid_cards_url()])
+                    # there is 1 page for all accounts
                     break
+
+            for account in list(self.accounts_list):
+                if account.type == Account.TYPE_CARD and account.url not in valid_card_url:
+                    self.accounts_list.remove(account)
+
             cards = [acc for acc in self.accounts_list if acc.type == Account.TYPE_CARD]
             if cards:
                 self.go_cards_number(cards[0].url)
