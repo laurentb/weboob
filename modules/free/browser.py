@@ -21,16 +21,17 @@
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 
-from .pages import LoginPage, HomePage, DocumentsPage
+from .pages import LoginPage, HomePage, DocumentsPage, ProfilePage
 
 
 class FreeBrowser(LoginBrowser):
     BASEURL = 'https://adsl.free.fr'
 
     login = URL('https://subscribe.free.fr/login/', LoginPage)
-    home = URL('/home.pl(?P<urlid>.*)',
-               '/modif_infoscontact.pl(?P<urlid>.*)', HomePage)
+    home = URL('/home.pl(?P<urlid>.*)', HomePage)
     documents = URL('/liste-factures.pl(?P<urlid>.*)', DocumentsPage)
+    profile = URL('/modif_infoscontact.pl(?P<urlid>.*)', ProfilePage)
+    address = URL('/show_adresse.pl(?P<urlid>.*)', ProfilePage)
 
     def __init__(self, *args, **kwargs):
         LoginBrowser.__init__(self, *args, **kwargs)
@@ -58,3 +59,16 @@ class FreeBrowser(LoginBrowser):
     @need_login
     def iter_documents(self, subscription):
         return self.documents.stay_or_go(urlid=self.urlid).get_documents(subid=subscription.id)
+
+    @need_login
+    def get_profile(self):
+        # To be sure to load the urlid
+        subscriptions = list(self.get_subscription_list())
+
+        self.profile.go(urlid=self.urlid)
+        profile = self.page.get_profile(subscriber=subscriptions[0].subscriber)
+
+        self.address.go(urlid=self.urlid)
+        self.page.set_address(profile)
+
+        return profile

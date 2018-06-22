@@ -19,6 +19,7 @@
 
 
 from weboob.capabilities.bill import CapDocument, Subscription, Document, SubscriptionNotFound, DocumentNotFound
+from weboob.capabilities.profile import CapProfile
 from weboob.capabilities.base import find_object, NotAvailable
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
@@ -29,7 +30,7 @@ from .browser import FreeBrowser
 __all__ = ['FreeModule']
 
 
-class FreeModule(Module, CapDocument):
+class FreeModule(Module, CapDocument, CapProfile):
     NAME = 'free'
     DESCRIPTION = u'free website'
     MAINTAINER = u'Edouard Lambert'
@@ -67,3 +68,6 @@ class FreeModule(Module, CapDocument):
         if document.url is NotAvailable:
             return
         return self.browser.open(document.url).content
+
+    def get_profile(self):
+        return self.browser.get_profile()

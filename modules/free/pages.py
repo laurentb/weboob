@@ -23,6 +23,7 @@ from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Format
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.html import Attr
 from weboob.capabilities.bill import Bill, Subscription
+from weboob.capabilities.profile import Profile
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.date import parse_french_date
 
@@ -86,3 +87,17 @@ class DocumentsPage(LoggedPage, HTMLPage):
 
             def parse(self, el):
                 self.env['date'] = parse_french_date(u"01 %s" % CleanText('./span[2]')(self)).date()
+
+
+class ProfilePage(LoggedPage, HTMLPage):
+    def get_profile(self, subscriber):
+        p = Profile()
+        p.name = subscriber
+        p.email = CleanText('//input[@name="email"]/@value')(self.doc) or NotAvailable
+        p.phone = CleanText('//input[@name="portable"]/@value')(self.doc) or NotAvailable
+
+        return p
+
+    def set_address(self, profile):
+        assert len(self.doc.xpath('//p/strong[contains(text(), " ")]')) == 1, 'There are several addresses.'
+        profile.address = CleanText('//p/strong[contains(text(), " ")]')(self.doc) or NotAvailable
