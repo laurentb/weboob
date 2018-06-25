@@ -142,8 +142,9 @@ class InvestmentPage(AccountPage):
             obj_code = Regexp(CleanText('./preceding-sibling::tr/td[1]'), '- (.*)')
 
     def iter_investment(self):
-        valuation = MyDecimal('//td[@class="donneeNumerique borderbottom "]/text()')(self.doc)
-        if valuation is not None:
+        # Retrieving liquidities only if the flag content is not empty:
+        valuation = MyDecimal('//td[@class="donneeNumerique borderbottom "]/text()', default=NotAvailable)(self.doc)
+        if valuation != NotAvailable:
             inv = Investment()
             inv.code = 'XX-liquidity'
             inv.code_type = NotAvailable
