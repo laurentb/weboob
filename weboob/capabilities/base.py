@@ -539,7 +539,7 @@ class BaseObject(with_metaclass(_BaseObjectMeta, StrConv, object)):
 
 class Currency(object):
     CURRENCIES = OrderedDict([
-        (u'EUR', (u'€', u'EURO')),
+        (u'EUR', (u'€', u'EURO', u'EUROS')),
         (u'CHF', (u'CHF',)),
         (u'USD', (u'$',)),
         (u'GBP', (u'£',)),
