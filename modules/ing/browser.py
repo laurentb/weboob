@@ -186,8 +186,9 @@ class IngBrowser(LoginBrowser):
         if not user_list:
             user_list = self.page.get_user_list()
 
-        first_user = self.page.get_first_user(user_list)
-        self.page.change_user(first_user)
+        if user_list:
+            first_user = self.page.get_first_user(user_list)
+            self.page.change_user(first_user)
 
     @need_login
     @start_with_main_site
