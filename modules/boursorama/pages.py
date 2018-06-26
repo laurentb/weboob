@@ -206,6 +206,9 @@ class AccountsPage(LoggedPage, HTMLPage):
 
     ACCOUNT_TYPES = {u'comptes courants':      Account.TYPE_CHECKING,
                      u'cav':                   Account.TYPE_CHECKING,
+                     'livret':                 Account.TYPE_SAVINGS,
+                     'pel':                    Account.TYPE_SAVINGS,
+                     'cel':                    Account.TYPE_SAVINGS,
                      u'comptes épargne':       Account.TYPE_SAVINGS,
                      u'mon épargne':           Account.TYPE_SAVINGS,
                      'csljeune':               Account.TYPE_SAVINGS, # in url
