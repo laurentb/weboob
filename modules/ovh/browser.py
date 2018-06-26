@@ -31,7 +31,7 @@ class OvhBrowser(LoginBrowser, StatesMixin):
     BASEURL = 'https://www.ovh.com'
 
     login = URL('/auth/',
-                '/manager/web/index.html', LoginPage)
+                '/manager/web/', LoginPage)
     profile = URL('/engine/api/me', ProfilePage)
     documents = URL('/engine/2api/sws/billing/bills\?count=0&date=(?P<fromDate>.*)&dateTo=(?P<toDate>.*)&offset=0', BillsPage)
 
