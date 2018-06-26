@@ -108,6 +108,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                 acc.label = '%s %s' % (account_data[6][4], account_data[10][-1])
                 acc._balances_token = acc.id = balances_token
                 acc._token = token[-1]
+                acc.type = Account.TYPE_CARD
                 yield acc
 
 
