@@ -111,6 +111,7 @@ class BasePage(object):
         for script in self.doc.xpath('//script'):
             if script.text is not None and \
                (u"Le service est momentanément indisponible" in script.text or
+                u"Le service est temporairement indisponible" in script.text or
                 u"Votre abonnement ne vous permet pas d'accéder à ces services" in script.text or
                 u'Merci de bien vouloir nous en excuser' in script.text):
                 return True
@@ -712,6 +713,8 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
                 continue
 
             t = Transaction()
+
+            t._has_link = bool(tds[self.COL_DEBIT].findall('a') or tds[self.COL_CREDIT].findall('a'))
 
             # XXX We currently take the *value* date, but it will probably
             # necessary to use the *operation* one.

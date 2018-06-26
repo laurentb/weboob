@@ -336,7 +336,7 @@ class BanquePopulaire(LoginBrowser):
             transaction_list = self.page.get_history(account, coming)
             for tr in transaction_list:
                 # Add informations about GoCardless
-                if 'GoCardless' in tr.label:
+                if 'GoCardless' in tr.label and tr._has_link:
                     self.set_gocardless_transaction_details(tr)
 
                 yield tr
