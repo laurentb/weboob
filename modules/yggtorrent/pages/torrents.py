@@ -51,7 +51,7 @@ class SearchPage(LoggedPage, HTMLPage):
             def obj_size(self):
                 rawsize = CleanText('./td[last()-3]')(self)
                 nsize = float(re.sub(r'[A-Za-z]', '', rawsize))
-                usize = re.sub(r'[.0-9]', '', rawsize).upper()
+                usize = re.sub(r'[.0-9]', '', rawsize).strip().replace('o', 'B').upper()
                 size = get_bytes_size(nsize, usize)
                 return size
 
@@ -69,7 +69,7 @@ class TorrentPage(LoggedPage, HTMLPage):
         def obj_size(self):
             rawsize = CleanText('//table[has-class("informations")]//td[text()="Taille totale"]/following-sibling::td')(self)
             nsize = float(re.sub(r'[A-Za-z]', '', rawsize))
-            usize = re.sub(r'[.0-9]', '', rawsize).upper()
+            usize = re.sub(r'[.0-9]', '', rawsize).strip().replace('o', 'B').upper()
             size = get_bytes_size(nsize, usize)
             return size
         obj_files = NotAvailable
