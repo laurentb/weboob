@@ -22,7 +22,7 @@ from weboob.capabilities.bank import CapBank
 from weboob.tools.backend import AbstractModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
-from .browser import CreditCooperatif
+from .proxy_browser import ProxyBrowser
 
 
 __all__ = ['BtpbanqueModule']
@@ -39,10 +39,14 @@ class BtpbanqueModule(AbstractModule, CapBank):
                  'strong': "Sesame (pro)"}
     CONFIG = BackendConfig(Value('auth_type', label='Type de compte', choices=auth_type, default="weak"),
                            ValueBackendPassword('login', label='Code utilisateur', masked=False),
-                           ValueBackendPassword('password', label='Code confidentiel ou code PIN'))
+                           ValueBackendPassword('password', label='Code confidentiel ou code PIN'),
+                           Value('nuser', label="Numéro d'utilisateur (optionnel)", regexp='[0-9a-zA-Z]{,8}', default=''))
     PARENT = 'caissedepargne'
-    BROWSER = CreditCooperatif
+    BROWSER = ProxyBrowser
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(),
-                                   self.config['password'].get(), weboob=self.weboob)
+        return self.create_browser(nuser=self.config['nuser'].get(),
+                                   username=self.config['login'].get(),
+                                   password=self.config['password'].get(),
+                                   domain='www.btp-banque.fr',
+                                   weboob=self.weboob)

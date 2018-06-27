@@ -18,18 +18,14 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.browser.browsers import AbstractBrowser
+from weboob.browser.switch import SwitchingBrowser
+
+from .caisseepargne_browser import CaisseEpargneBrowser
+from .cenet_browser import CenetBrowser
 
 
-__all__ = ['CreditCooperatif']
-
-
-class CreditCooperatif(AbstractBrowser):
-    PARENT = 'caissedepargne'
-    PARENT_ATTR = 'package.browser.CaisseEpargne'
-    BASEURL = 'https://www.btp-banque.fr'
-
-    def __init__(self, *args, **kwargs):
-        # have to pass 'nuser'
-        super(CreditCooperatif, self).__init__('', *args, **kwargs)
-
+class ProxyBrowser(SwitchingBrowser):
+    BROWSERS = {
+        'main': CaisseEpargneBrowser,
+        'cenet': CenetBrowser,
+    }
