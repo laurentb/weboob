@@ -41,7 +41,7 @@ class CreditCooperatifModule(AbstractModule, CapBankTransferAddRecipient, CapPro
     CONFIG = BackendConfig(Value('auth_type', label='Type de compte', choices=auth_type, default="particular"),
                            ValueBackendPassword('login', label='Code utilisateur', masked=False),
                            ValueBackendPassword('password', label='Code personnel', regexp='\d+'),
-                           Value('nuser',                   label='Identifiant utilisateur', regexp='[0-9a-zA-Z]{,8}', default=''))
+                           Value('nuser',                   label="Numéro d'utilisateur (optionnel)", regexp='[0-9a-zA-Z]{,8}', default=''))
 
     PARENT = 'caissedepargne'
     BROWSER = ProxyBrowser
