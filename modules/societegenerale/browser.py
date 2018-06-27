@@ -26,7 +26,7 @@ from weboob.browser.exceptions import BrowserHTTPNotFound
 from .pages.accounts_list import (
     AccountsList, AccountHistory, CardsList, LifeInsurance,
     LifeInsuranceHistory, LifeInsuranceInvest, LifeInsuranceInvest2, Market,
-    ListRibPage, AdvisorPage, HTMLProfilePage, XMLProfilePage, LoansPage,
+    ListRibPage, AdvisorPage, HTMLProfilePage, XMLProfilePage, LoansPage, IbanPage
 )
 from .pages.transfer import RecipientsPage, TransferPage, AddRecipientPage, RecipientJson
 from .pages.login import LoginPage, BadLoginPage, ReinitPasswordPage, ActionNeededPage
@@ -45,6 +45,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
                         ActionNeededPage)
     bad_login = URL('\/acces/authlgn.html', '/error403.html', BadLoginPage)
     reinit = URL('/acces/changecodeobligatoire.html', ReinitPasswordPage)
+    iban_page = URL(r'/lgn/url\.html\?dup', IbanPage)
     accounts = URL('/restitution/cns_listeprestation.html', AccountsList)
     cards_list = URL('/restitution/cns_listeCartes.*.html', CardsList)
     account_history = URL('/restitution/cns_detail.*\.html', '/lgn/url.html', AccountHistory)
@@ -125,7 +126,8 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
                             account.balance = self.page.get_balance(account.type) or account.balance
                     if account._rib_url:
                         self.location(account._rib_url)
-                        account.iban = self.page.get_iban()
+                        if self.iban_page.is_here():
+                            account.iban = self.page.get_iban()
 
             for type_ in ['true', 'false']:
                 self.loans.go(conso=type_)

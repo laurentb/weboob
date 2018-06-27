@@ -36,7 +36,7 @@ from weboob.tools.date import parse_date as parse_d
 from weboob.browser.elements import DictElement, ItemElement, TableElement, method
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, RegexpError
-from weboob.browser.filters.html import Link, TableCell
+from weboob.browser.filters.html import Link, TableCell, Attr
 from weboob.browser.pages import HTMLPage, XMLPage, JsonPage, LoggedPage
 from weboob.exceptions import NoAccountsException, BrowserUnavailable, ActionNeeded
 
@@ -151,6 +151,15 @@ class AccountsList(LoggedPage, BasePage):
             accounts_list.append(account)
 
         return accounts_list
+
+
+class IbanPage(LoggedPage, HTMLPage):
+    def is_here(self):
+        return 'Imprimer ce RIB' in Attr('.//img', 'alt')(self.doc) or CleanText('//span[@class="error_msg"]')(self.doc)
+
+    def get_iban(self):
+        if not CleanText('//span[@class="error_msg"]')(self.doc):
+            return CleanText().filter(self.doc.xpath("//font[contains(text(),'IBAN')]/b[1]")[0]).replace(' ', '')
 
 
 class CardsList(LoggedPage, BasePage):
@@ -324,9 +333,6 @@ class AccountHistory(LoggedPage, BasePage):
             t.parse(raw=raw, date=(self.debit_date or date), vdate=(date or None))
 
             yield t
-
-    def get_iban(self):
-        return CleanText().filter(self.doc.xpath("//font[contains(text(),'IBAN')]/b[1]")[0]).replace(' ', '')
 
 
 class Invest(object):
