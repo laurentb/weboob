@@ -44,6 +44,7 @@ try:
 except ImportError:
     raise ImportError('Please install python-nss')
 from requests.packages.urllib3.util.ssl_ import ssl_wrap_socket as old_ssl_wrap_socket
+import requests  # for AIA
 from weboob.tools.log import getLogger
 
 
@@ -215,10 +216,87 @@ def auth_cert_pinning(sock, check_sig, is_server, path):
     return (expected.signed_data.data == cert.signed_data.data)
 
 
+def auth_cert_basic(sock, check_sig, is_server):
+    cert = sock.get_certificate()
+    db = nss.nss.get_default_certdb()
+
+    # simple case: full cert chain
+    try:
+        valid = cert.verify_hostname(sock.get_hostname())
+    except nss.error.NSPRError:
+        return False
+    if not valid:
+        return False
+
+    required = nss.nss.certificateUsageSSLServer
+    try:
+        usages = cert.verify_now(db, check_sig, required) & required
+    except nss.error.NSPRError:
+        return False
+    return bool(usages)
+
+
+def auth_cert_aia_only(sock, check_sig, is_server):
+    cert = sock.get_certificate()
+    db = nss.nss.get_default_certdb()
+
+    # harder case: the server presents an incomplete cert chain and only has the leaf cert
+    # the parent is indicated in the TLS extension called "AIA"
+
+    for ext in cert.extensions:
+        if ext.name == 'Authority Information Access':
+            aia_text = ext.format()
+            aia_text = re.sub(r'\s+', ' ', aia_text)
+            break
+    else:
+        return False
+    # yes, the parent TLS cert is behind an HTTP URL
+    parent_url = re.search(r'Method: PKIX CA issuers access method Location: URI: (http:\S+)', aia_text).group(1)
+    parent_der = requests.get(parent_url).content
+
+    # verify parent cert is a CA in our db
+    parent = nss.nss.Certificate(parent_der, perm=False)
+    required = nss.nss.certificateUsageAnyCA
+    try:
+        usages = parent.verify_now(db, check_sig, required) & required
+    except nss.error.NSPRError:
+        return False
+    if not usages:
+        return False
+
+    # verify leaf certificate
+    try:
+        valid = cert.verify_hostname(sock.get_hostname())
+    except nss.error.NSPRError:
+        return False
+    if not valid:
+        return False
+
+    required = nss.nss.certificateUsageSSLServer
+    try:
+        usages = cert.verify_now(db, check_sig, required) & required
+    except nss.error.NSPRError:
+        return False
+    return bool(usages)
+
+
+def auth_cert_with_aia(sock, check_sig, is_server):
+    assert not is_server
+
+    cert = sock.get_certificate()
+
+    if len(cert.get_cert_chain()) > 1:
+        return auth_cert_basic(sock, check_sig, is_server)
+    else:
+        return auth_cert_aia_only(sock, check_sig, is_server)
+
+
 DEFAULT_CA_CERTIFICATES = (
     '/etc/ssl/certs/ca-certificates.crt',
     '/etc/pki/tls/certs/ca-bundle.crt',
 )
+
+
 def ssl_wrap_socket(sock, *args, **kwargs):
     if kwargs.get('certfile'):
         LOGGER.info('a client certificate is used, falling back to OpenSSL')
@@ -252,6 +330,8 @@ def ssl_wrap_socket(sock, *args, **kwargs):
         nsssock.set_auth_certificate_callback(lambda *args: True)
     elif kwargs.get('ca_certs') and kwargs['ca_certs'] not in DEFAULT_CA_CERTIFICATES:
         nsssock.set_auth_certificate_callback(auth_cert_pinning, kwargs['ca_certs'])
+    else:
+        nsssock.set_auth_certificate_callback(auth_cert_with_aia)
 
     nsssock.reset_handshake(False) # marks handshake as not-done
     try:
