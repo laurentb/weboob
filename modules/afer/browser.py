@@ -29,7 +29,6 @@ from .pages import LoginPage, IndexPage, BadLogin, AccountDetailPage, AccountHis
 
 class AferBrowser(LoginBrowser):
     BASEURL = 'https://adherent.gie-afer.fr'
-    VERIFY = 'afer.pem'
 
     login = URL('/web/ega.nsf/listeAdhesions\?OpenForm', LoginPage)
     bad_login = URL('/names.nsf\?Login', BadLogin)
