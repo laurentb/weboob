@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import requests
+from datetime import datetime
 
 from weboob.browser.pages import LoggedPage, JsonPage, pagination
 from weboob.browser.elements import ItemElement, method, DictElement
@@ -26,9 +27,11 @@ from weboob.browser.filters.json import Dict
 from weboob.capabilities.base import Currency
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account
+from weboob.capabilities.bill import Document, Subscription
 from weboob.exceptions import BrowserUnavailable
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.compat import quote_plus
 
 from .pages import Transaction
 
@@ -143,3 +146,35 @@ class HistoryJsonPage(LoggedPage, JsonPage):
 
             def obj_deleted(self):
                 return self.obj.type == FrenchTransaction.TYPE_CARD_SUMMARY
+
+
+class BankStatementPage(LoggedPage, JsonPage):
+    def get_min_max_date(self):
+        criterium = self.doc['donnees']['criteres']
+        return criterium['dateMin'], criterium['dateMax']
+
+    @method
+    class iter_subscription(DictElement):
+        item_xpath = 'donnees/comptes'
+
+        class item(ItemElement):
+            klass = Subscription
+
+            obj_id = Dict('id')
+            obj_label = Dict('libelle')
+            obj_subscriber = Env('subscriber')
+
+    def iter_documents(self):
+        account, = self.doc['donnees']['comptes']
+        statements = account['releves']
+
+        for document in statements:
+            d = Document()
+            d.date = datetime.strptime(document['dateEdition'], '%d/%m/%Y')
+            d.label = '%s %s' % (account['libelle'], document['dateEdition'])
+            d.type = 'document'
+            d.format = 'pdf'
+            d.id = '%s_%s' % (account['id'], document['dateEdition'].replace('/', ''))
+            d.url = '/icd/syd-front/data/syd-rce-telechargerReleve.html?b64e4000_sceau=%s' % quote_plus(document['sceau'])
+
+            yield d

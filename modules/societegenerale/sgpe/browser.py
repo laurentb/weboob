@@ -17,14 +17,20 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import re
 
 from weboob.browser.browsers import LoginBrowser, need_login
 from weboob.browser.url import URL
 from weboob.browser.exceptions import ClientError
 from weboob.exceptions import BrowserIncorrectPassword
+from weboob.capabilities.base import find_object
+from weboob.capabilities.bank import AccountNotFound
 
-from .pages import LoginPage, CardsPage, CardHistoryPage, ProfileProPage, ProfileEntPage, ChangePassPage
-from .json_pages import AccountsJsonPage, BalancesJsonPage, HistoryJsonPage
+from .pages import (
+    LoginPage, CardsPage, CardHistoryPage,
+    ProfileProPage, ProfileEntPage, ChangePassPage, SubscriptionPage
+)
+from .json_pages import AccountsJsonPage, BalancesJsonPage, HistoryJsonPage, BankStatementPage
 
 
 __all__ = ['SGProfessionalBrowser', 'SGEnterpriseBrowser']
@@ -109,6 +115,9 @@ class SGEnterpriseBrowser(SGPEBrowser):
     history_next = URL('/icd/syd-front/data/syd-comptes-chargerProchainLotEcriture.json', HistoryJsonPage)
     profile = URL('/gae/afficherModificationMesDonnees.html', ProfileEntPage)
 
+    subscription = URL(r'/Pgn/NavigationServlet\?MenuID=BANRELRIE&PageID=ReleveRIE&NumeroPage=1&Origine=Menu', SubscriptionPage)
+    subscription_form = URL(r'Pgn/NavigationServlet', SubscriptionPage)
+
     def go_accounts(self):
         self.accounts.go()
 
@@ -127,6 +136,29 @@ class SGEnterpriseBrowser(SGPEBrowser):
         transactions.extend(self.location('/icd/syd-front/data/syd-intraday-chargerDetail.json', data={'cl500_compte': account._id}).page.iter_history())
         return iter(transactions)
 
+    @need_login
+    def iter_subscription(self):
+        subscriber = self.get_profile()
+
+        self.subscription.go()
+
+        for sub in self.page.iter_subscription():
+            sub.subscriber = subscriber.name
+            account = find_object(self.get_accounts_list(), id=sub.id, error=AccountNotFound)
+            sub.label = account.label
+
+            yield sub
+
+    @need_login
+    def iter_documents(self, subscription):
+        data = {
+            'PageID': 'ReleveRIE',
+            'MenuID': 'BANRELRIE',
+            'Origine': 'Menu',
+            'compteSelected': subscription.id,
+        }
+        self.subscription_form.go(data=data)
+        return self.page.iter_documents(sub_id=subscription.id)
 
 class SGProfessionalBrowser(SGEnterpriseBrowser):
     BASEURL = 'https://professionnels.secure.societegenerale.fr'
@@ -135,3 +167,99 @@ class SGProfessionalBrowser(SGEnterpriseBrowser):
     CERTHASH = '9f5232c9b2283814976608bfd5bba9d8030247f44c8493d8d205e574ea75148e'
 
     profile = URL('/gao/modifier-donnees-perso-saisie.html', ProfileProPage)
+
+    bank_statement_menu = URL('/icd/syd-front/data/syd-rce-accederDepuisMenu.json', BankStatementPage)
+    bank_statement_search = URL('/icd/syd-front/data/syd-rce-lancerRecherche.json', BankStatementPage)
+
+    date_max = None
+    date_min = None
+
+    @need_login
+    def iter_subscription(self):
+        profile = self.get_profile()
+        subscriber = profile.name
+
+        self.bank_statement_menu.go()
+        self.date_min, self.date_max = self.page.get_min_max_date()
+
+        return self.page.iter_subscription(subscriber=subscriber)
+
+    def get_month_by_range(self, end_month, month_range=3, january_limit=False):
+        begin_month = ((end_month - month_range) % 12) + 1
+
+        if january_limit:
+            if begin_month >=end_month:
+                return 1
+
+        return begin_month
+
+    def exceed_date_min(self, month_min, end_month):
+        if end_month <= month_min:
+            return True
+
+    def advance_month(self, end_month, end_year, month_range=3):
+        new_end_month = self.get_month_by_range(end_month, month_range)
+        if new_end_month > end_month:
+            end_year -= 1
+
+        begin_month = self.get_month_by_range(new_end_month, month_range)
+        begin_year = end_year
+        if begin_month > new_end_month:
+            begin_year -= 1
+
+        return new_end_month, end_year, begin_month, begin_year
+
+    @need_login
+    def iter_documents(self, subscribtion):
+        # This quality website can only fetch documents through a form, looking for dates
+        # with a range of 3 months maximum
+
+        m = re.search(r'(\d{2})/(\d{2})/(\d{4})', self.date_max)
+        end_day = int(m.group(1))
+        end_month = int(m.group(2))
+        end_year = int(m.group(3))
+
+        month_range = 3
+        begin_day = 2
+        begin_month = self.get_month_by_range(end_month)
+        begin_year = end_year
+        if begin_month > end_month:
+            begin_year -= 1
+
+        # current month
+        data = {
+            'dt10_dateDebut' :'%02d/%02d/%d' % (begin_day, begin_month, begin_year),
+            'dt10_dateFin': '%02d/%02d/%d' % (end_day, end_month, end_year),
+            'cl2000_comptes': '["%s"]' % subscribtion.id,
+            'cl200_typeRecherche': 'ADVANCED',
+        }
+        self.bank_statement_search.go(data=data)
+        for d in self.page.iter_documents():
+            yield d
+
+        # other months
+        m = re.search(r'(\d{2})/(\d{2})/(\d{4})', self.date_min)
+        year_min = int(m.group(3))
+        month_min = int(m.group(2))
+        day_min = int(m.group(1))
+
+        end_day = 1
+        is_end = False
+        while not is_end:
+            end_month, end_year, begin_month, begin_year = self.advance_month(end_month, end_year, month_range)
+
+            if year_min == begin_year and self.exceed_date_min(month_min, begin_month):
+                begin_day = day_min
+                begin_month = month_min
+                is_end = True
+
+            data = {
+                'dt10_dateDebut' :'%02d/%02d/%d' % (begin_day, begin_month, begin_year),
+                'dt10_dateFin': '%02d/%02d/%d' % (end_day, end_month, end_year),
+                'cl2000_comptes': '["%s"]' % subscribtion.id,
+                'cl200_typeRecherche': 'ADVANCED',
+            }
+            self.bank_statement_search.go(data=data)
+
+            for d in self.page.iter_documents():
+                yield d

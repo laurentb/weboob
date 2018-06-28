@@ -25,10 +25,14 @@ from io import BytesIO
 
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Env
+from weboob.browser.filters.standard import (
+    CleanText, CleanDecimal, Date,
+    Env, Regexp, Field, Format,
+)
 from weboob.browser.filters.html import Attr
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.capabilities.profile import Profile, Person
+from weboob.capabilities.bill import Document, Subscription
 from weboob.exceptions import ActionNeeded
 from weboob.tools.json import json
 
@@ -208,3 +212,29 @@ class ProfileEntPage(LoggedPage, SGPEPage):
             firstname = CleanText('//tr[th[contains(text(), "Prénom")]]/td')(self)
             lastname = CleanText('//tr[th[contains(text(), "Nom")]]/td')(self)
             return "%s %s %s" % (civility, firstname, lastname)
+
+
+class SubscriptionPage(LoggedPage, SGPEPage):
+    def iter_subscription(self):
+        for account in self.doc.xpath('//select[@name="compteSelected"]/option'):
+            s = Subscription()
+            s.id = CleanText('.', replace=[(' ', '')])(account)
+
+            yield s
+
+    @method
+    class iter_documents(ListElement):
+        item_xpath = '//table[@id="tab-arretes"]/tbody/tr[td[@class="foncel1-grand"]]'
+
+        class item(ItemElement):
+            klass = Document
+
+            obj_label = CleanText('./td[1]')
+            obj_date = Date(Regexp(Field('label'), r'au (\d{4}\-\d{2}\-\d{2})'))
+            obj_id = Format('%s_%s', Env('sub_id'), CleanText(Regexp(Field('label'), r'au (\d{4}\-\d{2}\-\d{2})'), replace=[('-', '')]))
+            obj_format = 'pdf'
+            obj_type = 'document'
+            obj_url = Format(
+                    '/Pgn/PrintServlet?PageID=ReleveRIE&MenuID=BANRELRIE&urlTypeTransfert=ipdf&REPORTNAME=ReleveInteretElectronique.sgi&numeroRie=%s',
+                    Regexp(Attr('./td[2]/a', 'onclick'), r"impression\('(.*)'\);")
+            )

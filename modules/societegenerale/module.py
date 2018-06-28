@@ -22,13 +22,20 @@ import re
 from decimal import Decimal
 from datetime import timedelta
 
-from weboob.capabilities.bank import CapBankWealth, CapBankTransferAddRecipient, AccountNotFound, Account, RecipientNotFound
+from weboob.capabilities.bank import (
+    CapBankWealth, CapBankTransferAddRecipient, AccountNotFound,
+    Account, RecipientNotFound,
+)
+from weboob.capabilities.bill import (
+    CapDocument, Subscription, SubscriptionNotFound,
+    Document, DocumentNotFound,
+)
 from weboob.capabilities.contact import CapContact
 from weboob.capabilities.profile import CapProfile
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
-from weboob.capabilities.base import find_object
+from weboob.capabilities.base import find_object, NotAvailable
 
 from .browser import SocieteGenerale
 from .sgpe.browser import SGEnterpriseBrowser, SGProfessionalBrowser
@@ -37,7 +44,7 @@ from .sgpe.browser import SGEnterpriseBrowser, SGProfessionalBrowser
 __all__ = ['SocieteGeneraleModule']
 
 
-class SocieteGeneraleModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapContact, CapProfile):
+class SocieteGeneraleModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapContact, CapProfile, CapDocument):
     NAME = 'societegenerale'
     MAINTAINER = u'Jocelyn Jaubert'
     EMAIL = 'jocelyn.jaubert@gmail.com'
@@ -129,3 +136,37 @@ class SocieteGeneraleModule(Module, CapBankWealth, CapBankTransferAddRecipient, 
 
     def transfer_check_exec_date(self, old_exec_date, new_exec_date):
         return old_exec_date <= new_exec_date <= old_exec_date + timedelta(days=4)
+
+    def iter_resources(self, objs, split_path):
+        if Account in objs:
+            self._restrict_level(split_path)
+            return self.iter_accounts()
+        if Subscription in objs:
+            self._restrict_level(split_path)
+            return self.iter_subscription()
+
+    def get_subscription(self, _id):
+        return find_object(self.iter_subscription(), id=_id, error=SubscriptionNotFound)
+
+    def get_document(self, _id):
+        subscription_id = _id.split('_')[0]
+        subscription = self.get_subscription(subscription_id)
+        return find_object(self.iter_documents(subscription), id=_id, error=DocumentNotFound)
+
+    def iter_subscription(self):
+        return self.browser.iter_subscription()
+
+    def iter_documents(self, subscription):
+        if not isinstance(subscription, Subscription):
+            subscription = self.get_subscription(subscription)
+
+        return self.browser.iter_documents(subscription)
+
+    def download_document(self, document):
+        if not isinstance(document, Document):
+            document = self.get_document(document)
+
+        if document.url is NotAvailable:
+            return
+
+        return self.browser.open(document.url).content

@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from datetime import datetime
 
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded
@@ -30,6 +31,7 @@ from .pages.accounts_list import (
 )
 from .pages.transfer import RecipientsPage, TransferPage, AddRecipientPage, RecipientJson
 from .pages.login import LoginPage, BadLoginPage, ReinitPasswordPage, ActionNeededPage
+from .pages.subscription import BankStatementPage
 
 
 __all__ = ['SocieteGenerale']
@@ -65,6 +67,9 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     loans = URL(r'/abm/restit/listeRestitutionPretsNET.json\?a100_isPretConso=(?P<conso>\w+)', LoansPage)
     html_profile_page = URL(r'/com/dcr-web/dcr/dcr-coordonnees.html', HTMLProfilePage)
     xml_profile_page = URL(r'/gms/gmsRestituerAdresseNotificationServlet.xml', XMLProfilePage)
+
+    bank_statement = URL(r'/restitution/rce_recherche.html\?noRedirect=1',
+                         r'/restitution/rce_recherche_resultat.html', BankStatementPage)
 
     accounts_list = None
     context = None
@@ -257,3 +262,43 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
         self.xml_profile_page.go()
         profile.email = self.page.get_email()
         return profile
+
+    @need_login
+    def iter_subscription(self):
+        profile = self.get_profile()
+        subscriber = profile.name
+
+        self.bank_statement.go()
+        return self.page.iter_subscription(subscriber=subscriber)
+
+    @need_login
+    def iter_documents(self, subscribtion):
+        today = datetime.today()
+        month = today.month
+        year = today.year
+
+        # current year
+        self.bank_statement.go()
+        self.page.post_form(subscribtion, str(month), str(year))
+        for d in self.page.iter_documents(subscribtion):
+            yield d
+
+        # other years
+        month = 12
+
+        security_limit = 1000
+        i = 0
+        while i < security_limit:
+            year -= 1
+
+            self.bank_statement.go()
+            self.page.post_form(subscribtion, str(month), str(year))
+
+            # No more documents
+            if self.page.has_error_msg():
+                break
+
+            for d in self.page.iter_documents(subscribtion):
+                yield d
+
+            i += 1
