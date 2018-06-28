@@ -282,6 +282,10 @@ class BanquePopulaire(LoginBrowser):
         data['token'] = self.page.build_token(data['token'])
 
         self.location(self.absurl('/cyber/internet/ContinueTask.do', base=True), data=data)
+
+        # This is not optimal but since the POST above does not always work, we must avoid iter_history crash:
+        if self.error_page.is_here():
+            return
         ref = self.page.get_reference()
         transaction.raw = '%s %s' % (transaction.raw, ref)
 
@@ -294,6 +298,7 @@ class BanquePopulaire(LoginBrowser):
             _data['token'] = self.page.build_token(_data['token'])
             self.location('/cyber/internet/ContinueTask.do', data=_data)
 
+
     @retry(LoggedOut)
     @need_login
     def get_history(self, account, coming=False):
@@ -302,11 +307,13 @@ class BanquePopulaire(LoginBrowser):
         if account is None:
             raise BrowserUnavailable()
 
+        transaction_list = []
+
         if account._invest_params or (account.id.startswith('TIT') and account._params):
             if not coming:
                 for tr in self.get_invest_history(account):
-                    yield tr
-            return
+                    transaction_list.append(tr)
+                return transaction_list
 
         if coming:
             params = account._coming_params
@@ -330,22 +337,25 @@ class BanquePopulaire(LoginBrowser):
             params['token'] = self.page.build_token(params['token'])
             form.submit()
 
-        while True:
+        transaction_next_page = True
+
+        while transaction_next_page:
             assert self.transactions_page.is_here()
 
-            transaction_list = self.page.get_history(account, coming)
-            for tr in transaction_list:
-                # Add informations about GoCardless
+            for tr in self.page.get_history(account, coming):
+                # Add information about GoCardless
                 if 'GoCardless' in tr.label and tr._has_link:
                     self.set_gocardless_transaction_details(tr)
 
-                yield tr
+                transaction_list.append(tr)
 
             next_params = self.page.get_next_params()
             if next_params is None:
-                return
+                transaction_next_page = False
 
             self.location('/cyber/internet/Page.do', params=next_params)
+
+        return transaction_list
 
     @need_login
     def go_investments(self, account, get_account=False):
