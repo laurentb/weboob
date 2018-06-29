@@ -70,7 +70,7 @@ class INGModule(Module, CapBankWealth, CapBankTransfer, CapDocument, CapProfile)
             return self.iter_subscription()
 
     def iter_accounts(self):
-        return self.browser.iter_accounts()
+        return self.browser.get_accounts_list()
 
     def get_account(self, _id):
         return self.browser.get_account(_id)

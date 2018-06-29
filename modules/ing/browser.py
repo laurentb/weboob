@@ -113,6 +113,12 @@ class IngBrowser(LoginBrowser):
         self.cache["investments_data"] = {}
         self.only_deferred_cards = {}
 
+        # will contain a list of the spaces
+        # (the parameters needed to check and change them)
+        # if not, it is an empty list
+        self.multispace = None
+        self.current_space = None
+
     def do_login(self):
         assert self.password.isdigit()
         assert self.birthday.isdigit()
@@ -128,11 +134,42 @@ class IngBrowser(LoginBrowser):
             raise BrowserIncorrectPassword('Please login on website to fill the form and retry')
         self.page.check_for_action_needed()
 
+    def set_multispace(self):
+        self.accountspage.go()
+        self.where = "start"
+        self.page.load_space_page()
+
+        self.multispace = self.page.get_multispace()
+
+        # setting the current_space depending on the current state of the page
+        for space in self.multispace:
+            if space['is_active']:
+                self.current_space = space
+                break
+
+    def change_space(self, space):
+        if self.multispace and not self.is_same_space(space, self.current_space):
+            self.accountspage.go()
+            self.where = "start"
+            self.page.load_space_page()
+
+            self.page.change_space(space)
+            self.current_space = space
+
+    def is_same_space(self, a, b):
+        return (
+            a['name'] == b['name']
+            and a['id'] == b['id']
+            and a['form'] == b['form']
+        )
+
     @start_with_main_site
     def get_market_balance(self, account):
         if self.where != "start":
             self.accountspage.go()
             self.where = "start"
+
+        self.change_space(account._space)
 
         data = self.get_investments_data(account)
         for i in range(5):
@@ -150,85 +187,63 @@ class IngBrowser(LoginBrowser):
         self.cache["investments_data"][account.id] = self.page.doc or None
 
     @need_login
-    @start_with_main_site
-    def load_account_page(self):
-        # Go through a form to have the layout showing multiple users
-        self.accountspage.go()
-        self.where = "start"
-        self.page.load_account_page()
+    def get_iban(self, account):
+        if account.type in [Account.TYPE_CHECKING, Account.TYPE_SAVINGS]:
+            self.go_account_page(account)
+            # nedeed for transfer
+            account._estimated_balance = self.page.get_estimated_balance()
+            account.iban = self.ibanpage.go().get_iban()
+
+        if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
+            self.get_market_balance(account)
 
     @need_login
-    @start_with_main_site
-    def get_accounts_on_page(self, get_iban=True):
-        for acc in self.page.get_list():
-            if get_iban and acc.type in [Account.TYPE_CHECKING, Account.TYPE_SAVINGS]:
-                self.go_account_page(acc)
-                # nedeed for transfer
-                acc._estimated_balance = self.page.get_estimated_balance()
-                acc.iban = self.ibanpage.go().get_iban()
-
-            if get_iban and acc.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
-                self.get_market_balance(acc)
-
-            yield acc
-
-    @need_login
-    @start_with_main_site
-    def iter_accounts(self, get_iban=True):
-        self.load_account_page()
-        if self.page.get_user_list():
-            return self.get_accounts_all_users(get_iban)
-        return self.get_accounts_only_user(get_iban)
-
-    @need_login
-    @start_with_main_site
-    def back_to_first_user(self, user_list=None):
-        self.load_account_page()
-
-        if not user_list:
-            user_list = self.page.get_user_list()
-
-        if user_list:
-            first_user = self.page.get_first_user(user_list)
-            self.page.change_user(first_user)
-
-    @need_login
-    @start_with_main_site
-    def get_accounts_all_users(self, get_iban=True):
-        self.load_account_page()
+    def get_accounts_on_space(self, space, get_iban=True):
         accounts_list = []
 
-        user_list = self.page.get_user_list()
-        for user in user_list:
-            if self.page.is_active(user):
-                self.load_account_page()
-                self.page.change_user(user)
+        self.change_space(space)
 
-            for acc in self.get_accounts_on_page():
-                # Check that the loops on several users does not create duplicate
-                assert not find_object(accounts_list, id=acc.id), 'There is a duplicate account.'
-                accounts_list.append(acc)
+        for acc in self.page.get_list():
+            acc._space = space
+            if get_iban:
+                self.get_iban(acc)
 
-                yield acc
-
-            # Several users not tested for loan
-            # Need a case
-            for loan in self.iter_detailed_loans():
-                yield loan
-
-        self.back_to_first_user(user_list)
-
-    @need_login
-    @start_with_main_site
-    def get_accounts_only_user(self, get_iban=True):
-        self.accountspage.go()
-        self.where = "start"
-
-        for acc in self.get_accounts_on_page():
+            assert not find_object(accounts_list, id=acc.id), 'There is a duplicate account.'
+            accounts_list.append(acc)
             yield acc
 
         for loan in self.iter_detailed_loans():
+            loan._space = space
+            assert not find_object(accounts_list, id=loan.id), 'There is a duplicate loan.'
+            accounts_list.append(loan)
             yield loan
+
+    @need_login
+    @start_with_main_site
+    def get_accounts_list(self, space=None, get_iban=True):
+        self.accountspage.go()
+        self.where = "start"
+
+        self.set_multispace()
+
+        if space:
+            for acc in self.get_accounts_on_space(space, get_iban=get_iban):
+                yield acc
+
+        elif self.multispace:
+            for space in self.multispace:
+                for acc in self.get_accounts_on_space(space, get_iban=get_iban):
+                    yield acc
+        else:
+            for acc in self.page.get_list():
+                acc._space = None
+                if get_iban:
+                    self.get_iban(acc)
+                yield acc
+
+            for loan in self.iter_detailed_loans():
+                loan._space = None
+                yield loan
 
     @need_login
     @start_with_main_site
@@ -257,12 +272,9 @@ class IngBrowser(LoginBrowser):
         self.location('https://subscribe.ingdirect.fr/consumerloan/consumerloan-v1/sso/exit', data=data)
         self.location('https://secure.ingdirect.fr/', data={'token': self.response.text})
 
-    def get_account(self, _id):
-        # so that the back_to_user_list is always executed
-        # if not, there can be duplicates
-        account = find_object(self.iter_accounts(get_iban=False), id=_id, error=AccountNotFound)
-        self.back_to_first_user()
-        return account
+    def get_account(self, _id, space=None):
+        return find_object(self.get_accounts_list(get_iban=False, space=space), id=_id, error=AccountNotFound)
+
 
     def go_account_page(self, account):
         data = {"AJAX:EVENTS_COUNT": 1,
@@ -285,10 +297,12 @@ class IngBrowser(LoginBrowser):
     @need_login
     @start_with_main_site
     def get_coming(self, account):
+        self.change_space(account._space)
+
         if account.type != Account.TYPE_CHECKING and\
                 account.type != Account.TYPE_SAVINGS:
             raise NotImplementedError()
-        account = self.get_account(account.id)
+        account = self.get_account(account.id, space=account._space)
         self.go_account_page(account)
         jid = self.page.get_history_jid()
         if jid is None:
@@ -299,6 +313,8 @@ class IngBrowser(LoginBrowser):
     @need_login
     @start_with_main_site
     def get_history(self, account):
+        self.change_space(account._space)
+
         if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA, Account.TYPE_LIFE_INSURANCE):
             for result in self.get_history_titre(account):
                 yield result
@@ -307,8 +323,7 @@ class IngBrowser(LoginBrowser):
         elif account.type != Account.TYPE_CHECKING and\
                 account.type != Account.TYPE_SAVINGS:
             raise NotImplementedError()
-
-        account = self.get_account(account.id)
+        account = self.get_account(account.id, space=account._space)
         self.go_account_page(account)
         jid = self.page.get_history_jid()
         only_deferred_cb = self.only_deferred_cards.get(account._id)
@@ -353,15 +368,20 @@ class IngBrowser(LoginBrowser):
     @need_login
     @start_with_main_site
     def iter_recipients(self, account):
+        self.change_space(account._space)
+
         self.transfer.go()
         if not self.page.able_to_transfer(account):
             return iter([])
+
         self.page.go_to_recipient_selection(account)
         return self.page.get_recipients(origin=account)
 
     @need_login
     @start_with_main_site
     def init_transfer(self, account, recipient, transfer):
+        self.change_space(account._space)
+
         self.transfer.go()
         self.page.do_transfer(account, recipient, transfer)
         return self.page.recap(account, recipient, transfer)
@@ -400,7 +420,8 @@ class IngBrowser(LoginBrowser):
                 }
 
     def go_investments(self, account):
-        account = self.get_account(account.id)
+        account = self.get_account(account.id, space=account._space)
+
         data = self.get_investments_data(account)
 
         # On ASV pages, data maybe not available.
@@ -412,7 +433,7 @@ class IngBrowser(LoginBrowser):
                 if i > 1:
                     self.do_logout()
                     self.do_login()
-                    account = self.get_account(account.id)
+                    account = self.get_account(account.id, space=account._space)
                     data['cptnbr'] = account._id
                     data['javax.faces.ViewState'] = account._jid
 

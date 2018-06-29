@@ -282,23 +282,24 @@ class AccountsList(LoggedPage, HTMLPage):
         form['follow_link:j_idcl'] = "follow_link:goToAsvPartner"
         form.submit()
 
-    def get_user_list(self):
-        return self.doc.xpath('//a[contains(@id, "mainMenu")]')
+    def get_multispace(self):
+        multispace = []
 
-    def is_active(self, user):
-        return 'active' not in user.attrib['class']
+        for a in self.doc.xpath('//a[contains(@id, "mainMenu")]'):
+            space = {}
+            name = CleanText('.')(a)
+            if 'Vos comptes' not in name:
+                space['name'] = name
+            else:
+                space['name'] = CleanText('//div[@class="print-content"]/h1')(a)
 
-    def get_first_user(self, user_list):
-        first_user = user_list[0]
-        min = int(re.search(r'j_id(\d+)', first_user.attrib['id']).group(1))
+            space['id'] = Regexp(Attr('.', 'id'), r'mainMenu:(.*)')(a)
+            space['form'] = Attr('.', 'onclick')(a)
+            space['is_active'] = 'active' in CleanText('./@class')(a)
 
-        for count, user in enumerate(user_list):
-            nb = int(re.search(r'j_id(\d+)', user.attrib['id']).group(1))
-            if nb < min:
-                first_user = user
-                min = nb
+            multispace.append(space)
 
-        return first_user
+        return multispace
 
     def fillup_form(self, form, regexp, string):
         # fill form depending on JS
@@ -308,14 +309,15 @@ class AccountsList(LoggedPage, HTMLPage):
             f = p.split("':'")
             form[f[0].replace("'", '')] = f[1].replace("'", '')
 
-    def change_user(self, user):
+    def change_space(self, space):
         form = self.get_form(id='mainMenu')
-        on_click = user.attrib['onclick']
-        self.fillup_form(form, r"':\{(.*)\}\s\}", on_click)
+        self.fillup_form(form, r"':\{(.*)\}\s\}", space['form'])
         form['AJAXREQUEST'] = '_viewRoot'
         form.submit()
 
-    def load_account_page(self):
+    def load_space_page(self):
+        # The accounts page exists in two forms: with the spaces list and without
+        # When having the spaceless page, a form must be submit to access the space page
         form = self.get_form(id='user-menu')
         on_click = self.doc.xpath('//a[contains(@class, "comptes")]/@onclick')[1]
         self.fillup_form(form, r"\),\{(.*)\},'", on_click)
