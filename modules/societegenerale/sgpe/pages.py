@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 from logging import error
 import re
 from io import BytesIO
@@ -192,17 +194,17 @@ class ProfileEntPage(LoggedPage, SGPEPage):
     class get_profile(ItemElement):
         klass = Person
 
-        obj_email = Attr('//input[@name="email"]', 'value')
-        obj_phone = Attr('//input[@name="telephone"]', 'value')
-        obj_job = CleanText('//select[@name="fonction"]/option[@selected]')
-        obj_company_name = CleanText(u'//tr[th[contains(text(), "Raison sociale")]]/td')
-        obj_company_siren = CleanText(u'//tr[th[contains(text(), "SIREN")]]/td')
+        obj_email = CleanText('//tr[th[text()="Adresse e-mail"]]/td')
+        obj_job = CleanText('//tr[th[text()="Fonction dans l\'entreprise"]]/td')
+        obj_company_name = CleanText('//tr[th[text()="Raison sociale"]]/td')
+
+        def obj_phone(self):
+            return (CleanText('//tr[th[contains(text(), "Téléphone mobile")]]/td')(self)
+                   or CleanText('//tr[th[contains(text(), "Téléphone fixe")]]/td')(self)
+                   or NotAvailable)
 
         def obj_name(self):
-            civility = Attr('//input[@name="civilite"][@checked]', 'value', default=None)(self) or \
-                       CleanText(u'//tr[th[contains(text(), "Civilité")]]/td')(self)
-            firstname = Attr('//input[@name="prenom"]', 'value', default=None)(self) or \
-                        CleanText(u'//tr[th[contains(text(), "Prénom")]]/td')(self)
-            lastname = Attr('//input[@name="nom"]', 'value', default=None)(self) or \
-                       CleanText(u'//tr[th[contains(text(), "Nom")]]/td')(self)
+            civility = CleanText('//tr[th[contains(text(), "Civilité")]]/td')(self)
+            firstname = CleanText('//tr[th[contains(text(), "Prénom")]]/td')(self)
+            lastname = CleanText('//tr[th[contains(text(), "Nom")]]/td')(self)
             return "%s %s %s" % (civility, firstname, lastname)
