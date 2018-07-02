@@ -409,7 +409,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                 self.natixis_life_ins_his.go(id1=label[:3], id2=label[3:5], id3=account.id)
                 return sorted_transactions(self.page.get_history())
 
-            if "NUANCES 3D" in account.label:
+            if account.label.startswith('NUANCES '):
                 self.page.go_life_insurance(account)
 
             try:
