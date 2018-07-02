@@ -45,13 +45,21 @@ from requests.packages.urllib3.util.ssl_ import ssl_wrap_socket as old_ssl_wrap_
 from weboob.tools.log import getLogger
 
 
-__all__ = ['init_nss', 'inject_in_urllib3']
+__all__ = ['init_nss', 'inject_in_urllib3', 'certificate_db_filename']
 
 
 CTX = None
 INIT_PID = None
 INIT_ARGS = None
 LOGGER = getLogger('weboob.browser.nss')
+
+
+def certificate_db_filename():
+    version = tuple(int(x) for x in nss.nss.nss_get_version().split('.'))
+    # see https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSS/NSS_3.35_release_notes
+    if version < (3, 35):
+        return 'cert8.db'
+    return 'cert9.db'
 
 
 def cert_to_dict(cert):

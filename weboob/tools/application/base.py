@@ -429,10 +429,12 @@ class Application(object):
             logging.root.addHandler(handler)
 
     def setup_nss(self):
-        from weboob.browser.nss import init_nss, inject_in_urllib3, create_cert_db
+        from weboob.browser.nss import (
+            init_nss, inject_in_urllib3, create_cert_db, certificate_db_filename,
+        )
 
         path = self.CONFDIR
-        if not os.path.exists(os.path.join(path, 'cert8.db')):
+        if not os.path.exists(os.path.join(path, certificate_db_filename())):
             create_cert_db(path)
         init_nss(path)
         inject_in_urllib3()
