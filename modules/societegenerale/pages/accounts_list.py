@@ -28,7 +28,7 @@ import re
 from weboob.capabilities.base import empty, NotAvailable, find_object
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.contact import Advisor
-from weboob.capabilities.profile import Person
+from weboob.capabilities.profile import Person, ProfileMissing
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.investments import is_isin_valid
 from weboob.tools.compat import parse_qs, urlparse, parse_qsl, urlunparse, urlencode, unicode
@@ -619,8 +619,12 @@ class AdvisorPage(LoggedPage, BasePage):
 class HTMLProfilePage(LoggedPage, HTMLPage):
     def on_load(self):
         msg = CleanText('//div[@id="connecteur_partenaire"]', default='')(self.doc)
+        service_unavailable_msg = CleanText('//span[@class="error_msg" and contains(text(), "indisponible")]')(self.doc)
+
         if 'Erreur' in msg:
             raise BrowserUnavailable(msg)
+        if service_unavailable_msg:
+            raise ProfileMissing(service_unavailable_msg)
 
     def get_profile(self):
         profile = Person()
