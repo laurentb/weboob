@@ -469,6 +469,8 @@ class CardsPage(MyLoggedPage, BasePage):
 
             obj_label = Format('%s - %s', CleanText('./caption/span[contains(@class, "tdb-cartes-carte")]'), Regexp(CleanText('./caption/span[@class="tdb-cartes-prop"]'), '^(.*)\s*$'))
 
+            obj_currency = CleanCurrency(Regexp(CleanText('//span[contains(text(), "Montants")]'), r'Montants en (.*)'))
+
             def obj_url(self):
                 # "paire" is for the coming month
                 link = Link('.//tr[@class="ligne-paire"]//a[text()="Carte"]', default=None)(self)
