@@ -273,6 +273,7 @@ class BanquePopulaire(LoginBrowser):
         return find_object(self.get_accounts_list(False), id=id)
 
     def set_gocardless_transaction_details(self, transaction):
+        # This method is not called for the moment, in order to prevent crash during get_history()
         # Setting references for a GoCardless transaction
         data = self.page.get_params()
         data['validationStrategy'] = 'NV'
@@ -282,10 +283,6 @@ class BanquePopulaire(LoginBrowser):
         data['token'] = self.page.build_token(data['token'])
 
         self.location(self.absurl('/cyber/internet/ContinueTask.do', base=True), data=data)
-
-        # This is not optimal but since the POST above does not always work, we must avoid iter_history crash:
-        if self.error_page.is_here():
-            return
         ref = self.page.get_reference()
         transaction.raw = '%s %s' % (transaction.raw, ref)
 
@@ -334,22 +331,26 @@ class BanquePopulaire(LoginBrowser):
             params['token'] = self.page.build_token(params['token'])
             form.submit()
 
-        while True:
+        transactions_next_page = True
+
+        while transactions_next_page:
             assert self.transactions_page.is_here()
 
             transaction_list = self.page.get_history(account, coming)
             for tr in transaction_list:
-                # Add informations about GoCardless
-                if 'GoCardless' in tr.label and tr._has_link:
-                    self.set_gocardless_transaction_details(tr)
-
+                # Add information about GoCardless:
+                # This method does not work 100% and potentially causes crash in get_history.
+                # Therefore, for now we decided not to call it while iterating over transactions.'''
+                #if 'GoCardless' in tr.label and tr._has_link:
+                    #self.set_gocardless_transaction_details(tr)
                 yield tr
 
             next_params = self.page.get_next_params()
+            # Go to the next transaction page only if it exists:
             if next_params is None:
-                return
-
-            self.location('/cyber/internet/Page.do', params=next_params)
+                transactions_next_page = False
+            else:
+                self.location('/cyber/internet/Page.do', params=next_params)
 
     @need_login
     def go_investments(self, account, get_account=False):
