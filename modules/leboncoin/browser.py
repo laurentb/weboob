@@ -17,26 +17,27 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from weboob.tools.json import json
+
 from weboob.browser import PagesBrowser, URL
 from weboob.capabilities.housing import (TypeNotSupported, POSTS_TYPES,
-                                         HOUSE_TYPES)
-from .pages import CityListPage, HousingListPage, HousingPage, PhonePage
+                                         HOUSE_TYPES, ADVERT_TYPES)
+from .pages import CityListPage, HousingListPage, HousingPage, PhonePage, HomePage
 
 
 class LeboncoinBrowser(PagesBrowser):
     BASEURL = 'https://www.leboncoin.fr/'
     city = URL('ajax/location_list.html\?city=(?P<city>.*)&zipcode=(?P<zip>.*)', CityListPage)
     housing = URL('ventes_immobilieres/(?P<_id>.*).htm', HousingPage)
-    search = URL('(?P<type>.*)/offres/\?(?P<_ps>ps|mrs)=(?P<ps>.*)&(?P<_pe>pe|mre)=(?P<pe>.*)&ros=(?P<ros>.*)&furn=(?P<furn>.*)&location=(?P<location>.*)&sqs=(?P<sqs>.*)&sqe=(?P<sqe>.*)&ret=(?P<ret>.*)&f=(?P<advert_type>.*)',
-                 '(?P<_type>.*)/offres/occasions.*?',
-                 '(?P<_type>.*)',
-                 HousingListPage)
+
+    home = URL('annonces/offres/', HomePage)
+    api = URL('https://api.leboncoin.fr/finder/search', HousingListPage)
     phone = URL('https://api.leboncoin.fr/api/utils/phonenumber.json', PhonePage)
 
-    TYPES = {POSTS_TYPES.RENT: 'locations',
-             POSTS_TYPES.FURNISHED_RENT: 'locations',
-             POSTS_TYPES.SALE: 'ventes_immobilieres',
-             POSTS_TYPES.SHARING: 'colocations', }
+    TYPES = {POSTS_TYPES.RENT: '10',
+             POSTS_TYPES.FURNISHED_RENT: '10',
+             POSTS_TYPES.SALE: '9',
+             POSTS_TYPES.SHARING: '11', }
 
     RET = {HOUSE_TYPES.HOUSE: '1',
            HOUSE_TYPES.APART: '2',
@@ -57,31 +58,83 @@ class LeboncoinBrowser(PagesBrowser):
 
         return self.city.go(city=city, zip=zip_code).get_cities()
 
-    def search_housings(self, query, advert_type, module_name):
-        if query.type not in self.TYPES:
+    def search_housings(self, query, module_name):
+
+        if query.type not in self.TYPES.keys():
             return TypeNotSupported()
 
-        type, cities, nb_rooms, area_min, area_max, cost_min, cost_max, ret, furn = self.decode_query(query, module_name)
+        data = {}
+        data['filters'] = {}
+        data['filters']['category'] = {}
+        data['filters']['category']['id'] = self.TYPES.get(query.type)
+        data['filters']['enums'] = {}
+        data['filters']['enums']['ad_type'] = ['offer']
 
-        if len(cities) == 0 or len(ret) == 0:
-            return list()
+        data['filters']['enums']['real_estate_type'] = []
+        for t in query.house_types:
+            t = self.RET.get(t)
+            if t:
+                data['filters']['enums']['real_estate_type'].append(t)
 
-        return self.search.go(location=cities,
-                              ros=nb_rooms,
-                              sqs=area_min,
-                              sqe=area_max,
-                              furn=furn,
-                              _ps="mrs" if query.type == POSTS_TYPES.RENT else "ps",
-                              ps=cost_min,
-                              _pe="mre" if query.type == POSTS_TYPES.RENT else "pe",
-                              pe=cost_max,
-                              type=type,
-                              advert_type=advert_type,
-                              ret=ret).get_housing_list(query_type=query.type)
+        if query.type == POSTS_TYPES.FURNISHED_RENT:
+            data['filters']['enums']['furnished'] = ['1']
+        elif query.type == POSTS_TYPES.RENT:
+            data['filters']['enums']['furnished'] = ['2']
+
+        data['filters']['keywords'] = {}
+        data['filters']['ranges'] = {}
+
+        if query.cost_max or query.cost_min:
+            data['filters']['ranges']['price'] = {}
+
+            if query.cost_max:
+                data['filters']['ranges']['price']['max'] = query.cost_max
+
+                if query.cost_min:
+                    data['filters']['ranges']['price']['min'] = query.cost_min
+
+        if query.area_max or query.area_min:
+            data['filters']['ranges']['square'] = {}
+            if query.area_max:
+                data['filters']['ranges']['square']['max'] = query.area_max
+
+            if query.area_min:
+                data['filters']['ranges']['square']['min'] = query.area_min
+
+        if query.nb_rooms:
+            data['filters']['ranges']['rooms'] = {}
+            data['filters']['ranges']['rooms']['min'] = query.nb_rooms
+
+        data['filters']['location'] = {}
+        data['filters']['location']['city_zipcodes'] = []
+
+        for c in query.cities:
+            if c.backend == module_name:
+                _c = c.id.split(' ')
+                __c = {}
+                __c['city'] = _c[0]
+                __c['zipcode'] = _c[1]
+                __c['label'] = c.name
+
+                data['filters']['location']['city_zipcodes'].append(__c)
+
+        if len(query.advert_types) == 1:
+            if query.advert_types[0] == ADVERT_TYPES.PERSONAL:
+                data['owner_type'] = 'private'
+            elif query.advert_types[0] == ADVERT_TYPES.PROFESSIONAL:
+                data['owner_type'] = 'pro'
+        else:
+            data['owner_type'] = 'all'
+
+        data['limit'] = 100
+        data['limit_alu'] = 3
+        data['offset'] = 0
+
+        self.session.headers.update({"api_key": self.home.go().get_api_key()})
+        return self.api.go(data=json.dumps(data)).get_housing_list(query_type=query.type, data=data)
 
     def get_housing(self, _id, obj=None):
-        housing = self.housing.go(_id=_id).get_housing(obj=obj)
-        return housing
+        return self.housing.go(_id=_id).get_housing(obj=obj)
 
     def get_phone(self, _id):
         api_key = self.housing.stay_or_go(_id=_id).get_api_key()
@@ -90,25 +143,3 @@ class LeboncoinBrowser(PagesBrowser):
                 'key': api_key,
                 'text': 1, }
         return self.phone.go(data=data).get_phone()
-
-    def decode_query(self, query, module_name):
-        cities = [c.name for c in query.cities if c.backend == module_name]
-        ret = [self.RET.get(g) for g in query.house_types if g in self.RET]
-        _type = self.TYPES.get(query.type)
-
-        self.search.go(_type=_type)
-
-        nb_rooms = '' if not query.nb_rooms else self.page.get_rooms_min(query.nb_rooms)
-        area_min = '' if not query.area_min else self.page.get_area_min(query.area_min)
-        area_max = '' if not query.area_max else self.page.get_area_max(query.area_max)
-        cost_min = '' if not query.cost_min else self.page.get_cost_min(query.cost_min, query.type)
-        cost_max = '' if not query.cost_max else self.page.get_cost_max(query.cost_max, query.type)
-
-        if query.type == POSTS_TYPES.FURNISHED_RENT:
-            furn = '1'
-        elif query.type == POSTS_TYPES.RENT:
-            furn = '2'
-        else:
-            furn = ''
-
-        return _type, ','.join(cities), nb_rooms, area_min, area_max, cost_min, cost_max, '&ret='.join(ret), furn

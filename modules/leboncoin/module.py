@@ -19,8 +19,7 @@
 
 
 from weboob.tools.backend import Module
-from weboob.capabilities.housing import (CapHousing, Housing, HousingPhoto,
-                                         ADVERT_TYPES)
+from weboob.capabilities.housing import (CapHousing, Housing, HousingPhoto)
 from .browser import LeboncoinBrowser
 
 
@@ -62,12 +61,6 @@ class LeboncoinModule(Module, CapHousing):
         return self.browser.get_cities(pattern)
 
     def search_housings(self, query):
-        advert_type = 'a'  # All
-        if len(query.advert_types) == 1:
-            if query.advert_types[0] == ADVERT_TYPES.PERSONAL:
-                advert_type = 'p'  # Owner
-            elif query.advert_types[0] == ADVERT_TYPES.PROFESSIONAL:
-                advert_type = 'c'  # Agency
-        return self.browser.search_housings(query, advert_type, self.name)
+        return self.browser.search_housings(query, self.name)
 
     OBJECTS = {Housing: fill_housing, HousingPhoto: fill_photo}
