@@ -679,3 +679,9 @@ class LoansPage(LoggedPage, JsonPage):
                     self.logger.debug('skipping account %r %r due to missing balance', obj.id, obj.label)
                     return False
                 return True
+
+
+class UnavailableServicePage(LoggedPage, HTMLPage):
+    def on_load(self):
+        if self.doc.xpath('//div[contains(@class, "erreur_404_content")]'):
+            raise BrowserUnavailable()

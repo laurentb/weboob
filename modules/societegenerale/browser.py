@@ -26,8 +26,8 @@ from weboob.browser.exceptions import BrowserHTTPNotFound
 
 from .pages.accounts_list import (
     AccountsList, AccountHistory, CardsList, LifeInsurance,
-    LifeInsuranceHistory, LifeInsuranceInvest, LifeInsuranceInvest2, Market,
-    ListRibPage, AdvisorPage, HTMLProfilePage, XMLProfilePage, LoansPage, IbanPage
+    LifeInsuranceHistory, LifeInsuranceInvest, LifeInsuranceInvest2, Market, UnavailableServicePage,
+    ListRibPage, AdvisorPage, HTMLProfilePage, XMLProfilePage, LoansPage, IbanPage,
 )
 from .pages.transfer import RecipientsPage, TransferPage, AddRecipientPage, RecipientJson
 from .pages.login import LoginPage, BadLoginPage, ReinitPasswordPage, ActionNeededPage
@@ -67,6 +67,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     loans = URL(r'/abm/restit/listeRestitutionPretsNET.json\?a100_isPretConso=(?P<conso>\w+)', LoansPage)
     html_profile_page = URL(r'/com/dcr-web/dcr/dcr-coordonnees.html', HTMLProfilePage)
     xml_profile_page = URL(r'/gms/gmsRestituerAdresseNotificationServlet.xml', XMLProfilePage)
+    unavailable_service_page = URL(r'/com/service-indisponible.html', UnavailableServicePage)
 
     bank_statement = URL(r'/restitution/rce_recherche.html\?noRedirect=1',
                          r'/restitution/rce_recherche_resultat.html', BankStatementPage)
