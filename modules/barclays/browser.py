@@ -34,11 +34,11 @@ from .pages import (
 
 
 class Barclays(LoginBrowser):
-    BASEURL = 'https://client.barclays.fr'
+    VERIFY = 'certificate.pem'
+    BASEURL = 'https://client.milleis.fr'
 
-    login_client_acess = URL('https://www.barclays.fr/front/layouts/barclays/components/accesclient.jspz\?accesType=client')
-    logout = URL('https://www.barclays.fr/bayexterne/enquetes/BCon/index.html')
-    barclays_ajax = URL('/BconnectDesk/ajaxservletcontroller')
+    logout = URL('https://www.milleis.fr/deconnexion')
+    milleis_ajax = URL('/BconnectDesk/ajaxservletcontroller')
 
     login = URL('/BconnectDesk/servletcontroller',                  LoginPage)
     accounts = URL('/BconnectDesk/servletcontroller',               AccountsPage)
@@ -88,11 +88,11 @@ class Barclays(LoginBrowser):
             'namespace': '',
             'controllername': 'servletcontroller',
             'disable': 'false',
-            'title': 'Barclaysnet',
+            'title': 'Milleis',
             token[0]: token[1]
          }
 
-        self.barclays_ajax.open(data=data)
+        self.milleis_ajax.open(data=data)
         self._go_to_account(account, refresh=True)
         return True
 
@@ -106,8 +106,6 @@ class Barclays(LoginBrowser):
 
         if self.page.has_error():
             raise BrowserIncorrectPassword()
-
-        self.login_client_acess.open()
 
         # can't login if there is ' ' in the 2 characters asked
         if not self.page.login_secret(self.secret):
