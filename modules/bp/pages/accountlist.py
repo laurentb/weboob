@@ -204,7 +204,7 @@ class AccountList(LoggedPage, MyHTMLPage):
             def obj_id(self):
                 if TableCell('label', default=None)(self):
                     return Regexp(CleanText(Field('label'), default=NotAvailable), '- (\w{16})')(self)
-                return CleanText('//form[contains(@action, "detaillerOffre")]/div[@class="bloc Tmargin"]/div[@class="formline"][2]/span/strong')(self)
+                return CleanText('//form[contains(@action, "detaillerOffre") or contains(@action, "detaillerPretPartenaireListe-encoursPrets.ea")]/div[@class="bloc Tmargin"]/div[@class="formline"][2]/span/strong')(self)
 
             obj_type = Account.TYPE_LOAN
 
@@ -212,7 +212,7 @@ class AccountList(LoggedPage, MyHTMLPage):
                 cell = TableCell('label', default=None)(self)
                 if cell:
                     return CleanText(cell, default=NotAvailable)(self)
-                return CleanText('//form[contains(@action, "detaillerOffre")]/div[@class="bloc Tmargin"]/h2[@class="title-level2"]')(self)
+                return CleanText('//form[contains(@action, "detaillerOffre") or contains(@action, "detaillerPretPartenaireListe-encoursPrets.ea")]/div[@class="bloc Tmargin"]/h2[@class="title-level2"]')(self)
 
             def obj_balance(self):
                 if CleanText(TableCell('balance'))(self) != u'Remboursé intégralement':
