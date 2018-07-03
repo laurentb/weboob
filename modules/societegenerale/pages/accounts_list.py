@@ -48,6 +48,16 @@ def MyDecimal(*args, **kwargs):
     return CleanDecimal(*args, **kwargs)
 
 
+class NotTransferBasePage(BasePage):
+    def is_transfer_here(self):
+        # check that we aren't on transfer or add recipient page
+        return bool(CleanText('//h1[contains(text(), "Effectuer un virement")]')(self.doc)) or \
+               bool(CleanText(u'//h3[contains(text(), "Ajouter un compte bénéficiaire de virement")]')(self.doc)) or \
+               bool(CleanText(u'//h1[contains(text(), "Ajouter un compte bénéficiaire de virement")]')(self.doc)) or \
+               bool(CleanText(u'//h3[contains(text(), "Veuillez vérifier les informations du compte à ajouter")]')(self.doc)) or \
+               bool(Link('//a[contains(@href, "per_cptBen_ajouterFrBic")]', default=NotAvailable)(self.doc))
+
+
 class AccountsList(LoggedPage, BasePage):
     LINKID_REGEXP = re.compile(".*ch4=(\w+).*")
 
@@ -153,9 +163,13 @@ class AccountsList(LoggedPage, BasePage):
         return accounts_list
 
 
-class IbanPage(LoggedPage, HTMLPage):
+class IbanPage(LoggedPage, NotTransferBasePage):
     def is_here(self):
-        return 'Imprimer ce RIB' in Attr('.//img', 'alt')(self.doc) or CleanText('//span[@class="error_msg"]')(self.doc)
+        if self.is_transfer_here():
+            return False
+        return 'Imprimer ce RIB' in Attr('.//img', 'alt')(self.doc) or \
+               CleanText('//span[@class="error_msg"]')(self.doc)
+
 
     def get_iban(self):
         if not CleanText('//span[@class="error_msg"]')(self.doc):
@@ -206,13 +220,9 @@ class Transaction(FrenchTransaction):
                ]
 
 
-class AccountHistory(LoggedPage, BasePage):
+class AccountHistory(LoggedPage, NotTransferBasePage):
     def is_here(self):
-        return not CleanText('//h1[contains(text(), "Effectuer un virement")]')(self.doc) and \
-            not bool(CleanText(u'//h3[contains(text(), "Ajouter un compte bénéficiaire de virement")]')(self.doc)) and \
-            not bool(CleanText(u'//h1[contains(text(), "Ajouter un compte bénéficiaire de virement")]')(self.doc)) and \
-            not bool(CleanText(u'//h3[contains(text(), "Veuillez vérifier les informations du compte à ajouter")]')(self.doc)) and \
-            not bool(Link('//a[contains(@href, "per_cptBen_ajouterFrBic")]', default=NotAvailable)(self.doc))
+        return not self.is_transfer_here()
 
     def on_load(self):
         super(AccountHistory, self).on_load()
