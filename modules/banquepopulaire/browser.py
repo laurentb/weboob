@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 import re
 
@@ -26,7 +27,7 @@ from functools import wraps
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.browser.exceptions import HTTPNotFound, ServerError
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable, find_object
 
 from .pages import (
@@ -177,9 +178,6 @@ class BanquePopulaire(LoginBrowser):
         super(BanquePopulaire, self).deinit()
         self.linebourse.deinit()
 
-    #def home(self):
-    #    self.do_login()
-
     no_login = 0
 
     @no_need_login
@@ -256,10 +254,7 @@ class BanquePopulaire(LoginBrowser):
             for a in accounts:
                 a.iban = self.get_iban_number(a)
             for a in accounts:
-                # force investments here to get most updated balance
                 self.get_investment(a)
-                if self.investments[a.id]:
-                    a.balance = sum(i.valuation for i in self.investments[a.id]) or a.balance
                 yield a
 
     @need_login
@@ -344,7 +339,7 @@ class BanquePopulaire(LoginBrowser):
             for tr in transaction_list:
                 # Add information about GoCardless:
                 # This method does not work 100% and potentially causes crash in get_history.
-                # Therefore, for now we decided not to call it while iterating over transactions.'''
+                # Therefore, for now we decided not to call it while iterating over transactions.
                 #if 'GoCardless' in tr.label and tr._has_link:
                     #self.set_gocardless_transaction_details(tr)
                 yield tr
@@ -409,6 +404,16 @@ class BanquePopulaire(LoginBrowser):
         if account.type in (Account.TYPE_LOAN,):
             self.investments[account.id] = []
             return []
+
+        # Add "Liquidities" investment if the account is a "Compte titres PEA":
+        if account.type == Account.TYPE_PEA and account.id.startswith('CPT'):
+            inv = Investment()
+            inv.label = 'Liquidités'
+            inv.code = 'XX-liquidity'
+            inv.code_type = NotAvailable
+            inv.valuation = account.balance
+            self.investments[account.id] = [inv]
+            return self.investments[account.id]
 
         if account.id in self.investments.keys() and self.investments[account.id] is False:
             raise NotImplementedError()
