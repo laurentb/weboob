@@ -31,7 +31,7 @@ from weboob.browser.pages import JsonPage, LoggedPage, HTMLPage
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment, Recipient, Transfer, TransferError, TransferBankError, AddRecipientError
 from weboob.capabilities.contact import Advisor
-from weboob.capabilities.profile import Person
+from weboob.capabilities.profile import Person, ProfileMissing
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, BrowserPasswordExpired, ActionNeeded
 from weboob.tools.capabilities.bank.iban import rib2iban, rebuild_rib, is_iban_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -247,17 +247,17 @@ class ProfilePage(LoggedPage, JsonPage):
 
         klass = Person
 
+        def parse(self, el):
+            if not Dict(self.item_path + 'etatCivil/prenom')(el).strip() and not Dict(self.item_path + 'etatCivil/nom')(el).strip():
+                raise ProfileMissing()
         obj_name = Format('%s %s', Dict(item_path + 'etatCivil/prenom'), Dict(item_path + 'etatCivil/nom'))
         obj_spouse_name = Dict(item_path + 'etatCivil/nomMarital', default=NotAvailable)
         obj_birth_date = Date(Dict(item_path + 'etatCivil/dateNaissance'), dayfirst=True)
         obj_nationality = Dict(item_path + 'etatCivil/nationnalite')
-
         obj_phone = Dict(item_path + 'etatCivil/numMobile')
         obj_email = Dict(item_path + 'etatCivil/mail')
-
         obj_job = Dict(item_path + 'situationPro/activiteExercee')
         obj_job_start_date = Date(Dict(item_path + 'situationPro/dateDebut'), dayfirst=True, default=NotAvailable)
-
         obj_company_name = Dict(item_path + 'situationPro/nomEmployeur')
 
         def obj_company_siren(self):
