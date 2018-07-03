@@ -519,7 +519,6 @@ class TransactionsPage(LoggedPage, CDNBasePage):
 
     def get_history(self, acc_type):
         txt = self.get_from_js('ListeMvts_data = new Array(', ');\n')
-
         if txt is None:
             no_trans = self.get_from_js('js_noMvts = new Ext.Panel(', ')')
             if no_trans is not None:

@@ -117,7 +117,6 @@ class CreditDuNordBrowser(LoginBrowser):
 
         while args is not None:
             self.location(link, data=args)
-
             assert self.transactions.is_here()
 
             for tr in self.page.get_history(acc_type):
@@ -130,6 +129,7 @@ class CreditDuNordBrowser(LoginBrowser):
         if coming and account.type is not Account.TYPE_CARD or account.type is Account.TYPE_LOAN:
             return []
 
+        self.location('/vos-comptes/%s' % self.account_type)
         transactions = []
         for tr in self.iter_transactions(account._link, account._args, account.type):
             transactions.append(tr)
