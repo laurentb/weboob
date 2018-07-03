@@ -92,8 +92,8 @@ class BNPEnterprise(LoginBrowser):
         except BrowserForbidden:
             marketaccount = []
         for account in self.accounts.stay_or_go().iter_accounts():
-            label_tmp = re.search(r'[0-9]+', account.label).group(0)
-            if label_tmp in marketaccount:
+            label_tmp = re.search(r'(\d{4,})', account.label)
+            if label_tmp and label_tmp.group(0) in marketaccount:
                 account.type = Account.TYPE_MARKET
             accounts.append(account)
 
