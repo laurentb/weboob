@@ -175,7 +175,7 @@ class LoginPage(JsonPage):
             raise BrowserIncorrectPassword()
 
         error = cast(self.get('errorCode'), int, 0)
-
+        # you can find api documentation on errors here : https://mabanque.bnpparibas/rsc/contrib/document/properties/identification-fr-part-V1.json
         if error:
             codes = [201, 21510, 203, 202]
             msg = self.get('message')
@@ -187,6 +187,8 @@ class LoginPage(JsonPage):
                 raise BrowserIncorrectPassword()
             elif error == 21501: # "Rendez-vous sur le site de BNP Paribas pour gérer vos comptes"
                 raise ActionNeeded(msg)
+            elif error == 21: # "Ce service est momentanément indisponible. Veuillez renouveler votre demande ultérieurement." -> In reality, account is blocked because of too much wrongpass
+                raise ActionNeeded(u"Compte bloqué")
 
             self.logger.debug('Unexpected error at login: "%s" (code=%s)' % (msg, error))
 
