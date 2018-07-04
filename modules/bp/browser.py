@@ -187,11 +187,9 @@ class BPBrowser(LoginBrowser, StatesMixin):
         super(BPBrowser, self).deinit()
         self.linebourse.deinit()
 
-    def do_login(self):
-        self.location(self.login_url)
-
+    def location(self, url, **kwargs):
         try:
-            self.page.login(self.username, self.password)
+            return super(BPBrowser, self).location(url, **kwargs)
         except ServerError as err:
             if "/../" not in err.response.url:
                 raise
@@ -200,7 +198,11 @@ class BPBrowser(LoginBrowser, StatesMixin):
             self.logger.debug('site has "/../" in their url, fixing url manually')
             parts = list(urlsplit(err.response.url))
             parts[2] = os.path.abspath(parts[2])
-            self.location(urlunsplit(parts))
+            return self.location(urlunsplit(parts))
+
+    def do_login(self):
+        self.location(self.login_url)
+        self.page.login(self.username, self.password)
 
         if self.redirect_page.is_here() and self.page.check_for_perso():
             raise BrowserIncorrectPassword(u"L'identifiant utilisé est celui d'un compte de Particuliers.")
@@ -566,4 +568,3 @@ class BProBrowser(BPBrowser):
             self.location('%s/voscomptes/rib/preparerRIB-rib.ea?%s' % (self.base_url, value))
             if self.rib.is_here():
                 return self.page.get_profile()
-
