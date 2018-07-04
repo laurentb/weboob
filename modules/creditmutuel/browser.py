@@ -42,7 +42,8 @@ from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, \
                    IbanPage, NewHomePage, AdvisorPage, RedirectPage, \
                    LIAccountsPage, CardsActivityPage, CardsListPage,       \
                    CardsOpePage, NewAccountsPage, InternalTransferPage, \
-                   ExternalTransferPage, RevolvingLoanDetails, RevolvingLoansList
+                   ExternalTransferPage, RevolvingLoanDetails, RevolvingLoansList, \
+                   ErrorPage
 
 
 __all__ = ['CreditMutuelBrowser']
@@ -121,6 +122,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
     internal_transfer = URL('/(?P<subbank>.*)fr/banque/virements/vplw_vi.html', InternalTransferPage)
     external_transfer = URL('/(?P<subbank>.*)fr/banque/virements/vplw_vee.html', ExternalTransferPage)
     recipients_list =   URL('/(?P<subbank>.*)fr/banque/virements/vplw_bl.html', RecipientsListPage)
+    error = URL('/validation/infos.cgi', ErrorPage)
 
     currentSubBank = None
     is_new_website = None

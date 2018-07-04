@@ -1449,7 +1449,11 @@ class RevolvingLoansList(LoggedPage, HTMLPage):
             def condition(self):
                 return CleanText('.//a', default=None)(self)
 
-
+class ErrorPage(HTMLPage):
+    def on_load(self):
+        error = CleanText('//td[@class="ALERTE"]')(self.doc)
+        if error:
+            raise BrowserUnavailable(error)
 
 class RevolvingLoanDetails(LoggedPage, HTMLPage):
     pass
