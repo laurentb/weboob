@@ -1070,3 +1070,7 @@ class AdvisorPage(LoggedPage, MyHTMLPage):
 class TransactionDetailPage(LoggedPage, MyHTMLPage):
     def get_reference(self):
         return CleanText('//div[label[contains(text(), "Référence")]]//text()')(self.doc)
+
+
+class LineboursePage(LoggedPage, HTMLPage):
+    pass

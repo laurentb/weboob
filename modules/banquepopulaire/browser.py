@@ -36,6 +36,7 @@ from .pages import (
     IbanPage, AdvisorPage, TransactionDetailPage, TransactionsBackPage,
     NatixisPage, EtnaPage, NatixisInvestPage, NatixisHistoryPage, NatixisErrorPage,
     NatixisDetailsPage, NatixisChoicePage, NatixisRedirect,
+    LineboursePage,
 )
 
 from .linebourse_browser import LinebourseBrowser
@@ -153,6 +154,8 @@ class BanquePopulaire(LoginBrowser):
     natixis_invest = URL(r'https://www.assurances.natixis.fr/espaceinternet-bp/rest/v2/contratVie/load/(?P<id1>\w+)/(?P<id2>\w+)/(?P<id3>\w+)', NatixisInvestPage)
     natixis_history = URL(r'https://www.assurances.natixis.fr/espaceinternet-bp/rest/v2/contratVie/load-operation/(?P<id1>\w+)/(?P<id2>\w+)/(?P<id3>\w+)', NatixisHistoryPage)
     natixis_pdf = URL(r'https://www.assurances.natixis.fr/espaceinternet-bp/rest/v2/contratVie/load-releve/(?P<id1>\w+)/(?P<id2>\w+)/(?P<id3>\w+)/(?P<year>\d+)', NatixisDetailsPage)
+
+    linebourse_home = URL(r'https://www.linebourse.fr/ReroutageSJR', LineboursePage)
 
     advisor = URL(r'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=accueil.*',
                   r'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=contacter.*', AdvisorPage)
@@ -389,7 +392,6 @@ class BanquePopulaire(LoginBrowser):
             if "linebourse" in self.url:
                 self.linebourse.session.cookies.update(self.session.cookies)
                 self.linebourse.invest.go()
-                self.logged = True
 
             if self.natixis_error_page.is_here():
                 self.logger.warning("natixis site doesn't work")
