@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.bank import CapBankWealth, AccountNotFound
 from weboob.capabilities.base import find_object
 from weboob.capabilities.profile import CapProfile
 from weboob.tools.backend import Module, BackendConfig
@@ -31,7 +31,7 @@ from .dispobank import DispoBankBrowser
 __all__ = ['BredModule']
 
 
-class BredModule(Module, CapBank, CapProfile):
+class BredModule(Module, CapBankWealth, CapProfile):
     NAME = 'bred'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -66,6 +66,9 @@ class BredModule(Module, CapBank, CapProfile):
 
     def iter_coming(self, account):
         return self.browser.get_history(account, coming=True)
+
+    def iter_investment(self, account):
+        return self.browser.get_investment(account)
 
     def get_profile(self):
         return self.browser.get_profile()

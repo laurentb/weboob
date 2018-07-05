@@ -26,7 +26,7 @@ from datetime import date
 from decimal import Decimal
 
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.profile import Person
 from weboob.tools.date import parse_french_date
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction, sorted_transactions
@@ -146,6 +146,7 @@ class BredBrowser(DomainBrowser):
             self.move_to_univers(universe_key)
             accounts.extend(self.get_list())
             accounts.extend(self.get_loans_list())
+            accounts.extend(self.get_life_insurance_list(accounts))
 
         return sorted(accounts, key=lambda x: x._univers)
 
@@ -226,6 +227,24 @@ class BredBrowser(DomainBrowser):
                 accounts_list.append(a)
 
         return accounts_list
+
+    def get_life_insurance_list(self, accounts):
+        call_response = self.location('/transactionnel/services/applications/avoirsPrepar/getAvoirs').json().get('content', [])
+
+        for content in call_response:
+            a = Account()
+            a.id = content['avoirs']['contrats'][0]['numero']
+            a._number = content['avoirs']['contrats'][0]['cptRattachement'].rstrip('0')
+            a.parent = find_object(accounts, _number=a._number, type=Account.TYPE_CHECKING)
+            a.type = Account.TYPE_LIFE_INSURANCE
+            a.label = ' '.join([content['titulaire'].strip(), content['avoirs']['contrats'][0]['libelleProduit'].strip()])
+            a.balance = Decimal(str(content['avoirs']['valeur']))
+            a.currency = 'EUR'
+            a._univers = self.current_univers
+            # The investment list for each life insurance is available here:
+            a._investments = [inv for inv in content['avoirs']['contrats'][0]['allocations']]
+            a._consultable = False
+            yield a
 
     def _make_api_call(self, account, start_date, end_date, offset, max_length=50):
         HEADERS = {
@@ -313,6 +332,20 @@ class BredBrowser(DomainBrowser):
             offset += 50
 
             assert offset < 30000, 'the site may be doing an infinite loop'
+
+    def get_investment(self, account):
+        if account.type != Account.TYPE_LIFE_INSURANCE:
+            raise NotImplementedError()
+
+        if account._univers != self.current_univers:
+            self.move_to_univers(account._univers)
+
+        for invest in account._investments:
+            inv = Investment()
+            inv.label = invest['libelle'].strip()
+            inv.code = invest['code']
+            inv.valuation = Decimal(str(invest['montant']))
+            yield inv
 
     def get_profile(self):
         self.get_universes()
