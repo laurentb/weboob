@@ -106,7 +106,8 @@ class item_account_generic(ItemElement):
                  'assurances? vie et retraite': Account.TYPE_LIFE_INSURANCE,
                  u'prêt': Account.TYPE_LOAN,
                  u'crédits?': Account.TYPE_LOAN,
-                 'plan d\'epargne en actions': Account.TYPE_PEA
+                 'plan d\'epargne en actions': Account.TYPE_PEA,
+                 'comptes? attente': Account.TYPE_CHECKING,
                  }
 
         # first trying to match with label
