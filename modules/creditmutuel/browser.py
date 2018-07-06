@@ -50,7 +50,7 @@ __all__ = ['CreditMutuelBrowser']
 
 class CreditMutuelBrowser(LoginBrowser, StatesMixin):
     PROFILE = Wget()
-    STATE_DURATION = 15
+    STATE_DURATION = 10
     TIMEOUT = 30
     BASEURL = 'https://www.creditmutuel.fr'
 
@@ -123,7 +123,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
     recipients_list =   URL('/(?P<subbank>.*)fr/banque/virements/vplw_bl.html', RecipientsListPage)
 
     currentSubBank = None
-    is_new_website = False
+    is_new_website = None
     form = None
     logged = None
     need_clear_storage = None
