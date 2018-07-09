@@ -209,6 +209,8 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
         # the account list and history urls depend on the sub bank of the user
         paths = urlparse(self.url).path.lstrip('/').split('/')
         self.currentSubBank = paths[0] + "/" if paths[0] != "fr" else ""
+        if self.currentSubBank and paths[1] == "decouverte":
+            self.currentSubBank += paths[1] + "/"
         if paths[0] in ["fr", "mabanque"]:
             self.is_new_website = True
 
