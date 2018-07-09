@@ -60,6 +60,7 @@ class BNPEnterprise(LoginBrowser):
 
     transaction_detail = URL(r'/NCCPresentationWeb/e21/getOptBDDF.do', TransactionPage)
     invest = URL(r'/opcvm/lister-composition/afficher.do', InvestPage)
+    # the token page is used only if there are several type market accounts
     token_inv = URL(r'/opcvm/lister-portefeuilles/afficher.do', TokenPage)
 
     renew_pass = URL('/sommaire/PseRedirectPasswordConnect', ActionNeededPage)
@@ -88,12 +89,19 @@ class BNPEnterprise(LoginBrowser):
     def get_accounts_list(self):
         accounts = []
         try:
-            marketaccount = self.token_inv.go().market_search()
+            self.token_inv.go()
+            if self.token_inv.is_here():
+                marketaccount = self.page.market_search()
+            else:
+                # redirected to invest page
+                # it means that there is only 1 market account among the ones showed
+                marketaccount = [self.page.get_market_account_label()]
         except BrowserForbidden:
             marketaccount = []
+
         for account in self.accounts.stay_or_go().iter_accounts():
             label_tmp = re.search(r'(\d{4,})', account.label)
-            if label_tmp and label_tmp.group(0) in marketaccount:
+            if (label_tmp and label_tmp.group(0) in marketaccount) or account.label in marketaccount:
                 account.type = Account.TYPE_MARKET
             accounts.append(account)
 
@@ -136,11 +144,15 @@ class BNPEnterprise(LoginBrowser):
     @need_login
     def iter_investment(self, account):
         if account.type == Account.TYPE_MARKET:
-            token = self.token_inv.go().get_token()
-            id_invest = self.page.get_id(label=account.label)
-            data = {"numeroCompte": id_invest, "_csrf": token}
-            headers = {"Host": "secure1.entreprises.bnpparibas.net"}
-            self.location('/opcvm/lister-composition/redirect-afficher.do', data=data, headers=headers)
+            self.token_inv.go()
+            if self.token_inv.is_here():
+                token = self.page.get_token()
+                id_invest = self.page.get_id(label=account.label)
+                data = {"numeroCompte": id_invest, "_csrf": token}
+                self.location('/opcvm/lister-composition/redirect-afficher.do', data=data)
+            else:
+                self.invest.go()
+
             for tr in self.page.iter_investment():
                 yield tr
 

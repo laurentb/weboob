@@ -380,3 +380,5 @@ class InvestPage(LoggedPage, HTMLPage):
                 chaine = CleanText(TableCell('label'))(self)
                 return re.search(r'(\w+) - ', chaine).group(0)[:-3]
 
+    def get_market_account_label(self):
+        return CleanText('//h3/span[span]', children=False)(self.doc)
