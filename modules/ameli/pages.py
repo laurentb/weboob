@@ -23,6 +23,7 @@ from datetime import datetime
 import re
 from decimal import Decimal
 
+from weboob.browser.filters.html import Attr, XPathNotFound
 from weboob.browser.pages import HTMLPage, RawPage, LoggedPage
 from weboob.capabilities.bill import Subscription, Detail, Bill
 from weboob.browser.filters.standard import CleanText, Regexp
@@ -62,6 +63,20 @@ class LoginPage(AmeliBasePage):
         form['connexioncompte_2codeConfidentiel'] = password.encode('utf8')
         form.submit()
 
+    def locate_to_cgu_page(self):
+        try:
+            # they've put a head tag inside body, yes i know...
+            url = Regexp(Attr('//div[@id="connexioncompte_2"]//meta', 'content'), r'url=(.*)')(self.doc)
+        except XPathNotFound:
+            # no cgu to validate
+            return
+        self.browser.location(url)
+
+
+class CguPage(AmeliBasePage):
+    def get_cgu(self):
+        return CleanText('//div[@class="page_nouvelles_cgus"]/p[1]')(self.doc)
+
 
 class HomePage(AmeliBasePage):
     pass
@@ -82,9 +97,12 @@ class AccountPage(AmeliBasePage):
 
 class PaymentsPage(AmeliBasePage):
     def get_last_payments_url(self):
-        dateDebut = self.doc.xpath('//input[@id="paiements_1dateDebut"]/@data-mindate')[0]
-        dateFin = self.doc.xpath('//input[@id="paiements_1dateFin"]/@data-maxdate')[0]
-        url = "/PortailAS/paiements.do?actionEvt=afficherPaiementsComplementaires&DateDebut=" + dateDebut + "&DateFin=" + dateFin + "&Beneficiaire=tout_selectionner&afficherReleves=false&afficherIJ=false&afficherInva=false&afficherRentes=false&afficherRS=false&indexPaiement=&idNotif="
+        begin_date = self.doc.xpath('//input[@id="paiements_1dateDebut"]/@data-mindate')[0]
+        end_date = self.doc.xpath('//input[@id="paiements_1dateFin"]/@data-maxdate')[0]
+        url = ('/PortailAS/paiements.do?actionEvt=afficherPaiementsComplementaires&DateDebut='
+               + begin_date + '&DateFin=' + end_date +
+               '&Beneficiaire=tout_selectionner&afficherReleves=false&afficherIJ=false&afficherInva=false'
+               '&afficherRentes=false&afficherRS=false&indexPaiement=&idNotif=')
         return url
 
 
@@ -128,7 +146,7 @@ class PaymentDetailsPage(AmeliBasePage):
             i = 0
             last_bloc = len(blocs_benes)
             for i in range(0, last_bloc):
-                bene = blocs_benes[i].text;
+                bene = blocs_benes[i].text
                 id_str = m.group(1)
                 id_date = datetime.strptime(id_str, '%d/%m/%Y').date()
                 id = sub._id + "." + datetime.strftime(id_date, "%Y%m%d")

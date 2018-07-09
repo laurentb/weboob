@@ -18,9 +18,9 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from weboob.tools.compat import basestring
-from .pages import LoginPage, HomePage, AccountPage, LastPaymentsPage, PaymentsPage, PaymentDetailsPage, Raw
+from .pages import LoginPage, HomePage, CguPage, AccountPage, LastPaymentsPage, PaymentsPage, PaymentDetailsPage, Raw
 
 __all__ = ['AmeliBrowser']
 
@@ -30,6 +30,7 @@ class AmeliBrowser(LoginBrowser):
 
     loginp = URL('/PortailAS/appmanager/PortailAS/assure\?.*_pageLabel=as_login_page', LoginPage)
     homep = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_accueil_page', HomePage)
+    cgup = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_conditions_generales_page', CguPage)
     accountp = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_info_perso_page', AccountPage)
     paymentsp = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_paiements_page', PaymentsPage)
     paymentdetailsp = URL('/PortailAS/paiements.do\?actionEvt=chargerDetailPaiements.*', PaymentDetailsPage)
@@ -51,7 +52,11 @@ class AmeliBrowser(LoginBrowser):
         if error:
             raise BrowserIncorrectPassword(error)
 
-        self.homep.stay_or_go()  # Redirection not interpreted by browser. Mannually redirect on homep
+        self.page.locate_to_cgu_page()
+        if self.cgup.is_here():
+            raise ActionNeeded(self.page.get_cgu())
+
+        self.homep.stay_or_go()  # Redirection not interpreted by browser. Manually redirect on homep
 
         if not self.homep.is_here():
             raise BrowserIncorrectPassword()
