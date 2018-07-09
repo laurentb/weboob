@@ -39,7 +39,7 @@ class BtpbanqueModule(AbstractModule, CapBank):
                  'strong': "Sesame (pro)"}
     CONFIG = BackendConfig(Value('auth_type', label='Type de compte', choices=auth_type, default="weak"),
                            ValueBackendPassword('login', label='Code utilisateur', masked=False),
-                           ValueBackendPassword('password', label='Code confidentiel ou code PIN'),
+                           ValueBackendPassword('password', label='Code confidentiel ou code PIN', regexp='\d+'),
                            Value('nuser', label="Numéro d'utilisateur (optionnel)", regexp='\d{0,8}', default=''))
     PARENT = 'caissedepargne'
     BROWSER = ProxyBrowser
