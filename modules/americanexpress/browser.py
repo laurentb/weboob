@@ -27,7 +27,7 @@ from weboob.browser.url import URL
 from .pages import (
     AccountsPage, JsonBalances, JsonPeriods, JsonHistory,
     JsonBalances2, CurrencyPage, LoginPage, WrongLoginPage, AccountSuspendedPage,
-   NoCardPage
+   NoCardPage, NotFoundPage
 )
 
 
@@ -52,6 +52,8 @@ class AmericanExpressBrowser(LoginBrowser):
     currency_page = URL(r'https://www.aexp-static.com/cdaas/axp-app/modules/axp-offers/1.11.1/fr-fr/axp-offers.json', CurrencyPage)
 
     no_card = URL('https://www.americanexpress.com/us/content/no-card/', NoCardPage)
+
+    not_found = URL(r'/accounts/error', NotFoundPage)
 
     SUMMARY_CARD_LABEL = [
         u'PAYMENT RECEIVED - THANK YOU',

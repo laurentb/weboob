@@ -31,7 +31,7 @@ from weboob.capabilities.bank import Account, Transaction
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.json import json
 from weboob.tools.compat import basestring
-from weboob.exceptions import ActionNeeded
+from weboob.exceptions import ActionNeeded, BrowserUnavailable
 
 
 def float_to_decimal(f):
@@ -57,6 +57,13 @@ class AccountSuspendedPage(HTMLPage):
 class NoCardPage(HTMLPage):
     def on_load(self):
         raise ActionNeeded()
+
+
+class NotFoundPage(HTMLPage):
+    def on_load(self):
+        alert_header = CleanText('//h1[@class="alert-header"]/span')(self.doc)
+        alert_content = CleanText('//p[@class="alert-subtitle"]/span')(self.doc)
+        raise BrowserUnavailable(alert_header, alert_content)
 
 
 class LoginPage(HTMLPage):
@@ -188,3 +195,4 @@ class JsonHistory(LoggedPage, JsonPage):
 
             # obj__ref = Dict('reference_id')
             obj__ref = Dict('identifier')
+
