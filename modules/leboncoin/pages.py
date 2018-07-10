@@ -161,7 +161,7 @@ class HousingListPage(JsonPage):
                     return ADVERT_TYPES.PERSONAL
 
             obj_title = Dict('subject')
-            obj_cost = CleanDecimal(Dict('price/0'), default=Decimal(0))
+            obj_cost = CleanDecimal(Dict('price/0', default=NotAvailable), default=Decimal(0))
             obj_currency = BaseCurrency.get_currency(u'€')
             obj_text = Dict('body')
             obj_location = Dict('location/city_label')
@@ -248,7 +248,7 @@ class HousingPage(HomePage):
                 return UTILITIES.EXCLUDED
 
         obj_title = Dict('adview/subject')
-        obj_cost = CleanDecimal(Dict('adview/price/0'), default=Decimal(0))
+        obj_cost = CleanDecimal(Dict('adview/price/0', default=NotAvailable), default=Decimal(0))
         obj_currency = BaseCurrency.get_currency(u'€')
         obj_text = Dict('adview/body')
         obj_location = Dict('adview/location/city_label')
