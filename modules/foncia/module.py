@@ -21,7 +21,7 @@ from __future__ import unicode_literals
 
 
 from weboob.tools.backend import Module
-from weboob.capabilities.housing import CapHousing, Housing, ADVERT_TYPES
+from weboob.capabilities.housing import CapHousing, Housing, ADVERT_TYPES, HousingPhoto
 
 from .browser import FonciaBrowser
 
@@ -62,15 +62,13 @@ class FonciaModule(Module, CapHousing):
         return self.browser.search_housings(query, cities)
 
     def fill_housing(self, housing, fields):
-        if 'photos' in fields:
-            for photo in housing.photos:
-                if not photo.data:
-                    photo.data = self.browser.open(photo.url)
-            fields.remove('photos')
-
         if len(fields) > 0:
-            self.browser.get_housing(housing.id, housing)
-
+            self.browser.get_housing(housing)
         return housing
 
-    OBJECTS = {Housing: fill_housing}
+    def fill_photo(self, photo, fields):
+        if 'data' in fields and photo.url and not photo.data:
+            photo.data = self.browser.open(photo.url).content
+        return photo
+
+    OBJECTS = {Housing: fill_housing, HousingPhoto: fill_photo}
