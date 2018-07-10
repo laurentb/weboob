@@ -71,8 +71,9 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     xml_profile_page = URL(r'/gms/gmsRestituerAdresseNotificationServlet.xml', XMLProfilePage)
     unavailable_service_page = URL(r'/com/service-indisponible.html', UnavailableServicePage)
 
-    bank_statement = URL(r'/restitution/rce_recherche.html\?noRedirect=1',
-                         r'/restitution/rce_recherche_resultat.html', BankStatementPage)
+    bank_statement = URL(r'/restitution/rce_derniers_releves.html', BankStatementPage)
+    bank_statement_search = URL(r'/restitution/rce_recherche.html\?noRedirect=1',
+                                r'/restitution/rce_recherche_resultat.html', BankStatementPage)
 
     accounts_list = None
     context = None
@@ -274,8 +275,17 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
         except ProfileMissing:
             subscriber = NotAvailable
 
+        # subscriptions which have statements are present on the last statement page
         self.bank_statement.go()
-        return self.page.iter_subscription(subscriber=subscriber)
+        subscriptions_list = list(self.page.iter_subscription())
+
+        # this way the no statement accounts are excluded
+        # and the one keeped have all the data and parameters needed
+        self.bank_statement_search.go()
+        for sub in self.page.iter_searchable_subscription(subscriber=subscriber):
+            found_sub = find_object(subscriptions_list, id=sub.id)
+            if found_sub:
+                yield sub
 
     @need_login
     def iter_documents(self, subscribtion):
@@ -284,7 +294,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
         year = today.year
 
         # current year
-        self.bank_statement.go()
+        self.bank_statement_search.go()
         self.page.post_form(subscribtion, str(month), str(year))
         for d in self.page.iter_documents(subscribtion):
             yield d
@@ -297,7 +307,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
         while i < security_limit:
             year -= 1
 
-            self.bank_statement.go()
+            self.bank_statement_search.go()
             self.page.post_form(subscribtion, str(month), str(year))
 
             # No more documents

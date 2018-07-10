@@ -23,7 +23,7 @@ import re
 
 from weboob.capabilities.bill import Document, Subscription
 from weboob.browser.elements import TableElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, Regexp, Env, Date
+from weboob.browser.filters.standard import CleanText, Regexp, Env, Date, Format, Field
 from weboob.browser.filters.html import Link, TableCell, Attr
 from weboob.browser.pages import LoggedPage
 
@@ -32,25 +32,44 @@ from .base import BasePage
 class BankStatementPage(LoggedPage, BasePage):
     @method
     class iter_subscription(TableElement):
+        item_xpath = '//table[.//th]//tr[td]'
+        head_xpath = '//table//th'
+
+        col_id = 'Numéro de Compte'
+
+        class item(ItemElement):
+            klass = Subscription
+
+            obj_id = CleanText(TableCell('id'), replace=[(' ', '')])
+
+    @method
+    class iter_searchable_subscription(TableElement):
         item_xpath = '//table//tr[@class="fond_ligne"]'
         head_xpath = '//table//td[contains(@class, "titre_tab") and div[@align="center"]]'
 
         col_id = 'Numéro de Compte'
         col_label = 'Libellé'
         col_rad_button = 'Sélection'
+        col_type = 'Type de Compte'
 
         class item(ItemElement):
             klass = Subscription
 
-            def condition(self):
-                return CleanText(TableCell('label'))(self)
-
             obj_id = CleanText(TableCell('id'), replace=[(' ', '')])
-            obj_label = CleanText(TableCell('label'))
             obj_subscriber = Env('subscriber')
+
+            def obj_label(self):
+                label = CleanText(TableCell('label'))(self)
+                if not label:
+                    return Format('%s %s', CleanText(TableCell('type')), Field('id'))(self)
+                return label
 
             def obj__rad_button_id(self):
                 return Attr('.//div/input','name')(TableCell('rad_button')(self)[0])
+
+            def condition(self):
+                # has the same id as the main account it depends on
+                return 'Points de fidélité' not in Field('label')(self)
 
     def post_form(self, subscription, end_month, year):
         form = self.get_form(name='abo_rce')
