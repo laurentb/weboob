@@ -22,7 +22,9 @@ from datetime import datetime
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded
 from weboob.capabilities.bank import Account, AddRecipientError
+from weboob.capabilities.base import find_object, NotAvailable
 from weboob.browser.exceptions import BrowserHTTPNotFound
+from weboob.capabilities.profile import ProfileMissing
 
 from .pages.accounts_list import (
     AccountsList, AccountHistory, CardsList, LifeInsurance,
@@ -266,8 +268,11 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
 
     @need_login
     def iter_subscription(self):
-        profile = self.get_profile()
-        subscriber = profile.name
+        try:
+            profile = self.get_profile()
+            subscriber = profile.name
+        except ProfileMissing:
+            subscriber = NotAvailable
 
         self.bank_statement.go()
         return self.page.iter_subscription(subscriber=subscriber)
