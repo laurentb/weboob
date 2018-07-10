@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 import re
 import ast
@@ -202,6 +203,11 @@ class AccountsPage(LoggedPage, CDNBasePage):
         u'TITRES':              Account.TYPE_MARKET,
         u'COMPTE A TERME':      Account.TYPE_DEPOSIT,
         }
+
+    def get_password_expired(self):
+        error = CleanText('//div[@class="x-attentionErreur"]/b')(self.doc)
+        if "vous devez modifier votre code confidentiel à la première connexion" in error:
+            return error
 
     def get_account_type(self, label):
         for pattern, actype in sorted(self.TYPES.items()):

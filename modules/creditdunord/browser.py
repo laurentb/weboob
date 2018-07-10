@@ -21,7 +21,7 @@
 import re
 
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import find_object
 
@@ -63,6 +63,11 @@ class CreditDuNordBrowser(LoginBrowser):
 
     def do_login(self):
         self.login.go().login(self.username, self.password)
+
+        if self.accounts.is_here():
+            expired_error = self.page.get_password_expired()
+            if expired_error:
+                raise BrowserUnavailable(expired_error)
 
         if self.login.is_here():
             raise BrowserIncorrectPassword(self.page.get_error())
