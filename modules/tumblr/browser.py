@@ -34,11 +34,39 @@ class TumblrBrowser(APIBrowser):
         super(TumblrBrowser, self).__init__(*args, **kwargs)
         self.BASEURL = baseurl
 
+    def consent(self):
+        response = self.open(self.BASEURL)
+        html = response.text
+        # i hope they fucking burn in hell for making it that painful
+        token = re.search(r'name="tumblr-form-key".*?content="([^"]*)"', html).group(1)
+
+        data = {
+            "eu_resident": False, # i don't want to live on this planet anymore
+            "gdpr_is_acceptable_age": True,
+            "gdpr_consent_core": True,
+            "gdpr_consent_first_party_ads": True,
+            "gdpr_consent_third_party_ads": True,
+            "gdpr_consent_search_history": True,
+            "redirect_to": self.BASEURL,
+        }
+        headers = {
+            'X-tumblr-form-key': token,
+            'Referer': response.url,
+        }
+        super(TumblrBrowser, self).request('https://www.tumblr.com/svc/privacy/consent', data=data, headers=headers)
+
     def request(self, *args, **kwargs):
-        # JSONP
-        r = super(TumblrBrowser, self).open(*args, **kwargs).text
-        r = re.sub(r'^var tumblr_api_read = (.*);$', r'\1', r)
-        return json.loads(r)
+        def perform():
+            # JSONP
+            r = super(TumblrBrowser, self).open(*args, **kwargs).text
+            r = re.sub(r'^var tumblr_api_read = (.*);$', r'\1', r)
+            return json.loads(r)
+
+        try:
+            return perform()
+        except ValueError:
+            self.consent()
+            return perform()
 
     def get_title_icon(self):
         r = self.request('/api/read/json?type=photo&num=1&start=0&filter=text')
