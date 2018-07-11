@@ -22,7 +22,7 @@ from __future__ import unicode_literals
 import re
 
 from weboob.browser.pages import HTMLPage, LoggedPage
-from weboob.browser.elements import ItemElement, TableElement, method
+from weboob.browser.elements import ItemElement, ListElement, TableElement, method
 from weboob.browser.filters.standard import CleanText, Date, Regexp, CleanDecimal, \
                                             Field, Async, AsyncLoad, Eval, Currency
 from weboob.browser.filters.html import Attr, Link, TableCell
@@ -39,7 +39,7 @@ def MyDecimal(*args, **kwargs):
 
 
 class MaintenancePage(HTMLPage):
-   def on_load(self):
+    def on_load(self):
         raise BrowserUnavailable(CleanText().filter(self.doc.xpath('//p')))
 
 
@@ -133,24 +133,26 @@ class ItemInvestment(ItemElement):
         return NotAvailable
 
 
-class TableTransactionsInvestment(TableInvestment):
-    item_xpath = './tbody/tr'
-    head_xpath = './thead/tr/th'
-
-    col_code = u'ISIN'
-    col_valuation = [u'Montant brut', u'Montant net']
-
-    class item(ItemInvestment):
-        obj_code = Regexp(CleanText(TableCell('code')), pattern='([A-Z]{2}\d{10})', default=NotAvailable)
-
-
 class ProfileTableInvestment(TableInvestment):
     # used only when portfolio is divided in multiple "profiles"
     head_xpath = '//thead[ends-with(@id, ":contratProfilTable_head")]/tr/th'
 
 
 class DetailsPage(LoggedPage, HTMLPage):
-    DEBIT_WORDS = [u'arrêté', 'rachat', 'frais', u'désinvestir']
+
+    def build_doc(self, content):
+        # The full transactions page is a broken XML and requires
+        # content building to scrap all transactions properly:
+        markers = [b'partial-response', b'ongletHistoOperations:ongletHistoriqueOperations']
+        if all(marker in content for marker in markers):
+            parts = re.findall(br'\!\[CDATA\[(.*?)\!\[CDATA\[', content, re.DOTALL)
+            return super(DetailsPage, self).build_doc(parts[0])
+        return super(DetailsPage, self).build_doc(content)
+
+    DEBIT_WORDS = ['rachat', 'frais', u'désinvestir']
+
+    def count_transactions(self):
+        return Regexp(CleanText('//span[@class="ui-paginator-current"][1]'), '(?<=sur )(\d+)', default=None)(self.doc)
 
     def goto_unitprice(self):
         form = self.get_form(id='ongletSituation:syntheseContrat')
@@ -211,22 +213,11 @@ class DetailsPage(LoggedPage, HTMLPage):
                 else:
                     return NotAvailable
 
-    def get_historytab_form(self):
-        form = self.get_form('//form[contains(@id, "j_idt")]')
-        idt = Attr(None, 'name').filter(self.doc.xpath('//input[contains(@name, "j_idt") \
-                        and contains(@name, "activeIndex")]')).rsplit('_', 1)[0]
-        form['%s_contentLoad' % idt] = "true"
-        form['%s_newTab' % idt] = Link().filter(self.doc.xpath('//a[contains(@href, "HISTORIQUE")]'))[1:]
-        form['%s_activeIndex' % idt] = "1"
-        form['javax.faces.source'] = idt
-        form['javax.faces.behavior.event'] = "tabChange"
-        return form
-
     def go_historytab(self):
         form = self.get_form(id='ongletSituation:syntheseContrat')
         form['javax.faces.source'] = 'tabsPrincipauxConsultationContrat'
         form['javax.faces.partial.execute'] = 'tabsPrincipauxConsultationContrat'
-        form['javax.faces.partial.render'] = 'tabsPrincipauxConsultationContrat'
+        form['javax.faces.partial.render'] = 'messageBox+tabsPrincipauxConsultationContrat'
         form['javax.faces.behavior.event'] = 'tabChange'
         form['javax.faces.partial.event'] = 'tabChange'
         form['tabsPrincipauxConsultationContrat_contentLoad'] = 'true'
@@ -234,17 +225,22 @@ class DetailsPage(LoggedPage, HTMLPage):
         form['ongletSituation:ongletContratTab_tabindex'] = '1'
         form.submit()
 
-    def go_historyall(self):
-        id_ = Attr('//a[contains(text(), "Tout afficher")]', 'id', default=None)(self.doc)
-        if id_:
-            form = self.get_form(xpath='//form[contains(@id, "ongletHistoOperations:ongletHistoriqueOperations")]')
-            form['javax.faces.partial.execute'] = '@all'
-            form['javax.faces.partial.render'] = 'ongletHistoOperations:ongletHistoriqueOperations:newoperations'
-            form[id_] = id_
-            form['javax.faces.source'] = id_
-            form.submit()
+    def go_historyall(self, page_number):
+        form = self.get_form(xpath='//form[contains(@id, "ongletHistoOperations:ongletHistoriqueOperations")]')
+        # The form value varies (for example j_idt913 or j_idt62081) so we need to scrape it dynamically:
+        form_value = Attr('//div[@id="ongletHistoOperations:ongletHistoriqueOperations:newoperations"]/div[1]', 'id')(self.doc)
+        form['javax.faces.partial.ajax'] =      'true'
+        form['javax.faces.partial.execute'] =   form_value
+        form['javax.faces.partial.render'] =    form_value
+        form['javax.faces.source'] =            form_value
+        form[form_value] =                      form_value
+        form[form_value + '_encodeFeature'] =   'true'
+        form[form_value + '_pagination'] =      'false'
+        form[form_value + '_rows'] =            '100'
+        form[form_value + '_first'] =           page_number * 100
+        form.submit()
 
-    def get_historyexpandall_form(self, data):
+    def go_investments_form(self, index):
         form = self.get_form(xpath='//form[contains(@id, "ongletHistoOperations:ongletHistoriqueOperations")]')
         form['javax.faces.behavior.event'] = 'rowToggle'
         form['javax.faces.partial.event'] = 'rowToggle'
@@ -254,43 +250,64 @@ class DetailsPage(LoggedPage, HTMLPage):
         form['javax.faces.partial.render'] = id_ + ':detail ' + id_
         form[id_ + '_rowExpansion'] = 'true'
         form[id_ + '_encodeFeature'] = 'true'
-        form[id_ + '_expandedRowIndex'] = data
-        return form
+        form[id_ + '_expandedRowIndex'] = index
+        form.submit()
+
 
     @method
-    class iter_history(TableElement):
-        item_xpath = '//table[@role]/tbody[@id]/tr[@data-ri]'
-        head_xpath = '//table[@role]/thead[@id]/tr/th'
-
-        col_label = u'Type'
-        col_status = u'Etat'
-        col_brut = [u'Montant brut', u'Brut']
-        col_net = [u'Montant net', u'Net']
-        col_date = u'Date de réception'
-        col_vdate = u'Date de valeur'
+    class iter_history(ListElement):
+        item_xpath = '//tr[@role="row"]'
 
         class item(ItemElement):
             klass = Transaction
 
-            obj_label = CleanText(TableCell('label'))
-            obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True)
+            obj_label = CleanText('./td[2]')
             obj_type = Transaction.TYPE_BANK
-
-            def obj_amount(self):
-                amount = MyDecimal(TableCell('net') if not CleanText(TableCell('brut'))(self) else TableCell('brut'))(self)
-                return -amount if amount and any(word in Field('label')(self).lower() for word in self.page.DEBIT_WORDS) else amount
+            obj__index = Attr('.', 'data-ri')
+            obj_vdate = Date(CleanText('./td[8]'), dayfirst=True)
 
             def obj_date(self):
-                return Date(CleanText(TableCell('date')), dayfirst=True, default=Field('vdate')(self))(self)
+                return Date(CleanText('./td[6]'), dayfirst=True, default=Field('vdate')(self))(self)
+
+            def obj_amount(self):
+                # We display the raw amount only if the net amount is not available.
+                raw_amount = MyDecimal('./td[4]')(self)
+                amount = MyDecimal('./td[5]', default=raw_amount)(self)
+                return -amount if amount and any(word in Field('label')(self).lower() for word in self.page.DEBIT_WORDS) else amount
 
             def condition(self):
-                return u"Validé" in CleanText(TableCell('status'))(self) and u"Arrêté annuel" not in Field('label')(self)
+                # We do not scrape "Arrêté annuel" transactions since it is just a yearly synthesis of the contract,
+                # nor "Fusion-absorption" transactions because they have no amount.
+                return (
+                    "Validé" in CleanText('./td[3]')(self)
+                    and "Arrêté annuel" not in Field('label')(self)
+                    and "Fusion-absorption" not in Field('label')(self)
+                )
 
-            def obj_investments(self):
-                data = Attr('.', 'data-ri')(self)
-                form = self.page.get_historyexpandall_form(data)
-                page = self.page.browser.open(form.url, data=dict(form)).page
-                investments = []
-                for table in page.doc.xpath('//following-sibling::tr[1]//span[contains(text(), "ISIN")]/ancestor::table[1]'):
-                    investments.extend(TableTransactionsInvestment(self.page, el=table)())
-                return investments
+    @method
+    class iter_transactions_investments(TableInvestment):
+        item_xpath = '//table[thead[.//span[text()="ISIN"]]]/tbody/tr'
+        head_xpath = '//thead[.//span[text()="ISIN"]]//th'
+
+        col_isin = 'ISIN'
+        col_valuation = 'Montant net'
+        col_portfolio_share = '%'
+
+        class item(ItemElement):
+            klass = Investment
+
+            # Columns do not always appear depending on transactions so we need
+            # to precise "default=NotAvailable" for all TableCell filters.
+            obj_label = CleanText(TableCell('label', default=NotAvailable), default=NotAvailable)
+            obj_vdate = Date(TableCell('vdate', default=NotAvailable), dayfirst=True, default=NotAvailable)
+            obj_unitvalue = MyDecimal(TableCell('unitvalue', default=NotAvailable), default=NotAvailable)
+            obj_quantity = MyDecimal(TableCell('quantity', default=NotAvailable), default=NotAvailable)
+            obj_valuation = MyDecimal(TableCell('valuation', default=NotAvailable), default=NotAvailable)
+            obj_portfolio_share = MyDecimal(TableCell('portfolio_share', default=NotAvailable), default=NotAvailable)
+
+            def obj_code(self):
+                code = CleanText(TableCell('isin', default=NotAvailable), default=NotAvailable)(self)
+                return code if code != '-' else NotAvailable
+
+            def obj_code_type(self):
+                return Investment.CODE_TYPE_ISIN if Field('code')(self) else NotAvailable
