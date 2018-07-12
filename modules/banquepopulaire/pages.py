@@ -119,8 +119,6 @@ class BasePage(object):
 
     def build_token(self, token):
         """
-        These fucking faggots have introduced a new protection on the token.
-
         Each time there is a call to SAB (selectActionButton), the token
         available in the form is modified with a key available in JS:
 

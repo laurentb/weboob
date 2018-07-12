@@ -781,7 +781,7 @@ class Boobathon(ReplApplication):
                 return
 
         if not self.check_loaded_backends({'url': 'https://symlink.me'}):
-            print("Ok, so leave now, fag.")
+            print("Ok, so leave now.")
             sys.exit(0)
 
     def is_module_loadable(self, module):
