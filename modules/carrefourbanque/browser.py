@@ -21,6 +21,7 @@ from time import sleep
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.exceptions import BrowserIncorrectPassword, NocaptchaQuestion
 from weboob.capabilities.bank import Account
+from weboob.tools.compat import basestring
 
 from .pages import (
     LoginPage, HomePage, IncapsulaResourcePage, LoanHistoryPage, CardHistoryPage, SavingHistoryPage,
