@@ -20,6 +20,7 @@
 from collections import OrderedDict
 import re
 from decimal import Decimal, InvalidOperation
+from datetime import datetime, timedelta
 
 from weboob.exceptions import BrowserUnavailable
 from weboob.browser.pages import HTMLPage, PDFPage, LoggedPage, AbstractPage
@@ -554,3 +555,16 @@ class BoursePage(AbstractPage):
         # only for netfinca PEA
         # can't do it in separate page/on_load because there might be history on this page...
         self.get_form(id='formToSubmit').submit()
+
+    def go_history_filter(self, cash_filter='all'):
+        cash_filter_value = {
+            'market': 0,
+            'liquidity': 1,
+            'all': 'ALL',
+        }
+
+        form = self.get_form(id="historyFilter")
+        form['cashFilter'] = cash_filter_value[cash_filter]
+        # We can't go above 2 years
+        form['beginDayfilter'] = (datetime.strptime(form['endDayfilter'], '%d/%m/%Y') - timedelta(days=730)).strftime('%d/%m/%Y')
+        form.submit()

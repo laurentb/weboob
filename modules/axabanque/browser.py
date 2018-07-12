@@ -120,9 +120,11 @@ class AXABanque(AXABrowser, StatesMixin):
     lifeinsurance_iframe = URL('https://assurance-vie.axabanque.fr/Consultation/SituationContrat.aspx',
                                'https://assurance-vie.axabanque.fr/Consultation/HistoriqueOperations.aspx', LifeInsuranceIframe)
 
+    # netfinca bourse
     bourse = URL(r'/transactionnel/client/homepage_bourseCAT.html',
                  r'https://bourse.axabanque.fr/netfinca-titres/servlet/com.netfinca.*',
                  BoursePage)
+    bourse_history = URL(r'https://bourse.axabanque.fr/netfinca-titres/servlet/com.netfinca.frontcr.account.AccountHistory', BoursePage)
 
     # Transfer
     recipients = URL('/transactionnel/client/enregistrer-nouveau-beneficiaire.html', RecipientsPage)
@@ -280,7 +282,21 @@ class AXABanque(AXABrowser, StatesMixin):
     def iter_history(self, account):
         if account.type == Account.TYPE_LOAN:
             return
-        elif account.type == Account.TYPE_PEA and 'Liquidités' in account.label:
+        elif account.type == Account.TYPE_PEA:
+            self.go_account_pages(account, "history")
+
+            # go on netfinca page to get pea history
+            acc = self.get_netfinca_account(account)
+            self.location(acc._market_link)
+            self.bourse_history.go()
+
+            if not 'Liquidités' in account.label:
+                self.page.go_history_filter(cash_filter="market")
+            else:
+                self.page.go_history_filter(cash_filter="liquidity")
+
+            for tr in self.page.iter_history():
+                yield tr
             return
 
         if account.type == Account.TYPE_LIFE_INSURANCE and account._acctype == "bank":
