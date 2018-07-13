@@ -43,13 +43,14 @@ with open(os.path.join(wd, 'sources.list'), 'w') as f:
 
 # Hide output unless there is an error
 p = subprocess.Popen(
-    [sys.executable, os.path.join(project, 'scripts', 'weboob-config'), 'update'],
+    [sys.executable, os.path.join(project, 'scripts', 'weboob-config'), 'update', '-d'],
     env=env,
-    stdout=subprocess.PIPE)
+    stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 s = p.communicate()
 if p.returncode != 0:
     print(s[0])
-    sys.exit(p.returncode)
+    if p.returncode > 1:
+        sys.exit(p.returncode)
 
 if os.path.exists(script):
     spath = script

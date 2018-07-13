@@ -320,3 +320,8 @@ class WeboobCfg(ReplApplication):
         Update weboob.
         """
         self.weboob.update(ConsoleProgress(self))
+        if self.weboob.repositories.errors:
+            print('Errors building modules: %s' % ', '.join(self.weboob.repositories.errors.keys()), file=self.stderr)
+            if not self.options.debug:
+                print('Use --debug to get more information.', file=self.stderr)
+            return 1

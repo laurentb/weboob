@@ -132,6 +132,7 @@ class Repository(object):
         self.key_update = 0
         self.obsolete = False
         self.logger = getLogger('repository')
+        self.errors = {}
 
         self.modules = {}
 
@@ -275,6 +276,7 @@ class Repository(object):
         """
         self.logger.debug('Rebuild index')
         self.modules.clear()
+        self.errors.clear()
 
         if os.path.isdir(os.path.join(path, self.KEYDIR)):
             self.signed = True
@@ -296,8 +298,10 @@ class Repository(object):
                     if fp:
                         fp.close()
             except Exception as e:
-                print('Unable to build module %s: [%s] %s' % (name, type(e).__name__, e), file=sys.stderr)
-                self.logger.debug(get_backtrace(e))
+                self.logger.warning('Unable to build module %s: [%s] %s' % (name, type(e).__name__, e))
+                bt = get_backtrace(e)
+                self.logger.debug(bt)
+                self.errors[name] = bt
             else:
                 m = ModuleInfo(module.name)
                 m.version = self.get_tree_mtime(module_path)
@@ -744,6 +748,17 @@ class Repositories(object):
         All non-alphanumeric characters are replaced by _.
         """
         return ''.join([l if l.isalnum() else '_' for l in url])
+
+    def __iter__(self):
+        for repository in self.repositories:
+            yield repository
+
+    @property
+    def errors(self):
+        errors = {}
+        for repository in self:
+            errors.update(repository.errors)
+        return errors
 
 
 class InvalidSignature(Exception):
