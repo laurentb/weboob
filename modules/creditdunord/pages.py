@@ -30,6 +30,7 @@ from lxml import html
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import method, ItemElement
 from weboob.browser.filters.standard import CleanText, Date, CleanDecimal, Regexp
+from weboob.browser.filters.html import Attr
 from weboob.exceptions import ActionNeeded, BrowserIncorrectPassword, BrowserUnavailable
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.profile import Profile
@@ -305,6 +306,9 @@ class AccountsPage(LoggedPage, CDNBasePage):
         klass = Profile
 
         obj_name = CleanText('//p[@class="nom"]')
+
+    def get_strid(self):
+        return re.search(r'(\d{4,})', Attr('//form[@name="changePageForm"]', 'action')(self.doc)).group(0)
 
 
 class AVPage(LoggedPage, CDNBasePage):

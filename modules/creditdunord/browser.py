@@ -56,13 +56,14 @@ class CreditDuNordBrowser(LoginBrowser):
 
     def home(self):
         if self.is_logged():
-            self.location('/vos-comptes/%s' % self.account_type)
+            self.location('/vos-comptes/%s' % self.account_type, params=self.strid)
             self.location(self.page.doc.xpath(u'//a[contains(text(), "Synthèse")]')[0].attrib['href'])
         else:
             self.do_login()
 
     def do_login(self):
         self.login.go().login(self.username, self.password)
+        self.strid = {"strid": self.page.get_strid()}
 
         if self.accounts.is_here():
             expired_error = self.page.get_password_expired()
@@ -134,7 +135,7 @@ class CreditDuNordBrowser(LoginBrowser):
         if coming and account.type is not Account.TYPE_CARD or account.type is Account.TYPE_LOAN:
             return []
 
-        self.location('/vos-comptes/%s' % self.account_type)
+        self.location('/vos-comptes/%s' % self.account_type, params=self.strid)
         transactions = []
         for tr in self.iter_transactions(account._link, account._args, account.type):
             transactions.append(tr)
