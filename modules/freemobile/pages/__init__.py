@@ -22,5 +22,6 @@ from .homepage import HomePage
 from .history import HistoryPage, DetailsPage
 from .login import LoginPage
 from .options import OptionsPage
+from .profile import ProfilePage
 
-__all__ = ['LoginPage', 'HomePage', 'HistoryPage', 'DetailsPage', 'OptionsPage']
+__all__ = ['LoginPage', 'HomePage', 'HistoryPage', 'DetailsPage', 'OptionsPage', 'ProfilePage']

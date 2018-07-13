@@ -21,7 +21,7 @@ from weboob.browser import LoginBrowser, URL, need_login
 from weboob.capabilities.messages import CantSendMessage
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.tools.compat import basestring
-from .pages import HomePage, LoginPage, HistoryPage, DetailsPage, OptionsPage
+from .pages import HomePage, LoginPage, HistoryPage, DetailsPage, OptionsPage, ProfilePage
 
 __all__ = ['Freemobile']
 
@@ -32,6 +32,7 @@ class Freemobile(LoginBrowser):
     homepage = URL('index.php\?page=home', HomePage)
     detailspage = URL('index.php\?page=suiviconso', DetailsPage)
     optionspage = URL('index.php\?page=options&o=(?P<username>)', OptionsPage)
+    profile = URL('index.php\?page=coordonnees', ProfilePage)
     loginpage = URL('index.php', LoginPage)
     historypage = URL('ajax.php\?page=consotel_current_month', HistoryPage)
     sendAPI = URL('https://smsapi.free-mobile.fr/sendmsg\?user=(?P<username>)&pass=(?P<apikey>)&msg=(?P<msg>)')
@@ -95,3 +96,8 @@ class Freemobile(LoginBrowser):
             username=username, apikey=api_key,
             msg=message.content
         )
+
+    @need_login
+    def get_profile(self):
+        self.profile.go()
+        return self.page.get_profile()

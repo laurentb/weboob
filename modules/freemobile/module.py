@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.bill import CapDocument, Subscription, Bill, SubscriptionNotFound, DocumentNotFound
+from weboob.capabilities.profile import CapProfile
 from weboob.capabilities.messages import CantSendMessage, CapMessages, CapMessagesPost
 from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
@@ -29,7 +30,7 @@ from .browser import Freemobile
 __all__ = ['FreeMobileModule']
 
 
-class FreeMobileModule(Module, CapDocument, CapMessages, CapMessagesPost):
+class FreeMobileModule(Module, CapDocument, CapMessages, CapMessagesPost, CapProfile):
     NAME = 'freemobile'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
@@ -85,3 +86,6 @@ class FreeMobileModule(Module, CapDocument, CapMessages, CapMessagesPost):
         if not message.content.strip():
             raise CantSendMessage(u'Message content is empty.')
         return self.browser.post_message(message)
+
+    def get_profile(self):
+        return self.browser.get_profile()
