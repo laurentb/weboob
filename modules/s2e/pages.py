@@ -519,10 +519,10 @@ class HistoryPage(LoggedPage, MultiPage):
         item_xpath = '//table//table/tbody/tr[td[4]]'
         head_xpath = '//table//table/thead/tr/th'
 
-        col_scheme = [u'Scheme', u'Dispositif']
-        col_label = [re.compile(u'Investment'), re.compile('My investment'), u'fund', re.compile(u'Support')]
-        col_quantity = [re.compile(u'Quantity'), re.compile(u'Quantité'), re.compile('En parts')]
-        col_valuation = [u'Gross amount', u'Net amount', re.compile(u'Montant brut'), u'Montant Net']
+        col_scheme = ['Scheme', 'Dispositif']
+        col_label = [re.compile('Investment'), re.compile('My investment'), 'fund', re.compile('Support')]
+        col_quantity = [re.compile('Quantity'), re.compile('Quantité'), re.compile('En parts')]
+        col_valuation = ['Gross amount', 'Net amount', re.compile('Montant brut'), re.compile('.*Montant [Nn]et')]
 
         class item(ItemInvestment):
             def obj_quantity(self):
@@ -566,20 +566,20 @@ class HistoryPage(LoggedPage, MultiPage):
                     idt = Attr(TableCell('id')(self)[0].xpath('./a'), 'id', default=None)(self)
                     typeop = Regexp(Attr(TableCell('id')(self)[0].xpath('./a'), 'onclick'), 'Operation.+?([A-Z_]+)')(self)
                     form = self.page.get_history_form(idt, {'referenceOp': trid, 'typeOperation': typeop})
-                    page = self.page.browser.open(form.url, data=dict(form)).page
-                    self.page.browser.cache['details'][trid] = page
+                    details_page = self.page.browser.open(form.url, data=dict(form)).page
+                    self.page.browser.cache['details'][trid] = details_page
                     # ...then go back to history list.
-                    idt = Attr('//input[@title="Retour"]', 'id', default=None)(page.doc)
+                    idt = Attr('//input[@title="Retour"]', 'id', default=None)(details_page.doc)
                     form = self.page.get_history_form(idt)
-                    self.page.browser.open(form.url, data=dict(form)).page
+                    self.page.browser.open(form.url, data=dict(form))
                 else:
-                    page = self.page.browser.cache['details'][trid]
+                    details_page = self.page.browser.cache['details'][trid]
 
                 # Check if page is related to the account
-                if not len(page.doc.xpath('//td[contains(text(), $id)]', id=Env('accid')(self))):
+                if not len(details_page.doc.xpath('//td[contains(text(), $id)]', id=Env('accid')(self))):
                     raise SkipItem()
 
-                self.env['investments'] = list(page.get_investments(accid=Env('accid')(self)))
+                self.env['investments'] = list(details_page.get_investments(accid=Env('accid')(self)))
                 self.env['amount'] = sum([i.valuation or Decimal('0') for i in self.env['investments']])
 
 
