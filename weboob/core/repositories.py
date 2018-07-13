@@ -290,7 +290,7 @@ class Repository(object):
 
         for name in sorted(os.listdir(path)):
             module_path = os.path.join(path, name)
-            if not os.path.isdir(module_path) or '.' in name or name == self.KEYDIR:
+            if not os.path.isdir(module_path) or '.' in name or name == self.KEYDIR or not os.path.exists(os.path.join(module_path, '__init__.py')):
                 continue
 
             try:
