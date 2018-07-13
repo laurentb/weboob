@@ -1171,8 +1171,16 @@ class InternalTransferPage(LoggedPage, HTMLPage):
             raise TransferError('The expected message "%s" was not found.' % transfer_ok_message)
 
         exec_date, r_amount, currency = self.check_data_consistency(transfer.account_id, transfer.recipient_id, transfer.amount, transfer.label)
+
         state = CleanText('//table[@summary]/tbody/tr[th[contains(text(), "Etat")]]/td')(self.doc)
-        if state not in ('Exécuté', 'Soumis'):
+        valid_states = ('Exécuté', 'Soumis')
+
+        # tell user that transfer was done even though it wasn't done is better
+        # than tell users that transfer state is bug even though it was done
+        for valid_state in valid_states:
+            if valid_state in state:
+                break
+        else:
             raise TransferError('Transfer state is %r' % state)
 
         assert transfer.amount == r_amount
