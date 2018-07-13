@@ -1005,7 +1005,8 @@ class ProTransferConfirmPage(TransferConfirmPage):
 
     def create_transfer(self, account, recipient, transfer):
         t = Transfer()
-        t.currency = FrenchTransaction.Currency('//span[@id="MM_VIREMENT_CONF_VIREMENT_MontantVir"]')(self.doc)
+        t.currency = FrenchTransaction.Currency('//span[@id="MM_VIREMENT_CONF_VIREMENT_MontantVir"] | \
+                                                 //span[@id="MM_VIREMENT_CONF_VIREMENT_lblMontantSelect"]')(self.doc)
         t.amount = CleanDecimal('//span[@id="MM_VIREMENT_CONF_VIREMENT_MontantVir"] | \
                                  //span[@id="MM_VIREMENT_CONF_VIREMENT_lblMontantSelect"]', replace_dots=True)(self.doc)
         t.account_iban = account.iban
