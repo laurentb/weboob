@@ -167,6 +167,7 @@ class Repository(object):
         :param repo_path: path to save the downloaded index file.
         :type repo_path: str
         """
+        built = False
         if self.local:
             # Repository is local, open the file.
             filename = os.path.join(self.localurl2path(), self.INDEX)
@@ -176,6 +177,7 @@ class Repository(object):
                 # This local repository doesn't contain a built modules.list index.
                 self.name = Repositories.url2filename(self.url)
                 self.build_index(self.localurl2path(), filename)
+                built = True
                 fp = open(filename, 'r')
         else:
             # This is a remote repository, download file
@@ -186,7 +188,8 @@ class Repository(object):
 
         self.parse_index(fp)
 
-        if self.local:
+        # this value can be changed by parse_index
+        if self.local and not built:
             # Always rebuild index of a local repository.
             self.build_index(self.localurl2path(), filename)
 
