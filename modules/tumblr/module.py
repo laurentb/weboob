@@ -58,7 +58,7 @@ class TumblrModule(Module, CapGallery):
     def search_galleries(self, pattern, sortby=CapGallery.SEARCH_RELEVANCE):
         pattern = pattern.lower()
         url = self.url()
-        if pattern in url or pattern in self.browser.get_title().lower():
+        if pattern in url or pattern in self.browser.get_title_icon()[0].lower():
             yield self.get_gallery(urlparse(url).netloc)
 
     def iter_gallery_images(self, gallery):
