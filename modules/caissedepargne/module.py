@@ -19,6 +19,7 @@
 
 from collections import OrderedDict
 import re
+from decimal import Decimal
 
 from weboob.capabilities.bank import CapBankWealth, CapBankTransferAddRecipient, AccountNotFound, Account, RecipientNotFound
 from weboob.capabilities.contact import CapContact
@@ -98,6 +99,8 @@ class CaisseEpargneModule(Module, CapBankWealth, CapBankTransferAddRecipient, Ca
             recipient = find_object(self.iter_transfer_recipients(account.id), iban=transfer.recipient_iban, error=RecipientNotFound)
         else:
             recipient = find_object(self.iter_transfer_recipients(account.id), id=transfer.recipient_id, error=RecipientNotFound)
+
+        transfer.amount = transfer.amount.quantize(Decimal(10) ** -2)
 
         return self.browser.init_transfer(account, recipient, transfer)
 
