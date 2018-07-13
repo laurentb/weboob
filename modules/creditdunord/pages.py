@@ -37,7 +37,7 @@ from weboob.capabilities.base import Currency, find_object
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
-from weboob.tools.compat import quote, unicode, basestring
+from weboob.tools.compat import quote, unicode
 from weboob.tools.json import json
 
 
@@ -47,8 +47,13 @@ def MyDecimal(*args, **kwargs):
 
 
 def MyStrip(x, xpath='.'):
-    return CleanText(xpath)(html.fromstring("<p>%s</p>" % x)) if isinstance(x, basestring) else \
-           CleanText(xpath)(html.fromstring(CleanText('.')(x)))
+    if isinstance(x, unicode):
+        return CleanText(xpath)(html.fromstring("<p>%s</p>" % x))
+    elif isinstance(x, bytes):
+        x = x.decode('utf-8')
+        return CleanText(xpath)(html.fromstring("<p>%s</p>" % x))
+    else:
+        return CleanText(xpath)(html.fromstring(CleanText('.')(x)))
 
 
 class CDNVirtKeyboard(GridVirtKeyboard):
