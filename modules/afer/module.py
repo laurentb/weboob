@@ -31,7 +31,7 @@ __all__ = ['AferModule']
 
 class AferModule(Module, CapBankWealth):
     NAME = 'afer'
-    DESCRIPTION = u'afer website'
+    DESCRIPTION = u'Association française d\'épargne et de retraite'
     MAINTAINER = u'James GALT'
     EMAIL = 'jgalt@budget-insight.com'
     LICENSE = 'AGPLv3+'

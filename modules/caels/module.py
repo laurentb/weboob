@@ -31,7 +31,7 @@ __all__ = ['CaelsModule']
 
 class CaelsModule(Module, CapBankWealth):
     NAME = 'caels'
-    DESCRIPTION = u'Crédit Agricole - Epargne Longue des Salariés'
+    DESCRIPTION = u'Crédit Agricole - Épargne Longue des Salariés'
     MAINTAINER = u'Edouard Lambert'
     EMAIL = 'elambert@budget-insight.com'
     LICENSE = 'AGPLv3+'

@@ -30,7 +30,7 @@ __all__ = ['AmundiModule']
 
 class AmundiModule(Module, CapBankWealth):
     NAME = 'amundi'
-    DESCRIPTION = u'amundi website'
+    DESCRIPTION = u'Amundi'
     MAINTAINER = u'James GALT'
     EMAIL = 'james.galt.bi@gmail.com'
     LICENSE = 'AGPLv3+'
