@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from weboob.capabilities.bank import CapBank
 from weboob.tools.backend import AbstractModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -25,7 +26,7 @@ from weboob.tools.value import ValueBackendPassword
 __all__ = ['BanqueAccordModule']
 
 
-class BanqueAccordModule(AbstractModule):
+class BanqueAccordModule(AbstractModule, CapBank):
     NAME = 'banqueaccord'
     DESCRIPTION = u'Banque Accord'
     MAINTAINER = u'Romain Bignon'
