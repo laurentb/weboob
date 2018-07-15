@@ -39,7 +39,7 @@ class DailymotionTest(BackendTest):
             self.backend.config['format'] = Value(value='mp4')
 
     def test_search(self):
-        l = list(itertools.islice(self.backend.search_videos('chirac'), 0, 20))
+        l = list(itertools.islice(self.backend.search_videos('sarkozy'), 0, 20))
         self.assertTrue(len(l) > 0)
         v = choice(l)
         self.backend.fillobj(v, ('url',))

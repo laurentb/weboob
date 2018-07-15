@@ -37,6 +37,7 @@ class TumblrBrowser(APIBrowser):
     def consent(self):
         response = self.open(self.BASEURL)
         html = response.text
+        # I hope their Macbooks catch fire for making it that painful
         token = re.search(r'name="tumblr-form-key".*?content="([^"]*)"', html).group(1)
 
         data = {

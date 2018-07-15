@@ -400,7 +400,7 @@ class AuMBrowser(Browser):
 
     @url2id
     def get_profile(self, id):
-        # XXX OLD API IS DISABLED
+        # XXX OLD API IS DISABLED (damn soyboys)
         #r = self.api0_request('member', 'view', data={'id': id})
         #if not 'result' in r:
         #    print r

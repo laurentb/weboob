@@ -130,7 +130,7 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
                     ids[account.id] = account
                     yield account
 
-    # Could be the very same as non corporate but this shitty website seems
+    # Could be the very same as non corporate but this crappy website seems
     # completely bugged
     def get_ti_corporate_transactions(self, account):
         if account.id not in self.transactions_dict:

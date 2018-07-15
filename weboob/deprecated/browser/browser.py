@@ -597,8 +597,8 @@ class Browser(StandardBrowser):
             self.home()
             self.location(*keep_args, **keep_kwargs)
 
-    # DO NOT ENABLE THIS FUCKING PEACE OF CODE EVEN IF IT WOULD BE BETTER
-    # TO SANITARIZE FUCKING HTML.
+    # DO NOT ENABLE THIS CRAPPY PIECE OF CODE EVEN IF IT WOULD BE BETTER
+    # TO FUCKING SANITARIZE HTML.
     #def _set_response(self, response, *args, **kwargs):
     #    import time
     #    if response and hasattr(response, 'set_data'):
