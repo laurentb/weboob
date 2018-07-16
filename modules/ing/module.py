@@ -19,6 +19,7 @@
 
 import re
 from datetime import timedelta
+from decimal import Decimal
 
 from weboob.capabilities.bank import CapBankWealth, CapBankTransfer, Account, AccountNotFound, RecipientNotFound
 from weboob.capabilities.bill import (
@@ -96,6 +97,8 @@ class INGModule(Module, CapBankWealth, CapBankTransfer, CapDocument, CapProfile)
             recipient = find_object(self.iter_transfer_recipients(account.id), iban=transfer.recipient_iban, error=RecipientNotFound)
         else:
             recipient = find_object(self.iter_transfer_recipients(account.id), id=transfer.recipient_id, error=RecipientNotFound)
+
+        transfer.amount = Decimal(transfer.amount).quantize(Decimal('.01'))
 
         return self.browser.init_transfer(account, recipient, transfer)
 
