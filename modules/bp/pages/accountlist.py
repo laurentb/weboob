@@ -189,6 +189,10 @@ class AccountList(LoggedPage, MyHTMLPage):
 
         class item_loans(ItemElement):
             # there is two cases : the mortgage and the consumption loan. These cases have differents way to get the details
+            # except for student loans, you may have 1 or 2 tables to deal with
+
+            # if 1 table, item_loans is used for student loan
+            # if 2 tables, get_student_loan is used
             klass = Loan
 
             def condition(self):
@@ -203,6 +207,10 @@ class AccountList(LoggedPage, MyHTMLPage):
             obj_total_amount = CleanDecimal(TableCell('total_amount'), replace_dots=True, default=NotAvailable)
 
             def obj_id(self):
+                # student_loan
+                if CleanText('//select[@id="numOffrePretSelection"]/option[@selected="selected"]')(self):
+                    return Regexp(CleanText('//select[@id="numOffrePretSelection"]/option[@selected="selected"]'), r'(\d+)')(self)
+
                 if TableCell('label', default=None)(self):
                     return Regexp(CleanText(Field('label'), default=NotAvailable), '- (\w{16})')(self)
                 return CleanText('//form[contains(@action, "detaillerOffre") or contains(@action, "detaillerPretPartenaireListe-encoursPrets.ea")]/div[@class="bloc Tmargin"]/div[@class="formline"][2]/span/strong')(self)
@@ -254,6 +262,7 @@ class AccountList(LoggedPage, MyHTMLPage):
 
     @method
     class get_student_loan(ItemElement):
+        # 2 tables student loan
         klass = Loan
 
         def condition(self):
