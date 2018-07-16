@@ -203,7 +203,7 @@ class MainWindow(QtMainWindow):
         self.ui.bookmarksButton.setEnabled(False)
 
         query = Query()
-        query.type = POSTS_TYPES.values[-q.get('type', 1)]
+        query.type = list(POSTS_TYPES)[-q.get('type', 1)]
         query.cities = []
         for c in q['cities']:
             city = City(c['id'])
