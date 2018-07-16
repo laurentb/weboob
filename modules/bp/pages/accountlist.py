@@ -103,7 +103,7 @@ class item_account_generic(ItemElement):
                  "autres produits d'epargne": Account.TYPE_SAVINGS,
                  'comptes? titres? et pea': Account.TYPE_MARKET,
                  'compte-titres': Account.TYPE_MARKET,
-                 'assurances? vie et retraite': Account.TYPE_LIFE_INSURANCE,
+                 'assurances? vie': Account.TYPE_LIFE_INSURANCE,
                  u'prêt': Account.TYPE_LOAN,
                  u'crédits?': Account.TYPE_LOAN,
                  'plan d\'epargne en actions': Account.TYPE_PEA,
