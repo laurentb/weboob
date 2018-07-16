@@ -148,7 +148,10 @@ class HousingPage(HTMLPage):
             def obj_photos(self):
                 photos = []
                 for img in XPath('./a/img/@src')(self):
-                    if img.endswith("visuel-nophoto.png"):
+                    if(
+                            img.endswith("visuel-nophoto.png") or
+                            img.endswith('miniature-video.png')
+                    ):
                         continue
                     photos.append(HousingPhoto(u'%s' % img))
                 return photos
@@ -271,5 +274,6 @@ class HousingPage(HTMLPage):
         def obj_photos(self):
             photos = []
             for img in XPath('//div[@class="owl-thumbs"]/a/img/@src')(self):
-                photos.append(HousingPhoto(u'%s' % img))
+                if not img.endswith('miniature-video.png'):
+                    photos.append(HousingPhoto(u'%s' % img))
             return photos
