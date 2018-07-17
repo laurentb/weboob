@@ -124,6 +124,7 @@ class AccountsPage(GenericLandingPage):
                     ('carte ', Account.TYPE_CARD),
                     ('plan assur. innovat.', Account.TYPE_LIFE_INSURANCE),
                     ('hsbc evol pat transf', Account.TYPE_LIFE_INSURANCE),
+                    ('bourse libre', Account.TYPE_MARKET),
                 ]
 
                 def filter(self, label):
