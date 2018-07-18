@@ -142,6 +142,10 @@ class LCLModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapContact, 
     def execute_transfer(self, transfer, **params):
         return self.browser.execute_transfer(transfer)
 
+    def transfer_check_label(self, old, new):
+        old = re.sub(r'/', '', old).strip()
+        return super(LCLModule, self).transfer_check_label(old, new)
+
     @only_for_websites('par')
     def iter_contacts(self):
         return self.browser.get_advisor()

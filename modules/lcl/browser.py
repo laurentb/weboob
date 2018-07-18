@@ -456,7 +456,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
             self.page.transfer(amount, reason)
         else:
             self.page.deferred_transfer(amount, reason, exec_date)
-        return self.page.handle_response(account, recipient, amount, reason, exec_date)
+        return self.page.handle_response(account, recipient)
 
     @need_login
     def execute_transfer(self, transfer):

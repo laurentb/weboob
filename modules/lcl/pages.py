@@ -969,7 +969,7 @@ class TransferPage(LoggedPage, HTMLPage):
             return acc_ids[0]
         return acc_ids[1]
 
-    def handle_response(self, account, recipient, amount, reason, exec_date):
+    def handle_response(self, account, recipient):
         transfer = Transfer()
 
         transfer._account = account
@@ -997,8 +997,9 @@ class TransferPage(LoggedPage, HTMLPage):
             Regexp(CleanText('//div[@class="topBox"]/div[@class="date"]'), r'(\d{2}\/\d{2}\/\d{4})'),
             dayfirst=True
         )(self.doc)
-        transfer.label = reason
-        assert reason in CleanText('//div[@class="motif"]')(self.doc)
+        # skip html comment with filtering on text() content
+        transfer.label = CleanText('//div[@class="motif"]/text()[contains(., "Motif : ")]',
+                                   replace=[('Motif : ','')])(self.doc)
 
         return transfer
 
