@@ -874,7 +874,7 @@ class LIAccountsPage(LoggedPage, HTMLPage):
 
     @method
     class iter_investment(TableElement):
-        item_xpath = '//table[has-class("liste")]/tbody/tr[count(td)>7]'
+        item_xpath = '//table[has-class("liste")]/tbody/tr[count(td)>=7]'
         head_xpath = '//table[has-class("liste")]/thead/tr/th'
 
         col_label = 'Support'
