@@ -1112,10 +1112,15 @@ class InternalTransferPage(LoggedPage, HTMLPage):
                     'Montant maximum autorisé au débit pour ce compte',
                     'Dépassement du montant journalier autorisé',
                     'Le solde de votre compte est insuffisant',
-                    'Nom prénom du bénéficiaire différent du titulaire. Utilisez un compte courant']
+                    'Nom prénom du bénéficiaire différent du titulaire. Utilisez un compte courant',
+                    "Pour effectuer cette opération, vous devez passer par l’intermédiaire d’un compte courant",
+                    'Montant maximum autorisé au crédit pour ce compte']
 
         for message in messages:
             if message in content:
+                if self.doc.xpath('//div[@class="blocmsg err"]/p'):
+                    # get full error message
+                    message = CleanText('//div[@class="blocmsg err"]/p')(self.doc)
                 raise TransferBankError(message=message)
 
     def check_success(self):
