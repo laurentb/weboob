@@ -199,6 +199,7 @@ class item_account_generic(ItemElement):
             return Account.TYPE_UNKNOWN
 
     obj_id = Env('id')
+    obj_number = Env('id')
     obj__card_number = None
     obj_label = Label(CleanText('./td[1]/a/text() | ./td[1]/a/span[@class and not(contains(@class, "doux"))] | ./td[1]/div/a[has-class("cb")]'))
     obj_coming = Env('coming')
