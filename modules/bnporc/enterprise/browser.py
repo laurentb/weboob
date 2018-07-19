@@ -52,8 +52,7 @@ class BNPEnterprise(LoginBrowser):
                                '&dateMin=(?P<date_min>)&dateMax=(?P<date_max>)&ajax=true',
                                '/NCCPresentationWeb/e11_releve_op/init.do', AccountHistoryViewPage)
     account_coming_view = URL('/NCCPresentationWeb/m04_selectionCompteGroupe/init.do\?type=compte&identifiant=(?P<identifiant>)', AccountHistoryViewPage)
-    account_history = URL('/NCCPresentationWeb/e11_releve_op/listeOperations.do\?identifiant=(?P<identifiant>)' + \
-                               '&dateMin=(?P<date_min>)&dateMax=(?P<date_max>)',
+    account_history = URL('/NCCPresentationWeb/e11_releve_op/listeOperations.do\?identifiant=(?P<identifiant>)&typeSolde=(?P<type_solde>)&typeReleve=(?P<type_releve>)&typeDate=(?P<type_date>)&dateMin=(?P<date_min>)&dateMax=(?P<date_max>)&ajax=true',
                           '/NCCPresentationWeb/e11_releve_op/listeOperations.do', AccountHistoryPage)
     account_coming = URL('/NCCPresentationWeb/e12_rep_cat_op/listOperations.do\?periode=date_valeur&identifiant=(?P<identifiant>)',
                          '/NCCPresentationWeb/e12_rep_cat_op/listOperations.do', AccountHistoryPage)
@@ -122,11 +121,17 @@ class BNPEnterprise(LoginBrowser):
         dformat = "%Y%m%d"
 
         for date in rrule(MONTHLY, dtstart=(datetime.now() - relativedelta(months=3)), until=datetime.now()):
-            self.account_history_view.go(identifiant=account.iban, type_solde='C', type_releve='Comptable', \
-                                         type_date='O', date_min=(date + relativedelta(days=1)).strftime(dformat), \
-                                         date_max=(date + relativedelta(months=1)).strftime(dformat))
-            self.account_history.go(identifiant=account.iban, date_min=(date + relativedelta(days=1)).strftime(dformat), \
-                                    date_max=(date + relativedelta(months=1)).strftime(dformat))
+            self.account_history_view.go(
+                identifiant=account.iban, type_solde='C', type_releve='Previsionnel',
+                type_date='O', date_min=(date + relativedelta(days=1)).strftime(dformat),
+                date_max=(date + relativedelta(months=1)).strftime(dformat)
+            )
+
+            self.account_history.go(
+                identifiant=account.iban, type_solde='C', type_releve='Previsionnel',
+                type_date='O', date_min=(date + relativedelta(days=1)).strftime(dformat),
+                date_max=(date + relativedelta(months=1)).strftime(dformat)
+            )
 
             for transaction in self.page.iter_history():
                 if transaction._coming:
