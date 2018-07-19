@@ -167,6 +167,7 @@ class HistoryPage(LoggedPage, HTMLPage):
                 dayfirst=True
             )
             obj_amount = Eval(lambda x: x / 100, CleanDecimal('./div[2]'))
+            obj_label = NotAvailable
 
             def obj_investments(self):
                 investments = []
