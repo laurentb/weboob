@@ -80,10 +80,14 @@ class TransferPage(LoggedPage, HTMLPage):
                     self.env['label'] = account.label
                     self.env['iban'] = account.iban
 
-
     def get_origin_account_id(self, origin):
         return [Attr('.', 'data-acct-number')(div) for div in self.doc.xpath('//div[@id="internalAccounts"]//div[@data-acct-number]')
                 if Attr('.', 'data-acct-number')(div) in origin.id][0]
+
+    def update_origin_account_estimated_balance(self, origin):
+        for div in self.doc.xpath('//div[@id="internalAccounts"]//div[@data-acct-number]'):
+            if Attr('.', 'data-acct-number')(div) in origin.id:
+                origin._estimated_balance = CleanDecimal('.//span[@class="solde"]', replace_dots=True, default=NotAvailable)(div)
 
     def get_transfer_form(self, txt):
         form = self.get_form(xpath='//form[script[contains(text(), "%s")]]' % txt)
@@ -98,6 +102,8 @@ class TransferPage(LoggedPage, HTMLPage):
         form['screenStep'] = '1'
         form.submit()
 
+        # update account estimated balance
+        self.update_origin_account_estimated_balance(origin)
         # Select debit account
         form = self.get_transfer_form('SetDebitAccount')
         form['selectedDebitAccountNumber'] = self.get_origin_account_id(origin)

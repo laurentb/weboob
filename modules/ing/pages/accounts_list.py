@@ -172,7 +172,6 @@ class AccountsList(LoggedPage, HTMLPage):
             obj_type = AddType(Field('label'))
             obj_coming = NotAvailable
             obj__jid = Attr('//input[@name="javax.faces.ViewState"]', 'value')
-            obj__estimated_balance = None
 
             def obj_balance(self):
                 balance = CleanDecimal('./span[@class="solde"]/label', replace_dots=True)(self)
@@ -322,11 +321,6 @@ class AccountsList(LoggedPage, HTMLPage):
         on_click = self.doc.xpath('//a[contains(@class, "comptes")]/@onclick')[1]
         self.fillup_form(form, r"\),\{(.*)\},'", on_click)
         form.submit()
-
-    def get_estimated_balance(self):
-        # nedeed to do transfer
-        if self.doc.xpath('//div[@class="previsionnel"]'):
-            return CleanDecimal('//div[@class="previsionnel"]//div[@class="solde_value"]//label[@class="digits positive"]', replace_dots=True)(self.doc)
 
 class IbanPage(LoggedPage, HTMLPage):
     def get_iban(self):

@@ -190,8 +190,6 @@ class IngBrowser(LoginBrowser):
     def get_iban(self, account):
         if account.type in [Account.TYPE_CHECKING, Account.TYPE_SAVINGS]:
             self.go_account_page(account)
-            # nedeed for transfer
-            account._estimated_balance = self.page.get_estimated_balance()
             account.iban = self.ibanpage.go().get_iban()
 
         if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
