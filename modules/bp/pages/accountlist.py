@@ -207,12 +207,13 @@ class AccountList(LoggedPage, MyHTMLPage):
             obj_total_amount = CleanDecimal(TableCell('total_amount'), replace_dots=True, default=NotAvailable)
 
             def obj_id(self):
+                if TableCell('label', default=None)(self):
+                    return Regexp(CleanText(Field('label'), default=NotAvailable), '- (\w{16})')(self)
+
                 # student_loan
                 if CleanText('//select[@id="numOffrePretSelection"]/option[@selected="selected"]')(self):
                     return Regexp(CleanText('//select[@id="numOffrePretSelection"]/option[@selected="selected"]'), r'(\d+)')(self)
 
-                if TableCell('label', default=None)(self):
-                    return Regexp(CleanText(Field('label'), default=NotAvailable), '- (\w{16})')(self)
                 return CleanText('//form[contains(@action, "detaillerOffre") or contains(@action, "detaillerPretPartenaireListe-encoursPrets.ea")]/div[@class="bloc Tmargin"]/div[@class="formline"][2]/span/strong')(self)
 
             obj_type = Account.TYPE_LOAN
