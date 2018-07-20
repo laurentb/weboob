@@ -117,6 +117,7 @@ class LoginPage(HTMLPage):
         except FormNotFound:
             form = self.get_form(xpath='//form[.//div[contains(@class, "otp")]]')
             input_validate = (Attr('//a[.//span[contains(text(), "VALIDATE")]]', 'onclick', default=None)(self.doc) or
+                              Attr('//a[.//span[contains(text(), "VALIDER")]]', 'onclick', default=None)(self.doc) or
                               Attr('//a[.//span[contains(text(), "Confirm")]]', 'onclick')(self.doc))
             m = re.search(r"{\\'([^\\]+)\\':\\'([^\\]+)\\'}", input_validate)
             form[m.group(1)] = m.group(2)
