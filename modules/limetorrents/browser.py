@@ -33,7 +33,7 @@ class LimetorrentsBrowser(PagesBrowser):
     PROFILE = Wget()
     TIMEOUT = 30
 
-    BASEURL = 'https://www.limetorrents.cc/'
+    BASEURL = 'https://www.limetorrents.io/'
     search = URL(r'/search/all/(?P<pattern>.*)/seeds/(?P<page>[0-9]+)/', SearchPage)
     torrent = URL(r'/(?P<torrent_name>.*)-torrent-(?P<torrent_id>[0-9]+)\.html', TorrentPage)
 
