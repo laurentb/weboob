@@ -126,7 +126,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             del self.session.cookies['CTX']
 
     def load_state(self, state):
-        if 'expire' in state and parser.parse(state['expire']) < datetime.datetime.now():
+        if state.get('expire') and parser.parse(state['expire']) < datetime.datetime.now():
             return self.logger.info('State expired, not reloading it from storage')
 
         # Reload session only for add recipient step
