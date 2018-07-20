@@ -46,6 +46,7 @@ __all__ = [
     'CapBankTransferAddRecipient',
     'RecipientNotFound', 'AddRecipientError', 'AddRecipientStep',
     'RecipientInvalidIban', 'RecipientInvalidLabel',
+    'Rate', 'CapCurrencyRate',
 ]
 
 
@@ -704,3 +705,40 @@ class CapBankTransferAddRecipient(CapBankTransfer):
         if not recipient.label:
             raise RecipientInvalidLabel('Recipient label is mandatory.')
         return self.new_recipient(recipient, **params)
+
+
+class Rate(BaseObject, Currency):
+    """
+    Currency exchange rate.
+    """
+
+    currency_from = StringField('The currency to which exchange rates are relative to. When converting 1 EUR to X HUF, currency_fom is EUR.)', default=None)
+    currency_to =   StringField('The currency is converted to. When converting 1 EUR to X HUF, currency_to is HUF.)', default=None)
+    value =          DecimalField('Exchange rate')
+    datetime =      DateField('Collection date and time')
+
+
+class CapCurrencyRate(CapBank):
+    """
+    Capability of bank websites to get currency exchange rates.
+    """
+
+    def iter_currencies(self):
+        """
+        Iter available currencies.
+
+        :rtype: iter[:class:`Currency`]
+        """
+        raise NotImplementedError()
+
+    def get_rate(self, currency_from, currency_to):
+        """
+        Get exchange rate.
+
+        :param currency_from: currency to which exchange rate is relative to
+        :type currency_from: :class:`Currency`
+        :param currency_to: currency is converted to
+        :type currency_to: :class`Currency`
+        :rtype: :class:`Rate`
+        """
+        raise NotImplementedError()
