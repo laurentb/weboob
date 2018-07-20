@@ -1389,14 +1389,22 @@ class RecipientMiscPage(RecipientAddingMixin, CollectePageMixin, MyLoggedPage, B
         if msg:
             raise AddRecipientError(message=msg)
 
+    def get_iban_col(self):
+        for index, td in enumerate(self.doc.xpath('//table[starts-with(@summary,"Nom et IBAN")]//th')):
+            if 'Numéro de compte' in CleanText('.')(td):
+                # index start at 0
+                return index + 1
+
     def find_recipient(self, iban):
         iban = iban.upper()
+        iban_col = self.get_iban_col()
+
         for tr in self.doc.xpath('//table[starts-with(@summary,"Nom et IBAN")]/tbody/tr'):
-            iban_text = re.sub(r'\s', '', CleanText('./td[3]')(tr))
+            iban_text = re.sub(r'\s', '', CleanText('./td[%s]' % iban_col)(tr))
             if iban_text.upper() == 'IBAN:%s' % iban:
                 res = Recipient()
                 res.iban = iban
-                res.label = CleanText('./td[2]')(tr)
+                res.label = CleanText('./td[%s]' % (iban_col-1))(tr)
                 return res
 
 
