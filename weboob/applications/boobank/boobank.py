@@ -41,6 +41,8 @@ from weboob.capabilities.contact import CapContact, Advisor
 from weboob.capabilities.profile import CapProfile
 from weboob.tools.application.repl import ReplApplication, defaultcount
 from weboob.tools.application.formatters.iformatter import IFormatter, PrettyFormatter
+from weboob.tools.backend import env_proxies
+from weboob.tools.log import getLogger
 from weboob.tools.misc import to_unicode
 
 
@@ -785,7 +787,9 @@ class Boobank(ReplApplication):
         """
         username, password = self.parse_command_args(line, 2, 2)
 
-        client = APIBrowser(baseurl='https://budgea.biapi.pro/2.0/')
+        client = APIBrowser(baseurl='https://budgea.biapi.pro/2.0/',
+                            proxy=env_proxies(),
+                            logger=getLogger('apibrowser', self.logger))
         client.set_profile(Weboob(self.VERSION))
         client.TIMEOUT = 60
         try:
