@@ -18,17 +18,15 @@
 
 
 import os
-from threading import RLock
 from copy import copy
+from threading import RLock
 
-from weboob.capabilities.base import BaseObject, FieldNotFound, \
-    Capability, NotLoaded, NotAvailable
-from weboob.tools.misc import iter_fields
+from weboob.capabilities.base import BaseObject, Capability, FieldNotFound, NotAvailable, NotLoaded
+from weboob.exceptions import ModuleInstallError
 from weboob.tools.compat import basestring
 from weboob.tools.log import getLogger
+from weboob.tools.misc import iter_fields
 from weboob.tools.value import ValuesDict
-from weboob.exceptions import ModuleInstallError
-
 
 __all__ = ['BackendStorage', 'BackendConfig', 'Module']
 
@@ -58,7 +56,7 @@ class BackendStorage(object):
 
         >>> from weboob.tools.storage import StandardStorage
         >>> backend = BackendStorage('blah', StandardStorage('/tmp/cfg'))
-        >>> backend.storage.set('config', 'nb_of_threads', 10)
+        >>> backend.storage.set('config', 'nb_of_threads', 10)  # doctest: +SKIP
         >>>
 
         :param args: the path where to store value
@@ -83,11 +81,11 @@ class BackendStorage(object):
 
         >>> from weboob.tools.storage import StandardStorage
         >>> backend = BackendStorage('blah', StandardStorage('/tmp/cfg'))
-        >>> backend.storage.get('config', 'nb_of_threads')
+        >>> backend.storage.get('config', 'nb_of_threads')  # doctest: +SKIP
         10
-        >>> backend.storage.get('config', 'unexistant', 'path', default='lol')
+        >>> backend.storage.get('config', 'unexistant', 'path', default='lol')  # doctest: +SKIP
         'lol'
-        >>> backend.storage.get('config')
+        >>> backend.storage.get('config')  # doctest: +SKIP
         {'nb_of_threads': 10, 'other_things': 'blah'}
 
         :param args: path to get
@@ -346,7 +344,6 @@ class Module(object):
         if self._private_config.get('_highlight_el', ''):
             kwargs.setdefault('highlight_el', bool(int(self._private_config['_highlight_el'])))
 
-
         browser = klass(*args, **kwargs)
 
         if hasattr(browser, 'load_state'):
@@ -355,28 +352,18 @@ class Module(object):
         return browser
 
     def get_proxy(self):
-        tmpproxy = None
-        tmpproxys = None
-
+        # Get proxies from environment variables
+        proxies = env_proxies(environ=os.environ)
+        # Override them with backend-specific config
         if '_proxy' in self._private_config:
-            tmpproxy = self._private_config['_proxy']
-        elif 'http_proxy' in os.environ:
-            tmpproxy = os.environ['http_proxy']
-        elif 'HTTP_PROXY' in os.environ:
-            tmpproxy = os.environ['HTTP_PROXY']
+            proxies['http'] = self._private_config['_proxy']
         if '_proxy_ssl' in self._private_config:
-            tmpproxys = self._private_config['_proxy_ssl']
-        elif 'https_proxy' in os.environ:
-            tmpproxys = os.environ['https_proxy']
-        elif 'HTTPS_PROXY' in os.environ:
-            tmpproxys = os.environ['HTTPS_PROXY']
-
-        proxy = {}
-        if tmpproxy is not None:
-            proxy['http'] = tmpproxy
-        if tmpproxys is not None:
-            proxy['https'] = tmpproxys
-        return proxy
+            proxies['https'] = self._private_config['_proxy_ssl']
+        # Remove empty values
+        for key in list(proxies.keys()):
+            if not proxies[key]:
+                del proxies[key]
+        return proxies
 
     @classmethod
     def iter_caps(klass):
@@ -499,3 +486,19 @@ class AbstractModule(Module):
 
         cls.__bases__ = tuple([parent] + list(cls.iter_caps()))
         return object.__new__(cls)
+
+
+def env_proxies(environ=os.environ):
+    proxies = {}
+    proxies['http'] = environ.get('http_proxy', environ.get('HTTP_PROXY'))
+    proxies['https'] = environ.get('https_proxy', environ.get('HTTPS_PROXY'))
+    return proxies
+
+
+def test():
+    assert env_proxies({}) == {'http': None, 'https': None}
+    assert env_proxies({'http_proxy': 'a'}) == {'http': 'a', 'https': None}
+    assert env_proxies({'HTTP_PROXY': 'a'}) == {'http': 'a', 'https': None}
+    assert env_proxies({'https_proxy': 'b'}) == {'http': None, 'https': 'b'}
+    assert env_proxies({'HTTPS_PROXY': 'b'}) == {'http': None, 'https': 'b'}
+    assert env_proxies({'https_proxy': 'c', 'HTTPS_PROXY': 'd'}) == {'http': None, 'https': 'c'}
