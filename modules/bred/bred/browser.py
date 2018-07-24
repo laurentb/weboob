@@ -100,6 +100,7 @@ class BredBrowser(DomainBrowser):
                      '027': Account.TYPE_SAVINGS,
                      '037': Account.TYPE_SAVINGS,
                      '730': Account.TYPE_DEPOSIT,
+                     '081': Account.TYPE_SAVINGS,
                     }
 
     def get_universes(self):
