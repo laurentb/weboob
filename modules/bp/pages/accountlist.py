@@ -307,6 +307,8 @@ class AccountList(LoggedPage, MyHTMLPage):
             return Date(dayfirst=True).filter(self.get_element('Date de prochaine'))
 
         def obj_next_payment_amount(self):
+            if 'Donnée non disponible' in CleanText().filter(self.get_element('Montant prochaine')):
+                return NotAvailable
             return CleanDecimal(replace_dots=True).filter(self.get_element('Montant prochaine'))
 
         def obj_url(self):
