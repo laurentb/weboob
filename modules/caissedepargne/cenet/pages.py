@@ -137,7 +137,7 @@ class CenetCardsPage(LoggedPage, CenetJsonPage):
 class CenetAccountHistoryPage(LoggedPage, CenetJsonPage):
     TR_TYPES = {8: Transaction.TYPE_TRANSFER, # VIR
                 7: Transaction.TYPE_TRANSFER, # VIR COMPTE A COMPTE
-                6: Transaction.TYPE_CASH_DEPOSIT, # REMISE CHECQUE(s)
+                6: Transaction.TYPE_CASH_DEPOSIT, # REMISE CHEQUE(s)
                 4: Transaction.TYPE_ORDER # PRELV
                 }
 
@@ -163,9 +163,6 @@ class CenetAccountHistoryPage(LoggedPage, CenetJsonPage):
                         return type
 
                 return Transaction.TYPE_UNKNOWN
-
-            def obj_original_currency(self):
-                return CleanText(Dict('Montant/Devise'))(self).upper()
 
             def obj_amount(self):
                 amount = CleanDecimal(Dict('Montant/Valeur'))(self)
@@ -197,9 +194,6 @@ class CenetCardSummaryPage(LoggedPage, CenetJsonPage):
                 if rdate.group(2):
                     return Date(dayfirst=True).filter(rdate.group(2))
                 return NotAvailable
-
-            def obj_original_currency(self):
-                return CleanText(Dict('Montant/Devise'))(self).upper()
 
             def obj_amount(self):
                 amount = CleanDecimal(Dict('Montant/Valeur'))(self)
