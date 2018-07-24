@@ -20,128 +20,98 @@
 from __future__ import unicode_literals
 
 import json
-import re
 import time
 from datetime import date
 from decimal import Decimal
 
-from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Account, Investment
-from weboob.capabilities.profile import Person
-from weboob.tools.date import parse_french_date
-from weboob.tools.capabilities.bank.transactions import FrenchTransaction, sorted_transactions
-from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded, ParseError
-from weboob.browser import DomainBrowser
+from weboob.browser import LoginBrowser, need_login, URL
 from weboob.capabilities.base import find_object
+from weboob.tools.capabilities.bank.transactions import sorted_transactions
+
+from .pages import (
+    HomePage, LoginPage, UniversePage,
+    TokenPage, MoveUniversePage, SwitchPage,
+    LoansPage, AccountsPage, IbanPage, LifeInsurancesPage,
+    SearchPage, ProfilePage, EmailsPage, ErrorPage,
+)
 
 __all__ = ['BredBrowser']
 
 
-class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile('^.*Virement (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
-                (re.compile(u'PRELEV SEPA (?P<text>.*)'),        FrenchTransaction.TYPE_ORDER),
-                (re.compile(u'.*Prélèvement.*'),        FrenchTransaction.TYPE_ORDER),
-                (re.compile(u'^(REGL|Rgt)(?P<text>.*)'),        FrenchTransaction.TYPE_ORDER),
-                (re.compile('^(?P<text>.*) Carte \d+\s+ LE (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})'),
-                                                          FrenchTransaction.TYPE_CARD),
-                (re.compile(u'^Débit mensuel.*'), FrenchTransaction.TYPE_CARD_SUMMARY),
-                (re.compile(u"^Retrait d'espèces à un DAB (?P<text>.*) CARTE [X\d]+ LE (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})"),
-                                                          FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile(u'^Paiement de chèque (?P<text>.*)'),  FrenchTransaction.TYPE_CHECK),
-                (re.compile(u'^(Cotisation|Intérêts) (?P<text>.*)'), FrenchTransaction.TYPE_BANK),
-                (re.compile(u'^(Remise Chèque|Remise de chèque)\s*(?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
-                (re.compile('^Versement (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
-               ]
-
-
-class BredBrowser(DomainBrowser):
+class BredBrowser(LoginBrowser):
     BASEURL = 'https://www.bred.fr'
 
+    home =              URL('/$', HomePage)
+    login =             URL('/transactionnel/Authentication', LoginPage)
+    error =             URL('.*gestion-des-erreurs/erreur-pwd',
+                            '.*gestion-des-erreurs/opposition',
+                            '/pages-gestion-des-erreurs/erreur-technique',
+                            '/pages-gestion-des-erreurs/message-tiers-oppose', ErrorPage)
+    universe =          URL('/transactionnel/services/applications/menu/getMenuUnivers', UniversePage)
+    token =             URL('/transactionnel/services/rest/User/nonce\?random=(?P<timestamp>.*)', TokenPage)
+    move_universe =     URL('/transactionnel/services/applications/listes/(?P<key>.*)/default', MoveUniversePage)
+    switch =            URL('/transactionnel/services/rest/User/switch', SwitchPage)
+    loans =             URL('/transactionnel/services/applications/prets/liste', LoansPage)
+    accounts =          URL('/transactionnel/services/rest/Account/accounts', AccountsPage)
+    iban =              URL('/transactionnel/services/rest/Account/account/(?P<number>.*)/iban', IbanPage)
+    life_insurances =   URL('/transactionnel/services/applications/avoirsPrepar/getAvoirs', LifeInsurancesPage)
+    search =            URL('/transactionnel/services/applications/operations/getSearch/', SearchPage)
+    profile =           URL('/transactionnel/services/rest/User/user', ProfilePage)
+    emails =            URL('/transactionnel/services/applications/gestionEmail/getAdressesMails', EmailsPage)
+
     def __init__(self, accnum, login, password, *args, **kwargs):
-        super(BredBrowser, self).__init__(*args, **kwargs)
-        self.login = login
+        kwargs['username'] = login
         # Bred only use first 8 char (even if the password is set to be bigger)
         # The js login form remove after 8th char. No comment.
-        self.password = password[:8]
+        kwargs['password'] = password[:8]
+        super(BredBrowser, self).__init__(*args, **kwargs)
+
         self.accnum = accnum
         self.universes = None
         self.current_univers = None
 
-    def do_post_auth(self):
+    def do_login(self):
         if 'hsess' not in self.session.cookies:
-            self.location('/')  # set session token
+            self.home.go()  # set session token
             assert 'hsess' in self.session.cookies, "Session token not correctly set"
 
         # hard-coded authentication payload
-        data = dict(identifiant=self.login, password=self.password)
+        data = dict(identifiant=self.username, password=self.password)
         cookies = {k: v for k, v in self.session.cookies.items() if k in ('hsess', )}
-        return self.open('https://www.bred.fr/transactionnel/Authentication', data=data, cookies=cookies)
+        self.session.cookies.update(cookies)
+        self.login.go(data=data)
 
-    def do_login(self):
-        r = self.do_post_auth()
-        if 'gestion-des-erreurs/erreur-pwd' in r.url:
-            raise BrowserIncorrectPassword('Bad login/password.')
-        if 'gestion-des-erreurs/opposition' in r.url:
-            raise BrowserIncorrectPassword('Your account is disabled')
-        if '/pages-gestion-des-erreurs/erreur-technique' in r.url:
-            errmsg = re.search(r'<h4>(.*)</h4>', r.text).group(1)
-            raise BrowserUnavailable(errmsg)
-        if '/pages-gestion-des-erreurs/message-tiers-oppose' in r.url:
-            raise ActionNeeded('Cannot connect to account because 2-factor authentication is enabled')
-
-    ACCOUNT_TYPES = {'000': Account.TYPE_CHECKING,
-                     '999': Account.TYPE_MARKET,
-                     '011': Account.TYPE_CARD,
-                     '020': Account.TYPE_SAVINGS,
-                     '021': Account.TYPE_SAVINGS,
-                     '023': Account.TYPE_SAVINGS,
-                     '078': Account.TYPE_SAVINGS,
-                     '080': Account.TYPE_SAVINGS,
-                     '027': Account.TYPE_SAVINGS,
-                     '037': Account.TYPE_SAVINGS,
-                     '730': Account.TYPE_DEPOSIT,
-                     '081': Account.TYPE_SAVINGS,
-                    }
-
+    @need_login
     def get_universes(self):
         """Get universes (particulier, pro, etc)"""
-
-        self.do_login()
         self.get_and_update_bred_token()
-        universe_data = self.open(
-            '/transactionnel/services/applications/menu/getMenuUnivers',
-            headers={'Accept': 'application/json'}
-        ).json().get('content', {})
+        self.universe.go(headers={'Accept': 'application/json'})
 
-        universes = {}
-        universes[universe_data['universKey']] = universe_data['title']
-        for universe in universe_data.get('menus', {}):
-            universes[universe['universKey']] = universe['title']
-
-        return universes
+        return self.page.get_universes()
 
     def get_and_update_bred_token(self):
         timestamp = int(time.time() * 1000)
-        x_token_bred = self.location('/transactionnel/services/rest/User/nonce?random={}'.format(timestamp)).json()['content']
+        x_token_bred = self.token.go(timestamp=timestamp).get_content()
         self.session.headers.update({'X-Token-Bred': x_token_bred, })  # update headers for session
         return {'X-Token-Bred': x_token_bred, }
 
     def move_to_univers(self, univers):
         if univers == self.current_univers:
             return
-        self.open('/transactionnel/services/applications/listes/{key}/default'.format(key=univers))
+        self.move_universe.go(key=univers)
         self.get_and_update_bred_token()
         headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         }
-        self.open(
-            '/transactionnel/services/rest/User/switch',
+        self.switch.go(
             data=json.dumps({'all': 'false', 'univers': univers}),
             headers=headers,
         )
         self.current_univers = univers
 
+    @need_login
     def get_accounts_list(self):
         accounts = []
         for universe_key in self.get_universes():
@@ -152,105 +122,31 @@ class BredBrowser(DomainBrowser):
 
         return sorted(accounts, key=lambda x: x._univers)
 
+    @need_login
     def get_loans_list(self):
-        call_response = self.location('/transactionnel/services/applications/prets/liste').json().get('content', [])
+        self.loans.go()
+        return self.page.iter_loans(current_univers=self.current_univers)
 
-        for content in call_response:
-            a = Account()
-            a.id = "%s.%s" % (content['comptePrets'].strip(), content['numeroDossier'].strip())
-            a.type = Account.TYPE_LOAN
-            a.label = ' '.join([content['intitule'].strip(), content['libellePrets'].strip()])
-            a.balance = -Decimal(str(content['montantCapitalDu']['valeur']))
-            a.currency = content['montantCapitalDu']['monnaie']['code'].strip()
-            a._univers = self.current_univers
-            yield a
-
+    @need_login
     def get_list(self):
-        call_response = self.location(
-            '/transactionnel/services/rest/Account/accounts'
-        ).json().get('content', [])
-        seen = set()
+        self.accounts.go()
+        for acc in self.page.iter_accounts(accnum=self.accnum, current_univers=self.current_univers):
+            if acc.type == Account.TYPE_CHECKING:
+                self.iban.go(number=acc._number)
+                self.page.set_iban(account=acc)
+            yield acc
 
-        accounts_list = []
-
-        for content in call_response:
-            if self.accnum != '00000000000' and content['numero'] != self.accnum:
-                continue
-            for poste in content['postes']:
-                a = Account()
-                a._number = content['numeroLong']
-                a._nature = poste['codeNature']
-                a._codeSousPoste = poste['codeSousPoste'] if 'codeSousPoste' in poste else None
-                a._consultable = poste['consultable']
-                a._univers = self.current_univers
-                a.id = '%s.%s' % (a._number, a._nature)
-
-                if a.id in seen:
-                    # some accounts like "compte à terme fidélis" have the same _number and _nature
-                    # but in fact are kind of closed, so worthless...
-                    self.logger.warning('ignored account id %r (%r) because it is already used', a.id, poste.get('numeroDossier'))
-                    continue
-
-                seen.add(a.id)
-
-                a.type = self.ACCOUNT_TYPES.get(poste['codeNature'], Account.TYPE_UNKNOWN)
-                if a.type == Account.TYPE_UNKNOWN:
-                    self.logger.warning("unknown type %s" % poste['codeNature'])
-
-                if a.type == Account.TYPE_CHECKING:
-                    iban_response = self.location(
-                        '/transactionnel/services/rest/Account/account/%s/iban' % a._number
-                    ).json().get('content', {})
-                    a.iban = iban_response.get('iban', NotAvailable)
-                else:
-                    a.iban = NotAvailable
-
-                if a.type == Account.TYPE_CARD:
-                    a.parent = find_object(accounts_list, _number=a._number, type=Account.TYPE_CHECKING)
-
-                if 'numeroDossier' in poste and poste['numeroDossier']:
-                    a._file_number = poste['numeroDossier']
-                    a.id += '.%s' % a._file_number
-
-                if poste['postePortefeuille']:
-                    a.label = u'Portefeuille Titres'
-                    a.balance = Decimal(str(poste['montantTitres']['valeur']))
-                    a.currency = poste['montantTitres']['monnaie']['code'].strip()
-                    if not a.balance and not a.currency and 'dateTitres' not in poste:
-                        continue
-                    accounts_list.append(a)
-
-                if 'libelle' not in poste:
-                    continue
-
-                a.label = ' '.join([content['intitule'].strip(), poste['libelle'].strip()])
-                a.balance = Decimal(str(poste['solde']['valeur']))
-                a.currency = poste['solde']['monnaie']['code'].strip()
-                # Some accounts may have balance currency
-                if 'Solde en devises' in a.label and a.currency != u'EUR':
-                    a.id += str(poste['monnaie']['codeSwift'])
-                accounts_list.append(a)
-
-        return accounts_list
-
+    @need_login
     def get_life_insurance_list(self, accounts):
-        call_response = self.location('/transactionnel/services/applications/avoirsPrepar/getAvoirs').json().get('content', [])
+        accounts = self.get_list()
 
-        for content in call_response:
-            a = Account()
-            a.id = content['avoirs']['contrats'][0]['numero']
-            a._number = content['avoirs']['contrats'][0]['cptRattachement'].rstrip('0')
-            a.parent = find_object(accounts, _number=a._number, type=Account.TYPE_CHECKING)
-            a.type = Account.TYPE_LIFE_INSURANCE
-            a.label = ' '.join([content['titulaire'].strip(), content['avoirs']['contrats'][0]['libelleProduit'].strip()])
-            a.balance = Decimal(str(content['avoirs']['valeur']))
-            a.currency = 'EUR'
-            a._univers = self.current_univers
-            # The investment list for each life insurance is available here:
-            a._investments = [inv for inv in content['avoirs']['contrats'][0]['allocations']]
-            a._consultable = False
-            yield a
+        self.life_insurances.go()
 
+        for ins in self.page.iter_life_insurances(current_univers=self.current_univers):
+            ins.parent = find_object(accounts, _number=ins._number, type=Account.TYPE_CHECKING)
+            yield ins
+
+    @need_login
     def _make_api_call(self, account, start_date, end_date, offset, max_length=50):
         HEADERS = {
             'Accept': "application/json",
@@ -269,14 +165,10 @@ class BredBrowser(DomainBrowser):
             "search": "",
             "categorie": "",
         }
-        result = self.open('/transactionnel/services/applications/operations/getSearch/', data=json.dumps(call_payload), headers=HEADERS, ).json()
+        self.search.go(data=json.dumps(call_payload), headers=HEADERS)
+        return self.page.get_transaction_list()
 
-        if int(result['erreur']['code']) != 0:
-            raise BrowserUnavailable("API sent back an error code")
-
-        transaction_list = result['content']['operations']
-        return transaction_list
-
+    @need_login
     def get_history(self, account, coming=False):
         if account.type is Account.TYPE_LOAN or not account._consultable:
             raise NotImplementedError()
@@ -294,35 +186,8 @@ class BredBrowser(DomainBrowser):
                 start_date=date(day=1, month=1, year=2000), end_date=date.today(),
                 offset=offset, max_length=50,
             )
-            transactions = []
-            for op in reversed(operation_list):
-                t = Transaction()
-                t.id = op['id']
-                if op['id'] in seen:
-                    raise ParseError('There are several transactions with the same ID, probably an infinite loop')
 
-                seen.add(t.id)
-                d = date.fromtimestamp(op.get('dateDebit', op.get('dateOperation'))/1000)
-                op['details'] = [re.sub('\s+', ' ', i).replace('\x00', '') for i in op['details'] if i]  # sometimes they put "null" elements...
-                label = re.sub('\s+', ' ', op['libelle']).replace('\x00', '')
-                raw = ' '.join([label] + op['details'])
-                vdate = date.fromtimestamp(op.get('dateValeur', op.get('dateDebit', op.get('dateOperation')))/1000)
-                t.parse(d, raw, vdate=vdate)
-                t.amount = Decimal(str(op['montant']))
-                t.rdate = date.fromtimestamp(op.get('dateOperation', op.get('dateDebit'))/1000)
-                if 'categorie' in op:
-                    t.category = op['categorie']
-                t.label = label
-                t._coming = op['intraday']
-                if t._coming:
-                    # coming transactions have a random uuid id (inconsistent between requests)
-                    t.id = ''
-                t._coming |= (t.date > today)
-
-                if t.type == Transaction.TYPE_CARD and account.type == Account.TYPE_CARD:
-                    t.type = Transaction.TYPE_DEFERRED_CARD
-
-                transactions.append(t)
+            transactions = self.page.iter_history(account=account, operation_list=operation_list, seen=seen, today=today, coming=coming)
 
             # Transactions are unsorted
             for t in sorted_transactions(transactions):
@@ -338,6 +203,7 @@ class BredBrowser(DomainBrowser):
 
             assert offset < 30000, 'the site may be doing an infinite loop'
 
+    @need_login
     def get_investment(self, account):
         if account.type != Account.TYPE_LIFE_INSURANCE:
             raise NotImplementedError()
@@ -352,18 +218,14 @@ class BredBrowser(DomainBrowser):
             inv.valuation = Decimal(str(invest['montant']))
             yield inv
 
+    @need_login
     def get_profile(self):
         self.get_universes()
-        profile = Person()
 
-        content = self.location('/transactionnel/services/rest/User/user').json()['content']
+        self.profile.go()
+        profile = self.page.get_profile()
 
-        profile.name = content['prenom'] + ' ' + content['nom']
-        profile.address = content['adresse'] + ' ' + content['codePostal'] + ' ' + content['ville']
-        profile.country = content['pays']
-        profile.birth_date = parse_french_date(content['dateNaissance']).date()
-
-        content = self.location('/transactionnel/services/applications/gestionEmail/getAdressesMails').json()['content']
-        profile.email = content['emailPart']
+        self.emails.go()
+        self.page.set_email(profile=profile)
 
         return profile

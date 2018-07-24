@@ -51,6 +51,7 @@ class BredModule(Module, CapBankWealth, CapProfile):
 
     def create_default_browser(self):
         self.BROWSER = self.BROWSERS[self.config['website'].get()]
+
         return self.create_browser(self.config['accnum'].get().replace(' ','').zfill(11),
                                    self.config['login'].get(),
                                    self.config['password'].get())
