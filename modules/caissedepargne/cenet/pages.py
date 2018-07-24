@@ -49,7 +49,7 @@ class CenetLoginPage(HTMLPage):
         form.submit()
 
 
-class CenetHomePage(HTMLPage):
+class CenetHomePage(LoggedPage, HTMLPage):
     @method
     class get_advisor(ItemElement):
         klass = Advisor
