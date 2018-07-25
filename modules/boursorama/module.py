@@ -24,7 +24,7 @@ from __future__ import unicode_literals
 
 import re
 
-from weboob.capabilities.bank import CapBankWealth, CapBankTransferAddRecipient, Account, AccountNotFound
+from weboob.capabilities.bank import CapBankWealth, CapBankTransferAddRecipient, Account, AccountNotFound, CapCurrencyRate
 from weboob.capabilities.profile import CapProfile
 from weboob.capabilities.contact import CapContact
 from weboob.tools.backend import Module, BackendConfig
@@ -36,7 +36,7 @@ from .browser import BoursoramaBrowser
 __all__ = ['BoursoramaModule']
 
 
-class BoursoramaModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapProfile, CapContact):
+class BoursoramaModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapProfile, CapContact, CapCurrencyRate):
     NAME = 'boursorama'
     MAINTAINER = u'Gabriel Kerneis'
     EMAIL = 'gabriel@kerneis.info'
@@ -100,3 +100,9 @@ class BoursoramaModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapPr
     def transfer_check_label(self, old, new):
         old = re.sub(r'[€#&$£%><~"\{\}\[\]=@^\\_`|°µ§!;]', '', old).strip()
         return super(BoursoramaModule, self).transfer_check_label(old, new)
+
+    def iter_currencies(self):
+        return self.browser.iter_currencies()
+
+    def get_rate(self, currency_from, currency_to):
+        return self.browser.get_rate(currency_from, currency_to)

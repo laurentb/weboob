@@ -26,7 +26,7 @@ import re
 from io import BytesIO
 from datetime import date
 
-from weboob.browser.pages import HTMLPage, LoggedPage, pagination, NextPage, FormNotFound, PartialHTMLPage, LoginPage, CsvPage, RawPage
+from weboob.browser.pages import HTMLPage, LoggedPage, pagination, NextPage, FormNotFound, PartialHTMLPage, LoginPage, CsvPage, RawPage, JsonPage
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement, SkipItem, DictElement
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Field, Format,
@@ -39,7 +39,7 @@ from weboob.capabilities.bank import (
     Account, Investment, Recipient, Transfer, AccountNotFound,
     AddRecipientError, TransferInvalidAmount,
 )
-from weboob.capabilities.base import NotAvailable, empty
+from weboob.capabilities.base import NotAvailable, empty, Currency
 from weboob.capabilities.profile import Person
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_iban_valid
@@ -1040,3 +1040,28 @@ class AddRecipientPage(LoggedPage, HTMLPage):
 
 class PEPPage(LoggedPage, HTMLPage):
     pass
+
+
+class CurrencyListPage(HTMLPage):
+    @method
+    class iter_currencies(ListElement):
+        item_xpath = '//select[@class="c-select currency-change"]/option'
+
+        class item(ItemElement):
+            klass = Currency
+
+            obj_id = Attr('./.', 'value')
+
+    def get_currency_list(self):
+        CurIDList = []
+        for currency in self.iter_currencies():
+            currency.id = currency.id[0:3]
+            if currency.id not in CurIDList:
+                CurIDList.append(currency.id)
+                yield currency
+
+
+class CurrencyConvertPage(JsonPage):
+    def get_rate(self):
+        if not 'error' in self.doc:
+            return round(self.doc['rate'], 4)

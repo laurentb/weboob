@@ -27,11 +27,11 @@ from weboob.browser.retry import login_method, retry_on_logout, RetryLoginBrowse
 from weboob.browser.browsers import need_login, StatesMixin
 from weboob.browser.url import URL
 from weboob.exceptions import BrowserIncorrectPassword, BrowserHTTPNotFound
-from weboob.browser.exceptions import LoggedOut
+from weboob.browser.exceptions import LoggedOut, ClientError
 from weboob.capabilities.bank import (
     Account, AccountNotFound, TransferError, TransferInvalidAmount,
     TransferInvalidEmitter, TransferInvalidLabel, TransferInvalidRecipient,
-    AddRecipientStep, Recipient,
+    AddRecipientStep, Recipient, Rate
 )
 from weboob.capabilities.contact import Advisor
 from weboob.tools.captcha.virtkeyboard import VirtKeyboardError
@@ -44,7 +44,7 @@ from .pages import (
     MarketPage, LoanPage, SavingMarketPage, ErrorPage, IncidentPage, IbanPage, ProfilePage, ExpertPage,
     CardsNumberPage, CalendarPage, HomePage, PEPPage,
     TransferAccounts, TransferRecipients, TransferCharac, TransferConfirm, TransferSent,
-    AddRecipientPage, StatusPage, CardHistoryPage, CardCalendarPage,
+    AddRecipientPage, StatusPage, CardHistoryPage, CardCalendarPage, CurrencyListPage, CurrencyConvertPage,
 )
 
 
@@ -115,6 +115,9 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
     expert = URL('/compte/derive/', ExpertPage)
 
     cards = URL('/compte/cav/cb', CardsNumberPage)
+
+    currencylist = URL('https://www.boursorama.com/bourse/devises/parite/_detail-parite', CurrencyListPage)
+    currencyconvert = URL('https://www.boursorama.com/bourse/devises/convertisseur-devises/convertir', CurrencyConvertPage)
 
     __states__ = ('auth_token',)
 
@@ -476,3 +479,24 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
 
         assert self.page.is_created()
         return ret
+
+    def iter_currencies(self):
+        return self.currencylist.go().get_currency_list()
+
+    def get_rate(self, curr_from, curr_to):
+        r = Rate()
+        params = {
+            'from': curr_from,
+            'to': curr_to,
+            'amount': '1'
+        }
+        r.currency_from = curr_from
+        r.currency_to = curr_to
+        r.datetime = datetime.now()
+        try:
+            self.currencyconvert.go(params=params)
+            r.value = self.page.get_rate()
+        # if a rate is no available the site return a 401 error...
+        except ClientError:
+            return
+        return r
