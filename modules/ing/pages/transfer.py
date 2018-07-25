@@ -89,6 +89,20 @@ class TransferPage(LoggedPage, HTMLPage):
             if Attr('.', 'data-acct-number')(div) in origin.id:
                 origin._estimated_balance = CleanDecimal('.//span[@class="solde"]', replace_dots=True, default=NotAvailable)(div)
 
+    def update_origin_account_label(self, origin):
+        # 'Compte Courant Joint' can become 'Compte Courant'
+        # search for the account label used to do transfer
+        for div in self.doc.xpath('//div[@id="internalAccounts"]//div[@data-acct-number]'):
+            if Attr('.', 'data-acct-number')(div) in origin.id:
+                origin._account_label = CleanText('.//span[@class="title"]', default=NotAvailable)(div)
+
+    def update_recipient_account_label(self, recipient):
+        # 'Compte Courant Joint' can become 'Compte Courant'
+        # search for the account label used to do transfer
+        for div in self.doc.xpath('//div[@id="internalAccounts"]//div[@data-acct-number]'):
+            if Attr('.', 'data-acct-number')(div) in recipient.id:
+                recipient._account_label = CleanText('.//span[@class="title"]', default=NotAvailable)(div)
+
     def get_transfer_form(self, txt):
         form = self.get_form(xpath='//form[script[contains(text(), "%s")]]' % txt)
         form['AJAXREQUEST'] = '_viewRoot'
@@ -102,8 +116,9 @@ class TransferPage(LoggedPage, HTMLPage):
         form['screenStep'] = '1'
         form.submit()
 
-        # update account estimated balance
+        # update account estimated balance and account label for the origin account check on summary page
         self.update_origin_account_estimated_balance(origin)
+        self.update_origin_account_label(origin)
         # Select debit account
         form = self.get_transfer_form('SetDebitAccount')
         form['selectedDebitAccountNumber'] = self.get_origin_account_id(origin)
@@ -116,6 +131,8 @@ class TransferPage(LoggedPage, HTMLPage):
     def do_transfer(self, account, recipient, transfer):
         self.go_to_recipient_selection(account)
 
+        # update recipient account label for the recipient check on summary page
+        self.update_recipient_account_label(recipient)
         form = self.get_transfer_form('SetScreenStep')
         form['screenStep'] = '2'
         form.submit()
@@ -177,20 +194,26 @@ class TransferPage(LoggedPage, HTMLPage):
         t.amount = CleanDecimal('//div[@id="transferSummary"]/div[@id="virementLabel"]\
                                  //label[@class="digits positive"]', replace_dots=True)(self.doc)
         t.currency = FrenchTransaction.Currency('//div[@id="transferSummary"]/div[@id="virementLabel"]\
-        //label[@class="digits positive"]')(self.doc)
-
-        assert origin.label == CleanText('//div[@id="transferSummary"]/div[has-class("debit")]//span[@class="title"]')(self.doc)
+                                                 //label[@class="digits positive"]')(self.doc)
 
         # check origin account balance
         origin_balance = CleanDecimal('//div[@id="transferSummary"]/div[has-class("debit")]\
                                        //label[has-class("digits")]', replace_dots=True)(self.doc)
         assert (origin_balance == origin.balance) or (origin_balance == origin._estimated_balance)
         t.account_balance = origin.balance
+
+        # check account label for origin and recipient
+        origin_label = CleanText('//div[@id="transferSummary"]/div[has-class("debit")]\
+                                  //span[@class="title"]')(self.doc)
+        recipient_label = CleanText('//div[@id="transferSummary"]/div[has-class("credit")]\
+                                     //span[@class="title"]')(self.doc)
+        assert (origin.label == origin_label) or (origin._account_label == origin_label)
+        assert (recipient.label == recipient_label) or (recipient._account_label == recipient_label)
+
         t.account_label = origin.label
         t.account_iban = origin.iban
         t.account_id = origin.id
 
-        assert recipient.label == CleanText('//div[@id="transferSummary"]/div[has-class("credit")]//span[@class="title"]')(self.doc)
         t.recipient_label = recipient.label
         t.recipient_iban = recipient.iban
         t.recipient_id = recipient.id
