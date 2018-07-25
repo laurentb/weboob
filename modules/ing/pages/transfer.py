@@ -174,9 +174,8 @@ class TransferPage(LoggedPage, HTMLPage):
 
         t = Transfer()
         t.label = transfer.label
-        assert transfer.amount == CleanDecimal('//div[@id="transferSummary"]/div[@id="virementLabel"]\
-        //label[@class="digits positive"]', replace_dots=True)(self.doc)
-        t.amount = transfer.amount
+        t.amount = CleanDecimal('//div[@id="transferSummary"]/div[@id="virementLabel"]\
+                                 //label[@class="digits positive"]', replace_dots=True)(self.doc)
         t.currency = FrenchTransaction.Currency('//div[@id="transferSummary"]/div[@id="virementLabel"]\
         //label[@class="digits positive"]')(self.doc)
 
