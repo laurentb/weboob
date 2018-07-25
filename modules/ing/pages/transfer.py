@@ -182,8 +182,9 @@ class TransferPage(LoggedPage, HTMLPage):
 
         assert origin.label == CleanText('//div[@id="transferSummary"]/div[has-class("debit")]//span[@class="title"]')(self.doc)
 
+        # check origin account balance
         origin_balance = CleanDecimal('//div[@id="transferSummary"]/div[has-class("debit")]\
-        //label[@class="digits positive"]', replace_dots=True)(self.doc)
+                                       //label[has-class("digits")]', replace_dots=True)(self.doc)
         assert (origin_balance == origin.balance) or (origin_balance == origin._estimated_balance)
         t.account_balance = origin.balance
         t.account_label = origin.label
