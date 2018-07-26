@@ -23,6 +23,7 @@ from weboob.browser import LoginBrowser, need_login, StatesMixin
 from weboob.browser.url import URL
 from weboob.browser.exceptions import ClientError
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
+from weboob.capabilities.base import find_object
 from weboob.tools.capabilities.bank.transactions import sorted_transactions, FrenchTransaction
 
 from .pages import (
@@ -150,12 +151,20 @@ class CenetBrowser(LoginBrowser, StatesMixin):
 
         items = []
         self.cenet_account_history.go(data=json.dumps(data), headers=headers)
+        # there might be some duplicate transactions regarding the card type ones
+        # because some requests lead to the same transaction list
+        # even with different parameters/data in the request
+        card_tr_list = []
         while True:
             data_out = self.page.doc['DonneesSortie']
             for tr in self.page.get_history():
                 items.append(tr)
 
                 if tr.type is FrenchTransaction.TYPE_CARD_SUMMARY:
+                    if find_object(card_tr_list, label=tr.label, amount=tr.amount, raw=tr.raw, date=tr.date, rdate=tr.rdate):
+                        self.logger.warning('Duplicate transaction: %s' % tr)
+                        continue
+                    card_tr_list.append(tr)
                     tr.deleted = True
                     tr_dict = [tr_dict for tr_dict in data_out if tr_dict['Libelle'] == tr.label]
                     donneesEntree = {}
@@ -178,10 +187,9 @@ class CenetBrowser(LoginBrowser, StatesMixin):
             data['filtreEntree'] = json.dumps({
                 'Offset': offset,
             })
-
             self.cenet_account_history.go(data=json.dumps(data), headers=headers)
 
-        return items
+        return sorted_transactions(items)
 
     @need_login
     def get_coming(self, account):

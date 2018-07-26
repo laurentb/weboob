@@ -184,10 +184,17 @@ class CenetCardSummaryPage(LoggedPage, CenetJsonPage):
         class item(ItemElement):
             klass = Transaction
 
-            obj_raw = Format('%s %s', Dict('Libelle'), Dict('Libelle2'))
             obj_label = CleanText(Dict('Libelle'))
             obj_date = Date(Dict('DateGroupImputation'), dayfirst=True)
             obj_type = Transaction.TYPE_DEFERRED_CARD
+
+            def obj_raw(self):
+                label = Dict('Libelle')(self)
+                label2 = Dict('Libelle2')(self)
+                if label2 and label2 != 'None':
+                    return '%s %s' % (label, label2)
+                else:
+                    return label
 
             def obj_rdate(self):
                 rdate = re.search('(FACT\s)(\d{6})', Field('label')(self))
