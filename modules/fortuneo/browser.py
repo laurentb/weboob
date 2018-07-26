@@ -120,7 +120,7 @@ class Fortuneo(LoginBrowser):
             self.location(self.absurl(url, base=True)) # beware, the landing page might vary according to the referer page. So far I didn't figure out how the landing page is chosen.
 
             # if there are skippable CGUs, skip them
-            if self.page.has_action_needed():
+            if self.accounts_page.is_here() and self.page.has_action_needed():
                 # Look for the request in the event listener registered to the button
                 # can be harcoded, no variable part. It is a POST request without data.
                 self.location(self.absurl('ReloadContext?action=1&', base=True), method='POST')
