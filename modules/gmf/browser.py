@@ -22,7 +22,10 @@ from __future__ import unicode_literals
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 
-from .pages import LoginPage, AccountsPage, TransactionsInvestmentsPage, AllTransactionsPage
+from .pages import (
+    LoginPage, AccountsPage, TransactionsInvestmentsPage, AllTransactionsPage,
+    DocumentsSignaturePage,
+)
 
 
 class GmfBrowser(LoginBrowser):
@@ -32,6 +35,7 @@ class GmfBrowser(LoginBrowser):
     accounts = URL(r'/pointentree/client/homepage', AccountsPage)
     transactions_investments = URL(r'/pointentree/contratvie/detailsContrats', TransactionsInvestmentsPage)
     all_transactions = URL(r'/pages/contratvie/detailscontrats/.*\.faces', AllTransactionsPage)
+    documents_signature = URL(r'/public/pages/authentification/.*\.faces', DocumentsSignaturePage)
 
     def do_login(self):
         self.login.go().login(self.username, self.password)

@@ -30,6 +30,7 @@ from weboob.browser.filters.standard import (
 from weboob.browser.filters.html import Attr, TableCell
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.exceptions import ActionNeeded
 
 
 class Transaction(FrenchTransaction):
@@ -166,3 +167,9 @@ class AllTransactionsPage(LoggedPage, XMLPage, HTMLPage, TransactionsParser):
         investments_html = xml.xpath('//partial-response/changes/update[2]')[0].text.encode(encoding=self.encoding)
         html = transactions_html + investments_html
         return HTMLPage.build_doc(self, html)
+
+
+class DocumentsSignaturePage(LoggedPage, HTMLPage):
+    def on_load(self):
+        if self.doc.xpath('//span[contains(text(), "VO(S) DOCUMENT(S) A SIGNER")]'):
+            raise ActionNeeded(CleanText('//div[@class="block"]/p[contains(text(), "Vous avez un ou plusieurs document(s) à signer")]')(self.doc))
