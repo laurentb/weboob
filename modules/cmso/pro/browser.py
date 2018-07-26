@@ -60,6 +60,13 @@ class CmsoProBrowser(LoginBrowser):
 
     def __init__(self, website, *args, **kwargs):
         super(CmsoProBrowser, self).__init__(*args, **kwargs)
+
+        # Arkea Banque Privee uses a specific URL prefix
+        if website == 'arkeabanqueprivee.fr':
+            self.BASEURL = "https://m.%s" % website
+        else:
+            self.BASEURL = "https://mon.%s" % website
+
         self.BASEURL = "https://www.%s" % website
         self.website = website
         self.areas = None

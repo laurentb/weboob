@@ -95,13 +95,19 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
     profile = URL(r'/domiapi/oauth/json/edr/infosPerson', ProfilePage)
 
     json_headers = {'Content-Type': 'application/json'}
-    ARKEA = {'cmso.com': "03", 'cmb.fr': "01", 'cmmc.fr': '02', 'bpe.fr' : '08'}
+    ARKEA = {'cmso.com': '03', 'cmb.fr': '01', 'cmmc.fr': '02', 'bpe.fr' : '08', 'arkeabanqueprivee.fr': '70',}
 
     def __init__(self, website, *args, **kwargs):
         super(CmsoParBrowser, self).__init__(*args, **kwargs)
 
-        self.BASEURL = "https://mon.%s" % website
-        self.name = website.split('.')[0]
+        # Arkea Banque Privee uses specific URL prefix and name
+        if website == 'arkeabanqueprivee.fr':
+            self.BASEURL = "https://m.%s" % website
+            self.name = 'abp'
+        else:
+            self.BASEURL = "https://mon.%s" % website
+            self.name = website.split('.')[0]
+
         self.website = website
         self.arkea = self.ARKEA[website]
         self.accounts_list = []
