@@ -36,6 +36,7 @@ import socket
 import ssl as basessl
 import subprocess
 from tempfile import NamedTemporaryFile
+from threading import Lock
 
 try:
     import nss.ssl
@@ -216,6 +217,10 @@ def auth_cert_pinning(sock, check_sig, is_server, path):
     return (expected.signed_data.data == cert.signed_data.data)
 
 
+AIA_CACHE = {}
+AIA_LOCK = Lock()
+
+
 def auth_cert_basic(sock, check_sig, is_server):
     cert = sock.get_certificate()
     db = nss.nss.get_default_certdb()
@@ -252,7 +257,14 @@ def auth_cert_aia_only(sock, check_sig, is_server):
         return False
     # yes, the parent TLS cert is behind an HTTP URL
     parent_url = re.search(r'Method: PKIX CA issuers access method Location: URI: (http:\S+)', aia_text).group(1)
-    parent_der = requests.get(parent_url).content
+
+    with AIA_LOCK:
+        parent_der = AIA_CACHE.get(parent_url)
+
+    if parent_der is None:
+        parent_der = requests.get(parent_url).content
+        with AIA_LOCK:
+            AIA_CACHE[parent_url] = parent_der
 
     # verify parent cert is a CA in our db
     parent = nss.nss.Certificate(parent_der, perm=False)
