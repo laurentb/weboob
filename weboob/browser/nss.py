@@ -308,6 +308,13 @@ DEFAULT_CA_CERTIFICATES = (
     '/etc/pki/tls/certs/ca-bundle.crt',
 )
 
+try:
+    import certifi
+except ImportError:
+    pass
+else:
+    DEFAULT_CA_CERTIFICATES = DEFAULT_CA_CERTIFICATES + (certifi.where(),)
+
 
 def ssl_wrap_socket(sock, *args, **kwargs):
     if kwargs.get('certfile'):
