@@ -23,7 +23,7 @@ from weboob.browser.elements import ItemElement, ListElement, DictElement, metho
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import XPath
 from weboob.browser.filters.standard import (CleanText, CleanDecimal, Currency,
-                                             DateTime, Env, Format)
+                                             DateTime, Env, Format, Regexp)
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.capabilities.housing import (Housing, HousingPhoto, City,
                                          UTILITIES, ENERGY_CLASS, POSTS_TYPES,
@@ -76,7 +76,7 @@ class SeLogerItem(ItemElement):
     obj_date = DateTime(CleanText('dtFraicheur'))
     obj_cost = CleanDecimal('prix', default=NotLoaded)
 
-    obj_currency = Currency('prixUnite')
+    obj_currency = Currency(Regexp(CleanText('prixUnite'), '(\W).*', '\\1'))
 
     obj_area = CleanDecimal('surface', default=NotLoaded)
     obj_price_per_meter = PricePerMeterFilter()
