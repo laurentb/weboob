@@ -564,8 +564,11 @@ class BoursePage(LoggedPage, HTMLPage):
                 return Currency.get_currency(CleanText(TableCell('titres'))(self))
 
             def obj_number(self):
-                tmp_number = CleanText((TableCell('label')(self)[0]).xpath('./div[not(b)]'))(self).replace(' - ', '')
-                return re.search(r'(\d{11,})[A-Z]', tmp_number).group(0)
+                number = CleanText((TableCell('label')(self)[0]).xpath('./div[not(b)]'))(self).replace(' - ', '')
+                m = re.search(r'(\d{11,})[A-Z]', number)
+                if m:
+                    number = m.group(0)
+                return number
 
             def obj_id(self):
                 return "%sbourse" % Field('number')(self)
