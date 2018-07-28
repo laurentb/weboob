@@ -90,6 +90,8 @@ class WeatherPage(HTMLPage):
 
         if 'Vitesse du vent' in self.titles:
             speed_text = self.get_cell(self.titles['Vitesse du vent'], n)
+        elif 'Vitesse Moy. du vent' in self.titles:
+            speed_text = self.get_cell(self.titles['Vitesse Moy. du vent'], n)
         else:
             speed_text = self.get_cell(self.titles['Vitesse moyenne du vent'], n)
         obj.wind_speed = 1000 * int(speed_text.replace('km/h', '').strip())
