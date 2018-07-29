@@ -25,7 +25,8 @@ __all__ = ['unicode', 'long', 'basestring', 'range',
            'quote', 'quote_plus', 'unquote', 'unquote_plus',
            'urlparse', 'urlunparse', 'urlsplit', 'urlunsplit',
            'urlencode', 'urljoin', 'parse_qs', 'parse_qsl',
-          ]
+           'getproxies',
+           ]
 
 
 try:
@@ -73,7 +74,7 @@ else:
 
 
 try:
-    from urllib import quote as _quote, quote_plus as _quote_plus, unquote, unquote_plus, urlencode as _urlencode
+    from urllib import quote as _quote, quote_plus as _quote_plus, unquote, unquote_plus, urlencode as _urlencode, getproxies
     from urlparse import urlparse, urlunparse, urljoin, urlsplit, urlunsplit, parse_qsl, parse_qs
 
     def _reencode(s):
@@ -101,3 +102,4 @@ except ImportError:
         urlparse, urlunparse, urlsplit, urlunsplit, urljoin, urlencode,
         quote, quote_plus, unquote, unquote_plus, parse_qsl, parse_qs,
     )
+    from urllib.request import getproxies
