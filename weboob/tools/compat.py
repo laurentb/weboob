@@ -20,7 +20,7 @@
 import sys
 
 
-__all__ = ['unicode', 'long', 'basestring', 'check_output', 'range',
+__all__ = ['unicode', 'long', 'basestring', 'range',
            'with_metaclass',
            'quote', 'quote_plus', 'unquote', 'unquote_plus',
            'urlparse', 'urlunparse', 'urlsplit', 'urlunsplit',
@@ -48,9 +48,6 @@ try:
     range = xrange
 except NameError:
     range = range
-
-
-from subprocess import check_output
 
 
 try:
