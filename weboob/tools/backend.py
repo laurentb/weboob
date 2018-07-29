@@ -23,7 +23,7 @@ from threading import RLock
 
 from weboob.capabilities.base import BaseObject, Capability, FieldNotFound, NotAvailable, NotLoaded
 from weboob.exceptions import ModuleInstallError
-from weboob.tools.compat import basestring
+from weboob.tools.compat import basestring, getproxies
 from weboob.tools.log import getLogger
 from weboob.tools.misc import iter_fields
 from weboob.tools.value import ValuesDict
@@ -353,7 +353,7 @@ class Module(object):
 
     def get_proxy(self):
         # Get proxies from environment variables
-        proxies = env_proxies(environ=os.environ)
+        proxies = getproxies()
         # Override them with backend-specific config
         if '_proxy' in self._private_config:
             proxies['http'] = self._private_config['_proxy']
@@ -486,19 +486,3 @@ class AbstractModule(Module):
 
         cls.__bases__ = tuple([parent] + list(cls.iter_caps()))
         return object.__new__(cls)
-
-
-def env_proxies(environ=os.environ):
-    proxies = {}
-    proxies['http'] = environ.get('http_proxy', environ.get('HTTP_PROXY'))
-    proxies['https'] = environ.get('https_proxy', environ.get('HTTPS_PROXY'))
-    return proxies
-
-
-def test():
-    assert env_proxies({}) == {'http': None, 'https': None}
-    assert env_proxies({'http_proxy': 'a'}) == {'http': 'a', 'https': None}
-    assert env_proxies({'HTTP_PROXY': 'a'}) == {'http': 'a', 'https': None}
-    assert env_proxies({'https_proxy': 'b'}) == {'http': None, 'https': 'b'}
-    assert env_proxies({'HTTPS_PROXY': 'b'}) == {'http': None, 'https': 'b'}
-    assert env_proxies({'https_proxy': 'c', 'HTTPS_PROXY': 'd'}) == {'http': None, 'https': 'c'}

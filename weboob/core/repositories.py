@@ -474,14 +474,14 @@ class Repositories(object):
     def load_browser(self):
         from weboob.browser.browsers import Browser
         from weboob.browser.profiles import Weboob as WeboobProfile
-        from weboob.tools.backend import env_proxies
+        from weboob.tools.compat import getproxies
 
         class WeboobBrowser(Browser):
             PROFILE = WeboobProfile(self.version)
         if self.browser is None:
             self.browser = WeboobBrowser(
                 logger=getLogger('browser', parent=self.logger),
-                proxy=env_proxies())
+                proxy=getproxies())
 
     def create_dir(self, name):
         if not os.path.exists(name):
