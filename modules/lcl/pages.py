@@ -399,6 +399,7 @@ class Transaction(FrenchTransaction):
             (re.compile('.*(CARTE|CB).*'), FrenchTransaction.TYPE_CARD),
             (re.compile('.*(AGIOS|ANNULATIONS|IMPAYES|CREDIT).*'), FrenchTransaction.TYPE_BANK),
             (re.compile('.*(FRAIS DE TENUE DE COMPTE).*'), FrenchTransaction.TYPE_BANK),
+            (re.compile(r'.*\b(RETRAIT)\b.*'), FrenchTransaction.TYPE_WITHDRAWAL),
     ]
 
 
