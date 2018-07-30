@@ -220,5 +220,12 @@ class ActionNeededPage(LoggedPage, HTMLPage):
         raise ActionNeeded(u'Veuillez mettre à jour vos coordonnées')
 
 
+class ValidationPage(LoggedPage, HTMLPage):
+    def on_load(self):
+        error_message = CleanText('//p[@id="errorSigned"]')(self.doc)
+        if error_message:
+            raise ActionNeeded(error_message)
+
+
 class InvestDetail(LoggedPage, HTMLPage):
     pass

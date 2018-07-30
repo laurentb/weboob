@@ -26,6 +26,7 @@ from weboob.tools.capabilities.bank.transactions import sorted_transactions
 from .pages.detail_pages import (
     LoginPage, InvestmentPage, HistoryPage,
     ActionNeededPage, InvestDetail, PrevoyancePage,
+    ValidationPage,
 )
 
 from .pages.account_page import AccountsPage
@@ -34,6 +35,7 @@ from .pages.account_page import AccountsPage
 class AvivaBrowser(LoginBrowser):
     BASEURL = 'https://www.aviva.fr'
 
+    validation = URL(r'/espaceclient/conventions/acceptation\?backurl=/espaceclient/Accueil', ValidationPage)
     login = URL('/espaceclient/MonCompte/Connexion',
                 '/espaceclient/conventions/acceptation', LoginPage)
     accounts = URL('/espaceclient/Accueil/Synthese-Contrats', AccountsPage)
