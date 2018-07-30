@@ -267,7 +267,7 @@ class DetailsPage(LoggedPage, HTMLPage):
             obj_vdate = Date(CleanText('./td[8]'), dayfirst=True)
 
             def obj_date(self):
-                return Date(CleanText('./td[6]', symbols='-'), dayfirst=True, default=Field('vdate')(self))(self)
+                return Date(CleanText('./td[6]'), dayfirst=True, default=Field('vdate')(self))(self)
 
             def obj_amount(self):
                 # We display the raw amount only if the net amount is not available.
