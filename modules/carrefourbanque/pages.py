@@ -20,6 +20,9 @@
 from __future__ import unicode_literals
 
 import re
+import base64
+from io import BytesIO
+from PIL import Image
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, TableElement, ItemElement, method
@@ -30,6 +33,67 @@ from weboob.browser.filters.html import Link, TableCell, Attr, AttributeNotFound
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+
+
+class CarrefourBanqueKeyboard(object):
+    symbols = {
+        '0': '00111001111110111011011001111100011110001111000111100111110011111111100111100',
+        '1': '00011000011100011110011011000001100000110000011000001100000110000011000001100',
+        '2': '00111001111110110011100001110000110000111000111000011000011000011111111111111',
+        '3': '01111001111110100011100001110001110011110000111100000111000011111111111111110',
+        '4': '00001100001110001111000111100110110110011011001101111111111111100001100000110',
+        '5': '01111101111110111000011000001111100111111000001110000111000011111111101111100',
+        '6': '00011100111110111000011000001111110111111111001111100011110001111111110111110',
+        '7': '11111111111111000011100001100000110000110000011000011100001100001110000110000',
+        '8': '00111001111110110011111001111111110011110011111101100111110001111111110111110',
+        '9': '00110001111110110011111000111100011111111111111110000011000011011111101111100'
+    }
+
+    def __init__(self, data_code):
+        self.fingerprints = {}
+
+        for code, data in data_code.items():
+            img = Image.open(BytesIO(data))
+            img = img.convert('RGB')
+            matrix = img.load()
+            s = ""
+            # The digit is only displayed in the center of image
+            for y in range(11, 22):
+                for x in range(14, 21):
+                    (r, g, b) = matrix[x, y]
+                    # If the pixel is "white" enough
+                    if r + g + b > 600:
+                        s += "1"
+                    else:
+                        s += "0"
+
+            self.fingerprints[code] = s
+
+    def get_symbol_code(self, digit):
+        fingerprint = self.symbols[digit]
+        for code, string in self.fingerprints.items():
+            if string == fingerprint:
+                return code
+        # Image contains some noise, and the match is not always perfect
+        # (this is why we can't use md5 hashs)
+        # But if we can't find the perfect one, we can take the best one
+        best = 0
+        result = None
+        for code, string in self.fingerprints.items():
+            match = 0
+            for j, bit in enumerate(string):
+                if bit == fingerprint[j]:
+                    match += 1
+            if match > best:
+                best = match
+                result = code
+        return result
+
+    def get_string_code(self, string):
+        code = ''
+        for c in string:
+            code += self.get_symbol_code(c) + '-'
+        return code
 
 
 def MyDecimal(*args, **kwargs):
@@ -62,8 +126,17 @@ class LoginPage(HTMLPage):
         form.submit()
 
     def enter_password(self, password):
+        data_code = {}
+        for img in self.doc.xpath('//img[@class="digit"]'):
+            data_code[img.attrib['data-code']] = base64.b64decode(re.search(r'base64,(.*)', img.attrib['src']).group(1))
+
+        codestring = CarrefourBanqueKeyboard(data_code).get_string_code(password)
+
         form = self.get_form(nr=1)
-        form['pass'] = password
+        form['pass'] = '*' * len(password)
+        form['cpass'] = codestring
+        form.pop('form_number') # don't remember me
+
         form.submit()
 
 
