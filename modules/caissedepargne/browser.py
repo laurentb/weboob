@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 import re
 import datetime
 import json
@@ -27,7 +29,7 @@ from dateutil import parser
 from weboob.browser import LoginBrowser, need_login, StatesMixin
 from weboob.browser.switch import SiteSwitch
 from weboob.browser.url import URL
-from weboob.capabilities.bank import Account, AddRecipientStep, Recipient, TransferBankError, Transaction
+from weboob.capabilities.bank import Account, AddRecipientStep, Recipient, TransferBankError, Transaction, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.profile import Profile
 from weboob.browser.exceptions import BrowserHTTPNotFound, ClientError
@@ -462,6 +464,15 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         self.deleteCTX()
         if account.type not in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET, Account.TYPE_PEA) or 'measure_id' in account._info:
             raise NotImplementedError()
+
+        if account.type == Account.TYPE_PEA and account.label == 'PEA NUMERAIRE':
+            liquidity = Investment()
+            liquidity.label = 'Liquidités'
+            liquidity.code = 'XX-liquidity'
+            liquidity.valuation = account.balance
+            yield liquidity
+            return
+
         if self.home.is_here():
             self.page.go_list()
         else:
