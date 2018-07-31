@@ -72,6 +72,7 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
     pro_accounts = URL(r'/dashboard/comptes-professionnels\?_hinclude=1', AccountsPage)
     acc_tit = URL('/comptes/titulaire/(?P<webid>.*)\?_hinclude=1', AccbisPage)
     acc_rep = URL('/comptes/representative/(?P<webid>.*)\?_hinclude=1', AccbisPage)
+    acc_pro = URL('/comptes/professionnel/(?P<webid>.*)\?_hinclude=1', AccbisPage)
     history = URL('/compte/(cav|epargne)/(?P<webid>.*)/mouvements.*',  HistoryPage)
     card_transactions = URL('/compte/cav/(?P<webid>.*)/carte/.*', HistoryPage)
     deffered_card_history = URL('https://api.boursorama.com/services/api/files/download.phtml.*', CardHistoryPage)
@@ -196,11 +197,15 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
             valid_card_url = []
             for account in self.accounts_list:
                 if account.type == Account.TYPE_CHECKING:
-                    # the acc_tit contains the non-valid card accounts
+                    # get all tit card account (page can also contains non-valid card)
                     self.acc_tit.go(webid=account._webid)
-                    # search for all valid card
                     valid_card_url.extend([card.url for card in self.page.iter_valid_cards_url()])
-                    # there is 1 page for all accounts
+
+                    # get all pro card account
+                    self.acc_pro.go(webid=account._webid)
+                    valid_card_url.extend([card.url for card in self.page.iter_valid_cards_url()])
+
+                    # there is 1 page for all accounts (one for tit and one for pro)
                     break
 
             for account in list(self.accounts_list):
