@@ -38,6 +38,7 @@ from weboob.exceptions import BrowserHTTPError, ActionNeeded
 from weboob.browser.filters.standard import CleanText
 from weboob.tools.value import Value
 from weboob.tools.compat import urlparse, urljoin, basestring
+from weboob.tools.capabilities.bank.iban import is_iban_valid
 
 from .pages import (
     HomePage, LoginPage, LoginErrorPage, AccountsPage,
@@ -619,9 +620,11 @@ class Cragr(LoginBrowser, StatesMixin):
         seen = set([account.id])
 
         for rcpt in self.page.iter_recipients():
-            if rcpt.id not in seen:
-                seen.add(rcpt.id)
-                yield rcpt
+            if (rcpt.id in seen) or (rcpt.iban and not is_iban_valid(rcpt.iban)):
+                # skip seen recipients and recipients with invalid iban
+                continue
+            seen.add(rcpt.id)
+            yield rcpt
 
     @need_login
     def init_transfer(self, transfer, **params):
