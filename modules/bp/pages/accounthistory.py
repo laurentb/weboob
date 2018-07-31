@@ -41,17 +41,17 @@ from .base import MyHTMLPage
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile(u'^(?P<category>CHEQUE)( N)? (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_CHECK),
-                (re.compile(r'^(?P<category>ACHAT CB) (?P<text>.*) (?P<dd>\d{2})\.(?P<mm>\d{2}).(?P<yy>\d{2}).*'),
+                (re.compile(r'^(?P<category>ACHAT CB) (?P<text>.*) (?P<dd>\d{2})\.(?P<mm>\d{2}).(?P<yy>\d{2,4}).*'),
                                                             FrenchTransaction.TYPE_CARD),
                 (re.compile('^(?P<category>(PRELEVEMENT DE|TELEREGLEMENT|TIP)) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_ORDER),
                 (re.compile('^(?P<category>ECHEANCEPRET)(?P<text>.*)'),
                                                             FrenchTransaction.TYPE_LOAN_PAYMENT),
-                (re.compile(r'^CARTE \w+ (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2}) A \d+H\d+ (?P<category>RETRAIT DAB) (?P<text>.*)'),
+                (re.compile(r'^CARTE \w+ (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2,4}) A \d+H\d+ (?P<category>RETRAIT DAB) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile(r'^(?P<category>RETRAIT DAB) (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2}) \d+H\d+ (?P<text>.*)'),
+                (re.compile(r'^(?P<category>RETRAIT DAB) (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2,4}) \d+H\d+ (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile(r'^(?P<category>RETRAIT) (?P<text>.*) (?P<dd>\d{2})\.(?P<mm>\d{2})\.(?P<yy>\d{2})'),
+                (re.compile(r'^(?P<category>RETRAIT) (?P<text>.*) (?P<dd>\d{2})\.(?P<mm>\d{2})\.(?P<yy>\d{2,4})'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile('^(?P<category>VIR(EMEN)?T?) (DE |POUR )?(?P<text>.*)'),
                                                             FrenchTransaction.TYPE_TRANSFER),
@@ -178,7 +178,6 @@ class AccountHistory(LoggedPage, MyHTMLPage):
 
             obj_raw = Transaction.Raw(Field('label'))
             obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
-            obj_rdate = Date(CleanText(TableCell('date')), dayfirst=True)
             obj_amount = CleanDecimal(TableCell('amount'), replace_dots=True)
             obj__coming = Env('coming', False)
 
