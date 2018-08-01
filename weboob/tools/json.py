@@ -88,6 +88,12 @@ class WeboobEncoder(json.JSONEncoder):
     '{"id": "1234@backend", "url": null}'
     """
 
+    def __init__(self, *args, **kwargs):
+        # avoid simplejson internal Decimal handling
+        if 'use_decimal' in kwargs:
+            kwargs['use_decimal'] = False
+        super(WeboobEncoder, self).__init__(*args, **kwargs)
+
     def default(self, o):
         if o is NotAvailable:
             return None
