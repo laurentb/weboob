@@ -18,33 +18,20 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import re
-from json import loads
-
 from weboob.browser.pages import HTMLPage
-from weboob.browser.filters.standard import CleanText
 
 
 class LoginPage(HTMLPage):
     def login(self, username, password):
-        for script in self.doc.xpath('//script'):
-            txt = CleanText('.')(script)
-            m = re.search('headers: \'(\{.*?\})', txt)
-            if m:
-                headers = loads(m.group(1))
-                break
+        json_data = {
+            'forcePwd': False,
+            'login': username,
+            'mem': True,
+        }
+        self.browser.location('https://login.orange.fr/front/login', json=json_data)
 
-        data = {}
-        data['forcePwd'] = False
-        data['login'] = username
-        data['mem'] = True
-        response = self.browser.location('https://login.orange.fr/front/login', json=data, headers=headers)
-
-        headers['x-auth-id'] = response.headers['x-auth-id']
-        headers['x-xsrf-token'] = response.headers['x-xsrf-token']
-
-        data = {}
-        data['login'] = username
-        data['password'] = password
-
-        self.browser.location('https://login.orange.fr/front/password', json=data, headers=headers)
+        json_data = {
+            'login': username,
+            'password': password,
+        }
+        self.browser.location('https://login.orange.fr/front/password', json=json_data)
