@@ -98,7 +98,7 @@ class URL(object):
         r = self.browser.location(self.build(**kwargs), params=params, data=data, json=json, method=method, headers=headers or {})
         return r.page or r
 
-    def open(self, params=None, data=None, method=None, headers=None, **kwargs):
+    def open(self, params=None, data=None, method=None, headers=None, is_async=False, **kwargs):
         """
         Request to open on this url.
 
@@ -110,8 +110,11 @@ class URL(object):
         >>> url = URL('http://exawple.org/(?P<pagename>).html')
         >>> url.open(pagename='index')
         """
-        r = self.browser.open(self.build(**kwargs), params=params, data=data, method=method, headers=headers or {})
-        return r.page or r
+        r = self.browser.open(self.build(**kwargs), params=params, data=data, method=method, headers=headers or {}, is_async=is_async)
+
+        if hasattr(r, 'page') and r.page:
+            return r.page
+        return r
 
     def build(self, **kwargs):
         """
