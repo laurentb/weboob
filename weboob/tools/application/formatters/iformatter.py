@@ -227,7 +227,7 @@ class IFormatter(object):
         :type obj: dict
         :rtype: str
         """
-        return NotImplementedError()
+        raise NotImplementedError()
 
     def format_collection(self, collection, only):
         """
