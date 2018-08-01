@@ -63,7 +63,6 @@ class CreditDuNordBrowser(LoginBrowser):
 
     def do_login(self):
         self.login.go().login(self.username, self.password)
-        self.strid = {"strid": self.page.get_strid()}
 
         if self.accounts.is_here():
             expired_error = self.page.get_password_expired()
@@ -76,6 +75,7 @@ class CreditDuNordBrowser(LoginBrowser):
         if not self.is_logged():
             raise BrowserIncorrectPassword()
 
+        self.strid = {"strid": self.page.get_strid()}
         m = re.match('https://[^/]+/vos-comptes/(\w+).*', self.url)
         if m:
             self.account_type = m.group(1)
