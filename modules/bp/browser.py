@@ -50,7 +50,6 @@ __all__ = ['BPBrowser', 'BProBrowser']
 
 class BPBrowser(LoginBrowser, StatesMixin):
     BASEURL = 'https://voscomptesenligne.labanquepostale.fr'
-
     STATE_DURATION = 5
 
     # FIXME beware that '.*' in start of URL() won't match all domains but only under BASEURL
@@ -353,6 +352,8 @@ class BPBrowser(LoginBrowser, StatesMixin):
     @need_login
     def iter_card_transactions(self, account):
         def iter_transactions(link, urlobj):
+            # we go back to main menue otherwise we get an error 500.
+            self.cards_list.go(account_id=account.parent.id)
             self.location(link)
             assert urlobj.is_here()
             ncard = self.page.params['cardIndex']
