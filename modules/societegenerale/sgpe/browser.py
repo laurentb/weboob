@@ -27,8 +27,8 @@ from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import AccountNotFound
 
 from .pages import (
-    LoginPage, CardsPage, CardHistoryPage,
-    ProfileProPage, ProfileEntPage, ChangePassPage, SubscriptionPage
+    LoginPage, CardsPage, CardHistoryPage, IncorrectLoginPage,
+    ProfileProPage, ProfileEntPage, ChangePassPage, SubscriptionPage,
 )
 from .json_pages import AccountsJsonPage, BalancesJsonPage, HistoryJsonPage, BankStatementPage
 
@@ -166,6 +166,7 @@ class SGProfessionalBrowser(SGEnterpriseBrowser):
     MENUID = 'SBOREL'
     CERTHASH = '9f5232c9b2283814976608bfd5bba9d8030247f44c8493d8d205e574ea75148e'
 
+    incorrect_login = URL('/authent.html', IncorrectLoginPage)
     profile = URL('/gao/modifier-donnees-perso-saisie.html', ProfileProPage)
 
     bank_statement_menu = URL('/icd/syd-front/data/syd-rce-accederDepuisMenu.json', BankStatementPage)

@@ -33,7 +33,7 @@ from weboob.browser.filters.html import Attr
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.capabilities.profile import Profile, Person
 from weboob.capabilities.bill import Document, Subscription
-from weboob.exceptions import ActionNeeded
+from weboob.exceptions import ActionNeeded, BrowserIncorrectPassword
 from weboob.tools.json import json
 
 from weboob.capabilities.base import NotAvailable
@@ -238,3 +238,9 @@ class SubscriptionPage(LoggedPage, SGPEPage):
                     '/Pgn/PrintServlet?PageID=ReleveRIE&MenuID=BANRELRIE&urlTypeTransfert=ipdf&REPORTNAME=ReleveInteretElectronique.sgi&numeroRie=%s',
                     Regexp(Attr('./td[2]/a', 'onclick'), r"impression\('(.*)'\);")
             )
+
+
+class IncorrectLoginPage(SGPEPage):
+    def on_load(self):
+        if self.doc.xpath('//div[@class="ngo_mu_message" and contains(text(), "saisies sont incorrectes")]'):
+            raise BrowserIncorrectPassword(CleanText('//div[@class="ngo_mu_message"]')(self.doc))
