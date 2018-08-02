@@ -69,7 +69,15 @@ class Weboob(ConsoleApplication):
         else:
             cap = self.choose_capability(capApplicationDict)
 
+        def appsortkey(app):
+            appname = app.APPNAME
+            if appname.startswith('q') or appname.endswith('-qt'):
+                return '1' + appname
+            else:
+                return '0' + appname
+
         applications = capApplicationDict[cap]
+        applications = sorted(set(applications), key=appsortkey)
         application = applications[0] if len(applications) == 1 else self.choose_application(applications)
         application.run()
 
