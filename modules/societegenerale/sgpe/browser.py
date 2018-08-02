@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 import re
 
 from weboob.browser.browsers import LoginBrowser, need_login
@@ -31,6 +33,9 @@ from .pages import (
     ProfileProPage, ProfileEntPage, ChangePassPage, SubscriptionPage,
 )
 from .json_pages import AccountsJsonPage, BalancesJsonPage, HistoryJsonPage, BankStatementPage
+from .transfer_pages import (
+    EasyTransferPage, RecipientsJsonPage,
+)
 
 
 __all__ = ['SGProfessionalBrowser', 'SGEnterpriseBrowser']
@@ -169,6 +174,10 @@ class SGProfessionalBrowser(SGEnterpriseBrowser):
     incorrect_login = URL('/authent.html', IncorrectLoginPage)
     profile = URL('/gao/modifier-donnees-perso-saisie.html', ProfileProPage)
 
+    easy_transfer = URL('/ord-web/ord//ord-virement-simplifie-emetteur.html', EasyTransferPage)
+    internal_recipients = URL('/ord-web/ord//ord-virement-simplifie-beneficiaire.html', EasyTransferPage)
+    external_recipients = URL('/ord-web/ord//ord-liste-compte-beneficiaire-externes.json', RecipientsJsonPage)
+
     bank_statement_menu = URL('/icd/syd-front/data/syd-rce-accederDepuisMenu.json', BankStatementPage)
     bank_statement_search = URL('/icd/syd-front/data/syd-rce-lancerRecherche.json', BankStatementPage)
 
@@ -209,6 +218,36 @@ class SGProfessionalBrowser(SGEnterpriseBrowser):
             begin_year -= 1
 
         return new_end_month, end_year, begin_month, begin_year
+
+    @need_login
+    def iter_recipients(self, origin_account):
+        self.easy_transfer.go()
+        self.page.update_origin_account(origin_account)
+
+        params = {
+            'cl_ibanEmetteur': origin_account.iban,
+            'cl_codeProduit': origin_account._product_code,
+            'cl_codeSousProduit': origin_account._underproduct_code,
+        }
+        self.internal_recipients.go(method='POST', params=params, headers={'Content-Type': 'application/json;charset=UTF-8'})
+        for internal_rcpt in self.page.iter_internal_recipients():
+            yield internal_rcpt
+
+        data = {
+            'an_filtreIban': 'true',
+            'an_filtreIbanSEPA': 'true',
+            'an_isCredit': 'true',
+            'an_isDebit': 'false',
+            'an_rang': 0,
+            'an_restrictFRMC': 'false',
+            'cl_codeProduit': origin_account._product_code,
+            'cl_codeSousProduit': origin_account._underproduct_code,
+            'n_nbOccurences': '10000',
+        }
+        self.external_recipients.go(data=data)
+        assert self.page.is_all_external_recipient(), "Some recipients are missing"
+        for external_rcpt in self.page.iter_external_recipients():
+            yield external_rcpt
 
     @need_login
     def iter_documents(self, subscribtion):
