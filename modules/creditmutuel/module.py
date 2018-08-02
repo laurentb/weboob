@@ -21,11 +21,15 @@
 
 from decimal import Decimal
 
-from weboob.capabilities.base import find_object
+from weboob.capabilities.base import find_object, NotAvailable
 from weboob.capabilities.bank import CapBankWealth, CapBankTransferAddRecipient, AccountNotFound, RecipientNotFound, \
                                      Account, TransferError
 from weboob.capabilities.contact import CapContact
 from weboob.capabilities.profile import CapProfile
+from weboob.capabilities.bill import (
+    CapDocument, Subscription, SubscriptionNotFound,
+    Document, DocumentNotFound,
+)
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -35,7 +39,11 @@ from .browser import CreditMutuelBrowser
 __all__ = ['CreditMutuelModule']
 
 
-class CreditMutuelModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapContact, CapProfile):
+class CreditMutuelModule(
+    Module, CapBankWealth, CapBankTransferAddRecipient,
+    CapContact, CapProfile, CapDocument,
+):
+
     NAME = 'creditmutuel'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
@@ -122,3 +130,36 @@ class CreditMutuelModule(Module, CapBankWealth, CapBankTransferAddRecipient, Cap
         if not hasattr(self.browser, 'get_profile'):
             raise NotImplementedError()
         return self.browser.get_profile()
+
+    def get_document(self, _id):
+        subscription_id = _id.split('_')[0]
+        subscription = self.get_subscription(subscription_id)
+        return find_object(self.iter_documents(subscription), id=_id, error=DocumentNotFound)
+
+    def get_subscription(self, _id):
+        return find_object(self.iter_subscription(), id=_id, error=SubscriptionNotFound)
+
+    def iter_documents(self, subscription):
+        if not isinstance(subscription, Subscription):
+            subscription = self.get_subscription(subscription)
+
+        return self.browser.iter_documents(subscription)
+
+    def iter_subscription(self):
+        return self.browser.iter_subscriptions()
+
+    def download_document(self, document):
+        if not isinstance(document, Document):
+            document = self.get_document(document)
+        if document.url is NotAvailable:
+            return
+
+        return self.browser.open(document.url).content
+
+    def iter_resources(self, objs, split_path):
+        if Account in objs:
+            self._restrict_level(split_path)
+            return self.iter_accounts()
+        if Subscription in objs:
+            self._restrict_level(split_path)
+            return self.iter_subscription()

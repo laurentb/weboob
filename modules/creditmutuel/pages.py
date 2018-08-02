@@ -35,13 +35,14 @@ from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal
 from weboob.browser.filters.html import Link, Attr, TableCell, ColumnNotFound
 from weboob.exceptions import BrowserIncorrectPassword, ParseError, NoAccountsException, ActionNeeded, BrowserUnavailable
 from weboob.capabilities import NotAvailable
-from weboob.capabilities.base import empty
+from weboob.capabilities.base import empty, find_object
 from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, TransferBankError, \
     Transfer, AddRecipientError, AddRecipientStep, Loan
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Profile
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.capabilities.bill import Subscription, Document
 from weboob.tools.compat import urlparse, parse_qs, urljoin, range, unicode
 from weboob.tools.date import parse_french_date
 from weboob.tools.value import Value
@@ -1453,3 +1454,84 @@ class ErrorPage(HTMLPage):
 
 class RevolvingLoanDetails(LoggedPage, HTMLPage):
     pass
+
+
+class SubscriptionPage(LoggedPage, HTMLPage):
+    def submit_form(self, subscriber):
+        form = self.get_form(id='frmDoc')
+        form['SelTiers'] = subscriber
+        form.submit()
+
+    def get_subscriptions(self, subscription_list, subscriber=None):
+        for account in self.doc.xpath('//table[@class="liste"]//tr//td[contains(text(), "Compte")]'):
+            sub = Subscription()
+            sub.id = Regexp(CleanText('.', replace=[('.', ''), (' ', '')]), r'(\d+)')(account)
+
+            if find_object(subscription_list, id=sub.id):
+                continue
+
+            sub.label = CleanText('.')(account)
+
+            if subscriber != None:
+                sub.subscriber = CleanText('.')(subscriber)
+            else:
+                sub.subscriber = CleanText('//span[@id="NomTiers"]')(self.doc)
+
+            subscription_list.append(sub)
+            yield sub
+
+    def iter_subscriptions(self):
+        subscription_list = []
+
+        options = self.doc.xpath('//option')
+        if options:
+            for opt in options:
+                subscriber = self.doc.xpath('//option[contains(text(), "%s")]' % CleanText('.')(opt))[0]
+                self.submit_form(Attr('.', 'value')(subscriber))
+
+                for sub in self.get_subscriptions(subscription_list, subscriber):
+                    yield sub
+        else:
+            for sub in self.get_subscriptions(subscription_list):
+                yield sub
+
+    @method
+    class iter_documents(TableElement):
+        item_xpath = '//table[caption[contains(text(), "Extraits de comptes")]]//tr[td]'
+        head_xpath = '//table[@class="liste"]//th'
+
+        col_date = 'Date'
+        col_label = 'Information complémentaire'
+        col_url = 'Nature du document'
+
+        class item(ItemElement):
+            def condition(self):
+                return Env('sub_id')(self) == Regexp(CleanText(TableCell('label'), replace=[('.', ''), (' ', '')]), r'(\d+)')(self)
+
+            klass = Document
+
+            obj_id = Format('%s_%s', Env('sub_id'), CleanText(TableCell('date'), replace=[('/', '')]))
+            obj_label = Format('%s %s', CleanText(TableCell('url')), CleanText(TableCell('date')))
+            obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
+            obj_format = 'pdf'
+            obj_type = 'other'
+
+            def obj_url(self):
+                return urljoin(self.page.url, '/fr/banque/%s' % Link('./a')(TableCell('url')(self)[0]))
+
+    def next_page(self):
+        form = self.get_form(id='frmDoc')
+        form['__EVENTTARGET'] = ''
+        form['__EVENTARGUMENT'] = ''
+        form['__LASTFOCUS'] = ''
+        form['SelIndex1'] = ''
+        form['NEXT.x'] = '7'
+        form['NEXT.y'] = '8'
+        form.submit()
+
+    def is_last_page(self):
+        if self.doc.xpath('//td[has-class("ERREUR")]'):
+            return True
+        if re.search(r'(\d\/\d)', CleanText('//div[has-class("blocpaginb")]', symbols=' ')(self.doc)):
+            return True
+        return False

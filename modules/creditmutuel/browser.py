@@ -36,14 +36,16 @@ from weboob.capabilities.bank import Account, AddRecipientStep, AddRecipientErro
 from weboob.capabilities import NotAvailable
 from weboob.tools.compat import urlparse
 
-from .pages import LoginPage, LoginErrorPage, AccountsPage, UserSpacePage, \
-                   OperationsPage, CardPage, ComingPage, RecipientsListPage, \
-                   ChangePasswordPage, VerifCodePage, EmptyPage, PorPage, \
-                   IbanPage, NewHomePage, AdvisorPage, RedirectPage, \
-                   LIAccountsPage, CardsActivityPage, CardsListPage,       \
-                   CardsOpePage, NewAccountsPage, InternalTransferPage, \
-                   ExternalTransferPage, RevolvingLoanDetails, RevolvingLoansList, \
-                   ErrorPage
+from .pages import (
+    LoginPage, LoginErrorPage, AccountsPage, UserSpacePage,
+    OperationsPage, CardPage, ComingPage, RecipientsListPage,
+    ChangePasswordPage, VerifCodePage, EmptyPage, PorPage,
+    IbanPage, NewHomePage, AdvisorPage, RedirectPage,
+    LIAccountsPage, CardsActivityPage, CardsListPage,
+    CardsOpePage, NewAccountsPage, InternalTransferPage,
+    ExternalTransferPage, RevolvingLoanDetails, RevolvingLoansList,
+    ErrorPage, SubscriptionPage,
+)
 
 
 __all__ = ['CreditMutuelBrowser']
@@ -123,6 +125,8 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
     external_transfer = URL('/(?P<subbank>.*)fr/banque/virements/vplw_vee.html', ExternalTransferPage)
     recipients_list =   URL('/(?P<subbank>.*)fr/banque/virements/vplw_bl.html', RecipientsListPage)
     error = URL('/validation/infos.cgi', ErrorPage)
+
+    subscription = URL('/fr/banque/MMU2_LstDoc.aspx', SubscriptionPage)
 
     currentSubBank = None
     is_new_website = None
@@ -491,3 +495,23 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
             raise AddRecipientStep(self.get_recipient_object(recipient), Value(u'Clé', label=self.page.get_question()))
         else:
             return self.continue_new_recipient(recipient, **params)
+
+    @need_login
+    def iter_subscriptions(self):
+        self.subscription.go()
+        return self.page.iter_subscriptions()
+
+    @need_login
+    def iter_documents(self, subscription):
+        self.subscription.go(params={'typ':'doc'})
+
+        security_limit = 10
+
+        for i in range(security_limit):
+            for doc in self.page.iter_documents(sub_id=subscription.id):
+                yield doc
+
+            if self.page.is_last_page():
+                break
+
+            self.page.next_page()
