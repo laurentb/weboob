@@ -31,7 +31,7 @@ from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import method, ItemElement
 from weboob.browser.filters.standard import CleanText, Date, CleanDecimal, Regexp
 from weboob.browser.filters.html import Attr
-from weboob.exceptions import ActionNeeded, BrowserIncorrectPassword, BrowserUnavailable
+from weboob.exceptions import ActionNeeded, BrowserIncorrectPassword, BrowserUnavailable, BrowserPasswordExpired
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.profile import Profile
 from weboob.capabilities.base import Currency, find_object
@@ -363,6 +363,9 @@ class ProAccountsPage(AccountsPage):
     def on_load(self):
         if self.doc.xpath('//h1[contains(text(), "Erreur")]'):
             raise BrowserUnavailable(CleanText('//h1[contains(text(), "Erreur")]//span')(self.doc))
+        msg = CleanText('//div[@class="x-attentionErreur"]/b')(self.doc)
+        if 'vous devez modifier votre code confidentiel' in msg:
+            raise BrowserPasswordExpired(msg)
 
     def params_from_js(self, text):
         l = []
