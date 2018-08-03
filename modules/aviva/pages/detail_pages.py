@@ -72,6 +72,12 @@ class InvestmentPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Investment
 
+            def condition(self):
+                label = self.obj_label()
+                if label == 'Total' or label == '':
+                    return False
+                return True
+
             def load_details(self):
                 # create URL with ISIN code if exists
                 code = Field('code')(self)
@@ -82,6 +88,7 @@ class InvestmentPage(LoggedPage, HTMLPage):
                 CleanText('./td[@data-label="Nom du support"]/a/@onclick'), r'"([A-Z]{2}[0-9]{10})"',
                 default=NotAvailable
             )
+
             def obj_label(self):
                 if not CleanText('./td[@data-label="Nom du support"]')(self):
                     return CleanText('./th[@data-label="Nom du support"]/a')(self)
@@ -98,7 +105,7 @@ class InvestmentPage(LoggedPage, HTMLPage):
 
             def obj_unitprice(self):
                 unitprice = (Async('details') & CleanDecimal('//td[@class="donnees"]/span[@id="VL_achat"]',
-                                                                default=NotAvailable))(self)
+                                                             default=NotAvailable))(self)
                 return unitprice or NotAvailable
 
             def obj_diff_percent(self):
@@ -111,8 +118,9 @@ class InvestmentPage(LoggedPage, HTMLPage):
             def obj_description(self):
                 # idem
                 description = (Async('details') & CleanText('//td[@class="donnees"]/span[@id="Nature"]',
-                                                               default=NotAvailable))(self)
+                                                            default=NotAvailable))(self)
                 return description or NotAvailable
+
 
 class InvestmentElement(ItemElement):
     klass = Investment
