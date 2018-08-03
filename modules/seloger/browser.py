@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.housing import TypeNotSupported, POSTS_TYPES, ADVERT_TYPES
+from weboob.capabilities.housing import TypeNotSupported, POSTS_TYPES
 from weboob.tools.compat import urlencode
 
 from weboob.browser import PagesBrowser, URL
@@ -71,15 +71,8 @@ class SeLogerBrowser(PagesBrowser):
         if ret:
             data['idtypebien'] = ','.join(ret)
 
-        if(len(advert_types) == 1 and
-           advert_types[0] == ADVERT_TYPES.PROFESSIONAL):
-            data['SI_PARTICULIER'] = 0
-        elif(len(advert_types) == 1 and
-           advert_types[0] == ADVERT_TYPES.PERSONAL):
-            data['SI_PARTICULIER'] = 1
-
         return self.search.go(request=urlencode(data)).iter_housings(
-            query_type=type
+            query_type=type, advert_types=advert_types
         )
 
     def get_housing(self, _id, obj=None):

@@ -99,7 +99,7 @@ class SeLogerTest(BackendTest, HousingTest):
         query.area_min = 20
         query.cost_max = 1500
         query.type = POSTS_TYPES.RENT
-        query.advert_types = [ADVERT_TYPES.PERSONAL]
+        query.advert_types = [ADVERT_TYPES.PROFESSIONAL]
         query.cities = []
         for city in self.backend.search_city('paris'):
             city.backend = self.backend.name

@@ -76,7 +76,7 @@ class SeLogerItem(ItemElement):
     obj_date = DateTime(CleanText('dtFraicheur'))
     obj_cost = CleanDecimal('prix', default=NotLoaded)
 
-    obj_currency = Currency(Regexp(CleanText('prixUnite'), '(\W).*', '\\1'))
+    obj_currency = Currency(Regexp(CleanText('prixUnite'), r'(\W).*', r'\1'))
 
     obj_area = CleanDecimal('surface', default=NotLoaded)
     obj_price_per_meter = PricePerMeterFilter()
@@ -114,6 +114,11 @@ class SearchResultsPage(XMLPage):
                     # Ignore VIAGER
                     return CleanText('idTypeTransaction')(self) == '2'
                 return True
+
+            def validate(self, obj):
+                return (len(self.env['advert_types']) == 1 and
+                        self.env['advert_types'][0] == obj.advert_type) or \
+                        self.env['advert_types'] > 1
 
             obj_type = Env('query_type')
 
