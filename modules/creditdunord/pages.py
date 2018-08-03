@@ -103,6 +103,9 @@ class RedirectPage(HTMLPage):
 
 
 class LoginPage(HTMLPage):
+
+    VIRTUALKEYBOARD = CDNVirtKeyboard
+
     def login(self, username, password):
         login_selector = self.doc.xpath('//input[@id="codsec"]')
         if login_selector:
@@ -117,7 +120,7 @@ class LoginPage(HTMLPage):
         crypto = re.search(r"'crypto': '([^']+)'", res).group(1)
         grid = re.search(r"'grid': \[([^\]]+)]", res).group(1).split(',')
 
-        vk = CDNVirtKeyboard(self.browser, crypto, grid)
+        vk = self.VIRTUALKEYBOARD(self.browser, crypto, grid)
 
         data = {'user_id':      username,
                 'codsec':       vk.get_string_code(password),
@@ -228,6 +231,15 @@ class AccountsPage(LoggedPage, CDNBasePage):
     def get_av_link(self):
         return self.doc.xpath('//a[contains(text(), "Consultation")]')[0].attrib['href']
 
+    def make__args_dict(self, line):
+        return {'_eventId': 'clicDetailCompte',
+                '_ipc_eventValue':  '',
+                '_ipc_fireEvent':   '',
+                'deviseAffichee':   'DEVISE',
+                'execution':        self.get_execution(),
+                'idCompteClique':   line[self.COL_ID],
+               }
+
     def get_list(self):
         accounts = []
         previous_account = None
@@ -272,13 +284,7 @@ class AccountsPage(LoggedPage, CDNBasePage):
             if line[self.COL_HISTORY] == 'true':
                 a._inv = False
                 a._link = self.get_history_link()
-                a._args = {'_eventId':         'clicDetailCompte',
-                           '_ipc_eventValue':  '',
-                           '_ipc_fireEvent':   '',
-                           'deviseAffichee':   'DEVISE',
-                           'execution':        self.get_execution(),
-                           'idCompteClique':   line[self.COL_ID],
-                          }
+                a._args = self.make__args_dict(line)
             else:
                 a._inv = True
                 a._args = {'_ipc_eventValue':  line[self.COL_ID],
@@ -489,6 +495,8 @@ class Transaction(FrenchTransaction):
 
 
 class TransactionsPage(LoggedPage, CDNBasePage):
+    TRANSACTION = Transaction
+
     COL_ID = 0
     COL_DATE = -5
     COL_DEBIT_DATE = -4
@@ -546,7 +554,7 @@ class TransactionsPage(LoggedPage, CDNBasePage):
         data = ast.literal_eval('[%s]' % txt.replace('"', '\\"'))
 
         for line in data:
-            t = Transaction()
+            t = self.TRANSACTION()
 
             if acc_type is Account.TYPE_CARD and MyStrip(line[self.COL_DEBIT_DATE]):
                 date = vdate = Date(dayfirst=True).filter(MyStrip(line[self.COL_DEBIT_DATE]))
@@ -640,6 +648,7 @@ class TransactionsPage(LoggedPage, CDNBasePage):
 
 
 class ProTransactionsPage(TransactionsPage):
+    TRANSACTION = Transaction
     def get_next_args(self, args):
         if len(self.doc.xpath('//a[contains(text(), "Suivant")]')) > 0:
             args['PageDemandee'] = int(args.get('PageDemandee', 1)) + 1
@@ -680,7 +689,7 @@ class ProTransactionsPage(TransactionsPage):
 
     def get_history(self, acc_type):
         for i, tr in self.parse_transactions():
-            t = Transaction()
+            t = self.TRANSACTION()
 
             if acc_type is Account.TYPE_CARD:
                 date = vdate = Date(dayfirst=True, default=None).filter(tr['dateval'])
