@@ -20,7 +20,7 @@
 from weboob.tools.compat import unicode
 
 from .base import Capability, BaseObject, Field, StringField,\
-                  IntField, UserError, IntEnum
+                  IntField, UserError, Enum
 from .date import DateField, DeltaField
 
 
@@ -135,7 +135,7 @@ class Version(BaseObject):
         return '<Version %r>' % self.name
 
 
-class StatusType(IntEnum):
+class StatusType(Enum):
     NEW      = 0
     PROGRESS = 1
     RESOLVED = 2

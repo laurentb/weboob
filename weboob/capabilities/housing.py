@@ -19,7 +19,7 @@
 
 
 from .base import Capability, BaseObject, Field, IntField, DecimalField, \
-                  StringField, BytesField, StrEnum, EnumField, UserError
+                  StringField, BytesField, Enum, EnumField, UserError
 from .date import DateField
 
 __all__ = [
@@ -58,13 +58,13 @@ class HousingPhoto(BaseObject):
         return '<HousingPhoto %r data=%do url=%r>' % (self.id, len(self.data) if self.data else 0, self.url)
 
 
-class UTILITIES(StrEnum):
+class UTILITIES(Enum):
     INCLUDED = u'C.C.'
     EXCLUDED = u'H.C.'
     UNKNOWN = u''
 
 
-class ENERGY_CLASS(StrEnum):
+class ENERGY_CLASS(Enum):
     A = u'A'
     B = u'B'
     C = u'C'
@@ -74,7 +74,7 @@ class ENERGY_CLASS(StrEnum):
     G = u'G'
 
 
-class POSTS_TYPES(StrEnum):
+class POSTS_TYPES(Enum):
     RENT=u'RENT'
     SALE = u'SALE'
     SHARING = u'SHARING'
@@ -82,12 +82,12 @@ class POSTS_TYPES(StrEnum):
     VIAGER = u'VIAGER'
 
 
-class ADVERT_TYPES(StrEnum):
+class ADVERT_TYPES(Enum):
     PROFESSIONAL = u'Professional'
     PERSONAL = u'Personal'
 
 
-class HOUSE_TYPES(StrEnum):
+class HOUSE_TYPES(Enum):
     APART = u'Apartment'
     HOUSE = u'House'
     PARKING = u'Parking'

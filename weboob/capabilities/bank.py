@@ -29,7 +29,7 @@ from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.compat import unicode
 
 from .base import BaseObject, Field, StringField, DecimalField, IntField, \
-                  UserError, Currency, NotAvailable, EnumField, IntEnum
+                  UserError, Currency, NotAvailable, EnumField, Enum
 from .date import DateField
 from .collection import CapCollection
 
@@ -190,7 +190,7 @@ class Recipient(BaseAccount):
     iban =           StringField('International Bank Account Number')
 
 
-class AccountType(IntEnum):
+class AccountType(Enum):
     UNKNOWN          = 0
     CHECKING         = 1
     "Transaction, everyday transactions"
@@ -312,7 +312,7 @@ class Loan(Account):
     next_payment_date = DateField('Date of the next payment')
 
 
-class TransactionType(IntEnum):
+class TransactionType(Enum):
     UNKNOWN       = 0
     TRANSFER      = 1
     ORDER         = 2
@@ -436,7 +436,7 @@ class Investment(BaseObject):
         return '<Investment label=%r code=%r valuation=%r>' % (self.label, self.code, self.valuation)
 
 
-class PocketCondition(IntEnum):
+class PocketCondition(Enum):
     UNKNOWN                    = 0
     DATE                       = 1
     AVAILABLE                  = 2

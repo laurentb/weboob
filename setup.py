@@ -138,7 +138,6 @@ def install_weboob():
         'Pillow',
         'mechanize; python_version < "3.0"',
         'futures; python_version < "3.2"',
-        'enum34; python_version < "3.4"',
     ]
 
     if not options.deps:

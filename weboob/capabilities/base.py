@@ -18,7 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from collections import OrderedDict
-from enum import Enum as _Enum
 import warnings
 import re
 from decimal import Decimal
@@ -32,27 +31,65 @@ from weboob.tools.misc import to_unicode
 __all__ = ['UserError', 'FieldNotFound', 'NotAvailable', 'FetchError',
            'NotLoaded', 'Capability', 'Field', 'IntField', 'DecimalField',
            'FloatField', 'StringField', 'BytesField', 'BoolField',
-           'Enum', 'IntEnum', 'StrEnum', 'EnumField',
+           'Enum', 'EnumField',
            'empty', 'BaseObject']
 
 
-class Enum(_Enum):
+class EnumMeta(type):
+    @classmethod
+    def __prepare__(mcs, name, bases, **kwargs):
+        # in python3.6, default namespace keeps declaration order
+        # in python>=3 but <3.6, force ordered namespace
+        # doesn't work in python2
+        return OrderedDict()
+
+    def __init__(cls, name, bases, attrs, *args, **kwargs):
+        super(EnumMeta, cls).__init__(name, bases, attrs, *args, **kwargs)
+        attrs = [(k, v) for k, v in attrs.items() if not callable(v) and not k.startswith('__')]
+        if sys.version_info.major < 3:
+            # can't have original declaration order, at least sort by value
+            attrs.sort(key=lambda kv: kv[1])
+        cls.__members__ = OrderedDict(attrs)
+
+    def __setattr__(cls, name, value):
+        super(EnumMeta, cls).__setattr__(name, value)
+        if not callable(value) and not name.startswith('__'):
+            cls.__members__[name] = value
+
+    def __call__(cls, *args, **kwargs):
+        raise ValueError("Enum type can't be instanciated")
+
+    @property
+    def _items(cls):
+        return cls.__members__.items()
+
+    @property
+    def _keys(cls):
+        return cls.__members__.keys()
+
+    @property
+    def _values(cls):
+        return cls.__members__.values()
+
+    @property
+    def _types(cls):
+        return set(map(type, cls._values))
+
+    def __iter__(cls):
+        return iter(cls.__members__.values())
+
+    def __len__(cls):
+        return len(cls.__members__)
+
+    def __contains__(cls, value):
+        return value in cls.__members__.values()
+
+    def __getitem__(cls, k):
+        return cls.__members__[k]
+
+
+class Enum(with_metaclass(EnumMeta, object)):
     pass
-
-
-class StrEnum(unicode, Enum):
-    if sys.version_info.major < 3:
-        # cannot use StrConv helper, else for some reason it will error like:
-        # TypeError: <AccountType.TYPE_UNKNOWN: 0> cannot be pickled
-        def __str__(self):
-            return unicode(self.value).encode('utf-8')
-    else:
-        def __str__(self):
-            return str(self.value)
-
-
-class IntEnum(int, Enum):
-    __str__ = int.__str__
 
 
 def empty(value):
@@ -306,13 +343,15 @@ class BytesField(Field):
 
 class EnumField(Field):
     def __init__(self, doc, enum, **kwargs):
-        super(EnumField, self).__init__(doc, enum, **kwargs)
-        if not issubclass(enum, _Enum):
+        if not issubclass(enum, Enum):
             raise TypeError('invalid enum type: %r' % enum)
+        super(EnumField, self).__init__(doc, *enum._types, **kwargs)
         self.enum = enum
 
     def convert(self, value):
-        return self.enum(value)
+        if value not in self.enum._values:
+            raise ValueError('value %r does not belong to enum %s' % (value, self.enum))
+        return value
 
 
 class _BaseObjectMeta(type):

@@ -174,7 +174,7 @@ class Flatboob(ReplApplication):
                 query.house_types.append(value)
 
         _type = None
-        posts_types = sorted(POSTS_TYPES, key=lambda e: e.value)
+        posts_types = sorted(POSTS_TYPES)
         while _type not in range(len(posts_types)):
             for i, t in enumerate(posts_types):
                 print('  %s%2d)%s %s' % (self.BOLD,

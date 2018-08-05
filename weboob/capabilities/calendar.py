@@ -19,7 +19,7 @@
 
 from .base import (
     BaseObject, StringField, IntField, FloatField, Field, EnumField,
-    StrEnum,
+    Enum,
 )
 from .collection import CapCollection, CollectionNotFound, Collection
 from .date import DateField
@@ -30,7 +30,7 @@ from weboob.tools.date import parse_date
 __all__ = ['BaseCalendarEvent', 'CapCalendarEvent']
 
 
-class CATEGORIES(StrEnum):
+class CATEGORIES(Enum):
     CONCERT = u'Concert'
     CINE = u'Cinema'
     THEATRE = u'Theatre'
@@ -45,18 +45,18 @@ class CATEGORIES(StrEnum):
 
 #the following elements deal with ICalendar stantdards
 #see http://fr.wikipedia.org/wiki/ICalendar#Ev.C3.A9nements_.28VEVENT.29
-class TRANSP(StrEnum):
+class TRANSP(Enum):
     OPAQUE = u'OPAQUE'
     TRANSPARENT = u'TRANSPARENT'
 
 
-class STATUS(StrEnum):
+class STATUS(Enum):
     TENTATIVE = u'TENTATIVE'
     CONFIRMED = u'CONFIRMED'
     CANCELLED = u'CANCELLED'
 
 
-class TICKET(StrEnum):
+class TICKET(Enum):
     AVAILABLE = u'Available'
     NOTAVAILABLE = u'Not available'
     CLOSED = u'Closed'

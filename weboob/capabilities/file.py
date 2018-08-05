@@ -19,14 +19,14 @@
 
 from weboob.tools.compat import long
 
-from .base import Capability, BaseObject, NotAvailable, Field, StringField, IntField, StrEnum, IntEnum
+from .base import Capability, BaseObject, NotAvailable, Field, StringField, IntField, Enum
 from .date import DateField
 
 
 __all__ = ['BaseFile', 'CapFile']
 
 
-class LICENSES(StrEnum):
+class LICENSES(Enum):
     OTHER = u'Other license'
     PD = u'Public Domain'
     COPYRIGHT = u'All rights reserved'
@@ -74,7 +74,7 @@ class BaseFile(BaseObject):
         return self.id2url(self.id)
 
 
-class SearchSort(IntEnum):
+class SearchSort(Enum):
     RELEVANCE = 0
     RATING = 1
     VIEWS = 2

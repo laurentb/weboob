@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import Capability, BaseObject, Field, StringField, UserError, IntEnum
+from .base import Capability, BaseObject, Field, StringField, UserError, Enum
 from .date import DateField
 
 
@@ -31,7 +31,7 @@ class Event(BaseObject):
         return '<Event date=%r activity=%r location=%r>' % (self.date, self.activity, self.location)
 
 
-class ParcelState(IntEnum):
+class ParcelState(Enum):
     UNKNOWN = 0
     PLANNED = 1
     IN_TRANSIT = 2

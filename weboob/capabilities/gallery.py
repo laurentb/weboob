@@ -21,7 +21,7 @@
 from weboob.capabilities.image import BaseImage as CIBaseImage, Thumbnail
 from weboob.tools.compat import unicode
 from .base import Capability, BaseObject, NotLoaded, Field, StringField, \
-                  IntField, FloatField, IntEnum
+                  IntField, FloatField, Enum
 from .date import DateField
 
 
@@ -98,7 +98,7 @@ class BaseImage(CIBaseImage):
         return self.data is not NotLoaded
 
 
-class SearchSort(IntEnum):
+class SearchSort(Enum):
     RELEVANCE = 0
     RATING = 1
     VIEWS = 2
