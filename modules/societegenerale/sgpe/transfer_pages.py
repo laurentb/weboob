@@ -169,3 +169,38 @@ class SignTransferPage(LoggedPage, LoginPage):
             'vk_op': 'sign',
             'context': token,
         }
+
+
+class AddRecipientPage(LoggedPage, HTMLPage):
+    def get_countries(self):
+        countries = {}
+        for country in self.doc.xpath('//div[@id="div-pays-tiers"]//li[not(@data-codepays="")]'):
+            countries.update({
+                Attr('.', 'data-codepays')(country): Attr('.', 'data-libellepays')(country)
+            })
+        return countries
+
+
+class AddRecipientStepPage(LoggedPage, JsonPage):
+    def get_response_data(self):
+        return self.doc['donnees']
+
+
+class ConfirmRecipientPage(LoggedPage, JsonPage):
+    def on_load(self):
+        assert Dict('commun/statut')(self.doc) == 'ok', \
+            'Something went wrong: %s' % Dict('commun/raison')(self.doc)
+
+    def rcpt_after_sms(self, recipient):
+        rcpt_data = self.doc['donnees']
+
+        assert recipient.label == Dict('nomRaisonSociale')(rcpt_data)
+        assert recipient.iban == Dict('coordonnee/0/numeroCompte')(rcpt_data)
+
+        rcpt = Recipient()
+        rcpt.id = Dict('coordonnee/0/refSICoordonnee')(rcpt_data)
+        rcpt.iban = Dict('coordonnee/0/numeroCompte')(rcpt_data)
+        rcpt.label = Dict('nomRaisonSociale')(rcpt_data)
+        rcpt.category = u'Externe'
+        rcpt.enabled_at = date.today()
+        return rcpt

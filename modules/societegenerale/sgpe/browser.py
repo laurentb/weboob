@@ -20,15 +20,18 @@
 from __future__ import unicode_literals
 
 import re
+from datetime import date
 
-from weboob.browser.browsers import LoginBrowser, need_login
+from weboob.browser.browsers import LoginBrowser, need_login, StatesMixin
 from weboob.browser.url import URL
 from weboob.browser.exceptions import ClientError
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import (
-    AccountNotFound, RecipientNotFound,
+    AccountNotFound, RecipientNotFound, AddRecipientStep, AddRecipientError,
+    Recipient,
 )
+from weboob.tools.value import Value
 
 from .pages import (
     LoginPage, CardsPage, CardHistoryPage, IncorrectLoginPage,
@@ -37,6 +40,7 @@ from .pages import (
 from .json_pages import AccountsJsonPage, BalancesJsonPage, HistoryJsonPage, BankStatementPage
 from .transfer_pages import (
     EasyTransferPage, RecipientsJsonPage, TransferPage, SignTransferPage,
+    AddRecipientPage, AddRecipientStepPage, ConfirmRecipientPage,
 )
 
 
@@ -167,11 +171,12 @@ class SGEnterpriseBrowser(SGPEBrowser):
         self.subscription_form.go(data=data)
         return self.page.iter_documents(sub_id=subscription.id)
 
-class SGProfessionalBrowser(SGEnterpriseBrowser):
+class SGProfessionalBrowser(SGEnterpriseBrowser, StatesMixin):
     BASEURL = 'https://professionnels.secure.societegenerale.fr'
     LOGIN_FORM = 'auth_reco'
     MENUID = 'SBOREL'
     CERTHASH = '9f5232c9b2283814976608bfd5bba9d8030247f44c8493d8d205e574ea75148e'
+    STATE_DURATION = 5
 
     incorrect_login = URL('/authent.html', IncorrectLoginPage)
     profile = URL('/gao/modifier-donnees-perso-saisie.html', ProfileProPage)
@@ -184,11 +189,32 @@ class SGProfessionalBrowser(SGEnterpriseBrowser):
     sign_transfer_page = URL('/ord-web/ord//ord-verifier-habilitation-signature-ordre.json', SignTransferPage)
     confirm_transfer = URL('/ord-web/ord//ord-valider-signature-ordre.json', TransferPage)
 
+    recipients = URL('/ord-web/ord//ord-gestion-tiers-liste.json', RecipientsJsonPage)
+    add_recipient = URL('/ord-web/ord//ord-fragment-form-tiers.html\?cl_action=ajout&cl_idTiers=',
+                        AddRecipientPage)
+    add_recipient_step = URL('/ord-web/ord//ord-tiers-calcul-bic.json',
+                             '/ord-web/ord//ord-preparer-signature-destinataire.json',
+                             AddRecipientStepPage)
+    confirm_new_recipient = URL('/ord-web/ord//ord-creer-destinataire.json', ConfirmRecipientPage)
+
     bank_statement_menu = URL('/icd/syd-front/data/syd-rce-accederDepuisMenu.json', BankStatementPage)
     bank_statement_search = URL('/icd/syd-front/data/syd-rce-lancerRecherche.json', BankStatementPage)
 
     date_max = None
     date_min = None
+
+    new_rcpt_token = None
+    new_rcpt_validate_form = None
+    need_reload_state = None
+
+    __states__ = ['need_reload_state', 'new_rcpt_token', 'new_rcpt_validate_form']
+
+    def load_state(self, state):
+        # reload state only for new recipient feature
+        if state.get('need_reload_state'):
+            state.pop('url', None)
+            self.need_reload_state = None
+            super(SGProfessionalBrowser, self).load_state(state)
 
     @need_login
     def iter_subscription(self):
@@ -224,6 +250,121 @@ class SGProfessionalBrowser(SGEnterpriseBrowser):
             begin_year -= 1
 
         return new_end_month, end_year, begin_month, begin_year
+
+    def copy_recipient_obj(self, recipient):
+        rcpt = Recipient()
+        rcpt.id = recipient.iban
+        rcpt.iban = recipient.iban
+        rcpt.label = recipient.label
+        rcpt.category = 'Externe'
+        rcpt.enabled_at = date.today()
+        return rcpt
+
+    @need_login
+    def new_recipient(self, recipient, **params):
+        if 'code' in params:
+            self.validate_rcpt_with_sms(params['code'])
+            return self.page.rcpt_after_sms(recipient)
+
+        self.recipients.go()
+        step_urls = {
+            'first_recipient_check': self.absurl('/ord-web/ord//ord-valider-destinataire-avant-maj.json', base=True),
+            'get_bic': self.absurl('/ord-web/ord//ord-tiers-calcul-bic.json', base=True),
+            'get_token': self.absurl('/ord-web/ord//ord-preparer-signature-destinataire.json', base=True),
+            'get_sign_info': self.absurl('/sec/getsigninfo.json', base=True),
+            'send_otp_to_user': self.absurl('/sec/csa/send.json', base=True),
+        }
+
+        self.add_recipient.go(method='POST', headers={'Content-Type': 'application/json;charset=UTF-8'})
+        countries = self.page.get_countries()
+
+        # first recipient check
+        data = {
+            'an_codeAction': 'ajout_tiers',
+            'an_refSICoordonnee': '',
+            'an_refSITiers': '',
+            'cl_iban': recipient.iban,
+            'cl_raisonSociale': recipient.label,
+        }
+        self.location(step_urls['first_recipient_check'], data=data)
+
+        # get bic
+        data = {
+            'an_activateCMU': 'true',
+            'an_codePaysBanque': '',
+            'an_nature': 'C',
+            'an_numeroCompte': recipient.iban,
+            'an_topIBAN': 'true',
+            'cl_adresse': '',
+            'cl_adresseBanque': '',
+            'cl_codePays': recipient.iban[:2],
+            'cl_libellePaysBanque': '',
+            'cl_libellePaysDestinataire': countries[recipient.iban[:2]],
+            'cl_nomBanque': '',
+            'cl_nomRaisonSociale': recipient.label,
+            'cl_ville': '',
+            'cl_villeBanque': '',
+        }
+        self.location(step_urls['get_bic'], data=data)
+        bic = self.page.get_response_data()
+
+        # get token
+        data = {
+            'an_coordonnee_codePaysBanque': '',
+            'an_coordonnee_nature': 'C',
+            'an_coordonnee_numeroCompte': recipient.iban,
+            'an_coordonnee_topConfidentiel': 'false',
+            'an_coordonnee_topIBAN': 'true',
+            'an_refSICoordonnee': '',
+            'an_refSIDestinataire': '',
+            'cl_adresse': '',
+            'cl_codePays': recipient.iban[:2],
+            'cl_coordonnee_adresseBanque': '',
+            'cl_coordonnee_bic': bic,
+            'cl_coordonnee_categories_libelle': '',
+            'cl_coordonnee_categories_refSi': '',
+            'cl_coordonnee_libellePaysBanque': '',
+            'cl_coordonnee_nomBanque': '',
+            'cl_coordonnee_villeBanque': '',
+            'cl_libellePaysDestinataire': countries[recipient.iban[:2]],
+            'cl_nomRaisonSociale': recipient.label,
+            'cl_ville': '',
+        }
+        self.location(step_urls['get_token'], data=data)
+        self.new_rcpt_validate_form = data
+        payload = self.page.get_response_data()
+
+        # get sign info
+        data = {
+            'b64_jeton_transaction': payload['jeton'],
+            'action_level': payload['sensibilite'],
+        }
+        self.location(step_urls['get_sign_info'], data=data)
+
+        # send otp to user
+        data = {
+            'context': payload['jeton'],
+            'csa_op': 'sign'
+        }
+        self.location(step_urls['send_otp_to_user'], data=data)
+        self.new_rcpt_validate_form.update(data)
+
+        rcpt = self.copy_recipient_obj(recipient)
+        self.need_reload_state = True
+        raise AddRecipientStep(rcpt, Value('code', label='Veuillez entrer le code reçu par SMS.'))
+
+    @need_login
+    def validate_rcpt_with_sms(self, code):
+        if not self.new_rcpt_validate_form:
+            raise AddRecipientError()
+
+        self.new_rcpt_validate_form.update({'code': code})
+        try:
+            self.confirm_new_recipient.go(data=self.new_rcpt_validate_form)
+        except ClientError as e:
+            assert e.response.status_code == 403, \
+                'Something went wrong in add recipient, response status code is %s' % e.response.status_code
+            raise AddRecipientError(message='Le code entré est incorrect.')
 
     @need_login
     def iter_recipients(self, origin_account):
