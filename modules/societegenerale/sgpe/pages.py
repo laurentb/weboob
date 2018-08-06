@@ -95,7 +95,7 @@ class ChangePassPage(SGPEPage):
 
 
 class LoginPage(SGPEPage):
-    def login(self, login, password):
+    def get_authentication_data(self):
         infos_data = self.browser.open('/sec/vk/gen_crypto?estSession=0').text
         infos_data = re.match('^_vkCallback\((.*)\);$', infos_data).group(1)
         infos = json.loads(infos_data.replace("'", '"'))
@@ -110,10 +110,18 @@ class LoginPage(SGPEPage):
             if err.tile:
                 err.tile.display()
 
+        return {
+            'infos': infos,
+            'img': img,
+        }
+
+    def login(self, login, password):
+        authentication_data = self.get_authentication_data()
+
         form = self.get_form(name=self.browser.LOGIN_FORM)
         form['user_id'] = login
-        form['codsec'] = img.get_codes(password[:6])
-        form['cryptocvcs'] = infos['crypto']
+        form['codsec'] = authentication_data['img'].get_codes(password[:6])
+        form['cryptocvcs'] = authentication_data['infos']['crypto']
         form['vk_op'] = 'auth'
         form.url = '/authent.html'
         try:

@@ -111,7 +111,7 @@ class SocieteGeneraleModule(Module, CapBankWealth, CapBankTransferAddRecipient, 
         return self.browser.new_recipient(recipient, **params)
 
     def init_transfer(self, transfer, **params):
-        if self.config['website'].get() != 'par':
+        if self.config['website'].get() not in ('par', 'pro'):
             raise NotImplementedError()
         transfer.label = ' '.join(w for w in re.sub('[^0-9a-zA-Z ]+', '', transfer.label).split())
         self.logger.info('Going to do a new transfer')
@@ -130,7 +130,7 @@ class SocieteGeneraleModule(Module, CapBankWealth, CapBankTransferAddRecipient, 
         return self.browser.init_transfer(account, recipient, transfer)
 
     def execute_transfer(self, transfer, **params):
-        if self.config['website'].get() != 'par':
+        if self.config['website'].get() not in ('par', 'pro'):
             raise NotImplementedError()
         return self.browser.execute_transfer(transfer)
 

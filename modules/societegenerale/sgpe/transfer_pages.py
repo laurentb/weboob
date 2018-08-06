@@ -26,8 +26,11 @@ from datetime import date
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage
 from weboob.browser.elements import method, DictElement, ItemElement
 from weboob.browser.filters.html import Attr
-from weboob.capabilities.bank import Recipient
 from weboob.browser.filters.json import Dict
+from weboob.browser.filters.standard import Date, Eval
+from weboob.capabilities.bank import Recipient, Transfer
+
+from .pages import LoginPage
 
 
 class RecipientsJsonPage(LoggedPage, JsonPage):
@@ -53,6 +56,10 @@ class RecipientsJsonPage(LoggedPage, JsonPage):
             obj_label = obj__account_title = Dict('nomRaisonSociale')
             obj_enabled_at = date.today()
 
+            obj__formatted_iban = Dict('coordonnee/0/numeroCompteFormate')
+            obj__bic = Dict('coordonnee/0/BIC')
+            obj__ref = Dict('coordonnee/0/refSICoordonnee')
+
 
 class EasyTransferPage(LoggedPage, HTMLPage):
     def update_origin_account(self, origin_account):
@@ -65,6 +72,15 @@ class EasyTransferPage(LoggedPage, HTMLPage):
                 origin_account.label == json_data['libelleCompte']
                 and origin_account.iban == json_data['ibanCompte']
             ):
+                origin_account._currency_code = json_data['codeDevise']
+                origin_account._formatted_iban = json_data['ibanFormateCompte']
+                origin_account._min_amount = json_data['montantMin']
+                origin_account._max_amount = json_data['montantMax']
+                origin_account._decimal_code = json_data['codeDecimal']
+                origin_account._manage_counter = json_data['guichetGestionnaire']
+                origin_account._account_title = json_data['intituleCompte']
+                origin_account._bic = json_data['bicCompte']
+                origin_account._id_service = json_data['idPrestation']
                 origin_account._product_code = json_data['codeProduit']
                 origin_account._underproduct_code = json_data['codeSousProduit']
                 break
@@ -83,4 +99,63 @@ class EasyTransferPage(LoggedPage, HTMLPage):
                 rcpt.label = json_data['libelleCompte']
                 rcpt.enabled_at = date.today()
 
+                rcpt._formatted_iban = json_data['ibanFormateCompte']
+                rcpt._account_title = json_data['intituleCompte']
+                rcpt._bic = json_data['bicCompte']
+                rcpt._ref = ''
+
                 yield rcpt
+
+
+class TransferPage(LoggedPage, JsonPage):
+    def on_load(self):
+        assert Dict('commun/statut')(self.doc) == 'ok', 'Something went wrong: %s' % Dict('commun/raison')(self.doc)
+
+    def handle_response(self, origin, recipient, amount, reason, exec_date):
+        account_data = Dict('donnees/detailOrdre/compteEmetteur')(self.doc)
+        recipient_data = Dict('donnees/listOperations/0/compteBeneficiaire')(self.doc)
+        transfer_data = Dict('donnees/detailOrdre')(self.doc)
+
+        transfer = Transfer()
+        transfer._b64_id_transfer = Dict('idOrdre')(transfer_data)
+
+        transfer.account_id = origin.id
+        transfer.account_label = Dict('libelleCompte')(account_data)
+        transfer.account_iban = Dict('ibanCompte')(account_data)
+        transfer.account_balance = origin.balance
+
+        transfer.recipient_id = recipient.id
+        transfer.recipient_label = Dict('libelleCompte')(recipient_data)
+        transfer.recipient_iban = Dict('ibanCompte')(recipient_data)
+
+        transfer.currency = Dict('montantTotalOrdre/codeDevise')(transfer_data)
+        transfer.amount = Eval(
+            lambda x, y: x * (10 ** -y),
+            Dict('montantTotalOrdre/valeurMontant'),
+            Dict('montantTotalOrdre/codeDecimalisation')
+        )(transfer_data)
+        transfer.exec_date = Date(Dict('dateExecution'), dayfirst=True)(transfer_data)
+        transfer.label = Dict('libelleClientOrdre')(transfer_data)
+
+        return transfer
+
+    def is_transfer_validated(self):
+        return Dict('donnees/statutOrdre')(self.doc) not in ('rejete', 'a_signer', )
+
+
+class SignTransferPage(LoggedPage, LoginPage):
+    def get_token(self):
+        result_page = json.loads(self.content)
+        assert result_page['commun']['statut'] == 'ok', 'Something went wrong: %s' % result_page['commun']['raison']
+        return result_page['donnees']['jeton']
+
+    def get_confirm_transfer_data(self, password):
+        token = self.get_token()
+
+        authentication_data = self.get_authentication_data()
+        return {
+            'codsec': authentication_data['img'].get_codes(password[:6]),
+            'cryptocvcs': authentication_data['infos']['crypto'],
+            'vk_op': 'sign',
+            'context': token,
+        }

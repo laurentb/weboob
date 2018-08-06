@@ -26,7 +26,9 @@ from weboob.browser.url import URL
 from weboob.browser.exceptions import ClientError
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.base import find_object
-from weboob.capabilities.bank import AccountNotFound
+from weboob.capabilities.bank import (
+    AccountNotFound, RecipientNotFound,
+)
 
 from .pages import (
     LoginPage, CardsPage, CardHistoryPage, IncorrectLoginPage,
@@ -34,7 +36,7 @@ from .pages import (
 )
 from .json_pages import AccountsJsonPage, BalancesJsonPage, HistoryJsonPage, BankStatementPage
 from .transfer_pages import (
-    EasyTransferPage, RecipientsJsonPage,
+    EasyTransferPage, RecipientsJsonPage, TransferPage, SignTransferPage,
 )
 
 
@@ -178,6 +180,10 @@ class SGProfessionalBrowser(SGEnterpriseBrowser):
     internal_recipients = URL('/ord-web/ord//ord-virement-simplifie-beneficiaire.html', EasyTransferPage)
     external_recipients = URL('/ord-web/ord//ord-liste-compte-beneficiaire-externes.json', RecipientsJsonPage)
 
+    init_transfer_page = URL('/ord-web/ord//ord-enregistrer-ordre-simplifie.json', TransferPage)
+    sign_transfer_page = URL('/ord-web/ord//ord-verifier-habilitation-signature-ordre.json', SignTransferPage)
+    confirm_transfer = URL('/ord-web/ord//ord-valider-signature-ordre.json', TransferPage)
+
     bank_statement_menu = URL('/icd/syd-front/data/syd-rce-accederDepuisMenu.json', BankStatementPage)
     bank_statement_search = URL('/icd/syd-front/data/syd-rce-lancerRecherche.json', BankStatementPage)
 
@@ -248,6 +254,59 @@ class SGProfessionalBrowser(SGEnterpriseBrowser):
         assert self.page.is_all_external_recipient(), "Some recipients are missing"
         for external_rcpt in self.page.iter_external_recipients():
             yield external_rcpt
+
+    @need_login
+    def init_transfer(self, account, recipient, transfer):
+        # update account and recipient info
+        recipient = find_object(self.iter_recipients(account), iban=recipient.iban, error=RecipientNotFound)
+
+        data = [
+            ('an_codeAction', 'C'),
+            ('an_referenceSiOrdre', ''),
+            ('cl_compteEmetteur_intitule', account._account_title),
+            ('cl_compteEmetteur_libelle', account.label),
+            ('an_compteEmetteur_iban', account.iban),
+            ('cl_compteEmetteur_ibanFormate', account._formatted_iban),
+            ('an_compteEmetteur_bic', account._bic),
+            ('b64_compteEmetteur_idPrestation', account._id_service),
+            ('an_guichetGestionnaire', account._manage_counter),
+            ('an_codeProduit', account._product_code),
+            ('an_codeSousProduit', account._underproduct_code),
+            ('n_ordreMontantValeur', int(transfer.amount * (10 ** account._decimal_code))),
+            ('n_ordreMontantCodeDecimalisation', account._decimal_code),
+            ('an_ordreMontantCodeDevise', account._currency_code),
+            ('cl_dateExecution', transfer.exec_date.strftime('%d/%m/%Y')),
+            ('cl_ordreLibelle', transfer.label),
+            ('an_beneficiaireCodeAction', 'C'),
+            ('cl_beneficiaireRefSiCoordonnee', recipient._ref),
+            ('cl_beneficiaireCompteLibelle', recipient.label),
+            ('cl_beneficiaireCompteIntitule', recipient._account_title),
+            ('cl_beneficiaireCompteIbanFormate', recipient._formatted_iban),
+            ('an_beneficiaireCompteIban', recipient.iban),
+            ('cl_beneficiaireCompteBic', recipient._bic),
+            ('cl_beneficiaireAdressePays', recipient.iban[:2]),
+            ('an_indicateurIntraAbonnement', 'false'),
+            ('cl_reference', ' '),
+            ('cl_motif', transfer.label),
+        ]
+        # WARNING: this save transfer information on user account
+        self.init_transfer_page.go(data=data)
+        return self.page.handle_response(account, recipient, transfer.amount, transfer.label, transfer.exec_date)
+
+    @need_login
+    def execute_transfer(self, transfer, **params):
+        assert transfer._b64_id_transfer, 'Transfer token is missing'
+        # get virtual keyboard
+        data = {
+            'b64_idOrdre': transfer._b64_id_transfer
+        }
+        self.sign_transfer_page.go(data=data)
+
+        data.update(self.page.get_confirm_transfer_data(self.password))
+        self.confirm_transfer.go(data=data)
+
+        self.page.is_transfer_validated()
+        return transfer
 
     @need_login
     def iter_documents(self, subscribtion):
