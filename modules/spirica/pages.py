@@ -267,7 +267,7 @@ class DetailsPage(LoggedPage, HTMLPage):
             obj_vdate = Date(CleanText('./td[8]'), dayfirst=True)
 
             def obj_date(self):
-                return Date(CleanText('./td[6]'), dayfirst=True, default=Field('vdate')(self))(self)
+                return Date(CleanText('./td[6]', symbols='-'), dayfirst=True, default=Field('vdate')(self))(self)
 
             def obj_amount(self):
                 # We display the raw amount only if the net amount is not available.
@@ -299,7 +299,7 @@ class DetailsPage(LoggedPage, HTMLPage):
             # Columns do not always appear depending on transactions so we need
             # to precise "default=NotAvailable" for all TableCell filters.
             obj_label = CleanText(TableCell('label', default=NotAvailable), default=NotAvailable)
-            obj_vdate = Date(TableCell('vdate', default=NotAvailable), dayfirst=True, default=NotAvailable)
+            obj_vdate = Date(CleanText(TableCell('vdate', default="")), dayfirst=True, default=NotAvailable)
             obj_unitvalue = MyDecimal(TableCell('unitvalue', default=NotAvailable), default=NotAvailable)
             obj_quantity = MyDecimal(TableCell('quantity', default=NotAvailable), default=NotAvailable)
             obj_valuation = MyDecimal(TableCell('valuation', default=NotAvailable), default=NotAvailable)
