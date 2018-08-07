@@ -179,7 +179,20 @@ class TransferSummary(LoggedPage, CheckTransferError):
             # TODO handle transfer with sms code.
             if u'veuillez saisir votre code de validation' in CleanText('//div[@class="bloc Tmargin"]')(self.doc):
                 raise NotImplementedError()
-            transfer.exec_date = Date(Regexp(CleanText('//div[@class="bloc Tmargin"]'), 'suivant \(([\d\/]+)\)'), dayfirst=True)(self.doc)
+
+            transfer_date = Date(Regexp(
+                CleanText('//div[@class="bloc Tmargin"]'),
+                r'suivant \(([\d\/]+)\)',
+                default=NotAvailable
+            ), dayfirst=True, default=NotAvailable)(self.doc)
+            if transfer_date:
+                transfer.exec_date = transfer_date
+            else:
+                transfer.exec_date = Date(Regexp(
+                    CleanText('//div[@class="bloc Tmargin"]'),
+                    r'Date ([\d\/]+)'
+                ), dayfirst=True)(self.doc)
+
         return transfer
 
 
