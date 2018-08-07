@@ -39,9 +39,10 @@ from weboob.tools.value import Value
 from .pages import (
     LoginPage, AccountsPage, AccountsIBANPage, HistoryPage, TransferInitPage,
     ConnectionThresholdPage, LifeInsurancesPage, LifeInsurancesHistoryPage,
-    LifeInsurancesDetailPage, MarketListPage, MarketPage, MarketHistoryPage,
-    MarketSynPage, RecipientsPage, ValidateTransferPage, RegisterTransferPage,
-    AdvisorPage, AddRecipPage, ActivateRecipPage, ProfilePage, ListDetailCardPage,
+    LifeInsurancesDetailPage, NatioVieProPage, CapitalisationPage,
+    MarketListPage, MarketPage, MarketHistoryPage, MarketSynPage,
+    RecipientsPage, ValidateTransferPage, RegisterTransferPage, AdvisorPage,
+    AddRecipPage, ActivateRecipPage, ProfilePage, ListDetailCardPage,
 )
 
 
@@ -90,6 +91,9 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
     lifeinsurances = URL('mefav-wspl/rest/infosContrat', LifeInsurancesPage)
     lifeinsurances_history = URL('mefav-wspl/rest/listMouvements', LifeInsurancesHistoryPage)
     lifeinsurances_detail = URL('mefav-wspl/rest/detailMouvement', LifeInsurancesDetailPage)
+
+    natio_vie_pro = URL('/mefav-wspl/rest/natioViePro', NatioVieProPage)
+    capitalisation_page = URL('https://www.clients.assurance-vie.fr/servlets/helios.cinrj.htmlnav.runtime.FrontServlet', CapitalisationPage)
 
     market_list = URL('pe-war/rpc/SAVaccountDetails/get', MarketListPage)
     market_syn = URL('pe-war/rpc/synthesis/get', MarketSynPage)
@@ -167,6 +171,16 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
                         break
                 self.accounts_list.append(account)
 
+            # Fetching capitalisation contracts from the "Assurances Vie" space (some are not in the BNP API):
+            params = self.natio_vie_pro.go().get_params()
+            self.capitalisation_page.go(params=params)
+            if self.capitalisation_page.is_here() and self.page.has_contracts():
+                for account in self.page.iter_capitalisation():
+                    # Life Insurance accounts may appear BOTH in the API and the "Assurances Vie" domain,
+                    # It is better to keep the API version since it contains the unitvalue:
+                    if account.number not in [a.number for a in self.accounts_list]:
+                        self.accounts_list.append(account)
+
         return iter(self.accounts_list)
 
     @need_login
@@ -175,6 +189,9 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
 
     @need_login
     def iter_history(self, account, coming=False):
+        # The accounts from the "Assurances Vie" space have no available history:
+        if hasattr(account, '_details'):
+            return []
         if account.type == Account.TYPE_PEA and account.label.endswith('Espèces'):
             return []
         if account.type == account.TYPE_LIFE_INSURANCE:
@@ -234,11 +251,27 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
     def iter_investment(self, account):
         if account.type == Account.TYPE_PEA and account.label.endswith('Espèces'):
             return []
-        if account.type in (account.TYPE_LIFE_INSURANCE, account.TYPE_PERP):
-            self.lifeinsurances.go(data=JSON({
-                "ibanCrypte": account.id,
-            }))
-            return self.page.iter_investments()
+
+        # Life insurances and PERP may be scraped from the API or from the "Assurance Vie" space,
+        # so we need to discriminate between both using account._details:
+        if account.type in (account.TYPE_LIFE_INSURANCE, account.TYPE_PERP, account.TYPE_CAPITALISATION):
+            if hasattr(account, '_details'):
+                # Going to the "Assurances Vie" page
+                natiovie_params = self.natio_vie_pro.go().get_params()
+                self.capitalisation_page.go(params=natiovie_params)
+
+                # Fetching the form to get the contract investments:
+                capitalisation_params = self.page.get_params(account)
+                self.capitalisation_page.go(params=capitalisation_params)
+                return self.page.iter_investments()
+            else:
+                # No capitalisation contract has yet been found in the API:
+                assert account.type != account.TYPE_CAPITALISATION
+                self.lifeinsurances.go(data=JSON({
+                    "ibanCrypte": account.id,
+                }))
+                return self.page.iter_investments()
+
         elif account.type in (account.TYPE_MARKET, account.TYPE_PEA):
             try:
                 self.market_list.go(data=JSON({}))
@@ -256,6 +289,7 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
                         self.logger.warning("An Internal Server Error occured")
                         break
                     return self.page.iter_investments()
+
         return iter([])
 
     @need_login
