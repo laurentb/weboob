@@ -25,7 +25,7 @@ from weboob.browser.browsers import DomainBrowser
 from weboob.capabilities.base import find_object, NotAvailable
 from weboob.capabilities.bank import Account, Transaction, AccountNotFound
 from weboob.browser.filters.standard import CleanText
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.browser.exceptions import ClientError
 
 # Do not use an APIBrowser since APIBrowser sends all its requests bodies as
@@ -74,8 +74,16 @@ class Number26Browser(DomainBrowser):
 
         try:
             result = self.request('/oauth/token', data=data, method="POST")
-        except ClientError:
-            raise BrowserIncorrectPassword()
+        except ClientError as ex:
+            response = ex.response.json()
+
+            if response.get('error') == 'invalid_grant':
+                raise BrowserIncorrectPassword(response['error_description'])
+
+            if response.get('title') == 'Error':
+                raise BrowserUnavailable(response['message'])
+
+            raise
 
         self.auth_method = 'bearer'
         self.bearer = result['access_token']
