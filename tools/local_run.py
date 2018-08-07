@@ -2,16 +2,20 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 
+import os
 import subprocess
 import sys
-import os
 
 if len(sys.argv) < 2:
     print("Usage: %s SCRIPTNAME [args]" % sys.argv[0])
     sys.exit(1)
 else:
-    script = sys.argv[1]
-    args = sys.argv[2:]
+    args = sys.argv[1:]
+    pyargs = []
+    while args and args[0].startswith('-'):
+        pyargs.append(args.pop(0))
+    script = args.pop(0)
+
 
 project = os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir))
 wd = os.path.join(project, 'localconfig')
@@ -54,5 +58,5 @@ else:
 
 os.execvpe(
     sys.executable,
-    [sys.executable, '-Wall', '-s', spath] + args,
+    [sys.executable, '-s'] + pyargs + [spath] + args,
     env)
