@@ -31,6 +31,7 @@ from __future__ import absolute_import
 from functools import wraps
 from io import RawIOBase, BufferedRWPair
 import os
+import re
 import socket
 import ssl as basessl
 import subprocess
@@ -56,7 +57,9 @@ LOGGER = getLogger('weboob.browser.nss')
 
 
 def certificate_db_filename():
-    version = tuple(int(x) for x in nss.nss.nss_get_version().split('.'))
+    version_str = nss.nss.nss_get_version()
+    version_str = re.match(r'\d+\.\d+', version_str).group(0) # can be "3.21.3 Extended ECC"
+    version = tuple(int(x) for x in version_str.split('.'))
     # see https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSS/NSS_3.35_release_notes
     if version < (3, 35):
         return 'cert8.db'
