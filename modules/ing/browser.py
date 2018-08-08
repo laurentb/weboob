@@ -134,6 +134,7 @@ class IngBrowser(LoginBrowser):
             raise BrowserIncorrectPassword('Please login on website to fill the form and retry')
         self.page.check_for_action_needed()
 
+    @need_login
     def set_multispace(self):
         self.accountspage.go()
         self.where = "start"
@@ -147,6 +148,7 @@ class IngBrowser(LoginBrowser):
                 self.current_space = space
                 break
 
+    @need_login
     def change_space(self, space):
         if self.multispace and not self.is_same_space(space, self.current_space):
             self.accountspage.go()
