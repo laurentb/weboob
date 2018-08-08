@@ -29,7 +29,7 @@ from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction, sorted_transactions
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 from weboob.tools.date import parse_french_date
-from weboob.browser.pages import HTMLPage, LoggedPage, pagination, XLSPage
+from weboob.browser.pages import HTMLPage, LoggedPage, pagination, XLSPage, PartialHTMLPage
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import Env, CleanDecimal, CleanText, Field, Format, Currency
 from weboob.browser.filters.html import Attr
@@ -246,3 +246,8 @@ class CreditHistory(LoggedPage, XLSPage):
             tr.amount = Decimal(str(amount))
             tr.date = parse_french_date(line[0])
             yield tr
+
+
+class LastHistoryPage(LoggedPage, PartialHTMLPage):
+    def has_transactions(self):
+        return not CleanText('//h2[contains(text(), "Vous n\'avez pas effectué d\'opération depuis votre dernier relevé de compte.")]')(self.doc)

@@ -25,7 +25,7 @@ from weboob.tools.date import new_date
 
 from .pages import (
     LoginPage, ClientPage, OperationsPage, ChoicePage,
-    CreditHome, CreditAccountPage, CreditHistory,
+    CreditHome, CreditAccountPage, CreditHistory, LastHistoryPage,
 )
 
 __all__ = ['OneyBrowser']
@@ -46,6 +46,7 @@ class OneyBrowser(LoginBrowser):
     credit_home = URL(r'/site/s/detailcompte/detailcompte.html', CreditHome)
     credit_info = URL(r'/site/s/detailcompte/ongletdetailcompte.html', CreditAccountPage)
     credit_hist = URL(r'/site/s/detailcompte/exportoperations.html', CreditHistory)
+    last_hist =   URL(r'/site/s/detailcompte/ongletdernieresoperations.html', LastHistoryPage)
 
     has_oney = False
     has_other = False
@@ -67,9 +68,15 @@ class OneyBrowser(LoginBrowser):
         else:
             raise BrowserIncorrectPassword()
 
+    @need_login
     def go_site(self, site):
         if site == 'oney':
-            if self.credit_home.is_here() or self.credit_info.is_here() or self.credit_hist.is_here():
+            if (
+                self.credit_home.is_here() or self.credit_info.is_here()
+                or self.credit_hist.is_here()
+                or self.last_hist.is_here()
+            ):
+
                 self.choice.go()
                 assert self.choice.is_here()
             if self.choice.is_here():
@@ -126,12 +133,12 @@ class OneyBrowser(LoginBrowser):
                 yield tr
 
         elif account._site == 'other':
-            self.credit_hist.go(params=self._build_hist_form())
-
-            d = date.today().replace(day=1) # TODO is it the right date?
-            for tr in self.page.iter_history():
-                if new_date(tr.date) < d:
-                    yield tr
+            if self.last_hist.go().has_transactions():
+                self.credit_hist.go(params=self._build_hist_form())
+                d = date.today().replace(day=1) # TODO is it the right date?
+                for tr in self.page.iter_history():
+                    if new_date(tr.date) < d:
+                        yield tr
 
     @need_login
     def iter_coming(self, account):
@@ -146,9 +153,9 @@ class OneyBrowser(LoginBrowser):
                 yield tr
 
         elif account._site == 'other':
-            self.credit_hist.go(params=self._build_hist_form())
-            d = date.today().replace(day=1) # TODO is it the right date?
-            for tr in self.page.iter_history():
-                if new_date(tr.date) >= d:
-                    yield tr
-
+            if self.last_hist.go().has_transactions():
+                self.credit_hist.go(params=self._build_hist_form())
+                d = date.today().replace(day=1) # TODO is it the right date?
+                for tr in self.page.iter_history():
+                    if new_date(tr.date) >= d:
+                        yield tr
