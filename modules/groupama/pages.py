@@ -110,7 +110,6 @@ class AccountsPage(LoggedPage, HTMLPage):
             if accounts and accounts[-1].label == account.label and account.type == Account.TYPE_PEA:
                 self.logger.warning('%s seems to be a duplicate of %s, skipping', account, accounts[-1])
                 continue
-
             accounts.append(account)
         return accounts
 
@@ -161,6 +160,19 @@ class TransactionsPage(HTMLPage):
         except IndexError:
             return None
         return re.sub('[ \t\r\n]+', '', a.attrib['href'])
+
+    def go_iban(self):
+        js_event = Attr("//a[@class='rib']", 'onclick')(self.doc)
+        m = re.search("envoyer(.*);", js_event)
+        iban_params = ast.literal_eval(m.group(1))
+        link = iban_params[1]
+        self.browser.location(link+"?paramNumCpt={}".format(iban_params[0]))
+
+
+class IbanPage(LoggedPage, HTMLPage):
+
+    def get_iban(self):
+        return CleanText('(//b[contains(text(), "IBAN")])[1]/../text()')(self.doc)
 
 
 class AVAccountPage(LoggedPage, HTMLPage):

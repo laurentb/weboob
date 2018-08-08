@@ -23,7 +23,7 @@ from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import empty
 
-from .pages import LoginPage, AccountsPage, TransactionsPage, AVAccountPage, AVHistoryPage, FormPage
+from .pages import LoginPage, AccountsPage, TransactionsPage, AVAccountPage, AVHistoryPage, FormPage, IbanPage
 
 
 __all__ = ['GroupamaBrowser']
@@ -35,6 +35,7 @@ class GroupamaBrowser(LoginBrowser):
     login = URL('/wps/portal/login',
                 'https://authentification.(ganassurances|ganpatrimoine|groupama).fr/cas/login',
                 '/wps/portal/inscription', LoginPage)
+    iban = URL('/wps/myportal/!ut/(.*)/\?paramNumCpt=(.*)', IbanPage)
     accounts = URL('/wps/myportal/TableauDeBord', AccountsPage)
     transactions = URL('/wps/myportal/!ut', TransactionsPage)
     av_account_form = URL('/wps/myportal/assurancevie/', FormPage)
@@ -57,7 +58,7 @@ class GroupamaBrowser(LoginBrowser):
     # And to get history (or other) we need to use the link again but the link works only once.
     # So we get balance only for iter_account to not use the new link each time.
     @need_login
-    def get_accounts_list(self, balance=True):
+    def get_accounts_list(self, balance=True, need_iban=False):
         accounts = []
         self.accounts.stay_or_go()
         for account in self.page.get_list():
@@ -69,6 +70,11 @@ class GroupamaBrowser(LoginBrowser):
                     account.balance, account.currency = self.page.get_av_balance()
                 self.accounts.stay_or_go()
             if account.balance or not balance:
+                if account.type != Account.TYPE_LIFE_INSURANCE and need_iban:
+                    self.location(account._link)
+                    if self.transactions.is_here():
+                        self.page.go_iban()
+                        account.iban = self.page.get_iban()
                 accounts.append(account)
         return accounts
 
