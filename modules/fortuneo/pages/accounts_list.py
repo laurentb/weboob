@@ -174,7 +174,7 @@ class InvestmentHistoryPage(LoggedPage, HTMLPage):
             inv.quantity = self.parse_decimal(cols[self.COL_QUANTITY])
             inv.unitprice = self.parse_decimal(cols[self.COL_UNITPRICE])
             inv.unitvalue = self.parse_decimal(cols[self.COL_UNITVALUE])
-            inv.vdate = Date(CleanText(cols[self.COL_DATE], default=NotAvailable), default=NotAvailable)(self.doc)
+            inv.vdate = Date(CleanText(cols[self.COL_DATE], default=NotAvailable), dayfirst=True, default=NotAvailable)(self.doc)
             inv.valuation = self.parse_decimal(cols[self.COL_VALUATION])
             inv.diff = self.parse_decimal(cols[self.COL_PERF])
             diff_percent =  self.parse_decimal(cols[self.COL_PERF_PERCENT])
