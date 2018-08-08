@@ -20,6 +20,7 @@
 from __future__ import unicode_literals
 
 import re
+from dateutil.relativedelta import relativedelta
 
 from weboob.capabilities.bill import Document, Subscription
 from weboob.browser.elements import TableElement, ItemElement, method
@@ -71,16 +72,17 @@ class BankStatementPage(LoggedPage, BasePage):
                 # has the same id as the main account it depends on
                 return 'Points de fidélité' not in Field('label')(self)
 
-    def post_form(self, subscription, end_month, year):
+    def post_form(self, subscription, date):
         form = self.get_form(name='abo_rce')
         form[subscription._rad_button_id] = 'on'
 
-        # from january to the last month
-        # the last month may be the current one or december
-        form['rechDebMM'] = '1'
-        form['rechDebYY'] = year
-        form['rechFinMM'] = end_month
-        form['rechFinYY'] = year
+        # 2 months step
+        begin = date - relativedelta(months=+2)
+
+        form['rechDebMM'] = '%s' % begin.month
+        form['rechDebYY'] = '%s' % begin.year
+        form['rechFinMM'] = '%s' % date.month
+        form['rechFinYY'] = '%s' % date.year
 
         m = re.search(r"surl='src=(.*)&sign=(.*)'", CleanText('//script[contains(text(), "surl")]')(self.doc))
         form['src'] = m.group(1)
@@ -92,11 +94,15 @@ class BankStatementPage(LoggedPage, BasePage):
         for a in self.doc.xpath('//a[contains(@href, "pdf")]'):
             d = Document()
 
+            d.format = 'pdf'
+            d.label = CleanText('.')(a)
+
+            if 'Récapitulatif annuel' in d.label:
+                continue
+
             date_filter = Regexp(CleanText('.'), r'(\d{2}/\d{2}/\d{4})')
             d.date = Date(date_filter, dayfirst=True)(a)
 
-            d.format = 'pdf'
-            d.label = CleanText('.')(a)
             d.url = Regexp(Link('.'), r"= '(.*)';")(a)
             d.id = '%s_%s' % (subscription.id, date_filter(a).replace('/', ''))
             d.type = 'document'
@@ -104,4 +110,4 @@ class BankStatementPage(LoggedPage, BasePage):
             yield d
 
     def has_error_msg(self):
-        return CleanText('//div[@class="MessageErreur"]')(self.doc)
+        return CleanText('//div[@class="MessageErreur"]')(self.doc) or CleanText('//span[@class="error_msg"]')(self.doc)

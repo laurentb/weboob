@@ -18,6 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded
@@ -289,26 +290,14 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
 
     @need_login
     def iter_documents(self, subscribtion):
-        today = datetime.today()
-        month = today.month
-        year = today.year
+        end_date = datetime.today()
 
-        # current year
-        self.bank_statement_search.go()
-        self.page.post_form(subscribtion, str(month), str(year))
-        for d in self.page.iter_documents(subscribtion):
-            yield d
-
-        # other years
-        month = 12
-
-        security_limit = 1000
+        # 5 years since it goes with a 2 months step
+        security_limit = 30
         i = 0
         while i < security_limit:
-            year -= 1
-
             self.bank_statement_search.go()
-            self.page.post_form(subscribtion, str(month), str(year))
+            self.page.post_form(subscribtion, end_date)
 
             # No more documents
             if self.page.has_error_msg():
@@ -317,4 +306,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
             for d in self.page.iter_documents(subscribtion):
                 yield d
 
+            # 3 months step because the documents list is inclusive
+            # from the 08 to the 06, the 06 statement is included
+            end_date = end_date - relativedelta(months=+3)
             i += 1
