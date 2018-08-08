@@ -310,10 +310,6 @@ class HSBC(LoginBrowser):
         if self.cbPage.is_here():
             guesser = LinearDateGuesser(date_max_bump=timedelta(45))
             history = list(self.page.get_history(date_guesser=guesser))
-            for url, params in self.page.get_params(self.url):
-                self.location(url, params=params)
-                if self.cbPage.is_here():
-                    history.extend(self.page.get_history(date_guesser=guesser))
 
             for tr in history:
                 if tr.type == tr.TYPE_UNKNOWN:

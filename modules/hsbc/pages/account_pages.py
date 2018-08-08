@@ -24,14 +24,14 @@ import re
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.tools.compat import urlparse, parse_qs, urljoin
+from weboob.tools.compat import urljoin
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.pages import HTMLPage, pagination
 from weboob.browser.filters.standard import (
     Filter, Env, CleanText, CleanDecimal, Field, DateGuesser, Regexp
 )
-from weboob.browser.filters.html import Link, AbsoluteLink, TableCell
+from weboob.browser.filters.html import AbsoluteLink, TableCell
 from weboob.browser.filters.javascript import JSVar
 
 from .landing_pages import GenericLandingPage
@@ -200,13 +200,6 @@ class Pagination(object):
 
 class CBOperationPage(GenericLandingPage):
     is_here = '//h1[text()="Historique des opérations"]'
-
-    def get_params(self, url):
-        parsed = urlparse(url)
-        base_url, params = parsed.path, parse_qs(parsed.query)
-        for a in self.doc.xpath('//form[@name="FORM_LIB_CARTE"]//a[contains(@href, "sessionid")]'):
-            params['sessionid'] = parse_qs(urlparse(Link('.')(a)).query)['sessionid']
-            yield base_url, params
 
     @pagination
     @method
