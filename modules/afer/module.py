@@ -39,7 +39,7 @@ class AferModule(Module, CapBankWealth):
 
     BROWSER = AferBrowser
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Username', regexp='[A-z]\d+', masked=False),
-                           ValueBackendPassword('password', label=u"mdp", regexp='\d+'))
+                           ValueBackendPassword('password', label=u"mdp", regexp='\d{1,8}'))
 
     def create_default_browser(self):
         return self.create_browser(self.config['login'].get(),
