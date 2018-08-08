@@ -61,14 +61,20 @@ class ICalFormatter(IFormatter):
 
         event_timezone = tz.gettz(obj.timezone)
         start_date = obj.start_date if not empty(obj.start_date) else datetime.now()
-        start_date = start_date.replace(tzinfo=event_timezone)
-        utc_start_date = start_date.astimezone(utc_zone)
-        result += u'DTSTART:%s\r\n' % utc_start_date.strftime("%Y%m%dT%H%M%SZ")
+        if isinstance(start_date, datetime):
+            start_date = start_date.replace(tzinfo=event_timezone)
+            utc_start_date = start_date.astimezone(utc_zone)
+            result += u'DTSTART:%s\r\n' % utc_start_date.strftime("%Y%m%dT%H%M%SZ")
+        else:
+            result += u'DTSTART:%s\r\n' % start_date.strftime("%Y%m%d")
 
         end_date = obj.end_date if not empty(obj.end_date) else datetime.combine(start_date, time.max)
-        end_date = end_date.replace(tzinfo=event_timezone)
-        utc_end_date = end_date.astimezone(utc_zone)
-        result += u'DTEND:%s\r\n' % utc_end_date.strftime("%Y%m%dT%H%M%SZ")
+        if isinstance(end_date, datetime):
+            end_date = end_date.replace(tzinfo=event_timezone)
+            utc_end_date = end_date.astimezone(utc_zone)
+            result += u'DTEND:%s\r\n' % utc_end_date.strftime("%Y%m%dT%H%M%SZ")
+        else:
+            result += u'DTEND:%s\r\n' % end_date.strftime("%Y%m%d")
 
         result += u'SUMMARY:%s\r\n' % obj.summary
         result += u'UID:%s\r\n' % obj.id
