@@ -23,16 +23,22 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
-import re
-import os
-import sys
 import inspect
-from datetime import datetime, timedelta
+import os
+import re
+import sys
 from collections import OrderedDict
+from datetime import datetime, timedelta
 
 import weboob.applications
 
 from weboob.tools.application.console import ConsoleApplication
+
+try:
+    from weboob.tools.application.qt5 import QtApplication
+except ImportError:
+    class QtApplication(object):
+        pass
 
 
 __all__ = ['Weboob']
@@ -70,11 +76,10 @@ class Weboob(ConsoleApplication):
             cap = self.choose_capability(capApplicationDict)
 
         def appsortkey(app):
-            appname = app.APPNAME
-            if appname.startswith('q') or appname.endswith('-qt'):
-                return '1' + appname
+            if issubclass(app, QtApplication):
+                return '1' + app.APPNAME
             else:
-                return '0' + appname
+                return '0' + app.APPNAME
 
         applications = capApplicationDict[cap]
         applications = sorted(set(applications), key=appsortkey)
