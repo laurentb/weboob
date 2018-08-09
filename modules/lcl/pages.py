@@ -1176,6 +1176,7 @@ class DepositPage(LoggedPage, HTMLPage):
             obj_type = Account.TYPE_DEPOSIT
             obj_label = Format('%s %s', CleanText(TableCell('name')), CleanText(TableCell('owner')))
             obj_balance = MyDecimal(TableCell('balance'))
+            obj_currency = 'EUR'
             obj__contract = CleanText(TableCell('name'))
             obj__link_index = Regexp(CleanText('.//a/@id'), r'(\d+)')
             # So it can be modified later
