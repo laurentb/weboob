@@ -37,9 +37,9 @@ from weboob.exceptions import BrowserIncorrectPassword
 
 
 class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile(ur'^(?P<text>Retrait .*?) - traité le \d+/\d+$'), FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile(ur'^(?P<text>Prélèvement .*?) - traité le \d+/\d+$'), FrenchTransaction.TYPE_ORDER),
-                (re.compile(ur'^(?P<text>.*?) - traité le \d+/\d+$'), FrenchTransaction.TYPE_CARD)]
+    PATTERNS = [(re.compile(r'^(?P<text>Retrait .*?) - traité le \d+/\d+$'), FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile(r'^(?P<text>Prélèvement .*?) - traité le \d+/\d+$'), FrenchTransaction.TYPE_ORDER),
+                (re.compile(r'^(?P<text>.*?) - traité le \d+/\d+$'), FrenchTransaction.TYPE_CARD)]
 
 
 class VirtKeyboard(MappedVirtKeyboard):
