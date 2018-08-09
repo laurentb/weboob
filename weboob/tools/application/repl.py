@@ -20,28 +20,27 @@
 from __future__ import print_function
 
 import atexit
-from cmd import Cmd
-from collections import OrderedDict
 import logging
-import re
-from optparse import OptionGroup, OptionParser, IndentedHelpFormatter
-from datetime import datetime
 import os
+import re
 import shlex
 import sys
+from cmd import Cmd
+from collections import OrderedDict
+from datetime import datetime
+from optparse import IndentedHelpFormatter, OptionGroup, OptionParser
 
-from weboob.capabilities.base import FieldNotFound, BaseObject, UserError
+from weboob.capabilities.base import BaseObject, FieldNotFound, UserError, empty
+from weboob.capabilities.collection import BaseCollection, CapCollection, Collection, CollectionNotFound
 from weboob.core import CallErrors
 from weboob.tools.application.formatters.iformatter import MandatoryFieldsNotFound
-from weboob.tools.compat import range, basestring, unicode
+from weboob.tools.compat import basestring, range, unicode
 from weboob.tools.misc import to_unicode
 from weboob.tools.path import WorkingPath
-from weboob.capabilities.collection import Collection, BaseCollection, CapCollection, CollectionNotFound
 
 from .console import BackendNotGiven, ConsoleApplication
-from .formatters.load import FormattersLoader, FormatterLoadError
+from .formatters.load import FormatterLoadError, FormattersLoader
 from .results import ResultsCondition, ResultsConditionError
-
 
 __all__ = ['NotEnoughArguments', 'TooManyArguments', 'ArgSyntaxError',
            'ReplApplication']
@@ -1150,7 +1149,10 @@ class ReplApplication(ConsoleApplication, MyCmd):
         def repl(m):
             field = m.group(1)
             if hasattr(obj, field):
-                return re.sub('[?:/]', '-', '%s' % getattr(obj, field))
+                value = getattr(obj, field)
+                if empty(value):
+                    value = 'unknown'
+                return re.sub('[?:/]', '-', '%s' % value)
             else:
                 return m.group(0)
         return re.sub(r'\{(.+?)\}', repl, dest)
@@ -1256,4 +1258,3 @@ class ReplApplication(ConsoleApplication, MyCmd):
 
         funcs = [app.ipython, app.bpython, app.python]
         app.launch(funcs, locs, banner)
-
