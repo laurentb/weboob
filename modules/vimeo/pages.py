@@ -149,6 +149,7 @@ class VimeoItem(ItemElement):
     obj_date = DateTime(CleanText('./upload_date'))
     obj__is_hd = CleanText('./@is_hd')
     obj_duration = VimeoDuration(CleanText('./duration'))
+    obj_ext = u'mp4'
 
     def obj_thumbnail(self):
         t = CleanText('./thumbnails/thumbnail[1]', default='')(self)
