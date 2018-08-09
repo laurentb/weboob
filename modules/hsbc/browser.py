@@ -176,6 +176,8 @@ class HSBC(LoginBrowser):
                 card_page = self.open(a.url).page
                 parent_id = card_page.get_parent_id()
                 a.parent = find_object(self.accounts_list.values(), id=parent_id)
+                if a.parent and not a.currency:
+                    a.currency = a.parent.currency
             yield a
 
     def go_post(self, url, data=None):
