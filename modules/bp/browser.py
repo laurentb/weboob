@@ -234,14 +234,17 @@ class BPBrowser(LoginBrowser, StatesMixin):
                         self.location(account.url)
                         if 'CreditRenouvelable' not in account.url:
                             for loan in self.page.iter_loans():
+                                loan.currency = account.currency
                                 accounts.append(loan)
                             student_loan = self.page.get_student_loan()
                             if student_loan:
                                 # Number of headers and item elements are the same
                                 assert len(student_loan._heads) == len(student_loan._items)
+                                student_loan.currency = account.currency
                                 accounts.append(student_loan)
                         else:
                             for loan in self.page.iter_revolving_loans():
+                                loan.currency = account.currency
                                 accounts.append(loan)
                     else:
                         accounts.append(account)
