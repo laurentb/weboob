@@ -30,10 +30,10 @@ __all__ = ['Suravenir']
 
 class Suravenir(LoginBrowser):
     BASEURL = 'https://www.previ-direct.com/'
-    broker_to_instance = { 'assurancevie.com' : 'Q4n1',
-                           'linxea'           : 'S9o6',
-                           'mes-placements.fr': '5yKs',
-                           'epargnissimo'     : 'FtA1'}
+    broker_to_instance = {'assurancevie.com' : 'Q4n1',
+                          'linxea'           : 'S9o6',
+                          'mes-placements.fr': '5yKs',
+                          'epargnissimo'     : 'FtA1'}
 
     login_page = URL('/web/eclient-(?P<broker>.*)', LoginPage)
     accounts_page = URL('/group/eclient-(?P<broker>.*)/home$', AccountsList)
@@ -65,7 +65,7 @@ class Suravenir(LoginBrowser):
         return self.page.get_contracts()
 
     def get_URI_for_account(self, account):
-         return '%s&_portletespaceClientmonCompte_WAR_portletespaceclient_INSTANCE_%s_tabName=detailsContrat.tabulateur.tabulation' % (account._detail_link, self.broker_to_instance[self.broker])
+        return '%s&_portletespaceClientmonCompte_WAR_portletespaceclient_INSTANCE_%s_tabName=detailsContrat.tabulateur.tabulation' % (account._detail_link, self.broker_to_instance[self.broker])
 
     @need_login
     def iter_investments(self, account):
