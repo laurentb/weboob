@@ -18,19 +18,19 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import re
+from datetime import timedelta
 
-from weboob.browser.pages import HTMLPage, JsonPage
 from weboob.browser.elements import ItemElement, ListElement, method
-from weboob.browser.filters.standard import Regexp, Format, CleanText, Duration, DateTime, Filter
-from weboob.browser.filters.html import Link, XPath, CleanHTML
+from weboob.browser.filters.html import CleanHTML, Link, XPath
 from weboob.browser.filters.json import Dict
-
+from weboob.browser.filters.standard import CleanText, DateTime, Duration, Filter, Format, Regexp
+from weboob.browser.pages import HTMLPage, JsonPage
 from weboob.capabilities import NotLoaded
-from weboob.capabilities.image import Thumbnail
 from weboob.capabilities.collection import Collection
+from weboob.capabilities.image import Thumbnail
+from weboob.tools.compat import unicode
 
 from .video import RmllVideo
-from datetime import timedelta
 
 BASE_URL = 'http://video.rmll.info'
 
