@@ -18,18 +18,17 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bank import AccountNotFound
-from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import BrowserIncorrectPassword
-from weboob.tools.compat import unquote
 import json
 import os
+from subprocess import STDOUT, CalledProcessError, check_output
 from tempfile import mkstemp
-from subprocess import check_output, STDOUT, CalledProcessError
 
-from .pages import SomePage, StatementsPage, StatementPage, SummaryPage, \
-                   ActivityPage
+from weboob.browser import URL, LoginBrowser, need_login
+from weboob.capabilities.bank import AccountNotFound
+from weboob.exceptions import BrowserIncorrectPassword
+from weboob.tools.compat import unquote
 
+from .pages import ActivityPage, SomePage, StatementPage, StatementsPage, SummaryPage
 
 __all__ = ['AmazonStoreCard']
 
@@ -66,24 +65,24 @@ class AmazonStoreCard(LoginBrowser):
             'agent': self.session.headers['User-Agent']})
         os.close(scrf)
         os.close(cookf)
-        for i in xrange(self.MAX_RETRIES):
+        for i in range(self.MAX_RETRIES):
             try:
                 check_output(["phantomjs", scrn], stderr=STDOUT)
                 break
             except CalledProcessError as error:
-                pass
+                last_error = error
         else:
-            raise error
+            raise last_error
         with open(cookn) as cookf:
             cookies = json.loads(cookf.read())
         os.remove(scrn)
         os.remove(cookn)
         self.session.cookies.clear()
         for c in cookies:
-          for k in ['expiry', 'expires', 'httponly']:
-            c.pop(k, None)
-          c['value'] = unquote(c['value'])
-          self.session.cookies.set(**c)
+            for k in ['expiry', 'expires', 'httponly']:
+                c.pop(k, None)
+            c['value'] = unquote(c['value'])
+            self.session.cookies.set(**c)
         if not self.summary.go().logged:
             raise BrowserIncorrectPassword()
 
@@ -105,6 +104,7 @@ class AmazonStoreCard(LoginBrowser):
         for s in self.stmts.go().iter_statements():
             for t in s.iter_transactions():
                 yield t
+
 
 LOGIN_JS = u'''\
 var TIMEOUT = %(timeout)s*1000; // milliseconds

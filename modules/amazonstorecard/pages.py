@@ -26,8 +26,16 @@ from weboob.tools.date import closest_date
 from weboob.tools.pdf import decompress_pdf
 from weboob.tools.tokenizer import ReTokenizer
 from datetime import datetime, timedelta
+from weboob.tools.compat import unicode
 import re
 import json
+
+
+try:
+    cmp = cmp
+except NameError:
+    def cmp(x, y):
+        return (x > y) - (x < y)
 
 
 class SomePage(HTMLPage):
@@ -39,7 +47,7 @@ class SomePage(HTMLPage):
 class SummaryPage(SomePage):
     def account(self):
         label = u' '.join(self.doc.xpath(
-            '//div[contains(@class,"myCreditCardDetails")]')[0]\
+            '//div[contains(@class,"myCreditCardDetails")]')[0]
             .text_content().split())
         balance = self.amount(u'Balance')
         cardlimit = self.doc.xpath(
@@ -69,8 +77,8 @@ class SummaryPage(SomePage):
 
     def amount(self, name):
         return u''.join(self.doc.xpath(
-            u'//li[text()[.="%s"]]/../li[1]'%name)[0].text_content().split())\
-            .replace(u'\xb7',u'.').replace(u'*',u'')
+            u'//li[text()[.="%s"]]/../li[1]' % name)[0].text_content().split())\
+            .replace(u'\xb7', u'.').replace(u'*', u'')
 
 
 class ActivityPage(SomePage):
@@ -98,19 +106,20 @@ class ActivityPage(SomePage):
     def parse_date(recdate):
         return datetime.strptime(recdate, u'%B %d, %Y')
 
+
 class StatementsPage(SomePage):
     def iter_statements(self):
         jss = self.doc.xpath(u'//a/@onclick[contains(.,"eBillViewPDFAction")]')
         for js in jss:
             url = re.match("window.open\('([^']*).*\)", js).group(1)
-            for i in xrange(self.browser.MAX_RETRIES):
+            for i in range(self.browser.MAX_RETRIES):
                 try:
                     self.browser.location(url)
                     break
                 except ServerError as e:
-                    pass
+                    last_error = e
             else:
-                raise e
+                raise last_error
             yield self.browser.page
 
 
@@ -163,7 +172,7 @@ class StatementPage(RawPage):
         pos, amount_layout = self.read_layout_td(pos)
         pos, amount = self.read_amount(pos)
         if tdate is None or pdate is None \
-        or desc is None or amount is None or amount == 0:
+           or desc is None or amount is None or amount == 0:
             return startPos, None
         else:
             tdate = closest_date(tdate, date_from, date_to)
@@ -208,7 +217,7 @@ class StatementPage(RawPage):
 
     def read_text(self, pos):
         t = self._tok.tok(pos)
-        #TODO: handle PDF encodings properly.
+        # TODO: handle PDF encodings properly.
         return (pos+1, unicode(t.value(), errors='ignore')) \
             if t.is_text() else (pos, None)
 
