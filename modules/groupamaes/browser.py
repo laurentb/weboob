@@ -67,4 +67,4 @@ class GroupamaesBrowser(LoginBrowser):
 
     @need_login
     def iter_pocket(self, account):
-       return self.groupamaes_pocket.go(page='&_pid=SituationParPlan&_fid=GoPositionsDetaillee').iter_pocket(account.label)
+        return self.groupamaes_pocket.go(page='&_pid=SituationParPlan&_fid=GoPositionsDetaillee').iter_pocket(account.label)
