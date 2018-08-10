@@ -221,10 +221,10 @@ class SearchPage(LoggedPage, JsonPage):
             op['details'] = [re.sub('\s+', ' ', i).replace('\x00', '') for i in op['details'] if i]  # sometimes they put "null" elements...
             label = re.sub('\s+', ' ', op['libelle']).replace('\x00', '')
             raw = ' '.join([label] + op['details'])
+            t.rdate = date.fromtimestamp(op.get('dateOperation', op.get('dateDebit'))/1000)
             vdate = date.fromtimestamp(op.get('dateValeur', op.get('dateDebit', op.get('dateOperation')))/1000)
             t.parse(d, raw, vdate=vdate)
             t.amount = Decimal(str(op['montant']))
-            t.rdate = date.fromtimestamp(op.get('dateOperation', op.get('dateDebit'))/1000)
             if 'categorie' in op:
                 t.category = op['categorie']
             t.label = label
