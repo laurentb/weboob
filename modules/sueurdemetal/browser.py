@@ -19,11 +19,10 @@
 
 from __future__ import unicode_literals
 
-from weboob.browser import PagesBrowser, URL
+from weboob.browser import URL, PagesBrowser
 from weboob.tools.json import json
 
 from .pages import ConcertListPage, ConcertPage, NoEvent
-
 
 __all__ = ['SueurDeMetalBrowser']
 
@@ -64,7 +63,7 @@ class SueurDeMetalBrowser(PagesBrowser):
 
     def build_cities(self):
         if self.cities:
-           return
+            return
         self.deps.go()
         for dept in self.page.get_depts():
             self.jlocation(self.cities.build, data={

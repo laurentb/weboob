@@ -18,11 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from weboob.capabilities.calendar import CATEGORIES, BaseCalendarEvent, CapCalendarEvent, Query
 from weboob.tools.backend import Module
-from weboob.capabilities.calendar import CapCalendarEvent, BaseCalendarEvent, CATEGORIES, Query
 
 from .browser import SueurDeMetalBrowser
-
 
 __all__ = ['SueurDeMetalModule']
 
