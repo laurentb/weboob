@@ -85,7 +85,7 @@ class AccountPage(AmeliBasePage):
     def iter_subscription_list(self):
         names_list = self.doc.xpath('//span[@class="NomEtPrenomLabel"]')
         fullname = CleanText(newlines=True).filter(names_list[0])
-        number = re.sub(r'[^\d]+', '', CleanText('//span[@class="blocNumSecu"]', replace=[(' ','')])(self.doc))
+        number = re.sub(r'[^\d]+', '', CleanText('//span[@class="blocNumSecu"]', replace=[(' ', '')])(self.doc))
         sub = Subscription(number)
         sub._id = number
         sub.label = fullname
@@ -118,7 +118,7 @@ class LastPaymentsPage(LoggedPage, AmeliBasePage):
             try:
                 elt.xpath('.//a[contains(@id,"lienPDFReleve")]')[0]
             except IndexError:
-               continue
+                continue
             date_str = elt.xpath('.//span[contains(@id,"moisEnCours")]')[0].text
             month_str = date_str.split()[0]
             date = datetime.strptime(re.sub(month_str, str(FRENCH_MONTHS.index(month_str) + 1), date_str), "%m %Y").date()
