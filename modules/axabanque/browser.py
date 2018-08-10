@@ -174,8 +174,8 @@ class AXABanque(AXABrowser, StatesMixin):
 
                         ids.add(a.id)
 
-                        #The url giving life insurrance investments seems to be temporary.
-                        #That's why we have to get them now
+                        # The url giving life insurrance investments seems to be temporary.
+                        # That's why we have to get them now
                         if a.type == a.TYPE_LIFE_INSURANCE:
                             self.cache['invs'][a.id] = list(self.open(a._url).page.iter_investment())
                         args = a._args
@@ -186,7 +186,7 @@ class AXABanque(AXABrowser, StatesMixin):
                                            'codeFamille': args['paramCodeFamille'],
                                            'codeProduit': args['paramCodeProduit'],
                                            'codeSousProduit': args['paramCodeSousProduit']
-                                          }
+                                           }
                             try:
                                 r = self.open('/webapp/axabanque/popupPDF', params=iban_params)
                                 a.iban = r.page.get_iban()
@@ -290,7 +290,7 @@ class AXABanque(AXABrowser, StatesMixin):
             self.location(acc._market_link)
             self.bourse_history.go()
 
-            if not 'Liquidités' in account.label:
+            if 'Liquidités' not in account.label:
                 self.page.go_history_filter(cash_filter="market")
             else:
                 self.page.go_history_filter(cash_filter="liquidity")
