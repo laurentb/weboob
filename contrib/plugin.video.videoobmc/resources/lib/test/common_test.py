@@ -3,6 +3,11 @@ from __future__ import print_function
 
 import urllib
 
+try:
+    input = raw_input
+except NameError:
+    pass
+
 
 def get_addon():
     pass
@@ -70,7 +75,7 @@ def parse_params(paramStr):
 
 
 def ask_user(content, title):
-    return raw_input(title)
+    return input(title)
 
 
 def create_param_url(paramsDic, quote_plus=False):
