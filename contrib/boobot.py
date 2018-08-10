@@ -20,29 +20,29 @@
 
 from __future__ import print_function
 
-from datetime import datetime, timedelta
-from dateutil.parser import parse as parse_date
-import logging
-import re
-import os
-import sys
-from threading import Thread, Event
-from math import log
-import urlparse
-import urllib
-from random import randint, choice
 import itertools
+import logging
+import os
+import re
+import sys
+import urllib
+import urlparse
+from datetime import datetime, timedelta
+from math import log
+from random import choice, randint
+from threading import Event, Thread
+
+from dateutil.parser import parse as parse_date
 from irc.bot import SingleServerIRCBot
 
-from weboob.core import Weboob
-from weboob.exceptions import BrowserUnavailable, BrowserHTTPError
 from weboob.browser import Browser
 from weboob.browser.exceptions import HTTPNotFound
 from weboob.browser.pages import HTMLPage
-from weboob.tools.misc import get_backtrace
-from weboob.tools.misc import to_unicode
-from weboob.tools.storage import StandardStorage
+from weboob.core import Weboob
+from weboob.exceptions import BrowserHTTPError, BrowserUnavailable
 from weboob.tools.application.base import ApplicationStorage
+from weboob.tools.misc import get_backtrace, to_unicode
+from weboob.tools.storage import StandardStorage
 
 IRC_CHANNELS = os.getenv('BOOBOT_CHANNELS', '#weboob').split(',')
 IRC_NICKNAME = os.getenv('BOOBOT_NICKNAME', 'boobot')
@@ -171,10 +171,11 @@ class MyThread(Thread):
 
     def find_keywords(self, text):
         for word in [
-            'weboob', 'videoob', 'havesex', 'havedate', 'monboob', 'boobmsg',
-            'flatboob', 'boobill', 'pastoob', 'radioob', 'translaboob', 'traveloob', 'handjoob',
-            'boobathon', 'boobank', 'boobtracker', 'comparoob', 'wetboobs',
-            'webcontentedit', 'weboorrents', 'assnet', 'budget insight', 'budget-insight', 'budgetinsight', 'budgea']:
+                     'weboob', 'videoob', 'havesex', 'havedate', 'monboob', 'boobmsg',
+                     'flatboob', 'boobill', 'pastoob', 'radioob', 'translaboob', 'traveloob', 'handjoob',
+                     'boobathon', 'boobank', 'boobtracker', 'comparoob', 'wetboobs',
+                     'webcontentedit', 'weboorrents', 'assnet',
+                     'budget insight', 'budget-insight', 'budgetinsight', 'budgea']:
             if word in text.lower():
                 return word
         return None
@@ -292,7 +293,7 @@ class Boobot(SingleServerIRCBot):
 
         m = re.match('^%(?P<cmd>\w+)(?P<args>.*)$', text)
         if m and hasattr(self, 'cmd_%s' % m.groupdict()['cmd']):
-            getattr(self, 'cmd_%s' %  m.groupdict()['cmd'])(nick, channel, m.groupdict()['args'].strip())
+            getattr(self, 'cmd_%s' % m.groupdict()['cmd'])(nick, channel, m.groupdict()['args'].strip())
 
     def cmd_at(self, nick, channel, text):
         try:
@@ -332,7 +333,7 @@ class Boobot(SingleServerIRCBot):
 
     def cmd_searchquote(self, nick, channel, text):
         try:
-            pattern = re.compile(to_unicode(text), re.IGNORECASE|re.UNICODE)
+            pattern = re.compile(to_unicode(text), re.IGNORECASE | re.UNICODE)
         except Exception as e:
             self.send_message(str(e), channel)
             return
@@ -421,6 +422,7 @@ def main():
         print("Stopped.")
 
     thread.stop()
+
 
 if __name__ == "__main__":
     sys.exit(main())
