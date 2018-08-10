@@ -1,20 +1,20 @@
 #!/usr/bin/env python
 
-import os
 import logging
-
+import os
+from signal import SIG_DFL, SIGINT, signal
 from threading import Thread
-from signal import signal, SIGINT, SIG_DFL
+
+from gi.repository import AppIndicator3 as appindicator
+from gi.repository import GObject, Gtk, Notify
 from pkg_resources import resource_filename
 
-from gi.repository import Gtk, GObject, Notify
-from gi.repository import AppIndicator3 as appindicator
-
-from weboob.core import Weboob, CallErrors
-from weboob.capabilities.bank import CapBank, Account
 from weboob.capabilities import UserError
+from weboob.capabilities.bank import Account, CapBank
+from weboob.core import CallErrors, Weboob
+from weboob.exceptions import BrowserForbidden, BrowserIncorrectPassword, BrowserSSLError, BrowserUnavailable
 from weboob.tools.application.base import MoreResultsAvailable
-from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, BrowserForbidden, BrowserSSLError
+from weboob.tools.compat import unicode
 
 PING_FREQUENCY = 3600  # seconds
 APPINDICATOR_ID = "boobank_indicator"
@@ -186,6 +186,7 @@ def main():
     GObject.threads_init()
     Notify.init('boobank_indicator')
     BoobankChecker().main()
+
 
 if __name__ == "__main__":
     main()
