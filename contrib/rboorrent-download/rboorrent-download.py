@@ -22,6 +22,7 @@ from __future__ import print_function
 
 import sys
 
+
 class RboorrentDownload(object):
     def __init__(self, _id, no_tracker):
         self.id, self.backend_name = _id.split("@")
@@ -43,7 +44,7 @@ class RboorrentDownload(object):
             with open(dest, 'w') as f:
                 f.write(buf)
         except IOError as e:
-             print('Unable to write "%s": %s' % (dest, e.message))
+            print('Unable to write "%s": %s' % (dest, e.message))
 
     def write_torrent(self, torrent):
         dest = "%s-%s.torrent" % (torrent.id, torrent.name)
@@ -68,11 +69,13 @@ class RboorrentDownload(object):
         except HTTPNotFound:
             print("Could not find %s@%s" % (self.id, self.backend_name))
 
+
 def usage():
     prog_name = sys.argv[0].split("/")[-1]
     print("Usage: %s [-b] HASH@MODULE" % prog_name)
     print("  -b: don't include tracker URLs in the magnet link")
     sys.exit()
+
 
 def parsed_args():
     if len(sys.argv) == 3 and sys.argv[1] == "-b":
@@ -84,6 +87,7 @@ def parsed_args():
             return (sys.argv[1], False)
     else:
         usage()
+
 
 if __name__ == "__main__":
     args = parsed_args()
