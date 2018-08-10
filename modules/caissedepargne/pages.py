@@ -45,7 +45,7 @@ from weboob.browser.filters.json import Dict
 
 
 def fix_form(form):
-    keys = ['MM$HISTORIQUE_COMPTE$btnCumul','Cartridge$imgbtnMessagerie','MM$m_CH$ButtonImageFondMessagerie',
+    keys = ['MM$HISTORIQUE_COMPTE$btnCumul', 'Cartridge$imgbtnMessagerie', 'MM$m_CH$ButtonImageFondMessagerie',
             'MM$m_CH$ButtonImageMessagerie']
     for name in keys:
         form.pop(name, None)
@@ -239,7 +239,7 @@ class IndexPage(LoggedPage, HTMLPage):
             else:
                 info['type'] = link
                 info['id'] = info['_id'] = id.group(1)
-            if info['type'] in ('SYNTHESE_ASSURANCE_CNP','SYNTHESE_EPARGNE', 'ASSURANCE_VIE'):
+            if info['type'] in ('SYNTHESE_ASSURANCE_CNP', 'SYNTHESE_EPARGNE', 'ASSURANCE_VIE'):
                 info['acc_type'] = Account.TYPE_LIFE_INSURANCE
             if info['type'] in ('BOURSE', 'COMPTE_TITRE'):
                 info['acc_type'] = Account.TYPE_MARKET
@@ -359,7 +359,7 @@ class IndexPage(LoggedPage, HTMLPage):
     def is_access_error(self):
         error_message = u"Vous n'êtes pas autorisé à accéder à cette fonction"
         if error_message in CleanText('//div[@class="MessageErreur"]')(self.doc):
-           return True
+            return True
 
         return False
 
@@ -400,12 +400,12 @@ class IndexPage(LoggedPage, HTMLPage):
                 account_type = self.ACCOUNT_TYPES.get(CleanText('.')(title), Account.TYPE_UNKNOWN)
                 for tr in table.xpath('./table/tbody/tr[contains(@id,"MM_SYNTHESE_CREDITS") and contains(@id,"IdTrGlobal")]'):
                     tds = tr.findall('td')
-                    if len(tds) == 0 :
+                    if len(tds) == 0:
                         continue
                     for i in tds[0].xpath('.//a/strong'):
                         label = i.text.strip()
                         break
-                    if len(tds) == 3 and Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-2]))) and any(cls in Attr('.', 'id')(tr) for cls in ['dgImmo', 'dgConso']) == False:
+                    if len(tds) == 3 and Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-2]))) and any(cls in Attr('.', 'id')(tr) for cls in ['dgImmo', 'dgConso']) is False:
                         # in case of Consumer credit or revolving credit, we substract avalaible amount with max amout
                         # to get what was spend
                         balance = Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-2]))) - Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-1])))
@@ -519,7 +519,7 @@ class IndexPage(LoggedPage, HTMLPage):
         m = re.match('.*\("(.*)", "(DETAIL_OP&[\d]+).*\)\)', transaction._link)
         # go to detailcard page
         form = self.get_form(name='main')
-        form['__EVENTTARGET'] =  m.group(1)
+        form['__EVENTTARGET'] = m.group(1)
         form['__EVENTARGUMENT'] = m.group(2)
         fix_form(form)
         return form
@@ -673,6 +673,7 @@ class LoadingPage(HTMLPage):
 
         form = self.get_form(id="REROUTAGE")
         form.submit()
+
 
 class NatixisRedirectPage(LoggedPage, HTMLPage):
     def on_load(self):
@@ -1091,7 +1092,6 @@ class ProTransferPage(TransferPage):
         form['__EVENTTARGET'] = 'MM$VIREMENT$SAISIE_VIREMENT$ddlCompteCrediterPro'
         form['MM$VIREMENT$SAISIE_VIREMENT$ddlCompteCrediterPro'] = 'AC'
         form.submit()
-
 
 
 class CanceledAuth(Exception):
