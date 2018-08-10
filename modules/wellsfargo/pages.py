@@ -17,20 +17,29 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.bank import Account, Transaction
-from weboob.tools.capabilities.bank.transactions import \
-    AmericanTransaction as AmTr
-from weboob.browser.pages import HTMLPage, LoggedPage, RawPage
-from decimal import Decimal
-from requests.cookies import morsel_to_cookie
-from .parsers import StatementParser, clean_label
-from time import sleep
+import Cookie
+import datetime
 import itertools
 import json
-import re
 import os
-import datetime
-import Cookie
+import re
+from decimal import Decimal
+from time import sleep
+
+from requests.cookies import morsel_to_cookie
+
+from weboob.browser.pages import HTMLPage, LoggedPage, RawPage
+from weboob.capabilities.bank import Account, Transaction
+from weboob.tools.capabilities.bank.transactions import AmericanTransaction as AmTr
+
+from .parsers import StatementParser, clean_label
+
+
+try:
+    cmp = cmp
+except NameError:
+    def cmp(x, y):
+        return (x > y) - (x < y)
 
 
 class LoginProceedPage(LoggedPage, HTMLPage):
@@ -98,7 +107,7 @@ class CodeSubmitPage(LoggedInPage):
             except IOError:
                 sleep(1)
         os.remove(self.browser.code_file)
-        self.browser.logger.info('The code %s has been successfully read'%code)
+        self.browser.logger.info('The code %s has been successfully read' % code)
         form = self.get_form(name='otp')
         form['passcode'] = [code]
         del form['cancelBtn']
@@ -122,7 +131,7 @@ class SummaryPage(LoggedInPage):
 class AccountPage(object):
     def account_id(self, name=None):
         if name:
-            return name[-4:] # Last 4 digits of "BLAH XXXXXXX1234"
+            return name[-4:]  # Last 4 digits of "BLAH XXXXXXX1234"
         else:
             return self.account_id(self.account_name())
 
@@ -391,7 +400,7 @@ class StatementsEmbeddedPage(LoggedInPage):
     def get_embedded_data(self):
         scr = self.doc.xpath(self.SCRIPT_XPATH)[0]
         data = json.loads('\n'.join(scr.split('\n')[2:-2]).replace(
-            "'appendTo'",'"appendTo"'))
+            "'appendTo'", '"appendTo"'))
         return json.loads(data['data'])
 
     def parser(self):
@@ -401,8 +410,8 @@ class StatementsEmbeddedPage(LoggedInPage):
 class WfJsonPage(LoggedPage, RawPage):
     def __init__(self, *args, **kwArgs):
         RawPage.__init__(self, *args, **kwArgs)
-        clean = self.doc.replace('"/*WellFargoProprietary%','') \
-            .replace('%WellFargoProprietary*/"','').decode('string_escape')
+        clean = self.doc.replace('"/*WellFargoProprietary%', '') \
+            .replace('%WellFargoProprietary*/"', '').decode('string_escape')
         self.doc = json.loads(clean)
 
 

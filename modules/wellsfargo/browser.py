@@ -18,23 +18,20 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+import json
+import os
+import ssl
+from subprocess import STDOUT, CalledProcessError, check_output
+from tempfile import mkstemp
+
+from weboob.browser import URL, LoginBrowser, need_login
 from weboob.capabilities.bank import AccountNotFound
-from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.tools.compat import unquote
 
-import ssl
-import json
-import os
-from tempfile import mkstemp
-from subprocess import STDOUT, CalledProcessError, check_output
-
-from .pages import LoginProceedPage, LoginRedirectPage, \
-                   SummaryPage, ActivityCashPage, ActivityCardPage, \
-                   DocumentsPage, StatementPage, StatementsPage, \
-                   StatementsEmbeddedPage, LoggedInPage, CodeRequestPage, \
-                   CodeSubmitPage
-
+from .pages import (ActivityCardPage, ActivityCashPage, CodeRequestPage, CodeSubmitPage, DocumentsPage, LoggedInPage,
+                    LoginProceedPage, LoginRedirectPage, StatementPage, StatementsEmbeddedPage, StatementsPage,
+                    SummaryPage)
 
 __all__ = ['WellsFargo']
 
@@ -63,14 +60,14 @@ class WellsFargo(LoginBrowser):
     documents = URL('https://connect.secure.wellsfargo.com'
                     '/accounts/start\?.+$', DocumentsPage)
     statements_embedded = URL('https://connect.secure.wellsfargo.com'
-                    '/accounts/start\?.+$', StatementsEmbeddedPage)
+                              '/accounts/start\?.+$', StatementsEmbeddedPage)
     statements = URL('https://connect.secure.wellsfargo.com'
                      '/accounts/documents/statement/list.+$',
                      StatementsPage)
     statement = URL('https://connect.secure.wellsfargo.com'
                     '/accounts/documents/retrieve/.+$',
                     StatementPage)
-    unknown = URL('/.*$', LoggedInPage) # E.g. random advertisement pages.
+    unknown = URL('/.*$', LoggedInPage)  # e.g. random advertisement pages.
 
     def __init__(self, question1, answer1, question2, answer2,
                  question3, answer3, phone_last4, code_file, *args, **kwargs):
@@ -90,7 +87,7 @@ class WellsFargo(LoginBrowser):
         which uses DOM. For now the easiest option seems to be to run it in
         PhantomJs.
         '''
-        for i in xrange(self.MAX_RETRIES):
+        for i in range(self.MAX_RETRIES):
             scrf, scrn = mkstemp('.js')
             cookf, cookn = mkstemp('.json')
             os.write(scrf, LOGIN_JS % {
@@ -118,10 +115,10 @@ class WellsFargo(LoginBrowser):
                 os.remove(cookn)
             self.session.cookies.clear()
             for c in cookies:
-              for k in ['expiry', 'expires', 'httponly']:
-                c.pop(k, None)
-              c['value'] = unquote(c['value'])
-              self.session.cookies.set(**c)
+                for k in ['expiry', 'expires', 'httponly']:
+                    c.pop(k, None)
+                c['value'] = unquote(c['value'])
+                self.session.cookies.set(**c)
             self.summary.go()
             if self.page.logged:
                 break
@@ -190,7 +187,7 @@ class WellsFargo(LoginBrowser):
     @need_login
     def to_statements(self, id_=None, year=None):
         if not self.statements.is_here() \
-        and not self.statements_embedded.is_here():
+           and not self.statements_embedded.is_here():
             self.to_summary()
             self.page.to_documents()
             if self.documents.is_here():
@@ -209,7 +206,7 @@ class WellsFargo(LoginBrowser):
 
     @need_login
     def to_statement(self, uri):
-        for i in xrange(self.MAX_RETRIES):
+        for i in range(self.MAX_RETRIES):
             self.location(uri)
             if self.statement.is_here():
                 break
@@ -241,6 +238,7 @@ class WellsFargo(LoginBrowser):
                 self.to_statement(stmt)
                 for trans in self.page.iter_transactions():
                     yield trans
+
 
 LOGIN_JS = u'''\
 var page = require('webpage').create();

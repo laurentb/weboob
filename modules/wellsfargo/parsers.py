@@ -23,6 +23,7 @@ from weboob.tools.capabilities.bank.transactions import \
 from weboob.tools.date import closest_date
 from weboob.tools.pdf import decompress_pdf
 from weboob.tools.tokenizer import ReTokenizer
+from weboob.tools.compat import unicode
 import re
 import datetime
 
@@ -124,7 +125,7 @@ class StatementParser(object):
             range_plus = (0, INDENT_CHARGES))
 
         if tdate is None or pdate_layout is None or pdate is None \
-        or ref_layout is None or ref is None or desc is None or amount is None:
+           or ref_layout is None or ref is None or desc is None or amount is None:
             return startPos, None
         else:
             tdate = closest_date(tdate, date_from, date_to)
@@ -262,19 +263,19 @@ class StatementParser(object):
 
     def read_date(self, pos):
         def parse_date(v):
-            for year in [1900, 1904]: # try leap and non-leap years
+            for year in [1900, 1904]:  # try leap and non-leap years
                 fullstr = '%s/%i' % (v, year)
                 try:
                     return datetime.datetime.strptime(fullstr, '%m/%d/%Y')
                 except ValueError as e:
-                    pass
-            raise e
+                    last_error = e
+            raise last_error
 
         return self._tok.simple_read('date', pos, parse_date)
 
     def read_text(self, pos):
         t = self._tok.tok(pos)
-        #TODO: handle PDF encodings properly.
+        # TODO: handle PDF encodings properly.
         return (pos+1, unicode(t.value(), errors='ignore')) \
             if t.is_text() else (pos, None)
 
