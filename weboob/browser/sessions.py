@@ -27,8 +27,8 @@ except ImportError:
 
 from requests import Session
 from requests.adapters import DEFAULT_POOLSIZE, HTTPAdapter
-from requests.compat import cookielib, OrderedDict
-from requests.cookies import cookiejar_from_dict, RequestsCookieJar
+from requests.compat import OrderedDict, cookielib
+from requests.cookies import RequestsCookieJar, cookiejar_from_dict
 from requests.models import PreparedRequest
 from requests.sessions import merge_setting
 from requests.structures import CaseInsensitiveDict
@@ -78,7 +78,6 @@ class WeboobSession(Session):
         merged_cookies = RequestsCookieJar()
         merged_cookies.update(self.cookies)
         merged_cookies.update(cookies)
-
 
         # Set environment's basic authentication if not explicitly set.
         auth = request.auth
@@ -148,6 +147,7 @@ class FuturesSession(WeboobSession):
 
         callback = kwargs.pop('callback', lambda future, response: response)
         is_async = kwargs.pop('is_async', False)
+
         def func(*args, **kwargs):
             resp = sup(*args, **kwargs)
             return callback(self, resp)
