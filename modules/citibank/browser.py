@@ -18,23 +18,27 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.browser import LoginBrowser, URL, need_login
+import re
+from datetime import datetime
+from time import sleep
+
+from weboob.browser import URL, LoginBrowser, need_login
 from weboob.browser.pages import HTMLPage, JsonPage, RawPage
 from weboob.capabilities.bank import Account, AccountNotFound, Transaction
 from weboob.exceptions import BrowserIncorrectPassword
-from weboob.tools.capabilities.bank.transactions import \
-    AmericanTransaction as AmTr
+from weboob.tools.capabilities.bank.transactions import AmericanTransaction as AmTr
 from weboob.tools.js import Javascript
 
 from .parser import StatementParser, clean_label
 
-import re
-from datetime import datetime
-
-from time import sleep
-
-
 __all__ = ['Citibank']
+
+
+try:
+    cmp = cmp
+except NameError:
+    def cmp(x, y):
+        return (x > y) - (x < y)
 
 
 class SomePage(HTMLPage):
@@ -218,7 +222,7 @@ class Citibank(LoginBrowser):
         # It recovers if we repeat whole browsing sequence all the way
         # from home page up to the statement.
         MAX_DELAY=10
-        for i in xrange(self.MAX_RETRIES):
+        for i in range(self.MAX_RETRIES):
             if self.to_page(self.statement, date=date).is_sane():
                 return self.page
             sleep(min(MAX_DELAY, 1 << i))

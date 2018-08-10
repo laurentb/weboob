@@ -17,15 +17,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import datetime
+import re
+
 from weboob.capabilities.bank import Transaction
-from weboob.tools.capabilities.bank.transactions import \
-    AmericanTransaction as AmTr
+from weboob.tools.capabilities.bank.transactions import AmericanTransaction as AmTr
+from weboob.tools.compat import unicode
 from weboob.tools.date import closest_date
 from weboob.tools.pdf import decompress_pdf
 from weboob.tools.tokenizer import ReTokenizer
-
-import datetime
-import re
 
 
 def clean_label(text):
@@ -54,7 +54,7 @@ def formatted(read_func):
         pos, data = read_func(self, pos)
         pos, et = self.read_layout_et(pos)
         if ws is None or bt is None or tf is None \
-        or tm is None or data is None or et is None:
+           or tm is None or data is None or et is None:
             return startPos, None
         else:
             return pos, data
@@ -192,13 +192,13 @@ class StatementParser(object):
     @formatted
     def read_date(self, pos):
         def parse_date(v):
-            for year in [1900, 1904]: # try leap and non-leap years
+            for year in [1900, 1904]:  # try leap and non-leap years
                 fullstr = '%s/%i' % (v, year)
                 try:
                     return datetime.datetime.strptime(fullstr, '%m/%d/%Y')
                 except ValueError as e:
-                    pass
-            raise e
+                    last_error = e
+            raise last_error
 
         return self._tok.simple_read('date', pos, parse_date)
 
@@ -217,7 +217,7 @@ class StatementParser(object):
             lambda v: unicode(v, errors='ignore'))
         pos, et = self.read_layout_et(pos)
         if ws is None or bt is None or tf is None \
-        or tm is None or text is None or et is None:
+           or tm is None or text is None or et is None:
             return startPos, None
         else:
             return pos, (text, tm)
