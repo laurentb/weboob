@@ -17,19 +17,20 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.calendar import BaseCalendarEvent, TRANSP, STATUS, CATEGORIES
-from weboob.capabilities.collection import Collection
-from weboob.capabilities.video import BaseVideo
-from weboob.capabilities.image import Thumbnail
-from weboob.capabilities.base import NotAvailable, NotLoaded, find_object
-from weboob.capabilities.cinema import Movie, Person
-from weboob.browser.browsers import APIBrowser
-from weboob.browser.profiles import Android
-from weboob.tools.compat import urlencode
 import base64
 import hashlib
-from datetime import datetime, date, timedelta
 import time
+from datetime import date, datetime, timedelta
+
+from weboob.browser.browsers import APIBrowser
+from weboob.browser.profiles import Android
+from weboob.capabilities.base import NotAvailable, NotLoaded, find_object
+from weboob.capabilities.calendar import CATEGORIES, STATUS, TRANSP, BaseCalendarEvent
+from weboob.capabilities.cinema import Movie, Person
+from weboob.capabilities.collection import Collection
+from weboob.capabilities.image import Thumbnail
+from weboob.capabilities.video import BaseVideo
+from weboob.tools.compat import unicode, urlencode
 
 __all__ = ['AllocineBrowser']
 

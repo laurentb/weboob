@@ -19,11 +19,12 @@
 import re
 
 from weboob.capabilities.base import UserError
-from weboob.capabilities.calendar import CapCalendarEvent, CATEGORIES, BaseCalendarEvent
-from weboob.capabilities.video import CapVideo, BaseVideo
-from weboob.capabilities.collection import CapCollection, CollectionNotFound, Collection
-from weboob.capabilities.cinema import CapCinema, Person, Movie
+from weboob.capabilities.calendar import CATEGORIES, BaseCalendarEvent, CapCalendarEvent
+from weboob.capabilities.cinema import CapCinema, Movie, Person
+from weboob.capabilities.collection import CapCollection, Collection, CollectionNotFound
+from weboob.capabilities.video import BaseVideo, CapVideo
 from weboob.tools.backend import Module
+from weboob.tools.compat import unicode
 
 from .browser import AllocineBrowser
 
