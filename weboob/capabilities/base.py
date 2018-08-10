@@ -567,7 +567,7 @@ class BaseObject(with_metaclass(_BaseObjectMeta, StrConv, object)):
         return self
 
     def __setstate__(self, state):
-        self._fields = deepcopy(self._fields) # because yaml does not call __init__
+        self._fields = deepcopy(self._fields)  # because yaml does not call __init__
         for k in state:
             setattr(self, k, state[k])
 

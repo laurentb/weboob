@@ -29,34 +29,34 @@ class Movie(BaseObject):
     """
     Movie object.
     """
-    original_title   = StringField('Original title of the movie')
-    other_titles     = Field('Titles in other countries', list)
-    release_date     = DateField('Release date of the movie')
-    all_release_dates= StringField('Release dates list of the movie')
-    duration         = IntField('Duration of the movie in minutes')
-    short_description= StringField('Short description of the movie')
-    genres           = Field('Genres of the movie', list)
-    pitch            = StringField('Short story description of the movie')
-    country          = StringField('Origin country of the movie')
-    note             = StringField('Notation of the movie')
-    roles            = Field('Lists of Persons related to the movie indexed by roles', dict)
-    thumbnail_url    = StringField('Url of movie thumbnail')
+    original_title    = StringField('Original title of the movie')
+    other_titles      = Field('Titles in other countries', list)
+    release_date      = DateField('Release date of the movie')
+    all_release_dates = StringField('Release dates list of the movie')
+    duration          = IntField('Duration of the movie in minutes')
+    short_description = StringField('Short description of the movie')
+    genres            = Field('Genres of the movie', list)
+    pitch             = StringField('Short story description of the movie')
+    country           = StringField('Origin country of the movie')
+    note              = StringField('Notation of the movie')
+    roles             = Field('Lists of Persons related to the movie indexed by roles', dict)
+    thumbnail_url     = StringField('Url of movie thumbnail')
 
     def __init__(self, id, original_title, url=None):
         super(Movie, self).__init__(id, url)
         self.original_title = original_title
 
-    def get_roles_by_person_name(self,name):
+    def get_roles_by_person_name(self, name):
         for role in self.roles.keys():
             if name.lower() in [person[1].lower() for person in self.roles[role]]:
-                 return role
+                return role
         return None
 
-    def get_roles_by_person_id(self,id):
+    def get_roles_by_person_id(self, id):
         result = []
         for role in self.roles.keys():
             if id in [person[0] for person in self.roles[role]]:
-                 result.append(role)
+                result.append(role)
 
         return result
 
@@ -65,24 +65,24 @@ class Person(BaseObject):
     """
     Person object.
     """
-    name             = StringField('Star name of a person')
-    real_name        = StringField('Real name of a person')
-    birth_date       = DateField('Birth date of a person')
-    death_date       = DateField('Death date of a person')
-    birth_place      = StringField('City and country of birth of a person')
-    gender           = StringField('Gender of a person')
-    nationality      = StringField('Nationality of a person')
-    short_biography  = StringField('Short biography of a person')
-    biography        = StringField('Full biography of a person')
-    short_description= StringField('Short description of a person')
-    roles            = Field('Lists of movies related to the person indexed by roles',dict)
-    thumbnail_url    = StringField('Url of person thumbnail')
+    name              = StringField('Star name of a person')
+    real_name         = StringField('Real name of a person')
+    birth_date        = DateField('Birth date of a person')
+    death_date        = DateField('Death date of a person')
+    birth_place       = StringField('City and country of birth of a person')
+    gender            = StringField('Gender of a person')
+    nationality       = StringField('Nationality of a person')
+    short_biography   = StringField('Short biography of a person')
+    biography         = StringField('Full biography of a person')
+    short_description = StringField('Short description of a person')
+    roles             = Field('Lists of movies related to the person indexed by roles', dict)
+    thumbnail_url     = StringField('Url of person thumbnail')
 
     def __init__(self, id, name, url=None):
         super(Person, self).__init__(id, url)
         self.name = name
 
-    def get_roles_by_movie_title(self,title):
+    def get_roles_by_movie_title(self, title):
         for role in self.roles.keys():
             for mt in [movie[1] for movie in self.roles[role]]:
                 # title we have is included ?
@@ -90,11 +90,11 @@ class Person(BaseObject):
                     return role
         return None
 
-    def get_roles_by_movie_id(self,id):
+    def get_roles_by_movie_id(self, id):
         result = []
         for role in self.roles.keys():
             if id in [movie[0] for movie in self.roles[role]]:
-                 result.append(role)
+                result.append(role)
 
         return result
 

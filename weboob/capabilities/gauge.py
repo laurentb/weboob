@@ -36,7 +36,7 @@ class Gauge(BaseObject):
     """
     name =       StringField('Name of gauge')
     city =       StringField('City of the gauge')
-    object =     StringField('What is evaluate') # For example, name of a river
+    object =     StringField('What is evaluate')  # For example, name of a river
     sensors =    Field('List of sensors on the gauge', list)
 
 

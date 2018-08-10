@@ -18,8 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import Capability, BaseObject, StringField
-
+from .base import BaseObject, Capability, StringField
 
 __all__ = ['SongLyrics', 'CapLyrics']
 
@@ -28,9 +27,10 @@ class SongLyrics(BaseObject):
     """
     Song lyrics object.
     """
-    title =      StringField('Title of the song')
-    artist =       StringField('Artist of the song')
-    content =    StringField('Lyrics of the song')
+    title = StringField('Title of the song')
+    artist = StringField('Artist of the song')
+    content = StringField('Lyrics of the song')
+
 
 class CapLyrics(Capability):
     """
