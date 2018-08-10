@@ -31,7 +31,7 @@ from .pages import (
     LoginPage, Initident, CheckPassword, repositionnerCheminCourant, BadLoginPage, AccountDesactivate,
     AccountList, AccountHistory, CardsList, UnavailablePage, AccountRIB, Advisor,
     TransferChooseAccounts, CompleteTransfer, TransferConfirm, TransferSummary, CreateRecipient, ValidateRecipient,
-    ValidateCountry, ConfirmPage, RcptSummary
+    ValidateCountry, ConfirmPage, RcptSummary, SubscriptionPage, PDFPage,
 )
 from .pages.accounthistory import (
     LifeInsuranceInvest, LifeInsuranceHistory, LifeInsuranceHistoryInv, RetirementHistory,
@@ -167,6 +167,10 @@ class BPBrowser(LoginBrowser, StatesMixin):
                        r'https://www.gestion-sous-mandat.labanquepostale-gestionprivee.fr/lbpgp/secure_ajax/asvSupportsDetail.html', MandateLife)
 
     profile = URL('/voscomptes/canalXHTML/donneesPersonnelles/consultationDonneesPersonnellesSB490A/init-consulterDonneesPersonnelles.ea', ProfilePage)
+
+    subscription = URL('/voscomptes/canalXHTML/relevePdf/relevePdf_historique/reinitialiser-historiqueRelevesPDF.ea', SubscriptionPage)
+    subscription_search = URL('/voscomptes/canalXHTML/relevePdf/relevePdf_historique/form-historiqueRelevesPDF\.ea', SubscriptionPage)
+    pdf_page = URL(r'/voscomptes/canalXHTML/relevePdf/relevePdf_historique/telechargerPDF-historiqueRelevesPDF.ea\?ts=.*&listeRecherche=.*', PDFPage)
 
     accounts = None
 
@@ -474,6 +478,43 @@ class BPBrowser(LoginBrowser, StatesMixin):
     @need_login
     def get_profile(self):
         return self.profile.go().get_profile()
+
+    @need_login
+    def iter_subscriptions(self):
+        subscriber = self.get_profile().name
+        self.subscription.go()
+        return self.page.iter_subscriptions(subscriber=subscriber)
+
+    @need_login
+    def iter_documents(self, subscription):
+        self.subscription.go()
+        params = self.page.get_params(sub_label=subscription.label)
+
+        for year in self.page.get_years():
+            params['formulaire.anneeRecherche'] = year
+
+            if 'PEA' in subscription.label:
+                for statement_type in self.page.STATEMENT_TYPES:
+                    params['formulaire.typeReleve'] = statement_type
+                    self.subscription_search.go(params=params)
+
+                    if self.page.has_error():
+                        # you may have an error message
+                        # instead of telling you that there are no statement for a year
+                        continue
+
+                    for doc in self.page.iter_documents(sub_id=subscription.id):
+                        yield doc
+            else:
+                self.subscription_search.go(params=params)
+                for doc in self.page.iter_documents(sub_id=subscription.id):
+                    yield doc
+
+    @need_login
+    def download_document(self, document):
+        pdf_page = self.open(document.url).page
+        # may have an iframe
+        return pdf_page.get_content()
 
 
 class BProBrowser(BPBrowser):
