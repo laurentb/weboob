@@ -18,19 +18,18 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.capabilities.bank.transactions import \
-    AmericanTransaction as AmTr
-from weboob.browser import LoginBrowser, URL, need_login
-from weboob.browser.pages import HTMLPage
-from weboob.capabilities.base import Currency
-from weboob.capabilities.shop import Order, Item, Payment
-from weboob.exceptions import BrowserIncorrectPassword
-
+import re
 from datetime import datetime
 from decimal import Decimal
 from itertools import chain
-import re
 
+from weboob.browser import URL, LoginBrowser, need_login
+from weboob.browser.pages import HTMLPage
+from weboob.capabilities.base import Currency
+from weboob.capabilities.shop import Item, Order, Payment
+from weboob.exceptions import BrowserIncorrectPassword
+from weboob.tools.capabilities.bank.transactions import AmericanTransaction as AmTr
+from weboob.tools.compat import unicode
 
 __all__ = ['VicSec']
 
@@ -83,7 +82,7 @@ class OrderPage(VicSecPage):
 
     def payments(self):
         for tr in self.doc.xpath('//tbody[@class="payment-summary"]'
-                        '//th[text()="Payment Summary"]/../../../tbody/tr'):
+                                 '//th[text()="Payment Summary"]/../../../tbody/tr'):
             method = tr.xpath('td[1]/text()')[0]
             amnode = tr.xpath('td[2]')[0]
             amsign = -1 if amnode.xpath('em') else 1
@@ -99,8 +98,8 @@ class OrderPage(VicSecPage):
         for tr in self.doc.xpath('//tbody[@class="order-items"]/tr'):
             label = tr.xpath('*//h1')[0].text_content().strip()
             price = AmTr.decimal_amount(re.match(r'^\s*([^\s]+)(\s+.*)?',
-                tr.xpath('*//div[@class="price"]')[0].text_content(),
-                re.DOTALL).group(1))
+                                        tr.xpath('*//div[@class="price"]')[0].text_content(),
+                                        re.DOTALL).group(1))
             url = 'http:' + tr.xpath('*//img/@src')[0]
             item = Item()
             item.label = unicode(label)
@@ -124,9 +123,8 @@ class OrderPage(VicSecPage):
         return self.payment_part(u'Shipping & Handling')
 
     def order_info(self, which):
-        info = self.doc.xpath('//p[@class="orderinfo"]'
-                             )[0].text_content()
-        return re.match(u'.*%s:\\s+([^\\s]+)\\s'%which,info,re.DOTALL).group(1)
+        info = self.doc.xpath('//p[@class="orderinfo"]')[0].text_content()
+        return re.match(u'.*%s:\\s+([^\\s]+)\\s' % which, info, re.DOTALL).group(1)
 
     def discount(self):
         # Sometimes subtotal doesn't add up with items.
@@ -143,7 +141,7 @@ class OrderPage(VicSecPage):
         # The numbers notation on VS is super wierd.
         # Sometimes negative amounts are represented by <em> element.
         for node in self.doc.xpath('//tbody[@class="payment-summary"]'
-                              '//td[contains(text(),"%s")]/../td[2]' % which):
+                                   '//td[contains(text(),"%s")]/../td[2]' % which):
             strv = node.text_content().strip()
             v = Decimal(0) if strv == u'FREE' else AmTr.decimal_amount(strv)
             return -v if node.xpath('em') and v > 0 else v
