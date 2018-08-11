@@ -18,19 +18,18 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.capabilities.bank.transactions import \
-    AmericanTransaction as AmTr
-from weboob.browser import LoginBrowser, URL, need_login
+import re
+from datetime import datetime
+from decimal import Decimal
+from itertools import count, takewhile
+
+from weboob.browser import URL, LoginBrowser, need_login
 from weboob.browser.pages import HTMLPage
 from weboob.capabilities.base import Currency
-from weboob.capabilities.shop import Order, Item, Payment, OrderNotFound
+from weboob.capabilities.shop import Item, Order, OrderNotFound, Payment
 from weboob.exceptions import BrowserIncorrectPassword
-
-import re
-from decimal import Decimal
-from datetime import datetime
-from itertools import takewhile, count
-
+from weboob.tools.capabilities.bank.transactions import AmericanTransaction as AmTr
+from weboob.tools.compat import unicode
 
 __all__ = ['Ideel']
 
@@ -55,7 +54,7 @@ class HistoryPage(IdeelPage):
 
     def iter_orders(self):
         return (tr.xpath('td[1]/a/text()')[0][1:]
-          for tr in self.doc.xpath('//table[@id="order_history"]/tbody/tr'))
+                for tr in self.doc.xpath('//table[@id="order_history"]/tbody/tr'))
 
 
 class OrderPage(IdeelPage):
@@ -78,7 +77,7 @@ class OrderPage(IdeelPage):
             url = tr.xpath('*//div[@class="item_img"]//@src')[0]
             onclk = tr.xpath('*//div[@class="item_img"]//@onclick')
             if onclk:
-                url=re.match(r'window.open\(\'([^\']*)\'.*', onclk[0]).group(1)
+                url = re.match(r'window.open\(\'([^\']*)\'.*', onclk[0]).group(1)
             if url.startswith('/'):
                 url = self.browser.BASEURL + url
             price = tr.xpath('td[@class="items_price"]/span/text()')[0]
@@ -123,7 +122,7 @@ class OrderPage(IdeelPage):
         TAGS = ['coupon_discount_amount', 'promo_discount_amount',
                 'total_rewards', 'applied_credit']
         return -sum(AmTr.decimal_amount(x[1:][:-1]) for tag in TAGS
-            for x in self.doc.xpath('//span[@id="%s"]/text()' % tag))
+                    for x in self.doc.xpath('//span[@id="%s"]/text()' % tag))
 
     def total(self):
         return AmTr.decimal_amount(self.doc.xpath(

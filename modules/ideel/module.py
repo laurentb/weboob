@@ -19,12 +19,13 @@
 
 
 from weboob.capabilities.shop import CapShop
-from weboob.tools.backend import Module, BackendConfig
+from weboob.tools.backend import BackendConfig, Module
 from weboob.tools.value import ValueBackendPassword
 
 from .browser import Ideel
 
 __all__ = ['IdeelModule']
+
 
 class IdeelModule(Module, CapShop):
     NAME = 'ideel'
