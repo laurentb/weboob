@@ -18,19 +18,18 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from requests.exceptions import Timeout
-
-from weboob.tools.capabilities.bank.transactions import \
-    AmericanTransaction as AmTr
-from weboob.browser import LoginBrowser, URL, need_login
-from weboob.browser.pages import HTMLPage
-from weboob.capabilities.base import Currency
-from weboob.capabilities.shop import OrderNotFound, Order, Payment, Item
-from weboob.exceptions import BrowserIncorrectPassword
-
 from datetime import datetime
 from decimal import Decimal
 
+from requests.exceptions import Timeout
+
+from weboob.browser import URL, LoginBrowser, need_login
+from weboob.browser.pages import HTMLPage
+from weboob.capabilities.base import Currency
+from weboob.capabilities.shop import Item, Order, OrderNotFound, Payment
+from weboob.exceptions import BrowserIncorrectPassword
+from weboob.tools.capabilities.bank.transactions import AmericanTransaction as AmTr
+from weboob.tools.compat import unicode
 
 __all__ = ['MyHabit']
 
@@ -108,12 +107,12 @@ class OrderPage(MyHabitPage):
 
     def order_date(self):
         date = self.doc.xpath(u'//span[text()="Order Placed:"]'
-                               '/following-sibling::span[1]/text()')[0].strip()
+                              u'/following-sibling::span[1]/text()')[0].strip()
         return datetime.strptime(date, '%b %d, %Y')
 
     def order_number(self):
         return self.doc.xpath(u'//span[text()="MyHabit Order Number:"]'
-                               '/following-sibling::span[1]/text()')[0].strip()
+                              u'/following-sibling::span[1]/text()')[0].strip()
 
     def order_amount(self, which):
         return AmTr.decimal_amount((self.doc.xpath(
@@ -187,7 +186,7 @@ class MyHabit(LoginBrowser):
 
     @need_login
     def to_history(self):
-        for i in xrange(self.MAX_RETRIES):
+        for i in range(self.MAX_RETRIES):
             if self.history.is_here() and self.page.is_sane():
                 return self.page
             self.history.go()
@@ -197,9 +196,9 @@ class MyHabit(LoginBrowser):
             raise BrowserIncorrectPassword()
 
     def location(self, *args, **kwargs):
-        for i in xrange(self.MAX_RETRIES):
+        for i in range(self.MAX_RETRIES):
             try:
                 return super(MyHabit, self).location(*args, **kwargs)
             except Timeout as e:
-                pass
-        raise e
+                last_error = e
+        raise last_error

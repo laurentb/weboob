@@ -19,12 +19,13 @@
 
 
 from weboob.capabilities.shop import CapShop
-from weboob.tools.backend import Module, BackendConfig
+from weboob.tools.backend import BackendConfig, Module
 from weboob.tools.value import ValueBackendPassword
 
 from .browser import MyHabit
 
 __all__ = ['MyHabitModule']
+
 
 class MyHabitModule(Module, CapShop):
     NAME = 'myhabit'
