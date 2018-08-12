@@ -1,5 +1,12 @@
 
-from weboob.capabilities.housing import *
+import weboob.capabilities.bank as OLD
+
+# can't import *, __all__ is incomplete...
+for attr in dir(OLD):
+    globals()[attr] = getattr(OLD, attr)
+
+
+__all__ = OLD.__all__
 
 
 ENERGY_CLASS = enum(A=u'A', B=u'B', C=u'C', D=u'D', E=u'E', F=u'F', G=u'G')

@@ -44,6 +44,7 @@ def create_compat_dir(name):
 
 MANUAL_PORTS = [
     'weboob.capabilities.bank',
+    'weboob.capabilities.housing',
     'weboob.capabilities.recipe',
     'weboob.browser.pages',
     'weboob.browser.exceptions',
