@@ -17,17 +17,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from requests.exceptions import Timeout, ConnectionError
-
-from weboob.capabilities.bank import AccountNotFound, Account, Transaction
-from weboob.tools.capabilities.bank.transactions import \
-    AmericanTransaction as AmTr
-from weboob.browser import LoginBrowser, URL, need_login
-from weboob.browser.exceptions import ServerError
-from weboob.browser.pages import HTMLPage
-from weboob.exceptions import BrowserIncorrectPassword
 from datetime import datetime
 
+from requests.exceptions import ConnectionError, Timeout
+
+from weboob.browser import URL, LoginBrowser, need_login
+from weboob.browser.exceptions import ServerError
+from weboob.browser.pages import HTMLPage
+from weboob.capabilities.bank import Account, AccountNotFound, Transaction
+from weboob.exceptions import BrowserIncorrectPassword
+from weboob.tools.capabilities.bank.transactions import AmericanTransaction as AmTr
+from weboob.tools.compat import unicode
 
 __all__ = ['VicSecCard']
 
@@ -52,13 +52,14 @@ class LoginPage(SomePage):
 class HomePage(SomePage):
     def account(self):
         id_ = self.doc.xpath(u'//strong[contains(text(),'
-            '"Credit Card account ending in")]/text()')[0].strip()[-4:]
-        balance = self.doc.xpath(u'//span[@class="description" and text()="Current Balance"]/../span[@class="total"]/text()')[0].strip()
+                             u'"Credit Card account ending in")]/text()')[0].strip()[-4:]
+        balance = self.doc.xpath(
+            u'//span[@class="description" and text()="Current Balance"]/../span[@class="total"]/text()')[0].strip()
         cardlimit = self.doc.xpath(u'//span[contains(text(),"Credit limit")]'
-                                    '/text()')[0].split()[-1]
+                                   u'/text()')[0].split()[-1]
         paymin = self.doc.xpath(u'//section[@id=" account_summary"]'
-            '//strong[text()="Minimum Payment Due"]/../../span[2]/text()'
-            )[0].strip()
+                                u'//strong[text()="Minimum Payment Due"]/../../span[2]/text()'
+                                )[0].strip()
         a = Account()
         a.id = id_
         a.label = u'ACCOUNT ENDING IN %s' % id_
@@ -67,9 +68,9 @@ class HomePage(SomePage):
         a.type = Account.TYPE_CARD
         a.cardlimit = AmTr.decimal_amount(cardlimit)
         a.paymin = AmTr.decimal_amount(paymin)
-        #TODO: Add paydate.
-        #Oleg: I don't have an account with scheduled payment.
-        #      Need to wait for a while...
+        # TODO: Add paydate.
+        # Oleg: I don't have an account with scheduled payment.
+        #       Need to wait for a while...
         return a
 
 
@@ -121,9 +122,9 @@ class VicSecCard(LoginBrowser):
             raise BrowserIncorrectPassword()
 
     def location(self, *args, **kwargs):
-        for i in xrange(self.MAX_RETRIES):
+        for i in range(self.MAX_RETRIES):
             try:
                 return super(VicSecCard, self).location(*args, **kwargs)
             except (ServerError, Timeout, ConnectionError) as e:
-                pass
-        raise e
+                last_error = e
+        raise last_error

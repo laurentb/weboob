@@ -18,11 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.bank import CapBank
-from weboob.tools.backend import Module, BackendConfig
+from weboob.tools.backend import BackendConfig, Module
 from weboob.tools.value import ValueBackendPassword
 
 from .browser import VicSecCard
-
 
 __all__ = ['VicSecCardModule']
 
