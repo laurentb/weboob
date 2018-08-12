@@ -20,14 +20,13 @@
 
 import re
 
-from weboob.browser import LoginBrowser, need_login, URL
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.browser import URL, LoginBrowser, need_login
 from weboob.capabilities.messages import CantSendMessage
+from weboob.exceptions import BrowserIncorrectPassword
 
+from .pages.forum import ForumPage, PostingPage, TopicPage
 from .pages.index import LoginPage
-from .pages.forum import ForumPage, TopicPage, PostingPage
 from .tools import id2url, url2id
-
 
 __all__ = ['PhpBB']
 
@@ -56,7 +55,7 @@ class PhpBB(LoginBrowser):
         data = {'login': 'Connexion',
                 'username': self.username,
                 'password': self.password,
-               }
+                }
         self.location('ucp.php?mode=login', data=data)
 
         if not self.page.logged:
@@ -158,7 +157,7 @@ class PhpBB(LoginBrowser):
                     raise CantSendMessage('Please enter a title formatted like that:\n\t"[FORUM] SUBJECT"\n\n%s' % forums_prompt)
 
                 forum_id = None
-                for k,v in forums.iteritems():
+                for k, v in forums.items():
                     if v.lower() == m.group(1).lower():
                         forum_id = k
                         break

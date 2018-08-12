@@ -18,15 +18,14 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.newsfeed import Newsfeed
-from weboob.tools.value import Value, ValueInt, ValueBackendPassword
+from weboob.capabilities.messages import CantSendMessage, CapMessages, CapMessagesPost, Message, Thread
+from weboob.tools.backend import BackendConfig, Module
 from weboob.tools.misc import limit
-from weboob.capabilities.messages import CapMessages, CapMessagesPost, Message, Thread, CantSendMessage
+from weboob.tools.newsfeed import Newsfeed
+from weboob.tools.value import Value, ValueBackendPassword, ValueInt
 
 from .browser import PhpBB
-from .tools import rssid, url2id, id2url, id2topic
-
+from .tools import id2topic, id2url, rssid, url2id
 
 __all__ = ['PhpBBModule']
 
@@ -42,7 +41,7 @@ class PhpBBModule(Module, CapMessages, CapMessagesPost):
                            Value('username',                label='Username', default=''),
                            ValueBackendPassword('password', label='Password', default=''),
                            ValueInt('thread_unread_messages', label='Limit number of unread messages to retrieve for a thread', default=500)
-                          )
+                           )
     STORAGE = {'seen': {}}
     BROWSER = PhpBB
 

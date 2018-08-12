@@ -29,7 +29,7 @@ from ..tools import parse_date
 
 class Link(object):
     (FORUM,
-     TOPIC) = xrange(2)
+     TOPIC) = range(2)
 
     def __init__(self, type, url):
         self.type = type
