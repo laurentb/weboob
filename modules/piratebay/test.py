@@ -17,10 +17,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.tools.test import BackendTest
-from weboob.capabilities.torrent import MagnetOnly
-
 from random import choice
+
+from weboob.capabilities.torrent import MagnetOnly
+from weboob.tools.compat import basestring
+from weboob.tools.test import BackendTest
 
 
 class PiratebayTest(BackendTest):
@@ -28,9 +29,9 @@ class PiratebayTest(BackendTest):
 
     def test_torrent(self):
         # try something popular so we sometimes get a magnet-only torrent
-        l = list(self.backend.iter_torrents('ubuntu linux'))
-        if len(l):
-            torrent = choice(l)
+        torrents = list(self.backend.iter_torrents('ubuntu linux'))
+        if len(torrents):
+            torrent = choice(torrents)
             full_torrent = self.backend.get_torrent(torrent.id)
             assert torrent.name
             assert full_torrent.name == torrent.name
