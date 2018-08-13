@@ -883,12 +883,15 @@ class MyRecipients(ListElement):
                 self.env['label'] = mtc.group('label')
             # Fcking corner case
             else:
-                mtc = re.match('(?P<id>.+) - (?P<label>[^-]+) -( [^-]*)?-?$', CleanText('.')(self))
-                assert mtc
-                self.env['id'] = mtc.group('id')
+                # former regex: '(?P<id>.+) - (?P<label>[^-]+) -( [^-]*)?-?$'
+                # the strip is in case the string ends by ' -'
+                mtc = CleanText('.')(self).strip(' -').split(' - ')
+                # it needs to contain, at least, the id and the label
+                assert len(mtc) >= 2
+                self.env['id'] = mtc[0]
                 self.env['iban'] = NotAvailable
                 self.env['bank_name'] = NotAvailable
-                self.env['label'] = mtc.group('label')
+                self.env['label'] = mtc[1]
 
 
 class TransferPage(TransferErrorPage, IndexPage):
