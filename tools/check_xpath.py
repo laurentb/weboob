@@ -116,17 +116,11 @@ class Visitor(ast.NodeVisitor):
     def visit_ClassDef(self, node):
         has_element = False
 
-        proceed = False
-        for deco in node.decorator_list:
-            if isinstance(deco, ast.Name) and deco.id == 'method':
-                proceed = True
+        for basenode in node.bases:
+            if isinstance(basenode, ast.Name) and basenode.id in ('ListElement', 'ItemElement', 'TableElement'):
+                self.element_context.append(basenode.id)
+                has_element = True
                 break
-        if proceed:
-            for basenode in node.bases:
-                if isinstance(basenode, ast.Name) and basenode.id in ('ListElement', 'ItemElement', 'TableElement'):
-                    self.element_context.append(basenode.id)
-                    has_element = True
-                    break
 
         self.generic_visit(node)
 
