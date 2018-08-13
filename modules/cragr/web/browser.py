@@ -280,7 +280,7 @@ class Cragr(LoginBrowser, StatesMixin):
         # accounts_list is only used by get_list
         self.location(self.accounts_url.format(self.sag))
 
-        for idelco in self.page.iter_idelcos():
+        for idelco, parent_id in self.page.iter_idelcos():
             if not self.accounts.is_here():
                 self.location(self.accounts_url.format(self.sag))
 
@@ -299,6 +299,7 @@ class Cragr(LoginBrowser, StatesMixin):
             else:
                 for account in self.page.iter_card():
                     if accounts_list:
+                        account._parent_id = parent_id
                         account.parent = find_object(accounts_list, id=account._parent_id)
                     yield account
 

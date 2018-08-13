@@ -38,7 +38,7 @@ from weboob.tools.date import parse_french_date, LinearDateGuesser
 from weboob.tools.compat import urlparse, urljoin, unicode
 from weboob.browser.elements import ListElement, TableElement, ItemElement, method
 from weboob.browser.filters.standard import Date, CleanText, CleanDecimal, Currency as CleanCurrency, \
-                                            Regexp, Format, Field, Async, AsyncLoad
+                                            Regexp, Format, Field
 from weboob.browser.filters.html import Link, TableCell, ColumnNotFound
 
 
@@ -306,30 +306,33 @@ class AccountsPage(MyLoggedPage, BasePage):
     def _iter_idelcos_ids(self):
         for line in self.doc.xpath('//table[@class="ca-table"]//tr[@class="ligne-connexe"]'):
             # ignore line if preceding line is also a link to deferred card
-            if line.xpath('./preceding-sibling::tr')[-1].attrib.get('class') == 'ligne-connexe':
+            li = line.xpath('./preceding-sibling::tr')
+            if li[-1].attrib.get('class') == 'ligne-connexe':
                 continue
             try:
                 link = line.xpath('.//a/@href')[0]
             except IndexError:
                 continue
-            yield link
+
+            parent_id = re.findall(r'> (?P<id>\d+)', CleanText(li)(self))[-1]
+            yield link, parent_id
 
     def iter_idelcos(self):
         # Use a set because it is possible to see several times the same link.
         idelcos = set()
-        for link in self._iter_idelcos_ids():
+        for link, parent_id in self._iter_idelcos_ids():
             if link.startswith('javascript:'):
                 m = re.search(r"javascript:fwkPUAvancerForm\('Cartes','(\w+)'\)", link)
                 if m:
-                    idelcos.add(m.group(1))
+                    idelcos.add((m.group(1), parent_id))
             else:
                 m = re.search('IDELCO=(\d+)&', link)
                 if m:
-                    idelcos.add(m.group(1))
+                    idelcos.add((m.group(1), parent_id))
         return idelcos
 
     def get_idelco(self, account_idelco):
-        for link in self._iter_idelcos_ids():
+        for link, parent_id in self._iter_idelcos_ids():
             if link.startswith('javascript:'):
                 # no need to fetch a "full" link
                 return self.get_form(name=account_idelco)
@@ -445,9 +448,6 @@ class CardsPage(MyLoggedPage, BasePage):
 
             def obj_url(self):
                 return self.page.url
-
-            load_details = Link('.//tr[contains(@class, "ligne-bleu")]/th[@class="cel-texte" and contains(text(), "Solde")]/a') & AsyncLoad
-            obj__parent_id = Async('details') & Regexp(CleanText('//table[@class="ca-table"][1]//tr[@class="ligne-impaire"]/th'), r'(\d+)')
 
     @method
     class iter_cards(ListElement):
