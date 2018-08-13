@@ -45,8 +45,8 @@ def do_visits(*funcs):
 
 class Visitor(ast.NodeVisitor):
     def __init__(self, file, *args, **kwargs):
-        super(Visitor, self).__init__(*args, **kwargs)
         self.warnings = kwargs.pop('warnings', False)
+        super(Visitor, self).__init__(*args, **kwargs)
         self.file = file
 
         self.filters = []
@@ -141,14 +141,21 @@ def search_py(root):
             yield os.path.join(path, f)
 
 
-for fn in search_py(os.path.normpath(os.path.dirname(__file__) + '/../modules')):
-    with open(fn) as fd:
+if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser(description="Check XPath definitions")
+    parser.add_argument('-w', '--warnings', action='store_true')
+    args = parser.parse_args()
+
+    modpath = os.getenv('WEBOOB_MODULES', os.path.normpath(os.path.dirname(__file__) + '/../modules'))
+    for fn in search_py(modpath):
+        with open(fn) as fd:
+            try:
+                node = ast.parse(fd.read(), fn)
+            except SyntaxError as exc:
+                print('In file', fn)
+                traceback.print_exc(exc)
         try:
-            node = ast.parse(fd.read(), fn)
+            Visitor(fn, warnings=args.warnings).visit(node)
         except SyntaxError as exc:
-            print('In file', fn)
-            traceback.print_exc(exc)
-    try:
-        Visitor(fn).visit(node)
-    except SyntaxError as exc:
-        print(exc)
+            print(exc)
