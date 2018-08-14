@@ -510,19 +510,19 @@ class SeleniumBrowser(object):
                 try:
                     if isinstance(page.is_here, CustomCondition):
                         if page.is_here(self.driver):
-                            self.logger.debug('Now on %s', page)
+                            self.logger.debug('Handle %s with %s', self.url, type(page).__name__)
                             self.save_response_if_changed()
                             do_on_load(page)
                             return page
                     elif page.is_here():
-                        self.logger.debug('Now on %s', page)
+                        self.logger.debug('Handle %s with %s', self.url, type(page).__name__)
                         self.save_response_if_changed()
                         do_on_load(page)
                         return page
                 except NoSuchElementException:
                     pass
 
-        self.logger.debug('No matching page')
+        self.logger.debug('Unable to handle %s', self.url)
 
     def open(self, *args, **kwargs):
         # TODO maybe implement with a new window?
