@@ -175,7 +175,11 @@ class HistoryPage(LoggedPage, HTMLPage):
                 dayfirst=True
             )
             obj_amount = Eval(lambda x: x / 100, CleanDecimal('./div[2]'))
-            obj_label = NotAvailable
+            obj_label = Format(
+                '%s %s',
+                CleanText('./preceding::h3[1]'),
+                Regexp(CleanText('./div[1]'), r'(\d{2}\/\d{2}\/\d{4})')
+            )
 
             def obj_investments(self):
                 investments = []
@@ -199,6 +203,11 @@ class HistoryPage(LoggedPage, HTMLPage):
             obj_date = Date(
                 Regexp(CleanText('.//div[1]'), r'(\d{2}\/\d{2}\/\d{4})'),
                 dayfirst=True
+            )
+            obj_label = Format(
+                '%s %s',
+                CleanText('./preceding::h3[1]'),
+                Regexp(CleanText('./div[1]'), r'(\d{2}\/\d{2}\/\d{4})')
             )
 
             def obj_amount(self):
