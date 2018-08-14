@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 from collections import Counter
 import re
 from io import BytesIO
@@ -157,7 +159,7 @@ class LoginPage(JsonPage):
     @staticmethod
     def generate_token(length=11):
         chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz'
-        return ''.join((chars[randint(0, len(chars)-1)] for _ in xrange(length)))
+        return ''.join((chars[randint(0, len(chars)-1)] for _ in range(length)))
 
     def build_doc(self, text):
         try:

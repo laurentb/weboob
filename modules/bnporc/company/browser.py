@@ -17,11 +17,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 from datetime import date, timedelta
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import AccountNotFound
+from weboob.tools.compat import basestring
 
 from .pages import LoginPage, AccountsPage, HistoryPage
 
