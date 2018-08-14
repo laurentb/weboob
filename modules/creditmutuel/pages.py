@@ -208,9 +208,10 @@ class item_account_generic(ItemElement):
     obj__card_links = []
 
     def obj__link_id(self):
-        page = self.page.browser.open(Link('./td[1]//a')(self)).page
-        if page and page.doc.xpath('//div[@class="fg"]/a[contains(@href, "%s")]' % Field('id')(self)):
-            return urljoin(page.url, Link('//div[@class="fg"]/a')(page.doc))
+        if self.is_revolving(Field('label')(self)):
+            page = self.page.browser.open(Link('./td[1]//a')(self)).page
+            if page and page.doc.xpath('//div[@class="fg"]/a[contains(@href, "%s")]' % Field('id')(self)):
+                return urljoin(page.url, Link('//div[@class="fg"]/a')(page.doc))
         return Link('./td[1]//a')(self)
 
     def obj_type(self):
@@ -225,6 +226,9 @@ class item_account_generic(ItemElement):
     obj__is_webid = Env('_is_webid')
 
     def parse(self, el):
+        accounting = None
+        coming = None
+        page = None
         link = el.xpath('./td[1]//a')[0].get('href', '')
         if 'POR_SyntheseLst' in link:
             raise SkipItem()
@@ -270,14 +274,20 @@ class item_account_generic(ItemElement):
                 id = p['webid'][0]
                 self.env['_is_webid'] = True
 
-        page = self.page.browser.open(link).page
-        if isinstance(page, RevolvingLoansList):
-            # some revolving loans are listed on an other page. On the accountList, there is just a link for this page
-            # that's why we don't handle it here
-            raise SkipItem()
+        if self.is_revolving(Field('label')(self)):
+            page = self.page.browser.open(link).page
+            if isinstance(page, RevolvingLoansList):
+                # some revolving loans are listed on an other page. On the accountList, there is just a link for this page
+                # that's why we don't handle it here
+                raise SkipItem()
 
         # Handle cards
         if id in self.parent.objects:
+            if not page:
+                page = self.page.browser.open(link).page
+            # Handle real balances
+            coming = page.find_amount(u"Opérations à venir") if page else None
+            accounting = page.find_amount(u"Solde comptable") if page else None
             # on old website we want card's history in account's history
             if not page.browser.is_new_website:
                 account = self.parent.objects[id]
@@ -330,10 +340,6 @@ class item_account_generic(ItemElement):
 
         self.env['id'] = id
 
-        # Handle real balances
-        coming = page.find_amount(u"Opérations à venir") if page else None
-        accounting = page.find_amount(u"Solde comptable") if page else None
-
         if accounting is not None and accounting + (coming or Decimal('0')) != balance:
             self.page.logger.warning('%s + %s != %s' % (accounting, coming, balance))
 
@@ -345,7 +351,7 @@ class item_account_generic(ItemElement):
 
     def is_revolving(self, label):
         return any(revolving_loan_label in label
-                   for revolving_loan_label in item_account_generic.REVOLVING_LOAN_LABELS)
+                   for revolving_loan_label in item_account_generic.REVOLVING_LOAN_LABELS) or label.lower() in self.page.browser.revolving_accounts
 
 
 class AccountsPage(LoggedPage, HTMLPage):
@@ -393,22 +399,18 @@ class AccountsPage(LoggedPage, HTMLPage):
                 type = Field('type')(self)
                 label = Field('label')(self)
                 details_link = Link('.//a', default=None)(self)
-                closed_loan = False
 
                 # mobile accounts are leading to a 404 error when parsing history
                 # furthermore this is not exactly a loan account
                 if re.search(r'Le\sMobile\s+([0-9]{2}\s?){5}', label):
                     return False
 
-                if details_link:
+                if details_link and item_account_generic.condition and type == Account.TYPE_LOAN and not self.is_revolving(label):
                     details = self.page.browser.open(details_link)
-                    if details.page:
-                        closed_loan = 'cloturé' in CleanText(
-                            '//form[@id="P:F"]//div[@class="blocmsg info"]//p', default='')(details.page.doc)
-                return (item_account_generic.condition(self)
-                        and type == Account.TYPE_LOAN
-                        and not self.is_revolving(label)
-                        and not closed_loan)
+                    if details.page and not 'cloturé' in CleanText('//form[@id="P:F"]//div[@class="blocmsg info"]//p')(details.page.doc):
+                        return True
+                return False
+
 
         class item_revolving_loan(item_account_generic):
             klass = Loan

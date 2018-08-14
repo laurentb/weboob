@@ -169,6 +169,11 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
             if self.currentSubBank is None:
                 self.getCurrentSubBank()
             self.accounts_list = []
+            self.revolving_accounts = []
+
+            for acc in self.revolving_loan_list.stay_or_go(subbank=self.currentSubBank).iter_accounts():
+                self.accounts_list.append(acc)
+                self.revolving_accounts.append(acc.label.lower())
 
             # Handle cards on tiers page
             self.cards_activity.go(subbank=self.currentSubBank)
@@ -192,8 +197,6 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
             for acc in self.li.go(subbank=self.currentSubBank).iter_li_accounts():
                 self.accounts_list.append(acc)
 
-            for acc in self.revolving_loan_list.stay_or_go(subbank=self.currentSubBank).iter_accounts():
-                self.accounts_list.append(acc)
 
             excluded_label = ['etalis', 'valorisation totale']
             self.accounts_list = [acc for acc in self.accounts_list if not any(w in acc.label.lower() for w in excluded_label)]
