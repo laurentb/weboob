@@ -359,6 +359,19 @@ class Login2Page(LoginPage):
         self.browser.location(doc['response']['saml2_post']['action'], data=data)
 
 
+class AlreadyLoginPage(LoggedPage, MyHTMLPage):
+    def is_here(self):
+        try:
+            doc = json.loads(self.response.text)
+            if 'response' in doc:
+                return doc['response']['status'] == 'AUTHENTICATION_SUCCESS' and 'saml2_post' in doc['response']
+        except json.decoder.JSONDecodeError:
+            # not a json page
+            # so it should be Login2Page
+            return False
+        return False
+
+
 class IndexPage(LoggedPage, MyHTMLPage):
     def get_token(self):
         url = self.doc.xpath('//frame[@name="portalHeader"]')[0].attrib['src']

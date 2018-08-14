@@ -37,7 +37,7 @@ from .pages import (
     IbanPage, AdvisorPage, TransactionDetailPage, TransactionsBackPage,
     NatixisPage, EtnaPage, NatixisInvestPage, NatixisHistoryPage, NatixisErrorPage,
     NatixisDetailsPage, NatixisChoicePage, NatixisRedirect,
-    LineboursePage,
+    LineboursePage, AlreadyLoginPage,
 )
 
 from .linebourse_browser import LinebourseBrowser
@@ -140,6 +140,8 @@ class BanquePopulaire(LoginBrowser):
                     r'https://[^/]+/cyber/internet/ShowPortal.do\?token=.*',
                     HomePage)
 
+    already_login_page = URL(r'https://[^/]+/dacswebssoissuer.*',
+                             r'https://[^/]+/WebSSO_BP/_(?P<bankid>\d+)/index.html\?transactionID=(?P<transactionID>.*)', AlreadyLoginPage)
     login2_page = URL(r'https://[^/]+/WebSSO_BP/_(?P<bankid>\d+)/index.html\?transactionID=(?P<transactionID>.*)', Login2Page)
 
     # natixis
