@@ -403,6 +403,14 @@ class SeleniumBrowser(object):
 
     """Default wait time for `wait_*` methods"""
 
+    WINDOW_SIZE = None
+
+    """Rendering window size
+
+    It can be useful for responsive websites which show or hide elements depending
+    on the viewport size.
+    """
+
     BASEURL = None
 
     MAX_SAVED_RESPONSES = (1 << 30)  # limit to 1GiB
@@ -474,6 +482,9 @@ class SeleniumBrowser(object):
             self.driver = self.DRIVER(desired_capabilities=capa, service_log_path=log_path)
         else:
             raise NotImplementedError()
+
+        if self.WINDOW_SIZE:
+            self.driver.set_window_size(*self.WINDOW_SIZE)
 
     ### Browser
     def deinit(self):
