@@ -118,7 +118,11 @@ class AccountSpaceLogin(JsonPage):
 
 class ErrorPage(PartialHTMLPage):
     def on_load(self):
-        error_msg = CleanText('//p[contains(text(), "temporairement indisponible")]')(self.doc)
+        error_msg = (
+            CleanText('//p[contains(text(), "temporairement indisponible")]')(self.doc),
+            CleanText('//p[contains(text(), "maintenance est en cours")]')(self.doc),
+        )
 
-        if error_msg:
-            raise BrowserUnavailable(error_msg)
+        for error in error_msg:
+            if error:
+                raise BrowserUnavailable(error_msg)
