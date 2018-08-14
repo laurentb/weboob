@@ -62,7 +62,7 @@ class Visitor(ast.NodeVisitor):
             raise Error(self.file, lineno, exc)
 
         if self.warnings:
-            if not s.startswith('.') and len(self.element_context) >= 2:
+            if not s.lstrip('(').startswith('.') and len(self.element_context) >= 2:
                 if self.element_context[-1] == 'ItemElement' and self.element_context[-2] in ('TableElement', 'ListElement'):
                     print('%s:%s: probable missing "." at start of XPath' % (self.file, lineno))
 
