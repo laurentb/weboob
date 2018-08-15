@@ -164,19 +164,20 @@ class Days5Page(WeatherPage):
 
 class Days10Page(WeatherPage):
     def get_cell(self, row, col):
-        return CleanText('//table[@id="meteo2"]/tr[{row}]/td[{col}]'.format(row=row + 1, col=col + 1))(self.doc)
+        return CleanText('(//table[@id="meteo2"]//td/table)[{col}]/tr[{row}]/td'.format(row=row + 1, col=col + 1))(self.doc)
 
     def get_img_cell(self, row, col):
-        return CleanText('//table[@id="meteo2"]/tr[{row}]/td[{col}]//img/@alt'.format(row=row + 1, col=col + 1))(self.doc)
+        return CleanText('(//table[@id="meteo2"]//td/table)[{col}]/tr[{row}]/td//img/@alt'.format(row=row + 1, col=col + 1))(self.doc)
 
     def iter_forecast(self):
         d = date.today() + timedelta(5)
 
         self.titles = {}
-        for n, tr in enumerate(self.doc.xpath('//table[@id="meteo2"]/tr/td[1]')):
+        for n, tr in enumerate(self.doc.xpath('(//table[@id="meteo2"]//td/table)[1]/tr/td')):
             self.titles[CleanText('.')(tr)] = n
 
-        for n in range(1, len(self.doc.xpath('//table[@id="meteo2"]/tr[1]/td'))):
+        cols = len(self.doc.xpath('//table[@id="meteo2"]//td/table'))
+        for n in range(1, cols):
             obj = FullForecast()
             obj.low = temp(int(self.get_cell(self.titles['Température Mini'], n).rstrip('°C')))
             obj.high = temp(int(self.get_cell(self.titles['Température Maxi'], n).rstrip('°C')))
