@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from weboob.capabilities.bank import CapBankWealth, AccountNotFound
 from weboob.capabilities.contact import CapContact
@@ -34,10 +35,10 @@ __all__ = ['CmsoModule']
 
 class CmsoModule(Module, CapBankWealth, CapContact, CapProfile):
     NAME = 'cmso'
-    MAINTAINER = u'Romain Bignon'
+    MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '1.4'
-    DESCRIPTION = u'Crédit Mutuel Sud-Ouest'
+    DESCRIPTION = 'Crédit Mutuel Sud-Ouest'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
                            ValueBackendPassword('password', label='Mot de passe'),

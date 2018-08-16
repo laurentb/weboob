@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 import re
 
@@ -55,7 +56,7 @@ class ChoiceLinkPage(HTMLPage):
 
 class SubscriptionPage(HTMLPage):
     def on_load(self):
-        if u"Vous ne disposez d'aucun contrat sur cet accès." in CleanText(u'.')(self.doc):
+        if "Vous ne disposez d'aucun contrat sur cet accès." in CleanText('.')(self.doc):
             raise BrowserIncorrectPassword()
 
     def get_csrf(self):
@@ -91,10 +92,10 @@ class CMSOPage(HTMLPage):
 
 
 class AccountsPage(CMSOPage):
-    TYPES = {u'COMPTE CHEQUES':               Account.TYPE_CHECKING,
-             u'COMPTE TITRES':                Account.TYPE_MARKET,
-             u"ACTIV'EPARGNE":                Account.TYPE_SAVINGS,
-             u"TRESO'VIV":                    Account.TYPE_SAVINGS,
+    TYPES = {'COMPTE CHEQUES':               Account.TYPE_CHECKING,
+             'COMPTE TITRES':                Account.TYPE_MARKET,
+             "ACTIV'EPARGNE":                Account.TYPE_SAVINGS,
+             "TRESO'VIV":                    Account.TYPE_SAVINGS,
             }
 
     @method
@@ -183,7 +184,7 @@ class InvestmentAccountPage(CMSOPage):
     class iter_investments(CmsoTableElement):
         col_label = 'Valeur'
         col_code = 'Code'
-        col_quantity = u'Qté'
+        col_quantity = 'Qté'
         col_unitvalue = 'Cours'
         col_valuation = 'Valorisation'
         col_vdate = 'Date cours'

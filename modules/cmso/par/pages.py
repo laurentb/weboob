@@ -39,6 +39,7 @@ from weboob.capabilities.profile import Profile
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.exceptions import ParseError
 from weboob.tools.capabilities.bank.investments import is_isin_valid
+from weboob.tools.compat import unicode
 
 
 def MyDecimal(*args, **kwargs):
@@ -57,7 +58,7 @@ class LogoutPage(RawPage):
 class InfosPage(LoggedPage, HTMLPage):
     def get_typelist(self):
         url = Attr(None, 'src').filter(self.doc.xpath('//script[contains(@src, "comptes/scripts")]'))
-        m = re.search('synthesecomptes[^\w]+([^:]+)[^\w]+([^"]+)', self.browser.open(url).content)
+        m = re.search(r'synthesecomptes[^\w]+([^:]+)[^\w]+([^"]+)', self.browser.open(url).content)
         return {m.group(1): m.group(2)}
 
 
@@ -186,7 +187,7 @@ class AccountsPage(LoggedPage, JsonPage):
 
                 obj_label = Upper(Dict('libelleContrat'))
                 obj_balance = CleanDecimal(Dict('solde', default="0"))
-                obj_currency = u'EUR'
+                obj_currency = 'EUR'
                 obj_coming = CleanDecimal(Dict('AVenir', default=None), default=NotAvailable)
                 obj__index = Dict('index')
                 obj__owner = Dict('nomTitulaire')
@@ -243,7 +244,7 @@ class AccountsPage(LoggedPage, JsonPage):
                 return Dict('numeroContratSouscrit', default=None)(self) or Dict('identifiantTechnique')(self)
 
             obj_label = Dict('libelle')
-            obj_currency = u'EUR'
+            obj_currency = 'EUR'
             obj_type = Account.TYPE_LOAN
 
             def obj_total_amount(self):
@@ -278,14 +279,14 @@ class AccountsPage(LoggedPage, JsonPage):
 
 
 class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile(u'^CARTE (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'), FrenchTransaction.TYPE_CARD),
-                (re.compile(u'^(?P<text>(PRLV|PRELEVEMENTS).*)'), FrenchTransaction.TYPE_ORDER),
-                (re.compile(u'^(?P<text>RET DAB.*)'), FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile(u'^(?P<text>ECH.*)'), FrenchTransaction.TYPE_LOAN_PAYMENT),
-                (re.compile(u'^(?P<text>VIR.*)'), FrenchTransaction.TYPE_TRANSFER),
-                (re.compile(u'^(?P<text>ANN.*)'), FrenchTransaction.TYPE_PAYBACK),
-                (re.compile(u'^(?P<text>(VRST|VERSEMENT).*)'), FrenchTransaction.TYPE_DEPOSIT),
-                (re.compile(u'^(?P<text>.*)'), FrenchTransaction.TYPE_BANK)
+    PATTERNS = [(re.compile(r'^CARTE (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'), FrenchTransaction.TYPE_CARD),
+                (re.compile(r'^(?P<text>(PRLV|PRELEVEMENTS).*)'), FrenchTransaction.TYPE_ORDER),
+                (re.compile(r'^(?P<text>RET DAB.*)'), FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile(r'^(?P<text>ECH.*)'), FrenchTransaction.TYPE_LOAN_PAYMENT),
+                (re.compile(r'^(?P<text>VIR.*)'), FrenchTransaction.TYPE_TRANSFER),
+                (re.compile(r'^(?P<text>ANN.*)'), FrenchTransaction.TYPE_PAYBACK),
+                (re.compile(r'^(?P<text>(VRST|VERSEMENT).*)'), FrenchTransaction.TYPE_DEPOSIT),
+                (re.compile(r'^(?P<text>.*)'), FrenchTransaction.TYPE_BANK)
                ]
 
 
@@ -358,12 +359,12 @@ class HistoryPage(LoggedPage, JsonPage):
 
 class LifeinsurancePage(LoggedPage, HTMLPage):
     def get_account_id(self):
-        account_id = Regexp(CleanText('//h1[@class="portlet-title"]'), ur'n° ([\d\s]+)', default=NotAvailable)(self.doc)
+        account_id = Regexp(CleanText('//h1[@class="portlet-title"]'), r'n° ([\d\s]+)', default=NotAvailable)(self.doc)
         if account_id:
             return re.sub(r'\s', '', account_id)
 
     def get_link(self, page):
-        return Link(default=NotAvailable).filter(self.doc.xpath(u'//a[contains(text(), "%s")]' % page))
+        return Link(default=NotAvailable).filter(self.doc.xpath('//a[contains(text(), "%s")]' % page))
 
     @pagination
     @method
@@ -372,7 +373,7 @@ class LifeinsurancePage(LoggedPage, HTMLPage):
         head_xpath = '//table/thead/tr/th'
 
         col_date = re.compile('Date')
-        col_label = re.compile(u'Libellé')
+        col_label = re.compile('Libellé')
         col_amount = re.compile('Montant')
 
         next_page = Link('//a[contains(text(), "Suivant") and not(contains(@href, "javascript"))]', default=None)
@@ -389,7 +390,7 @@ class LifeinsurancePage(LoggedPage, HTMLPage):
         item_xpath = '//table/tbody/tr[contains(@class, "results")]'
         head_xpath = '//table/thead/tr/th'
 
-        col_label = re.compile(u'Libellé')
+        col_label = re.compile('Libellé')
         col_quantity = re.compile('Nb parts')
         col_vdate = re.compile('Date VL')
         col_unitvalue = re.compile('VL')
@@ -400,7 +401,7 @@ class LifeinsurancePage(LoggedPage, HTMLPage):
             klass = Investment
 
             obj_label = CleanText(TableCell('label'))
-            obj_code = Regexp(Link('./td/a'), 'Isin%253D([^%]+)')
+            obj_code = Regexp(Link('./td/a'), r'Isin%253D([^%]+)')
             obj_quantity = MyDecimal(TableCell('quantity'))
             obj_unitprice = MyDecimal(TableCell('unitprice'))
             obj_unitvalue = MyDecimal(TableCell('unitvalue'))
@@ -473,9 +474,9 @@ class MarketPage(LoggedPage, HTMLPage):
         head_xpath = '//table[has-class("domifrontTb")]/tr[1]/td'
 
         col_date = re.compile('Date')
-        col_label = u'Opération'
-        col_code = u'Code'
-        col_quantity = u'Quantité'
+        col_label = 'Opération'
+        col_code = 'Code'
+        col_quantity = 'Quantité'
         col_amount = re.compile('Montant')
 
         class item(ItemElement):
@@ -501,13 +502,13 @@ class MarketPage(LoggedPage, HTMLPage):
         item_xpath = '//table[has-class("domifrontTb")]/tr[not(has-class("LnTit") or has-class("LnTot"))]'
         head_xpath = '//table[has-class("domifrontTb")]/tr[1]/td'
 
-        col_label = u'Valeur'
-        col_code = u'Code'
-        col_quantity = u'Qté'
-        col_vdate = u'Date cours'
-        col_unitvalue = u'Cours'
+        col_label = 'Valeur'
+        col_code = 'Code'
+        col_quantity = 'Qté'
+        col_vdate = 'Date cours'
+        col_unitvalue = 'Cours'
         col_unitprice = re.compile('P.R.U')
-        col_valuation = u'Valorisation'
+        col_valuation = 'Valorisation'
 
         class item(ItemElement):
             klass = Investment

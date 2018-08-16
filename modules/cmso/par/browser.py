@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 import re
 import json
@@ -52,7 +53,7 @@ def retry(exc_check, tries=4):
         def wrapper(browser, *args, **kwargs):
             cb = lambda: func(browser, *args, **kwargs)
 
-            for i in xrange(tries, 0, -1):
+            for i in range(tries, 0, -1):
                 try:
                     ret = cb()
                 except exc_check as exc:
@@ -220,7 +221,7 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
 
         if account.type == Account.TYPE_LIFE_INSURANCE:
             url = json.loads(self.lifeinsurance.go(accid=account._index).content)['url']
-            url = self.location(url).page.get_link(u"opérations")
+            url = self.location(url).page.get_link("opérations")
 
             return self.location(url).page.iter_history()
         elif account.type in (Account.TYPE_PEA, Account.TYPE_MARKET):
