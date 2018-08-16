@@ -340,7 +340,8 @@ class ValidateTransferPage(LoggedPage, HTMLPage):
         return vk.get_string_code(password)
 
     def validate_transfer(self, password):
-        formatted_password = self.get_password(password)
+        # need only the 5 first characters of password to validate transfer
+        formatted_password = self.get_password(password[:5])
         form = self.get_form(xpath='//div[@id="paveNumTrans"]/parent::form')
 
         # Get validation btn id because '_idJsp27' part may be not stable
