@@ -340,19 +340,23 @@ class ValidateTransferPage(LoggedPage, HTMLPage):
         return vk.get_string_code(password)
 
     def validate_transfer(self, password):
-        password = self.get_password(password)
+        formatted_password = self.get_password(password)
         form = self.get_form(xpath='//div[@id="paveNumTrans"]/parent::form')
 
         # Get validation btn id because '_idJsp27' part may be not stable
         validation_btn_id = CleanText('//div[@id="paveNumTrans"]//input[contains(@id, "boutonValider")]/@id')(self.doc)
 
-        form['codepasse'] = password
-        form['motDePasse'] = password
+        form['codepasse'] = formatted_password
+        form['motDePasse'] = formatted_password
         form[validation_btn_id] = ''
         form.submit()
 
 
 class ConfirmTransferPage(LoggedPage, HTMLPage):
     def on_load(self):
+        error_msg = '//p[@id="messErreur"]/span'
+        if self.doc.xpath(error_msg):
+            raise TransferError(message=CleanText(error_msg)(self.doc))
+
         confirm_transfer_xpath = '//h2[contains(text(), "Virement enregistr")]'
         assert self.doc.xpath(confirm_transfer_xpath)
