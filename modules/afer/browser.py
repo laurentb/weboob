@@ -17,9 +17,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 from random import randint
 from weboob.browser import URL, LoginBrowser, need_login
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
+from weboob.tools.compat import basestring
 
 from .pages import LoginPage, IndexPage, BadLogin, AccountDetailPage, AccountHistoryPage
 
