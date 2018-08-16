@@ -19,11 +19,13 @@
 
 from __future__ import unicode_literals
 
+import re
+
 from weboob.capabilities.bill import Subscription, Document
 from weboob.browser.pages import LoggedPage, HTMLPage
-from weboob.browser.filters.standard import CleanText, Regexp, Env, Date, Format
-from weboob.browser.filters.html import Link, Attr
-from weboob.browser.elements import ListElement, ItemElement, method
+from weboob.browser.filters.standard import CleanText, Regexp, Env, Date, Format, Field
+from weboob.browser.filters.html import Link, Attr, TableCell
+from weboob.browser.elements import ListElement, ItemElement, method, TableElement
 
 
 class SubscriptionPage(LoggedPage, HTMLPage):
@@ -98,9 +100,70 @@ class SubscriptionPage(LoggedPage, HTMLPage):
         )
 
 
-class PDFPage(LoggedPage, HTMLPage):
+class DownloadPage(LoggedPage, HTMLPage):
     def get_content(self):
         if self.doc.xpath('//iframe'):
+            # the url has the form
+            # ../relevePdf_telechargement/affichagePDF-telechargementPDF.ea?date=XXX
             part_link = Attr('//iframe', 'src')(self.doc).replace('..', '')
             return self.browser.open('/voscomptes/canalXHTML/relevePdf%s' % part_link).content
         return self.content
+
+class ProSubscriptionPage(LoggedPage, HTMLPage):
+    @method
+    class iter_subscriptions(ListElement):
+        item_xpath = '//select[@id="numeroCompteRechercher"]/option'
+
+        class item(ItemElement):
+            klass = Subscription
+
+            obj_label = CleanText('.')
+            obj_id = Regexp(Field('label'), r'\w - (\w+)')
+            obj_subscriber = Env('subscriber')
+            obj__number = Attr('.', 'value')
+
+    @method
+    class iter_documents(TableElement):
+        item_xpath = '//table[@id="relevesPDF"]//tr[td]'
+        head_xpath = '//table[@id="relevesPDF"]//th'
+        # may have twice the same statement for a given month
+        ignore_duplicate = True
+
+        col_date = re.compile('Date du relevé')
+        col_label = re.compile('Type de document')
+
+        class item(ItemElement):
+            klass = Document
+
+            obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
+            obj_label = Format('%s %s', CleanText(TableCell('label')), CleanText(TableCell('date')))
+            obj_id = Format('%s_%s', Env('sub_id'), CleanText(TableCell('date'), symbols='/'))
+            # the url uses an id depending on the page where the document is
+            # by example, if the id is 0,
+            # it means that it is the first document that you can find
+            # on the page of the year XXX for the subscription YYYY
+            obj_url = Link('.//a')
+            obj_format = 'pdf'
+            obj_type = 'other'
+
+    def submit_form(self, sub_number, year):
+        form = self.get_form(name='formRechHisto')
+
+        form['historiqueReleveParametre.numeroCompteRecherche'] = sub_number
+        form['typeRecherche'] = 'annee'
+        form['anneeRechercheDefaut'] = year
+
+        form.submit()
+
+    def get_years(self):
+        return self.doc.xpath('//select[@name="anneeRechercheDefaut"]/option/@value')
+
+    def no_statement(self):
+        return self.doc.xpath('//p[has-class("noresult")]')
+
+    def has_document(self, date):
+        return self.doc.xpath('//td[@headers="dateReleve" and contains(text(), "%s")]' % date.strftime('%d/%m/%Y'))
+
+    def get_sub_number(self, doc_id):
+        sub_id = doc_id.split('_')[0]
+        return Attr('//select[@id="numeroCompteRechercher"]/option[contains(text(), "%s")]' % sub_id, 'value')(self.doc)

@@ -31,7 +31,7 @@ from .pages import (
     LoginPage, Initident, CheckPassword, repositionnerCheminCourant, BadLoginPage, AccountDesactivate,
     AccountList, AccountHistory, CardsList, UnavailablePage, AccountRIB, Advisor,
     TransferChooseAccounts, CompleteTransfer, TransferConfirm, TransferSummary, CreateRecipient, ValidateRecipient,
-    ValidateCountry, ConfirmPage, RcptSummary, SubscriptionPage, PDFPage,
+    ValidateCountry, ConfirmPage, RcptSummary, SubscriptionPage, DownloadPage, ProSubscriptionPage,
 )
 from .pages.accounthistory import (
     LifeInsuranceInvest, LifeInsuranceHistory, LifeInsuranceHistoryInv, RetirementHistory,
@@ -170,7 +170,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
     subscription = URL('/voscomptes/canalXHTML/relevePdf/relevePdf_historique/reinitialiser-historiqueRelevesPDF.ea', SubscriptionPage)
     subscription_search = URL('/voscomptes/canalXHTML/relevePdf/relevePdf_historique/form-historiqueRelevesPDF\.ea', SubscriptionPage)
-    pdf_page = URL(r'/voscomptes/canalXHTML/relevePdf/relevePdf_historique/telechargerPDF-historiqueRelevesPDF.ea\?ts=.*&listeRecherche=.*', PDFPage)
+    download_page = URL(r'/voscomptes/canalXHTML/relevePdf/relevePdf_historique/telechargerPDF-historiqueRelevesPDF.ea\?ts=.*&listeRecherche=.*', DownloadPage)
 
     accounts = None
 
@@ -512,9 +512,9 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def download_document(self, document):
-        pdf_page = self.open(document.url).page
+        download_page = self.open(document.url).page
         # may have an iframe
-        return pdf_page.get_content()
+        return download_page.get_content()
 
 
 class BProBrowser(BPBrowser):
@@ -527,6 +527,10 @@ class BProBrowser(BPBrowser):
 
     useless2 = URL(r'.*/voscomptes/bourseenligne/lancementBourseEnLigne-bourseenligne.ea\?numCompte=(?P<account>\d+)', UselessPage)
     market_login = URL(r'.*/voscomptes/bourseenligne/oicformautopost.jsp', MarketLoginPage)
+
+    subscription = URL(r'(?P<base_url>.*)/voscomptes/relevespdf/histo-consultationReleveCompte.ea',
+                       r'.*/voscomptes/relevespdf/rechercheHistoRelevesCompte-consultationReleveCompte.ea', ProSubscriptionPage)
+    download_page = URL(r'.*/voscomptes/relevespdf/telechargerReleveCompteSelectionne-consultationReleveCompte.ea\?idReleveSelectionne=.*', DownloadPage)
 
     BASEURL = 'https://banqueenligne.entreprises.labanquepostale.fr'
 
@@ -610,3 +614,38 @@ class BProBrowser(BPBrowser):
             self.location('%s/voscomptes/rib/preparerRIB-rib.ea?%s' % (self.base_url, value))
             if self.rib.is_here():
                 return self.page.get_profile()
+
+    @need_login
+    def iter_subscriptions(self):
+        subscriber = self.get_profile().name
+        self.subscription.go(base_url=self.base_url)
+        return self.page.iter_subscriptions(subscriber=subscriber)
+
+    @need_login
+    def iter_documents(self, subscription):
+        self.subscription.go(base_url=self.base_url)
+
+        for year in self.page.get_years():
+            self.page.submit_form(sub_number=subscription._number, year=year)
+
+            if self.page.no_statement():
+                self.subscription.go(base_url=self.base_url)
+                continue
+
+            for doc in self.page.iter_documents(sub_id=subscription.id):
+                yield doc
+
+            self.subscription.go(base_url=self.base_url)
+
+    @need_login
+    def download_document(self, document):
+        # must be sure to be on the right page before downloading
+        if self.subscription.is_here() and self.page.has_document(document.date):
+            return self.open(document.url).content
+
+        self.subscription.go(base_url=self.base_url)
+        sub_number = self.page.get_sub_number(document.id)
+        year = str(document.date.year)
+        self.page.submit_form(sub_number=sub_number, year=year)
+
+        return self.open(document.url).content
