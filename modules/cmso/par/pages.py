@@ -97,8 +97,8 @@ class AccountsPage(LoggedPage, JsonPage):
         numbers = {}
         for key in keys:
             if isinstance(self.doc[key], dict):
-                keys = [k for k in self.doc[key] if isinstance(k, unicode)]
-                contracts = [v for v in self.doc[key][k] for k in keys]
+                keys_ = [k for k in self.doc[key] if isinstance(k, unicode)]
+                contracts = [v for k in keys_ for v in self.doc[key][k]]
             else:
                 contracts = [v for v in self.doc[key]]
             numbers.update({c['index']: c['numeroContratSouscrit'] for c in contracts})
