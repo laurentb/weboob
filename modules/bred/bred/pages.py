@@ -48,6 +48,8 @@ class Transaction(FrenchTransaction):
                 (re.compile(u'^(Cotisation|Intérêts) (?P<text>.*)'), FrenchTransaction.TYPE_BANK),
                 (re.compile(u'^(Remise Chèque|Remise de chèque)\s*(?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
                 (re.compile('^Versement (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
+                (re.compile('^(?P<text>.*)LE (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})\s*(?P<text2>.*)'),
+                                                          FrenchTransaction.TYPE_UNKNOWN),
     ]
 
 
