@@ -107,7 +107,7 @@ class AccountsPage(CMSOPage):
 
             class Type(Filter):
                 def filter(self, label):
-                    for pattern, actype in AccountsPage.TYPES.iteritems():
+                    for pattern, actype in AccountsPage.TYPES.items():
                         if label.startswith(pattern):
                             return actype
                     return Account.TYPE_UNKNOWN

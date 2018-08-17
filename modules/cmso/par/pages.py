@@ -58,7 +58,7 @@ class LogoutPage(RawPage):
 class InfosPage(LoggedPage, HTMLPage):
     def get_typelist(self):
         url = Attr(None, 'src').filter(self.doc.xpath('//script[contains(@src, "comptes/scripts")]'))
-        m = re.search(r'synthesecomptes[^\w]+([^:]+)[^\w]+([^"]+)', self.browser.open(url).content)
+        m = re.search(r'synthesecomptes[^\w]+([^:]+)[^\w]+([^"]+)', self.browser.open(url).text)
         return {m.group(1): m.group(2)}
 
 
@@ -111,14 +111,14 @@ class AccountsPage(LoggedPage, JsonPage):
 
         def find_elements(self):
             selector = self.item_xpath.split('/')
-            for el in selector:
-                if isinstance(self.el, dict) and el == '*' and self.el.values():
-                    self.el = self.el.values()[0]
-                if el == '*':
+            for sub_element in selector:
+                if isinstance(self.el, dict) and self.el and sub_element == '*':
+                    self.el = next(iter(self.el.values())) # replace self.el with its first value
+                if sub_element == '*':
                     continue
-                self.el = self.el[el]
-            for el in self.el:
-                yield el
+                self.el = self.el[sub_element]
+            for sub_element in self.el:
+                yield sub_element
 
         class item(ItemElement):
             klass = Account
