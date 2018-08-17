@@ -30,11 +30,12 @@ from datetime import datetime
 
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage, pagination, FormNotFound
 from weboob.browser.elements import ItemElement, method, ListElement, TableElement, SkipItem, DictElement
-from weboob.browser.filters.standard import Date, CleanDecimal, Regexp, CleanText, Env, Upper, Field, Eval
+from weboob.browser.filters.standard import Date, CleanDecimal, Regexp, CleanText, Env, Upper, Field, Eval, Format
 from weboob.browser.filters.html import Link, Attr, TableCell
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, TransferBankError, Transfer,\
                                      AddRecipientError, Loan
+from weboob.capabilities.bill import Subscription, Document
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_rib_valid, rib2iban, is_iban_valid
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
@@ -650,6 +651,13 @@ class IndexPage(LoggedPage, HTMLPage):
         if msg:
             return msg
 
+    def go_subscription(self):
+        form = self.get_form(name='main')
+        form['m_ScriptManager'] = 'MM$m_UpdatePanel|MM$Menu_Ajax'
+        form['__EVENTTARGET'] = 'MM$Menu_Ajax'
+        form['__EVENTARGUMENT'] = 'CPTEDOC&codeMenu=WCE0'
+        form.submit()
+
 
 class ConsLoanPage(JsonPage):
     def get_conso(self):
@@ -1251,3 +1259,55 @@ class TransactionsDetailsPage(LoggedPage, HTMLPage):
         form = self.get_form(name='main')
         form['__EVENTTARGET'] = "MM$ECRITURE_GLOBALE$lnkRetourHisto"
         form.submit()
+
+
+class SubscriptionPage(LoggedPage, HTMLPage):
+    def is_here(self):
+        return self.doc.xpath('//h2[text()="e-Documents"]')
+
+    @method
+    class iter_subscription(ListElement):
+        item_xpath = '//select[contains(@id, "ClientsBancaires")]/option'
+
+        class item(ItemElement):
+            klass = Subscription
+
+            obj_id = Attr('.', 'value')
+            obj_label = CleanText('.')
+            obj_subscriber = CleanText('.')
+
+            def condition(self):
+                return 'Clos' not in Field('label')(self)
+
+    def go_document_list(self, sub_id):
+        target = Attr('//select[contains(@id, "ClientsBancaires")]', 'id')(self.doc)
+        form = self.get_form(name='main')
+        form['m_ScriptManager'] = target
+        form['MM$COMPTE_EDOCUMENTS$ctrlEDocumentsConsultationDocument$cboClientsBancaires'] = sub_id
+        form['__EVENTTARGET'] = target
+        form.submit()
+
+    def get_years(self):
+        return self.doc.xpath('//select[contains(@id, "Annee")]/option')
+
+    @method
+    class iter_documents(ListElement):
+        item_xpath = '//ul[@class="telecharger"]/li/a'
+
+        class item(ItemElement):
+            klass = Document
+
+            obj_label = Format('%s %s', CleanText('./preceding::h3[1]'), CleanText('./span'))
+            obj_date = Date(CleanText('./span'), dayfirst=True)
+            obj_type = 'other'
+            obj_format = 'pdf'
+            obj_url = Regexp(Link('.'), r'WebForm_PostBackOptions\("(\S*)"')
+            obj_id = Format('%s_%s_%s', Env('sub_id'), CleanText('./span', symbols='/'), Regexp(Field('url'), r'ctl(.*)'))
+            obj__event_id = Regexp(Attr('.', 'onclick'), r"val\('(.*)'\);")
+
+    def download_document(self, document):
+        form = self.get_form(name='main')
+        form['m_ScriptManager'] = document.url
+        form['__EVENTTARGET'] = document.url
+        form['MM$COMPTE_EDOCUMENTS$ctrlEDocumentsConsultationDocument$eventId'] = document._event_id
+        return form.submit()

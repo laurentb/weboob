@@ -45,7 +45,8 @@ from .pages import (
     TransferPage, ProTransferPage, TransferConfirmPage, TransferSummaryPage, ProTransferConfirmPage,
     ProTransferSummaryPage, ProAddRecipientOtpPage, ProAddRecipientPage,
     SmsPage, SmsPageOption, SmsRequest, AuthentPage, RecipientPage, CanceledAuth, CaissedepargneKeyboard,
-    TransactionsDetailsPage, LoadingPage, ConsLoanPage, MeasurePage, NatixisLIHis, NatixisLIInv, NatixisRedirectPage
+    TransactionsDetailsPage, LoadingPage, ConsLoanPage, MeasurePage, NatixisLIHis, NatixisLIInv, NatixisRedirectPage,
+    SubscriptionPage,
 )
 
 from .linebourse_browser import LinebourseBrowser
@@ -76,6 +77,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     pro_add_recipient = URL('https://.*/Portail.aspx.*', ProAddRecipientPage)
     measure_page = URL('https://.*/Portail.aspx.*', MeasurePage)
     authent = URL('https://.*/Portail.aspx.*', AuthentPage)
+    subscription = URL('https://.*/Portail.aspx\?tache=(?P<tache>).*', SubscriptionPage)
     home = URL('https://.*/Portail.aspx.*', IndexPage)
     home_tache = URL('https://.*/Portail.aspx\?tache=(?P<tache>).*', IndexPage)
     error = URL('https://.*/login.aspx',
@@ -660,3 +662,37 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             self.page.check_canceled_auth()
             self.page.set_browser_form()
             raise AddRecipientStep(self.get_recipient_obj(recipient), Value('sms_password', label=self.page.get_prompt_text()))
+
+    @need_login
+    def iter_subscription(self):
+        self.home.go()
+        self.home_tache.go(tache='CPTSYNT1')
+        self.page.go_subscription()
+        assert self.subscription.is_here()
+
+        return self.page.iter_subscription()
+
+    @need_login
+    def iter_documents(self, subscription):
+        self.home.go()
+        self.home_tache.go(tache='CPTSYNT1')
+        self.page.go_subscription()
+        assert self.subscription.is_here()
+
+        sub_id = subscription.id
+        self.page.go_document_list(sub_id=sub_id)
+
+        for doc in self.page.iter_documents(sub_id=sub_id):
+            yield doc
+
+    @need_login
+    def download_document(self, document):
+        self.home.go()
+        self.home_tache.go(tache='CPTSYNT1')
+        self.page.go_subscription()
+        assert self.subscription.is_here()
+
+        sub_id = document.id.split('_')[0]
+        self.page.go_document_list(sub_id=sub_id)
+
+        return self.page.download_document(document).content

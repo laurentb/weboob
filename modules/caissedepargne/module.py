@@ -22,6 +22,11 @@ import re
 from decimal import Decimal
 
 from weboob.capabilities.bank import CapBankWealth, CapBankTransferAddRecipient, AccountNotFound, Account, RecipientNotFound
+from weboob.capabilities.bill import (
+    CapDocument, Subscription, SubscriptionNotFound,
+    Document, DocumentNotFound,
+)
+from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.contact import CapContact
 from weboob.capabilities.profile import CapProfile
 from weboob.capabilities.base import find_object
@@ -33,7 +38,7 @@ from .proxy_browser import ProxyBrowser
 __all__ = ['CaisseEpargneModule']
 
 
-class CaisseEpargneModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapContact, CapProfile):
+class CaisseEpargneModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapContact, CapProfile, CapDocument):
     NAME = 'caissedepargne'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -110,3 +115,37 @@ class CaisseEpargneModule(Module, CapBankWealth, CapBankTransferAddRecipient, Ca
     def new_recipient(self, recipient, **params):
         #recipient.label = ' '.join(w for w in re.sub('[^0-9a-zA-Z:\/\-\?\(\)\.,\'\+ ]+', '', recipient.label).split())
         return self.browser.new_recipient(recipient, **params)
+
+    def iter_resources(self, objs, split_path):
+        if Account in objs:
+            self._restrict_level(split_path)
+            return self.iter_accounts()
+        if Subscription in objs:
+            self._restrict_level(split_path)
+            return self.iter_subscription()
+
+    def get_subscription(self, _id):
+        return find_object(self.iter_subscription(), id=_id, error=SubscriptionNotFound)
+
+    def get_document(self, _id):
+        subscription_id = _id.split('_')[0]
+        subscription = self.get_subscription(subscription_id)
+        return find_object(self.iter_documents(subscription), id=_id, error=DocumentNotFound)
+
+    def iter_subscription(self):
+        return self.browser.iter_subscription()
+
+    def iter_documents(self, subscription):
+        if not isinstance(subscription, Subscription):
+            subscription = self.get_subscription(subscription)
+
+        return self.browser.iter_documents(subscription)
+
+    def download_document(self, document):
+        if not isinstance(document, Document):
+            document = self.get_document(document)
+
+        if document.url is NotAvailable:
+            return
+
+        return self.browser.download_document(document)
