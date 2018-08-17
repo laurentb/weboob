@@ -161,7 +161,7 @@ class AccountsList(LoggedPage, HTMLPage):
 
     @method
     class get_list(ListElement):
-        item_xpath = '//a[@class="mainclic"]'
+        item_xpath = '//div[@id="bloc-menu-comptes"]//a[@class="mainclic"]'
 
         class item(ItemElement):
             klass = Account
