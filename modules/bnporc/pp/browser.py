@@ -82,6 +82,7 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
                         '/fr/espace-pro/changer-son-mot-de-passe',
                         '/fr/espace-client/100-connexions',
                         '/fr/espace-prive/mot-de-passe-expire',
+                        '/fr/client/100-connexion',
                         '/fr/systeme/page-indisponible', ConnectionThresholdPage)
     accounts = URL('udc-wspl/rest/getlstcpt', AccountsPage)
     ibans = URL('rib-wspl/rpc/comptes', AccountsIBANPage)
