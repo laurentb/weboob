@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import Capability, BaseObject, StringField, FloatField, Field, UserError, empty
+from .base import Capability, BaseObject, StringField, DecimalField, Field, UserError, empty
 from .date import DateField
 
 __all__ = ['Gauge', 'GaugeSensor', 'GaugeMeasure', 'CapGauge', 'SensorNotFound']
@@ -44,7 +44,7 @@ class GaugeMeasure(BaseObject):
     """
     Measure of a gauge sensor.
     """
-    level =     FloatField('Level of measure')
+    level =     DecimalField('Level of measure')
     date =      DateField('Date of measure')
     alarm =     StringField('Alarm level')
 
@@ -63,6 +63,8 @@ class GaugeSensor(BaseObject):
     unit =      StringField('Unit of values')
     forecast =  StringField('Forecast')
     address =   StringField('Address')
+    latitude =  DecimalField('Latitude')
+    longitude = DecimalField('Longitude')
     lastvalue = Field('Last value', GaugeMeasure)
     history =   Field('Value history', list)  # lastvalue not included
     gaugeid =   StringField('Id of the gauge')
