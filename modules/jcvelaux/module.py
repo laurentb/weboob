@@ -22,7 +22,7 @@ from __future__ import unicode_literals
 from collections import OrderedDict
 
 from weboob.tools.backend import Module, BackendConfig
-from weboob.capabilities.base import StringField, UserError
+from weboob.capabilities.base import UserError
 from weboob.capabilities.gauge import CapGauge, GaugeSensor, Gauge, GaugeMeasure, SensorNotFound
 from weboob.tools.value import Value, ValueBackendPassword
 
@@ -36,7 +36,7 @@ SENSOR_TYPES = OrderedDict([('available_bikes', 'Available bikes'),
                             ('available_bike_stands', 'Free stands'),
                             ('bike_stands', 'Total stands')])
 
-CITIES = ("Paris", "Rouen", "Toulouse", "Luxembourg", "Valence", "Stockholm",
+CITIES = ("Rouen", "Toulouse", "Luxembourg", "Valence", "Stockholm",
           "Goteborg", "Santander", "Amiens", "Lillestrom", "Mulhouse", "Lyon",
           "Ljubljana", "Seville", "Namur", "Nancy", "Creteil", "Bruxelles-Capitale",
           "Cergy-Pontoise", "Vilnius", "Toyama", "Kazan", "Marseille", "Nantes",
@@ -46,11 +46,6 @@ CITIES = ("Paris", "Rouen", "Toulouse", "Luxembourg", "Valence", "Stockholm",
 class BikeMeasure(GaugeMeasure):
     def __repr__(self):
         return '<GaugeMeasure level=%d>' % self.level
-
-
-class BikeSensor(GaugeSensor):
-    longitude = StringField('Longitude of the sensor')
-    latitude = StringField('Latitude of the sensor')
 
 
 class jcvelauxModule(Module, CapGauge):
@@ -64,7 +59,7 @@ class jcvelauxModule(Module, CapGauge):
 
     BROWSER = VelibBrowser
 
-    CONFIG = BackendConfig(Value('city', label='City', default='Paris',
+    CONFIG = BackendConfig(Value('city', label='City', default='Lyon',
                                  choices=CITIES + ("ALL",)),
                            ValueBackendPassword('api_key', label='Optional API key',
                                                 default='', noprompt=True))
@@ -86,7 +81,7 @@ class jcvelauxModule(Module, CapGauge):
 
     def _make_sensor(self, sensor_type, info, gauge):
         id = '%s.%s' % (sensor_type, gauge.id)
-        sensor = BikeSensor(id)
+        sensor = GaugeSensor(id)
         sensor.gaugeid = gauge.id
         sensor.name = SENSOR_TYPES[sensor_type]
         sensor.address = '%s' % info['address']
