@@ -251,9 +251,11 @@ class SGProfessionalBrowser(SGEnterpriseBrowser):
             'n_nbOccurences': '10000',
         }
         self.external_recipients.go(data=data)
-        assert self.page.is_all_external_recipient(), "Some recipients are missing"
-        for external_rcpt in self.page.iter_external_recipients():
-            yield external_rcpt
+
+        if self.page.is_external_recipients():
+            assert self.page.is_all_external_recipient(), "Some recipients are missing"
+            for external_rcpt in self.page.iter_external_recipients():
+                yield external_rcpt
 
     @need_login
     def init_transfer(self, account, recipient, transfer):

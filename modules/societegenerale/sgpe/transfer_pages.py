@@ -34,6 +34,9 @@ from .pages import LoginPage
 
 
 class RecipientsJsonPage(LoggedPage, JsonPage):
+    def is_external_recipients(self):
+        return Dict('donnees/items')(self.doc)
+
     def is_all_external_recipient(self):
         return (
             Dict('donnees/nbTotalDestinataires')(self.doc) == len(self.doc['donnees']['items'])
