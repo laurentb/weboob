@@ -267,9 +267,7 @@ class CmsoProBrowser(LoginBrowser):
             return []
 
         assert self.invest_account.is_here()
-        invests = list(self.page.iter_investments())
-        assert len(invests) < 2, 'implementation should be checked with more than 1 investment' # FIXME
-        return invests
+        return self.page.iter_investments()
 
     @need_login
     def get_profile(self):

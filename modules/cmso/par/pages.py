@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 import re
 import requests
@@ -37,6 +38,7 @@ from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.profile import Profile
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.exceptions import ParseError
+from weboob.tools.capabilities.bank.investments import is_isin_valid
 
 
 def MyDecimal(*args, **kwargs):
@@ -405,6 +407,9 @@ class LifeinsurancePage(LoggedPage, HTMLPage):
             obj_valuation = MyDecimal(TableCell('valuation'))
             obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True, default=NotAvailable)
 
+            def obj_code_type(self):
+                return Investment.CODE_TYPE_ISIN if is_isin_valid(Field('code')(self)) else NotAvailable
+
 
 class MarketPage(LoggedPage, HTMLPage):
     def find_account(self, acclabel, accowner):
@@ -510,12 +515,20 @@ class MarketPage(LoggedPage, HTMLPage):
             condition = lambda self: not CleanText('//div[has-class("errorConteneur")]', default=None)(self.el)
 
             obj_label = Upper(TableCell('label'))
-            obj_code = CleanText(TableCell('code'))
             obj_quantity = MyDecimal(TableCell('quantity'))
             obj_unitprice = MyDecimal(TableCell('unitprice'))
             obj_unitvalue = MyDecimal(TableCell('unitvalue'))
             obj_valuation = CleanDecimal(TableCell('valuation'), replace_dots=True)
             obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True, default=NotAvailable)
+
+            def obj_code(self):
+                if Field('label')(self) == "LIQUIDITES":
+                    return 'XX-liquidity'
+                code = CleanText(TableCell('code'))(self)
+                return code if is_isin_valid(code) else NotAvailable
+
+            def obj_code_type(self):
+                return Investment.CODE_TYPE_ISIN if is_isin_valid(Field('code')(self)) else NotAvailable
 
 
 class AdvisorPage(LoggedPage, JsonPage):

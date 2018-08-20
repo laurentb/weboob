@@ -23,12 +23,13 @@ import re
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.pages import HTMLPage, JsonPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, TableElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, DateGuesser, Env, Field, Filter, Regexp, Currency
+from weboob.browser.filters.standard import CleanText, CleanDecimal, DateGuesser, Env, Field, Filter, Regexp, Currency, Date
 from weboob.browser.filters.html import Link, Attr, TableCell
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.compat import urljoin
+from weboob.tools.capabilities.bank.investments import is_isin_valid
 
 
 __all__ = ['LoginPage']
@@ -181,19 +182,29 @@ class InvestmentAccountPage(CMSOPage):
     @method
     class iter_investments(CmsoTableElement):
         col_label = 'Valeur'
-        col_isin = 'Code'
+        col_code = 'Code'
         col_quantity = u'Qté'
         col_unitvalue = 'Cours'
         col_valuation = 'Valorisation'
+        col_vdate = 'Date cours'
 
         class item(ItemElement):
             klass = Investment
 
             obj_label = CleanText(TableCell('label'))
-            obj_code = CleanText(TableCell('isin'))
             obj_quantity = CleanDecimal(TableCell('quantity'), replace_dots=True)
             obj_unitvalue = CleanDecimal(TableCell('unitvalue'), replace_dots=True)
             obj_valuation = CleanDecimal(TableCell('valuation'), replace_dots=True)
+            obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True, default=NotAvailable)
+
+            def obj_code(self):
+                if Field('label')(self) == "LIQUIDITES":
+                    return 'XX-liquidity'
+                code = CleanText(TableCell('code'))(self)
+                return code if is_isin_valid(code) else NotAvailable
+
+            def obj_code_type(self):
+                return Investment.CODE_TYPE_ISIN if is_isin_valid(Field('code')(self)) else NotAvailable
 
 
 class Transaction(FrenchTransaction):
