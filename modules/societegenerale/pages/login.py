@@ -25,6 +25,8 @@ import re
 from weboob.tools.json import json
 
 from weboob.exceptions import BrowserUnavailable, BrowserPasswordExpired, ActionNeeded
+from weboob.browser.pages import HTMLPage
+from weboob.browser.filters.standard import CleanText
 
 from .base import BasePage
 from ..captcha import Captcha, TileError
@@ -119,3 +121,9 @@ class ActionNeededPage(BasePage):
     # Mise à jour des conditions particulières de vos sonventions de comptes titres
     def on_load(self):
         raise ActionNeeded()
+
+
+class ErrorPage(HTMLPage):
+    def on_load(self):
+        message = CleanText('//span[contains(text(), "Une erreur est survenue lors du chargement de la page")]')(self.doc)
+        raise BrowserUnavailable(message)

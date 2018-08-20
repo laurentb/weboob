@@ -33,7 +33,7 @@ from .pages.accounts_list import (
     ListRibPage, AdvisorPage, HTMLProfilePage, XMLProfilePage, LoansPage, IbanPage,
 )
 from .pages.transfer import RecipientsPage, TransferPage, AddRecipientPage, RecipientJson
-from .pages.login import LoginPage, BadLoginPage, ReinitPasswordPage, ActionNeededPage
+from .pages.login import LoginPage, BadLoginPage, ReinitPasswordPage, ActionNeededPage, ErrorPage
 from .pages.subscription import BankStatementPage
 
 
@@ -75,6 +75,8 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     bank_statement = URL(r'/restitution/rce_derniers_releves.html', BankStatementPage)
     bank_statement_search = URL(r'/restitution/rce_recherche.html\?noRedirect=1',
                                 r'/restitution/rce_recherche_resultat.html', BankStatementPage)
+
+    error = URL('https://static.societegenerale.fr/pri/erreur.html', ErrorPage)
 
     accounts_list = None
     context = None
