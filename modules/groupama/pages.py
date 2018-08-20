@@ -161,6 +161,9 @@ class TransactionsPage(HTMLPage):
             return None
         return re.sub('[ \t\r\n]+', '', a.attrib['href'])
 
+    def has_iban(self):
+        return self.doc.xpath('//a[@class="rib"]')
+
     def go_iban(self):
         js_event = Attr("//a[@class='rib']", 'onclick')(self.doc)
         m = re.search("envoyer(.*);", js_event)

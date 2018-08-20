@@ -72,7 +72,7 @@ class GroupamaBrowser(LoginBrowser):
             if account.balance or not balance:
                 if account.type != Account.TYPE_LIFE_INSURANCE and need_iban:
                     self.location(account._link)
-                    if self.transactions.is_here():
+                    if self.transactions.is_here() and self.page.has_iban():
                         self.page.go_iban()
                         account.iban = self.page.get_iban()
                 accounts.append(account)
