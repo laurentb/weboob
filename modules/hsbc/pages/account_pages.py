@@ -125,6 +125,7 @@ class AccountsPage(GenericLandingPage):
                     ('plan assur. innovat.', Account.TYPE_LIFE_INSURANCE),
                     ('hsbc evol pat transf', Account.TYPE_LIFE_INSURANCE),
                     ('bourse libre', Account.TYPE_MARKET),
+                    ('plurival', Account.TYPE_LIFE_INSURANCE),
                 ]
 
                 def filter(self, label):
