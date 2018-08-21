@@ -175,6 +175,7 @@ class item_account_generic(ItemElement):
         'Allure Libre',
         'Preference',
         'Plan 4',
+        'Credit En Reserve',
     ]
 
     def condition(self):
@@ -1442,7 +1443,7 @@ class RevolvingLoansList(LoggedPage, HTMLPage):
             obj_label = CleanText('.//td[2]')
             obj_total_amount = MyDecimal('.//td[3]')
             obj_currency = FrenchTransaction.Currency(CleanText('.//td[3]'))
-            obj_type = Account.TYPE_LOAN
+            obj_type = Account.TYPE_REVOLVING_CREDIT
             obj__is_inv = False
             obj__link_id = None
 
