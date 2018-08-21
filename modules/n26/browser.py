@@ -91,6 +91,7 @@ class Number26Browser(DomainBrowser):
     @need_login
     def get_accounts(self):
         account = self.request('/api/accounts')
+        spaces = self.request('/api/spaces')
 
         a = Account()
 
@@ -100,7 +101,7 @@ class Number26Browser(DomainBrowser):
 
         a.id = account["id"]
         a.number = NotAvailable
-        a.balance = Decimal(str(account["availableBalance"]))
+        a.balance = Decimal(str(spaces["totalBalance"]))
         a.iban = account["iban"]
         a.currency = u'EUR'
 
