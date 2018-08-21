@@ -36,6 +36,8 @@ from weboob.tools.compat import quote_plus
 from .pages import Transaction
 
 class AccountsJsonPage(LoggedPage, JsonPage):
+    ENCODING = 'utf-8'
+
     TYPES = {u'COMPTE COURANT':      Account.TYPE_CHECKING,
              u'COMPTE PERSONNEL':    Account.TYPE_CHECKING,
              u'CPTE PRO':            Account.TYPE_CHECKING,

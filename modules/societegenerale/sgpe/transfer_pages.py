@@ -25,6 +25,7 @@ from datetime import date
 
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage
 from weboob.browser.elements import method, DictElement, ItemElement
+from weboob.browser.filters.standard import CleanText
 from weboob.browser.filters.html import Attr
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import Date, Eval
@@ -72,7 +73,7 @@ class EasyTransferPage(LoggedPage, HTMLPage):
             json_data = json.loads(data.replace('&quot;', '"'))
 
             if (
-                origin_account.label == json_data['libelleCompte']
+                origin_account.label == CleanText().filter(json_data['libelleCompte'])
                 and origin_account.iban == json_data['ibanCompte']
             ):
                 origin_account._currency_code = json_data['codeDevise']
@@ -88,7 +89,7 @@ class EasyTransferPage(LoggedPage, HTMLPage):
                 origin_account._underproduct_code = json_data['codeSousProduit']
                 break
         else:
-            assert False, 'Account % not found on transfer page' % (origin_account.label)
+            assert False, 'Account %s not found on transfer page' % (origin_account.label)
 
     def iter_internal_recipients(self):
         if self.doc.xpath('//ul[@id="idCmptToInterne"]'):
