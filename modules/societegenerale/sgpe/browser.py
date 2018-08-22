@@ -230,6 +230,10 @@ class SGProfessionalBrowser(SGEnterpriseBrowser):
         self.easy_transfer.go()
         self.page.update_origin_account(origin_account)
 
+        if not hasattr(origin_account, '_product_code'):
+            # check that origin account is updated, if not, this account can't do transfer
+            return
+
         params = {
             'cl_ibanEmetteur': origin_account.iban,
             'cl_codeProduit': origin_account._product_code,

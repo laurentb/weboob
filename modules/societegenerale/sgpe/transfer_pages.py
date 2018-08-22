@@ -89,7 +89,13 @@ class EasyTransferPage(LoggedPage, HTMLPage):
                 origin_account._underproduct_code = json_data['codeSousProduit']
                 break
         else:
-            assert False, 'Account %s not found on transfer page' % (origin_account.label)
+            assumptions = (
+                not origin_account.balance,
+                not origin_account.iban,
+                origin_account.currency != 'EUR',
+            )
+            if not any(assumptions):
+                assert False, 'Account %s not found on transfer page' % (origin_account.label)
 
     def iter_internal_recipients(self):
         if self.doc.xpath('//ul[@id="idCmptToInterne"]'):
