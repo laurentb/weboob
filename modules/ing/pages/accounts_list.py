@@ -47,6 +47,7 @@ class Transaction(FrenchTransaction):
                 (re.compile(u'^prelevement (?P<text>.*)'), FrenchTransaction.TYPE_ORDER),
                 (re.compile(u'^prlv sepa (?P<text>.*)'), FrenchTransaction.TYPE_ORDER),
                 (re.compile(u'^prélèvement sepa en faveur de (?P<text>.*)'), FrenchTransaction.TYPE_ORDER),
+                (re.compile(u'^commission sur (?P<text>.*)'), FrenchTransaction.TYPE_BANK),
                 ]
 
 
