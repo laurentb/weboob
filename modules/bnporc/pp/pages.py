@@ -610,20 +610,20 @@ class NatioVieProPage(BNPPage):
             'init':        'true',
             'multiInit':   'false',
         }
-	params['a0'] = self.doc['data']['nationVieProInfos']['a0']
-	# The number of "p" keys may vary (p0, p1, p2 ... up to p13 or more)
-	for key, value in self.doc['data']['nationVieProInfos']['listeP'].items():
-	    params[key] = value
-	# We must decode the values before constructing the URL:
-	for k, v in params.items():
-	    params[k] = unquote_plus(v)
-	return params
+        params['a0'] = self.doc['data']['nationVieProInfos']['a0']
+        # The number of "p" keys may vary (p0, p1, p2 ... up to p13 or more)
+        for key, value in self.doc['data']['nationVieProInfos']['listeP'].items():
+            params[key] = value
+        # We must decode the values before constructing the URL:
+        for k, v in params.items():
+            params[k] = unquote_plus(v)
+        return params
 
 
 class CapitalisationPage(LoggedPage, HTMLPage):
     def has_contracts(self):
-	# This message will appear if the page "Assurance Vie" contains no contract.
-	return not CleanText('//td[@class="message"]/text()[starts-with(., "Pour toute information")]')(self.doc)
+        # This message will appear if the page "Assurance Vie" contains no contract.
+        return not CleanText('//td[@class="message"]/text()[starts-with(., "Pour toute information")]')(self.doc)
 
     # To be completed with other account labels and types seen on the "Assurance Vie" space:
     ACCOUNT_TYPES = {
@@ -635,32 +635,32 @@ class CapitalisationPage(LoggedPage, HTMLPage):
 
     @method
     class iter_capitalisation(TableElement):
-	# Other types of tables may appear on the page (such as Alternative Emprunteur/Capital Assuré)
-	# But they do not contain bank accounts so we must avoid them.
+        # Other types of tables may appear on the page (such as Alternative Emprunteur/Capital Assuré)
+        # But they do not contain bank accounts so we must avoid them.
         item_xpath = '//table/tr[preceding-sibling::tr[th[text()="Libellé du contrat"]]][td[@class="ligneTableau"]]'
 
-	head_xpath = '//table/tr/th[@class="headerTableau"]'
+        head_xpath = '//table/tr/th[@class="headerTableau"]'
 
-	col_label = 'Libellé du contrat'
-	col_id = 'Numéro de contrat'
-	col_balance = 'Montant'
-	col_currency = "Monnaie d'affichage"
+        col_label = 'Libellé du contrat'
+        col_id = 'Numéro de contrat'
+        col_balance = 'Montant'
+        col_currency = "Monnaie d'affichage"
 
         class item(ItemElement):
             klass = Account
 
             obj_label = CleanText(TableCell('label'))
-	    obj_id = CleanText(TableCell('id'))
+            obj_id = CleanText(TableCell('id'))
             obj_number = CleanText(TableCell('id'))
             obj_balance = CleanDecimal(TableCell('balance'), replace_dots=True)
-	    obj_coming = None
-	    obj_iban = None
+            obj_coming = None
+            obj_iban = None
 
             def obj_type(self):
-		for k, v in self.page.ACCOUNT_TYPES.items():
-		    if Field('label')(self).startswith(k):
-			return v
-		return Account.TYPE_UNKNOWN
+                for k, v in self.page.ACCOUNT_TYPES.items():
+                    if Field('label')(self).startswith(k):
+                        return v
+                return Account.TYPE_UNKNOWN
 
             def obj_currency(self):
                 currency = CleanText(TableCell('currency')(self))(self)
@@ -670,55 +670,55 @@ class CapitalisationPage(LoggedPage, HTMLPage):
             def obj__details(self):
                 raw_details = CleanText((TableCell('balance')(self)[0]).xpath('./a/@href'))(self)
                 m = re.search(r"Window\('(.*?)',window", raw_details)
-		if m:
+                if m:
                     return m.group(1)
 
     def get_params(self, account):
-	form = self.get_form(xpath='//form[@name="formListeContrats"]')
-	form['postValue'] = account._details
-	return form
+        form = self.get_form(xpath='//form[@name="formListeContrats"]')
+        form['postValue'] = account._details
+        return form
 
     # The investments vdate is out of the investments table and is the same for all investments:
     def get_vdate(self):
-	return parse_french_date(CleanText('//table[tr[th[text()[contains(., "Date de valorisation")]]]]/tr[2]/td[2]')(self.doc))
+        return parse_french_date(CleanText('//table[tr[th[text()[contains(., "Date de valorisation")]]]]/tr[2]/td[2]')(self.doc))
 
     @method
     class iter_investments(TableElement):
-	# Investment lines contain at least 5 <td> tags
+        # Investment lines contain at least 5 <td> tags
         item_xpath = '//table[tr[th[text()[contains(., "Libellé")]]]]/tr[count(td)>=5]'
-	head_xpath = '//table[tr[th[text()[contains(., "Libellé")]]]]/tr/th[@class="headerTableau"]'
+        head_xpath = '//table[tr[th[text()[contains(., "Libellé")]]]]/tr/th[@class="headerTableau"]'
 
-	col_label = 'Libellé'
-	col_code = 'Code ISIN'
-	col_quantity = 'Nombre de parts'
-	col_valuation = 'Montant'
-	col_portfolio_share = 'Montant en %'
+        col_label = 'Libellé'
+        col_code = 'Code ISIN'
+        col_quantity = 'Nombre de parts'
+        col_valuation = 'Montant'
+        col_portfolio_share = 'Montant en %'
 
         class item(ItemElement):
             klass = Investment
 
-	    obj_label = CleanText(TableCell('label'))
-	    obj_valuation = CleanDecimal(TableCell('valuation'), replace_dots=True)
-	    obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal(TableCell('portfolio_share'), replace_dots=True))
-	    # There is no "unitvalue" information available on the "Assurances Vie" space.
+            obj_label = CleanText(TableCell('label'))
+            obj_valuation = CleanDecimal(TableCell('valuation'), replace_dots=True)
+            obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal(TableCell('portfolio_share'), replace_dots=True))
+            # There is no "unitvalue" information available on the "Assurances Vie" space.
 
-	    def obj_quantity(self):
-		quantity = TableCell('quantity')(self)
-		if CleanText(quantity)(self) == '-':
-		    return NotAvailable
-		return CleanDecimal(quantity, replace_dots=True)(self)
+            def obj_quantity(self):
+                quantity = TableCell('quantity')(self)
+                if CleanText(quantity)(self) == '-':
+                    return NotAvailable
+                return CleanDecimal(quantity, replace_dots=True)(self)
 
-	    def obj_code(self):
-		isin = CleanText(TableCell('code')(self))(self)
-		return isin or NotAvailable
+            def obj_code(self):
+                isin = CleanText(TableCell('code')(self))(self)
+                return isin or NotAvailable
 
-	    def obj_code_type(self):
-		if is_isin_valid(Field('code')(self)):
-		    return Investment.CODE_TYPE_ISIN
-		return NotAvailable
+            def obj_code_type(self):
+                if is_isin_valid(Field('code')(self)):
+                    return Investment.CODE_TYPE_ISIN
+                return NotAvailable
 
-	    def obj_vdate(self):
-		return self.page.get_vdate()
+            def obj_vdate(self):
+                return self.page.get_vdate()
 
 
 class MarketListPage(BNPPage):
