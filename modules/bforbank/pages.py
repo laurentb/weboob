@@ -359,6 +359,18 @@ class LifeInsuranceRedir(LoggedPage, HTMLPage):
                 return match.group(1)
 
 
+class BourseActionNeeded(LoggedPage, HTMLPage):
+    ENCODING = 'latin-1'
+    XPATH = "//div[contains(text(), 'Création ou modification de votre mot de passe trading')]"
+
+    def is_here(self):
+        return CleanText(self.XPATH)(self.doc)
+
+    def on_load(self):
+        error = CleanText(self.XPATH)(self.doc)
+        raise ActionNeeded(error)
+
+
 class BoursePage(AbstractPage):
     PARENT = 'lcl'
     PARENT_URL = 'bourse'

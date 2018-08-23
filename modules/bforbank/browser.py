@@ -29,7 +29,7 @@ from weboob.tools.capabilities.bank.investments import create_french_liquidity
 from .pages import (
     LoginPage, ErrorPage, AccountsPage, HistoryPage, LoanHistoryPage, RibPage,
     LifeInsuranceList, LifeInsuranceIframe, LifeInsuranceRedir,
-    BoursePage, CardHistoryPage, CardPage, UserValidationPage,
+    BoursePage, CardHistoryPage, CardPage, UserValidationPage, BourseActionNeeded,
 )
 from .spirica_browser import SpiricaBrowser
 
@@ -60,6 +60,7 @@ class BforbankBrowser(LoginBrowser):
                               ErrorPage)
 
     bourse_login = URL(r'/espace-client/titres/debranchementCaTitre/(?P<id>\d+)')
+    bourse_action_needed = URL('https://bourse.bforbank.com/netfinca-titres/*', BourseActionNeeded)
     bourse = URL('https://bourse.bforbank.com/netfinca-titres/servlet/com.netfinca.frontcr.synthesis.HomeSynthesis',
                  'https://bourse.bforbank.com/netfinca-titres/servlet/com.netfinca.frontcr.account.*',
                  BoursePage)
