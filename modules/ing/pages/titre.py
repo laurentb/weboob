@@ -26,7 +26,7 @@ from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Investment
 from weboob.browser.pages import RawPage, HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, TableElement, ItemElement, method
-from weboob.browser.filters.standard import CleanDecimal, CleanText, Date, Regexp, Env, Async, AsyncLoad
+from weboob.browser.filters.standard import CleanDecimal, CleanText, Date, Regexp, Env
 from weboob.browser.filters.html import Link, Attr, TableCell
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.compat import unicode
@@ -151,14 +151,14 @@ class ASVHistory(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Investment
 
-            load_details = Regexp(Attr('./td/a', 'onclick', default=""), 'PageExterne\(\'([^\']+)', default=None) & AsyncLoad
-
             obj_label = CleanText(TableCell('label'))
-            obj_code = Async('details') & CleanText('//td[contains(text(), "CodeISIN")]/b', default=NotAvailable)
             obj_quantity = CleanDecimal(TableCell('quantity'), replace_dots=True, default=NotAvailable)
             obj_unitvalue = CleanDecimal(TableCell('unitvalue'), replace_dots=True, default=NotAvailable)
             obj_valuation = CleanDecimal(TableCell('valuation'), replace_dots=True)
             obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True)
+
+            obj__code_url = Regexp(Attr('./td/a', 'onclick', default=""), r'PageExterne\(\'([^\']+)', default=None)
+
 
     @pagination
     @method

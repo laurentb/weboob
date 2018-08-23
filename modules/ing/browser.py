@@ -488,12 +488,30 @@ class IngBrowser(LoginBrowser):
             return iter([])
 
         transactions = list()
+        # In order to reduce the amount of requests just to get ISIN codes, we fill
+        # a dictionary with already visited investment pages and store their ISIN codes:
+        isin_codes = {}
         for tr in self.page.iter_history():
             transactions.append(tr)
         if self.asv_history.is_here():
             for tr in transactions:
                 page = tr._detail.result().page if tr._detail else None
-                tr.investments = list(page.get_investments()) if page and 'numMvt' in page.url else []
+                if page and 'numMvt' in page.url:
+                    investment_list = list()
+                    for inv in page.get_investments():
+                        if inv._code_url in isin_codes:
+                            inv.code = isin_codes.get(inv._code_url)
+                        else:
+                            # Fonds en euros (Eurossima) have no _code_url so we must set their code to None
+                            if inv._code_url:
+                                self.location(inv._code_url)
+                                inv.code = self.page.get_isin_code()
+                                isin_codes[inv._code_url] = inv.code
+                            else:
+                                inv.code = None
+                        investment_list.append(inv)
+                    tr.investments = investment_list
+
             self.lifeback.go()
         return iter(transactions)
 

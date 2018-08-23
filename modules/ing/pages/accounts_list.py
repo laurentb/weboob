@@ -417,7 +417,8 @@ class ASVInvest(LoggedPage, HTMLPage):
 
 
 class DetailFondsPage(LoggedPage, HTMLPage):
-    pass
+    def get_isin_code(self):
+        return CleanText('//td[contains(text(), "CodeISIN")]/b', default=NotAvailable)(self.doc)
 
 
 def MyInput(*args, **kwargs):
