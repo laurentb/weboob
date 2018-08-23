@@ -32,7 +32,7 @@ from weboob.browser.filters.standard import (
     CleanText, Date, Regexp, CleanDecimal, Currency, Format, Field,
 )
 from weboob.capabilities.bank import (
-    Recipient, Transfer, TransferError, AddRecipientError, RecipientNotFound,
+    Recipient, Transfer, TransferBankError, AddRecipientError, RecipientNotFound,
 )
 from weboob.tools.captcha.virtkeyboard import SimpleVirtualKeyboard
 from weboob.capabilities.base import find_object, NotAvailable
@@ -218,7 +218,7 @@ class RegisterTransferPage(LoggedPage, HTMLPage):
         error_xpath = '//span[@class="erreur_phrase"]'
         if self.doc.xpath(error_xpath):
             error_msg = CleanText(error_xpath)(self.doc)
-            raise TransferError(message=error_msg)
+            raise TransferBankError(message=error_msg)
 
     def is_transfer_account(self, acc_id):
         valide_accounts_xpath = '//select[@id="compteEmetteurSelectionne"]//option[not(contains(@value,"vide0"))]'
@@ -357,7 +357,7 @@ class ConfirmTransferPage(LoggedPage, HTMLPage):
     def on_load(self):
         error_msg = '//p[@id="messErreur"]/span'
         if self.doc.xpath(error_msg):
-            raise TransferError(message=CleanText(error_msg)(self.doc))
+            raise TransferBankError(message=CleanText(error_msg)(self.doc))
 
         confirm_transfer_xpath = '//h2[contains(text(), "Virement enregistr")]'
         assert self.doc.xpath(confirm_transfer_xpath)
