@@ -27,17 +27,16 @@ from weboob.browser.filters.html import Attr, XPathNotFound
 from weboob.browser.pages import HTMLPage, RawPage, LoggedPage
 from weboob.capabilities.bill import Subscription, Detail, Bill
 from weboob.browser.filters.standard import CleanText, Regexp
-from weboob.tools.compat import urljoin
 
 
 # Ugly array to avoid the use of french locale
-FRENCH_MONTHS = [u'janvier', u'février', u'mars', u'avril', u'mai', u'juin', u'juillet', u'août', u'septembre', u'octobre', u'novembre', u'décembre']
+FRENCH_MONTHS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
 
 
 class AmeliBasePage(HTMLPage):
     @property
     def logged(self):
-        if self.doc.xpath(u'//a[contains(text(), "Déconnexion")]'):
+        if self.doc.xpath('//a[contains(text(), "Déconnexion")]'):
             logged = True
         else:
             logged = False
@@ -45,7 +44,7 @@ class AmeliBasePage(HTMLPage):
         return logged
 
     def is_error(self):
-        errors = self.doc.xpath(u'//*[@id="r_errors"]')
+        errors = self.doc.xpath('//*[@id="r_errors"]')
         if errors:
             return errors[0].text_content()
 
@@ -86,7 +85,7 @@ class AccountPage(AmeliBasePage):
     def iter_subscription_list(self):
         names_list = self.doc.xpath('//span[@class="NomEtPrenomLabel"]')
         fullname = CleanText(newlines=True).filter(names_list[0])
-        number = re.sub('[^\d]+', '', CleanText('//span[@class="blocNumSecu"]', replace=[(' ','')])(self.doc))
+        number = re.sub(r'[^\d]+', '', CleanText('//span[@class="blocNumSecu"]', replace=[(' ','')])(self.doc))
         sub = Subscription(number)
         sub._id = number
         sub.label = fullname
@@ -126,10 +125,10 @@ class LastPaymentsPage(LoggedPage, AmeliBasePage):
             bil = Bill()
             bil.id = sub._id + "." + date.strftime("%Y%m")
             bil.date = date
-            bil.format = u'pdf'
-            bil.type = u'bill'
-            bil.label = u'' + date.strftime("%Y%m%d")
-            bil.url = urljoin(self.url, '/PortailAS/PDFServletReleveMensuel.dopdf?PDF.moisRecherche=%s' % date.strftime("%m%Y"))
+            bil.format = 'pdf'
+            bil.type = 'bill'
+            bil.label = date.strftime("%Y%m%d")
+            bil.url = '/PortailAS/PDFServletReleveMensuel.dopdf?PDF.moisRecherche=' + date.strftime("%m%Y")
             yield bil
 
     def get_document(self, bill):
@@ -139,7 +138,7 @@ class LastPaymentsPage(LoggedPage, AmeliBasePage):
 class PaymentDetailsPage(AmeliBasePage):
     def iter_payment_details(self, sub):
         id_str = self.doc.xpath('//div[@class="entete container"]/h2')[0].text.strip()
-        m = re.match('.*le (.*) pour un montant de.*', id_str)
+        m = re.match(r'.*le (.*) pour un montant de.*', id_str)
         if m:
             blocs_benes = self.doc.xpath('//span[contains(@id,"nomBeneficiaire")]')
             blocs_prestas = self.doc.xpath('//table[@id="tableauPrestation"]')
@@ -179,18 +178,18 @@ class PaymentDetailsPage(AmeliBasePage):
                             price = '0'
 
                         if date_str is None or date_str == '':
-                            det.infos = u''
+                            det.infos = ''
                             det.datetime = last_date
                         else:
-                            det.infos = '%s (%sj) * %s€' % (date_str, re.sub(r'[^\d,-]+', '', jours), re.sub(r'[^\d,-]+', '', montant))
+                            det.infos = date_str + ' (' + re.sub(r'[^\d,-]+', '', jours) + 'j) * ' + re.sub(r'[^\d,-]+', '', montant) + '€'
                             det.datetime = datetime.strptime(date_str.split(' ')[3], '%d/%m/%Y').date()
                             last_date = det.datetime
-                        det.price = Decimal(re.sub('[^\d,-]+', '', price).replace(',', '.'))
+                        det.price = Decimal(re.sub(r'[^\d,-]+', '', price).replace(',', '.'))
 
                     if len(tds) == 5:
                         date_str = Regexp(pattern=r'\w*(\d{2})/(\d{2})/(\d{4}).*', template='\\1/\\2/\\3', default="").filter("".join(tds[0].itertext()))
                         det.id = id + "." + str(line)
-                        det.label = '%s - %s' % (bene, tds[0].xpath('.//span')[0].text.strip())
+                        det.label = bene + ' - ' + tds[0].xpath('.//span')[0].text.strip()
 
                         paye = tds[1].text
                         if paye is None:
@@ -213,13 +212,13 @@ class PaymentDetailsPage(AmeliBasePage):
                             price = tdprice.strip()
 
                         if date_str is None or date_str == '':
-                            det.infos = u''
+                            det.infos = ''
                             det.datetime = last_date
                         else:
-                            det.infos = u' Payé %s€ / Base %s€ / Taux %s%%' % (re.sub(r'[^\d,-]+', '', paye), re.sub(r'[^\d,-]+', '', base), re.sub('[^\d,-]+', '', taux))
+                            det.infos = ' Payé ' + re.sub(r'[^\d,-]+', '', paye) + '€ / Base ' + re.sub(r'[^\d,-]+', '', base) + '€ / Taux ' + re.sub(r'[^\d,-]+', '', taux) + '%'
                             det.datetime = datetime.strptime(date_str, '%d/%m/%Y').date()
                             last_date = det.datetime
-                        det.price = Decimal(re.sub('[^\d,-]+', '', price).replace(',', '.'))
+                        det.price = Decimal(re.sub(r'[^\d,-]+', '', price).replace(',', '.'))
                     line = line + 1
                     yield det
 

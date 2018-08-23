@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from weboob.tools.compat import basestring
@@ -28,13 +30,13 @@ __all__ = ['AmeliBrowser']
 class AmeliBrowser(LoginBrowser):
     BASEURL = 'https://assure.ameli.fr'
 
-    loginp = URL('/PortailAS/appmanager/PortailAS/assure\?.*_pageLabel=as_login_page', LoginPage)
-    homep = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_accueil_page', HomePage)
-    cgup = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_conditions_generales_page', CguPage)
-    accountp = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_info_perso_page', AccountPage)
-    paymentsp = URL('/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_paiements_page', PaymentsPage)
-    paymentdetailsp = URL('/PortailAS/paiements.do\?actionEvt=chargerDetailPaiements.*', PaymentDetailsPage)
-    lastpaymentsp = URL('/PortailAS/paiements.do\?actionEvt=afficherPaiements.*', LastPaymentsPage)
+    loginp = URL(r'/PortailAS/appmanager/PortailAS/assure\?.*_pageLabel=as_login_page', LoginPage)
+    homep = URL(r'/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_accueil_page', HomePage)
+    cgup = URL(r'/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_conditions_generales_page', CguPage)
+    accountp = URL(r'/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_info_perso_page', AccountPage)
+    paymentsp = URL(r'/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_paiements_page', PaymentsPage)
+    paymentdetailsp = URL(r'/PortailAS/paiements.do\?actionEvt=chargerDetailPaiements.*', PaymentDetailsPage)
+    lastpaymentsp = URL(r'/PortailAS/paiements.do\?actionEvt=afficherPaiements.*', LastPaymentsPage)
     pdf_page = URL(r'PortailAS/PDFServletReleveMensuel.dopdf\?PDF.moisRecherche=.*', Raw)
 
     def do_login(self):

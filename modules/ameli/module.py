@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 from weboob.capabilities.bill import CapDocument, SubscriptionNotFound, DocumentNotFound, Subscription, Bill
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
@@ -27,8 +29,8 @@ __all__ = ['AmeliModule']
 
 class AmeliModule(Module, CapDocument):
     NAME = 'ameli'
-    DESCRIPTION = u'Ameli website: French Health Insurance'
-    MAINTAINER = u'Christophe Lampin'
+    DESCRIPTION = 'Ameli website: French Health Insurance'
+    MAINTAINER = 'Christophe Lampin'
     EMAIL = 'weboob@lampin.net'
     VERSION = '1.4'
     LICENSE = 'AGPLv3+'
@@ -75,6 +77,7 @@ class AmeliModule(Module, CapDocument):
     def download_document(self, bill):
         if not isinstance(bill, Bill):
             bill = self.get_document(bill)
-        request = self.browser.open(bill.url, stream=True)
-        assert(request.headers['content-type'] == "application/pdf")
-        return request.content
+        response = self.browser.open(bill.url, stream=True)
+        if not response or response.headers['content-type'] != "application/pdf":
+            return None
+        return response.content
