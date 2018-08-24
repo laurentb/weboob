@@ -107,6 +107,9 @@ class CreditMutuelModule(Module, CapBankWealth, CapBankTransferAddRecipient, Cap
         except (AssertionError, ValueError):
             raise TransferError('something went wrong')
 
+        # drop characters that can crash website
+        transfer.label = transfer.label.encode('cp1252', errors="ignore").decode('cp1252')
+
         return self.browser.init_transfer(account, recipient, amount, transfer.label)
 
     def execute_transfer(self, transfer, **params):
