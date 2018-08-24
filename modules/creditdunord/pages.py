@@ -28,9 +28,9 @@ from datetime import date as da
 from lxml import html
 
 from weboob.browser.pages import HTMLPage, LoggedPage
-from weboob.browser.elements import method, ItemElement
-from weboob.browser.filters.standard import CleanText, Date, CleanDecimal, Regexp
-from weboob.browser.filters.html import Attr
+from weboob.browser.elements import method, ItemElement, TableElement
+from weboob.browser.filters.standard import CleanText, Date, CleanDecimal, Regexp, Field
+from weboob.browser.filters.html import Attr, TableCell
 from weboob.exceptions import ActionNeeded, BrowserIncorrectPassword, BrowserUnavailable, BrowserPasswordExpired
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.profile import Profile
@@ -619,29 +619,39 @@ class TransactionsPage(LoggedPage, CDNBasePage):
 
                 yield inv
 
-    def get_deposit_investment(self):
-        COL_LABEL = 0
-        COL_QUANTITY = 3
-        COL_UNITVALUE = 4
-        COL_VALUATION = 5
+    @method
+    class get_deposit_investment(TableElement):
+        item_xpath = '//table[@class="datas"]/tr[not(@class="entete")]'
+        head_xpath = '//table[@class="datas"]/tr[(@class="entete")]/td/b'
 
-        for tr in self.doc.xpath('//table[@class="datas"]/tr[not(@class="entete")]'):
-            cols = tr.findall('td')
+        col_label = re.compile('Libellé')
+        col_quantity = 'Quantité'
+        col_valuation = 'Montant (EUR)'
+        col_unitvalue = re.compile('Valeur liquidative')
 
-            inv = Investment()
-            inv.label = CleanText('.')(cols[COL_LABEL].xpath('.//a')[0])
-            inv.code = CleanText('./text()')(cols[COL_LABEL])
-            inv.quantity = MyDecimal('.')(cols[COL_QUANTITY])
-            inv.unitvalue = MyDecimal().filter(CleanText('.')(cols[COL_UNITVALUE]).split()[0])
-            if inv.unitvalue is not NotAvailable:
-                inv.vdate = Date(dayfirst=True, default=NotAvailable)\
-                   .filter(Regexp(CleanText('.'), '(\d{2})/(\d{2})/(\d{4})', '\\3-\\2-\\1', default=NotAvailable)(cols[COL_UNITVALUE])) or \
-                   Date(dayfirst=True, default=NotAvailable)\
-                   .filter(Regexp(CleanText('//tr[td[span[b[contains(text(), "Estimation du contrat")]]]]/td[2]'),
-                                  '(\d{2})/(\d{2})/(\d{4})', '\\3-\\2-\\1', default=NotAvailable)(cols[COL_UNITVALUE]))
-            inv.valuation = MyDecimal('.')(cols[COL_VALUATION])
+        class item(ItemElement):
+            klass = Investment
 
-            yield inv
+            def obj_label(self):
+                return CleanText('./a')(TableCell("label")(self)[0]) or CleanText(TableCell("label"))(self)
+
+            def obj_code(self):
+                link_label = CleanText('./a')(TableCell("label")(self)[0])
+                if link_label:
+                    return CleanText('./text()', default=NotAvailable)(TableCell("label")(self)[0])
+
+            obj_quantity = MyDecimal(TableCell("quantity"))
+
+            obj_unitvalue = MyDecimal(TableCell("unitvalue"))
+
+            def obj_vdate(self):
+                if Field('unitvalue')(self):
+                    return Date().filter(TableCell("unitvalue")(self)[0].xpath("./text()")[1])
+                return Date(dayfirst=True, default=NotAvailable).filter(Regexp(CleanText('(//tr[td[span|b[contains(text(), "Estimation du contrat")]]]/td[2]/span)[2]'), \
+                              '(\d{2})/(\d{2})/(\d{4})', '\\3-\\2-\\1', default=NotAvailable)(self.page.doc))
+
+            obj_valuation = MyDecimal(TableCell("valuation"))
+
 
     def fill_diff_currency(self, account):
         valuation_diff = CleanText(u'//td[span[contains(text(), "dont +/- value : ")]]//b', default=None)(self.doc)
