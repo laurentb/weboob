@@ -27,7 +27,7 @@ from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.exceptions import ServerError
 from weboob.capabilities.bank import Account, AccountNotFound
-from weboob.capabilities.base import find_object
+from weboob.capabilities.base import find_object, NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 from .pages import (
@@ -505,13 +505,16 @@ class IngBrowser(LoginBrowser):
                             # Fonds en euros (Eurossima) have no _code_url so we must set their code to None
                             if inv._code_url:
                                 self.location(inv._code_url)
-                                inv.code = self.page.get_isin_code()
-                                isin_codes[inv._code_url] = inv.code
+                                if self.detailfonds.is_here():
+                                    inv.code = self.page.get_isin_code()
+                                    isin_codes[inv._code_url] = inv.code
+                                else:
+                                    # In case the page is not available or blocked:
+                                    inv.code = NotAvailable
                             else:
                                 inv.code = None
                         investment_list.append(inv)
                     tr.investments = investment_list
-
             self.lifeback.go()
         return iter(transactions)
 
