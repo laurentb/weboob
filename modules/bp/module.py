@@ -102,7 +102,14 @@ class BPModule(
         except (AssertionError, ValueError):
             raise TransferError('something went wrong')
 
+        # format label like label sent by firefox or chromium browser
+        transfer.label = transfer.label.encode('latin-1', errors="xmlcharrefreplace").decode('latin-1')
+
         return self.browser.init_transfer(account, recipient, amount, transfer)
+
+    def transfer_check_label(self, old, new):
+        old = old.encode('latin-1', errors="xmlcharrefreplace").decode('latin-1')
+        return super(BPModule, self).transfer_check_label(old, new)
 
     def execute_transfer(self, transfer, **params):
         return self.browser.execute_transfer(transfer)
