@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
 
-import anydbm
 import yaml
 
 from .iconfig import ConfigError, IConfig
+from .yamlconfig import WeboobDumper
 
 try:
     from yaml import CLoader as Loader
 except ImportError:
     from yaml import Loader
 
-from .yamlconfig import WeboobDumper
+try:
+    import anydbm as dbm
+except ImportError:
+    import dbm
 
 
 __all__ = ['AnyDBMConfig']
@@ -21,7 +24,7 @@ class AnyDBMConfig(IConfig):
         self.path = path
 
     def load(self, default={}):
-        self.storage = anydbm.open(self.path, 'c')
+        self.storage = dbm.open(self.path, 'c')
 
     def save(self):
         pass
