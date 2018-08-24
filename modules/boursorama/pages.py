@@ -35,10 +35,14 @@ from weboob.browser.filters.standard import (
 )
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import Attr, Link, TableCell, AbsoluteLink
-from weboob.capabilities.bank import Account, Investment, Recipient, Transfer, AccountNotFound, AddRecipientError, TransferInvalidAmount
+from weboob.capabilities.bank import (
+    Account, Investment, Recipient, Transfer, AccountNotFound,
+    AddRecipientError, TransferInvalidAmount,
+)
 from weboob.capabilities.base import NotAvailable, empty
 from weboob.capabilities.profile import Person
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.value import Value
 from weboob.tools.date import parse_french_date
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard, VirtKeyboardError
@@ -889,6 +893,13 @@ class TransferRecipients(LoggedPage, HTMLPage):
                 return datetime.datetime.now().replace(microsecond=0)
 
             obj__tempid = Attr('.', 'data-value')
+
+            def condition(self):
+                iban = Field('iban')(self)
+                if iban:
+                    return is_iban_valid(iban)
+                # some internal accounts don't show iban
+                return True
 
     def submit_recipient(self, tempid):
         form = self.get_form(name='CreditAccount')
