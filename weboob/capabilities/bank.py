@@ -681,6 +681,7 @@ class CapBankTransfer(CapBank):
         return self.execute_transfer(t, **params)
 
     def transfer_check_label(self, old, new):
+        old = re.sub(r'\s+', ' ', old).strip()
         return unidecode(old) == unidecode(new)
 
 
