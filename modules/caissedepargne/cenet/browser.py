@@ -30,7 +30,7 @@ from .pages import (
     ErrorPage,
     LoginPage, CenetLoginPage, CenetHomePage,
     CenetAccountsPage, CenetAccountHistoryPage, CenetCardsPage,
-    CenetCardSummaryPage,
+    CenetCardSummaryPage, SubscriptionPage, DownloadDocumentPage,
 )
 from ..pages import CaissedepargneKeyboard
 
@@ -58,6 +58,10 @@ class CenetBrowser(LoginBrowser, StatesMixin):
                 r'https://.*/particuliers/Page_erreur_technique.aspx.*', ErrorPage)
     cenet_login = URL(r'https://.*/$',
                       r'https://.*/default.aspx', CenetLoginPage)
+
+    subscription = URL('/Web/Api/ApiReleves.asmx/ChargerListeEtablissements', SubscriptionPage)
+    documents = URL('/Web/Api/ApiReleves.asmx/ChargerListeReleves', SubscriptionPage)
+    download = URL(r'/Default.aspx\?dashboard=ComptesReleves&lien=SuiviReleves', DownloadDocumentPage)
 
     __states__ = ('BASEURL',)
 
@@ -234,3 +238,43 @@ class CenetBrowser(LoginBrowser, StatesMixin):
 
     def new_recipient(self, recipient, **params):
         raise NotImplementedError()
+
+    @need_login
+    def iter_subscription(self):
+        subscriber = self.get_profile().name
+        json_data = {
+            'contexte': '',
+            'dateEntree': None,
+            'donneesEntree': 'null',
+            'filtreEntree': None
+        }
+        self.subscription.go(json=json_data)
+        return self.page.iter_subscription(subscriber=subscriber)
+
+    @need_login
+    def iter_documents(self, subscription):
+        sub_id = subscription.id
+        input_filter = {
+            'Page':0,
+            'NombreParPage':0,
+            'Tris':[],
+            'Criteres':[
+                {'Champ': 'Etablissement','TypeCritere': 'Equals','Value': sub_id},
+                {'Champ': 'DateDebut','TypeCritere': 'Equals','Value': None},
+                {'Champ': 'DateFin','TypeCritere': 'Equals','Value': None},
+                {'Champ': 'MaxRelevesAffichesParNumero','TypeCritere': 'Equals','Value': '100'}
+            ]
+        }
+        json_data = {
+            'contexte': '',
+            'dateEntree': None,
+            'donneesEntree': 'null',
+            'filtreEntree': json.dumps(input_filter)
+        }
+        self.documents.go(json=json_data)
+        return self.page.iter_documents(sub_id=sub_id, sub_label=subscription.label, username=self.username)
+
+    @need_login
+    def download_document(self, document):
+        self.download.go()
+        return self.page.download_form(document).content

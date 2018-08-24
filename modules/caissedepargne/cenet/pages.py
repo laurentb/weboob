@@ -19,15 +19,17 @@
 
 import re
 import json
+from datetime import datetime
 
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage
 from weboob.browser.elements import DictElement, ItemElement, method
-from weboob.browser.filters.standard import Date, CleanDecimal, CleanText, Format, Field
+from weboob.browser.filters.standard import Date, CleanDecimal, CleanText, Format, Field, Env, Regexp
 from weboob.browser.filters.json import Dict
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Transaction
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Profile
+from weboob.capabilities.bill import Subscription, Document
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.exceptions import BrowserUnavailable
 
@@ -253,3 +255,56 @@ class Transaction(FrenchTransaction):
                 (re.compile('^FAC CB (?P<text>.*?) (?P<dd>\d{2})/(?P<mm>\d{2})', re.IGNORECASE),
                                                             FrenchTransaction.TYPE_CARD),
                ]
+
+
+class SubscriptionPage(LoggedPage, CenetJsonPage):
+    @method
+    class iter_subscription(DictElement):
+        item_xpath = 'DonneesSortie'
+
+        class item(ItemElement):
+            klass = Subscription
+
+            obj_id = CleanText(Dict('Numero'))
+            obj_label = CleanText(Dict('Intitule'))
+            obj_subscriber = Env('subscriber')
+
+    @method
+    class iter_documents(DictElement):
+        item_xpath = 'DonneesSortie'
+
+        class item(ItemElement):
+            klass = Document
+
+            obj_id = Format('%s_%s_%s', Env('sub_id'), Dict('Numero'), CleanText(Env('french_date'), symbols='/'))
+            obj_format = 'pdf'
+            obj_type = 'other'
+            obj__numero = CleanText(Dict('Numero'))
+            obj__sub_id = Env('sub_id')
+            obj__sub_label = Env('sub_label')
+            obj__download_id = CleanText(Dict('IdDocument'))
+
+            def obj_date(self):
+                date = Regexp(Dict('DateArrete'), r'Date\((\d+)\)')(self)
+                date = int(date) // 1000
+                return datetime.fromtimestamp(date).date()
+
+            def obj_label(self):
+                return '%s %s' % (CleanText(Dict('Libelle'))(self), Env('french_date')(self))
+
+            def parse(self, el):
+                self.env['french_date'] = Field('date')(self).strftime('%d/%m/%Y')
+
+
+class DownloadDocumentPage(LoggedPage, HTMLPage):
+    def download_form(self, document):
+        data = {
+            'Numero': document._numero,
+            'Libelle': document._sub_label.replace(' ', '+'),
+            'DateArrete': '',
+            'IdDocument': document._download_id
+        }
+        form = self.get_form(id='aspnetForm')
+        form['__EVENTTARGET'] = 'btn_telecharger'
+        form['__EVENTARGUMENT'] = json.dumps(data)
+        return form.submit()
