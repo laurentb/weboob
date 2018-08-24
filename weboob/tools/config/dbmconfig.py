@@ -16,10 +16,10 @@ except ImportError:
     import dbm
 
 
-__all__ = ['AnyDBMConfig']
+__all__ = ['DBMConfig']
 
 
-class AnyDBMConfig(IConfig):
+class DBMConfig(IConfig):
     def __init__(self, path):
         self.path = path
 
