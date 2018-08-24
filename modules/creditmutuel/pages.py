@@ -77,21 +77,11 @@ class LoginPage(HTMLPage):
         if self.doc.xpath(error_msg_xpath):
             raise BrowserIncorrectPassword(CleanText(error_msg_xpath)(self.doc))
 
-    def convert_uncodable_char_to_xml_entity(self, word):
-        final_word = ''
-        for char in word:
-            try:
-                char.encode('cp1252')
-            except UnicodeEncodeError:
-                char = '&#{};'.format(ord(char))
-            final_word += char
-        return final_word
-
     def login(self, login, passwd):
         form = self.get_form(xpath='//form[contains(@name, "ident")]')
-        form['_cm_user'] = login
-        # format password like password sent by firefox or chromium browser
-        form['_cm_pwd'] = self.convert_uncodable_char_to_xml_entity(passwd)
+        # format login/password like login/password sent by firefox or chromium browser
+        form['_cm_user'] = login.encode('cp1252', errors='xmlcharrefreplace').decode('cp1252')
+        form['_cm_pwd'] = passwd.encode('cp1252', errors='xmlcharrefreplace').decode('cp1252')
         form.submit()
 
     @property
