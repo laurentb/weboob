@@ -197,7 +197,7 @@ class AMFSGPage(HTMLPage):
     CODE_TYPE = Investment.CODE_TYPE_AMF
 
     def get_code(self):
-        return Regexp(CleanText('//div[@id="header_code"]', default=NotAvailable), r'(\d+)')(self.doc)
+        return Regexp(CleanText('//div[@id="header_code"]'), r'(\d+)', default=NotAvailable)(self.doc)
 
     def build_doc(self, data):
         if not data.strip():
