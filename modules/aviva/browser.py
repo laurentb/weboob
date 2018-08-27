@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.capabilities.base import empty
@@ -36,9 +37,9 @@ class AvivaBrowser(LoginBrowser):
     BASEURL = 'https://www.aviva.fr'
 
     validation = URL(r'/espaceclient/conventions/acceptation\?backurl=/espaceclient/Accueil', ValidationPage)
-    login = URL('/espaceclient/MonCompte/Connexion',
-                '/espaceclient/conventions/acceptation', LoginPage)
-    accounts = URL('/espaceclient/Accueil/Synthese-Contrats', AccountsPage)
+    login = URL(r'/espaceclient/MonCompte/Connexion',
+                r'/espaceclient/conventions/acceptation', LoginPage)
+    accounts = URL(r'/espaceclient/Accueil/Synthese-Contrats', AccountsPage)
     investment = URL(r'/espaceclient/contrat/epargne/-(?P<page_id>[0-9]{10})', InvestmentPage)
     prevoyance = URL(r'/espaceclient/contrat/prevoyance/-(?P<page_id>[0-9]{10})', PrevoyancePage)
     history = URL(r'/espaceclient/contrat/getOperations\?param1=(?P<history_token>.*)', HistoryPage)
@@ -49,9 +50,9 @@ class AvivaBrowser(LoginBrowser):
         self.login.go().login(self.username, self.password)
         if self.login.is_here():
             if "acceptation" in self.url:
-                raise ActionNeeded(u'Veuillez accepter les conditions générales d\'utilisation sur le site.')
+                raise ActionNeeded('Veuillez accepter les conditions générales d\'utilisation sur le site.')
             else:
-                raise BrowserIncorrectPassword(u'L\'identifiant ou le mot de passe est incorrect.')
+                raise BrowserIncorrectPassword('L\'identifiant ou le mot de passe est incorrect.')
 
     @need_login
     def iter_accounts(self):

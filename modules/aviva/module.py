@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
@@ -31,8 +32,8 @@ __all__ = ['AvivaModule']
 
 class AvivaModule(Module, CapBankWealth):
     NAME = 'aviva'
-    DESCRIPTION = u'Aviva'
-    MAINTAINER = u'Edouard Lambert'
+    DESCRIPTION = 'Aviva'
+    MAINTAINER = 'Edouard Lambert'
     EMAIL = 'elambert@budget-insight.com'
     LICENSE = 'LGPLv3+'
     VERSION = '1.2'

@@ -41,7 +41,7 @@ class BasePage(HTMLPage):
         super(BasePage, self).on_load()
 
         if 'Erreur' in CleanText('//div[@id="main"]/h1', default='')(self.doc):
-            err = CleanText('//div[@id="main"]/div[@class="content"]', default=u'Site indisponible')(self.doc)
+            err = CleanText('//div[@id="main"]/div[@class="content"]', default='Site indisponible')(self.doc)
             raise BrowserUnavailable(err)
 
 
@@ -147,7 +147,7 @@ class TransactionElement(ItemElement):
                            'preceding-sibling::h3[1]//div[has-class("montant-mobile")]', default=NotAvailable)
 
     obj__labeltype = Regexp(Capitalize('./preceding::h2[@class="feature"][1]'),
-                            'Historique Des\s+(\w+)')
+                            r'Historique Des\s+(\w+)')
 
     def obj_investments(self):
         return list(self.iter_investments(self.page, parent=self))
@@ -226,7 +226,7 @@ class HistoryPage(LoggedPage, HTMLPage):
 
 class ActionNeededPage(LoggedPage, HTMLPage):
     def on_load(self):
-        raise ActionNeeded(u'Veuillez mettre à jour vos coordonnées')
+        raise ActionNeeded('Veuillez mettre à jour vos coordonnées')
 
 
 class ValidationPage(LoggedPage, HTMLPage):
