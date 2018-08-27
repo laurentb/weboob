@@ -180,18 +180,13 @@ class TransferSummary(LoggedPage, CheckTransferError):
             if u'veuillez saisir votre code de validation' in CleanText('//div[@class="bloc Tmargin"]')(self.doc):
                 raise NotImplementedError()
 
-            transfer_date = Date(Regexp(
+            # there are several regexp for transfer date:
+            # Date ([\d\/]+)|le ([\d\/]+)|suivant \(([\d\/]+)\)
+            # be more passive to avoid impulsive reaction from user
+            transfer.exec_date = Date(Regexp(
                 CleanText('//div[@class="bloc Tmargin"]'),
-                r'suivant \(([\d\/]+)\)',
-                default=NotAvailable
-            ), dayfirst=True, default=NotAvailable)(self.doc)
-            if transfer_date:
-                transfer.exec_date = transfer_date
-            else:
-                transfer.exec_date = Date(Regexp(
-                    CleanText('//div[@class="bloc Tmargin"]'),
-                    r'Date ([\d\/]+)'
-                ), dayfirst=True)(self.doc)
+                r' (\d{2}/\d{2}/\d{4})'
+            ), dayfirst=True)(self.doc)
 
         return transfer
 
