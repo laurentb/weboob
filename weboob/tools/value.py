@@ -105,7 +105,7 @@ class Value(object):
             raise ValueError('Value is required and thus must be set')
         if v == '' and self.default != '' and (self.choices is None or v not in self.choices):
             raise ValueError('Value can\'t be empty')
-        if self.regexp is not None and not re.match(self.regexp + '$', unicode(v)):
+        if self.regexp is not None and not re.match(self.regexp + '$', unicode(v) if v is not None else ''):
             raise ValueError('Value "%s" does not match regexp "%s"' % (self.show_value(v), self.regexp))
         if self.choices is not None and v not in self.choices:
             if not self.aliases or v not in self.aliases:
