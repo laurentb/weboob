@@ -583,6 +583,9 @@ class CardsListPage(LoggedPage, HTMLPage):
                             self.handle_attr(attr, getattr(self, 'obj_%s' % attr))
                             setattr(card, attr, getattr(self.obj, attr))
 
+                        if _id in self.page.browser.cards_histo_available:
+                            card.coming = self.page.browser.cards_histo_available[_id][1]
+
                         card._card_number = _id
                         card.id = _id + card.number
                         card.label = card.label.replace('  ', ' %s ' % _id)
@@ -832,6 +835,40 @@ class CardPage(OperationsPage, LoggedPage):
                                                   if original_amount is not None else NotAvailable
                     self.env['original_currency'] = Account.get_currency(original_amount[1:-1]) \
                                                   if original_amount is not None else NotAvailable
+
+
+class CardPage2(CardPage):
+    @pagination
+    @method
+    class get_history(ListElement):
+        def next_page(self):
+            precedent_month = Link(self.page.doc.xpath('//li[span/span/b]/preceding-sibling::li[1]//a'))(self)
+            if "GoMonthPrecedent" in precedent_month:
+                page2 = self.page.browser.open(precedent_month).page
+                precedent_month = Link('//div[@class="restriction"]/ul/li[7]//a')(page2.doc)
+            return precedent_month
+
+        class list_history(Transaction.TransactionsElement):
+            head_xpath = '//table[has-class("liste")]//thead/tr/th'
+            item_xpath = '//table[has-class("liste")]/tbody/tr'
+
+            col_commerce = 'Commerce'
+            col_ville = 'Ville'
+
+            def condition(self):
+                return not CleanText('//td[contains(., "Aucun mouvement")]', default=False)(self)
+
+            class item(Transaction.TransactionElement):
+                condition = lambda self: len(self.el.xpath('./td')) >= 4
+
+                obj_raw = Format("%s %s", CleanText(TableCell('commerce')), CleanText(TableCell('ville')))
+
+                def obj__is_coming(self):
+                    debit_date = CleanText('//a[@id="C:L4"]')(self)
+                    if "fin" in debit_date:
+                        return True
+                    if Date().filter(re.search(r'(\d{2}/\d{2}/\d{4})', debit_date).group(1)) > datetime.date(datetime.today()):
+                        return True
 
 
 class LIAccountsPage(LoggedPage, HTMLPage):
@@ -1562,3 +1599,28 @@ class SubscriptionPage(LoggedPage, HTMLPage):
         if re.search(r'(\d\/\d)', CleanText('//div[has-class("blocpaginb")]', symbols=' ')(self.doc)):
             return True
         return False
+
+
+class CardsHistAvailable(LoggedPage, HTMLPage):
+    def get_cards_list(self):
+        cards = {}
+        for card in self.doc.xpath('//li[@class="item"]'):
+            m = re.search(r'\d{4} \d{2}XX XXXX \d{4}', CleanText(card.xpath('.//span'))(self))
+            if m:
+                id_card = m.group(0).replace(' ', '').replace('X', 'x')
+            link = Link(card.xpath('.//a[contains(@id,"C:more-card")]'))(self)
+            coming = CleanDecimal(card.xpath('.//tbody/tr/td/span')[0], replace_dots=True)(self)
+            coming += CleanDecimal(card.xpath('.//tbody/tr/td/span')[1], replace_dots=True)(self)
+            parent_id = re.search(r'\d+', CleanText(card.xpath('./div/div/div/p'), replace=[(' ', '')])(self)).group(0)[-16:]
+            cards[id_card] = [link, coming, parent_id]
+
+        return cards
+
+    def get_unavailable_cards(self):
+        cards = []
+        for card in self.doc.xpath('//li[@class="item"]'):
+            if not CleanText(card.xpath('.//div[1]/p'))(self) == 'Active':
+                m = re.search(r'\d{4} \d{2}XX XXXX \d{4}', CleanText(card.xpath('.//span'))(self))
+                if m:
+                    cards.append(m.group(0).replace(' ', '').replace('X', 'x'))
+        return cards

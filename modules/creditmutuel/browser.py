@@ -36,6 +36,7 @@ from weboob.capabilities.bank import Account, AddRecipientStep, Recipient
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
 from weboob.capabilities import NotAvailable
 from weboob.tools.compat import urlparse
+from weboob.capabilities.base import find_object
 
 from .pages import (
     LoginPage, LoginErrorPage, AccountsPage, UserSpacePage,
@@ -45,7 +46,7 @@ from .pages import (
     LIAccountsPage, CardsActivityPage, CardsListPage,
     CardsOpePage, NewAccountsPage, InternalTransferPage,
     ExternalTransferPage, RevolvingLoanDetails, RevolvingLoansList,
-    ErrorPage, SubscriptionPage,
+    ErrorPage, SubscriptionPage, CardsHistAvailable, CardPage2
 )
 
 
@@ -121,6 +122,10 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
     cards_list = URL('/(?P<subbank>.*)fr/banque/pro/ENC_liste_ctr.*',
                      '/(?P<subbank>.*)fr/banque/pro/ENC_detail_ctr', CardsListPage)
     cards_ope = URL('/(?P<subbank>.*)fr/banque/pro/ENC_liste_oper', CardsOpePage)
+    cards_ope2 = URL('/(?P<subbank>.*)fr/banque/CRP8_SCIM_DEPCAR.aspx', CardPage2)
+
+    cards_hist_available = URL('/(?P<subbank>.*)fr/banque/SCIM_default.aspx\?_tabi=C&_stack=SCIM_ListeActivityStep%3a%3a&_pid=ListeCartes&_fid=ChangeList&Data_ServiceListDatas_CurrentType=MyCards', CardsHistAvailable)
+    cards_hist_available2 = URL('/(?P<subbank>.*)fr/banque/SCIM_default.aspx', CardsHistAvailable)
 
     internal_transfer = URL('/(?P<subbank>.*)fr/banque/virements/vplw_vi.html', InternalTransferPage)
     external_transfer = URL('/(?P<subbank>.*)fr/banque/virements/vplw_vee.html', ExternalTransferPage)
@@ -173,8 +178,18 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
         if not self.accounts_list:
             if self.currentSubBank is None:
                 self.getCurrentSubBank()
+
             self.accounts_list = []
             self.revolving_accounts = []
+            self.unavailablecards = []
+            self.cards_histo_available = {}
+
+            # For some cards the validity information is only availaible on these 2 links
+            self.unavailablecards.extend(self.cards_hist_available.go(subbank=self.currentSubBank).get_unavailable_cards())
+            self.cards_histo_available.update(self.page.get_cards_list())
+
+            self.unavailablecards.extend(self.cards_hist_available2.go(subbank=self.currentSubBank).get_unavailable_cards())
+            self.cards_histo_available.update(self.page.get_cards_list())
 
             for acc in self.revolving_loan_list.stay_or_go(subbank=self.currentSubBank).iter_accounts():
                 self.accounts_list.append(acc)
@@ -202,6 +217,9 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
             for acc in self.li.go(subbank=self.currentSubBank).iter_li_accounts():
                 self.accounts_list.append(acc)
 
+            for acc in self.accounts_list:
+                if acc.id[:16] in self.cards_histo_available:
+                    acc.parent = find_object(self.accounts_list, id=self.cards_histo_available[acc.id[:16]][2])
 
             excluded_label = ['etalis', 'valorisation totale']
             self.accounts_list = [acc for acc in self.accounts_list if not any(w in acc.label.lower() for w in excluded_label)]
@@ -304,7 +322,13 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
             raise NotImplementedError()
 
         # need to refresh the months select
-        if account._link_id.startswith('ENC_liste_oper'):
+        if len(account.id) >= 16 and account.id[:16] in self.cards_histo_available:
+            account._link_id = self.cards_histo_available[account.id[:16]][0]
+            for tr in self.list_operations(account._link_id, account):
+                transactions.append(tr)
+            return transactions
+
+        elif account._link_id.startswith('ENC_liste_oper'):
             self.location(account._pre_link)
 
         if not hasattr(account, '_card_pages'):
