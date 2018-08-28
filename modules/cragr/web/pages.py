@@ -1405,6 +1405,7 @@ class RecipientMiscPage(RecipientAddingMixin, CollectePageMixin, MyLoggedPage, B
             if iban_text.upper() == 'IBAN:%s' % iban:
                 res = Recipient()
                 res.iban = iban
+                res.id = iban
                 res.label = CleanText('./td[%s]' % (iban_col-1))(tr)
                 return res
 
