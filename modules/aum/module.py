@@ -20,6 +20,7 @@
 
 import time
 import datetime
+from base64 import b64decode
 from html2text import unescape
 from dateutil import tz
 from dateutil.parser import parse as _parse_dt
@@ -66,7 +67,7 @@ class AuMModule(Module, CapMessages, CapMessagesPost, CapDating, CapChat, CapCon
                            Value('search_query',        label='Search query', default=''))
     STORAGE = {'profiles_walker': {'viewed': []},
                'queries_queue': {'queue': []},
-               'sluts': {},
+               'contacts': {},
                'notes': {},
               }
     BROWSER = AuMBrowser
@@ -175,14 +176,14 @@ class AuMModule(Module, CapMessages, CapMessagesPost, CapDating, CapChat, CapCon
 
         child = None
         msg = None
-        slut = self._get_slut(id)
+        contact = self._get_contact(id)
         if contacts is None:
             contacts = {}
 
         if not thread.title:
             thread.title = u'Discussion with %s' % mails['who']['pseudo']
 
-        self.storage.set('sluts', int(thread.id), 'status', mails['status'])
+        self.storage.set('contacts', int(thread.id), 'status', mails['status'])
         self.storage.save()
 
         for mail in mails['results']:
@@ -192,7 +193,7 @@ class AuMModule(Module, CapMessages, CapMessagesPost, CapDating, CapChat, CapCon
                 self.report_spam(thread.id)
                 break
 
-            if parse_dt(mail['date']) > slut['lastmsg']:
+            if parse_dt(mail['date']) > contact['lastmsg']:
                 flags |= Message.IS_UNREAD
 
                 if get_profiles:
@@ -261,8 +262,8 @@ class AuMModule(Module, CapMessages, CapMessagesPost, CapDating, CapChat, CapCon
                     self.logger.info('Skipped a spam-unread-thread from %s' % thread['who']['pseudo'])
                     self.report_spam(thread['member']['id'])
                     continue
-                slut = self._get_slut(thread['who']['id'])
-                if parse_dt(thread['date']) > slut['lastmsg'] or thread['status'] != slut['status']:
+                contact = self._get_contact(thread['who']['id'])
+                if parse_dt(thread['date']) > contact['lastmsg'] or thread['status'] != contact['status']:
                     try:
                         t = self.get_thread(thread['who']['id'], contacts, get_profiles=True)
                     except BrowserUnavailable:
@@ -275,17 +276,17 @@ class AuMModule(Module, CapMessages, CapMessagesPost, CapDating, CapChat, CapCon
                 return
 
             # Send mail when someone added me in her basket.
-            # XXX possibly race condition if a slut adds me in her basket
+            # XXX possibly race condition if a contact adds me in her basket
             #     between the aum.nb_new_baskets() and aum.get_baskets().
             with self.browser:
-                slut = self._get_slut(-self.MAGIC_ID_BASKET)
+                contact = self._get_contact(-self.MAGIC_ID_BASKET)
 
                 new_baskets = self.browser.nb_new_baskets()
                 if new_baskets > 0:
                     baskets = self.browser.get_baskets()
                     my_name = self.browser.get_my_name()
                     for basket in baskets:
-                        if parse_dt(basket['date']) <= slut['lastmsg']:
+                        if parse_dt(basket['date']) <= contact['lastmsg']:
                             continue
                         contact = self.get_contact(basket['who']['id'])
                         if self.antispam and not self.antispam.check_contact(contact):
@@ -313,31 +314,33 @@ class AuMModule(Module, CapMessages, CapMessagesPost, CapDating, CapChat, CapCon
     def set_message_read(self, message):
         if int(message.id) == self.MAGIC_ID_BASKET:
             # Save the last baskets checks.
-            slut = self._get_slut(-self.MAGIC_ID_BASKET)
-            if slut['lastmsg'] < message.date:
-                slut['lastmsg'] = message.date
-                self.storage.set('sluts', -self.MAGIC_ID_BASKET, slut)
+            contact = self._get_contact(-self.MAGIC_ID_BASKET)
+            if contact['lastmsg'] < message.date:
+                contact['lastmsg'] = message.date
+                self.storage.set('contacts', -self.MAGIC_ID_BASKET, contact)
                 self.storage.save()
             return
 
-        slut = self._get_slut(message.thread.id)
-        if slut['lastmsg'] < message.date:
-            slut['lastmsg'] = message.date
-            self.storage.set('sluts', int(message.thread.id), slut)
+        contact = self._get_contact(message.thread.id)
+        if contact['lastmsg'] < message.date:
+            contact['lastmsg'] = message.date
+            self.storage.set('contacts', int(message.thread.id), contact)
             self.storage.save()
 
-    def _get_slut(self, id):
+    def _get_contact(self, id):
         id = int(id)
-        sluts = self.storage.get('sluts')
-        if not sluts or id not in sluts:
-            slut = {'lastmsg': datetime.datetime(1970,1,1),
-                    'status':  None}
+        contacts = self.storage.get('contacts')
+        if not contacts or id not in contacts:
+            contacts = self.storage.get(b64decode('c2x1dHM='))
+        if not contacts or id not in contacts:
+            contact = {'lastmsg': datetime.datetime(1970,1,1),
+                       'status':  None}
         else:
-            slut = self.storage.get('sluts', id)
+            contact = contacts[id]
 
-        slut['lastmsg'] = slut.get('lastmsg', datetime.datetime(1970,1,1)).replace(tzinfo=tz.tzutc())
-        slut['status'] = slut.get('status', None)
-        return slut
+        contact['lastmsg'] = contact.get('lastmsg', datetime.datetime(1970,1,1)).replace(tzinfo=tz.tzutc())
+        contact['status'] = contact.get('status', None)
+        return contact
 
     # ---- CapMessagesPost methods ---------------------
 
