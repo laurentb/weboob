@@ -253,10 +253,12 @@ class AccountsPage(LoggedPage, HTMLPage):
             def obj_balance(self):
                 if Field('type')(self) != Account.TYPE_CARD:
                     balance = Field('_amount')(self)
-                    if Field('type')(self) in [Account.TYPE_PEA, Account.TYPE_LIFE_INSURANCE]:
+                    if Field('type')(self) in [Account.TYPE_PEA, Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET]:
                         page = Async('details').loaded_page(self)
                         if isinstance(page, MarketPage):
-                            return page.get_balance(Field('type')(self)) or balance
+                            updated_balance = page.get_balance(Field('type')(self))
+                            if updated_balance is not None:
+                                return updated_balance
                     return balance
                 return Decimal('0')
 
@@ -528,7 +530,10 @@ def my_pagination(func):
 class MarketPage(LoggedPage, HTMLPage):
     def get_balance(self, account_type):
         txt = u"Solde au" if account_type is Account.TYPE_LIFE_INSURANCE else u"Total Portefeuille"
-        return CleanDecimal('//li[h4[contains(text(), "%s")]]/h3' % txt, replace_dots=True, default=None)(self.doc)
+        # HTML tags are usually h4-h3 but may also be span-span
+        h_balance = CleanDecimal('//li[h4[contains(text(), "%s")]]/h3' % txt, replace_dots=True, default=None)(self.doc)
+        span_balance = CleanDecimal('//li/span[contains(text(), "%s")]/following-sibling::span' % txt, replace_dots=True, default=None)(self.doc)
+        return h_balance or span_balance or None
 
     @my_pagination
     @method
