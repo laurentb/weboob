@@ -95,6 +95,10 @@ class ChangePassPage(SGPEPage):
 
 
 class LoginPage(SGPEPage):
+    @property
+    def logged(self):
+        return self.doc.xpath('//a[text()="Déconnexion" and @href="/logout"]')
+
     def get_authentication_data(self):
         infos_data = self.browser.open('/sec/vk/gen_crypto?estSession=0').text
         infos_data = re.match('^_vkCallback\((.*)\);$', infos_data).group(1)

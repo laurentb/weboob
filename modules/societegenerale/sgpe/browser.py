@@ -72,6 +72,9 @@ class SGPEBrowser(LoginBrowser):
             raise BrowserIncorrectPassword('Password must be 6 digits long.')
 
         self.login.stay_or_go()
+        if self.page.logged:
+            return
+
         self.session.cookies.set('PILOTE_OOBA', 'true')
         try:
             self.page.login(self.username, self.password)
