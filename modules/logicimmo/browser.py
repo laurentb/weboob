@@ -28,7 +28,6 @@ from .pages import CitiesPage, SearchPage, HousingPage, PhonePage
 class LogicimmoBrowser(PagesBrowser):
     BASEURL = 'http://www.logic-immo.com/'
     PROFILE = Firefox()
-
     city = URL('asset/t9/getLocalityT9.php\?site=fr&lang=fr&json=%22(?P<pattern>.*)%22',
                CitiesPage)
     search = URL('(?P<type>location-immobilier|vente-immobilier|recherche-colocation)-(?P<cities>.*)/options/(?P<options>.*)', SearchPage)
@@ -46,6 +45,10 @@ class LogicimmoBrowser(PagesBrowser):
            HOUSE_TYPES.LAND: '3',
            HOUSE_TYPES.PARKING: '10',
            HOUSE_TYPES.OTHER: '14'}
+
+    def __init__(self, *args, **kwargs):
+        super(LogicimmoBrowser, self).__init__(*args, **kwargs)
+        self.session.headers['X-Requested-With'] = 'XMLHttpRequest'
 
     def get_cities(self, pattern):
         if pattern:
