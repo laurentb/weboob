@@ -19,12 +19,12 @@
 from time import sleep
 
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
-from weboob.exceptions import BrowserIncorrectPassword, NocaptchaQuestion
+from weboob.exceptions import BrowserIncorrectPassword, NocaptchaQuestion, BrowserUnavailable
 from weboob.capabilities.bank import Account
 from weboob.tools.compat import basestring
 
 from .pages import (
-    LoginPage, HomePage, IncapsulaResourcePage, LoanHistoryPage, CardHistoryPage, SavingHistoryPage,
+    LoginPage, MaintenancePage, HomePage, IncapsulaResourcePage, LoanHistoryPage, CardHistoryPage, SavingHistoryPage,
     LifeInvestmentsPage, LifeHistoryPage
 )
 
@@ -36,6 +36,7 @@ class CarrefourBanqueBrowser(LoginBrowser, StatesMixin):
     BASEURL = 'https://www.carrefour-banque.fr'
 
     login = URL('/espace-client/connexion', LoginPage)
+    maintenance = URL('/maintenance', MaintenancePage)
     incapsula_ressource = URL('/_Incapsula_Resource', IncapsulaResourcePage)
     home = URL('/espace-client$', HomePage)
 
@@ -87,6 +88,9 @@ class CarrefourBanqueBrowser(LoginBrowser, StatesMixin):
             else:
                 # we got javascript page again, this shouldn't happen
                 assert False, "obfuscated javascript not managed"
+
+        if self.maintenance.is_here():
+            raise BrowserUnavailable(self.page.get_message())
 
         self.page.enter_login(self.username)
         self.page.enter_password(self.password)

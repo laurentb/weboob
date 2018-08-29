@@ -140,6 +140,11 @@ class LoginPage(HTMLPage):
         form.submit()
 
 
+class MaintenancePage(HTMLPage):
+    def get_message(self):
+        return CleanText('//div[@class="bloc-title"]/h1//div[has-class("field-item")]')(self.doc)
+
+
 class IncapsulaResourcePage(HTMLPage):
     def __init__(self, *args, **kwargs):
         # this page can be a html page, or just javascript
