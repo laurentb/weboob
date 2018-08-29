@@ -112,9 +112,6 @@ class AccountsPage(LoggedPage, JsonPage):
             def _product(self):
                 return self.page.browser.get_product(str(Field('_product_id')(self)))
 
-            def condition(self):
-                return Field('quantity')(self) > 0
-
 
 class InvestmentPage(LoggedPage, JsonPage):
     def get_products(self):
