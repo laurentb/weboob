@@ -300,6 +300,9 @@ class item_account_generic(ItemElement):
                 card_xpath = multiple_cards_xpath + ' | ' + single_card_xpath
                 for elem in page.doc.xpath(card_xpath):
                     card_id = Regexp(CleanText('.', symbols=' '), '([\dx]{16})')(elem)
+                    if card_id in self.page.browser.unavailablecards:
+                        raise SkipItem()
+
                     if any(card_id in a.id for a in page.browser.accounts_list):
                         continue
 
