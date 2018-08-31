@@ -30,7 +30,7 @@ from datetime import datetime
 
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage, pagination, FormNotFound
 from weboob.browser.elements import ItemElement, method, ListElement, TableElement, SkipItem, DictElement
-from weboob.browser.filters.standard import Date, CleanDecimal, Regexp, CleanText, Env, Upper, Field, Eval, Format
+from weboob.browser.filters.standard import Date, CleanDecimal, Regexp, CleanText, Env, Upper, Field, Eval, Format, Currency
 from weboob.browser.filters.html import Link, Attr, TableCell
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import (
@@ -45,6 +45,14 @@ from weboob.tools.compat import unicode
 from weboob.exceptions import NoAccountsException, BrowserUnavailable
 from weboob.browser.filters.json import Dict
 
+def MyDecimal(*args, **kwargs):
+    kwargs.update(replace_dots=True)
+    return CleanDecimal(*args, **kwargs)
+
+class MyTableCell(TableCell):
+    def __init__(self, *names, **kwargs):
+        super(MyTableCell, self).__init__(*names, **kwargs)
+        self.td = './tr[%s]/td'
 
 def fix_form(form):
     keys = ['MM$HISTORIQUE_COMPTE$btnCumul', 'Cartridge$imgbtnMessagerie', 'MM$m_CH$ButtonImageFondMessagerie',
@@ -401,44 +409,73 @@ class IndexPage(LoggedPage, HTMLPage):
                 title = table.getprevious()
                 if title is None:
                     continue
-                account_type = self.ACCOUNT_TYPES.get(CleanText('.')(title), Account.TYPE_UNKNOWN)
-                for tr in table.xpath('./table/tbody/tr[contains(@id,"MM_SYNTHESE_CREDITS") and contains(@id,"IdTrGlobal")]'):
-                    tds = tr.findall('td')
-                    if len(tds) == 0:
-                        continue
-                    for i in tds[0].xpath('.//a/strong'):
-                        label = i.text.strip()
-                        break
-                    if len(tds) == 3 and Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-2]))) and any(cls in Attr('.', 'id')(tr) for cls in ['dgImmo', 'dgConso']) is False:
-                        # in case of Consumer credit or revolving credit, we substract avalaible amount with max amout
-                        # to get what was spend
-                        balance = Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-2]))) - Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-1])))
-                    else:
-                        balance = Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-1])))
-                    account = Loan()
-                    account.id = label.split(' ')[-1]
-                    account.label = unicode(label)
-                    account.type = account_type
-                    account.balance = -abs(balance)
-                    account.currency = account.get_currency(CleanText('.')(tds[-1]))
-                    account._card_links = []
-                    if "immobiliers" in CleanText('.')(title):
-                        xp = './/div[contains(@id, "IdDivDetail")]/table/tbody/tr[contains(@id, "%s")]/td'
-                        account.maturity_date = Date(CleanText(xp % 'IdDerniereEcheance'), dayfirst=True, default=NotAvailable)(tr)
-                        account.total_amount = CleanDecimal(CleanText(xp % 'IdCapitalEmprunte'), replace_dots=True, default=NotAvailable)(tr)
-                        account.subscription_date = Date(CleanText(xp % 'IdDateOuverture'), dayfirst=True, default=NotAvailable)(tr)
-                        account.next_payment_date = Date(CleanText(xp % 'IdDateProchaineEcheance'), dayfirst=True, default=NotAvailable)(tr)
-                        account.rate = CleanDecimal(CleanText(xp % 'IdTaux'), replace_dots=True, default=NotAvailable)(tr)
-                        account.next_payment_amount = CleanDecimal(CleanText(xp % 'IdMontantEcheance'), replace_dots=True, default=NotAvailable)(tr)
-                    elif "renouvelables" in CleanText('.')(title):
-                        self.go_loans_conso(tr)
-                        d = self.browser.loans_conso()
-                        if d:
-                            account.total_amount = d['contrat']['creditMaxAutorise']
-                            account.available_amount = d['situationCredit']['disponible']
-                            account.next_payment_amount = d['situationCredit']['mensualiteEnCours']
-                    accounts[account.id] = account
+                if "immobiliers" not in CleanText('.')(title):
+                    account_type = self.ACCOUNT_TYPES.get(CleanText('.')(title), Account.TYPE_UNKNOWN)
+                    for tr in table.xpath('./table/tbody/tr[contains(@id,"MM_SYNTHESE_CREDITS") and contains(@id,"IdTrGlobal")]'):
+                        tds = tr.findall('td')
+                        if len(tds) == 0 :
+                            continue
+                        for i in tds[0].xpath('.//a/strong'):
+                            label = i.text.strip()
+                            break
+                        if len(tds) == 3 and Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-2]))) and any(cls in Attr('.', 'id')(tr) for cls in ['dgImmo', 'dgConso']) == False:
+                            # in case of Consumer credit or revolving credit, we substract avalaible amount with max amout
+                            # to get what was spend
+                            balance = Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-2]))) - Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-1])))
+                        else:
+                            balance = Decimal(FrenchTransaction.clean_amount(CleanText('.')(tds[-1])))
+                        account = Loan()
+                        account.id = label.split(' ')[-1]
+                        account.label = unicode(label)
+                        account.type = account_type
+                        account.balance = -abs(balance)
+                        account.currency = account.get_currency(CleanText('.')(tds[-1]))
+                        account._card_links = []
+
+                        if "renouvelables" in CleanText('.')(title):
+                            self.go_loans_conso(tr)
+                            d = self.browser.loans_conso()
+                            if d:
+                                account.total_amount = d['contrat']['creditMaxAutorise']
+                                account.available_amount = d['situationCredit']['disponible']
+                                account.next_payment_amount = d['situationCredit']['mensualiteEnCours']
+                        accounts[account.id] = account
         return accounts.values()
+
+    @method
+    class get_real_estate_loans(ListElement):
+        item_xpath = '(//div[@id[starts-with(.,"MM_SYNTHESE_CREDITS")]])'
+
+        class iter_account(TableElement):
+            item_xpath = './table[@class="static"][1]/tbody'
+            head_xpath = './table[@class="static"][1]/tbody/tr/th'
+
+            col_total_amount = u'Capital Emprunté'
+            col_rate = u'Taux d’intérêt nominal'
+            col_balance = u'Capital Restant Dû'
+            col_last_payment_date = u'Dernière échéance'
+            col_next_payment_amount = u'Montant prochaine échéance'
+            col_next_payment_date = u'Prochaine échéance'
+
+            def parse(self, el):
+                self.env['id'] = CleanText("./h2")(el).split()[-1]
+                self.env['label'] = CleanText("./h2")(el)
+
+            class item(ItemElement):
+
+                klass = Loan
+
+                obj_id = Env('id')
+                obj_label = Env('label')
+                obj_type = Loan.TYPE_LOAN
+                obj_total_amount = MyDecimal(MyTableCell("total_amount"))
+                obj_rate = MyDecimal(MyTableCell("rate"))
+                obj_balance = MyDecimal(MyTableCell("balance"))
+                obj_currency = Currency(MyTableCell("balance"))
+                obj_last_payment_date = Date(CleanText(MyTableCell("last_payment_date")))
+                obj_next_payment_amount = MyDecimal(MyTableCell("next_payment_amount"))
+                obj_next_payment_date = Date(CleanText(MyTableCell("next_payment_date")))
+
 
     def go_list(self):
         form = self.get_form(name='main')
