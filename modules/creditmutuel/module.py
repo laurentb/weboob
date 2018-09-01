@@ -40,8 +40,8 @@ __all__ = ['CreditMutuelModule']
 
 
 class CreditMutuelModule(
-    Module, CapBankWealth, CapBankTransferAddRecipient,
-    CapContact, CapProfile, CapDocument,
+    Module, CapBankWealth, CapBankTransferAddRecipient, CapDocument,
+    CapContact, CapProfile,
 ):
 
     NAME = 'creditmutuel'
