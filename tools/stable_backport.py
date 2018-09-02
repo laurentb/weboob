@@ -6,7 +6,7 @@ import time
 import sys
 import re
 from contextlib import contextmanager
-from os import system, path, makedirs
+from os import system, path, makedirs, getenv
 from subprocess import check_output, STDOUT, CalledProcessError
 from collections import defaultdict
 import shutil
@@ -14,8 +14,8 @@ import shutil
 from termcolor import colored
 
 
-STABLE_VERSION = '1.3'
-DEVEL_BRANCH = 'master'
+STABLE_VERSION = getenv('WEBOOB_BACKPORT_STABLE', '1.3')
+DEVEL_BRANCH = getenv('WEBOOB_BACKPORT_DEVEL', 'master')
 
 
 @contextmanager
