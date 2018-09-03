@@ -54,7 +54,7 @@ class TransferVirtualKeyboard(SimpleVirtualKeyboard):
                '1': '12d398f7f389711c5f8298ee68a8af28',
                '2': 'f43ca3a5dd649d30bf02060ab65c4eff',
                '3': 'b6dd7864cfd941badb0784be37f7eeb3',
-               '4': '7138d0a663eef56c699d85dc6c3ac639',
+               '4': ('7138d0a663eef56c699d85dc6c3ac639', '0faced58777f371097a7a70bb9570dd7', ),
                '5': 'b71bd38e71ce0b611642a01b6900218f',
                '6': 'f71f7249413c189165da7b588c2f0493',
                '7': '81fc65230d7df341e80d02e414f183d4',
