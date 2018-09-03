@@ -21,8 +21,9 @@
 from datetime import datetime
 from decimal import Decimal
 
-from weboob.browser.pages import LoggedPage, JsonPage, HTMLPage
-from weboob.browser.filters.standard import Env, Format, Date, Eval, CleanText
+from weboob.browser.filters.html import Attr
+from weboob.browser.pages import LoggedPage, JsonPage, HTMLPage, RawPage
+from weboob.browser.filters.standard import Env, Format, Date, Eval
 from weboob.browser.elements import ItemElement, DictElement, method
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.bill import Bill, Subscription
@@ -34,16 +35,23 @@ class HomePage(HTMLPage):
     def has_captcha_request(self):
         return len(self.doc.xpath('//div[@class="captcha"]')) > 0
 
-    def get_recaptcha_key(self):
-        return CleanText(self.doc.xpath('(//input[@name="captchaPublicKeyAuth"]/@value)[1]'))(self.doc)
+
+class AuthenticatePage(JsonPage):
+    def get_data(self):
+        return self.doc
 
 
-class LoginPage(JsonPage):
-    def is_logged(self):
-        return "200" in Dict('errorCode')(self.doc)
+class AuthorizePage(HTMLPage):
+    def on_load(self):
+        if Attr('//body', 'onload', default=NotAvailable)(self.doc):
+            self.get_form().submit()
 
 
 class WelcomePage(LoggedPage, HTMLPage):
+    pass
+
+
+class CheckAuthenticatePage(LoggedPage, RawPage):
     pass
 
 
@@ -106,6 +114,7 @@ class DocumentsPage(LoggedPage, JsonPage):
             'numAcc': Dict('numAcc')(self.doc),
             'parNumber': Dict('parNumber')(self.doc)
         }
+
 
 class ProfilePage(LoggedPage, JsonPage):
     def get_profile(self):
