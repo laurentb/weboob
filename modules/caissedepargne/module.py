@@ -38,7 +38,7 @@ from .proxy_browser import ProxyBrowser
 __all__ = ['CaisseEpargneModule']
 
 
-class CaisseEpargneModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapContact, CapProfile, CapDocument):
+class CaisseEpargneModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapDocument, CapContact, CapProfile):
     NAME = 'caissedepargne'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
