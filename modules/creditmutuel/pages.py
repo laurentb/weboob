@@ -1111,7 +1111,8 @@ class InternalTransferPage(LoggedPage, HTMLPage):
                     'Le solde de votre compte est insuffisant',
                     'Nom prénom du bénéficiaire différent du titulaire. Utilisez un compte courant',
                     "Pour effectuer cette opération, vous devez passer par l’intermédiaire d’un compte courant",
-                    'Montant maximum autorisé au crédit pour ce compte']
+                    'Montant maximum autorisé au crédit pour ce compte',
+                    'Débit interdit sur ce compte']
 
         for message in messages:
             if message in content:
