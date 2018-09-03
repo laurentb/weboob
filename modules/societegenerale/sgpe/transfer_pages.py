@@ -25,7 +25,7 @@ from datetime import date
 
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage
 from weboob.browser.elements import method, DictElement, ItemElement
-from weboob.browser.filters.standard import CleanText
+from weboob.browser.filters.standard import CleanText, CleanDecimal
 from weboob.browser.filters.html import Attr
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import Date, Eval
@@ -139,11 +139,11 @@ class TransferPage(LoggedPage, JsonPage):
         transfer.recipient_iban = Dict('ibanCompte')(recipient_data)
 
         transfer.currency = Dict('montantTotalOrdre/codeDevise')(transfer_data)
-        transfer.amount = Eval(
+        transfer.amount = CleanDecimal(Eval(
             lambda x, y: x * (10 ** -y),
             Dict('montantTotalOrdre/valeurMontant'),
             Dict('montantTotalOrdre/codeDecimalisation')
-        )(transfer_data)
+        ))(transfer_data)
         transfer.exec_date = Date(Dict('dateExecution'), dayfirst=True)(transfer_data)
         transfer.label = Dict('libelleClientOrdre')(transfer_data)
 
