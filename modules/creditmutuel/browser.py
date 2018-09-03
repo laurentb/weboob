@@ -126,7 +126,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
     recipients_list =   URL('/(?P<subbank>.*)fr/banque/virements/vplw_bl.html', RecipientsListPage)
     error = URL('/validation/infos.cgi', ErrorPage)
 
-    subscription = URL('/fr/banque/MMU2_LstDoc.aspx', SubscriptionPage)
+    subscription = URL('/(?P<subbank>.*)fr/banque/MMU2_LstDoc.aspx', SubscriptionPage)
 
     currentSubBank = None
     is_new_website = None
@@ -498,12 +498,16 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def iter_subscriptions(self):
-        self.subscription.go()
+        if self.currentSubBank is None:
+            self.getCurrentSubBank()
+        self.subscription.go(subbank=self.currentSubBank)
         return self.page.iter_subscriptions()
 
     @need_login
     def iter_documents(self, subscription):
-        self.subscription.go(params={'typ':'doc'})
+        if self.currentSubBank is None:
+            self.getCurrentSubBank()
+        self.subscription.go(subbank=self.currentSubBank, params={'typ':'doc'})
 
         security_limit = 10
 

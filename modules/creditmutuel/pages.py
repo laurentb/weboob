@@ -1483,12 +1483,11 @@ class SubscriptionPage(LoggedPage, HTMLPage):
     def iter_subscriptions(self):
         subscription_list = []
 
-        options = self.doc.xpath('//option')
+        options = self.doc.xpath('//select[@id="SelTiers"]/option')
         if options:
             for opt in options:
-                subscriber = self.doc.xpath('//option[contains(text(), "%s")]' % CleanText('.')(opt))[0]
+                subscriber = self.doc.xpath('//select[@id="SelTiers"]/option[contains(text(), "%s")]' % CleanText('.')(opt))[0]
                 self.submit_form(Attr('.', 'value')(subscriber))
-
                 for sub in self.get_subscriptions(subscription_list, subscriber):
                     yield sub
         else:
@@ -1510,7 +1509,9 @@ class SubscriptionPage(LoggedPage, HTMLPage):
 
             klass = Document
 
-            obj_id = Format('%s_%s', Env('sub_id'), CleanText(TableCell('date'), replace=[('/', '')]))
+            # Some documents may have the same date, name and label; only parts of the PDF href may change,
+            # so we must pick a unique ID including the href to avoid document duplicates:
+            obj_id = Format('%s_%s_%s', Env('sub_id'), CleanText(TableCell('date'), replace=[('/', '')]), Regexp(Field('url'), r'NOM=(.*)&RFL='))
             obj_label = Format('%s %s', CleanText(TableCell('url')), CleanText(TableCell('date')))
             obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
             obj_format = 'pdf'
