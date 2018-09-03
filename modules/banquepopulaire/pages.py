@@ -274,6 +274,9 @@ class UnavailablePage(LoggedPage, MyHTMLPage):
         h1 = CleanText('//h1[1]')(self.doc)
         if "est indisponible" in h1:
             raise BrowserUnavailable(h1)
+        body = CleanText(".")(self.doc)
+        if "An unexpected error has occurred." in body:
+            raise BrowserUnavailable(body)
 
         a = Link('//a[@class="btn"][1]', default=None)(self.doc)
         if not a:

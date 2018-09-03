@@ -128,7 +128,10 @@ class BanquePopulaire(LoginBrowser):
 
     transaction_detail_page = URL(r'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=DETAIL_ECRITURE.*', TransactionDetailPage)
 
-    error_page = URL(r'https://[^/]+/cyber/internet/ContinueTask.do', ErrorPage)
+    error_page = URL(r'https://[^/]+/cyber/internet/ContinueTask.do',
+                     r'https://[^/]+/_layouts/error.aspx',
+                     ErrorPage)
+
     unavailable_page = URL(r'https://[^/]+/s3f-web/.*',
                            r'https://[^/]+/static/errors/nondispo.html', UnavailablePage)
 
