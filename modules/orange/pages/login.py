@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Nicolas Duhamel
+# Copyright(C) 2010-2011 Vincent Paredes
 #
 # This file is part of weboob.
 #
@@ -17,36 +17,21 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.deprecated.browser import Page
-from weboob.tools.compat import urlencode
 
-class LoginPage(Page):
-    def on_loaded(self):
-        pass
+from weboob.browser.pages import HTMLPage
 
-    def login(self, user, pwd):
-        post_data = {"credential" : str(user),
-                     "password" : str(pwd),
-                     "save_user": "false",
-                     "save_pwd" : "false",
-                     "save_TC"  : "true",
-                     "action"   : "valider",
-                     "usertype" : "",
-                     "service"  : "",
-                     "url"      : "http://www.orange.fr",
-                     "case"     : "",
-                     "origin"   : "",    }
 
-        post_data = urlencode(post_data)
-        self.browser.addheaders = [('Referer', 'http://id.orange.fr/auth_user/template/auth0user/htm/vide.html'),
-                              ("Content-Type" , 'application/x-www-form-urlencoded') ]
+class LoginPage(HTMLPage):
+    def login(self, username, password):
+        json_data = {
+            'forcePwd': False,
+            'login': username,
+            'mem': True,
+        }
+        self.browser.location('https://login.orange.fr/front/login', json=json_data)
 
-        self.browser.open(self.browser.geturl(), data=post_data)
-
-        #~ print "LOGIN!!!"
-        #~ self.browser.select_form(predicate=lambda form: "id" in form.attrs and form.attrs["id"] == "authentication_form" )
-        #~ user_control = self.browser.find_control(id="user_credential")
-        #~ user_control.value = user
-        #~ pwd_control = self.browser.find_control(id="user_password")
-        #~ pwd_control.value = pwd
-        #~ self.browser.submit()
+        json_data = {
+            'login': username,
+            'password': password,
+        }
+        self.browser.location('https://login.orange.fr/front/password', json=json_data)

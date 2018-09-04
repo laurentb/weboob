@@ -20,7 +20,7 @@
 from __future__ import unicode_literals
 
 import re
-import HTMLParser
+from html.parser import HTMLParser
 
 from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage
 from weboob.capabilities.bill import Subscription
@@ -49,14 +49,13 @@ class BillsApiPage(LoggedPage, JsonPage):
 
             obj_date = Date(Dict('dueDate'), parse_func=parse_french_date,  default=NotAvailable)
             obj_price = CleanDecimal(Dict('amountIncludingTax'))
-            obj_type = "bill"
-            obj_format = "pdf"
+            obj_format = 'pdf'
 
             def obj_label(self):
-                return "Facture du %s" % Field('date')(self)
+                return 'Facture du %s' % Field('date')(self)
 
             def obj_id(self):
-                return "%s_%s" % (Env('subid')(self), Field('date')(self).strftime('%d%m%Y'))
+                return '%s_%s' % (Env('subid')(self), Field('date')(self).strftime('%d%m%Y'))
 
             def get_params(self):
                 params = {'billid': Dict('id')(self), 'billDate': Dict('dueDate')(self)}
@@ -71,11 +70,11 @@ class BillsPage(LoggedPage, HTMLPage):
         item_xpath = '//table[has-class("table-hover")]/div/div/tr | //table[has-class("table-hover")]/div/tr'
         head_xpath = '//table[has-class("table-hover")]/thead/tr/th'
 
-        col_date = u'Date'
-        col_amount = [u'Montant TTC', u'Montant']
-        col_ht = u'Montant HT'
-        col_url = u'Télécharger'
-        col_infos = u'Infos paiement'
+        col_date = 'Date'
+        col_amount = ['Montant TTC', 'Montant']
+        col_ht = 'Montant HT'
+        col_url = 'Télécharger'
+        col_infos = 'Infos paiement'
 
         class item(ItemElement):
             klass = Bill
@@ -109,7 +108,7 @@ class BillsPage(LoggedPage, HTMLPage):
             def obj_url(self):
                 if Field('_url_base')(self):
                     # URL won't work if HTML is not unescape
-                    return HTMLParser.HTMLParser().unescape(str(Field('_url_base')(self)))
+                    return HTMLParser().unescape(str(Field('_url_base')(self)))
                 else :
                     return Link(TableCell(Field('_cell')(self))(self)[0].xpath('./a'), default=NotAvailable)(self)
 
@@ -117,7 +116,7 @@ class BillsPage(LoggedPage, HTMLPage):
 
             def obj_label(self):
                 if Field('_label_base')(self):
-                    return HTMLParser.HTMLParser().unescape(str(Field('_label_base')(self)))
+                    return HTMLParser().unescape(str(Field('_label_base')(self)))
                 else:
                     return CleanText(TableCell(Field('_cell')(self))(self)[0].xpath('.//span[@class="ec_visually_hidden"]'))(self)
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Nicolas Duhamel
+# Copyright(C) 2012-2014 Vincent Paredes
 #
 # This file is part of weboob.
 #
@@ -17,52 +17,101 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
-#~ from .pages.compose import ClosePage, ComposePage, ConfirmPage, SentPage
-#~ from .pages.login import LoginPage
-
-from .pages import LoginPage, ComposePage, ConfirmPage
-
-from weboob.deprecated.browser import Browser, BrowserIncorrectPassword
-
-
-__all__ = ['OrangeBrowser']
+from weboob.browser import LoginBrowser, URL, need_login
+from weboob.exceptions import BrowserIncorrectPassword
+from .pages import LoginPage, BillsPage
+from .pages.bills import SubscriptionsPage, BillsApiPage, ContractsPage
+from .pages.profile import ProfilePage
+from weboob.browser.exceptions import ClientError, ServerError
+from weboob.tools.compat import basestring
 
 
-class OrangeBrowser(Browser):
-    DOMAIN = 'orange.fr'
-    PAGES = {
-        'http://id.orange.fr/auth_user/bin/auth_user.cgi.*': LoginPage,
-        'http://id.orange.fr/auth_user/bin/auth0user.cgi.*': LoginPage,
-        'https://id.orange.fr/auth_user/bin/auth_user.cgi.*': LoginPage,
-        'https://id.orange.fr/auth_user/bin/auth0user.cgi.*': LoginPage,
-        'https://authweb.orange.fr/auth_user/bin/auth_user.cgi.*': LoginPage,
-        'https://authweb.orange.fr/auth_user/bin/auth0user.cgi.*': LoginPage,
-        'http://smsmms1.orange.fr/./Sms/sms_write.php.*'   : ComposePage,
-        'http://smsmms1.orange.fr/./Sms/sms_write.php?command=send' : ConfirmPage,
-        'https://smsmms1.orange.fr/./Sms/sms_write.php.*'   : ComposePage,
-        'https://smsmms1.orange.fr/./Sms/sms_write.php?command=send' : ConfirmPage,
-        }
+__all__ = ['OrangeBillBrowser']
+
+
+class OrangeBillBrowser(LoginBrowser):
+    BASEURL = 'https://espaceclientv3.orange.fr/'
+
+    loginpage = URL('https://login.orange.fr/\?service=sosh&return_url=https://www.sosh.fr/',
+                    'https://login.orange.fr/front/login', LoginPage)
+
+    contracts = URL('https://espaceclientpro.orange.fr/api/contracts\?page=1&nbcontractsbypage=15', ContractsPage)
+
+    subscriptions = URL(r'https://espaceclientv3.orange.fr/js/necfe.php\?zonetype=bandeau&idPage=gt-home-page', SubscriptionsPage)
+
+    billspage = URL('https://m.espaceclientv3.orange.fr/\?page=factures-archives',
+                    'https://.*.espaceclientv3.orange.fr/\?page=factures-archives',
+                    'https://espaceclientv3.orange.fr/\?page=factures-archives',
+                    'https://espaceclientv3.orange.fr/\?page=facture-telecharger',
+                    'https://espaceclientv3.orange.fr/maf.php',
+                    'https://espaceclientv3.orange.fr/\?idContrat=(?P<subid>.*)&page=factures-historique',
+                    'https://espaceclientv3.orange.fr/\?page=factures-historique&idContrat=(?P<subid>.*)',
+                     BillsPage)
+
+    bills_api = URL('https://espaceclientpro.orange.fr/api/contract/(?P<subid>\d+)/bills\?count=(?P<count>)',
+                    BillsApiPage)
+
+    doc_api = URL('https://espaceclientpro.orange.fr/api/contract/(?P<subid>\d+)/bill/(?P<dir>.*)/(?P<fact_type>.*)/\?(?P<billparams>)')
+    profile = URL('/\?page=profil-infosPerso', ProfilePage)
+
+    def do_login(self):
+        assert isinstance(self.username, basestring)
+        assert isinstance(self.password, basestring)
+
+        try:
+            self.loginpage.stay_or_go().login(self.username, self.password)
+        except ClientError as error:
+            if error.response.status_code == 401:
+                raise BrowserIncorrectPassword()
+            raise
 
     def get_nb_remaining_free_sms(self):
-        self.location("http://smsmms1.orange.fr/M/Sms/sms_write.php")
-        return self.page.get_nb_remaining_free_sms()
-
-    def home(self):
-        self.location("http://smsmms1.orange.fr/M/Sms/sms_write.php")
-
-    def is_logged(self):
-        self.location("http://smsmms1.orange.fr/M/Sms/sms_write.php", no_login=True)
-        return not self.is_on_page(LoginPage)
-
-    def login(self):
-        if not self.is_on_page(LoginPage):
-            self.location('https://authweb.orange.fr/auth_user/bin/auth_user.cgi?url=http://www.orange.fr', no_login=True)
-        self.page.login(self.username, self.password)
-        if not self.is_logged():
-            raise BrowserIncorrectPassword()
+        raise NotImplementedError()
 
     def post_message(self, message, sender):
-        if not self.is_on_page(ComposePage):
-            self.home()
-        self.page.post_message(message, sender)
+        raise NotImplementedError()
+
+    @need_login
+    def get_subscription_list(self):
+        profile = self.profile.go().get_profile()
+        # this only works when there are pro subs.
+        nb_sub = 0
+        try:
+            for sub in self.contracts.go().iter_subscriptions():
+                sub.subscriber = profile.name
+                yield sub
+            nb_sub = self.page.doc['totalContracts']
+            # assert pagination is not needed
+            assert nb_sub < 15
+        except ServerError:
+            pass
+
+        if nb_sub > 0:
+            return
+        # if nb_sub is 0, we continue, because we can get them in next url
+
+        self.location('https://espaceclientv3.orange.fr/?page=gt-home-page&sosh')
+        self.subscriptions.go()
+        for sub in self.page.iter_subscription():
+            sub.subscriber = profile.name
+            yield sub
+
+    @need_login
+    def iter_documents(self, subscription):
+        documents = []
+        if subscription._is_pro:
+            for d in self.bills_api.go(subid=subscription.id, count=72).get_bills(subid=subscription.id):
+                documents.append(d)
+            # check pagination for this subscription
+            assert len(documents) != 72
+        else:
+            self.billspage.go(subid=subscription.id)
+            for b in self.page.get_bills(subid=subscription.id):
+                documents.append(b)
+        return iter(documents)
+
+    @need_login
+    def get_profile(self):
+        return self.profile.go().get_profile()

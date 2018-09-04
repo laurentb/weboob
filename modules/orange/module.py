@@ -19,52 +19,28 @@
 
 
 from weboob.capabilities.bill import CapDocument, Subscription, Document, SubscriptionNotFound, DocumentNotFound
-from weboob.capabilities.messages import CantSendMessage, CapMessages, CapMessagesPost
 from weboob.capabilities.base import find_object, NotAvailable
-from weboob.capabilities.account import CapAccount, StatusField
+from weboob.capabilities.account import CapAccount
 from weboob.capabilities.profile import CapProfile
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
-from .browser import OrangeBrowser
-from .bill.browser import OrangeBillBrowser
+from .browser import OrangeBillBrowser
 
 
 __all__ = ['OrangeModule']
 
-# We need to have a switcher, CapMessages use a browser1 and
-# CapDocument use a browser2
-# This will be remove when CapMessages use a browser2
-def browser_switcher(b):
-    def set_browser(func):
-        def func_wrapper(*args, **kwargs):
-            self = args[0]
-            if self._browser is None or type(self._browser) != b:
-                self.BROWSER = b
-                try:
-                    self._browser = self._browsers[b]
-                except KeyError:
-                    self._browsers[b] = self.create_default_browser()
-                    self._browser = self._browsers[b]
-            return func(*args, **kwargs)
-        return func_wrapper
-    return set_browser
 
-
-class OrangeModule(Module, CapAccount, CapMessages, CapMessagesPost, CapDocument, CapProfile):
+class OrangeModule(Module, CapAccount, CapDocument, CapProfile):
     NAME = 'orange'
-    MAINTAINER = u'Lucas Nussbaum'
-    EMAIL = 'lucas@lucas-nussbaum.net'
+    MAINTAINER = 'Florian Duguet'
+    EMAIL = 'florian.duguet@budget-insight.com'
     VERSION = '1.4'
     DESCRIPTION = 'Orange French mobile phone provider'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(Value('login', label='Login'),
-                           ValueBackendPassword('password', label='Password'),
-                           Value('phonenumber', label='Phone number', default='')
-                           )
-    ACCOUNT_REGISTER_PROPERTIES = None
+                           ValueBackendPassword('password', label='Password'))
     BROWSER = OrangeBillBrowser
-
 
     def __init__(self, *args, **kwargs):
         self._browsers = dict()
@@ -73,38 +49,22 @@ class OrangeModule(Module, CapAccount, CapMessages, CapMessagesPost, CapDocument
     def create_default_browser(self):
         return self.create_browser(self.config['login'].get(), self.config['password'].get())
 
-    @browser_switcher(OrangeBrowser)
-    def get_account_status(self):
-       return (StatusField('nb_remaining_free_sms', 'Number of remaining free SMS',
-                                self.browser.get_nb_remaining_free_sms()),)
-
-    @browser_switcher(OrangeBrowser)
-    def post_message(self, message):
-        if not message.content.strip():
-            raise CantSendMessage(u'Message content is empty.')
-        self.browser.post_message(message, self.config['phonenumber'].get())
-
-    @browser_switcher(OrangeBillBrowser)
     def iter_subscription(self):
         return self.browser.get_subscription_list()
 
-    @browser_switcher(OrangeBillBrowser)
     def get_subscription(self, _id):
         return find_object(self.iter_subscription(), id=_id, error=SubscriptionNotFound)
 
-    @browser_switcher(OrangeBillBrowser)
     def get_document(self, _id):
         subid = _id.rsplit('_', 1)[0]
         subscription = self.get_subscription(subid)
         return find_object(self.iter_documents(subscription), id=_id, error=DocumentNotFound)
 
-    @browser_switcher(OrangeBillBrowser)
     def iter_documents(self, subscription):
         if not isinstance(subscription, Subscription):
             subscription = self.get_subscription(subscription)
         return self.browser.iter_documents(subscription)
 
-    @browser_switcher(OrangeBillBrowser)
     def download_document(self, document):
         if not isinstance(document, Document):
             document = self.get_document(document)
@@ -112,6 +72,5 @@ class OrangeModule(Module, CapAccount, CapMessages, CapMessagesPost, CapDocument
             return
         return self.browser.open(document.url).content
 
-    @browser_switcher(OrangeBillBrowser)
     def get_profile(self):
         return self.browser.get_profile()

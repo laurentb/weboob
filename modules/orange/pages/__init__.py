@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2010-2011 Nicolas Duhamel
+# Copyright(C) 2010-2011 Vincent Paredes
 #
 # This file is part of weboob.
 #
@@ -18,6 +18,6 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from .login import LoginPage
-from .compose import ComposePage, ConfirmPage
+from .bills import BillsPage
 
-__all__ = ['LoginPage', 'ComposePage', 'ConfirmPage']
+__all__ = ['LoginPage', 'BillsPage']
