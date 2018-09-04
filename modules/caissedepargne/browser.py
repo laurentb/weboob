@@ -304,7 +304,12 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                         continue
                     self.page.get_valuation_diff(account)
 
-        return iter(self.accounts)
+        # Some accounts have no available balance or label and cause issues
+        # in the backend so we must exclude them from the accounts list:
+        self.accounts = [account for account in self.accounts if account.label and account.balance != NotAvailable]
+        for account in self.accounts:
+            yield account
+
 
     @need_login
     def get_loans_list(self):
