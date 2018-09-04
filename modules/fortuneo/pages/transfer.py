@@ -37,6 +37,9 @@ class RecipientsPage(LoggedPage, HTMLPage):
         # use list element because there are 4th for 7td in one tr
         item_xpath = '//div[@id="listeCompteExternes"]/table/tbody//tr[@class="ct"]'
 
+        def condition(self):
+            return 'Aucun compte externe enregistré' not in CleanText('.')(self)
+
         class item(ItemElement):
             klass = Recipient
 
