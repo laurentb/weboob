@@ -74,10 +74,12 @@ class OrangeBillBrowser(LoginBrowser):
 
     @need_login
     def get_subscription_list(self):
+        profile = self.profile.go().get_profile()
         # this only works when there are pro subs.
         nb_sub = 0
         try:
             for sub in self.contracts.go().iter_subscriptions():
+                sub.subscriber = profile.name
                 yield sub
             nb_sub = self.page.doc['totalContracts']
             # assert pagination is not needed
@@ -92,6 +94,7 @@ class OrangeBillBrowser(LoginBrowser):
         self.location('https://espaceclientv3.orange.fr/?page=gt-home-page&sosh')
         self.subscriptions.go()
         for sub in self.page.iter_subscription():
+            sub.subscriber = profile.name
             yield sub
 
     @need_login
