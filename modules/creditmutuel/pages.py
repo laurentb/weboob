@@ -28,7 +28,7 @@ from datetime import date, datetime
 from random import randint
 from collections import OrderedDict
 
-from weboob.browser.pages import HTMLPage, FormNotFound, LoggedPage, pagination
+from weboob.browser.pages import HTMLPage, FormNotFound, LoggedPage, pagination, XMLPage
 from weboob.browser.elements import ListElement, ItemElement, SkipItem, method, TableElement
 from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, \
     Regexp, Async, AsyncLoad, Date, Format, Type, Currency
@@ -840,17 +840,17 @@ class CardPage(OperationsPage, LoggedPage):
                                                   if original_amount is not None else NotAvailable
 
 
-class CardPage2(CardPage):
-    @pagination
+class CardPage2(CardPage, HTMLPage, XMLPage):
+    def build_doc(self, content):
+        if b'<?xml version="1.0"' in content:
+            xml = XMLPage.build_doc(self, content)
+            html = xml.xpath('//htmlcontent')[0].text.encode(encoding=self.encoding)
+            return HTMLPage.build_doc(self, html)
+
+        return super(CardPage2, self).build_doc(content)
+
     @method
     class get_history(ListElement):
-        def next_page(self):
-            precedent_month = Link(self.page.doc.xpath('//li[span/span/b]/preceding-sibling::li[1]//a'))(self)
-            if "GoMonthPrecedent" in precedent_month:
-                page2 = self.page.browser.open(precedent_month).page
-                precedent_month = Link('//div[@class="restriction"]/ul/li[7]//a')(page2.doc)
-            return precedent_month
-
         class list_history(Transaction.TransactionsElement):
             head_xpath = '//table[has-class("liste")]//thead/tr/th'
             item_xpath = '//table[has-class("liste")]/tbody/tr'
@@ -859,12 +859,37 @@ class CardPage2(CardPage):
             col_ville = 'Ville'
 
             def condition(self):
-                return not CleanText('//td[contains(., "Aucun mouvement")]', default=False)(self)
+                return not CleanText('//td[contains(., "Aucun mouvement")]', default=False)(self) or not CleanText('//td[contains(., "Aucune opération")]', default=False)(self)
 
             class item(Transaction.TransactionElement):
                 condition = lambda self: len(self.el.xpath('./td')) >= 4
 
-                obj_raw = Format("%s %s", CleanText(TableCell('commerce')), CleanText(TableCell('ville')))
+                obj_raw = Transaction.Raw(Format("%s %s", CleanText(TableCell('commerce')), CleanText(TableCell('ville'))))
+                obj_rdate = Field('vdate')
+
+                def obj_type(self):
+                    if not 'RELEVE' in CleanText('//td[contains(., "Aucun mouvement")]')(self):
+                        return Transaction.TYPE_DEFERRED_CARD
+                    return Transaction.TYPE_CARD_SUMMARY
+
+                def obj_original_amount(self):
+                    m = re.search(r'-(\d+,\d+)', CleanText(TableCell('commerce'))(self))
+                    if m and not 'FRAIS' in CleanText(TableCell('commerce'))(self):
+                        return Decimal(float(m.group(1).replace(',', '.'))).quantize(Decimal('0.01'))
+                    return NotAvailable
+
+                def obj_original_currency(self):
+                    m = re.search(r'(\d+) (\w+)', CleanText(TableCell('commerce'))(self))
+                    if Field('original_amount')(self) and m:
+                        return m.group(2)
+
+                def obj_date(self):
+                    debit_date = CleanText('//a[@id="C:L4"]')(self)
+                    if "fin" in debit_date:
+                        return self.page.browser.tr_date
+                    m = re.search(r'(\d{2}/\d{2}/\d{4})', debit_date)
+                    if m:
+                        return Date().filter(re.search(r'(\d{2}/\d{2}/\d{4})', debit_date).group(1))
 
                 def obj__is_coming(self):
                     debit_date = CleanText('//a[@id="C:L4"]')(self)
@@ -872,6 +897,148 @@ class CardPage2(CardPage):
                         return True
                     if Date().filter(re.search(r'(\d{2}/\d{2}/\d{4})', debit_date).group(1)) > datetime.date(datetime.today()):
                         return True
+                    return False
+
+                def obj__regroup(self):
+                    if "Regroupement" in CleanText('./td')(self):
+                        return Link('./td/span/a')(self)
+
+    @method
+    class get_tr_merged(ListElement):
+        class list_history(Transaction.TransactionsElement):
+            head_xpath = '//table[@class="liste"]//thead/tr/th'
+            item_xpath = '//table[@class="liste"]/tbody/tr'
+
+            col_operation= u'Opération'
+
+            def condition(self):
+                return not CleanText('//td[contains(., "Aucun mouvement")]', default=False)(self)
+
+            class item(Transaction.TransactionElement):
+                def condition(self):
+                    return len(self.el.xpath('./td')) >= 4
+
+                obj_label = CleanText(TableCell('operation'))
+
+                def obj_type(self):
+                    if not 'RELEVE' in Field('raw')(self):
+                        return Transaction.TYPE_DEFERRED_CARD
+                    return Transaction.TYPE_CARD_SUMMARY
+
+    def has_more_operations(self):
+        xp = CleanText(self.doc.xpath('//div[@class="ei_blocpaginb"]/a'))(self)
+        if xp == 'Suite des opérations':
+            return True
+        return False
+
+    def has_more_operations_xml(self):
+        if self.doc.xpath('//input') and Attr('//input', 'value')(self.doc) == 'Suite des opérations':
+            return True
+        return False
+
+    @method
+    class iter_history_xml(ListElement):
+        class list_history(Transaction.TransactionsElement):
+            head_xpath = '//thead/tr/th'
+            item_xpath = '//tbody/tr'
+
+            col_commerce = 'Commerce'
+            col_ville = 'Ville'
+
+            class item(Transaction.TransactionElement):
+                obj_raw = Transaction.Raw(Format("%s %s", CleanText(TableCell('commerce')), CleanText(TableCell('ville'))))
+                obj_rdate = Field('vdate')
+
+                def obj_type(self):
+                    if not 'RELEVE' in CleanText('//td[contains(., "Aucun mouvement")]')(self):
+                        return Transaction.TYPE_DEFERRED_CARD
+                    return Transaction.TYPE_CARD_SUMMARY
+
+                def obj_original_amount(self):
+                    m = re.search(r'-(\d+,\d+)', CleanText(TableCell('commerce'))(self))
+                    if m and not 'FRAIS' in CleanText(TableCell('commerce'))(self):
+                        return Decimal(float(m.group(1).replace(',', '.'))).quantize(Decimal('0.01'))
+                    return NotAvailable
+
+                def obj_original_currency(self):
+                    m = re.search(r'(\d+) (\w+)', CleanText(TableCell('commerce'))(self))
+                    if Field('original_amount')(self) and m:
+                        return m.group(2)
+
+                def obj__regroup(self):
+                    if "Regroupement" in CleanText('./td')(self):
+                        return Link('./td/span/a')(self)
+
+                def obj_date(self):
+                    return self.page.browser.tr_date
+
+                def obj__is_coming(self):
+                    if Field('date')(self) > datetime.date(datetime.today()):
+                        return True
+                    return False
+
+    def get_date(self):
+        debit_date = CleanText(self.doc.xpath('//a[@id="C:L4"]'))(self)
+        if "fin" in debit_date:
+            m = re.search(r'fid=GoMonth&mois=(\d+)', self.browser.url)
+            y = re.search(r'annee=(\d+)', self.browser.url)
+            if m and y:
+                return date(int(y.group(1)), int(m.group(1)), 1) + relativedelta(day=31)
+
+        m = re.search(r'(\d{2}/\d{2}/\d{4})', debit_date)
+        if m:
+            return Date().filter(re.search(r'(\d{2}/\d{2}/\d{4})', debit_date).group(1))
+
+    def get_links(self):
+        links = []
+
+        for link in self.doc.xpath('//div[@class="restriction"]/ul[1]/li'):
+            if link.xpath('./span/span/b'):
+                break
+            tmp_link = Link(link.xpath('./span/span/a'))(self)
+            if 'GoMonthPrecedent' in tmp_link:
+                secondpage = tmp_link
+                continue
+            m = re.search(r'fid=GoMonth&mois=(\d+)', tmp_link)
+            # To go to the page during the iter_history you need to have the good value from the precent page
+            assert m, "It's not the URL expected"
+            m = int(m.group(1))
+            m=m+1 if m!= 12 else 1
+            url = re.sub(r'(?<=amoiSelectionner%3d)\d+', str(m), tmp_link)
+            links.append(url)
+
+        links.reverse()
+        # Just for visiting the urls in a chronological way
+        m = re.search(r'fid=GoMonth&mois=(\d+)', links[0])
+        y = re.search(r'annee=(\d+)', links[0])
+        # We need to get a stable coming month instead of "fin du mois"
+        if m and y:
+            coming_date = date(int(y.group(1)), int(m.group(1)), 1) + relativedelta(months=+1)
+
+            add_first = re.sub(r'(?<=amoiSelectionner%3d)\d+', str(coming_date.month), links[0])
+            add_first = re.sub(r'(?<=GoMonth&mois=)\d+', str(coming_date.month), add_first)
+            add_first = re.sub(r'(?<=\&annee=)\d+', str(coming_date.year), add_first)
+            links.insert(0, add_first)
+        m = re.search(r'fid=GoMonth&mois=(\d+)', links[-1]).group(1)
+        links.append(re.sub(r'(?<=amoiSelectionner%3d)\d+', str(m), secondpage))
+
+        links2 = []
+        page2 = self.browser.open(secondpage).page
+        for link in page2.doc.xpath('//div[@class="restriction"]/ul[1]/li'):
+            if link.xpath('./span/span/a'):
+                tmp_link = Link(link.xpath('./span/span/a'))(self)
+                if 'GoMonthSuivant' in tmp_link:
+                    break
+                m = re.search(r'fid=GoMonth&mois=(\d+)', tmp_link)
+                assert m, "It's not the URL expected"
+                m = int(m.group(1))
+                m=m+1 if m!= 12 else 1
+                url = re.sub(r'(?<=amoiSelectionner%3d)\d+', str(m), tmp_link)
+                links2.append(url)
+
+        links2.reverse()
+        links.extend(links2)
+        return links
 
 
 class LIAccountsPage(LoggedPage, HTMLPage):
@@ -942,7 +1109,6 @@ class LIAccountsPage(LoggedPage, HTMLPage):
                 if not link:
                     return NotAvailable
                 return Regexp(pattern='isin=([A-Z\d]+)&?', default=NotAvailable).filter(link)
-
 
 
 class PorPage(LoggedPage, HTMLPage):
@@ -1605,25 +1771,29 @@ class SubscriptionPage(LoggedPage, HTMLPage):
 
 
 class CardsHistAvailable(LoggedPage, HTMLPage):
-    def get_cards_list(self):
-        cards = {}
-        for card in self.doc.xpath('//li[@class="item"]'):
-            m = re.search(r'\d{4} \d{2}XX XXXX \d{4}', CleanText(card.xpath('.//span'))(self))
-            if m:
-                id_card = m.group(0).replace(' ', '').replace('X', 'x')
-            link = Link(card.xpath('.//a[contains(@id,"C:more-card")]'))(self)
-            coming = CleanDecimal(card.xpath('.//tbody/tr/td/span')[0], replace_dots=True)(self)
-            coming += CleanDecimal(card.xpath('.//tbody/tr/td/span')[1], replace_dots=True)(self)
-            parent_id = re.search(r'\d+', CleanText(card.xpath('./div/div/div/p'), replace=[(' ', '')])(self)).group(0)[-16:]
-            cards[id_card] = [link, coming, parent_id]
-
-        return cards
-
     def get_unavailable_cards(self):
         cards = []
         for card in self.doc.xpath('//li[@class="item"]'):
-            if not CleanText(card.xpath('.//div[1]/p'))(self) == 'Active':
+            if CleanText(card.xpath('.//div[1]/p'))(self) != 'Active':
                 m = re.search(r'\d{4} \d{2}XX XXXX \d{4}', CleanText(card.xpath('.//span'))(self))
                 if m:
                     cards.append(m.group(0).replace(' ', '').replace('X', 'x'))
         return cards
+
+    def get_cards_list(self):
+            cards = {}
+            for card in self.doc.xpath('//li[@class="item"]'):
+                if not card.xpath('.//tbody/tr/td/span'):
+                    # No coming/balance values and history link are available
+                    continue
+                m = re.search(r'\d{4} \d{2}XX XXXX \d{4}', CleanText(card.xpath('.//span'))(self))
+                assert m, 'Id card is not present'
+                id_card = m.group(0).replace(' ', '').replace('X', 'x')
+
+                link = Link(card.xpath('.//a[contains(@id,"C:more-card")]'))(self)
+                coming = CleanDecimal(card.xpath('.//tbody/tr/td/span')[0], replace_dots=True)(self)
+                coming += CleanDecimal(card.xpath('.//tbody/tr/td/span')[1], replace_dots=True)(self)
+                parent_id = re.search(r'\d+', CleanText(card.xpath('./div/div/div/p'), replace=[(' ', '')])(self)).group(0)[-16:] or None
+                cards[id_card] = [link, coming, parent_id]
+
+            return cards

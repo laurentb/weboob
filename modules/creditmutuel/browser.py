@@ -19,6 +19,7 @@
 
 from __future__ import unicode_literals
 
+import re
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from itertools import groupby
@@ -185,11 +186,14 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
             self.cards_histo_available = {}
 
             # For some cards the validity information is only availaible on these 2 links
-            self.unavailablecards.extend(self.cards_hist_available.go(subbank=self.currentSubBank).get_unavailable_cards())
-            self.cards_histo_available.update(self.page.get_cards_list())
+            self.cards_hist_available.go(subbank=self.currentSubBank)
+            if self.cards_hist_available.is_here():
+                self.unavailablecards.extend(self.page.get_unavailable_cards())
+                self.cards_histo_available.update(self.page.get_cards_list())
 
-            self.unavailablecards.extend(self.cards_hist_available2.go(subbank=self.currentSubBank).get_unavailable_cards())
-            self.cards_histo_available.update(self.page.get_cards_list())
+            if self.cards_hist_available2.is_here():
+                self.unavailablecards.extend(self.page.get_unavailable_cards())
+                self.cards_histo_available.update(self.page.get_cards_list())
 
             for acc in self.revolving_loan_list.stay_or_go(subbank=self.currentSubBank).iter_accounts():
                 self.accounts_list.append(acc)
@@ -219,6 +223,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
 
             for acc in self.accounts_list:
                 if acc.id[:16] in self.cards_histo_available:
+                    # ex of ID card : 000000xxxxxx0000
                     acc.parent = find_object(self.accounts_list, id=self.cards_histo_available[acc.id[:16]][2])
 
             excluded_label = ['etalis', 'valorisation totale']
@@ -305,6 +310,8 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
         groups = [list(g) for k, g in groupby(sorted(trs, key=lambda tr: tr.date), lambda tr: tr.date)]
         trs = []
         for group in groups:
+            if group[0].date > datetime.today().date():
+                continue
             tr = FrenchTransaction()
             tr.raw = tr.label = u"RELEVE CARTE %s" % group[0].date
             tr.amount = -sum([t.amount for t in group])
@@ -321,13 +328,70 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
         if not account._link_id:
             raise NotImplementedError()
 
-        # need to refresh the months select
         if len(account.id) >= 16 and account.id[:16] in self.cards_histo_available:
+            # Check if '000000xxxxxx0000' card have an annual history
             account._link_id = self.cards_histo_available[account.id[:16]][0]
-            for tr in self.list_operations(account._link_id, account):
-                transactions.append(tr)
-            return transactions
+            self.location(account._link_id)
+            # The history of the card is available for 1 year with 1 month per page
+            # Here we catch all the url needed to be the more compatible with the catch of merged subtransactions
+            urlstogo = self.page.get_links()
+            self.location(account._link_id)
+            monthly_tr = []
+            for url in urlstogo:
+                self.location(url)
+                if 'GoMonthPrecedent' not in url:
+                    history = self.page.get_history()
+                    self.tr_date = self.page.get_date()
+                    if self.page.has_more_operations():
+                        for i in range(1, 100):
+                            # Arbitrary range; it's the number of click needed to access to the full history of the month (stop with the next break)
+                            data = {
+                                '_FID_DoAddElem': '',
+                                '_wxf2_cc':	'fr-FR',
+                                '_wxf2_pmode':	'Normal',
+                                '_wxf2_pseq':	i,
+                                '_wxf2_ptarget':	'C:P:updPan',
+                                'Data_ServiceListDatas_CurrentOtherCardThirdPartyNumber': '',
+                                'Data_ServiceListDatas_CurrentType':	'MyCards',
+                            }
+                            if 'fid=GoMonth&mois=' in self.url:
+                                m = re.search(r'fid=GoMonth&mois=(\d+)', self.url)
+                                if m:
+                                    m = m.group(1)
+                                self.location('CRP8_SCIM_DEPCAR.aspx?_tabi=C&a__itaret=as=SCIM_ListeActivityStep\%3a\%3a\%2fSCIM_ListeRouter%3a%3a&a__mncret=SCIM_LST&a__ecpid=EID2011&_stack=_remote::moiSelectionner={},moiAfficher=firstHalf,typeDepense=T&_pid=SCIM_DEPCAR_Details'.format(m), data=data)
+                            else:
+                                self.location(self.url, data=data)
 
+                            if not self.page.has_more_operations_xml():
+                                history = self.page.iter_history_xml()
+                                # We are now with an XML page with all the transactions of the months
+                                break
+                    else:
+                        history = self.page.get_history()
+
+                    merged_amount = 0
+                    monthly_tr = []
+                    for tr in history:
+                        if tr._regroup:
+                            self.location(tr._regroup)
+                            for tr2 in self.page.get_tr_merged():
+                                tr2._is_coming = tr._is_coming
+                                tr2.date = self.tr_date
+                                transactions.append(tr2)
+                                merged_amount += tr2.amount
+                        else:
+                            transactions.append(tr)
+                            monthly_tr.append(tr)
+
+                    monthly_summary = self.get_monthly_transactions(monthly_tr)
+                    if monthly_summary:
+                        monthly_summary[0].amount =  abs(monthly_summary[0].amount - merged_amount)
+                        transactions.extend(monthly_summary)
+                        monthly_summary = []
+
+            return sorted_transactions(transactions)
+
+        # need to refresh the months select
         elif account._link_id.startswith('ENC_liste_oper'):
             self.location(account._pre_link)
 
@@ -351,6 +415,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                 if tr.date >= datetime.now():
                     tr._is_coming = True
                 elif hasattr(account, '_card_pages'):
+                    tr.type = FrenchTransaction.TYPE_DEFERRED_CARD
                     card_trs.append(tr)
                 transactions.append(tr)
             if card_trs:
