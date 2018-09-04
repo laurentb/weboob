@@ -27,7 +27,7 @@ from logging import error
 from weboob.browser.pages import LoggedPage, JsonPage, FormNotFound
 from weboob.browser.elements import method, ListElement, ItemElement, SkipItem
 from weboob.capabilities.bank import (
-    Recipient, TransferError, TransferBankError, TransferInvalidCurrency, Transfer,
+    Recipient, TransferBankError, TransferInvalidCurrency, Transfer,
     AddRecipientError, AddRecipientStep,
 )
 from weboob.capabilities.base import find_object, NotAvailable, empty
@@ -199,7 +199,7 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
             elif _type == 'Destinataires' and ((params['cdgude'] + params['nucpde']) == _id or params['codeIBANBenef'] == _id):
                 return params
 
-        raise TransferError(u'Paramètres pour le compte %s numéro %s introuvable.' % (_type, _id))
+        assert False, u'Paramètres pour le compte %s numéro %s introuvable.' % (_type, _id)
 
     def get_account_value(self, _id):
         for option in self.doc.xpath('//select[@id="SelectEmet"]//option'):
@@ -219,8 +219,8 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
         recipient_params = self.get_params(recipient.id, 'Destinataires')
         data = OrderedDict()
         value = self.get_account_value(account.id) or self.get_account_value_by_label(account.label)
-        if value is None:
-            raise TransferError("Couldn't retrieve origin account in list")
+        assert value is not None, "Couldn't retrieve origin account %s in list" % account.id
+
         data['dup'] = re.search('dup=(.*?)(&|$)', value).group(1)
         data['src'] = re.search('src=(.*?)(&|$)', value).group(1)
         data['sign'] = re.search('sign=(.*?)(&|$)', value).group(1)
@@ -258,12 +258,12 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
         amount = CleanDecimal('.//td[@headers="virement montant"]', replace_dots=True)(self.doc)
         label = CleanText('.//td[@headers="virement motif"]')(self.doc)
         exec_date = Date(CleanText('.//td[@headers="virement date"]'), dayfirst=True)(self.doc)
-        if transfer.amount != amount:
-            raise TransferError('data consistency failed, %s changed from %s to %s' % ('amount', transfer.amount, amount))
-        if transfer.label not in label:
-            raise TransferError('data consistency failed, %s changed from %s to %s' % ('label', transfer.label, label))
-        if not (transfer.exec_date <= exec_date <= transfer.exec_date + timedelta(days=4)):
-            raise TransferError('data consistency failed, %s changed from %s to %s' % ('exec_date', transfer.exec_date, exec_date))
+        assert transfer.amount == amount, \
+            'data consistency failed, %s changed from %s to %s' % ('amount', transfer.amount, amount)
+        assert transfer.label in label, \
+            'data consistency failed, %s changed from %s to %s' % ('label', transfer.label, label)
+        assert (transfer.exec_date <= exec_date <= transfer.exec_date + timedelta(days=4)), \
+            'data consistency failed, %s changed from %s to %s' % ('exec_date', transfer.exec_date, exec_date)
 
     def create_transfer(self, account, recipient, transfer):
         transfer = Transfer()
