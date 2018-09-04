@@ -25,7 +25,10 @@ from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, Imag
 from weboob.tools.value import Value
 from weboob.browser.browsers import ClientError
 
-from .pages import LoginPage, SubscriptionsPage, DocumentsPage, HomePage, PanelPage, SecurityPage, LanguagePage, HistoryPage
+from .pages import (
+    LoginPage, SubscriptionsPage, DocumentsPage, DownloadDocumentPage, HomePage, PanelPage, SecurityPage,
+    LanguagePage, HistoryPage
+)
 
 
 class AmazonBrowser(LoginBrowser, StatesMixin):
@@ -44,6 +47,7 @@ class AmazonBrowser(LoginBrowser, StatesMixin):
     documents = URL(r'/gp/your-account/order-history\?opt=ab&digitalOrders=1(.*)&orderFilter=year-(?P<year>.*)',
                     r'https://www.amazon.fr/gp/your-account/order-history',
                     DocumentsPage)
+    download_doc = URL(r'/gp/shared-cs/ajax/invoice/invoice.html', DownloadDocumentPage)
     security = URL('/ap/dcq',
                    '/ap/cvf/',
                    '/ap/mfa',
@@ -176,6 +180,8 @@ class AmazonBrowser(LoginBrowser, StatesMixin):
         documents = []
 
         for y in range(date.today().year - 2, date.today().year + 1):
-            for doc in self.documents.go(year=y).iter_documents(subid=subscription.id, currency=self.CURRENCY):
+            self.documents.go(year=y)
+            request_id = self.page.response.headers['x-amz-rid']
+            for doc in self.page.iter_documents(subid=subscription.id, currency=self.CURRENCY, request_id=request_id):
                 documents.append(doc)
         return documents

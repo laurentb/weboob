@@ -19,12 +19,12 @@
 
 from __future__ import unicode_literals
 
-
-from weboob.browser.pages import HTMLPage, LoggedPage, FormNotFound
+from weboob.browser.pages import HTMLPage, LoggedPage, FormNotFound, PartialHTMLPage
 from weboob.browser.elements import ItemElement, ListElement, method
+from weboob.browser.filters.html import Link
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Env, Regexp, Format,
-    Field, Currency, RegexpError, Date
+    Field, Currency, RegexpError, Date, Async, AsyncLoad
 )
 from weboob.capabilities.bill import Bill, Subscription
 from weboob.capabilities.base import NotAvailable
@@ -119,11 +119,14 @@ class DocumentsPage(LoggedPage, HTMLPage):
 
         class item(ItemElement):
             klass = Bill
+            load_details = Field('_pre_url') & AsyncLoad
 
             obj__simple_id = CleanText('.//div[has-class("actions")]//span[has-class("value")]')
             obj_id = Format('%s_%s', Env('subid'), Field('_simple_id'))
-            obj_url = Format('/gp/css/summary/print.html/ref=oh_aui_ajax_pi?ie=UTF8&orderID=%s', Field('_simple_id'))
-            obj_format = 'html'
+            obj__pre_url = Format('/gp/shared-cs/ajax/invoice/invoice.html?orderId=%s&relatedRequestId=%s&isADriveSubscription=&isHFC=',
+                                  Field('_simple_id'), Env('request_id'))
+            obj_url = Async('details') & Link('//a[contains(@href, "download")]')
+            obj_format = 'pdf'
             obj_label = Format('Facture %s', Field('_simple_id'))
             obj_type = 'bill'
 
@@ -142,3 +145,7 @@ class DocumentsPage(LoggedPage, HTMLPage):
             def obj_currency(self):
                 currency = Env('currency')(self)
                 return Currency('.//div[has-class("a-col-left")]//span[has-class("value") and contains(., "%s")]' % currency)(self)
+
+
+class DownloadDocumentPage(LoggedPage, PartialHTMLPage):
+    pass
