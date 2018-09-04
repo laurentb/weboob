@@ -271,6 +271,7 @@ class Account(BaseAccount):
     number =    StringField('Shown by the bank to identify your account ie XXXXX7489')
     # market and lifeinssurance accounts
     valuation_diff = DecimalField('+/- values total')
+    valuation_diff_percent = DecimalField('+/- values ratio')
 
     # parent account
     #  - A checking account parent of a card account
