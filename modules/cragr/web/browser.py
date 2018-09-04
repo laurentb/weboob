@@ -370,14 +370,14 @@ class Cragr(LoginBrowser, StatesMixin):
 
     @need_login
     def market_accounts_matching(self, accounts_list, market_accounts_list):
-        for account in accounts_list:
-            for market_account in market_accounts_list:
-                if account.id == market_account.id:
-                    account.label = market_account.label or account.label
-                    # Update accounts balance only for TYPE_MARKET because PEA accounts are fused
-                    # with their related DAV PEA here, therefore the balance includes liquidities:
-                    if account.type == Account.TYPE_MARKET:
-                        account.balance = market_account.balance or account.balance
+        for market_account in market_accounts_list:
+            account = find_object(accounts_list, id=market_account.id)
+            if account:
+                account.label = market_account.label or account.label
+                # Update accounts balance only for TYPE_MARKET because PEA accounts are fused
+                # with their related DAV PEA here, therefore the balance includes liquidities:
+                if account.type == Account.TYPE_MARKET:
+                    account.balance = market_account.balance or account.balance
 
     @need_login
     def get_history(self, account):
