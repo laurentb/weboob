@@ -124,7 +124,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
     internal_transfer = URL('/(?P<subbank>.*)fr/banque/virements/vplw_vi.html', InternalTransferPage)
     external_transfer = URL('/(?P<subbank>.*)fr/banque/virements/vplw_vee.html', ExternalTransferPage)
     recipients_list =   URL('/(?P<subbank>.*)fr/banque/virements/vplw_bl.html', RecipientsListPage)
-    error = URL('/validation/infos.cgi', ErrorPage)
+    error = URL('/(?P<subbank>.*)validation/infos.cgi', ErrorPage)
 
     subscription = URL('/(?P<subbank>.*)fr/banque/MMU2_LstDoc.aspx', SubscriptionPage)
 
