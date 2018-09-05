@@ -34,7 +34,7 @@ __all__ = ['BouyguesModule']
 
 class BouyguesModule(Module, CapMessages, CapMessagesPost, CapDocument, CapProfile):
     NAME = 'bouygues'
-    MAINTAINER = u'Bezleputh'
+    MAINTAINER = 'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
     VERSION = '1.4'
     DESCRIPTION = u'Bouygues Télécom French mobile phone provider'
@@ -49,7 +49,7 @@ class BouyguesModule(Module, CapMessages, CapMessagesPost, CapDocument, CapProfi
 
     def post_message(self, message):
         if not message.content.strip():
-            raise CantSendMessage(u'Message content is empty.')
+            raise CantSendMessage('Message content is empty.')
         self.browser.post_message(message)
 
     def iter_subscription(self):

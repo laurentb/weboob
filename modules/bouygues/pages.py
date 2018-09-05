@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 import re
 from datetime import datetime, timedelta
 
@@ -88,7 +90,7 @@ class SubscriptionDetailPage(LoggedPage, JsonPage):
 
 class SendSMSPage(HTMLPage):
     def send_sms(self, message, receivers):
-        sms_number = CleanDecimal(Regexp(CleanText('//span[@class="txt12-o"][1]/strong'), '(\d*) SMS.*'))(self.doc)
+        sms_number = CleanDecimal(Regexp(CleanText('//span[@class="txt12-o"][1]/strong'), r'(\d*) SMS.*'))(self.doc)
 
         if sms_number == 0:
             msg = CleanText('//span[@class="txt12-o"][1]')(self.doc)
@@ -133,11 +135,11 @@ class DocumentsPage(LoggedPage, JsonPage):
             obj_url = Format('https://api.bouyguestelecom.fr%s', Dict('_links/facturePDF/href'))
             obj_date = Env('date')
             obj_duedate = Env('duedate')
-            obj_format = u"pdf"
+            obj_format = "pdf"
             obj_label = Env('label')
-            obj_type = u"bill"
+            obj_type = "bill"
             obj_price = CleanDecimal(Dict('mntTotFacture'))
-            obj_currency = u'EUR'
+            obj_currency = 'EUR'
 
             def parse(self, el):
                 bill_date = datetime.strptime(Dict('dateFacturation')(self), "%Y-%m-%dT%H:%M:%SZ").date()
