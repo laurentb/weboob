@@ -197,7 +197,7 @@ class AccountsList(LoggedPage, HTMLPage):
             obj__id = CleanText('./span[@class="account-number"]')
 
             def obj_balance(self):
-                balance = CleanDecimal('./span[@class="solde"]/label', replace_dots=True)(self)
+                balance = CleanDecimal('.//div/span[@class="solde"]/label', replace_dots=True)(self)
                 return -abs(balance)
 
     class generic_transactions(ListElement):
