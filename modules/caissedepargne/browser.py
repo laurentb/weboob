@@ -666,11 +666,16 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     @need_login
     def iter_subscription(self):
         self.home.go()
+        # CapDocument is not implemented for professional accounts yet
+        if "netpro" in self.page.url:
+            raise NotImplementedError()
         self.home_tache.go(tache='CPTSYNT1')
         self.page.go_subscription()
         assert self.subscription.is_here()
 
-        return self.page.iter_subscription()
+        if self.page.has_subscriptions():
+            return self.page.iter_subscription()
+        return []
 
     @need_login
     def iter_documents(self, subscription):

@@ -1265,6 +1265,10 @@ class SubscriptionPage(LoggedPage, HTMLPage):
     def is_here(self):
         return self.doc.xpath('//h2[text()="e-Documents"]')
 
+    def has_subscriptions(self):
+        # This message appears if the customer has not activated the e-Documents yet
+        return not bool(self.doc.xpath('//a[contains(text(), "Je souscris au service e-Documents")]'))
+
     @method
     class iter_subscription(ListElement):
         item_xpath = '//select[contains(@id, "ClientsBancaires")]/option'
