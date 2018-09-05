@@ -44,6 +44,9 @@ class LoginPage(HTMLPage):
 
         form.submit()
 
+    def get_error(self):
+        return CleanText('//div[@id="alert_msg"]//p')(self.doc)
+
 
 class HomePage(LoggedPage, HTMLPage):
     pass
@@ -60,7 +63,7 @@ class SubscriberPage(LoggedPage, JsonPage):
     def get_phone_list(self):
         num_tel_list = []
         for phone in self.doc.get('comptesAcces', []):
-            num_tel_list.append(' '.join([phone[i:i + 2] for i in range(0, len(phone), 2)]))
+            num_tel_list.append(' '.join(phone[i:i + 2] for i in range(0, len(phone), 2)))
 
         return ' - '.join(num_tel_list)
 
