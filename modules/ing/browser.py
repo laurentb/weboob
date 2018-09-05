@@ -20,11 +20,12 @@
 
 import hashlib
 import time
+import json
 
 from requests.exceptions import SSLError
 
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.browser.exceptions import ServerError
 from weboob.capabilities.bank import Account, AccountNotFound
 from weboob.capabilities.base import find_object, NotAvailable
@@ -270,8 +271,16 @@ class IngBrowser(LoginBrowser):
 
             self.accountspage.go(data=data)
             self.loantokenpage.go(data=data)
-            self.loandetailpage.go().getdetails(loan)
+            try:
+                self.loandetailpage.go()
 
+            except ServerError as exception:
+                json_error = json.loads(exception.response.text)
+                if json_error['error']['code'] == "INTERNAL_ERROR":
+                    raise BrowserUnavailable(json_error['error']['message'])
+                raise
+            else:
+                self.page.getdetails(loan)
             yield loan
             self.return_from_loan_site()
 
