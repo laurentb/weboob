@@ -135,7 +135,7 @@ class DocumentsPage(LoggedPage, JsonPage):
             klass = Bill
 
             obj_id = Format('%s_%s', Env('subid'), Dict('idFacture'))
-            obj_url = Format('https://api.bouyguestelecom.fr%s', Dict('_links/facturePDF/href'))
+            obj_url = Format('https://api.bouyguestelecom.fr%s', Dict('_links/facturePDFDF/href'))
             obj_date = Env('date')
             obj_duedate = Env('duedate')
             obj_format = "pdf"
