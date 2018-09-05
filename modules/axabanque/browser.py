@@ -420,7 +420,7 @@ class AXABanque(AXABrowser, StatesMixin):
 
             for recipient in self.page.get_recipients():
                 if recipient.iban in seen:
-                    recipient.category = 'EXTERNE'
+                    recipient.category = 'Externe'
                 yield recipient
 
     def copy_recipient_obj(self, recipient):
@@ -428,7 +428,7 @@ class AXABanque(AXABrowser, StatesMixin):
         rcpt.id = recipient.iban
         rcpt.iban = recipient.iban
         rcpt.label = recipient.label
-        rcpt.category = 'EXTERNE'
+        rcpt.category = 'Externe'
         rcpt.enabled_at = date.today()
         rcpt.currency = 'EUR'
         return rcpt

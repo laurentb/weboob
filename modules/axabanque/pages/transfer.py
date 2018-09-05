@@ -95,7 +95,7 @@ class RecipientsPage(LoggedPage, HTMLPage):
             obj_id = CleanText(TableCell('id'), replace=[(' ', '')])
             obj_iban = Field('id')
             obj_label = Format('%s - %s', CleanText(TableCell('_acc_name')), CleanText(TableCell('_rcpt_name')))
-            obj_category = 'EXTERNE'
+            obj_category = 'Externe'
             obj_enabled_at = date.today()
             obj_currency = 'EUR'
             obj_bank_name = NotAvailable
@@ -255,7 +255,7 @@ class RegisterTransferPage(LoggedPage, HTMLPage):
             rcpt.iban = CleanText('./@value')(recipient)
             rcpt.id = rcpt.iban
             rcpt.enabled_at = date.today()
-            rcpt.category = 'INTERNE'
+            rcpt.category = 'Interne'
 
             yield rcpt
 
