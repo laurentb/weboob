@@ -246,6 +246,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                 return '/outil/UWLM/ListeMouvement' in self.el.attrib['onclick']
 
             NATURE2TYPE = {'001': Account.TYPE_SAVINGS,
+                           '004': Account.TYPE_CHECKING,
                            '005': Account.TYPE_CHECKING,
                            '006': Account.TYPE_CHECKING,
                            '007': Account.TYPE_SAVINGS,
