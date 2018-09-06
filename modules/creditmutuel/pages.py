@@ -39,8 +39,10 @@ from weboob.exceptions import (
 )
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.base import empty, find_object
-from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, TransferBankError, \
-    Transfer, AddRecipientError, AddRecipientStep, Loan
+from weboob.capabilities.bank import (
+    Account, Investment, Recipient, TransferError, TransferBankError,
+    Transfer, AddRecipientBankError, AddRecipientStep, Loan,
+)
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Profile
 from weboob.tools.capabilities.bank.iban import is_iban_valid
@@ -1326,7 +1328,7 @@ class VerifCodePage(LoggedPage, HTMLPage):
     def on_load(self):
         error = CleanText('//p[contains(text(), "Clé invalide !")] | //p[contains(text(), "Vous n\'avez pas saisi de clé!")]')(self.doc)
         if error:
-            raise AddRecipientError(message=error)
+            raise AddRecipientBankError(message=error)
 
         action_needed = CleanText('//p[contains(text(), "Carte de CLÉS PERSONNELLES révoquée")]')(self.doc)
         if action_needed:
@@ -1362,7 +1364,7 @@ class RecipientsListPage(LoggedPage, HTMLPage):
         if error and error != 'Veuillez renseigner le BIC ou les coordonnées de la banque':
             # don't reload state if it fails because it's not supported by the website
             self.browser.need_clear_storage = True
-            raise AddRecipientError(message=error)
+            raise AddRecipientBankError(message=error)
 
         app_validation = self.doc.xpath('//strong[contains(text(), "Démarrez votre application mobile")]')
         if app_validation:
@@ -1427,9 +1429,10 @@ class RecipientsListPage(LoggedPage, HTMLPage):
             form = self.get_form(id='P:F')
             self.set_browser_form(form)
             raise AddRecipientStep(recipient, Value('code', label=txt))
+
         # don't reload state if it fails because it's not supported by the website
         self.browser.need_clear_storage = True
-        raise AddRecipientError('Was expecting a page where sms code is asked')
+        assert False, 'Was expecting a page where sms code is asked'
 
 class RevolvingLoansList(LoggedPage, HTMLPage):
     @method

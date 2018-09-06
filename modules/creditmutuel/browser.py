@@ -32,7 +32,7 @@ from weboob.browser.url import URL
 from weboob.browser.pages import FormNotFound
 from weboob.browser.exceptions import ClientError, ServerError
 from weboob.exceptions import BrowserIncorrectPassword, AuthMethodNotImplemented, BrowserUnavailable
-from weboob.capabilities.bank import Account, AddRecipientStep, AddRecipientError, Recipient, Investment
+from weboob.capabilities.bank import Account, AddRecipientStep, Recipient, Investment
 from weboob.capabilities import NotAvailable
 from weboob.tools.compat import urlparse
 
@@ -485,11 +485,13 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
             return self.end_new_recipient(recipient, **params)
         if u'Clé' in params:
             return self.continue_new_recipient(recipient, **params)
+
         self.recipients_list.go(subbank=self.currentSubBank)
         if self.page.has_list():
-            if recipient.category not in self.page.get_recipients_list():
-                raise AddRecipientError('Recipient category is not on the website available list.')
+            assert recipient.category in self.page.get_recipients_list(), \
+                'Recipient category is not on the website available list.'
             self.page.go_list(recipient.category)
+
         self.page.go_to_add()
         if self.verify_pass.is_here():
             raise AddRecipientStep(self.get_recipient_object(recipient), Value(u'Clé', label=self.page.get_question()))
