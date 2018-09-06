@@ -38,6 +38,7 @@ from weboob.capabilities.profile import Person
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.decorators import retry
 from weboob.tools.compat import urlsplit, parse_qsl
 from weboob.tools.json import json
 from weboob.tools.misc import to_unicode
@@ -390,6 +391,9 @@ class HomePage(LoggedPage, MyHTMLPage):
             return None
         return super(MyHTMLPage, self).build_doc(data, *args, **kwargs)
 
+    @retry(KeyError)
+    # sometime the server redirects to a bad url, not containing token.
+    # therefore "return args['token']" crashes with a KeyError
     def get_token(self):
         vary = None
         if self.params.get('vary', None) is not None:
