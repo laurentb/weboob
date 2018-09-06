@@ -35,6 +35,9 @@ class HomePage(HTMLPage):
     def get_login_link(self):
         return self.doc.xpath('//a[./span[contains(., "%s")]]/@href' % self.browser.L_SIGNIN)[0]
 
+    def get_panel_link(self):
+        return Link('//a[contains(@href, "homepage.html") and has-class(@nav-link)]')(self.doc)
+
 
 class PanelPage(LoggedPage, HTMLPage):
     def get_sub_link(self):

@@ -41,7 +41,7 @@ class AmazonBrowser(LoginBrowser, StatesMixin):
     L_SUBSCRIBER = 'Nom : (.*) Modifier E-mail'
 
     login = URL(r'/ap/signin(.*)', LoginPage)
-    home = URL(r'/$', HomePage)
+    home = URL(r'/$', r'/\?language=\w+$', HomePage)
     panel = URL('/gp/css/homepage.html/ref=nav_youraccount_ya', PanelPage)
     subscriptions = URL(r'/ap/cnep(.*)', SubscriptionsPage)
     documents = URL(r'/gp/your-account/order-history\?opt=ab&digitalOrders=1(.*)&orderFilter=year-(?P<year>.*)',
@@ -170,7 +170,11 @@ class AmazonBrowser(LoginBrowser, StatesMixin):
     def iter_subscription(self):
         self.location(self.panel.go().get_sub_link())
 
-        if not self.subscriptions.is_here():
+        if self.home.is_here():
+            if self.page.get_login_link():
+                self.is_login()
+            self.location(self.page.get_panel_link())
+        elif not self.subscriptions.is_here():
             self.is_login()
 
         yield self.page.get_item()
