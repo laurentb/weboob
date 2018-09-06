@@ -32,7 +32,7 @@ from weboob.browser.filters.standard import (
     CleanText, Date, Regexp, CleanDecimal, Currency, Format, Field,
 )
 from weboob.capabilities.bank import (
-    Recipient, Transfer, TransferBankError, AddRecipientError, RecipientNotFound,
+    Recipient, Transfer, TransferBankError, AddRecipientBankError, RecipientNotFound,
 )
 from weboob.tools.captcha.virtkeyboard import SimpleVirtualKeyboard
 from weboob.capabilities.base import find_object, NotAvailable
@@ -120,11 +120,11 @@ class RecipientConfirmationPage(LoggedPage, HTMLPage):
         )
 
         if self.doc.xpath('//input[@class="erreur_champs"]'):
-            raise AddRecipientError(message="Le code entré est incorrect.")
+            raise AddRecipientBankError(message="Le code entré est incorrect.")
 
         for error_msg in errors_msg:
             if error_msg:
-                raise AddRecipientError(message=error_msg)
+                raise AddRecipientBankError(message=error_msg)
 
     def continue_new_recipient(self):
         continue_new_recipient_btn_id = CleanText('//input[@class="btn_continuer"]/@id')(self.doc)
