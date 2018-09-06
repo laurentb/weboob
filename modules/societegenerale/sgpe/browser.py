@@ -28,7 +28,7 @@ from weboob.browser.exceptions import ClientError
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import (
-    AccountNotFound, RecipientNotFound, AddRecipientStep, AddRecipientError,
+    AccountNotFound, RecipientNotFound, AddRecipientStep, AddRecipientBankError,
     Recipient, TransferBankError,
 )
 from weboob.tools.value import Value
@@ -359,16 +359,14 @@ class SGProfessionalBrowser(SGEnterpriseBrowser, StatesMixin):
 
     @need_login
     def validate_rcpt_with_sms(self, code):
-        if not self.new_rcpt_validate_form:
-            raise AddRecipientError()
-
+        assert self.new_rcpt_validate_form, 'There should have recipient validate form in states'
         self.new_rcpt_validate_form.update({'code': code})
         try:
             self.confirm_new_recipient.go(data=self.new_rcpt_validate_form)
         except ClientError as e:
             assert e.response.status_code == 403, \
                 'Something went wrong in add recipient, response status code is %s' % e.response.status_code
-            raise AddRecipientError(message='Le code entré est incorrect.')
+            raise AddRecipientBankError(message='Le code entré est incorrect.')
 
     @need_login
     def iter_recipients(self, origin_account):
