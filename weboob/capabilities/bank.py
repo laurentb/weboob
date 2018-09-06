@@ -44,7 +44,7 @@ __all__ = [
     'TransferInvalidEmitter', 'TransferInvalidRecipient',
     'TransferStep',
     'CapBankTransferAddRecipient',
-    'RecipientNotFound', 'AddRecipientError', 'AddRecipientStep',
+    'RecipientNotFound', 'AddRecipientError', 'AddRecipientBankError', 'AddRecipientStep',
     'RecipientInvalidIban', 'RecipientInvalidLabel',
     'Rate', 'CapCurrencyRate',
 ]
@@ -148,6 +148,12 @@ class AddRecipientError(UserError):
         super(AddRecipientError, self).__init__(message or description)
         self.message = message
         self.description = description
+
+
+class AddRecipientBankError(AddRecipientError):
+    """The new recipient was rejected by the bank with a message."""
+
+    code = 'bankMessage'
 
 
 class RecipientInvalidIban(AddRecipientError):
