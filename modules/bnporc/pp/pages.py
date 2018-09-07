@@ -32,7 +32,10 @@ from weboob.browser.filters.standard import Format, Eval, Regexp, CleanText, Dat
 from weboob.browser.filters.html import TableCell
 from weboob.browser.pages import JsonPage, LoggedPage, HTMLPage
 from weboob.capabilities import NotAvailable
-from weboob.capabilities.bank import Account, Investment, Recipient, Transfer, TransferError, TransferBankError, AddRecipientError
+from weboob.capabilities.bank import (
+    Account, Investment, Recipient, Transfer, TransferError, TransferBankError,
+    AddRecipientBankError,
+)
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Person, ProfileMissing
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, BrowserPasswordExpired, ActionNeeded
@@ -791,7 +794,7 @@ class AddRecipPage(BNPPage):
     def on_load(self):
         code = cast(self.get('codeRetour'), int)
         if code:
-            raise AddRecipientError(message=self.get('message'))
+            raise AddRecipientBankError(message=self.get('message'))
 
     def get_recipient(self, recipient):
         r = Recipient()
