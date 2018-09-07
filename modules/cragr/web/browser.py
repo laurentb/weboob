@@ -25,7 +25,7 @@ from html2text import unescape
 from datetime import date, datetime, timedelta
 
 from weboob.capabilities.bank import (
-    Account, AddRecipientStep, AddRecipientError, RecipientInvalidLabel,
+    Account, AddRecipientStep, AddRecipientBankError, RecipientInvalidLabel,
     Recipient, AccountNotFound, Investment,
 )
 from weboob.capabilities.base import NotLoaded, find_object
@@ -695,7 +695,8 @@ class Cragr(LoginBrowser, StatesMixin):
             raise RecipientInvalidLabel('Recipient label contains invalid characters')
 
         if 'sms_code' in params and not re.match(r'^[a-z0-9]{6}$', params['sms_code'], re.I):
-            raise AddRecipientError('SMS verification code is invalid')
+            # check before send sms code because it can crash website if code is invalid
+            raise AddRecipientBankError("SMS code %s is invalid" % params['sms_code'])
 
         self.transfer_init_page.go(sag=self.sag)
         assert self.transfer_init_page.is_here()
@@ -726,7 +727,7 @@ class Cragr(LoginBrowser, StatesMixin):
 
             err = hasattr(self.page, 'get_sms_error') and self.page.get_sms_error()
             if err:
-                raise AddRecipientError(message=err)
+                raise AddRecipientBankError(message=err)
 
             self.page.submit_recipient(recipient.label, recipient.iban)
             self.page.confirm_recipient()
@@ -738,6 +739,5 @@ class Cragr(LoginBrowser, StatesMixin):
                 assert self.transfer_init_page.is_here()
 
             res = self.page.find_recipient(recipient.iban)
-            if res is None:
-                raise AddRecipientError('Recipient could not be found')
+            assert res, 'Recipient with iban %s could not be found' % recipient.iban
             return res

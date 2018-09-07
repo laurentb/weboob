@@ -28,7 +28,7 @@ from weboob.capabilities import NotAvailable
 from weboob.capabilities.base import Currency
 from weboob.capabilities.bank import (
     Account, Investment, Recipient, Transfer, TransferError, TransferBankError,
-    AddRecipientError, Loan
+    AddRecipientBankError, Loan
 )
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Profile
@@ -1247,7 +1247,7 @@ class RecipientAddingMixin(object):
         try:
             form = self.get_form(name='frm_fwk')
         except FormNotFound:
-            raise AddRecipientError('An error occurred before sending recipient')
+            assert False, 'An error occurred before sending recipient'
 
         form['NOM_BENEF'] = label
         for i in range(9):
@@ -1357,7 +1357,7 @@ class TransferPage(RecipientAddingMixin, CollectePageMixin, MyLoggedPage, BasePa
 
         msg = CleanText('//tr[@bgcolor="#C74545"]', default='')(self.doc) # there is no id, class or anything...
         if msg:
-            raise AddRecipientError(message=msg)
+            raise AddRecipientBankError(message=msg)
 
 
 class RecipientMiscPage(RecipientAddingMixin, CollectePageMixin, MyLoggedPage, BasePage):
@@ -1379,7 +1379,7 @@ class RecipientMiscPage(RecipientAddingMixin, CollectePageMixin, MyLoggedPage, B
         try:
             form = self.get_form(name='frm_fwk')
         except FormNotFound:
-            raise AddRecipientError('An error occurred before finishing adding recipient')
+            assert False, 'An error occurred before finishing adding recipient'
 
         form['fwkaction'] = 'ConfirmerAjout'
         form['fwkcodeaction'] = 'Executer'
@@ -1388,7 +1388,7 @@ class RecipientMiscPage(RecipientAddingMixin, CollectePageMixin, MyLoggedPage, B
     def check_recipient_error(self):
         msg = CleanText('//tr[@bgcolor="#C74545"]', default='')(self.doc) # there is no id, class or anything...
         if msg:
-            raise AddRecipientError(message=msg)
+            raise AddRecipientBankError(message=msg)
 
     def get_iban_col(self):
         for index, td in enumerate(self.doc.xpath('//table[starts-with(@summary,"Nom et IBAN")]//th')):
@@ -1446,7 +1446,7 @@ class SendSMSPage(MyLoggedPage, CollectePageMixin, BasePage):
         # if the otp is incorrect
         error_msg = CleanText('//div[has-class("blc-choix-erreur")]//span')(self.doc)
         if error_msg:
-            raise AddRecipientError(message=error_msg)
+            raise AddRecipientBankError(message=error_msg)
 
     def send_sms(self):
         # when a code is still pending
