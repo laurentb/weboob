@@ -27,7 +27,7 @@ from weboob.browser.elements import method, ListElement, ItemElement
 from weboob.browser.filters.standard import (
     CleanText, Date, Regexp, CleanDecimal, Currency, Field, Env,
 )
-from weboob.capabilities.bank import Recipient, Transfer, TransferBankError, AddRecipientError
+from weboob.capabilities.bank import Recipient, Transfer, TransferBankError, AddRecipientBankError
 from weboob.capabilities.base import NotAvailable
 
 
@@ -70,7 +70,7 @@ class RecipientsPage(LoggedPage, HTMLPage):
 
     def check_recipient_iban(self):
         if not CleanText('//input[@name="codeBic"]/@value')(self.doc):
-            raise AddRecipientError('Recipient already exist or invalid iban')
+            raise AddRecipientBankError(message="Le bénéficiaire est déjà présent ou bien l'iban est incorrect")
 
     def fill_recipient_form(self, recipient) :
         form = self.get_form(id='CompteExterneActionForm')
@@ -104,7 +104,7 @@ class RecipientsPage(LoggedPage, HTMLPage):
 class RecipientSMSPage(LoggedPage, PartialHTMLPage):
     def on_load(self):
         if not self.doc.xpath('//input[@id="otp"]') and not self.doc.xpath('//div[@class="confirmationAjoutCompteExterne"]'):
-            raise AddRecipientError(CleanText('//div[@id="aidesecuforte"]/p[contains("Nous vous invitons")]')(self.doc))
+            raise AddRecipientBankError(message=CleanText('//div[@id="aidesecuforte"]/p[contains("Nous vous invitons")]')(self.doc))
 
     def build_doc(self, content):
         content = '<form>' + content.decode('latin-1') + '</form>'
