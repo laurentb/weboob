@@ -37,7 +37,7 @@ from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import Attr, Link, TableCell, AbsoluteLink
 from weboob.capabilities.bank import (
     Account, Investment, Recipient, Transfer, AccountNotFound,
-    AddRecipientError, TransferInvalidAmount,
+    AddRecipientBankError, TransferInvalidAmount,
 )
 from weboob.capabilities.base import NotAvailable, empty, Currency
 from weboob.capabilities.profile import Person
@@ -983,7 +983,7 @@ class AddRecipientPage(LoggedPage, HTMLPage):
 
         err = CleanText('//div[@class="form-errors"]', default=None)(self.doc)
         if err:
-            raise AddRecipientError(message=err)
+            raise AddRecipientBankError(message=err)
 
     def _is_form(self, **kwargs):
         try:
