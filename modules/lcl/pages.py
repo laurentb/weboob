@@ -31,7 +31,6 @@ from weboob.capabilities import NotAvailable
 from weboob.capabilities.base import find_object, Currency
 from weboob.capabilities.bank import (
     Account, Investment, Recipient, TransferError, TransferBankError, Transfer,
-    AddRecipientError,
 )
 from weboob.capabilities.bill import Document, Subscription
 from weboob.capabilities.profile import Person, ProfileMissing
@@ -1074,14 +1073,8 @@ class AddRecipientPage(LoggedPage, HTMLPage):
 class CheckValuesPage(LoggedPage, HTMLPage):
     def check_values(self, iban, label):
         values = CleanText('//form[contains(@action, "/outil")]')(self.doc)
-        try:
-            assert iban in values
-        except AssertionError:
-            raise AddRecipientError('iban not found in values')
-        try:
-            assert label in values
-        except AssertionError:
-            raise AddRecipientError('recipient label not found in values')
+        assert iban in values, 'Iban (%s) not found in values: %s' % (iban, values)
+        assert label in values, 'Recipient label (%s) not found in values: %s' % (label, values)
 
 
 class DocumentsPage(LoggedPage, HTMLPage):

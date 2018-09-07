@@ -26,7 +26,7 @@ from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.browser.exceptions import ServerError
 from weboob.browser.pages import FormNotFound
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.bank import Account, Investment, AddRecipientError, AddRecipientStep, Recipient
+from weboob.capabilities.bank import Account, Investment, AddRecipientBankError, AddRecipientStep, Recipient
 from weboob.tools.compat import basestring, urlsplit, parse_qsl, unicode
 from weboob.tools.value import Value
 
@@ -390,7 +390,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
     def send_code(self, recipient, **params):
         res = self.open('/outil/UWBE/Otp/getValidationCodeOtp?codeOtp=%s' % params['code'])
         if res.text == 'false':
-            raise AddRecipientError(message='Mauvais code sms.')
+            raise AddRecipientBankError(message='Mauvais code sms.')
         self.recip_recap.go().check_values(recipient.iban, recipient.label)
         return self.get_recipient_object(recipient.iban, recipient.label)
 
@@ -412,7 +412,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
             return self.send_code(recipient, **params)
 
         if recipient.iban[:2] not in ('FR', 'MC'):
-            raise AddRecipientError(message=u"LCL n'accepte que les iban commençant par MC ou FR.")
+            raise AddRecipientBankError(message=u"LCL n'accepte que les iban commençant par MC ou FR.")
 
         for _ in range(2):
             self.add_recip.go()
@@ -420,13 +420,12 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                 break
 
         if self.no_perm.is_here() and self.page.get_error_msg():
-            raise AddRecipientError(message=self.page.get_error_msg())
-        elif not self.add_recip.is_here():
-            raise AddRecipientError('Navigation failed: not on add_recip.')
+            raise AddRecipientBankError(message=self.page.get_error_msg())
+
+        assert self.add_recip.is_here(), 'Navigation failed: not on add_recip'
         self.page.validate(recipient.iban, recipient.label)
 
-        if not self.recip_confirm.is_here():
-            raise AddRecipientError('Navigation failed: not on recip_confirm.')
+        assert self.recip_confirm.is_here(), 'Navigation failed: not on recip_confirm'
         self.page.check_values(recipient.iban, recipient.label)
 
         # Send sms to user.
