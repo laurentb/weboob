@@ -45,7 +45,7 @@ class AccountsPage(LoggedPage, HTMLPage):
 
     @method
     class iter_accounts(ListElement):
-        item_xpath = '//div[contains(@data-route, "/assurance-vie/")]'
+        item_xpath = '//div[contains(@data-route, "/savings/")]'
 
         class item(ItemElement):
             klass = Account
@@ -56,7 +56,14 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_label = CleanText('.//h3[has-class("card-title")]')
             obj_balance = MyDecimal('.//p[has-class("amount-card")]')
             obj_valuation_diff = MyDecimal('.//p[@class="performance"]')
-            obj_url = Attr('.', 'data-route')
+
+            def obj_url(self):
+                url = Attr('.', 'data-route')(self)
+                # The Assurance Vie xpath recently changed so we must verify that all
+                # the accounts now have "/savings/" instead of "/assurances-vie/".
+                assert "/savings/" in url
+                return url
+
             obj_currency = Currency('.//p[has-class("amount-card")]')
             obj__acctype = "investment"
 
