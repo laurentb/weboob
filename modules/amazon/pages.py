@@ -128,7 +128,7 @@ class DocumentsPage(LoggedPage, HTMLPage):
             obj_id = Format('%s_%s', Env('subid'), Field('_simple_id'))
             obj__pre_url = Format('/gp/shared-cs/ajax/invoice/invoice.html?orderId=%s&relatedRequestId=%s&isADriveSubscription=&isHFC=',
                                   Field('_simple_id'), Env('request_id'))
-            obj_url = Async('details') & Link('//a[contains(@href, "download")]')
+            obj_url = Async('details') & Link('//a[contains(@href, "download")]|//a[contains(@href, "generated_invoices")]')
             obj_format = 'pdf'
             obj_label = Format('Facture %s', Field('_simple_id'))
             obj_type = 'bill'
