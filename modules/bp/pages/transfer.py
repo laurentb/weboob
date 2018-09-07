@@ -21,7 +21,8 @@
 from datetime import datetime
 
 from weboob.capabilities.bank import (
-    TransferError, TransferBankError, Transfer, TransferStep, NotAvailable, Recipient, AccountNotFound, AddRecipientError
+    TransferError, TransferBankError, Transfer, TransferStep, NotAvailable, Recipient,
+    AccountNotFound, AddRecipientBankError
 )
 from weboob.capabilities.base import find_object
 from weboob.browser.pages import LoggedPage
@@ -196,7 +197,7 @@ class CreateRecipient(LoggedPage, MyHTMLPage):
         # if this is present, we can't add recipient currently
         more_security_needed = self.doc.xpath(u'//iframe[@title="Gestion de compte par Internet"]')
         if more_security_needed:
-            raise AddRecipientError(message=u"Pour activer le service Certicode, nous vous invitons à vous rapprocher de votre Conseiller en Bureau de Poste.")
+            raise AddRecipientBankError(message=u"Pour activer le service Certicode, nous vous invitons à vous rapprocher de votre Conseiller en Bureau de Poste.")
 
         form = self.get_form(name='SaisiePaysBeneficiaireVirement')
         form['compteLBP'] = str(is_bp_account).lower()
@@ -233,7 +234,7 @@ class ConfirmPage(LoggedPage, MyHTMLPage):
         error_msg = CleanText('//h2[contains(text(), "Compte rendu")]/following-sibling::p')(self.doc)
 
         if error_msg:
-            raise AddRecipientError(message=error_msg)
+            raise AddRecipientBankError(message=error_msg)
 
     def set_browser_form(self):
         form = self.get_form(name='SaisieOTP')
