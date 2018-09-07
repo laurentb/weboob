@@ -33,8 +33,10 @@ from weboob.browser.elements import ItemElement, method, ListElement, TableEleme
 from weboob.browser.filters.standard import Date, CleanDecimal, Regexp, CleanText, Env, Upper, Field, Eval, Format
 from weboob.browser.filters.html import Link, Attr, TableCell
 from weboob.capabilities import NotAvailable
-from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, TransferBankError, Transfer,\
-                                     AddRecipientError, Loan
+from weboob.capabilities.bank import (
+    Account, Investment, Recipient, TransferError, TransferBankError, Transfer,
+    AddRecipientBankError, Loan,
+)
 from weboob.capabilities.bill import Subscription, Document
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_rib_valid, rib2iban, is_iban_valid
@@ -1124,7 +1126,7 @@ class SmsPage(LoggedPage, HTMLPage):
     def on_load(self):
         error = CleanText('//p[@class="warning_trials_before"]')(self.doc)
         if error:
-            raise AddRecipientError('Wrongcode, ' + error)
+            raise AddRecipientBankError(message='Wrongcode, ' + error)
 
     def get_prompt_text(self):
         return CleanText(u'//td[@class="auth_info_prompt"]')(self.doc)
@@ -1162,7 +1164,7 @@ class RecipientPage(LoggedPage, HTMLPage):
     def on_load(self):
         error = CleanText('//span[@id="MM_LblMessagePopinError"]')(self.doc)
         if error:
-            raise AddRecipientError(message=error)
+            raise AddRecipientBankError(message=error)
 
     def is_here(self):
         return bool(CleanText(u'//h2[contains(text(), "Ajouter un compte bénéficiaire")] |\
@@ -1186,7 +1188,7 @@ class ProAddRecipientOtpPage(IndexPage):
     def on_load(self):
         error = CleanText('//div[@id="MM_m_CH_ValidationSummary" and @class="MessageErreur"]')(self.doc)
         if error:
-            raise AddRecipientError('Wrongcode, ' + error)
+            raise AddRecipientBankError(message='Wrongcode, ' + error)
 
     def is_here(self):
         return self.need_auth() and self.doc.xpath('//span[@id="MM_ANR_WS_AUTHENT_ANR_WS_AUTHENT_SAISIE_lblProcedure1"]')
