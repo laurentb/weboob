@@ -261,7 +261,8 @@ class ProfilePage(MyJsonPage):
 class EmailsPage(MyJsonPage):
     def set_email(self, profile):
         content = self.get_content()
-        profile.email = content['emailPart']
+        if 'emailPart' in content:
+            profile.email = content['emailPart']
 
 
 class ErrorPage(LoggedPage, HTMLPage):
