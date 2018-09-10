@@ -91,8 +91,6 @@ class FortuneoModule(Module, CapBankWealth, CapBankTransferAddRecipient):
         else:
             recipient = find_object(self.iter_transfer_recipients(account.id), id=transfer.recipient_id, error=RecipientNotFound)
 
-        assert account.id.isdigit()
-
         return self.browser.init_transfer(account, recipient, transfer.amount, transfer.label, transfer.exec_date)
 
     def execute_transfer(self, transfer, **params):

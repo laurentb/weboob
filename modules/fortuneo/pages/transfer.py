@@ -130,6 +130,7 @@ class RegisterTransferPage(LoggedPage, HTMLPage):
             obj_id = CleanText('./@value')
             obj_iban = NotAvailable
             obj_label = CleanText('.')
+            obj__recipient_name = CleanText('.')
             obj_category = 'Interne'
             obj_enabled_at = date.today()
             obj_currency = 'EUR'
