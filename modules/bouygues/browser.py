@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-import re
 from jose import jwt
 
 from weboob.browser import LoginBrowser, URL, need_login
@@ -68,9 +67,11 @@ class BouyguesBrowser(LoginBrowser):
 
         self.page.login(self.username, self.password, self.lastname)
 
-        error = self.login.get_error()
-        if not self.home.is_here() and error and re.search(r'mot de passe.*incorrect', error):
-            raise BrowserIncorrectPassword(error)
+        if self.login.is_here():
+            error = self.page.get_error()
+            if error and 'mot de passe' in error:
+                raise BrowserIncorrectPassword(error)
+            raise AssertionError("Unhandled error at login: {}".format(error))
 
         # after login we need to get some tokens to use bouygues api
         data = {
