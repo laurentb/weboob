@@ -40,7 +40,8 @@ class Transaction(FrenchTransaction):
 
 class TitreValuePage(LoggedPage, HTMLPage):
     def get_isin(self):
-        return unicode(self.doc.xpath('//div[@id="headFiche"]//span[@id="test3"]/text()')[0].split(' - ')[0].strip())
+        isin = self.doc.xpath('//div[@id="headFiche"]//span[@id="test3"]/text()')
+        return unicode(isin[0].split(' - ')[0].strip()) if isin else NotAvailable
 
 
 class TitrePage(LoggedPage, RawPage):
