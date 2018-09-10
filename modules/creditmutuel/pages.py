@@ -103,7 +103,7 @@ class EmptyPage(LoggedPage, HTMLPage):
         action_needed = CleanText('//p[contains(text(), "Votre Carte de Clés Personnelles") and contains(text(), "est révoquée")]')(self.doc)
         if action_needed:
             raise ActionNeeded(action_needed)
-        maintenance = CleanText('//td[@class="ALERTE"]/p/span[contains(text(), "Dans le cadre de l\'amélioration de nos services, nous vous informons que le service est interrompu"]')(self.doc)
+        maintenance = CleanText('//td[@class="ALERTE"]/p/span[contains(text(), "Dans le cadre de l\'amélioration de nos services, nous vous informons que le service est interrompu")]')(self.doc)
         if maintenance:
             raise BrowserUnavailable(maintenance)
 
