@@ -485,7 +485,7 @@ class AccountsList(LoggedPage, HTMLPage):
 
             if account.type in {Account.TYPE_PEA, Account.TYPE_MARKET}:
                 account.currency = investment_page.get_currency()
-            else:
+            elif balance:
                 account.currency = account.get_currency(balance)
             account.balance = CleanDecimal(None, replace_dots=True).filter(balance)
 
