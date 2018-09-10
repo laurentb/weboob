@@ -44,6 +44,16 @@ class DocumentNotFound(UserError):
         super(DocumentNotFound, self).__init__(msg)
 
 
+class DocumentTypes(object):
+    RIB = u'RIB'
+    STATEMENT = u'statement'
+    CONTRACT = u'contract'
+    NOTICE = u'notice'
+    REPORT = u'report'
+    BILL = u'bill'
+    OTHER = u'other'
+
+
 class Detail(BaseObject, Currency):
     """
     Detail of a subscription
@@ -97,6 +107,11 @@ class Subscription(BaseObject):
 
 
 class CapDocument(CapCollection):
+    accepted_doc_types = ()
+    """
+    Tuple of document types handled by the module (:class:`DocumentTypes`)
+    """
+
     def iter_subscription(self):
         """
         Iter subscriptions.
@@ -180,6 +195,21 @@ class CapDocument(CapCollection):
         :rtype: iter[:class:`Document`]
         """
         raise NotImplementedError()
+
+    def iter_documents_by_types(self, subscription, accepted_types):
+        """
+        Iter documents with specific types.
+
+        :param subscription: subscription to get documents
+        :type subscription: :class:`Subscription`
+        :param accepted_types: list of document types that should be returned
+        :type accepted_types: [:class:`DocumentTypes`]
+        :rtype: iter[:class:`Document`]
+        """
+        accepted_types = frozenset(accepted_types)
+        for document in self.iter_documents(subscription):
+            if document.type in accepted_types:
+                yield document
 
     def iter_bills(self, subscription):
         """
