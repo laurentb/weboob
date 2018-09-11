@@ -22,5 +22,3 @@ from weboob.browser import AbstractBrowser
 
 class LinebourseBrowser(AbstractBrowser):
     PARENT = 'linebourse'
-
-    VERIFY = 'linebourse.pem'
