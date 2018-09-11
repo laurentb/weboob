@@ -23,7 +23,7 @@ import re
 from datetime import date, timedelta
 
 from weboob.browser.pages import HTMLPage, PartialHTMLPage, LoggedPage
-from weboob.browser.elements import method, ListElement, ItemElement
+from weboob.browser.elements import method, ListElement, ItemElement, SkipItem
 from weboob.browser.filters.standard import (
     CleanText, Date, Regexp, CleanDecimal, Currency, Field, Env,
 )
@@ -43,15 +43,17 @@ class RecipientsPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Recipient
 
-            def obj_id(self):
-                iban = CleanText('./td[6]', replace=[(' ', '')])(self)
-                iban = re.search(r'(?<=IBAN:)(\w+)BIC', iban).group(1)
-                return iban
-
             def obj_label(self):
                 if Field('_custom_label')(self):
                     return '{} - {}'.format(Field('_recipient_name')(self), Field('_custom_label')(self))
                 return Field('_recipient_name')(self)
+
+            def obj_id(self):
+                iban = CleanText('./td[6]', replace=[(' ', '')])(self)
+                iban_number = re.search(r'(?<=IBAN:)(\w+)BIC', iban)
+                if iban_number:
+                    return iban_number.group(1)
+                raise SkipItem('There is no IBAN for the recipient %s' % Field('label')(self))
 
             obj__recipient_name = CleanText('./td[2]')
             obj__custom_label = CleanText('./td[4]')
