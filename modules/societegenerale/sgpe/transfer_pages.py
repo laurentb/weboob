@@ -34,7 +34,13 @@ from weboob.capabilities.bank import Recipient, Transfer, Account
 from .pages import LoginPage
 
 
-class RecipientsJsonPage(LoggedPage, JsonPage):
+class ErrorCheckedJsonPage(JsonPage):
+    def on_load(self):
+        assert Dict('commun/statut')(self.doc) == 'ok', \
+            'Something went wrong: %s' % Dict('commun/raison')(self.doc)
+
+
+class RecipientsJsonPage(LoggedPage, ErrorCheckedJsonPage):
     def is_external_recipients(self):
         return Dict('donnees/items')(self.doc)
 
@@ -63,6 +69,13 @@ class RecipientsJsonPage(LoggedPage, JsonPage):
             obj__formatted_iban = Dict('coordonnee/0/numeroCompteFormate')
             obj__bic = Dict('coordonnee/0/BIC')
             obj__ref = Dict('coordonnee/0/refSICoordonnee')
+
+
+class TransferDatesPage(LoggedPage, ErrorCheckedJsonPage):
+    def is_date_valid(self, exec_date):
+        transfer_dates_list = Dict('donnees/listeDatesExecution')(self.doc)
+        assert transfer_dates_list
+        return exec_date.strftime('%d/%m/%Y') in transfer_dates_list
 
 
 class EasyTransferPage(LoggedPage, HTMLPage):
@@ -118,10 +131,7 @@ class EasyTransferPage(LoggedPage, HTMLPage):
                 yield rcpt
 
 
-class TransferPage(LoggedPage, JsonPage):
-    def on_load(self):
-        assert Dict('commun/statut')(self.doc) == 'ok', 'Something went wrong: %s' % Dict('commun/raison')(self.doc)
-
+class TransferPage(LoggedPage, ErrorCheckedJsonPage):
     def handle_response(self, origin, recipient, amount, reason, exec_date):
         account_data = Dict('donnees/detailOrdre/compteEmetteur')(self.doc)
         recipient_data = Dict('donnees/listOperations/0/compteBeneficiaire')(self.doc)
@@ -182,16 +192,12 @@ class AddRecipientPage(LoggedPage, HTMLPage):
         return countries
 
 
-class AddRecipientStepPage(LoggedPage, JsonPage):
+class AddRecipientStepPage(LoggedPage, ErrorCheckedJsonPage):
     def get_response_data(self):
         return self.doc['donnees']
 
 
-class ConfirmRecipientPage(LoggedPage, JsonPage):
-    def on_load(self):
-        assert Dict('commun/statut')(self.doc) == 'ok', \
-            'Something went wrong: %s' % Dict('commun/raison')(self.doc)
-
+class ConfirmRecipientPage(LoggedPage, ErrorCheckedJsonPage):
     def rcpt_after_sms(self, recipient):
         rcpt_data = self.doc['donnees']
 

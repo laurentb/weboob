@@ -29,7 +29,7 @@ from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import (
     AccountNotFound, RecipientNotFound, AddRecipientStep, AddRecipientError,
-    Recipient,
+    Recipient, TransferBankError,
 )
 from weboob.tools.value import Value
 
@@ -39,7 +39,7 @@ from .pages import (
 )
 from .json_pages import AccountsJsonPage, BalancesJsonPage, HistoryJsonPage, BankStatementPage
 from .transfer_pages import (
-    EasyTransferPage, RecipientsJsonPage, TransferPage, SignTransferPage,
+    EasyTransferPage, RecipientsJsonPage, TransferPage, SignTransferPage, TransferDatesPage,
     AddRecipientPage, AddRecipientStepPage, ConfirmRecipientPage,
 )
 
@@ -184,6 +184,7 @@ class SGProfessionalBrowser(SGEnterpriseBrowser, StatesMixin):
     incorrect_login = URL('/authent.html', IncorrectLoginPage)
     profile = URL('/gao/modifier-donnees-perso-saisie.html', ProfileProPage)
 
+    transfer_dates = URL('/ord-web/ord//get-dates-execution.json', TransferDatesPage)
     easy_transfer = URL('/ord-web/ord//ord-virement-simplifie-emetteur.html', EasyTransferPage)
     internal_recipients = URL('/ord-web/ord//ord-virement-simplifie-beneficiaire.html', EasyTransferPage)
     external_recipients = URL('/ord-web/ord//ord-liste-compte-beneficiaire-externes.json', RecipientsJsonPage)
@@ -407,6 +408,10 @@ class SGProfessionalBrowser(SGEnterpriseBrowser, StatesMixin):
 
     @need_login
     def init_transfer(self, account, recipient, transfer):
+        self.transfer_dates.go()
+        if not self.page.is_date_valid(transfer.exec_date):
+            raise TransferBankError(message="La date d'exécution du virement est invalide. Elle doit correspondre aux horaires et aux dates d'ouvertures d'agence.")
+
         # update account and recipient info
         recipient = find_object(self.iter_recipients(account), iban=recipient.iban, error=RecipientNotFound)
 
