@@ -108,6 +108,7 @@ class AccountsPage(MyJsonPage):
         '011': Account.TYPE_CARD,       # Carte bancaire
         '020': Account.TYPE_SAVINGS,    # Compte sur livret
         '021': Account.TYPE_SAVINGS,
+        '022': Account.TYPE_SAVINGS,    # Livret d'épargne populaire
         '023': Account.TYPE_SAVINGS,    # LDD Solidaire
         '025': Account.TYPE_SAVINGS,    # Livret Fidélis
         '027': Account.TYPE_SAVINGS,    # Livret A
