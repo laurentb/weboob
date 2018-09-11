@@ -672,7 +672,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     def iter_subscription(self):
         self.home.go()
         # CapDocument is not implemented for professional accounts yet
-        if "netpro" in self.page.url:
+        if any(x in self.url for x in ["netpp", "netpro"]):
             raise NotImplementedError()
         self.home_tache.go(tache='CPTSYNT1')
         self.page.go_subscription()
