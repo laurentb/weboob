@@ -215,7 +215,7 @@ class SearchPage(LoggedPage, JsonPage):
         transactions = []
         for op in reversed(operation_list):
             t = Transaction()
-            t.id = op['id']
+            t.id = str(op['id'])
             if op['id'] in seen:
                 raise ParseError('There are several transactions with the same ID, probably an infinite loop')
 
