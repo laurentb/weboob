@@ -96,7 +96,6 @@ def no_need_login(func):
 
 
 class BanquePopulaire(LoginBrowser):
-    VERIFY = False
     login_page = URL(r'https://[^/]+/auth/UI/Login.*', LoginPage)
     index_page = URL(r'https://[^/]+/cyber/internet/Login.do', IndexPage)
     accounts_page = URL(r'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=mesComptes.*',
