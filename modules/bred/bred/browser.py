@@ -201,7 +201,9 @@ class BredBrowser(LoginBrowser):
             next_page = bool(transactions)
             offset += 50
 
-            assert offset < 30000, 'the site may be doing an infinite loop'
+            # This assert supposedly prevents infinite loops,
+            # but some customers actually have a lot of transactions.
+            assert offset < 100000, 'the site may be doing an infinite loop'
 
     @need_login
     def get_investment(self, account):
