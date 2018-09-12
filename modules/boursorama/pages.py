@@ -482,8 +482,8 @@ class CardHistoryPage(LoggedPage, CsvPage):
 class Myiter_investment(TableElement):
     # We do not scrape the investments contained in the "Engagements en liquidation" table
     # so we must check that the <h3> before the <div><table> does not contain this title.
-    item_xpath = '//div[preceding-sibling::h3[text()!="Engagements en liquidation"]]/table[contains(@class, "operations")]/tbody/tr'
-    head_xpath = '//div[preceding-sibling::h3[text()!="Engagements en liquidation"]]/table[contains(@class, "operations")]/thead/tr/th'
+    item_xpath = '//div[preceding-sibling::h3[text()!="Engagements en liquidation"]]//table[contains(@class, "operations")]/tbody/tr'
+    head_xpath = '//div[preceding-sibling::h3[text()!="Engagements en liquidation"]]//table[contains(@class, "operations")]/thead/tr/th'
 
     col_value = u'Valeur'
     col_quantity = u'Quantité'
