@@ -236,7 +236,7 @@ class HomePage(LoggedPage, HTMLPage):
 
     @method
     class iter_life_accounts(ListElement):  # Assurances vie
-        item_xpath = '//div/div[contains(./h2, "Carrefour Horizons") and contains(./p, "Numéro de compte")]/..'
+        item_xpath = '//div/div[(contains(./h2, "Carrefour Horizons") or contains(./h2, "Carrefour Avenir")) and contains(./p, "Numéro de compte")]/..'
 
         class item(item_account_generic):
             obj_type = Account.TYPE_LIFE_INSURANCE
