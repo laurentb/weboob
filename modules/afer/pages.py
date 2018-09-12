@@ -42,6 +42,11 @@ class LoginPage(HTMLPage):
         return bool(self.doc.xpath('//form[@name="_DominoForm"]'))
 
 
+class BadLogin(HTMLPage):
+    def get_error(self):
+        return CleanText('//div[@id="idDivErrorLogin"]')(self.doc)
+
+
 class IndexPage(LoggedPage, HTMLPage):
     def on_load(self):
         HTMLPage.on_load(self)
@@ -156,7 +161,3 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
                     return am
                 return (Async('details') & CleanDecimal('//div//tr[2]/td[2]', replace_dots=True, default=NotAvailable))(
                     self)
-
-
-class BadLogin(HTMLPage):
-    pass
