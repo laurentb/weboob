@@ -254,6 +254,10 @@ class SavingAccountSummary(LoggedPage, MyHTMLPage):
         if link:
             self.browser.location(link)
 
+    def get_balance(self):
+        return CleanDecimal(default=None, replace_dots=True).filter(
+            self.doc.xpath('//dt[span[text()="Total des versements bruts"]]/following::dd[1]/span/strong/text()'))
+
 
 class InvestTable(TableElement):
     col_label = 'Support'

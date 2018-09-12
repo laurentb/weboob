@@ -251,6 +251,16 @@ class BPBrowser(LoginBrowser, StatesMixin):
                             for loan in self.page.iter_revolving_loans():
                                 loan.currency = account.currency
                                 accounts.append(loan)
+                        page.go()
+
+                    elif account.type == Account.TYPE_PERP:
+                        # PERP balances must be fetched from the details page,
+                        # otherwise we just scrape the "Rente annuelle estimée":
+                        balance = self.open(account.url).page.get_balance()
+                        if balance is not None:
+                            account.balance = balance
+                        accounts.append(account)
+
                     else:
                         accounts.append(account)
                         if account.type == Account.TYPE_CHECKING and account._has_cards:
@@ -317,6 +327,9 @@ class BPBrowser(LoginBrowser, StatesMixin):
             # TODO be smarter by avoid fetching all, sorting all and returning all if only coming were desired
             if hasattr(self.page, 'iter_transactions') and self.page.has_transactions():
                 return self.page.iter_transactions()
+
+            elif account.type == Account.TYPE_PERP and self.retirement_hist.is_here():
+                return self.page.get_history()
 
             return []
 
