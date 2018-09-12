@@ -34,7 +34,6 @@ from .pages import (
 
 
 class Barclays(LoginBrowser):
-    VERIFY = 'certificate.pem'
     BASEURL = 'https://client.milleis.fr'
 
     logout = URL('https://www.milleis.fr/deconnexion')
