@@ -33,7 +33,10 @@ from weboob.browser.elements import ListElement, ItemElement, SkipItem, method, 
 from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, \
     Regexp, Async, AsyncLoad, Date, Format, Type, Currency
 from weboob.browser.filters.html import Link, Attr, TableCell, ColumnNotFound
-from weboob.exceptions import BrowserIncorrectPassword, ParseError, NoAccountsException, ActionNeeded, BrowserUnavailable
+from weboob.exceptions import (
+    BrowserIncorrectPassword, ParseError, NoAccountsException, ActionNeeded, BrowserUnavailable,
+    AuthMethodNotImplemented,
+)
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.base import empty, find_object
 from weboob.capabilities.bank import Account, Investment, Recipient, TransferError, TransferBankError, \
@@ -1360,6 +1363,10 @@ class RecipientsListPage(LoggedPage, HTMLPage):
             # don't reload state if it fails because it's not supported by the website
             self.browser.need_clear_storage = True
             raise AddRecipientError(message=error)
+
+        app_validation = self.doc.xpath('//strong[contains(text(), "Démarrez votre application mobile Crédit Mutuel")]')
+        if app_validation:
+            raise AuthMethodNotImplemented("La confirmation par validation sur votre application mobile n'est pas supportée")
 
     def has_list(self):
         return bool(CleanText('//th[contains(text(), "Listes pour virements ordinaires")]')(self.doc))
