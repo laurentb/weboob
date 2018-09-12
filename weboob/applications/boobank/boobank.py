@@ -584,10 +584,11 @@ class Boobank(ReplApplication):
         if len(self.enabled_backends) > 1:
             print('Error: select a single backend to add a recipient (Hint: try the command "backends only")', file=self.stderr)
             return 1
-        iban, label = self.parse_command_args(line, 2, 2)
+        iban, label, origin_account_id = self.parse_command_args(line, 3, 2)
         recipient = Recipient()
         recipient.iban = iban
         recipient.label = label
+        recipient.origin_account_id = origin_account_id
         next(iter(self.do('add_recipient', recipient)))
 
     def do_recipients(self, line):

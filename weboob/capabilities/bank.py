@@ -190,6 +190,9 @@ class Recipient(BaseAccount):
     category =       StringField('Recipient category')
     iban =           StringField('International Bank Account Number')
 
+    # Needed for multispaces case
+    origin_account_id = StringField('Account id which recipient belong to')
+
 
 class AccountType(Enum):
     UNKNOWN          = 0
