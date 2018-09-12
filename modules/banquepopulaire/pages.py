@@ -444,6 +444,7 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                      u'Liste complète de mon épargne':     Account.TYPE_SAVINGS,
                      u'Mes comptes':                       Account.TYPE_CHECKING,
                      u'Comptes en euros':                  Account.TYPE_CHECKING,
+                     'Mes comptes en devises':             Account.TYPE_CHECKING,
                      u'Liste complète de mes comptes':     Account.TYPE_CHECKING,
                      u'Mes emprunts':                      Account.TYPE_LOAN,
                      u'Liste complète de mes emprunts':    Account.TYPE_LOAN,
@@ -534,9 +535,14 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                     else:
                         account.type = account_type
 
-                balance = FrenchTransaction.clean_amount(u''.join([txt.strip() for txt in tds[3].itertext()]))
+                balance_text = u''.join([txt.strip() for txt in tds[3].itertext()])
+                balance = FrenchTransaction.clean_amount(balance_text)
                 account.balance = Decimal(balance or '0.0')
-                account.currency = currency
+
+                if currency is None:
+                    account.currency = Account.get_currency(balance_text)
+                else:
+                    account.currency = currency
                 if account.type == account.TYPE_LOAN:
                     account.balance = - abs(account.balance)
 
