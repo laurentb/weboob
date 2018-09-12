@@ -23,7 +23,7 @@ from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
-from .browser import LdlcBrowser
+from .browser import LdlcParBrowser, LdlcProBrowser
 
 
 __all__ = ['LdlcModule']
@@ -37,18 +37,17 @@ class LdlcModule(Module, CapDocument):
     LICENSE = 'AGPLv3+'
     VERSION = '1.4'
     CONFIG = BackendConfig(Value('login', label='Email'),
-                       ValueBackendPassword('password', label='Password'),
-                       Value('website', label='Site web', default='part',
-                                                 choices={'pro': 'Professionnels',
-                                                     'part': 'Particuliers'}))
-
-
-    BROWSER = LdlcBrowser
+                           ValueBackendPassword('password', label='Password'),
+                           Value('website', label='Site web', default='part',
+                                 choices={'pro': 'Professionnels', 'part': 'Particuliers'}))
 
     def create_default_browser(self):
-        return self.create_browser(self.config['website'].get(),
-                                   self.config['login'].get(),
-                                   self.config['password'].get())
+        if self.config['website'].get() == 'part':
+            self.BROWSER = LdlcParBrowser
+        else:
+            self.BROWSER = LdlcProBrowser
+
+        return self.create_browser(self.config['login'].get(), self.config['password'].get())
 
     def iter_subscription(self):
         return self.browser.get_subscription_list()
@@ -70,4 +69,7 @@ class LdlcModule(Module, CapDocument):
     def download_document(self, bill):
         if not isinstance(bill, Bill):
             bill = self.get_document(bill)
-        return self.browser.open(bill.url).content
+        if self.config['website'].get() == 'part':
+            return self.browser.open(bill.url).content
+        else:
+            return self.browser.download_document(bill)

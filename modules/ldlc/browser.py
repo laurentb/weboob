@@ -18,47 +18,92 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 
-from .pages import HomePage, BillsPage, LoginPage
+from .pages import LoginPage, HomePage, ParBillsPage, ProBillsPage
+
 
 class LdlcBrowser(LoginBrowser):
-    login = URL('/Account/LoginPage.aspx', LoginPage)
-    bills = URL('/Account/CommandListingPage.aspx', BillsPage)
-    home = URL('/$', HomePage)
-
-    def __init__(self, website, *args, **kwargs):
-        self.website = website
-        if website == 'pro':
-            self.BASEURL = 'https://secure.ldlc-pro.com/'
-        else:
-            self.BASEURL = 'https://secure.ldlc.com/'
-        super(LdlcBrowser, self).__init__(*args, **kwargs)
-
+    login = URL(r'/Account/LoginPage.aspx', LoginPage)
+    home = URL(r'/$', HomePage)
 
     def do_login(self):
-        self.login.stay_or_go().login(self.username, self.password)
+        self.login.stay_or_go()
+        website = 'part' if type(self) == LdlcParBrowser else 'pro'
+        self.page.login(self.username, self.password, website)
+
         if self.login.is_here():
-            raise BrowserIncorrectPassword
+            raise BrowserIncorrectPassword(self.page.get_error())
 
     @need_login
     def get_subscription_list(self):
         return self.home.stay_or_go().get_list()
 
+
+class LdlcParBrowser(LdlcBrowser):
+    BASEURL = 'https://secure.ldlc.com'
+
+    bills = URL(r'/Account/CommandListingPage.aspx', ParBillsPage)
+
     @need_login
     def iter_documents(self, subscription):
         self.bills.stay_or_go()
-        bills = list()
         for value in self.page.get_range():
-            if self.website == 'pro':
-                event = 'ctl00$cphMainContent$ddlDate'
-            else:
-                event = 'ctl00$ctl00$cphMainContent$cphMainContent$ddlDate'
+            self.bills.go(data={'ctl00$ctl00$cphMainContent$cphMainContent$ddlDate': value, '__EVENTTARGET': 'ctl00$cphMainContent$ddlDate'})
 
-            self.bills.go(data={event: value, '__EVENTTARGET': 'ctl00$cphMainContent$ddlDate'})
+            for bill in self.page.iter_documents(subid=subscription.id):
+                yield bill
 
-            for i in self.page.get_documents(subid=subscription.id):
-                bills.append(i)
-        return bills
+
+class LdlcProBrowser(LdlcBrowser):
+    BASEURL = 'https://secure.ldlc-pro.com'
+
+    bills = URL(r'/Account/CommandListingPage.aspx', ProBillsPage)
+
+    @need_login
+    def iter_documents(self, subscription):
+        self.bills.stay_or_go()
+
+        for value in self.page.get_range():
+            self.bills.go(data={'ctl00$cphMainContent$ddlDate': value, '__EVENTTARGET': 'ctl00$cphMainContent$ddlDate'})
+            view_state = self.page.get_view_state()
+            # we need position to download file
+            position = 1
+            hidden_field = self.page.get_ctl00_actScriptManager_HiddenField()
+            for bill in self.page.iter_documents(subid=subscription.id):
+                bill._position = position
+                bill._view_state = view_state
+                bill._hidden_field = hidden_field
+                position += 1
+                yield bill
+
+    @need_login
+    def download_document(self, bill):
+        data = {
+            '__EVENTARGUMENT': '',
+            '__EVENTTARGET': '',
+            '__LASTFOCUS': '',
+            '__SCROLLPOSITIONX': 0,
+            '__SCROLLPOSITIONY': 0,
+            '__VIEWSTATE': bill._view_state,
+            'ctl00$actScriptManager': '',
+            'ctl00$cphMainContent$DetailCommand$hfCommand': '',
+            'ctl00$cphMainContent$DetailCommand$txtAltEmail': '',
+            'ctl00$cphMainContent$ddlDate': bill.date.year,
+            'ctl00$cphMainContent$hfCancelCommandId': '',
+            'ctl00$cphMainContent$hfCommandId': '',
+            'ctl00$cphMainContent$hfCommandSearch': '',
+            'ctl00$cphMainContent$hfOrderTri': 1,
+            'ctl00$cphMainContent$hfTypeTri': 1,
+            'ctl00$cphMainContent$rptCommand$ctl%s$hlFacture.x' % str(bill._position).zfill(2): '7',
+            'ctl00$cphMainContent$rptCommand$ctl%s$hlFacture.y' % str(bill._position).zfill(2): '11',
+            'ctl00$cphMainContent$txtCommandSearch': '',
+            'ctl00$hfCountries': '',
+            'ctl00$ucHeaderControl$ctrlSuggestedProductPopUp$HiddenCommandeSupplementaire': '',
+            'ctl00$ucHeaderControl$ctrlSuggestedProductPopUp$hiddenPopUp': '',
+            'ctl00$ucHeaderControl$txtSearch': 'Rechercher+...',
+            'ctl00_actScriptManager_HiddenField': bill._hidden_field
+        }
+
+        return self.open(bill.url, data=data).content
