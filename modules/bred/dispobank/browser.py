@@ -46,8 +46,6 @@ class DispoBankBrowser(LoginBrowser):
                          }
            }
 
-    VERIFY = 'cert.pem'
-
     def __init__(self, accnum, *args, **kwargs):
         super(DispoBankBrowser, self).__init__(*args, **kwargs)
         self.accnum = accnum
