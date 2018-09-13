@@ -21,7 +21,7 @@ from jose import jwt
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
-from weboob.browser.exceptions import ClientError
+from weboob.browser.exceptions import ClientError, HTTPNotFound
 from weboob.tools.compat import urlparse, parse_qs
 from .pages import (
     DocumentsPage, HomePage, LoginPage, SubscriberPage, SubscriptionPage, SubscriptionDetailPage,
@@ -128,8 +128,13 @@ class BouyguesBrowser(LoginBrowser):
 
     @need_login
     def iter_documents(self, subscription):
-        self.location(subscription.url, headers=self.headers)
-        return self.page.iter_documents(subid=subscription.id)
+        try:
+            self.location(subscription.url, headers=self.headers)
+            return self.page.iter_documents(subid=subscription.id)
+        except HTTPNotFound as error:
+            if error.response.json()['error'] == 'facture_introuvable':
+                return []
+            raise
 
     @need_login
     def download_document(self, document):
