@@ -22,6 +22,7 @@ import re
 from datetime import datetime, timedelta
 
 from weboob.capabilities.messages import CantSendMessage
+from weboob.exceptions import BrowserIncorrectPassword
 
 from weboob.capabilities.base import NotLoaded
 from weboob.capabilities.bill import Bill, Subscription
@@ -34,12 +35,14 @@ from weboob.browser.elements import DictElement, ItemElement, method
 
 class LoginPage(HTMLPage):
     def login(self, login, password, lastname):
-        form = self.get_form('//form[@id="log_data"]')
+        form = self.get_form(id='log_data')
 
         form['username'] = login
         form['password'] = password
 
         if 'lastname' in form:
+            if not lastname:
+                raise BrowserIncorrectPassword('Le nom de famille est obligatoire.')
             form['lastname'] = lastname
 
         form.submit()
