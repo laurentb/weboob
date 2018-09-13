@@ -828,7 +828,7 @@ class ActivateRecipPage(AddRecipPage):
     def get_recipient(self, recipient):
         r = Recipient()
         r.iban = recipient.iban
-        r.id = recipient.webid if hasattr(recipient, 'webid') else recipient.id
+        r.id = recipient.id
         r.label = recipient.label
         r.category = u'Externe'
         r.enabled_at = datetime.now().replace(microsecond=0) + timedelta(days=5)

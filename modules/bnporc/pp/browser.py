@@ -372,10 +372,8 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
 
     @need_login
     def send_code(self, recipient, **params):
-        # depending on whether recipient is a weboob or a budgea backend object.
-        _id = recipient.webid if hasattr(recipient, 'webid') else recipient.id
         data = {}
-        data['idBeneficiaire'] = _id
+        data['idBeneficiaire'] = recipient.id
         data['typeActivation'] = 1
         data['codeActivation'] = params['code']
         return self.activate_recip.go(data=json.dumps(data), headers={'Content-Type': 'application/json'}).get_recipient(recipient)
