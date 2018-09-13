@@ -260,7 +260,7 @@ class HSBC(LoginBrowser):
         if account.url.startswith('javascript') or '&Crd=' in account.url:
             raise NotImplementedError()
 
-        if account.type == Account.TYPE_LIFE_INSURANCE:
+        if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_CAPITALISATION):
             if coming is True:
                 return []
 
@@ -336,7 +336,7 @@ class HSBC(LoginBrowser):
             yield tr
 
     def get_investments(self, account, retry_li=True):
-        if account.type == Account.TYPE_LIFE_INSURANCE:
+        if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_CAPITALISATION):
             return self.get_life_investments(account, retry_li=retry_li)
         elif account.type == Account.TYPE_PEA:
             return self.get_pea_investments(account)
