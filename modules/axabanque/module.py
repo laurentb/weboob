@@ -21,6 +21,7 @@
 from weboob.capabilities.bank import CapBankWealth, CapBankTransferAddRecipient, AccountNotFound, RecipientNotFound
 from weboob.capabilities.base import find_object, NotAvailable
 from weboob.capabilities.bank import Account, TransferInvalidLabel
+from weboob.capabilities.profile import CapProfile
 from weboob.capabilities.bill import CapDocument, Subscription, Document, DocumentNotFound, SubscriptionNotFound
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
@@ -31,7 +32,7 @@ from .browser import AXABanque, AXAAssurance
 __all__ = ['AXABanqueModule']
 
 
-class AXABanqueModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapDocument):
+class AXABanqueModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapDocument, CapProfile):
     NAME = 'axabanque'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -139,3 +140,6 @@ class AXABanqueModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapDoc
         if Subscription in objs:
             self._restrict_level(split_path)
             return self.iter_subscription()
+
+    def get_profile(self):
+        return self.browser.get_profile()

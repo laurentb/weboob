@@ -28,6 +28,7 @@ from weboob.browser.filters.standard import (
 )
 from weboob.browser.filters.html import Attr, Link, TableCell
 from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities.profile import Person
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
@@ -214,3 +215,16 @@ class HistoryPage(LoggedPage, HTMLPage):
                 for inv in investments:
                     inv.vdate = Field('date')(self)
                 return investments
+
+
+class ProfilePage(LoggedPage, HTMLPage):
+    def get_profile(self):
+        form = self.get_form(xpath='//div[@class="popin-card"]')
+
+        profile = Person()
+
+        profile.name = '%s %s' % (form['party.first_name'], form['party.preferred_last_name'])
+        profile.address = '%s %s %s' % (form['mailing_address.street_line'], form['mailing_address.zip_postal_code'], form['mailing_address.locality'])
+        profile.email = CleanText('//label[@class="email-editable"]')(self.doc)
+        profile.phone = CleanText('//div[@class="info-title colorized phone-disabled"]//label', children=False)(self.doc)
+        return profile

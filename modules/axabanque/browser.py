@@ -39,9 +39,9 @@ from .pages.login import (
 )
 from .pages.bank import (
     AccountsPage as BankAccountsPage, CBTransactionsPage, TransactionsPage,
-    UnavailablePage, IbanPage, LifeInsuranceIframe, BoursePage,
+    UnavailablePage, IbanPage, LifeInsuranceIframe, BoursePage, BankProfilePage,
 )
-from .pages.wealth import AccountsPage as WealthAccountsPage, InvestmentPage, HistoryPage
+from .pages.wealth import AccountsPage as WealthAccountsPage, InvestmentPage, HistoryPage, ProfilePage
 from .pages.transfer import (
     RecipientsPage, AddRecipientPage, ValidateTransferPage, RegisterTransferPage,
     ConfirmTransferPage, RecipientConfirmationPage,
@@ -135,6 +135,7 @@ class AXABanque(AXABrowser, StatesMixin):
                             'webapp/axabanque/jsp/virementSepa/saisieVirementSepa.faces',
                             RegisterTransferPage)
     confirm_transfer = URL('/webapp/axabanque/jsp/virementSepa/confirmationVirementSepa.faces', ConfirmTransferPage)
+    profile_page = URL('/transactionnel/client/coordonnees.html', BankProfilePage)
 
     reload_state = None
 
@@ -488,6 +489,11 @@ class AXABanque(AXABrowser, StatesMixin):
     def download_document(self, url):
         raise NotImplementedError()
 
+    @need_login
+    def get_profile(self):
+        self.profile_page.go()
+        return self.page.get_profile()
+
 
 class AXAAssurance(AXABrowser):
     BASEURL = 'https://espaceclient.axa.fr'
@@ -500,6 +506,7 @@ class AXAAssurance(AXABrowser):
     download = URL('/content/ecc-popin-cards/technical/detailed/document.downloadPdf.html',
                    '/content/ecc-popin-cards/technical/detailed/document/_jcr_content/',
                    DownloadPage)
+    profile = URL(r'/content/ecc-popin-cards/transverse/userprofile.content-inner.html\?_=\d+', ProfilePage)
 
     def __init__(self, *args, **kwargs):
         super(AXAAssurance, self).__init__(*args, **kwargs)
@@ -578,3 +585,8 @@ class AXAAssurance(AXABrowser):
         self.location(url)
         self.page.create_document()
         return self.page.content
+
+    @need_login
+    def get_profile(self):
+        self.profile.go()
+        return self.page.get_profile()

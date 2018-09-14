@@ -29,8 +29,10 @@ from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Regex
 from weboob.browser.filters.html import Attr, Link, TableCell
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.profile import Person
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.compat import unicode
+
 
 
 def MyDecimal(*args, **kwargs):
@@ -568,3 +570,15 @@ class BoursePage(AbstractPage):
         # We can't go above 2 years
         form['beginDayfilter'] = (datetime.strptime(form['endDayfilter'], '%d/%m/%Y') - timedelta(days=730)).strftime('%d/%m/%Y')
         form.submit()
+
+
+class BankProfilePage(LoggedPage, HTMLPage):
+    @method
+    class get_profile(ItemElement):
+        klass = Person
+
+        obj_email = CleanText('//form[@id="idCoordonneePersonnelle"]//table//strong[contains(text(), "e-mail")]/parent::td', children=False)
+
+        obj_phone = CleanText('//form[@id="idCoordonneePersonnelle"]//table//strong[contains(text(), "mobile")]/parent::td', children=False)
+
+        obj_address = Regexp(CleanText('//form[@id="idCoordonneePersonnelle"]//table//strong[contains(text(), "adresse fiscale")]/parent::td', children=False), '^(.*?)\/')
