@@ -132,7 +132,9 @@ class BanquePopulaire(LoginBrowser):
                      ErrorPage)
 
     unavailable_page = URL(r'https://[^/]+/s3f-web/.*',
-                           r'https://[^/]+/static/errors/nondispo.html', UnavailablePage)
+                           r'https://[^/]+/static/errors/nondispo.html',
+                           r'/i-RIA/swc/1.0.0/desktop/index.html',
+                           UnavailablePage)
 
     redirect_page = URL(r'https://[^/]+/portailinternet/_layouts/Ibp.Cyi.Layouts/RedirectSegment.aspx.*', RedirectPage)
     home_page = URL(r'https://[^/]+/portailinternet/Catalogue/Segments/.*.aspx(\?vary=(?P<vary>.*))?',
