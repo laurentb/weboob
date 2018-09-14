@@ -27,10 +27,10 @@ class ExplorimmoTest(BackendTest, HousingTest):
 
     FIELDS_ALL_HOUSINGS_LIST = [
         "id", "type", "advert_type", "house_type", "title", "location",
-        "cost", "currency", "utilities", "text", "area", "url"
+        "utilities", "text", "area", "url"
     ]
     FIELDS_ANY_HOUSINGS_LIST = [
-        "photos"
+        "photos", "cost", "currency"
     ]
     FIELDS_ALL_SINGLE_HOUSING = [
         "id", "url", "type", "advert_type", "house_type", "title", "area",

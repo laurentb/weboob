@@ -25,14 +25,14 @@ from .pages import CitiesPage, SearchPage, HousingPage, HousingPage2, PhonePage
 
 
 class ExplorimmoBrowser(PagesBrowser):
-    BASEURL = 'https://www.explorimmo.com/'
+    BASEURL = 'https://immobilier.lefigaro.fr'
 
-    cities = URL('rest/locations\?q=(?P<city>.*)', CitiesPage)
-    search = URL('resultat/annonces.html\?(?P<query>.*)', SearchPage)
-    housing_html = URL('annonce-(?P<_id>.*).html', HousingPage)
-    phone = URL('rest/classifieds/(?P<_id>.*)/phone', PhonePage)
-    housing = URL('rest/classifieds/(?P<_id>.*)',
-                  'rest/classifieds/\?(?P<js_datas>.*)', HousingPage2)
+    cities = URL('/rest/locations\?q=(?P<city>.*)', CitiesPage)
+    search = URL('/annonces/resultat/annonces.html\?(?P<query>.*)', SearchPage)
+    housing_html = URL('/annonce-(?P<_id>.*).html', HousingPage)
+    phone = URL('/rest/classifieds/(?P<_id>.*)/phone', PhonePage)
+    housing = URL('/rest/classifieds/(?P<_id>.*)',
+                  '/rest/classifieds/\?(?P<js_datas>.*)', HousingPage2)
 
     TYPES = {POSTS_TYPES.RENT: 'location',
              POSTS_TYPES.SALE: 'vente',

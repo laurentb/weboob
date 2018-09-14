@@ -113,6 +113,7 @@ class SearchPage(HTMLPage):
 
             obj_id = Attr('.', 'data-classified-id')
             obj_type = Env('query_type')
+            obj_title = CleanText('./div/h2[@class="item-type"]')
 
             def obj_advert_type(self):
                 if self.is_agency():
@@ -132,8 +133,6 @@ class SearchPage(HTMLPage):
                     return HOUSE_TYPES.LAND
                 else:
                     return HOUSE_TYPES.OTHER
-
-            obj_title = CleanText('.//*[has-class("js-item-title")]')
 
             def obj_location(self):
                 script = CleanText('./script')(self)
@@ -163,7 +162,7 @@ class SearchPage(HTMLPage):
                                            r'de (.*) à .*',
                                            default=0))(self)
                 if cost == 0:
-                    return CleanDecimal(self.price_selector, default=NotLoaded)(self)
+                    return CleanDecimal(self.price_selector, default=NotAvailable)(self)
                 else:
                     return cost
 
@@ -180,7 +179,7 @@ class SearchPage(HTMLPage):
                 else:
                     return UTILITIES.UNKNOWN
 
-            obj_text = CleanText('./div/div/div[@itemprop="description"]')
+            obj_text = CleanText('./div/p[@itemprop="description"]')
             obj_area = CleanDecimal(
                 Regexp(
                     obj_title,
@@ -220,11 +219,7 @@ class SearchPage(HTMLPage):
                     return NotLoaded
 
             def obj_photos(self):
-                url = Attr(
-                    '.',
-                    'data-img',
-                    default=None
-                )(self)
+                url = CleanText('./div[has-class("default-img")]/img/@data-src')(self)
                 if url:
                     url = unquote(url)
                     if "http://" in url[3:]:
