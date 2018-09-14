@@ -177,8 +177,9 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
         for key in page.get_keys():
             for a in page.iter_savings(key=key, numbers=numbers):
                 if a._index in seen:
-                    self.logger.warning('skipping %s because it seems to be a duplicate of %s', a, seen[a._index])
-                    continue
+                    acc = seen[a._index]
+                    self.accounts_list.remove(acc)
+                    self.logger.warning('replace %s because it seems to be a duplicate of %s', seen[a._index], a)
                 self.accounts_list.append(a)
 
         # Then, get loans
