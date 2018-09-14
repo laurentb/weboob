@@ -25,7 +25,7 @@ import re
 from weboob.capabilities.bank import CapBankWealth, CapBankTransferAddRecipient, AccountNotFound, \
                                      RecipientNotFound, TransferError, Account
 from weboob.capabilities.bill import CapDocument, Subscription, SubscriptionNotFound, \
-                                     Document, DocumentNotFound
+                                     Document, DocumentNotFound, DocumentTypes
 from weboob.capabilities.contact import CapContact
 from weboob.capabilities.profile import CapProfile
 from weboob.tools.backend import Module, BackendConfig
@@ -69,6 +69,8 @@ class LCLModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapContact, 
                                           'esp': 'Espace Pro',
                                           'elcl': 'e.LCL'}))
     BROWSER = LCLBrowser
+
+    accepted_doc_types = (DocumentTypes.STATEMENT, DocumentTypes.NOTICE, DocumentTypes.REPORT, DocumentTypes.OTHER)
 
     def create_default_browser(self):
         # assume all `website` option choices are defined here

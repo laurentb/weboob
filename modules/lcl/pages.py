@@ -32,7 +32,7 @@ from weboob.capabilities.base import find_object, Currency
 from weboob.capabilities.bank import (
     Account, Investment, Recipient, TransferError, TransferBankError, Transfer,
 )
-from weboob.capabilities.bill import Document, Subscription
+from weboob.capabilities.bill import Document, Subscription, DocumentTypes
 from weboob.capabilities.profile import Person, ProfileMissing
 from weboob.capabilities.contact import Advisor
 from weboob.browser.elements import method, ListElement, TableElement, ItemElement, SkipItem
@@ -1091,7 +1091,7 @@ class DocumentsPage(LoggedPage, HTMLPage):
     @method
     class get_list(TableElement):
         head_xpath = '//table[@class="dematTab"]/thead/tr/th'
-        item_xpath = u'//table[@class="dematTab"]/tbody/tr[./td[@class="dematTab-firstCell" and contains(., "Relevés")]]'
+        item_xpath = u'//table[@class="dematTab"]/tbody/tr[./td[@class="dematTab-firstCell"]]'
 
         col_label = 'Nature de document'
         col_id = 'Type de document'
@@ -1108,6 +1108,16 @@ class DocumentsPage(LoggedPage, HTMLPage):
 
             def obj_url(self):
                 return Link(TableCell('url')(self)[0].xpath('./a'))(self)
+
+            def obj_type(self):
+                if 'Relevé' in Field('label')(self):
+                    return DocumentTypes.STATEMENT
+                elif 'Bourse' in Field('label')(self):
+                    return DocumentTypes.REPORT
+                elif ('information' in Field('id')(self)) or ('avis' in Field('id')(self)):
+                    return DocumentTypes.NOTICE
+                else:
+                    return DocumentTypes.OTHER
 
 
 class ClientPage(LoggedPage, HTMLPage):
