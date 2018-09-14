@@ -22,7 +22,7 @@ from dateutil.relativedelta import relativedelta
 
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded
-from weboob.capabilities.bank import Account, AddRecipientError
+from weboob.capabilities.bank import Account, AddRecipientError, TransferBankError
 from weboob.capabilities.base import find_object, NotAvailable
 from weboob.browser.exceptions import BrowserHTTPNotFound
 from weboob.capabilities.profile import ProfileMissing
@@ -215,7 +215,11 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
 
     @need_login
     def iter_recipients(self, account):
-        if not self.transfer.go().is_able_to_transfer(account):
+        try:
+            self.transfer.go()
+        except TransferBankError:
+            return
+        if not self.page.is_able_to_transfer(account):
             return
         for recipient in self.page.iter_recipients(account_id=account.id):
             yield recipient

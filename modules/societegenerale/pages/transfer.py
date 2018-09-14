@@ -89,12 +89,13 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
         return link
 
     def on_load(self):
-        excluded_errors = [
+        handled_errors = [
             u"Vous n'avez pas la possibilité d'accéder à cette fonction. Veuillez prendre contact avec votre Conseiller.",
             u"Aucun compte de la liste n'est autorisé à la passation d'ordres de virement.",
         ]
         error_msg = CleanText('//span[@class="error_msg"]')(self.doc)
-        if error_msg and error_msg not in excluded_errors:
+        if error_msg:
+            assert error_msg in handled_errors, 'The transfer error %s is not handled yet' % error_msg
             raise TransferBankError(message=error_msg)
 
     def is_able_to_transfer(self, account):
