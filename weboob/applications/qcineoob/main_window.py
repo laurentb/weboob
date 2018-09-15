@@ -427,11 +427,13 @@ class Result(QFrame):
             backend_name = None
         for backend in self.weboob.iter_backends():
             if backend.has_caps(cap) and ((backend_name and backend.name == backend_name) or not backend_name):
-                exec('object = backend.get_%s(id)' % (stype))
+                object = getattr(backend, 'get_%s' % stype)(id)
                 if object:
-                    func_display = 'self.display' + stype[0].upper() + stype[1:]
-                    exec("self.doAction('Details of %s \"%%s\"' %% object.%s, %s, [object, backend])" %
-                            (stype, title_field, func_display))
+                    func_name = 'display' + stype[0].upper() + stype[1:]
+                    func = getattr(self, func_name)
+                    title = getattr(object, title_field)
+                    self.doAction('Details of %s %r' % (stype, title), func, [object, backend])
+
         QApplication.restoreOverrideCursor()
 
 
