@@ -20,7 +20,10 @@
 from __future__ import unicode_literals
 
 import re
-from html.parser import HTMLParser
+try:
+    from html.parser import HTMLParser
+except ImportError:
+    import HTMLParser
 
 from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage
 from weboob.capabilities.bill import Subscription
