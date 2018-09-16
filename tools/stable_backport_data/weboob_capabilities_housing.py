@@ -1,5 +1,5 @@
 
-import weboob.capabilities.bank as OLD
+import weboob.capabilities.housing as OLD
 
 # can't import *, __all__ is incomplete...
 for attr in dir(OLD):
