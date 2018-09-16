@@ -35,7 +35,7 @@ class YggtorrentBrowser(LoginBrowser):
     PROFILE = Wget()
     TIMEOUT = 30
 
-    BASEURL = 'https://ww1.yggtorrent.is/'
+    BASEURL = 'https://yggtorrent.to/'
     home = URL('$', HomePage)
     login = URL('/user/login$', LoginPage)
     search = URL(r'/engine/search\?name=(?P<pattern>.*)&order=desc&sort=seed&do=search', SearchPage)
