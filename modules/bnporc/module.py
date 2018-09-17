@@ -156,7 +156,7 @@ class BNPorcModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapMessag
         threads = self._threads
         if not cache or threads is None or old:
             threads = list(self.browser.iter_threads())
-            # the website is dumb and does not have the messages in the proper order
+            # the website is stupid and does not have the messages in the proper order
             threads = sorted(threads, key=lambda t: t.date, reverse=True)
             self._threads = threads
         seen = self.storage.get('seen', default=[])

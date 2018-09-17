@@ -121,8 +121,6 @@ class BasePage(object):
 
     def build_token(self, token):
         """
-        These soyboys have introduced a new protection on the token.
-
         Each time there is a call to SAB (selectActionButton), the token
         available in the form is modified with a key available in JS:
 
@@ -166,7 +164,7 @@ class BasePage(object):
 
 class MyHTMLPage(BasePage, HTMLPage):
     def build_doc(self, data, *args, **kwargs):
-        # XXX CRAPPY HACK BECAUSE BANQUE POPULAIRE ARE SOYBOYS AND INCLUDE NULL
+        # XXX FUCKING HACK BECAUSE BANQUE POPULAIRE ARE FAGGOTS AND INCLUDE NULL
         # BYTES IN DOCUMENTS.
         data = data.replace(b'\x00', b'')
         return super(MyHTMLPage, self).build_doc(data, *args, **kwargs)
@@ -763,7 +761,7 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
             t.label = re.sub('solde en valeur : .*', '', t.label)
             t.raw = re.sub('solde en valeur : .*', '', t.raw)
 
-            # XXX Crappy hack to include the check number not displayed in the full label.
+            # XXX Fucking hack to include the check number not displayed in the full label.
             if re.match("^CHEQUE |^CHQ VOTRE CHEQUE", t.label):
                 t.raw = '%s No: %s' % (t.raw, cleaner(tds[self.COL_REF]))
 

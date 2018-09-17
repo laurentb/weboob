@@ -262,7 +262,7 @@ class HistoryPage(CMSOPage):
             def date(selector):
                 return DateGuesser(CleanText(selector, children=False), Env('date_guesser')) | Transaction.Date(selector)
 
-            # CAUTION: this shitty website writes a 'Date valeur' inside a div with a class == 'c-ope'
+            # CAUTION: this website write a 'Date valeur' inside a div with a class == 'c-ope'
             # and a 'Date opération' inside a div with a class == 'c-val'
             # so actually i assume 'c-val' class is the real operation date and 'c-ope' is value date
             obj_date = date('./div[contains(@class, "c-val")]')
