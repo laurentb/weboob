@@ -1366,6 +1366,8 @@ class RecipientsListPage(LoggedPage, HTMLPage):
 
         app_validation = self.doc.xpath('//strong[contains(text(), "Démarrez votre application mobile Crédit Mutuel")]')
         if app_validation:
+            # don't reload state if it fails because it's not supported by the website
+            self.browser.need_clear_storage = True
             raise AuthMethodNotImplemented("La confirmation par validation sur votre application mobile n'est pas supportée")
 
     def has_list(self):
