@@ -18,12 +18,12 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 import datetime
 from dateutil.relativedelta import relativedelta
-
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.capabilities.bank import Account, AccountNotFound, Investment
 from weboob.capabilities.base import empty
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
+from weboob.tools.decorators import retry
 
 from .pages import (
     LoginPage, ErrorPage, AccountsPage, HistoryPage, LoanHistoryPage, RibPage,
@@ -198,6 +198,7 @@ class BforbankBrowser(LoginBrowser):
         self.location('https://client.bforbank.com/espace-client/assuranceVie')
         self.lifeinsurance_list.go()
 
+    @retry(AccountNotFound, tries=5)
     def goto_spirica(self, account):
         assert account.type == Account.TYPE_LIFE_INSURANCE
         self.goto_lifeinsurance(account)
