@@ -115,7 +115,7 @@ class AccountsPage(LoggedPage, JsonPage):
 
 class InvestmentPage(LoggedPage, JsonPage):
     def get_products(self):
-        return self.doc['data']
+        return self.doc.get('data', [])
 
 
 class Transaction(FrenchTransaction):
@@ -153,6 +153,7 @@ class HistoryPage(LoggedPage, JsonPage):
                     'Vente': 'S',
                     'Taxe': None,
                     'Frais': None,
+                    'Intérêts': None,
                     # make sure we don't miss transactions labels specifying an ISIN
                 }[label]
 
