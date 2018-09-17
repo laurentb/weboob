@@ -23,7 +23,6 @@ from weboob.browser.browsers import APIBrowser
 from weboob.capabilities.video import BaseVideo
 from weboob.capabilities.image import Thumbnail
 from weboob.capabilities.file import LICENSES
-from weboob.tools.compat import urljoin
 
 
 class PeertubeBrowser(APIBrowser):
