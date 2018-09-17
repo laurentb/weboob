@@ -73,20 +73,3 @@ merging a merge request should be done locally, with prior rebasing upon the
 `master` branch and take care of using the `-ff-only` merge option. Merge
 requests should **NOT** be merged through the Gitlab UI, which would result in
 an extra "merge" commit.
-
-
-Getting your contribution accepted
-----------------------------------
-
-All contributions are welcome and will only be judged on a technical and legal merit.
-Contributing does not require endorsing views of any other contributor,
-or supporting the project in any way.
-
-Rejected contributions are not personal; further contributions will be considered.
-
-It is discouraged to inquire about any contributor opinions or
-identity characteristics as they should not have any influence on the quality
-of the contribution. It is also possible to contribute anonymously.
-
-If provided, icons are preferred to be parodic or humorous in nature for
-legal reasons, however there are no restrictions on the quality or style of humor.
