@@ -57,6 +57,8 @@ class PeertubeModule(Module, CapVideo):
     def fill_video(self, obj, fields):
         if set(('url', 'size')) & set(fields):
             self.browser.get_video(obj.id, obj)
+        if 'thumbnail' in fields and obj.thumbnail:
+            obj.thumbnail.data = self.browser.open(obj.thumbnail.url).content
 
     OBJECTS = {
         BaseVideo: fill_video,
