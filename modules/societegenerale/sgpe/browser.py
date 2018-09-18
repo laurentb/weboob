@@ -145,10 +145,10 @@ class SGEnterpriseBrowser(SGPEBrowser):
     @need_login
     def iter_history(self, account):
         value = self.history.go(data={'cl500_compte': account._id, 'cl200_typeReleve': 'valeur'}).get_value()
-        transactions = []
-        transactions.extend(self.history.go(data={'cl500_compte': account._id, 'cl200_typeReleve': value}).iter_history(value=value))
-        transactions.extend(self.location('/icd/syd-front/data/syd-intraday-chargerDetail.json', data={'cl500_compte': account._id}).page.iter_history())
-        return iter(transactions)
+        for tr in self.history.go(data={'cl500_compte': account._id, 'cl200_typeReleve': value}).iter_history(value=value):
+            yield tr
+        for tr in self.location('/icd/syd-front/data/syd-intraday-chargerDetail.json', data={'cl500_compte': account._id}).page.iter_history():
+            yield tr
 
     @need_login
     def iter_subscription(self):
