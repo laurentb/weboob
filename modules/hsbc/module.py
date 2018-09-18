@@ -22,14 +22,14 @@ from weboob.capabilities.bank import CapBankWealth, AccountNotFound
 from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
-
+from weboob.capabilities.profile import CapProfile
 from .browser import HSBC
 
 
 __all__ = ['HSBCModule']
 
 
-class HSBCModule(Module, CapBankWealth):
+class HSBCModule(Module, CapBankWealth, CapProfile):
     NAME = 'hsbc'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -64,3 +64,6 @@ class HSBCModule(Module, CapBankWealth):
     def iter_coming(self, account):
         for tr in self.browser.get_history(account, coming=True):
             yield tr
+
+    def get_profile(self):
+        return self.browser.get_profile()

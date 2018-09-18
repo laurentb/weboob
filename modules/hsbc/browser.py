@@ -35,7 +35,7 @@ from weboob.capabilities.base import find_object
 
 from .pages.account_pages import (
     AccountsPage, CBOperationPage, CPTOperationPage, LoginPage, AppGonePage, RibPage,
-     UnavailablePage, OtherPage, FrameContainer,
+     UnavailablePage, OtherPage, FrameContainer, ProfilePage,
 )
 from .pages.life_insurances import (
     LifeInsurancesPage, LifeInsurancePortal, LifeInsuranceMain, LifeInsuranceUseless,
@@ -79,6 +79,7 @@ class HSBC(LoginBrowser):
     rib =             URL(r'/cgi-bin/emcgi', RibPage)
     accounts =        URL(r'/cgi-bin/emcgi', AccountsPage)
     life_insurance_useless = URL(r'/cgi-bin/emcgi', LifeInsuranceUseless)
+    profile = URL(r'/cgi-bin/emcgi', ProfilePage)
     unavailable = URL(r'/cgi-bin/emcgi', UnavailablePage)
     frame_page = URL(r'/cgi-bin/emcgi',
                      r'https://clients.hsbc.fr/cgi-bin/emcgi', FrameContainer)
@@ -468,3 +469,9 @@ class HSBC(LoginBrowser):
             self.PEA_LISTING['liquidities'] = list(helper.retrieve_liquidity())
             self.PEA_LISTING['investments'] = list(helper.retrieve_invests())
             self.connection.go()
+
+    @need_login
+    def get_profile(self):
+        data = {'debr': 'PARAM'}
+        self.go_post(self.js_url, data=data)
+        return self.page.get_profile()

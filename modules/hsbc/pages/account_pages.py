@@ -33,7 +33,7 @@ from weboob.browser.filters.standard import (
 )
 from weboob.browser.filters.html import AbsoluteLink, TableCell
 from weboob.browser.filters.javascript import JSVar
-
+from weboob.capabilities.profile import Person
 from .landing_pages import GenericLandingPage
 
 
@@ -399,3 +399,16 @@ class OtherPage(HTMLPage):
         for msg, exc in self.ERROR_CLASSES:
             for tag in self.doc.xpath('//p[@class="debit"]//strong[text()[contains(.,$msg)]]', msg=msg):
                 raise exc(CleanText('.')(tag))
+
+
+class ProfilePage(OtherPage):
+    # Warning: this page contains a div_err and displays "Service indisponible" even if it is not...
+    # but we can still see the data we need
+    is_here = '//h1[contains(text(), "mes données")]'
+
+    @method
+    class get_profile(ItemElement):
+        klass = Person
+
+        obj_name = CleanText('//div[@id="div_adr_P1"]//p/label[contains(text(), "Nom")]/parent::p/strong')
+        obj_address = CleanText('//div[@id="div_adr_P1"]//p/label[contains(text(), "Adresse")]/parent::p/strong')
