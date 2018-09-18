@@ -20,6 +20,7 @@
 from __future__ import unicode_literals
 
 import re
+import sys
 from time import sleep
 from datetime import date
 
@@ -30,9 +31,11 @@ from weboob.browser.filters.html import Link, Attr
 from weboob.browser.filters.standard import CleanText, CleanDecimal, RawText, Regexp, Date
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment, Loan
-from weboob.browser.pages import HTMLPage, LoggedPage, FormNotFound
+from weboob.capabilities.profile import Person
+from weboob.browser.pages import HTMLPage, LoggedPage, FormNotFound, CsvPage
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.json import json
+from weboob.tools.date import parse_french_date
 from weboob.exceptions import ActionNeeded, BrowserUnavailable
 from weboob.tools.capabilities.bank.investments import is_isin_valid
 
@@ -519,3 +522,31 @@ class LoanPage(LoggedPage, HTMLPage):
 
     def get_maturity_date(self):
         return Date(CleanText(u'//p[@id="c_dateFin"]//strong'), dayfirst=True)(self.doc)
+
+
+class ProfilePage(LoggedPage, HTMLPage):
+    def get_csv_link(self):
+        return Link('//div[@id="bloc_telecharger"]//a[@id="telecharger_donnees"]')(self.doc)
+
+
+class ProfilePageCSV(LoggedPage, CsvPage):
+    ENCODING = 'latin_1'
+    if sys.version_info.major > 2:
+        FMTPARAMS = {'delimiter': ';'}
+    else:
+        FMTPARAMS = {'delimiter': b';'}
+
+    def get_profile(self):
+        d = {el[0]: el[1] for el in self.doc}
+        profile = Person()
+        profile.name = '%s %s' % (d['Nom'], d['Prénom'])
+        profile.birth_date = parse_french_date(d['Date de naissance']).date()
+        profile.address = '%s %s %s' % (d['Adresse de correspondance'], d['Code postal résidence fiscale'], d['Ville adresse de correspondance'])
+        profile.country = d['Pays adresse de correspondance']
+        profile.email = d['Adresse e-mail']
+        profile.phone = d.get('Téléphone portable')
+        profile.job_activity_area = d.get('Secteur d\'activité')
+        profile.job = d.get('Situation professionnelle')
+        profile.company_name = d.get('Employeur')
+        profile.family_situation = d.get('Situation familiale')
+        return profile

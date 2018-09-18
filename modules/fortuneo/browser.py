@@ -32,7 +32,7 @@ from weboob.tools.value import Value
 
 from .pages.login import LoginPage, UnavailablePage
 from .pages.accounts_list import (
-    AccountsList, AccountHistoryPage, CardHistoryPage, InvestmentHistoryPage, PeaHistoryPage, LoanPage,
+    AccountsList, AccountHistoryPage, CardHistoryPage, InvestmentHistoryPage, PeaHistoryPage, LoanPage, ProfilePage, ProfilePageCSV,
 )
 from .pages.transfer import (
     RegisterTransferPage, ValidateTransferPage, ConfirmTransferPage, RecipientsPage, RecipientSMSPage
@@ -83,6 +83,9 @@ class Fortuneo(LoginBrowser, StatesMixin):
         r'fr/prive/mes-comptes/compte-courant/.*/init-confirmer-saisie-virement.jsp',
         r'/fr/prive/mes-comptes/compte-courant/.*/confirmer-saisie-virement.jsp',
         ConfirmTransferPage)
+
+    profile = URL(r'/fr/prive/informations-client.jsp', ProfilePage)
+    profile_csv = URL(r'/PdfStruts\?*', ProfilePageCSV)
 
     need_reload_state = None
 
@@ -255,3 +258,9 @@ class Fortuneo(LoginBrowser, StatesMixin):
         self.page.validate_transfer()
         self.page.confirm_transfer()
         return self.page.transfer_confirmation(transfer)
+
+    @need_login
+    def get_profile(self):
+        self.profile.go()
+        self.location(self.page.get_csv_link())
+        return self.page.get_profile()

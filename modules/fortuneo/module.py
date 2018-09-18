@@ -23,6 +23,7 @@ from weboob.capabilities.bank import (
     CapBankWealth, CapBankTransferAddRecipient, AccountNotFound, RecipientNotFound,
     TransferInvalidLabel, Account,
 )
+from weboob.capabilities.profile import CapProfile
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -32,7 +33,7 @@ from .browser import Fortuneo
 __all__ = ['FortuneoModule']
 
 
-class FortuneoModule(Module, CapBankWealth, CapBankTransferAddRecipient):
+class FortuneoModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapProfile):
     NAME = 'fortuneo'
     MAINTAINER = u'Gilles-Alexandre Quenot'
     EMAIL = 'gilles.quenot@gmail.com'
@@ -66,6 +67,9 @@ class FortuneoModule(Module, CapBankWealth, CapBankTransferAddRecipient):
 
     def iter_investment(self, account):
         return self.browser.get_investments(account)
+
+    def get_profile(self):
+        return self.browser.get_profile()
 
     def iter_transfer_recipients(self, origin_account):
         if isinstance(origin_account, Account):
