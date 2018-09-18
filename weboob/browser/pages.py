@@ -22,11 +22,12 @@ from __future__ import absolute_import
 from collections import OrderedDict
 from functools import wraps
 import warnings
-from io import BytesIO
+from io import BytesIO, StringIO
 import codecs
 from cgi import parse_header
 from functools import reduce
 import re
+import sys
 
 import requests
 
@@ -373,6 +374,8 @@ class CsvPage(Page):
             encoding = 'utf-8'
         if self.NEWLINES_HACK:
             content = content.replace(b'\r\n', b'\n').replace(b'\r', b'\n')
+        if sys.version_info.major > 2:
+            return self.parse(StringIO(content.decode(encoding)))
         return self.parse(BytesIO(content), encoding)
 
     def parse(self, data, encoding=None):
@@ -392,7 +395,10 @@ class CsvPage(Page):
         for i, row in enumerate(reader):
             if self.HEADER and i+1 < self.HEADER:
                 continue
-            row = [c.strip() for c in self.decode_row(row, encoding)]
+            if sys.version_info.major > 2:
+                row = [c.strip() for c in row]
+            else:
+                row = [c.strip() for c in self.decode_row(row, encoding)]
             if header is None and self.HEADER:
                 header = row
             else:
