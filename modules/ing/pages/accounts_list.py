@@ -173,7 +173,6 @@ class AccountsList(LoggedPage, HTMLPage):
             obj_label = CleanText('./span[@class="title"]')
             obj_id = AddPref(Field('_id'), Field('label'))
             obj_type = AddType(Field('label'))
-            obj_coming = NotAvailable
             obj__jid = Attr('//input[@name="javax.faces.ViewState"]', 'value')
 
             def obj_balance(self):
@@ -194,7 +193,6 @@ class AccountsList(LoggedPage, HTMLPage):
             obj_label = CleanText('./span[@class="title"]')
             obj_id = AddPref(Field('_id'), Field('label'))
             obj_type = AddType(Field('label'))
-            obj_coming = NotAvailable
             obj__jid = Attr('//input[@name="javax.faces.ViewState"]', 'value')
             obj__id = CleanText('./span[@class="account-number"]')
 
@@ -324,6 +322,12 @@ class AccountsList(LoggedPage, HTMLPage):
         on_click = self.doc.xpath('//a[contains(@class, "comptes")]/@onclick')[1]
         self.fillup_form(form, r"\),\{(.*)\},'", on_click)
         form.submit()
+
+    def get_coming_balance(self):
+        return CleanDecimal('//div[@class="previsionnel"]/div[@class="solde_value"]//label',
+                            replace_dots=True,
+                            default=NotAvailable)(self.doc)
+
 
 class IbanPage(LoggedPage, HTMLPage):
     def get_iban(self):
