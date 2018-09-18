@@ -239,7 +239,7 @@ class CmsoTransactionElement(ItemElement):
 
 class HistoryPage(CMSOPage):
     def get_date_range_list(self):
-        return self.doc.xpath('//select[@name="date"]/option/@value')
+        return [d for d in self.doc.xpath('//select[@name="date"]/option/@value') if d]
 
     @pagination
     @method
