@@ -28,7 +28,7 @@ from weboob.browser.pages import LoggedPage, JsonPage, FormNotFound
 from weboob.browser.elements import method, ListElement, ItemElement, SkipItem
 from weboob.capabilities.bank import (
     Recipient, TransferBankError, TransferInvalidCurrency, Transfer,
-    AddRecipientError, AddRecipientStep,
+    AddRecipientBankError, AddRecipientStep,
 )
 from weboob.capabilities.base import find_object, NotAvailable, empty
 from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, \
@@ -89,13 +89,12 @@ class TransferPage(LoggedPage, BasePage, PasswordPage):
         return link
 
     def on_load(self):
-        handled_errors = [
+        excluded_errors = [
             u"Vous n'avez pas la possibilité d'accéder à cette fonction. Veuillez prendre contact avec votre Conseiller.",
             u"Aucun compte de la liste n'est autorisé à la passation d'ordres de virement.",
         ]
         error_msg = CleanText('//span[@class="error_msg"]')(self.doc)
-        if error_msg:
-            assert error_msg in handled_errors, 'The transfer error %s is not handled yet' % error_msg
+        if error_msg and error_msg not in excluded_errors:
             raise TransferBankError(message=error_msg)
 
     def is_able_to_transfer(self, account):
@@ -319,7 +318,7 @@ class AddRecipientPage(LoggedPage, BasePage):
     def on_load(self):
         error_msg = CleanText(u'//span[@class="error_msg"]')(self.doc)
         if error_msg:
-            raise AddRecipientError(message=error_msg)
+            raise AddRecipientBankError(message=error_msg)
 
     def is_here(self):
         return bool(CleanText(u'//h3[contains(text(), "Ajouter un compte bénéficiaire de virement")]')(self.doc)) or \
@@ -349,7 +348,7 @@ class AddRecipientPage(LoggedPage, BasePage):
         try:
             form = self.get_form(id='formCache')
         except FormNotFound:
-            raise AddRecipientError('form not found')
+            assert False, 'Double auth form not found'
 
         self.browser.context = form['context']
         self.browser.dup = form['dup']
@@ -378,7 +377,7 @@ class AddRecipientPage(LoggedPage, BasePage):
             self.browser.id_transaction = r.page.doc['donnees']['id-transaction']
             raise AddRecipientStep(recipient, ValueBool('pass', label=u'Valider cette opération sur votre applicaton société générale'))
         else:
-            raise AddRecipientError('sign process unknown')
+            assert False, 'Sign process unknown: %s' % r.page.doc['donnees']['sign_proc']
 
     def get_recipient_object(self, recipient, get_info=False):
         r = Recipient()

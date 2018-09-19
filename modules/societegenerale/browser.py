@@ -22,7 +22,7 @@ from dateutil.relativedelta import relativedelta
 
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded
-from weboob.capabilities.bank import Account, AddRecipientError, TransferBankError
+from weboob.capabilities.bank import Account, TransferBankError
 from weboob.capabilities.base import find_object, NotAvailable
 from weboob.browser.exceptions import BrowserHTTPNotFound
 from weboob.capabilities.profile import ProfileMissing
@@ -247,12 +247,13 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
 
     def end_oob_recipient(self, recipient, **params):
         r = self.open('https://particuliers.secure.societegenerale.fr/sec/oob_polling.json', data={'n10_id_transaction': self.id_transaction})
-        if r.page.doc['donnees']['transaction_status'] == 'available':
-            data = [('context', self.context), ('b64_jeton_transaction', self.context), ('dup', self.dup), ('n10_id_transaction', self.id_transaction), ('oob_op', 'sign')]
-            self.add_recipient.go(data=data, headers={'Referer': 'https://particuliers.secure.societegenerale.fr/lgn/url.html'})
-            return self.page.get_recipient_object(recipient)
-        else:
-            raise AddRecipientError('transaction_status is %s' % r.page.doc['donnees']['transaction_status'])
+        assert r.page.doc['donnees']['transaction_status'] in ('available', 'in_progress'), \
+            'transaction_status is %s' % r.page.doc['donnees']['transaction_status']
+
+        data = [('context', self.context), ('b64_jeton_transaction', self.context),
+            ('dup', self.dup), ('n10_id_transaction', self.id_transaction), ('oob_op', 'sign')]
+        self.add_recipient.go(data=data, headers={'Referer': 'https://particuliers.secure.societegenerale.fr/lgn/url.html'})
+        return self.page.get_recipient_object(recipient)
 
     @need_login
     def new_recipient(self, recipient, **params):
