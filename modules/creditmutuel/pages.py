@@ -1364,7 +1364,7 @@ class RecipientsListPage(LoggedPage, HTMLPage):
             self.browser.need_clear_storage = True
             raise AddRecipientError(message=error)
 
-        app_validation = self.doc.xpath('//strong[contains(text(), "Démarrez votre application mobile Crédit Mutuel")]')
+        app_validation = self.doc.xpath('//strong[contains(text(), "Démarrez votre application mobile")]')
         if app_validation:
             # don't reload state if it fails because it's not supported by the website
             self.browser.need_clear_storage = True
