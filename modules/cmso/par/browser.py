@@ -57,6 +57,7 @@ def retry(exc_check, tries=4):
                 try:
                     ret = cb()
                 except exc_check as exc:
+                    browser.headers = None
                     browser.do_login()
                     browser.logger.info('%s raised, retrying', exc)
                     continue
