@@ -139,7 +139,7 @@ class BanquePopulaire(LoginBrowser):
     redirect_page = URL(r'https://[^/]+/portailinternet/_layouts/Ibp.Cyi.Layouts/RedirectSegment.aspx.*', RedirectPage)
     home_page = URL(r'https://[^/]+/portailinternet/Catalogue/Segments/.*.aspx(\?vary=(?P<vary>.*))?',
                     r'https://[^/]+/portailinternet/Pages/.*.aspx\?vary=(?P<vary>.*)',
-                    r'https://[^/]+/portailinternet/Pages/default.aspx',
+                    r'https://[^/]+/portailinternet/Pages/[dD]efault.aspx',
                     r'https://[^/]+/portailinternet/Transactionnel/Pages/CyberIntegrationPage.aspx',
                     r'https://[^/]+/cyber/internet/ShowPortal.do\?token=.*',
                     HomePage)

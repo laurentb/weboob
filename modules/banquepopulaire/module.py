@@ -45,6 +45,7 @@ class BanquePopulaireModule(Module, CapBankWealth, CapContact, CapProfile):
         'www.ibps.bpalc.banquepopulaire.fr' : u'Alsace Lorraine Champagne',
         'www.ibps.bpaca.banquepopulaire.fr': u'Aquitaine Centre atlantique',
         'www.ibps.atlantique.banquepopulaire.fr': u'Atlantique',
+        'www.ibps.bpgo.banquepopulaire.fr': u'Grand Ouest',
         'www.ibps.loirelyonnais.banquepopulaire.fr': u'Auvergne Rhône Alpes',
         'www.ibps.bpaura.banquepopulaire.fr': u'Auvergne Rhône Alpes',
         'www.ibps.banquedesavoie.banquepopulaire.fr': u'Banque de Savoie',
@@ -74,6 +75,8 @@ class BanquePopulaireModule(Module, CapBankWealth, CapContact, CapProfile):
             ('loirelyonnais', 'bpaura'),
             ('alpes', 'bpaura'),
             ('massifcentral', 'bpaura'),
+            ('atlantique', 'bpgo'),
+            ('ouest', 'bpgo'),
         ]
         website = reduce(lambda a, kv: a.replace(*kv), repls, self.config['website'].get())
         return self.create_browser(website,
