@@ -240,8 +240,15 @@ class SearchPage(LoggedPage, JsonPage):
             if t.type == Transaction.TYPE_CARD and account.type == Account.TYPE_CARD:
                 t.type = Transaction.TYPE_DEFERRED_CARD
 
-            transactions.append(t)
-
+            if abs(t.rdate.year - t.date.year) < 2:
+                transactions.append(t)
+            else:
+                self.logger.warning(
+                    'rdate(%s) and date(%s) of the transaction %s are far far away, skip it',
+                    t.rdate,
+                    t.date,
+                    t.label
+                )
         return transactions
 
 
