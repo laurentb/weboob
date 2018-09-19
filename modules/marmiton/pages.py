@@ -33,7 +33,7 @@ class ResultsPage(HTMLPage):
     @pagination
     @method
     class iter_recipes(ListElement):
-        item_xpath = "//div[@class='recipe-results ']/a"
+        item_xpath = "//a[@class='recipe-card-link']"
 
         def next_page(self):
             return CleanText('//nav/ul/li[@class="next-page"]/a/@href', default="")(self)

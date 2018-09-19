@@ -27,7 +27,7 @@ __all__ = ['MarmitonBrowser']
 
 
 class MarmitonBrowser(PagesBrowser):
-    BASEURL = 'http://www.marmiton.org'
+    BASEURL = 'https://www.marmiton.org'
     search = URL('/recettes/recherche.aspx\?aqt=(?P<pattern>.*)&start=(?P<start>\d*)',
                  '/recettes/recherche.aspx\?aqt=.*',
                  ResultsPage)
