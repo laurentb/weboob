@@ -1221,7 +1221,7 @@ class ExternalTransferPage(InternalTransferPage):
             yield {'name': CleanText('.')(option), 'index': option.attrib['value']}
 
     def go_on_category(self, category_index):
-        form = self.get_form(id='P:F', submit='//input[@type="submit" and @value="Nom"]')
+        form = self.get_form(id='P2:F', submit='//input[@type="submit" and @value="Nom"]')
         form['data_input_indiceMarqueurListe'] = category_index
         form.submit()
 
