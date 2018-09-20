@@ -82,9 +82,10 @@ class AXABanqueModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapDoc
             raise TransferInvalidLabel()
 
         self.logger.info('Going to do a new transfer')
-        if transfer.account_iban:
-            account = find_object(self.iter_accounts(), iban=transfer.account_iban, error=AccountNotFound)
-        else:
+
+        # origin account iban can be NotAvailable
+        account = find_object(self.iter_accounts(), iban=transfer.account_iban)
+        if not account:
             account = find_object(self.iter_accounts(), id=transfer.account_id, error=AccountNotFound)
 
         if transfer.recipient_iban:
@@ -107,7 +108,17 @@ class AXABanqueModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapDoc
 
     def transfer_check_account_id(self, old, new):
         old = old[:11]
-        return super(AXABanqueModule, self).transfer_check_label(old, new)
+        return old == new
+
+    def transfer_check_account_iban(self, old, new):
+        # Skip origin account iban check and force origin account iban
+        if new is NotAvailable:
+            self.logger.warning(
+                'Origin account iban check (%s) is not possible because iban is currently not available',
+                old,
+            )
+            return True
+        return old == new
 
     def iter_subscription(self):
         return self.browser.get_subscription_list()
