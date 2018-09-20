@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from lxml import etree
 from io import StringIO
@@ -33,17 +34,17 @@ from .pages import LoginPage, AccountsPage, InvestmentPage, HistoryPage, Questio
 class BinckBrowser(LoginBrowser):
     BASEURL = 'https://web.binck.fr'
 
-    login = URL('/Logon', LoginPage)
-    logon_flow = URL('/AmlQuestionnairesOverview/LogonFlow$', LogonFlowPage)
-    accounts = URL('/AccountsOverview',
-                   '/$',
-                   '/Home/Index',
+    login = URL(r'/Logon', LoginPage)
+    logon_flow = URL(r'/AmlQuestionnairesOverview/LogonFlow$', LogonFlowPage)
+    accounts = URL(r'/AccountsOverview',
+                   r'/$',
+                   r'/Home/Index',
                    AccountsPage)
-    investment = URL('/PortfolioOverview/GetPortfolioOverview', InvestmentPage)
-    history = URL('/TransactionsOverview/GetTransactions',
-                  '/TransactionsOverview/FilteredOverview', HistoryPage)
-    questions = URL('/FDL_Complex_FR_Compte', QuestionPage)
-    change_pass = URL('/EditSetting/GetSetting\?code=MutationPassword', ChangePassPage)
+    investment = URL(r'/PortfolioOverview/GetPortfolioOverview', InvestmentPage)
+    history = URL(r'/TransactionsOverview/GetTransactions',
+                  r'/TransactionsOverview/FilteredOverview', HistoryPage)
+    questions = URL(r'/FDL_Complex_FR_Compte', QuestionPage)
+    change_pass = URL(r'/EditSetting/GetSetting\?code=MutationPassword', ChangePassPage)
 
     def deinit(self):
         if self.page and self.page.logged:
@@ -101,8 +102,8 @@ class BinckBrowser(LoginBrowser):
             # Add liquidity investment
             if account.liquidity:
                 inv = Investment()
-                inv.code = u"XX-liquidity"
-                inv.label = u"Liquidités"
+                inv.code = "XX-liquidity"
+                inv.label = "Liquidités"
                 inv.valuation = account.liquidity
                 yield inv
 

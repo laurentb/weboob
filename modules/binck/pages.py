@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 import re
 
@@ -64,10 +65,10 @@ class LoginPage(HTMLPage):
 
 
 class AccountsPage(LoggedPage, HTMLPage):
-    TYPES = {u'LIVRET':         Account.TYPE_SAVINGS,
-             u'COMPTE-TITRES':  Account.TYPE_MARKET,
-             u'PEA-PME':        Account.TYPE_PEA,
-             u'PEA':            Account.TYPE_PEA
+    TYPES = {'LIVRET':         Account.TYPE_SAVINGS,
+             'COMPTE-TITRES':  Account.TYPE_MARKET,
+             'PEA-PME':        Account.TYPE_PEA,
+             'PEA':            Account.TYPE_PEA
             }
 
     def go_toaccount(self, number):
@@ -91,9 +92,9 @@ class AccountsPage(LoggedPage, HTMLPage):
         item_xpath = '//table[contains(@class, "accountsTable")]/tbody/tr'
         head_xpath = '//table[contains(@class, "accountsTable")]/thead/tr/th'
 
-        col_label = u'Intitulé du compte'
-        col_balance = u'Total Portefeuille'
-        col_liquidity = u'Espèces'
+        col_label = 'Intitulé du compte'
+        col_balance = 'Total Portefeuille'
+        col_liquidity = 'Espèces'
 
         class item(ItemElement):
             klass = Account
@@ -141,9 +142,9 @@ class InvestmentPage(LoggedPage, JsonPage):
 
 
 class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile(u'^(?P<text>(Virement.*|Transfert.*))'), FrenchTransaction.TYPE_TRANSFER),
-                (re.compile(u'^(?P<text>Dépôt.*)'), FrenchTransaction.TYPE_DEPOSIT),
-                (re.compile(u'^(?P<text>.*)'), FrenchTransaction.TYPE_BANK),
+    PATTERNS = [(re.compile(r'^(?P<text>(Virement.*|Transfert.*))'), FrenchTransaction.TYPE_TRANSFER),
+                (re.compile(r'^(?P<text>Dépôt.*)'), FrenchTransaction.TYPE_DEPOSIT),
+                (re.compile(r'^(?P<text>.*)'), FrenchTransaction.TYPE_BANK),
                ]
 
 
