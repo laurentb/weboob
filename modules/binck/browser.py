@@ -55,7 +55,10 @@ class BinckBrowser(LoginBrowser):
         self.login.go().login(self.username, self.password)
 
         if self.login.is_here():
-            raise BrowserIncorrectPassword(self.page.get_error())
+            error = self.page.get_error()
+            if error and 'mot de passe' in error:
+                raise BrowserIncorrectPassword(error)
+            raise AssertionError('Unhandled behavior at login: error is "{}"'.format(error))
 
     @need_login
     def iter_accounts(self):
