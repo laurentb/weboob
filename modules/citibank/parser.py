@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 import datetime
 import re
 
@@ -35,10 +37,10 @@ def clean_label(text):
     need to make labels from both sources look the same.
     """
     for pattern in [r' \d+\.\d+ +POUND STERLING',
-                    u'Subject to Foreign Fee',
-                    u'Description']:
-        text = re.sub(pattern, u'', text, re.UNICODE)
-    return re.sub(r' +', u' ', text.strip().upper(), re.UNICODE)
+                    'Subject to Foreign Fee',
+                    'Description']:
+        text = re.sub(pattern, '', text, re.UNICODE)
+    return re.sub(r' +', ' ', text.strip().upper(), re.UNICODE)
 
 
 def formatted(read_func):

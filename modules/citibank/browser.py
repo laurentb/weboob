@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 import re
 from datetime import datetime
@@ -34,18 +35,11 @@ from .parser import StatementParser, clean_label
 __all__ = ['Citibank']
 
 
-try:
-    cmp = cmp
-except NameError:
-    def cmp(x, y):
-        return (x > y) - (x < y)
-
-
 class SomePage(HTMLPage):
     @property
     def logged(self):
-        return bool(self.doc.xpath(u'//a[text()="Sign Off"]') +
-            self.doc.xpath(u'//div[@id="CardsLoadingDiv"]'))
+        return bool(self.doc.xpath('//a[text()="Sign Off"]') +
+            self.doc.xpath('//div[@id="CardsLoadingDiv"]'))
 
 
 class IndexPage(SomePage):
@@ -86,7 +80,7 @@ class AccDetailsPage(JsonPage):
         account.id = account.label[-4:]
         for bal in details['accountBalances']:
             label, value = bal['label'], (bal['value'] or ['0'])[0]
-            if label == u'Current Balance:':
+            if label == 'Current Balance:':
                 if value[0] == '(' and value[-1] == ')':
                     value = value[1:-1]
                     sign = 1
@@ -94,17 +88,16 @@ class AccDetailsPage(JsonPage):
                     sign = -1
                 account.currency = Account.get_currency(value)
                 account.balance = sign * AmTr.decimal_amount(value)
-            elif label == u'Total Revolving Credit Line:':
+            elif label == 'Total Revolving Credit Line:':
                 account.cardlimit = AmTr.decimal_amount(value)
-            elif label.startswith(u'Minimum Payment Due'):
+            elif label.startswith('Minimum Payment Due'):
                 d = re.match(r'.*(..-..-....):$', label).group(1)
                 account.paydate = datetime.strptime(d, '%m-%d-%Y')
                 account.paymin = AmTr.decimal_amount(value)
         return account
 
     def transactions(self):
-        return sorted(self.unsorted_trans(),
-            lambda a, b: cmp(a.date, b.date), reverse=True)
+        return sorted(self.unsorted_trans(), key=lambda t: t.date, reverse=True)
 
     def unsorted_trans(self):
         for jnl in self.doc['accountDetailsAndActivity']['accountActivity'] \
@@ -114,10 +107,10 @@ class AccDetailsPage(JsonPage):
             amount = jnl['columns'][3]['activityColumn'][0]
             xdescs = dict((x['label'], x['value'][0])
                           for x in jnl['extendedDescriptions'])
-            pdate = xdescs[u'Posted Date :']
-            ref = xdescs.get(u'Reference Number:') or u''
+            pdate = xdescs['Posted Date :']
+            ref = xdescs.get('Reference Number:') or ''
 
-            if amount.startswith(u'(') and amount.endswith(u')'):
+            if amount.startswith('(') and amount.endswith(')'):
                 amount = AmTr.decimal_amount(amount[1:-1])
             else:
                 amount = -AmTr.decimal_amount(amount)
@@ -136,8 +129,8 @@ class AccDetailsPage(JsonPage):
 class StatementsPage(SomePage):
     def dates(self):
         return [x[:10] for x in self.doc.xpath(
-            u'//select[@id="currentStatementsDate"]/option/@value')
-            if re.match(u'^\d\d\d\d-\d\d-\d\d All$', x)]
+            '//select[@id="currentStatementsDate"]/option/@value')
+            if re.match(r'^\d\d\d\d-\d\d-\d\d All$', x)]
 
 
 class StatementPage(RawPage):
@@ -151,8 +144,7 @@ class StatementPage(RawPage):
         return self._parser.read_first_date_range() is not None
 
     def transactions(self):
-        return sorted(self._parser.read_transactions(),
-                      cmp=lambda t1, t2: cmp(t2.date, t1.date))
+        return sorted(self._parser.read_transactions(), key=lambda t: t.date)
 
 
 class Citibank(LoginBrowser):
@@ -175,20 +167,16 @@ class Citibank(LoginBrowser):
     TIMEOUT = 30.0
     index = URL(r'/US/JPS/portal/Index.do', IndexPage)
     signon = URL(r'/US/JSO/signon/ProcessUsernameSignon.do', SomePage)
-    accdetailhtml = URL(u'/US/NCPS/accountdetailactivity/flow.action.*$',
-                        SomePage)
-    accounts = URL(r'/US/REST/accountsPanel'
-                   r'/getCustomerAccounts.jws\?ttc=(?P<ttc>.*)$',
+    accdetailhtml = URL(r'/US/NCPS/accountdetailactivity/flow.action.*$', SomePage)
+    accounts = URL(r'/US/REST/accountsPanel/getCustomerAccounts.jws\?ttc=(?P<ttc>.*)$',
                    AccountsPage)
     accdetails = URL(r'/US/REST/accountDetailsActivity'
-        r'/getAccountDetailsActivity.jws\?accountID=(?P<accountID>.*)$',
-        AccDetailsPage)
+        r'/getAccountDetailsActivity.jws\?accountID=(?P<accountID>.*)$', AccDetailsPage)
     statements = URL(r'/US/NCSC/doccenter/flow.action\?TTC=1079&'
-        'accountID=(?P<accountID>.*)$', StatementsPage)
+        r'accountID=(?P<accountID>.*)$', StatementsPage)
     statement = URL(r'/US/REST/doccenterresource/downloadStatementsPdf.jws\?'
-                    r'selectedIndex=0&date=(?P<date>....-..-..)&'
-                    r'downloadFormat=pdf', StatementPage)
-    unknown = URL('/.*$', SomePage)
+        r'selectedIndex=0&date=(?P<date>....-..-..)&downloadFormat=pdf', StatementPage)
+    unknown = URL(r'/.*$', SomePage)
 
     def get_account(self, id_):
         innerId = self.to_accounts().inner_ids_dict().get(id_)
@@ -221,7 +209,7 @@ class Citibank(LoginBrowser):
         # Sometimes the website returns non-PDF file.
         # It recovers if we repeat whole browsing sequence all the way
         # from home page up to the statement.
-        MAX_DELAY=10
+        MAX_DELAY = 10
         for i in range(self.MAX_RETRIES):
             if self.to_page(self.statement, date=date).is_sane():
                 return self.page
@@ -237,7 +225,7 @@ class Citibank(LoginBrowser):
 
     def do_login(self):
         self.session.cookies.clear()
-        data = dict([('username', self.username), ('password', self.password)]+
-                    self.index.go().extra())
+        data = dict([('username', self.username), ('password', self.password)]
+                    + self.index.go().extra())
         if not self.signon.go(data=data).logged:
             raise BrowserIncorrectPassword()
