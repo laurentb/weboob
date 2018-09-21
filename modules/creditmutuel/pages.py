@@ -1096,8 +1096,12 @@ class InternalTransferPage(LoggedPage, HTMLPage):
     def get_to_account_index(self, account):
         return self.get_account_index(self.RECIPIENT_STRING, account)
 
+    def get_transfer_form(self):
+        # internal and external transfer form are differents
+        return self.get_form(id='P:F', submit='//input[@type="submit" and contains(@value, "Valider")]')
+
     def prepare_transfer(self, account, to, amount, reason):
-        form = self.get_form(id='P:F', submit='//input[@type="submit" and contains(@value, "Valider")]')
+        form = self.get_transfer_form()
         form['data_input_indiceCompteADebiter'] = self.get_from_account_index(account.id)
         form[self.RECIPIENT_STRING] = self.get_to_account_index(to.id)
         form['[t:dbt%3adouble;]data_input_montant_value_0_'] = str(amount).replace('.', ',')
@@ -1256,6 +1260,11 @@ class ExternalTransferPage(InternalTransferPage):
             def parse(self, el):
                 self.env['origin_account']._external_recipients.add(Field('id')(self))
 
+    def get_transfer_form(self):
+        # internal and external transfer form are differents
+        if self.IS_PRO_PAGE:
+            return self.get_form(id='P2:F', submit='//input[@type="submit" and contains(@value, "Valider")]')
+        return self.get_form(id='P1:F', submit='//input[@type="submit" and contains(@value, "Valider")]')
 
 class VerifCodePage(LoggedPage, HTMLPage):
     HASHES = {
