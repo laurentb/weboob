@@ -103,6 +103,12 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     request_sms = URL('https://www.icgauth.caisse-epargne.fr/dacsrest/api/v1u0/transaction/(?P<param>)', SmsRequest)
     __states__ = ('BASEURL', 'multi_type', 'typeAccount', 'is_cenet_website', 'recipient_form', 'is_send_sms')
 
+    # Accounts managed in life insurance space (not in linebourse)
+    insurance_accounts = ('RICOCHET', 'POINTS RETRAITE ECUR', 'INITIATIVES TRANSMIS',
+                          'PERSPECTIVES ECUREUI', 'INITIATIVES PLUS', 'ECUREUIL PROJET',
+                          'PERP', 'SOLUTION PERP', 'INITIATIVES PLUS',
+                          'LIVRET ASSURANCE VIE', 'ASSURECUREUIL')
+
     def __init__(self, nuser, *args, **kwargs):
         self.BASEURL = kwargs.pop('domain', self.BASEURL)
         if not self.BASEURL.startswith('https://'):
@@ -418,14 +424,16 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                 self.natixis_life_ins_his.go(id1=label[:3], id2=label[3:5], id3=account.id)
                 return sorted_transactions(self.page.get_history())
 
-            if account.label.startswith('NUANCES '):
+            if account.label.startswith('NUANCES ') or account.label in self.insurance_accounts:
                 self.page.go_life_insurance(account)
+                if 'JSESSIONID' in self.session.cookies:
+                    # To access the life insurance space, we need to delete the JSESSIONID cookie to avoid an expired session
+                    del self.session.cookies['JSESSIONID']
 
             try:
-                if not self.market.is_here() and not self.message.is_here():
+                if not self.life_insurance.is_here() and not self.message.is_here():
                     # life insurance website is not always available
                     raise BrowserUnavailable()
-
                 self.page.submit()
                 self.location('https://www.extranet2.caisse-epargne.fr%s' % self.page.get_cons_histo())
 
