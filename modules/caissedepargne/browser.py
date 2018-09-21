@@ -417,7 +417,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
         self.page.go_history(account._info)
 
-        if account.type == Account.TYPE_LIFE_INSURANCE:
+        if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_PERP):
             if "MILLEVIE" in account.label:
                 self.page.go_life_insurance(account)
                 label = account.label.split()[-1]

@@ -260,6 +260,8 @@ class IndexPage(LoggedPage, HTMLPage):
         account._info = info
         account.label = label
         account.type = self.ACCOUNT_TYPES.get(label, info['acc_type'] if 'acc_type' in info else account_type)
+        if 'PERP' in account.label:
+            account.type = Account.TYPE_PERP
 
         balance = balance or self.get_balance(account)
         account.balance = Decimal(FrenchTransaction.clean_amount(balance)) if balance and balance is not NotAvailable else NotAvailable
@@ -279,7 +281,7 @@ class IndexPage(LoggedPage, HTMLPage):
         accounts[account.id] = account
 
     def get_balance(self, account):
-        if account.type != Account.TYPE_LIFE_INSURANCE:
+        if account.type not in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_PERP):
             return NotAvailable
         page = self.go_history(account._info).page
         balance = page.doc.xpath('.//tr[td[ends-with(@id,"NumContrat")]/a[contains(text(),$id)]]/td[@class="somme"]', id=account.id)
