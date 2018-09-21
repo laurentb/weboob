@@ -40,11 +40,13 @@ class EdfBrowser(LoginBrowser):
     not_connected = URL('/fr/accueil/connexion/mon-espace-client.html', UnLoggedPage)
     connected = URL('/fr/accueil/espace-client/tableau-de-bord.html', WelcomePage)
     profil = URL('/services/rest/authenticate/getListContracts', ProfilPage)
-    csrf_token = URL('/services/rest/init/initPage\?_=(?P<timestamp>.*)', ProfilPage)
+    csrf_token = URL(r'/services/rest/init/initPage\?_=(?P<timestamp>.*)', ProfilPage)
     documents = URL('/services/rest/edoc/getMyDocuments', DocumentsPage)
     bills = URL('/services/rest/edoc/getBillsDocuments', DocumentsPage)
     bill_informations = URL('/services/rest/document/dataUserDocumentGetX', DocumentsPage)
-    bill_download = URL('/services/rest/document/getDocumentGetXByData\?csrfToken=(?P<csrf_token>.*)&dn=(?P<dn>.*)&pn=(?P<pn>.*)&di=(?P<di>.*)&bn=(?P<bn>.*)&an=(?P<an>.*)')
+    bill_download = URL(r'/services/rest/document/getDocumentGetXByData'
+                        r'\?csrfToken=(?P<csrf_token>.*)&dn=(?P<dn>.*)&pn=(?P<pn>.*)'
+                        r'&di=(?P<di>.*)&bn=(?P<bn>.*)&an=(?P<an>.*)')
     profile = URL('/services/rest/context/getCustomerContext', ProfilePage)
 
     def __init__(self, config, *args, **kwargs):
@@ -113,7 +115,10 @@ class EdfBrowser(LoginBrowser):
     def download_document(self, document):
         token = self.get_csrf_token()
 
-        bills_informations = self.bill_informations.go(headers={'Content-Type': 'application/json;charset=UTF-8', 'Accept': 'application/json, text/plain, */*'}, data=json.dumps({
+        bills_informations = self.bill_informations.go(headers={
+            'Content-Type': 'application/json;charset=UTF-8',
+            'Accept': 'application/json, text/plain, */*'},
+            data=json.dumps({
             'bpNumber': document._bp,
             'csrfToken': token,
             'docId': document._doc_number,
@@ -122,9 +127,8 @@ class EdfBrowser(LoginBrowser):
             'parNumber': document._par_number
         })).get_bills_informations()
 
-        return self.bill_download.go(csrf_token=token,
-                                     dn='FACTURE', pn=document._par_number, \
-                                     di=document._doc_number, bn=bills_informations.get('bpNumber'), \
+        return self.bill_download.go(csrf_token=token, dn='FACTURE', pn=document._par_number,
+                                     di=document._doc_number, bn=bills_informations.get('bpNumber'),
                                      an=bills_informations.get('numAcc')).content
 
     @need_login

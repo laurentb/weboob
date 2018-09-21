@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from datetime import datetime
 from decimal import Decimal
@@ -67,7 +68,8 @@ class ProfilPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Subscription
 
-            obj_subscriber = Format('%s %s', Dict('bp/identity/firstName'), Dict('bp/identity/lastName'))
+            obj_subscriber = Format('%s %s', Dict('bp/identity/firstName'),
+                                             Dict('bp/identity/lastName'))
             obj_id = Dict('number')
             obj_label = obj_id
 
@@ -90,12 +92,13 @@ class DocumentsPage(LoggedPage, JsonPage):
             klass = Bill
 
             obj_id = Format('%s_%s', Env('subid'), Dict('documentNumber'))
-            obj_date = Date(Eval(lambda t: datetime.fromtimestamp(int(t)/1000).strftime('%Y-%m-%d'), Dict('creationDate')))
-            obj_format = u"pdf"
+            obj_date = Date(Eval(lambda t: datetime.fromtimestamp(int(t) / 1000) \
+                                 .strftime('%Y-%m-%d'), Dict('creationDate')))
+            obj_format = 'pdf'
             obj_label = Format('Facture %s', Dict('documentNumber'))
-            obj_type = u"bill"
+            obj_type = 'bill'
             obj_price = Env('price')
-            obj_currency = u'EUR'
+            obj_currency = 'EUR'
             obj_vat = NotAvailable
             obj__doc_number = Dict('documentNumber')
             obj__par_number = Dict('parNumber')
@@ -121,7 +124,8 @@ class ProfilePage(LoggedPage, JsonPage):
         data = self.doc['bp']
         p = Profile()
 
-        p.address = '%s %s %s %s' % (data['streetNumber'], data['streetName'], data['postCode'], data['city'])
+        p.address = '%s %s %s %s' % (data['streetNumber'], data['streetName'],
+                                     data['postCode'], data['city'])
         p.name = '%s %s' % (data['lastName'], data['firstName'])
         p.phone = data['mobilePhoneNumber'] or data['fixPhoneNumber']
         p.email = data['mail']

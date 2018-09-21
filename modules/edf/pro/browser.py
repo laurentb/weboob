@@ -73,13 +73,14 @@ class EdfproBrowser(LoginBrowser):
 
     @need_login
     def get_subscription_list(self):
-        self.liresite.go(data=json.dumps({"numPremierSitePage":0,"pageSize":100000,"idTdg":None,"critereFiltre":[],"critereTri":[]}))
+        self.liresite.go(data=json.dumps({"numPremierSitePage": 0, "pageSize": 100000, "idTdg": None,
+                                          "critereFiltre": [], "critereTri": []}))
         id_site_list = self.page.get_id_site_list()
         if not id_site_list:
             raise ActionNeeded("Vous ne disposez d'aucun contrat actif relatif à vos sites")
 
         if "subs" not in self.cache.keys():
-            self.contracts.go(data=json.dumps({'refDevisOMList':[], 'refDevisOHList': id_site_list}))
+            self.contracts.go(data=json.dumps({'refDevisOMList': [], 'refDevisOHList': id_site_list}))
 
             self.cache['subs'] = [s for s in self.page.get_subscriptions()]
         return self.cache['subs']
@@ -104,8 +105,9 @@ class EdfproBrowser(LoginBrowser):
     def download_document(self, document):
         if document.url is not NotAvailable:
             try:
-                self.bills.go(data=json.dumps({'date': int(document.date.strftime('%s')), \
-                                               'iDFelix': document._account_billing, 'numFacture': document._bill_number}))
+                self.bills.go(data=json.dumps({'date': int(document.date.strftime('%s')),
+                                               'iDFelix': document._account_billing,
+                                               'numFacture': document._bill_number}))
 
                 return self.open('%s/rest/facturemp/telechargerfichier?fname=%s' % (self.BASEURL, self.page.get_bill_name())).content
             except ServerError:
@@ -113,6 +115,6 @@ class EdfproBrowser(LoginBrowser):
 
     @need_login
     def get_profile(self):
-        self.profile.go(json={'idSpcInterlocuteur':''})
+        self.profile.go(json={'idSpcInterlocuteur': ''})
 
         return self.page.get_profile()

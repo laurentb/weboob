@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from datetime import date
 
@@ -55,7 +56,8 @@ class LireSitePage(LoggedPage, JsonPage):
 class SubscriptionsPage(LoggedPage, JsonPage):
     def build_doc(self, text):
         if self.content == 'REDIRECT_CGU':
-            raise ActionNeeded(u"Vous devez accepter les conditions générales d'utilisation sur le site de votre banque.")
+            raise ActionNeeded("Vous devez accepter les conditions générales d'utilisation"
+                               " sur le site de votre banque.")
         return super(SubscriptionsPage, self).build_doc(text)
 
     @method
@@ -87,11 +89,11 @@ class DocumentsPage(LoggedPage, JsonPage):
 
             doc.id = document['numFactureLabel']
             doc.date = date.fromtimestamp(int(document['dateEmission'] / 1000))
-            doc.format = u'PDF'
+            doc.format = 'PDF'
             doc.label = 'Facture %s' % document['numFactureLabel']
-            doc.type = u'bill'
+            doc.type = 'bill'
             doc.price = CleanDecimal().filter(document['montantTTC'])
-            doc.currency = u'€'
+            doc.currency = '€'
             doc._account_billing = document['compteFacturation']
             doc._bill_number = document['numFacture']
 
