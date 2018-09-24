@@ -369,7 +369,7 @@ class AlreadyLoginPage(LoggedPage, MyHTMLPage):
             doc = json.loads(self.response.text)
             if 'response' in doc:
                 return doc['response']['status'] == 'AUTHENTICATION_SUCCESS' and 'saml2_post' in doc['response']
-        except json.decoder.JSONDecodeError:
+        except ValueError:
             # not a json page
             # so it should be Login2Page
             return False
