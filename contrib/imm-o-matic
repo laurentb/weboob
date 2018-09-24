@@ -136,7 +136,7 @@ def getdetails():
         print ("Fetching details for %s"%(i,))
         try:
             d = json.load(os.popen('flatboob info -f json %s' % (i,)))
-        except json.decoder.JSONDecodeError:
+        except ValueError:
             continue
         try:
             d = d[0]
