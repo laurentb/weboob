@@ -28,7 +28,7 @@ from weboob.capabilities.base import Currency
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account
 from weboob.capabilities.bill import Document, Subscription
-from weboob.exceptions import BrowserUnavailable
+from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.compat import quote_plus
@@ -89,7 +89,10 @@ class AccountsJsonPage(LoggedPage, JsonPage):
 class BalancesJsonPage(LoggedPage, JsonPage):
     def on_load(self):
         if self.doc['commun']['statut'] == 'NOK':
-            raise BrowserUnavailable(self.doc['commun']['raison'])
+            reason = self.doc['commun']['raison']
+            if reason == 'SYD-COMPTES-UNAUTHORIZED-ACCESS':
+                raise BrowserIncorrectPassword("Vous n'avez pas l'autorisation de consulter : {}".format(reason))
+            raise BrowserUnavailable(reason)
 
     def populate_balances(self, accounts):
         for account in accounts:
