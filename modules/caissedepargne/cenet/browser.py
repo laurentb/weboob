@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 import json
 
 from weboob.browser import LoginBrowser, need_login, StatesMixin
@@ -81,6 +83,8 @@ class CenetBrowser(LoginBrowser, StatesMixin):
 
         if data is None:
             raise BrowserIncorrectPassword()
+        elif not self.nuser:
+            raise BrowserIncorrectPassword("Erreur: Numéro d'utilisateur requis.")
 
         assert "authMode" in data and data['authMode'] == 'redirect', 'should not be on the cenet website'
 
