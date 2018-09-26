@@ -17,15 +17,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
 from __future__ import unicode_literals
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword, BrowserPasswordExpired
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import find_object
-from .pages import LoginPage, ProfilePage, AccountTypePage, AccountsPage, ProAccountsPage, TransactionsPage, \
-                   IbanPage, RedirectPage, EntryPage, AVPage, ProIbanPage, ProTransactionsPage, LabelsPage
+from .pages import (
+    LoginPage, ProfilePage, AccountTypePage, AccountsPage, ProAccountsPage,
+    TransactionsPage, IbanPage, RedirectPage, EntryPage, AVPage, ProIbanPage,
+    ProTransactionsPage, LabelsPage,
+)
 
 class CreditDuNordBrowser(LoginBrowser):
     ENCODING = 'UTF-8'

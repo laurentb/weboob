@@ -68,15 +68,13 @@ class CreditDuNordModule(Module, CapBankWealth, CapProfile):
         account = self.browser.get_account(_id)
         if account:
             return account
-        else:
-            raise AccountNotFound()
+        raise AccountNotFound()
 
     def get_account_for_history(self, _id):
         account = self.browser.get_account_for_history(_id)
         if account:
             return account
-        else:
-            raise AccountNotFound()
+        raise AccountNotFound()
 
     def iter_history(self, account):
         account = self.get_account_for_history(account.id)
