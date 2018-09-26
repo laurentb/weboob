@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 from collections import OrderedDict
 
 from weboob.capabilities.bank import CapBankWealth, AccountNotFound
@@ -55,7 +57,8 @@ class CreditDuNordModule(Module, CapBankWealth, CapProfile):
     def create_default_browser(self):
         return self.create_browser(self.config['website'].get(),
                                    self.config['login'].get(),
-                                   self.config['password'].get())
+                                   self.config['password'].get(),
+                                   weboob=self.weboob)
 
     def iter_accounts(self):
         for account in self.browser.get_accounts_list():
@@ -68,8 +71,15 @@ class CreditDuNordModule(Module, CapBankWealth, CapProfile):
         else:
             raise AccountNotFound()
 
+    def get_account_for_history(self, _id):
+        account = self.browser.get_account_for_history(_id)
+        if account:
+            return account
+        else:
+            raise AccountNotFound()
+
     def iter_history(self, account):
-        account = self.get_account(account.id)
+        account = self.get_account_for_history(account.id)
         for tr in self.browser.get_history(account):
             if not tr._is_coming:
                 yield tr

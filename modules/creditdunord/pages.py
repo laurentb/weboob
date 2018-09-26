@@ -17,19 +17,21 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+
 from __future__ import unicode_literals
 
-import re
 import ast
 
 from decimal import Decimal
 from io import BytesIO
 from datetime import date as da
 from lxml import html
+import re
 
-from weboob.browser.pages import HTMLPage, LoggedPage
+from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage
 from weboob.browser.elements import method, ItemElement, TableElement
-from weboob.browser.filters.standard import CleanText, Date, CleanDecimal, Regexp, Field
+from weboob.browser.filters.standard import CleanText, Date, CleanDecimal, Regexp, Format, Field
+from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import Attr, TableCell
 from weboob.exceptions import ActionNeeded, BrowserIncorrectPassword, BrowserUnavailable, BrowserPasswordExpired
 from weboob.capabilities.bank import Account, Investment
@@ -45,7 +47,6 @@ from weboob.tools.json import json
 def MyDecimal(*args, **kwargs):
     kwargs.update(replace_dots=True, default=NotAvailable)
     return CleanDecimal(*args, **kwargs)
-
 
 def MyStrip(x, xpath='.'):
     if isinstance(x, unicode):
@@ -102,8 +103,11 @@ class RedirectPage(HTMLPage):
             self.browser.location(re.search(r'href="([^"]+)"', script.text).group(1))
 
 
-class LoginPage(HTMLPage):
+class EntryPage(HTMLPage):
+    pass
 
+
+class LoginPage(HTMLPage):
     VIRTUALKEYBOARD = CDNVirtKeyboard
 
     def login(self, username, password):
@@ -127,7 +131,6 @@ class LoginPage(HTMLPage):
                 'cryptocvcs':   crypto,
                 'vk_op':        'auth',
                }
-
         self.browser.location('/swm/redirectCDN.html', data=data)
 
     def classic_login(self, username, password):
@@ -144,44 +147,73 @@ class LoginPage(HTMLPage):
                 'pwAuth':       'Authentification+mot+de+passe',
                 'username':     username.encode(self.browser.ENCODING),
                }
-
         self.browser.location('/saga/authentification', data=data)
 
     def get_error(self):
         return CleanText('//b[has-class("x-attentionErreurLigneHaut")]', default="")(self.doc)
 
 
+class AccountTypePage(LoggedPage, JsonPage):
+    def get_account_type(self):
+        account_type = CleanText(Dict('donnees/id'))(self.doc)
+        if account_type == "menu_espace_perso_part":
+            return "particuliers"
+        elif account_type == "menu_espace_perso_pro":
+            return "professionnels"
+        elif account_type == "menu_espace_perso_ent":
+            return "entreprises"
+
+
+class LabelsPage(LoggedPage, JsonPage):
+    def get_labels(self):
+        synthesis_labels = ["Synthèse"]
+        loan_labels = ["Crédits en cours", "Crédits perso et immo", "Crédits"]
+        for element in Dict('donnees/0/submenu')(self.doc):
+            if CleanText(Dict('label'))(element) in synthesis_labels:
+                synthesis_label = CleanText(Dict('link'))(element).split("/")[-1]
+            if CleanText(Dict('label'))(element) in loan_labels:
+                loan_label  = CleanText(Dict('link'))(element).split("/")[-1]
+        return (synthesis_label, loan_label)
+
+
+class ProfilePage(LoggedPage, JsonPage):
+    def get_profile(self):
+        profile = Profile()
+        profile.name = Format('%s %s', CleanText(Dict('donnees/nom')), CleanText(Dict('donnees/prenom'), default=''))(self.doc)
+        return profile
+
+
 class CDNBasePage(HTMLPage):
-    def get_from_js(self, pattern, end_pattern, is_list=False):
-        """
-        find a pattern in any javascript text
-        """
-        for script in self.doc.xpath('//script'):
-            txt = script.text
-            if txt is None:
-                continue
+   def get_from_js(self, pattern, end_pattern, is_list=False):
+       """
+       find a pattern in any javascript text
+       """
+       for script in self.doc.xpath('//script'):
+           txt = script.text
+           if txt is None:
+               continue
 
-            start = txt.find(pattern)
-            if start < 0:
-                continue
+           start = txt.find(pattern)
+           if start < 0:
+               continue
 
-            values = []
-            while start >= 0:
-                start += len(pattern)
-                end = txt.find(end_pattern, start)
-                values.append(txt[start:end])
+           values = []
+           while start >= 0:
+               start += len(pattern)
+               end = txt.find(end_pattern, start)
+               values.append(txt[start:end])
 
-                if not is_list:
-                    break
+               if not is_list:
+                   break
 
-                start = txt.find(pattern, end)
-            return ','.join(values)
+               start = txt.find(pattern, end)
+           return ','.join(values)
 
-    def get_execution(self):
-        return self.get_from_js("name: 'execution', value: '", "'")
+   def get_execution(self):
+       return self.get_from_js("name: 'execution', value: '", "'")
 
-    def iban_go(self):
-        return '%s%s' % ('/vos-comptes/IPT/cdnProxyResource', self.get_from_js('C_PROXY.StaticResourceClientTranslation( "', '"'))
+   def iban_go(self):
+       return '%s%s' % ('/vos-comptes/IPT/cdnProxyResource', self.get_from_js('C_PROXY.StaticResourceClientTranslation( "', '"'))
 
 
 class AccountsPage(LoggedPage, CDNBasePage):
@@ -206,12 +238,21 @@ class AccountsPage(LoggedPage, CDNBasePage):
         u'PLAN ÉPARGNE':        Account.TYPE_SAVINGS,
         u'ASS.VIE':             Account.TYPE_LIFE_INSURANCE,
         u'ÉTOILE AVANCE':       Account.TYPE_LOAN,
+        u'ETOILE AVANCE':       Account.TYPE_LOAN,
         u'PRÊT':                Account.TYPE_LOAN,
         u'CREDIT':              Account.TYPE_LOAN,
         u'FACILINVEST':         Account.TYPE_LOAN,
         u'TITRES':              Account.TYPE_MARKET,
         u'COMPTE A TERME':      Account.TYPE_DEPOSIT,
         }
+
+    def make__args_dict(self, line):
+        return {'_eventId': 'clicDetailCompte',
+                '_ipc_eventValue':  '',
+                '_ipc_fireEvent':   '',
+                'execution': self.get_execution(),
+                'idCompteClique':   line[self.COL_ID],
+               }
 
     def get_password_expired(self):
         error = CleanText('//div[@class="x-attentionErreur"]/b')(self.doc)
@@ -222,7 +263,6 @@ class AccountsPage(LoggedPage, CDNBasePage):
         for pattern, actype in sorted(self.TYPES.items()):
             if label.startswith(pattern) or label.endswith(pattern):
                 return actype
-
         return Account.TYPE_UNKNOWN
 
     def get_history_link(self):
@@ -230,15 +270,6 @@ class AccountsPage(LoggedPage, CDNBasePage):
 
     def get_av_link(self):
         return self.doc.xpath('//a[contains(text(), "Consultation")]')[0].attrib['href']
-
-    def make__args_dict(self, line):
-        return {'_eventId': 'clicDetailCompte',
-                '_ipc_eventValue':  '',
-                '_ipc_fireEvent':   '',
-                'deviseAffichee':   'DEVISE',
-                'execution':        self.get_execution(),
-                'idCompteClique':   line[self.COL_ID],
-               }
 
     def get_list(self):
         accounts = []
@@ -317,6 +348,10 @@ class AccountsPage(LoggedPage, CDNBasePage):
         return re.search(r'(\d{4,})', Attr('//form[@name="changePageForm"]', 'action')(self.doc)).group(0)
 
 
+class ProIbanPage(CDNBasePage):
+    pass
+
+
 class AVPage(LoggedPage, CDNBasePage):
     COL_LABEL = 0
     COL_BALANCE = 3
@@ -331,7 +366,6 @@ class AVPage(LoggedPage, CDNBasePage):
             l.append(sub)
         for i, key in enumerate(self.ARGS):
             args[key] = l[self.ARGS.index(key)]
-
         return url, args
 
     def get_av_accounts(self):
@@ -343,15 +377,25 @@ class AVPage(LoggedPage, CDNBasePage):
                     continue
 
                 a = Account()
+
+                # get acc_nb like on accounts page
+                a._acc_nb = Regexp(
+                    CleanText('//div[@id="v1-cadre"]//b[contains(text(), "Compte N")]', replace=[(' ', '')]),
+                    r'(\d+)'
+                )(self.doc)[5:]
+
                 a.label = CleanText('.')(cols[self.COL_LABEL])
                 a.type = Account.TYPE_LIFE_INSURANCE
                 a.balance = MyDecimal('.')(cols[self.COL_BALANCE])
                 a.currency = a.get_currency(CleanText('.')(head_cols[self.COL_BALANCE]))
                 a._link, a._args = self.get_params(cols[self.COL_LABEL].find('span/a').attrib['href'])
-                a.id = a._args['IndiceSupport'] + a._args['NumPolice']
-                a._acc_nb = None
+                a.id = '%s%s%s' % (a._acc_nb, a._args['IndiceSupport'], a._args['NumPolice'])
                 a._inv = True
                 yield a
+
+
+class PartAVPage(AVPage):
+    pass
 
 
 class ProAccountsPage(AccountsPage):
@@ -421,10 +465,13 @@ class ProAccountsPage(AccountsPage):
                 a._link, a._args = None, None
             a._acc_nb = cols[self.COL_ID].xpath('.//span[@class="right-underline"] | .//span[@class="right"]')[0].text.replace(' ', '').strip()
 
+            a.id = a._acc_nb
             if hasattr(a, '_args') and a._args:
-                a.id = '%s%s%s' % (a._acc_nb, a._args['IndiceCompte'], a._args['Indiceclassement'])
-            else:
-                a.id = a._acc_nb
+                if a._args['IndiceCompte'].isdigit():
+                    a.id = '%s%s' % (a.id, a._args['IndiceCompte'])
+                if a._args['Indiceclassement'].isdigit():
+                    a.id = '%s%s' % (a.id, a._args['Indiceclassement'])
+
             # This account can be multiple life insurance accounts
             if (any(a.label.startswith(lab) for lab in ['ASS.VIE-BONS CAPI-SCPI-DIVERS', 'BONS CAPI-SCPI-DIVERS'])
                 or (u'Aucun d\\351tail correspondant pour ce compte' in tr.xpath('.//a/@href')[0])
@@ -598,7 +645,6 @@ class TransactionsPage(LoggedPage, CDNBasePage):
         COL_VALUATION = 4
         COL_PERF = 5
 
-
         for table in self.doc.xpath('//table[@class="datas-large"]'):
             for tr in table.xpath('.//tr[not(@class="entete")]'):
                 cols = tr.findall('td')
@@ -621,41 +667,33 @@ class TransactionsPage(LoggedPage, CDNBasePage):
 
     @method
     class get_deposit_investment(TableElement):
-        item_xpath = '//table[@class="datas"]/tr[not(@class="entete")]'
-        head_xpath = '//table[@class="datas"]/tr[(@class="entete")]/td/b'
+        item_xpath = '//table[@class="datas"]//tr[position()>1]'
+        head_xpath = '//table[@class="datas"]//tr[@class="entete"]/td/b'
 
-        col_label = re.compile('Libellé')
-        col_quantity = 'Quantité'
-        col_valuation = 'Montant (EUR)'
-        col_unitvalue = re.compile('Valeur liquidative')
+        col_label = u'Libellé'
+        col_quantity = u'Quantité'
+        col_unitvalue = re.compile(u"Valeur liquidative")
+        col_valuation = re.compile(u"Montant")
 
         class item(ItemElement):
             klass = Investment
-
-            def obj_label(self):
-                return CleanText('./a')(TableCell("label")(self)[0]) or CleanText(TableCell("label"))(self)
-
-            def obj_code(self):
-                link_label = CleanText('./a')(TableCell("label")(self)[0])
-                if link_label:
-                    return CleanText('./text()', default=NotAvailable)(TableCell("label")(self)[0])
-
-            obj_quantity = MyDecimal(TableCell("quantity"))
-
-            obj_unitvalue = MyDecimal(TableCell("unitvalue"))
-
+            obj_label = CleanText(TableCell('label'))
+            obj_quantity = MyDecimal(CleanText(TableCell('quantity')))
+            obj_valuation = MyDecimal(TableCell('valuation'))
+            obj_unitvalue = MyDecimal(TableCell('unitvalue'))
             def obj_vdate(self):
-                if Field('unitvalue')(self):
-                    return Date().filter(TableCell("unitvalue")(self)[0].xpath("./text()")[1])
-                return Date(dayfirst=True, default=NotAvailable).filter(Regexp(CleanText('(//tr[td[span|b[contains(text(), "Estimation du contrat")]]]/td[2]/span)[2]'), \
-                              '(\d{2})/(\d{2})/(\d{4})', '\\3-\\2-\\1', default=NotAvailable)(self.page.doc))
-
-            obj_valuation = MyDecimal(TableCell("valuation"))
-
+                if Field('unitvalue') is NotAvailable:
+                    vdate = Date(dayfirst=True, default=NotAvailable)\
+                       .filter(Regexp(CleanText('.'), '(\d{2})/(\d{2})/(\d{4})', '\\3-\\2-\\1', default=NotAvailable)(TableCell('unitvalue')(self))) or \
+                       Date(dayfirst=True, default=NotAvailable)\
+                       .filter(Regexp(CleanText('//tr[td[span[b[contains(text(), "Estimation du contrat")]]]]/td[2]'),
+                                      '(\d{2})/(\d{2})/(\d{4})', '\\3-\\2-\\1', default=NotAvailable)(TableCell('unitvalue')(self)))
+                    return vdate
 
     def fill_diff_currency(self, account):
-        valuation_diff = CleanText(u'//td[span[contains(text(), "dont +/- value : ")]]//b', default=None)(self.doc)
-        if valuation_diff:
+        valuation_diff = CleanText(u'//td[span[contains(text(), "dont +/- value : ")]]//b', default=None)(self.doc)
+        #NC == Non communiqué
+        if valuation_diff and "NC" not in valuation_diff:
             account.valuation_diff = MyDecimal().filter(valuation_diff)
             account.currency = account.get_currency(valuation_diff)
 
