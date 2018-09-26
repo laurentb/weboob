@@ -428,6 +428,8 @@ class ConsoleApplication(Application):
             v = klass(label=question, default=default, masked=masked, regexp=regexp, choices=choices, tiny=tiny)
 
         question = v.label
+        if v.description and v.description != v.label:
+            question = u'%s: %s' % (question, v.description)
         if v.id:
             question = u'[%s] %s' % (v.id, question)
 
