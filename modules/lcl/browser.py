@@ -112,6 +112,8 @@ class LCLBrowser(LoginBrowser, StatesMixin):
 
     __states__ = ('contracts', 'current_contract',)
 
+    IDENTIFIANT_ROUTING = 'CLI'
+
     def __init__(self, *args, **kwargs):
         super(LCLBrowser, self).__init__(*args, **kwargs)
         self.accounts_list = None
