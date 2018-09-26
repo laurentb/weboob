@@ -687,7 +687,7 @@ class SavingsPage(AccountsPage):
                     return False
 
                 label = Field('label')(self)
-                if label.startswith('RENT') or label.startswith('RENV'):
+                if any(label.startswith(prefix) for prefix in ('RENT', 'RENV', 'RACC')):
                     # RENTE account doesn't seem to have any balance or currency
                     return False
 
