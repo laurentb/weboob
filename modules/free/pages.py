@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Format, Regexp
@@ -50,7 +51,7 @@ class HomePage(LoggedPage, HTMLPage):
             def parse(self, el):
                 username = self.page.browser.username
                 try:
-                    subscriber = CleanText(u'//div[@class="infos_abonne"]/ul/li[1]')(self)
+                    subscriber = CleanText('//div[@class="infos_abonne"]/ul/li[1]')(self)
                 except UnicodeDecodeError:
                     subscriber = username
                 self.env['subscriber'] = subscriber
@@ -76,17 +77,18 @@ class DocumentsPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Bill
 
-            obj_id = Format('%s_%s', Env('subid'), Regexp(Attr('./span[1]/a', 'href'), '(?<=.facture=)([^*]+)'))
+            obj_id = Format('%s_%s', Env('subid'), Regexp(Attr('./span[1]/a', 'href'),
+                                                          r'(?<=.facture=)([^*]+)'))
             obj_url = Attr('./span[1]/a', 'href', default=NotAvailable)
             obj_date = Env('date')
-            obj_format = u"pdf"
+            obj_format = 'pdf'
             obj_label = Format('Facture %s', CleanText('./span[1]/strong'))
-            obj_type = u"bill"
+            obj_type = 'bill'
             obj_price = CleanDecimal(CleanText('./span[has-class("last")]'), replace_dots=True)
-            obj_currency = u"EUR"
+            obj_currency = 'EUR'
 
             def parse(self, el):
-                self.env['date'] = parse_french_date(u"01 %s" % CleanText('./span[2]')(self)).date()
+                self.env['date'] = parse_french_date('01 %s' % CleanText('./span[2]')(self)).date()
 
 
 class ProfilePage(LoggedPage, HTMLPage):

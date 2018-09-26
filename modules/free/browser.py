@@ -28,10 +28,10 @@ class FreeBrowser(LoginBrowser):
     BASEURL = 'https://adsl.free.fr'
 
     login = URL('https://subscribe.free.fr/login/', LoginPage)
-    home = URL('/home.pl(?P<urlid>.*)', HomePage)
-    documents = URL('/liste-factures.pl(?P<urlid>.*)', DocumentsPage)
-    profile = URL('/modif_infoscontact.pl(?P<urlid>.*)', ProfilePage)
-    address = URL('/show_adresse.pl(?P<urlid>.*)', ProfilePage)
+    home = URL(r'/home.pl(?P<urlid>.*)', HomePage)
+    documents = URL(r'/liste-factures.pl(?P<urlid>.*)', DocumentsPage)
+    profile = URL(r'/modif_infoscontact.pl(?P<urlid>.*)', ProfilePage)
+    address = URL(r'/show_adresse.pl(?P<urlid>.*)', ProfilePage)
 
     def __init__(self, *args, **kwargs):
         LoginBrowser.__init__(self, *args, **kwargs)

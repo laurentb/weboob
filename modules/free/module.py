@@ -38,7 +38,7 @@ class FreeModule(Module, CapDocument, CapProfile):
     LICENSE = 'LGPLv3+'
     VERSION = '1.4'
     CONFIG = BackendConfig(Value('login', label='Identifiant'),
-                       ValueBackendPassword('password', label='Mot de passe'))
+                           ValueBackendPassword('password', label='Mot de passe'))
 
     BROWSER = FreeBrowser
 
