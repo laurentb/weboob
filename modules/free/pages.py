@@ -37,6 +37,9 @@ class LoginPage(HTMLPage):
 
         form.submit()
 
+    def get_error(self):
+        return CleanText('//div[has-class("loginalert")]')(self.doc)
+
 
 class HomePage(LoggedPage, HTMLPage):
     @method

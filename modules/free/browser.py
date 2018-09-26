@@ -44,7 +44,11 @@ class FreeBrowser(LoginBrowser):
         self.page.login(self.username, self.password)
 
         if self.login.is_here():
-            raise BrowserIncorrectPassword
+            error = self.page.get_error()
+            if error and 'mot de passe' in error:
+                raise BrowserIncorrectPassword(error)
+            raise AssertionError('Unhandled behavior at login: error is "{}"'.format(error))
+
         elif self.documents.is_here():
             self.email = self.username
             self.status = "inactive"
