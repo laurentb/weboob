@@ -321,7 +321,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
                        Account.TYPE_MARKET: self.par_account_savings_and_invests_history
                       }.get(account.type)
 
-            if history is not None:
+            if history is not None and account.label != 'COMPTE ATTENTE':
                 history.go(accountId=account.id)
 
             # TODO be smarter by avoid fetching all, sorting all and returning all if only coming were desired
