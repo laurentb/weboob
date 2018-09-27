@@ -40,7 +40,7 @@ from .landing_pages import GenericLandingPage
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile(r'^VIR(EMENT)? (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
                 (re.compile(r'^PRLV (?P<text>.*)'),        FrenchTransaction.TYPE_ORDER),
-                (re.compile(r'^CB (?P<text>.*?)\s+(?P<dd>\d+)/(?P<mm>[01]\d)\s*(?P<loc>.*)'),
+                (re.compile(r'^CB (?P<text>.*?)\s+(?P<dd>\d+)/(?P<mm>[01]\d)\s+(?P<loc>.*)'),
                                                            FrenchTransaction.TYPE_CARD),
                 (re.compile(r'^DAB (?P<dd>\d{2})/(?P<mm>\d{2}) ((?P<HH>\d{2})H(?P<MM>\d{2}) )?(?P<text>.*?)( CB N°.*)?$'),
                                                            FrenchTransaction.TYPE_WITHDRAWAL),
