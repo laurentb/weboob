@@ -27,6 +27,7 @@ from datetime import date
 from dateutil.relativedelta import relativedelta
 from lxml.html import etree
 
+from weboob.browser.elements import method, ItemElement
 from weboob.browser.filters.html import Link, Attr
 from weboob.browser.filters.standard import CleanText, CleanDecimal, RawText, Regexp, Date
 from weboob.capabilities import NotAvailable
@@ -526,7 +527,18 @@ class LoanPage(LoggedPage, HTMLPage):
 
 class ProfilePage(LoggedPage, HTMLPage):
     def get_csv_link(self):
-        return Link('//div[@id="bloc_telecharger"]//a[@id="telecharger_donnees"]')(self.doc)
+        return Link('//div[@id="bloc_telecharger"]//a[@id="telecharger_donnees"]', default=NotAvailable)(self.doc)
+
+    @method
+    class get_profile(ItemElement):
+        klass = Person
+
+        obj_phone = Regexp(CleanText('//div[@id="consultationform_telephones"]/p[@id="c_numeroPortable"]'), '([\d\*]+)')
+        obj_email = CleanText('//div[@id="modification_email"]//p[@id="c_email_actuel"]/span')
+        obj_address = CleanText('//div[@id="consultationform_adresse_domicile"]/div[@class="container"]//span')
+        obj_job = CleanText('//div[@id="consultationform_informations_complementaires"]/p[@id="c_profession"]/span')
+        obj_job_activity_area = CleanText('//div[@id="consultationform_informations_complementaires"]/p[@id="c_secteurActivite"]/span')
+        obj_company_name = CleanText('//div[@id="consultationform_informations_complementaires"]/p[@id="c_employeur"]/span')
 
 
 class ProfilePageCSV(LoggedPage, CsvPage):

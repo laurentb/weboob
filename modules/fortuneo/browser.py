@@ -262,5 +262,7 @@ class Fortuneo(LoginBrowser, StatesMixin):
     @need_login
     def get_profile(self):
         self.profile.go()
-        self.location(self.page.get_csv_link())
+        csv_link = self.page.get_csv_link()
+        if csv_link:
+            self.location(csv_link)
         return self.page.get_profile()
