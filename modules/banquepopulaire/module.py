@@ -75,7 +75,9 @@ class BanquePopulaireModule(Module, CapBankWealth, CapContact, CapProfile):
             ('loirelyonnais', 'bpaura'),
             ('alpes', 'bpaura'),
             ('massifcentral', 'bpaura'),
-            ('atlantique', 'bpgo'),
+            ('atlantique.creditmaritime', 'cmgo.creditmaritime'),
+            ('bretagnenormandie.cmm', 'cmgo'),
+            ('atlantique.banquepopulaire', 'bpgo.banquepopulaire'),
             ('ouest', 'bpgo'),
         ]
         website = reduce(lambda a, kv: a.replace(*kv), repls, self.config['website'].get())

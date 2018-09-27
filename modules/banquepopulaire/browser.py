@@ -169,6 +169,11 @@ class BanquePopulaire(LoginBrowser):
 
     def __init__(self, website, *args, **kwargs):
         self.BASEURL = 'https://%s' % website
+        # this url is required because the creditmaritime abstract uses an other url
+        if 'cmgo.creditmaritime' in self.BASEURL:
+            self.redirect_url = 'https://www.icgauth.creditmaritime.groupe.banquepopulaire.fr/dacsrest/api/v1u0/transaction/'
+        else:
+            self.redirect_url = 'https://www.icgauth.banquepopulaire.fr/dacsrest/api/v1u0/transaction/'
         self.token = None
         self.weboob = kwargs['weboob']
         super(BanquePopulaire, self).__init__(*args, **kwargs)
@@ -193,7 +198,6 @@ class BanquePopulaire(LoginBrowser):
         if self.home_page.is_here():
             return
         self.page.login(self.username, self.password)
-
         if self.login_page.is_here():
             raise BrowserIncorrectPassword()
 

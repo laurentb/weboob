@@ -308,7 +308,7 @@ class Login2Page(LoginPage):
     def request_url(self):
         transactionID = self.params['transactionID']
         assert transactionID
-        return 'https://www.icgauth.banquepopulaire.fr/dacswebssoissuer/api/v1u0/transaction/%s' % transactionID
+        return self.browser.redirect_url + transactionID
 
     def on_load(self):
         if not self.browser.no_login:
