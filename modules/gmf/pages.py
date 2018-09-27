@@ -63,7 +63,8 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_label = CleanText('.//div[@class="type-contrat"]//h2')
             obj_type = Account.TYPE_LIFE_INSURANCE
             obj_balance = CleanDecimal(CleanText('.//div[@class="col-right"]', children=False), replace_dots=True, default=NotAvailable)
-            obj_currency = Currency(CleanText(u'.//div[@class="col-right"]', children=False, replace=[("Au", "")]))
+            obj_currency = Currency(CleanText('.//div[@class="col-right"]', children=False,
+                                              replace=[("Au", "")]))
 
     def get_detail_page_parameters(self, account):
         """
@@ -74,7 +75,8 @@ class AccountsPage(LoggedPage, HTMLPage):
         # parameter 1
         el = self.doc.xpath('//div[@class="infos-contrat"][descendant::strong[contains(text(), $contract_id)]]/parent::div//div[@class="zone-detail"]//span/a', contract_id=account.id)
         assert len(el) == 1
-        parameter = Regexp(Attr('.', 'onclick'), r".*,\{'(.*)':'(.*)'\},.*\);return false", '\\1 \\2')(el[0]).split(' ')
+        parameter = Regexp(Attr('.', 'onclick'), r".*,\{'(.*)':'(.*)'\},.*\);return false",
+                                                 '\\1 \\2')(el[0]).split(' ')
         data.append((parameter[0], parameter[1]))
 
         form = self.get_form(id='j_idt254')
@@ -163,8 +165,10 @@ class AllTransactionsPage(LoggedPage, XMLPage, HTMLPage, TransactionsParser):
     def build_doc(self, content):
         # HTML embedded in XML: parse XML first then extract the html
         xml = XMLPage.build_doc(self, content)
-        transactions_html = xml.xpath('//partial-response/changes/update[1]')[0].text.encode(encoding=self.encoding)
-        investments_html = xml.xpath('//partial-response/changes/update[2]')[0].text.encode(encoding=self.encoding)
+        transactions_html = (xml.xpath('//partial-response/changes/update[1]')[0].text
+                             .encode(encoding=self.encoding))
+        investments_html = (xml.xpath('//partial-response/changes/update[2]')[0].text
+                            .encode(encoding=self.encoding))
         html = transactions_html + investments_html
         return HTMLPage.build_doc(self, html)
 
