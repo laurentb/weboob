@@ -812,31 +812,35 @@ class ProfilePage(LoggedPage, HTMLPage):
 
 class CardsNumberPage(LoggedPage, HTMLPage):
     def populate_cards_number(self, cards):
-        # Checking account ID used to match credit cards
-        # Label useful when several cards on the same checking account
-        labels_ids = [
-            (
-                CleanText('.', replace=[('DEBIT DIFFERE ', '')])(o),
-                re.search(r'/limite/(\w+)/', o.attrib['href']).group(1)
-            )
-            for o in self.doc.xpath('//select//option')
+        """
+        Checking account ID used to match credit cards.
+        Label useful when several cards on the same checking account.
+        The card_details list contains tuples including the card number,
+        the hash of the card's parent account, and the name of the card.
+        """
+        card_details = [
+            (CleanText('.//span')(o), CleanText('./@data-account-key')(o), CleanText('.//p')(o))
+            for o in self.doc.xpath('//div[contains(@class, "zoom-carousel__item text-center credit-card-carousel__item")]')
         ]
 
-        # remove cards whose number ends with **** (means it is not activated yet)
-        labels_ids = [
-            label_id for label_id in labels_ids
-            if not label_id[0].endswith('****')
+        # Remove cards whose number ends with **** (means it is not activated yet)
+        card_details = [
+            (number, account_hash, name) for (number, account_hash, name) in card_details
+            if not number.endswith('****')
         ]
 
         for card in cards:
-            match = [
-                label for label, account_id in labels_ids
-                if card.label in label and account_id in card.url
-            ]
+            match = [(number, account_hash, name) for (number, account_hash, name) in card_details if account_hash in card.url]
+
+            if len(match) > 1:
+                # Several cards matched the same bank account, so we now try
+                # to match them using the name of the card holder:
+                card_username = card.label.split('-')[1].lstrip()
+                match = [(number, account_hash, name) for (number, account_hash, name) in match if name.startswith(card_username)]
+
             assert len(match) <= 1, "only one card should be matched, or zero if the card is not yet activated"
             if len(match) == 1 :
-                card_label = match[0]
-                card.number = re.search('(\d{4}\*{8}(\d{4}|\*{4}))', card_label).group(1)
+                card.number = match[0][0]
 
 
 class HomePage(LoggedPage, HTMLPage):
