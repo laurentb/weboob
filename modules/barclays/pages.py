@@ -107,7 +107,8 @@ class AccountsPage(StatefulPage):
                      'Engagement/Crédits': Account.TYPE_LOAN,
                     }
     ACCOUNT_EXTRA_TYPES = {'BMOOVIE': Account.TYPE_LIFE_INSURANCE,
-                           'B. GESTION VIE': Account.TYPE_LIFE_INSURANCE
+                           'B. GESTION VIE': Account.TYPE_LIFE_INSURANCE,
+                           'E VIE MILLEIS': Account.TYPE_LIFE_INSURANCE,
                           }
     ACCOUNT_TYPE_TO_STR = {Account.TYPE_MARKET: 'TTR',
                            Account.TYPE_CARD: 'CRT'
@@ -164,9 +165,6 @@ class AccountsPage(StatefulPage):
                         return True
 
                 return False
-
-            def validate(self, el):
-                return Field('type')(self) != Account.TYPE_UNKNOWN
 
 
 class Transaction(FrenchTransaction):
@@ -282,6 +280,10 @@ class MarketAccountPage(AbstractAccountPage):
 
     @method
     class iter_investments(TableElement):
+
+        def condition(self):
+            return not self.xpath('//h1[text()="Aucune position"]')
+
         head_xpath = '//table[@id="C4__TBL_Equity"]/thead/tr/th'
         item_xpath = '//table[@id="C4__TBL_Equity"]/tbody/tr'
 
@@ -312,9 +314,6 @@ class MarketAccountPage(AbstractAccountPage):
             obj_valuation = MyDecimal(TableCell('valuation'))
             obj_portfolio_share = Eval(lambda x: x / 100, MyDecimal(TableCell('portfolio_share')))
             obj_code_type = Investment.CODE_TYPE_ISIN
-
-            def condition(self):
-                return CleanDecimal(TableCell('quantity'), default=None)(self) is not None
 
 
 class LifeInsuranceAccountPage(AbstractAccountPage):
@@ -358,6 +357,10 @@ class LifeInsuranceAccountPage(AbstractAccountPage):
 
     @method
     class iter_investments(TableElement):
+
+        def condition(self):
+            return not self.xpath('//h1[text()="Aucune position"]')
+
         head_xpath = '//table[@class="table-support"]/thead/tr/th'
         item_xpath = '//table[@class="table-support"]/tbody/tr'
 
