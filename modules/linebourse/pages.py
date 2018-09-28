@@ -131,7 +131,7 @@ class InvestmentPage(AccountPage):
             obj_quantity = MyDecimal(TableCell('quantity'), default=NotAvailable)
             obj_unitvalue = MyDecimal(TableCell('unitvalue'), default=NotAvailable)
             obj_unitprice = MyDecimal(TableCell('unitprice'), default=NotAvailable)
-            obj_valuation = MyDecimal(TableCell('valuation'))
+            obj_valuation = MyDecimal(TableCell('valuation'), default=NotAvailable)
             obj_portfolio_share = Eval(lambda x: x / 100 if x else NotAvailable, MyDecimal(TableCell('portfolio_share'), default=NotAvailable))
             obj_diff = MyDecimal(TableCell('diff', default=NotAvailable), default=NotAvailable)
             obj_code_type = Investment.CODE_TYPE_ISIN
