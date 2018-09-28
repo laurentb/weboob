@@ -19,8 +19,16 @@
 
 
 from weboob.browser import AbstractBrowser
+from weboob.browser import URL
+from .pages import AccountsPage
 
 
 class CAELSBrowser(AbstractBrowser):
     PARENT = 'amundi'
     PARENT_ATTR = 'package.browser.AmundiBrowser'
+
+    accounts = URL('/psf/api/individu/positionFonds\?flagUrlFicheFonds=true&inclurePositionVide=false', AccountsPage)
+
+    def __init__(self, *args, **kwargs):
+        super(CAELSBrowser, self).__init__(*args, **kwargs)
+        self.weboob = kwargs.get('weboob')
