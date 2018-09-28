@@ -26,6 +26,7 @@ from weboob.browser.pages import LoggedPage, JsonPage
 from weboob.capabilities.bank import Account, Investment, Transaction
 from weboob.capabilities.base import NotAvailable
 from weboob.exceptions import NoAccountsException
+from weboob.tools.capabilities.bank.investments import is_isin_valid
 
 
 class LoginPage(JsonPage):
@@ -91,6 +92,11 @@ class AccountsPage(LoggedPage, JsonPage):
             obj_valuation = Dict('mtBrut') & CleanDecimal
             obj_code = Dict('codeIsin', default=NotAvailable)
             obj_vdate = Date(Dict('dtVl'))
+
+            def obj_code_type(self):
+                if is_isin_valid(Field('code')(self)):
+                    return Investment.CODE_TYPE_ISIN
+                return NotAvailable
 
 
 class AccountHistoryPage(LoggedPage, JsonPage):
