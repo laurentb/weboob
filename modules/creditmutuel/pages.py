@@ -1335,9 +1335,13 @@ class VerifCodePage(LoggedPage, HTMLPage):
         }
 
     def on_load(self):
-        error = CleanText('//p[contains(text(), "Clé invalide !")] | //p[contains(text(), "Vous n\'avez pas saisi de clé!")]')(self.doc)
-        if error:
-            raise AddRecipientBankError(message=error)
+        errors = (
+            CleanText('//p[contains(text(), "Clé invalide !")] | //p[contains(text(), "Vous n\'avez pas saisi de clé!")]')(self.doc),
+            CleanText('//p[contains(text(), "Vous n\'êtes pas inscrit") and a[text()="service d\'identification renforcée"]]')(self.doc),
+        )
+        for error in errors:
+            if error:
+                raise AddRecipientBankError(message=error)
 
         action_needed = CleanText('//p[contains(text(), "Carte de CLÉS PERSONNELLES révoquée")]')(self.doc)
         if action_needed:
