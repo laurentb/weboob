@@ -35,7 +35,7 @@ from weboob.capabilities.base import find_object
 
 from .pages.account_pages import (
     AccountsPage, CBOperationPage, CPTOperationPage, LoginPage, AppGonePage, RibPage,
-     UnavailablePage, OtherPage, FrameContainer
+     UnavailablePage, OtherPage, FrameContainer,
 )
 from .pages.life_insurances import (
     LifeInsurancesPage, LifeInsurancePortal, LifeInsuranceMain, LifeInsuranceUseless,
@@ -166,20 +166,6 @@ class HSBC(LoginBrowser):
 
         self.location(home_url)
 
-    @need_login
-    def get_accounts_list(self):
-        if not self.accounts_list:
-            self.update_accounts_list()
-        for a in self.accounts_list.values():
-            # Get parent of card account
-            if a.type == Account.TYPE_CARD:
-                card_page = self.open(a.url).page
-                parent_id = card_page.get_parent_id()
-                a.parent = find_object(self.accounts_list.values(), id=parent_id)
-                if a.parent and not a.currency:
-                    a.currency = a.parent.currency
-            yield a
-
     def go_post(self, url, data=None):
         # most of HSBC accounts links are actually handled by js code
         # which convert a GET query string to POST data.
@@ -191,6 +177,32 @@ class HSBC(LoginBrowser):
         self.location(url, data=q)
 
     @need_login
+    def get_accounts_list(self):
+        if not self.accounts_list:
+            self.update_accounts_list()
+
+        # go on cards page if there are cards accounts
+        for a in self.accounts_list.values():
+            if a.type == Account.TYPE_CARD:
+                self.location(a.url)
+                break
+
+        # get all couples (card, parent) on cards page
+        if self.cbPage.is_here():
+            all_card_and_parent = self.page.get_all_parent_id()
+            self.go_post(self.js_url, data={'debr': 'COMPTES_PAN'})
+
+        # update cards parent and currency
+        for a in self.accounts_list.values():
+            if a.type == Account.TYPE_CARD:
+                for card in all_card_and_parent:
+                    if a.id in card[0].replace(' ', ''):
+                        a.parent = find_object(self.accounts_list.values(), id=card[1])
+                    if a.parent and not a.currency:
+                        a.currency = a.parent.currency
+            yield a
+
+    @need_login
     def update_accounts_list(self, iban=True):
         if self.accounts.is_here():
             self.go_post(self.js_url)
@@ -198,7 +210,7 @@ class HSBC(LoginBrowser):
             data = {'debr': 'COMPTES_PAN'}
             self.go_post(self.js_url, data=data)
 
-        for a in self.page.iter_accounts():
+        for a in self.page.iter_spaces_account():
             try:
                 self.accounts_list[a.id].url = a.url
             except KeyError:
@@ -257,7 +269,7 @@ class HSBC(LoginBrowser):
         if account.url is None:
             return []
 
-        if account.url.startswith('javascript') or '&Crd=' in account.url:
+        if account.url.startswith('javascript') or '&Crd=' in account.url or account.type == Account.TYPE_LOAN:
             raise NotImplementedError()
 
         if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_CAPITALISATION):

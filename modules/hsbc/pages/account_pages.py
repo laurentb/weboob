@@ -29,7 +29,7 @@ from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, Acti
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.pages import HTMLPage, pagination
 from weboob.browser.filters.standard import (
-    Filter, Env, CleanText, CleanDecimal, Field, DateGuesser, Regexp
+    Filter, Env, CleanText, CleanDecimal, Field, DateGuesser, Regexp, Currency,
 )
 from weboob.browser.filters.html import AbsoluteLink, TableCell
 from weboob.browser.filters.javascript import JSVar
@@ -80,8 +80,65 @@ class UnavailablePage(GenericLandingPage):
         raise BrowserUnavailable()
 
 
+class AccountsType(Filter):
+    PATTERNS = [
+        ('c.aff', Account.TYPE_CHECKING),
+        ('pea', Account.TYPE_PEA),
+        ('invest', Account.TYPE_MARKET),
+        ('ptf', Account.TYPE_MARKET),
+        ('ldd', Account.TYPE_SAVINGS),
+        ('cel', Account.TYPE_SAVINGS),
+        ('pel', Account.TYPE_SAVINGS),
+        ('livret', Account.TYPE_SAVINGS),
+        ('livjeu', Account.TYPE_SAVINGS),
+        ('compte', Account.TYPE_CHECKING),
+        ('cpte', Account.TYPE_CHECKING),
+        ('scpi', Account.TYPE_MARKET),
+        ('account', Account.TYPE_CHECKING),
+        ('pret', Account.TYPE_LOAN),
+        ('vie', Account.TYPE_LIFE_INSURANCE),
+        ('strategie patr.', Account.TYPE_LIFE_INSURANCE),
+        ('essentiel', Account.TYPE_LIFE_INSURANCE),
+        ('elysee', Account.TYPE_LIFE_INSURANCE),
+        ('abondance', Account.TYPE_LIFE_INSURANCE),
+        ('ely. retraite', Account.TYPE_LIFE_INSURANCE),
+        ('lae option assurance', Account.TYPE_LIFE_INSURANCE),
+        ('carte ', Account.TYPE_CARD),
+        ('business ', Account.TYPE_CARD),
+        ('plan assur. innovat.', Account.TYPE_LIFE_INSURANCE),
+        ('hsbc evol pat transf', Account.TYPE_LIFE_INSURANCE),
+        ('hsbc evol pat capi', Account.TYPE_CAPITALISATION),
+        ('bourse libre', Account.TYPE_MARKET),
+        ('plurival', Account.TYPE_LIFE_INSURANCE),
+    ]
+
+    def filter(self, label):
+        label = label.lower()
+        for pattern, type in self.PATTERNS:
+            if pattern in label:
+                return type
+        return Account.TYPE_UNKNOWN
+
+
+class Label(Filter):
+    def filter(self, text):
+        return text.lstrip(' 0123456789').title()
+
+
 class AccountsPage(GenericLandingPage):
     is_here = '//h1[text()="Synthèse"]'
+
+    def iter_spaces_account(self):
+        if self.doc.xpath('//p[text()="HSBC Fusion"]'):
+            space = 'fusion'
+        else:
+            space = 'default'
+
+        accounts = {
+            'fusion': self.iter_fusion_accounts,
+            'default': self.iter_accounts,
+        }
+        return accounts[space]()
 
     @method
     class iter_accounts(ListElement):
@@ -94,55 +151,13 @@ class AccountsPage(GenericLandingPage):
             def condition(self):
                 return len(self.el.xpath('./td')) > 2
 
-            class Label(Filter):
-                def filter(self, text):
-                    return text.lstrip(' 0123456789').title()
-
-            class Type(Filter):
-                PATTERNS = [
-                    ('c.aff', Account.TYPE_CHECKING),
-                    ('pea', Account.TYPE_PEA),
-                    ('invest', Account.TYPE_MARKET),
-                    ('ptf', Account.TYPE_MARKET),
-                    ('ldd', Account.TYPE_SAVINGS),
-                    ('cel', Account.TYPE_SAVINGS),
-                    ('pel', Account.TYPE_SAVINGS),
-                    ('livret', Account.TYPE_SAVINGS),
-                    ('livjeu', Account.TYPE_SAVINGS),
-                    ('compte', Account.TYPE_CHECKING),
-                    ('cpte', Account.TYPE_CHECKING),
-                    ('scpi', Account.TYPE_MARKET),
-                    ('account', Account.TYPE_CHECKING),
-                    ('pret', Account.TYPE_LOAN),
-                    ('vie', Account.TYPE_LIFE_INSURANCE),
-                    ('strategie patr.', Account.TYPE_LIFE_INSURANCE),
-                    ('essentiel', Account.TYPE_LIFE_INSURANCE),
-                    ('elysee', Account.TYPE_LIFE_INSURANCE),
-                    ('abondance', Account.TYPE_LIFE_INSURANCE),
-                    ('ely. retraite', Account.TYPE_LIFE_INSURANCE),
-                    ('lae option assurance', Account.TYPE_LIFE_INSURANCE),
-                    ('carte ', Account.TYPE_CARD),
-                    ('plan assur. innovat.', Account.TYPE_LIFE_INSURANCE),
-                    ('hsbc evol pat transf', Account.TYPE_LIFE_INSURANCE),
-                    ('hsbc evol pat capi', Account.TYPE_CAPITALISATION),
-                    ('bourse libre', Account.TYPE_MARKET),
-                    ('plurival', Account.TYPE_LIFE_INSURANCE),
-                ]
-
-                def filter(self, label):
-                    label = label.lower()
-                    for pattern, type in self.PATTERNS:
-                        if pattern in label:
-                            return type
-                    return Account.TYPE_UNKNOWN
-
             obj_label = Label(CleanText('./td[1]/a'))
             obj_coming = Env('coming')
             obj_currency = FrenchTransaction.Currency('./td[2]')
 
             obj_url = CleanText(AbsoluteLink('./td[1]/a'), replace=[('\n', '')])
 
-            obj_type = Type(Field('label'))
+            obj_type = AccountsType(Field('label'))
             obj_coming = NotAvailable
 
             @property
@@ -161,6 +176,42 @@ class AccountsPage(GenericLandingPage):
                 if Field('type')(self) == Account.TYPE_MARKET:
                     return CleanText(replace=[('.', ''), (' ', '')]).filter(self.el.xpath('./td[2]')) + ".INVEST"
                 return CleanText(replace=[('.', ''), (' ', '')]).filter(self.el.xpath('./td[2]'))
+
+    @method
+    class iter_fusion_accounts(ListElement):
+        def find_elements(self):
+            all_xpaths = (
+                '//div[@id="All" and @class="tabcontent"]/div',
+                '//div[@class="formGroup"]/div'
+            )
+            for xpath in all_xpaths:
+                ret = self.xpath(xpath)
+                if ret:
+                    return ret
+            else:
+                assert False, 'Accounts are not well handled'
+
+        class iter_accounts_tables(ListElement):
+            item_xpath = './div[@onclick]'
+
+            class item(ItemElement):
+                klass = Account
+
+                obj_label = Label(CleanText('.//p[@class="title"]'))
+                obj_balance = CleanDecimal(CleanText('.//p[@class="balance"]'), replace_dots=True)
+                obj_currency = Currency(CleanText('.//p[@class="balance"]'))
+                obj_type = AccountsType(Field('label'))
+                obj_url = CleanText('.//form/@action')
+
+                @property
+                def obj_id(self):
+                    account_id = CleanText('.//p[@class="title"]/span', replace=[('.', ''), (' ', '')])(self)
+                    # Investment account and main account can have the same id
+                    # so we had account type in case of Investment to prevent conflict
+                    # and also the same problem with scpi accounts.
+                    if Field('type')(self) == Account.TYPE_MARKET:
+                        return account_id + ".INVEST"
+                    return account_id
 
 
 class RibPage(GenericLandingPage):
@@ -220,8 +271,19 @@ class CBOperationPage(GenericLandingPage):
 
     def get_parent_id(self):
         # The parent id is in the details of the card
-        m = re.search(r'Solde du compte (.*)', CleanText('//div[@class="RecentTransactions"]/h2')(self.doc))
-        return m.group(1)
+        return Regexp(CleanText('//h2[contains(text(), "Solde du compte")]'), r'Solde du compte (.*)')(self.doc)
+
+    def get_all_parent_id(self):
+        all_parent_id = []
+        all_card = [CleanText('.')(card) for card in self.doc.xpath('//select[@name="choix_carte"]/option')]
+
+        for index, card in enumerate(all_card):
+            form = self.get_form(name='FORM_LIB_CARTE')
+            form['index_carte'] = index
+            form['choix_carte'] = card
+            all_parent_id.append((card, form.submit().page.get_parent_id()))
+
+        return all_parent_id
 
 
 class CPTOperationPage(GenericLandingPage):
