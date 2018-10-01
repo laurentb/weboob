@@ -135,6 +135,8 @@ def exc_wrap(func, *args, **kwargs):
             if k == e.error_code:
                 raise ERROR_MAP[k][0]
 
+        raise
+
 
 class NSSFile(RawIOBase):
     def __init__(self, obj):
