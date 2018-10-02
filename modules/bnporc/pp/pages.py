@@ -112,9 +112,11 @@ class ConnectionThresholdPage(HTMLPage):
         return True
 
     def on_load(self):
+        msg = CleanText('//div[@class="confirmation"]//span[span]')(self.doc)
+        raise BrowserPasswordExpired(msg)
+
         if not self.looks_legit(self.browser.password):
             # we may not be able to restore the password, so reject it
-            msg = CleanText('//div[@class="confirmation"]//span[span]')(self.doc)
             raise BrowserPasswordExpired(msg)
 
         new_pass = ''.join([str((int(l) + 1) % 10) for l in self.browser.password])
