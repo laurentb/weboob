@@ -30,7 +30,7 @@ from weboob.capabilities.profile import ProfileMissing
 from .pages.accounts_list import (
     AccountsList, AccountHistory, CardsList, LifeInsurance,
     LifeInsuranceHistory, LifeInsuranceInvest, LifeInsuranceInvest2, Market, UnavailableServicePage,
-    ListRibPage, AdvisorPage, HTMLProfilePage, XMLProfilePage, LoansPage, IbanPage,
+    ListRibPage, AdvisorPage, HTMLProfilePage, XMLProfilePage, LoansPage, IbanPage, ComingPage,
 )
 from .pages.transfer import RecipientsPage, TransferPage, AddRecipientPage, RecipientJson
 from .pages.login import LoginPage, BadLoginPage, ReinitPasswordPage, ActionNeededPage, ErrorPage
@@ -52,6 +52,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     reinit = URL('/acces/changecodeobligatoire.html', ReinitPasswordPage)
     iban_page = URL(r'/lgn/url\.html\?dup', IbanPage)
     accounts = URL('/restitution/cns_listeprestation.html', AccountsList)
+    coming_page = URL('/restitution/cns_listeEncours.xml', ComingPage)
     cards_list = URL('/restitution/cns_listeCartes.*.html', CardsList)
     account_history = URL('/restitution/cns_detail.*\.html', '/lgn/url.html', AccountHistory)
     market = URL('/brs/cct/comti20.html', Market)
@@ -126,6 +127,9 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
         if self.accounts_list is None:
             self.accounts.stay_or_go()
             self.accounts_list = self.page.get_list()
+            # Coming amount is on another page, whose url must be retrieved on the main page
+            self.location(self.page.get_coming_url())
+            self.page.set_coming(self.accounts_list)
             self.list_rib.go()
             if self.list_rib.is_here():
                 # Caching rib url, so we don't have to go back and forth for each account

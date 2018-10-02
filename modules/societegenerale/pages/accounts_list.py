@@ -42,7 +42,6 @@ from weboob.exceptions import NoAccountsException, BrowserUnavailable, ActionNee
 
 from .base import BasePage
 
-
 def MyDecimal(*args, **kwargs):
     kwargs.update(replace_dots=True, default=NotAvailable)
     return CleanDecimal(*args, **kwargs)
@@ -76,6 +75,13 @@ class AccountsList(LoggedPage, BasePage):
              u'Prêt':                Account.TYPE_LOAN,
              'Avance Patrimoniale':  Account.TYPE_LOAN,
             }
+
+    def get_coming_url(self):
+        for script in self.doc.xpath('//script'):
+            s_content = CleanText('.')(script)
+            if "var url_encours" in s_content:
+                break
+        return re.search(r'url_encours=\"(.+)\"; ', s_content).group(1)
 
     def get_list(self):
         err = CleanText('//span[@class="error_msg"]', default='')(self.doc)
@@ -161,6 +167,12 @@ class AccountsList(LoggedPage, BasePage):
             accounts_list.append(account)
 
         return accounts_list
+
+
+class ComingPage(LoggedPage, XMLPage):
+    def set_coming(self, accounts_list):
+        for a in accounts_list:
+            a.coming = CleanDecimal('//EnCours[contains(@id, "%s")]' % a.id, replace_dots=True, default=NotAvailable)(self.doc)
 
 
 class IbanPage(LoggedPage, NotTransferBasePage):
