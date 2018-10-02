@@ -157,6 +157,12 @@ class BNPKeyboard(GridVirtKeyboard):
         self.check_symbols(self.symbols, page.browser.responses_dirname)
 
 
+class ListErrorPage(JsonPage):
+    def get_error_message(self, error):
+        key = 'app.identification.erreur.' + str(error)
+        return self.doc[key]
+
+
 class LoginPage(JsonPage):
     @staticmethod
     def render_template(tmpl, **values):
@@ -188,6 +194,7 @@ class LoginPage(JsonPage):
         error = cast(self.get('errorCode'), int, 0)
         # you can find api documentation on errors here : https://mabanque.bnpparibas/rsc/contrib/document/properties/identification-fr-part-V1.json
         if error:
+            error_page = self.browser.list_error_page.open()
             codes = [201, 21510, 203, 202]
             msg = self.get('message')
             if error in codes:
@@ -200,6 +207,8 @@ class LoginPage(JsonPage):
                 raise ActionNeeded(msg)
             elif error == 21: # "Ce service est momentanément indisponible. Veuillez renouveler votre demande ultérieurement." -> In reality, account is blocked because of too much wrongpass
                 raise ActionNeeded(u"Compte bloqué")
+            elif error == 4:
+                raise ActionNeeded(error_page.get_error_message(error))
 
             self.logger.debug('Unexpected error at login: "%s" (code=%s)' % (msg, error))
 

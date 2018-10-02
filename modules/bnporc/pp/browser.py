@@ -42,7 +42,7 @@ from .pages import (
     LifeInsurancesDetailPage, NatioVieProPage, CapitalisationPage,
     MarketListPage, MarketPage, MarketHistoryPage, MarketSynPage,
     RecipientsPage, ValidateTransferPage, RegisterTransferPage, AdvisorPage,
-    AddRecipPage, ActivateRecipPage, ProfilePage, ListDetailCardPage,
+    AddRecipPage, ActivateRecipPage, ProfilePage, ListDetailCardPage, ListErrorPage,
 )
 
 
@@ -75,6 +75,8 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
                 'SEEA-pa01/devServer/seeaserver',
                 'https://mabanqueprivee.bnpparibas.net/fr/espace-prive/comptes-et-contrats\?u=%2FSEEA-pa01%2FdevServer%2Fseeaserver',
                 LoginPage)
+
+    list_error_page = URL('/rsc/contrib/document/properties/identification-fr-part-V1.json', ListErrorPage)
     con_threshold = URL('/fr/connexion/100-connexions',
                         '/fr/connexion/mot-de-passe-expire',
                         '/fr/espace-prive/100-connexions.*',
