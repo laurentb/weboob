@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
@@ -26,6 +28,7 @@ from weboob.capabilities.bank import Account, TransferBankError
 from weboob.capabilities.base import find_object, NotAvailable
 from weboob.browser.exceptions import BrowserHTTPNotFound
 from weboob.capabilities.profile import ProfileMissing
+from weboob.tools.capabilities.bank.investments import create_french_liquidity
 
 from .pages.accounts_list import (
     AccountsList, AccountHistory, CardsList, LifeInsurance,
@@ -205,6 +208,14 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
             if self.page.has_link():
                 # Other Life Insurance pages:
                 self.life_insurance_invest.go()
+
+        elif account.type == Account.TYPE_PEA:
+            # Scraping liquidities for "PEA Espèces" accounts
+            self.location(account._link_id)
+            valuation = self.page.get_liquidities()
+            if valuation != NotAvailable:
+                yield create_french_liquidity(valuation)
+            return
 
         else:
             self.logger.warning('This account is not supported')

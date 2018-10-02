@@ -356,6 +356,9 @@ class AccountHistory(LoggedPage, NotTransferBasePage):
 
             yield t
 
+    def get_liquidities(self):
+        return CleanDecimal('//td[contains(@headers, "solde")]', replace_dots=True)(self.doc)
+
 
 class Invest(object):
     def create_investment(self, cells):
