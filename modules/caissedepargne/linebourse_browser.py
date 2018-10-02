@@ -22,3 +22,4 @@ from weboob.browser import AbstractBrowser
 
 class LinebourseBrowser(AbstractBrowser):
     PARENT = 'linebourse'
+    PARENT_ATTR = 'package.browser.LinebourseBrowser'

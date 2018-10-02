@@ -47,7 +47,7 @@ from .pages import (
     ProTransferSummaryPage, ProAddRecipientOtpPage, ProAddRecipientPage,
     SmsPage, SmsPageOption, SmsRequest, AuthentPage, RecipientPage, CanceledAuth, CaissedepargneKeyboard,
     TransactionsDetailsPage, LoadingPage, ConsLoanPage, MeasurePage, NatixisLIHis, NatixisLIInv, NatixisRedirectPage,
-    SubscriptionPage,
+    SubscriptionPage, CreditCooperatifMarketPage,
 )
 
 from .linebourse_browser import LinebourseBrowser
@@ -60,6 +60,8 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     BASEURL = "https://www.caisse-epargne.fr"
     STATE_DURATION = 5
     HISTORY_MAX_PAGE = 200
+
+    LINEBOURSE_BROWSER = LinebourseBrowser
 
     login = URL('/authentification/manage\?step=identification&identifiant=(?P<login>.*)',
                 'https://.*/login.aspx', LoginPage)
@@ -87,6 +89,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     market = URL('https://.*/Pages/Bourse.*',
                  'https://www.caisse-epargne.offrebourse.com/ReroutageSJR',
                  'https://www.caisse-epargne.offrebourse.com/Portefeuille.*', MarketPage)
+    creditcooperatif_market = URL('https://www.offrebourse.com/.*', CreditCooperatifMarketPage)  # just to catch the landing page of the Credit Cooperatif's Linebourse
     natixis_redirect = URL(r'/NaAssuranceRedirect/NaAssuranceRedirect.aspx',
                            r'https://www.espace-assurances.caisse-epargne.fr/espaceinternet-ce/views/common/routage-itce.xhtml\?windowId=automatedEntryPoint',
                            NatixisRedirectPage)
@@ -125,13 +128,24 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         self.recipient_form = None
         self.is_send_sms = None
         self.weboob = kwargs['weboob']
+        self.market_url = kwargs.pop(
+            'market_url',
+            'https://www.caisse-epargne.offrebourse.com',
+        )
 
         super(CaisseEpargne, self).__init__(*args, **kwargs)
 
         dirname = self.responses_dirname
         if dirname:
             dirname += '/bourse'
-        self.linebourse = LinebourseBrowser('https://www.caisse-epargne.offrebourse.com', logger=self.logger, responses_dirname=dirname, weboob=self.weboob, proxy=self.PROXIES)
+
+        self.linebourse = self.LINEBOURSE_BROWSER(
+            self.market_url,
+            logger=self.logger,
+            responses_dirname=dirname,
+            weboob=self.weboob,
+            proxy=self.PROXIES,
+        )
 
     def deleteCTX(self):
         # For connection to offrebourse and natixis, we need to delete duplicate of CTX cookie
@@ -312,6 +326,11 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
         return self.accounts
 
+    def update_linebourse_token(self):
+        assert self.linebourse is not None, "linebourse browser should already exist"
+        self.linebourse.session.cookies.update(self.session.cookies)
+        self.linebourse.session.headers['X-XSRF-TOKEN'] = self.session.cookies['XSRF-TOKEN']
+
     @need_login
     @retry(ClientError, tries=3)
     def get_accounts_list(self):
@@ -341,14 +360,27 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
                     self.page.submit()
 
-                    if self.page.is_error():
-                        continue
+                    # For Caisse d'Epargne's connections
+                    if self.url.startswith('https://www.caisse-epargne.offrebourse.com') :
+                        if self.page.is_error():
+                            continue
 
-                    self.garbage.go()
+                        self.garbage.go()
 
-                    if self.garbage.is_here():
-                        continue
-                    self.page.get_valuation_diff(account)
+                        if self.garbage.is_here():
+                            continue
+
+                        self.page.get_valuation_diff(account)
+
+                    # For CreditCooperatif's connections
+                    elif self.url.startswith('https://www.offrebourse.com'):
+                        self.update_linebourse_token()
+                        self.linebourse.handle_cgu()
+                        page = self.linebourse.go_portfolio()
+                        assert self.linebourse.portfolio.is_here()
+                        account.valuation_diff = page.get_valuation_diff()
+                    else:
+                        assert False, "new domain that hasn't been seen so far ?"
 
         # Some accounts have no available balance or label and cause issues
         # in the backend so we must exclude them from the accounts list:
@@ -498,8 +530,14 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             self.page.go_history(account._info)
             if "Bourse" in self.url:
                 self.page.submit()
-                self.linebourse.session.cookies.update(self.session.cookies)
-                return self.linebourse.iter_history(re.sub('[^0-9]', '', account.id))
+
+                if self.url.startswith('https://www.caisse-epargne.offrebourse.com'):
+                    self.linebourse.session.cookies.update(self.session.cookies)
+                    return self.linebourse.iter_history(re.sub('[^0-9]', '', account.id))
+                elif self.url.startswith('https://www.offrebourse.com'):
+                    self.update_linebourse_token()
+                    return self.linebourse.iter_history()
+
         return self._get_history(account._info)
 
     @need_login
@@ -537,6 +575,14 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             if not self.market.is_here():
                 return
             self.page.submit()
+
+             # For Credit Cooperatif's connections
+            if self.url.startswith('https://www.offrebourse.com'):
+                self.update_linebourse_token()
+                for investment in self.linebourse.iter_investments():
+                    yield investment
+                return
+
             if self.page.is_error():
                 return
             self.location('https://www.caisse-epargne.offrebourse.com/Portefeuille')

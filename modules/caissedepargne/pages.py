@@ -41,7 +41,6 @@ from weboob.capabilities.bill import Subscription, Document
 from weboob.tools.capabilities.bank.investments import is_isin_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_rib_valid, rib2iban, is_iban_valid
-from weboob.tools.capabilities.bank.investments import is_isin_valid
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
 from weboob.tools.compat import unicode
 from weboob.exceptions import NoAccountsException, BrowserUnavailable
@@ -1368,3 +1367,10 @@ class SubscriptionPage(LoggedPage, HTMLPage):
         form['__EVENTTARGET'] = document.url
         form['MM$COMPTE_EDOCUMENTS$ctrlEDocumentsConsultationDocument$eventId'] = document._event_id
         return form.submit()
+
+
+class CreditCooperatifMarketPage(LoggedPage, HTMLPage):
+    # Stay logged when landing on the new Linebourse
+    # (which is used by Credit Cooperatif's connections)
+    # The parsing is done in linebourse.api.pages
+    pass

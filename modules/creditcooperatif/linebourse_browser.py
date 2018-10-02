@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2012 Kevin Pouget
+# Copyright(C) 2018      Fong Ngo
 #
 # This file is part of weboob.
 #
@@ -18,18 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.browser import AbstractBrowser
-from .linebourse_browser import LinebourseAPIBrowser
 
 
-__all__ = ['CaisseEpargneBrowser']
-
-
-class CaisseEpargneBrowser(AbstractBrowser):
-    PARENT = 'caissedepargne'
-    PARENT_ATTR = 'package.browser.CaisseEpargne'
-
-    LINEBOURSE_BROWSER = LinebourseAPIBrowser
-
-    def __init__(self, nuser, *args, **kwargs):
-        kwargs['market_url'] = 'https://www.offrebourse.com'
-        super(CaisseEpargneBrowser, self).__init__(nuser, *args, **kwargs)
+class LinebourseAPIBrowser(AbstractBrowser):
+    PARENT = 'linebourse'
+    PARENT_ATTR = 'package.browser.LinebourseAPIBrowser'

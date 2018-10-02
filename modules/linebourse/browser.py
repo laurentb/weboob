@@ -19,13 +19,25 @@
 
 from __future__ import unicode_literals
 
+import time
+import re
+
 from weboob.browser import LoginBrowser, URL
 from weboob.exceptions import BrowserUnavailable
 
 from .pages import (
     MessagePage, InvestmentPage, HistoryPage, BrokenPage,
-    MainPage, FirstConnectionPage
+    MainPage, FirstConnectionPage,
 )
+
+from .api.pages import (
+    PortfolioPage, NewWebsiteFirstConnectionPage, ConfigurationPage,
+    HistoryAPIPage,
+)
+
+
+def get_timestamp():
+    return '{}'.format(int(time.time() * 1000))  # in milliseconds
 
 
 class LinebourseBrowser(LoginBrowser):
@@ -36,8 +48,7 @@ class LinebourseBrowser(LoginBrowser):
     invest = URL(r'/Portefeuille$', r'/Portefeuille\?compte=(?P<id>[^&]+)', InvestmentPage)
     message = URL(r'/DetailMessage.*', MessagePage)
     history = URL(r'/HistoriqueOperations',
-                  r'/HistoriqueOperations\?compte=(?P<id>[^&]+)&devise=EUR&modeTri=7&sensTri=-1&periode=(?P<period>\d+)',
-                  HistoryPage)
+                  r'/HistoriqueOperations\?compte=(?P<id>[^&]+)&devise=EUR&modeTri=7&sensTri=-1&periode=(?P<period>\d+)', HistoryPage)
     useless = URL(r'/ReroutageSJR', MessagePage)
     broken = URL(r'.*/timeout.html$', BrokenPage)
 
@@ -84,3 +95,57 @@ class LinebourseBrowser(LoginBrowser):
             self.history.go(id=self.page.get_compte(account_id), period=period)
             for tr in self.page.iter_history():
                 yield tr
+
+
+class LinebourseAPIBrowser(LoginBrowser):
+    BASEURL = 'https://www.offrebourse.com'
+
+    new_website_first = URL(r'/rest/premiereConnexion', NewWebsiteFirstConnectionPage)
+    config = URL(r'/rest/configuration', ConfigurationPage)
+
+    # The API works with an encrypted id_contract that starts with 'CRY'
+    portfolio = URL(r'/rest/portefeuille/(?P<id_contract>CRY[\w\d]+)/vide/true/false', PortfolioPage)
+    history = URL(r'/rest/historiqueOperations/(?P<id_contract>CRY[\w\d]+)/0/7/1', HistoryAPIPage)  # TODO: not sure if last 3 path levels can be hardcoded
+
+    def __init__(self, baseurl, *args, **kwargs):
+        self.BASEURL = baseurl
+        self.id_contract = None  # encrypted contract number used to browse between pages
+
+        super(LinebourseAPIBrowser, self).__init__(username='', password='', *args, **kwargs)
+
+    def go_portfolio(self):
+        self.config.go()
+        self.id_contract = self.page.get_contract_number()
+        return self.portfolio.go(id_contract=self.id_contract)
+
+    def handle_cgu(self):
+        # the website uses an additional timestamp as query parameter
+        # for this GET request but it turns out it is not mandatory
+        self.config.go()
+        assert self.config.is_here()
+
+        if self.page.is_first_connexion():
+            self.new_website_first.go()
+            assert self.new_website_first.is_here()
+
+            self.page.has_first_connection_cgu()
+
+    def iter_investments(self):
+        self.go_portfolio()
+        assert self.portfolio.is_here()
+        date = self.page.get_date()
+        return self.page.iter_investments(date=date)
+
+    def iter_history(self):
+        assert re.match(r'CRY[\w\d]+', self.id_contract)
+        self.history.go(
+            id_contract=self.id_contract,
+            params={'_': get_timestamp()},  # timestamp is necessary
+        )
+        assert self.history.is_here()
+
+        # Didn't find a connection with transactions
+        # TODO: implement corresponding pages
+        if self.page.has_history():
+            assert False, 'please implement iter_history'
+        return []
