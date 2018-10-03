@@ -457,6 +457,7 @@ class AccountsPage(LoggedPage, MyHTMLPage):
 
     PATTERN = [(re.compile('.*Titres Pea.*'), Account.TYPE_PEA),
                (re.compile(".*Plan D'epargne En Actions.*"), Account.TYPE_PEA),
+               (re.compile(".*Compte Especes Pea.*"), Account.TYPE_PEA),
                (re.compile('.*Plan Epargne Retraite.*'), Account.TYPE_PERP),
                (re.compile('.*Titres.*'), Account.TYPE_MARKET),
                (re.compile('.*Selection Vie.*'),Account.TYPE_LIFE_INSURANCE),
