@@ -41,6 +41,7 @@ from weboob.capabilities.bill import Subscription, Document
 from weboob.tools.capabilities.bank.investments import is_isin_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_rib_valid, rib2iban, is_iban_valid
+from weboob.tools.capabilities.bank.investments import is_isin_valid
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
 from weboob.tools.compat import unicode
 from weboob.exceptions import NoAccountsException, BrowserUnavailable
