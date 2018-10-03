@@ -143,7 +143,7 @@ class Number26Browser(DomainBrowser):
 
         for t in transactions:
 
-            if not filter_func(t):
+            if not filter_func(t) or t["amount"] == 0:
                 continue
 
             new = Transaction()
