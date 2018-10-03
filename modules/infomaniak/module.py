@@ -38,7 +38,7 @@ class InfomaniakModule(Module, CapDocument):
     EMAIL = 'dev@indigo.re'
     LICENSE = 'AGPLv3+'
     VERSION = '1.4'
-    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Email', masked=False),
+    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Email de connexion', masked=False),
                            ValueBackendPassword('password', label='Mot de passe'))
 
     BROWSER = InfomaniakBrowser
