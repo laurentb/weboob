@@ -1138,7 +1138,7 @@ class BGPIPage(MarketPage):
                 inv.code = NotAvailable
 
             inv.quantity = self.parse_decimal(cells[self.COL_QUANTITY].text_content())
-            if len(cells) == 5:
+            if 5 <= len(cells) <= 7:
                 inv.unitvalue = self.parse_decimal(cells[2].text_content())
                 inv.valuation = self.parse_decimal(cells[3].text_content())
                 inv.portfolio_share = self.parse_decimal(cells[4].text_content())/100
