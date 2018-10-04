@@ -122,17 +122,13 @@ class LoginPage(SGPEPage):
     def login(self, login, password):
         authentication_data = self.get_authentication_data()
 
-        form = self.get_form(name=self.browser.LOGIN_FORM)
-        form['user_id'] = login
-        form['codsec'] = authentication_data['img'].get_codes(password[:6])
-        form['cryptocvcs'] = authentication_data['infos']['crypto']
-        form['vk_op'] = 'auth'
-        form.url = '/authent.html'
-        try:
-            form.pop('button')
-        except KeyError:
-            pass
-        form.submit()
+        data = {
+            'user_id': login,
+            'codsec': authentication_data['img'].get_codes(password[:6]),
+            'cryptocvcs': authentication_data['infos']['crypto'],
+            'vk_op': 'auth',
+        }
+        self.browser.location(self.browser.absurl('/authent.html'), data=data)
 
 
 class CardsPage(LoggedPage, SGPEPage):

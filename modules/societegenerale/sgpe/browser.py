@@ -118,7 +118,6 @@ class SGPEBrowser(LoginBrowser):
 
 class SGEnterpriseBrowser(SGPEBrowser):
     BASEURL = 'https://entreprises.secure.societegenerale.fr'
-    LOGIN_FORM = 'auth'
     MENUID = 'BANREL'
     CERTHASH = '2231d5ddb97d2950d5e6fc4d986c23be4cd231c31ad530942343a8fdcc44bb99'
 
@@ -176,7 +175,6 @@ class SGEnterpriseBrowser(SGPEBrowser):
 
 class SGProfessionalBrowser(SGEnterpriseBrowser, StatesMixin):
     BASEURL = 'https://professionnels.secure.societegenerale.fr'
-    LOGIN_FORM = 'auth_reco'
     MENUID = 'SBOREL'
     CERTHASH = '9f5232c9b2283814976608bfd5bba9d8030247f44c8493d8d205e574ea75148e'
     STATE_DURATION = 5
