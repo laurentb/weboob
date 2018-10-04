@@ -644,7 +644,7 @@ class TransactionsPage(LoggedPage, CDNBasePage):
         COL_VALUATION = 4
         COL_PERF = 5
 
-        for table in self.doc.xpath('//table[@class="datas-large"]'):
+        for table in self.doc.xpath('//div[not(@id="PortefeuilleCV")]/table[@class="datas"]'):
             for tr in table.xpath('.//tr[not(@class="entete")]'):
                 cols = tr.findall('td')
                 if len(cols) < 7:
