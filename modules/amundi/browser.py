@@ -18,12 +18,12 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import ssl
-from .pages import LoginPage, AccountsPage, AccountHistoryPage
 from weboob.browser import URL, LoginBrowser, need_login
 from weboob.tools.json import json
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.exceptions import ClientError
+
+from .pages import LoginPage, AccountsPage, AccountHistoryPage
 
 
 class AmundiBrowser(LoginBrowser):
@@ -31,33 +31,21 @@ class AmundiBrowser(LoginBrowser):
 
     login = URL('/psf/authenticate', LoginPage)
     authorize = URL('/psf/authorize', LoginPage)
-    accounts = URL('/psf/api/individu/positionFonds\?flagUrlFicheFonds=true&inclurePositionVide=false', AccountsPage)
-    account_history = URL('/psf/api/individu/operations\?valeurExterne=false&filtreStatutModeExclusion=false&statut=CPTA', AccountHistoryPage)
+    accounts = URL(r'/psf/api/individu/positionFonds\?flagUrlFicheFonds=true&inclurePositionVide=false', AccountsPage)
+    account_history = URL(r'/psf/api/individu/operations\?valeurExterne=false&filtreStatutModeExclusion=false&statut=CPTA', AccountHistoryPage)
 
     def __init__(self, website, *args, **kwargs):
         self.BASEURL = website
 
         super(AmundiBrowser, self).__init__(*args, **kwargs)
 
-    def prepare_request(self, req):
-        """
-        Amundi uses TLS v1.0.
-        """
-        preq = super(AmundiBrowser, self).prepare_request(req)
-        conn = self.session.adapters['https://'].get_connection(preq.url)
-        conn.ssl_version = ssl.PROTOCOL_TLSv1
-        return preq
-
     def do_login(self):
         """
         Attempt to log in.
         Note: this method does nothing if we are already logged in.
         """
-        assert isinstance(self.username, basestring)
-        assert isinstance(self.password, basestring)
-
         try:
-            self.login.go(data=json.dumps({'username' : self.username, 'password' : self.password}), \
+            self.login.go(data=json.dumps({'username': self.username, 'password': self.password}),
                           headers={'Content-Type': 'application/json;charset=UTF-8'})
             self.token = self.authorize.go().get_token()
         except ClientError:
@@ -65,13 +53,15 @@ class AmundiBrowser(LoginBrowser):
 
     @need_login
     def iter_accounts(self):
-        return self.accounts.go(headers={'X-noee-authorization': ('noeprd %s' % self.token)}).iter_accounts()
+        return (self.accounts.go(headers={'X-noee-authorization': ('noeprd %s' % self.token)})
+                             .iter_accounts())
 
     @need_login
     def iter_investments(self, account):
-        return self.accounts.go(headers={'X-noee-authorization': ('noeprd %s' % self.token)})\
-                            .iter_investments(account_id=account.id)
+        return (self.accounts.go(headers={'X-noee-authorization': ('noeprd %s' % self.token)})
+                             .iter_investments(account_id=account.id))
 
     @need_login
     def iter_history(self, account):
-        return self.account_history.go(headers={'X-noee-authorization': ('noeprd %s' % self.token)}).iter_history(account=account)
+        return (self.account_history.go(headers={'X-noee-authorization': ('noeprd %s' % self.token)})
+                                    .iter_history(account=account))

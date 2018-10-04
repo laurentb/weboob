@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 from datetime import datetime
 
 from weboob.browser.elements import ItemElement, method, DictElement
@@ -60,7 +62,7 @@ class AccountsPage(LoggedPage, JsonPage):
                 # just the id is a kind of company id so it can be unique on a backend but not unique on multiple backends
                 return '%s_%s' % (Field('id')(self), self.page.browser.username)
 
-            obj_currency = u"EUR"
+            obj_currency = 'EUR'
 
             def obj_type(self):
                 return self.page.ACCOUNT_TYPES.get(Dict('typeDispositif')(self), Account.TYPE_LIFE_INSURANCE)
@@ -68,7 +70,7 @@ class AccountsPage(LoggedPage, JsonPage):
             def obj_label(self):
                 try:
                     return Dict('libelleDispositif')(self).encode('iso-8859-2').decode('utf8')
-                except (UnicodeEncodeError, UnicodeDecodeError):
+                except UnicodeError:
                     try:
                         return Dict('libelleDispositif')(self).encode('latin1').decode('utf8')
                     except UnicodeDecodeError:
@@ -102,8 +104,8 @@ class AccountsPage(LoggedPage, JsonPage):
 class AccountHistoryPage(LoggedPage, JsonPage):
     def belongs(self, instructions, account):
         for ins in instructions:
-            if 'nomDispositif' in ins and 'codeDispositif' in ins and '%s%s' % (ins['nomDispositif'], ins['codeDispositif']) == \
-               '%s%s' % (account.label, account.id):
+            if 'nomDispositif' in ins and 'codeDispositif' in ins and '%s%s' % (
+                ins['nomDispositif'], ins['codeDispositif']) == '%s%s' % (account.label, account.id):
                 return True
         return False
 
@@ -111,8 +113,9 @@ class AccountHistoryPage(LoggedPage, JsonPage):
         amount = 0
 
         for ins in instructions:
-            if 'nomDispositif' in ins and 'montantNet' in ins and 'codeDispositif' in ins and '%s%s' % (ins['nomDispositif'], ins['codeDispositif']) == \
-               '%s%s' % (account.label, account.id):
+            if ('nomDispositif' in ins and 'montantNet' in ins and 'codeDispositif' in ins
+                and '%s%s' % (ins['nomDispositif'], ins['codeDispositif'])
+                    == '%s%s' % (account.label, account.id)):
                 amount += ins['montantNet']
 
         return CleanDecimal().filter(amount)
@@ -125,21 +128,7 @@ class AccountHistoryPage(LoggedPage, JsonPage):
                     tr.amount = self.get_amount(hist['instructions'], account)
                     tr.rdate = datetime.strptime(hist['dateComptabilisation'].split('T')[0], '%Y-%m-%d')
                     tr.date = tr.rdate
-                    tr.label = hist['libelleOperation'] if 'libelleOperation' in hist else hist['libelleCommunication']
+                    tr.label = hist.get('libelleOperation') or hist['libelleCommunication']
                     tr.type = Transaction.TYPE_UNKNOWN
-
-                    # Bypassed because we don't have the ISIN code
-                    # tr.investments = []
-                    # for ins in hist['instructions']:
-                    #     inv = Investment()
-                    #     inv.code = NotAvailable
-                    #     inv.label = ins['nomFonds']
-                    #     inv.description = ' '.join([ins['type'], ins['nomDispositif']])
-                    #     inv.vdate = datetime.strptime(ins.get('dateVlReel', ins.get('dateVlExecution')).split('T')[
-                    # 0], '%Y-%m-%d')
-                    #     inv.valuation = Decimal(ins['montantNet'])
-                    #     inv.quantity = Decimal(ins['nombreDeParts'])
-                    #     inv.unitprice = inv.unitvalue = Decimal(ins['vlReel'])
-                    #     tr.investments.append(inv)
 
                     yield tr
