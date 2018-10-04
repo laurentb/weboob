@@ -24,7 +24,7 @@ from weboob.exceptions import BrowserIncorrectPassword
 
 from .pages import (
     LoginPage, AccountsPage, TransactionsInvestmentsPage, AllTransactionsPage,
-    DocumentsSignaturePage,
+    DocumentsSignaturePage, RedirectToUserAgreementPage, UserAgreementPage,
 )
 
 
@@ -32,6 +32,8 @@ class GmfBrowser(LoginBrowser):
     BASEURL = 'https://espace-assure.gmf.fr'
 
     login = URL(r'/public/pages/securite/IC2.faces', LoginPage)
+    redirect_to_user_agreement = URL('^$', RedirectToUserAgreementPage)
+    user_agreement = URL(r'restreint/pages/securite/IC9.faces', UserAgreementPage)
     accounts = URL(r'/pointentree/client/homepage', AccountsPage)
     transactions_investments = URL(r'/pointentree/contratvie/detailsContrats', TransactionsInvestmentsPage)
     all_transactions = URL(r'/pages/contratvie/detailscontrats/.*\.faces', AllTransactionsPage)

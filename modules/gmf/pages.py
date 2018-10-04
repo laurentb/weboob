@@ -173,3 +173,14 @@ class DocumentsSignaturePage(LoggedPage, HTMLPage):
     def on_load(self):
         if self.doc.xpath('//span[contains(text(), "VO(S) DOCUMENT(S) A SIGNER")]'):
             raise ActionNeeded(CleanText('//div[@class="block"]/p[contains(text(), "Vous avez un ou plusieurs document(s) à signer")]')(self.doc))
+
+
+class RedirectToUserAgreementPage(LoggedPage, HTMLPage):
+    MAX_REFRESH = 0
+
+
+class UserAgreementPage(LoggedPage, HTMLPage):
+    def on_load(self):
+        message = CleanText('//fieldset//legend|//fieldset//label')(self.doc)
+        if 'conditions générales' in message:
+            raise ActionNeeded(message)
