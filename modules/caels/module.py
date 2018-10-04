@@ -51,7 +51,6 @@ class CaelsModule(Module, CapBankWealth):
     def get_account(self, id):
         return find_object(self.iter_accounts(), id=id, error=AccountNotFound)
 
-
     def iter_accounts(self):
         return self.browser.iter_accounts()
 
