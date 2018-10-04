@@ -978,6 +978,10 @@ class MarketPage(MyLoggedPage, AutoEncodingMixin, BasePage):
             return CleanDecimal().filter(value)
         return MyDecimal().filter(value)
 
+    # This method is used to fetch the PEA balance without liquidities present on the DAV PEA:
+    def get_pea_balance(self):
+        return CleanDecimal('//tr[td[text()="Valorisation titres"]]/td/span', replace_dots=True)(self.doc)
+
 
 class MarketHomePage(MarketPage):
     COL_ID_LABEL = 1

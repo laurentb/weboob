@@ -377,10 +377,14 @@ class Cragr(LoginBrowser, StatesMixin):
             account = find_object(accounts_list, id=market_account.id)
             if account:
                 account.label = market_account.label or account.label
-                # Update accounts balance only for TYPE_MARKET because PEA accounts are fused
-                # with their related DAV PEA here, therefore the balance includes liquidities:
                 if account.type == Account.TYPE_MARKET:
                     account.balance = market_account.balance or account.balance
+                # Some PEA accounts are only present on the Market page but the balance includes
+                # liquidities from the DAV PEA, so we need another request to fetch the balance:
+                elif account.type == Account.TYPE_PEA:
+                    url = 'https://www.cabourse.credit-agricole.fr/netfinca-titres/servlet/com.netfinca.frontcr.account.WalletVal?nump=%s:%s'
+                    self.location(url % (account.id, self.code_caisse))
+                    account.balance = self.page.get_pea_balance()
 
     @need_login
     def get_history(self, account):
