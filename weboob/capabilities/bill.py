@@ -23,7 +23,7 @@ from .date import DateField
 from .collection import CapCollection
 
 
-__all__ = ['SubscriptionNotFound', 'DocumentNotFound', 'Detail', 'Document', 'Bill', 'Subscription', 'CapDocument']
+__all__ = ['SubscriptionNotFound', 'DocumentNotFound', 'DocumentTypes', 'Detail', 'Document', 'Bill', 'Subscription', 'CapDocument']
 
 
 class SubscriptionNotFound(UserError):
