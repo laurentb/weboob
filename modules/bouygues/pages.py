@@ -22,7 +22,7 @@ import re
 from datetime import datetime, timedelta
 
 from weboob.capabilities.messages import CantSendMessage
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, ParseError
 
 from weboob.capabilities.base import NotLoaded
 from weboob.capabilities.bill import Bill, Subscription
@@ -138,7 +138,16 @@ class DocumentsPage(LoggedPage, JsonPage):
             klass = Bill
 
             obj_id = Format('%s_%s', Env('subid'), Dict('idFacture'))
-            obj_url = Format('https://api.bouyguestelecom.fr%s', Dict('_links/facturePDF/href'))
+
+            def obj_url(self):
+                try:
+                    link = Dict('_links/facturePDF/href')(self)
+                except ParseError:
+                    # yes, sometimes it's just a misspelling word, but just sometimes...
+                    link = Dict('_links/facturePDFDF/href')(self)
+
+                return 'https://api.bouyguestelecom.fr%s' % link
+
             obj_date = Env('date')
             obj_duedate = Env('duedate')
             obj_format = 'pdf'
