@@ -168,7 +168,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         if "authMode" in data and data['authMode'] == 'redirect':
             raise SiteSwitch('cenet')
 
-        if len(data['account']) > 1:
+        if len(data.get('account', [])) > 1:
             self.multi_type = True
             data = self.account_login.go(login=self.username, accountType=self.typeAccount).get_response()
 
