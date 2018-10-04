@@ -56,7 +56,8 @@ class EdfproBrowser(LoginBrowser):
         super(EdfproBrowser, self).__init__(*args, **kwargs)
 
     def do_login(self):
-        login_data = self.login.go('/openam/json/authenticate', method='POST').get_json_data(self.username, self.password)
+        self.login.go('/openam/json/authenticate', method='POST')
+        login_data = self.page.get_data(self.username, self.password)
         try:
             self.login.go(data=json.dumps(login_data), headers={'Content-Type': 'application/json'})
         except ClientError as e:
@@ -109,7 +110,8 @@ class EdfproBrowser(LoginBrowser):
                                                'iDFelix': document._account_billing,
                                                'numFacture': document._bill_number}))
 
-                return self.open('%s/rest/facturemp/telechargerfichier?fname=%s' % (self.BASEURL, self.page.get_bill_name())).content
+                return self.open('%s/rest/facturemp/telechargerfichier?fname=%s' % (
+                                 self.BASEURL, self.page.get_bill_name())).content
             except ServerError:
                 return NotAvailable
 

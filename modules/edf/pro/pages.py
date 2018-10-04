@@ -32,7 +32,7 @@ from weboob.capabilities.profile import Profile
 
 
 class LoginPage(JsonPage):
-    def get_json_data(self, login, password):
+    def get_data(self, login, password):
         login_data = self.doc
         login_data['callbacks'][0]['input'][0]['value'] = login
         login_data['callbacks'][1]['input'][0]['value'] = password
@@ -48,6 +48,11 @@ class HomePage(LoggedPage, HTMLPage):
 
 
 class LireSitePage(LoggedPage, JsonPage):
+    def build_doc(self, text):
+        if text == 'REDIRECT_CGU':  # JSON can always be decoded in UTF-8 so testing text is fine
+            raise ActionNeeded("Vous devez accepter les conditions générales d'utilisation sur le site de votre banque.")
+        else:
+            return super(LireSitePage, self).build_doc(text)
     # id site is not about website but geographical site
     def get_id_site_list(self):
         return [site['idSite'] for site in self.doc['site']]
@@ -55,9 +60,8 @@ class LireSitePage(LoggedPage, JsonPage):
 
 class SubscriptionsPage(LoggedPage, JsonPage):
     def build_doc(self, text):
-        if self.content == 'REDIRECT_CGU':
-            raise ActionNeeded("Vous devez accepter les conditions générales d'utilisation"
-                               " sur le site de votre banque.")
+        if text == 'REDIRECT_CGU':
+            raise ActionNeeded("Vous devez accepter les conditions générales d'utilisation sur le site de votre banque.")
         return super(SubscriptionsPage, self).build_doc(text)
 
     @method
@@ -72,7 +76,8 @@ class SubscriptionsPage(LoggedPage, JsonPage):
             obj_label = CleanText(CleanHTML(Dict('nomOffreModele')))
 
             def obj_subscriber(self):
-                return ('%s %s' % (Dict('prenomIntPrinc')(self).lower(), Dict('nomIntPrinc')(self).lower())).title()
+                return ('%s %s' % (Dict('prenomIntPrinc')(self).lower(),
+                                   Dict('nomIntPrinc')(self).lower())).title()
 
 
 class BillsPage(LoggedPage, JsonPage):
