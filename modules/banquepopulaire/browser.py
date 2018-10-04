@@ -282,10 +282,9 @@ class BanquePopulaire(LoginBrowser):
         return find_object(self.get_accounts_list(False), id=id)
 
     def set_gocardless_transaction_details(self, transaction):
-        # This method is not called for the moment, in order to prevent crash during get_history()
         # Setting references for a GoCardless transaction
         data = self.page.get_params()
-        data['validationStrategy'] = 'NV'
+        data['validationStrategy'] = self.page.get_gocardless_strategy_param(transaction)
         data['dialogActionPerformed'] = 'DETAIL_ECRITURE'
         attribute_key, attribute_value = self.page.get_transaction_table_id(transaction._ref)
         data[attribute_key] = attribute_value
@@ -347,11 +346,9 @@ class BanquePopulaire(LoginBrowser):
 
             transaction_list = self.page.get_history(account, coming)
             for tr in transaction_list:
-                # Add information about GoCardless:
-                # This method does not work 100% and potentially causes crash in get_history.
-                # Therefore, for now we decided not to call it while iterating over transactions.
-                #if 'GoCardless' in tr.label and tr._has_link:
-                    #self.set_gocardless_transaction_details(tr)
+                # Add information about GoCardless
+                if 'GoCardless' in tr.label and tr._has_link:
+                    self.set_gocardless_transaction_details(tr)
                 yield tr
 
             next_params = self.page.get_next_params()

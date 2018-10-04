@@ -739,6 +739,8 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
 
             t = Transaction()
 
+            # get the column index of the link to access transaction details
+            # (only used for GoCardLess transactions so far)
             t._has_link = bool(tds[self.COL_DEBIT].findall('a') or tds[self.COL_CREDIT].findall('a'))
 
             # XXX We currently take the *value* date, but it will probably
@@ -754,6 +756,7 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
 
             t.parse(date, re.sub(r'[ ]+', ' ', raw), vdate)
             t.set_amount(credit, debit)
+            t._amount_type = 'debit' if t.amount == debit else 'credit'
 
             # Strip the balance displayed in transaction labels
             t.label = re.sub('solde en valeur : .*', '', t.label)
@@ -839,6 +842,27 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
         value = tr.attrib['id'].split('_', 1)[1]
 
         return key, value
+
+    def get_gocardless_strategy_param(self, transaction):
+        # A form is filled and send with javascript
+        # the 'validationStrategy' parameter value only depends on the column
+        # index in which the link lies
+        #
+        # To get more details about how things are done, see the following javascript functions:
+        #- attachTableRowEvents (atre)
+        #- attachActiveSelectionEventsOnRow
+        #- astr
+        #- updateSelection (uds)
+        #- selectActionButton (sab)
+        #- a script element embedded in the html page (search for "tcl5", "tcl6")
+
+        assert transaction._has_link
+
+        if transaction._amount_type == 'debit':
+            return 'AV'
+        elif transaction._amount_type == 'credit':
+            return 'NV'
+
 
 class NatixisChoicePage(LoggedPage, HTMLPage):
     def on_load(self):
