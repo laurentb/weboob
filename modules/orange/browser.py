@@ -32,7 +32,7 @@ __all__ = ['OrangeBillBrowser']
 
 
 class OrangeBillBrowser(LoginBrowser):
-    BASEURL = 'https://espaceclientv3.orange.fr/'
+    BASEURL = 'https://espaceclientv3.orange.fr'
 
     loginpage = URL('https://login.orange.fr/\?service=sosh&return_url=https://www.sosh.fr/',
                     'https://login.orange.fr/front/login', LoginPage)
@@ -73,6 +73,13 @@ class OrangeBillBrowser(LoginBrowser):
     def post_message(self, message, sender):
         raise NotImplementedError()
 
+    def _iter_subscriptions_by_type(self, name, _type):
+        self.location('https://espaceclientv3.orange.fr/?page=gt-home-page&%s' % _type)
+        self.subscriptions.go()
+        for sub in self.page.iter_subscription():
+            sub.subscriber = name
+            yield sub
+
     @need_login
     def get_subscription_list(self):
         profile = self.profile.go().get_profile()
@@ -92,10 +99,9 @@ class OrangeBillBrowser(LoginBrowser):
             return
         # if nb_sub is 0, we continue, because we can get them in next url
 
-        self.location('https://espaceclientv3.orange.fr/?page=gt-home-page&sosh')
-        self.subscriptions.go()
-        for sub in self.page.iter_subscription():
-            sub.subscriber = profile.name
+        for sub in self._iter_subscriptions_by_type(profile.name, 'sosh'):
+            yield sub
+        for sub in self._iter_subscriptions_by_type(profile.name, 'orange'):
             yield sub
 
     @need_login
