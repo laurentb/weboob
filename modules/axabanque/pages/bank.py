@@ -326,13 +326,6 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
             def condition(self):
                 return CleanText(TableCell('valuation'))(self)
 
-    def get_liquidity_investment(self, account):
-        inv = Investment()
-        inv.label = u'Liquidités'
-        inv.code = 'XX-liquidity'
-        inv.valuation = account.balance
-        return inv
-
     def more_history(self):
         link = None
         for a in self.doc.xpath('.//a'):

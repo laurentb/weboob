@@ -32,6 +32,7 @@ from weboob.capabilities.bank import Account, Transaction, AddRecipientStep, Rec
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from weboob.tools.value import Value
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
+from weboob.tools.capabilities.bank.investments import create_french_liquidity
 
 from .pages.login import (
     KeyboardPage, LoginPage, ChangepasswordPage, PredisconnectedPage, DeniedPage,
@@ -257,7 +258,7 @@ class AXABanque(AXABrowser, StatesMixin):
         self.transactions.go()
         if account._acctype == 'bank' and account.type in (Account.TYPE_PEA, Account.TYPE_MARKET):
             if 'Liquidités' in account.label:
-                return [self.page.get_liquidity_investment(account)]
+                return [create_french_liquidity(account.balance)]
 
             account = self.get_netfinca_account(account)
             self.location(account._market_link)
