@@ -423,7 +423,14 @@ class CsvPage(Page):
 class JsonPage(Page):
     """
     Json Page.
+
+    Notes on JSON format:
+    JSON must be UTF-8 encoded when used for open systems interchange (https://tools.ietf.org/html/rfc8259).
+    So it can be safely assumed all JSON to be UTF-8. No Byte Order Mark is allowed.
+    A little subtlety is that JSON Unicode surrogate escape sequence (used for characters > U+FFFF) are UTF-16 style, but that should be handled by libraries (some don't… Even if JSON is one of the simplest formats around…).
     """
+
+    ENCODING = 'utf-8'
 
     @property
     def data(self):
