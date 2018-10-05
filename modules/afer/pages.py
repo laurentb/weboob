@@ -28,7 +28,7 @@ from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, Dat
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.capabilities.bank import Account, Investment, Transaction
 from weboob.capabilities.base import NotAvailable
-from weboob.exceptions import BrowserUnavailable
+from weboob.exceptions import BrowserUnavailable, ActionNeeded
 
 
 class LoginPage(HTMLPage):
@@ -50,6 +50,10 @@ class BadLogin(HTMLPage):
 class IndexPage(LoggedPage, HTMLPage):
     def on_load(self):
         HTMLPage.on_load(self)
+
+        msg = CleanText('//div[has-class("form-input-label")]', default='')(self.doc)
+        if "prendre connaissance des nouvelles conditions" in msg:
+            raise ActionNeeded(msg)
 
         # website sometime crash
         if self.doc.xpath(u'//div[@id="divError"]/span[contains(text(),"Une erreur est survenue")]'):
