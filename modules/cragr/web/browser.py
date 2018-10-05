@@ -28,7 +28,7 @@ from weboob.capabilities.bank import (
     Account, AddRecipientStep, AddRecipientBankError, RecipientInvalidLabel,
     Recipient, AccountNotFound, Investment,
 )
-from weboob.capabilities.base import NotLoaded, find_object
+from weboob.capabilities.base import NotLoaded, NotAvailable, find_object
 from weboob.capabilities.profile import ProfileMissing
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.browser.pages import FormNotFound
@@ -446,11 +446,10 @@ class Cragr(LoginBrowser, StatesMixin):
             self.go_perimeter(account._perimeter)
 
         if account.type == Account.TYPE_PEA and account._liquidity_url:
-            liquidity_inv = Investment()
-            liquidity_inv.label = account.label
-            liquidity_inv.code = u'XX-liquidity'
-            liquidity_inv.valuation = account.balance
-            yield liquidity_inv
+            liq = Investment()
+            self.fill_liquidities(liq)
+            liq.valuation = account.balance
+            yield liq
             return
 
         if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
@@ -468,6 +467,12 @@ class Cragr(LoginBrowser, StatesMixin):
                     return
             if self.lifeinsurance.is_here():
                 self.page.go_on_detail(account.id)
+                # We scrape the non-invested part as liquidities:
+                if self.page.has_liquidities():
+                    liq = Investment()
+                    self.fill_liquidities(liq)
+                    liq.valuation = self.page.get_liquidities()
+                    yield liq
 
         for inv in self.page.iter_investment():
             yield inv
@@ -476,6 +481,11 @@ class Cragr(LoginBrowser, StatesMixin):
             self.quit_market_website()
         elif account.type == Account.TYPE_LIFE_INSURANCE:
             self.quit_insurance_website()
+
+    def fill_liquidities(self, liq):
+        liq.label = "Liquidités"
+        liq.code = "XX-liquidity"
+        liq.code_type = NotAvailable
 
     @need_login
     def iter_advisor(self):

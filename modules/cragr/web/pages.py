@@ -1024,6 +1024,13 @@ class LifeInsurancePage(MarketPage):
             form.submit()
             self.browser.location('https://assurance-personnes.credit-agricole.fr/filiale/entreeBam?sessionSAG=%s&stbpg=pagePU&act=SEPPU&stbzn=bnt&actCrt=SEPPU' % self.browser.sag)
 
+    def has_liquidities(self):
+        return bool(self.doc.xpath('//span[contains(text(), "de versement restant")]'))
+
+    def get_liquidities(self):
+        return CleanDecimal(Regexp(CleanText('//span[contains(text(), "de versement restant")]'),
+                                  "dont (.*) de versement restant"), replace_dots=True)(self.doc)
+
     def iter_investment(self):
 
         for line in self.doc.xpath('//table[@summary and count(descendant::td) > 1]/tbody/tr'):
