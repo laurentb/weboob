@@ -17,9 +17,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 import re
 
 from weboob.tools.compat import basestring
+from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.bank import Investment
 
 def is_isin_valid(isin):
     """
@@ -67,3 +71,15 @@ def is_isin_valid(isin):
         else:
             result = ''.join((result, str(int(val)*2)))
     return str(sum(int(x) for x in result) + int(key))[-1] == '0'
+
+
+def create_french_liquidity(valuation):
+    """
+    Automatically fills a liquidity investment with label, code and code_type.
+    """
+    liquidity = Investment()
+    liquidity.label = "Liquidités"
+    liquidity.code = "XX-liquidity"
+    liquidity.code_type = NotAvailable
+    liquidity.valuation = valuation
+    return liquidity
