@@ -27,8 +27,9 @@ from functools import wraps
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.browser.exceptions import HTTPNotFound, ServerError
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable, find_object
+from weboob.tools.capabilities.bank.investments import create_french_liquidity
 
 from .pages import (
     LoggedOut,
@@ -414,12 +415,7 @@ class BanquePopulaire(LoginBrowser):
 
         # Add "Liquidities" investment if the account is a "Compte titres PEA":
         if account.type == Account.TYPE_PEA and account.id.startswith('CPT'):
-            inv = Investment()
-            inv.label = 'Liquidités'
-            inv.code = 'XX-liquidity'
-            inv.code_type = NotAvailable
-            inv.valuation = account.balance
-            self.investments[account.id] = [inv]
+            self.investments[account.id] = [create_french_liquidity(account.balance)]
             return self.investments[account.id]
 
         if account.id in self.investments.keys() and self.investments[account.id] is False:
