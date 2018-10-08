@@ -1220,7 +1220,8 @@ class TransferInit(MyLoggedPage, BasePage):
         if len(emitters) != 1:
             raise TransferError('Could not find emitter %r' % account_id)
         recipients = [rcpt for rcpt in self.iter_recipients() if rcpt.id and rcpt.id == recipient_id]
-        if len(recipients) != 1:
+        # for recipient with same IBAN, first matched recipient is the default value
+        if len(recipients) < 1:
             raise TransferError('Could not find recipient %r' % recipient_id)
 
         form = self.get_form(name='frm_fwk')
