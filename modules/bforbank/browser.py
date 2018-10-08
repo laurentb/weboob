@@ -20,10 +20,11 @@ import datetime
 from dateutil.relativedelta import relativedelta
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.capabilities.bank import Account, AccountNotFound, Investment
+from weboob.capabilities.bank import Account, AccountNotFound
 from weboob.capabilities.base import empty
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 from weboob.tools.decorators import retry
+from weboob.tools.capabilities.bank.investments import create_french_liquidity
 
 from .pages import (
     LoginPage, ErrorPage, AccountsPage, HistoryPage, LoanHistoryPage, RibPage,
@@ -275,11 +276,7 @@ class BforbankBrowser(LoginBrowser):
             # _especes is set during BoursePage accounts parsing. BoursePage
             # inherits from lcl module BoursePage
             if bourse_account._especes:
-                i = Investment()
-                i.valuation = bourse_account._especes
-                i.code = u"XX-liquidity"
-                i.label = u"Liquidités"
-                invs.append(i)
+                invs.append(create_french_liquidity(bourse_account._especes))
 
             self.leave_espace_bourse()
 
