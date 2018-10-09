@@ -1345,7 +1345,7 @@ class TransferPage(RecipientAddingMixin, CollectePageMixin, MyLoggedPage, BasePa
     def on_load(self):
         super(TransferPage, self).on_load()
         # warning: the "service indisponible" message (not catched here) is not a real BrowserUnavailable
-        err = CleanText('//div[has-class("blc-choix-erreur")]//p', default='')(self.doc)
+        err = CleanText('//form//div[has-class("blc-choix-erreur")]//p', default='')(self.doc)
         if err:
             raise TransferBankError(message=err)
 
