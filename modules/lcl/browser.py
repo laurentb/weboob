@@ -84,7 +84,9 @@ class LCLBrowser(LoginBrowser, StatesMixin):
 
     form2 = URL(r'/outil/UWVI/Routage/', Form2Page)
     send_token = URL('/outil/UWVI/AssuranceVie/envoyerJeton', SendTokenPage)
-    calie = URL('https://www.my-calie.fr/FO.HoldersWebSite/Disclaimer/Disclaimer.aspx.*', CaliePage)
+    calie = URL('https://www.my-calie.fr/FO.HoldersWebSite/Disclaimer/Disclaimer.aspx.*',
+                'https://www.my-calie.fr/FO.HoldersWebSite/Contract/ContractDetails.aspx.*',
+                'https://www.my-calie.fr/FO.HoldersWebSite/Contract/ContractOperations.aspx.*', CaliePage)
 
     assurancevie = URL('/outil/UWVI/AssuranceVie/accesSynthese',
                         '/outil/UWVI/AssuranceVie/accesDetail.*',
@@ -313,6 +315,8 @@ class LCLBrowser(LoginBrowser, StatesMixin):
             if self.form2.is_here() and self.page.assurancevie_hist_not_available():
                 return
 
+            assert self.avdetail.is_here()
+
             try:
                 self.page.get_details(account, "OHIPU")
             except FormNotFound:
@@ -361,7 +365,6 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                 # come back to syntese
                 self.assurancevie.go()
                 return
-
             if self.page.is_restricted():
                 self.logger.warning('restricted access to account %s', account)
             else:
