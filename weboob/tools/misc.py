@@ -113,7 +113,7 @@ def guess_encoding(stdio):
         encoding = stdio.encoding or locale.getpreferredencoding()
     except AttributeError:
         encoding = None
-    # ASCII or ANSII is most likely a user mistake
+    # ASCII or ANSI is most likely a user mistake
     if not encoding or encoding.lower() == 'ascii' or encoding.lower().startswith('ansi'):
         encoding = 'UTF-8'
     return encoding

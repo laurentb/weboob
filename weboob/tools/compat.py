@@ -18,10 +18,11 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 import sys
+import pickle
 
 
 __all__ = ['unicode', 'long', 'basestring', 'range',
-           'with_metaclass',
+           'with_metaclass', 'unpickle',
            'quote', 'quote_plus', 'unquote', 'unquote_plus',
            'urlparse', 'urlunparse', 'urlsplit', 'urlunsplit',
            'urlencode', 'urljoin', 'parse_qs', 'parse_qsl',
@@ -103,3 +104,10 @@ except ImportError:
         quote, quote_plus, unquote, unquote_plus, parse_qsl, parse_qs,
     )
     from urllib.request import getproxies
+
+def unpickle(pickled_data):
+    if sys.version_info.major < 3:
+        pyobject = pickle.loads(pickled_data)
+    else:  # Assuming future Python versions will not remove encoding argument
+        pyobject = pickle.loads(pickled_data, encoding='UTF-8')
+    return pyobject
