@@ -39,6 +39,7 @@ from weboob.capabilities.bank import (
     Account, Investment, Recipient, Transfer, AccountNotFound,
     AddRecipientBankError, TransferInvalidAmount,
 )
+from weboob.tools.capabilities.bank.investments import create_french_liquidity
 from weboob.capabilities.base import NotAvailable, empty, Currency
 from weboob.capabilities.profile import Person
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -577,11 +578,7 @@ class MarketPage(LoggedPage, HTMLPage):
     def iter_investment(self):
         valuation = CleanDecimal('//li[h4[contains(text(), "Solde Espèces")]]/h3', replace_dots=True, default=None)(self.doc)
         if valuation:
-            inv = Investment()
-            inv.code = u"XX-liquidity"
-            inv.label = u"Liquidités"
-            inv.valuation = valuation
-            yield inv
+            yield create_french_liquidity(valuation)
 
         for inv in self.get_investment():
             yield inv
