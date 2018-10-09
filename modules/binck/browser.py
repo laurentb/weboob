@@ -25,7 +25,7 @@ from io import StringIO
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from weboob.browser.exceptions import HTTPNotFound, ServerError
-from weboob.capabilities.bank import Investment
+from weboob.tools.capabilities.bank.investments import create_french_liquidity
 
 from .pages import LoginPage, AccountsPage, InvestmentPage, HistoryPage, QuestionPage,\
                    ChangePassPage, LogonFlowPage
@@ -103,12 +103,8 @@ class BinckBrowser(LoginBrowser):
             for inv in account._invpage.iter_investment():
                 yield inv
             # Add liquidity investment
-            if account.liquidity:
-                inv = Investment()
-                inv.code = "XX-liquidity"
-                inv.label = "Liquidités"
-                inv.valuation = account.liquidity
-                yield inv
+            if account._liquidity:
+                yield create_french_liquidity(account._liquidity)
 
     @need_login
     def iter_history(self, account):
