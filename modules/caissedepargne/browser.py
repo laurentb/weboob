@@ -119,11 +119,13 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         self.multi_type = False
         self.accounts = None
         self.loans = None
-        self.typeAccount = 'WE'
+        self.typeAccount = None
+        self.inexttype = 0  # keep track of index in the connection type's list
         self.nuser = nuser
         self.recipient_form = None
         self.is_send_sms = None
         self.weboob = kwargs['weboob']
+
         super(CaisseEpargne, self).__init__(*args, **kwargs)
 
         dirname = self.responses_dirname
@@ -159,14 +161,38 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         Attempt to log in.
         Note: this method does nothing if we are already logged in.
         """
+        # Among the parameters used during the login step, there is
+        # a connection type (called typeAccount) that can take the
+        # following values:
+        # WE: espace particulier
+        # WP: espace pro
+        # WM: personnes protégées
+        # EU: Cenet
+        #
+        # A connection can have one connection type as well as many of
+        # them. There is an issue when there is many connection types:
+        # the connection type to use can't be guessed in advance, we
+        # have to test all of them until the login step is successful
+        # (sometimes all connection type can be used for the login, sometimes
+        # only one will work).
+        #
+        # For simplicity's sake, we try each connection type from first to
+        # last (they are returned in a list by the first request)
+        #
+        # Examples of connection types combination that have been seen so far:
+        # [WE]
+        # [WP]
+        # [WE, WP]
+        # [WE, WP, WM]
+        # [WP, WM]
+        # [EU]
+        # [EU, WE]  (EU tends to come first when present)
         if not self.username or not self.password:
             raise BrowserIncorrectPassword()
 
-        # Reset domain to log on pro website if first login attempt failed on personal website.
-        if self.multi_type:
-            self.BASEURL = 'https://www.caisse-epargne.fr'
-            self.typeAccount = 'WP'
-
+        # Retrieve the list of types: can contain a single type or more
+        # - when there is a single type: all the information are available
+        # - when there are several types: an additional request is needed
         data = self.login.go(login=self.username).get_response()
 
         if data is None:
@@ -176,12 +202,24 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             raise SiteSwitch('cenet')
 
         if len(data.get('account', [])) > 1:
+            # Additional request when there is more than one connection type
+            # to "choose" from the list of connection types
             self.multi_type = True
+
+            if self.inexttype < len(data['account']):
+                self.typeAccount = data['account'][self.inexttype]
+            else:
+                assert False, 'should have logged in with at least one connection type'
+            self.inexttype += 1
+
             data = self.account_login.go(login=self.username, accountType=self.typeAccount).get_response()
 
         assert data is not None
 
         typeAccount = data['account'][0]
+
+        if self.multi_type:
+            assert typeAccount == self.typeAccount
 
         idTokenClavier = data['keyboard']['Id']
         vk = CaissedepargneKeyboard(data['keyboard']['ImageClavier'], data['keyboard']['Num']['string'])
@@ -192,10 +230,10 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             'newCodeConf': newCodeConf,
             'auth_mode': 'ajax',
             'nuusager': self.nuser.encode('utf-8'),
-            'codconf': self.password,
+            'codconf': self.password,  # not mandatory ?
             'typeAccount': typeAccount,
             'step': 'authentification',
-            'ctx': 'typsrv=WE',
+            'ctx': 'typsrv={}'.format(typeAccount),
             'clavierSecurise': '1',
             'nuabbd': self.username
         }
@@ -212,8 +250,8 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         assert response is not None
 
         if not response['action']:
-            if not self.typeAccount == 'WP' and self.multi_type:
-                # If we haven't test PRO espace we check before raising wrong pass
+            if self.multi_type:
+                # try to log in with the next connection type's value
                 self.do_login()
                 return
             raise BrowserIncorrectPassword(response['error'])
