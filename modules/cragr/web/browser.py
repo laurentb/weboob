@@ -32,7 +32,7 @@ from weboob.capabilities.base import NotLoaded, NotAvailable, find_object
 from weboob.capabilities.profile import ProfileMissing
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.browser.pages import FormNotFound
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.tools.date import ChaoticDateGuesser, LinearDateGuesser
 from weboob.exceptions import BrowserHTTPError, ActionNeeded
 from weboob.browser.filters.standard import CleanText
@@ -326,6 +326,8 @@ class Cragr(LoginBrowser, StatesMixin):
                 iban_url = self.page.get_iban_url()
                 if iban_url:
                     self.location(iban_url)
+                    if self.unavailable_page.is_here():
+                        raise BrowserUnavailable()
                     account.iban = self.page.get_iban()
 
         # credit cards
