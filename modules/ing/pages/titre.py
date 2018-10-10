@@ -29,6 +29,7 @@ from weboob.browser.elements import ListElement, TableElement, ItemElement, meth
 from weboob.browser.filters.standard import CleanDecimal, CleanText, Date, Regexp, Env
 from weboob.browser.filters.html import Link, Attr, TableCell
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.capabilities.bank.investments import create_french_liquidity
 from weboob.tools.compat import unicode
 
 class NetissimaPage(HTMLPage):
@@ -113,11 +114,8 @@ class TitrePage(LoggedPage, RawPage):
         # There is no investment on life insurance in the process to be created.
         if len(message.split('&')) >= 4:
             # We also have to get the liquidity as an investment.
-            invest = Investment()
-            invest.label = "Liquidités"
-            invest.code = "XX-liquidity"
-            invest.valuation = CleanDecimal(None, True).filter(message.split('&')[3].replace('euro;{','').strip())
-            invests.append(invest)
+            valuation = CleanDecimal(None, True).filter(message.split('&')[3].replace('euro;{','').strip())
+            invests.append(create_french_liquidity(valuation))
         for invest in invests:
             yield invest
 
