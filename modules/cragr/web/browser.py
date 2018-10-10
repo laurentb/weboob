@@ -26,9 +26,9 @@ from datetime import date, datetime, timedelta
 
 from weboob.capabilities.bank import (
     Account, AddRecipientStep, AddRecipientBankError, RecipientInvalidLabel,
-    Recipient, AccountNotFound, Investment,
+    Recipient, AccountNotFound,
 )
-from weboob.capabilities.base import NotLoaded, NotAvailable, find_object
+from weboob.capabilities.base import NotLoaded, find_object
 from weboob.capabilities.profile import ProfileMissing
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.browser.pages import FormNotFound
@@ -39,6 +39,7 @@ from weboob.browser.filters.standard import CleanText
 from weboob.tools.value import Value
 from weboob.tools.compat import urlparse, urljoin, basestring
 from weboob.tools.capabilities.bank.iban import is_iban_valid
+from weboob.tools.capabilities.bank.investments import create_french_liquidity
 
 from .pages import (
     HomePage, LoginPage, LoginErrorPage, AccountsPage,
@@ -448,10 +449,7 @@ class Cragr(LoginBrowser, StatesMixin):
             self.go_perimeter(account._perimeter)
 
         if account.type == Account.TYPE_PEA and account._liquidity_url:
-            liq = Investment()
-            self.fill_liquidities(liq)
-            liq.valuation = account.balance
-            yield liq
+            yield create_french_liquidity(account.balance)
             return
 
         if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
@@ -471,10 +469,8 @@ class Cragr(LoginBrowser, StatesMixin):
                 self.page.go_on_detail(account.id)
                 # We scrape the non-invested part as liquidities:
                 if self.page.has_liquidities():
-                    liq = Investment()
-                    self.fill_liquidities(liq)
-                    liq.valuation = self.page.get_liquidities()
-                    yield liq
+                    valuation = self.page.get_liquidities()
+                    yield create_french_liquidity(valuation)
 
         for inv in self.page.iter_investment():
             yield inv
@@ -483,11 +479,6 @@ class Cragr(LoginBrowser, StatesMixin):
             self.quit_market_website()
         elif account.type == Account.TYPE_LIFE_INSURANCE:
             self.quit_insurance_website()
-
-    def fill_liquidities(self, liq):
-        liq.label = "Liquidités"
-        liq.code = "XX-liquidity"
-        liq.code_type = NotAvailable
 
     @need_login
     def iter_advisor(self):
