@@ -17,10 +17,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.exceptions import ParseError
 from weboob.tools.compat import basestring, with_metaclass
 
-from .base import _Filter, _NO_DEFAULT, Filter, debug
+from .base import _Filter, _NO_DEFAULT, Filter, debug, ItemNotFound
 
 __all__ = ['Dict']
 
@@ -58,7 +57,7 @@ class Dict(with_metaclass(_DictMeta, Filter)):
         if elements is not _NOT_FOUND:
             return elements
         else:
-            return self.default_or_raise(ParseError('Element %r not found' % self.selector))
+            return self.default_or_raise(ItemNotFound('Element %r not found' % self.selector))
 
     @classmethod
     def select(cls, selector, item, obj=None, key=None):

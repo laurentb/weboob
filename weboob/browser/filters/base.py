@@ -196,4 +196,4 @@ class _Selector(Filter):
         if elements is not None:
             return elements
         else:
-            return self.default_or_raise(ParseError('Element %r not found' % self.selector))
+            return self.default_or_raise(FilterError('Element %r not found' % self.selector))

@@ -20,11 +20,10 @@
 
 import lxml.html as html
 
-from weboob.exceptions import ParseError
 from weboob.tools.compat import basestring, unicode, urljoin
 from weboob.tools.html import html2text
 
-from .base import _NO_DEFAULT, Filter, FilterError, _Selector, debug
+from .base import _NO_DEFAULT, Filter, FilterError, _Selector, debug, ItemNotFound
 from .standard import TableCell, ColumnNotFound # TODO move class here when modules are migrated
 
 
@@ -35,11 +34,11 @@ __all__ = ['CSS', 'XPath', 'XPathNotFound', 'AttributeNotFound',
           ]
 
 
-class XPathNotFound(FilterError):
+class XPathNotFound(ItemNotFound):
     pass
 
 
-class AttributeNotFound(FilterError):
+class AttributeNotFound(ItemNotFound):
     pass
 
 
@@ -209,4 +208,4 @@ class HasElement(Filter):
     def filter(self, value):
         if value:
             return self.yesvalue
-        return self.default_or_raise(ParseError('No default value'))
+        return self.default_or_raise(FilterError('No default value'))

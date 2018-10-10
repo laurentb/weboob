@@ -22,8 +22,7 @@ import re
 from ast import literal_eval
 import sys
 
-from weboob.browser.filters.standard import Filter, Regexp, RegexpError
-from weboob.exceptions import ParseError
+from weboob.browser.filters.standard import Filter, Regexp, RegexpError, FormatError, ItemNotFound
 
 
 __all__ = ['JSPayload', 'JSValue', 'JSVar']
@@ -99,7 +98,7 @@ class JSValue(Regexp):
             if v is not None:
                 break
         if self.need_type and t != self.need_type:
-            raise ParseError('Value with type %s not found' % self.need_type)
+            raise ItemNotFound('Value with type %s not found' % self.need_type)
         if t in ('int', 'float'):
             return literal_eval(v)
         if t == 'str':
@@ -112,7 +111,7 @@ class JSValue(Regexp):
             return
         if self.default:
             return self.default
-        raise ParseError('Unable to parse %r value' % m.group(0))
+        raise FormatError('Unable to parse %r value' % m.group(0))
 
     def __init__(self, selector=None, need_type=None, **kwargs):
         assert 'pattern' not in kwargs and 'flags' not in kwargs, \
@@ -158,4 +157,4 @@ class JSVar(JSValue):
         try:
             return super(JSVar, self).filter(txt)
         except RegexpError:
-            raise ParseError('Variable %r not found' % self.var)
+            raise ItemNotFound('Variable %r not found' % self.var)

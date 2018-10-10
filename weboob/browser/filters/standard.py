@@ -31,14 +31,13 @@ from dateutil.parser import parse as parse_date
 from weboob.capabilities.base import empty
 from weboob.capabilities.base import Currency as BaseCurrency
 from weboob.tools.compat import basestring, unicode, long
-from weboob.exceptions import ParseError
 from weboob.browser.url import URL
 from weboob.tools.compat import parse_qs, urlparse
 
 from .base import _NO_DEFAULT, FilterError, _Filter, Filter, debug, ItemNotFound
 
 
-__all__ = ['FilterError', 'ColumnNotFound', 'RegexpError',
+__all__ = ['FilterError', 'ColumnNotFound', 'RegexpError', 'FormatError',
            'Filter', 'Base', 'Env', 'TableCell', 'RawText',
            'CleanText', 'Lower', 'Upper', 'Capitalize', 'CleanDecimal',
            'Field', 'Regexp', 'Map', 'DateTime', 'Date', 'Time', 'DateGuesser',
@@ -51,6 +50,10 @@ class ColumnNotFound(FilterError):
 
 
 class RegexpError(FilterError):
+    pass
+
+
+class FormatError(FilterError):
     pass
 
 
@@ -167,7 +170,7 @@ class Env(_Filter):
         try:
             return item.env[self.name]
         except KeyError:
-            return self.default_or_raise(ParseError('Environment variable %s not found' % self.name))
+            return self.default_or_raise(ItemNotFound('Environment variable %s not found' % self.name))
 
 
 class TableCell(_Filter):
@@ -368,6 +371,10 @@ class Currency(CleanText):
         return BaseCurrency.get_currency(txt)
 
 
+class NumberFormatError(FormatError, InvalidOperation):
+    pass
+
+
 class CleanDecimal(CleanText):
     """
     Get a cleaned Decimal value from an element.
@@ -402,7 +409,7 @@ class CleanDecimal(CleanText):
             text = str(text)
 
         if empty(text):
-            return self.default_or_raise(ParseError('Unable to parse %r' % text))
+            return self.default_or_raise(FormatError('Unable to parse %r' % text))
 
         original_text = text = super(CleanDecimal, self).filter(text)
         if self.replace_dots:
@@ -417,7 +424,7 @@ class CleanDecimal(CleanText):
                 v *= self.sign(original_text)
             return v
         except InvalidOperation as e:
-            return self.default_or_raise(e)
+            return self.default_or_raise(NumberFormatError(e))
 
 
 class Slugify(Filter):
@@ -459,13 +466,13 @@ class Type(Filter):
         if isinstance(txt, self.type_func):
             return txt
         if empty(txt):
-            return self.default_or_raise(ParseError('Unable to parse %r' % txt))
+            return self.default_or_raise(FormatError('Unable to parse %r' % txt))
         if self.minlen is not False and len(txt) <= self.minlen:
-            return self.default_or_raise(ParseError('Unable to parse %r' % txt))
+            return self.default_or_raise(FormatError('Unable to parse %r' % txt))
         try:
             return self.type_func(txt)
         except ValueError as e:
-            return self.default_or_raise(ParseError('Unable to parse %r: %s' % (txt, e)))
+            return self.default_or_raise(FormatError('Unable to parse %r: %s' % (txt, e)))
 
 
 class Field(_Filter):
@@ -621,14 +628,14 @@ class DateTime(Filter):
     @debug()
     def filter(self, txt):
         if empty(txt) or txt == '':
-            return self.default_or_raise(ParseError('Unable to parse %r' % txt))
+            return self.default_or_raise(FormatError('Unable to parse %r' % txt))
         try:
             if self.translations:
                 for search, repl in self.translations:
                     txt = search.sub(repl, txt)
             return self.parse_func(txt, dayfirst=self.dayfirst, fuzzy=self.fuzzy)
         except (ValueError, TypeError) as e:
-            return self.default_or_raise(ParseError('Unable to parse %r: %s' % (txt, e)))
+            return self.default_or_raise(FormatError('Unable to parse %r: %s' % (txt, e)))
 
 
 class Date(DateTime):
@@ -666,7 +673,7 @@ class DateGuesser(Filter):
         if len(values) == 2:
             day, month = map(int, values)
         else:
-            raise ParseError('Unable to take (day, month) tuple from %r' % values)
+            raise FormatError('Unable to take (day, month) tuple from %r' % values)
         return date_guesser.guess_date(day, month, **self.kwargs)
 
 
@@ -689,7 +696,7 @@ class Time(Filter):
                 kwargs[key] = int(m.groupdict()[index] or 0)
             return self.klass(**kwargs)
 
-        return self.default_or_raise(ParseError('Unable to find time in %r' % txt))
+        return self.default_or_raise(FormatError('Unable to find time in %r' % txt))
 
 
 class Duration(Time):
@@ -844,9 +851,9 @@ class QueryValue(Filter):
     def filter(self, url):
         qs = parse_qs(urlparse(url).query)
         if not qs.get(self.querykey):
-            return self.default_or_raise(ParseError('Key %s not found' % self.querykey))
+            return self.default_or_raise(ItemNotFound('Key %s not found' % self.querykey))
         if len(qs[self.querykey]) > 1:
-            raise ParseError('More than one value for key %s' % self.querykey)
+            raise FilterError('More than one value for key %s' % self.querykey)
         return qs[self.querykey][0]
 
 
