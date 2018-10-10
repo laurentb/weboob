@@ -29,12 +29,13 @@ from dateutil import parser
 from weboob.browser import LoginBrowser, need_login, StatesMixin
 from weboob.browser.switch import SiteSwitch
 from weboob.browser.url import URL
-from weboob.capabilities.bank import Account, AddRecipientStep, Recipient, TransferBankError, Transaction, Investment
+from weboob.capabilities.bank import Account, AddRecipientStep, Recipient, TransferBankError, Transaction
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.profile import Profile
 from weboob.browser.exceptions import BrowserHTTPNotFound, ClientError
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.tools.capabilities.bank.transactions import sorted_transactions, FrenchTransaction
+from weboob.tools.capabilities.bank.investments import create_french_liquidity
 from weboob.tools.compat import urljoin
 from weboob.tools.value import Value
 from weboob.tools.decorators import retry
@@ -481,11 +482,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             raise NotImplementedError()
 
         if account.type == Account.TYPE_PEA and account.label == 'PEA NUMERAIRE':
-            liquidity = Investment()
-            liquidity.label = 'Liquidités'
-            liquidity.code = 'XX-liquidity'
-            liquidity.valuation = account.balance
-            yield liquidity
+            yield create_french_liquidity(account.balance)
             return
 
         if self.home.is_here():
