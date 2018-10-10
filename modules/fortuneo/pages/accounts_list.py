@@ -35,6 +35,7 @@ from weboob.capabilities.bank import Account, Investment, Loan
 from weboob.capabilities.profile import Person
 from weboob.browser.pages import HTMLPage, LoggedPage, FormNotFound, CsvPage
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.capabilities.bank.investments import create_french_liquidity
 from weboob.tools.json import json
 from weboob.tools.date import parse_french_date
 from weboob.exceptions import ActionNeeded, BrowserUnavailable
@@ -100,12 +101,9 @@ class PeaHistoryPage(LoggedPage, HTMLPage):
                 inv.code_type = Investment.CODE_TYPE_ISIN
 
             yield inv
-        if not account.type == account.TYPE_MARKET:
-            inv = Investment()
-            inv.code = "XX-liquidity"
-            inv.label = "Liquidités"
-            inv.valuation = CleanDecimal(None, True).filter(self.doc.xpath('//*[@id="valorisation_compte"]/table/tr[3]/td[2]'))
-            yield inv
+        if account.type != account.TYPE_MARKET:
+            valuation = CleanDecimal(None, True).filter(self.doc.xpath('//*[@id="valorisation_compte"]/table/tr[3]/td[2]'))
+            yield create_french_liquidity(valuation)
 
     def parse_decimal(self, string, replace_dots):
         string = CleanText(None).filter(string)
