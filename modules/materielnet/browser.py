@@ -21,25 +21,31 @@
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 
-from .pages import LoginPage, CaptchaPage, ProfilPage, DocumentsPage
+from .pages import LoginPage, CaptchaPage, ProfilPage, DocumentsPage, DocumentsDetailsPage
 
 
 class MaterielnetBrowser(LoginBrowser):
-    BASEURL = 'https://www.materiel.net'
+    BASEURL = 'https://secure.materiel.net'
 
-    login = URL('/pm/client/login.html', LoginPage)
+    login = URL(r'https://www.materiel.net/form/login',
+                r'/Login/PartialPublicLogin', LoginPage)
     captcha = URL('/pm/client/captcha.html', CaptchaPage)
-    profil = URL('/pm/client/compte.html', ProfilPage)
-    documents = URL('/pm/client/commande.html\?page=(?P<page>.*)',
-                    '/pm/client/commande.html', DocumentsPage)
+    profil = URL(r'/Account/InformationsSection', ProfilPage)
+    documents = URL(r'/Orders/PartialCompletedOrdersHeader', DocumentsPage)
+    document_details = URL(r'/Orders/PartialCompletedOrderContent', DocumentsDetailsPage)
 
     def do_login(self):
         self.login.go()
-
         self.page.login(self.username, self.password)
 
-        if self.login.is_here() or self.captcha.is_here():
-            raise BrowserIncorrectPassword(self.page.get_error())
+        if self.captcha.is_here():
+            BrowserIncorrectPassword()
+
+        if self.login.is_here():
+            error = self.page.get_error()
+            # when everything is good we land on this page
+            if error:
+                raise BrowserIncorrectPassword(error)
 
     @need_login
     def get_subscription_list(self):
@@ -47,4 +53,7 @@ class MaterielnetBrowser(LoginBrowser):
 
     @need_login
     def iter_documents(self, subscription):
-        return self.documents.stay_or_go(page=1).get_documents()
+        json_response = self.location('/Orders/CompletedOrdersPeriodSelection').json()
+
+        for data in json_response:
+            return self.documents.go(data=data).get_documents()

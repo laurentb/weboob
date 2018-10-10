@@ -17,25 +17,25 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
-import re
-
-from weboob.browser.pages import HTMLPage, LoggedPage, pagination
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Env, Format, Date, Async, AsyncLoad
-from weboob.browser.elements import ListElement, ItemElement, TableElement, method
-from weboob.browser.filters.html import Attr, Link, TableCell
+from weboob.browser.pages import HTMLPage, LoggedPage, PartialHTMLPage
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Env, Format, Date, Async, Filter, Regexp, Field
+from weboob.browser.elements import ListElement, ItemElement, method
+from weboob.browser.filters.html import Attr, Link
 from weboob.capabilities.bill import Bill, Subscription
 from weboob.capabilities.base import NotAvailable
 
-class LoginPage(HTMLPage):
+
+class LoginPage(PartialHTMLPage):
     def login(self, login, password):
-        form = self.get_form('//form[@class="login-form"]')
-        form['identifier'] = login
-        form['credentials'] = password
+        form = self.get_form(id='loginForm')
+        form['Email'] = login
+        form['Password'] = password
         form.submit()
 
     def get_error(self):
-        return CleanText('//div[@class="ValidatorError"]')(self.doc)
+        return CleanText('//div[contains(@class, "error")]')(self.doc)
 
 
 class CaptchaPage(HTMLPage):
@@ -49,7 +49,7 @@ class ProfilPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Subscription
 
-            obj_subscriber = Format('%s %s', Attr('//input[@id="prenom"]', 'value'), Attr('//input[@id="nom"]', 'value'))
+            obj_subscriber = Format('%s %s', Attr('//input[@id="FirstName"]', 'value'), Attr('//input[@id="LastName"]', 'value'))
             obj_id = Env('subid')
             obj_label = obj_id
 
@@ -57,38 +57,35 @@ class ProfilPage(LoggedPage, HTMLPage):
                 self.env['subid'] = self.page.browser.username
 
 
-class DocumentsPage(LoggedPage, HTMLPage):
-    @pagination
+class MyAsyncLoad(Filter):
+    def __call__(self, item):
+        link = self.select(self.selector, item)
+        data = {'X-Requested-With': 'XMLHttpRequest'}
+        return item.page.browser.async_open(link, data=data) if link else None
+
+
+class DocumentsPage(LoggedPage, PartialHTMLPage):
     @method
-    class get_documents(TableElement):
-        item_xpath = '//div[@id="ListCmd"]//table//tr[position() > 1]'
-        head_xpath = '//div[@id="ListCmd"]//table//tr//th'
-
-        col_id = u'Référence'
-        col_date = u'Date'
-        col_price = u'Montant'
-
-        def next_page(self):
-            m = re.search('([^*]+page=)([^*]+)', self.page.url)
-            if m:
-                page = int(m.group(2)) + 1
-                if self.el.xpath('//a[contains(@href, "commande.html?page=' + str(page) + '")]'):
-                    next_page = u"%s%s" % (m.group(1), page)
-                    return next_page
+    class get_documents(ListElement):
+        item_xpath = '//div[@class="historic-table"]'
 
         class item(ItemElement):
             klass = Bill
 
-            load_details = Attr('./td/a', 'href') & AsyncLoad
+            load_details = Link('.//a') & MyAsyncLoad
 
-            obj_id = Format('%s_%s', Env('email'), CleanDecimal(TableCell('id')))
-            obj_url = Async('details') & Link('//a[contains(@href, "facture")]', default=NotAvailable)
-            obj_date = Date(CleanText(TableCell('date')))
-            obj_format = u"pdf"
-            obj_label = Async('details') & CleanText('//table/tr/td[@class="Prod"]')
-            obj_type = u"bill"
-            obj_price = CleanDecimal(TableCell('price'), replace_dots=True)
-            obj_currency = u'EUR'
+            obj_id = Format('%s_%s', Env('email'), Field('label'))
+            obj_url = Async('details') & Link('//a', default=NotAvailable)
+            obj_date = Date(CleanText('./div[contains(@class, "date")]'), dayfirst=True)
+            obj_format = 'pdf'
+            obj_label = Regexp(CleanText('./div[contains(@class, "ref")]'), r' (.*)')
+            obj_type = 'bill'
+            obj_price = CleanDecimal(CleanText('./div[contains(@class, "price")]'), replace_dots=(' ', '€'))
+            obj_currency = 'EUR'
 
             def parse(self, el):
                 self.env['email'] = self.page.browser.username
+
+
+class DocumentsDetailsPage(LoggedPage, PartialHTMLPage):
+    pass
