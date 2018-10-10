@@ -31,11 +31,10 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 __all__ = ['LoginPage', 'ErrorPage', 'AccountsPage', 'TransactionsPage']
 
 
-
 class LoginPage(HTMLPage):
     def login(self, username, password):
         form = self.get_form(name='connecterForm')
-        form['type'] = '2' # Gestionnaire
+        form['type'] = '2'  # Gestionnaire
         form['login'] = username
         form['pwd'] = password[:8]
         form.url = '/ce_internet_public/seConnecter.event.do'
@@ -53,7 +52,9 @@ class AccountsPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Account
 
-            obj_id = Format('%s%s', CleanText('./td[2]', replace=[(' ', '')]), CleanText('./td[3]'))
+            obj_id = Format('%s%s%s', CleanText('./td[2]', replace=[(' ', '')]), CleanText('./td[3]'),
+                            CleanText('./td[1]', replace=[(' ', '')]))
+
             obj__owner = CleanText('./td[1]')
             obj_number = CleanText('./td[2]', replace=[(' ', '')])
             obj_label = CleanText('./td[1]')
@@ -128,7 +129,7 @@ class TransactionsPage(LoggedPage, HTMLPage):
                     return CleanDecimal(replace_dots=False).filter(self.el.xpath('./td[5]')) - CleanDecimal(replace_dots=False).filter(self.el.xpath('./td[6]'))
 
     def is_not_sorted(self, order='down'):
-        translate = {'down':'bas','up':'haut'}
+        translate = {'down': 'bas', 'up': 'haut'}
         return len(self.doc.xpath('//table[@id="ContentTable_datas"]/thead/tr/th[1]//img[contains(@src, "tri_%s_on")]' % translate[order])) == 0
 
     def sort(self, order='down'):
