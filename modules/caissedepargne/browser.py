@@ -187,6 +187,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         # [WP, WM]
         # [EU]
         # [EU, WE]  (EU tends to come first when present)
+
         if not self.username or not self.password:
             raise BrowserIncorrectPassword()
 
@@ -197,9 +198,6 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
         if data is None:
             raise BrowserIncorrectPassword()
-
-        if "authMode" in data and data['authMode'] == 'redirect':
-            raise SiteSwitch('cenet')
 
         if len(data.get('account', [])) > 1:
             # Additional request when there is more than one connection type
@@ -215,6 +213,9 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             data = self.account_login.go(login=self.username, accountType=self.typeAccount).get_response()
 
         assert data is not None
+
+        if data.get('authMode', '') == 'redirect': # the connection type EU could also be used as a criteria
+            raise SiteSwitch('cenet')
 
         typeAccount = data['account'][0]
 

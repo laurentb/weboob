@@ -42,12 +42,13 @@ __all__ = ['CenetBrowser']
 
 class CenetBrowser(LoginBrowser, StatesMixin):
     BASEURL = "https://www.cenet.caisse-epargne.fr"
+
     STATE_DURATION = 5
 
     login = URL(r'https://(?P<domain>[^/]+)/authentification/manage\?step=identification&identifiant=(?P<login>.*)',
                 r'https://.*/authentification/manage\?step=identification&identifiant=.*',
                 r'https://.*/login.aspx', LoginPage)
-    account_login = URL('/authentification/manage\?step=account&identifiant=(?P<login>.*)&account=(?P<accountType>.*)', LoginPage)
+    account_login = URL('https://(?P<domain>[^/]+)/authentification/manage\?step=account&identifiant=(?P<login>.*)&account=(?P<accountType>.*)', LoginPage)
     cenet_vk = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiAuthentification.asmx/ChargerClavierVirtuel')
     cenet_home = URL('/Default.aspx$', CenetHomePage)
     cenet_accounts = URL('/Web/Api/ApiComptes.asmx/ChargerSyntheseComptes', CenetAccountsPage)
@@ -80,6 +81,14 @@ class CenetBrowser(LoginBrowser, StatesMixin):
 
     def do_login(self):
         data = self.login.go(login=self.username, domain=self.login_domain).get_response()
+
+        if len(data['account']) > 1:
+            # additional request where there is more than one
+            # connection type (called typeAccount)
+            # TODO: test all connection type values if needed
+            account_type = data['account'][0]
+            self.account_login.go(login=self.username, accountType=account_type, domain=self.login_domain)
+            data = self.page.get_response()
 
         if data is None:
             raise BrowserIncorrectPassword()

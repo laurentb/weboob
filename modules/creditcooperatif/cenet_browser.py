@@ -27,3 +27,7 @@ class CenetBrowser(AbstractBrowser):
     PARENT = 'caissedepargne'
     PARENT_ATTR = 'package.cenet.browser.CenetBrowser'
     BASEURL = 'https://www.espaceclient.credit-cooperatif.coop/'
+
+    def __init__(self, nuser, *args, **kwargs):
+        kwargs['domain'] = 'www.credit-cooperatif.coop'
+        super(CenetBrowser, self).__init__(nuser, *args, **kwargs)
