@@ -140,6 +140,13 @@ class AccountsPage(GenericLandingPage):
         }
         return accounts[space]()
 
+    def go_history_page(self, account):
+        for acc in self.doc.xpath('//div[@onclick]'):
+            # label contains account number, it's enough to check if it's the right account
+            if account.label == Label(CleanText('.//p[@class="title"]'))(acc):
+                form_id = CleanText('.//form/@id')(acc)
+                return self.get_form(id=form_id).submit()
+
     @method
     class iter_accounts(ListElement):
         item_xpath = '//tr'
@@ -202,6 +209,7 @@ class AccountsPage(GenericLandingPage):
                 obj_currency = Currency(CleanText('.//p[@class="balance"]'))
                 obj_type = AccountsType(Field('label'))
                 obj_url = CleanText('.//form/@action')
+                obj__is_form = bool(CleanText('.//form/@id'))
 
                 @property
                 def obj_id(self):

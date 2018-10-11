@@ -188,6 +188,7 @@ class HSBC(LoginBrowser):
                 break
 
         # get all couples (card, parent) on cards page
+        all_card_and_parent = []
         if self.cbPage.is_here():
             all_card_and_parent = self.page.get_all_parent_id()
             self.go_post(self.js_url, data={'debr': 'COMPTES_PAN'})
@@ -320,6 +321,12 @@ class HSBC(LoginBrowser):
 
         if self.page is None:
             return []
+
+        # for 'fusion' space
+        if hasattr(account, '_is_form') and account._is_form:
+            # go on accounts page to get account form
+            self.go_post(self.js_url, data={'debr': 'COMPTES_PAN'})
+            self.page.go_history_page(account)
 
         if self.cbPage.is_here():
             guesser = LinearDateGuesser(date_max_bump=timedelta(45))
