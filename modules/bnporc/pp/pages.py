@@ -207,7 +207,7 @@ class LoginPage(JsonPage):
                 raise ActionNeeded(msg)
             elif error == 21: # "Ce service est momentanément indisponible. Veuillez renouveler votre demande ultérieurement." -> In reality, account is blocked because of too much wrongpass
                 raise ActionNeeded(u"Compte bloqué")
-            elif error == 4:
+            elif error in (3, 4):
                 raise ActionNeeded(error_page.get_error_message(error))
 
             self.logger.debug('Unexpected error at login: "%s" (code=%s)' % (msg, error))

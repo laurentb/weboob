@@ -76,7 +76,7 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
                 'https://mabanqueprivee.bnpparibas.net/fr/espace-prive/comptes-et-contrats\?u=%2FSEEA-pa01%2FdevServer%2Fseeaserver',
                 LoginPage)
 
-    list_error_page = URL('/rsc/contrib/document/properties/identification-fr-part-V1.json', ListErrorPage)
+    list_error_page = URL('https://mabanque.bnpparibas/rsc/contrib/document/properties/identification-fr-part-V1.json', ListErrorPage)
     con_threshold = URL('/fr/connexion/100-connexions',
                         '/fr/connexion/mot-de-passe-expire',
                         '/fr/espace-prive/100-connexions.*',
