@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
 class BrowserIncorrectPassword(Exception):
     pass
 
@@ -34,12 +33,21 @@ class BrowserUnavailable(Exception):
     pass
 
 
-class BrowserQuestion(BrowserIncorrectPassword):
+class BrowserInteraction(Exception):
+    pass
+
+
+class BrowserQuestion(BrowserInteraction):
     """
     When raised by a browser,
     """
     def __init__(self, *fields):
         self.fields = fields
+
+
+class BrowserRedirect(BrowserInteraction):
+    def __init__(self, url):
+        self.url = url
 
 
 class CaptchaQuestion(Exception):
