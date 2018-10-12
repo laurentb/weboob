@@ -280,6 +280,8 @@ class ProductViewHelper():
 
     def retrieve_liquidity(self):
         self.retrieve_products(kind='liquidity_list')
+        if self.browser.retrieve_useless_page.is_here():
+            return []
         assert isinstance(self.browser.page, RetrieveLiquidityPage)
         return self.browser.page.iter_liquidity()
 
