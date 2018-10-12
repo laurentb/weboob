@@ -442,6 +442,10 @@ class IndexPage(LoggedPage, HTMLPage):
                         accounts[account.id] = account
         return accounts.values()
 
+    def is_real_estate_loans(self):
+        # check if there are credits
+        return not self.doc.xpath('//div[@id="MM_SYNTHESE_CREDITS_msgNoCredit"]')
+
     @method
     class get_real_estate_loans(ListElement):
         item_xpath = '(//div[@id[starts-with(.,"MM_SYNTHESE_CREDITS")]])'

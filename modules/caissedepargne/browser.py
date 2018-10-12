@@ -371,7 +371,8 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             if self.home.is_here():
                 if not self.page.is_access_error():
                     self.page.go_loan_list()
-                    self.loans =  list(self.page.get_real_estate_loans())
+                    if self.page.is_real_estate_loans():
+                        self.loans =  list(self.page.get_real_estate_loans())
                     self.page.go_loan_list()
                     self.loans.extend(self.page.get_loan_list())
 
