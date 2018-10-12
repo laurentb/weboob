@@ -468,9 +468,9 @@ class CleanDecimal(CleanText):
             decimal_matching = re.compile(r'[+-]?(?:\d[\d%s%s]*|%s\d+)' % tuple(map(re.escape, (thousands_sep, decimal_sep, decimal_sep))))
             matches = decimal_matching.findall(text)
             if not matches:
-                self.default_or_raise(NumberFormatError('There is no number to parse'))
+                return self.default_or_raise(NumberFormatError('There is no number to parse'))
             elif len(matches) > 1:
-                self.default_or_raise(NumberFormatError('There should be exactly one number to parse'))
+                return self.default_or_raise(NumberFormatError('There should be exactly one number to parse'))
             text, = matches
             text = text.replace(thousands_sep, '').replace(decimal_sep, '.')
 
