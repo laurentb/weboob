@@ -130,6 +130,7 @@ class BanquePopulaire(LoginBrowser):
 
     error_page = URL(r'https://[^/]+/cyber/internet/ContinueTask.do',
                      r'https://[^/]+/_layouts/error.aspx',
+                     r'https://[^/]+/portailinternet/_layouts/Ibp.Cyi.Administration/RedirectPageError.aspx',
                      ErrorPage)
 
     unavailable_page = URL(r'https://[^/]+/s3f-web/.*',

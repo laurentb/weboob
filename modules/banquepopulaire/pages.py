@@ -257,6 +257,8 @@ class ErrorPage(LoggedPage, MyHTMLPage):
     def on_load(self):
         if CleanText('//script[contains(text(), "momentanément indisponible")]')(self.doc):
             raise BrowserUnavailable(u"Le service est momentanément indisponible")
+        elif CleanText('//h1[contains(text(), "Cette page est indisponible")]')(self.doc):
+            raise BrowserUnavailable('Cette page est indisponible')
         return super(ErrorPage, self).on_load()
 
     def get_token(self):
