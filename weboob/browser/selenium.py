@@ -313,6 +313,7 @@ class SeleniumPage(object):
         self.params = {}
         self.browser = browser
         self.driver = browser.driver
+        self.logger = getLogger(self.__class__.__name__.lower(), browser.logger)
 
     @property
     def doc(self):
