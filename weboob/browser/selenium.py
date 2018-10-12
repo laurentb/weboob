@@ -219,7 +219,7 @@ def ClickableLinkText(text, partial=False):
 def HasTextCondition(xpath):
     """Condition to ensure some xpath is visible and contains non-empty text."""
 
-    xpath = '(%s)[normalize-space(text())!=""]'
+    xpath = '(%s)[normalize-space(text())!=""]' % xpath
     return VisibleXPath(xpath)
 
 
