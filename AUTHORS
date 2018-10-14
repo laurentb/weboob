@@ -343,13 +343,16 @@ Roland Mas <lolando@debian.org>
         * imm-o-matic script author
 
 Jean Walrave <jean.walrave@budget-insight.com>
-        * Fix on bill and bank modules.
+        * Many fixes on bill and bank modules;
+        * Added PDF document conversion.
 
 Jonathan Schmidt <jonathan.schmidt@budget-insight.com>
         * Fix on bill and bank modules.
 
 ZeHiro <mail-github@abossy.fr>
-        * Add support for banque de Savoir on banquepopulaire.
+        * Add support for banque de Savoie on banquepopulaire;
+        * Fixes on bank modules;
+        * Fixes on subtitles capability and modules.
 
 Edouard Lefebvre du Prey <edouard.lefebvreduprey@geneanet.org>
         * Patch on browser.
@@ -363,6 +366,54 @@ Julia Leven
 Jérémy Bossut
 Valentin Lefils
         * Tests for the browser
+
+Jean Sébastien
+        * Fixes on browser core.
+
+Arthur Huillet
+        * suravenir, binck modules maintainer.
+
+Sylvie Ye <sylvie.ye@budget-insight.com>
+        * Many bank and transfer modules fixes;
+        * Multiple changes to CapBankTransfer and recipients.
+
+Florian Duguet <florian.duguet@budget-insight.com>
+        * Many bank and bill modules fixes.
+
+András Bartók <andras.bartok@budget-insight.com>
+        * Multiple bank and bill modules fixes;
+        * Changes in CapDocument;
+        * Author of CapCurrencyRate.
+
+Célande Adrien <celande.adrien@budget-insight.com>
+Théo Dorée <theo.doree@budget-insight.com>
+Quentin Defenouillère <quentin.defenouillere@budget-insight.com>
+Étienne Lacheré <etienne.lachere@budget-insight.com>
+        * Many bank and bill modules fixes.
+
+Victor Kannemacher <victor.kannemacher@budget-insight.com>
+Maxime Gasselin <maxime.gasselin@budget-insight.com>
+Benjamin Tampigny <benjamin.tampigny@budget-insight.com>
+Fong Ngo <fong.ngo@budget-insight.com>
+Tony Malto <tony.malto@budget-insight.com>
+Frédéric Lépy <frederic.lepy@budget-insight.com>
+Olivier Da Rocha <olivier.darocha@budget-insight.com>
+        * Fixes on bank and bill modules.
+
+Sébastien Marie <semarie@users.noreply.github.com>
+        * Fixes for OpenBSD compatibility.
+
+Denis Carikli <GNUtoo@no-log.org>
+        * Fix on radiofrance module.
+
+Bruno Chabrier <bruno_chabrier@hotmail.com>
+        * Author of boomoney application.
+
+Nicolas Frandeboeuf <mail@nicofrand.eu>
+        * Multiple fixes on bank modules.
+
+Damien Cassou <damien@cassou.me>
+        * Author of nef module.
 
 
 Discover how to contribute to this great software:
