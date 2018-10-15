@@ -1145,7 +1145,7 @@ class InternalTransferPage(LoggedPage, HTMLPage):
         assert r_amount == Decimal(amount)
         currency = FrenchTransaction.Currency('//table[@summary]/tbody/tr[th[contains(text(), "Montant")]]/td')(self.doc)
         if reason is not None:
-            assert reason.upper().strip()[:22] in CleanText('//table[@summary]/tbody/tr[th[contains(text(), "Intitulé pour le compte à débiter")]]/td')(self.doc)
+            assert reason.upper()[:22].strip() in CleanText('//table[@summary]/tbody/tr[th[contains(text(), "Intitulé pour le compte à débiter")]]/td')(self.doc)
         return exec_date, r_amount, currency
 
     def handle_response(self, account, recipient, amount, reason):
