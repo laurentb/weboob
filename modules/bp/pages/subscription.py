@@ -118,7 +118,7 @@ class ProSubscriptionPage(LoggedPage, HTMLPage):
             klass = Subscription
 
             obj_label = CleanText('.')
-            obj_id = Regexp(Field('label'), r'\w - (\w+)')
+            obj_id = Regexp(Field('label'), r'\w? ?- (\w+)')
             obj_subscriber = Env('subscriber')
             obj__number = Attr('.', 'value')
 
