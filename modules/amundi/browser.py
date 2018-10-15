@@ -17,27 +17,20 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
+from .pages import LoginPage, AccountsPage, AccountHistoryPage
 from weboob.browser import URL, LoginBrowser, need_login
 from weboob.tools.json import json
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.exceptions import ClientError
 
-from .pages import LoginPage, AccountsPage, AccountHistoryPage
-
 
 class AmundiBrowser(LoginBrowser):
     TIMEOUT = 120.0
 
-    login = URL('/psf/authenticate', LoginPage)
-    authorize = URL('/psf/authorize', LoginPage)
-    accounts = URL(r'/psf/api/individu/positionFonds\?flagUrlFicheFonds=true&inclurePositionVide=false', AccountsPage)
-    account_history = URL(r'/psf/api/individu/operations\?valeurExterne=false&filtreStatutModeExclusion=false&statut=CPTA', AccountHistoryPage)
-
-    def __init__(self, website, *args, **kwargs):
-        self.BASEURL = website
-
-        super(AmundiBrowser, self).__init__(*args, **kwargs)
+    login = URL(r'authenticate', LoginPage)
+    authorize = URL(r'authorize', LoginPage)
+    accounts = URL(r'api/individu/positionFonds\?flagUrlFicheFonds=true&inclurePositionVide=false', AccountsPage)
+    account_history = URL(r'api/individu/operations\?valeurExterne=false&filtreStatutModeExclusion=false&statut=CPTA', AccountHistoryPage)
 
     def do_login(self):
         """
@@ -65,3 +58,10 @@ class AmundiBrowser(LoginBrowser):
     def iter_history(self, account):
         return (self.account_history.go(headers={'X-noee-authorization': ('noeprd %s' % self.token)})
                                     .iter_history(account=account))
+
+
+class EEAmundi(AmundiBrowser):
+    BASEURL = 'https://www.amundi-ee.com/psf/'
+
+class TCAmundi(AmundiBrowser):
+    BASEURL = 'https://epargnants.amundi-tc.com/psf/'

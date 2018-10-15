@@ -23,7 +23,7 @@ from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
-from .browser import AmundiBrowser
+from .browser import EEAmundi, TCAmundi
 
 __all__ = ['AmundiModule']
 
@@ -41,12 +41,10 @@ class AmundiModule(Module, CapBankWealth):
                                  choices={'ee': 'Amundi Epargne Entreprise',
                                           'tc': 'Amundi Tenue de Compte'}))
 
-    BROWSER = AmundiBrowser
-
     def create_default_browser(self):
-        w = {'ee': 'https://www.amundi-ee.com', 'tc': 'https://epargnants.amundi-tc.com'}
-        return self.create_browser(w[self.config['website'].get()], self.config['login'].get(),
-                                   self.config['password'].get())
+        b = {'ee': EEAmundi, 'tc': TCAmundi}
+        self.BROWSER = b[self.config['website'].get()]
+        return self.create_browser(self.config['login'].get(), self.config['password'].get())
 
     def get_account(self, id):
         return find_object(self.iter_accounts(), id=id, error=AccountNotFound)
