@@ -454,6 +454,9 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
                     else:
                         obj.label = '%s %s' % (obj.raw, raw)
                         obj.raw = '%s %s' % (obj.raw, raw)
+                    m = re.search(r'\d+,\d+COM (\d+,\d+)', raw)
+                    if m:
+                        obj.commission = -CleanDecimal(replace_dots=True).filter(m.group(1))
                 elif not obj.raw:
                     # Empty transaction label
                     obj.raw = obj.label = Async('details', CleanText(u'//td[contains(text(), "Nature de l\'opération")]/following-sibling::*[1]'))(self)
