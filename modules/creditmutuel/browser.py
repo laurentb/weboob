@@ -23,6 +23,7 @@ import re
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from itertools import groupby
+from operator import attrgetter
 
 from weboob.tools.compat import basestring
 from weboob.tools.value import Value
@@ -61,79 +62,79 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
     BASEURL = 'https://www.creditmutuel.fr'
 
     login =       URL('/fr/authentification.html',
-                      '/(?P<subbank>.*)fr/$',
-                      '/(?P<subbank>.*)fr/banques/accueil.html',
-                      '/(?P<subbank>.*)fr/banques/particuliers/index.html',
+                      r'/(?P<subbank>.*)fr/$',
+                      r'/(?P<subbank>.*)fr/banques/accueil.html',
+                      r'/(?P<subbank>.*)fr/banques/particuliers/index.html',
                       LoginPage)
-    login_error = URL('/(?P<subbank>.*)fr/identification/default.cgi',      LoginErrorPage)
-    accounts =    URL('/(?P<subbank>.*)fr/banque/situation_financiere.cgi',
-                      '/(?P<subbank>.*)fr/banque/situation_financiere.html',
+    login_error = URL(r'/(?P<subbank>.*)fr/identification/default.cgi',      LoginErrorPage)
+    accounts =    URL(r'/(?P<subbank>.*)fr/banque/situation_financiere.cgi',
+                      r'/(?P<subbank>.*)fr/banque/situation_financiere.html',
                       AccountsPage)
     revolving_loan_list = URL(r'/(?P<subbank>.*)fr/banque/CR/arrivee.asp\?fam=CR.*', RevolvingLoansList)
     revolving_loan_details = URL(r'/(?P<subbank>.*)fr/banque/CR/cam9_vis_lstcpt.asp.*', RevolvingLoanDetails)
-    user_space =  URL('/(?P<subbank>.*)fr/banque/espace_personnel.aspx',
-                      '/(?P<subbank>.*)fr/banque/accueil.cgi',
-                      '/(?P<subbank>.*)fr/banque/DELG_Gestion',
-                      '/(?P<subbank>.*)fr/banque/paci_engine/static_content_manager.aspx',
+    user_space =  URL(r'/(?P<subbank>.*)fr/banque/espace_personnel.aspx',
+                      r'/(?P<subbank>.*)fr/banque/accueil.cgi',
+                      r'/(?P<subbank>.*)fr/banque/DELG_Gestion',
+                      r'/(?P<subbank>.*)fr/banque/paci_engine/static_content_manager.aspx',
                       UserSpacePage)
-    card =        URL('/(?P<subbank>.*)fr/banque/operations_carte.cgi.*',
-                      '/(?P<subbank>.*)fr/banque/mouvements.html\?webid=.*cardmonth=\d+$',
-                      '/(?P<subbank>.*)fr/banque/mouvements.html.*webid=.*cardmonth=\d+.*cardid=',
+    card =        URL(r'/(?P<subbank>.*)fr/banque/operations_carte.cgi.*',
+                      r'/(?P<subbank>.*)fr/banque/mouvements.html\?webid=.*cardmonth=\d+$',
+                      r'/(?P<subbank>.*)fr/banque/mouvements.html.*webid=.*cardmonth=\d+.*cardid=',
                       CardPage)
-    operations =  URL('/(?P<subbank>.*)fr/banque/mouvements.cgi.*',
-                      '/(?P<subbank>.*)fr/banque/mouvements.html.*',
-                      '/(?P<subbank>.*)fr/banque/nr/nr_devbooster.aspx.*',
+    operations =  URL(r'/(?P<subbank>.*)fr/banque/mouvements.cgi.*',
+                      r'/(?P<subbank>.*)fr/banque/mouvements.html.*',
+                      r'/(?P<subbank>.*)fr/banque/nr/nr_devbooster.aspx.*',
                       r'(?P<subbank>.*)fr/banque/CRP8_GESTPMONT.aspx\?webid=.*&trnref=.*&contract=\d+&cardid=.*&cardmonth=\d+',
                       OperationsPage)
-    coming =      URL('/(?P<subbank>.*)fr/banque/mvts_instance.cgi.*',      ComingPage)
-    info =        URL('/(?P<subbank>.*)fr/banque/BAD.*',                    EmptyPage)
-    change_pass = URL('/(?P<subbank>.*)fr/validation/change_password.cgi',
+    coming =      URL(r'/(?P<subbank>.*)fr/banque/mvts_instance.cgi.*',      ComingPage)
+    info =        URL(r'/(?P<subbank>.*)fr/banque/BAD.*',                    EmptyPage)
+    change_pass = URL(r'/(?P<subbank>.*)fr/validation/change_password.cgi',
                       '/fr/services/change_password.html', ChangePasswordPage)
-    verify_pass = URL('/(?P<subbank>.*)fr/validation/verif_code.cgi.*',     VerifCodePage)
-    new_home =    URL('/(?P<subbank>.*)fr/banque/pageaccueil.html',
-                      '/(?P<subbank>.*)banque/welcome_pack.html', NewHomePage)
-    empty =       URL('/(?P<subbank>.*)fr/banques/index.html',
-                      '/(?P<subbank>.*)fr/banque/paci_beware_of_phishing.*',
-                      '/(?P<subbank>.*)fr/validation/(?!change_password|verif_code|image_case|infos).*',
+    verify_pass = URL(r'/(?P<subbank>.*)fr/validation/verif_code.cgi.*',     VerifCodePage)
+    new_home =    URL(r'/(?P<subbank>.*)fr/banque/pageaccueil.html',
+                      r'/(?P<subbank>.*)banque/welcome_pack.html', NewHomePage)
+    empty =       URL(r'/(?P<subbank>.*)fr/banques/index.html',
+                      r'/(?P<subbank>.*)fr/banque/paci_beware_of_phishing.*',
+                      r'/(?P<subbank>.*)fr/validation/(?!change_password|verif_code|image_case|infos).*',
                       EmptyPage)
-    por =         URL('/(?P<subbank>.*)fr/banque/POR_ValoToute.aspx',
-                      '/(?P<subbank>.*)fr/banque/POR_SyntheseLst.aspx',
+    por =         URL(r'/(?P<subbank>.*)fr/banque/POR_ValoToute.aspx',
+                      r'/(?P<subbank>.*)fr/banque/POR_SyntheseLst.aspx',
                       PorPage)
-    li =          URL('/(?P<subbank>.*)fr/assurances/profilass.aspx\?domaine=epargne',
-                      '/(?P<subbank>.*)fr/assurances/(consultations?/)?WI_ASS.*',
-                      '/(?P<subbank>.*)fr/assurances/WI_ASS',
+    li =          URL(r'/(?P<subbank>.*)fr/assurances/profilass.aspx\?domaine=epargne',
+                      r'/(?P<subbank>.*)fr/assurances/(consultations?/)?WI_ASS.*',
+                      r'/(?P<subbank>.*)fr/assurances/WI_ASS',
                       '/fr/assurances/', LIAccountsPage)
-    iban =        URL('/(?P<subbank>.*)fr/banque/rib.cgi', IbanPage)
+    iban =        URL(r'/(?P<subbank>.*)fr/banque/rib.cgi', IbanPage)
 
-    new_accounts = URL('/(?P<subbank>.*)fr/banque/comptes-et-contrats.html', NewAccountsPage)
-    new_operations = URL('/(?P<subbank>.*)fr/banque/mouvements.cgi',
-                         '/fr/banque/nr/nr_devbooster.aspx.*',
-                         '/(?P<subbank>.*)fr/banque/RE/aiguille(liste)?.asp',
+    new_accounts = URL(r'/(?P<subbank>.*)fr/banque/comptes-et-contrats.html', NewAccountsPage)
+    new_operations = URL(r'/(?P<subbank>.*)fr/banque/mouvements.cgi',
+                         r'/fr/banque/nr/nr_devbooster.aspx.*',
+                         r'/(?P<subbank>.*)fr/banque/RE/aiguille(liste)?.asp',
                          '/fr/banque/mouvements.html',
-                         '/(?P<subbank>.*)fr/banque/consultation/operations', OperationsPage)
+                         r'/(?P<subbank>.*)fr/banque/consultation/operations', OperationsPage)
 
-    advisor = URL('/(?P<subbank>.*)fr/banques/contact/trouver-une-agence/(?P<page>.*)',
-                  '/(?P<subbank>.*)fr/infoclient/',
+    advisor = URL(r'/(?P<subbank>.*)fr/banques/contact/trouver-une-agence/(?P<page>.*)',
+                  r'/(?P<subbank>.*)fr/infoclient/',
                   r'/(?P<subbank>.*)fr/banques/accueil/menu-droite/Details.aspx\?banque=.*',
                   AdvisorPage)
 
-    redirect = URL('/(?P<subbank>.*)fr/banque/paci_engine/static_content_manager.aspx', RedirectPage)
+    redirect = URL(r'/(?P<subbank>.*)fr/banque/paci_engine/static_content_manager.aspx', RedirectPage)
 
-    cards_activity = URL('/(?P<subbank>.*)fr/banque/pro/ENC_liste_tiers.aspx', CardsActivityPage)
-    cards_list = URL('/(?P<subbank>.*)fr/banque/pro/ENC_liste_ctr.*',
-                     '/(?P<subbank>.*)fr/banque/pro/ENC_detail_ctr', CardsListPage)
-    cards_ope = URL('/(?P<subbank>.*)fr/banque/pro/ENC_liste_oper', CardsOpePage)
+    cards_activity = URL(r'/(?P<subbank>.*)fr/banque/pro/ENC_liste_tiers.aspx', CardsActivityPage)
+    cards_list = URL(r'/(?P<subbank>.*)fr/banque/pro/ENC_liste_ctr.*',
+                     r'/(?P<subbank>.*)fr/banque/pro/ENC_detail_ctr', CardsListPage)
+    cards_ope = URL(r'/(?P<subbank>.*)fr/banque/pro/ENC_liste_oper', CardsOpePage)
     cards_ope2 = URL('/(?P<subbank>.*)fr/banque/CRP8_SCIM_DEPCAR.aspx', CardPage2)
 
     cards_hist_available = URL('/(?P<subbank>.*)fr/banque/SCIM_default.aspx\?_tabi=C&_stack=SCIM_ListeActivityStep%3a%3a&_pid=ListeCartes&_fid=ChangeList&Data_ServiceListDatas_CurrentType=MyCards', CardsHistAvailable)
     cards_hist_available2 = URL('/(?P<subbank>.*)fr/banque/SCIM_default.aspx', CardsHistAvailable)
 
-    internal_transfer = URL('/(?P<subbank>.*)fr/banque/virements/vplw_vi.html', InternalTransferPage)
-    external_transfer = URL('/(?P<subbank>.*)fr/banque/virements/vplw_vee.html', ExternalTransferPage)
-    recipients_list =   URL('/(?P<subbank>.*)fr/banque/virements/vplw_bl.html', RecipientsListPage)
-    error = URL('/(?P<subbank>.*)validation/infos.cgi', ErrorPage)
+    internal_transfer = URL(r'/(?P<subbank>.*)fr/banque/virements/vplw_vi.html', InternalTransferPage)
+    external_transfer = URL(r'/(?P<subbank>.*)fr/banque/virements/vplw_vee.html', ExternalTransferPage)
+    recipients_list =   URL(r'/(?P<subbank>.*)fr/banque/virements/vplw_bl.html', RecipientsListPage)
+    error = URL(r'/(?P<subbank>.*)validation/infos.cgi', ErrorPage)
 
-    subscription = URL('/(?P<subbank>.*)fr/banque/MMU2_LstDoc.aspx', SubscriptionPage)
+    subscription = URL(r'/(?P<subbank>.*)fr/banque/MMU2_LstDoc.aspx', SubscriptionPage)
 
     currentSubBank = None
     is_new_website = None
@@ -205,21 +206,23 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                         [self.page] if self.is_new_website else []
             for company in companies:
                 page = self.open(company).page if isinstance(company, basestring) else company
-                self.accounts_list.extend([card for card in page.iter_cards()])
+                self.accounts_list.extend(page.iter_cards())
 
+            # Populate accounts from old website
             if not self.is_new_website:
-                for a in self.accounts.stay_or_go(subbank=self.currentSubBank).iter_accounts():
-                    self.accounts_list.append(a)
+                self.accounts.stay_or_go(subbank=self.currentSubBank)
+                self.accounts_list.extend(self.page.iter_accounts())
                 self.iban.go(subbank=self.currentSubBank).fill_iban(self.accounts_list)
                 self.por.go(subbank=self.currentSubBank).add_por_accounts(self.accounts_list)
+            # Populate accounts from new website
             else:
-                for a in self.new_accounts.stay_or_go(subbank=self.currentSubBank).iter_accounts():
-                    self.accounts_list.append(a)
+                self.new_accounts.stay_or_go(subbank=self.currentSubBank)
+                self.accounts_list.extend(self.page.iter_accounts())
                 self.iban.go(subbank=self.currentSubBank).fill_iban(self.accounts_list)
                 self.por.go(subbank=self.currentSubBank).add_por_accounts(self.accounts_list)
 
-            for acc in self.li.go(subbank=self.currentSubBank).iter_li_accounts():
-                self.accounts_list.append(acc)
+            self.li.go(subbank=self.currentSubBank)
+            self.accounts_list.extend(self.page.iter_li_accounts())
 
             for acc in self.accounts_list:
                 if acc.id[:16] in self.cards_histo_available:
@@ -231,11 +234,11 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
 
         return self.accounts_list
 
-    def get_account(self, id):
-        assert isinstance(id, basestring)
+    def get_account(self, _id):
+        assert isinstance(_id, basestring)
 
         for a in self.get_accounts_list():
-            if a.id == id:
+            if a.id == _id:
                 return a
 
     def getCurrentSubBank(self):
@@ -262,28 +265,32 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
         else:
             self.page = page
 
-        # on some savings accounts, the page lands on the contract tab, and we want the situation
+        # On some savings accounts, the page lands on the contract tab, and we want the situation
         if account.type == Account.TYPE_SAVINGS and "Capital Expansion" in account.label:
             self.page.go_on_history_tab()
 
-        # getting about 6 months history on new website
+        # Getting about 6 months history on new website
         if self.is_new_website and self.page:
             try:
-                for x in range(0, 2):
+                # Submit search form two times, at first empty, then filled based on available fields
+                for x in range(2):
                     form = self.page.get_form(id="I1:fm", submit='//input[@name="_FID_DoActivateSearch"]')
                     if x == 1:
                         form.update({
-                            [k for k in form.keys() if "DateStart" in k][0]: (datetime.now() - relativedelta(months=7)).strftime('%d/%m/%Y'),
-                            [k for k in form.keys() if "DateEnd" in k][0]: datetime.now().strftime('%d/%m/%Y')
+                            next(k for k in form.keys() if "DateStart" in k): (datetime.now() - relativedelta(months=7)).strftime('%d/%m/%Y'),
+                            next(k for k in form.keys() if "DateEnd" in k): datetime.now().strftime('%d/%m/%Y')
                         })
-                        [form.pop(k, None) for k in form.keys() if "_FID_Do" in k and "DoSearch" not in k]
+                        for k in form.keys():
+                            if "_FID_Do" in k and "DoSearch" not in k:
+                                form.pop(k, None)
                     form.submit()
-            except (IndexError, FormNotFound):
-                pass
+            # IndexError when form xpath returns [], StopIteration if next called on empty iterable
+            except (IndexError, StopIteration, FormNotFound):
+                self.logger.warning('Could not get history on new website')
 
         while self.page:
             try:
-                #submit form if their is more transactions to fetch
+                # Submit form if their is more transactions to fetch
                 form = self.page.get_form(id="I1:fm")
                 if self.page.doc.xpath('boolean(//a[@class="ei_loadmorebtn"])'):
                     form['_FID_DoLoadMoreTransactions'] = ""
@@ -292,7 +299,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                     break
             except (IndexError, FormNotFound):
                 break
-            #sometime the browser can't go further
+            # Sometimes the browser can't go further
             except ClientError as exc:
                 if exc.response.status_code == 413:
                     break
@@ -307,14 +314,15 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
         return self.pagination(lambda: self.page.get_history())
 
     def get_monthly_transactions(self, trs):
-        groups = [list(g) for k, g in groupby(sorted(trs, key=lambda tr: tr.date), lambda tr: tr.date)]
+        date_getter = attrgetter('date')
+        groups = [list(g) for k, g in groupby(sorted(trs, key=date_getter), date_getter)]
         trs = []
         for group in groups:
             if group[0].date > datetime.today().date():
                 continue
             tr = FrenchTransaction()
-            tr.raw = tr.label = u"RELEVE CARTE %s" % group[0].date
-            tr.amount = -sum([t.amount for t in group])
+            tr.raw = tr.label = "RELEVE CARTE %s" % group[0].date
+            tr.amount = -sum(t.amount for t in group)
             tr.date = tr.rdate = tr.vdate = group[0].date
             tr.type = FrenchTransaction.TYPE_CARD_SUMMARY
             tr._is_coming = False
@@ -405,8 +413,9 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                 transactions.append(tr)
 
         differed_date = None
-        cards = [page.select_card(account._card_number) for page in account._card_pages] if hasattr(account, '_card_pages') else \
-                account._card_links if hasattr(account, '_card_links') else []
+        cards = ([page.select_card(account._card_number) for page in account._card_pages]
+                 if hasattr(account, '_card_pages')
+                 else account._card_links if hasattr(account, '_card_links') else [])
         for card in cards:
             card_trs = []
             for tr in self.list_operations(card, account):
@@ -426,9 +435,9 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
         if differed_date is not None:
             # set deleted for card_summary
             for tr in transactions:
-                tr.deleted = tr.type == FrenchTransaction.TYPE_CARD_SUMMARY and \
-                             differed_date.month <= tr.date.month and \
-                             not hasattr(tr, '_is_manualsum')
+                tr.deleted = (tr.type == FrenchTransaction.TYPE_CARD_SUMMARY
+                              and differed_date.month <= tr.date.month
+                              and not hasattr(tr, '_is_manualsum'))
 
         transactions = sorted_transactions(transactions)
         return transactions
@@ -472,7 +481,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def init_transfer(self, account, to, amount, reason=None):
-        if to.category != u'Interne':
+        if to.category != 'Interne':
             self.external_transfer.go(subbank=self.currentSubBank)
         else:
             self.internal_transfer.go(subbank=self.currentSubBank)
@@ -528,13 +537,13 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
         r.category = recipient.category
         # On credit mutuel recipients are immediatly available.
         r.enabled_at = datetime.now().replace(microsecond=0)
-        r.currency = u'EUR'
+        r.currency = 'EUR'
         r.bank_name = NotAvailable
         return r
 
     def continue_new_recipient(self, recipient, **params):
-        if u'Clé' in params:
-            self.page.post_code(params[u'Clé'])
+        if 'Clé' in params:
+            self.page.post_code(params['Clé'])
         self.page.add_recipient(recipient)
         if self.page.bic_needed():
             self.page.ask_bic(self.get_recipient_object(recipient))
@@ -563,7 +572,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
         for k, v in self.form.items():
             if k != 'url':
                 data[k] = v
-        data['[t:dbt%3astring;x(11)]data_input_BIC'] = params[u'Bic']
+        data['[t:dbt%3astring;x(11)]data_input_BIC'] = params['Bic']
         self.location(self.form['url'], data=data)
         self.page.ask_sms(self.get_recipient_object(recipient))
 
@@ -575,7 +584,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
             return self.post_with_bic(recipient, **params)
         if 'code' in params:
             return self.end_new_recipient(recipient, **params)
-        if u'Clé' in params:
+        if 'Clé' in params:
             return self.continue_new_recipient(recipient, **params)
 
         self.recipients_list.go(subbank=self.currentSubBank)
@@ -586,7 +595,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
 
         self.page.go_to_add()
         if self.verify_pass.is_here():
-            raise AddRecipientStep(self.get_recipient_object(recipient), Value(u'Clé', label=self.page.get_question()))
+            raise AddRecipientStep(self.get_recipient_object(recipient), Value('Clé', label=self.page.get_question()))
         else:
             return self.continue_new_recipient(recipient, **params)
 
@@ -601,7 +610,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
     def iter_documents(self, subscription):
         if self.currentSubBank is None:
             self.getCurrentSubBank()
-        self.subscription.go(subbank=self.currentSubBank, params={'typ':'doc'})
+        self.subscription.go(subbank=self.currentSubBank, params={'typ': 'doc'})
 
         security_limit = 10
 

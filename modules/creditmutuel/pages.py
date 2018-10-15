@@ -30,8 +30,9 @@ from collections import OrderedDict
 
 from weboob.browser.pages import HTMLPage, FormNotFound, LoggedPage, pagination, XMLPage
 from weboob.browser.elements import ListElement, ItemElement, SkipItem, method, TableElement
-from weboob.browser.filters.standard import Filter, Env, CleanText, CleanDecimal, Field, \
-    Regexp, Async, AsyncLoad, Date, Format, Type, Currency
+from weboob.browser.filters.standard import (
+    Filter, Env, CleanText, CleanDecimal, Field, Regexp, Async, AsyncLoad, Date, Format, Type, Currency,
+)
 from weboob.browser.filters.html import Link, Attr, TableCell, ColumnNotFound
 from weboob.exceptions import (
     BrowserIncorrectPassword, ParseError, NoAccountsException, ActionNeeded, BrowserUnavailable,
@@ -116,7 +117,7 @@ class EmptyPage(LoggedPage, HTMLPage):
 class UserSpacePage(LoggedPage, HTMLPage):
     def on_load(self):
         if self.doc.xpath('//form[@id="GoValider"]'):
-            raise ActionNeeded(u"Le site du contrat Banque à Distance a besoin d'informations supplémentaires")
+            raise ActionNeeded("Le site du contrat Banque à Distance a besoin d'informations supplémentaires")
         super(UserSpacePage, self).on_load()
 
 
@@ -162,7 +163,7 @@ class item_account_generic(ItemElement):
         ("Plan D'Epargne",          Account.TYPE_SAVINGS),
         ('Tonic Croissance',        Account.TYPE_SAVINGS),
         ('Capital Expansion',       Account.TYPE_SAVINGS),
-        ('\xc9pargne',              Account.TYPE_SAVINGS),
+        ('Épargne',                 Account.TYPE_SAVINGS),
         ('Compte Garantie Titres',  Account.TYPE_MARKET),
         ])
 
@@ -263,34 +264,35 @@ class item_account_generic(ItemElement):
             # classical account
             id_xpath = './td[1]/a/node()[contains(@class, "doux")]'
 
-        id = CleanText(id_xpath, replace=[(' ', '')])(el)
-        if not id:
+        _id = CleanText(id_xpath, replace=[(' ', '')])(el)
+        if not _id:
             if 'rib' in p:
-                id = p['rib'][0]
+                _id = p['rib'][0]
             else:
-                id = p['webid'][0]
+                _id = p['webid'][0]
                 self.env['_is_webid'] = True
 
         if self.is_revolving(Field('label')(self)):
             page = self.page.browser.open(link).page
             if isinstance(page, RevolvingLoansList):
-                # some revolving loans are listed on an other page. On the accountList, there is just a link for this page
-                # that's why we don't handle it here
+                # some revolving loans are listed on an other page. On the accountList, there is
+                # just a link for this page, that's why we don't handle it here
                 raise SkipItem()
 
         # Handle cards
-        if id in self.parent.objects:
+        if _id in self.parent.objects:
             if not page:
                 page = self.page.browser.open(link).page
             # Handle real balances
-            coming = page.find_amount(u"Opérations à venir") if page else None
-            accounting = page.find_amount(u"Solde comptable") if page else None
+            coming = page.find_amount("Opérations à venir") if page else None
+            accounting = page.find_amount("Solde comptable") if page else None
             # on old website we want card's history in account's history
             if not page.browser.is_new_website:
-                account = self.parent.objects[id]
+                account = self.parent.objects[_id]
                 if not account.coming:
                     account.coming = Decimal('0.0')
-                date = parse_french_date(Regexp(Field('label'), 'Fin (.+) (\d{4})', '01 \\1 \\2')(self)) + relativedelta(day=31)
+                # Get end of month
+                date = parse_french_date(Regexp(Field('label'), r'Fin (.+) (\d{4})', '01 \\1 \\2')(self)) + relativedelta(day=31)
                 if date > datetime.now() - relativedelta(day=1):
                     account.coming += balance
                 account._card_links.append(link)
@@ -299,7 +301,7 @@ class item_account_generic(ItemElement):
                 single_card_xpath = '//span[has-class("_c1 fg _c1")]'
                 card_xpath = multiple_cards_xpath + ' | ' + single_card_xpath
                 for elem in page.doc.xpath(card_xpath):
-                    card_id = Regexp(CleanText('.', symbols=' '), '([\dx]{16})')(elem)
+                    card_id = Regexp(CleanText('.', symbols=' '), r'([\dx]{16})')(elem)
                     if card_id in self.page.browser.unavailablecards:
                         raise SkipItem()
 
@@ -311,9 +313,9 @@ class item_account_generic(ItemElement):
                     card.id = card._card_number = card_id
                     card._link_id = link
                     card._is_inv = card._is_webid = False
-                    card.parent = self.parent.objects[id]
+                    card.parent = self.parent.objects[_id]
 
-                    pattern = 'Carte\s(\w+).*\d{4}\s([A-Za-z\s]+)(.*)'
+                    pattern = r'Carte\s(\w+).*\d{4}\s([A-Za-z\s]+)(.*)'
                     m = re.search(pattern, CleanText('.')(elem))
                     card.label = "%s %s %s" % (m.group(1), card_id, m.group(2))
                     card.balance = Decimal('0.0')
@@ -321,14 +323,14 @@ class item_account_generic(ItemElement):
                     card._card_pages = [page]
                     card.coming = Decimal('0.0')
                     #handling the case were the month is the coming one. There won't be next_month here.
-                    date = parse_french_date(Regexp(Field('label'), 'Fin (.+) (\d{4})', '01 \\1 \\2')(self)) + relativedelta(day=31)
+                    date = parse_french_date(Regexp(Field('label'), r'Fin (.+) (\d{4})', '01 \\1 \\2')(self)) + relativedelta(day=31)
                     if date > datetime.now() - relativedelta(day=1):
                         card.coming = CleanDecimal(replace_dots=True).filter(m.group(3))
                     next_month = Link('./following-sibling::tr[contains(@class, "encours")][1]/td[1]//a', default=None)(self)
                     if next_month:
                         card_page = page.browser.open(next_month).page
                         for e in card_page.doc.xpath(card_xpath):
-                            if card.id == Regexp(CleanText('.', symbols=' '), '([\dx]{16})')(e):
+                            if card.id == Regexp(CleanText('.', symbols=' '), r'([\dx]{16})')(e):
                                 m = re.search(pattern, CleanText('.')(e))
                                 card._card_pages.append(card_page)
                                 card.coming += CleanDecimal(replace_dots=True).filter(m.group(3))
@@ -338,7 +340,7 @@ class item_account_generic(ItemElement):
 
             raise SkipItem()
 
-        self.env['id'] = id
+        self.env['id'] = _id
 
         if accounting is not None and accounting + (coming or Decimal('0')) != balance:
             self.page.logger.warning('%s + %s != %s' % (accounting, coming, balance))
@@ -350,8 +352,9 @@ class item_account_generic(ItemElement):
         self.env['coming'] = coming or NotAvailable
 
     def is_revolving(self, label):
-        return any(revolving_loan_label in label
-                   for revolving_loan_label in item_account_generic.REVOLVING_LOAN_LABELS) or label.lower() in self.page.browser.revolving_accounts
+        return (any(revolving_loan_label in label
+                    for revolving_loan_label in item_account_generic.REVOLVING_LOAN_LABELS)
+                or label.lower() in self.page.browser.revolving_accounts)
 
 
 class AccountsPage(LoggedPage, HTMLPage):
@@ -369,8 +372,8 @@ class AccountsPage(LoggedPage, HTMLPage):
 
         class item_account(item_account_generic):
             def condition(self):
-                type = Field('type')(self)
-                return item_account_generic.condition(self) and type != Account.TYPE_LOAN
+                _type = Field('type')(self)
+                return item_account_generic.condition(self) and _type != Account.TYPE_LOAN
 
         class item_loan(item_account_generic):
             klass = Loan
@@ -383,7 +386,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_nb_payments_left = Async('details') & Type(CleanText(
                 '//div[@id="F4:expContent"]/table/tbody/tr[2]/td[2]/text()'), type=int, default=NotAvailable)
             obj_subscription_date = Async('details') & MyDate(Regexp(CleanText(
-                '//*[@id="F4:expContent"]/table/tbody/tr[1]/th[1]'), ' (\d{2}/\d{2}/\d{4})', default=NotAvailable))
+                '//*[@id="F4:expContent"]/table/tbody/tr[1]/th[1]'), r' (\d{2}/\d{2}/\d{4})', default=NotAvailable))
             obj_maturity_date = Async('details') & MyDate(
                 CleanText('//div[@id="F4:expContent"]/table/tbody/tr[4]/td[2]'))
 
@@ -392,11 +395,11 @@ class AccountsPage(LoggedPage, HTMLPage):
                 CleanText('//div[@id="F4:expContent"]/table/tbody/tr[3]/td[1]'))
 
             obj_last_payment_amount = Async('details') & MyDecimal('//td[@id="F2_0.T12"]')
-            obj_last_payment_date = Async('details') & \
-                MyDate(CleanText('//div[@id="F8:expContent"]/table/tbody/tr[1]/td[1]'))
+            obj_last_payment_date = (Async('details') &
+                MyDate(CleanText('//div[@id="F8:expContent"]/table/tbody/tr[1]/td[1]')))
 
             def condition(self):
-                type = Field('type')(self)
+                _type = Field('type')(self)
                 label = Field('label')(self)
                 details_link = Link('.//a', default=None)(self)
 
@@ -405,7 +408,8 @@ class AccountsPage(LoggedPage, HTMLPage):
                 if re.search(r'Le\sMobile\s+([0-9]{2}\s?){5}', label):
                     return False
 
-                if details_link and item_account_generic.condition and type == Account.TYPE_LOAN and not self.is_revolving(label):
+                if (details_link and item_account_generic.condition and _type == Account.TYPE_LOAN
+                                 and not self.is_revolving(label)):
                     details = self.page.browser.open(details_link)
                     if details.page and not 'cloturé' in CleanText('//form[@id="P:F"]//div[@class="blocmsg info"]//p')(details.page.doc):
                         return True
@@ -423,9 +427,9 @@ class AccountsPage(LoggedPage, HTMLPage):
                 return -Field('balance')(self)
 
             def condition(self):
-                type = Field('type')(self)
+                _type = Field('type')(self)
                 label = Field('label')(self)
-                return (item_account_generic.condition(self) and type == Account.TYPE_LOAN
+                return (item_account_generic.condition(self) and _type == Account.TYPE_LOAN
                         and self.is_revolving(label))
 
     def get_advisor_link(self):
@@ -453,7 +457,8 @@ class NewAccountsPage(NewHomePage, AccountsPage):
     class get_advisor(ItemElement):
         klass = Advisor
 
-        obj_name = Regexp(CleanText('//script[contains(text(), "Espace Conseiller")]'), 'consname.+?([\w\s]+)')
+        obj_name = Regexp(CleanText('//script[contains(text(), "Espace Conseiller")]'),
+                          r'consname.+?([\w\s]+)')
 
     @method
     class get_profile(ItemElement):
@@ -491,7 +496,7 @@ class Pagination(object):
             return self.next_month()
 
         text = CleanText.clean(form.el)
-        m = re.search('(\d+)/(\d+)', text or '', flags=re.MULTILINE)
+        m = re.search(r'(\d+)/(\d+)', text or '', flags=re.MULTILINE)
         if not m:
             return self.next_month()
 
@@ -537,7 +542,7 @@ class CardsListPage(LoggedPage, HTMLPage):
                 form = self.page.get_form('//form[contains(@id, "frmStarcLstCtrPag")]')
                 form['imgCtrPagSui.x'] =  randint(1, 29)
                 form['imgCtrPagSui.y'] =  randint(1, 17)
-                m = re.search('(\d+)/(\d+)', CleanText('.')(form.el))
+                m = re.search(r'(\d+)/(\d+)', CleanText('.')(form.el))
                 if m and int(m.group(1)) < int(m.group(2)):
                     return form.request
             except FormNotFound:
@@ -548,11 +553,13 @@ class CardsListPage(LoggedPage, HTMLPage):
 
             load_details = Field('_link_id') & AsyncLoad
 
-            obj_number = Field('_link_id') & Regexp(pattern='ctr=(\d+)')
+            obj_number = Field('_link_id') & Regexp(pattern=r'ctr=(\d+)')
             obj__card_number = Env('id', default="")
             obj_id = Format('%s%s', Env('id', default=""), Field('number'))
-            obj_label = Format('%s %s %s', CleanText(TableCell('card')), Env('id', default=""), CleanText(TableCell('owner')))
-            obj_coming = CleanDecimal('./td[@class="i d" or @class="p d"][2]', replace_dots=True, default=NotAvailable)
+            obj_label = Format('%s %s %s', CleanText(TableCell('card')), Env('id', default=""),
+                               CleanText(TableCell('owner')))
+            obj_coming = CleanDecimal('./td[@class="i d" or @class="p d"][2]', replace_dots=True,
+                                      default=NotAvailable)
             obj_balance = Decimal('0.00')
             obj_currency = FrenchTransaction.Currency(CleanText('./td[small][1]'))
             obj_type = Account.TYPE_CARD
@@ -611,18 +618,18 @@ class CardsListPage(LoggedPage, HTMLPage):
 
 
 class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile('^VIR(EMENT)? (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
-                (re.compile('^(PRLV|Plt|PRELEVEMENT) (?P<text>.*)'),        FrenchTransaction.TYPE_ORDER),
-                (re.compile('^(?P<text>.*) CARTE \d+ PAIEMENT CB\s+(?P<dd>\d{2})(?P<mm>\d{2}) ?(.*)$'),
+    PATTERNS = [(re.compile(r'^VIR(EMENT)? (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
+                (re.compile(r'^(PRLV|Plt|PRELEVEMENT) (?P<text>.*)'),        FrenchTransaction.TYPE_ORDER),
+                (re.compile(r'^(?P<text>.*) CARTE \d+ PAIEMENT CB\s+(?P<dd>\d{2})(?P<mm>\d{2}) ?(.*)$'),
                                                           FrenchTransaction.TYPE_CARD),
-                (re.compile('^PAIEMENT PSC\s+(?P<dd>\d{2})(?P<mm>\d{2}) (?P<text>.*) CARTE \d+ ?(.*)$'),
+                (re.compile(r'^PAIEMENT PSC\s+(?P<dd>\d{2})(?P<mm>\d{2}) (?P<text>.*) CARTE \d+ ?(.*)$'),
                                                           FrenchTransaction.TYPE_CARD),
-                (re.compile('^(?P<text>RELEVE CARTE.*)'), FrenchTransaction.TYPE_CARD_SUMMARY),
-                (re.compile('^RETRAIT DAB (?P<dd>\d{2})(?P<mm>\d{2}) (?P<text>.*) CARTE [\*\d]+'),
+                (re.compile(r'^(?P<text>RELEVE CARTE.*)'), FrenchTransaction.TYPE_CARD_SUMMARY),
+                (re.compile(r'^RETRAIT DAB (?P<dd>\d{2})(?P<mm>\d{2}) (?P<text>.*) CARTE [\*\d]+'),
                                                           FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('^CHEQUE( (?P<text>.*))?$'),  FrenchTransaction.TYPE_CHECK),
-                (re.compile('^(F )?COTIS\.? (?P<text>.*)'), FrenchTransaction.TYPE_BANK),
-                (re.compile('^(REMISE|REM CHQ) (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
+                (re.compile(r'^CHEQUE( (?P<text>.*))?$'),  FrenchTransaction.TYPE_CHECK),
+                (re.compile(r'^(F )?COTIS\.? (?P<text>.*)'), FrenchTransaction.TYPE_BANK),
+                (re.compile(r'^(REMISE|REM CHQ) (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
                ]
 
     _is_coming = False
@@ -650,11 +657,12 @@ class OperationsPage(LoggedPage, HTMLPage):
                     # hideifscript: Date de valeur XX/XX/XXXX
                     # fd: Avis d'opéré
                     # survey to add other regx
-                    parts = (re.sub('Détail|Date de valeur\s+:\s+\d{2}/\d{2}(/\d{4})?', '', txt.strip()) for txt in el.itertext() if len(txt.strip()) > 0)
-                    # Removing empty strings:
-                    parts = [s for s in parts if s]
+                    parts = (re.sub(r'Détail|Date de valeur\s+:\s+\d{2}/\d{2}(/\d{4})?', '', txt.strip())
+                             for txt in el.itertext() if txt.strip())
+                    # Removing empty strings
+                    parts = list(filter(bool, parts))
                     # To simplify categorization of CB, reverse order of parts to separate
-                    # location and institution.
+                    # location and institution
                     detail = "Cliquer pour déplier ou plier le détail de l'opération"
                     if detail in parts:
                         parts.remove(detail)
@@ -725,14 +733,16 @@ class CardsOpePage(OperationsPage):
                 return (abs(gross) - abs(commission)).copy_sign(gross)
 
             def parse(self, el):
-                self.env['date'] = Date(Regexp(CleanText('//td[contains(text(), "Total prélevé")]'), ' (\d{2}/\d{2}/\d{4})', \
-                                               default=NotAvailable), default=NotAvailable)(self)
+                self.env['date'] = Date(Regexp(CleanText('//td[contains(text(), "Total prélevé")]'),
+                                               r' (\d{2}/\d{2}/\d{4})', default=NotAvailable),
+                                               default=NotAvailable)(self)
                 if not self.env['date']:
                     try:
-                        d = CleanText('//select[@id="moi"]/option[@selected]')(self) or \
-                            re.search('pour le mois de (.*)', ''.join(w.strip() for w in self.page.doc.xpath('//div[@class="a_blocongfond"]/text()'))).group(1)
+                        d = (CleanText('//select[@id="moi"]/option[@selected]')(self)
+                             or re.search(r'pour le mois de (.*)', ''.join(w.strip() for w in
+                                self.page.doc.xpath('//div[@class="a_blocongfond"]/text()'))).group(1))
                     except AttributeError:
-                        d = Regexp(CleanText('//p[has-class("restriction")]'), 'pour le mois de ((?:\w+\s+){2})', flags=re.UNICODE)(self)
+                        d = Regexp(CleanText('//p[has-class("restriction")]'), r'pour le mois de ((?:\w+\s+){2})', flags=re.UNICODE)(self)
                     self.env['date'] = (parse_french_date('%s %s' % ('1', d)) + relativedelta(day=31)).date()
                 self.env['_is_coming'] = date.today() < self.env['date']
                 amount = CleanText(TableCell('amount'))(self).split('dont frais')
@@ -746,7 +756,7 @@ class ComingPage(OperationsPage, LoggedPage):
         head_xpath = '//table[has-class("liste")]//thead//tr/th/text()'
         item_xpath = '//table[has-class("liste")]//tbody/tr'
 
-        col_date = u"Date de l'annonce"
+        col_date = "Date de l'annonce"
 
         class item(Transaction.TransactionElement):
             obj__is_coming = True
@@ -755,7 +765,7 @@ class ComingPage(OperationsPage, LoggedPage):
 class CardPage(OperationsPage, LoggedPage):
     def select_card(self, card_number):
         for option in self.doc.xpath('//select[@name="Data_SelectedCardItemKey"]/option'):
-            card_id = Regexp(CleanText('.', symbols=' '), '([\dx]+)')(option)
+            card_id = Regexp(CleanText('.', symbols=' '), r'([\dx]+)')(option)
             if card_id != card_number:
                 continue
             if Attr('.', 'selected', default=None)(option):
@@ -805,7 +815,7 @@ class CardPage(OperationsPage, LoggedPage):
                 if not label:
                     return
                 try:
-                    label = re.findall('(\d+ [^ ]+ \d+)', label)[-1]
+                    label = re.findall(r'(\d+ [^ ]+ \d+)', label)[-1]
                 except IndexError:
                     return
                 # use the trick of relativedelta to get the last day of month.
@@ -828,13 +838,16 @@ class CardPage(OperationsPage, LoggedPage):
 
                 def parse(self, el):
                     try:
-                        self.env['raw'] = "%s %s" % (CleanText().filter(TableCell('commerce')(self)[0].text), CleanText().filter(TableCell('ville')(self)[0].text))
+                        self.env['raw'] = "%s %s" % (CleanText().filter(TableCell('commerce')(self)[0].text),
+                                                     CleanText().filter(TableCell('ville')(self)[0].text))
                     except (ColumnNotFound, AttributeError):
                         self.env['raw'] = "%s" % (CleanText().filter(TableCell('commerce')(self)[0].text))
 
-                    self.env['type'] = Transaction.TYPE_DEFERRED_CARD \
-                                       if CleanText('//a[contains(text(), "Prélevé fin")]', default=None) else Transaction.TYPE_CARD
-                    self.env['differed_date'] = parse_french_date(Regexp(CleanText('//*[contains(text(), "Achats")]'), 'au[\s]+(.*)')(self)).date()
+                    self.env['type'] = (Transaction.TYPE_DEFERRED_CARD
+                                        if CleanText('//a[contains(text(), "Prélevé fin")]', default=None)
+                                        else Transaction.TYPE_CARD)
+                    self.env['differed_date'] = parse_french_date(Regexp(CleanText('//*[contains(text(), "Achats")]'),
+                                                                         r'au[\s]+(.*)')(self)).date()
                     amount = TableCell('credit')(self)[0]
                     if self.page.browser.is_new_website:
                         if not len(amount.xpath('./div')):
@@ -847,10 +860,10 @@ class CardPage(OperationsPage, LoggedPage):
                         except IndexError:
                             original_amount = None
                     self.env['amount'] = CleanDecimal(replace_dots=True).filter(amount.text)
-                    self.env['original_amount'] = CleanDecimal(replace_dots=True).filter(original_amount) \
-                                                  if original_amount is not None else NotAvailable
-                    self.env['original_currency'] = Account.get_currency(original_amount[1:-1]) \
-                                                  if original_amount is not None else NotAvailable
+                    self.env['original_amount'] = (CleanDecimal(replace_dots=True).filter(original_amount)
+                                                   if original_amount is not None else NotAvailable)
+                    self.env['original_currency'] = (Account.get_currency(original_amount[1:-1])
+                                                     if original_amount is not None else NotAvailable)
 
 
 class CardPage2(CardPage, HTMLPage, XMLPage):
@@ -1111,8 +1124,10 @@ class LIAccountsPage(LoggedPage, HTMLPage):
             klass = Investment
 
             obj_label = CleanText(TableCell('label'))
-            obj_unitprice = CleanDecimal(TableCell('unitprice', default=NotAvailable), default=NotAvailable, replace_dots=True)
-            obj_vdate = Date(CleanText(TableCell('vdate'), replace=[('-', '')]), default=NotAvailable, dayfirst=True)
+            obj_unitprice = CleanDecimal(TableCell('unitprice', default=NotAvailable),
+                                         default=NotAvailable, replace_dots=True)
+            obj_vdate = Date(CleanText(TableCell('vdate'), replace=[('-', '')]),
+                             default=NotAvailable, dayfirst=True)
             obj_unitvalue = CleanDecimal(TableCell('unitvalue'), default=NotAvailable, replace_dots=True)
             obj_quantity = CleanDecimal(TableCell('quantity'), default=NotAvailable, replace_dots=True)
             obj_valuation = CleanDecimal(TableCell('valuation'), default=Decimal(0), replace_dots=True)
@@ -1121,7 +1136,7 @@ class LIAccountsPage(LoggedPage, HTMLPage):
                 link = Link(TableCell('label')(self)[0].xpath('./a'), default=NotAvailable)(self)
                 if not link:
                     return NotAvailable
-                return Regexp(pattern='isin=([A-Z\d]+)&?', default=NotAvailable).filter(link)
+                return Regexp(pattern=r'isin=([A-Z\d]+)&?', default=NotAvailable).filter(link)
 
 
 class PorPage(LoggedPage, HTMLPage):
@@ -1154,7 +1169,7 @@ class PorPage(LoggedPage, HTMLPage):
                 if acc.id == '9999':
                     # fake account
                     continue
-                acc.label = unicode(re.sub("\d", '', ele.text).strip())
+                acc.label = unicode(re.sub(r'\d', '', ele.text).strip())
                 acc._link_id = None
                 acc.type = self.get_type(acc.label)
                 acc._is_inv = True
@@ -1164,9 +1179,11 @@ class PorPage(LoggedPage, HTMLPage):
     def fill(self, acc):
         self.send_form(acc)
         ele = self.browser.page.doc.xpath('.//table[has-class("fiche bourse")]')[0]
-        balance = CleanDecimal(ele.xpath('.//td[contains(@id, "Valorisation")]'), default=Decimal(0), replace_dots=True)(ele)
+        balance = CleanDecimal(ele.xpath('.//td[contains(@id, "Valorisation")]'),
+                               default=Decimal(0), replace_dots=True)(ele)
         acc.balance = balance + acc.balance if acc.balance else balance
-        acc.valuation_diff = CleanDecimal(ele.xpath('.//td[contains(@id, "Variation")]'), default=Decimal(0), replace_dots=True)(ele)
+        acc.valuation_diff = CleanDecimal(ele.xpath('.//td[contains(@id, "Variation")]'),
+                                          default=Decimal(0), replace_dots=True)(ele)
         if balance:
             acc.currency = Currency('.//td[contains(@id, "Valorisation")]')(ele)
         else:
@@ -1178,13 +1195,13 @@ class PorPage(LoggedPage, HTMLPage):
             #
             # Solution: remove the date
             text_content = CleanText('.')(ele)
-            date_pattern = r"\d{2}/\d{2}/\d{4}"
+            date_pattern = r'\d{2}/\d{2}/\d{4}'
             no_date = re.sub(date_pattern, '', text_content)
             acc.currency = Currency().filter(no_date)
 
     def send_form(self, account):
         form = self.get_form(name="frmMere")
-        form['POR_SyntheseEntete1$esdselLstPor'] = re.sub('\D', '', account.id)
+        form['POR_SyntheseEntete1$esdselLstPor'] = re.sub(r'\D', '', account.id)
         form.submit()
 
     @method
@@ -1203,7 +1220,7 @@ class PorPage(LoggedPage, HTMLPage):
             klass = Investment
 
             obj_label = CleanText(TableCell('label'), default=NotAvailable)
-            obj_code = CleanText('.//td[1]/a/@title') & Regexp(pattern='^([^ ]+)')
+            obj_code = CleanText('.//td[1]/a/@title') & Regexp(pattern=r'^([^ ]+)')
             obj_quantity = CleanDecimal(TableCell('quantity'), default=Decimal(0), replace_dots=True)
             obj_unitprice = CleanDecimal(TableCell('unitprice'), default=Decimal(0), replace_dots=True)
             obj_valuation = CleanDecimal(TableCell('valuation'), default=Decimal(0), replace_dots=True)
@@ -1218,7 +1235,9 @@ class PorPage(LoggedPage, HTMLPage):
 
             def obj_vdate(self):
                 td = TableCell('unitvalue')(self)[0]
-                return Date(Regexp(Attr('./img', 'title', default=''), r'Cours au : (\d{2}/\d{2}/\d{4})\b', default=None), dayfirst=True, default=NotAvailable)(td)
+                return Date(Regexp(Attr('./img', 'title', default=''),
+                                   r'Cours au : (\d{2}/\d{2}/\d{4})\b', default=None),
+                            dayfirst=True, default=NotAvailable)(td)
 
 
 class IbanPage(LoggedPage, HTMLPage):
@@ -1294,7 +1313,8 @@ class InternalTransferPage(LoggedPage, HTMLPage):
             obj_category = 'Interne'
 
             def obj_iban(self):
-                l = [a for a in self.page.browser.get_accounts_list() if Field('id')(self) in a.id and empty(a.valuation_diff)]
+                l = [a for a in self.page.browser.get_accounts_list()
+                     if Field('id')(self) in a.id and empty(a.valuation_diff)]
                 assert len(l) == 1
                 return l[0].iban
 
@@ -1355,12 +1375,16 @@ class InternalTransferPage(LoggedPage, HTMLPage):
             raise TransferError('The expected message "%s" was not found.' % self.READY_FOR_TRANSFER_MSG)
 
     def check_data_consistency(self, account_id, recipient_id, amount, reason):
-        assert account_id in CleanText('//div[div[p[contains(text(), "Compte à débiter")]]]', replace=[(' ', '')])(self.doc)
-        assert recipient_id in CleanText('//div[div[p[contains(text(), "%s")]]]' % self.SUMMARY_RECIPIENT_TITLE, replace=[(' ', '')])(self.doc)
+        assert account_id in CleanText('//div[div[p[contains(text(), "Compte à débiter")]]]',
+                                       replace=[(' ', '')])(self.doc)
+        assert recipient_id in CleanText('//div[div[p[contains(text(), "%s")]]]' % self.SUMMARY_RECIPIENT_TITLE,
+                                         replace=[(' ', '')])(self.doc)
 
-        exec_date = Date(Regexp(CleanText('//table[@summary]/tbody/tr[th[contains(text(), "Date")]]/td'), '(\d{2}/\d{2}/\d{4})'), dayfirst=True)(self.doc)
+        exec_date = Date(Regexp(CleanText('//table[@summary]/tbody/tr[th[contains(text(), "Date")]]/td'),
+                                r'(\d{2}/\d{2}/\d{4})'), dayfirst=True)(self.doc)
         assert exec_date == datetime.today().date()
-        r_amount = CleanDecimal('//table[@summary]/tbody/tr[th[contains(text(), "Montant")]]/td', replace_dots=True)(self.doc)
+        r_amount = CleanDecimal('//table[@summary]/tbody/tr[th[contains(text(), "Montant")]]/td',
+                                replace_dots=True)(self.doc)
         assert r_amount == Decimal(amount)
         currency = FrenchTransaction.Currency('//table[@summary]/tbody/tr[th[contains(text(), "Montant")]]/td')(self.doc)
         if reason is not None:
@@ -1628,7 +1652,7 @@ class RecipientsListPage(LoggedPage, HTMLPage):
 
         # Needed because it requires that \xe9 is encoded %E9 instead of %C3%A9
         try:
-            del form[u'data_pilotageAffichage_habilitéSaisieInternationale']
+            del form['data_pilotageAffichage_habilitéSaisieInternationale']
         except KeyError:
             pass
         else:
@@ -1756,7 +1780,8 @@ class SubscriptionPage(LoggedPage, HTMLPage):
 
             # Some documents may have the same date, name and label; only parts of the PDF href may change,
             # so we must pick a unique ID including the href to avoid document duplicates:
-            obj_id = Format('%s_%s_%s', Env('sub_id'), CleanText(TableCell('date'), replace=[('/', '')]), Regexp(Field('url'), r'NOM=(.*)&RFL='))
+            obj_id = Format('%s_%s_%s', Env('sub_id'), CleanText(TableCell('date'), replace=[('/', '')]),
+                            Regexp(Field('url'), r'NOM=(.*)&RFL='))
             obj_label = Format('%s %s', CleanText(TableCell('url')), CleanText(TableCell('date')))
             obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
             obj_format = 'pdf'

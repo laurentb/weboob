@@ -22,8 +22,10 @@
 from decimal import Decimal
 
 from weboob.capabilities.base import find_object, NotAvailable
-from weboob.capabilities.bank import CapBankWealth, CapBankTransferAddRecipient, AccountNotFound, RecipientNotFound, \
-                                     Account, TransferError
+from weboob.capabilities.bank import (
+    CapBankWealth, CapBankTransferAddRecipient, AccountNotFound, RecipientNotFound,
+    Account, TransferError
+)
 from weboob.capabilities.contact import CapContact
 from weboob.capabilities.profile import CapProfile
 from weboob.capabilities.bill import (
@@ -110,10 +112,12 @@ class CreditMutuelModule(
 
         try:
             assert account.id.isdigit()
-            # quantize to show 2 decimals.
+        except AssertionError:
+            raise TransferError('Account id is invalid')
+        try:    # quantize to show 2 decimals.
             amount = Decimal(transfer.amount).quantize(Decimal(10) ** -2)
-        except (AssertionError, ValueError):
-            raise TransferError('something went wrong')
+        except ValueError:
+            raise TransferError('Transfer amount is invalid')
 
         # drop characters that can crash website
         transfer.label = transfer.label.encode('cp1252', errors="ignore").decode('cp1252')
