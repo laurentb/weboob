@@ -21,7 +21,7 @@
 from weboob.capabilities.bill import CapDocument, Subscription, Document, SubscriptionNotFound, DocumentNotFound
 from weboob.capabilities.base import find_object, NotAvailable
 from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.value import ValueBackendPassword, Value
+from weboob.tools.value import ValueBackendPassword
 
 from .browser import MaterielnetBrowser
 
@@ -36,8 +36,8 @@ class MaterielnetModule(Module, CapDocument):
     EMAIL = 'elambert@budget-insight.com'
     LICENSE = 'AGPLv3+'
     VERSION = '1.4'
-    CONFIG = BackendConfig(Value('login', label='Identifiant'),
-                       ValueBackendPassword('password', label='Mot de passe'))
+    CONFIG = BackendConfig(ValueBackendPassword('login', label='Email', regex='.+@.+'),
+                           ValueBackendPassword('password', label='Mot de passe'))
 
     BROWSER = MaterielnetBrowser
 

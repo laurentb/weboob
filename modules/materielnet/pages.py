@@ -19,16 +19,31 @@
 
 from __future__ import unicode_literals
 
+import re
+
 from weboob.browser.pages import HTMLPage, LoggedPage, PartialHTMLPage
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Env, Format, Date, Async, Filter, Regexp, Field
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.html import Attr, Link
 from weboob.capabilities.bill import Bill, Subscription
 from weboob.capabilities.base import NotAvailable
+from weboob.exceptions import BrowserIncorrectPassword
 
 
 class LoginPage(PartialHTMLPage):
     def login(self, login, password):
+        maxlength = Attr('//input[@id="Email"]', 'data-val-maxlength-max')(self.doc)
+        regex = Attr('//input[@id="Email"]', 'data-val-regex-pattern')(self.doc)
+        # their regex is: ^([\w\-+\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,15}|[0-9]{1,3})(\]?)$
+        # but it is not very good, we escape - inside [] to avoid bad character range Exception
+        regex = regex.replace('[\w-+\.]', '[\w\-+\.]')
+
+        if len(login) > maxlength:  # actually it's 60 char
+            raise BrowserIncorrectPassword(Attr('//input[@id="Email"]', 'data-val-maxlength')(self.doc))
+
+        if not re.match(regex, login):
+            raise BrowserIncorrectPassword(Attr('//input[@id="Email"]', 'data-val-regex')(self.doc))
+
         form = self.get_form(id='loginForm')
         form['Email'] = login
         form['Password'] = password
