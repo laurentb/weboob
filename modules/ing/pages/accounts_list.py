@@ -190,11 +190,11 @@ class AccountsList(LoggedPage, HTMLPage):
             klass = Loan
 
             obj_currency = u'EUR'
-            obj_label = CleanText('./span[@class="title"]')
+            obj_label = CleanText('.//span[@class="title"]')
             obj_id = AddPref(Field('_id'), Field('label'))
             obj_type = AddType(Field('label'))
             obj__jid = Attr('//input[@name="javax.faces.ViewState"]', 'value')
-            obj__id = CleanText('./span[@class="account-number"]')
+            obj__id = CleanText('.//span[@class="account-number"]')
 
             def obj_balance(self):
                 balance = CleanDecimal('.//div/span[@class="solde"]/label', replace_dots=True)(self)
