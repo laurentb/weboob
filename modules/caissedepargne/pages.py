@@ -474,7 +474,7 @@ class IndexPage(LoggedPage, HTMLPage):
                 obj_type = Loan.TYPE_LOAN
                 obj_total_amount = MyDecimal(MyTableCell("total_amount"))
                 obj_rate = MyDecimal(MyTableCell("rate", default=NotAvailable), default=NotAvailable)
-                obj_balance = MyDecimal(MyTableCell("balance"))
+                obj_balance = MyDecimal(MyTableCell("balance"), sign=lambda x: -1)
                 obj_currency = Currency(MyTableCell("balance"))
                 obj_last_payment_date = Date(CleanText(MyTableCell("last_payment_date")))
                 obj_next_payment_amount = MyDecimal(MyTableCell("next_payment_amount"))
