@@ -531,7 +531,7 @@ class ProfilePage(LoggedPage, HTMLPage):
     class get_profile(ItemElement):
         klass = Person
 
-        obj_phone = Regexp(CleanText('//div[@id="consultationform_telephones"]/p[@id="c_numeroPortable"]'), '([\d\*]+)')
+        obj_phone = Regexp(CleanText('//div[@id="consultationform_telephones"]/p[@id="c_numeroPortable"]'), '([\d\*]+)', default=None)
         obj_email = CleanText('//div[@id="modification_email"]//p[@id="c_email_actuel"]/span')
         obj_address = CleanText('//div[@id="consultationform_adresse_domicile"]/div[@class="container"]//span')
         obj_job = CleanText('//div[@id="consultationform_informations_complementaires"]/p[@id="c_profession"]/span')
@@ -560,3 +560,8 @@ class ProfilePageCSV(LoggedPage, CsvPage):
         profile.company_name = d.get('Employeur')
         profile.family_situation = d.get('Situation familiale')
         return profile
+
+
+class SecurityPage(LoggedPage, HTMLPage):
+    pass
+

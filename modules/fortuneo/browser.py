@@ -25,14 +25,14 @@ import json
 from datetime import datetime, timedelta
 
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
-from weboob.exceptions import AuthMethodNotImplemented, BrowserIncorrectPassword
+from weboob.exceptions import AuthMethodNotImplemented, BrowserIncorrectPassword, ActionNeeded
 from weboob.capabilities.bank import Account, AddRecipientStep, Recipient
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 from weboob.tools.value import Value
 
 from .pages.login import LoginPage, UnavailablePage
 from .pages.accounts_list import (
-    AccountsList, AccountHistoryPage, CardHistoryPage, InvestmentHistoryPage, PeaHistoryPage, LoanPage, ProfilePage, ProfilePageCSV,
+    AccountsList, AccountHistoryPage, CardHistoryPage, InvestmentHistoryPage, PeaHistoryPage, LoanPage, ProfilePage, ProfilePageCSV, SecurityPage,
 )
 from .pages.transfer import (
     RegisterTransferPage, ValidateTransferPage, ConfirmTransferPage, RecipientsPage, RecipientSMSPage
@@ -62,6 +62,7 @@ class Fortuneo(LoginBrowser, StatesMixin):
     invest_history = URL(r'.*/prive/mes-comptes/assurance-vie/.*', InvestmentHistoryPage)
     loan_contract = URL(r'/fr/prive/mes-comptes/credit-immo/contrat-credit-immo/contrat-pret-immobilier.jsp.*', LoanPage)
     unavailable = URL(r'/customError/indispo.html', UnavailablePage)
+    security_page = URL(r'/fr/prive/identification-carte-securite-forte.jsp.*', SecurityPage)
 
     # transfer
     recipients = URL(
@@ -152,6 +153,9 @@ class Fortuneo(LoginBrowser, StatesMixin):
     def get_accounts_list(self):
         self.accounts_page.go()
 
+        # Note: if you want to debug process_action_needed() here,
+        # you must first set self.action_needed_processed to False
+        # otherwise it might not enter the "if" loop here below.
         if not self.action_needed_processed:
             self.process_action_needed()
 
@@ -163,6 +167,13 @@ class Fortuneo(LoginBrowser, StatesMixin):
         url = self.page.get_iframe_url()
         if url:
             self.location(self.absurl(url, base=True)) # beware, the landing page might vary according to the referer page. So far I didn't figure out how the landing page is chosen.
+
+            if self.security_page.is_here():
+                # Some connections require reinforced security and we cannot bypass the OTP in order
+                # to get to the account information. Users have to provide a phone number in order to
+                # validate an OTP, so we must raise an ActionNeeded with the appropriate message.
+                raise ActionNeeded('Cette opération sensible doit être validée par un code sécurité envoyé par SMS ou serveur vocal. '
+                                   'Veuillez contacter le Service Clients pour renseigner vos coordonnées téléphoniques.')
 
             # if there are skippable CGUs, skip them
             if self.accounts_page.is_here() and self.page.has_action_needed():
