@@ -79,6 +79,7 @@ class Paypal(LoginBrowser):
         super(Paypal, self).__init__(*args, **kwargs)
 
     def do_login(self):
+        raise BrowserUnavailable()
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
 
