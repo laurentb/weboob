@@ -246,7 +246,7 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
 
     def get_closing_date(self):
         for i, j in zip(self.deferred_card_calendar, self.deferred_card_calendar[1:]):
-            if i[0] < date.today() <= j[0]:
+            if i[1] < date.today() <= j[1]:
                 return i[0]
 
     def get_card_transactions(self, account, coming):
