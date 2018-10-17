@@ -675,12 +675,19 @@ class IndexPage(LoggedPage, HTMLPage):
             fix_form(form)
             form.submit()
 
+    def transfer_link(self):
+        return self.doc.xpath(u'//a[span[contains(text(), "Effectuer un virement")]] | //a[contains(text(), "Réaliser un virement")]')
+
     def go_transfer_via_history(self, account):
         self.go_history(account._info)
-        self.browser.page.go_transfer(account)
+
+        # check that transfer is available for the connection before try to go on transfer page
+        # otherwise website will continually crash
+        if self.transfer_link():
+            self.browser.page.go_transfer(account)
 
     def go_transfer(self, account):
-        link = self.doc.xpath(u'//a[span[contains(text(), "Effectuer un virement")]] | //a[contains(text(), "Réaliser un virement")]')
+        link = self.transfer_link()
         if len(link) == 0:
             return self.go_transfer_via_history(account)
         else:

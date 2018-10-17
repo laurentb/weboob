@@ -663,8 +663,19 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             self.pre_transfer(origin_account)
         except TransferBankError:
             return []
-        if self.page.transfer_unavailable() or self.page.need_auth() or not self.page.can_transfer(origin_account):
+
+        go_transfer_errors = (
+            # redirected to home page because:
+            # - need to relogin, see `self.page.need_auth()`
+            # - need more security, see `self.page.transfer_unavailable()`
+            # - transfer is not available for this connection, see `self.page.go_transfer_via_history()`
+            self.home.is_here(),
+            # check if origin_account have recipients
+            self.transfer.is_here() and not self.page.can_transfer(origin_account),
+        )
+        if any(go_transfer_errors):
             return []
+
         return self.page.iter_recipients(account_id=origin_account.id)
 
     def pre_transfer(self, account):
