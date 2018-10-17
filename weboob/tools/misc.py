@@ -29,7 +29,7 @@ from .compat import unicode
 
 
 __all__ = ['get_backtrace', 'get_bytes_size', 'iter_fields',
-            'to_unicode', 'limit', 'find_exe']
+            'to_unicode', 'input', 'limit', 'find_exe']
 
 
 def get_backtrace(empty="Empty backtrace."):
@@ -106,6 +106,14 @@ def to_unicode(text):
     except UnicodeError:
         pass
     return text.decode('windows-1252', 'replace')
+
+# Get Python 3 input function in Python2, impl here because of reliance on to_unicode
+try:
+    raw_input  # checks py2
+    def input(prompt=''):
+        return raw_input(to_unicode(prompt).encode(sys.stdout.encoding or 'UTF-8'))
+except NameError:
+    pass
 
 
 def guess_encoding(stdio):
