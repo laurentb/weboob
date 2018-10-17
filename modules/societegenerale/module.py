@@ -35,7 +35,7 @@ from weboob.capabilities.profile import CapProfile
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
-from weboob.capabilities.base import find_object, NotAvailable
+from weboob.capabilities.base import find_object, NotAvailable, strict_find_object
 
 from .browser import SocieteGenerale
 from .sgpe.browser import SGEnterpriseBrowser, SGProfessionalBrowser
@@ -117,18 +117,16 @@ class SocieteGeneraleModule(Module, CapBankWealth, CapBankTransferAddRecipient, 
             raise NotImplementedError()
         transfer.label = ' '.join(w for w in re.sub('[^0-9a-zA-Z ]+', '', transfer.label).split())
         self.logger.info('Going to do a new transfer')
-        if transfer.account_iban:
-            account = find_object(self.iter_accounts(), iban=transfer.account_iban, error=AccountNotFound)
-        else:
-            account = find_object(self.iter_accounts(), id=transfer.account_id, error=AccountNotFound)
 
-        if transfer.recipient_iban:
-            recipient = find_object(self.iter_transfer_recipients(account.id), iban=transfer.recipient_iban, error=RecipientNotFound)
-        else:
-            recipient = find_object(self.iter_transfer_recipients(account.id), id=transfer.recipient_id, error=RecipientNotFound)
+        account = strict_find_object(self.iter_accounts(), iban=transfer.account_iban)
+        if not account:
+            account = strict_find_object(self.iter_accounts(), id=transfer.account_id, error=AccountNotFound)
+
+        recipient = strict_find_object(self.iter_transfer_recipients(account.id), iban=transfer.recipient_iban)
+        if not recipient:
+            recipient = strict_find_object(self.iter_transfer_recipients(account.id), id=transfer.recipient_id, error=RecipientNotFound)
 
         transfer.amount = transfer.amount.quantize(Decimal('.01'))
-
         return self.browser.init_transfer(account, recipient, transfer)
 
     def execute_transfer(self, transfer, **params):
