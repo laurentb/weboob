@@ -774,10 +774,20 @@ class CardPage(OperationsPage, LoggedPage):
 
             class item(ItemElement):
                 def __iter__(self):
+                    # Here we handle the subtransactions
                     card_link = self.el.get('href')
+                    d = re.search(r'cardmonth=(\d+)', self.page.url)
+                    if d:
+                        year = int(d.group(1)[:4])
+                        month = int(d.group(1)[4:])
+                    debit_date = date(year, month, 1) + relativedelta(day=31)
+
                     page = self.page.browser.location(card_link).page
 
                     for op in page.get_history():
+                        op.date = debit_date
+                        op.type = FrenchTransaction.TYPE_DEFERRED_CARD
+                        op._to_delete = False
                         yield op
 
         class list_history(Transaction.TransactionsElement):
@@ -812,6 +822,9 @@ class CardPage(OperationsPage, LoggedPage):
                 obj_original_amount = Env('original_amount')
                 obj_original_currency = Env('original_currency')
                 obj__differed_date = Env('differed_date')
+
+                def obj__to_delete(self):
+                    return bool(CleanText('.//a[contains(text(), "Regroupement")]')(self))
 
                 def parse(self, el):
                     try:
@@ -1000,7 +1013,7 @@ class CardPage2(CardPage, HTMLPage, XMLPage):
                 secondpage = tmp_link
                 continue
             m = re.search(r'fid=GoMonth&mois=(\d+)', tmp_link)
-            # To go to the page during the iter_history you need to have the good value from the precent page
+            # To go to the page during the iter_history you need to have the good value from the precedent page
             assert m, "It's not the URL expected"
             m = int(m.group(1))
             m=m+1 if m!= 12 else 1

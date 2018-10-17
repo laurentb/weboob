@@ -410,12 +410,14 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
         for card in cards:
             card_trs = []
             for tr in self.list_operations(card, account):
+                if tr._to_delete:
+                    # Delete main transaction when subtransactions exist
+                    continue
                 if hasattr(tr, '_differed_date') and (not differed_date or tr._differed_date < differed_date):
                     differed_date = tr._differed_date
                 if tr.date >= datetime.now():
                     tr._is_coming = True
                 elif hasattr(account, '_card_pages'):
-                    tr.type = FrenchTransaction.TYPE_DEFERRED_CARD
                     card_trs.append(tr)
                 transactions.append(tr)
             if card_trs:
