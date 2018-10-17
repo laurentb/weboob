@@ -297,7 +297,7 @@ class Account(BaseAccount):
     number =    StringField('Shown by the bank to identify your account ie XXXXX7489')
     # market and lifeinssurance accounts
     valuation_diff = DecimalField('+/- values total')
-    valuation_diff_percent = DecimalField('+/- values ratio')
+    valuation_diff_ratio = DecimalField('+/- values ratio')
 
     # parent account
     #  - A checking account parent of a card account
@@ -310,6 +310,15 @@ class Account(BaseAccount):
 
     def __repr__(self):
         return "<%s id=%r label=%r>" % (type(self).__name__, self.id, self.label)
+
+    # compatibility alias
+    @property
+    def valuation_diff_percent(self):
+        return self.valuation_diff_ratio
+
+    @valuation_diff_percent.setter
+    def valuation_diff_percent(self, value):
+        self.valuation_diff_ratio = value
 
 
 class Loan(Account):
@@ -450,7 +459,7 @@ class Investment(BaseObject):
     valuation =          DecimalField('Total current valuation of the Investment')
     vdate     =          DateField('Value date of the valuation amount')
     diff =               DecimalField('Difference between the buy cost and the current valuation')
-    diff_percent =       DecimalField('Difference in ratio (1 meaning 100%) between the buy cost and the current valuation')
+    diff_ratio =         DecimalField('Difference in ratio (1 meaning 100%) between the buy cost and the current valuation')
     portfolio_share =    DecimalField('Ratio (1 meaning 100%) of the current amount relative to the total')
 
     # International
@@ -462,6 +471,15 @@ class Investment(BaseObject):
 
     def __repr__(self):
         return '<Investment label=%r code=%r valuation=%r>' % (self.label, self.code, self.valuation)
+
+    # compatibility alias
+    @property
+    def diff_percent(self):
+        return self.diff_ratio
+
+    @diff_percent.setter
+    def diff_percent(self, value):
+        self.diff_ratio = value
 
 
 class PocketCondition(Enum):
