@@ -118,6 +118,19 @@ def find_object(mylist, error=None, **kwargs):
     return None
 
 
+def strict_find_object(mylist, error=None, **kwargs):
+    """
+    Tools to return an object with the matching parameters in kwargs.
+    Parameters with empty value are skipped
+    """
+    kwargs = {k: v for k, v in kwargs.items() if not empty(v)}
+    if kwargs:
+        return find_object(mylist, error=None, **kwargs)
+
+    if error is not None:
+        raise error()
+
+
 class UserError(Exception):
     """
     Exception containing an error message for user.
