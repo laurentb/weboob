@@ -107,13 +107,13 @@ def to_unicode(text):
         pass
     return text.decode('windows-1252', 'replace')
 
+
 # Get Python 3 input function in Python2, impl here because of reliance on to_unicode
-try:
-    raw_input  # checks py2
+if sys.version_info.major >= 3:
+    raw_input = input  # pyflakes3 is satisfied
+else:
     def input(prompt=''):
         return raw_input(to_unicode(prompt).encode(sys.stdout.encoding or 'UTF-8'))
-except NameError:
-    pass
 
 
 def guess_encoding(stdio):
