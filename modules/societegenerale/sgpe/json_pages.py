@@ -141,9 +141,30 @@ class HistoryJsonPage(LoggedPage, JsonPage):
             obj_rdate = Date(Dict('date', default=None), dayfirst=True, default=NotAvailable)
             obj_date = Date(Dict('dVl', default=None), dayfirst=True, default=NotAvailable)
             obj__coming = False
-            obj_raw = Transaction.Raw(Format('%s %s %s', Dict('l1'), Dict('l2'), Dict('l3')))
-            # We have l4 and l5 too most of the time, but it seems to be unimportant and would make label too long.
-            #tr.label = ' '.join([' '.join(transaction[l].strip().split()) for l in ['l1', 'l2', 'l3']])
+
+            # Label is split into l1, l2, l3, l4, l5.
+            # l5 is needed for transfer label, for example:
+            # 'l1': "000001 VIR EUROPEEN EMIS   NET"
+            # 'l2': "POUR: XXXXXXXXXXXXX"
+            # 'l3': "REF: XXXXXXXXXXXXXX"
+            # 'l4': "REMISE: XXXXXX TRANSFER LABEL"
+            # 'l5': "MOTIF: TRANSFER LABEL"
+            obj_raw = Transaction.Raw(Format(
+                '%s %s %s %s %s',
+                Dict('l1'),
+                Dict('l2'),
+                Dict('l3'),
+                Dict('l4'),
+                Dict('l5'),
+            ))
+
+            # keep the 3 first rows for transaction label
+            obj_label = Transaction.Raw(Format(
+                '%s %s %s',
+                Dict('l1'),
+                Dict('l2'),
+                Dict('l3'),
+            ))
 
             def obj_amount(self):
                 return CleanDecimal(Dict('c', default=None), replace_dots=True, default=None)(self) or \
