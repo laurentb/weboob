@@ -36,6 +36,7 @@ from weboob.tools.value import Value
 from .pages import (
     LoginPage, CardsPage, CardHistoryPage, IncorrectLoginPage,
     ProfileProPage, ProfileEntPage, ChangePassPage, SubscriptionPage,
+    ErrorPage,
 )
 from .json_pages import AccountsJsonPage, BalancesJsonPage, HistoryJsonPage, BankStatementPage
 from .transfer_pages import (
@@ -201,6 +202,8 @@ class SGProfessionalBrowser(SGEnterpriseBrowser, StatesMixin):
 
     bank_statement_menu = URL('/icd/syd-front/data/syd-rce-accederDepuisMenu.json', BankStatementPage)
     bank_statement_search = URL('/icd/syd-front/data/syd-rce-lancerRecherche.json', BankStatementPage)
+
+    error_page = URL('https://static.societegenerale.fr/pro/erreur.html', ErrorPage)
 
     date_max = None
     date_min = None

@@ -33,7 +33,7 @@ from weboob.browser.filters.html import Attr
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.capabilities.profile import Profile, Person
 from weboob.capabilities.bill import Document, Subscription
-from weboob.exceptions import ActionNeeded, BrowserIncorrectPassword
+from weboob.exceptions import ActionNeeded, BrowserIncorrectPassword, BrowserUnavailable
 from weboob.tools.json import json
 
 from weboob.capabilities.base import NotAvailable
@@ -252,3 +252,10 @@ class IncorrectLoginPage(SGPEPage):
     def on_load(self):
         if self.doc.xpath('//div[@class="ngo_mu_message" and contains(text(), "saisies sont incorrectes")]'):
             raise BrowserIncorrectPassword(CleanText('//div[@class="ngo_mu_message"]')(self.doc))
+
+
+class ErrorPage(SGPEPage):
+    def on_load(self):
+        if self.doc.xpath('//div[@class="ngo_mu_message" and contains(text(), "momentanément indisponible")]'):
+            # Warning: it could occurs because of wrongpass, user have to change password
+            raise BrowserUnavailable(CleanText('//div[@class="ngo_mu_message"]')(self.doc))
