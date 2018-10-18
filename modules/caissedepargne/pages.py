@@ -38,6 +38,7 @@ from weboob.capabilities.bank import (
     AddRecipientBankError, Loan,
 )
 from weboob.capabilities.bill import Subscription, Document
+from weboob.tools.capabilities.bank.investments import is_isin_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_rib_valid, rib2iban, is_iban_valid
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
@@ -757,6 +758,7 @@ class MarketPage(LoggedPage, HTMLPage):
             inv = Investment()
             inv.label = CleanText('.')(tbody.xpath('./tr[1]/td[1]/a/span')[0])
             inv.code = CleanText('.')(tbody.xpath('./tr[1]/td[1]/a')[0]).split(' - ')[1]
+            inv.code_type = Investment.CODE_TYPE_ISIN if is_isin_valid(inv.code) else NotAvailable
             inv.quantity = self.parse_decimal(tbody.xpath('./tr[2]/td[2]')[0])
             inv.unitvalue = self.parse_decimal(tbody.xpath('./tr[2]/td[3]')[0])
             inv.unitprice = self.parse_decimal(tbody.xpath('./tr[2]/td[5]')[0])
@@ -804,6 +806,7 @@ class LifeInsurance(MarketPage):
             inv = Investment()
             libelle = CleanText('.')(tr.xpath('./td[1]')[0]).split(' ')
             inv.label, inv.code = self.split_label_code(libelle)
+            inv.code_type = Investment.CODE_TYPE_ISIN if is_isin_valid(inv.code) else NotAvailable
             inv.quantity = self.parse_decimal(tr.xpath('./td[2]')[0])
             inv.unitvalue = self.parse_decimal(tr.xpath('./td[3]')[0])
             date = CleanText('.')(tr.xpath('./td[4]')[0])
