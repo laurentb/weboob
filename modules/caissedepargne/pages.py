@@ -449,13 +449,11 @@ class IndexPage(LoggedPage, HTMLPage):
                         accounts[account.id] = account
         return accounts.values()
 
-    def is_real_estate_loans(self):
-        # check if there are credits
-        return not self.doc.xpath('//div[@id="MM_SYNTHESE_CREDITS_msgNoCredit"]')
-
     @method
     class get_real_estate_loans(ListElement):
-        item_xpath = '(//div[@id[starts-with(.,"MM_SYNTHESE_CREDITS")]])'
+        # beware the html response is slightly different from what can be seen with the browser
+        # because of some JS most likely: use the native HTML response to build the xpath
+        item_xpath = '//h3[contains(text(), "immobiliers")]//following-sibling::div[@class="panel"][1]//div[@id[starts-with(.,"MM_SYNTHESE_CREDITS")]]'
 
         class iter_account(TableElement):
             item_xpath = './table[@class="static"][1]/tbody'
