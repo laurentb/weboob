@@ -724,6 +724,7 @@ class CardsOpePage(OperationsPage):
 
             obj__gross_amount = CleanDecimal(Env('amount'), replace_dots=True)
             obj_commission = CleanDecimal(Format('-%s', Env('commission')), replace_dots=True, default=NotAvailable)
+            obj__to_delete = False
 
             def obj_amount(self):
                 commission = Field('commission')(self)
