@@ -1830,8 +1830,10 @@ class CardsHistAvailable(LoggedPage, HTMLPage):
                 id_card = m.group(0).replace(' ', '').replace('X', 'x')
 
                 link = Link(card.xpath('.//a[contains(@id,"C:more-card")]'))(self)
-                coming = CleanDecimal(card.xpath('.//tbody/tr/td/span')[0], replace_dots=True)(self)
-                coming += CleanDecimal(card.xpath('.//tbody/tr/td/span')[1], replace_dots=True)(self)
+                coming_xpath = card.xpath('.//tbody/tr/td/span')
+                coming = CleanDecimal(coming_xpath[0], replace_dots=True)(self)
+                if len(coming_xpath) > 1:
+                    coming += CleanDecimal(coming_xpath[1], replace_dots=True)(self)
                 parent_id = re.search(r'\d+', CleanText(card.xpath('./div/div/div/p'), replace=[(' ', '')])(self)).group(0)[-16:] or None
                 cards[id_card] = [link, coming, parent_id]
 
