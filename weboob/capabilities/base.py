@@ -125,7 +125,7 @@ def strict_find_object(mylist, error=None, **kwargs):
     """
     kwargs = {k: v for k, v in kwargs.items() if not empty(v)}
     if kwargs:
-        return find_object(mylist, error=None, **kwargs)
+        return find_object(mylist, error=error, **kwargs)
 
     if error is not None:
         raise error()
