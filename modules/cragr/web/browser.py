@@ -324,12 +324,14 @@ class Cragr(LoginBrowser, StatesMixin):
                 self.location(updated_account._form.request)
 
             if (updated_account.url or updated_account._form) and not self.no_fixed_deposit_page.is_here():
-                iban_url = self.page.get_iban_url()
-                if iban_url:
-                    self.location(iban_url)
-                    if self.unavailable_page.is_here():
-                        raise BrowserUnavailable()
-                    account.iban = self.page.get_iban()
+                # crashes because we get an UnavailablePage instead of TransactionsPage
+                if self.transactions.is_here():
+                    iban_url = self.page.get_iban_url()
+                    if iban_url:
+                        self.location(iban_url)
+                        if self.unavailable_page.is_here():
+                            raise BrowserUnavailable()
+                        account.iban = self.page.get_iban()
 
         # credit cards
         # reseting location in case of pagination
