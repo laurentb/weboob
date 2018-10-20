@@ -45,6 +45,7 @@ from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
 from weboob.tools.date import parse_french_date
 from weboob.tools.capabilities.bank.investments import is_isin_valid
 from weboob.tools.compat import unquote_plus
+from weboob.tools.html import html2text
 
 
 class ConnectionThresholdPage(HTMLPage):
@@ -160,7 +161,10 @@ class BNPKeyboard(GridVirtKeyboard):
 class ListErrorPage(JsonPage):
     def get_error_message(self, error):
         key = 'app.identification.erreur.' + str(error)
-        return self.doc[key]
+        try:
+            return html2text(self.doc[key])
+        except KeyError:
+            return None
 
 
 class LoginPage(JsonPage):
@@ -195,22 +199,17 @@ class LoginPage(JsonPage):
         # you can find api documentation on errors here : https://mabanque.bnpparibas/rsc/contrib/document/properties/identification-fr-part-V1.json
         if error:
             error_page = self.browser.list_error_page.open()
-            codes = [201, 21510, 203, 202]
-            msg = self.get('message')
-            if error in codes:
+            msg = error_page.get_error_message(error)
+            if not msg:
+                msg = self.get('message')
+
+            wrongpass_codes = [201, 21510, 203, 202, 1001]
+            if error in wrongpass_codes:
                 raise BrowserIncorrectPassword(msg)
-            elif error == 1001:
-                # json says "Erreur lors de l'authentification Code retour : 1001 Code retour : 1001"
-                # but js message from "getErrorMessage" says "veuillez contacter votre conseiller"...
-                raise BrowserIncorrectPassword()
-            elif error == 21501: # "Rendez-vous sur le site de BNP Paribas pour gérer vos comptes"
-                raise ActionNeeded(msg)
             elif error == 21: # "Ce service est momentanément indisponible. Veuillez renouveler votre demande ultérieurement." -> In reality, account is blocked because of too much wrongpass
                 raise ActionNeeded(u"Compte bloqué")
-            elif error in (3, 4):
-                raise ActionNeeded(error_page.get_error_message(error))
-
-            self.logger.debug('Unexpected error at login: "%s" (code=%s)' % (msg, error))
+            else:
+                raise ActionNeeded(msg)
 
     def login(self, username, password):
         url = '/identification-wspl-pres/grille/%s' % self.get('data.grille.idGrille')
@@ -223,7 +222,7 @@ class LoginPage(JsonPage):
                                     idTelematique=username,
                                     password=vk.get_string_code(password),
                                     clientele=user_agent)
-        # XXX useless ?
+        # XXX useless?
         csrf = self.generate_token()
 
         response = self.browser.location(target, data={'AUTH': auth, 'CSRF': csrf})
