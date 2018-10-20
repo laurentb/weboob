@@ -40,7 +40,7 @@ from .pages import (
     LoginPage, AccountsPage, AccountsIBANPage, HistoryPage, TransferInitPage,
     ConnectionThresholdPage, LifeInsurancesPage, LifeInsurancesHistoryPage,
     LifeInsurancesDetailPage, NatioVieProPage, CapitalisationPage,
-    MarketListPage, MarketPage, MarketHistoryPage, MarketSynPage,
+    MarketListPage, MarketPage, MarketHistoryPage, MarketSynPage, BNPKeyboard,
     RecipientsPage, ValidateTransferPage, RegisterTransferPage, AdvisorPage,
     AddRecipPage, ActivateRecipPage, ProfilePage, ListDetailCardPage, ListErrorPage,
 )
@@ -130,6 +130,23 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
         self.login.go(timestamp=timestamp())
         if self.login.is_here():
             self.page.login(self.username, self.password)
+
+    def change_pass(self, oldpass, newpass):
+        res = self.open('/identification-wspl-pres/grille?accessible=false')
+        url = '/identification-wspl-pres/grille/%s' % res.json()['data']['idGrille']
+        keyboard = self.open(url)
+        vk = BNPKeyboard(self, keyboard)
+        data = {}
+        data['codeAppli'] = 'PORTAIL'
+        data['idGrille'] = res.json()['data']['idGrille']
+        data['typeGrille'] = res.json()['data']['typeGrille']
+        data['confirmNouveauPassword'] = vk.get_string_code(newpass)
+        data['nouveauPassword'] = vk.get_string_code(newpass)
+        data['passwordActuel'] = vk.get_string_code(oldpass)
+        response = self.location('/mcs-wspl/rpc/modifiercodesecret', data=data)
+        if response.json().get('messageIden').lower() == 'nouveau mot de passe invalide':
+            return False
+        return True
 
     @need_login
     def get_profile(self):

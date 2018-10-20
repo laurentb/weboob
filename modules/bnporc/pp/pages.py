@@ -49,23 +49,6 @@ from weboob.tools.html import html2text
 
 
 class ConnectionThresholdPage(HTMLPage):
-    def change_pass(self, oldpass, newpass):
-        res = self.browser.open('/identification-wspl-pres/grille?accessible=false')
-        url = '/identification-wspl-pres/grille/%s' % res.json()['data']['idGrille']
-        keyboard = self.browser.open(url)
-        vk = BNPKeyboard(self, keyboard)
-        data = {}
-        data['codeAppli'] = 'PORTAIL'
-        data['idGrille'] = res.json()['data']['idGrille']
-        data['typeGrille'] = res.json()['data']['typeGrille']
-        data['confirmNouveauPassword'] = vk.get_string_code(newpass)
-        data['nouveauPassword'] = vk.get_string_code(newpass)
-        data['passwordActuel'] = vk.get_string_code(oldpass)
-        response = self.browser.location('/mcs-wspl/rpc/modifiercodesecret', data=data)
-        if response.json().get('messageIden').lower() == 'nouveau mot de passe invalide':
-            return False
-        return True
-
     def make_date(self, yy, m, d):
         current = datetime.now().year
         if yy > current - 2000:
@@ -114,20 +97,33 @@ class ConnectionThresholdPage(HTMLPage):
 
     def on_load(self):
         msg = CleanText('//div[@class="confirmation"]//span[span]')(self.doc)
-        raise BrowserPasswordExpired(msg)
 
+        self.logger.warning('Password expired.')
         if not self.looks_legit(self.browser.password):
             # we may not be able to restore the password, so reject it
+            self.logger.warning('Unable to restore it, it is not legit.')
             raise BrowserPasswordExpired(msg)
 
-        new_pass = ''.join([str((int(l) + 1) % 10) for l in self.browser.password])
-        self.logger.warning('Password expired. Renewing it. Temporary password is %s', new_pass)
-        if not self.change_pass(self.browser.password, new_pass):
-            self.logger.warning('New temp password is rejected, giving up')
-            raise BrowserPasswordExpired()
+        new_passwords = []
+        for i in range(3):
+            new_pass = ''.join([str((int(l) + i + 1) % 10) for l in self.browser.password])
+            if not self.looks_legit(new_pass):
+                self.logger.warning('%s is not legit', new_pass)
+                raise BrowserPasswordExpired(msg)
+            new_passwords.append(new_pass)
 
-        if not self.change_pass(new_pass, self.browser.password):
+        current_password = self.browser.password
+        for new_pass in new_passwords:
+            self.logger.warning('Renewing with temp password is %s', new_pass)
+            if not self.browser.change_pass(current_password, new_pass):
+                self.logger.warning('New temp password is rejected, giving up')
+                raise BrowserPasswordExpired(msg)
+            current_password = new_pass
+
+        if not self.browser.change_pass(current_password, self.browser.password):
             self.logger.error('Could not restore old password!')
+
+        self.logger.warning('Old password restored.')
 
 
 def cast(x, typ, default=None):
@@ -151,11 +147,11 @@ class BNPKeyboard(GridVirtKeyboard):
                '8': 'c60b723b3d95a46416b34c2cbefba3ed',
                '9': 'a13b8c3617a7bf854590833ddfb97f1f'}
 
-    def __init__(self, page, image):
+    def __init__(self, browser, image):
         symbols = list('%02d' % x for x in range(1, 11))
 
         super(BNPKeyboard, self).__init__(symbols, 5, 2, BytesIO(image.content), self.color, convert='RGB')
-        self.check_symbols(self.symbols, page.browser.responses_dirname)
+        self.check_symbols(self.symbols, browser.responses_dirname)
 
 
 class ListErrorPage(JsonPage):
@@ -214,7 +210,7 @@ class LoginPage(JsonPage):
     def login(self, username, password):
         url = '/identification-wspl-pres/grille/%s' % self.get('data.grille.idGrille')
         keyboard = self.browser.open(url)
-        vk = BNPKeyboard(self, keyboard)
+        vk = BNPKeyboard(self.browser, keyboard)
 
         target = self.browser.BASEURL + 'SEEA-pa01/devServer/seeaserver'
         user_agent = self.browser.session.headers.get('User-Agent') or ''
