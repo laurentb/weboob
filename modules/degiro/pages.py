@@ -30,6 +30,7 @@ from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.exceptions import AuthMethodNotImplemented, ParseError
+from weboob.tools.capabilities.bank.investments import is_isin_valid
 
 
 def MyDecimal(*args, **kwargs):
@@ -100,11 +101,21 @@ class AccountsPage(LoggedPage, JsonPage):
             def obj_valuation(self):
                 return Decimal(str(list_to_dict(self.el['value'])['value']))
 
-            def obj_code(self):
-                return self._product()['isin']
-
             def obj_label(self):
                 return self._product()['name']
+
+            def obj_code(self):
+                code = self._product()['isin']
+                # Prefix CFD (Contrats for difference) ISIN codes with "XX-"
+                # to avoid id_security duplicates in the database
+                if "- CFD" in Field('label')(self):
+                    return "XX-" + code
+                return code
+
+            def obj_code_type(self):
+                if is_isin_valid(Field('code')(self)):
+                    return Investment.CODE_TYPE_ISIN
+                return NotAvailable
 
             def obj_original_currency(self):
                 return self._product()['currency']
@@ -213,11 +224,21 @@ class HistoryPage(LoggedPage, JsonPage):
             def _product(self):
                 return self.page.browser.get_product(str(Field('_product_id')(self)))
 
-            def obj_code(self):
-                return self._product()['isin']
-
             def obj_label(self):
                 return self._product()['name']
+
+            def obj_code(self):
+                code = self._product()['isin']
+                # Prefix CFD (Contrats for difference) ISIN codes with "XX-"
+                # to avoid id_security duplicates in the database
+                if "- CFD" in Field('label')(self):
+                    return "XX-" + code
+                return code
+
+            def obj_code_type(self):
+                if is_isin_valid(Field('code')(self)):
+                    return Investment.CODE_TYPE_ISIN
+                return NotAvailable
 
     def get_products(self):
         return set(d['productId'] for d in self.doc['data'])
