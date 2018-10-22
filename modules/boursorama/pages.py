@@ -367,7 +367,8 @@ class HistoryPage(LoggedPage, HTMLPage):
     class iter_history(ListElement):
         item_xpath = '//ul[has-class("list__movement")]/li[div and not(contains(@class, "summary")) \
                                                                and not(contains(@class, "graph")) \
-                                                               and not (contains(@class, "separator"))]'
+                                                               and not (contains(@class, "separator")) \
+        and not (contains(@class, "list__movement__line--deffered")) ]'
 
         class item(ItemElement):
             klass = Transaction
