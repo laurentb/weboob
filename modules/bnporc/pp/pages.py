@@ -49,6 +49,9 @@ from weboob.tools.html import html2text
 
 
 class ConnectionThresholdPage(HTMLPage):
+    NOT_REUSABLE_PASSWORDS_COUNT = 3
+    """BNP disallows to reuse one of the three last used passwords."""
+
     def make_date(self, yy, m, d):
         current = datetime.now().year
         if yy > current - 2000:
@@ -105,7 +108,7 @@ class ConnectionThresholdPage(HTMLPage):
             raise BrowserPasswordExpired(msg)
 
         new_passwords = []
-        for i in range(3):
+        for i in range(self.NOT_REUSABLE_PASSWORDS_COUNT):
             new_pass = ''.join([str((int(l) + i + 1) % 10) for l in self.browser.password])
             if not self.looks_legit(new_pass):
                 self.logger.warning('One of rotating password is not legit')
