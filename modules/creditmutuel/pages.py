@@ -302,7 +302,7 @@ class item_account_generic(ItemElement):
                 card_xpath = multiple_cards_xpath + ' | ' + single_card_xpath
                 for elem in page.doc.xpath(card_xpath):
                     card_id = Regexp(CleanText('.', symbols=' '), r'([\dx]{16})')(elem)
-                    if card_id in self.page.browser.unavailablecards:
+                    if card_id in self.page.browser.unavailablecards or card_id in [d.id for d in self.page.browser.cards_list]:
                         raise SkipItem()
 
                     if any(card_id in a.id for a in page.browser.accounts_list):
@@ -593,14 +593,17 @@ class CardsListPage(LoggedPage, HTMLPage):
                             self.handle_attr(attr, getattr(self, 'obj_%s' % attr))
                             setattr(card, attr, getattr(self.obj, attr))
 
-                        if _id in self.page.browser.cards_histo_available:
-                            card.coming = self.page.browser.cards_histo_available[_id][1]
-
                         card._card_number = _id
                         card.id = _id + card.number
                         card.label = card.label.replace('  ', ' %s ' % _id)
-
+                        card2 = find_object(self.page.browser.cards_list, id=card.id[:16])
+                        if card2:
+                            card._link_id = card2._link_id
+                            card._parent_id = card2._parent_id
+                            card.coming = card2.coming
+                            self.page.browser.accounts_list.remove(card2)
                         self.page.browser.accounts_list.append(card)
+                        self.page.browser.cards_list.append(card)
 
                 # Skip multi and expired cards
                 if len(options) or len(page.doc.xpath('//span[@id="ERREUR"]')):
@@ -611,7 +614,7 @@ class CardsListPage(LoggedPage, HTMLPage):
                 xpath = '//table[has-class("liste")]/tbody/tr'
                 active_card = CleanText('%s[td[text()="Active"]][1]/td[2]' % xpath, replace=[(' ', '')], default=None)(page.doc)
 
-                if not active_card and len(page.doc.xpath(xpath)) != 1:
+                if not active_card or len(page.doc.xpath(xpath)) != 1:
                     raise SkipItem()
 
                 self.env['id'] = active_card or CleanText('%s[1]/td[2]' % xpath, replace=[(' ', '')])(page.doc)
@@ -893,6 +896,7 @@ class CardPage2(CardPage, HTMLPage, XMLPage):
 
                 obj_raw = Transaction.Raw(Format("%s %s", CleanText(TableCell('commerce')), CleanText(TableCell('ville'))))
                 obj_rdate = Field('vdate')
+                obj_date = Env('date')
 
                 def obj_type(self):
                     if not 'RELEVE' in CleanText('//td[contains(., "Aucun mouvement")]')(self):
@@ -910,19 +914,8 @@ class CardPage2(CardPage, HTMLPage, XMLPage):
                     if Field('original_amount')(self) and m:
                         return m.group(2)
 
-                def obj_date(self):
-                    debit_date = CleanText('//a[@id="C:L4"]')(self)
-                    if "fin" in debit_date:
-                        return self.page.browser.tr_date
-                    m = re.search(r'(\d{2}/\d{2}/\d{4})', debit_date)
-                    if m:
-                        return Date().filter(re.search(r'(\d{2}/\d{2}/\d{4})', debit_date).group(1))
-
                 def obj__is_coming(self):
-                    debit_date = CleanText('//a[@id="C:L4"]')(self)
-                    if "fin" in debit_date:
-                        return True
-                    if Date().filter(re.search(r'(\d{2}/\d{2}/\d{4})', debit_date).group(1)) > datetime.date(datetime.today()):
+                    if Field('date')(self) > datetime.date(datetime.today()):
                         return True
                     return False
 
@@ -975,6 +968,7 @@ class CardPage2(CardPage, HTMLPage, XMLPage):
             class item(Transaction.TransactionElement):
                 obj_raw = Transaction.Raw(Format("%s %s", CleanText(TableCell('commerce')), CleanText(TableCell('ville'))))
                 obj_rdate = Field('vdate')
+                obj_date = Env('date')
 
                 def obj_type(self):
                     if not 'RELEVE' in CleanText('//td[contains(., "Aucun mouvement")]')(self):
@@ -996,9 +990,6 @@ class CardPage2(CardPage, HTMLPage, XMLPage):
                     if "Regroupement" in CleanText('./td')(self):
                         return Link('./td/span/a')(self)
 
-                def obj_date(self):
-                    return self.page.browser.tr_date
-
                 def obj__is_coming(self):
                     if Field('date')(self) > datetime.date(datetime.today()):
                         return True
@@ -1006,15 +997,14 @@ class CardPage2(CardPage, HTMLPage, XMLPage):
 
     def get_date(self):
         debit_date = CleanText(self.doc.xpath('//a[@id="C:L4"]'))(self)
-        if "fin" in debit_date:
-            m = re.search(r'fid=GoMonth&mois=(\d+)', self.browser.url)
-            y = re.search(r'annee=(\d+)', self.browser.url)
-            if m and y:
-                return date(int(y.group(1)), int(m.group(1)), 1) + relativedelta(day=31)
-
         m = re.search(r'(\d{2}/\d{2}/\d{4})', debit_date)
         if m:
             return Date().filter(re.search(r'(\d{2}/\d{2}/\d{4})', debit_date).group(1))
+        m = re.search(r'fid=GoMonth&mois=(\d+)', self.browser.url)
+        y = re.search(r'annee=(\d+)', self.browser.url)
+        if m and y:
+            return date(int(y.group(1)), int(m.group(1)), 1) + relativedelta(day=31)
+        assert False, 'No transaction date is found'
 
     def get_links(self):
         links = []
@@ -1810,7 +1800,58 @@ class SubscriptionPage(LoggedPage, HTMLPage):
         return False
 
 
-class CardsHistAvailable(LoggedPage, HTMLPage):
+class NewCardsListPage(LoggedPage, HTMLPage):
+    @method
+    class iter_accounts(ListElement):
+        item_xpath = '//li[@class="item"]'
+
+        class item(ItemElement):
+            klass = Account
+
+            def condition(self):
+                return CleanText('.//div[1]/p')(self) == 'Active'
+
+            obj_balance = 0
+            obj_type = Account.TYPE_CARD
+            obj__new_space = True
+            obj__is_inv = False
+
+            def obj_currency(self):
+                curr = CleanText('.//tbody/tr[1]/td/span')(self)
+                return re.search(r' ([a-zA-Z]+)', curr).group(1)
+
+            def obj_id(self):
+                m = re.search(r'\d{4} \d{2}XX XXXX \d{4}', CleanText('.//span')(self))
+                assert m, 'Id card is not present'
+                return m.group(0).replace(' ', '').replace('X', 'x')
+
+            def obj_label(self):
+                label = CleanText('.//span/span')(self)
+                return re.search(r'(.*) - ', label).group(1)
+
+            def obj_coming(self):
+                coming = 0
+                coming_xpath = self.el.xpath('.//tbody/tr/td/span')
+                if len(coming_xpath) >= 1:
+                    for i in (1, 2):
+                        href = Link('.//tr[%s]/td/a[contains(@id,"C:more-card")]' %(i))(self)
+                        m = re.search(r'selectedMonthly=(.*)', href).group(1)
+                        if date(int(m[-4:]), int(m[:-4]), 1) + relativedelta(day=31) > date.today():
+                            coming += CleanDecimal(coming_xpath[i-1], replace_dots=True)(self)
+                else:
+                    # Sometimes only one month is available
+                    href = Link('//tr/td/a[contains(@id,"C:more-card")]')(self)
+                    m = re.search(r'selectedMonthly=(.*)', href).group(1)
+                    if date(int(m[-4:]), int(m[:-4]), 1) + relativedelta(day=31) > date.today():
+                        coming += CleanDecimal(coming_xpath[0], replace_dots=True)(self)
+                return coming
+
+            def obj__link_id(self):
+                return Link('.//a[contains(@id,"C:more-card")]')(self)
+
+            def obj__parent_id(self):
+                return re.search(r'\d+', CleanText('./div/div/div/p', replace=[(' ', '')])(self)).group(0)[-16:]
+
     def get_unavailable_cards(self):
         cards = []
         for card in self.doc.xpath('//li[@class="item"]'):
@@ -1820,22 +1861,3 @@ class CardsHistAvailable(LoggedPage, HTMLPage):
                     cards.append(m.group(0).replace(' ', '').replace('X', 'x'))
         return cards
 
-    def get_cards_list(self):
-            cards = {}
-            for card in self.doc.xpath('//li[@class="item"]'):
-                if not card.xpath('.//tbody/tr/td/span'):
-                    # No coming/balance values and history link are available
-                    continue
-                m = re.search(r'\d{4} \d{2}XX XXXX \d{4}', CleanText(card.xpath('.//span'))(self))
-                assert m, 'Id card is not present'
-                id_card = m.group(0).replace(' ', '').replace('X', 'x')
-
-                link = Link(card.xpath('.//a[contains(@id,"C:more-card")]'))(self)
-                coming_xpath = card.xpath('.//tbody/tr/td/span')
-                coming = CleanDecimal(coming_xpath[0], replace_dots=True)(self)
-                if len(coming_xpath) > 1:
-                    coming += CleanDecimal(coming_xpath[1], replace_dots=True)(self)
-                parent_id = re.search(r'\d+', CleanText(card.xpath('./div/div/div/p'), replace=[(' ', '')])(self)).group(0)[-16:] or None
-                cards[id_card] = [link, coming, parent_id]
-
-            return cards

@@ -48,7 +48,7 @@ from .pages import (
     LIAccountsPage, CardsActivityPage, CardsListPage,
     CardsOpePage, NewAccountsPage, InternalTransferPage,
     ExternalTransferPage, RevolvingLoanDetails, RevolvingLoansList,
-    ErrorPage, SubscriptionPage, CardsHistAvailable, CardPage2
+    ErrorPage, SubscriptionPage, NewCardsListPage, CardPage2
 )
 
 
@@ -126,8 +126,8 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
     cards_ope = URL(r'/(?P<subbank>.*)fr/banque/pro/ENC_liste_oper', CardsOpePage)
     cards_ope2 = URL('/(?P<subbank>.*)fr/banque/CRP8_SCIM_DEPCAR.aspx', CardPage2)
 
-    cards_hist_available = URL('/(?P<subbank>.*)fr/banque/SCIM_default.aspx\?_tabi=C&_stack=SCIM_ListeActivityStep%3a%3a&_pid=ListeCartes&_fid=ChangeList&Data_ServiceListDatas_CurrentType=MyCards', CardsHistAvailable)
-    cards_hist_available2 = URL('/(?P<subbank>.*)fr/banque/SCIM_default.aspx', CardsHistAvailable)
+    cards_hist_available = URL('/(?P<subbank>.*)fr/banque/SCIM_default.aspx\?_tabi=C&_stack=SCIM_ListeActivityStep%3a%3a&_pid=ListeCartes&_fid=ChangeList&Data_ServiceListDatas_CurrentType=MyCards', NewCardsListPage)
+    cards_hist_available2 = URL('/(?P<subbank>.*)fr/banque/SCIM_default.aspx', NewCardsListPage)
 
     internal_transfer = URL(r'/(?P<subbank>.*)fr/banque/virements/vplw_vi.html', InternalTransferPage)
     external_transfer = URL(r'/(?P<subbank>.*)fr/banque/virements/vplw_vee.html', ExternalTransferPage)
@@ -184,17 +184,26 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
             self.accounts_list = []
             self.revolving_accounts = []
             self.unavailablecards = []
-            self.cards_histo_available = {}
+            self.cards_histo_available = []
+            self.cards_list =[]
 
             # For some cards the validity information is only availaible on these 2 links
             self.cards_hist_available.go(subbank=self.currentSubBank)
             if self.cards_hist_available.is_here():
                 self.unavailablecards.extend(self.page.get_unavailable_cards())
-                self.cards_histo_available.update(self.page.get_cards_list())
+                for acc in self.page.iter_accounts():
+                    self.accounts_list.append(acc)
+                    self.cards_list.append(acc)
+                    self.cards_histo_available.append(acc.id)
 
+            self.cards_hist_available2.go(subbank=self.currentSubBank)
             if self.cards_hist_available2.is_here():
                 self.unavailablecards.extend(self.page.get_unavailable_cards())
-                self.cards_histo_available.update(self.page.get_cards_list())
+                for acc in self.page.iter_accounts():
+                    if acc not in self.cards_list:
+                        self.accounts_list.append(acc)
+                        self.cards_list.append(acc)
+                        self.cards_histo_available.append(acc.id)
 
             for acc in self.revolving_loan_list.stay_or_go(subbank=self.currentSubBank).iter_accounts():
                 self.accounts_list.append(acc)
@@ -206,7 +215,16 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                         [self.page] if self.is_new_website else []
             for company in companies:
                 page = self.open(company).page if isinstance(company, basestring) else company
-                self.accounts_list.extend(page.iter_cards())
+                for card in page.iter_cards():
+                    card2 = find_object(self.cards_list, id=card.id[:16])
+                    if card2:
+                        # In order to keep the id of the card from the old space, we exchange the following values
+                        card._link_id = card2._link_id
+                        card._parent_id = card2._parent_id
+                        card.coming = card2.coming
+                        self.accounts_list.remove(card2)
+                    self.accounts_list.append(card)
+                    self.cards_list.append(card)
 
             # Populate accounts from old website
             if not self.is_new_website:
@@ -224,10 +242,9 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
             self.li.go(subbank=self.currentSubBank)
             self.accounts_list.extend(self.page.iter_li_accounts())
 
-            for acc in self.accounts_list:
-                if acc.id[:16] in self.cards_histo_available:
-                    # ex of ID card : 000000xxxxxx0000
-                    acc.parent = find_object(self.accounts_list, id=self.cards_histo_available[acc.id[:16]][2])
+            for acc in self.cards_list:
+                if hasattr(acc, '_parent_id'):
+                    acc.parent = find_object(self.accounts_list, id=acc._parent_id)
 
             excluded_label = ['etalis', 'valorisation totale']
             self.accounts_list = [acc for acc in self.accounts_list if not any(w in acc.label.lower() for w in excluded_label)]
@@ -338,7 +355,6 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
 
         if len(account.id) >= 16 and account.id[:16] in self.cards_histo_available:
             # Check if '000000xxxxxx0000' card have an annual history
-            account._link_id = self.cards_histo_available[account.id[:16]][0]
             self.location(account._link_id)
             # The history of the card is available for 1 year with 1 month per page
             # Here we catch all the url needed to be the more compatible with the catch of merged subtransactions
@@ -371,11 +387,11 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                                 self.location(self.url, data=data)
 
                             if not self.page.has_more_operations_xml():
-                                history = self.page.iter_history_xml()
+                                history = self.page.iter_history_xml(date=self.tr_date)
                                 # We are now with an XML page with all the transactions of the months
                                 break
                     else:
-                        history = self.page.get_history()
+                        history = self.page.get_history(date=self.tr_date)
 
                     merged_amount = 0
                     monthly_tr = []
