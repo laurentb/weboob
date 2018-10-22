@@ -108,13 +108,13 @@ class ConnectionThresholdPage(HTMLPage):
         for i in range(3):
             new_pass = ''.join([str((int(l) + i + 1) % 10) for l in self.browser.password])
             if not self.looks_legit(new_pass):
-                self.logger.warning('%s is not legit', new_pass)
+                self.logger.warning('One of rotating password is not legit')
                 raise BrowserPasswordExpired(msg)
             new_passwords.append(new_pass)
 
         current_password = self.browser.password
         for new_pass in new_passwords:
-            self.logger.warning('Renewing with temp password is %s', new_pass)
+            self.logger.warning('Renewing with temp password')
             if not self.browser.change_pass(current_password, new_pass):
                 self.logger.warning('New temp password is rejected, giving up')
                 raise BrowserPasswordExpired(msg)
