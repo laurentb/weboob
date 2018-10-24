@@ -52,23 +52,20 @@ class HomePage(LoggedPage, HTMLPage):
     pass
 
 
-class LireSitePage(LoggedPage, JsonPage):
+class JsonCguPage(JsonPage):
     def build_doc(self, text):
         if text == 'REDIRECT_CGU':  # JSON can always be decoded in UTF-8 so testing text is fine
-            raise ActionNeeded("Vous devez accepter les conditions générales d'utilisation sur le site de votre banque.")
-        else:
-            return super(LireSitePage, self).build_doc(text)
+            raise ActionNeeded("Vous devez accepter les conditions générales d'utilisation.")
+        return super(JsonCguPage, self).build_doc(text)
+
+
+class LireSitePage(LoggedPage, JsonCguPage):
     # id site is not about website but geographical site
     def get_id_site_list(self):
         return [site['idSite'] for site in self.doc['site']]
 
 
-class SubscriptionsPage(LoggedPage, JsonPage):
-    def build_doc(self, text):
-        if text == 'REDIRECT_CGU':
-            raise ActionNeeded("Vous devez accepter les conditions générales d'utilisation sur le site de votre banque.")
-        return super(SubscriptionsPage, self).build_doc(text)
-
+class SubscriptionsPage(LoggedPage, JsonCguPage):
     @method
     class get_subscriptions(DictElement):
         item_xpath = 'listeContrat'

@@ -68,7 +68,7 @@ class EdfproBrowser(LoginBrowser):
         self.location(self.absurl('/rest/aiguillagemp/redirect'), allow_redirects=True)
 
         if self.auth.is_here() and self.page.response.status_code != 303:
-            raise BrowserIncorrectPassword
+            raise BrowserIncorrectPassword()
 
         if self.error.is_here():
             raise BrowserUnavailable(self.page.get_message())
