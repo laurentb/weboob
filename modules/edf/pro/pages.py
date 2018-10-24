@@ -43,6 +43,11 @@ class AuthPage(RawPage):
     pass
 
 
+class ErrorPage(HTMLPage):
+    def get_message(self):
+        return CleanText('//div[@id="div_text"]/h1 | //div[@id="div_text"]/p')(self.doc)
+
+
 class HomePage(LoggedPage, HTMLPage):
     pass
 

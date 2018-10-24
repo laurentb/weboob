@@ -25,11 +25,11 @@ from datetime import datetime, timedelta
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.capabilities.base import NotAvailable
-from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
+from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded, BrowserUnavailable
 from weboob.browser.exceptions import ServerError, ClientError
 
 from .pages import (
-    LoginPage, HomePage, AuthPage, LireSitePage,
+    LoginPage, HomePage, AuthPage, ErrorPage, LireSitePage,
     SubscriptionsPage, BillsPage, DocumentsPage, ProfilePage,
 )
 
@@ -40,6 +40,7 @@ class EdfproBrowser(LoginBrowser):
     login = URL('/openam/json/authenticate', LoginPage)
     auth = URL('/openam/UI/Login.*',
                '/ice/rest/aiguillagemp/redirect', AuthPage)
+    error = URL(r'/page_erreur/', ErrorPage)
     home = URL('/ice/content/ice-pmse/homepage.html', HomePage)
     liresite = URL(r'/rest/homepagemp/liresite', LireSitePage)
     contracts = URL('/rest/contratmp/consultercontrats', SubscriptionsPage)
@@ -68,6 +69,9 @@ class EdfproBrowser(LoginBrowser):
 
         if self.auth.is_here() and self.page.response.status_code != 303:
             raise BrowserIncorrectPassword
+
+        if self.error.is_here():
+            raise BrowserUnavailable(self.page.get_message())
 
         self.session.headers['Content-Type'] = 'application/json;charset=UTF-8'
         self.session.headers['X-XSRF-TOKEN'] = self.session.cookies['XSRF-TOKEN']
