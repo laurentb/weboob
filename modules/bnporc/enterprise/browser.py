@@ -19,14 +19,13 @@
 
 from __future__ import unicode_literals
 
-import re
-
 from datetime import datetime
 
 from dateutil.rrule import rrule, MONTHLY
 from dateutil.relativedelta import relativedelta
 
 from weboob.browser import LoginBrowser, need_login
+from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import Account
 from weboob.exceptions import BrowserIncorrectPassword, BrowserForbidden
 from weboob.browser.url import URL
@@ -34,7 +33,7 @@ from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages import (
     LoginPage, AuthPage, AccountsPage, AccountHistoryViewPage, AccountHistoryPage,
-    ActionNeededPage, TransactionPage, TokenPage, InvestPage
+    ActionNeededPage, TransactionPage, MarketPage, InvestPage
 )
 
 
@@ -61,8 +60,8 @@ class BNPEnterprise(LoginBrowser):
 
     transaction_detail = URL(r'/NCCPresentationWeb/e21/getOptBDDF.do', TransactionPage)
     invest = URL(r'/opcvm/lister-composition/afficher.do', InvestPage)
-    # the token page is used only if there are several type market accounts
-    token_inv = URL(r'/opcvm/lister-portefeuilles/afficher.do', TokenPage)
+    # The Market page is used only if there are several market accounts
+    market = URL(r'/opcvm/lister-portefeuilles/afficher.do', MarketPage)
 
     renew_pass = URL('/sommaire/PseRedirectPasswordConnect', ActionNeededPage)
 
@@ -72,7 +71,7 @@ class BNPEnterprise(LoginBrowser):
     def do_login(self):
         self.login.go()
 
-        if self.login.is_here() is False:
+        if not self.login.is_here():
             return
 
         data = {}
@@ -89,22 +88,26 @@ class BNPEnterprise(LoginBrowser):
     @need_login
     def get_accounts_list(self):
         accounts = []
-        try:
-            self.token_inv.go()
-            if self.token_inv.is_here():
-                marketaccount = self.page.market_search()
-            else:
-                # redirected to invest page
-                # it means that there is only 1 market account among the ones showed
-                marketaccount = [self.page.get_market_account_label()]
-        except BrowserForbidden:
-            marketaccount = []
-
+        # Fetch checking accounts:
         for account in self.accounts.stay_or_go().iter_accounts():
-            label_tmp = re.search(r'(\d{4,})', account.label)
-            if (label_tmp and label_tmp.group(0) in marketaccount) or account.label in marketaccount:
-                account.type = Account.TYPE_MARKET
             accounts.append(account)
+        # Fetch market accounts:
+        try:
+            self.market.go()
+            if self.market.is_here():
+                for market_account in self.page.iter_market_accounts():
+                    market_account.parent = find_object(accounts, label=market_account._parent)
+                    accounts.append(market_account)
+
+            elif self.invest.is_here():
+                # Redirected to invest page, meaning there is only 1 market account.
+                # We thus create an Account object for this unique market account.
+                account = self.page.get_unique_market_account()
+                account.parent = find_object(accounts, label=account._parent)
+                accounts.append(account)
+
+        except BrowserForbidden:
+            pass
 
         return accounts
 
@@ -116,6 +119,9 @@ class BNPEnterprise(LoginBrowser):
 
     @need_login
     def iter_history(self, account):
+        # There is no available history for market accounts
+        if account.type == Account.TYPE_MARKET:
+            return []
         return self._iter_history_base(account)
 
     def _iter_history_base(self, account):
@@ -144,24 +150,30 @@ class BNPEnterprise(LoginBrowser):
 
     @need_login
     def iter_coming_operations(self, account):
+        # There is no available coming operation for market accounts
+        if account.type == Account.TYPE_MARKET:
+            return []
+
         self.account_coming_view.go(identifiant=account.iban)
         self.account_coming.go(identifiant=account.iban)
         return self.page.iter_coming()
 
     @need_login
     def iter_investment(self, account):
-        if account.type == Account.TYPE_MARKET:
-            self.token_inv.go()
-            if self.token_inv.is_here():
+        if account.type != Account.TYPE_MARKET:
+            return
+
+        self.market.go()
+        # If there is more than one market account, we must fetch the account params:
+        if not account._unique:
+            if self.market.is_here():
                 token = self.page.get_token()
                 id_invest = self.page.get_id(label=account.label)
                 data = {"numeroCompte": id_invest, "_csrf": token}
                 self.location('/opcvm/lister-composition/redirect-afficher.do', data=data)
-            else:
-                self.invest.go()
 
-            for tr in self.page.iter_investment():
-                yield tr
+        for inv in self.page.iter_investment():
+            yield inv
 
     @need_login
     def get_profile(self):

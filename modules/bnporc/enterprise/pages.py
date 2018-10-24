@@ -30,7 +30,7 @@ from weboob.browser.filters.html import TableCell, Attr
 from weboob.browser.elements import DictElement, ItemElement, method, TableElement
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Date, Regexp, Format, Eval, BrowserURL, Field,
-    Async,
+    Async, Currency,
 )
 from weboob.capabilities.bank import Transaction, Account, Investment
 from weboob.capabilities.profile import Person
@@ -105,8 +105,10 @@ class ActionNeededPage(HTMLPage):
 
 
 class AccountsPage(LoggedPage, JsonPage):
-    TYPES = {u'Compte chèque': Account.TYPE_CHECKING,
-             u'Compte à vue': Account.TYPE_CHECKING}
+    TYPES = {
+        'Compte chèque':  Account.TYPE_CHECKING,
+        'Compte à vue':   Account.TYPE_CHECKING,
+    }
 
     @method
     class iter_accounts(DictElement):
@@ -333,7 +335,40 @@ class TransactionPage(LoggedPage, JsonPage):
         return self.doc['carteNum']
 
 
-class TokenPage(LoggedPage, HTMLPage):
+class MarketPage(LoggedPage, HTMLPage):
+    TYPES = {
+        'comptes de titres':  Account.TYPE_MARKET,
+    }
+
+    @method
+    class iter_market_accounts(TableElement):
+        item_xpath = '//table[@id="table-portefeuille"]/tbody[@class="main-content"]/tr'
+        head_xpath = '//table[@id="table-portefeuille"]/thead/tr/th/label'
+
+        col_label = 'Portefeuille-titres'
+        col_balance = re.compile('Valorisation')
+        col__parent = re.compile('Compte courant')
+
+        class item(ItemElement):
+            klass = Account
+
+            # Market accounts have no IBAN so we use the account number and specify
+            # "MARKET" at the end to differentiate from its parent account.
+            obj_id = Format('%sMARKET', Regexp(CleanText(TableCell('label')), r'\*(.*)\*', default=None))
+            obj_label = CleanText(TableCell('label'))
+            obj_balance = CleanDecimal(TableCell('balance'), replace_dots=True)
+            obj_currency = Currency(TableCell('balance'))
+            obj__parent = CleanText(TableCell('_parent'))
+            obj_coming = NotAvailable
+            obj_iban = NotAvailable
+            obj__unique = False
+
+            def obj_type(self):
+                for key, type in self.page.TYPES.items():
+                    if key in CleanText(TableCell('label'))(self).lower():
+                        return type
+                return Account.TYPE_UNKNOWN
+
     def get_token(self):
         return Attr('//meta[@name="_csrf"]', 'content')(self.doc)
 
@@ -343,18 +378,23 @@ class TokenPage(LoggedPage, HTMLPage):
             if id_simple in CleanText(options)(self.doc):
                 return CleanText(options.xpath('./@value'))(self)
 
-    def market_search(self):
-        marketaccount = []
-        for account in self.doc.xpath('//div[@class="filterbox-content hide"]//select[@id="numero-compte-titre"]//option'):
-            account = CleanText(account)(self.doc)
-            temp = re.search(r'[0-9]+', account)
-            if temp != None:
-                marketaccount.append(temp.group(0))
-
-        return marketaccount
-
 
 class InvestPage(LoggedPage, HTMLPage):
+    @method
+    class get_unique_market_account(ItemElement):
+        klass = Account
+
+        # Market accounts have no IBAN so we use the account number and specify
+        # "MARKET" at the end to differentiate it from its parent account.
+        obj_id = Format('%sMARKET', Regexp(CleanText('//div[@class="head"]/h2'), r'\*(.*)\*', default=None))
+        obj_label = CleanText('//div[@class="head"]/h2')
+        obj_balance = CleanDecimal('//div[@id="apercu-val"]/h1', replace_dots=True)
+        obj_currency = Currency('//div[@id="apercu-val"]/h1')
+        obj_type = Account.TYPE_MARKET
+        obj__parent = CleanText('//h3/span[span[@class="info-cheque"]]', children=False)
+        obj__unique = True
+
+
     @method
     class iter_investment(TableElement):
         item_xpath = '//table[@class="csv-data-container hide"]//tr'
@@ -366,6 +406,12 @@ class InvestPage(LoggedPage, HTMLPage):
         col_unitvalue = 'Valeur de la part'
         col_valuation = 'Valorisation'
         col_diff = '+/- value'
+
+        """
+        Note: Pagination is not handled yet for investments, if we find a
+        customer with more than 10 invests we might have to handle clicking
+        on the button to get 50 invests per page or check if there is a link.
+        """
 
         class item(ItemElement):
             klass = Investment
@@ -379,8 +425,5 @@ class InvestPage(LoggedPage, HTMLPage):
             obj_code_type = lambda self: Investment.CODE_TYPE_ISIN if Field('code')(self) is not NotAvailable else NotAvailable
 
             def obj_code(self):
-                chaine = CleanText(TableCell('label'))(self)
-                return re.search(r'(\w+) - ', chaine).group(0)[:-3]
-
-    def get_market_account_label(self):
-        return CleanText('//h3/span[span]', children=False)(self.doc)
+                string = CleanText(TableCell('label'))(self)
+                return re.search(r'(\w+) - ', string).group(0)[:-3]
