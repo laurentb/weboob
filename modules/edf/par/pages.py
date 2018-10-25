@@ -126,7 +126,7 @@ class ProfilePage(LoggedPage, JsonPage):
 
         p.address = '%s %s %s %s' % (data['streetNumber'], data['streetName'],
                                      data['postCode'], data['city'])
-        p.name = '%s %s' % (data['lastName'], data['firstName'])
+        p.name = '%s %s %s' % (data['civility'], data['lastName'], data['firstName'])
         p.phone = data['mobilePhoneNumber'] or data['fixPhoneNumber']
         p.email = data['mail']
 
