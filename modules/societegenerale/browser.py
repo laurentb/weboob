@@ -94,7 +94,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
             super(SocieteGenerale, self).load_state(state)
 
     def do_login(self):
-        if not self.password.isdigit() or len(self.password) != 6:
+        if not self.password.isdigit() or len(self.password) not in (6, 7):
             raise BrowserIncorrectPassword()
         if not self.username.isdigit() or len(self.username) < 8:
             raise BrowserIncorrectPassword()
