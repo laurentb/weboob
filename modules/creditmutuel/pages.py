@@ -900,13 +900,13 @@ class CardPage2(CardPage, HTMLPage, XMLPage):
                     return Transaction.TYPE_CARD_SUMMARY
 
                 def obj_original_amount(self):
-                    m = re.search(r'-(\d+,\d+)', CleanText(TableCell('commerce'))(self))
+                    m = re.search(r'(-?\d+,\d+)', CleanText(TableCell('commerce'))(self))
                     if m and not 'FRAIS' in CleanText(TableCell('commerce'))(self):
-                        return Decimal(float(m.group(1).replace(',', '.'))).quantize(Decimal('0.01'))
+                        return Decimal(m.group(1).replace(',', '.')).quantize(Decimal('0.01'))
                     return NotAvailable
 
                 def obj_original_currency(self):
-                    m = re.search(r'(\d+) (\w+)', CleanText(TableCell('commerce'))(self))
+                    m = re.search(r'(\d+,\d+) (\w+)', CleanText(TableCell('commerce'))(self))
                     if Field('original_amount')(self) and m:
                         return m.group(2)
 
@@ -982,13 +982,13 @@ class CardPage2(CardPage, HTMLPage, XMLPage):
                     return Transaction.TYPE_CARD_SUMMARY
 
                 def obj_original_amount(self):
-                    m = re.search(r'-(\d+,\d+)', CleanText(TableCell('commerce'))(self))
+                    m = re.search(r'(-?\d+,\d+)', CleanText(TableCell('commerce'))(self))
                     if m and not 'FRAIS' in CleanText(TableCell('commerce'))(self):
-                        return Decimal(float(m.group(1).replace(',', '.'))).quantize(Decimal('0.01'))
+                        return Decimal(m.group(1).replace(',', '.')).quantize(Decimal('0.01'))
                     return NotAvailable
 
                 def obj_original_currency(self):
-                    m = re.search(r'(\d+) (\w+)', CleanText(TableCell('commerce'))(self))
+                    m = re.search(r'(\d+,\d+) (\w+)', CleanText(TableCell('commerce'))(self))
                     if Field('original_amount')(self) and m:
                         return m.group(2)
 
