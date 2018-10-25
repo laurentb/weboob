@@ -18,15 +18,17 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from __future__ import unicode_literals
+
 from datetime import datetime, timedelta, date
 from functools import wraps
 
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.browser.exceptions import ServerError
-from weboob.browser.pages import FormNotFound
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.bank import Account, Investment, AddRecipientBankError, AddRecipientStep, Recipient
+from weboob.capabilities.bank import Account, AddRecipientBankError, AddRecipientStep, Recipient
+from weboob.tools.capabilities.bank.investments import create_french_liquidity
 from weboob.tools.compat import basestring, urlsplit, parse_qsl, unicode
 from weboob.tools.value import Value
 
@@ -36,7 +38,7 @@ from .pages import LoginPage, AccountsPage, AccountHistoryPage, \
                    HomePage, LoansPage, TransferPage, AddRecipientPage, \
                    RecipientPage, RecipConfirmPage, SmsPage, RecipRecapPage, \
                    LoansProPage, Form2Page, DocumentsPage, ClientPage, SendTokenPage, \
-                   CaliePage, ProfilePage, DepositPage
+                   CaliePage, ProfilePage, DepositPage, AVHistoryPage, AVInvestmentsPage
 
 
 __all__ = ['LCLBrowser', 'LCLProBrowser', 'ELCLBrowser']
@@ -91,7 +93,10 @@ class LCLBrowser(LoginBrowser, StatesMixin):
     assurancevie = URL('/outil/UWVI/AssuranceVie/accesSynthese',
                         '/outil/UWVI/AssuranceVie/accesDetail.*',
                         AVPage)
-    avdetail = URL('https://assurance-vie-et-prevoyance.secure.lcl.fr.*', AVDetailPage)
+
+    avdetail = URL('https://assurance-vie-et-prevoyance.secure.lcl.fr/consultation/epargne', AVDetailPage)
+    av_history = URL('https://assurance-vie-et-prevoyance.secure.lcl.fr/rest/assurance/historique', AVHistoryPage)
+    av_investments = URL('https://assurance-vie-et-prevoyance.secure.lcl.fr/rest/detailEpargne/contrat', AVInvestmentsPage)
 
     loans = URL('/outil/UWCR/SynthesePar/', LoansPage)
     loans_pro = URL('/outil/UWCR/SynthesePro/', LoansProPage)
@@ -302,29 +307,37 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                 yield tr
             for tr in self.get_cb_operations(account, 1):
                 yield tr
-        elif account.type == Account.TYPE_LIFE_INSURANCE and account._form:
-            self.assurancevie.stay_or_go()
-            account._form.submit()
-            if self.calie.is_here():
-                # come back to syntese
-                self.assurancevie.go()
+
+        elif account.type == Account.TYPE_LIFE_INSURANCE:
+            if not account._form:
+                self.logger.warning('This account is limited, there is no available history.')
                 return
 
-            # certain users will get a message : "Ne détenant pas de compte dépôt
+            self.assurancevie.stay_or_go()
+            # The website often returns an error so we try again:
+            # "L’accès au service est momentanément indisponible."
+            try:
+                account._form.submit()
+            except BrowserUnavailable:
+                self.logger.warning("Service unavailable, we submit the form again.")
+                self.assurancevie.stay_or_go()
+                account._form.submit()
+
+            if self.calie.is_here():
+                # Get back to Synthèse
+                self.assurancevie.go()
+                return
+            # Some users will get a message : "Ne détenant pas de compte dépôt
             # chez LCL, l'accès à ce service vous est indisponible."
             if self.form2.is_here() and self.page.assurancevie_hist_not_available():
                 return
 
-            assert self.avdetail.is_here()
+            self.avdetail.go()
+            self.av_history.go()
+            for tr in self.page.iter_history():
+                yield tr
 
-            try:
-                self.page.get_details(account, "OHIPU")
-            except FormNotFound:
-                assert self.page.is_restricted()
-                self.logger.warning('restricted access to account %s', account)
-            else:
-                for tr in self.page.iter_history():
-                    yield tr
+            self.avdetail.go()
             self.page.come_back()
 
     @go_contract
@@ -357,33 +370,46 @@ class LCLBrowser(LoginBrowser, StatesMixin):
     @go_contract
     @need_login
     def get_investment(self, account):
-        if account.type == Account.TYPE_LIFE_INSURANCE and account._form:
+        if account.type == Account.TYPE_LIFE_INSURANCE:
+            if not account._form:
+                self.logger.warning('This account is limited, there is no available investment.')
+                return
+
             self.assurancevie.stay_or_go()
-            account._form.submit()
+            # The website often returns an error so we try again:
+            # "L’accès au service est momentanément indisponible."
+            try:
+                account._form.submit()
+            except BrowserUnavailable:
+                self.logger.warning("Service unavailable, we submit the form again.")
+                self.assurancevie.stay_or_go()
+                account._form.submit()
 
             if self.calie.is_here():
-                # come back to syntese
+                # Get back to Synthèse
                 self.assurancevie.go()
                 return
-            if self.page.is_restricted():
-                self.logger.warning('restricted access to account %s', account)
-            else:
-                for inv in self.page.iter_investment():
-                    yield inv
-            if self.avdetail.is_here():
-                self.page.come_back()
+            # Some users will get a message : "Ne détenant pas de compte dépôt
+            # chez LCL, l'accès à ce service vous est indisponible."
+            if self.form2.is_here() and self.page.assurancevie_hist_not_available():
+                return
+
+            self.avdetail.go()
+            self.av_investments.go()
+
+            for inv in self.page.iter_investment():
+                yield inv
+
+            self.avdetail.go()
+            self.page.come_back()
+
         elif hasattr(account, '_market_link') and account._market_link:
             self.connexion_bourse()
             for inv in self.location(account._market_link).page.iter_investment():
                 yield inv
             self.deconnexion_bourse()
         elif account.id in self.get_bourse_accounts_ids():
-            inv = Investment()
-            inv.id = account.id
-            inv.code = 'XX-Liquidity'
-            inv.label = "Liquidités"
-            inv.valuation = account.balance
-            yield inv
+            yield create_french_liquidity(account.balance)
 
     def locate_browser(self, state):
         if state['url'] == 'https://particuliers.secure.lcl.fr/outil/UWBE/Creation/creationConfirmation':

@@ -35,15 +35,15 @@ from weboob.capabilities.bank import (
 from weboob.capabilities.bill import Document, Subscription, DocumentTypes
 from weboob.capabilities.profile import Person, ProfileMissing
 from weboob.capabilities.contact import Advisor
-from weboob.browser.elements import method, ListElement, TableElement, ItemElement, SkipItem
+from weboob.browser.elements import method, ListElement, TableElement, ItemElement, SkipItem, DictElement
 from weboob.exceptions import ParseError
 from weboob.browser.exceptions import ServerError
-from weboob.browser.pages import LoggedPage, HTMLPage, FormNotFound, pagination
+from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage, FormNotFound, pagination
 from weboob.browser.filters.html import Attr, Link, TableCell, AttributeNotFound
 from weboob.browser.filters.standard import (
-    CleanText, Field, Regexp, Format, Date, CleanDecimal, Map, AsyncLoad, Async, Env,
-    Eval, Slugify,
+    CleanText, Field, Regexp, Format, Date, CleanDecimal, Map, AsyncLoad, Async, Env, Slugify,
 )
+from weboob.browser.filters.json import Dict
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
@@ -251,6 +251,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                            '007': Account.TYPE_SAVINGS,
                            '012': Account.TYPE_SAVINGS,
                            '023': Account.TYPE_CHECKING,
+                           '036': Account.TYPE_SAVINGS,
                            '046': Account.TYPE_SAVINGS,
                            '047': Account.TYPE_SAVINGS,
                            '049': Account.TYPE_SAVINGS,
@@ -770,22 +771,13 @@ class Form2Page(LoggedPage, LCLBasePage):
         msg = "Ne détenant pas de compte dépôt chez LCL, l'accès à ce service vous est indisponible"
         return msg in CleanText('//div[@id="attTxt"]')(self.doc)
 
-    def is_restricted(self):
-        return self.assurancevie_hist_not_available()
-
     def on_load(self):
         if self.assurancevie_hist_not_available():
             return
         error = CleanText('//div[@id="attTxt"]/text()[1]')(self.doc)
         if "L’accès au service est momentanément indisponible" in error:
             raise BrowserUnavailable(error)
-
-        form = self.get_form(name="formulaire")
-        cName = self.get_from_js('.cName.value  = "', '";')
-        if cName:
-            form['cName'] = cName
-            form['cValue'] = self.get_from_js('.cValue.value  = "', '";')
-            form['cMaxAge'] = '-1'
+        form = self.get_form()
         return form.submit()
 
 
@@ -800,19 +792,6 @@ class AVDetailPage(LoggedPage, LCLBasePage):
     def get_account_id(self):
         return Regexp(CleanText('//div[@class="libelletitrepage"]/h1'), r"N° (\w+)")(self.doc)
 
-    def sub(self):
-        form = self.get_form(name="formulaire")
-        cName = self.get_from_js('.cName.value  = "', '";')
-        if cName:
-            form['cName'] = cName
-            form['cValue'] = self.get_from_js('.cValue.value  = "', '";')
-            form['cMaxAge'] = '-1'
-        return form.submit()
-
-    def submit_simple(self):
-        form = self.get_form(name="formulaire")
-        return form.submit()
-
     def come_back(self):
         session = self.get_from_js('idSessionSag = "', '"')
         params = {}
@@ -824,78 +803,66 @@ class AVDetailPage(LoggedPage, LCLBasePage):
         params['stbzn'] = 'bnc'
         return self.browser.location('https://assurance-vie-et-prevoyance.secure.lcl.fr/filiale/entreeBam', params=params)
 
-    def get_details(self, account, act=None):
-        form = self.get_form(id="frm_fwk")
-        form.submit()
-        if act is not None:
-            self.browser.location("entreeBam?sessionSAG=%s&act=%s" % (form['sessionSAG'], act))
 
-    def is_restricted(self):
-        msg = CleanText('//div[has-class("titre_libelle_erreur")]')(self.doc)
-        return msg in (
-            "Pour ce type d’opération, nous vous conseillons de vous rapprocher de votre conseiller afin de bénéficier du conseil personnalisé le mieux adapté à vos objectifs.",
-            "Vous n’avez pas accès à l’espace assurances de personnes.",
-        )
-
+class AVHistoryPage(LoggedPage, JsonPage):
     @method
-    class iter_investment(TableElement):
-        head_xpath = '//table[@class="table"][ends-with(@id,"CD_UCT")]/thead//th'
-        item_xpath = '//table[@class="table"][ends-with(@id,"CD_UCT")]/tbody/tr'
-
-        col_label = 'Le(s) support(s) financier(s) de votre contrat'
-        col_unitvalue = 'Valeur de la part'
-        col_vdate = 'En date du :'
-        col_quantity = 'Nombre de parts'
-        col_valuation = 'Total'
-        col_portfolio_share = u'Répartition'
-
-        class item(ItemElement):
-            klass = Investment
-
-            obj_label = CleanText(TableCell('label'))
-
-            def obj_code(self):
-                td = TableCell('label')(self)[0]
-                return Attr('.//a', 'id', default=NotAvailable)(td)
-
-            obj_code_type = Investment.CODE_TYPE_ISIN
-
-            def obj_quantity(self):
-                return MyDecimal(TableCell('quantity'))(self) or NotAvailable
-
-            def obj_unitvalue(self):
-                return MyDecimal(TableCell('unitvalue'))(self) or NotAvailable
-
-            obj_valuation = MyDecimal(TableCell('valuation'))
-            obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal(TableCell('portfolio_share'), replace_dots=True))
-
-            obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True, default=NotAvailable)
-
-    @pagination
-    @method
-    class iter_history(TableElement):
-        item_xpath = '//table[@class="table"]/tbody/tr'
-        head_xpath = '//table[@class="table"]/thead/tr/th'
-
-        col_date = 'Date d\'effet'
-        col_label = u'Opération(s)'
-        col_amount = 'Montant'
-
-        def next_page(self):
-            if Link('//a[@class="pictoSuivant"]', default=None)(self):
-                form = self.page.get_form(id="frm_fwk")
-                form['fwkaction'] = "precSuivDet"
-                form['fwkcodeaction'] = "Executer"
-                form['ACTION_CHOISIE'] = "suivant"
-                return requests.Request("POST", form.url, data=dict(form))
+    class iter_history(DictElement):
+        item_xpath = 'listeOperations'
 
         class item(ItemElement):
             klass = Transaction
 
-            obj_label = CleanText(TableCell('label'))
+            obj_label = CleanText(Dict('lcope'))
+            obj_amount = CleanDecimal(Dict('mtope'))
             obj_type = Transaction.TYPE_BANK
-            obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
-            obj_amount = MyDecimal(TableCell('amount'))
+            obj_investments = NotAvailable
+
+            # The 'idope' key contains a string such as "70_6660666   2018-03-182018-03-16-20.55.27.960852"
+            # 70= N° transaction, 6660666= N° account, 2018-03-18= date and 2018-03-16=rdate.
+            # We thus use "70_6660666" for the transaction ID.
+
+            obj_id = Regexp(CleanText(Dict('idope')), '(\d+_\d+)')
+
+            def obj__dates(self):
+                raw = CleanText(Dict('idope'))(self)
+                m = re.findall('\d{4}-\d{2}-\d{2}', raw)
+                # We must verify that the two dates are correctly fetched
+                assert len(m) == 2
+                return m
+
+            def obj_date(self):
+                return Date().filter(Field('_dates')(self)[0])
+
+            def obj_rdate(self):
+                return Date().filter(Field('_dates')(self)[1])
+
+
+class AVInvestmentsPage(LoggedPage, JsonPage):
+    @method
+    class iter_investment(DictElement):
+        item_xpath = 'listeSupports/support'
+
+        class item(ItemElement):
+            klass = Investment
+
+            obj_label = CleanText(Dict('lcspt'))
+            obj_valuation = CleanDecimal(Dict('mtvalspt'))
+            obj_code = CleanText(Dict('cdsptisn'), default=NotAvailable)
+            obj_unitvalue = CleanDecimal(Dict('mtliqpaaspt'), default=NotAvailable)
+            obj_quantity = CleanDecimal(Dict('qtpaaspt'), default=NotAvailable)
+            obj_portfolio_share = CleanDecimal(Dict('txrpaspt'), default=NotAvailable)
+            obj_diff = CleanDecimal(Dict('mtpmvspt'), default=NotAvailable)
+
+            def obj_vdate(self):
+                time = Dict('dvspt')(self)
+                if not time:
+                    return NotAvailable
+                return datetime.fromtimestamp(time//1000)
+
+            def obj_code_type(self):
+                if is_isin_valid(Field('code')(self)):
+                    return Investment.CODE_TYPE_ISIN
+                return NotAvailable
 
 
 class RibPage(LoggedPage, LCLBasePage):
