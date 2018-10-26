@@ -416,6 +416,7 @@ class UselessPage(LoggedPage, HTMLPage):
 
 
 class ProfilePage(LoggedPage, HTMLPage):
+    ENCODING = 'iso-8859-1'
     def get_profile(self):
         profile = Person()
 
