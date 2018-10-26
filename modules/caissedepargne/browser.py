@@ -108,10 +108,23 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     __states__ = ('BASEURL', 'multi_type', 'typeAccount', 'is_cenet_website', 'recipient_form', 'is_send_sms')
 
     # Accounts managed in life insurance space (not in linebourse)
-    insurance_accounts = ('RICOCHET', 'POINTS RETRAITE ECUR', 'INITIATIVES TRANSMIS',
-                          'PERSPECTIVES ECUREUI', 'INITIATIVES PLUS', 'ECUREUIL PROJET',
-                          'PERP', 'SOLUTION PERP', 'INITIATIVES PLUS',
-                          'LIVRET ASSURANCE VIE', 'ASSURECUREUIL')
+
+    insurance_accounts = ('AIKIDO',
+                          'ASSURECUREUIL',
+                          'ECUREUIL PROJET',
+                          'GARANTIE RETRAITE EU'
+                          'INITIATIVES PLUS',
+                          'INITIATIVES TRANSMIS',
+                          'LIVRET ASSURANCE VIE',
+                          'PATRIMONIO CRESCENTE',
+                          'PEP TRANSMISSION'
+                          'PERP',
+                          'PERSPECTIVES ECUREUI',
+                          'POINTS RETRAITE ECUR',
+                          'RICOCHET',
+                          'TENDANCES',
+                          'SOLUTION PERP',
+                          'YOGA', )
 
     def __init__(self, nuser, *args, **kwargs):
         self.BASEURL = kwargs.pop('domain', self.BASEURL)
