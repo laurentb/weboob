@@ -303,6 +303,9 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                 self.location(account._link_id)
             except ServerError:
                 return
+            if self.login.is_here():
+                # Website crashed and we are disconnected.
+                raise BrowserUnavailable()
             for tr in self.page.get_operations():
                 yield tr
             for tr in self.get_cb_operations(account, 1):
