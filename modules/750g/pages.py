@@ -55,10 +55,11 @@ class ResultsPage(HTMLPage):
 
             def condition(self):
                 return not CleanText('./div[@class="c-recipe-row__media"]/span[@class="c-recipe-row__video"]/@class',
-                                     default=None)(self)
+                                     default=None)(self) and CleanText('./div/h2/a/@href')(self)
 
             obj_id = Regexp(CleanText('./div/h2/a/@href'),
                             '/(.*).htm')
+            obj_id = CleanText('.')
             obj_title = CleanText('./div/h2/a')
 
             class obj_picture(ItemElement):
@@ -91,7 +92,7 @@ class RecipePage(HTMLPage):
         klass = Recipe
 
         def parse(self, el):
-            json_content = CleanText('//script[@type="application/ld+json"]')(el)
+            json_content = CleanText('//head/script[@type="application/ld+json"]')(el)
             self.el = json.loads(json_content)
 
         obj_id = Env('id')
