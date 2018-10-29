@@ -433,7 +433,6 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
                     match = pattern.match(type)
                     if match:
                         return _type
-                        break
                 return Transaction.TYPE_UNKNOWN
 
             def condition(self):
