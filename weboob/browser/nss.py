@@ -58,14 +58,27 @@ INIT_ARGS = None
 LOGGER = getLogger('weboob.browser.nss')
 
 
-def certificate_db_filename():
+def nss_version():
     version_str = nss.nss.nss_get_version()
     version_str = re.match(r'\d+\.\d+', version_str).group(0) # can be "3.21.3 Extended ECC"
-    version = tuple(int(x) for x in version_str.split('.'))
+    return tuple(int(x) for x in version_str.split('.'))
     # see https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSS/NSS_3.35_release_notes
+
+
+def certificate_db_filename():
+    version = nss_version()
     if version < (3, 35):
         return 'cert8.db'
     return 'cert9.db'
+
+
+def path_for_version(path):
+    # despite what certutil(1) and the NSS 3.35 releases notes say
+    # some nss builds >=3.35 will use either sql or dbm by default
+    # also, some builds <3.35 will fail to enforce sql format when using "sql:"
+    if nss_version() < (3, 35):
+        return path
+    return 'sql:%s' % path
 
 
 def cert_to_dict(cert):
@@ -392,6 +405,7 @@ def init_nss(path, rw=False):
     else:
         flags = nss.nss.NSS_INIT_READONLY
 
+    path = path_for_version(path)
     INIT_PID = os.getpid()
     CTX = nss.nss.nss_init_context(path, flags=flags)
 
@@ -401,6 +415,8 @@ def add_nss_cert(path, filename):
 
 
 def create_cert_db(path):
+    path = path_for_version(path)
+
     try:
         subprocess.check_call(['certutil', '-N', '--empty-password', '-d', path])
     except OSError:
