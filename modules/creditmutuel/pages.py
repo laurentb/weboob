@@ -1361,7 +1361,8 @@ class InternalTransferPage(LoggedPage, HTMLPage):
                     'Nom prénom du bénéficiaire différent du titulaire. Utilisez un compte courant',
                     "Pour effectuer cette opération, vous devez passer par l’intermédiaire d’un compte courant",
                     'Montant maximum autorisé au crédit pour ce compte',
-                    'Débit interdit sur ce compte']
+                    'Débit interdit sur ce compte',
+                    'Virement interdit sur compte clos',]
 
         for message in messages:
             if message in content:
