@@ -26,7 +26,7 @@ import re
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import Account
-from weboob.exceptions import BrowserHTTPError, BrowserIncorrectPassword, ActionNeeded
+from weboob.exceptions import BrowserHTTPError, BrowserIncorrectPassword, ActionNeeded, BrowserUnavailable
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import ServerError
 from weboob.tools.date import LinearDateGuesser
@@ -109,17 +109,30 @@ class CmsoProBrowser(LoginBrowser):
         if path.startswith('/domiweb'):
             path = path[len('/domiweb'):]
 
-        url = self.ssoDomiweb.go(website=self.website,
-                                 headers={'Authentication': 'Bearer %s' % self.token,
-                                          'Authorization': 'Bearer %s' % self.csrf,
-                                          'X-Csrf-Token': self.csrf,
-                                          'Accept': 'application/json',
-                                          'X-REFERER-TOKEN': 'RWDPRO',
-                                          'X-ARKEA-EFS': self.arkea,
-                                          'ADRIM': 'isAjax:true',
-                                          },
-                                 json={'rwdStyle': 'true',
-                                       'service': path}).get_sso_url()
+        headers = {
+                  'Authentication': 'Bearer %s' % self.token,
+                  'Authorization': 'Bearer %s' % self.csrf,
+                  'X-Csrf-Token': self.csrf,
+                  'Accept': 'application/json',
+                  'X-REFERER-TOKEN': 'RWDPRO',
+                  'X-ARKEA-EFS': self.arkea,
+                  'ADRIM': 'isAjax:true',
+        }
+
+        json = {
+               'rwdStyle': 'true',
+               'service': path,
+        }
+
+        try:
+            url = self.ssoDomiweb.go(website=self.website,
+                                     headers=headers,
+                                     json=json).get_sso_url()
+        except BrowserHTTPError as e:
+            if e.response.status_code == 500:
+                raise BrowserUnavailable()
+            raise
+
         page = self.location(url).page
         # each time we get a new csrf we store it because it can be used in further navigation
         self.last_csrf = self.url.split('csrf=')[1]
@@ -212,7 +225,6 @@ class CmsoProBrowser(LoginBrowser):
         # from first one to get very recent transaction without scrap them from 1st page (reached with GET url)
         if len(date_range_list):
             date_range_list = [self._build_next_date_range(date_range_list[0])] + date_range_list
-
 
         for date_range in date_range_list:
             date_guesser = LinearDateGuesser(datetime.datetime.strptime(date_range[10:], "%d/%m/%Y"))
