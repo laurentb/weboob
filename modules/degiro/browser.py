@@ -88,6 +88,13 @@ class DegiroBrowser(LoginBrowser):
             staging = '_s' if 'staging' in self.sessionId else ''
             self.accounts.stay_or_go(staging=staging, accountId=self.intAccount, sessionId=self.sessionId)
             self.invs[account.id] = list(self.page.iter_investment())
+            # Retrieve liquidities on another page, they aren't available in the account page
+            dateFmt = "%d/%m/%Y"
+            toDate = datetime.datetime.now()
+            fromDate = toDate - relativedelta(years=1)
+            self.history.go(fromDate=fromDate.strftime(dateFmt), toDate=toDate.strftime(dateFmt), accountId=self.intAccount, sessionId=self.sessionId)
+            if self.history.is_here():
+                self.invs[account.id].append(self.page.get_liquidities())
         return self.invs[account.id]
 
     @need_login

@@ -30,7 +30,7 @@ from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.exceptions import AuthMethodNotImplemented, ParseError
-from weboob.tools.capabilities.bank.investments import is_isin_valid
+from weboob.tools.capabilities.bank.investments import is_isin_valid, create_french_liquidity
 
 
 def MyDecimal(*args, **kwargs):
@@ -242,3 +242,8 @@ class HistoryPage(LoggedPage, JsonPage):
 
     def get_products(self):
         return set(d['productId'] for d in self.doc['data'])
+
+    def get_liquidities(self):
+        balance = self.doc['data']['cashMovements'][0]['balance']['total']
+        return create_french_liquidity(balance)
+
