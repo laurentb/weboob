@@ -9,6 +9,7 @@ import time
 
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment
+from weboob.tools.capabilities.bank.investments import is_isin_valid
 
 from weboob.browser.elements import ItemElement, TableElement, DictElement, method
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
@@ -359,9 +360,13 @@ class RetrieveInvestmentsPage(LoggedPage, JsonPage):
             klass = Investment
 
             obj_label = CleanText(Dict('productName'))
-            obj_code = CleanText(Dict('productIdInformation/0/productAlternativeNumber'))
-            obj_code_type = Investment.CODE_TYPE_ISIN
             obj_quantity = CleanDecimal(Dict('holdingDetailInformation/0/productHoldingQuantityCount'))
+            obj_code = CleanText(Dict('productIdInformation/0/productAlternativeNumber'), replace=[('-FR', '')])
+
+            def obj_code_type(self):
+                if is_isin_valid(Field('code')(self)):
+                    return Investment.CODE_TYPE_ISIN
+                return NotAvailable
 
             def obj_vdate(self):
                 vdate = Dict('holdingDetailInformation/0/productPriceUpdateDate')(self)

@@ -160,13 +160,20 @@ class AccountsPage(GenericLandingPage):
             def condition(self):
                 return len(self.el.xpath('./td')) > 2
 
+            # Some accounts have no <a> in the first <td>
             def obj_label(self):
-                return Label(CleanText('./td[1]/a'))(self) or 'Compte sans libellé'
+                if self.el.xpath('./td[1]/a'):
+                    return Label(CleanText('./td[1]/a'))(self) or 'Compte sans libellé'
+                return Label(CleanText('./td[1]'))(self) or 'Compte sans libellé'
 
             obj_coming = Env('coming')
             obj_currency = FrenchTransaction.Currency('./td[2]')
 
-            obj_url = CleanText(AbsoluteLink('./td[1]/a'), replace=[('\n', '')])
+            def obj_url(self):
+                # Accounts without an <a> in the <td> have no link
+                if self.el.xpath('./td[1]/a'):
+                    return CleanText(AbsoluteLink('./td[1]/a'), default=None, replace=[('\n', '')])(self)
+                return None
 
             obj_type = AccountsType(Field('label'))
             obj_coming = NotAvailable
@@ -226,6 +233,13 @@ class AccountsPage(GenericLandingPage):
                     return account_id
 
 
+class OwnersListPage(AccountsPage):
+    is_here = '//h1[text()="Comptes de tiers"]'
+
+    def get_owners_urls(self):
+        return self.doc.xpath('//div[@class="GoBack"]/a/@href')
+
+
 class RibPage(GenericLandingPage):
     def is_here(self):
         return bool(self.doc.xpath('//h1[contains(text(), "RIB/IBAN")]'))
@@ -244,7 +258,8 @@ class RibPage(GenericLandingPage):
             form = self.get_form(name="FORM_RIB")
             form['index_rib'] = str(nb+1)
             form.submit()
-            self.browser.page.link_rib(accounts)
+            if self.browser.rib.is_here():
+                self.browser.page.link_rib(accounts)
 
 
 class Pagination(object):
