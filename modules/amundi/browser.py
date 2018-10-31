@@ -32,6 +32,15 @@ class AmundiBrowser(LoginBrowser):
     accounts = URL(r'api/individu/positionFonds\?flagUrlFicheFonds=true&inclurePositionVide=false', AccountsPage)
     account_history = URL(r'api/individu/operations\?valeurExterne=false&filtreStatutModeExclusion=false&statut=CPTA', AccountHistoryPage)
 
+    def prepare_request(self, req):
+        """
+        Amundi uses TLS v1.0.
+        """
+        preq = super(AmundiBrowser, self).prepare_request(req)
+        conn = self.session.adapters['https://'].get_connection(preq.url)
+        conn.ssl_version = ssl.PROTOCOL_TLS
+        return preq
+
     def do_login(self):
         """
         Attempt to log in.
