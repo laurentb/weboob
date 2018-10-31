@@ -38,7 +38,10 @@ class AmundiBrowser(LoginBrowser):
         """
         preq = super(AmundiBrowser, self).prepare_request(req)
         conn = self.session.adapters['https://'].get_connection(preq.url)
-        conn.ssl_version = ssl.PROTOCOL_TLS
+        try:
+            conn.ssl_version = ssl.PROTOCOL_TLS
+        except AttributeError:
+            conn.ssl_version = ssl.PROTOCOL_TLSv1
         return preq
 
     def do_login(self):

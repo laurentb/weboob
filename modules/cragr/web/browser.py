@@ -164,7 +164,10 @@ class Cragr(LoginBrowser, StatesMixin):
         preq = super(Cragr, self).prepare_request(req)
 
         conn = self.session.adapters['https://'].get_connection(preq.url)
-        conn.ssl_version = ssl.PROTOCOL_TLSv1
+        try:
+            conn.ssl_version = ssl.PROTOCOL_TLS
+        except AttributeError:
+            conn.ssl_version = ssl.PROTOCOL_TLSv1
 
         return preq
 
