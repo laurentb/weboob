@@ -153,12 +153,11 @@ class AccountsList(LoggedPage, BasePage):
 
                 # Layout with several cards
                 line = CleanText('//table//div[contains(text(), "Liste des cartes")]', replace=[(' ', '')])(page.doc)
-                if line:
-                    parent_id = re.search(r'(\d+)', line).group()
-                # Layout with only one card
+                m = re.search(r'(\d+)', line)
+                if m:
+                    parent_id = m.group()
                 else:
                     parent_id = CleanText('//div[contains(text(), "Numéro de compte débité")]/following::div[1]', replace=[(' ', '')])(page.doc)
-
                 account.parent = find_object(accounts_list, id=parent_id)
 
             if account.type == Account.TYPE_UNKNOWN:
