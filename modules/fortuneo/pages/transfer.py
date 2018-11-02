@@ -92,7 +92,7 @@ class RecipientsPage(LoggedPage, HTMLPage):
         ), r'(?<=Nomdutitulaire:)(\w+)')(self.doc)
         rcpt.iban = Regexp(CleanText(
             recipient_xpath + '/li[contains(text(), "IBAN")]', replace=[(' ', '')]
-        ), r'(?<=IBAN:)([A-Z]{2}\d+)')(self.doc)
+        ), r'(?<=IBAN:)([A-Za-z]{2}[\dA-Za-z]+)')(self.doc)
         rcpt.id = rcpt.iban
         rcpt.category = 'Externe'
         rcpt.enabled_at = date.today() + timedelta(1)
