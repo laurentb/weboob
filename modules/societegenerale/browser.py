@@ -34,6 +34,7 @@ from .pages.accounts_list import (
     AccountsList, AccountHistory, CardsList, LifeInsurance,
     LifeInsuranceHistory, LifeInsuranceInvest, LifeInsuranceInvest2, Market, UnavailableServicePage,
     ListRibPage, AdvisorPage, HTMLProfilePage, XMLProfilePage, LoansPage, IbanPage, ComingPage,
+    NewLandingPage,
 )
 from .pages.transfer import RecipientsPage, TransferPage, AddRecipientPage, RecipientJson
 from .pages.login import LoginPage, BadLoginPage, ReinitPasswordPage, ActionNeededPage, ErrorPage
@@ -79,6 +80,8 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     bank_statement = URL(r'/restitution/rce_derniers_releves.html', BankStatementPage)
     bank_statement_search = URL(r'/restitution/rce_recherche.html\?noRedirect=1',
                                 r'/restitution/rce_recherche_resultat.html', BankStatementPage)
+
+    new_landing = URL(r'/com/icd-web/cbo/index.html', NewLandingPage)
 
     error = URL('https://static.societegenerale.fr/pri/erreur.html', ErrorPage)
 
@@ -129,6 +132,10 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     def get_accounts_list(self):
         if self.accounts_list is None:
             self.accounts.stay_or_go()
+            # the link is not on the new landing page, navigating manually
+            if self.new_landing.is_here():
+                self.logger.info('Falling back on old accounts consulting page.')
+                self.location('/restitution/cns_listeprestation.html?NoRedirect=true')
             self.accounts_list = self.page.get_list()
             # Coming amount is on another page, whose url must be retrieved on the main page
             self.location(self.page.get_coming_url())

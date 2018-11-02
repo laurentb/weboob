@@ -699,3 +699,7 @@ class UnavailableServicePage(LoggedPage, HTMLPage):
     def on_load(self):
         if self.doc.xpath('//div[contains(@class, "erreur_404_content")]'):
             raise BrowserUnavailable()
+
+
+class NewLandingPage(LoggedPage, HTMLPage):
+    pass
