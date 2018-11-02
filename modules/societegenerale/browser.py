@@ -51,6 +51,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     login = URL('https://particuliers.societegenerale.fr/index.html', LoginPage)
     action_needed = URL('/com/icd-web/forms/cct-index.html',
                         '/com/icd-web/gdpr/gdpr-recueil-consentements.html',
+                        '/com/icd-web/forms/kyc-index.html',
                         ActionNeededPage)
     bad_login = URL('\/acces/authlgn.html', '/error403.html', BadLoginPage)
     reinit = URL('/acces/changecodeobligatoire.html', ReinitPasswordPage)
