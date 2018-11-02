@@ -817,11 +817,11 @@ class AVHistoryPage(LoggedPage, JsonPage):
             obj_type = Transaction.TYPE_BANK
             obj_investments = NotAvailable
 
-            # The 'idope' key contains a string such as "70_6660666   2018-03-182018-03-16-20.55.27.960852"
+            # The 'idope' key contains a string such as "70_ABC666ABC   2018-03-182018-03-16-20.55.27.960852"
             # 70= N° transaction, 6660666= N° account, 2018-03-18= date and 2018-03-16=rdate.
-            # We thus use "70_6660666" for the transaction ID.
+            # We thus use "70_ABC666ABC" for the transaction ID.
 
-            obj_id = Regexp(CleanText(Dict('idope')), '(\d+_\d+)')
+            obj_id = Regexp(CleanText(Dict('idope')), '(\d+_[\dA-Z]+)')
 
             def obj__dates(self):
                 raw = CleanText(Dict('idope'))(self)
