@@ -1691,21 +1691,54 @@ class RevolvingLoansList(LoggedPage, HTMLPage):
         class item_account(ItemElement):
             klass = Loan
 
-            obj_id = Regexp(Attr('.//a','href'), r'(\d{16})\d{2}$')
+            def condition(self):
+                return len(self.el.xpath('./td')) >= 5
+
             obj_label = CleanText('.//td[2]')
             obj_total_amount = MyDecimal('.//td[3]')
             obj_currency = FrenchTransaction.Currency(CleanText('.//td[3]'))
             obj_type = Account.TYPE_REVOLVING_CREDIT
             obj__is_inv = False
             obj__link_id = None
+            obj_number = Field('id')
 
-            load_details = Link('.//a') & AsyncLoad
-            obj_balance = Async('details') & MyDecimal(
-                Format('-%s',CleanText('//main[@id="ei_tpl_content"]/div/div[2]/table//tr[2]/td[1]')))
-            obj_available_amount = Async('details') & MyDecimal('//main[@id="ei_tpl_content"]/div/div[2]/table//tr[3]/td[1]')
+            def obj_id(self):
+                if self.el.xpath('.//a') and not 'notes' in Attr('.//a','href')(self):
+                    return Regexp(Attr('.//a','href'), r'(\d{16})\d{2}$')(self)
+                return Regexp(Field('label'), r'(\d+ \d+)')(self).replace(' ', '')
 
-            def condition(self):
-                return CleanText('.//a', default=None)(self)
+            def load_details(self):
+                self.async_load = False
+                if self.el.xpath('.//a') and not 'notes' in Attr('.//a','href')(self):
+                    self.async_load = True
+                    return self.browser.async_open(Attr('.//a','href')(self))
+                return NotAvailable
+
+            def obj_balance(self):
+                if self.async_load:
+                    async_page = Async('details').loaded_page(self)
+                    return MyDecimal(
+                        Format('-%s',CleanText('//main[@id="ei_tpl_content"]/div/div[2]/table//tr[2]/td[1]')))(async_page)
+                return Field('used_amount')(self)
+
+            def obj_available_amount(self):
+                if self.async_load:
+                    async_page = Async('details').loaded_page(self)
+                    return MyDecimal('//main[@id="ei_tpl_content"]/div/div[2]/table//tr[3]/td[1]')(async_page)
+                return NotAvailable
+
+            def obj_used_amount(self):
+                if not self.async_load:
+                    return MyDecimal(Regexp(CleanText('.//td[5]'), r'([\s\d-]+,\d+)'))(self)
+
+            def obj_next_payment_date(self):
+                if not self.async_load:
+                    return Date(Regexp(CleanText('.//td[4]'), r'(\d{2}/\d{2}/\d{2})'))(self)
+
+            def obj_next_payment_amount(self):
+                if not self.async_load:
+                    return MyDecimal(Regexp(CleanText('.//td[4]'), r'([\s\d-]+,\d+)'))(self)
+
 
 class ErrorPage(HTMLPage):
     def on_load(self):
