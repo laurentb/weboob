@@ -258,7 +258,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             'newCodeConf': newCodeConf,
             'auth_mode': 'ajax',
             'nuusager': self.nuser.encode('utf-8'),
-            'codconf': self.password,  # not mandatory ?
+            'codconf': '',  # must be present though empty
             'typeAccount': typeAccount,
             'step': 'authentification',
             'ctx': 'typsrv={}'.format(typeAccount),
