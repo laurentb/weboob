@@ -443,9 +443,9 @@ class IndexPage(LoggedPage, HTMLPage):
                             self.go_loans_conso(tr)
                             d = self.browser.loans_conso()
                             if d:
-                                account.total_amount = d['contrat']['creditMaxAutorise']
-                                account.available_amount = d['situationCredit']['disponible']
-                                account.next_payment_amount = d['situationCredit']['mensualiteEnCours']
+                                account.total_amount = float_to_decimal(d['contrat']['creditMaxAutorise'])
+                                account.available_amount = float_to_decimal(d['situationCredit']['disponible'])
+                                account.next_payment_amount = float_to_decimal(d['situationCredit']['mensualiteEnCours'])
                         accounts[account.id] = account
         return accounts.values()
 
