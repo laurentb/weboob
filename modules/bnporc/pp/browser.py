@@ -193,13 +193,20 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
 
             # Fetching capitalisation contracts from the "Assurances Vie" space (some are not in the BNP API):
             params = self.natio_vie_pro.go().get_params()
-            self.capitalisation_page.go(params=params)
-            if self.capitalisation_page.is_here() and self.page.has_contracts():
-                for account in self.page.iter_capitalisation():
-                    # Life Insurance accounts may appear BOTH in the API and the "Assurances Vie" domain,
-                    # It is better to keep the API version since it contains the unitvalue:
-                    if account.number not in [a.number for a in self.accounts_list]:
-                        self.accounts_list.append(account)
+            try:
+                self.capitalisation_page.go(params=params)
+            except ServerError:
+                self.logger.warning("An Internal Server Error occurred")
+            else:
+                if self.capitalisation_page.is_here() and self.page.has_contracts():
+                    for account in self.page.iter_capitalisation():
+                        # Life Insurance accounts may appear BOTH in the API and the "Assurances Vie" domain,
+                        # It is better to keep the API version since it contains the unitvalue:
+                        if account.number not in [a.number for a in self.accounts_list]:
+                            self.logger.warning("We found an account that only appears on the old BNP website.")
+                            self.accounts_list.append(account)
+                        else:
+                            self.logger.warning("This account was skipped because it already appears in the API.")
 
         return iter(self.accounts_list)
 
@@ -220,7 +227,7 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
             try:
                 self.market_list.go(data=JSON({}))
             except ServerError:
-                self.logger.warning("An Internal Server Error occured")
+                self.logger.warning("An Internal Server Error occurred")
                 return iter([])
             for market_acc in self.page.get_list():
                 if account.number[-4:] == market_acc['securityAccountNumber'][-4:]:
@@ -279,7 +286,6 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
                 # Going to the "Assurances Vie" page
                 natiovie_params = self.natio_vie_pro.go().get_params()
                 self.capitalisation_page.go(params=natiovie_params)
-
                 # Fetching the form to get the contract investments:
                 capitalisation_params = self.page.get_params(account)
                 self.capitalisation_page.go(params=capitalisation_params)
@@ -296,7 +302,7 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
             try:
                 self.market_list.go(data=JSON({}))
             except ServerError:
-                self.logger.warning("An Internal Server Error occured")
+                self.logger.warning("An Internal Server Error occurred")
                 return iter([])
             for market_acc in self.page.get_list():
                 if account.number[-4:] == market_acc['securityAccountNumber'][-4:] and not account.iban:
@@ -306,7 +312,7 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
                             "securityAccountNumber": market_acc['securityAccountNumber'],
                         }))
                     except ServerError:
-                        self.logger.warning("An Internal Server Error occured")
+                        self.logger.warning("An Internal Server Error occurred")
                         break
                     return self.page.iter_investments()
 
