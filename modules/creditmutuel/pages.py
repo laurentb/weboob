@@ -900,7 +900,7 @@ class CardPage2(CardPage, HTMLPage, XMLPage):
                     return Transaction.TYPE_CARD_SUMMARY
 
                 def obj_original_amount(self):
-                    m = re.search(r'([\s\d-]+,\d+)', CleanText(TableCell('commerce'))(self))
+                    m = re.search(r'(([\s-]\d+)+,\d+)', CleanText(TableCell('commerce'))(self))
                     if m and not 'FRAIS' in CleanText(TableCell('commerce'))(self):
                         return Decimal(m.group(1).replace(',', '.').replace(' ', '')).quantize(Decimal('0.01'))
                     return NotAvailable
@@ -982,7 +982,7 @@ class CardPage2(CardPage, HTMLPage, XMLPage):
                     return Transaction.TYPE_CARD_SUMMARY
 
                 def obj_original_amount(self):
-                    m = re.search(r'([\s\d-]+,\d+)', CleanText(TableCell('commerce'))(self))
+                    m = re.search(r'(([\s-]\d+)+,\d+)', CleanText(TableCell('commerce'))(self))
                     if m and not 'FRAIS' in CleanText(TableCell('commerce'))(self):
                         return Decimal(m.group(1).replace(',', '.').replace(' ', '')).quantize(Decimal('0.01'))
                     return NotAvailable
