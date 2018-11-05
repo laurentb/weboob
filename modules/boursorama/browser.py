@@ -193,6 +193,7 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
             if self.accounts_list is not None:
                 break
             self.accounts_list = []
+            self.loans_list = []
             self.accounts_list.extend(self.pro_accounts.go().iter_accounts())
             self.accounts_list.extend(self.accounts.go().iter_accounts())
 
@@ -210,11 +211,15 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
 
                     # there is 1 page for all accounts (one for tit and one for pro)
                     break
-
             for account in list(self.accounts_list):
                 if account.type == Account.TYPE_CARD and account.url not in valid_card_url:
                     self.accounts_list.remove(account)
+                elif account.type == Account.TYPE_LOAN:
+                    self.location(account.url)
+                    self.loans_list.append(self.page.get_loan())
+                    self.accounts_list.remove(account)
 
+            self.accounts_list.extend(self.loans_list)
             cards = [acc for acc in self.accounts_list if acc.type == Account.TYPE_CARD]
             if cards:
                 self.go_cards_number(cards[0].url)
@@ -222,7 +227,7 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
                     self.page.populate_cards_number(cards)
 
             for account in self.accounts_list:
-                if account.type not in (Account.TYPE_CARD, Account.TYPE_LOAN, Account.TYPE_LIFE_INSURANCE):
+                if account.type not in (Account.TYPE_CARD, Account.TYPE_LOAN, Account.TYPE_CONSUMER_CREDIT, Account.TYPE_MORTGAGE, Account.TYPE_REVOLVING_CREDIT, Account.TYPE_LIFE_INSURANCE):
                     account.iban = self.iban.go(webid=account._webid).get_iban()
 
             for card in cards:

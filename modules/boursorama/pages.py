@@ -31,13 +31,13 @@ from weboob.browser.elements import ListElement, ItemElement, method, TableEleme
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Field, Format,
     Regexp, Date, AsyncLoad, Async, Eval, RegexpError, Env,
-    Currency as CleanCurrency,
+    Currency as CleanCurrency, Map,
 )
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import Attr, Link, TableCell, AbsoluteLink
 from weboob.capabilities.bank import (
     Account, Investment, Recipient, Transfer, AccountNotFound,
-    AddRecipientBankError, TransferInvalidAmount,
+    AddRecipientBankError, TransferInvalidAmount, Loan,
 )
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
 from weboob.capabilities.base import NotAvailable, empty, Currency
@@ -331,6 +331,41 @@ class AccountsPage(LoggedPage, HTMLPage):
             m = re.search(r'/([a-z0-9]+)/carte/([a-z0-9]+)', url)
             if m:
                 yield m.groups()
+
+
+class LoanPage(LoggedPage, HTMLPage):
+
+    LOAN_TYPES = {
+        "PRÊT PERSONNEL": Account.TYPE_CONSUMER_CREDIT,
+    }
+
+    @method
+    class get_loan(ItemElement):
+
+        klass = Loan
+
+        obj_id = CleanDecimal('//h3[contains(@class, "account-number")]/strong')
+        obj_label =  CleanText('//h2[contains(@class, "page-title__account")]//div[@class="account-edit-label"]/span')
+        obj_total_amount = CleanDecimal('//p[contains(text(), "Montant emprunt")]/span', replace_dots=True)
+        obj_currency = CleanCurrency('//p[contains(text(), "Montant emprunt")]/span')
+        obj_duration = CleanDecimal('//p[contains(text(), "Nombre prévisionnel d\'échéances restantes")]/span')
+        obj_subscription_date = Date(CleanText('//p[contains(text(), "Date de départ du prêt")]/span'))
+        obj_maturity_date = Date(CleanText('//p[contains(text(), "Date prévisionnelle d\'échéance finale")]/span'))
+        obj_rate = CleanDecimal('//p[contains(text(), "Taux nominal en vigueur du prêt")]/span')
+        obj_nb_payments_left = CleanDecimal('//p[contains(text(), "Nombre prévisionnel d\'échéances restantes")]/span')
+        obj_nb_payments_total = CleanDecimal('//p[contains(text(), "Nombre d\'écheances totales")]/span')
+        obj_next_payment_amount = CleanDecimal('//p[contains(text(), "Montant de la prochaine échéance")]/span', replace_dots=True)
+        obj_next_payment_date = Date(CleanText('//p[contains(text(), "Date de la prochaine échéance")]/span'))
+
+        def obj_balance(self):
+            balance = CleanDecimal('//p[contains(text(), "Capital restant dû")]/span', replace_dots=True)(self)
+            if balance > 0:
+                balance *= -1
+            return balance
+
+        def obj_type(self):
+           _type = CleanText('//h2[contains(@class, "page-title__account")]//div[@class="account-edit-label"]/span')
+           return Map(_type, self.page.LOAN_TYPES, default=Account.TYPE_LOAN)(self)
 
 
 class CardCalendarPage(LoggedPage, RawPage):
@@ -760,10 +795,6 @@ class AccbisPage(LoggedPage, HTMLPage):
             if self.browser.cards.is_here():
                 self.browser.page.populate_cards_number(cards)
                 accounts.extend(cards)
-
-
-class LoanPage(LoggedPage, HTMLPage):
-    pass
 
 
 class ErrorPage(HTMLPage):
