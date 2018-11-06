@@ -116,9 +116,15 @@ class RecipientSMSPage(LoggedPage, PartialHTMLPage):
         form = self.get_form()
         return form
 
+    def is_code_expired(self):
+        return self.doc.xpath('//label[contains(text(), "Le code sécurité est expiré. Veuillez saisir le nouveau code reçu")]')
+
     def rcpt_after_sms(self):
         return self.doc.xpath('//div[@class="confirmationAjoutCompteExterne"]\
             /h2[contains(text(), "ajout de compte externe a bien été prise en compte")]')
+
+    def get_error(self):
+        return CleanText().filter(self.doc.xpath('//form[@id="CompteExterneActionForm"]//p[@class="container error"]//label[@class="error]'))
 
 
 class RegisterTransferPage(LoggedPage, HTMLPage):

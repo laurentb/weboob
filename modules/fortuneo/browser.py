@@ -207,12 +207,16 @@ class Fortuneo(LoginBrowser, StatesMixin):
 
     def new_recipient(self, recipient, **params):
         if 'code' in params:
-            self.need_reload_state = None
             # to drop and use self.add_recipient_form instead in send_code()
             recipient_form = json.loads(self.add_recipient_form)
             self.send_code(recipient_form ,params['code'])
-            assert self.page.rcpt_after_sms()
-            return self.copy_recipient(recipient)
+            if self.page.rcpt_after_sms():
+                self.need_reload_state = None
+                return self.copy_recipient(recipient)
+            elif self.page.is_code_expired():
+                self.need_reload_state = True
+                raise AddRecipientStep(recipient, Value('code', label='Le code sécurité est expiré. Veuillez saisir le nouveau code reçu qui sera valable 5 minutes.'))
+            assert False, self.page.get_error()
         return self.new_recipient_before_otp(recipient, **params)
 
     @need_login
