@@ -41,7 +41,7 @@ from weboob.browser.exceptions import ServerError
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage, FormNotFound, pagination
 from weboob.browser.filters.html import Attr, Link, TableCell, AttributeNotFound
 from weboob.browser.filters.standard import (
-    CleanText, Field, Regexp, Format, Date, CleanDecimal, Map, AsyncLoad, Async, Env, Slugify,
+    CleanText, Field, Regexp, Format, Date, CleanDecimal, Map, AsyncLoad, Async, Env, Slugify, BrowserURL,
 )
 from weboob.browser.filters.json import Dict
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
@@ -721,7 +721,9 @@ class AVPage(LoggedPage, HTMLPage):
                     self.page.browser.open(self.page.url)
                     # redirection to lifeinsurances accounts and comeback on Lcl original website
                     page = self.obj__form().submit().page
-                    account_id = page.get_account_id()
+                    # Getting the account details from the JSON containing the account information:
+                    details_page = self.page.browser.open(BrowserURL('av_investments')(self)).page
+                    account_id = Dict('situationAdministrativeEpargne/idcntcar')(details_page.doc)
                     page.come_back()
                     return account_id
 
@@ -789,9 +791,6 @@ class CaliePage(LoggedPage, HTMLPage):
 
 
 class AVDetailPage(LoggedPage, LCLBasePage):
-    def get_account_id(self):
-        return Regexp(CleanText('//div[@class="libelletitrepage"]/h1'), r"N° (\w+)")(self.doc)
-
     def come_back(self):
         session = self.get_from_js('idSessionSag = "', '"')
         params = {}
