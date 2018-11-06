@@ -112,18 +112,19 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     insurance_accounts = ('AIKIDO',
                           'ASSURECUREUIL',
                           'ECUREUIL PROJET',
-                          'GARANTIE RETRAITE EU'
+                          'GARANTIE RETRAITE EU',
                           'INITIATIVES PLUS',
                           'INITIATIVES TRANSMIS',
                           'LIVRET ASSURANCE VIE',
+                          'OCEOR EVOLUTION',
                           'PATRIMONIO CRESCENTE',
-                          'PEP TRANSMISSION'
+                          'PEP TRANSMISSION',
                           'PERP',
                           'PERSPECTIVES ECUREUI',
                           'POINTS RETRAITE ECUR',
                           'RICOCHET',
-                          'TENDANCES',
                           'SOLUTION PERP',
+                          'TENDANCES',
                           'YOGA', )
 
     def __init__(self, nuser, *args, **kwargs):
