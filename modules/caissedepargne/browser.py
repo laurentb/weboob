@@ -33,7 +33,7 @@ from weboob.capabilities.bank import Account, AddRecipientStep, Recipient, Trans
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.profile import Profile
 from weboob.browser.exceptions import BrowserHTTPNotFound, ClientError
-from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, BrowserHTTPError
 from weboob.tools.capabilities.bank.transactions import sorted_transactions, FrenchTransaction
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
 from weboob.tools.compat import urljoin
@@ -222,7 +222,20 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         # Retrieve the list of types: can contain a single type or more
         # - when there is a single type: all the information are available
         # - when there are several types: an additional request is needed
-        data = self.login.go(login=self.username).get_response()
+        try:
+            connection = self.login.go(login=self.username)
+        # The website crash sometime when the module is not on caissedepargne (on linebourse, for exemple).
+        # The module think is not connected anymore, so we go to the home logged page. If there are no error
+        # that mean we are already logged and now, on the good website
+
+        except ValueError:
+            self.home.go()
+            if self.home.is_here():
+                return
+            # If that not the case, that's an other error that we have to correct
+            raise
+
+        data = connection.get_response()
 
         if data is None:
             raise BrowserIncorrectPassword()
@@ -504,12 +517,17 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             self.home.go()
 
         self.page.go_history(account._info)
-
         if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_PERP):
             if "MILLEVIE" in account.label:
                 self.page.go_life_insurance(account)
                 label = account.label.split()[-1]
-                self.natixis_life_ins_his.go(id1=label[:3], id2=label[3:5], id3=account.id)
+                try:
+                    self.natixis_life_ins_his.go(id1=label[:3], id2=label[3:5], id3=account.id)
+                except BrowserHTTPError as e:
+                    if e.response.status_code == 500:
+                        error = json.loads(e.response.text)
+                        raise BrowserUnavailable(error["error"])
+                    raise
                 return sorted_transactions(self.page.get_history())
 
             if account.label.startswith('NUANCES ') or account.label in self.insurance_accounts:
