@@ -255,7 +255,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
         assert data is not None
 
-        if data.get('authMode', '') == 'redirect': # the connection type EU could also be used as a criteria
+        if data.get('authMode', '') == 'redirect':  # the connection type EU could also be used as a criteria
             raise SiteSwitch('cenet')
 
         typeAccount = data['account'][0]
@@ -263,12 +263,12 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         if self.multi_type:
             assert typeAccount == self.typeAccount
 
-        idTokenClavier = data['keyboard']['Id']
+        id_token_clavier = data['keyboard']['Id']
         vk = CaissedepargneKeyboard(data['keyboard']['ImageClavier'], data['keyboard']['Num']['string'])
         newCodeConf = vk.get_string_code(self.password)
 
         playload = {
-            'idTokenClavier': idTokenClavier,
+            'idTokenClavier': id_token_clavier,
             'newCodeConf': newCodeConf,
             'auth_mode': 'ajax',
             'nuusager': self.nuser.encode('utf-8'),
@@ -307,7 +307,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
     def loans_conso(self):
         days = ('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun')
-        month = ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul' , 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
+        month = ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
         now = datetime.datetime.today()
         d = '%s %s %s %s:%s:%s GMT 0100 (CET)' % (days[now.weekday()], month[now.month - 1], now.year, now.hour, format(now.minute, "02"), now.second)
         if self.home.is_here():
@@ -315,7 +315,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             if msg:
                 self.logger.warning('%s' % msg)
                 return None
-        self.cons_loan.go(datepourie = d)
+        self.cons_loan.go(datepourie=d)
         return self.page.get_conso()
 
     # On home page there is a list of "measure" links, each one leading to one person accounts list.
@@ -388,7 +388,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                     self.page.submit()
 
                     # For Caisse d'Epargne's connections
-                    if self.url.startswith('https://www.caisse-epargne.offrebourse.com') :
+                    if self.url.startswith('https://www.caisse-epargne.offrebourse.com'):
                         if self.page.is_error():
                             continue
 
@@ -414,7 +414,6 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         self.accounts = [account for account in self.accounts if account.label and account.balance != NotAvailable]
         for account in self.accounts:
             yield account
-
 
     @need_login
     def get_loans_list(self):
@@ -608,7 +607,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                 return
             self.page.submit()
 
-             # For Credit Cooperatif's connections
+            # For Credit Cooperatif's connections
             if self.url.startswith('https://www.offrebourse.com'):
                 self.update_linebourse_token()
                 for investment in self.linebourse.iter_investments():
@@ -763,7 +762,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
         if 'otp_sms' in params:
             transactionid = re.search(r'transactionID=(.*)', self.page.url).group(1)
-            self.request_sms.go(param = transactionid)
+            self.request_sms.go(param=transactionid)
             validation = {}
             validation['validate'] = {}
             key = self.page.validate_key()
@@ -773,11 +772,11 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             inner_param['type'] = 'SMS'
             inner_param['otp_sms'] = params['otp_sms']
             validation['validate'][key].append(inner_param)
-            headers = {'Content-Type': 'application/json', 'Accept':'application/json, text/plain, */*'}
-            self.location(self.url +'/step' , data=json.dumps(validation), headers=headers)
+            headers = {'Content-Type': 'application/json', 'Accept': 'application/json, text/plain, */*'}
+            self.location(self.url + '/step', data=json.dumps(validation), headers=headers)
             saml = self.page.get_saml()
             action = self.page.get_action()
-            self.location(action, data={'SAMLResponse':saml})
+            self.location(action, data={'SAMLResponse': saml})
             if self.authent.is_here():
                 self.page.go_on()
                 return self.facto_post_recip(recipient)
@@ -791,8 +790,13 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
         if self.sms_option.is_here():
             self.is_send_sms = True
-            raise AddRecipientStep(self.get_recipient_obj(recipient), Value('otp_sms',
-            label=u'Veuillez renseigner le mot de passe unique qui vous a été envoyé par SMS dans le champ réponse.'))
+            raise AddRecipientStep(
+                self.get_recipient_obj(recipient),
+                Value(
+                    'otp_sms',
+                    label='Veuillez renseigner le mot de passe unique qui vous a été envoyé par SMS dans le champ réponse.'
+                )
+            )
 
         # pro add recipient.
         elif self.page.need_auth():
