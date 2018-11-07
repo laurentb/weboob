@@ -669,7 +669,8 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             # - need to relogin, see `self.page.need_auth()`
             # - need more security, see `self.page.transfer_unavailable()`
             # - transfer is not available for this connection, see `self.page.go_transfer_via_history()`
-            self.home.is_here(),
+            # TransferPage inherit from IndexPage so self.home.is_here() is true, check page type to avoid this problem
+            type(self.page) is IndexPage,
             # check if origin_account have recipients
             self.transfer.is_here() and not self.page.can_transfer(origin_account),
         )
