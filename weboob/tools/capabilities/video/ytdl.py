@@ -26,7 +26,10 @@ from weboob.capabilities.video import BaseVideo
 from weboob.tools.date import parse_date
 from weboob.tools.json import json
 from weboob.tools.application.media_player import MediaPlayer
+from weboob.tools.compat import unicode
 
+
+from datetime import timedelta
 
 __all__ = ('video_info',)
 
@@ -47,16 +50,16 @@ def video_info(url):
         return
 
     v = BaseVideo(id=url)
-    v.title = j.get('title') or NotAvailable
-    v.ext = j.get('ext') or NotAvailable
-    v.description = j.get('description') or NotAvailable
-    v.url = j['url']
-    v.duration = j.get('duration') or NotAvailable
-    v.author = j.get('uploader') or NotAvailable
+    v.title = unicode(j.get('title')) if j.get('title') else NotAvailable
+    v.ext = unicode(j.get('ext')) if j.get('ext') else NotAvailable
+    v.description = unicode(j.get('description')) if j.get('description') else NotAvailable
+    v.url = unicode(j['url'])
+    v.duration = timedelta(seconds=j.get('duration')) if j.get('duration') else NotAvailable
+    v.author = unicode(j.get('uploader')) if j.get('uploader')  else NotAvailable
     v.rating = j.get('average_rating') or NotAvailable
 
     if j.get('thumbnail'):
-        v.thumbnail = Thumbnail(j['thumbnail'])
+        v.thumbnail = Thumbnail(unicode(j['thumbnail']))
 
     d = j.get('upload_date', j.get('release_date'))
     if d:
