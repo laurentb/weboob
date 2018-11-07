@@ -20,9 +20,10 @@
 from __future__ import unicode_literals
 
 from weboob.browser import PagesBrowser, URL
-from weboob.exceptions import BrowserHTTPNotFound
+from weboob.tools.json import json
+from .pages import SearchPage, HomePage
 
-from .pages import SearchPage, VideoWebPage, VideoJsonPage, HomePage
+import time
 
 __all__ = ['PluzzBrowser']
 
@@ -31,44 +32,27 @@ class PluzzBrowser(PagesBrowser):
     BASEURL = 'https://www.france.tv'
     PROGRAMS = None
 
-    search_page = URL(r'/recherche/', SearchPage)
-    video = URL(r'/.+/(?P<number>\d+)-[^/]+.html$', VideoWebPage)
-    video_json = URL(r'https://sivideo.webservices.francetelevisions.fr/tools/getInfosOeuvre/v2/\?idDiffusion=(?P<number>.+)$', VideoJsonPage)
+    search_page = URL(r'https://vwdlashufe-dsn.algolia.net/1/indexes/\*/queries\?(?P<p>.*)', SearchPage)
     home = URL(r'/(?P<cat>.*)', HomePage)
+    base = URL(r'/', HomePage)
 
     def search_videos(self, s):
-        self.location(self.search_page.build(), params={'q': s})
-        return self.page.iter_videos()
+        self.go_home()
+        algolia_app_id, algolia_api_key = self.page.get_params()
 
-    def get_video(self, id):
-        self.location(id)
-        number = self.page.get_number()
+        params = "x-algolia-agent=Algolia for vanilla JavaScript (lite) 3.27.0;instantsearch.js 2.10.2;JS Helper 2.26.0&x-algolia-application-id="+algolia_app_id+"&x-algolia-api-key="+algolia_api_key
 
-        try:
-            self.video_json.go(number=number)
-        except BrowserHTTPNotFound:
-            self.logger.warning('video info not found, probably needs payment')
-            return
-        video = self.page.get_video()
-        if not video:
-            self.logger.debug('video info not found, maybe not available?')
-            return
-        video.id = id
+        data = {}
+        data['requests'] = [0]
+        data['requests'][0] = {}
+        data['requests'][0]['indexName'] = "yatta_prod_contents"
+        ts = int(time.time())
+        data['requests'][0]['params'] = 'query={}&hitsPerPage=20&page=0&filters=class:video AND ranges.replay.web.begin_date < {} AND ranges.replay.web.end_date > {}&facetFilters=["class:video"]&facets=[]&tagFilters='.format(s, ts, ts)
+        return self.search_page.go(p=params, data=json.dumps(data)).iter_videos()
 
-        return video
-
-    def get_categories(self):
-        return self.home.go(cat="").iter_categories()
-
-    def iter_subcategories(self, cat):
-        for cat in self.home.go(cat="/".join(cat)).iter_subcategories(cat=cat):
+    def get_categories(self, cat=""):
+        for cat in self.home.go(cat=cat).iter_categories():
             yield cat
 
-        self.page.item_xpath = r"//li[@class='card card-li             ']|//li[@class='card card-small             ']"
-        for vid in self.page.iter_videos():
-            yield vid
-
-    def iter_videos(self, cat):
-        self.page = self.home.go(cat="")
-        self.page.item_xpath = r'//h1[contains(text(), "%s")]/following-sibling::ul/li' % cat
-        return self.page.iter_videos()
+    def iter_videos(self, cat=""):
+        return self.home.go(cat=cat).iter_videos()

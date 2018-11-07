@@ -17,10 +17,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.base import find_object
+from weboob.capabilities.base import empty
 from weboob.capabilities.video import CapVideo, BaseVideo
-from weboob.capabilities.collection import CapCollection, CollectionNotFound
+from weboob.capabilities.collection import CapCollection, CollectionNotFound, Collection
 from weboob.tools.backend import Module
+from weboob.tools.capabilities.video.ytdl import video_info
 
 from .browser import PluzzBrowser
 
@@ -37,32 +38,68 @@ class PluzzModule(Module, CapVideo, CapCollection):
     LICENSE = 'AGPLv3+'
     BROWSER = PluzzBrowser
 
-    def get_video(self, _id):
-        return self.browser.get_video(_id)
+    def get_video(self, _id, video=None):
+        if not video:
+            video = BaseVideo(_id)
+
+        new_video = video_info(_id)
+
+        if not new_video:
+            return
+
+        video.ext = u'm3u8'
+
+        for k, v in new_video.iter_fields():
+            if not empty(v) and empty(getattr(video, k)):
+                setattr(video, k, v)
+
+        return video
 
     def search_videos(self, pattern, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=False):
         return self.browser.search_videos(pattern)
 
     def fill_video(self, video, fields):
         if 'url' in fields:
-            video = self.browser.get_video(video.id)
-        if 'thumbnail' in fields and video.thumbnail:
+            video = self.get_video(video.id, video)
+        if video and 'thumbnail' in fields and video.thumbnail:
             video.thumbnail.data = self.browser.open(video.thumbnail.url).content
         return video
 
     def iter_resources(self, objs, split_path):
         if BaseVideo in objs:
             collection = self.get_collection(objs, split_path)
+
             if collection.path_level == 0:
+                yield Collection([u'videos'], u'Vidéos')
+
                 for category in self.browser.get_categories():
-                    yield category
-            elif collection.path_level == 1 and collection.split_path[0].startswith('vid_'):
-                cat = find_object(self.browser.get_categories(), id=collection.split_path[0], error=None)
-                for video in self.browser.iter_videos(cat.title):
-                    yield video
+                    if category.path_level == 1:
+                        yield category
+
             else:
-                for cat in self.browser.iter_subcategories(collection.split_path):
-                    yield cat
+
+                if split_path[-1] == u'videos':
+                    for v in self.browser.iter_videos("/".join(collection.split_path[:-1])):
+                        yield v
+                elif split_path[-1].endswith('-video'):
+                    v = BaseVideo(
+                        "{}/{}".format(self.browser.BASEURL,
+                                       "/".join(collection.split_path).replace('-video', '.html')))
+                    v.title = split_path[-1].replace('-video', '')
+                    yield v
+                else:
+                    iter = 0
+                    for category in self.browser.get_categories("/".join(collection.split_path)):
+                        if category.path_level == collection.path_level + 1 and \
+                           category.split_path[0] == collection.split_path[0]:
+                            iter = iter + 1
+                            yield category
+
+                    if iter > 0:
+                        yield Collection(split_path + [u'videos'], u'Vidéos')
+                    else:
+                        for v in self.browser.iter_videos("/".join(collection.split_path).replace('-videos', '.html')):
+                            yield v
 
     def validate_collection(self, objs, collection):
         if collection.path_level <= 2:

@@ -36,7 +36,7 @@ class PluzzTest(BackendTest):
         cat = list(self.backend.iter_resources([BaseVideo], []))
         self.assertTrue(len(cat) > 0)
         for c in cat:
-            if c.split_path[-1].startswith('vid_'):
+            if c.split_path[-1] == u'videos':
                 videos = list(self.backend.iter_resources([BaseVideo], c.split_path))
                 self.assertTrue(len(videos) > 0)
                 v = videos[0]
