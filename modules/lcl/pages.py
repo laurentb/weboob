@@ -849,8 +849,12 @@ class AVInvestmentsPage(LoggedPage, JsonPage):
             obj_code = CleanText(Dict('cdsptisn'), default=NotAvailable)
             obj_unitvalue = CleanDecimal(Dict('mtliqpaaspt'), default=NotAvailable)
             obj_quantity = CleanDecimal(Dict('qtpaaspt'), default=NotAvailable)
-            obj_portfolio_share = CleanDecimal(Dict('txrpaspt'), default=NotAvailable)
             obj_diff = CleanDecimal(Dict('mtpmvspt'), default=NotAvailable)
+
+            def obj_portfolio_share(self):
+                ptf = CleanDecimal(Dict('txrpaspt'), default=NotAvailable)(self)
+                ptf /= 100
+                return ptf
 
             def obj_vdate(self):
                 time = Dict('dvspt')(self)
