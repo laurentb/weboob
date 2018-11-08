@@ -346,7 +346,8 @@ class AccountsList(LoggedPage, HTMLPage):
                                    //span[contains(text(), "Nouveau mot de passe")] | \
                                    //span[contains(text(), "Renouvellement de votre mot de passe")] |\
                                    //span[contains(text(), "Mieux vous connaître")] |\
-                                   //span[contains(text(), "Souscrivez au Livret + en quelques clics")]'
+                                   //span[contains(text(), "Souscrivez au Livret + en quelques clics")] |\
+                                   //p[@class="warning" and contains(text(), "Cette opération sensible doit être validée par un code sécurité envoyé par SMS ou serveur vocal")]'
                                    )
             if warning:
                 raise ActionNeeded(warning[0].text)
