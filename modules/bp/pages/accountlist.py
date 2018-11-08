@@ -104,8 +104,8 @@ class item_account_generic(ItemElement):
                  'comptes? titres? et pea': Account.TYPE_MARKET,
                  'compte-titres': Account.TYPE_MARKET,
                  'assurances? vie': Account.TYPE_LIFE_INSURANCE,
-                 u'prêt': Account.TYPE_LOAN,
-                 u'crédits?': Account.TYPE_LOAN,
+                 'prêt': Account.TYPE_LOAN,
+                 'crédits?': Account.TYPE_LOAN,
                  'plan d\'epargne en actions': Account.TYPE_PEA,
                  'comptes? attente': Account.TYPE_CHECKING,
                  'perp': Account.TYPE_PERP,
@@ -222,8 +222,8 @@ class AccountList(LoggedPage, MyHTMLPage):
             def obj_label(self):
                 cell = TableCell('label', default=None)(self)
                 if cell:
-                    return CleanText(cell, default=NotAvailable)(self)
-                return CleanText('//form[contains(@action, "detaillerOffre") or contains(@action, "detaillerPretPartenaireListe-encoursPrets.ea")]/div[@class="bloc Tmargin"]/h2[@class="title-level2"]')(self)
+                    return CleanText(cell, default=NotAvailable)(self).upper()
+                return CleanText('//form[contains(@action, "detaillerOffre") or contains(@action, "detaillerPretPartenaireListe-encoursPrets.ea")]/div[@class="bloc Tmargin"]/h2[@class="title-level2"]')(self).upper()
 
             def obj_balance(self):
                 if CleanText(TableCell('balance'))(self) != u'Remboursé intégralement':
@@ -416,7 +416,6 @@ class UselessPage(LoggedPage, HTMLPage):
 
 
 class ProfilePage(LoggedPage, HTMLPage):
-    ENCODING = 'iso-8859-1'
     def get_profile(self):
         profile = Person()
 

@@ -29,9 +29,6 @@ from weboob.browser.elements import ListElement, ItemElement, method, TableEleme
 
 
 class SubscriptionPage(LoggedPage, HTMLPage):
-    # encoding is wrong on the page
-    ENCODING='ISO-8859-1'
-
     # because of freaking JS from hell
     STATEMENT_TYPES = ('RCE', 'RPT', 'RCO')
 

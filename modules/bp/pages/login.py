@@ -95,7 +95,7 @@ class LoginPage(MyHTMLPage):
 
         form = self.get_form(name='formAccesCompte')
         form['password'] = vk.get_string_code(pwd)
-        form['username'] = login.encode(self.ENCODING)
+        form['username'] = login
         form.submit()
 
 
