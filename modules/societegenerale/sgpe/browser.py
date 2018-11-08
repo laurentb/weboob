@@ -25,7 +25,7 @@ from datetime import date
 from weboob.browser.browsers import LoginBrowser, need_login, StatesMixin
 from weboob.browser.url import URL
 from weboob.browser.exceptions import ClientError
-from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
+from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded, NoAccountsException
 from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import (
     AccountNotFound, RecipientNotFound, AddRecipientStep, AddRecipientBankError,
@@ -38,7 +38,9 @@ from .pages import (
     ProfileProPage, ProfileEntPage, ChangePassPage, SubscriptionPage, InscriptionPage,
     ErrorPage,
 )
-from .json_pages import AccountsJsonPage, BalancesJsonPage, HistoryJsonPage, BankStatementPage
+from .json_pages import (
+    AccountsJsonPage, BalancesJsonPage, HistoryJsonPage, BankStatementPage,
+)
 from .transfer_pages import (
     EasyTransferPage, RecipientsJsonPage, TransferPage, SignTransferPage, TransferDatesPage,
     AddRecipientPage, AddRecipientStepPage, ConfirmRecipientPage,
@@ -127,23 +129,47 @@ class SGEnterpriseBrowser(SGPEBrowser):
     CERTHASH = '2231d5ddb97d2950d5e6fc4d986c23be4cd231c31ad530942343a8fdcc44bb99'
 
     accounts = URL('/icd/syd-front/data/syd-comptes-accederDepuisMenu.json', AccountsJsonPage)
+    intraday_accounts = URL('/icd/syd-front/data/syd-intraday-accederDepuisMenu.json', AccountsJsonPage)
+
     balances = URL('/icd/syd-front/data/syd-comptes-chargerSoldes.json', BalancesJsonPage)
+    intraday_balances = URL('/icd/syd-front/data/syd-intraday-chargerSoldes.json', BalancesJsonPage)
+
     history = URL('/icd/syd-front/data/syd-comptes-chargerReleve.json',
                   '/icd/syd-front/data/syd-intraday-chargerDetail.json', HistoryJsonPage)
     history_next = URL('/icd/syd-front/data/syd-comptes-chargerProchainLotEcriture.json', HistoryJsonPage)
+
     profile = URL('/gae/afficherModificationMesDonnees.html', ProfileEntPage)
 
     subscription = URL(r'/Pgn/NavigationServlet\?MenuID=BANRELRIE&PageID=ReleveRIE&NumeroPage=1&Origine=Menu', SubscriptionPage)
     subscription_form = URL(r'Pgn/NavigationServlet', SubscriptionPage)
 
     def go_accounts(self):
-        self.accounts.go()
+        try:
+            # get standard accounts
+            self.accounts.go()
+        except NoAccountsException:
+            # get intraday accounts
+            self.intraday_accounts.go()
 
     @need_login
     def get_accounts_list(self):
-        accounts = []
-        accounts.extend(self.accounts.stay_or_go().iter_accounts())
-        for acc in self.balances.go().populate_balances(accounts):
+        # 'Comptes' are standard accounts on sge website
+        # 'Opérations du jour' are intraday accounts on sge website
+        # Standard and Intraday accounts are same accounts with different detail
+        # User could have standard accounts with no intraday accounts or the contrary
+        # They also could have both, in that case, retrieve only standard accounts
+        try:
+            # get standard accounts
+            self.accounts.go()
+            accounts = list(self.page.iter_class_accounts())
+            self.balances.go()
+        except NoAccountsException:
+            # get intraday accounts
+            self.intraday_accounts.go()
+            accounts = list(self.page.iter_class_accounts())
+            self.intraday_balances.go()
+
+        for acc in self.page.populate_balances(accounts):
             yield acc
 
     @need_login

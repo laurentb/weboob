@@ -22,13 +22,16 @@ from datetime import datetime
 
 from weboob.browser.pages import LoggedPage, JsonPage, pagination
 from weboob.browser.elements import ItemElement, method, DictElement
-from weboob.browser.filters.standard import CleanDecimal, CleanText, Date, Format, BrowserURL, Env
+from weboob.browser.filters.standard import (
+    CleanDecimal, CleanText, Date, Format, BrowserURL, Env,
+    Field,
+)
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.base import Currency
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account
 from weboob.capabilities.bill import Document, Subscription
-from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
+from weboob.exceptions import BrowserUnavailable, NoAccountsException
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.compat import quote_plus
@@ -52,27 +55,51 @@ class AccountsJsonPage(LoggedPage, JsonPage):
              u'Prêt':                Account.TYPE_LOAN,
             }
 
-    def iter_accounts(self):
-        for classeur in self.doc.get('donnees', {}).get('classeurs', {}):
-            title = classeur['title']
-            for compte in classeur.get('comptes', []):
-                a = Account()
-                a.label = CleanText().filter(compte['libelle'])
-                a._id = compte['id']
-                a.type = self.obj_type(a.label)
-                a.number = compte['iban'].replace(' ', '')
-                # for some account that don't have Iban the account number is store under this variable in the Json
-                if not is_iban_valid(a.number):
-                    a.iban = NotAvailable
-                else:
-                    a.iban = a.number
-                # id based on iban to match ids in database.
-                a.id = a.number[4:-2] if len(a.number) == 27 else a.number
-                a._agency = compte['agenceGestionnaire']
-                a._title = title
-                yield a
+    def on_load(self):
+        if self.doc['commun']['statut'] == 'NOK':
+            reason = self.doc['commun']['raison']
+            if reason == 'SYD-COMPTES-UNAUTHORIZED-ACCESS':
+                raise NoAccountsException("Vous n'avez pas l'autorisation de consulter : {}".format(reason))
+            raise BrowserUnavailable(reason)
 
-    def obj_type(self, label):
+    @method
+    class iter_class_accounts(DictElement):
+        item_xpath = 'donnees/classeurs'
+
+        class iter_accounts(DictElement):
+            @property
+            def item_xpath(self):
+                if 'intradayComptes' in self.el:
+                    return 'intradayComptes'
+                return 'comptes'
+
+            class item(ItemElement):
+                klass = Account
+
+                obj__id = Dict('id')
+                obj_number = CleanText(Dict('iban'), replace=[(' ', '')])
+                obj_iban = Field('number')
+                obj_label = CleanText(Dict('libelle'))
+                obj__agency = Dict('agenceGestionnaire')
+
+                def obj_id(self):
+                    number = Field('number')(self)
+                    if len(number) == 27:
+                        # id based on iban to match ids in database.
+                        return number[4:-2]
+                    return number
+
+                def obj_iban(self):
+                    # for some account that don't have Iban the account number is store under this variable in the Json
+                    number = Field('number')(self)
+                    if not is_iban_valid(number):
+                        return NotAvailable
+                    return number
+
+                def obj_type(self):
+                    return self.page.acc_type(Field('label')(self))
+
+    def acc_type(self, label):
         for wording, acc_type in self.TYPES.items():
             if wording.lower() in label.lower():
                 return acc_type
@@ -91,14 +118,15 @@ class BalancesJsonPage(LoggedPage, JsonPage):
         if self.doc['commun']['statut'] == 'NOK':
             reason = self.doc['commun']['raison']
             if reason == 'SYD-COMPTES-UNAUTHORIZED-ACCESS':
-                raise BrowserIncorrectPassword("Vous n'avez pas l'autorisation de consulter : {}".format(reason))
+                raise NoAccountsException("Vous n'avez pas l'autorisation de consulter : {}".format(reason))
             raise BrowserUnavailable(reason)
 
     def populate_balances(self, accounts):
         for account in accounts:
             acc_dict = self.doc['donnees']['compteSoldesMap'][account._id]
-            account.balance = CleanDecimal(replace_dots=True).filter(acc_dict['soldeComptable'])
-            account.currency = Currency.get_currency(acc_dict['deviseSoldeComptable'])
+            account.balance = CleanDecimal(replace_dots=True).filter(acc_dict.get('soldeComptable', acc_dict.get('soldeInstantane')))
+            account.currency = Currency.get_currency(acc_dict.get('deviseSoldeComptable', acc_dict.get('deviseSoldeInstantane')))
+            account.coming = CleanDecimal(replace_dots=True, default=NotAvailable).filter(acc_dict.get('montantOperationJour'))
             yield account
 
 
