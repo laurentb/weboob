@@ -44,7 +44,7 @@ class LoginPage(PartialHTMLPage):
         if not re.match(regex, login):
             raise BrowserIncorrectPassword(Attr('//input[@id="Email"]', 'data-val-regex')(self.doc))
 
-        form = self.get_form(id='loginForm')
+        form = self.get_form(xpath='//form[contains(@action, "/Login/Login")]')
         form['Email'] = login
         form['Password'] = password
         form.submit()

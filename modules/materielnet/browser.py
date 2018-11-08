@@ -27,12 +27,24 @@ from .pages import LoginPage, CaptchaPage, ProfilPage, DocumentsPage, DocumentsD
 class MaterielnetBrowser(LoginBrowser):
     BASEURL = 'https://secure.materiel.net'
 
-    login = URL(r'https://www.materiel.net/form/login',
-                r'/Login/PartialPublicLogin', LoginPage)
+    login = URL(r'/Login/Login', LoginPage)
     captcha = URL('/pm/client/captcha.html', CaptchaPage)
-    profil = URL(r'/Account/InformationsSection', ProfilPage)
-    documents = URL(r'/Orders/PartialCompletedOrdersHeader', DocumentsPage)
-    document_details = URL(r'/Orders/PartialCompletedOrderContent', DocumentsDetailsPage)
+    profil = URL(r'/Account/InformationsSection',
+                 r'/pro/Account/InformationsSection', ProfilPage)
+    documents = URL(r'/Orders/PartialCompletedOrdersHeader',
+                    r'/pro/Orders/PartialCompletedOrdersHeader', DocumentsPage)
+    document_details = URL(r'/Orders/PartialCompletedOrderContent',
+                           r'/pro/Orders/PartialCompletedOrderContent', DocumentsDetailsPage)
+
+    def __init__(self, *args, **kwargs):
+        super(MaterielnetBrowser, self).__init__(*args, **kwargs)
+        self.is_pro = None
+
+    def par_or_pro_location(self, url, *args, **kwargs):
+        if self.is_pro:
+            url = '/pro' + url
+
+        return super(MaterielnetBrowser, self).location(url, *args, **kwargs)
 
     def do_login(self):
         self.login.go()
@@ -47,13 +59,16 @@ class MaterielnetBrowser(LoginBrowser):
             if error:
                 raise BrowserIncorrectPassword(error)
 
+        self.is_pro = 'pro' in self.url
+
     @need_login
     def get_subscription_list(self):
-        return self.profil.stay_or_go().get_list()
+        return self.par_or_pro_location('/Account/InformationsSection').page.get_list()
 
     @need_login
     def iter_documents(self, subscription):
-        json_response = self.location('/Orders/CompletedOrdersPeriodSelection').json()
+        json_response = self.par_or_pro_location('/Orders/CompletedOrdersPeriodSelection').json()
 
         for data in json_response:
-            return self.documents.go(data=data).get_documents()
+            for doc in self.par_or_pro_location('/Orders/PartialCompletedOrdersHeader', data=data).page.get_documents():
+                yield doc
