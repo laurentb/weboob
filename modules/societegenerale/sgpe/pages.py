@@ -259,3 +259,9 @@ class ErrorPage(SGPEPage):
         if self.doc.xpath('//div[@class="ngo_mu_message" and contains(text(), "momentanément indisponible")]'):
             # Warning: it could occurs because of wrongpass, user have to change password
             raise BrowserUnavailable(CleanText('//div[@class="ngo_mu_message"]')(self.doc))
+
+
+class InscriptionPage(SGPEPage):
+    def get_error(self):
+        message = CleanText('//head/title')(self.doc)
+        return message

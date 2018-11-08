@@ -25,7 +25,7 @@ from datetime import date
 from weboob.browser.browsers import LoginBrowser, need_login, StatesMixin
 from weboob.browser.url import URL
 from weboob.browser.exceptions import ClientError
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import (
     AccountNotFound, RecipientNotFound, AddRecipientStep, AddRecipientBankError,
@@ -35,7 +35,7 @@ from weboob.tools.value import Value
 
 from .pages import (
     LoginPage, CardsPage, CardHistoryPage, IncorrectLoginPage,
-    ProfileProPage, ProfileEntPage, ChangePassPage, SubscriptionPage,
+    ProfileProPage, ProfileEntPage, ChangePassPage, SubscriptionPage, InscriptionPage,
     ErrorPage,
 )
 from .json_pages import AccountsJsonPage, BalancesJsonPage, HistoryJsonPage, BankStatementPage
@@ -59,6 +59,7 @@ class SGPEBrowser(LoginBrowser):
                       '/gae/afficherInscriptionUtilisateur.html',
                       '/gae/afficherChangementCodeSecretExpire.html',
                       ChangePassPage)
+    inscription_page = URL('/icd-web/gax/gax-inscription.html', InscriptionPage)
 
     def check_logged_status(self):
         if not self.page or self.login.is_here():
@@ -81,6 +82,9 @@ class SGPEBrowser(LoginBrowser):
             self.page.login(self.username, self.password)
         except ClientError:
             raise BrowserIncorrectPassword()
+
+        if self.inscription_page.is_here():
+            raise ActionNeeded(self.page.get_error())
 
         # force page change
         if not self.accounts.is_here():
