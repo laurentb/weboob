@@ -32,6 +32,7 @@ from weboob.browser.elements import ListElement, ItemElement, method, SkipItem
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.value import Value
+from weboob.exceptions import BrowserUnavailable
 
 from .base import MyHTMLPage
 
@@ -193,6 +194,10 @@ class TransferSummary(LoggedPage, CheckTransferError):
 
 
 class CreateRecipient(LoggedPage, MyHTMLPage):
+    def on_load(self):
+        if self.doc.xpath(u'//h1[contains(text(), "Service Désactivé")]'):
+            raise BrowserUnavailable(CleanText('//p[img[@title="attention"]]/text()')(self.doc))
+
     def choose_country(self, recipient, is_bp_account):
         # if this is present, we can't add recipient currently
         more_security_needed = self.doc.xpath(u'//iframe[@title="Gestion de compte par Internet"]')
