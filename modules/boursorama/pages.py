@@ -967,6 +967,9 @@ class TransferConfirm(LoggedPage, HTMLPage):
         if errors:
             raise TransferInvalidAmount(message=errors)
 
+    def need_refresh(self):
+        return not self.doc.xpath('//form[@name="Confirm"]//button[contains(text(), "Je valide")]')
+
     @method
     class get_transfer(ItemElement):
         klass = Transfer

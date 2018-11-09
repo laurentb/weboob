@@ -453,6 +453,10 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
         self.page.submit_info(transfer.amount, transfer.label, transfer.exec_date)
         assert self.transfer_confirm.is_here()
 
+        if self.page.need_refresh():
+            # In some case we are not yet in the transfer_charac page, you need to refresh the page
+            self.location(self.url)
+            assert not self.page.need_refresh()
         ret = self.page.get_transfer()
 
         # at this stage, the site doesn't show the real ids/ibans, we can only guess
