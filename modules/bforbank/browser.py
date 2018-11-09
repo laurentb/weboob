@@ -103,6 +103,8 @@ class BforbankBrowser(LoginBrowser):
 
                 if account.type == Account.TYPE_CHECKING:
                     self.card_page.go(account=account.id)
+                    if self.page.has_no_card():
+                        continue
                     cards = self.page.get_cards(account.id)
                     account._cards = cards
                     if cards:
