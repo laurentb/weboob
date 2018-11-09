@@ -223,7 +223,7 @@ class ValidateCountry(LoggedPage, MyHTMLPage):
 class ValidateRecipient(LoggedPage, MyHTMLPage):
     def is_bp_account(self):
         msg = CleanText('//span[has-class("app_erreur")]')(self.doc)
-        return msg == u'Le n° de compte que vous avez saisi appartient à La Banque Postale, veuillez vérifier votre saisie.'
+        return u'Le n° de compte que vous avez saisi appartient à La Banque Postale, veuillez vérifier votre saisie.' in msg
 
     def get_confirm_link(self):
         return Link('//a[@title="confirmer la creation"]')(self.doc)
