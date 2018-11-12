@@ -20,15 +20,15 @@
 
 from weboob.tools.backend import AbstractModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
-from weboob.capabilities.bank import CapBank
-
-from .browser import BnppereBrowser
+from weboob.capabilities.bank import CapBankWealth
+from weboob.capabilities.profile import CapProfile
+from .browser import BnppereBrowser, VisiogoBrowser
 
 
 __all__ = ['BnppereModule']
 
 
-class BnppereModule(AbstractModule, CapBank):
+class BnppereModule(AbstractModule, CapBankWealth, CapProfile):
     NAME = 'bnppere'
     DESCRIPTION = u'BNP Épargne Salariale'
     MAINTAINER = u'Edouard Lambert'
@@ -37,11 +37,22 @@ class BnppereModule(AbstractModule, CapBank):
     VERSION = '1.4'
     CONFIG = BackendConfig(
              ValueBackendPassword('login',    label='Identifiant', masked=False),
-             ValueBackendPassword('password', label='Code secret', regexp='^(\d{6})$'),
-             Value('otp', label=u'Code de sécurité', default='', regexp='^(\d{6})$'))
-
-    BROWSER = BnppereBrowser
+             ValueBackendPassword('password', label='Code secret'),
+             Value('otp', label=u'Code de sécurité', default='', regexp='^(\d{6})$'),
+             Value('website', label='Espace Client', default='personeo',
+                   choices={'personeo': 'PEE, PERCO (Personeo)', 'visiogo': 'PER Entreprises (Visiogo)'}))
     PARENT = 's2e'
 
     def create_default_browser(self):
-        return self.create_browser(self.config, weboob=self.weboob)
+        b = {'personeo': BnppereBrowser, 'visiogo': VisiogoBrowser}
+        self.BROWSER = b[self.config['website'].get()]
+        return self.create_browser(self.config['login'].get(), self.config['password'].get(), weboob=self.weboob)
+
+    def iter_accounts(self):
+        return self.browser.iter_accounts()
+
+    def iter_history(self, account):
+        return self.browser.iter_history(account)
+
+    def get_profile(self):
+        return self.browser.get_profile()
