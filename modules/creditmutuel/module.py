@@ -122,7 +122,7 @@ class CreditMutuelModule(
         # drop characters that can crash website
         transfer.label = transfer.label.encode('cp1252', errors="ignore").decode('cp1252')
 
-        return self.browser.init_transfer(account, recipient, amount, transfer.label)
+        return self.browser.init_transfer(account, recipient, amount, transfer.exec_date, transfer.label)
 
     def execute_transfer(self, transfer, **params):
         return self.browser.execute_transfer(transfer)

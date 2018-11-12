@@ -1330,11 +1330,12 @@ class InternalTransferPage(LoggedPage, HTMLPage):
         # internal and external transfer form are differents
         return self.get_form(id='P:F', submit='//input[@type="submit" and contains(@value, "Valider")]')
 
-    def prepare_transfer(self, account, to, amount, reason):
+    def prepare_transfer(self, account, to, amount, reason, exec_date):
         form = self.get_transfer_form()
         form['data_input_indiceCompteADebiter'] = self.get_from_account_index(account.id)
         form[self.RECIPIENT_STRING] = self.get_to_account_index(to.id)
         form['[t:dbt%3adouble;]data_input_montant_value_0_'] = str(amount).replace('.', ',')
+        form['[t:dbt%3adate;]data_input_date'] = exec_date.strftime("%d/%m/%Y")
         form['[t:dbt%3astring;x(27)]data_input_libelleCompteDebite'] = reason
         form['[t:dbt%3astring;x(31)]data_input_motifCompteCredite'] = reason
         form['[t:dbt%3astring;x(31)]data_input_motifCompteCredite1'] = reason
@@ -1374,7 +1375,6 @@ class InternalTransferPage(LoggedPage, HTMLPage):
 
         exec_date = Date(Regexp(CleanText('//table[@summary]/tbody/tr[th[contains(text(), "Date")]]/td'),
                                 r'(\d{2}/\d{2}/\d{4})'), dayfirst=True)(self.doc)
-        assert exec_date == datetime.today().date()
         r_amount = CleanDecimal('//table[@summary]/tbody/tr[th[contains(text(), "Montant")]]/td',
                                 replace_dots=True)(self.doc)
         assert r_amount == Decimal(amount)
@@ -1383,7 +1383,7 @@ class InternalTransferPage(LoggedPage, HTMLPage):
             assert reason.upper()[:22].strip() in CleanText('//table[@summary]/tbody/tr[th[contains(text(), "Intitulé pour le compte à débiter")]]/td')(self.doc)
         return exec_date, r_amount, currency
 
-    def handle_response(self, account, recipient, amount, reason):
+    def handle_response(self, account, recipient, amount, reason, exec_date):
         self.check_errors()
         self.check_success()
 

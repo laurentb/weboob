@@ -501,7 +501,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                     yield recipient
 
     @need_login
-    def init_transfer(self, account, to, amount, reason=None):
+    def init_transfer(self, account, to, amount, exec_date, reason=None):
         if to.category != 'Interne':
             self.external_transfer.go(subbank=self.currentSubBank)
         else:
@@ -514,8 +514,8 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                     break
             self.page.IS_PRO_PAGE = True
             self.page.RECIPIENT_STRING = 'data_input_indiceBen'
-        self.page.prepare_transfer(account, to, amount, reason)
-        return self.page.handle_response(account, to, amount, reason)
+        self.page.prepare_transfer(account, to, amount, reason, exec_date)
+        return self.page.handle_response(account, to, amount, reason, exec_date)
 
     @need_login
     def execute_transfer(self, transfer, **params):
