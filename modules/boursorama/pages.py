@@ -325,13 +325,6 @@ class AccountsPage(LoggedPage, HTMLPage):
                 return not Async('details', CleanText(u'//h4[contains(text(), "Établissement bancaire")]'))(self) and not \
                     Async('details', CleanText(u'//h4/div[contains(text(), "Établissement bancaire")]'))(self)
 
-    def iter_card_ids(self):
-        for tr in self.doc.xpath('//table[@class="table table--accounts"]/tr[has-class("table__line--account") and count(descendant::td) > 1 and @data-line-account-href]'):
-            url = Attr('.//a[@class="account--name"] | .//a[2]', 'href', default='')(tr)
-            m = re.search(r'/([a-z0-9]+)/carte/([a-z0-9]+)', url)
-            if m:
-                yield m.groups()
-
 
 class LoanPage(LoggedPage, HTMLPage):
 
@@ -841,35 +834,13 @@ class ProfilePage(LoggedPage, HTMLPage):
 
 class CardsNumberPage(LoggedPage, HTMLPage):
     def populate_cards_number(self, cards):
-        """
-        Checking account ID used to match credit cards.
-        Label useful when several cards on the same checking account.
-        The card_details list contains tuples including the card number,
-        the hash of the card's parent account, and the name of the card.
-        """
-        card_details = [
-            (CleanText('.//span')(o), CleanText('./@data-card-key')(o), CleanText('.//p')(o))
-            for o in self.doc.xpath('//div[contains(@class, "zoom-carousel__item text-center credit-card-carousel__item")]')
-        ]
-
-        # Remove cards whose number ends with **** (means it is not activated yet)
-        card_details = [
-            (number, account_hash, name) for (number, account_hash, name) in card_details
-            if not number.endswith('****')
-        ]
-
         for card in cards:
-            match = [(number, account_hash, name) for (number, account_hash, name) in card_details if account_hash in card.url]
-
-            if len(match) > 1:
-                # Several cards matched the same bank account, so we now try
-                # to match them using the name of the card holder:
-                card_username = card.label.split('-')[1].lstrip()
-                match = [(number, account_hash, name) for (number, account_hash, name) in match if name.startswith(card_username)]
-
-            assert len(match) <= 1, "only one card should be matched, or zero if the card is not yet activated"
-            if len(match) == 1 :
-                card.number = match[0][0]
+            # The second hash of the card's url is used to get
+            # the card's hash on the HTML page:
+            card_url_hash = re.search('carte\/(.*)', card.url).group(1)
+            card_hash = CleanText('//nav[ul[li[a[contains(@href, "%s")]]]]/@data-card-key' % card_url_hash)(self.doc)
+            # With the card hash we can get the card number:
+            card.number = CleanText('//div[@data-card-key="%s"]/div/span' % card_hash)(self.doc)
 
 
 class HomePage(LoggedPage, HTMLPage):
