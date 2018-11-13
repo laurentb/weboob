@@ -26,7 +26,7 @@ from dateutil import parser
 from weboob.browser.retry import login_method, retry_on_logout, RetryLoginBrowser
 from weboob.browser.browsers import need_login, StatesMixin
 from weboob.browser.url import URL
-from weboob.exceptions import BrowserIncorrectPassword, BrowserHTTPNotFound, BrowserUnavailable
+from weboob.exceptions import BrowserIncorrectPassword, BrowserHTTPNotFound, NoAccountsException, BrowserUnavailable
 from weboob.browser.exceptions import LoggedOut, ClientError
 from weboob.capabilities.bank import (
     Account, AccountNotFound, TransferError, TransferInvalidAmount,
@@ -45,7 +45,7 @@ from .pages import (
     CardsNumberPage, CalendarPage, HomePage, PEPPage,
     TransferAccounts, TransferRecipients, TransferCharac, TransferConfirm, TransferSent,
     AddRecipientPage, StatusPage, CardHistoryPage, CardCalendarPage, CurrencyListPage, CurrencyConvertPage,
-    AccountsErrorPage,
+    AccountsErrorPage, NoAccountPage,
 )
 
 
@@ -69,9 +69,13 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
     error = URL('/connexion/compte-verrouille',
                 '/infos-profil', ErrorPage)
     login = URL('/connexion/', LoginPage)
+
     accounts = URL('/dashboard/comptes\?_hinclude=300000', AccountsPage)
     accounts_error = URL('/dashboard/comptes\?_hinclude=300000', AccountsErrorPage)
     pro_accounts = URL(r'/dashboard/comptes-professionnels\?_hinclude=1', AccountsPage)
+    no_account = URL('/dashboard/comptes\?_hinclude=300000',
+                     '/dashboard/comptes-professionnels\?_hinclude=1', NoAccountPage)
+
     acc_tit = URL('/comptes/titulaire/(?P<webid>.*)\?_hinclude=1', AccbisPage)
     acc_rep = URL('/comptes/representative/(?P<webid>.*)\?_hinclude=1', AccbisPage)
     acc_pro = URL('/comptes/professionnel/(?P<webid>.*)\?_hinclude=1', AccbisPage)
@@ -196,9 +200,20 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
         for x in range(3):
             if self.accounts_list is not None:
                 break
+
             self.accounts_list = []
             self.loans_list = []
-            self.accounts_list.extend(self.pro_accounts.go().iter_accounts())
+            # Check that there is at least one account for this user
+            has_account = False
+            self.pro_accounts.go()
+            if self.pro_accounts.is_here():
+                self.accounts_list.extend(self.page.iter_accounts())
+                has_account = True
+            else:
+                # We dont want to let has_account=False if we landed on an unknown page
+                # it has to be the no_accounts page
+                assert self.no_account.is_here()
+
             try:
                 self.accounts.go()
             except BrowserUnavailable as e:
@@ -207,8 +222,19 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
                 self.accounts_list = None
                 continue
             else:
-                self.accounts_list.extend(self.page.iter_accounts())
+                if self.accounts.is_here():
+                    self.accounts_list.extend(self.page.iter_accounts())
+                    has_account = True
+                else:
+                    # We dont want to let has_account=False if we landed on an unknown page
+                    # it has to be the no_accounts page
+                    assert self.no_account.is_here()
+
                 exc = None
+
+            if not has_account:
+                # if we landed twice on NoAccountPage, it means there is neither pro accounts nor pp accounts
+                raise NoAccountsException()
 
             # discard all unvalid card accounts (if opposed or not yet activated)
             valid_card_url = []

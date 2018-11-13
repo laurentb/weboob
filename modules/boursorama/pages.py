@@ -207,6 +207,7 @@ class StatusPage(LoggedPage, PartialHTMLPage):
 
 class AccountsPage(LoggedPage, HTMLPage):
     def is_here(self):
+        # This id appears when there are no accounts (pro and pp)
         return not self.doc.xpath('//div[contains(@id, "alert-random")]')
 
     ACCOUNT_TYPES = {u'comptes courants':      Account.TYPE_CHECKING,
@@ -364,6 +365,12 @@ class LoanPage(LoggedPage, HTMLPage):
             if tmp == "-":
                 return NotAvailable
             return Date(CleanText('//p[contains(text(), "Date de la prochaine échéance")]/span'), parse_func=parse_french_date)(self)
+
+
+class NoAccountPage(LoggedPage, HTMLPage):
+    def is_here(self):
+        err = CleanText('//div[contains(@id, "alert-random")]/text()', children=False)(self.doc)
+        return "compte inconnu" in err.lower()
 
 
 class CardCalendarPage(LoggedPage, RawPage):
