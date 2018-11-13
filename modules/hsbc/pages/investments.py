@@ -467,7 +467,9 @@ class RetrieveLiquidityPage(LoggedPage, JsonPage):
             def condition(self):
                 return Dict('productTypeCode')(self) == 'INVCASH'
 
-            obj_label = CleanText(Dict('productShortName'))
+            obj_label = "Liquidités"
+            obj_code = "XX-liquidity"
+            obj_code_type = NotAvailable
             obj_valuation = CleanDecimal(
                 Dict(
                     'holdingDetailInformation/0/holdingDetailMultipleCurrencyInformation/1'
