@@ -390,8 +390,9 @@ class ChgPerimeterPage(PerimeterPage):
         self.get_current()
 
         # sometimes the perimeter use " & " and sometimes " et "
+        # and can also be "&" instead of "et" (example: "metms" et "m&ms")
         if not (self.browser.current_perimeter in self.browser.perimeters or
-                self.browser.current_perimeter.replace(' et ', ' & ') in self.browser.perimeters):
+                self.browser.current_perimeter.replace('et', '&') in self.browser.perimeters):
             assert len(self.browser.perimeters) == 1
             self.browser.perimeters.append(self.browser.current_perimeter)
 
