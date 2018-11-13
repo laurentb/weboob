@@ -158,7 +158,9 @@ class AccountsPage(GenericLandingPage):
             def condition(self):
                 return len(self.el.xpath('./td')) > 2
 
-            obj_label = Label(CleanText('./td[1]/a'))
+            def obj_label(self):
+                return Label(CleanText('./td[1]/a'))(self) or 'Compte sans libellé'
+
             obj_coming = Env('coming')
             obj_currency = FrenchTransaction.Currency('./td[2]')
 
