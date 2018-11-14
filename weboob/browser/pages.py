@@ -328,6 +328,9 @@ class Form(OrderedDict):
     def submit(self, **kwargs):
         """
         Submit the form and tell browser to be located to the new page.
+
+        :param data_encoding: force encoding used to submit form data (defaults to the current page encoding)
+        :type data_encoding: :class:`basestring`
         """
         kwargs.setdefault('data_encoding', self.page.encoding)
         return self.page.browser.location(self.request, **kwargs)
