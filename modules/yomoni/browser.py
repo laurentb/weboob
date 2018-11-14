@@ -143,7 +143,9 @@ class YomoniBrowser(APIBrowser):
                 i.unitvalue = CleanDecimal().filter(inv['valeurCotation'])
                 i.valuation = CleanDecimal().filter(inv['montantEuro'])
                 i.vdate = Date().filter(inv['datePosition'])
-                i.diff = CleanDecimal().filter(inv['performanceEuro'])
+                # performanceEuro is null sometimes in the JSON we retrieve.
+                if inv['performanceEuro']:
+                    i.diff = CleanDecimal().filter(inv['performanceEuro'])
 
                 self.investments[account.id].append(i)
         return self.investments[account.id]
