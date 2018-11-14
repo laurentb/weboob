@@ -79,7 +79,6 @@ class Paypal(LoginBrowser):
         super(Paypal, self).__init__(*args, **kwargs)
 
     def do_login(self):
-        raise BrowserUnavailable()
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
 
@@ -88,6 +87,7 @@ class Paypal(LoginBrowser):
 
         response = self.open(self.page.get_script_url())
         token, csrf, key, value, sessionID, cookie = self.page.get_token_and_csrf(response.text)
+
         self.session.cookies.update({'xppcts': cookie})
         data = {}
         data['ads_token_js'] = token
@@ -114,7 +114,8 @@ class Paypal(LoginBrowser):
         self.detect_account_type()
 
     def detect_account_type(self):
-        self.page.detect_account_type()
+        if self.page:
+            self.page.detect_account_type()
 
     @need_login
     def get_accounts(self):

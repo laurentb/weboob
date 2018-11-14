@@ -96,6 +96,9 @@ class LoginPage(HTMLPage):
         csrf = re.search(r"%s'([^']+)'" % re.escape("'&_csrf='+encodeURIComponent("), cleaner_code).group(1)
         key, value = re.findall(r"'(\w+)','(\w+)'", cleaner_code)[-1]
 
+        # Remove setCookie function content
+        cleaner_code = re.sub(r"'setCookie'.*(?=,'removeCookie')", "'setCookie':function(){}", cleaner_code)
+
         # Detect the name of the function that computes the token, detect the
         # variable that stores the result and store it as a global.
         get_token_func_name = re.search(r"ads_token_js='\+encodeURIComponent\((\w+)\)", cleaner_code).group(1)
@@ -107,64 +110,6 @@ class LoginPage(HTMLPage):
         cleaner_code = cleaner_code.replace(loop_func_name + "();", "")
         cleaner_code = cleaner_code.replace("data;", "return;")
 
-        # Simulate a browser environment
-        simulate_browser_code = """
-            if (!document.createAttribute) {
-                document.createAttribute = null;
-            }
-
-            if (!document.domain) {
-                document.domain = "paypal.com";
-            }
-
-            if (!document.styleSheets) {
-                document.styleSheets = null;
-            }
-
-            if (!document.characterSet) {
-                document.characterSet = "UTF-8";
-            }
-
-            if (!document.documentElement) {
-                document.documentElement = {};
-            }
-
-            if (!window.innerWidth || !window.innerHeight) {
-                window.innerWidth = 1280;
-                window.innerHeight = 800;
-            }
-
-            if (typeof(screen) === "undefined") {
-                var screen = window.screen = {
-                    width: 1280,
-                    height: 800
-                };
-            }
-
-            if (typeof(history) === "undefined") {
-                var history = window.history = {};
-            }
-
-            if (typeof(location) === "undefined") {
-                var location = window.location = {
-                    host: "paypal.com"
-                };
-            }
-
-            var XMLHttpRequest = function() {};
-            XMLHttpRequest.prototype.onreadystatechange = function(){};
-            XMLHttpRequest.prototype.open = function(){};
-            XMLHttpRequest.prototype.setRequestHeader = function(){};
-            XMLHttpRequest.prototype.send = function(){};
-            window.XMLHttpRequest = XMLHttpRequest;
-
-            if (!navigator.appName) {
-                navigator.appName =  "Netscape";
-            }
-
-            navigator.userAgent = "Mozilla/5.0 (X11; Linux x86_64; rv:61.0) Gecko/20100101 Firefox/61.0";
-        """
-
         # Add a function that returns the token
         cleaner_code += """
         function GET_ADS_JS_TOKEN()
@@ -173,7 +118,11 @@ class LoginPage(HTMLPage):
         }
         """
 
-        token = str(Javascript(simulate_browser_code + cleaner_code).call("GET_ADS_JS_TOKEN"))
+        try:
+            token = str(Javascript(cleaner_code, None, "paypal.com").call("GET_ADS_JS_TOKEN"))
+        except:
+            raise BrowserUnavailable()
+
         return token, csrf, key, value, sessionID, cookie
 
     def login(self, login, password, ):
