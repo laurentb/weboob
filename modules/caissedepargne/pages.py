@@ -1028,6 +1028,12 @@ class TransferPage(TransferErrorPage, IndexPage):
 
 
 class TransferConfirmPage(TransferErrorPage, IndexPage):
+    def build_doc(self, content):
+        # The page have some <wbr> tags in the label content (spaces added each 40 characters if the character is not a space).
+        # Consequently the label can't be matched with the original one. We delete these tags.
+        content = content.replace(b'<wbr>', b'')
+        return super(TransferErrorPage, self).build_doc(content)
+
     def is_here(self):
         return bool(CleanText(u'//h2[contains(text(), "Confirmer mon virement")]')(self.doc))
 
