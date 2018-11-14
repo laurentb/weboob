@@ -393,7 +393,7 @@ For example::
             item_xpath = '//ul[@id="list"]/li'
 
             class item(ItemElement):
-                klass = Account()
+                klass = Account
 
                 obj_id = Attr('id')
                 obj_label = CleanText('./td[@class="name"]')
