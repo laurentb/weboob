@@ -412,12 +412,16 @@ class HomePage(LoggedPage, MyHTMLPage):
 
         url = self.browser.absurl('/portailinternet/Transactionnel/Pages/CyberIntegrationPage.aspx')
         headers = {'Referer': self.url}
+
+        # Sometime, the page is a 302 and redirect to a page where there are no information that we need,
+        # so we try with 2 others url to further fetch token when empty page
         r = self.browser.open(url, data='taskId=aUniversMesComptes', params={'vary': vary}, headers=headers)
 
         if not int(r.headers.get('Content-Length', 0)):
-            url = self.browser.absurl('/portailinternet/Transactionnel/Pages/CyberIntegrationPage.aspx')
-            headers = {'Referer': self.url}
             r = self.browser.open(url, data='taskId=aUniversMesComptes', headers=headers)
+
+        if not int(r.headers.get('Content-Length', 0)):
+            r = self.browser.open(url, data={'taskId': 'equipementDom'}, params={'vary': vary}, headers=headers)
 
         doc = r.page.doc
         date = None
