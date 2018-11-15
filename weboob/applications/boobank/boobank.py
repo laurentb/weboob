@@ -84,6 +84,7 @@ class OfxFormatter(IFormatter):
         account = kwargs['account']
         self.balance = account.balance
         self.coming = account.coming
+        self.account_type = account.type
 
         self.output(u'OFXHEADER:100')
         self.output(u'DATA:OFXSGML')
