@@ -38,7 +38,7 @@ class HSBCModule(Module, CapBankWealth, CapProfile):
     DESCRIPTION = 'HSBC France'
     CONFIG = BackendConfig(ValueBackendPassword('login',      label='Identifiant', masked=False),
                            ValueBackendPassword('password',   label='Mot de passe'),
-                           Value(               'secret',     label=u'Réponse secrète'))
+                           ValueBackendPassword('secret',     label=u'Réponse secrète'))
     BROWSER = HSBC
 
     def create_default_browser(self):
