@@ -20,17 +20,15 @@
 from datetime import timedelta
 
 from weboob.capabilities.image import Thumbnail
-from weboob.capabilities.base import BaseObject, NotAvailable
+from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.collection import Collection
 from weboob.capabilities.base import empty
+from weboob.capabilities.video import BaseVideo
 from weboob.browser.pages import HTMLPage, JsonPage, pagination
 from weboob.browser.elements import DictElement, ItemElement, ListElement, method
-from weboob.browser.filters.standard import Date, Format, Env, CleanText, Field, Regexp, Join, Eval
+from weboob.browser.filters.standard import Date, Env, CleanText, Field, ItemNotFound, BrowserURL
 from weboob.browser.filters.json import Dict
-from weboob.browser.filters.html import XPath
-from weboob.tools.compat import basestring, unquote
-
-from .video import ArteVideo, ArteSiteVideo, SITE
+from weboob.tools.date import parse_french_date
 
 
 class ArteItemElement(ItemElement):
@@ -39,6 +37,9 @@ class ArteItemElement(ItemElement):
         return 'VID' in self.el
 
     obj_id = Dict('VID')
+    obj_rating = Dict('VRT', default=NotAvailable)
+    obj_rating_max = 10
+    obj_date = Date(Dict('VDA', default=NotAvailable), default=NotAvailable)
 
     def obj_title(self):
         vti = Dict('VTI')(self)
@@ -48,10 +49,13 @@ class ArteItemElement(ItemElement):
 
         return '%s: %s' % (vti, vtu)
 
-    obj_rating = Dict('VRT', default=NotAvailable)
-    obj_rating_max = 10
-    obj_description = Dict('VDE', default=NotAvailable)
-    obj_date = Date(Dict('VDA', default=NotAvailable), default=NotAvailable)
+    def obj_description(self):
+        try:
+            return Dict('VDE')(self)
+        except ItemNotFound:
+            return Dict('V7T', default=NotAvailable)(self)
+        except StopIteration:
+            return NotAvailable
 
     def obj_duration(self):
         seconds = Dict('videoDurationSeconds', default=NotAvailable)(self)
@@ -72,127 +76,68 @@ class ArteItemElement(ItemElement):
         return thumbnail
 
 
-class VideosListPage(HTMLPage):
+class ArteItemElement1(ItemElement):
+
+    def condition(self):
+        for el in Dict('stickers')(self):
+            if el['code'] == "PLAYABLE":
+                return True
+        return False
+
+    obj_id = Dict('programId')
+
+    def obj_description(self):
+        try:
+            return Dict('fullDescription')(self)
+        except ItemNotFound:
+            return Dict('description')(self)
+        except StopIteration:
+            return NotAvailable
+
+    def obj_title(self):
+        subtitle = Dict('subtitle')(self)
+
+        if subtitle:
+            return u'{} - {}'.format(Dict('title')(self), subtitle)
+
+        return Dict('title')(self)
+
+    def obj_date(self):
+        try:
+            return Date(Dict('availability/upcomingDate'))(self)
+        except ItemNotFound:
+            return Date(Dict('broadcastDates/0', default=NotAvailable), default=NotAvailable)(self)
+        except StopIteration:
+            return NotAvailable
+
+    def obj_duration(self):
+        return timedelta(seconds=Dict('duration')(self))
+
+    def obj_thumbnail(self):
+        try:
+            return Thumbnail(CleanText(Dict('images/square/resolutions/0/url'))(self))
+        except ItemNotFound:
+            return Thumbnail(CleanText(Dict('images/landscape/resolutions/0/url'))(self))
+        except StopIteration:
+            return NotAvailable
+
+
+class GuidePage(HTMLPage):
 
     @method
-    class iter_arte_concert_categories(ListElement):
-        item_xpath = '//ul[@class="filter-liste"]/li'
+    class iter_days(ListElement):
+        item_xpath = r'//button/small'
 
         class item(ItemElement):
             klass = Collection
 
-            obj_title = CleanText('./a/span')
-            obj_id = CleanText('./@data-target', replace=[('video_box_tab_', '')])
+            obj_title = CleanText('.')
+
+            def obj_id(self):
+                return parse_french_date(CleanText('.')(self)).strftime('%Y-%m-%d')
 
             def obj_split_path(self):
-                _id = CleanText('./@data-target', replace=[('video_box_tab_', '')])(self)
-                return [SITE.CONCERT.get('id'), u'%s' % _id]
-
-    @method
-    class iter_arte_concert_videos(ListElement):
-
-        def find_elements(self):
-            self.item_xpath = '//div[@id="video_box_tab_%s"]/article' % Env('cat')(self)
-            for el in self.el.xpath(self.item_xpath):
-                yield el
-
-        class item(ItemElement):
-            klass = ArteSiteVideo
-
-            obj__site = SITE.CONCERT.get('id')
-            obj_id = Format('%s.%s', Field('_site'), CleanText('./@about'))
-            obj_title = CleanText('div/div[@class="info-article "]/div/h3/a')
-
-            def obj_thumbnail(self):
-                url = CleanText('div/div/a/figure/span/span/@data-src')(self)
-                thumbnail = Thumbnail(url)
-                thumbnail.url = thumbnail.id
-                return thumbnail
-
-    @method
-    class iter_arte_creative_categories(ListElement):
-        item_xpath = '//ul[@class="menu"]/li/a[not(@target)]'
-
-        class item(ItemElement):
-            klass = Collection
-
-            obj_title = CleanText('.', default=u'Accueil')
-            obj_id = CleanText('./@href')
-
-            def obj_split_path(self):
-                _id = Regexp(CleanText('./@href'), '/\w{2}/(.*)', default=u'accueil')(self)
-                return [SITE.CREATIVE.get('id')] + [_id.replace('/', '^')]
-
-    @method
-    class iter_arte_creative_videos(ListElement):
-        item_xpath = '//div[div/i]'
-        ignore_duplicate = True
-
-        class item(ItemElement):
-            klass = ArteSiteVideo
-
-            obj__site = SITE.CREATIVE.get('id')
-            obj_id = Format('%s.%s', Field('_site'),
-                            CleanText('./div/h3/a/@href|./div/h1/a/@href'))
-            obj_title = CleanText('./div/h3/a|./div/h1/a')
-
-            def obj_thumbnail(self):
-                url = CleanText('./div/a/img/@src')(self)
-                thumbnail = Thumbnail(url)
-                thumbnail.url = thumbnail.id
-                return thumbnail
-
-    @method
-    class iter_arte_cinema_categories(ListElement):
-        item_xpath = '//li[has-class("leaf")]'
-
-        class item(ItemElement):
-            klass = Collection
-
-            def condition(self):
-                return Regexp(CleanText('./a/@href'), '^(/\w{2}/%s/.*)' % self.env['cat'], default=None)(self)
-
-            obj_title = CleanText('./a')
-            obj_id = CleanText('./a/@href')
-
-            def obj_split_path(self):
-                _id = Regexp(CleanText('./a/@href'), '/\w{2}/(.*)')(self)
-                return [SITE.CINEMA.get('id')] + _id.split('/')
-
-    def get_arte_cinema_menu(self):
-        return self.doc.xpath('//li[has-class("leaf")]/a[starts-with(@href,"/")]/@href')
-
-    @method
-    class get_arte_cinema_videos(ListElement):
-        item_xpath = '//div[has-class("article-list")]/article[@id]'
-
-        class item(ItemElement):
-            klass = ArteSiteVideo
-
-            def condition(self):
-                return len(XPath('.//div[@class="article-secondary "]')(self)) == 1
-
-            obj__site = SITE.CINEMA.get('id')
-            obj_id = Format('%s.%s', Field('_site'),
-                            Regexp(CleanText('./div/div/a/@href|./div/a/@href'),
-                                   '(http://.*\.arte\.tv)?/(.*)',
-                                   '\\2'))
-            obj_title = Join(u' - ',
-                             './/div[@class="article-secondary "]/div/div')
-
-            def obj_thumbnail(self):
-                url = CleanText('.//div[@class="article-primary "]/div[has-class("field-thumbnail")]/span/noscript/img/@src')(self)
-                thumbnail = Thumbnail(url)
-                thumbnail.url = thumbnail.id
-                return thumbnail
-
-    def get_json_url(self):
-        if self.doc.xpath('//div[@class="video-container"]'):
-            return self.doc.xpath('//div[@class="video-container"]')[0].attrib['arte_vp_url']
-        elif self.doc.xpath('//iframe'):
-            url = Regexp(CleanText('./@src'), '.*json_url=(.*)', default='')(self.doc.xpath('//iframe')[0])
-            return unquote(url)
-        return ''
+                return Env('split_path')(self) + [u'%s' % Field('id')(self)]
 
 
 class ArteJsonPage(JsonPage):
@@ -243,24 +188,31 @@ class ArteJsonPage(JsonPage):
             return matching[0]
 
     @method
-    class iter_videos(DictElement):
-        item_xpath = 'videoList'
-
-        class item(ArteItemElement):
-            klass = ArteVideo
-
-    @method
     class iter_programs(DictElement):
-        item_xpath = 'configClusterList'
+        item_xpath = 'data'
+        ignore_duplicate = True
 
         class item(ItemElement):
             klass = Collection
 
-            obj_title = Dict(CleanText(Env('title')))
-            obj_id = Dict('clusterId')
+            def condition(self):
+                i = Dict('childrenCount')(self)
+                if i is None:
+                    i = 1
+                return Dict('programId')(self) and i > 0
+
+            def obj_title(self):
+                subtitle = Dict('subtitle')(self)
+
+                if subtitle:
+                    return u'{} - {}'.format(Dict('title')(self), subtitle)
+
+                return Dict('title')(self)
+
+            obj_id = Dict('programId')
 
             def obj_split_path(self):
-                return [SITE.PROGRAM.get('id'), Dict('clusterId')(self)]
+                return Env('split_path')(self) + [Dict('programId')(self)]
 
     @method
     class get_video(ArteItemElement):
@@ -268,76 +220,27 @@ class ArteJsonPage(JsonPage):
             super(ArteItemElement, self).__init__(*args, **kwargs)
             self.el = self.el.get('videoJsonPlayer')
 
-        klass = ArteVideo
+        klass = BaseVideo
 
-    @method
-    class get_arte_concert_video(ArteItemElement):
-        def __init__(self, *args, **kwargs):
-            super(ArteItemElement, self).__init__(*args, **kwargs)
-            self.el = self.el.get('videoJsonPlayer')
-
-        klass = ArteSiteVideo
-        obj__site = SITE.CONCERT.get('id')
-
-    @method
-    class get_arte_cinema_video(ArteItemElement):
-        def __init__(self, *args, **kwargs):
-            super(ArteItemElement, self).__init__(*args, **kwargs)
-            self.el = self.el.get('videoJsonPlayer')
-
-        klass = ArteSiteVideo
-
-        obj__site = SITE.CINEMA.get('id')
-        obj_date = Date(Dict('VRA', default=''), default=NotAvailable)
-
-    @method
-    class get_program_video(ArteItemElement):
-        def __init__(self, *args, **kwargs):
-            super(ArteItemElement, self).__init__(*args, **kwargs)
-
-            if 'videoJsonPlayer' in self.el:
-                self.el = self.el.get('videoJsonPlayer')
-            elif 'abstractProgram' not in self.el:
-                return None
-            elif 'VDO' in self.el['abstractProgram'].keys():
-                self.el = self.el['abstractProgram']['VDO']
-
-        klass = ArteVideo
-
-    @method
-    class iter_program_videos(DictElement):
-        item_xpath = 'clusterWrapper/broadcasts'
-        ignore_duplicate = True
-
-        class item(ItemElement):
-            klass = BaseObject
-
-            def condition(self):
-                return 'VDS' in self.el.keys() and len(self.el['VDS']) > 0
-
-            obj_id = Dict('programId')
-
-
-class SearchPage(JsonPage):
     @pagination
     @method
     class iter_videos(DictElement):
-        item_xpath = 'teasers'
+        item_xpath = 'data'
 
-        class item(ItemElement):
-            klass = ArteVideo
-
-            obj_id = Dict('id')
-            obj_title = Dict('title')
-            obj_duration = Eval(lambda x: x * 60, Dict('duration'))
-            obj_date = Date(Dict('creationDate'))
-
-            def obj_thumbnail(self):
-                try:
-                    return Thumbnail(next(img['url'] for img in self.el['images'] if img['format'] == 'landscape'))
-                except StopIteration:
-                    return NotAvailable
+        class item(ArteItemElement1):
+            klass = BaseVideo
 
         def next_page(self):
-            if self.el['metas']['page'] < self.el['metas']['pages']:
-                return self.page.url.rstrip('0123456789') + str(self.el['metas']['page'] + 1)
+            page = int(Env('page')(self)) + 1
+            return BrowserURL('webservice',
+                              page=page,
+                              lang=Env('lang'),
+                              method_name=Env('method_name'),
+                              pattern=Env('pattern'))(self)
+
+    @method
+    class iter_guide_videos(DictElement):
+        item_xpath = 'zones/1/data'
+
+        class item(ArteItemElement1):
+            klass = BaseVideo

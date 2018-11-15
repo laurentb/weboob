@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.video import BaseVideo
-
 
 def enum(**enums):
     _values = list(enums.values())
@@ -41,14 +39,63 @@ FORMATS = enum(HTTP_MP4=u'HBBTV', HLS=u'M3U8', RTMP=u'RTMP', HLS_MOBILE=u'MOBILE
 LANG = enum(FRENCH={u'label': u'French', u'webservice': u'F', u'site': u'fr', u'version': u'1', u'title': u'titleFR'},
             GERMAN={u'label': u'German', u'webservice': u'D', u'site': u'de', u'version': u'1', u'title': u'titleDE'})
 
-SITE = enum(PROGRAM={u'id': u'program', u'label': u'Arte Programs', 1: 'get_arte_programs',
-                     2: 'get_arte_program_videos', u'video': 'get_video_from_program_id'},
-            CONCERT={u'id': u'concert', u'label': u'Arte Concert videos', 1: 'get_arte_concert_categories',
-                     2: 'get_arte_concert_videos', 'video': 'get_arte_concert_video'},
-            CINEMA={u'id': u'cinema', u'label': u'Arte Cinema', 1: 'get_arte_cinema_categories',
-                    2: 'get_arte_cinema_categories', 3: 'get_arte_cinema_videos', 'video': 'get_arte_cinema_video'},
-            CREATIVE={u'id': u'creative', u'label': u'Arte Creative', 1: 'get_arte_creative_categories',
-                      2: 'get_arte_creative_videos', 'video': 'get_arte_creative_video'})
+CONCERT = enum(CLASSIQUE={u'id': u'CLA', u'label': u'Classique'},
+               ACTUELLE={u'id': u'MUA', u'label': u'Musiques actuelles'},
+               OPERA={u'id': u'OPE', u'label': u'Opera'},
+               JAZZ={u'id': u'JAZ', u'label': u'Jazz'},
+               MONDE={u'id': u'MUD', u'label': u'Musiques du monde'},
+               SCENE={u'id': u'ADS', u'label': u'Arts de la scène'},
+               COLLECTION={u'id': u'collections_ARS', u'label': u'Collections'},
+               PLAYLIST={u'id': u'playlists_ARS', u'label': u'Playlists'})
+
+CINEMA = enum(FILM={u'id': u'FLM', u'label': u'Films'},
+              CLASSIQUES={u'id': u'MCL', u'label': u'Les grands du 7e art'},
+              COURT_METRAGES={u'id': u'CMG', u'label': u'Courts métrages'},
+              FILM_MUETS={u'id': u'CMU', u'label': u'Films muets'},
+              ACTU={u'id': u'ACC', u'label': u'Actualité du cinéma'},
+              COLLECTION={u'id': u'collections_CIN', u'label': u'Collections'},
+              MAGAZINE={u'id': u'magazines_CIN', u'label': u'Émissions'})
+
+SERIE = enum(SERIES={u'id': u'SES', u'label': u'Séries'},
+             FICTIONS={u'id': u'FIC', u'label': u'Fictions'},
+             HUMOUR={u'id': u'CHU', u'label': u'Courts humoristiques'},
+             COLLECTION={u'id': u'collections_SER', u'label': u'Collections'})
+
+POP = enum(POP={u'id': u'POP', u'label': u'Culture pop'},
+           ART={u'id': u'ART', u'label': u'Arts'},
+           IDE={u'id': u'IDE', u'label': u'Idées'},
+           COLLECTION={u'id': u'collections_CPO', u'label': u'Collections'},
+           MAGAZINE={u'id': u'magazines_CPO', u'label': u'Émissions'})
+
+SCIENCE = enum(POP={u'id': u'SAN', u'label': u'Médecine et santé'},
+               EEN={u'id': u'ENN', u'label': u'Environnement et nature'},
+               TEC={u'id': u'TEC', u'label': u'Technologies et innovations'},
+               ENB={u'id': u'ENB', u'label': u'En bref'},
+               COLLECTION={u'id': u'collections_SCI', u'label': u'Collections'},
+               MAGAZINE={u'id': u'magazines_SCI', u'label': u'Émissions'})
+
+VOYAGE = enum(NEA={u'id': u'NEA', u'label': u'Nature et animaux'},
+              EVA={u'id': u'EVA', u'label': u'Evasion'},
+              ATA={u'id': u'ATA', u'label': u'A table !'},
+              VIA={u'id': u'VIA', u'label': u'Vies d\'ailleurs'},
+              COLLECTION={u'id': u'collections_DEC', u'label': u'Collections'},
+              MAGAZINE={u'id': u'magazines_DEC', u'label': u'Émissions'})
+
+HISTOIRE = enum(XXE={u'id': u'XXE', u'label': u'XXe siècle'},
+                CIV={u'id': u'CIV', u'label': u'Civilisations'},
+                LGP={u'id': u'LGP', u'label': u'Les grands personnages'},
+                COLLECTION={u'id': u'collections_DEC', u'label': u'Collections'})
+
+SITE = enum(PROGRAM={u'id': u'program', u'label': u'Arte Programs'},
+            CREATIVE={u'id': u'creative', u'label': u'Arte Creative'},
+            GUIDE={u'id': u'guide', u'label': u'Arte Guide TV'},
+            CONCERT={u'id': u'concert', u'label': u'Arte Concert videos', u'enum': CONCERT},
+            CINEMA={u'id': u'cinema', u'label': u'Arte Cinema', u'enum': CINEMA},
+            SERIE={u'id': u'series-et-fictions', u'label': u'Arte CreativeSéries et fictions', u'enum': SERIE},
+            POP={u'id': u'culture-et-pop', u'label': u'Culture et pop', u'enum': POP},
+            SCIENCE={u'id': u'sciences', u'label': u'Sciences', u'enum': SCIENCE},
+            VOYAGE={u'id': u'voyages-et-decouvertes', u'label': u'Voyages et découvertes', u'enum': VOYAGE},
+            HISTOIRE={u'id': u'histoire', u'label': u'Histoire', u'enum': HISTOIRE})
 
 QUALITY = enum(HD={'label': u'SQ', 'order': 3},
                MD={'label': u'EQ', 'order': 2},
@@ -66,14 +113,8 @@ VERSION_VIDEO = enum(VOSTA={u'label': u'Original version subtitled (German)', LA
                      VFSTMF={u'label': u'Deaf version (French)', LANG.FRENCH.get('label'): u'8'})
 
 
-class ArteVideo(BaseVideo):
-    pass
-
-
-class ArteSiteVideo(BaseVideo):
-    pass
-
-
-class ArteEmptyVideo(BaseVideo):
-    def __init__(self):
-        self.description = u'There is no video on this page'
+def get_site_enum_by_id(id):
+    for s in SITE.values:
+        if s.get('id') == id:
+            return s
+    return

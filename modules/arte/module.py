@@ -25,10 +25,9 @@ from weboob.capabilities.video import CapVideo, BaseVideo
 from weboob.capabilities.collection import CapCollection, CollectionNotFound, Collection
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value
-from weboob.exceptions import BrowserHTTPSDowngrade
 
 from .browser import ArteBrowser
-from .video import ArteVideo, ArteSiteVideo, VERSION_VIDEO, FORMATS, LANG, QUALITY, SITE
+from .video import VERSION_VIDEO, FORMATS, LANG, QUALITY, SITE, get_site_enum_by_id
 
 
 __all__ = ['ArteModule']
@@ -69,36 +68,22 @@ class ArteModule(Module, CapVideo, CapCollection):
                                    version=self.config['version'].get())
 
     def parse_id(self, _id):
-        sites = '|'.join(k.get('id') for k in SITE.values)
-        m = re.match('^(%s)\.(.*)' % sites, _id)
+        m = re.match('https?://www.arte.tv/\w+/videos/(?P<id>.+)/(.*)', _id)
         if m:
-            return m.groups()
-
-        m = re.match('https?://www.arte.tv/guide/\w+/(?P<id>.+)/(.*)', _id)
-        if m:
-            return SITE.PROGRAM.get('id'), m.group(1)
-
-        m = re.match('https?://(%s).arte.tv/(\w+)/(.*)' % (sites), _id)
-        if m:
-            return m.group(1), '/%s/%s' % (m.group(2), m.group(3))
+            return m.group(1)
 
         if not _id.startswith('http'):
-            return 'videos', _id
+            return _id
 
-        return None, None
+        return None
 
-    def get_video(self, _id):
-        site, _id = self.parse_id(_id)
+    def get_video(self, _id, video=None):
+        _id = self.parse_id(_id)
 
-        if not (site and _id):
+        if _id is None:
             return None
 
-        if site in [value.get('id') for value in SITE.values]:
-            _site = (value for value in SITE.values if value.get('id') == site).next()
-            return getattr(self.browser, _site.get('video'))(_id)
-
-        else:
-            return self.browser.get_video(_id)
+        return self.browser.get_video(_id, video)
 
     def search_videos(self, pattern, sortby=CapVideo.SEARCH_RELEVANCE, nsfw=False):
         return self.browser.search_videos(pattern)
@@ -109,60 +94,48 @@ class ArteModule(Module, CapVideo, CapCollection):
 
         if 'thumbnail' in fields and video and video.thumbnail:
             video.thumbnail.data = self.browser.open(video.thumbnail.url).content
-
-        if 'url' in fields and not video.url:
-            video.ext, video.url = self.browser.fetch_url(video.id)
-
-        return video
-
-    def fill_site_video(self, video, fields):
-        if fields != ['thumbnail']:
-            for site in SITE.values:
-                m = re.match('%s\.(.*)' % site.get('id'), video.id)
-                if m:
-                    video = getattr(self.browser, site.get('video'))(m.group(1), video)
-                    break
-
-        if 'thumbnail' in fields and video and video.thumbnail:
-            try:
-                video.thumbnail.data = self.browser.open(video.thumbnail.url).content
-            except BrowserHTTPSDowngrade:
-                pass
-
         return video
 
     def iter_resources(self, objs, split_path):
-        if BaseVideo in objs:
-            collection = self.get_collection(objs, split_path)
-            if collection.path_level == 0:
-                yield Collection([u'arte-latest'], u'Latest Arte videos')
-                for site in SITE.values:
-                    yield Collection([site.get('id')], site.get('label'))
-            if collection.path_level == 1:
-                if collection.split_path == [u'arte-latest']:
-                    for video in self.browser.latest_videos():
-                        yield video
-                else:
-                    for site in SITE.values:
-                        if collection.split_path[0] == site.get('id') and collection.path_level in site.keys():
-                            for item in getattr(self.browser, site.get(collection.path_level))():
-                                yield item
+        collection = self.get_collection(objs, split_path)
 
-            if collection.path_level >= 2:
-                for site in SITE.values:
-                    if collection.split_path[0] == site.get('id') and collection.path_level in site.keys():
-                        for item in getattr(self.browser, site.get(collection.path_level))(collection.split_path):
-                            yield item
+        if BaseVideo in objs:
+            if collection.path_level == 0:
+                return [Collection([site.get('id')], site.get('label')) for site in SITE.values]
+
+            elif len(split_path) == 1:
+                site = get_site_enum_by_id(split_path[0])
+                subsite = site.get('enum', None)
+
+                if site == SITE.PROGRAM:
+                    return self.browser.get_arte_programs(split_path)
+                elif site == SITE.GUIDE:
+                    return self.browser.get_arte_guide_days(split_path)
+                elif site == SITE.CREATIVE:
+                    return self.browser.get_arte_creative_videos()
+                elif subsite:
+                    return self.browser.get_arte_generic_subsites(split_path, subsite)
+
+            elif collection.path_level > 1:
+                site = get_site_enum_by_id(split_path[0])
+
+                if site == SITE.GUIDE:
+                    return self.browser.get_arte_guide_videos(split_path)
+                else:
+                    subsite = site.get('enum', {})
+                    if subsite:
+                        subsite = dict(subsite.items)
+
+                    return self.browser.get_arte_navigation(split_path,
+                                                            subsite.get('COLLECTION', {}).get('id', r''),
+                                                            subsite.get('PLAYLIST', {}).get('id', r''),
+                                                            subsite.get('MAGAZINE', {}).get('id', r''))
 
     def validate_collection(self, objs, collection):
         if collection.path_level == 0:
             return
-        if BaseVideo in objs and (collection.split_path == [u'arte-latest'] or
-                                  collection.split_path[0] in [value.get('id') for value in SITE.values]):
-            return
-        if BaseVideo in objs and collection.path_level >= 2 and\
-                collection.split_path[0] in [value.get('id') for value in SITE.values]:
+        if BaseVideo in objs and (collection.split_path[0] in [value.get('id') for value in SITE.values]):
             return
         raise CollectionNotFound(collection.split_path)
 
-    OBJECTS = {ArteVideo: fill_arte_video, ArteSiteVideo: fill_site_video}
+    OBJECTS = {BaseVideo: fill_arte_video}
