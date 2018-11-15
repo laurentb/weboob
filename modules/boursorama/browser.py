@@ -26,7 +26,7 @@ from dateutil import parser
 from weboob.browser.retry import login_method, retry_on_logout, RetryLoginBrowser
 from weboob.browser.browsers import need_login, StatesMixin
 from weboob.browser.url import URL
-from weboob.exceptions import BrowserIncorrectPassword, BrowserHTTPNotFound
+from weboob.exceptions import BrowserIncorrectPassword, BrowserHTTPNotFound, BrowserUnavailable
 from weboob.browser.exceptions import LoggedOut, ClientError
 from weboob.capabilities.bank import (
     Account, AccountNotFound, TransferError, TransferInvalidAmount,
@@ -45,6 +45,7 @@ from .pages import (
     CardsNumberPage, CalendarPage, HomePage, PEPPage,
     TransferAccounts, TransferRecipients, TransferCharac, TransferConfirm, TransferSent,
     AddRecipientPage, StatusPage, CardHistoryPage, CardCalendarPage, CurrencyListPage, CurrencyConvertPage,
+    AccountsErrorPage,
 )
 
 
@@ -69,6 +70,7 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
                 '/infos-profil', ErrorPage)
     login = URL('/connexion/', LoginPage)
     accounts = URL('/dashboard/comptes\?_hinclude=300000', AccountsPage)
+    accounts_error = URL('/dashboard/comptes\?_hinclude=300000', AccountsErrorPage)
     pro_accounts = URL(r'/dashboard/comptes-professionnels\?_hinclude=1', AccountsPage)
     acc_tit = URL('/comptes/titulaire/(?P<webid>.*)\?_hinclude=1', AccbisPage)
     acc_rep = URL('/comptes/representative/(?P<webid>.*)\?_hinclude=1', AccbisPage)
@@ -189,13 +191,24 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
     @need_login
     def get_accounts_list(self):
         self.status.go()
+
+        exc = None
         for x in range(3):
             if self.accounts_list is not None:
                 break
             self.accounts_list = []
             self.loans_list = []
             self.accounts_list.extend(self.pro_accounts.go().iter_accounts())
-            self.accounts_list.extend(self.accounts.go().iter_accounts())
+            try:
+                self.accounts.go()
+            except BrowserUnavailable as e:
+                self.logger.warning('par accounts seem unavailable, retrying')
+                exc = e
+                self.accounts_list = None
+                continue
+            else:
+                self.accounts_list.extend(self.page.iter_accounts())
+                exc = None
 
             # discard all unvalid card accounts (if opposed or not yet activated)
             valid_card_url = []
@@ -233,6 +246,9 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
             for card in cards:
                 checking, = [account for account in self.accounts_list if account.type == Account.TYPE_CHECKING and account.url in card.url]
                 card.parent = checking
+
+        if exc:
+            raise exc
 
         return self.accounts_list
 

@@ -1105,3 +1105,12 @@ class CurrencyConvertPage(JsonPage):
     def get_rate(self):
         if not 'error' in self.doc:
             return round(self.doc['rate'], 4)
+
+
+class AccountsErrorPage(LoggedPage, HTMLPage):
+    def is_here(self):
+        # some braindead error seems to affect many accounts until we retry
+        return '[E10008]' in CleanText('//div')(self.doc)
+
+    def on_load(self):
+        raise BrowserUnavailable()
