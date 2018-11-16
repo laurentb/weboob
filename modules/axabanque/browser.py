@@ -109,7 +109,8 @@ class AXABanque(AXABrowser, StatesMixin):
                        'webapp/axabanque/jsp/.*/detail.*.faces', TransactionsPage)
     unavailable = URL('login_errors/indisponibilite.*',
                       '.*page-indisponible.html.*',
-                      '.*erreur/erreurBanque.faces', UnavailablePage)
+                      '.*erreur/erreurBanque.faces',
+                      'http://www.axabanque.fr/message/maintenance.htm', UnavailablePage)
     # Wealth
     wealth_accounts = URL('https://espaceclient.axa.fr/$',
                           'https://espaceclient.axa.fr/accueil.html',
