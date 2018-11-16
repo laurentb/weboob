@@ -35,20 +35,20 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
 class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile('^.*Virement (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
-                (re.compile(u'PRELEV SEPA (?P<text>.*)'),        FrenchTransaction.TYPE_ORDER),
-                (re.compile(u'.*Prélèvement.*'),        FrenchTransaction.TYPE_ORDER),
-                (re.compile(u'^(REGL|Rgt)(?P<text>.*)'),        FrenchTransaction.TYPE_ORDER),
-                (re.compile('^(?P<text>.*) Carte \d+\s+ LE (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})'),
+    PATTERNS = [(re.compile(r'^.*Virement (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
+                (re.compile(r'PRELEV SEPA (?P<text>.*)'),        FrenchTransaction.TYPE_ORDER),
+                (re.compile(r'.*Prélèvement.*'),        FrenchTransaction.TYPE_ORDER),
+                (re.compile(r'^(REGL|Rgt)(?P<text>.*)'),        FrenchTransaction.TYPE_ORDER),
+                (re.compile(r'^(?P<text>.*) Carte \d+\s+ LE (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})'),
                                                           FrenchTransaction.TYPE_CARD),
-                (re.compile(u'^Débit mensuel.*'), FrenchTransaction.TYPE_CARD_SUMMARY),
-                (re.compile(u"^Retrait d'espèces à un DAB (?P<text>.*) CARTE [X\d]+ LE (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})"),
+                (re.compile(r'^Débit mensuel.*'), FrenchTransaction.TYPE_CARD_SUMMARY),
+                (re.compile(r"^Retrait d'espèces à un DAB (?P<text>.*) CARTE [X\d]+ LE (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})"),
                                                           FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile(u'^Paiement de chèque (?P<text>.*)'),  FrenchTransaction.TYPE_CHECK),
-                (re.compile(u'^(Cotisation|Intérêts) (?P<text>.*)'), FrenchTransaction.TYPE_BANK),
-                (re.compile(u'^(Remise Chèque|Remise de chèque)\s*(?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
-                (re.compile('^Versement (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
-                (re.compile('^(?P<text>.*)LE (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})\s*(?P<text2>.*)'),
+                (re.compile(r'^Paiement de chèque (?P<text>.*)'),  FrenchTransaction.TYPE_CHECK),
+                (re.compile(r'^(Cotisation|Intérêts) (?P<text>.*)'), FrenchTransaction.TYPE_BANK),
+                (re.compile(r'^(Remise Chèque|Remise de chèque)\s*(?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
+                (re.compile(r'^Versement (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
+                (re.compile(r'^(?P<text>.*)LE (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})\s*(?P<text2>.*)'),
                                                           FrenchTransaction.TYPE_UNKNOWN),
     ]
 
@@ -222,8 +222,8 @@ class SearchPage(LoggedPage, JsonPage):
 
             seen.add(t.id)
             d = date.fromtimestamp(op.get('dateDebit', op.get('dateOperation'))/1000)
-            op['details'] = [re.sub('\s+', ' ', i).replace('\x00', '') for i in op['details'] if i]  # sometimes they put "null" elements...
-            label = re.sub('\s+', ' ', op['libelle']).replace('\x00', '')
+            op['details'] = [re.sub(r'\s+', ' ', i).replace('\x00', '') for i in op['details'] if i]  # sometimes they put "null" elements...
+            label = re.sub(r'\s+', ' ', op['libelle']).replace('\x00', '')
             raw = ' '.join([label] + op['details'])
             t.rdate = date.fromtimestamp(op.get('dateOperation', op.get('dateDebit'))/1000)
             vdate = date.fromtimestamp(op.get('dateValeur', op.get('dateDebit', op.get('dateOperation')))/1000)

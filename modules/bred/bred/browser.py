@@ -49,7 +49,7 @@ class BredBrowser(LoginBrowser):
                             '/pages-gestion-des-erreurs/erreur-technique',
                             '/pages-gestion-des-erreurs/message-tiers-oppose', ErrorPage)
     universe =          URL('/transactionnel/services/applications/menu/getMenuUnivers', UniversePage)
-    token =             URL('/transactionnel/services/rest/User/nonce\?random=(?P<timestamp>.*)', TokenPage)
+    token =             URL(r'/transactionnel/services/rest/User/nonce\?random=(?P<timestamp>.*)', TokenPage)
     move_universe =     URL('/transactionnel/services/applications/listes/(?P<key>.*)/default', MoveUniversePage)
     switch =            URL('/transactionnel/services/rest/User/switch', SwitchPage)
     loans =             URL('/transactionnel/services/applications/prets/liste', LoansPage)
