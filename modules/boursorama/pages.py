@@ -1104,7 +1104,7 @@ class CurrencyListPage(HTMLPage):
 class CurrencyConvertPage(JsonPage):
     def get_rate(self):
         if not 'error' in self.doc:
-            return round(self.doc['rate'], 4)
+            return Decimal(str(self.doc['rate']))
 
 
 class AccountsErrorPage(LoggedPage, HTMLPage):
