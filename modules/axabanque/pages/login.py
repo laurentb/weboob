@@ -121,8 +121,10 @@ class ErrorPage(PartialHTMLPage):
         error_msg = (
             CleanText('//p[contains(text(), "temporairement indisponible")]')(self.doc),
             CleanText('//p[contains(text(), "maintenance est en cours")]')(self.doc),
+            # parsing for false 500 error page
+            CleanText('//div[contains(@class, "error-page")]//span[contains(@class, "subtitle") and contains(text(), "Chargement de page impossible")]')(self.doc)
         )
 
         for error in error_msg:
             if error:
-                raise BrowserUnavailable(error_msg)
+                raise BrowserUnavailable(error)

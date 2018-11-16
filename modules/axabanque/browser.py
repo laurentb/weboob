@@ -60,7 +60,9 @@ class AXABrowser(LoginBrowser):
 
     denied = URL('https://connect.axa.fr/Account/AccessDenied', DeniedPage)
     account_space_login = URL('https://connect.axa.fr/api/accountspace', AccountSpaceLogin)
-    errors = URL('https://espaceclient.axa.fr/content/ecc-public/accueil-axa-connect/_jcr_content/par/text.html', ErrorPage)
+    errors = URL('https://espaceclient.axa.fr/content/ecc-public/accueil-axa-connect/_jcr_content/par/text.html',
+                 'https://espaceclient.axa.fr/content/ecc-public/errors/500.html',
+                 ErrorPage)
 
     def do_login(self):
         # due to the website change, login changed too, this is for don't try to login with the wrong login
