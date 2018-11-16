@@ -105,6 +105,7 @@ class LoansPage(MyJsonPage):
 class AccountsPage(MyJsonPage):
     ACCOUNT_TYPES = {
         '000': Account.TYPE_CHECKING,   # Compte à vue
+        '001': Account.TYPE_SAVINGS,    # Livret Ile de France
         '011': Account.TYPE_CARD,       # Carte bancaire
         '020': Account.TYPE_SAVINGS,    # Compte sur livret
         '021': Account.TYPE_SAVINGS,
