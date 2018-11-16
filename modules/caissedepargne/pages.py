@@ -67,6 +67,11 @@ def float_to_decimal(f):
 
 
 class LoginPage(JsonPage):
+    def on_load(self):
+        error_msg = self.doc.get('error')
+        if error_msg and 'Le service est momentanément indisponible' in error_msg:
+            raise BrowserUnavailable(error_msg)
+
     def get_response(self):
         return self.doc
 
