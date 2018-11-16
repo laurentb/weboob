@@ -848,7 +848,7 @@ class CardsNumberPage(LoggedPage, HTMLPage):
         the hash of the card's parent account, and the name of the card.
         """
         card_details = [
-            (CleanText('.//span')(o), CleanText('./@data-account-key')(o), CleanText('.//p')(o))
+            (CleanText('.//span')(o), CleanText('./@data-card-key')(o), CleanText('.//p')(o))
             for o in self.doc.xpath('//div[contains(@class, "zoom-carousel__item text-center credit-card-carousel__item")]')
         ]
 
