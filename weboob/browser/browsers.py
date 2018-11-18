@@ -777,10 +777,13 @@ def need_login(func):
     Decorator used to require to be logged to access to this function.
 
     This decorator can be used on any method whose first argument is a
-    browser (typically a :class:`LoginBrowser`). It checks if the login
-    procedure has succeeded by looking at the
-    :attr:`LoginBrowser.logged` attribute of the browser. When this
-    attribute does not exist or is not set to ``True``, the
+    browser (typically a :class:`LoginBrowser`). It checks for the
+    `logged` attribute in the current browser's page: when this
+    attribute is set to ``True`` (e.g., when the page inherits
+    :class:`LoggedPage`), then nothing special happens.
+
+    In all other cases (when the browser isn't on any defined page or
+    when the page's `logged` attribute is ``False``), the
     :meth:`LoginBrowser.do_login` method of the browser is called before
     calling :`func`.
     """
@@ -811,11 +814,7 @@ class LoginBrowser(PagesBrowser):
         """
         Abstract method to implement to login on website.
 
-        It is called when a login is needed. When login succeeds, this
-        method should set the :attr:`logged` attribute of the current
-        browser to ``True``. This tells the `need_login` decorator that
-        we have already logged in, hence no further call to `do_login`
-        needs to be performed.
+        It is called when a login is needed.
         """
         raise NotImplementedError()
 
@@ -823,12 +822,7 @@ class LoginBrowser(PagesBrowser):
         """
         Logout from website.
 
-        By default, simply clears the cookies. If you took care of
-        setting the `logged` attribute to ``True`` in :meth:`do_login`,
-        you should override the `do_logout` method and unset this
-        attribute, or set it to ``False``. This will tell the
-        `need_login` decorator that it has to call again the
-        :meth:`do_login`.
+        By default, simply clears the cookies.
         """
         self.session.cookies.clear()
 

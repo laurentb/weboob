@@ -339,6 +339,8 @@ On the browser side, you need to inherit from :func:`LoginBrowser <weboob.browse
             if self.login_error.is_here():
                 raise BrowserIncorrectPassword(self.page.get_error())
 
+You may provide a custom :func:`do_logout <weboob.browser.browsers.LoginBrowser.do_logout>`:: function if you need to customize the default logout process, which simply clears all cookies.
+
 Also, your ``LoginPage`` may look like::
 
     class LoginPage(HTMLPage):
@@ -348,7 +350,7 @@ Also, your ``LoginPage`` may look like::
             form['password'] = password
             form.submit()
 
-Then, each method on your browser which need your user to be authenticated may be decorated by :func:`need_login <weboob.browser.browsers.need_login>`::
+Then, each method on your browser which needs your user to be authenticated may be decorated by :func:`need_login <weboob.browser.browsers.need_login>`::
 
     class ExampleBrowser(LoginBrowser):
         accounts = URL('/accounts$', ListPage)
@@ -358,9 +360,17 @@ Then, each method on your browser which need your user to be authenticated may b
             self.accounts.stay_or_go()
             return self.page.get_accounts()
 
-The last thing to know is that :func:`need_login <weboob.browser.browsers.need_login>` checks if the current page is a logged one by
-reading the attribute :func:`logged <weboob.browser.pages.Page.logged>` of the instance. You can either define it yourself, as a
-class boolean attribute or as a property, or to inherit your class from :class:`LoggedPage <weboob.browser.pages.LoggedPage>`.
+You finally have to set correctly the :func:`logged <weboob.browser.pages.Page.logged>` attribute of each page you use.  The
+:func:`need_login <weboob.browser.browsers.need_login>` decorator checks if the current page is a logged one by reading the attribute
+:func:`logged <weboob.browser.pages.Page.logged>` of the instance. This attributes defaults to  ``False``, which means that :func:`need_login
+<weboob.browser.browsers.need_login>` will first call :func:`do_logout <weboob.browser.browsers.LoginBrowser.do_logout>` before calling the
+decorated method.
+
+You can either define it yourself, as a class boolean attribute or as a property, or inherit your class from :class:`LoggedPage <weboob.browser.pages.LoggedPage>`.
+In the latter case, remember that Python inheritance requires the :class:`LoggedPage <weboob.browser.pages.LoggedPage>` to be placed first such as in::
+
+    class OnlyForLoggedUserPage(LoggedPage, HTMLPage):
+        # ...
 
 
 Parsing of pages
