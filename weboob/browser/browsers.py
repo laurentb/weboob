@@ -775,6 +775,14 @@ class PagesBrowser(DomainBrowser):
 def need_login(func):
     """
     Decorator used to require to be logged to access to this function.
+
+    This decorator can be used on any method whose first argument is a
+    browser (typically a :class:`LoginBrowser`). It checks if the login
+    procedure has succeeded by looking at the
+    :attr:`LoginBrowser.logged` attribute of the browser. When this
+    attribute does not exist or is not set to ``True``, the
+    :meth:`LoginBrowser.do_login` method of the browser is called before
+    calling :`func`.
     """
 
     @wraps(func)
@@ -803,7 +811,11 @@ class LoginBrowser(PagesBrowser):
         """
         Abstract method to implement to login on website.
 
-        It is call when a login is needed.
+        It is called when a login is needed. When login succeeds, this
+        method should set the :attr:`logged` attribute of the current
+        browser to ``True``. This tells the `need_login` decorator that
+        we have already logged in, hence no further call to `do_login`
+        needs to be performed.
         """
         raise NotImplementedError()
 
@@ -811,7 +823,12 @@ class LoginBrowser(PagesBrowser):
         """
         Logout from website.
 
-        By default, simply clears the cookies.
+        By default, simply clears the cookies. If you took care of
+        setting the `logged` attribute to ``True`` in :meth:`do_login`,
+        you should override the `do_logout` method and unset this
+        attribute, or set it to ``False``. This will tell the
+        `need_login` decorator that it has to call again the
+        :meth:`do_login`.
         """
         self.session.cookies.clear()
 
