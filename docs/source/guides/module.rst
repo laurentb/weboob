@@ -111,6 +111,9 @@ Module class
 
 Edit ``module.py``. It contains the main class of the module derived from :class:`Module <weboob.tools.backend.Module>` class::
 
+    from weboob.tools.backend import Module
+    from weboob.capabilities.bank import CapBank
+
     class ExampleModule(Module, CapBank):
         NAME = 'example'                         # The name of module
         DESCRIPTION = u'Example bank website'    # Description of your module
@@ -153,8 +156,9 @@ Available parameters of :class:`Value <weboob.tools.value.Value>` are:
 
 For example::
 
+    from weboob.tools.backend import Module, BackendConfig
+    from weboob.capabilities.bank import CapBank
     from weboob.tools.value import Value, ValueBool, ValueInt, ValueBackendPassword
-    from weboob.tools.backend import BackendConfig
 
     # ...
     class ExampleModule(Module, CapBank):
@@ -172,6 +176,9 @@ Implement capabilities
 ----------------------
 
 You need to implement each method of all of the capabilities your module implements. For example, in our case::
+
+    from weboob.tools.backend import Module
+    from weboob.capabilities.bank import CapBank
 
     # ...
     class ExampleModule(Module, CapBank):
@@ -274,7 +281,9 @@ Each time you will go on the home page, ``IndexPage`` will be instanced and set 
 
 For example, we can now implement some methods in ``ExampleBrowser``::
 
-    class ExampleBrowser(PagesBrowserr):
+    from weboob.browser import PagesBrowser
+
+    class ExampleBrowser(PagesBrowser):
         # ...
         def go_home(self):
             self.home.go()
@@ -296,6 +305,9 @@ Use it in backend
 -----------------
 
 Now you have a functional browser, you can use it in your class ``ExampleModule`` by defining it with the ``BROWSER`` attribute::
+
+    from weboob.tools.backend import Module
+    from weboob.capabilities.bank import CapBank
 
     from .browser import ExampleBrowser
 
@@ -319,6 +331,9 @@ Login management
 When the website requires to be authenticated, you have to give credentials to the constructor of the browser. You can redefine
 the method :func:`create_default_browser <weboob.tools.backend.Module.create_default_browser>`::
 
+    from weboob.tools.backend import Module
+    from weboob.capabilities.bank import CapBank
+
     class ExampleModule(Module, CapBank):
         # ...
         def create_default_browser(self):
@@ -326,6 +341,9 @@ the method :func:`create_default_browser <weboob.tools.backend.Module.create_def
 
 On the browser side, you need to inherit from :func:`LoginBrowser <weboob.browser.browsers.LoginBrowser>` and to implement the function
 :func:`do_login <weboob.browser.browsers.LoginBrowser.do_login>`::
+
+    from weboob.browser import LoginBrowser
+    from weboob.exceptions import BrowserIncorrectPassword
 
     class ExampleBrowser(LoginBrowser):
         login = URL('/login', LoginPage)
@@ -343,6 +361,8 @@ You may provide a custom :func:`do_logout <weboob.browser.browsers.LoginBrowser.
 
 Also, your ``LoginPage`` may look like::
 
+    from weboob.browser.pages import HTMLPage
+
     class LoginPage(HTMLPage):
         def login(self, username, password):
             form = self.get_form(name='auth')
@@ -351,6 +371,9 @@ Also, your ``LoginPage`` may look like::
             form.submit()
 
 Then, each method on your browser which needs your user to be authenticated may be decorated by :func:`need_login <weboob.browser.browsers.need_login>`::
+
+    from weboob.browser import LoginBrowser, URL
+    from weboob.browser import need_login
 
     class ExampleBrowser(LoginBrowser):
         accounts = URL('/accounts$', ListPage)
@@ -368,6 +391,7 @@ decorated method.
 
 You can either define it yourself, as a class boolean attribute or as a property, or inherit your class from :class:`LoggedPage <weboob.browser.pages.LoggedPage>`.
 In the latter case, remember that Python inheritance requires the :class:`LoggedPage <weboob.browser.pages.LoggedPage>` to be placed first such as in::
+    from weboob.browser.pages import LoggedPage, HTMLPage
 
     class OnlyForLoggedUserPage(LoggedPage, HTMLPage):
         # ...
@@ -393,9 +417,11 @@ construct the object.
 
 For example::
 
+    from weboob.browser.pages import LoggedPage, HTMLPage
     from weboob.browser.filters.html import Attr
     from weboob.browser.filters.standard import CleanDecimal, CleanText
     from weboob.capabilities.bank import Account
+    from weboob.browser.elements import method, ListElement, ItemElement
 
     class ListPage(LoggedPage, HTMLPage):
         @method
@@ -529,6 +555,9 @@ method associated to the type of the object.
 To define what objects are supported to be filled, and what method to call, define the ``OBJECTS``
 class attribute in your ``ExampleModule``::
 
+    from weboob.tools.backend import Module
+    from weboob.capabilities.video import CapVideo
+
     class ExampleModule(Module, CapVideo):
         # ...
 
@@ -539,6 +568,9 @@ The prototype of the function might be::
     func(self, obj, fields)
 
 Then, the function might, for each requested fields, fetch the right data and fill the object. For example::
+
+    from weboob.tools.backend import Module
+    from weboob.capabilities.video import CapVideo
 
     class ExampleModule(Module, CapVideo):
         # ...
