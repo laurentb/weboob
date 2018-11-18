@@ -47,6 +47,12 @@ class WebNip(object):
     It provides methods to build backends or call methods on all loaded
     backends.
 
+    You should use this class when you want to build an application
+    using Weboob as a library, without using the standard modules nor
+    the automatic module download and update machanism. When using
+    WebNip, you have to explicitely provide module paths and deal
+    yourself with backend configuration.
+
     :param modules_path: path to directory containing modules.
     :type modules_path: :class:`basestring`
     :param storage: provide a storage where backends can save data
