@@ -581,7 +581,11 @@ class BoursePage(LoggedPage, HTMLPage):
                 return "%s Bourse" % CleanText((TableCell('label')(self)[0]).xpath('./div[b]'))(self)
 
             def obj_type(self):
-                return self.page.TYPES.get(' '.join(Field('label')(self).split()[:-1]).lower(), Account.TYPE_MARKET)
+                _label = ' '.join(Field('label')(self).split()[:-1]).lower()
+                for key in self.page.TYPES:
+                    if key in _label:
+                        return self.page.TYPES.get(key)
+                return Account.TYPE_MARKET
 
     def get_logout_link(self):
         return Link('//a[@class="link-underline" and contains(text(), "espace client")]')(self.doc)
