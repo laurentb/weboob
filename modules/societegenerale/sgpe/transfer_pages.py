@@ -29,7 +29,7 @@ from weboob.browser.filters.standard import CleanText, CleanDecimal
 from weboob.browser.filters.html import Attr
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import Date, Eval
-from weboob.capabilities.bank import Recipient, Transfer, Account
+from weboob.capabilities.bank import Recipient, Transfer
 
 from .pages import LoginPage
 
@@ -102,14 +102,8 @@ class EasyTransferPage(LoggedPage, HTMLPage):
                 origin_account._underproduct_code = json_data['codeSousProduit']
                 break
         else:
-            assumptions = (
-                not origin_account.balance,
-                not origin_account.iban,
-                origin_account.currency != 'EUR',
-                origin_account.type == Account.TYPE_PEA,
-            )
-            if not any(assumptions):
-                assert False, 'Account %s not found on transfer page' % (origin_account.label)
+            # some accounts are not able to do transfer
+            self.logger.warning('Account %s not found on transfer page', origin_account.label)
 
     def iter_internal_recipients(self):
         if self.doc.xpath('//ul[@id="idCmptToInterne"]'):
