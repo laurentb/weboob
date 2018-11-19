@@ -953,8 +953,9 @@ class TransferCharac(LoggedPage, HTMLPage):
         else:
             assert self.get_option(form.el.xpath('//select[@id="Characteristics_schedulingType"]')[0], 'Différé') == '2'
             form['Characteristics[schedulingType]'] = '2'
-            form['Characteristics[scheduledDate][day]'] = exec_date.strftime('%d')
-            form['Characteristics[scheduledDate][month]'] = exec_date.strftime('%m')
+            # If we let the 0 in the front of the month or the day like 02, the website will not interpret the good date
+            form['Characteristics[scheduledDate][day]'] = exec_date.strftime('%d').lstrip("0")
+            form['Characteristics[scheduledDate][month]'] = exec_date.strftime('%m').lstrip("0")
             form['Characteristics[scheduledDate][year]'] = exec_date.strftime('%Y')
 
         form['Characteristics[notice]'] = 'none'
