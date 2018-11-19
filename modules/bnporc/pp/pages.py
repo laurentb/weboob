@@ -35,7 +35,7 @@ from weboob.browser.pages import JsonPage, LoggedPage, HTMLPage
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import (
     Account, Investment, Recipient, Transfer, TransferError, TransferBankError,
-    AddRecipientBankError,
+    AddRecipientBankError, AddRecipientTimeout,
 )
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Person, ProfileMissing
@@ -408,6 +408,9 @@ class RecipientsPage(BNPPage):
 
             def obj_enabled_at(self):
                 return datetime.now().replace(microsecond=0) if Dict('libelleStatut')(self) == u'Activé' else (datetime.now() + timedelta(days=5)).replace(microsecond=0)
+
+    def has_digital_key(self):
+        return Dict('data/infoBeneficiaire/authentForte')(self.doc) and Dict('data/infoBeneficiaire/nomDeviceAF', default=False)(self.doc)
 
 
 class ValidateTransferPage(BNPPage):
@@ -830,9 +833,20 @@ class AddRecipPage(BNPPage):
         r.enabled_at = datetime.now().replace(microsecond=0) + timedelta(days=5)
         r.currency = u'EUR'
         r.bank_name = NotAvailable
+        r._id_transaction = self.get('data.gestionBeneficiaire.idTransactionAF') or NotAvailable
         return r
 
+
 class ActivateRecipPage(AddRecipPage):
+    def is_recipient_validated(self):
+        authent_state = self.doc['data']['verifAuthentForte']['authentForteDone']
+        assert authent_state in (0, 1, 2, 3), 'State of authent is %s' % authent_state
+        if authent_state == 2:
+            raise ActionNeeded("La demande d'ajout de bénéficiaire a été annulée.")
+        elif authent_state == 3:
+            raise AddRecipientTimeout()
+        return authent_state
+
     def get_recipient(self, recipient):
         r = Recipient()
         r.iban = recipient.iban
@@ -843,3 +857,7 @@ class ActivateRecipPage(AddRecipPage):
         r.currency = u'EUR'
         r.bank_name = self.get('data.activationBeneficiaire.nomBanque')
         return r
+
+
+class UselessPage(LoggedPage, HTMLPage):
+    pass
