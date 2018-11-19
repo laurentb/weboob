@@ -337,7 +337,7 @@ class LoanPage(LoggedPage, HTMLPage):
 
         klass = Loan
 
-        obj_id = CleanDecimal('//h3[contains(@class, "account-number")]/strong')
+        obj_id = CleanText('//h3[contains(@class, "account-number")]/strong')
         obj_label =  CleanText('//h2[contains(@class, "page-title__account")]//div[@class="account-edit-label"]/span')
         obj_total_amount = CleanDecimal('//p[contains(text(), "Montant emprunt")]/span', replace_dots=True)
         obj_currency = CleanCurrency('//p[contains(text(), "Montant emprunt")]/span')
