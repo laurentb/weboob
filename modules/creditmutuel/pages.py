@@ -1842,7 +1842,8 @@ class NewCardsListPage(LoggedPage, HTMLPage):
             klass = Account
 
             def condition(self):
-                return CleanText('.//div[1]/p')(self) == 'Active' and self.el.xpath('.//tr[1]/td/a[contains(@id,"C:more-card")]')
+                # Numerous cards are not differed card, we keep the card only if there is a coming
+                return CleanText('.//div[1]/p')(self) == 'Active' and 'Dépenses' in CleanText('.//tr[1]/td/a[contains(@id,"C:more-card")]')(self)
 
             obj_balance = 0
             obj_type = Account.TYPE_CARD
