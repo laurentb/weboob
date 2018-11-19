@@ -32,7 +32,7 @@ from weboob.capabilities.contact import CapContact
 from weboob.capabilities.profile import CapProfile
 from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.value import ValueBackendPassword, Value
+from weboob.tools.value import ValueBackendPassword, Value, ValueBool
 
 from .enterprise.browser import BNPEnterprise
 from .company.browser import BNPCompany
@@ -52,9 +52,7 @@ class BNPorcModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapMessag
     CONFIG = BackendConfig(
         ValueBackendPassword('login',      label=u'Numéro client', masked=False),
         ValueBackendPassword('password',   label=u'Code secret', regexp='^(\d{6})$'),
-        #ValueBackendPassword('rotating_password', default='',
-        #    label='Password to set when the allowed uses are exhausted (6 digits)',
-        #    regexp='^(\d{6}|)$'),
+        ValueBool('rotating_password',     label=u'Automatically renew password every 100 connections', default=False),
         Value('website', label='Type de compte', default='pp',
               choices={'pp': 'Particuliers/Professionnels',
                        'hbank': 'HelloBank',
@@ -73,10 +71,7 @@ class BNPorcModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapMessag
     def create_default_browser(self):
         b = {'ent': BNPEnterprise, 'ent2': BNPCompany, 'pp': BNPPartPro, 'hbank': HelloBank}
         self.BROWSER = b[self.config['website'].get()]
-        if self.BROWSER is BNPPartPro:
-            return self.create_browser(self.config)
-        return self.create_browser(self.config['login'].get(),
-                                   self.config['password'].get())
+        return self.create_browser(self.config)
 
     def iter_accounts(self):
         for account in self.browser.get_accounts_list():

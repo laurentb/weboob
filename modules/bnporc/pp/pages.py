@@ -102,6 +102,9 @@ class ConnectionThresholdPage(HTMLPage):
         msg = CleanText('//div[@class="confirmation"]//span[span]')(self.doc)
 
         self.logger.warning('Password expired.')
+        if not self.browser.rotating_password:
+            raise BrowserPasswordExpired(msg)
+
         if not self.looks_legit(self.browser.password):
             # we may not be able to restore the password, so reject it
             self.logger.warning('Unable to restore it, it is not legit.')

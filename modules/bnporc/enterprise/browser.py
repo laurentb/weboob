@@ -65,8 +65,8 @@ class BNPEnterprise(LoginBrowser):
 
     renew_pass = URL('/sommaire/PseRedirectPasswordConnect', ActionNeededPage)
 
-    def __init__(self, *args, **kwargs):
-        super(BNPEnterprise, self).__init__(*args, **kwargs)
+    def __init__(self, config, *args, **kwargs):
+        super(BNPEnterprise, self).__init__(config['login'].get(), config['password'].get(), *args, **kwargs)
 
     def do_login(self):
         self.login.go()

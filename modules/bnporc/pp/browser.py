@@ -114,10 +114,11 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
     profile = URL(r'/kyc-wspl/rest/informationsClient', ProfilePage)
     list_detail_card = URL(r'/udcarte-wspl/rest/listeDetailCartes', ListDetailCardPage)
 
-    def __init__(self, *args, **kwargs):
-        super(BNPParibasBrowser, self).__init__(*args, **kwargs)
+    def __init__(self, config, *args, **kwargs):
+        super(BNPParibasBrowser, self).__init__(config['login'].get(), config['password'].get(), *args, **kwargs)
         self.accounts_list = None
         self.card_to_transaction_type = {}
+        self.rotating_password = config['rotating_password']
 
     @retry(ConnectionError, tries=3)
     def open(self, *args, **kwargs):
@@ -406,9 +407,7 @@ class BNPPartPro(BNPParibasBrowser):
 
     def __init__(self, config=None, *args, **kwargs):
         self.config = config
-        kwargs['username'] = self.config['login'].get()
-        kwargs['password'] = self.config['password'].get()
-        super(BNPPartPro, self).__init__(*args, **kwargs)
+        super(BNPPartPro, self).__init__(self.config, *args, **kwargs)
 
     def switch(self, subdomain):
         self.BASEURL = self.BASEURL_TEMPLATE % subdomain
