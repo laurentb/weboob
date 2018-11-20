@@ -386,7 +386,7 @@ Then, each method on your browser which needs your user to be authenticated may 
 You finally have to set correctly the :func:`logged <weboob.browser.pages.Page.logged>` attribute of each page you use.  The
 :func:`need_login <weboob.browser.browsers.need_login>` decorator checks if the current page is a logged one by reading the attribute
 :func:`logged <weboob.browser.pages.Page.logged>` of the instance. This attributes defaults to  ``False``, which means that :func:`need_login
-<weboob.browser.browsers.need_login>` will first call :func:`do_logout <weboob.browser.browsers.LoginBrowser.do_logout>` before calling the
+<weboob.browser.browsers.need_login>` will first call :func:`do_login <weboob.browser.browsers.LoginBrowser.do_login>` before calling the
 decorated method.
 
 You can either define it yourself, as a class boolean attribute or as a property, or inherit your class from :class:`LoggedPage <weboob.browser.pages.LoggedPage>`.
