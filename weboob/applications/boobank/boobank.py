@@ -29,6 +29,7 @@ from decimal import Decimal, InvalidOperation
 from weboob.browser.browsers import APIBrowser
 from weboob.browser.profiles import Weboob
 from weboob.exceptions import BrowserHTTPError, CaptchaQuestion
+from weboob.core.bcall import CallErrors
 from weboob.capabilities.base import empty, find_object
 from weboob.capabilities.bank import (
     Account, Transaction,
@@ -479,7 +480,10 @@ class Boobank(CaptchaMixin, ReplApplication):
                 v = self.ask(field)
                 if v:
                     params[field.id] = v
-            next(iter(self.do('add_recipient', error.recipient, **params)))
+            try:
+                next(iter(self.do('add_recipient', error.recipient, **params)))
+            except CallErrors as e:
+                self.bcall_errors_handler(e)
         elif isinstance(error, TransferInvalidAmount):
             print(u'Error(%s): %s' % (backend.name, to_unicode(error) or 'The transfer amount is invalid'), file=self.stderr)
         elif isinstance(error, TransferInvalidLabel):
