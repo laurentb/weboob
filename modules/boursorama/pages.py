@@ -346,7 +346,6 @@ class LoanPage(LoggedPage, HTMLPage):
         obj_nb_payments_left = CleanDecimal('//p[contains(text(), "Nombre prévisionnel d\'échéances restantes")]/span')
         obj_next_payment_amount = CleanDecimal('//p[contains(text(), "Montant de la prochaine échéance")]/span', replace_dots=True)
         obj_nb_payments_total = CleanDecimal('//p[contains(text(), "Nombre d\'écheances totales") or contains(text(), "Nombre total d\'échéances")]/span')
-        obj_next_payment_date = Date(CleanText('//p[contains(text(), "Date de la prochaine échéance")]/span'), parse_func=parse_french_date)
         obj_subscription_date = Date(CleanText('//p[contains(text(), "Date de départ du prêt")]/span'), parse_func=parse_french_date)
         obj_maturity_date = Date(CleanText('//p[contains(text(), "Date prévisionnelle d\'échéance finale")]/span'), parse_func=parse_french_date)
 
@@ -359,6 +358,12 @@ class LoanPage(LoggedPage, HTMLPage):
         def obj_type(self):
            _type = CleanText('//h2[contains(@class, "page-title__account")]//div[@class="account-edit-label"]/span')
            return Map(_type, self.page.LOAN_TYPES, default=Account.TYPE_LOAN)(self)
+
+        def obj_next_payment_date(self):
+            tmp = CleanText('//p[contains(text(), "Date de la prochaine échéance")]/span')(self)
+            if tmp == "-":
+                return NotAvailable
+            return Date(CleanText('//p[contains(text(), "Date de la prochaine échéance")]/span'), parse_func=parse_french_date)(self)
 
 
 class CardCalendarPage(LoggedPage, RawPage):
