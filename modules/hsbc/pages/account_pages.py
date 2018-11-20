@@ -82,40 +82,42 @@ class UnavailablePage(GenericLandingPage):
 
 class AccountsType(Filter):
     PATTERNS = [
-        ('c.aff', Account.TYPE_CHECKING),
-        ('pea', Account.TYPE_PEA),
-        ('invest', Account.TYPE_MARKET),
-        ('ptf', Account.TYPE_MARKET),
-        ('ldd', Account.TYPE_SAVINGS),
-        ('cel', Account.TYPE_SAVINGS),
-        ('pel', Account.TYPE_SAVINGS),
-        ('livret', Account.TYPE_SAVINGS),
-        ('livjeu', Account.TYPE_SAVINGS),
-        ('compte', Account.TYPE_CHECKING),
-        ('cpte', Account.TYPE_CHECKING),
-        ('scpi', Account.TYPE_MARKET),
-        ('account', Account.TYPE_CHECKING),
-        ('pret', Account.TYPE_LOAN),
-        ('vie', Account.TYPE_LIFE_INSURANCE),
-        ('strategie patr.', Account.TYPE_LIFE_INSURANCE),
-        ('essentiel', Account.TYPE_LIFE_INSURANCE),
-        ('elysee', Account.TYPE_LIFE_INSURANCE),
-        ('abondance', Account.TYPE_LIFE_INSURANCE),
-        ('ely. retraite', Account.TYPE_LIFE_INSURANCE),
-        ('lae option assurance', Account.TYPE_LIFE_INSURANCE),
-        ('carte ', Account.TYPE_CARD),
-        ('business ', Account.TYPE_CARD),
-        ('plan assur. innovat.', Account.TYPE_LIFE_INSURANCE),
-        ('hsbc evol pat transf', Account.TYPE_LIFE_INSURANCE),
-        ('hsbc evol pat capi', Account.TYPE_CAPITALISATION),
-        ('bourse libre', Account.TYPE_MARKET),
-        ('plurival', Account.TYPE_LIFE_INSURANCE),
+        (r'c\.aff', Account.TYPE_CHECKING),
+        (r'\bssmouv\b', Account.TYPE_CHECKING),
+        (r'\bpea\b', Account.TYPE_PEA),
+        (r'invest', Account.TYPE_MARKET),
+        (r'\bptf\b', Account.TYPE_MARKET),
+        (r'\bldd\b', Account.TYPE_SAVINGS),
+        (r'\bcel\b', Account.TYPE_SAVINGS),
+        (r'\bpel\b', Account.TYPE_SAVINGS),
+        (r'livret', Account.TYPE_SAVINGS),
+        (r'livjeu', Account.TYPE_SAVINGS),
+        (r'csljun', Account.TYPE_SAVINGS),
+        (r'compte', Account.TYPE_CHECKING),
+        (r'cpte', Account.TYPE_CHECKING),
+        (r'scpi', Account.TYPE_MARKET),
+        (r'account', Account.TYPE_CHECKING),
+        (r'\bpret\b', Account.TYPE_LOAN),
+        (r'\bvie\b', Account.TYPE_LIFE_INSURANCE),
+        (r'strategie patr.', Account.TYPE_LIFE_INSURANCE),
+        (r'essentiel', Account.TYPE_LIFE_INSURANCE),
+        (r'elysee', Account.TYPE_LIFE_INSURANCE),
+        (r'abondance', Account.TYPE_LIFE_INSURANCE),
+        (r'ely\. retraite', Account.TYPE_LIFE_INSURANCE),
+        (r'lae option assurance', Account.TYPE_LIFE_INSURANCE),
+        (r'carte ', Account.TYPE_CARD),
+        (r'business ', Account.TYPE_CARD),
+        (r'plan assur\. innovat\.', Account.TYPE_LIFE_INSURANCE),
+        (r'hsbc evol pat transf', Account.TYPE_LIFE_INSURANCE),
+        (r'hsbc evol pat capi', Account.TYPE_CAPITALISATION),
+        (r'bourse libre', Account.TYPE_MARKET),
+        (r'plurival', Account.TYPE_LIFE_INSURANCE),
     ]
 
     def filter(self, label):
         label = label.lower()
         for pattern, type in self.PATTERNS:
-            if pattern in label:
+            if re.search(pattern, label):
                 return type
         return Account.TYPE_UNKNOWN
 
