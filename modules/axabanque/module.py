@@ -19,7 +19,7 @@
 
 
 from weboob.capabilities.bank import CapBankWealth, CapBankTransferAddRecipient, AccountNotFound, RecipientNotFound
-from weboob.capabilities.base import find_object, NotAvailable
+from weboob.capabilities.base import find_object, NotAvailable, empty
 from weboob.capabilities.bank import Account, TransferInvalidLabel
 from weboob.capabilities.profile import CapProfile
 from weboob.capabilities.bill import CapDocument, Subscription, Document, DocumentNotFound, SubscriptionNotFound
@@ -112,7 +112,7 @@ class AXABanqueModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapDoc
 
     def transfer_check_account_iban(self, old, new):
         # Skip origin account iban check and force origin account iban
-        if new is NotAvailable:
+        if empty(new) or empty(old):
             self.logger.warning(
                 'Origin account iban check (%s) is not possible because iban is currently not available',
                 old,
