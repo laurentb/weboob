@@ -1211,15 +1211,19 @@ class TransferInit(MyLoggedPage, BasePage):
                         yield rcpt
                         break
             elif opt.attrib['value'].startswith('E'):
-                rcpt = Recipient()
-                rcpt._index = opt.attrib['value']
-                rcpt._raw_label = ' '.join(lines)
-                rcpt.category = 'Externe'
-                rcpt.label = lines[0]
-                rcpt.iban = lines[1].upper()
-                rcpt.id = rcpt.iban
-                rcpt.enabled_at = datetime.now().replace(microsecond=0)
-                yield rcpt
+                if len(lines) > 1:
+                    # In some cases we observed beneficiaries without label, we skip them
+                    rcpt = Recipient()
+                    rcpt._index = opt.attrib['value']
+                    rcpt._raw_label = ' '.join(lines)
+                    rcpt.category = 'Externe'
+                    rcpt.label = lines[0]
+                    rcpt.iban = lines[1].upper()
+                    rcpt.id = rcpt.iban
+                    rcpt.enabled_at = datetime.now().replace(microsecond=0)
+                    yield rcpt
+                else:
+                    self.logger.warning('The recipient associated with the iban %s has got no label' % lines[0])
 
     def submit_accounts(self, account_id, recipient_id, amount, currency):
         emitters = [rcpt for rcpt in self.iter_emitters() if rcpt.id == account_id and not rcpt.iban]
