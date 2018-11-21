@@ -367,6 +367,9 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
 
     @need_login
     def iter_transfer_recipients(self, account):
+        if account.type in (Account.TYPE_LOAN, Account.TYPE_LIFE_INSURANCE):
+            return []
+
         assert account.url
 
         url = urlsplit(account.url)
