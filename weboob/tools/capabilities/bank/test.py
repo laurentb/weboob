@@ -152,7 +152,7 @@ class BankStandardTest(object):
     def check_investment(self, account, inv):
         self.assertTrue(inv.label, 'investment %r has no label' % inv)
         self.assertTrue(inv.valuation, 'investment %r has no valuation' % inv)
-        if inv.code:
+        if inv.code and inv.code != 'XX-liquidity':
             self.assertTrue(inv.code_type, 'investment %r has code but no code type' % inv)
         if inv.code_type == inv.CODE_TYPE_ISIN and inv.code and not inv.code.startswith('XX'):
             self.assertTrue(is_isin_valid(inv.code), 'investment %r has invalid ISIN: %r' % (inv, inv.code))
