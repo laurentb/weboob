@@ -198,11 +198,11 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                     self.cards_list.append(acc)
                     self.cards_histo_available.append(acc.id)
 
-            self.cards_hist_available2.go(subbank=self.currentSubBank)
-            if self.cards_hist_available2.is_here():
-                self.unavailablecards.extend(self.page.get_unavailable_cards())
-                for acc in self.page.iter_accounts():
-                    if acc not in self.cards_list:
+            if not self.cards_list:
+                self.cards_hist_available2.go(subbank=self.currentSubBank)
+                if self.cards_hist_available2.is_here():
+                    self.unavailablecards.extend(self.page.get_unavailable_cards())
+                    for acc in self.page.iter_accounts():
                         acc._referer = self.cards_hist_available2
                         self.accounts_list.append(acc)
                         self.cards_list.append(acc)
