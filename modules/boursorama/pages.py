@@ -241,7 +241,8 @@ class AccountsPage(LoggedPage, HTMLPage):
             load_details = Field('url') & AsyncLoad
 
             def condition(self):
-                return not self.is_external() and not 'automobile' in Field('url')(self)
+                # Ignore externally aggregated accounts and insurances:
+                return not self.is_external() and not any(x in Field('url')(self) for x in ('automobile', 'assurance/protection'))
 
             obj_label = CleanText('.//a[has-class("account--name")] | .//div[has-class("account--name")]')
 
