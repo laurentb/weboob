@@ -164,11 +164,13 @@ class AccountTypePage(LoggedPage, JsonPage):
 
 
 class LabelsPage(LoggedPage, JsonPage):
-    def get_labels(self):
-        if not Dict('donnees')(self.doc) and Dict('commun/statut', default='')(self.doc) == 'nok':
-            # Dict('commun/statut') is only `GDPR` so we don't pass specific message.
+    def on_load(self):
+        if Dict('commun/statut', default='')(self.doc) == 'nok':
+            reason = Dict('commun/raison')(self.doc)
+            assert reason == 'GDPR', 'Labels page is not available with message %s' % reason
             raise ActionNeeded()
 
+    def get_labels(self):
         synthesis_labels = ["Synthèse"]
         loan_labels = ["Crédits en cours", "Crédits perso et immo", "Crédits"]
         for element in Dict('donnees/0/submenu')(self.doc):
