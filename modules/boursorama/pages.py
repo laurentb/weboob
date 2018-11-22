@@ -356,8 +356,8 @@ class LoanPage(LoggedPage, HTMLPage):
             return balance
 
         def obj_type(self):
-           _type = CleanText('//h2[contains(@class, "page-title__account")]//div[@class="account-edit-label"]/span')
-           return Map(_type, self.page.LOAN_TYPES, default=Account.TYPE_LOAN)(self)
+            _type = CleanText('//h2[contains(@class, "page-title__account")]//div[@class="account-edit-label"]/span')
+            return Map(_type, self.page.LOAN_TYPES, default=Account.TYPE_LOAN)(self)
 
         def obj_next_payment_date(self):
             tmp = CleanText('//p[contains(text(), "Date de la prochaine échéance")]/span')(self)
