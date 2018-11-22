@@ -228,8 +228,12 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
                 if account.type == Account.TYPE_CARD and account.url not in valid_card_url:
                     self.accounts_list.remove(account)
                 elif account.type == Account.TYPE_LOAN:
+                    # Loans details are present on another page so we create
+                    # a Loan object and remove the corresponding Account:
                     self.location(account.url)
-                    self.loans_list.append(self.page.get_loan())
+                    loan = self.page.get_loan()
+                    loan.url = account.url
+                    self.loans_list.append(loan)
                     self.accounts_list.remove(account)
 
             self.accounts_list.extend(self.loans_list)
