@@ -1849,6 +1849,7 @@ class NewCardsListPage(LoggedPage, HTMLPage):
             obj_type = Account.TYPE_CARD
             obj__new_space = True
             obj__is_inv = False
+            load_details = Field('_link_id') & AsyncLoad
 
             def obj_currency(self):
                 curr = CleanText('.//tbody/tr[1]/td/span')(self)
@@ -1885,6 +1886,20 @@ class NewCardsListPage(LoggedPage, HTMLPage):
 
             def obj__parent_id(self):
                 return re.search(r'\d+', CleanText('./div/div/div/p', replace=[(' ', '')])(self)).group(0)[-16:]
+
+            def parse(self, el):
+                # We have to reach the good page with the information of the type of card
+                async_page = Async('details').loaded_page(self)
+                card_type_page = Link('//div/ul/li/a[contains(text(), "Fonctions")]')(async_page.doc)
+                doc = self.page.browser.open(card_type_page).page.doc
+                card_type_line = doc.xpath('//tbody/tr[th[contains(text(), "Débit des paiements")]]')
+                if card_type_line:
+                    if CleanText('./td')(card_type_line[0]) != 'Différé':
+                        raise SkipItem()
+                elif doc.xpath('//div/p[contains(text(), "Vous n\'avez pas l\'autorisation")]'):
+                    self.logger.warning("The user can't reach this page")
+                else:
+                    assert False, 'xpath for card type information could have changed'
 
     def get_unavailable_cards(self):
         cards = []
