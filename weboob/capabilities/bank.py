@@ -44,8 +44,8 @@ __all__ = [
     'TransferInvalidEmitter', 'TransferInvalidRecipient',
     'TransferStep',
     'CapBankTransferAddRecipient',
-    'RecipientNotFound', 'AddRecipientError', 'AddRecipientBankError', 'AddRecipientStep',
-    'RecipientInvalidIban', 'RecipientInvalidLabel',
+    'RecipientNotFound', 'AddRecipientError', 'AddRecipientBankError', 'AddRecipientTimeout',
+    'AddRecipientStep', 'RecipientInvalidIban', 'RecipientInvalidLabel',
     'Rate', 'CapCurrencyRate',
 ]
 
@@ -154,6 +154,12 @@ class AddRecipientBankError(AddRecipientError):
     """The new recipient was rejected by the bank with a message."""
 
     code = 'bankMessage'
+
+
+class AddRecipientTimeout(AddRecipientError):
+    """Add new recipient request has timeout"""
+
+    code = 'timeout'
 
 
 class RecipientInvalidIban(AddRecipientError):
