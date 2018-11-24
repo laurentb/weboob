@@ -51,13 +51,13 @@ class BNPCompany(LoginBrowser):
 
 
     @need_login
-    def get_accounts_list(self):
+    def iter_accounts(self):
         self.accounts.go()
         return self.page.iter_accounts()
 
     @need_login
     def get_account(self, _id):
-        return find_object(self.get_accounts_list(), id=_id, error=AccountNotFound)
+        return find_object(self.iter_accounts(), id=_id, error=AccountNotFound)
 
     def get_transactions(self, id_account, typeReleve, dateMin, dateMax='null'):
         self.open('https://secure1.entreprises.bnpparibas.net/NCCPresentationWeb/e11_releve_op/init.do?e10=true')

@@ -158,7 +158,7 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
         raise ProfileMissing(self.page.get_error_message())
 
     @need_login
-    def get_accounts_list(self):
+    def iter_accounts(self):
         if self.accounts_list is None:
             self.accounts_list = []
             # In case of password renewal, we need to go on ibans twice.
@@ -213,7 +213,7 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
 
     @need_login
     def get_account(self, _id):
-        return find_object(self.get_accounts_list(), id=_id, error=AccountNotFound)
+        return find_object(self.iter_accounts(), id=_id, error=AccountNotFound)
 
     @need_login
     def iter_history(self, account, coming=False):

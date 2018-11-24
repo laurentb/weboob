@@ -86,7 +86,7 @@ class BNPEnterprise(LoginBrowser):
             raise BrowserIncorrectPassword
 
     @need_login
-    def get_accounts_list(self):
+    def iter_accounts(self):
         accounts = []
         # Fetch checking accounts:
         for account in self.accounts.stay_or_go().iter_accounts():
@@ -113,7 +113,7 @@ class BNPEnterprise(LoginBrowser):
 
     @need_login
     def get_account(self, _id):
-        for account in self.get_accounts_list():
+        for account in self.iter_accounts():
             if account.id == _id:
                 return account
 

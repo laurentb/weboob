@@ -74,8 +74,7 @@ class BNPorcModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapMessag
         return self.create_browser(self.config)
 
     def iter_accounts(self):
-        for account in self.browser.get_accounts_list():
-            yield account
+        return self.browser.iter_accounts()
 
     def get_account(self, _id):
         account = self.browser.get_account(_id)
