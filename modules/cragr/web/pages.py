@@ -202,6 +202,7 @@ class AccountsPage(MyLoggedPage, BasePage):
     TYPES = {u'CCHQ':       Account.TYPE_CHECKING, # par
              u'CCOU':       Account.TYPE_CHECKING, # pro
              u'AUTO ENTRP': Account.TYPE_CHECKING, # pro
+             u'DEVISE USD': Account.TYPE_CHECKING,
              u'EKO' :       Account.TYPE_CHECKING,
              u'DAV NANTI':  Account.TYPE_SAVINGS,
              u'LIV A':      Account.TYPE_SAVINGS,
@@ -246,7 +247,7 @@ class AccountsPage(MyLoggedPage, BasePage):
     @method
     class iter_accounts(TableElement):
         head_xpath = '//table[@class="ca-table"]//tr/th'
-        item_xpath = '//table[@class="ca-table"]//tr[contains(@class, "colcelligne")]'
+        item_xpath = '//table[@class="ca-table"]//tr[contains(@class, "colcelligne") or contains(@class, "autre-devise")]'
 
         col_id = 'N° de compte'
         col_label = 'Type de compte'
