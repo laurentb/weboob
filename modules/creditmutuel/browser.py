@@ -361,9 +361,14 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
             urlstogo = self.page.get_links()
             self.location(account._link_id)
             monthly_tr = []
+            half_history = 'firstHalf'
             for url in urlstogo:
                 self.location(url)
-                if 'GoMonthPrecedent' not in url:
+                if 'GoMonthPrecedent' in url:
+                    # To reach the 6 last month of history you need to change this url parameter
+                    # Moreover we are on a transition page where we see the 6 next month (no scrapping here)
+                    half_history = 'secondHalf'
+                else:
                     history = self.page.get_history()
                     self.tr_date = self.page.get_date()
                     if self.page.has_more_operations():
@@ -382,13 +387,13 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                                 m = re.search(r'fid=GoMonth&mois=(\d+)', self.url)
                                 if m:
                                     m = m.group(1)
-                                self.location('CRP8_SCIM_DEPCAR.aspx?_tabi=C&a__itaret=as=SCIM_ListeActivityStep\%3a\%3a\%2fSCIM_ListeRouter%3a%3a&a__mncret=SCIM_LST&a__ecpid=EID2011&_stack=_remote::moiSelectionner={},moiAfficher=firstHalf,typeDepense=T&_pid=SCIM_DEPCAR_Details'.format(m), data=data)
+                                self.location('CRP8_SCIM_DEPCAR.aspx?_tabi=C&a__itaret=as=SCIM_ListeActivityStep\%3a\%3a\%2fSCIM_ListeRouter%3a%3a&a__mncret=SCIM_LST&a__ecpid=EID2011&_stack=_remote::moiSelectionner={},moiAfficher={},typeDepense=T&_pid=SCIM_DEPCAR_Details'.format(m, half_history), data=data)
                             else:
                                 self.location(self.url, data=data)
 
                             if not self.page.has_more_operations_xml():
                                 history = self.page.iter_history_xml(date=self.tr_date)
-                                # We are now with an XML page with all the transactions of the months
+                                # We are now with an XML page with all the transactions of the month
                                 break
                     else:
                         history = self.page.get_history(date=self.tr_date)
