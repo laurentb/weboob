@@ -442,7 +442,7 @@ class ValidateTransferPage(BNPPage):
         else:
             transfer.recipient_id = recipient.id
         transfer.exec_date = parse_french_date(transfer_data['dateExecution']).date()
-        transfer.fees = Decimal(transfer_data['montantFrais'])
+        transfer.fees = Decimal(transfer_data.get('montantFrais', '0'))
         transfer.label = transfer_data['motifVirement']
 
         transfer.account_label = account.label
