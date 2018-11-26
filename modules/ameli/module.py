@@ -35,13 +35,8 @@ class AmeliModule(Module, CapDocument):
     VERSION = '1.4'
     LICENSE = 'AGPLv3+'
     BROWSER = AmeliBrowser
-    CONFIG = BackendConfig(ValueBackendPassword('login',
-                                                label='Numero de SS',
-                                                masked=False),
-                           ValueBackendPassword('password',
-                                                label='Password',
-                                                masked=True)
-                           )
+    CONFIG = BackendConfig(ValueBackendPassword('login', label='Numero de SS', regexp=r'^\d{13}$', masked=False),
+                           ValueBackendPassword('password', label='Password', masked=True))
 
     def create_default_browser(self):
         return self.create_browser(self.config['login'].get(),
