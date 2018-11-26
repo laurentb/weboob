@@ -424,7 +424,7 @@ class ValidateTransferPage(BNPPage):
 
         if 'idBeneficiaire' in transfer_data and transfer_data['idBeneficiaire'] is not None:
             assert transfer_data['idBeneficiaire'] == recipient.id
-        elif 'ibanCompteCrediteur' in transfer_data and transfer_data['ibanCompteCrediteur'] is not None:
+        elif transfer_data.get('ibanCompteCrediteur'):
             assert transfer_data['ibanCompteCrediteur'] == recipient.iban
 
         transfer = Transfer()
