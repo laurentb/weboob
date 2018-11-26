@@ -323,11 +323,6 @@ class AccountsList(LoggedPage, HTMLPage):
         self.fillup_form(form, r"\),\{(.*)\},'", on_click)
         form.submit()
 
-    def get_coming_balance(self):
-        return CleanDecimal('//div[@class="previsionnel"]/div[@class="solde_value"]//label',
-                            replace_dots=True,
-                            default=NotAvailable)(self.doc)
-
 
 class IbanPage(LoggedPage, HTMLPage):
     def get_iban(self):

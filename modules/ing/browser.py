@@ -219,11 +219,6 @@ class IngBrowser(LoginBrowser):
             accounts_list.append(loan)
             yield loan
 
-    def get_coming_balance(self, account):
-        if account.type == Account.TYPE_CHECKING:
-            self.go_account_page(account)
-            return self.page.get_coming_balance()
-        return NotAvailable
 
     @need_login
     @start_with_main_site
@@ -235,20 +230,17 @@ class IngBrowser(LoginBrowser):
 
         if space:
             for acc in self.get_accounts_on_space(space, get_iban=get_iban):
-                acc.coming = self.get_coming_balance(acc)
                 yield acc
 
         elif self.multispace:
             for space in self.multispace:
                 for acc in self.get_accounts_on_space(space, get_iban=get_iban):
-                    acc.coming = self.get_coming_balance(acc)
                     yield acc
         else:
             for acc in self.page.get_list():
                 acc._space = None
                 if get_iban:
                     self.get_iban(acc)
-                acc.coming = self.get_coming_balance(acc)
                 yield acc
 
             for loan in self.iter_detailed_loans():
