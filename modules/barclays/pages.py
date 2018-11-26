@@ -394,12 +394,13 @@ class CardPage(AbstractAccountPage):
         return False
 
     def do_account_attachment(self, accounts):
-        caccount_aid = Regexp(CleanText('//span[@id="C4__QUE_B160DC66D26AA39615599"]'), r'-(.*?)-')(self.doc)
-
-        for account in accounts:
-            if account.id == re.sub(r'\s', '', caccount_aid):
-                return account
-
+        caccount_aid = CleanText('//span[@id="C4__QUE_B160DC66D26AA39615599"]')(self.doc)
+        m = re.search('-(.*?)-', caccount_aid)
+        if m:
+            regex = m.group(1)
+            for account in accounts:
+                if account.id == re.sub(r'\s', '', regex):
+                    return account
         return NotAvailable
 
     def has_history(self):
