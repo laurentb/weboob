@@ -30,6 +30,7 @@ from weboob.browser.filters.html import TableCell
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Investment
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
+from weboob.tools.capabilities.bank.investments import create_french_liquidity
 from weboob.tools.compat import quote_plus
 from weboob.exceptions import ActionNeeded
 
@@ -110,7 +111,7 @@ class HistoryPage(AccountPage):
 
 class InvestmentPage(AccountPage):
     @method
-    class get_investment(TableElement):
+    class iter_investments(TableElement):
         col_label = 'Valeur'
         col_quantity = u'Quantité'
         col_valuation = u'Valorisation EUR'
@@ -139,9 +140,11 @@ class InvestmentPage(AccountPage):
             obj_label = CleanText(Regexp(CleanText('./preceding-sibling::tr/td[1]'), '(.*)- .*'))
             obj_code = Regexp(CleanText('./preceding-sibling::tr/td[1]'), '- (.*)')
 
-    def iter_investment(self):
-        for inv in self.get_investment():
-            yield inv
+    # Only used by bp modules since others quality websites provide another account with the liquidities
+    def get_liquidity(self):
+        liquidity = CleanDecimal('//table//tr[@class="titreAvant"]/td[contains(text(), "Liquidit")]/following-sibling::td', replace_dots=True)(self.doc)
+        if liquidity:
+            return create_french_liquidity(liquidity)
 
 
 class MessagePage(LoggedPage, HTMLPage):

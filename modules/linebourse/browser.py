@@ -72,7 +72,24 @@ class LinebourseBrowser(LoginBrowser):
         assert self.invest.is_here()
         if not self.page.is_on_right_portfolio(account_id):
             self.invest.go(id=self.page.get_compte(account_id))
-        return self.page.iter_investment()
+        return self.page.iter_investments()
+
+    # Method used only by bp module
+    def get_liquidity(self, account_id):
+        self.main.go()
+        self.invest.go()
+        if self.message.is_here():
+            self.page.submit()
+            self.invest.go()
+
+        if self.broken.is_here():
+            return iter([])
+
+        assert self.invest.is_here()
+        if not self.page.is_on_right_portfolio(account_id):
+            self.invest.go(id=self.page.get_compte(account_id))
+
+        return self.page.get_liquidity()
 
     def iter_history(self, account_id):
         self.main.go()
