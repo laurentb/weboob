@@ -43,7 +43,7 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_rib_valid, rib2iban, is_iban_valid
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
 from weboob.tools.compat import unicode
-from weboob.exceptions import NoAccountsException, BrowserUnavailable
+from weboob.exceptions import NoAccountsException, BrowserUnavailable, ActionNeeded
 from weboob.browser.filters.json import Dict
 
 def MyDecimal(*args, **kwargs):
@@ -207,6 +207,14 @@ class IndexPage(LoggedPage, HTMLPage):
         return super(IndexPage, self).build_doc(content)
 
     def on_load(self):
+
+        # For now, we have to handle this because after this warning message,
+        # the user is disconnected (even if all others account are reachable)
+        if 'NA_OIC_QCF' in self.browser.url:
+            message = CleanText(self.doc.xpath('//span[contains(@id, "MM_NA_OIC_QCF")]/p'))(self)
+            if message and "investissement financier (QCF) n’est plus valide à ce jour ou que vous avez refusé d’y répondre" in message:
+                raise ActionNeeded(message)
+
         # This page is sometimes an useless step to the market website.
         bourse_link = Link(u'//div[@id="MM_COMPTE_TITRE_pnlbourseoic"]//a[contains(text(), "Accédez à la consultation")]', default=None)(self.doc)
 
