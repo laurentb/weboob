@@ -189,36 +189,36 @@ class ProfilePage(LoggedPage, JsonPage):
 
 
 class CDNBasePage(HTMLPage):
-   def get_from_js(self, pattern, end_pattern, is_list=False):
-       """
-       find a pattern in any javascript text
-       """
-       for script in self.doc.xpath('//script'):
-           txt = script.text
-           if txt is None:
-               continue
+    def get_from_js(self, pattern, end_pattern, is_list=False):
+        """
+        find a pattern in any javascript text
+        """
+        for script in self.doc.xpath('//script'):
+            txt = script.text
+            if txt is None:
+                continue
 
-           start = txt.find(pattern)
-           if start < 0:
-               continue
+            start = txt.find(pattern)
+            if start < 0:
+                continue
 
-           values = []
-           while start >= 0:
-               start += len(pattern)
-               end = txt.find(end_pattern, start)
-               values.append(txt[start:end])
+            values = []
+            while start >= 0:
+                start += len(pattern)
+                end = txt.find(end_pattern, start)
+                values.append(txt[start:end])
 
-               if not is_list:
-                   break
+                if not is_list:
+                    break
 
-               start = txt.find(pattern, end)
-           return ','.join(values)
+                start = txt.find(pattern, end)
+            return ','.join(values)
 
-   def get_execution(self):
-       return self.get_from_js("name: 'execution', value: '", "'")
+    def get_execution(self):
+        return self.get_from_js("name: 'execution', value: '", "'")
 
-   def iban_go(self):
-       return '%s%s' % ('/vos-comptes/IPT/cdnProxyResource', self.get_from_js('C_PROXY.StaticResourceClientTranslation( "', '"'))
+    def iban_go(self):
+        return '%s%s' % ('/vos-comptes/IPT/cdnProxyResource', self.get_from_js('C_PROXY.StaticResourceClientTranslation( "', '"'))
 
 
 class AccountsPage(LoggedPage, CDNBasePage):
