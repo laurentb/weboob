@@ -89,7 +89,7 @@ class WebNip(object):
         """
         self.unload_backends()
 
-    def build_backend(self, module_name, params=None, storage=None, name=None, nofail=False):
+    def build_backend(self, module_name, params=None, storage=None, name=None, nofail=False, logger=None):
         """
         Create a backend.
 
@@ -109,7 +109,7 @@ class WebNip(object):
         """
         module = self.modules_loader.get_or_load_module(module_name)
 
-        backend_instance = module.create_instance(self, name or module_name, params or {}, storage, nofail)
+        backend_instance = module.create_instance(self, name or module_name, params or {}, storage, nofail, logger=logger or self.logger)
         return backend_instance
 
     class LoadError(Exception):
