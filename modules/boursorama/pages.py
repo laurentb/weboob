@@ -618,7 +618,7 @@ class MarketPage(LoggedPage, HTMLPage):
                 return CleanDecimal(replace_dots=True, default=NotAvailable).filter((TableCell('unitvalue')(self)[0]).xpath('./span[not(@class)]'))
 
     def iter_investment(self):
-        valuation = CleanDecimal('//li[h4[contains(text(), "Solde Espèces")]]/h3', replace_dots=True, default=None)(self.doc)
+        valuation = CleanDecimal('//li/span[contains(text(), "Solde Espèces")]/following-sibling::span', replace_dots=True, default=None)(self.doc)
         if valuation:
             yield create_french_liquidity(valuation)
 
