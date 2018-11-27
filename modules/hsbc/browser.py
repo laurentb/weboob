@@ -36,7 +36,7 @@ from weboob.capabilities.base import find_object
 
 from .pages.account_pages import (
     AccountsPage, OwnersListPage, CBOperationPage, CPTOperationPage, LoginPage,
-    AppGonePage, RibPage, UnavailablePage, OtherPage, FrameContainer, ProfilePage,
+    AppGonePage, RibPage, UnavailablePage, OtherPage, FrameContainer, ProfilePage, ScpiHisPage
 )
 from .pages.life_insurances import (
     LifeInsurancesPage, LifeInsurancePortal, LifeInsuranceMain, LifeInsuranceUseless,
@@ -58,6 +58,7 @@ class HSBC(LoginBrowser):
     app_gone = False
 
     scpi_investment_page = URL(r'https://www.hsbc.fr/1/[0-9]/.*', ScpiInvestmentPage)
+    scpi_his_page =   URL(r'https://www.hsbc.fr/1/[0-9]/.*', ScpiHisPage)
     connection =      URL(r'https://www.hsbc.fr/1/2/hsbc-france/particuliers/connexion', LoginPage)
     login =           URL(r'https://www.hsbc.fr/1/*', LoginPage)
     cptPage =         URL(r'/cgi-bin/emcgi.*\&Cpt=.*',
@@ -324,6 +325,21 @@ class HSBC(LoginBrowser):
 
         if account.url.startswith('javascript') or '&Crd=' in account.url or account.type == Account.TYPE_LOAN:
             raise NotImplementedError()
+
+        if account.type == Account.TYPE_MARKET and not 'BOURSE_INV' in account.url:
+            # Clean account url
+            m = re.search(r"'(.*)'", account.url)
+            if m:
+                account_url = m.group(1)
+            else:
+                account_url = account.url
+            # Need to be on accounts page to go on scpi page
+            self.accounts.go()
+            # Go on scpi page
+            self.location(account_url)
+            self.location(self.page.go_scpi_his_detail_page())
+
+            return self.page.iter_history()
 
         if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_CAPITALISATION):
             if coming is True:

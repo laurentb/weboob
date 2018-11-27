@@ -16,7 +16,7 @@ from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Regexp, Currency, Field, Env,
 )
-from weboob.browser.filters.html import TableCell
+from weboob.browser.filters.html import TableCell, Link
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.javascript import JSVar
 from weboob.exceptions import BrowserUnavailable
@@ -523,6 +523,9 @@ class ScpiInvestmentPage(LoggedPage, HTMLPage):
         if detail_page:
             assert len(detail_page) == 1
             self.browser.location('https://www.hsbc.fr' + CleanText('./@href')(detail_page[0]))
+
+    def go_scpi_his_detail_page(self):
+        return Link('//div/a[contains(text(), "Historique de vos mouvements de parts")]')(self.doc)
 
     @method
     class iter_scpi_investment(TableElement):

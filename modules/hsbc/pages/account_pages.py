@@ -26,10 +26,10 @@ from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.compat import urljoin
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded
-from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.pages import HTMLPage, pagination
+from weboob.browser.elements import ListElement, ItemElement, method, TableElement
+from weboob.browser.pages import HTMLPage, pagination, LoggedPage
 from weboob.browser.filters.standard import (
-    Filter, Env, CleanText, CleanDecimal, Field, DateGuesser, Regexp, Currency,
+    Filter, Env, CleanText, CleanDecimal, Field, DateGuesser, Regexp, Currency, Format, Date
 )
 from weboob.browser.filters.html import AbsoluteLink, TableCell
 from weboob.browser.filters.javascript import JSVar
@@ -431,3 +431,25 @@ class ProfilePage(OtherPage):
 
         obj_name = CleanText('//div[@id="div_adr_P1"]//p/label[contains(text(), "Nom")]/parent::p/strong')
         obj_address = CleanText('//div[@id="div_adr_P1"]//p/label[contains(text(), "Adresse")]/parent::p/strong')
+
+
+class ScpiHisPage(LoggedPage, HTMLPage):
+    def is_here(self):
+        return self.doc.xpath('//h3[contains(text(), "HISTORIQUE DES MOUVEMENTS")]')
+
+    @method
+    class iter_history(TableElement):
+        item_xpath = '//table[@class="csTable"]//tbody//tr'
+        head_xpath = '//table[@class="csTable"]//thead//th/a'
+
+        col_date = 'Date'
+        col_amount = 'Montant brut (en €)'
+        col_operation = 'Opération'
+        col_nature = 'Nature'
+
+        class item(ItemElement):
+            klass = Transaction
+
+            obj_label = Format('%s - %s', CleanText(TableCell('operation')), CleanText(TableCell('nature')))
+            obj_rdate = Date(CleanText(TableCell('date')), dayfirst=True)
+            obj_amount = CleanDecimal(TableCell('amount'), sign=lambda x: -1, replace_dots=True)
