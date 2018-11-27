@@ -192,7 +192,7 @@ class item_account_generic(ItemElement):
     class Type(Filter):
         def filter(self, label):
             for pattern, actype in item_account_generic.TYPES.items():
-                if label.startswith(pattern):
+                if pattern in label:
                     return actype
             return Account.TYPE_UNKNOWN
 
