@@ -232,6 +232,7 @@ class AccountsPage(LoggedPage, CDNBasePage):
         u'CARTE':               Account.TYPE_CARD,
         u'COMPTE COURANT':      Account.TYPE_CHECKING,
         u'CPT COURANT':         Account.TYPE_CHECKING,
+        u'CONSEILLE RESIDENT':  Account.TYPE_CHECKING,
         u'PEA':                 Account.TYPE_PEA,
         u'P.E.A':               Account.TYPE_PEA,
         u'COMPTE ÉPARGNE':      Account.TYPE_SAVINGS,
@@ -247,7 +248,7 @@ class AccountsPage(LoggedPage, CDNBasePage):
         u'PRÊT':                Account.TYPE_LOAN,
         u'CREDIT':              Account.TYPE_LOAN,
         u'FACILINVEST':         Account.TYPE_LOAN,
-        u'TITRES':              Account.TYPE_MARKET,
+        u'TIT':                 Account.TYPE_MARKET,
         u'COMPTE A TERME':      Account.TYPE_DEPOSIT,
         }
 
