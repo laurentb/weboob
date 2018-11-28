@@ -117,7 +117,8 @@ class BankStandardTest(object):
         today = date.today()
 
         self.assertFalse(empty(tr.date), 'transaction %r has no debit date' % tr)
-        self.assertTrue(tr.amount, 'transaction %r has no amount' % tr)
+        if tr.amount != 0:
+            self.assertTrue(tr.amount, 'transaction %r has no amount' % tr)
         self.assertFalse(empty(tr.raw) and empty(tr.label), 'transaction %r has no raw or label' % tr)
 
         if coming:
