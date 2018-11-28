@@ -19,15 +19,14 @@
 
 from __future__ import unicode_literals
 
-from decimal import Decimal
-
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement
 from weboob.browser.filters.html import TableCell, Link, Attr
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Slugify, Date, Field, Format,
 )
 from weboob.browser.pages import HTMLPage, LoggedPage
-from weboob.capabilities.bank import Account, Transaction
+from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.bank import Account, Transaction, Investment
 from weboob.capabilities.profile import Profile
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.tools.compat import urljoin
@@ -55,37 +54,46 @@ class HomeLendPage(LoggedPage, HTMLPage):
 class PortfolioPage(LoggedPage, HTMLPage):
     @method
     class iter_accounts(ListElement):
-        class get_main(ItemElement):
+        class item(ItemElement):
             klass = Account
 
             obj_id = MAIN_ID
             obj_label = 'Compte Bolden'
-            obj_type = Account.TYPE_CHECKING
+            obj_type = Account.TYPE_MARKET
             obj_currency = 'EUR'
-            obj_balance = CleanDecimal('//div[p[has-class("investor-state") and contains(text(),"Fonds disponibles :")]]/p[has-class("investor-status")]', replace_dots=True)
-            #obj_coming = CleanDecimal('//div[p[has-class("investor-state") and contains(text(),"Capital restant dû :")]]/p[has-class("investor-status")]', replace_dots=True)
+            obj_balance = CleanDecimal('//div[p[has-class("investor-state") and contains(text(),"Total compte Bolden :")]]/p[has-class("investor-status")]', replace_dots=True)
+            obj_valuation_diff = CleanDecimal('//p[has-class("rent-amount strong dashboard-text")]', replace_dots=True)
 
-        class iter_lends(TableElement):
-            head_xpath = '//div[@class="tab-wallet"]/table/thead//td'
+    @method
+    class iter_investments(TableElement):
+        head_xpath = '//div[@class="tab-wallet"]/table/thead//td'
 
-            col_label = 'Emprunteur'
-            col_coming = 'Capital restant dû'
-            col_doc = 'Contrat'
+        col_label = 'Emprunteur'
+        col_valuation = 'Capital restant dû'
+        col_doc = 'Contrat'
+        col_diff = 'Intérêts perçus'
 
-            item_xpath = '//div[@class="tab-wallet"]/table/tbody/tr'
+        item_xpath = '//div[@class="tab-wallet"]/table/tbody/tr'
 
-            class item(ItemElement):
-                klass = Account
+        class item(ItemElement):
+            klass = Investment
 
-                obj_label = CleanText(TableCell('label'))
-                obj_id = Slugify(Field('label'))
-                obj_type = Account.TYPE_SAVINGS
-                obj_currency = 'EUR'
-                obj_coming = CleanDecimal(TableCell('coming'), replace_dots=True)
-                obj_balance = Decimal('0')
+            obj_label = CleanText(TableCell('label'))
+            obj_id = Slugify(Field('label'))
+            obj_valuation = CleanDecimal(TableCell('valuation'), replace_dots=True)
+            obj_diff = CleanDecimal(TableCell('diff'), replace_dots=True)
+            obj_code = NotAvailable
+            obj_code_type = NotAvailable
 
-                def obj__docurl(self):
-                    return urljoin(self.page.url, Link('.//a')(TableCell('doc')(self)[0]))
+            def condition(self):
+                # Investments without valuation are expired.
+                return CleanDecimal(TableCell('valuation'))(self)
+
+            def obj__docurl(self):
+                return urljoin(self.page.url, Link('.//a')(TableCell('doc')(self)[0]))
+
+    def get_liquidity(self):
+        return CleanDecimal('//div[p[contains(text(), "Fonds disponibles")]]/p[@class="investor-status strong"]', replace_dots=True)(self.doc)
 
 
 class OperationsPage(LoggedPage, HTMLPage):

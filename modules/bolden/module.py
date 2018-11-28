@@ -22,7 +22,7 @@ from __future__ import unicode_literals
 
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
-from weboob.capabilities.bank import CapBank, Account
+from weboob.capabilities.bank import CapBankWealth, Account
 from weboob.capabilities.base import find_object
 from weboob.capabilities.bill import (
     CapDocument, Subscription, SubscriptionNotFound, DocumentNotFound, Document,
@@ -35,7 +35,7 @@ from .browser import BoldenBrowser
 __all__ = ['BoldenModule']
 
 
-class BoldenModule(Module, CapBank, CapDocument, CapProfile):
+class BoldenModule(Module, CapBankWealth, CapDocument, CapProfile):
     NAME = 'bolden'
     DESCRIPTION = 'Bolden'
     MAINTAINER = 'Vincent A'
@@ -58,6 +58,9 @@ class BoldenModule(Module, CapBank, CapDocument, CapProfile):
 
     def iter_history(self, account):
         return self.browser.iter_history(account)
+
+    def iter_investment(self, account):
+        return self.browser.iter_investments()
 
     def get_profile(self):
         return self.browser.get_profile()

@@ -23,6 +23,7 @@ from datetime import timedelta, datetime
 
 from weboob.browser import LoginBrowser, need_login, URL
 from weboob.capabilities.bill import Document
+from weboob.tools.capabilities.bank.investments import create_french_liquidity
 
 from .pages import (
     LoginPage, HomeLendPage, PortfolioPage, OperationsPage, MAIN_ID, ProfilePage,
@@ -51,13 +52,16 @@ class BoldenBrowser(LoginBrowser):
         self.portfolio.go()
         return self.page.iter_accounts()
 
+    def iter_investments(self):
+        self.portfolio.go()
+        yield create_french_liquidity(self.page.get_liquidity())
+        for inv in self.page.iter_investments():
+            yield inv
+
     @need_login
     def iter_history(self, account):
         if account.id != MAIN_ID:
-            return []
-        return self._iter_all_history()
-
-    def _iter_all_history(self):
+            return
         end = datetime.now()
         while True:
             start = end - timedelta(days=365)
@@ -86,14 +90,13 @@ class BoldenBrowser(LoginBrowser):
 
     @need_login
     def iter_documents(self):
-        for acc in self.iter_accounts():
-            if acc.id == MAIN_ID:
+        for inv in self.iter_investments():
+            if inv.label == "Liquidités":
                 continue
-
             doc = Document()
-            doc.id = acc.id
-            doc.url = acc._docurl
-            doc.label = 'Contrat %s' % acc.label
+            doc.id = inv.id
+            doc.url = inv._docurl
+            doc.label = 'Contrat %s' % inv.label
             doc.type = 'other'
             doc.format = 'pdf'
             yield doc
