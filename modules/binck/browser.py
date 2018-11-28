@@ -100,7 +100,7 @@ class BinckBrowser(LoginBrowser):
     @need_login
     def iter_investment(self, account):
         if account._invpage:
-            for inv in account._invpage.iter_investment():
+            for inv in account._invpage.iter_investment(currency=account.currency):
                 yield inv
             # Add liquidity investment
             if account._liquidity:

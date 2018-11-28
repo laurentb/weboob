@@ -119,9 +119,6 @@ class InvestmentPage(LoggedPage, JsonPage):
     class iter_investment(DictElement):
         item_xpath = 'PortfolioOverviewGroups/*/Items'
 
-        def parse(self, el):
-            self.env['vdate'] = Date(dayfirst=True).filter(Dict('PortfolioSummary/UpdatedAt')(self.page.doc))
-
         class item(ItemElement):
             klass = Investment
 
@@ -129,16 +126,28 @@ class InvestmentPage(LoggedPage, JsonPage):
             obj_code = Dict('IsinCode')
             obj_quantity = MyDecimal(Dict('Quantity'))
             obj_vdate = Env('vdate')
-
+            obj_unitvalue = Env('unitvalue', default=NotAvailable)
+            obj_unitprice = Env('unitprice', default=NotAvailable)
             obj_valuation = MyDecimal(Dict('ValueInEuro'))
-            obj_unitvalue = MyDecimal(Dict('Quote'))
-            obj_unitprice = MyDecimal(Dict('HistoricQuote'))
             obj_diff = MyDecimal(Dict('ResultValueInEuro'))
             obj_diff_percent = Eval(lambda x: x / 100, MyDecimal(Dict('ResultPercentageInEuro')))
+            obj_original_currency = Env('o_currency', default=NotAvailable)
+            obj_original_unitvalue = Env('o_unitvalue', default=NotAvailable)
+            obj_original_unitprice = Env('o_unitprice', default=NotAvailable)
+            obj_original_valuation = Env('o_valuation', default=NotAvailable)
+            obj_original_diff = Env('o_diff', default=NotAvailable)
 
-            obj_original_currency = Dict('CurrencyCode')
-            obj_original_valuation = MyDecimal(Dict('ValueInSecurityCurrency'))
-            obj_original_diff = MyDecimal(Dict('ResultValueInSecurityCurrency'))
+            def parse(self, el):
+                if self.env['currency'] != CleanText(Dict('CurrencyCode'))(self):
+                    self.env['o_currency'] = CleanText(Dict('CurrencyCode'))(self)
+                    self.env['o_unitvalue'] = MyDecimal(Dict('Quote'))(self)
+                    self.env['o_unitprice'] = MyDecimal(Dict('HistoricQuote'))(self)
+                    self.env['o_valuation'] = MyDecimal(Dict('ValueInSecurityCurrency'))(self)
+                    self.env['o_diff'] = MyDecimal(Dict('ResultValueInSecurityCurrency'))(self)
+                else:
+                    self.env['unitvalue'] = MyDecimal(Dict('Quote'))(self)
+                    self.env['unitprice'] = MyDecimal(Dict('HistoricQuote'))(self)
+                self.env['vdate'] = Date(dayfirst=True).filter(Dict('PortfolioSummary/UpdatedAt')(self.page.doc))
 
 
 class Transaction(FrenchTransaction):
