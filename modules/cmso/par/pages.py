@@ -77,6 +77,7 @@ class AccountsPage(LoggedPage, JsonPage):
                          ('librissime',          Account.TYPE_SAVINGS),
                          ('epargne logement',    Account.TYPE_SAVINGS),
                          ('plan bleu',           Account.TYPE_SAVINGS),
+                         ('capital plus',        Account.TYPE_SAVINGS),
                        ])
 
     def get_keys(self):
