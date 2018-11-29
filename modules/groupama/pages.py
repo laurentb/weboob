@@ -25,7 +25,7 @@ import ast
 
 from decimal import Decimal
 
-from weboob.browser.pages import HTMLPage, pagination, LoggedPage, FormNotFound
+from weboob.browser.pages import HTMLPage, pagination, LoggedPage, FormNotFound, JsonPage
 from weboob.browser.elements import method, TableElement, ItemElement
 from weboob.browser.filters.standard import Env, CleanDecimal, CleanText, Date, Regexp, Eval
 from weboob.browser.filters.html import Attr, Link, TableCell
@@ -33,6 +33,7 @@ from weboob.browser.filters.javascript import JSVar
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.browser.filters.json import Dict
 
 
 class LoginPage(HTMLPage):
@@ -215,6 +216,13 @@ class AVAccountPage(LoggedPage, HTMLPage):
             obj_code = Regexp(Link('./th/a'), r'isin=(\w+)|/(\w+)\.pdf')
             obj_code = Regexp(Link('./th/a', default=''), r'isin=(\w+)|/(\w+)\.pdf', default=NotAvailable)
             obj_code_type = Investment.CODE_TYPE_ISIN
+
+
+class AvJPage(LoggedPage, JsonPage):
+    def get_av_balance(self):
+        balance = CleanDecimal(Dict('montant'))(self.doc)
+        currency = "EUR"
+        return balance, currency
 
 
 class AVHistoryPage(LoggedPage, HTMLPage):

@@ -17,13 +17,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import re
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import empty
 
-from .pages import LoginPage, AccountsPage, TransactionsPage, AVAccountPage, AVHistoryPage, FormPage, IbanPage
+from .pages import LoginPage, AccountsPage, TransactionsPage, AVAccountPage, AVHistoryPage, FormPage, IbanPage, AvJPage
 
 
 __all__ = ['GroupamaBrowser']
@@ -39,8 +40,10 @@ class GroupamaBrowser(LoginBrowser):
     accounts = URL('/wps/myportal/TableauDeBord', AccountsPage)
     transactions = URL('/wps/myportal/!ut', TransactionsPage)
     av_account_form = URL('/wps/myportal/assurancevie/', FormPage)
-    av_account = URL('https://secure-rivage.(ganassurances|ganpatrimoine|groupama).fr/contratVie.rivage.syntheseContratEparUc.gsi', AVAccountPage)
+    av_account = URL('https://secure-rivage.(ganassurances|ganpatrimoine|groupama).fr/contratVie.rivage.syntheseContratEparUc.gsi',
+                     '/front/vie/epargne/contrat/(.*)', AVAccountPage)
     av_history = URL('https://secure-rivage.(?P<website>.*).fr/contratVie.rivage.mesOperations.gsi', AVHistoryPage)
+    av_secondary = URL('/api/ecli/vie/contrats/(?P<id_contrat>.*)', AvJPage)
 
     def __init__(self, *args, **kwargs):
         super(GroupamaBrowser, self).__init__(*args, **kwargs)
@@ -68,6 +71,13 @@ class GroupamaBrowser(LoginBrowser):
                 if self.av_account_form.is_here():
                     self.page.av_account_form()
                     account.balance, account.currency = self.page.get_av_balance()
+                # New page where some AV are stored
+                elif "front/vie/" in account._link:
+                    link = re.search('contrat\/(.+)-Groupama', account._link)
+                    if link:
+                        self.av_secondary.go(id_contrat=link.group(1))
+                        account.balance, account.currency = self.page.get_av_balance()
+
                 self.accounts.stay_or_go()
             if account.balance or not balance:
                 if account.type != Account.TYPE_LIFE_INSURANCE and need_iban:
