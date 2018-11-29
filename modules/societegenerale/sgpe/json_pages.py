@@ -31,7 +31,9 @@ from weboob.capabilities.base import Currency
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account
 from weboob.capabilities.bill import Document, Subscription
-from weboob.exceptions import BrowserUnavailable, NoAccountsException, BrowserIncorrectPassword
+from weboob.exceptions import (
+    BrowserUnavailable, NoAccountsException, BrowserIncorrectPassword, BrowserPasswordExpired,
+)
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.compat import quote_plus
@@ -62,6 +64,8 @@ class AccountsJsonPage(LoggedPage, JsonPage):
                 raise NoAccountsException("Vous n'avez pas l'autorisation de consulter : {}".format(reason))
             elif reason == 'niv_auth_insuff':
                 raise BrowserIncorrectPassword('Vos identifiants sont incorrects')
+            elif reason == 'chgt_mdp_oblig':
+                raise BrowserPasswordExpired('Veuillez renouveler votre mot de passe')
             raise BrowserUnavailable(reason)
 
     @method
