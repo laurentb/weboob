@@ -272,7 +272,7 @@ class AccountsPage(LoggedPage, JsonPage):
                 return NotAvailable
 
             def obj_balance(self):
-                return -abs(CleanDecimal().filter(Dict('montantRestant', default=None)(self) or Dict('montantUtilise')(self)))
+                return -abs(CleanDecimal().filter(self.el.get('montantRestant', self.el.get('montantUtilise'))))
 
             # only for revolving loans
             obj_available_amount = CleanDecimal(Dict('montantDisponible', default=None), default=NotAvailable)
