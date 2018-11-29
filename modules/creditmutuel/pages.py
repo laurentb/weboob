@@ -1353,7 +1353,8 @@ class InternalTransferPage(LoggedPage, HTMLPage):
                     "Pour effectuer cette opération, vous devez passer par l’intermédiaire d’un compte courant",
                     'Montant maximum autorisé au crédit pour ce compte',
                     'Débit interdit sur ce compte',
-                    'Virement interdit sur compte clos',]
+                    'Virement interdit sur compte clos',
+                    "L'intitulé du virement ne peut contenir le ou les caractères suivants",]
 
         for message in messages:
             if message in content:
