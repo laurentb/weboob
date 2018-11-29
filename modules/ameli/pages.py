@@ -52,6 +52,10 @@ class AmeliBasePage(HTMLPage):
         if errors:
             return errors
 
+        errors = CleanText('//div[@class="zone-alerte"]/span')(self.doc)
+        if errors:
+            return errors
+
         return False
 
 
