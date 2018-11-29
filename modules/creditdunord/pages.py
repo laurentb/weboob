@@ -670,9 +670,10 @@ class TransactionsPage(LoggedPage, CDNBasePage):
             obj_portfolio_share = Eval(lambda x: x / 100, MyDecimal(TableCell('portfolio_share')))
 
             def obj_code(self):
-                code = Regexp(Field('label'), '([0-9A-Z]{12})')(self)
-                if is_isin_valid(code):
-                    return code
+                for code in Field('label')(self).split():
+                    if is_isin_valid(code):
+                        return code
+                return NotAvailable
 
             def obj_code_type(self):
                 if is_isin_valid(Field('code')(self)):
