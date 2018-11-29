@@ -21,8 +21,9 @@ from __future__ import unicode_literals
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword, BrowserPasswordExpired
-from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities.bank import Account
 from weboob.capabilities.base import find_object
+from weboob.tools.capabilities.bank.investments import create_french_liquidity
 from .pages import (
     LoginPage, ProfilePage, AccountTypePage, AccountsPage, ProAccountsPage,
     TransactionsPage, IbanPage, RedirectPage, EntryPage, AVPage, ProIbanPage,
@@ -152,20 +153,16 @@ class CreditDuNordBrowser(LoginBrowser):
     @need_login
     def get_investment(self, account):
         if 'LIQUIDIT' in account.label:
-            inv = Investment()
-            inv.code = 'XX-Liquidity'
-            inv.label = 'Liquidité'
-            inv.valuation = account.balance
-            return [inv]
+            return [create_french_liquidity(account.balance)]
 
         if not account._inv:
             return []
 
         if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
             self.location(account._link, data=account._args)
-            if self.page.can_iter_investments():
+            if self.page.can_iter_investments() and self.page.not_restrained():
                 return self.page.get_market_investment()
-        elif (account.type == Account.TYPE_LIFE_INSURANCE):
+        elif account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_CAPITALISATION):
             self.location(account._link, data=account._args)
             self.location(account._link.replace("_attente", "_detail_contrat_rep"), data=account._args)
             if self.page.can_iter_investments():

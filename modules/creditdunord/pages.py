@@ -29,7 +29,7 @@ import re
 
 from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage
 from weboob.browser.elements import method, ItemElement, TableElement
-from weboob.browser.filters.standard import CleanText, Date, CleanDecimal, Regexp, Format, Field
+from weboob.browser.filters.standard import CleanText, Date, CleanDecimal, Regexp, Format, Field, Eval
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import Attr, TableCell
 from weboob.exceptions import ActionNeeded, BrowserIncorrectPassword, BrowserUnavailable, BrowserPasswordExpired
@@ -38,6 +38,7 @@ from weboob.capabilities.profile import Profile
 from weboob.capabilities.base import Currency, find_object
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.capabilities.bank.investments import is_isin_valid
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
 from weboob.tools.compat import quote, unicode
 from weboob.tools.json import json
@@ -243,12 +244,16 @@ class AccountsPage(LoggedPage, CDNBasePage):
         u"PLAN D'EPARGNE":      Account.TYPE_SAVINGS,
         u'PLAN ÉPARGNE':        Account.TYPE_SAVINGS,
         u'ASS.VIE':             Account.TYPE_LIFE_INSURANCE,
+        u'BONS CAPI':           Account.TYPE_CAPITALISATION,
         u'ÉTOILE AVANCE':       Account.TYPE_LOAN,
         u'ETOILE AVANCE':       Account.TYPE_LOAN,
         u'PRÊT':                Account.TYPE_LOAN,
         u'CREDIT':              Account.TYPE_LOAN,
         u'FACILINVEST':         Account.TYPE_LOAN,
-        u'TIT':                 Account.TYPE_MARKET,
+        u'TITRES':              Account.TYPE_MARKET,
+        u'COMPTE TIT':          Account.TYPE_MARKET,
+        u'PRDTS BLOQ. TIT':     Account.TYPE_MARKET,
+        u'PRODUIT BLOQUE TIT':  Account.TYPE_MARKET,
         u'COMPTE A TERME':      Account.TYPE_DEPOSIT,
         }
 
@@ -494,7 +499,7 @@ class ProAccountsPage(AccountsPage):
                 else:
                     self.logger.warning('The card account %s has no parent account' % a.id)
 
-            a._inv = False
+            a._inv = True
 
             if a.type == Account.TYPE_CHECKING:
                 previous_checking_account = a
@@ -640,36 +645,42 @@ class TransactionsPage(LoggedPage, CDNBasePage):
     def can_iter_investments(self):
         return 'Vous ne pouvez pas utiliser les fonctions de bourse.' not in CleanText('//div[@id="contenusavoir"]')(self.doc)
 
-    def get_market_investment(self):
-        if CleanText('//div[contains(text(), "restreint aux fonctions de bourse")]')(self.doc):
-            return
+    def not_restrained(self):
+        return not CleanText('//div[contains(text(), "restreint aux fonctions de bourse")]')(self.doc)
 
-        COL_LABEL = 0
-        COL_QUANTITY = 1
-        COL_UNITPRICE = 2
-        COL_UNITVALUE = 3
-        COL_VALUATION = 4
-        COL_PERF = 5
+    @method
+    class get_market_investment(TableElement):
+        # Fetch the tables with at least 5 head columns (browser adds a missing a <tbody>)
+        item_xpath = '//div[not(@id="PortefeuilleCV")]/table[@class="datas"][tr[@class="entete"][count(td)>4]]//tr[position()>1]'
+        head_xpath = '//div[not(@id="PortefeuilleCV")]/table[@class="datas"][tr[@class="entete"][count(td)>4]]//tr[@class="entete"]/td'
 
-        for table in self.doc.xpath('//div[not(@id="PortefeuilleCV")]/table[@class="datas"]'):
-            for tr in table.xpath('.//tr[not(@class="entete")]'):
-                cols = tr.findall('td')
-                if len(cols) < 7:
-                    continue
-                delta = 0
-                if len(cols) == 9:
-                    delta = 1
+        col_label = 'Valeur'
+        col_quantity = 'Quantité'
+        col_unitvalue = 'Cours'
+        col_valuation = 'Estimation'
+        col_portfolio_share = '%'
 
-                inv = Investment()
-                inv.code = CleanText('.')(cols[COL_LABEL + delta].xpath('.//span')[1]).split(' ')[0].split(u'\xa0')[0]
-                inv.label = CleanText('.')(cols[COL_LABEL + delta].xpath('.//span')[0])
-                inv.quantity = MyDecimal('.')(cols[COL_QUANTITY + delta])
-                inv.unitprice = MyDecimal('.')(cols[COL_UNITPRICE + delta])
-                inv.unitvalue = MyDecimal('.')(cols[COL_UNITVALUE + delta])
-                inv.valuation = MyDecimal('.')(cols[COL_VALUATION + delta])
-                inv.diff = MyDecimal('.')(cols[COL_PERF + delta])
+        class item(ItemElement):
+            klass = Investment
 
-                yield inv
+            obj_label = CleanText(TableCell('label', colspan=True))
+            obj_valuation = MyDecimal(TableCell('valuation', colspan=True))
+            obj_quantity = MyDecimal(TableCell('quantity', colspan=True))
+            obj_unitvalue = MyDecimal(TableCell('unitvalue', colspan=True))
+            obj_portfolio_share = Eval(lambda x: x / 100, MyDecimal(TableCell('portfolio_share')))
+
+            def obj_code(self):
+                code = Regexp(Field('label'), '([0-9A-Z]{12})')(self)
+                if is_isin_valid(code):
+                    return code
+
+            def obj_code_type(self):
+                if is_isin_valid(Field('code')(self)):
+                    return Investment.CODE_TYPE_ISIN
+                return NotAvailable
+
+            def condition(self):
+                return "Sous-total" not in Field('label')(self)
 
     @method
     class get_deposit_investment(TableElement):
