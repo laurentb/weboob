@@ -27,9 +27,11 @@ from weboob.browser.filters.html import Attr, XPathNotFound
 from weboob.browser.pages import HTMLPage, RawPage, LoggedPage
 from weboob.capabilities.bill import Subscription, Detail, Bill
 from weboob.browser.filters.standard import CleanText, Regexp
+from weboob.exceptions import BrowserUnavailable
 
 
 # Ugly array to avoid the use of french locale
+
 FRENCH_MONTHS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre']
 
 
@@ -229,3 +231,8 @@ class PaymentDetailsPage(AmeliBasePage):
 
 class Raw(LoggedPage, RawPage):
     pass
+
+
+class UnavailablePage(HTMLPage):
+    def on_load(self):
+        raise BrowserUnavailable(CleanText('//span[@class="texte-indispo"]')(self.doc))

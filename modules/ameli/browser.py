@@ -21,8 +21,11 @@ from __future__ import unicode_literals
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
+from .pages import (
+    LoginPage, HomePage, CguPage, AccountPage, LastPaymentsPage, PaymentsPage, PaymentDetailsPage, Raw, UnavailablePage,
+)
 from weboob.tools.compat import basestring
-from .pages import LoginPage, HomePage, CguPage, AccountPage, LastPaymentsPage, PaymentsPage, PaymentDetailsPage, Raw
+
 
 __all__ = ['AmeliBrowser']
 
@@ -38,6 +41,7 @@ class AmeliBrowser(LoginBrowser):
     paymentdetailsp = URL(r'/PortailAS/paiements.do\?actionEvt=chargerDetailPaiements.*', PaymentDetailsPage)
     lastpaymentsp = URL(r'/PortailAS/paiements.do\?actionEvt=afficherPaiements.*', LastPaymentsPage)
     pdf_page = URL(r'PortailAS/PDFServletReleveMensuel.dopdf\?PDF.moisRecherche=.*', Raw)
+    unavailablep = URL(r'/vu/INDISPO_COMPTE_ASSURES.html', UnavailablePage)
 
     def do_login(self):
         self.logger.debug('call Browser.do_login')
