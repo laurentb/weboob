@@ -89,6 +89,7 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
     incident = URL('/compte/cav/(?P<webid>.*)/mes-incidents.*', IncidentPage)
 
     transfer_accounts = URL(r'/compte/(?P<type>[^/]+)/(?P<webid>\w+)/virements/nouveau/(?P<id>\w+)/1',
+                            r'/compte/(?P<type>[^/]+)/(?P<webid>\w+)/virements/nouveau$',
                             TransferAccounts)
     recipients_page = URL(r'/compte/(?P<type>[^/]+)/(?P<webid>\w+)/virements/$',
                           r'/compte/(?P<type>[^/]+)/(?P<webid>\w+)/virements/nouveau/(?P<id>\w+)/2',
