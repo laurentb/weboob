@@ -990,6 +990,11 @@ class MarketHomePage(MarketPage):
     COL_ID_LABEL = 1
     COL_VALUATION = 5
 
+    def on_load(self):
+        action_needed_msg = CleanText('//div[contains(text(), "Afin de finaliser le paramétrage de votre environnement Bourse")]', replace=[('Enregistrer', '')])(self.doc)
+        if action_needed_msg:
+            raise ActionNeeded(action_needed_msg)
+
     @method
     class get_list(TableElement):
         item_xpath = '//table[has-class("tableau_comptes_details")]//tr[td[2]]'
