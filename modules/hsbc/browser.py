@@ -157,11 +157,12 @@ class HSBC(LoginBrowser):
             if self.login.is_here():
                 self.page.useless_form()
 
-        # This shitty website has 2 baseurl with only one difference: the 's' at the end of 'client'
+        # This wonderful website has 2 baseurl with only one difference: the 's' at the end of 'client'
         new_base_url = 'https://clients.hsbc.fr/'
         if new_base_url in self.url:
             self.BASEURL = new_base_url
 
+        home_url = None
         if self.frame_page.is_here():
             home_url = self.page.get_frame()
             self.js_url = self.page.get_js_url()
