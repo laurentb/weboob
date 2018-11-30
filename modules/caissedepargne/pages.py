@@ -222,6 +222,10 @@ class IndexPage(LoggedPage, HTMLPage):
                 if message and "investissement financier (QCF) n’est plus valide à ce jour ou que vous avez refusé d’y répondre" in message:
                     raise ActionNeeded(message)
 
+        mess = CleanText('//body/div[@class="content"]//p[contains(text(), "indisponible pour cause de maintenance")]')(self.doc)
+        if mess:
+            raise BrowserUnavailable(mess)
+
         # This page is sometimes an useless step to the market website.
         bourse_link = Link(u'//div[@id="MM_COMPTE_TITRE_pnlbourseoic"]//a[contains(text(), "Accédez à la consultation")]', default=None)(self.doc)
 
