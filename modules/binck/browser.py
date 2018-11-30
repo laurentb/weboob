@@ -58,6 +58,11 @@ class BinckBrowser(LoginBrowser):
             error = self.page.get_error()
             if error and 'mot de passe' in error:
                 raise BrowserIncorrectPassword(error)
+            elif error and any(
+                'Votre compte a été bloqué / clôturé' in error,
+                'Votre compte est bloqué, veuillez contacter le Service Clients' in error,
+            ):
+                raise ActionNeeded(error)
             raise AssertionError('Unhandled behavior at login: error is "{}"'.format(error))
 
     @need_login
