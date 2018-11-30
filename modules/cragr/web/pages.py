@@ -206,6 +206,7 @@ class AccountsPage(MyLoggedPage, BasePage):
              u'EKO' :       Account.TYPE_CHECKING,
              u'DAV NANTI':  Account.TYPE_SAVINGS,
              u'LIV A':      Account.TYPE_SAVINGS,
+             u'LIV A ASS':  Account.TYPE_SAVINGS,
              u'LDD':        Account.TYPE_SAVINGS,
              u'PEL':        Account.TYPE_SAVINGS,
              u'CEL':        Account.TYPE_SAVINGS,
