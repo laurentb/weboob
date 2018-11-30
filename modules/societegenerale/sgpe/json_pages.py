@@ -33,6 +33,7 @@ from weboob.capabilities.bank import Account
 from weboob.capabilities.bill import Document, Subscription
 from weboob.exceptions import (
     BrowserUnavailable, NoAccountsException, BrowserIncorrectPassword, BrowserPasswordExpired,
+    AuthMethodNotImplemented,
 )
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -66,6 +67,8 @@ class AccountsJsonPage(LoggedPage, JsonPage):
                 raise BrowserIncorrectPassword('Vos identifiants sont incorrects')
             elif reason == 'chgt_mdp_oblig':
                 raise BrowserPasswordExpired('Veuillez renouveler votre mot de passe')
+            elif reason == 'oob_insc_oblig':
+                raise AuthMethodNotImplemented("L'authentification par Secure Access n'est pas prise en charge")
             raise BrowserUnavailable(reason)
 
     @method
