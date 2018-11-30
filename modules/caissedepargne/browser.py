@@ -246,6 +246,11 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             self.multi_type = True
 
             if self.inexttype < len(data['account']):
+                if data['account'][self.inexttype] == 'EU' and not self.nuser:
+                    # when EU is present and not alone, it tends to come first
+                    # if nuser is unset though, user probably doesn't want 'EU'
+                    self.inexttype += 1
+
                 self.typeAccount = data['account'][self.inexttype]
             else:
                 assert False, 'should have logged in with at least one connection type'
