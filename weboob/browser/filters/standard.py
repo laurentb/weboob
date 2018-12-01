@@ -444,6 +444,7 @@ class CleanDecimal(CleanText):
         if not legacy:
             thousands_sep, decimal_sep = self.replace_dots
             self.matching = re.compile(r'([+-]?)\s*(\d[\d%s%s]*|%s\d+)' % tuple(map(re.escape, (thousands_sep, decimal_sep, decimal_sep))))
+            self.thousand_check = re.compile(r'^[+-]?\d{1,3}(%s\d{3})*(%s\d*)?$' % tuple(map(re.escape, (thousands_sep, decimal_sep))))
 
     @debug()
     def filter(self, text):
@@ -472,7 +473,12 @@ class CleanDecimal(CleanText):
                 return self.default_or_raise(NumberFormatError('There is no number to parse'))
             elif len(matches) > 1:
                 return self.default_or_raise(NumberFormatError('There should be exactly one number to parse'))
+
             text = '%s%s' % (matches[0][0], matches[0][1].strip())
+
+            if thousands_sep and thousands_sep in text and not self.thousand_check.match(text):
+                return self.default_or_raise(NumberFormatError('Thousands separator is misplaced in %r' % text))
+
             text = text.replace(thousands_sep, '').replace(decimal_sep, '.')
 
         try:
@@ -971,6 +977,7 @@ def test_CleanDecimal_strict():
     assert_raises(NumberFormatError, CleanDecimal.US().filter, 'foo 12 345.67 bar')
     assert_raises(NumberFormatError, CleanDecimal.US().filter, 'foo 123 bar 456')
     assert_raises(NumberFormatError, CleanDecimal.US().filter, 'foo 123.456.789 bar')
+    assert_raises(NumberFormatError, CleanDecimal.US().filter, 'foo 12,3456 bar')
     assert_raises(NumberFormatError, CleanDecimal.US().filter, 'foo 123-456 bar')
 
     assert CleanDecimal.French().filter('123') == Decimal('123')
@@ -983,6 +990,7 @@ def test_CleanDecimal_strict():
     assert_raises(NumberFormatError, CleanDecimal.French().filter, 'foo 123.45 bar')
     assert_raises(NumberFormatError, CleanDecimal.French().filter, 'foo 123 bar 456')
     assert_raises(NumberFormatError, CleanDecimal.French().filter, 'foo 123,456,789')
+    assert_raises(NumberFormatError, CleanDecimal.French().filter, 'foo 12 3456 bar')
     assert_raises(NumberFormatError, CleanDecimal.French().filter, 'foo 123-456 bar')
 
     assert CleanDecimal.SI().filter('123') == Decimal('123')
@@ -996,4 +1004,5 @@ def test_CleanDecimal_strict():
     assert_raises(NumberFormatError, CleanDecimal.SI().filter, 'foo 123,45 bar')
     assert_raises(NumberFormatError, CleanDecimal.SI().filter, 'foo 123 bar 456')
     assert_raises(NumberFormatError, CleanDecimal.SI().filter, 'foo 123,456,789')
+    assert_raises(NumberFormatError, CleanDecimal.SI().filter, 'foo 12 3456 bar')
     assert_raises(NumberFormatError, CleanDecimal.SI().filter, 'foo 123-456 bar')
