@@ -118,7 +118,7 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
         super(BNPParibasBrowser, self).__init__(config['login'].get(), config['password'].get(), *args, **kwargs)
         self.accounts_list = None
         self.card_to_transaction_type = {}
-        self.rotating_password = config['rotating_password']
+        self.rotating_password = config['rotating_password'].get()
 
     @retry(ConnectionError, tries=3)
     def open(self, *args, **kwargs):
