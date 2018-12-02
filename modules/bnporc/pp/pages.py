@@ -461,7 +461,7 @@ class RegisterTransferPage(ValidateTransferPage):
         transfer_data = self.doc['data']['enregistrementVirement']
 
         transfer.id = transfer_data['reference']
-        assert transfer.exec_date == parse_french_date(self.doc['data']['enregistrementVirement']['dateExecution']).date()
+        transfer.exec_date = parse_french_date(self.doc['data']['enregistrementVirement']['dateExecution']).date()
         # Timestamp at which the bank registered the transfer
         register_date = re.sub(' 24:', ' 00:', self.doc['data']['enregistrementVirement']['dateEnregistrement'])
         transfer._register_date = parse_french_date(register_date)
