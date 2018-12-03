@@ -996,7 +996,7 @@ class TransferPage(TransferErrorPage, IndexPage):
     def get_recipient_value(self, recipient):
         if recipient.category == u'Externe':
             recipient_value = [Attr('.', 'value')(o) for o in self.doc.xpath(self.RECIPIENT_XPATH) if
-                               Regexp(CleanText('.'), ' - (.*) -', default=NotAvailable)(o) == recipient.iban]
+                               Regexp(CleanText('.'), '.* - ([A-Za-z0-9]*) -', default=NotAvailable)(o) == recipient.iban]
         elif recipient.category == u'Interne':
             recipient_value = [Attr('.', 'value')(o) for o in self.doc.xpath(self.RECIPIENT_XPATH) if
                                Regexp(CleanText('.'), '- (\d+)', default=NotAvailable)(o) and Regexp(CleanText('.'), '- (\d+)', default=NotAvailable)(o) in recipient.id]
