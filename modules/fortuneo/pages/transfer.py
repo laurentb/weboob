@@ -183,7 +183,7 @@ class RegisterTransferPage(LoggedPage, HTMLPage):
         form['typeDeVirement'] = 'VI'
         form['dateDeVirement'] = exec_date.strftime('%d/%m/%Y')
         form['montantVirement'] = amount
-        form['libelleVirementSaisie'] = label
+        form['libelleVirementSaisie'] = label.encode(self.encoding, errors='xmlcharrefreplace').decode(self.encoding)
         form.submit()
 
 
