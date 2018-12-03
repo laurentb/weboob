@@ -292,6 +292,3 @@ class TokenPage(CMSOPage, UpdateTokenMixin):
 class AuthCheckUser(HTMLPage):
     pass
 
-
-class SecurityCheckUser(JsonPage):
-    pass

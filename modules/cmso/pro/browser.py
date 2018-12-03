@@ -33,7 +33,7 @@ from weboob.tools.date import LinearDateGuesser
 
 from .pages import (
     LoginPage, PasswordCreationPage, AccountsPage, HistoryPage, ChoiceLinkPage, SubscriptionPage, InvestmentPage,
-    InvestmentAccountPage, UselessPage, TokenPage, SSODomiPage, AuthCheckUser, SecurityCheckUser,
+    InvestmentAccountPage, UselessPage, TokenPage, SSODomiPage, AuthCheckUser,
 )
 
 from ..par.pages import ProfilePage
@@ -57,7 +57,6 @@ class CmsoProBrowser(LoginBrowser):
     tokens = URL('/domiweb/prive/espacesegment/selectionnerAbonnement/3-selectionnerAbonnement.act', TokenPage)
     ssoDomiweb = URL('https://pro.(?P<website>[\w.]+)/domiapi/oauth/json/ssoDomiwebEmbedded', SSODomiPage)
     auth_checkuser = URL('https://pro.(?P<website>[\w.]+)/auth/checkuser', AuthCheckUser)
-    security_checkuser = URL('https://pro.(?P<website>[\w.]+)/securityapi/checkuser', SecurityCheckUser)
 
     def __init__(self, website, *args, **kwargs):
         super(CmsoProBrowser, self).__init__(*args, **kwargs)
@@ -148,17 +147,6 @@ class CmsoProBrowser(LoginBrowser):
         self.location(area)
         self.location('/domiweb/accueil.jsp')
         self.auth_checkuser.go(website=self.website)
-        self.security_checkuser.go(
-            website=self.website,
-            json={'appOrigin': 'domiweb', 'espaceApplication': 'PRO'},
-            headers={'Authentication': 'Bearer %s' % self.token,
-                     'Authorization': 'Bearer %s' % self.csrf,
-                     'X-Csrf-Token': self.csrf,
-                     'Accept': 'application/json',
-                     'X-REFERER-TOKEN': 'RWDPRO',
-                     'X-ARKEA-EFS': self.arkea,
-                     'ADRIM': 'isAjax:true',
-                     })
 
     @need_login
     def iter_accounts(self):
