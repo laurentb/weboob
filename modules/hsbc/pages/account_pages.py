@@ -93,12 +93,13 @@ class AccountsType(Filter):
         (r'livret', Account.TYPE_SAVINGS),
         (r'livjeu', Account.TYPE_SAVINGS),
         (r'csljun', Account.TYPE_SAVINGS),
+        (r'ldds', Account.TYPE_SAVINGS),
         (r'compte', Account.TYPE_CHECKING),
         (r'cpte', Account.TYPE_CHECKING),
         (r'scpi', Account.TYPE_MARKET),
         (r'account', Account.TYPE_CHECKING),
         (r'\bpret\b', Account.TYPE_LOAN),
-        (r'\bvie\b', Account.TYPE_LIFE_INSURANCE),
+        (r'\bvie2?\b', Account.TYPE_LIFE_INSURANCE),
         (r'strategie patr.', Account.TYPE_LIFE_INSURANCE),
         (r'essentiel', Account.TYPE_LIFE_INSURANCE),
         (r'elysee', Account.TYPE_LIFE_INSURANCE),
@@ -112,6 +113,7 @@ class AccountsType(Filter):
         (r'hsbc evol pat capi', Account.TYPE_CAPITALISATION),
         (r'bourse libre', Account.TYPE_MARKET),
         (r'plurival', Account.TYPE_LIFE_INSURANCE),
+        (r'europep', Account.TYPE_LIFE_INSURANCE),
     ]
 
     def filter(self, label):
