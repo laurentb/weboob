@@ -370,6 +370,17 @@ def ssl_wrap_socket(sock, *args, **kwargs):
     nsssock.reset_handshake(False) # marks handshake as not-done
     try:
         wrapper.send(b'') # performs handshake
+    except nss.error.NSPRError as e:
+        if e.error_code == nss.error.PR_END_OF_FILE_ERROR:
+            # the corresponding openssl error isn't exactly socket.timeout()
+            # but rather something SyscallError.
+            # i don't know how to generate it exactly and the end result is
+            # similar so let's use this.
+            raise socket.timeout()
+
+        # see below why closing
+        wrapper.close()
+        raise
     except:
         # If there is an exception during the handshake, correctly close the
         # duplicated/detached socket as it isn't known by the caller.
