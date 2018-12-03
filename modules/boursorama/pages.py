@@ -343,13 +343,13 @@ class LoanPage(LoggedPage, HTMLPage):
         obj_label =  CleanText('//h2[contains(@class, "page-title__account")]//div[@class="account-edit-label"]/span')
         obj_total_amount = CleanDecimal('//p[contains(text(), "Montant emprunt")]/span', replace_dots=True)
         obj_currency = CleanCurrency('//p[contains(text(), "Montant emprunt")]/span')
-        obj_duration = CleanDecimal('//p[contains(text(), "Nombre prévisionnel d\'échéances restantes")]/span')
+        obj_duration = CleanDecimal('//p[contains(text(), "Nombre prévisionnel d\'échéances restantes")]/span', default=NotAvailable)
         obj_rate = CleanDecimal('//p[contains(text(), "Taux nominal en vigueur du prêt")]/span')
-        obj_nb_payments_left = CleanDecimal('//p[contains(text(), "Nombre prévisionnel d\'échéances restantes")]/span')
-        obj_next_payment_amount = CleanDecimal('//p[contains(text(), "Montant de la prochaine échéance")]/span', replace_dots=True)
+        obj_nb_payments_left = CleanDecimal('//p[contains(text(), "Nombre prévisionnel d\'échéances restantes")]/span', default=NotAvailable)
+        obj_next_payment_amount = CleanDecimal('//p[contains(text(), "Montant de la prochaine échéance")]/span', replace_dots=True, default=NotAvailable)
         obj_nb_payments_total = CleanDecimal('//p[contains(text(), "Nombre d\'écheances totales") or contains(text(), "Nombre total d\'échéances")]/span')
         obj_subscription_date = Date(CleanText('//p[contains(text(), "Date de départ du prêt")]/span'), parse_func=parse_french_date)
-        obj_maturity_date = Date(CleanText('//p[contains(text(), "Date prévisionnelle d\'échéance finale")]/span'), parse_func=parse_french_date)
+        obj_maturity_date = Date(CleanText('//p[contains(text(), "Date prévisionnelle d\'échéance finale")]/span'), parse_func=parse_french_date, default=NotAvailable)
 
         def obj_balance(self):
             balance = CleanDecimal('//p[contains(text(), "Capital restant dû")]/span', replace_dots=True)(self)
