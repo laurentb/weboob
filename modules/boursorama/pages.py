@@ -242,7 +242,7 @@ class AccountsPage(LoggedPage, HTMLPage):
 
             def condition(self):
                 # Ignore externally aggregated accounts and insurances:
-                return not self.is_external() and not any(x in Field('url')(self) for x in ('automobile', 'assurance/protection', 'assurance/comptes'))
+                return not self.is_external() and not any(x in Field('url')(self) for x in ('automobile', 'assurance/protection', 'assurance/comptes', 'assurance/famille'))
 
             obj_label = CleanText('.//a[has-class("account--name")] | .//div[has-class("account--name")]')
 
