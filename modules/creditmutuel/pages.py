@@ -613,8 +613,11 @@ class CardsListPage(LoggedPage, HTMLPage):
                 page = page.browser.open(Link('//form//a[text()="Contrat"]', default=None)(page.doc)).page
                 xpath = '//table[has-class("liste")]/tbody/tr'
                 active_card = CleanText('%s[td[text()="Active"]][1]/td[2]' % xpath, replace=[(' ', '')], default=None)(page.doc)
+                for cards in page.doc.xpath(xpath):
+                    if CleanText(cards.xpath('./td[1]'))(self) != 'Active':
+                        self.page.browser.unavailablecards.append(CleanText(cards.xpath('./td[2]'), replace=[(' ', '')])(self))
 
-                if not active_card or len(page.doc.xpath(xpath)) != 1:
+                if not active_card and len(page.doc.xpath(xpath)) != 1:
                     raise SkipItem()
 
                 self.env['id'] = active_card or CleanText('%s[1]/td[2]' % xpath, replace=[(' ', '')])(page.doc)
