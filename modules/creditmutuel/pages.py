@@ -1838,9 +1838,14 @@ class SubscriptionPage(LoggedPage, HTMLPage):
 
 
 class NewCardsListPage(LoggedPage, HTMLPage):
+    @pagination
     @method
     class iter_accounts(ListElement):
         item_xpath = '//li[@class="item"]'
+        def next_page(self):
+            other_cards = self.el.xpath('//span/a[contains(text(), "Autres cartes")]')
+            if other_cards:
+                return Link(other_cards)(self)
 
         class item(ItemElement):
             klass = Account
