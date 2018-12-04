@@ -712,6 +712,11 @@ class SeleniumBrowser(object):
         for k, v in d.items():
             self.driver.execute(Command.SET_LOCAL_STORAGE_ITEM, {'key': k, 'value': v})
 
+    def clear_storage(self):
+        """Clear local storage."""
+
+        self.driver.execute(Command.CLEAR_LOCAL_STORAGE)
+
 
 class SubSeleniumMixin(object):
     """Mixin to have a Selenium browser for performing login."""
