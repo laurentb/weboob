@@ -131,8 +131,11 @@ class GroupamaBrowser(LoginBrowser):
             return iter([])
         for a in self.get_accounts_list(balance=False):
             if a.id == account.id:
-                self.location(a._link)
-                self.page.av_account_form()
-                if self.av_account.is_here():
-                    return self.page.get_av_investments()
+                # There isn't any invest on AV having front/vie
+                # in theirs url
+                if "front/vie/" not in account._link:
+                    self.location(a._link)
+                    self.page.av_account_form()
+                    if self.av_account.is_here():
+                        return self.page.get_av_investments()
         return iter([])
