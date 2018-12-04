@@ -202,6 +202,10 @@ class BanquePopulaire(LoginBrowser):
         self.page.login(self.username, self.password)
         if self.login_page.is_here():
             raise BrowserIncorrectPassword()
+        if 'internetRescuePortal' in self.url:
+            # 1 more request is necessary
+            data = {'integrationMode':	'INTERNET_RESCUE'}
+            self.location('/cyber/internet/Login.do', data=data)
 
     ACCOUNT_URLS = ['mesComptes', 'mesComptesPRO', 'maSyntheseGratuite', 'accueilSynthese', 'equipementComplet']
 
