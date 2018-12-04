@@ -39,7 +39,7 @@ from weboob.tools.compat import urlparse, urljoin, unicode
 from weboob.browser.elements import ListElement, TableElement, ItemElement, method
 from weboob.browser.filters.standard import Date, CleanText, CleanDecimal, Currency as CleanCurrency, \
                                             Regexp, Format, Field
-from weboob.browser.filters.html import Link, TableCell, ColumnNotFound
+from weboob.browser.filters.html import Link, TableCell, ColumnNotFound, Attr
 
 
 class TableCellSpan(TableCell):
@@ -1170,15 +1170,26 @@ class BGPIPage(MarketPage):
 
             yield inv
 
+    def get_li_details(self, _id):
+        label = CleanText('//tr[td[text()="%s"]]/td/a' % _id)(self.doc)
+        balance = CleanDecimal('//tr[td[text()="%s"]]/td[@class="cel-num cel-important"]' % _id, replace_dots=True)(self.doc)
+        return label, balance
+
     def go_on(self, link):
         origin = urlparse(self.url)
         self.browser.location('https://%s%s' % (origin.netloc, link))
-
         return True
 
     def go_detail(self):
-        link = self.doc.xpath(u'.//a[contains(text(), "Détail")]')
+        link = self.doc.xpath('.//a[contains(text(), "Détail")]')
         return self.go_on(link[0].attrib['href']) if link else False
+
+    def get_params(self, _id):
+        option = Attr('//select[@class="BntSelectOption"]/option[text()="%s"]' % _id, 'value', default=None)(self.doc)
+        if option:
+            params = {'id': option}
+            return params
+        return None
 
     def go_back(self):
         self.go_on(self.doc.xpath(u'.//a[contains(text(), "Retour à mes comptes")]')[0].attrib['href'])

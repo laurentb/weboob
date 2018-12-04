@@ -370,6 +370,15 @@ class Cragr(LoginBrowser, StatesMixin):
                     self.quit_market_website()
                     break
 
+        # update life insurances with unavailable balance
+        for account in accounts_list:
+            if account.type == Account.TYPE_LIFE_INSURANCE and not account.balance:
+                if account._perimeter != self.current_perimeter:
+                    self.go_perimeter(account._perimeter)
+                new_location = self.moveto_insurance_website(account)
+                self.location(new_location, data={})
+                account.label, account.balance = self.page.get_li_details(account.id)
+
         # be sure that we send accounts with balance
         return [acc for acc in accounts_list if acc.balance is not NotLoaded]
 
@@ -471,6 +480,13 @@ class Cragr(LoginBrowser, StatesMixin):
             if self.bgpi.is_here():
                 if self.page.cgu_needed() or not self.page.go_detail():
                     return
+                # Going the the life insurances details is not enough,
+                # Once we are there we need to select the correct one:
+                data = self.page.get_params(account.id)
+                if not data:
+                    return
+                self.location('https://bgpi-gestionprivee.credit-agricole.fr/bgpi/CompteDetail.do', data=data)
+
             if self.lifeinsurance.is_here():
                 self.page.go_on_detail(account.id)
                 # We scrape the non-invested part as liquidities:
