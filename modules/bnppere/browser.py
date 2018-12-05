@@ -39,6 +39,12 @@ class VisiogoBrowser(LoginBrowser):
     profile_page = URL(r'/en/Profile/EditContactDetails', ProfilePage)
     history_page = URL(r'en/Operation/History', HistoryPage)
 
+    def __init__(self, config=None, *args, **kwargs):
+        self.config = config
+        kwargs['username'] = self.config['login'].get()
+        kwargs['password'] = self.config['password'].get()
+        super(VisiogoBrowser, self).__init__(*args, **kwargs)
+
     def do_login(self):
         self.login_page.go()
         self.page.login(self.username, self.password)
