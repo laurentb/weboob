@@ -207,8 +207,14 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
 
     @need_login
     def iter_investment(self, account):
+        if account.type not in (Account.TYPE_MARKET, Account.TYPE_LIFE_INSURANCE, Account.TYPE_PEA):
+            self.logger.debug('This account is not supported')
+            return
+
         if account.type == Account.TYPE_MARKET:
             self.location(account._link_id)
+            for invest in self.page.iter_investment():
+                yield invest
 
         elif account.type == Account.TYPE_LIFE_INSURANCE:
             # Life Insurance type whose investments require scraping at '/asv/PRV/asvcns10priv.html':
@@ -217,6 +223,26 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
                 # Other Life Insurance pages:
                 self.life_insurance_invest.go()
 
+            # Yield investments from the first page:
+            for invest in self.page.iter_investment():
+                yield invest
+
+            # Handle investments pagination:
+            total_pages = self.page.get_pages()
+            if total_pages:
+                total_pages = int(total_pages)
+                for page in range(2, total_pages + 1):
+                    params = {
+                        'a100_asv_action': 'actionSuivPage',
+                        'a100_asv_numPage': page - 1,
+                        'a100_asv_nbPages': total_pages,
+                    }
+                    # Using "self.url" avoids dealing with the multiple possible URLs:
+                    # asvcns10.html, asvcns10priv.html, asvcns20a.html and so on.
+                    self.location(self.url, data=params)
+                    for invest in self.page.iter_investment():
+                        yield invest
+
         elif account.type == Account.TYPE_PEA:
             # Scraping liquidities for "PEA Espèces" accounts
             self.location(account._link_id)
@@ -224,13 +250,6 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
             if valuation != NotAvailable:
                 yield create_french_liquidity(valuation)
             return
-
-        else:
-            self.logger.warning('This account is not supported')
-            return
-
-        for invest in self.page.iter_investment():
-            yield invest
 
     @need_login
     def get_advisor(self):

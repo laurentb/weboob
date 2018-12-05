@@ -513,6 +513,10 @@ class LifeInsuranceInvest(LifeInsurance, Invest):
 
             yield inv
 
+    def get_pages(self):
+        # "pages" value is for example "1/5"
+        pages = CleanText('//div[@class="net2g_asv_tableau_pager"]')(self.doc)
+        return re.search(r'/(.*)', pages).group(1) if pages else None
 
 class LifeInsuranceInvest2(LifeInsuranceInvest):
     @method
