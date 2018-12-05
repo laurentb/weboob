@@ -28,11 +28,12 @@ from weboob.browser.elements import ItemElement, TableElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Regexp, Field, Env, Currency
 from weboob.browser.filters.html import Attr, Link, TableCell
 from weboob.capabilities.bank import Account, Investment
+from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.profile import Person
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.compat import unicode
-
+from weboob.tools.pdf import extract_text
 
 
 def MyDecimal(*args, **kwargs):
@@ -246,9 +247,24 @@ class AccountsPage(LoggedPage, MyHTMLPage):
 class IbanPage(PDFPage):
     def get_iban(self):
         iban = u''
-        for part in re.findall(r'0 -273.46 Td /F\d 10 Tf \((\d+|\w\w\d\d)\)', self.doc, flags=re.MULTILINE):
+
+        # according to re module doc, list returned by re.findall always
+        # be in the same order as they are in the source text
+        for part in re.findall(r'([A-Z0-9]{4})\1\1', extract_text(self.data), flags=re.MULTILINE):
+            # findall will find something like
+            # ['FRXX', '1234', ... , '9012', 'FRXX', '1234', ... , '9012']
             iban += part
-        return iban[:len(iban)/2]
+        iban = iban[:len(iban)/2]
+
+        # we suppose that all iban are French iban
+        iban_last_part = re.findall(r'([A-Z0-9]{3})\1\1Titulaire', extract_text(self.data), flags=re.MULTILINE)
+        assert len(iban_last_part) == 1, 'There should have something like 123123123Titulaire'
+
+        iban += iban_last_part[0]
+        if is_iban_valid(iban):
+            return iban
+        self.logger.warning('IBAN %s is not valid', iban)
+        return NotAvailable
 
 
 class BankTransaction(FrenchTransaction):
