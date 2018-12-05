@@ -183,7 +183,7 @@ class item_account_generic(ItemElement):
 
 class iter_history_generic(Transaction.TransactionsElement):
     head_xpath = u'//div[*[contains(text(), "opérations")]]/table//thead/tr/th'
-    item_xpath = u'//div[*[contains(text(), "opérations")]]/table/tbody/tr'
+    item_xpath = u'//div[*[contains(text(), "opérations")]]/table/tbody/tr[td]'
 
     def next_page(self):
         next_page = Link(u'//a[contains(text(), "précédentes")]', default=None)(self)
