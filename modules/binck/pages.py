@@ -24,7 +24,7 @@ import re
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
 from weboob.browser.elements import ItemElement, TableElement, DictElement, method
 from weboob.browser.filters.standard import CleanText, Date, Format, CleanDecimal, Eval, Env
-from weboob.browser.filters.html import Attr, TableCell
+from weboob.browser.filters.html import Attr, TableCell, Link
 from weboob.browser.filters.json import Dict
 from weboob.exceptions import BrowserPasswordExpired, ActionNeeded
 from weboob.capabilities.bank import Account, Investment
@@ -41,6 +41,11 @@ class QuestionPage(HTMLPage):
     def on_load(self):
         form = self.get_form('//form[@action="/FDL_Complex_FR_Compte/Introduction/SkipQuestionnaire"]')
         form.submit()
+
+
+class ViewPage(LoggedPage, HTMLPage):
+    def skip_tuto(self):
+        return Link('//a[contains(@href, "Skip") and contains(text(), "Suivant")]')(self.doc)
 
 
 class ChangePassPage(LoggedPage, HTMLPage):

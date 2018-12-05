@@ -28,13 +28,14 @@ from weboob.browser.exceptions import HTTPNotFound, ServerError
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
 
 from .pages import LoginPage, AccountsPage, InvestmentPage, HistoryPage, QuestionPage,\
-                   ChangePassPage, LogonFlowPage
+                    ChangePassPage, LogonFlowPage, ViewPage
 
 
 class BinckBrowser(LoginBrowser):
     BASEURL = 'https://web.binck.fr'
 
     login = URL(r'/Logon', LoginPage)
+    view = URL('PersonIntroduction/Index', ViewPage)
     logon_flow = URL(r'/AmlQuestionnairesOverview/LogonFlow$', LogonFlowPage)
     accounts = URL(r'/AccountsOverview',
                    r'/$',
@@ -64,6 +65,8 @@ class BinckBrowser(LoginBrowser):
             )):
                 raise ActionNeeded(error)
             raise AssertionError('Unhandled behavior at login: error is "{}"'.format(error))
+        elif self.view.is_here():
+            self.location(self.page.skip_tuto())
 
     @need_login
     def iter_accounts(self):
