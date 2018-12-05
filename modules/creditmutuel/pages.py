@@ -1845,6 +1845,7 @@ class NewCardsListPage(LoggedPage, HTMLPage):
         def next_page(self):
             other_cards = self.el.xpath('//span/a[contains(text(), "Autres cartes")]')
             if other_cards:
+                self.page.browser.two_cards_page = True
                 return Link(other_cards)(self)
 
         class item(ItemElement):
@@ -1859,6 +1860,10 @@ class NewCardsListPage(LoggedPage, HTMLPage):
             obj__new_space = True
             obj__is_inv = False
             load_details = Field('_link_id') & AsyncLoad
+
+            def obj__secondpage(self):
+                # Necessary to reach the good history page
+                return ('DistributedCards' in self.page.url)
 
             def obj_currency(self):
                 curr = CleanText('.//tbody/tr[1]/td/span')(self)
@@ -1920,4 +1925,9 @@ class NewCardsListPage(LoggedPage, HTMLPage):
                 if m:
                     cards.append(m.group(0).replace(' ', '').replace('X', 'x'))
         return cards
+
+    def get_second_page_link(self):
+        other_cards = self.doc.xpath('//span/a[contains(text(), "Autres cartes")]')
+        if other_cards:
+            return Link(other_cards)(self)
 

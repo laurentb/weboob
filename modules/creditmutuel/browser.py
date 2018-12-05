@@ -181,6 +181,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
             if self.currentSubBank is None:
                 self.getCurrentSubBank()
 
+            self.two_cards_page = None
             self.accounts_list = []
             self.revolving_accounts = []
             self.unavailablecards = []
@@ -192,6 +193,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
             if self.cards_hist_available.is_here():
                 self.unavailablecards.extend(self.page.get_unavailable_cards())
                 for acc in self.page.iter_accounts():
+                    acc._referer = self.cards_hist_available
                     self.accounts_list.append(acc)
                     self.cards_list.append(acc)
                     self.cards_histo_available.append(acc.id)
@@ -201,6 +203,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                 self.unavailablecards.extend(self.page.get_unavailable_cards())
                 for acc in self.page.iter_accounts():
                     if acc not in self.cards_list:
+                        acc._referer = self.cards_hist_available2
                         self.accounts_list.append(acc)
                         self.cards_list.append(acc)
                         self.cards_histo_available.append(acc.id)
@@ -354,6 +357,12 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
             raise NotImplementedError()
 
         if len(account.id) >= 16 and account.id[:16] in self.cards_histo_available:
+            if self.two_cards_page:
+                # In this case, you need to return to the page where the iter account get the cards information
+                # Indeed, for the same position of card in the two pages the url, headers and parameters are exactly the same
+                account._referer.go(subbank=self.currentSubBank)
+                if account._secondpage:
+                    self.location(self.page.get_second_page_link())
             # Check if '000000xxxxxx0000' card have an annual history
             self.location(account._link_id)
             # The history of the card is available for 1 year with 1 month per page
