@@ -232,6 +232,7 @@ class AccountsPage(LoggedPage, CDNBasePage):
     TYPES = {
         u'CARTE':               Account.TYPE_CARD,
         u'COMPTE COURANT':      Account.TYPE_CHECKING,
+        u'CPTE EXPLOITATION IMMOB': Account.TYPE_CHECKING,
         u'CPT COURANT':         Account.TYPE_CHECKING,
         u'CONSEILLE RESIDENT':  Account.TYPE_CHECKING,
         u'PEA':                 Account.TYPE_PEA,
