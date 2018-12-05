@@ -185,6 +185,8 @@ class iter_history_generic(Transaction.TransactionsElement):
     head_xpath = u'//div[*[contains(text(), "opérations")]]/table//thead/tr/th'
     item_xpath = u'//div[*[contains(text(), "opérations")]]/table/tbody/tr[td]'
 
+    col_debittype = 'Mode'
+
     def next_page(self):
         next_page = Link(u'//a[contains(text(), "précédentes")]', default=None)(self)
         if next_page:
@@ -192,7 +194,13 @@ class iter_history_generic(Transaction.TransactionsElement):
 
     class item(Transaction.TransactionElement):
         def obj_type(self):
-            return Transaction.TYPE_CARD if len(self.el.xpath('./td')) > 3 else Transaction.TYPE_BANK
+            if len(self.el.xpath('./td')) <= 3:
+                return Transaction.TYPE_BANK
+
+            debittype = CleanText(TableCell('debittype'))(self)
+            if debittype == 'Différé':
+                return Transaction.TYPE_DEFERRED_CARD
+            return Transaction.TYPE_CARD
 
         def condition(self):
             return TableCell('raw')(self)
