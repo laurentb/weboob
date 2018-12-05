@@ -240,7 +240,15 @@ class TableCell(_Filter):
                         for el in ret:
                             self.highlight_el(el, item)
                         return ret
+
+                    if not ret:
+                        # There might no be no TD at all
+                        # ColumnNotFound seems for case when corresponding header is not found
+                        # Thus for compat return empty
+                        return []
+
                     current_col += int(ret[0].attrib.get('colspan', 1))
+
         return self.default_or_raise(ColumnNotFound('Unable to find column %s' % ' or '.join(self.names)))
 
     def __call__(self, item):
