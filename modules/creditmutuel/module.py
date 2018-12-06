@@ -74,6 +74,8 @@ class CreditMutuelModule(
         for tr in self.browser.get_history(account):
             if tr._is_coming:
                 yield tr
+            else:
+                break
 
     def iter_history(self, account):
         for tr in self.browser.get_history(account):

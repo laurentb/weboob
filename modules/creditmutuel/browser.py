@@ -371,9 +371,9 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
             # Here we catch all the url needed to be the more compatible with the catch of merged subtransactions
             urlstogo = self.page.get_links()
             self.location(account._link_id)
-            monthly_tr = []
             half_history = 'firstHalf'
             for url in urlstogo:
+                transactions = []
                 self.location(url)
                 if 'GoMonthPrecedent' in url:
                     # To reach the 6 last month of history you need to change this url parameter
@@ -382,6 +382,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                 else:
                     history = self.page.get_history()
                     self.tr_date = self.page.get_date()
+                    amount_summary = self.page.get_amount_summary()
                     if self.page.has_more_operations():
                         for i in range(1, 100):
                             # Arbitrary range; it's the number of click needed to access to the full history of the month (stop with the next break)
@@ -409,8 +410,6 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                     else:
                         history = self.page.get_history(date=self.tr_date)
 
-                    merged_amount = 0
-                    monthly_tr = []
                     for tr in history:
                         if tr._regroup:
                             self.location(tr._regroup)
@@ -418,61 +417,65 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                                 tr2._is_coming = tr._is_coming
                                 tr2.date = self.tr_date
                                 transactions.append(tr2)
-                                merged_amount += tr2.amount
                         else:
                             transactions.append(tr)
-                            monthly_tr.append(tr)
 
-                    monthly_summary = self.get_monthly_transactions(monthly_tr)
-                    if monthly_summary:
-                        monthly_summary[0].amount =  abs(monthly_summary[0].amount - merged_amount)
-                        transactions.extend(monthly_summary)
-                        monthly_summary = []
+                    if transactions and self.tr_date < datetime.today().date():
+                        tr = FrenchTransaction()
+                        tr.raw = tr.label = "RELEVE CARTE %s" % self.tr_date
+                        tr.amount = amount_summary
+                        tr.date = tr.rdate = tr.vdate = self.tr_date
+                        tr.type = FrenchTransaction.TYPE_CARD_SUMMARY
+                        tr._is_coming = False
+                        tr._is_manualsum = True
+                        transactions.append(tr)
 
-            return sorted_transactions(transactions)
+                    for tr in sorted_transactions(transactions):
+                        yield tr
 
-        # need to refresh the months select
-        elif account._link_id.startswith('ENC_liste_oper'):
-            self.location(account._pre_link)
+        else:
+            # need to refresh the months select
+            if account._link_id.startswith('ENC_liste_oper'):
+                self.location(account._pre_link)
 
-        if not hasattr(account, '_card_pages'):
-            for tr in self.list_operations(account._link_id, account):
-                transactions.append(tr)
+            if not hasattr(account, '_card_pages'):
+                for tr in self.list_operations(account._link_id, account):
+                    transactions.append(tr)
 
-        coming_link = self.page.get_coming_link() if self.operations.is_here() else None
-        if coming_link is not None:
-            for tr in self.list_operations(coming_link, account):
-                transactions.append(tr)
+            coming_link = self.page.get_coming_link() if self.operations.is_here() else None
+            if coming_link is not None:
+                for tr in self.list_operations(coming_link, account):
+                    transactions.append(tr)
 
-        differed_date = None
-        cards = ([page.select_card(account._card_number) for page in account._card_pages]
-                 if hasattr(account, '_card_pages')
-                 else account._card_links if hasattr(account, '_card_links') else [])
-        for card in cards:
-            card_trs = []
-            for tr in self.list_operations(card, account):
-                if tr._to_delete:
-                    # Delete main transaction when subtransactions exist
-                    continue
-                if hasattr(tr, '_differed_date') and (not differed_date or tr._differed_date < differed_date):
-                    differed_date = tr._differed_date
-                if tr.date >= datetime.now():
-                    tr._is_coming = True
-                elif hasattr(account, '_card_pages'):
-                    card_trs.append(tr)
-                transactions.append(tr)
-            if card_trs:
-                transactions.extend(self.get_monthly_transactions(card_trs))
+            differed_date = None
+            cards = ([page.select_card(account._card_number) for page in account._card_pages]
+                     if hasattr(account, '_card_pages')
+                     else account._card_links if hasattr(account, '_card_links') else [])
+            for card in cards:
+                card_trs = []
+                for tr in self.list_operations(card, account):
+                    if tr._to_delete:
+                        # Delete main transaction when subtransactions exist
+                        continue
+                    if hasattr(tr, '_differed_date') and (not differed_date or tr._differed_date < differed_date):
+                        differed_date = tr._differed_date
+                    if tr.date >= datetime.now():
+                        tr._is_coming = True
+                    elif hasattr(account, '_card_pages'):
+                        card_trs.append(tr)
+                    transactions.append(tr)
+                if card_trs:
+                    transactions.extend(self.get_monthly_transactions(card_trs))
 
-        if differed_date is not None:
-            # set deleted for card_summary
-            for tr in transactions:
-                tr.deleted = (tr.type == FrenchTransaction.TYPE_CARD_SUMMARY
-                              and differed_date.month <= tr.date.month
-                              and not hasattr(tr, '_is_manualsum'))
+            if differed_date is not None:
+                # set deleted for card_summary
+                for tr in transactions:
+                    tr.deleted = (tr.type == FrenchTransaction.TYPE_CARD_SUMMARY
+                                  and differed_date.month <= tr.date.month
+                                  and not hasattr(tr, '_is_manualsum'))
 
-        transactions = sorted_transactions(transactions)
-        return transactions
+            for tr in sorted_transactions(transactions):
+                yield tr
 
     @need_login
     def get_investment(self, account):
