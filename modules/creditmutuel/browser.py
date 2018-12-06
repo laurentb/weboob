@@ -225,6 +225,8 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                         card._link_id = card2._link_id
                         card._parent_id = card2._parent_id
                         card.coming = card2.coming
+                        card._referer = card2._referer
+                        card._secondpage = card2._secondpage
                         self.accounts_list.remove(card2)
                     self.accounts_list.append(card)
                     self.cards_list.append(card)

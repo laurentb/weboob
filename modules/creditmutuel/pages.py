@@ -601,6 +601,8 @@ class CardsListPage(LoggedPage, HTMLPage):
                             card._link_id = card2._link_id
                             card._parent_id = card2._parent_id
                             card.coming = card2.coming
+                            card._referer = card2._referer
+                            card._secondpage = card2._secondpage
                             self.page.browser.accounts_list.remove(card2)
                         self.page.browser.accounts_list.append(card)
                         self.page.browser.cards_list.append(card)
