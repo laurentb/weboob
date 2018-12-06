@@ -389,9 +389,12 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                 account._form.submit()
 
             if self.calie.is_here():
-                # Get back to Synthèse
+                for inv in self.page.iter_investment():
+                    yield inv
+                # Get back to Life Insurance space
                 self.assurancevie.go()
                 return
+
             # Some users will get a message : "Ne détenant pas de compte dépôt
             # chez LCL, l'accès à ce service vous est indisponible."
             if self.form2.is_here() and self.page.assurancevie_hist_not_available():

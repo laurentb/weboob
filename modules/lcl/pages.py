@@ -41,7 +41,7 @@ from weboob.browser.exceptions import ServerError
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage, FormNotFound, pagination
 from weboob.browser.filters.html import Attr, Link, TableCell, AttributeNotFound
 from weboob.browser.filters.standard import (
-    CleanText, Field, Regexp, Format, Date, CleanDecimal, Map, AsyncLoad, Async, Env, Slugify, BrowserURL,
+    CleanText, Field, Regexp, Format, Date, CleanDecimal, Map, AsyncLoad, Async, Env, Slugify, BrowserURL, Eval,
 )
 from weboob.browser.filters.json import Dict
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
@@ -786,11 +786,51 @@ class Form2Page(LoggedPage, LCLBasePage):
         return form.submit()
 
 
+class CalieTableElement(TableElement):
+    # We need to set the first column to 1 otherwise
+    # there is a shift between column titles and contents
+    def get_colnum(self, name):
+        return super(CalieTableElement, self).get_colnum(name) + 1
+
+
 class CaliePage(LoggedPage, HTMLPage):
     def on_load(self):
         # TODO raise the ActionNeeded when backend handles it.
         if self.doc.xpath('//button[@id="acceptDisclaimerButton"]'):
             self.logger.warning('Action Needed on website: %s', CleanText('//div[@class="data-header"]')(self.doc))
+
+    @method
+    class iter_investment(CalieTableElement):
+        # Careful, <table> contains many nested <table/tbody/tr/td>
+        # Two first lines are titles, two last are investment sum-ups
+        item_xpath = '//table[@class="dxgvTable dxgvRBB"]//tr[position() > 2 and position() < last()-1]'
+        head_xpath = '//table[@class="dxgvTable dxgvRBB"]//tr[1]/td//tr/td[1]'
+
+        col_label = 'Support'
+        col_vdate = 'Date de valeur'
+        col_original_valuation = 'Valeur dans la devise du support'
+        col_valuation = 'Valeur dans la devise du support (EUR)'
+        col_unitvalue = 'Valeur unitaire'
+        col_quantity = 'Parts'
+        col_diff = 'Performance'
+        col_portfolio_share = 'Répartition (%)'
+
+        class item(ItemElement):
+            klass = Investment
+
+            obj_label = CleanText(TableCell('label'))
+            obj_original_valuation = CleanDecimal(TableCell('original_valuation'), replace_dots=True)
+            obj_valuation = CleanDecimal(TableCell('valuation'), replace_dots=True)
+            obj_vdate = Date(CleanText(TableCell('vdate')))
+            obj_unitvalue = CleanDecimal(TableCell('unitvalue'), replace_dots=True)
+            obj_quantity = CleanDecimal(TableCell('quantity'), replace_dots=True)
+            obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal(TableCell('portfolio_share')))
+            obj_diff = CleanDecimal(TableCell('diff'))
+
+            # Unfortunately on the Calie space the links to the
+            # invest details return Forbidden even on the website
+            obj_code = NotAvailable
+            obj_code_type = NotAvailable
 
 
 class AVDetailPage(LoggedPage, LCLBasePage):
