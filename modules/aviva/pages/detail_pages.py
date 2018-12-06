@@ -29,6 +29,7 @@ from weboob.capabilities.bank import Investment, Transaction
 from weboob.capabilities.base import NotAvailable
 from weboob.exceptions import ActionNeeded, BrowserUnavailable
 from weboob.tools.compat import urljoin
+from weboob.tools.capabilities.bank.investments import is_isin_valid
 
 
 def MyDecimal(*args, **kwargs):
@@ -88,6 +89,11 @@ class InvestmentPage(LoggedPage, HTMLPage):
                 CleanText('./td[@data-label="Nom du support"]/a/@onclick'), r'"([A-Z]{2}[0-9]{10})"',
                 default=NotAvailable
             )
+
+            def obj_code_type(self):
+                if is_isin_valid(Field('code')(self)):
+                    return Investment.CODE_TYPE_ISIN
+                return NotAvailable
 
             def obj_label(self):
                 if not CleanText('./td[@data-label="Nom du support"]')(self):
