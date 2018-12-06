@@ -23,6 +23,8 @@ from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import ClientError
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.tools.json import json
+from weboob.tools.capabilities.bank.investments import create_french_liquidity
+from weboob.capabilities.base import Currency
 
 from dateutil.relativedelta import relativedelta
 
@@ -87,7 +89,9 @@ class DegiroBrowser(LoginBrowser):
         if account.id not in self.invs:
             staging = '_s' if 'staging' in self.sessionId else ''
             self.accounts.stay_or_go(staging=staging, accountId=self.intAccount, sessionId=self.sessionId)
-            self.invs[account.id] = list(self.page.iter_investment())
+            invests = list(self.page.iter_investment(currency=account.currency))
+            # Replace as liquidities investments that are cash
+            self.invs[account.id] = [create_french_liquidity(inv.valuation) if len(inv.label) < 4 and Currency.get_currency(inv.label) else inv for inv in invests]
         return self.invs[account.id]
 
     @need_login

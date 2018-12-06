@@ -60,12 +60,8 @@ class AccountsPage(LoggedPage, JsonPage):
         klass = Account
 
         def obj_balance(self):
-            d = list_to_dict(self.el['totalPortfolio']['value'])
-            if 'reportNetliq' in d:
-                return Decimal(str(d['reportNetliq']))
-
             return CleanDecimal().filter(sum(
-                [abs(round(y['value']['EUR'], 2)) for x in Dict('portfolio/value')(self) for y in x['value'] if y['name'] == 'todayPlBase']
+                [round(y['value'], 2) for x in Dict('portfolio/value')(self) for y in x['value'] if y['name'] == 'value']
                 ))
 
         def obj_id(self):
@@ -89,14 +85,18 @@ class AccountsPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Investment
 
+            def condition(self):
+                return Decimal(str(list_to_dict(self.el['value'])['size']))
+
+            obj_unitvalue = Env('unitvalue', default=NotAvailable)
+            obj_original_currency = Env('original_currency', default=NotAvailable)
+            obj_original_unitvalue = Env('original_unitvalue', default=NotAvailable)
+
             def obj__product_id(self):
                 return str(list_to_dict(self.el['value'])['id'])
 
             def obj_quantity(self):
                 return Decimal(str(list_to_dict(self.el['value'])['size']))
-
-            def obj_unitvalue(self):
-                return Decimal(str(list_to_dict(self.el['value'])['price']))
 
             def obj_valuation(self):
                 return Decimal(str(list_to_dict(self.el['value'])['value']))
@@ -117,11 +117,19 @@ class AccountsPage(LoggedPage, JsonPage):
                     return Investment.CODE_TYPE_ISIN
                 return NotAvailable
 
-            def obj_original_currency(self):
-                return self._product()['currency']
-
             def _product(self):
                 return self.page.browser.get_product(str(Field('_product_id')(self)))
+
+            def parse(self, el):
+                currency = self._product()['currency']
+                unitvalue = Decimal(str(list_to_dict(self.el['value'])['price']))
+
+                if currency == self.env['currency']:
+                    self.env['unitvalue'] = unitvalue
+                else:
+                    self.env['original_unitvalue'] = unitvalue
+
+                self.env['original_currency'] = currency
 
 
 class InvestmentPage(LoggedPage, JsonPage):
