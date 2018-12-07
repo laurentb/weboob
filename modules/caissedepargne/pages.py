@@ -210,10 +210,17 @@ class IndexPage(LoggedPage, HTMLPage):
 
         # For now, we have to handle this because after this warning message,
         # the user is disconnected (even if all others account are reachable)
-        if 'NA_OIC_QCF' in self.browser.url:
-            message = CleanText(self.doc.xpath('//span[contains(@id, "MM_NA_OIC_QCF")]/p'))(self)
-            if message and "investissement financier (QCF) n’est plus valide à ce jour ou que vous avez refusé d’y répondre" in message:
-                raise ActionNeeded(message)
+        if 'OIC_QCF' in self.browser.url:
+            # QCF is a mandatory test to make sure you know the basics about financials products
+            # however, you can still choose to postpone it. hence the continue link
+            link = Link('//span[@id="lea-prdvel-lien"]/p/b/a[contains(text(), "Continuer")]')(self.doc)
+            if link:
+                self.logger.warning("By-passing QCF")
+                self.browser.location(link)
+            else:
+                message = CleanText(self.doc.xpath('//span[contains(@id, "OIC_QCF")]/p'))(self)
+                if message and "investissement financier (QCF) n’est plus valide à ce jour ou que vous avez refusé d’y répondre" in message:
+                    raise ActionNeeded(message)
 
         # This page is sometimes an useless step to the market website.
         bourse_link = Link(u'//div[@id="MM_COMPTE_TITRE_pnlbourseoic"]//a[contains(text(), "Accédez à la consultation")]', default=None)(self.doc)
