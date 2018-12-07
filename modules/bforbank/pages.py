@@ -378,3 +378,11 @@ class BourseActionNeeded(LoggedPage, HTMLPage):
 class BoursePage(AbstractPage):
     PARENT = 'lcl'
     PARENT_URL = 'bourse'
+
+
+class BourseDisconnectPage(LoggedPage, HTMLPage):
+    def get_relocation(self):
+        link = re.search(r"window\.location= \'(.+)\';", self.content)
+        if link:
+            m = link.group(1)
+            return m

@@ -30,6 +30,7 @@ from .pages import (
     LoginPage, ErrorPage, AccountsPage, HistoryPage, LoanHistoryPage, RibPage,
     LifeInsuranceList, LifeInsuranceIframe, LifeInsuranceRedir,
     BoursePage, CardHistoryPage, CardPage, UserValidationPage, BourseActionNeeded,
+    BourseDisconnectPage,
 )
 from .spirica_browser import SpiricaBrowser
 
@@ -65,6 +66,8 @@ class BforbankBrowser(LoginBrowser):
                  'https://bourse.bforbank.com/netfinca-titres/servlet/com.netfinca.frontcr.account.*',
                  BoursePage)
     bourse_titre = URL(r'https://bourse.bforbank.com/netfinca-titres/servlet/com.netfinca.frontcr.navigation.Titre', BoursePage)  # to get logout link
+
+    bourse_disco = URL(r'https://bourse.bforbank.com/netfinca-titres/servlet/com.netfinca.frontcr.login.ContextTransferDisconnect', BourseDisconnectPage)
 
     def __init__(self, birthdate, username, password, *args, **kwargs):
         super(BforbankBrowser, self).__init__(username, password, *args, **kwargs)
@@ -296,4 +299,4 @@ class BforbankBrowser(LoginBrowser):
         if self.bourse.is_here():
             self.location(self.bourse_titre.build())
             self.location(self.page.get_logout_link())
-            self.do_login()
+            self.location(self.page.get_relocation())
