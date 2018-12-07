@@ -841,11 +841,9 @@ class LifeInsurance(MarketPage):
             yield inv
 
     def split_label_code(self, libelle):
-        m = re.search('FR\d+', libelle[-1])
-        if m:
+        if is_isin_valid(libelle[-1]):
             return ' '.join(libelle[:-1]), libelle[-1]
-        else:
-            return ' '.join(libelle), NotAvailable
+        return ' '.join(libelle), NotAvailable
 
 
 class NatixisLIHis(LoggedPage, JsonPage):
