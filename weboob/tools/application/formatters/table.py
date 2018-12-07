@@ -46,6 +46,12 @@ class TableFormatter(IFormatter):
         if len(self.queue) == 0:
             return
 
+        if self.interactive:
+            # Insert indices at the beginning of each line
+            self.keys.insert(0, '#')
+            for i in range(len(self.queue)):
+                self.queue[i].insert(0, i+1)
+
         queue = [() for i in range(len(self.queue))]
         column_headers = []
         # Do not display columns when all values are NotLoaded or NotAvailable
