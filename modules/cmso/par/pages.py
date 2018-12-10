@@ -419,31 +419,27 @@ class MarketPage(LoggedPage, HTMLPage):
     def find_account(self, acclabel, accowner):
         accowner = sorted(accowner.lower().split()) # first name and last name may not be ordered the same way on market site...
 
+        def get_ids(ref, acclabel, accowner):
+            ids = None
+            for a in self.doc.xpath('//a[contains(@%s, "indiceCompte")]' % ref):
+                self.logger.debug("get investment from %s" % ref)
+                label = CleanText('.')(a)
+                owner = CleanText('./ancestor::tr/preceding-sibling::tr[@class="LnMnTiers"][1]')(a)
+                owner = re.sub(r' \(.+', '', owner)
+                owner = sorted(owner.lower().split())
+                if label == acclabel and owner == accowner:
+                    ids = list(re.search(r'indiceCompte[^\d]+(\d+).*idRacine[^\d]+(\d+)', Attr('.', ref)(a)).groups())
+                    ids.append(CleanText('./ancestor::td/preceding-sibling::td')(a))
+                    self.logger.debug("assign value to ids: {}".format(ids))
+            return ids
+
         # Check if history is present
         if CleanText(default=None).filter(self.doc.xpath('//body/p[contains(text(), "indisponible pour le moment")]')):
             return False
 
-        ids = None
-        for a in self.doc.xpath('//a[contains(@onclick, "indiceCompte")]'):
-            self.logger.debug("get investment from onclick")
+        ref = CleanText(self.doc.xpath('//a[contains(@href, "indiceCompte")]'))(self)
+        return get_ids('onclick', acclabel, accowner) if not ref else get_ids('href', acclabel, accowner)
 
-            label = CleanText('.')(a)
-            owner = CleanText('./ancestor::tr/preceding-sibling::tr[@class="LnMnTiers"][1]')(a)
-            owner = sorted(owner.lower().split())
-
-            if label == acclabel and owner == accowner:
-                ids = list(re.search(r'indiceCompte[^\d]+(\d+).*idRacine[^\d]+(\d+)', Attr('.', 'onclick')(a)).groups())
-                ids.append(CleanText('./ancestor::td/preceding-sibling::td')(a))
-                self.logger.debug("assign value to ids: {}".format(ids))
-                return ids
-
-        for a in self.doc.xpath('//a[contains(@href, "indiceCompte")]'):
-            self.logger.debug("get investment from href")
-            if CleanText('.')(a) == acclabel:
-                ids = list(re.search(r'indiceCompte[^\d]+(\d+).*idRacine[^\d]+(\d+)', Attr('.', 'href')(a)).groups())
-                ids.append(CleanText('./ancestor::td/preceding-sibling::td')(a))
-                self.logger.debug("assign value to ids: {}".format(ids))
-                return ids
 
     def get_account_id(self, acclabel, owner):
         account = self.find_account(acclabel, owner)
