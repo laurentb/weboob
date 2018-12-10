@@ -751,6 +751,9 @@ class SavingsPage(AccountsPage):
 
 
 class TransactionsPage(MyLoggedPage, BasePage):
+    def get_missing_balance(self):
+        return CleanDecimal('//td[contains(text(), "Solde")]/following-sibling::td', replace_dots=True)(self.doc)
+
     def get_iban_url(self):
         for link in self.doc.xpath('//a[contains(text(), "RIB")] | //a[contains(text(), "IBAN")]'):
             m = re.search("\('([^']+)'", link.get('href', ''))

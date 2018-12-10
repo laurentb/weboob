@@ -28,7 +28,7 @@ from weboob.capabilities.bank import (
     Account, AddRecipientStep, AddRecipientBankError, RecipientInvalidLabel,
     Recipient, AccountNotFound,
 )
-from weboob.capabilities.base import NotLoaded, find_object
+from weboob.capabilities.base import NotLoaded, find_object, empty
 from weboob.capabilities.profile import ProfileMissing
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.browser.pages import FormNotFound
@@ -352,6 +352,11 @@ class Cragr(LoginBrowser, StatesMixin):
         self.location(self.savings_url.format(self.sag))
         if self.savings.is_here():
             for account in self.page.iter_accounts():
+                # The balance of some Savings accounts is unavailable on this page
+                # so we fetch the account balance on the account details page:
+                if account.type == Account.TYPE_SAVINGS and empty(account.balance):
+                    self.location(account.url.format(self.sag))
+                    account.balance = self.page.get_missing_balance()
                 if account not in accounts_list:
                     accounts_list.append(account)
 
