@@ -131,3 +131,7 @@ class ProfilePage(LoggedPage, JsonPage):
         p.email = data['mail']
 
         return p
+
+
+class BillDownload(LoggedPage, RawPage):
+    pass

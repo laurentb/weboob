@@ -26,7 +26,7 @@ from weboob.exceptions import BrowserIncorrectPassword, NocaptchaQuestion
 from weboob.tools.json import json
 from .pages import (
     HomePage, AuthenticatePage, AuthorizePage, CheckAuthenticatePage, ProfilPage,
-    DocumentsPage, WelcomePage, UnLoggedPage, ProfilePage,
+    DocumentsPage, WelcomePage, UnLoggedPage, ProfilePage, BillDownload,
 )
 
 
@@ -46,7 +46,7 @@ class EdfBrowser(LoginBrowser):
     bill_informations = URL('/services/rest/document/dataUserDocumentGetX', DocumentsPage)
     bill_download = URL(r'/services/rest/document/getDocumentGetXByData'
                         r'\?csrfToken=(?P<csrf_token>.*)&dn=(?P<dn>.*)&pn=(?P<pn>.*)'
-                        r'&di=(?P<di>.*)&bn=(?P<bn>.*)&an=(?P<an>.*)')
+                        r'&di=(?P<di>.*)&bn=(?P<bn>.*)&an=(?P<an>.*)', BillDownload)
     profile = URL('/services/rest/context/getCustomerContext', ProfilePage)
 
     def __init__(self, config, *args, **kwargs):
