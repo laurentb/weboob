@@ -73,6 +73,8 @@ class BinckBrowser(LoginBrowser):
         for a in self.accounts.go().iter_accounts():
             try:
                 self.accounts.stay_or_go().go_toaccount(a.id)
+                if self.view.is_here():
+                    self.location(self.page.skip_tuto())
             except ServerError as exception:
                 # get html error to parse
                 parser = etree.HTMLParser()
