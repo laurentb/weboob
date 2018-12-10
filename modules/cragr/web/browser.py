@@ -723,6 +723,13 @@ class Cragr(LoginBrowser, StatesMixin):
             # check before send sms code because it can crash website if code is invalid
             raise AddRecipientBankError("SMS code %s is invalid" % params['sms_code'])
 
+        if self.perimeters:
+            accounts = list(self.get_accounts_list())
+            assert recipient.origin_account_id, 'Origin account id is mandatory for multispace'
+            account = find_object(accounts, id=recipient.origin_account_id, error=AccountNotFound)
+            if account._perimeter != self.current_perimeter:
+                self.go_perimeter(account._perimeter)
+
         self.transfer_init_page.go(sag=self.sag)
         assert self.transfer_init_page.is_here()
 
