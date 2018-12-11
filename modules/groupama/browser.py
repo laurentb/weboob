@@ -89,6 +89,8 @@ class GroupamaBrowser(LoginBrowser):
         return accounts
 
     def _get_history(self, account):
+        if "front/vie" in account._link:
+            return []
         accounts = self.get_accounts_list(balance=False)
         for a in accounts:
             if a.id == account.id:
@@ -101,7 +103,7 @@ class GroupamaBrowser(LoginBrowser):
                     return self.page.get_av_history()
                 assert self.transactions.is_here()
                 return self.page.get_history(accid=account.id)
-        return iter([])
+        return []
 
     # Duplicate line in case of arbitration because the site has only one line for the 2 transactions (debit and credit on the same line)
     def get_history(self, account):
@@ -114,7 +116,7 @@ class GroupamaBrowser(LoginBrowser):
 
     def get_coming(self, account):
         if account.type == Account.TYPE_LIFE_INSURANCE:
-            return iter([])
+            return []
         for a in self.get_accounts_list():
             if a.id == account.id:
                 self.location(a._link)
@@ -124,11 +126,11 @@ class GroupamaBrowser(LoginBrowser):
                     self.location(self.page.get_coming_link())
                     assert self.transactions.is_here()
                     return self.page.get_history(accid=account.id)
-        return iter([])
+        return []
 
     def get_investment(self, account):
         if account.type != Account.TYPE_LIFE_INSURANCE:
-            return iter([])
+            return []
         for a in self.get_accounts_list(balance=False):
             if a.id == account.id:
                 # There isn't any invest on AV having front/vie
@@ -138,4 +140,4 @@ class GroupamaBrowser(LoginBrowser):
                     self.page.av_account_form()
                     if self.av_account.is_here():
                         return self.page.get_av_investments()
-        return iter([])
+        return []
