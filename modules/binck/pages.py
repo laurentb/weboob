@@ -22,9 +22,9 @@ from __future__ import unicode_literals
 import re
 
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
-from weboob.browser.elements import ItemElement, TableElement, DictElement, method
+from weboob.browser.elements import ItemElement, ListElement, DictElement, method
 from weboob.browser.filters.standard import CleanText, Date, Format, CleanDecimal, Eval, Env, Field
-from weboob.browser.filters.html import Attr, TableCell, Link
+from weboob.browser.filters.html import Attr, Link
 from weboob.browser.filters.json import Dict
 from weboob.exceptions import BrowserPasswordExpired, ActionNeeded
 from weboob.capabilities.bank import Account, Investment
@@ -51,7 +51,8 @@ class ViewPage(LoggedPage, HTMLPage):
 
 class ChangePassPage(LoggedPage, HTMLPage):
     def on_load(self):
-        raise BrowserPasswordExpired()
+        message = CleanText('//h3')(self.doc)
+        raise BrowserPasswordExpired(message)
 
 
 class LogonFlowPage(HTMLPage):
@@ -71,50 +72,55 @@ class LoginPage(HTMLPage):
 
 
 class AccountsPage(LoggedPage, HTMLPage):
-    TYPES = {'LIVRET':         Account.TYPE_SAVINGS,
-             'COMPTE-TITRES':  Account.TYPE_MARKET,
-             'PEA-PME':        Account.TYPE_PEA,
-             'PEA':            Account.TYPE_PEA
+    TYPES = {'L': Account.TYPE_SAVINGS,
+             'CT': Account.TYPE_MARKET,
+             'PEA': Account.TYPE_PEA,
+             'PEA-PME': Account.TYPE_PEA,
+             'AV': Account.TYPE_LIFE_INSURANCE,
             }
-
-    def go_toaccount(self, number):
-        form = self.get_form('//form[contains(@action, "Switch")]')
-        form['accountNumber'] = number
-        form.submit()
-
-    def get_iban(self):
-        return CleanText('//div[@class="iban"]/text()', replace=[(' ', '')], default=NotAvailable)(self.doc)
 
     def get_token(self):
         return [{Attr('.', 'name')(input): Attr('.', 'value')(input)} \
             for input in self.doc.xpath('//input[contains(@name, "Token")]')][0]
 
-    def is_investment(self):
-        # warning: the link can be present even in case of non-investement account
-        return CleanText('//a[contains(@href, "Portfolio")]', default=False)(self.doc)
-
     @method
-    class iter_accounts(TableElement):
-        item_xpath = '//table[contains(@class, "accountsTable")]/tbody/tr'
-        head_xpath = '//table[contains(@class, "accountsTable")]/thead/tr/th'
-
-        col_label = 'Intitulé du compte'
-        col_balance = 'Total Portefeuille'
-        col_liquidity = 'Espèces'
+    class iter_accounts(ListElement):
+        # Tables have no headers so we must use ListElement.
+        # We use the 'has-class("")' to skip Life Insurance ads
+        item_xpath = '//table[contains(@class, "accountoverview-table")]/tbody/tr[has-class("")]'
 
         class item(ItemElement):
             klass = Account
 
-            obj_id = Attr('.', 'data-accountnumber')
-            obj_label = CleanText(TableCell('label'))
-            obj_balance = MyDecimal(TableCell('balance'))
-            obj__liquidity = MyDecimal(TableCell('liquidity'))
+            obj_id = Attr('.', 'data-account-number')
+            obj_balance = MyDecimal('.//div[contains(text(), "Total des avoirs")]/following::strong[1]')
+            obj__liquidity = MyDecimal('.//div[contains(text(), "Espèces")]/following::strong[1]')
+
+            def obj_label(self):
+                raw_label = ' '.join(CleanText('./td[1]')(self).split()[1:])
+                # Remove IBAN from label:
+                return re.sub(' [A-Z\d]{16,}', '', raw_label)
+
+            def obj_iban(self):
+                return CleanText('.//h6')(self) or NotAvailable
 
             def obj_type(self):
-                return self.page.TYPES.get(CleanText('./ancestor::section[h1]/h1')(self).upper(), Account.TYPE_UNKNOWN)
+                return self.page.TYPES.get(CleanText('.//div[contains(@class, "circle-background")]/span')(self), Account.TYPE_UNKNOWN)
 
             def obj_currency(self):
-                return Account.get_currency(CleanText(TableCell('balance'))(self))
+                return Account.get_currency(CleanText('.//div[contains(text(), "Total des avoirs")]/following::strong[1]')(self))
+
+
+class HomePage(AccountsPage):
+    pass
+
+
+class SwitchPage(LoggedPage, HTMLPage):
+    pass
+
+
+class DetailsPage(LoggedPage, HTMLPage):
+    pass
 
 
 class InvestmentPage(LoggedPage, JsonPage):
