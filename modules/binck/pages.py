@@ -23,13 +23,14 @@ import re
 
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
 from weboob.browser.elements import ItemElement, TableElement, DictElement, method
-from weboob.browser.filters.standard import CleanText, Date, Format, CleanDecimal, Eval, Env
+from weboob.browser.filters.standard import CleanText, Date, Format, CleanDecimal, Eval, Env, Field
 from weboob.browser.filters.html import Attr, TableCell, Link
 from weboob.browser.filters.json import Dict
 from weboob.exceptions import BrowserPasswordExpired, ActionNeeded
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.capabilities.bank.investments import is_isin_valid
 
 
 def MyDecimal(*args, **kwargs):
@@ -128,7 +129,6 @@ class InvestmentPage(LoggedPage, JsonPage):
             klass = Investment
 
             obj_label = Dict('SecurityName')
-            obj_code = Dict('IsinCode')
             obj_quantity = MyDecimal(Dict('Quantity'))
             obj_vdate = Env('vdate')
             obj_unitvalue = Env('unitvalue', default=NotAvailable)
@@ -141,6 +141,18 @@ class InvestmentPage(LoggedPage, JsonPage):
             obj_original_unitprice = Env('o_unitprice', default=NotAvailable)
             obj_original_valuation = Env('o_valuation', default=NotAvailable)
             obj_original_diff = Env('o_diff', default=NotAvailable)
+
+            def obj_code(self):
+                if is_isin_valid(Dict('IsinCode')(self)):
+                    return Dict('IsinCode')(self)
+                elif "espèces" in Field('label')(self).lower():
+                    return "XX-liquidity"
+                return NotAvailable
+
+            def obj_code_type(self):
+                if is_isin_valid(Field('code')(self)):
+                    return Investment.CODE_TYPE_ISIN
+                return NotAvailable
 
             def parse(self, el):
                 if self.env['currency'] != CleanText(Dict('CurrencyCode'))(self):
