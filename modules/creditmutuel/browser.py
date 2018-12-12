@@ -90,7 +90,8 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
     info =        URL(r'/(?P<subbank>.*)fr/banque/BAD.*',                    EmptyPage)
     change_pass = URL(r'/(?P<subbank>.*)fr/validation/change_password.cgi',
                       '/fr/services/change_password.html', ChangePasswordPage)
-    verify_pass = URL(r'/(?P<subbank>.*)fr/validation/verif_code.cgi.*',     VerifCodePage)
+    verify_pass = URL(r'/(?P<subbank>.*)fr/validation/verif_code.cgi.*',
+                      r'/(?P<subbank>.*)fr/validation/lst_codes.cgi.*', VerifCodePage)
     new_home =    URL(r'/(?P<subbank>.*)fr/banque/pageaccueil.html',
                       r'/(?P<subbank>.*)banque/welcome_pack.html', NewHomePage)
     empty =       URL(r'/(?P<subbank>.*)fr/banques/index.html',
