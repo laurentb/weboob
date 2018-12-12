@@ -24,6 +24,7 @@ from functools import wraps
 import re
 import pickle
 import base64
+from hashlib import sha256
 import zlib
 from functools import reduce
 try:
@@ -45,10 +46,10 @@ try:
 except ImportError:
     raise ImportError('Please install python-requests >= 2.0')
 
-from weboob.exceptions import BrowserHTTPSDowngrade, ModuleInstallError
+from weboob.exceptions import BrowserHTTPSDowngrade, ModuleInstallError, BrowserRedirect, BrowserIncorrectPassword
 
 from weboob.tools.log import getLogger
-from weboob.tools.compat import basestring, unicode, urlparse, urljoin
+from weboob.tools.compat import basestring, unicode, urlparse, urljoin, quote_plus, parse_qsl
 from weboob.tools.json import json
 
 from .cookies import WeboobCookieJar
@@ -949,3 +950,116 @@ class AbstractBrowser(Browser):
 
         cls.__bases__ = (parent,)
         return object.__new__(cls)
+
+
+class OAuth2Mixin(StatesMixin):
+    AUTHORIZATION_URI = None
+    ACCESS_TOKEN_URI = None
+
+    client_id = None
+    client_secret = None
+    redirect_uri = None
+    access_token = None
+    access_token_expire = None
+    auth_uri = None
+    token_type = None
+    refresh_token = None
+
+    def __init__(self, *args, **kwargs):
+        super(OAuth2Mixin, self).__init__(*args, **kwargs)
+        self.__states__ += ('access_token', 'access_token_expire', 'refresh_token', 'token_type')
+
+    def build_request(self, *args, **kwargs):
+        headers = kwargs.setdefault('headers', {})
+        if self.access_token:
+            headers['Authorization'] = '{} {}'.format(self.token_type, self.access_token)
+        return super(OAuth2Mixin, self).build_request(*args, **kwargs)
+
+    def dump_state(self):
+        self.access_token_expire = unicode(self.access_token_expire) if self.access_token_expire else None
+        return super(OAuth2Mixin, self).dump_state()
+
+    def load_state(self, state):
+        super(OAuth2Mixin, self).load_state(state)
+        self.access_token_expire = parser.parse(self.access_token_expire) if self.access_token_expire else None
+
+    @property
+    def logged(self):
+        return self.access_token is not None and self.access_token_expire > datetime.now()
+
+    def do_login(self):
+        if self.refresh_token:
+            self.use_refresh_token()
+        elif self.auth_uri:
+            self.request_access_token(self.auth_uri)
+        else:
+            self.request_authorization()
+
+    def build_authorization_uri(self):
+        return self.AUTHORIZATION_URI % {'redirect_uri':    quote_plus(self.redirect_uri),
+                                         'client_id': quote_plus(self.client_id)}
+
+    def request_authorization(self):
+        raise BrowserRedirect(self.build_authorization_uri())
+
+    def build_access_token_parameters(self, values):
+        return {'code' : values['code'],
+                'grant_type' : 'authorization_code',
+                'redirect_uri' : self.redirect_uri,
+                }
+
+    def request_access_token(self, auth_uri):
+        values = dict(parse_qsl(urlparse(auth_uri).query))
+        data = self.build_access_token_parameters(values)
+        try:
+             auth_response = self.open(self.ACCESS_TOKEN_URI, method="POST", data=data).json()
+        except ClientError:
+            raise BrowserIncorrectPassword()
+
+        self.token_type = auth_response['token_type']
+        if 'refresh_token' in auth_response:
+            self.refresh_token = auth_response['refresh_token']
+        self.access_token = auth_response['access_token']
+        self.access_token_expire = datetime.now() + timedelta(seconds=int(auth_response['expires_in']))
+
+    def use_refresh_token(self):
+        data = {'grant_type':       'refresh_token',
+                'refresh_token':    self.refresh_token,
+               }
+        try:
+             auth_response = self.open(self.ACCESS_TOKEN_URI, method="POST", data=data).json()
+        except ClientError:
+            raise BrowserIncorrectPassword()
+
+        if 'refresh_token' in auth_response:
+            self.refresh_token = auth_response['refresh_token']
+        self.access_token = auth_response['access_token']
+        self.access_token_expire = datetime.now() + timedelta(seconds=int(auth_response['expires_in']))
+
+class OAuth2PKCEMixin(OAuth2Mixin):
+    def __init__(self, *args, **kwargs):
+        super(OAuth2PKCEMixin, self).__init__(*args, **kwargs)
+        self.__states__ += ('pkce_verifier', 'pkce_challenge')
+        self.pkce_verifier = self.code_verifier()
+        self.pkce_challenge = self.code_challenge(self.pkce_verifier)
+
+    # PKCE (Proof Key for Code Exchange) standard protocol methods:
+    def code_verifier(self, bytes_number=64):
+        return base64.urlsafe_b64encode(os.urandom(bytes_number)).rstrip(b'=')
+
+    def code_challenge(self, verifier):
+        digest = sha256(verifier).hexdigest()
+        return base64.urlsafe_b64encode(digest)
+
+    def build_authorization_uri(self):
+        return self.AUTHORIZATION_URI % {'redirect_uri':    (self.redirect_uri),
+                                         'pkce_challenge':  quote_plus(self.pkce_challenge),
+                                         'client_id':    quote_plus(self.client_id)
+                                        }
+
+    def build_access_token_parameters(self, values):
+        return {'code' : values['code'],
+                'grant_type' : 'authorization_code',
+                'code_verifier' : self.pkce_verifier,
+                'redirect_uri' : self.redirect_uri,
+                }
