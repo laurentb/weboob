@@ -955,6 +955,8 @@ class AbstractBrowser(Browser):
 class OAuth2Mixin(StatesMixin):
     AUTHORIZATION_URI = None
     ACCESS_TOKEN_URI = None
+    ACCESS_TOKEN_METHOD = 'POST'
+    SCOPE = ''
 
     client_id = None
     client_secret = None
@@ -997,40 +999,50 @@ class OAuth2Mixin(StatesMixin):
 
     def build_authorization_uri(self):
         return self.AUTHORIZATION_URI % {'redirect_uri':    quote_plus(self.redirect_uri),
-                                         'client_id': quote_plus(self.client_id)}
+                                         'scope':           quote_plus(self.SCOPE),
+                                         'client_id':       quote_plus(self.client_id)
+                                        }
 
     def request_authorization(self):
         raise BrowserRedirect(self.build_authorization_uri())
 
     def build_access_token_parameters(self, values):
-        return {'code' : values['code'],
-                'grant_type' : 'authorization_code',
-                'redirect_uri' : self.redirect_uri,
+        return {'code':             values['code'],
+                'grant_type':       'authorization_code',
+                'redirect_uri':     self.redirect_uri,
+                'client_id':        self.client_id,
+                'client_secret':    self.client_secret,
                 }
 
     def request_access_token(self, auth_uri):
         values = dict(parse_qsl(urlparse(auth_uri).query))
         data = self.build_access_token_parameters(values)
         try:
-             auth_response = self.open(self.ACCESS_TOKEN_URI, method="POST", data=data).json()
+            if self.ACCESS_TOKEN_METHOD == 'POST':
+                 auth_response = self.open(self.ACCESS_TOKEN_URI, data=data).json()
+            else:
+                 auth_response = self.open(self.ACCESS_TOKEN_URI, params=data).json()
         except ClientError:
             raise BrowserIncorrectPassword()
 
-        self.token_type = auth_response['token_type']
-        if 'refresh_token' in auth_response:
-            self.refresh_token = auth_response['refresh_token']
-        self.access_token = auth_response['access_token']
-        self.access_token_expire = datetime.now() + timedelta(seconds=int(auth_response['expires_in']))
+        self.update_token(auth_response)
 
     def use_refresh_token(self):
         data = {'grant_type':       'refresh_token',
                 'refresh_token':    self.refresh_token,
                }
         try:
-             auth_response = self.open(self.ACCESS_TOKEN_URI, method="POST", data=data).json()
+            if self.ACCESS_TOKEN_METHOD == 'POST':
+                auth_response = self.open(self.ACCESS_TOKEN_URI, data=data).json()
+            else:
+                auth_response = self.open(self.ACCESS_TOKEN_URI, params=data).json()
         except ClientError:
             raise BrowserIncorrectPassword()
 
+        self.update_token(auth_response)
+
+    def update_token(self, auth_response):
+        self.token_type = auth_response['token_type']
         if 'refresh_token' in auth_response:
             self.refresh_token = auth_response['refresh_token']
         self.access_token = auth_response['access_token']
@@ -1058,8 +1070,10 @@ class OAuth2PKCEMixin(OAuth2Mixin):
                                         }
 
     def build_access_token_parameters(self, values):
-        return {'code' : values['code'],
-                'grant_type' : 'authorization_code',
-                'code_verifier' : self.pkce_verifier,
-                'redirect_uri' : self.redirect_uri,
+        return {'code':             values['code'],
+                'grant_type':       'authorization_code',
+                'code_verifier':    self.pkce_verifier,
+                'redirect_uri':     self.redirect_uri,
+                'client_id':        self.client_id,
+                'client_secret':    self.client_secret,
                 }
