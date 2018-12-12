@@ -164,7 +164,7 @@ class BasePage(object):
 
 class MyHTMLPage(BasePage, HTMLPage):
     def build_doc(self, data, *args, **kwargs):
-        # XXX FUCKING HACK BECAUSE BANQUE POPULAIRE ARE FAGGOTS AND INCLUDE NULL
+        # XXX FUCKING HACK BECAUSE BANQUE POPULAIRE ARE NASTY AND INCLUDE NULL
         # BYTES IN DOCUMENTS.
         data = data.replace(b'\x00', b'')
         return super(MyHTMLPage, self).build_doc(data, *args, **kwargs)
