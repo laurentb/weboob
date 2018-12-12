@@ -308,7 +308,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                 return Account.TYPE_UNKNOWN
 
             def obj_url(self):
-                link = Attr('.//a[has-class("account--name")] | .//a[2]', 'href', default=NotAvailable)(self)
+                link = Attr('.//a[has-class("account--name")] | .//a[2] | .//div/a', 'href', default=NotAvailable)(self)
                 return urljoin(self.page.url, link)
 
             def is_external(self):
