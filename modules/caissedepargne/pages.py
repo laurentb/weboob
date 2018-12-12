@@ -732,7 +732,8 @@ class IndexPage(LoggedPage, HTMLPage):
         form = self.get_form(name='main')
         form['m_ScriptManager'] = 'MM$m_UpdatePanel|MM$Menu_Ajax'
         form['__EVENTTARGET'] = 'MM$Menu_Ajax'
-        form['__EVENTARGUMENT'] = 'CPTEDOC&codeMenu=WCE0'
+        link = Link('//a[contains(@title, "e-Documents") or contains(@title, "Relevés en ligne")]')(self.doc)
+        form['__EVENTARGUMENT'] = re.search(r'Ajax", "(.*)", true', link).group(1)
         form.submit()
 
 
@@ -1346,7 +1347,7 @@ class TransactionsDetailsPage(LoggedPage, HTMLPage):
 
 class SubscriptionPage(LoggedPage, HTMLPage):
     def is_here(self):
-        return self.doc.xpath('//h2[text()="e-Documents"]')
+        return self.doc.xpath('//h2[text()="e-Documents"]') or self.doc.xpath('//h2[text()="Relevés en ligne"]')
 
     def has_subscriptions(self):
         # This message appears if the customer has not activated the e-Documents yet
@@ -1370,7 +1371,11 @@ class SubscriptionPage(LoggedPage, HTMLPage):
         target = Attr('//select[contains(@id, "ClientsBancaires")]', 'id')(self.doc)
         form = self.get_form(name='main')
         form['m_ScriptManager'] = target
-        form['MM$COMPTE_EDOCUMENTS$ctrlEDocumentsConsultationDocument$cboClientsBancaires'] = sub_id
+        if 'palatine' in self.browser.BASEURL:
+            form['MM$CONSULTATION_NUMERISATION_PALATINE$cboClientsBancaires'] = sub_id
+        else:
+            form['MM$COMPTE_EDOCUMENTS$ctrlEDocumentsConsultationDocument$cboClientsBancaires'] = sub_id
+
         form['__EVENTTARGET'] = target
         form.submit()
 
@@ -1390,7 +1395,7 @@ class SubscriptionPage(LoggedPage, HTMLPage):
             obj_format = 'pdf'
             obj_url = Regexp(Link('.'), r'WebForm_PostBackOptions\("(\S*)"')
             obj_id = Format('%s_%s_%s', Env('sub_id'), CleanText('./span', symbols='/'), Regexp(Field('url'), r'ctl(.*)'))
-            obj__event_id = Regexp(Attr('.', 'onclick'), r"val\('(.*)'\);")
+            obj__event_id = Regexp(Attr('.', 'onclick'), r"val\('(.*)'\);", default=None)
 
     def download_document(self, document):
         form = self.get_form(name='main')
