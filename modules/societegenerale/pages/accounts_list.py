@@ -330,6 +330,11 @@ class AccountHistory(LoggedPage, NotTransferBasePage):
                 self.debit_date = t.date if t else datetime.date.today()
                 self.debit_date = self.debit_date.replace(day=int(m.group(1)), month=int(m.group(2)))
 
+                # Need to do it when years/date overlap, causing the previous `.replace()` to
+                # set the date at the end of the next year instead of the current year
+                if old_debit_date is None and self.debit_date > datetime.date.today():
+                    old_debit_date = self.debit_date
+
                 if old_debit_date is not None:
                     while self.debit_date > old_debit_date:
                         self.debit_date = self.debit_date.replace(year=self.debit_date.year - 1)
