@@ -307,6 +307,9 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
         assert r.page.doc['donnees']['transaction_status'] in ('available', 'in_progress'), \
             'transaction_status is %s' % r.page.doc['donnees']['transaction_status']
 
+        if r.page.doc['donnees']['transaction_status'] == 'in_progress':
+            raise ActionNeeded('Veuillez valider le bénéficiaire sur votre application bancaire.')
+
         data = [('context', self.context), ('b64_jeton_transaction', self.context),
             ('dup', self.dup), ('n10_id_transaction', self.id_transaction), ('oob_op', 'sign')]
         self.add_recipient.go(data=data, headers={'Referer': 'https://particuliers.secure.societegenerale.fr/lgn/url.html'})
