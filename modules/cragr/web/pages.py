@@ -725,7 +725,7 @@ class SavingsPage(AccountsPage):
                 if link:
                     if 'PREDICA' in link or 'CONTRAT' in link:
                         # account.type = Account.TYPE_LIFE_INSURANCE
-                        url = 'https://%s/stb/entreeBam?sessionSAG=%%s&stbpg=pagePU&site=PREDICA&' \
+                        url = 'https://%s/stb/entreeBam?sessionSAG=%%s&stbpg=pagePU&site=PREDICA2&' \
                               'typeaction=reroutage_aller&sdt=CONTRAT&parampartenaire=%s'
                         url = url % (origin.netloc, Field('id')(self))
                     # This aims to handle bgpi-gestionprivee.
@@ -1201,6 +1201,10 @@ class BGPIPage(MarketPage):
 
     def cgu_needed(self):
         return bool(CleanText(u'//h1[contains(text(), "Conditions Générales d\'utilisation des Services en Ligne")]')(self.doc))
+
+
+class PredicaRedirectPage(MyLoggedPage, BasePage):
+    pass
 
 
 class TransferInit(MyLoggedPage, BasePage):

@@ -48,7 +48,7 @@ from .pages import (
     ChgPerimeterPage, MarketHomePage, FirstVisitPage, BGPIPage,
     TransferInit, TransferPage, RecipientPage, RecipientListPage, SendSMSPage,
     ProfilePage, HistoryPostPage, RecipientMiscPage, DeferredCardsPage, UnavailablePage,
-    NoFixedDepositPage,
+    NoFixedDepositPage, PredicaRedirectPage,
 )
 
 
@@ -66,6 +66,9 @@ class Cragr(LoginBrowser, StatesMixin):
                      LoginPage)
 
     first_visit = URL(r'/stb/entreeBam\?.*pagePremVisite.*', FirstVisitPage)
+
+    predica_redirect = URL(r'/stb/entreeBam\?.*site=PREDICA2&typeaction=reroutage_aller.*', PredicaRedirectPage)
+
     useless = URL(r'/stb/entreeBam\?.*Interstitielle.*',
                   r'/stb/entreeBam\?.*act=Tdbgestion',
                   r'/stb/entreeBam\?.*act=Messagesprioritaires',
@@ -481,7 +484,12 @@ class Cragr(LoginBrowser, StatesMixin):
                 return
         elif account.type == Account.TYPE_LIFE_INSURANCE:
             new_location = self.moveto_insurance_website(account)
+
+            if not new_location:
+                return
+
             self.location(new_location, data={})
+
             if self.bgpi.is_here():
                 if self.page.cgu_needed() or not self.page.go_detail():
                     return
@@ -576,6 +584,11 @@ class Cragr(LoginBrowser, StatesMixin):
     def moveto_insurance_website(self, account):
         page = self.open(account.url % self.sag).page
         self._sag = None
+
+        if 'PREDICA' in page.url:
+            # For predica, the previous self.open() is enought to go to the predica's page
+            return
+
         # POST to https://assurance-personnes.credit-agricole.fr/filiale/ServletReroutageCookie
         try:
             form = page.get_form(name='formulaire')
