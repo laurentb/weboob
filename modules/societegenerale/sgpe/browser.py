@@ -36,7 +36,7 @@ from weboob.tools.value import Value
 from .pages import (
     LoginPage, CardsPage, CardHistoryPage, IncorrectLoginPage,
     ProfileProPage, ProfileEntPage, ChangePassPage, SubscriptionPage, InscriptionPage,
-    ErrorPage,
+    ErrorPage, UselessPage,
 )
 from .json_pages import (
     AccountsJsonPage, BalancesJsonPage, HistoryJsonPage, BankStatementPage,
@@ -233,6 +233,7 @@ class SGProfessionalBrowser(SGEnterpriseBrowser, StatesMixin):
     bank_statement_menu = URL('/icd/syd-front/data/syd-rce-accederDepuisMenu.json', BankStatementPage)
     bank_statement_search = URL('/icd/syd-front/data/syd-rce-lancerRecherche.json', BankStatementPage)
 
+    useless_page = URL('/icd-web/syd-front/index-comptes.html', UselessPage)
     error_page = URL('https://static.societegenerale.fr/pro/erreur.html', ErrorPage)
 
     date_max = None
@@ -301,7 +302,13 @@ class SGProfessionalBrowser(SGEnterpriseBrowser, StatesMixin):
             self.validate_rcpt_with_sms(params['code'])
             return self.page.rcpt_after_sms(recipient)
 
-        self.recipients.go()
+        data = {
+            'n_nbOccurences': 1000,
+            'n_nbOccurences_affichees': 0,
+            'n_rang': 0,
+        }
+        self.recipients.go(data=data)
+
         step_urls = {
             'first_recipient_check': self.absurl('/ord-web/ord//ord-valider-destinataire-avant-maj.json', base=True),
             'get_bic': self.absurl('/ord-web/ord//ord-tiers-calcul-bic.json', base=True),

@@ -265,3 +265,7 @@ class InscriptionPage(SGPEPage):
     def get_error(self):
         message = CleanText('//head/title')(self.doc)
         return message
+
+
+class UselessPage(LoggedPage, SGPEPage):
+    pass
