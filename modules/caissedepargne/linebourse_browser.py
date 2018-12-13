@@ -20,6 +20,6 @@
 from weboob.browser import AbstractBrowser
 
 
-class LinebourseBrowser(AbstractBrowser):
+class LinebourseAPIBrowser(AbstractBrowser):
     PARENT = 'linebourse'
-    PARENT_ATTR = 'package.browser.LinebourseBrowser'
+    PARENT_ATTR = 'package.browser.LinebourseAPIBrowser'

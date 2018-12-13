@@ -22,12 +22,11 @@ from __future__ import unicode_literals
 from weboob.browser.elements import method, DictElement, ItemElement
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import (
-    CleanText, Date, CleanDecimal, Eval, Field, Env, Regexp,
+    Date, CleanDecimal, Eval, Field, Env, Regexp,
 )
 from weboob.browser.pages import JsonPage, HTMLPage, LoggedPage
 from weboob.capabilities.bank import Investment
 from weboob.capabilities.base import NotAvailable
-from weboob.exceptions import ActionNeeded
 from weboob.tools.capabilities.bank.investments import is_isin_valid
 
 
@@ -57,28 +56,40 @@ class PortfolioPage(LoggedPage, JsonPage):
                 Field('code')
             )
             obj_quantity = CleanDecimal(Dict('qttit'))
-            obj_unitprice = CleanDecimal(Dict('pam'))
             obj_unitvalue = CleanDecimal(Dict('crs'))
             obj_valuation = CleanDecimal(Dict('mnt'))
             obj_vdate = Env('date')
             obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal(Dict('pourcentageActif')))
 
             def parse(self, el):
-                symbol = Dict('signePlv')(self)
-                assert symbol in ('+', '-'), 'should be either positive or negative'
-                self.env['sign'] = 1 if symbol == '+' else -1
+                symbols = {
+                    '+': 1,
+                    '-': -1,
+                    '\u0000': None,  # "NULL" character
+                }
+                self.env['sign'] = symbols.get(Dict('signePlv')(self), None)
 
             def obj_diff(self):
-                return CleanDecimal(Dict('plv'), sign=lambda x: Env('sign')(self))(self)
+                if Dict('plv', default=None)(self) and Env('sign')(self):
+                    return CleanDecimal(Dict('plv'), sign=lambda x: Env('sign')(self))(self)
+                return NotAvailable
+
+            def obj_unitprice(self):
+                if Dict('pam', default=None)(self):
+                    return CleanDecimal(Dict('pam'))(self)
+                return NotAvailable
 
             def obj_diff_percent(self):
-                return CleanDecimal(Dict('plvPourcentage'), sign=lambda x: Env('sign')(self))(self)
+                if not Env('sign')(self):
+                    return NotAvailable
+                # obj_diff_percent key can have several names:
+                if Dict('plvPourcentage', default=None)(self):
+                    return CleanDecimal(Dict('plvPourcentage'), sign=lambda x: Env('sign')(self))(self)
+                elif Dict('pourcentagePlv', default=None)(self):
+                    return CleanDecimal(Dict('pourcentagePlv'), sign=lambda x: Env('sign')(self))(self)
 
 
 class ConfigurationPage(LoggedPage, JsonPage):
-    def is_first_connexion(self):
-        return self.doc['premiereConnexion']  # either True or False
-
     def get_contract_number(self):
         return self.doc['idCompteActif']
 
@@ -93,12 +104,6 @@ class NewWebsiteFirstConnectionPage(LoggedPage, JsonPage):
             html_page = HTMLPage(self.browser, self.response)
             return html_page.build_doc(content['data'].encode(self.encoding))
         return content
-
-    def has_first_connection_cgu(self):
-        # New Espace bourse: user is asked to read some documents during first connection
-        message = CleanText('//p[contains(text(), "prendre connaissance")]')(self.doc)
-        if message:
-            raise ActionNeeded(message)
 
 
 class HistoryAPIPage(LoggedPage, JsonPage):

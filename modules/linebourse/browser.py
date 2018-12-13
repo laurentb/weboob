@@ -135,18 +135,6 @@ class LinebourseAPIBrowser(LoginBrowser):
         self.id_contract = self.page.get_contract_number()
         return self.portfolio.go(id_contract=self.id_contract)
 
-    def handle_cgu(self):
-        # the website uses an additional timestamp as query parameter
-        # for this GET request but it turns out it is not mandatory
-        self.config.go()
-        assert self.config.is_here()
-
-        if self.page.is_first_connexion():
-            self.new_website_first.go()
-            assert self.new_website_first.is_here()
-
-            self.page.has_first_connection_cgu()
-
     def iter_investments(self):
         self.go_portfolio()
         assert self.portfolio.is_here()

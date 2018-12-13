@@ -50,7 +50,7 @@ from .pages import (
     SubscriptionPage, CreditCooperatifMarketPage,
 )
 
-from .linebourse_browser import LinebourseBrowser
+from .linebourse_browser import LinebourseAPIBrowser
 
 
 __all__ = ['CaisseEpargne']
@@ -61,7 +61,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     STATE_DURATION = 5
     HISTORY_MAX_PAGE = 200
 
-    LINEBOURSE_BROWSER = LinebourseBrowser
+    LINEBOURSE_BROWSER = LinebourseAPIBrowser
 
     login = URL('/authentification/manage\?step=identification&identifiant=(?P<login>.*)',
                 'https://.*/login.aspx', LoginPage)
@@ -88,7 +88,8 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                 'https://.*/particuliers/Page_erreur_technique.aspx.*', ErrorPage)
     market = URL('https://.*/Pages/Bourse.*',
                  'https://www.caisse-epargne.offrebourse.com/ReroutageSJR',
-                 'https://www.caisse-epargne.offrebourse.com/Portefeuille.*', MarketPage)
+                 r'https://www.caisse-epargne.offrebourse.com/fr/6CE.*', MarketPage)
+
     creditcooperatif_market = URL('https://www.offrebourse.com/.*', CreditCooperatifMarketPage)  # just to catch the landing page of the Credit Cooperatif's Linebourse
     natixis_redirect = URL(r'/NaAssuranceRedirect/NaAssuranceRedirect.aspx',
                            r'https://www.espace-assurances.caisse-epargne.fr/espaceinternet-ce/views/common/routage-itce.xhtml\?windowId=automatedEntryPoint',
@@ -389,27 +390,13 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                     # Some users may not have access to this.
                     if not self.market.is_here():
                         continue
-
                     self.page.submit()
 
-                    # For Caisse d'Epargne's connections
-                    if self.url.startswith('https://www.caisse-epargne.offrebourse.com'):
-                        if self.page.is_error():
-                            continue
-
-                        self.garbage.go()
-
-                        if self.garbage.is_here():
-                            continue
-
-                        self.page.get_valuation_diff(account)
-
-                    # For CreditCooperatif's connections
-                    elif self.url.startswith('https://www.offrebourse.com'):
+                    if 'offrebourse.com' in self.url:
                         self.update_linebourse_token()
-                        self.linebourse.handle_cgu()
                         page = self.linebourse.go_portfolio()
                         assert self.linebourse.portfolio.is_here()
+                        # We must declare "page" because this URL also matches MarketPage
                         account.valuation_diff = page.get_valuation_diff()
                     else:
                         assert False, "new domain that hasn't been seen so far ?"
@@ -557,24 +544,18 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     def get_history(self, account):
         self.home.go()
         self.deleteCTX()
-
         if not hasattr(account, '_info'):
             raise NotImplementedError
         if account.type is Account.TYPE_LIFE_INSURANCE and 'measure_id' not in account._info:
-
             return self._get_history_invests(account)
-        if account.type == Account.TYPE_MARKET:
+        if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
             self.page.go_history(account._info)
             if "Bourse" in self.url:
                 self.page.submit()
-
-                if self.url.startswith('https://www.caisse-epargne.offrebourse.com'):
+                if 'offrebourse.com' in self.url:
                     self.linebourse.session.cookies.update(self.session.cookies)
-                    return self.linebourse.iter_history(re.sub('[^0-9]', '', account.id))
-                elif self.url.startswith('https://www.offrebourse.com'):
                     self.update_linebourse_token()
                     return self.linebourse.iter_history()
-
         return self._get_history(account._info)
 
     @need_login
@@ -613,23 +594,11 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                 return
             self.page.submit()
 
-            # For Credit Cooperatif's connections
-            if self.url.startswith('https://www.offrebourse.com'):
+            if 'offrebourse.com' in self.url:
                 self.update_linebourse_token()
                 for investment in self.linebourse.iter_investments():
                     yield investment
                 return
-
-            if self.page.is_error():
-                return
-            self.location('https://www.caisse-epargne.offrebourse.com/Portefeuille')
-            if self.message.is_here():
-                return
-                # TODO reraise ActionNeeded when catch by the backend at this stage
-                # raise ActionNeeded(self.page.get_message())
-
-            if not self.page.is_on_right_portfolio(account):
-                self.location('https://www.caisse-epargne.offrebourse.com/Portefeuille?compte=%s' % self.page.get_compte(account))
 
         elif account.type == Account.TYPE_LIFE_INSURANCE:
             if "MILLEVIE" in account.label:
