@@ -33,7 +33,7 @@ from weboob.capabilities.bank import Account, AddRecipientStep, Recipient, Trans
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.profile import Profile
 from weboob.browser.exceptions import BrowserHTTPNotFound, ClientError
-from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, BrowserHTTPError
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, BrowserHTTPError, BrowserPasswordExpired
 from weboob.tools.capabilities.bank.transactions import sorted_transactions, FrenchTransaction
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
 from weboob.tools.compat import urljoin
@@ -296,6 +296,9 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         response = res.page.get_response()
 
         assert response is not None
+
+        if response['error'] == 'Veuillez changer votre mot de passe':
+            raise BrowserPasswordExpired(response['error'])
 
         if not response['action']:
             if self.multi_type:
