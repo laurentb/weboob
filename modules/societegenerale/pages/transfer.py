@@ -17,297 +17,138 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from ast import literal_eval
-from datetime import datetime, timedelta
+from datetime import datetime
 import re
-from collections import OrderedDict
-from io import BytesIO
-from logging import error
 
 from weboob.browser.pages import LoggedPage, JsonPage, FormNotFound
-from weboob.browser.elements import method, ListElement, ItemElement, SkipItem
+from weboob.browser.elements import method, ItemElement, DictElement
 from weboob.capabilities.bank import (
-    Recipient, TransferBankError, TransferInvalidCurrency, Transfer,
-    AddRecipientBankError, AddRecipientStep,
+    Recipient, Transfer, TransferBankError, AddRecipientBankError, AddRecipientStep,
 )
-from weboob.capabilities.base import find_object, NotAvailable, empty
-from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, \
-                                            Env, Date
-from weboob.browser.filters.html import Attr, Link, XPathNotFound
-from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.tools.capabilities.bank.iban import is_iban_valid
+from weboob.capabilities.base import NotAvailable
+from weboob.browser.filters.standard import (
+    CleanText, CleanDecimal, Env, Date, Field, Format,
+)
+from weboob.browser.filters.html import Link
+from weboob.browser.filters.json import Dict
 from weboob.tools.value import Value, ValueBool
 from weboob.tools.json import json
 
-from ..captcha import Captcha, TileError
 from .base import BasePage
-from .login import PasswordPage
+from .login import LoginPage
 
 
-class MyRecipient(ItemElement):
-    klass = Recipient
-
-    # Assume all recipients currency is euros.
-    obj_currency = u'EUR'
-
-    def obj_enabled_at(self):
-        return datetime.now().replace(microsecond=0)
-
-
-class RecipientsPage(LoggedPage, BasePage):
-    @method
-    class iter_recipients(ListElement):
-        item_xpath = '//div[@class="items-groups"]/a'
-
-        class Item(MyRecipient):
-            obj_id = obj_iban = CleanText('./div[1]/div[1]/span[1]')
-            obj_bank_name = CleanText('./div[1]/div[2]/span[1]')
-            obj_category = u'Externe'
-
-            def obj_label(self):
-                first_label = CleanText('./div[1]/div[3]/span[1]')(self)
-                second_label = CleanText('./div[1]/div[3]/span[2]')(self)
-                return first_label if first_label == second_label else ('%s %s' % (first_label, second_label)).strip()
-
-            validate = lambda self, obj: empty(self.obj_iban(self)) or is_iban_valid(self.obj_iban(self))
-
-
-class TransferPage(LoggedPage, BasePage, PasswordPage):
-    def is_here(self):
-        return not bool(CleanText(u'//h3[contains(text(), "Ajouter un compte bénéficiaire de virement")]')(self.doc)) and\
-            not bool(CleanText(u'//h1[contains(text(), "Ajouter un compte bénéficiaire de virement")]')(self.doc))
-
-    def get_add_recipient_link(self):
-        try:
-            link = Regexp(Link('//a[img[@src="/img/personnalisation/btn_ajouter_beneficiaire.jpg"]]'), 'javascript:window.location="([^"]+)"')(self.doc)
-        except XPathNotFound:
-            link = Regexp(Link(u'//a[contains(text(), "Ajouter un compte b")]'), 'javascript:window.location="([^"]+)"')(self.doc)
-        else:
-            # XXX check in logs if this message is visible. If not, we can remove the first xpath.
-            self.logger.debug('Old link found to add a recipient.')
-
-        return link
-
+class TransferJson(LoggedPage, JsonPage):
     def on_load(self):
-        excluded_errors = [
-            u"Vous n'avez pas la possibilité d'accéder à cette fonction. Veuillez prendre contact avec votre Conseiller.",
-            u"Aucun compte de la liste n'est autorisé à la passation d'ordres de virement.",
-        ]
-        error_msg = CleanText('//span[@class="error_msg"]')(self.doc)
-        if error_msg and error_msg not in excluded_errors:
-            raise TransferBankError(message=error_msg)
+        if Dict('commun/statut')(self.doc).upper() == 'NOK':
+            if self.doc['commun'].get('action'):
+                raise TransferBankError(message=Dict('commun/action')(self.doc))
+            else:
+                assert False, 'Something went wrong, transfer is not created: %s' % self.doc['commun'].get('raison')
+
+    def get_acc_transfer_id(self, account):
+        for acc in self.doc['donnees']['listeEmetteursBeneficiaires']['listeDetailEmetteurs']:
+            if account.id == Format('%s%s', Dict('codeGuichet'), Dict('numeroCompte'))(acc):
+                # return json_id to do transfer
+                return acc['id']
+        return False
 
     def is_able_to_transfer(self, account):
-        numbers = [''.join(Regexp(CleanText('.'), '(\d+)', nth='*', default=None)(opt)) for opt in self.doc.xpath('.//select[@id="SelectEmet"]//option')]
-        return bool(CleanText('.//select[@id="SelectEmet"]//option[contains(text(), "%s")]' % account.label)(self.doc)) or bool(account.id in numbers)
-
-    def has_external_recipient_transferable(self):
-        # refere to iter recipient item_xpath
-        internal_rcpt_xpath = '//select[@id="SelectDest"]/optgroup[@label="Vos comptes"]/option | \
-                               //select[@id="SelectDest"]/optgroup[@label="Procurations"]/option'
-
-        return self.doc.xpath(internal_rcpt_xpath) or not self.doc.xpath('//select[@id="SelectDest"]/option[@value=""]')
+        return self.get_acc_transfer_id(account)
 
     @method
-    class iter_recipients(ListElement):
-        item_xpath = '//select[@id="SelectDest"]/optgroup[@label="Vos comptes"]/option | \
-        //select[@id="SelectDest"]/optgroup[@label="Procurations"]/option | \
-        //select[@id="SelectDest"]/option[@value=""]'
+    class iter_recipients(DictElement):
+        item_xpath = 'donnees/listeEmetteursBeneficiaires/listeDetailBeneficiaires'
 
-        class Item(MyRecipient):
-            def validate(self, obj):
-                return self.obj.id != self.env['account_id'] and self.obj.id not in self.parent.objects
+        class Item(ItemElement):
+            klass = Recipient
 
-            obj_id = Env('id')
-            obj_label = Env('label')
-            obj_bank_name = u'Société Générale'
-            obj_category = u'Interne'
-            obj_iban = Env('iban')
+            # Assume all recipients currency is euros.
+            obj_currency = u'EUR'
+            obj_iban = Dict('iban')
+            obj_label = Dict('libelleToDisplay')
+            obj_enabled_at = datetime.now().replace(microsecond=0)
 
-            def parse(self, el):
-                _id = Regexp(CleanText('.', replace=[(' ', '')]), '(\d+)', default=NotAvailable)(self)
-                if _id and len(_id) >= min(len(acc.id) for acc in self.page.browser.get_accounts_list()):
-                    account = find_object(self.page.browser.get_accounts_list(), id=_id)
-                    if not account:
-                        accounts = [acc for acc in self.page.browser.get_accounts_list() if acc.id in _id or _id in acc.id]
-                        assert len(accounts) == 1
-                        account = accounts[0]
-                    self.env['id'] = _id
-                else:
-                    rcpt_label = CleanText('.')(self)
-                    account = None
+            # needed for transfer
+            obj__json_id = Dict('id')
 
-                    # the recipients selector contains "<type> - <label>"
-                    # the js contains "<part_of_id>", ... "<label>", ... "<type>"
-                    # the accounts list contains "<label>" and the id
-                    # put all this data together
-                    for params in self.page.iter_params_by_type('Emetteurs'):
-                        if not params['ordre']:
-                            continue  # ignore the first js entry, it's empty
-                        param_label = '%s - %s' % (params['liprem'], params['libeem'])
-                        if param_label != rcpt_label:
-                            continue
-                        param_id = params['cdbqem'] + params['cdguem'] + params['nucpem']
-                        for ac in self.page.browser.get_accounts_list():
-                            if ac.id in param_id:
-                                account = ac
-                                break
+            def obj_category(self):
+                if Dict('groupeRoleToDisplay')(self) == 'Comptes personnels':
+                    return u'Interne'
+                return u'Externe'
 
-                    if account is None:
-                        self.page.logger.warning('the internal %r recipient could not be found in js or accounts list', rcpt_label)
-                        raise SkipItem()
+            # for retrocompatibility
+            def obj_id(self):
+                if Field('category')(self) == 'Interne':
+                    return Format('%s%s', Dict('codeGuichet'), Dict('numeroCompte'))(self)
+                return Dict('iban')(self)
 
-                    self.env['id']= account.id
-                self.env['label'] = account.label
-                self.env['iban'] = account.iban
-
-    # param names can be found in: https://particuliers.secure.societegenerale.fr/js/v28/virement/vipon_saisie_opAVenir.js
-    EMITTER_PARAMS = ['solde', 'Alterna', 'SRD', 'cdbqem', 'cdguem', 'nucpem', 'clriem',
-                      'libeem', 'grroem', 'cdprem', 'liprem', 'codeBICEmet', 'codeIBANEmet', 'formatCpteEmet']
-    RECIPIENT_PARAMS = ['solde', 'Alterna', 'PEP', 'SRD', 'toprib', 'idprde', 'cdbqde',
-                        'cdgude', 'nucpde', 'clride', 'libede', 'grrode', 'cdprde',
-                        'liprde', 'tycpde', 'libqde', 'formatCompteBenef', 'nomBenef',
-                        'paysBenef', 'adresseBenef', 'villeBenef', 'codePaysBenef',
-                        'codeBICBenef', 'codeIBANBenef']
-
-    def iter_params_by_type(self, _type):
-        for script in [sc for sc in self.doc.xpath('//script') if sc.text]:
-            accounts = re.findall('TableauComptes%s.*?\);' % _type, script.text)
-            if accounts:
-                break
-        for n, account in enumerate(accounts):
-            params = re.search(r'\(indic\d?,(.*)\)', account).group(1)
-            params = literal_eval('[%s]' % params)
-            assert len(params) > 12
-
-            if _type == 'Emetteurs':
-                assert len(params) == len(self.EMITTER_PARAMS)
-                ret = OrderedDict(zip(self.EMITTER_PARAMS, params))
-            elif _type == 'Destinataires':
-                assert len(params) == len(self.RECIPIENT_PARAMS)
-                ret = OrderedDict(zip(self.RECIPIENT_PARAMS, params))
-            else:
-                assert False, 'unhandled param type'
-
-            ret['ordre'] = n
-            yield ret
-
-    def get_params(self, _id, _type):
-        for params in self.iter_params_by_type(_type):
-            if _type == 'Emetteurs' and (params['cdguem'] + params['nucpem']) == _id:
-                return params
-            elif _type == 'Destinataires' and ((params['cdgude'] + params['nucpde']) == _id or params['codeIBANBenef'] == _id):
-                return params
-
-        assert False, u'Paramètres pour le compte %s numéro %s introuvable.' % (_type, _id)
-
-    def get_account_value(self, _id):
-        for option in self.doc.xpath('//select[@id="SelectEmet"]//option'):
-            if _id in CleanText('.', replace=[(' ', '')])(option):
-                attr = Attr('.', 'value')(option)
-                return attr
-
-    def get_account_value_by_label(self, label):
-        l = [Attr('.', 'value')(option) for option in self.doc.xpath('//select[@id="SelectEmet"]//option') if label in CleanText('.')(option)]
-        if len(l) == 1:
-            return l[0]
+            def condition(self):
+                return Field('id')(self) != Env('account_id')(self)
 
     def init_transfer(self, account, recipient, transfer):
-        if not (account.currency == recipient.currency == 'EUR'):
-            raise TransferInvalidCurrency('wrong currency')
-        origin_params = self.get_params(account.id, 'Emetteurs')
-        recipient_params = self.get_params(recipient.id, 'Destinataires')
-        data = OrderedDict()
-        value = self.get_account_value(account.id) or self.get_account_value_by_label(account.label)
-        assert value is not None, "Couldn't retrieve origin account %s in list" % account.id
+        assert self.is_able_to_transfer(account), 'Account %s seems to be not able to do transfer' % account.id
 
-        data['dup'] = re.search('dup=(.*?)(&|$)', value).group(1)
-        data['src'] = re.search('src=(.*?)(&|$)', value).group(1)
-        data['sign'] = re.search('sign=(.*?)(&|$)', value).group(1)
+        # SCT : standard transfer
+        data = [
+            ('an200_montant', transfer.amount),
+            ('an200_typeVirement', 'SCT'),
+            ('b64e200_idCompteBeneficiaire', recipient._json_id),
+            ('b64e200_idCompteEmetteur', self.get_acc_transfer_id(account)),
+            ('cl200_devise', u'EUR'),
+            ('cl200_nomBeneficiaire', recipient.label),
+            ('cl500_motif', transfer.label),
+            ('dt10_dateExecution', transfer.exec_date.strftime('%d/%m/%Y')),
+        ]
 
-        # order of params does not seem to matter
-        emit_keys = ('cdbqem', 'cdguem', 'nucpem', 'clriem', 'libeem', 'grroem', 'cdprem', 'liprem', 'codeBICEmet', 'codeIBANEmet', 'formatCpteEmet')
-        for k in emit_keys:
-            data[k] = origin_params[k]
-        rcpt_keys = ('idprde', 'tycpde', 'libqde', 'cdbqde', 'cdgude', 'nucpde', 'clride', 'libede', 'grrode', 'paysBenef', 'cdprde', 'liprde', 'formatCompteBenef', 'nomBenef', 'adresseBenef', 'villeBenef', 'codePaysBenef', 'codeBICBenef', 'codeIBANBenef')
-        for k in rcpt_keys:
-            data[k] = recipient_params[k]
+        headers = {'Referer': self.browser.absurl('/com/icd-web/vupri/virement.html')}
+        self.browser.location(self.browser.absurl('/icd/vupri/data/vupri-check.json'), headers=headers, data=data)
 
-        # This one seem to be set in stone.
-        data['inrili'] = 'N'
+    def handle_response(self, recipient):
+        json_response = self.doc['donnees']
 
-        # TODO vipon_saisie_opAVenir.js seems to define different behaviours depending on that value
-        data['toprib'] = recipient_params['toprib']
-
-        # This needs the currency to be euro.
-        data['mntval'] = int(transfer.amount * 100)
-        data['mntcdc'] = '2'
-        data['mntcdv'] = 'EUR'
-        data['datvir'] = transfer.exec_date.strftime('%Y%m%d')
-        data['motvir'] = transfer.label
-
-        data['ordre'] = recipient_params['ordre']
-        data['nomMem'] = ''
-
-        data['banqueBenef'] = recipient_params['libqde']
-
-        # Initiate transfer
-        self.browser.location('/lgn/url.html', params=data)
-
-    def check_data_consistency(self, transfer):
-        amount = CleanDecimal('.//td[@headers="virement montant"]', replace_dots=True)(self.doc)
-        label = CleanText('.//td[@headers="virement motif"]')(self.doc)
-        exec_date = Date(CleanText('.//td[@headers="virement date"]'), dayfirst=True)(self.doc)
-        assert transfer.amount == amount, \
-            'data consistency failed, %s changed from %s to %s' % ('amount', transfer.amount, amount)
-        assert transfer.label in label, \
-            'data consistency failed, %s changed from %s to %s' % ('label', transfer.label, label)
-        assert (transfer.exec_date <= exec_date <= transfer.exec_date + timedelta(days=4)), \
-            'data consistency failed, %s changed from %s to %s' % ('exec_date', transfer.exec_date, exec_date)
-
-    def create_transfer(self, account, recipient, transfer):
         transfer = Transfer()
-        transfer.currency = FrenchTransaction.Currency('.//td[@headers="virement montant"]')(self.doc)
-        transfer.amount = CleanDecimal('.//td[@headers="virement montant"]', replace_dots=True)(self.doc)
-        transfer.account_iban = CleanText('//td[@headers="emetteur IBAN"]', replace=[(' ', '')])(self.doc)
-        transfer.recipient_iban = CleanText('//td[@headers="beneficiaire IBAN"]', replace=[(' ','')])(self.doc)
-        transfer.account_id = account.id
+        transfer.id = json_response['idVirement']
+        transfer.label = json_response['motif']
+        transfer.amount = CleanDecimal.French((CleanText(Dict('montantToDisplay'))))(json_response)
+        transfer.currency = json_response['devise']
+        transfer.exec_date = Date(Dict('dateExecution'))(json_response)
+
+        transfer.account_id = Format('%s%s', Dict('codeGuichet'), Dict('numeroCompte'))(json_response['compteEmetteur'])
+        transfer.account_iban = json_response['compteEmetteur']['iban']
+        transfer.account_label = json_response['compteEmetteur']['libelleToDisplay']
+
+        assert recipient._json_id == json_response['compteBeneficiaire']['id']
         transfer.recipient_id = recipient.id
-        transfer.exec_date = Date(CleanText('.//td[@headers="virement date"]'), dayfirst=True)(self.doc)
-        transfer.label = CleanText('.//td[@headers="virement motif"]')(self.doc)
-        transfer.account_label = account.label
-        transfer.recipient_label = recipient.label
-        transfer._account = account
-        transfer._recipient = recipient
-        transfer.account_balance = account.balance
+        transfer.recipient_iban = json_response['compteBeneficiaire']['iban']
+        transfer.recipient_label = json_response['compteBeneficiaire']['libelleToDisplay']
+
         return transfer
 
-    def confirm(self):
-        form = self.get_form(id='authentification')
+    def is_transfer_validated(self):
+        return Dict('commun/statut')(self.doc).upper() == 'OK'
 
-        url = self.browser.BASEURL + '//sec/vkm/gen_crypto?estSession=0'
-        infos_data = self.browser.open(url).text
-        infos_data = re.match('^_vkCallback\((.*)\);$', infos_data).group(1)
-        infos = json.loads(infos_data.replace("'", '"'))
-        infos['grid'] = self.decode_grid(infos)
-        url = self.browser.BASEURL + '/sec/vkm/gen_ui?modeClavier=0&cryptogramme=' + infos["crypto"]
-        content = self.browser.open(url).content
-        img = Captcha(BytesIO(content), infos)
 
-        try:
-            img.build_tiles()
-        except TileError as err:
-            error("Error: %s" % err)
-            if err.tile:
-                err.tile.display()
+class SignTransferPage(LoggedPage, LoginPage):
+    def get_token(self):
+        result_page = json.loads(self.content)
+        assert result_page['commun']['statut'].upper() == 'OK', 'Something went wrong: %s' % result_page['commun']['raison']
+        return result_page['donnees']['jeton']
 
-        pwd = img.get_codes(self.browser.password[:6])
+    def get_confirm_transfer_data(self, password):
+        token = self.get_token()
+        authentication_data = self.get_authentication_data()
+
+        pwd = authentication_data['img'].get_codes(password[:6])
         t = pwd.split(',')
         newpwd = ','.join(t[self.strange_map[j]] for j in range(6))
-        form['codsec'] = newpwd
-        form['cryptocvcs'] = infos["crypto"].encode('iso-8859-1')
-        form['vkm_op'] = 'sign'
-        form.submit()
+
+        return {
+            'codsec': newpwd,
+            'cryptocvcs': authentication_data['infos']['crypto'].encode('iso-8859-1'),
+            'vkm_op': 'sign',
+            'cl1000_jtn': token,
+        }
 
 
 class RecipientJson(LoggedPage, JsonPage):

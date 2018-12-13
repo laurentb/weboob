@@ -36,7 +36,7 @@ from .pages.accounts_list import (
     ListRibPage, AdvisorPage, HTMLProfilePage, XMLProfilePage, LoansPage, IbanPage, ComingPage,
     NewLandingPage,
 )
-from .pages.transfer import RecipientsPage, TransferPage, AddRecipientPage, RecipientJson
+from .pages.transfer import AddRecipientPage, RecipientJson, TransferJson, SignTransferPage
 from .pages.login import LoginPage, BadLoginPage, ReinitPasswordPage, ActionNeededPage, ErrorPage
 from .pages.subscription import BankStatementPage
 
@@ -68,10 +68,19 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     list_rib = URL('/restitution/imp_listeRib.html', ListRibPage)
     advisor = URL('/com/contacts.html', AdvisorPage)
 
-    recipients = URL('/personnalisation/per_cptBen_modifier_liste.html', RecipientsPage)
-    transfer = URL('/virement/pas_vipon_saisie.html', '/lgn/url.html', TransferPage)
-    add_recipient = URL('/lgn/url.html', AddRecipientPage)
-    json_recipient = URL('/sec/getsigninfo.json', '/sec/csa/send.json', '/sec/oob_sendoob.json', '/sec/oob_polling.json', RecipientJson)
+    # recipient
+    add_recipient = URL(r'/personnalisation/per_cptBen_ajouterFrBic.html',
+                        r'/lgn/url.html', AddRecipientPage)
+    json_recipient = URL(r'/sec/getsigninfo.json',
+                         r'/sec/csa/send.json',
+                         r'/sec/oob_sendoob.json',
+                         r'/sec/oob_polling.json', RecipientJson)
+    # transfer
+    json_transfer = URL(r'/icd/vupri/data/vupri-liste-comptes.json\?an200_isBack=false',
+                        r'/icd/vupri/data/vupri-check.json',
+                        r'/lgn/url.html', TransferJson)
+    sign_transfer = URL(r'/icd/vupri/data/vupri-generate-token.json', SignTransferPage)
+    confirm_transfer = URL(r'/icd/vupri/data/vupri-save.json', TransferJson)
 
     loans = URL(r'/abm/restit/listeRestitutionPretsNET.json\?a100_isPretConso=(?P<conso>\w+)', LoansPage)
     html_profile_page = URL(r'/com/dcr-web/dcr/dcr-coordonnees.html', HTMLProfilePage)
@@ -258,28 +267,34 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     @need_login
     def iter_recipients(self, account):
         try:
-            self.transfer.go()
+            self.json_transfer.go()
         except TransferBankError:
-            return
+            return []
         if not self.page.is_able_to_transfer(account):
-            return
-        for recipient in self.page.iter_recipients(account_id=account.id):
-            yield recipient
-        # some connections have a lot of recipients but they only can do transfer to their own accounts
-        if not self.page.has_external_recipient_transferable():
-            return
-        for recipient in self.recipients.go().iter_recipients():
-            yield recipient
+            return []
+        return self.page.iter_recipients(account_id=account.id)
 
     @need_login
     def init_transfer(self, account, recipient, transfer):
-        self.transfer.go().init_transfer(account, recipient, transfer)
-        self.page.check_data_consistency(transfer)
-        return self.page.create_transfer(account, recipient, transfer)
+        self.json_transfer.go()
+        self.page.init_transfer(account, recipient, transfer)
+        return self.page.handle_response(recipient)
 
     @need_login
     def execute_transfer(self, transfer):
-        self.page.confirm()
+        assert transfer.id, 'Transfer token is missing'
+        data = {
+            'b64e200_idVirement': transfer.id
+        }
+        # get token and virtual keyboard
+        self.sign_transfer.go(params=data)
+
+        data.update(self.page.get_confirm_transfer_data(self.password))
+        # execute transfer
+        headers = {'Referer': self.absurl('/com/icd-web/vupri/virement.html')}
+        self.confirm_transfer.go(data=data, headers=headers)
+
+        assert self.page.is_transfer_validated(), 'Something went wrong, transfer is not executed'
         return transfer
 
     def end_sms_recipient(self, recipient, **params):
@@ -303,8 +318,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
             return self.end_sms_recipient(recipient, **params)
         if 'pass' in params:
             return self.end_oob_recipient(recipient, **params)
-        self.transfer.go()
-        self.location(self.page.get_add_recipient_link())
+        self.add_recipient.go()
         self.page.post_iban(recipient)
         self.page.post_label(recipient)
         self.page.double_auth(recipient)

@@ -70,20 +70,17 @@ class LoginPage(BasePage, PasswordPage):
             if 'indisponible' in msg:
                 raise BrowserUnavailable(msg)
 
-    def login(self, login, password):
-        url = self.browser.BASEURL + '//sec/vkm/gen_crypto?estSession=0'
+    def get_authentication_data(self):
         headers = {'Referer': 'https://particuliers.societegenerale.fr/index.html'}
+        url = self.browser.BASEURL + '//sec/vkm/gen_crypto?estSession=0'
         infos_data = self.browser.open(url, headers=headers).text
-
         infos_data = re.match('^_vkCallback\((.*)\);$', infos_data).group(1)
-
         infos = json.loads(infos_data.replace("'", '"'))
 
         infos['grid'] = self.decode_grid(infos)
 
         url = self.browser.BASEURL + '//sec/vkm/gen_ui?modeClavier=0&cryptogramme=' + infos["crypto"]
-        content = self.browser.open(url).content
-        img = Captcha(BytesIO(content), infos)
+        img = Captcha(BytesIO(self.browser.open(url).content), infos)
 
         try:
             img.build_tiles()
@@ -92,16 +89,24 @@ class LoginPage(BasePage, PasswordPage):
             if err.tile:
                 err.tile.display()
 
+        return {
+            'infos': infos,
+            'img': img,
+        }
+
+    def login(self, login, password):
+        authentication_data = self.get_authentication_data()
+
         form = self.get_form(id='n2g_authentification')
 
-        pwd = img.get_codes(password[:6])
+        pwd = authentication_data['img'].get_codes(password[:6])
         t = pwd.split(',')
         newpwd = ','.join(t[self.strange_map[j]] for j in range(6))
 
         form['codcli'] = login.encode('iso-8859-1')
         form['user_id'] = login.encode('iso-8859-1')
         form['codsec'] = newpwd
-        form['cryptocvcs'] = infos["crypto"].encode('iso-8859-1')
+        form['cryptocvcs'] = authentication_data['infos']['crypto'].encode('iso-8859-1')
         form['vkm_op'] = 'auth'
         form.url = 'https://particuliers.secure.societegenerale.fr//acces/authlgn.html'
         del form['button']
