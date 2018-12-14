@@ -22,10 +22,10 @@ from __future__ import unicode_literals
 from weboob.browser.elements import method, DictElement, ItemElement
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import (
-    Date, CleanDecimal, Eval, Field, Env, Regexp,
+    Date, CleanDecimal, Eval, Field, Env, Regexp, Format,
 )
 from weboob.browser.pages import JsonPage, HTMLPage, LoggedPage
-from weboob.capabilities.bank import Investment
+from weboob.capabilities.bank import Investment, Transaction
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.investments import is_isin_valid
 
@@ -107,5 +107,15 @@ class NewWebsiteFirstConnectionPage(LoggedPage, JsonPage):
 
 
 class HistoryAPIPage(LoggedPage, JsonPage):
-    def has_history(self):
-        return bool(self.doc['data']['nbTotalValeurs'])
+    @method
+    class iter_history(DictElement):
+        item_xpath = 'data/lstOperations'
+
+        class item(ItemElement):
+            klass = Transaction
+
+            obj_label = Format('%s %s (%s)', Dict('libNatureOperation'), Dict('libValeur'), Dict('codeValeur'))
+            obj_amount = CleanDecimal(Dict('mntNet'))
+            obj_date = Date(Dict('dtOperation'))
+            obj_rdate = Date(Dict('dtOperation'))
+            obj_type = Transaction.TYPE_BANK

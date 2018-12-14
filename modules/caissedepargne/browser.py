@@ -365,7 +365,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     def update_linebourse_token(self):
         assert self.linebourse is not None, "linebourse browser should already exist"
         self.linebourse.session.cookies.update(self.session.cookies)
-        self.linebourse.session.headers['X-XSRF-TOKEN'] = self.session.cookies['XSRF-TOKEN']
+        self.linebourse.session.headers['X-XSRF-TOKEN'] = self.session.cookies.get('XSRF-TOKEN', domain='www.caisse-epargne.offrebourse.com')
 
     @need_login
     @retry(ClientError, tries=3)

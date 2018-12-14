@@ -148,9 +148,5 @@ class LinebourseAPIBrowser(LoginBrowser):
             params={'_': get_timestamp()},  # timestamp is necessary
         )
         assert self.history.is_here()
-
-        # Didn't find a connection with transactions
-        # TODO: implement corresponding pages
-        if self.page.has_history():
-            assert False, 'please implement iter_history'
-        return []
+        for tr in self.page.iter_history():
+            yield tr
