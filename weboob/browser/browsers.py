@@ -955,7 +955,6 @@ class AbstractBrowser(Browser):
 class OAuth2Mixin(StatesMixin):
     AUTHORIZATION_URI = None
     ACCESS_TOKEN_URI = None
-    ACCESS_TOKEN_METHOD = 'POST'
     SCOPE = ''
 
     client_id = None
@@ -1014,14 +1013,17 @@ class OAuth2Mixin(StatesMixin):
                 'client_secret':    self.client_secret,
                 }
 
+    def do_token_request(self, data):
+         return self.open(self.ACCESS_TOKEN_URI, data=data)
+
     def request_access_token(self, auth_uri):
-        values = dict(parse_qsl(urlparse(auth_uri).query))
+        if isinstance(auth_uri, dict):
+            values = auth_uri
+        else:
+            values = dict(parse_qsl(urlparse(auth_uri).query))
         data = self.build_access_token_parameters(values)
         try:
-            if self.ACCESS_TOKEN_METHOD == 'POST':
-                 auth_response = self.open(self.ACCESS_TOKEN_URI, data=data).json()
-            else:
-                 auth_response = self.open(self.ACCESS_TOKEN_URI, params=data).json()
+            auth_response = self.do_token_request(data).json()
         except ClientError:
             raise BrowserIncorrectPassword()
 
@@ -1032,17 +1034,14 @@ class OAuth2Mixin(StatesMixin):
                 'refresh_token':    self.refresh_token,
                }
         try:
-            if self.ACCESS_TOKEN_METHOD == 'POST':
-                auth_response = self.open(self.ACCESS_TOKEN_URI, data=data).json()
-            else:
-                auth_response = self.open(self.ACCESS_TOKEN_URI, params=data).json()
+            auth_response = self.do_token_request(data).json()
         except ClientError:
             raise BrowserIncorrectPassword()
 
         self.update_token(auth_response)
 
     def update_token(self, auth_response):
-        self.token_type = auth_response['token_type']
+        self.token_type = auth_response['token_type'].capitalize() # don't know yet if this is a good idea, but required by bnpstet
         if 'refresh_token' in auth_response:
             self.refresh_token = auth_response['refresh_token']
         self.access_token = auth_response['access_token']
