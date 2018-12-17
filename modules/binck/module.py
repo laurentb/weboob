@@ -20,7 +20,7 @@
 
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
-from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.bank import CapBankWealth, AccountNotFound
 from weboob.capabilities.base import find_object
 
 from .browser import BinckBrowser
@@ -29,7 +29,7 @@ from .browser import BinckBrowser
 __all__ = ['BinckModule']
 
 
-class BinckModule(Module, CapBank):
+class BinckModule(Module, CapBankWealth):
     NAME = 'binck'
     DESCRIPTION = u'Binck'
     MAINTAINER = u'Edouard Lambert'
