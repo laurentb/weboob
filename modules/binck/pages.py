@@ -22,8 +22,8 @@ import re
 
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
 from weboob.browser.elements import ItemElement, TableElement, DictElement, method
-from weboob.browser.filters.standard import CleanText, Date, Format, CleanDecimal, Eval, Env, TableCell
-from weboob.browser.filters.html import Attr
+from weboob.browser.filters.standard import CleanText, Date, Format, CleanDecimal, Eval, Env
+from weboob.browser.filters.html import Attr, TableCell
 from weboob.browser.filters.json import Dict
 from weboob.exceptions import BrowserPasswordExpired, ActionNeeded
 from weboob.capabilities.bank import Account, Investment
