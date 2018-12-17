@@ -30,17 +30,17 @@ from weboob.browser.pages import HTMLPage, LoggedPage, pagination, NextPage, For
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement, SkipItem, DictElement
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Field, Format,
-    Regexp, Date, AsyncLoad, Async, Eval, RegexpError, Env,
+    Regexp, Date, AsyncLoad, Async, Eval, Env,
     Currency as CleanCurrency, Map,
 )
 from weboob.browser.filters.json import Dict
-from weboob.browser.filters.html import Attr, Link, TableCell, AbsoluteLink
+from weboob.browser.filters.html import Attr, Link, TableCell
 from weboob.capabilities.bank import (
     Account, Investment, Recipient, Transfer, AccountNotFound,
     AddRecipientBankError, TransferInvalidAmount, Loan,
 )
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
-from weboob.capabilities.base import NotAvailable, empty, Currency
+from weboob.capabilities.base import NotAvailable, Currency
 from weboob.capabilities.profile import Person
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_iban_valid
@@ -408,8 +408,8 @@ class HistoryPage(LoggedPage, HTMLPage):
     class iter_history(ListElement):
         item_xpath = '//ul[has-class("list__movement")]/li[div and not(contains(@class, "summary")) \
                                                                and not(contains(@class, "graph")) \
-                                                               and not (contains(@class, "separator")) \
-        and not (contains(@class, "list__movement__line--deffered")) ]'
+                                                               and not(contains(@class, "separator")) \
+                                                               and not(contains(@class, "list__movement__line--deffered"))]'
 
         class item(ItemElement):
             klass = Transaction
@@ -455,10 +455,14 @@ class HistoryPage(LoggedPage, HTMLPage):
                         return closest
                 return date
 
-            # These are on deffered cards accounts.
-            def condition(self):
-                return not len(self.xpath(u'.//span[has-class("icon-carte-bancaire")]')) and \
-                       not len(self.xpath(u'.//a[contains(@href, "/carte")]'))
+            def validate(self, obj):
+                # TYPE_DEFERRED_CARD transactions are already present in the card history
+                # so we only return TYPE_DEFERRED_CARD for the coming:
+                if not Env('coming', default=False)(self):
+                    return not len(self.xpath(u'.//span[has-class("icon-carte-bancaire")]')) and \
+                           not len(self.xpath(u'.//a[contains(@href, "/carte")]')) \
+                           and obj.type != Transaction.TYPE_DEFERRED_CARD
+                return True
 
     def get_cards_number_link(self):
         return Link('//a[small[span[contains(text(), "carte bancaire")]]]', default=NotAvailable)(self.doc)
@@ -718,91 +722,6 @@ class AsvPage(MarketPage):
                 return CleanText('.//strong/a')(self) or CleanText('.//strong', children=False)(self)
 
 
-class AccbisPage(LoggedPage, HTMLPage):
-    @method
-    class iter_valid_cards_url(ListElement):
-        # the only purpose of this is to detect opposed cards
-        # because cards have an 'OPPOSÉE' label on this page only, not on AccountsPage...
-
-        item_xpath = '//ul[@id="nav-category__BANK"]/li'
-
-        class item(ItemElement):
-            klass = Account
-
-            def condition(self):
-                return "add-card" not in self.el.attrib['class']
-
-            # need a falsy value to circumvent detection of duplicates
-            # since obj_id() not implemented and all card IDs would
-            # be equal the default value
-            # (see method weboob.browser.elements.ListElement.store)
-            obj_id = None
-
-            obj_label = CleanText('.//span[has-class("nav-category__name")]')
-            obj_url = AbsoluteLink('.//a', default=NotAvailable)
-            obj__tooltip = CleanText(Attr('.', 'title'))
-
-            def obj_type(self):
-                # card url is /compte/cav/xxx/carte/yyy so reverse to match "carte" before "cav"
-                for word in Field('url')(self).lower().split('/')[::-1]:
-                    v = AccountsPage.ACCOUNT_TYPES.get(word)
-                    if v:
-                        return v
-
-                for word in Field('label')(self).replace('_', ' ').lower().split():
-                    v = AccountsPage.ACCOUNT_TYPES.get(word)
-                    if v:
-                        return v
-
-            def validate(self, obj):
-                # keep only VALID account
-                # a valid account:
-                # - is related to a credit card
-                # - the card must not be blocked
-                # - the card has to be already activated
-                if obj.type != Account.TYPE_CARD:
-                    return False
-                if obj.label.endswith(' OPPOSÉE'):
-                    return False
-                # not activated when tooltip hides the 4 digits
-                return not obj._tooltip.endswith('****')
-
-
-    def populate(self, accounts):
-        cards = []
-        for account in accounts:
-            for li in self.doc.xpath('//li[@class="nav-category"]'):
-                title = CleanText().filter(li.xpath('./h3'))
-                for a in li.xpath('./ul/li//a'):
-                    label = CleanText().filter(a.xpath('.//span[@class="nav-category__name"]'))
-                    balance_el = a.xpath('.//span[@class="nav-category__value"]')
-                    balance = CleanDecimal(replace_dots=True, default=NotAvailable).filter(balance_el)
-                    if 'CARTE' in label and not empty(balance):
-                        acc = Account()
-                        acc.balance = balance
-                        acc.label = label
-                        acc.currency = FrenchTransaction.Currency().filter(balance_el)
-                        acc.url = urljoin(self.url, Link().filter(a.xpath('.')))
-                        acc._history_page = acc.url
-                        try:
-                            acc.id = acc._webid = Regexp(pattern='carte/(.*)$').filter(Link().filter(a.xpath('.')))
-                        except RegexpError:
-                            # Those are external cards, ie: amex cards
-                            continue
-                        acc.type = Account.TYPE_CARD
-                        if not acc in cards:
-                            cards.append(acc)
-                    elif account.label == label and account.balance == balance:
-                        if not account.type:
-                            account.type = AccountsPage.ACCOUNT_TYPES.get(title, Account.TYPE_UNKNOWN)
-                        account._webid = Attr(None, 'data-account-label').filter(a.xpath('.//span[@class="nav-category__name"]'))
-        if cards:
-            self.browser.go_cards_number(cards[0].url)
-            if self.browser.cards.is_here():
-                self.browser.page.populate_cards_number(cards)
-                accounts.extend(cards)
-
-
 class ErrorPage(HTMLPage):
     def on_load(self):
         error = (Attr('//input[@required][@id="profile_lei_type_identifier"]', 'data-message', default=None)(self.doc) or
@@ -852,7 +771,9 @@ class CardsNumberPage(LoggedPage, HTMLPage):
             # the card's hash on the HTML page:
             card_url_hash = re.search('carte\/(.*)', card.url).group(1)
             card_hash = CleanText('//nav[ul[li[a[contains(@href, "%s")]]]]/@data-card-key' % card_url_hash)(self.doc)
-            # With the card hash we can get the card number:
+            # With the card hash we can get the card number.
+            # Non activated cards have no card_hash and therefore no
+            # card number so we can easily eliminate them afterwards.
             card.number = CleanText('//div[@data-card-key="%s"]/div/span' % card_hash)(self.doc)
 
 

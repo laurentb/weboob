@@ -40,7 +40,7 @@ from weboob.tools.compat import basestring, urlsplit, urlunsplit
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages import (
-    LoginPage, VirtKeyboardPage, AccountsPage, AsvPage, HistoryPage, AccbisPage, AuthenticationPage,
+    LoginPage, VirtKeyboardPage, AccountsPage, AsvPage, HistoryPage, AuthenticationPage,
     MarketPage, LoanPage, SavingMarketPage, ErrorPage, IncidentPage, IbanPage, ProfilePage, ExpertPage,
     CardsNumberPage, CalendarPage, HomePage, PEPPage,
     TransferAccounts, TransferRecipients, TransferCharac, TransferConfirm, TransferSent,
@@ -76,9 +76,6 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
     no_account = URL('/dashboard/comptes\?_hinclude=300000',
                      '/dashboard/comptes-professionnels\?_hinclude=1', NoAccountPage)
 
-    acc_tit = URL('/comptes/titulaire/(?P<webid>.*)\?_hinclude=1', AccbisPage)
-    acc_rep = URL('/comptes/representative/(?P<webid>.*)\?_hinclude=1', AccbisPage)
-    acc_pro = URL('/comptes/professionnel/(?P<webid>.*)\?_hinclude=1', AccbisPage)
     history = URL('/compte/(cav|epargne)/(?P<webid>.*)/mouvements.*',  HistoryPage)
     card_transactions = URL('/compte/cav/(?P<webid>.*)/carte/.*', HistoryPage)
     deffered_card_history = URL('https://api.boursorama.com/services/api/files/download.phtml.*', CardHistoryPage)
@@ -237,24 +234,8 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
                 # if we landed twice on NoAccountPage, it means there is neither pro accounts nor pp accounts
                 raise NoAccountsException()
 
-            # discard all unvalid card accounts (if opposed or not yet activated)
-            valid_card_url = []
-            for account in self.accounts_list:
-                if account.type == Account.TYPE_CHECKING:
-                    # get all tit card account (page can also contains non-valid card)
-                    self.acc_tit.go(webid=account._webid)
-                    valid_card_url.extend([card.url for card in self.page.iter_valid_cards_url()])
-
-                    # get all pro card account
-                    self.acc_pro.go(webid=account._webid)
-                    valid_card_url.extend([card.url for card in self.page.iter_valid_cards_url()])
-
-                    # there is 1 page for all accounts (one for tit and one for pro)
-                    break
             for account in list(self.accounts_list):
-                if account.type == Account.TYPE_CARD and account.url not in valid_card_url:
-                    self.accounts_list.remove(account)
-                elif account.type == Account.TYPE_LOAN:
+                if account.type == Account.TYPE_LOAN:
                     # Loans details are present on another page so we create
                     # a Loan object and remove the corresponding Account:
                     self.location(account.url)
@@ -262,13 +243,17 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
                     loan.url = account.url
                     self.loans_list.append(loan)
                     self.accounts_list.remove(account)
-
             self.accounts_list.extend(self.loans_list)
+
             cards = [acc for acc in self.accounts_list if acc.type == Account.TYPE_CARD]
             if cards:
                 self.go_cards_number(cards[0].url)
                 if self.cards.is_here():
                     self.page.populate_cards_number(cards)
+            # Cards without a number are not activated yet:
+            for card in cards:
+                if not card.number:
+                    self.accounts_list.remove(card)
 
             for account in self.accounts_list:
                 if account.type not in (Account.TYPE_CARD, Account.TYPE_LOAN, Account.TYPE_CONSUMER_CREDIT, Account.TYPE_MORTGAGE, Account.TYPE_REVOLVING_CREDIT, Account.TYPE_LIFE_INSURANCE):
@@ -296,37 +281,32 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
             if i[0] < debit_date <= j[0]:
                 return j[1]
 
-    def get_closing_date(self):
-        for i, j in zip(self.deferred_card_calendar, self.deferred_card_calendar[1:]):
-            if i[1] < date.today() <= j[1]:
-                return i[0]
-
     def get_card_transactions(self, account, coming):
+        # All card transactions can be found in the CSV (history and coming),
+        # however the CSV shows a maximum of 1000 transactions from all accounts.
         self.location(account.url)
         if self.home.is_here():
             # for some cards, the site redirects us to '/'...
             return
 
-        for t in self.page.iter_history(is_card=True):
-            yield t
-
-        # For card old history, the page doesn't show the real debit date,
-        # so we need to parse a csv page
-        if not coming:
-            if self.deferred_card_calendar is None:
-                self.location(self.page.get_calendar_link())
-            params = {}
-            params['movementSearch[toDate]'] = self.get_closing_date().strftime('%d/%m/%Y')
-            params['movementSearch[fromDate]'] = (date.today() - relativedelta(years=3)).strftime('%d/%m/%Y')
-            params['fullSearch'] = 1
-
-            self.location(account.url, params=params)
-            csv_link = self.page.get_csv_link()
-            if csv_link:
-                self.location(csv_link)
-                for t in sorted_transactions(self.page.iter_history(account_number=account.number)):
-                    yield t
-        return
+        self.location(account.url)
+        if self.deferred_card_calendar is None:
+            self.location(self.page.get_calendar_link())
+        params = {}
+        params['movementSearch[fromDate]'] = (date.today() - relativedelta(years=3)).strftime('%d/%m/%Y')
+        params['fullSearch'] = 1
+        self.location(account.url, params=params)
+        csv_link = self.page.get_csv_link()
+        if csv_link:
+            self.location(csv_link)
+            # Yield past transactions as 'history' and
+            # transactions in the future as 'coming':
+            for tr in sorted_transactions(self.page.iter_history(account_number=account.number)):
+                if coming and tr.date > date.today():
+                    tr._is_coming = True
+                    yield tr
+                elif not coming and tr.date < date.today():
+                    yield tr
 
     def get_invest_transactions(self, account, coming):
         if coming:
