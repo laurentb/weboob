@@ -1366,9 +1366,10 @@ class InternalTransferPage(LoggedPage, HTMLPage):
 
         for message in messages:
             if message in content:
-                if self.doc.xpath('//div[@class="blocmsg err"]/p'):
+                full_message = CleanText('//div[@class="blocmsg err"]/p')(self.doc)
+                if full_message:
                     # get full error message
-                    message = CleanText('//div[@class="blocmsg err"]/p')(self.doc)
+                    message = full_message
                 raise TransferBankError(message=message)
 
     def check_success(self):
