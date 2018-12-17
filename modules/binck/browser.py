@@ -73,13 +73,19 @@ class BinckBrowser(LoginBrowser):
         self.accounts.go()
         for a in self.page.iter_accounts():
             self.accounts.stay_or_go()
-            token = self.page.get_token()
+            if self.view.is_here():
+                self.location(self.page.skip_tuto())
+            if self.accounts.is_here():
+                token = self.page.get_token()
             data = {'accountNumber': a.id}
             # Important: the "switch" request without the token will lead to a 500 error
             self.account_switch.go(data=data, headers=token)
 
             # We must get the new token almost everytime we get a new page:
-            token = self.page.get_token()
+            if self.view.is_here():
+                self.location(self.page.skip_tuto())
+            if self.accounts.is_here():
+                token = self.page.get_token()
             try:
                 data = {'grouping': 'SecurityCategory'}
                 a._invpage = self.investment.go(data=data, headers=token)

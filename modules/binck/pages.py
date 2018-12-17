@@ -57,7 +57,7 @@ class ChangePassPage(LoggedPage, HTMLPage):
 
 class LogonFlowPage(HTMLPage):
     def on_load(self):
-        raise ActionNeeded(CleanText('//article//h1')(self.doc))
+        raise ActionNeeded(CleanText('//article//h1 | //article//h3')(self.doc))
 
 
 class LoginPage(HTMLPage):
