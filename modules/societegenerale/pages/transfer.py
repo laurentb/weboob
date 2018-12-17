@@ -59,6 +59,8 @@ class TransferJson(LoggedPage, JsonPage):
     @method
     class iter_recipients(DictElement):
         item_xpath = 'donnees/listeEmetteursBeneficiaires/listeDetailBeneficiaires'
+        # Some recipients can be internal and external
+        ignore_duplicate = True
 
         class Item(ItemElement):
             klass = Recipient
