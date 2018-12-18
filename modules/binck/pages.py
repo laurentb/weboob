@@ -22,9 +22,9 @@ from __future__ import unicode_literals
 import re
 
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
-from weboob.browser.elements import ItemElement, ListElement, DictElement, method
+from weboob.browser.elements import ItemElement, ListElement, DictElement, TableElement, method
 from weboob.browser.filters.standard import CleanText, Date, Format, CleanDecimal, Eval, Env, Field
-from weboob.browser.filters.html import Attr, Link
+from weboob.browser.filters.html import Attr, Link, TableCell
 from weboob.browser.filters.json import Dict
 from weboob.exceptions import BrowserPasswordExpired, ActionNeeded
 from weboob.capabilities.bank import Account, Investment
@@ -45,8 +45,21 @@ class QuestionPage(HTMLPage):
 
 
 class ViewPage(LoggedPage, HTMLPage):
-    def skip_tuto(self):
-        return Link('//a[contains(@href, "Skip") and contains(text(), "Suivant")]')(self.doc)
+    # We automatically skip the new website tutorial
+    def on_load(self):
+        link = Link('//a[contains(@href, "Skip") and contains(text(), "Suivant")]')(self.doc)
+        assert link, 'ViewPage skipping link was not found'
+        self.browser.location(link)
+
+
+class HomePage(LoggedPage, HTMLPage):
+    # We directly go from the home page to the accounts page
+    def on_load(self):
+        ''' Remove the old_website_connection part when old website is obsolete '''
+        if self.browser.old_website_connection:
+            self.browser.location('https://web.binck.fr/AccountsOverview/Index')
+        else:
+            self.browser.location('https://web.binck.fr/PersonAccountOverview/Index')
 
 
 class ChangePassPage(LoggedPage, HTMLPage):
@@ -78,6 +91,10 @@ class AccountsPage(LoggedPage, HTMLPage):
              'PEA-PME': Account.TYPE_PEA,
              'AV': Account.TYPE_LIFE_INSURANCE,
             }
+
+    ''' Delete this method when the old website is obsolete '''
+    def has_accounts_table(self):
+        return self.doc.xpath('//table[contains(@class, "accountoverview-table")]')
 
     def get_token(self):
         return [{Attr('.', 'name')(input): Attr('.', 'value')(input)} \
@@ -111,15 +128,58 @@ class AccountsPage(LoggedPage, HTMLPage):
                 return Account.get_currency(CleanText('.//div[contains(text(), "Total des avoirs")]/following::strong[1]')(self))
 
 
-class HomePage(AccountsPage):
-    pass
+class OldAccountsPage(LoggedPage, HTMLPage):
+    '''
+    Old website accounts page. We can get rid of this
+    class when all users have access to the new website.
+    '''
+    TYPES = {'LIVRET':         Account.TYPE_SAVINGS,
+             'COMPTE-TITRES':  Account.TYPE_MARKET,
+             'PEA-PME':        Account.TYPE_PEA,
+             'PEA':            Account.TYPE_PEA
+            }
+
+    def go_to_account(self, number):
+        form = self.get_form('//form[contains(@action, "Switch")]')
+        form['accountNumber'] = number
+        form.submit()
+
+    def get_iban(self):
+        return CleanText('//div[@class="iban"]/text()', replace=[(' ', '')], default=NotAvailable)(self.doc)
+
+    def get_token(self):
+        return [{Attr('.', 'name')(input): Attr('.', 'value')(input)} \
+            for input in self.doc.xpath('//input[contains(@name, "Token")]')][0]
+
+    def is_investment(self):
+        # warning: the link can be present even in case of non-investement account
+        return CleanText('//a[contains(@href, "Portfolio")]', default=False)(self.doc)
+
+    @method
+    class iter_accounts(TableElement):
+        item_xpath = '//table[contains(@class, "accountsTable")]/tbody/tr'
+        head_xpath = '//table[contains(@class, "accountsTable")]/thead/tr/th'
+
+        col_label = 'Intitulé du compte'
+        col_balance = 'Total Portefeuille'
+        col_liquidity = 'Espèces'
+
+        class item(ItemElement):
+            klass = Account
+
+            obj_id = Attr('.', 'data-accountnumber')
+            obj_label = CleanText(TableCell('label'))
+            obj_balance = MyDecimal(TableCell('balance'))
+            obj__liquidity = MyDecimal(TableCell('liquidity'))
+
+            def obj_type(self):
+                return self.page.TYPES.get(CleanText('./ancestor::section[h1]/h1')(self).upper(), Account.TYPE_UNKNOWN)
+
+            def obj_currency(self):
+                return Account.get_currency(CleanText(TableCell('balance'))(self))
 
 
 class SwitchPage(LoggedPage, HTMLPage):
-    pass
-
-
-class DetailsPage(LoggedPage, HTMLPage):
     pass
 
 
