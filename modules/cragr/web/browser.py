@@ -21,6 +21,7 @@ from __future__ import unicode_literals
 
 import re
 import hashlib
+import ssl
 from html2text import unescape
 from datetime import date, datetime, timedelta
 
@@ -158,6 +159,14 @@ class Cragr(LoginBrowser, StatesMixin):
         self.current_perimeter = None
         self.broken_perimeters = list()
         self.BASEURL = 'https://%s/' % self.first_domain
+
+    def prepare_request(self, req):
+        preq = super(Cragr, self).prepare_request(req)
+
+        conn = self.session.adapters['https://'].get_connection(preq.url)
+        conn.ssl_version = ssl.PROTOCOL_TLSv1
+
+        return preq
 
     def do_login(self):
         """
