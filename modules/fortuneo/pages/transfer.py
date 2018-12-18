@@ -124,7 +124,7 @@ class RecipientSMSPage(LoggedPage, PartialHTMLPage):
             /h2[contains(text(), "ajout de compte externe a bien été prise en compte")]')
 
     def get_error(self):
-        return CleanText().filter(self.doc.xpath('//form[@id="CompteExterneActionForm"]//p[@class="container error"]//label[@class="error]'))
+        return CleanText('//form[@id="CompteExterneActionForm"]//p[@class="container error"]//label[@class="error"]')(self.doc)
 
 
 class RegisterTransferPage(LoggedPage, HTMLPage):
