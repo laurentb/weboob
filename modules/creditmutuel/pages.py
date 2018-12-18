@@ -1218,12 +1218,20 @@ class PorPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Investment
 
+            def condition(self):
+                return not any(not x.isdigit() for x in Attr('.', 'id')(self))
+
             obj_label = CleanText(TableCell('label'), default=NotAvailable)
-            obj_code = CleanText('.//td[1]/a/@title') & Regexp(pattern=r'^([^ ]+)')
             obj_quantity = CleanDecimal(TableCell('quantity'), default=Decimal(0), replace_dots=True)
             obj_unitprice = CleanDecimal(TableCell('unitprice'), default=Decimal(0), replace_dots=True)
             obj_valuation = CleanDecimal(TableCell('valuation'), default=Decimal(0), replace_dots=True)
             obj_diff = CleanDecimal(TableCell('diff'), default=Decimal(0), replace_dots=True)
+
+            def obj_code(self):
+                code = Regexp(CleanText('.//td[1]/a/@title'), r'^([^ ]+)')(self)
+                if 'masquer' in code:
+                    return Regexp(CleanText('./following-sibling::tr[1]//a/@title'), r'^([^ ]+)')(self)
+                return code
 
             def obj_unitvalue(self):
                 r = CleanText(TableCell('unitvalue'))(self)
