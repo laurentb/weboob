@@ -31,7 +31,7 @@ from weboob.capabilities.profile import CapProfile
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 from weboob.tools.value import ValueBackendPassword, Value
-from weboob.capabilities.base import find_object, NotAvailable
+from weboob.capabilities.base import find_object, strict_find_object, NotAvailable
 
 from .browser import LCLBrowser, LCLProBrowser, ELCLBrowser
 from .enterprise.browser import LCLEnterpriseBrowser, LCLEspaceProBrowser
@@ -123,15 +123,15 @@ class LCLModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapContact, 
             transfer.label = transfer.label[:30]
 
         self.logger.info('Going to do a new transfer')
-        if transfer.account_iban:
-            account = find_object(self.iter_accounts(), iban=transfer.account_iban, error=AccountNotFound)
-        else:
-            account = find_object(self.iter_accounts(), id=transfer.account_id, error=AccountNotFound)
+        acc_list = list(self.iter_accounts())
+        account = strict_find_object(acc_list, iban=transfer.account_iban)
+        if not account:
+            account = strict_find_object(acc_list, id=transfer.account_id, error=AccountNotFound)
 
-        if transfer.recipient_iban:
-            recipient = find_object(self.iter_transfer_recipients(account.id), iban=transfer.recipient_iban, error=RecipientNotFound)
-        else:
-            recipient = find_object(self.iter_transfer_recipients(account.id), id=transfer.recipient_id, error=RecipientNotFound)
+        rcpt_list = list(self.iter_transfer_recipients(account.id))
+        recipient = strict_find_object(rcpt_list, iban=transfer.recipient_iban)
+        if not recipient:
+            recipient = strict_find_object(rcpt_list, id=transfer.recipient_id, error=RecipientNotFound)
 
         try:
             # quantize to show 2 decimals.
