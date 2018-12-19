@@ -751,6 +751,11 @@ class Cragr(LoginBrowser, StatesMixin):
         self.transfer_init_page.go(sag=self.sag)
         assert self.transfer_init_page.is_here()
 
+        if not self.page.add_recipient_is_allowed():
+            if not [rec for rec in self.page.iter_recipients() if rec.category == 'Externe']:
+                raise AddRecipientBankError('Vous ne pouvez pas ajouter de bénéficiaires, veuillez contacter votre banque.')
+            assert False, 'Xpath for a recipient add is not catched'
+
         self.location(self.page.url_list_recipients())
         # there are 2 pages from where we can add a new recipient:
         # - RecipientListPage, but the link is sometimes missing

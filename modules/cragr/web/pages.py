@@ -1274,6 +1274,9 @@ class TransferInit(MyLoggedPage, BasePage):
     def url_list_recipients(self):
         return CleanText(u'(//a[contains(text(),"Liste des bénéficiaires")])[1]/@href')(self.doc)
 
+    def add_recipient_is_allowed(self):
+        return bool(self.doc.xpath('//a[text()="+ Saisir un autre compte bénéficiaire"]') or self.doc.xpath('//a[contains(text(),"Liste des bénéficiaires")]'))
+
     def url_add_recipient(self):
         link = Link('//a[text()="+ Saisir un autre compte bénéficiaire"]')(self.doc)
         return link + '&IDENT=LI_VIR_RIB1&VIR_VIR1_FR3_LE=0&T3SEF_MTT_EURO=&T3SEF_MTT_CENT=&VICrt_REFERENCE='
