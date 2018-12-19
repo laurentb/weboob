@@ -132,11 +132,6 @@ class ErrorPage(_LogoutPage):
     pass
 
 
-class UnavailablePage(HTMLPage):
-    def on_load(self):
-        raise BrowserUnavailable(CleanText('//div[@id="message_error_hs"]')(self.doc))
-
-
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile(r'^CB (?P<text>.*?) FACT (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2})\b', re.IGNORECASE),
                                                             FrenchTransaction.TYPE_CARD),
@@ -1407,6 +1402,14 @@ class SubscriptionPage(LoggedPage, HTMLPage):
         form['__EVENTTARGET'] = document.url
         form['MM$COMPTE_EDOCUMENTS$ctrlEDocumentsConsultationDocument$eventId'] = document._event_id
         return form.submit()
+
+
+class UnavailablePage(LoggedPage, HTMLPage):
+    # This page seems to not be a 'LoggedPage'
+    # but it also is a redirection page from a 'LoggedPage'
+    # when the required page is not unavailable
+    # so it can also redirect to a 'LoggedPage' page
+    pass
 
 
 class CreditCooperatifMarketPage(LoggedPage, HTMLPage):
