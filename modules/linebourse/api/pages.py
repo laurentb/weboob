@@ -89,9 +89,12 @@ class PortfolioPage(LoggedPage, JsonPage):
                     return CleanDecimal(Dict('pourcentagePlv'), sign=lambda x: Env('sign')(self))(self)
 
 
-class ConfigurationPage(LoggedPage, JsonPage):
-    def get_contract_number(self):
-        return self.doc['idCompteActif']
+class AccountCodesPage(LoggedPage, JsonPage):
+    def get_contract_number(self, account_id):
+        for acc in self.doc['data']:
+            if account_id in acc['affichage']:
+                return acc['identifiantContratCrypte']
+        assert False, 'the account code was not found in the linebourse API'
 
 
 class NewWebsiteFirstConnectionPage(LoggedPage, JsonPage):

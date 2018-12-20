@@ -20,7 +20,6 @@
 from __future__ import unicode_literals
 
 import time
-import re
 
 from weboob.browser import LoginBrowser, URL
 from weboob.exceptions import BrowserUnavailable
@@ -31,8 +30,8 @@ from .pages import (
 )
 
 from .api.pages import (
-    PortfolioPage, NewWebsiteFirstConnectionPage, ConfigurationPage,
-    HistoryAPIPage,
+    PortfolioPage, NewWebsiteFirstConnectionPage,
+    AccountCodesPage, HistoryAPIPage,
 )
 
 
@@ -118,33 +117,38 @@ class LinebourseAPIBrowser(LoginBrowser):
     BASEURL = 'https://www.offrebourse.com'
 
     new_website_first = URL(r'/rest/premiereConnexion', NewWebsiteFirstConnectionPage)
-    config = URL(r'/rest/configuration', ConfigurationPage)
+    account_codes = URL(r'/rest/compte/liste/vide/0', AccountCodesPage)
 
-    # The API works with an encrypted id_contract that starts with 'CRY'
-    portfolio = URL(r'/rest/portefeuille/(?P<id_contract>CRY[\w\d]+)/vide/true/false', PortfolioPage)
-    history = URL(r'/rest/historiqueOperations/(?P<id_contract>CRY[\w\d]+)/0/7/1', HistoryAPIPage)  # TODO: not sure if last 3 path levels can be hardcoded
+    # The API works with an encrypted account_code that starts with 'CRY'
+    portfolio = URL(r'/rest/portefeuille/(?P<account_code>CRY[\w\d]+)/vide/true/false', PortfolioPage)
+    history = URL(r'/rest/historiqueOperations/(?P<account_code>CRY[\w\d]+)/0/7/1', HistoryAPIPage)  # TODO: not sure if last 3 path levels can be hardcoded
 
     def __init__(self, baseurl, *args, **kwargs):
         self.BASEURL = baseurl
-        self.id_contract = None  # encrypted contract number used to browse between pages
-
         super(LinebourseAPIBrowser, self).__init__(username='', password='', *args, **kwargs)
 
-    def go_portfolio(self):
-        self.config.go()
-        self.id_contract = self.page.get_contract_number()
-        return self.portfolio.go(id_contract=self.id_contract)
+    def get_account_code(self, account_id):
+        # 'account_codes' is a JSON containing the id_contracts
+        # of all the accounts present on the Linebourse space.
+        params = {'_': get_timestamp()}
+        self.account_codes.go(params=params)
+        assert self.account_codes.is_here()
+        return self.page.get_contract_number(account_id)
 
-    def iter_investments(self):
-        self.go_portfolio()
+    def go_portfolio(self, account_id):
+        account_code = self.get_account_code(account_id)
+        return self.portfolio.go(account_code=account_code)
+
+    def iter_investments(self, account_id):
+        self.go_portfolio(account_id)
         assert self.portfolio.is_here()
         date = self.page.get_date()
         return self.page.iter_investments(date=date)
 
-    def iter_history(self):
-        assert re.match(r'CRY[\w\d]+', self.id_contract)
+    def iter_history(self, account_id):
+        account_code = self.get_account_code(account_id)
         self.history.go(
-            id_contract=self.id_contract,
+            account_code=account_code,
             params={'_': get_timestamp()},  # timestamp is necessary
         )
         assert self.history.is_here()

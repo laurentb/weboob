@@ -405,7 +405,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
                     if 'offrebourse.com' in self.url:
                         self.update_linebourse_token()
-                        page = self.linebourse.go_portfolio()
+                        page = self.linebourse.go_portfolio(account.id)
                         assert self.linebourse.portfolio.is_here()
                         # We must declare "page" because this URL also matches MarketPage
                         account.valuation_diff = page.get_valuation_diff()
@@ -566,7 +566,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                 if 'offrebourse.com' in self.url:
                     self.linebourse.session.cookies.update(self.session.cookies)
                     self.update_linebourse_token()
-                    return self.linebourse.iter_history()
+                    return self.linebourse.iter_history(account.id)
         return self._get_history(account._info)
 
     @need_login
@@ -607,7 +607,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
             if 'offrebourse.com' in self.url:
                 self.update_linebourse_token()
-                for investment in self.linebourse.iter_investments():
+                for investment in self.linebourse.iter_investments(account.id):
                     yield investment
                 return
 
