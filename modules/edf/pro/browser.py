@@ -19,8 +19,6 @@
 
 from __future__ import unicode_literals
 
-import json
-
 from datetime import datetime, timedelta
 
 from weboob.browser import LoginBrowser, URL, need_login
@@ -30,7 +28,7 @@ from weboob.browser.exceptions import ServerError, ClientError
 
 from .pages import (
     LoginPage, HomePage, AuthPage, ErrorPage, LireSitePage,
-    SubscriptionsPage, BillsPage, DocumentsPage, ProfilePage,
+    SubscriptionsPage, SubscriptionsAccountPage, BillsPage, DocumentsPage, ProfilePage,
 )
 
 
@@ -43,15 +41,14 @@ class EdfproBrowser(LoginBrowser):
     error = URL(r'/page_erreur/', ErrorPage)
     home = URL('/ice/content/ice-pmse/homepage.html', HomePage)
     liresite = URL(r'/rest/homepagemp/liresite', LireSitePage)
-    contracts = URL('/rest/contratmp/consultercontrats', SubscriptionsPage)
+    subscriptions = URL('/rest/homepagemp/lireprofilsfacturation', SubscriptionsPage)
+    contracts = URL('/rest/contratmp/consultercontrats', SubscriptionsAccountPage)
     bills = URL('/rest/facturemp/getnomtelechargerfacture', BillsPage)
     documents = URL('/rest/facturemp/recherchefacture', DocumentsPage)
     profile = URL('/rest/servicemp/consulterinterlocuteur', ProfilePage)
 
     def __init__(self, config, *args, **kwargs):
         self.config = config
-        self.cache = {}
-        self.cache['docs'] = {}
         kwargs['username'] = self.config['login'].get()
         kwargs['password'] = self.config['password'].get()
         super(EdfproBrowser, self).__init__(*args, **kwargs)
@@ -60,7 +57,7 @@ class EdfproBrowser(LoginBrowser):
         self.login.go('/openam/json/authenticate', method='POST')
         login_data = self.page.get_data(self.username, self.password)
         try:
-            self.login.go(data=json.dumps(login_data), headers={'Content-Type': 'application/json'})
+            self.login.go(json=login_data)
         except ClientError as e:
             raise BrowserIncorrectPassword(e.response.json()['message'])
 
@@ -78,41 +75,48 @@ class EdfproBrowser(LoginBrowser):
 
     @need_login
     def get_subscription_list(self):
-        self.liresite.go(data=json.dumps({"numPremierSitePage": 0, "pageSize": 100000, "idTdg": None,
-                                          "critereFiltre": [], "critereTri": []}))
+        self.liresite.go(json={"numPremierSitePage": 0, "pageSize": 100000, "idTdg": None,
+                               "critereFiltre": [], "critereTri": []})
         id_site_list = self.page.get_id_site_list()
         if not id_site_list:
             raise ActionNeeded("Vous ne disposez d'aucun contrat actif relatif à vos sites")
 
-        if "subs" not in self.cache.keys():
-            self.contracts.go(data=json.dumps({'refDevisOMList': [], 'refDevisOHList': id_site_list}))
+        data = {
+            'critereFiltre': [],
+            'critereTri': [],
+            'idTdg': None,
+            'pageSize': 100000,
+            'startRowNum': 0
+        }
 
-            self.cache['subs'] = [s for s in self.page.get_subscriptions()]
-        return self.cache['subs']
+        sub_page = self.subscriptions.go(json=data)
+        self.contracts.go(json={'refDevisOMList': [], 'refDevisOHList': id_site_list})
+
+        for sub in sub_page.get_subscriptions():
+            self.page.update_subscription(sub)
+            yield sub
 
     @need_login
     def iter_documents(self, subscription):
-        if subscription.id not in self.cache['docs']:
-            try:
-                self.documents.go(data=json.dumps({
-                    'dateDebut': (datetime.now() - timedelta(weeks=156)).strftime('%d/%m/%Y'),
-                    'dateFin': datetime.now().strftime('%d/%m/%Y'),
-                    'element': subscription._refdevis,
-                    'typeElementListe': 'CONTRAT'
-                }))
+        try:
+            self.documents.go(json={
+                'dateDebut': (datetime.now() - timedelta(weeks=156)).strftime('%d/%m/%Y'),
+                'dateFin': datetime.now().strftime('%d/%m/%Y'),
+                'element': subscription._account_id,
+                'typeElementListe': 'ID_FELIX'
+            })
 
-                self.cache['docs'][subscription.id] = [d for d in self.page.get_documents()]
-            except ServerError:
-                self.cache['docs'][subscription.id] = []
-        return self.cache['docs'][subscription.id]
+            return self.page.get_documents()
+        except ServerError:
+            return []
 
     @need_login
     def download_document(self, document):
         if document.url is not NotAvailable:
             try:
-                self.bills.go(data=json.dumps({'date': int(document.date.strftime('%s')),
-                                               'iDFelix': document._account_billing,
-                                               'numFacture': document._bill_number}))
+                self.bills.go(json={'date': int(document.date.strftime('%s')),
+                                    'iDFelix': document._account_billing,
+                                    'numFacture': document._bill_number})
 
                 return self.open('%s/rest/facturemp/telechargerfichier?fname=%s' % (
                                  self.BASEURL, self.page.get_bill_name())).content

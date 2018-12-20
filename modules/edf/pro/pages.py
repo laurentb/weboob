@@ -24,7 +24,6 @@ from datetime import date
 from weboob.browser.pages import JsonPage, HTMLPage, RawPage, LoggedPage
 from weboob.browser.elements import DictElement, ItemElement, method
 from weboob.browser.filters.standard import CleanDecimal, CleanText
-from weboob.browser.filters.html import CleanHTML
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.bill import DocumentTypes, Subscription, Bill
 from weboob.exceptions import ActionNeeded
@@ -65,21 +64,54 @@ class LireSitePage(LoggedPage, JsonCguPage):
         return [site['idSite'] for site in self.doc['site']]
 
 
-class SubscriptionsPage(LoggedPage, JsonCguPage):
+class SubscriptionsPage(LoggedPage, JsonPage):
     @method
     class get_subscriptions(DictElement):
-        item_xpath = 'listeContrat'
+        item_xpath = 'profilFacturation'
 
         class item(ItemElement):
             klass = Subscription
 
-            obj_id = CleanText(Dict('refDevisLabel'))
-            obj__refdevis =  CleanText(Dict('refDevis'))
-            obj_label = CleanText(CleanHTML(Dict('nomOffreModele')))
+            obj_id = CleanText(Dict('idPFLabel'))
+            obj__account_id = CleanText(Dict('idCompteDeFacturation'))
 
-            def obj_subscriber(self):
-                return ('%s %s' % (Dict('prenomIntPrinc')(self).lower(),
-                                   Dict('nomIntPrinc')(self).lower())).title()
+
+class SubscriptionsAccountPage(LoggedPage, JsonCguPage):
+    @classmethod
+    def _get_similarity_among_id(cls, sub_id, account_id):
+        """
+        sometimes there are several sub_id and several account_id
+        sub_id looks like 1-UD8Z6FPO
+           and account_id 1-UD8Z6F7S
+        when a sub_id and an account_id are related their id are not completely identical but close
+        this function count numbers of char that are identical from the beginning until one char is different
+        more the count value is high more there is a chance that both id are from related objects (subscription and account)
+        """
+        _, sub_id_value = sub_id.split('-', 1)
+        _, account_id_value = account_id.split('-', 1)
+
+        count = 0
+        for idx, c in enumerate(sub_id_value):
+            if idx >= len(account_id_value):
+                return count
+            if account_id_value[idx] != c:
+                return count
+            count += 1
+
+        return count
+
+    def update_subscription(self, subscription):
+        good_con = None
+        best_matching = 0
+        for con in self.doc['listeContrat']:
+            matching = self._get_similarity_among_id(subscription.id, con['refDevisLabel'])
+            if matching > best_matching:
+                best_matching = matching
+                good_con = con
+
+        if good_con:
+            subscription.label = good_con['nomOffreModele']
+            subscription.subscriber = (good_con['prenomIntPrinc'] + ' ' + good_con['nomIntPrinc']).title()
 
 
 class BillsPage(LoggedPage, JsonPage):
