@@ -1009,6 +1009,7 @@ class OAuth2Mixin(StatesMixin):
         return p._replace(query=urlencode(q)).geturl()
 
     def request_authorization(self):
+        self.logger.info('request authorization')
         raise BrowserRedirect(self.build_authorization_uri())
 
     def build_access_token_parameters(self, values):
@@ -1023,6 +1024,8 @@ class OAuth2Mixin(StatesMixin):
         return self.open(self.ACCESS_TOKEN_URI, data=data)
 
     def request_access_token(self, auth_uri):
+        self.logger.info('requesting access token')
+
         if isinstance(auth_uri, dict):
             values = auth_uri
         else:
@@ -1036,6 +1039,8 @@ class OAuth2Mixin(StatesMixin):
         self.update_token(auth_response)
 
     def use_refresh_token(self):
+        self.logger.info('refreshing token')
+
         data = {'grant_type':       'refresh_token',
                 'refresh_token':    self.refresh_token,
                }
