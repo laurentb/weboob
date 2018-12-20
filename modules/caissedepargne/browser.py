@@ -241,18 +241,22 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         if data is None:
             raise BrowserIncorrectPassword()
 
-        if len(data.get('account', [])) > 1:
+        accounts_types = data.get('account', [])
+        if not self.nuser and 'WE' not in accounts_types:
+            raise BrowserIncorrectPassword("Utilisez Caisse d'Épargne Professionnels et renseignez votre nuser pour connecter vos comptes sur l'epace Professionels ou Entreprises.")
+
+        if len(accounts_types) > 1:
             # Additional request when there is more than one connection type
             # to "choose" from the list of connection types
             self.multi_type = True
 
-            if self.inexttype < len(data['account']):
-                if data['account'][self.inexttype] == 'EU' and not self.nuser:
+            if self.inexttype < len(accounts_types):
+                if accounts_types[self.inexttype] == 'EU' and not self.nuser:
                     # when EU is present and not alone, it tends to come first
                     # if nuser is unset though, user probably doesn't want 'EU'
                     self.inexttype += 1
 
-                self.typeAccount = data['account'][self.inexttype]
+                self.typeAccount = accounts_types[self.inexttype]
             else:
                 assert False, 'should have logged in with at least one connection type'
             self.inexttype += 1
@@ -264,7 +268,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         if data.get('authMode', '') == 'redirect':  # the connection type EU could also be used as a criteria
             raise SiteSwitch('cenet')
 
-        typeAccount = data['account'][0]
+        typeAccount = accounts_types[0]
 
         if self.multi_type:
             assert typeAccount == self.typeAccount
@@ -301,6 +305,9 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             raise BrowserPasswordExpired(response['error'])
 
         if not response['action']:
+            # the only possible way to log in w/o nuser is on WE. if we're here no need to go further.
+            if not self.nuser and self.typeAccount == 'WE':
+                raise BrowserIncorrectPassword(response['error'])
             if self.multi_type:
                 # try to log in with the next connection type's value
                 self.do_login()
