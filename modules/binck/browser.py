@@ -28,8 +28,8 @@ from weboob.browser.exceptions import HTTPNotFound, ServerError
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
 
 from .pages import (
-    LoginPage, HomePage, AccountsPage, OldAccountsPage, InvestmentPage, HistoryPage,
-    QuestionPage, ChangePassPage, LogonFlowPage, ViewPage, SwitchPage,
+    LoginPage, HomePage, AccountsPage, OldAccountsPage, HistoryPage, InvestmentPage, InvestDetailPage,
+    InvestmentListPage, QuestionPage, ChangePassPage, LogonFlowPage, ViewPage, SwitchPage,
 )
 
 
@@ -51,6 +51,9 @@ class BinckBrowser(LoginBrowser):
                     r'/Home/Index', HomePage)
 
     investment = URL(r'/PortfolioOverview/GetPortfolioOverview', InvestmentPage)
+    investment_list = URL(r'PortfolioOverview$', InvestmentListPage)
+    invest_detail = URL(r'/SecurityInformation/Get', InvestDetailPage)
+
     history = URL(r'/TransactionsOverview/GetTransactions',
                   r'/TransactionsOverview/FilteredOverview', HistoryPage)
     questions = URL(r'/FDL_Complex_FR_Compte', QuestionPage)
@@ -157,8 +160,14 @@ class BinckBrowser(LoginBrowser):
 
         ''' Delete this part when old website is obsolete '''
         if self.old_website_connection:
+            self.old_accounts.stay_or_go().go_to_account(account.id)
             if account._invpage:
                 for inv in account._invpage.iter_investment(currency=account.currency):
+                    if not inv.code:
+                        params = {'securityId': inv._security_id}
+                        self.invest_detail.go(params=params)
+                        if self.invest_detail.is_here():
+                            inv.code, inv.code_type = self.page.get_isin_code_and_type()
                     yield inv
             return
 

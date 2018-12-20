@@ -207,6 +207,7 @@ class InvestmentPage(LoggedPage, JsonPage):
             obj_original_unitprice = Env('o_unitprice', default=NotAvailable)
             obj_original_valuation = Env('o_valuation', default=NotAvailable)
             obj_original_diff = Env('o_diff', default=NotAvailable)
+            obj__security_id = Dict('SecurityId')
 
             def obj_code(self):
                 if is_isin_valid(Dict('IsinCode')(self)):
@@ -231,6 +232,18 @@ class InvestmentPage(LoggedPage, JsonPage):
                     self.env['unitvalue'] = MyDecimal(Dict('Quote'))(self)
                     self.env['unitprice'] = MyDecimal(Dict('HistoricQuote'))(self)
                 self.env['vdate'] = Date(dayfirst=True).filter(Dict('PortfolioSummary/UpdatedAt')(self.page.doc))
+
+
+class InvestmentListPage(LoggedPage, HTMLPage):
+    pass
+
+
+class InvestDetailPage(LoggedPage, HTMLPage):
+    def get_isin_code_and_type(self):
+        code = CleanText('//td[strong[text()="ISIN"]]/following-sibling::td[1]', default=NotAvailable)(self.doc)
+        if is_isin_valid(code):
+            return code, Investment.CODE_TYPE_ISIN
+        return NotAvailable, NotAvailable
 
 
 class Transaction(FrenchTransaction):
