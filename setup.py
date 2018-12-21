@@ -194,7 +194,10 @@ class Options(object):
 
 options = Options()
 
-args = list(sys.argv)
+if os.getenv('WEBOOB_SETUP'):
+    args = os.getenv('WEBOOB_SETUP').split()
+else:
+    args = sys.argv[1:]
 if '--hildon' in args and '--no-hildon' in args:
     print('--hildon and --no-hildon options are incompatible', file=sys.stderr)
     sys.exit(1)
@@ -231,6 +234,6 @@ if '--nodeps' in args:
     options.deps = False
     args.remove('--nodeps')
 
-sys.argv = args
+sys.argv = [sys.argv[0]] + args
 
 install_weboob()
