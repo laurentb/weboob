@@ -20,7 +20,6 @@
 from __future__ import print_function
 
 import os
-import re
 from collections import OrderedDict
 
 from weboob.capabilities.account import CapAccount
@@ -296,22 +295,6 @@ class WeboobCfg(ReplApplication):
                                               'masked': field.masked,
                                               'required': field.required}
         return module_info
-
-    def do_applications(self, line):
-        """
-        applications
-
-        Show applications.
-        """
-        applications = set()
-        import weboob.applications
-        for path in weboob.applications.__path__:
-            regexp = re.compile('^%s/([\w\d_]+)$' % path)
-            for root, dirs, files in os.walk(path):
-                m = regexp.match(root)
-                if m and '__init__.py' in files:
-                    applications.add(m.group(1))
-        print(' '.join(sorted(applications)).encode('utf-8'))
 
     def do_update(self, line):
         """
