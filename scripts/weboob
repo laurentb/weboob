@@ -54,7 +54,9 @@ class Weboob(ConsoleApplication):
     UPDATE_DAYS_DELAY = 20
 
     def main(self):
-        self.update()
+        interactive = sys.stdout.isatty()
+        if interactive:
+            self.update()
 
         capApplicationDict = self.init_CapApplicationDict()
 
@@ -69,11 +71,17 @@ class Weboob(ConsoleApplication):
 
             cap = sys.argv.pop(1)
             if cap not in capApplicationDict:
-                print('Unknown capability, please choose one in the following list')
-                cap = self.choose_capability(capApplicationDict)
+                if interactive:
+                    print('Unknown capability, please choose one in the following list')
+                    cap = self.choose_capability(capApplicationDict)
+                else:
+                    cap = None
 
         else:
-            cap = self.choose_capability(capApplicationDict)
+            if interactive:
+                cap = self.choose_capability(capApplicationDict)
+            else:
+                cap = None
 
         def appsortkey(app):
             if issubclass(app, QtApplication):
@@ -81,10 +89,14 @@ class Weboob(ConsoleApplication):
             else:
                 return '0' + app.APPNAME
 
-        applications = capApplicationDict[cap]
-        applications = sorted(set(applications), key=appsortkey)
-        application = applications[0] if len(applications) == 1 else self.choose_application(applications)
-        application.run()
+        if cap:
+            applications = capApplicationDict[cap]
+            applications = sorted(set(applications), key=appsortkey)
+            application = applications[0] if len(applications) == 1 else self.choose_application(applications)
+
+            application.run()
+        else:
+            print('Please provide a capability.')
 
     def cmd_update(self):
         self.weboob.update()
