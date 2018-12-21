@@ -63,7 +63,6 @@ def install_weboob():
     scripts = set(os.listdir('scripts'))
     packages = set(find_packages(exclude=['modules', 'modules.*']))
 
-    hildon_scripts = set(('masstransit',))
     qt_scripts = set(('qboobmsg',
                       'qhavedate',
                       'qgalleroob',
@@ -76,16 +75,11 @@ def install_weboob():
                       'qbooblyrics',
                       'qhandjoob'))
 
-    if not options.hildon:
-        scripts = scripts - hildon_scripts
     if options.qt:
         build_qt()
     else:
         scripts = scripts - qt_scripts
 
-    hildon_packages = set((
-        'weboob.applications.masstransit',
-    ))
     qt_packages = set((
         'weboob.applications.qboobmsg',
         'weboob.applications.qboobmsg.ui',
@@ -111,8 +105,6 @@ def install_weboob():
         'weboob.applications.qgalleroob.ui',
     ))
 
-    if not options.hildon:
-        packages = packages - hildon_packages
     if not options.qt:
         packages = packages - qt_packages
 
@@ -187,10 +179,10 @@ def install_weboob():
 
 
 class Options(object):
-    hildon = False
     qt = False
     xdg = True
     deps = True
+
 
 options = Options()
 
@@ -198,23 +190,12 @@ if os.getenv('WEBOOB_SETUP'):
     args = os.getenv('WEBOOB_SETUP').split()
 else:
     args = sys.argv[1:]
-if '--hildon' in args and '--no-hildon' in args:
-    print('--hildon and --no-hildon options are incompatible', file=sys.stderr)
-    sys.exit(1)
 if '--qt' in args and '--no-qt' in args:
     print('--qt and --no-qt options are incompatible', file=sys.stderr)
     sys.exit(1)
 if '--xdg' in args and '--no-xdg' in args:
     print('--xdg and --no-xdg options are incompatible', file=sys.stderr)
     sys.exit(1)
-
-if '--hildon' in args or os.environ.get('HILDON') == 'true':
-    options.hildon = True
-    if '--hildon' in args:
-        args.remove('--hildon')
-elif '--no-hildon' in args:
-    options.hildon = False
-    args.remove('--no-hildon')
 
 if '--qt' in args:
     options.qt = True
