@@ -354,15 +354,19 @@ class Application(object):
         if ask_debug_mode:
             print(debugmsg, file=self.stderr)
 
+    def _shell_completion_items(self):
+        items = set()
+        for option in self._parser.option_list:
+            if option.help is not optparse.SUPPRESS_HELP:
+                items.update(str(option).split('/'))
+        items.update(self._get_completions())
+        return items
+
     def parse_args(self, args):
         self.options, args = self._parser.parse_args(args)
 
         if self.options.shell_completion:
-            items = set()
-            for option in self._parser.option_list:
-                if option.help is not optparse.SUPPRESS_HELP:
-                    items.update(str(option).split('/'))
-            items.update(self._get_completions())
+            items = self._shell_completion_items()
             print(' '.join(items))
             sys.exit(0)
 
