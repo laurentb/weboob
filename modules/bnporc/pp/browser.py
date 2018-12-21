@@ -126,6 +126,7 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
         self.accounts_list = None
         self.card_to_transaction_type = {}
         self.rotating_password = config['rotating_password'].get()
+        self.digital_key = config['digital_key'].get()
 
     @retry(ConnectionError, tries=3)
     def open(self, *args, **kwargs):
@@ -361,8 +362,10 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
         data['notification'] = True
         data['typeBeneficiaire'] = ''
 
-        if 'digital_key' in params:
-            return self.new_recipient_digital_key(recipient, data)
+        # provisional
+        if self.digital_key:
+            if 'digital_key' in params:
+                return self.new_recipient_digital_key(recipient, data)
 
         # need to be on recipient page send sms or mobile notification
         # needed to get the phone number, enabling the possibility to send sms.
@@ -371,9 +374,12 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
 
         # check type of recipient activation
         type_activation = 'sms'
-        if self.page.has_digital_key():
-            # force users with digital key activated to use digital key authentication
-            type_activation = 'digital_key'
+
+        # provisional
+        if self.digital_key:
+            if self.page.has_digital_key():
+                # force users with digital key activated to use digital key authentication
+                type_activation = 'digital_key'
 
         if type_activation == 'sms':
             # post recipient data sending sms with same request

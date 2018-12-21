@@ -53,6 +53,7 @@ class BNPorcModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapMessag
         ValueBackendPassword('login',      label=u'Numéro client', masked=False),
         ValueBackendPassword('password',   label=u'Code secret', regexp='^(\d{6})$'),
         ValueBool('rotating_password',     label=u'Automatically renew password every 100 connections', default=False),
+        ValueBool('digital_key',           label=u'User with digital key have to add recipient with digital key', default=False),
         Value('website', label='Type de compte', default='pp',
               choices={'pp': 'Particuliers/Professionnels',
                        'hbank': 'HelloBank',
