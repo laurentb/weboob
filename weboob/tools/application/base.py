@@ -356,9 +356,10 @@ class Application(object):
 
     def _shell_completion_items(self):
         items = set()
-        for option in self._parser.option_list:
-            if option.help is not optparse.SUPPRESS_HELP:
-                items.update(str(option).split('/'))
+        for ol in [self._parser.option_list] + [og.option_list for og in self._parser.option_groups]:
+            for option in ol:
+                if option.help is not optparse.SUPPRESS_HELP:
+                    items.update(str(option).split('/'))
         items.update(self._get_completions())
         return items
 

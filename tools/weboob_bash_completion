@@ -14,7 +14,7 @@ _weboob_weboob_config()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="info enable help --insecure --exclude-backends -I update --version disable --backends register -e -b edit confirm modules -h remove cd list add backends ls --auto-update --help --nss"
+    args="register help --insecure list -O -I --verbose cd --formatter --count --backends -e -d -f -a -c -b backends --select -n --no-header -h add -v --debug --no-keys -s -q --auto-update --nss enable --logging-file --exclude-backends update --version disable --outfile --export-session info --quiet --condition edit confirm modules remove --save-responses ls --help"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -26,7 +26,7 @@ _weboob_weboob_repos()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e help --insecure -b -I create --exclude-backends -h --version cd backends ls build --auto-update --backends --help --nss"
+    args="help --insecure -O -I --verbose cd --formatter --count --backends -e -d -f -a -c -b backends --select -n --no-header -h -v --debug --no-keys -s -q --auto-update create --nss --logging-file --exclude-backends --version --outfile --export-session build --quiet --condition --save-responses ls --help"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -38,7 +38,7 @@ _weboob_weboob_debug()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e --insecure -b -I --exclude-backends -h --version --backends --help --nss"
+    args="--insecure -B -I --verbose --backends -e -d -a -b -h -v --debug -q --bpython --nss --logging-file --exclude-backends --version --export-session --quiet --save-responses --help"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -50,7 +50,7 @@ _weboob_qcookboob()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e --insecure -b -I --exclude-backends -h --version --backends --help --nss"
+    args="-e -d -a --logging-file --insecure -b -I --quiet --exclude-backends -h --version -v --debug --save-responses --export-session --verbose -q --backends --help --nss"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -62,7 +62,7 @@ _weboob_boobathon()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="info tasks remtask help --insecure addtask --exclude-backends -I --version done members cancel close --backends -e leave join -b edit -h cd start backends ls progress --auto-update --help --nss"
+    args="addtask tasks help --insecure -O -I --verbose cd cancel --formatter done close --count progress --backends -e -d -f -a -c -b backends --select -n --no-header -h start -v --debug --no-keys -s -q --auto-update --nss remtask --logging-file --exclude-backends --version --outfile members --export-session info --quiet --condition join edit leave --save-responses ls --help"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -74,7 +74,7 @@ _weboob_galleroob()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e info search help --insecure -b -I --exclude-backends -h --version cd backends ls download --auto-update --backends --help --nss"
+    args="help --insecure -O -I --verbose cd download --formatter --count --backends -e -d -f -a -c -b backends --select -n --no-header -h -v --debug --no-keys -s -q --auto-update --nss --logging-file --exclude-backends search --version --outfile --export-session info --quiet --condition --save-responses ls --help"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -86,7 +86,7 @@ _weboob_webcontentedit()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e log help --insecure -b edit -I get --exclude-backends -h --version cd backends ls --auto-update --backends --help --nss"
+    args="help --insecure -O -I --verbose cd --formatter --count --backends -e -d -f -a log -c -b backends --select -n --no-header -h -v --debug --no-keys -s -q --auto-update --nss --logging-file get --exclude-backends --version --outfile --export-session --quiet --condition edit --save-responses ls --help"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -98,7 +98,7 @@ _weboob_suboob()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e info search help --insecure -b -I --exclude-backends -h --version cd backends ls download --auto-update --backends --help --nss"
+    args="help --insecure -O -I --verbose cd download --formatter --count --backends -e -d -f -a -c -b backends --select -n --no-header -h -v --debug --no-keys -s -q --auto-update --nss --logging-file --exclude-backends search --version --outfile --export-session info --quiet --condition --save-responses ls --help"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -110,7 +110,7 @@ _weboob_wetboobs()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e cities help --insecure -b -I --exclude-backends -h --version current backends ls forecasts cd --auto-update --backends --help --nss"
+    args="help --insecure -O -I --verbose cd --formatter --count --backends -e -d -f -a -c -b backends --select -n --no-header -h forecasts -v --debug --no-keys -s -q --auto-update --nss --logging-file --exclude-backends --version --outfile --export-session cities --quiet --condition current --save-responses ls --help"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -122,7 +122,7 @@ _weboob_boobank()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="profile help --insecure --exclude-backends coming -I --version pocket add_recipient advisor --backends investment -e recipients -b transfer list -h cd backends ls budgea --auto-update history --help --nss"
+    args="help --insecure -O advisor -I --verbose cd --formatter --count --backends investment -e -d -f -a recipients -c -b transfer --select -n --no-header -h -v --debug --no-keys -s -q --auto-update --nss profile --logging-file --exclude-backends --version pocket budgea add_recipient --outfile --export-session --quiet --condition backends list coming --save-responses ls --help history"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -134,7 +134,7 @@ _weboob_qwebcontentedit()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e --insecure -b -I --exclude-backends -h --version --backends --help --nss"
+    args="-e -d -a --logging-file --insecure -b -I --quiet --exclude-backends -h --version -v --debug --save-responses --export-session --verbose -q --backends --help --nss"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -146,7 +146,7 @@ _weboob_qhavedate()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e --insecure -b -I --exclude-backends -h --version --backends --help --nss"
+    args="-e -d -a --logging-file --insecure -b -I --quiet --exclude-backends -h --version -v --debug --save-responses --export-session --verbose -q --backends --help --nss"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -158,7 +158,7 @@ _weboob_booblyrics()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e search help --insecure -b -I get --exclude-backends -h --version cd backends ls --auto-update --backends --help --nss"
+    args="help --insecure -O -I --verbose cd --formatter --count --backends -e -d -f -a -c -b backends --select -n --no-header -h -v --debug --no-keys -s -q --auto-update --nss --logging-file get --exclude-backends search --version --outfile --export-session --quiet --condition --save-responses ls --help"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -170,7 +170,7 @@ _weboob_qboobmsg()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e --insecure -b -I --exclude-backends -h --version --backends --help --nss"
+    args="-e -d -a --logging-file --insecure -b -I --quiet --exclude-backends -h --version -v --debug --save-responses --export-session --verbose -q --backends --help --nss"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -182,7 +182,7 @@ _weboob_monboob()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e once run help --insecure -b post -I --exclude-backends -h --version cd backends ls --auto-update --backends --help --nss"
+    args="help --insecure -O -I --verbose cd --formatter -S --count --backends -e -d -f -a -c -b backends --select -n --no-header -h -v --debug --no-keys -s --smtpd -q --auto-update --nss run --logging-file --exclude-backends --version --outfile --export-session post --quiet --condition --save-responses ls --help once"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -194,7 +194,7 @@ _weboob_handjoob()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e info search help --insecure -b -I --exclude-backends -h --version cd backends ls --auto-update --backends --help --nss"
+    args="help --insecure -O -I --verbose cd --formatter --count --backends -e -d -f -a -c -b backends --select -n --no-header -h -v --debug --no-keys -s -q --auto-update --nss --logging-file --exclude-backends search --version --outfile --export-session info --quiet --condition --save-responses ls --help"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -206,7 +206,7 @@ _weboob_translaboob()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e translate help --insecure -b -I --exclude-backends -h --version cd backends ls --auto-update --backends --help --nss"
+    args="help --insecure -O -I --verbose cd --formatter --count --backends -e -d -f -a -c -b backends --select -n --no-header -h -v --debug --no-keys -s -q --auto-update translate --nss --logging-file --exclude-backends --version --outfile --export-session --quiet --condition --save-responses ls --help"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -218,7 +218,7 @@ _weboob_videoob()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e info search play help --insecure -b -I --exclude-backends -h --version cd backends nsfw ls playlist download --auto-update --backends --help --nss"
+    args="help --insecure -O -I --verbose cd download --formatter nsfw --count --backends -e -d playlist -f -a -c -b backends --select -n --no-header -h -v --debug --no-keys -s -q --auto-update --nss play --logging-file --exclude-backends search --version --outfile --export-session info --quiet --condition --save-responses ls --help"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -230,7 +230,7 @@ _weboob_weboob_config_qt()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e --insecure -b -I --exclude-backends -h --version --backends --help --nss"
+    args="-e -d -a --logging-file --insecure -b -I --quiet --exclude-backends -h --version -v --debug --save-responses --export-session --verbose -q --backends --help --nss"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -242,7 +242,7 @@ _weboob_flatboob()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e info search help --insecure -b -I --exclude-backends -h load --version cd backends ls --auto-update --backends --help --nss"
+    args="load help --insecure -O -I --verbose cd --formatter --count --backends -e -d -f -a -c -b backends --select -n --no-header -h -v --debug --no-keys -s -q --auto-update --nss --logging-file --exclude-backends search --version --outfile --export-session info --quiet --condition --save-responses ls --help"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -254,7 +254,7 @@ _weboob_radioob()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e info search play help --insecure -b -I --exclude-backends -h --version cd backends ls playlist download --auto-update --backends --help --nss"
+    args="help --insecure -O -I --verbose cd download --formatter --count --backends -e -d playlist -f -a -c -b backends --select -n --no-header -h -v --debug --no-keys -s -q --auto-update --nss play --logging-file --exclude-backends search --version --outfile --export-session info --quiet --condition --save-responses ls --help"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -266,7 +266,7 @@ _weboob_qflatboob()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e --insecure -b -I --exclude-backends -h --version --backends --help --nss"
+    args="-e -d -a --logging-file --insecure -b -I --quiet --exclude-backends -h --version -v --debug --save-responses --export-session --verbose -q --backends --help --nss"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -278,7 +278,7 @@ _weboob_geolooc()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e help --insecure -b -I --exclude-backends -h --version cd backends ls --auto-update --backends --help --nss"
+    args="help --insecure -O -I --verbose cd --formatter --count --backends -e -d -f -a -c -b backends --select -n --no-header -h -v --debug --no-keys -s -q --auto-update --nss --logging-file --exclude-backends --version --outfile --export-session --quiet --condition --save-responses ls --help"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -290,7 +290,7 @@ _weboob_weboob_cli()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e help --insecure -b -I --exclude-backends -h --version cd backends ls --auto-update --backends --help --nss"
+    args="help --insecure -O -I --verbose cd --formatter --count --backends -e -d -f -a -c -b backends --select -n --no-header -h -v --debug --no-keys -s -q --auto-update --nss --logging-file --exclude-backends --version --outfile --export-session --quiet --condition --save-responses ls --help"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -302,7 +302,7 @@ _weboob_parceloob()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e info help --insecure -b track -I --exclude-backends -h --version cd untrack backends status ls --auto-update --backends --help --nss"
+    args="help --insecure -O -I --verbose cd --formatter --count --backends -e -d -f -a -c -b backends --select -n --no-header -h -v --debug --no-keys -s -q --auto-update --nss status --logging-file track --exclude-backends --version untrack --outfile --export-session info --quiet --condition --save-responses ls --help"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -314,7 +314,7 @@ _weboob_qhandjoob()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e --insecure -b -I --exclude-backends -h --version --backends --help --nss"
+    args="-e -d -a --logging-file --insecure -b -I --quiet --exclude-backends -h --version -v --debug --save-responses --export-session --verbose -q --backends --help --nss"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -326,7 +326,7 @@ _weboob_cineoob()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="getfile_subtitle info_movie help --insecure persons_in_common -I cd search_subtitle info_subtitle --backends search_torrent biography search_movie -e getfile_torrent -b -h backends ls search_person --auto-update info_torrent search_movie_subtitle --nss casting releases --exclude-backends --version filmography search_movie_torrent info_person movies_in_common --help"
+    args="getfile_subtitle info_movie help --insecure persons_in_common -O -I --verbose cd search_subtitle --formatter --count info_subtitle --backends search_torrent biography search_movie -e -d -f -a releases -c -b backends --select -n --no-header -h -v --debug --no-keys -s search_person -q --auto-update info_torrent search_movie_subtitle --nss casting --logging-file movies_in_common --exclude-backends --version filmography --outfile --export-session search_movie_torrent info_person --quiet --condition getfile_torrent --save-responses ls --help"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -338,7 +338,7 @@ _weboob_weboorrents()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e info search help --insecure -b -I --exclude-backends -h --version cd backends ls getfile --auto-update --backends --help --nss"
+    args="help --insecure -O -I --verbose cd --formatter --count getfile --backends -e -d -f -a -c -b backends --select -n --no-header -h -v --debug --no-keys -s -q --auto-update --nss --logging-file --exclude-backends search --version --outfile --export-session info --quiet --condition --save-responses ls --help"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -350,7 +350,7 @@ _weboob_boobmsg()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="export_all status help --insecure show --exclude-backends -I --version photos profile post --backends -e -b list -h cd backends ls export_thread --auto-update --help --nss"
+    args="-E export_all help --insecure show export_thread -O -I --verbose cd --formatter --count --backends -e -d -f -a -c -b backends --select -n --no-header -h -t -v --debug --no-keys -s -q --auto-update --nss status --logging-file --exclude-backends --version photos profile --outfile --export-session post --quiet --condition --accept-empty list --save-responses ls --help --title"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -362,7 +362,7 @@ _weboob_traveloob()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e help --insecure -b -I stations --exclude-backends -h --version cd backends departures roadmap ls --auto-update --backends --help --nss"
+    args="help --insecure -O -I --verbose cd --formatter --count --backends -e -d -f -a -c -b backends --select -n --no-header -h -v --debug --no-keys -s -q --auto-update --nss --departure-time --logging-file --exclude-backends --version --outfile --export-session roadmap --quiet --condition stations --arrival-time --save-responses ls --help departures"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -374,7 +374,7 @@ _weboob_shopoob()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e help --insecure -b orders -I --exclude-backends -h --version cd backends ls items payments --auto-update --backends --help --nss"
+    args="help --insecure -O -I --verbose cd --formatter --count --backends orders -e -d -f -a -c -b backends --select -n --no-header -h -v --debug --no-keys -s -q --auto-update --nss --logging-file --exclude-backends --version --outfile --export-session --quiet --condition items payments --save-responses ls --help"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -386,7 +386,7 @@ _weboob_boobill()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="profile help --insecure subscriptions --exclude-backends -I --version download_pdf download --backends -e bills documents -b backends -h cd history ls details --auto-update balance --help --nss"
+    args="help --insecure -O -I --verbose cd download --formatter --count --backends -e -d -f -a details -c -b backends --select -n --no-header -h -v --debug --no-keys -s -q --auto-update --nss profile --logging-file subscriptions --exclude-backends --version download_pdf --outfile --export-session --quiet --condition bills documents --save-responses ls balance --help history"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -398,7 +398,7 @@ _weboob_boobcoming()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="load info help --insecure --exclude-backends -I --version export unattends --backends -e search -b list -h cd backends attends ls --auto-update --help --nss"
+    args="load help --insecure attends -O -I --verbose cd --formatter export --count --backends -e -d -f -a -c -b backends --select -n --no-header -h -v --debug --no-keys -s -q --auto-update --nss --logging-file --exclude-backends search --version --outfile --export-session unattends info --quiet --condition list --save-responses ls --help"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -410,7 +410,7 @@ _weboob_boobtracker()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="comment help --insecure get --exclude-backends -I --version post --backends -e search -b edit -h remove cd attach backends ls logtime --auto-update --help --nss"
+    args="comment help --insecure --no-header -O -I --verbose cd --count --formatter --category --author --start -e -d --tracker -a -c -b --assignee --select -n --priority -h --backends attach -v --debug --no-keys -s --status -q --auto-update --nss logtime --logging-file get --exclude-backends search --target-version --version --due -f --outfile --export-session post --quiet --condition edit backends remove --save-responses ls --help --title"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -422,7 +422,7 @@ _weboob_pastoob()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e info get_bin --insecure -b post_bin -I get --exclude-backends -h --version cd post backends ls --auto-update --backends --help help --nss"
+    args="-E get_bin --max-age help --insecure post_bin -O -I --verbose cd --formatter --count --backends --no-keys --encoding -e -d -f -a -c -b -m backends --select -n --no-header -h -t -v --debug -p -s -q --auto-update --nss --logging-file get --exclude-backends --version --outfile --export-session post info --quiet --condition --public --save-responses ls --help --title"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -434,7 +434,7 @@ _weboob_boobsize()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e history search help --insecure -b -I --exclude-backends -h --version cd backends details last_sensor_measure ls --auto-update --backends --help --nss"
+    args="help --insecure -O -I --verbose cd --formatter last_sensor_measure --count --backends -e -d -f -a details -c -b backends --select -n --no-header -h -v --debug --no-keys -s -q --auto-update --nss --logging-file --exclude-backends search --version --outfile --export-session --quiet --condition --save-responses ls --help history"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -446,7 +446,7 @@ _weboob_boobooks()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e rented help --insecure -b -I --exclude-backends -h --version cd renew backends ls --auto-update --backends --help --nss"
+    args="help --insecure -O -I --verbose cd --formatter --count --backends -e -d -f -a -c -b backends --select -n --no-header -h -v --debug --no-keys -s -q --auto-update --nss rented --logging-file --exclude-backends --version --outfile --export-session --quiet --condition renew --save-responses ls --help"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -458,7 +458,7 @@ _weboob_comparoob()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e info help --insecure -b -I --exclude-backends -h --version cd backends ls prices --auto-update --backends --help --nss"
+    args="help --insecure -O -I --verbose cd --formatter --count --backends -e -d -f -a -c -b backends --select -n --no-header -h -v --debug --no-keys -s -q --auto-update --nss --logging-file --exclude-backends --version --outfile --export-session prices info --quiet --condition --save-responses ls --help"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -470,7 +470,7 @@ _weboob_qbooblyrics()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e --insecure -b -I --exclude-backends -h --version --backends --help --nss"
+    args="-e -d -a --logging-file --insecure -b -I --quiet --exclude-backends -h --version -v --debug --save-responses --export-session --verbose -q --backends --help --nss"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -482,7 +482,7 @@ _weboob_cookboob()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e info search help --insecure -b -I --exclude-backends -h --version cd backends export ls --auto-update --backends --help --nss"
+    args="help --insecure -O -I --verbose cd --formatter export --count --backends -e -d -f -a -c -b backends --select -n --no-header -h -v --debug --no-keys -s -q --auto-update --nss --logging-file --exclude-backends search --version --outfile --export-session info --quiet --condition --save-responses ls --help"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -494,7 +494,7 @@ _weboob_qcineoob()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e --insecure -b -I --exclude-backends -h --version --backends --help --nss"
+    args="-e -d -a --logging-file --insecure -b -I --quiet --exclude-backends -h --version -v --debug --save-responses --export-session --verbose -q --backends --help --nss"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -506,7 +506,7 @@ _weboob_qvideoob()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e --insecure -b -I --exclude-backends -h --version --backends --help --nss"
+    args="-e -d -a --logging-file --insecure -b -I --quiet --exclude-backends -h --version -v --debug --save-responses --export-session --verbose -q --backends --help --nss"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -518,7 +518,7 @@ _weboob_weboob()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e --insecure -b -I --exclude-backends -h --version --auto-update --backends --help --nss"
+    args="-e -d -a --logging-file --insecure -b -I --quiet --exclude-backends -h --version -v --debug --save-responses --export-session --verbose -q --auto-update --backends --help --nss"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -530,7 +530,7 @@ _weboob_qgalleroob()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e --insecure -b -I --exclude-backends -h --version --backends --help --nss"
+    args="-e -d -a --logging-file --insecure -b -I --quiet --exclude-backends -h --version -v --debug --save-responses --export-session --verbose -q --backends --help --nss"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -542,7 +542,7 @@ _weboob_havedate()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="export_all profile help --insecure show optim --exclude-backends -I --version photos query post --backends -e -b list -h events cd backends status ls export_thread --auto-update --help --nss"
+    args="-E export_all help --insecure show export_thread -O -I --verbose cd --formatter --count query --backends -e -d -f -a -c -b backends --select -n --no-header -h -t -v --debug --no-keys -s -q --auto-update events --nss profile --logging-file optim --exclude-backends --version photos --outfile --export-session post --quiet --condition --accept-empty list status --save-responses ls --help --title"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
