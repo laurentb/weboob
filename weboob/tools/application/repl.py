@@ -486,6 +486,13 @@ class ReplApplication(ConsoleApplication, MyCmd):
     def completenames(self, text, *ignored):
         return [name for name in Cmd.completenames(self, text, *ignored) if name not in self.hidden_commands]
 
+    def _shell_completion_items(self):
+        items = super(ReplApplication, self)._shell_completion_items()
+        items.update(
+            set(self.completenames('')) -
+            set(('debug', 'condition', 'count', 'formatter', 'logging', 'select', 'quit')))
+        return items
+
     def path_completer(self, arg):
         dirname = os.path.dirname(arg)
         try:
