@@ -49,10 +49,7 @@ echo "Release tag:"
 git tag $VERSION -s -m "Weboob $VERSION"
 echo -ne "\n"
 
-echo -n "Generating archive.. "
-git archive HEAD --prefix=weboob-$VERSION/ -o weboob-$VERSION.tar
-gzip -f weboob-$VERSION.tar
-md5sum weboob-$VERSION.tar.gz
+python release.py tarball $VERSION
 
 echo -ne "\nDo you want to change the version number (y/n) "
 read change_version
