@@ -9,7 +9,7 @@ Write a patch
 
 Help yourself with the `documentation <http://docs.weboob.org/>`_.
 
-Find an opened issue on `this website <https://git.weboob.org/weboob/devel/issues>`_, or write your own bugfix or feature.
+Find an opened issue on `this website <https://git.weboob.org/weboob/weboob/issues>`_, or write your own bugfix or feature.
 Then, once it is necessary, commit with::
 
     $ git commit -a
@@ -31,7 +31,7 @@ To aid in verifying Python 3 compatibility, also run::
     $ tools/run_tests.sh -3 yourmodulename
 
 Perhaps you should also write or fix tests. These tests are automatically run by
-`Gitlab CI <https://git.weboob.org/weboob/devel/pipelines>`_ at each commit and merge requests.
+`Gitlab CI <https://git.weboob.org/weboob/weboob/pipelines>`_ at each commit and merge requests.
 
 Create a merge request or send a patch
 --------------------------------------

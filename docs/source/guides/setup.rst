@@ -8,7 +8,7 @@ Git installation
 
 Clone a git repository with this command::
 
-    $ git clone https://git.weboob.org/weboob/devel.git
+    $ git clone https://git.weboob.org/weboob/weboob.git
 
 We don't want to install Weboob on the whole system, so we create local directories where
 we will put symbolic links to sources::

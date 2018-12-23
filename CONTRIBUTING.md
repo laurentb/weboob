@@ -16,7 +16,7 @@ Write a patch
 
 Help yourself with the [documentation](http://docs.weboob.org/).
 
-Find an opened issue on [this website](https://git.weboob.org/weboob/devel/issues),
+Find an opened issue on [this website](https://git.weboob.org/weboob/weboob/issues),
 or write your own bugfix or feature. Then, once it is necessary, commit with:
 
     $ git commit -a
@@ -36,7 +36,7 @@ You can run these scripts to be sure your patch doesn't break anything:
     $ tools/run_tests.sh yourmodulename  # or without yourmodulename to test everything
 
 Perhaps you should also write or fix tests. These tests are automatically run by
-[Gitlab CI](https://git.weboob.org/weboob/devel/pipelines) at each commit and merge requests.
+[Gitlab CI](https://git.weboob.org/weboob/weboob/pipelines) at each commit and merge requests.
 
 
 Create a merge request or send a patch
@@ -68,11 +68,11 @@ merge a MR.
 Anyone is welcome to review and comment pending merge requests. A merge
 request should in principle have at least two reviewers before getting merged.
 
-Weboob `devel` repo should keep an history as linear as possible. Then,
-merging a merge request should be done locally, with prior rebasing upon the
-`master` branch and take care of using the `-ff-only` merge option. Merge
-requests should **NOT** be merged through the Gitlab UI, which would result in
-an extra "merge" commit.
+Weboob repo should keep an history as linear as possible. Then, merging a merge
+request should be done locally, with prior rebasing upon the `master` branch
+and take care of using the `-ff-only` merge option. Merge requests should
+**NOT** be merged through the Gitlab UI, which would result in an extra "merge"
+commit.
 
 
 Getting your contribution accepted
