@@ -72,7 +72,7 @@ class BuildQt(Command):
         print('Could not find executable: %s' % name, file=sys.stderr)
 
 
-def install_weboob():
+def install_weboob(qt, xdg):
     scripts = set(os.listdir('scripts'))
     packages = set(find_packages(exclude=['modules', 'modules.*']))
 
@@ -88,7 +88,7 @@ def install_weboob():
                       'qbooblyrics',
                       'qhandjoob'))
 
-    if not options.qt:
+    if not qt:
         scripts = scripts - qt_scripts
 
     qt_packages = set((
@@ -116,13 +116,13 @@ def install_weboob():
         'weboob.applications.qgalleroob.ui',
     ))
 
-    if not options.qt:
+    if not qt:
         packages = packages - qt_packages
 
     data_files = [
         ('share/man/man1', glob.glob('man/*')),
     ]
-    if options.xdg:
+    if xdg:
         data_files.extend([
             ('share/applications', glob.glob('desktop/*')),
             ('share/icons/hicolor/64x64/apps', glob.glob('icons/*')),
@@ -189,43 +189,33 @@ def install_weboob():
     )
 
 
-class Options(object):
-    qt = False
-    xdg = True
+def extract_args(args, options, optlist):
+    for option in optlist:
+        yes = '--%s' % option
+        no = '--no-%s' % option
+        if yes in args and no in args:
+            print('%s and %s options are incompatible' % (yes, no), file=sys.stderr)
+            sys.exit(1)
+        if yes in args:
+            args.remove(yes)
+            options[option] = True
+        elif no in args:
+            args.remove(no)
+            options[option] = False
 
-
-options = Options()
 
 if os.getenv('WEBOOB_SETUP'):
     args = os.getenv('WEBOOB_SETUP').split()
 else:
     args = sys.argv[1:]
-if '--qt' in args and '--no-qt' in args:
-    print('--qt and --no-qt options are incompatible', file=sys.stderr)
-    sys.exit(1)
-if '--xdg' in args and '--no-xdg' in args:
-    print('--xdg and --no-xdg options are incompatible', file=sys.stderr)
-    sys.exit(1)
 
-if '--qt' in args:
-    options.qt = True
-    args.remove('--qt')
-elif '--no-qt' in args:
-    options.qt = False
-    args.remove('--no-qt')
+options = {'qt': False, 'xdg': True}
+extract_args(args, options, ('qt', 'xdg'))
 
-if '--xdg' in args:
-    options.xdg = True
-    args.remove('--xdg')
-elif '--no-xdg' in args:
-    options.xdg = False
-    args.remove('--no-xdg')
-
-
-if options.qt:
+if options['qt']:
     args.insert(0, 'build_qt')
 
 
 sys.argv = [sys.argv[0]] + args
 
-install_weboob()
+install_weboob(**options)
