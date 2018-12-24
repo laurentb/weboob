@@ -24,39 +24,52 @@ import glob
 import os
 import subprocess
 import sys
+from distutils.cmd import Command
+from distutils.log import WARN
 
 from setuptools import find_packages, setup
 
 
-def find_executable(name, names):
-    envname = '%s_EXECUTABLE' % name.upper()
-    if os.getenv(envname):
-        return os.getenv(envname)
-    paths = os.getenv('PATH', os.defpath).split(os.pathsep)
-    exts = os.getenv('PATHEXT', os.pathsep).split(os.pathsep)
-    for name in names:
-        for path in paths:
-            for ext in exts:
-                fpath = os.path.join(path, name) + ext
-                if os.path.exists(fpath) and os.access(fpath, os.X_OK):
-                    return fpath
-    print('Could not find executable: %s' % name, file=sys.stderr)
+class BuildQt(Command):
+    description = 'build Qt applications'
+    user_options = []
 
+    def initialize_options(self):
+        pass
 
-def build_qt():
-    print('Building Qt applications...', file=sys.stderr)
-    make = find_executable('make', ('gmake', 'make'))
-    pyuic5 = find_executable('pyuic5', ('python2-pyuic5', 'pyuic5-python2.7', 'pyuic5'))
-    if not pyuic5 or not make:
-        print('Install missing component(s) (see above) or disable Qt applications (with --no-qt).', file=sys.stderr)
-        sys.exit(1)
+    def finalize_options(self):
+        pass
 
-    subprocess.check_call(
-        [make,
-         '-f', 'build.mk',
-         '-s', '-j2',
-         'all',
-         'PYUIC=%s%s' % (pyuic5, ' WIN32=1' if sys.platform == 'win32' else '')])
+    def run(self):
+        self.announce('Building Qt applications...', WARN)
+        make = self.find_executable('make', ('gmake', 'make'))
+        pyuic5 = self.find_executable('pyuic5', ('python2-pyuic5', 'pyuic5-python2.7', 'pyuic5'))
+        if not pyuic5 or not make:
+            print('Install missing component(s) (see above) or disable Qt applications (with --no-qt).',
+                  file=sys.stderr)
+            sys.exit(1)
+
+        subprocess.check_call(
+            [make,
+             '-f', 'build.mk',
+             '-s', '-j2',
+             'all',
+             'PYUIC=%s%s' % (pyuic5, ' WIN32=1' if sys.platform == 'win32' else '')])
+
+    @staticmethod
+    def find_executable(name, names):
+        envname = '%s_EXECUTABLE' % name.upper()
+        if os.getenv(envname):
+            return os.getenv(envname)
+        paths = os.getenv('PATH', os.defpath).split(os.pathsep)
+        exts = os.getenv('PATHEXT', os.pathsep).split(os.pathsep)
+        for name in names:
+            for path in paths:
+                for ext in exts:
+                    fpath = os.path.join(path, name) + ext
+                    if os.path.exists(fpath) and os.access(fpath, os.X_OK):
+                        return fpath
+        print('Could not find executable: %s' % name, file=sys.stderr)
 
 
 def install_weboob():
@@ -75,9 +88,7 @@ def install_weboob():
                       'qbooblyrics',
                       'qhandjoob'))
 
-    if options.qt:
-        build_qt()
-    else:
+    if not options.qt:
         scripts = scripts - qt_scripts
 
     qt_packages = set((
@@ -172,6 +183,9 @@ def install_weboob():
             'xunitparser',
             'coverage',
         ],
+        cmdclass={
+            'build_qt': BuildQt,
+        },
     )
 
 
@@ -206,6 +220,10 @@ if '--xdg' in args:
 elif '--no-xdg' in args:
     options.xdg = False
     args.remove('--no-xdg')
+
+
+if options.qt:
+    args.insert(0, 'build_qt')
 
 
 sys.argv = [sys.argv[0]] + args
