@@ -30,6 +30,9 @@ from distutils.log import WARN
 from setuptools import find_packages, setup
 
 
+PY3 = sys.version_info.major >= 3
+
+
 class BuildQt(Command):
     description = 'build Qt applications'
     user_options = []
@@ -43,7 +46,14 @@ class BuildQt(Command):
     def run(self):
         self.announce('Building Qt applications...', WARN)
         make = self.find_executable('make', ('gmake', 'make'))
-        pyuic5 = self.find_executable('pyuic5', ('python2-pyuic5', 'pyuic5-python2.7', 'pyuic5'))
+        if PY3:
+            pyuic5 = self.find_executable(
+                'pyuic5',
+                ('python2-pyuic5', 'pyuic5-python2.7', 'pyuic5'))
+        else:
+            pyuic5 = self.find_executable(
+                'pyuic5',
+                ('python3-pyuic5', 'pyuic5-python3.7', 'pyuic5-python3.6', 'pyuic5-python3.5', 'pyuic5'))
         if not pyuic5 or not make:
             print('Install missing component(s) (see above) or disable Qt applications (with --no-qt).',
                   file=sys.stderr)
