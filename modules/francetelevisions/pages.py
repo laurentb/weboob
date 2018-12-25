@@ -27,7 +27,7 @@ from weboob.capabilities.collection import Collection
 
 from weboob.browser.pages import HTMLPage, JsonPage
 from weboob.browser.elements import ItemElement, ListElement, method, DictElement
-from weboob.browser.filters.standard import CleanText, Regexp, Format, Field, Eval
+from weboob.browser.filters.standard import CleanText, Regexp, Format, Field, Env
 from weboob.browser.filters.html import CleanHTML
 from weboob.browser.filters.json import Dict
 
@@ -44,12 +44,21 @@ class SearchPage(JsonPage):
         class item(ItemElement):
             klass = BaseVideo
 
-            obj_id = Format(r"https://www.france.tv/%s/%s-%s.html", Dict('path'), Dict('id'), Dict('url_page'))
+            obj_id = Format(r"https://www.france.tv/%s/%s-%s.html",
+                            Dict('path'),
+                            Dict('id'),
+                            Dict('url_page'))
 
             obj_title = CleanText(Dict('title'))
-            obj_thumbnail = Eval(Thumbnail,
-                                 Format(r'https://www.france.tv%s',
-                                        Dict('image/formats/vignette_16x9/urls/w:1024')))
+
+            def obj_thumbnail(self):
+                try:
+                    img = Dict('image/formats/vignette_16x9/urls/w:1024', default=None)(self)
+
+                except KeyError:
+                    img = Dict('image/formats/carre/urls/w:400')(self)
+
+                return Thumbnail(r'https://www.france.tv%s' % img)
 
             def obj_date(self):
                 return datetime.fromtimestamp(Dict('dates/first_publication_date')(self))
@@ -70,20 +79,17 @@ class HomePage(HTMLPage):
     class iter_categories(ListElement):
         ignore_duplicate = True
 
-        item_xpath = '//li[has-class("nav-item")]/a'
+        item_xpath = '//ul[has-class("c-sub-nav-items--channels")]/li/a'
 
         class item(ItemElement):
             klass = Collection
 
             def condition(self):
-                return Regexp(CleanText('./@href'), '//www.france.tv/(.*)', default=False)(self)
+                return CleanText('./@href')(self)[-1] == '/'
 
             def obj_id(self):
-                id = Regexp(CleanText('./@href',
-                                      replace=[('.html', '-video/')]),
-                            '//www.france.tv/(.*)', "\\1",
-                            default=None)(self)
-                return id[:-1]
+                id = CleanText('./@href')(self)
+                return id[1:-1]
 
             obj_title = CleanText('.')
 
@@ -91,15 +97,59 @@ class HomePage(HTMLPage):
                 return Field('id')(self).split('/')
 
     @method
+    class iter_subcategories(ListElement):
+        ignore_duplicate = True
+
+        item_xpath = '//li[@class="c-shortcuts-ctn__replays-links-items"]/a'
+
+        class item(ItemElement):
+            klass = Collection
+
+            def condition(self):
+                cat = Env('cat')(self)
+                return Regexp(CleanText('./@href'), '/%s/.*' % cat, default=False)(self)
+
+            def obj_id(self):
+                id = CleanText('./@href', replace=[('.html', '/'),
+                                                   ('https://www.france.tv', '')])(self)
+                return id[1:-1].split('/')[-1]
+
+            obj_title = CleanText('.')
+
+            def obj_split_path(self):
+                return [Env('cat')(self)] + [Field('id')(self)]
+
+    @method
+    class iter_emissions(ListElement):
+        ignore_duplicate = True
+
+        item_xpath = u'//a[@class="c-card-program__link"]'
+
+        class item(ItemElement):
+            klass = Collection
+
+            def condition(self):
+                cat = Env('cat')(self)
+                return Regexp(CleanText('./@href'), '/%s/.*' % cat[0], default=False)(self)
+
+            def obj_id(self):
+                id = CleanText('./@href')(self)
+                return id.split('/')[-1]
+
+            obj_title = CleanText('./@title')
+
+            def obj_split_path(self):
+                return Env('cat')(self) + [Field('id')(self)]
+
+    @method
     class iter_videos(ListElement):
-        def parse(self, el):
-            self.item_xpath = u'//a[@data-video]'
+        item_xpath = u'//h3[@class="c-card-video__infos"]/a'
 
         class item(ItemElement):
             klass = BaseVideo
 
-            obj_id = Format('https:%s', CleanText('./@href'))
-            obj_title = CleanText(CleanHTML('./div[@class="card-content"]|./div[has-class("card-content")]'))
+            obj_id = Format('https://www.france.tv%s', CleanText('./@href'))
+            obj_title = CleanText(CleanHTML('./div[has-class("c-card-video__title")]'))
 
             def condition(self):
                 return Field('title')(self)

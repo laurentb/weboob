@@ -76,33 +76,31 @@ class PluzzModule(Module, CapVideo, CapCollection):
                     if category.path_level == 1:
                         yield category
 
-            else:
-
-                if split_path[-1] == u'videos':
-                    for v in self.browser.iter_videos("/".join(collection.split_path[:-1])):
-                        yield v
-                elif split_path[-1].endswith('-video'):
-                    v = BaseVideo(
-                        "{}/{}".format(self.browser.BASEURL,
-                                       "/".join(collection.split_path).replace('-video', '.html')))
-                    v.title = split_path[-1].replace('-video', '')
+            elif collection.path_level > 0 and split_path[-1] == u'videos':
+                for v in self.browser.iter_videos("/".join(collection.split_path[:-1])):
                     yield v
-                else:
-                    iter = 0
-                    for category in self.browser.get_categories("/".join(collection.split_path)):
-                        if category.path_level == collection.path_level + 1 and \
-                           category.split_path[0] == collection.split_path[0]:
-                            iter = iter + 1
-                            yield category
 
-                    if iter > 0:
-                        yield Collection(split_path + [u'videos'], u'Vidéos')
-                    else:
-                        for v in self.browser.iter_videos("/".join(collection.split_path).replace('-videos', '.html')):
-                            yield v
+            elif collection.path_level == 1:
+                yield Collection(collection.split_path + [u'videos'], u'Vidéos')
+
+                for category in self.browser.get_subcategories(collection.split_path[0]):
+                    yield category
+
+            elif collection.path_level == 2:
+                if split_path[-1] == u'replay-videos':
+                    for v in self.browser.iter_videos("/".join(collection.split_path)):
+                        yield v
+                else:
+                    for category in self.browser.get_emissions(collection.split_path):
+                        yield category
+
+            elif collection.path_level == 3:
+                for v in self.browser.iter_videos("/".join([collection.split_path[0],
+                                                            collection.split_path[-1]])):
+                    yield v
 
     def validate_collection(self, objs, collection):
-        if collection.path_level <= 2:
+        if collection.path_level <= 3:
             return
 
         raise CollectionNotFound(collection.split_path)

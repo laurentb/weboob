@@ -54,5 +54,13 @@ class PluzzBrowser(PagesBrowser):
         for cat in self.home.go(cat=cat).iter_categories():
             yield cat
 
+    def get_subcategories(self, cat):
+        for cat in self.home.go(cat=cat).iter_subcategories(cat=cat):
+            yield cat
+
+    def get_emissions(self, cat):
+        for cat in self.home.go(cat="%s.html" % "/".join(cat)).iter_emissions(cat=cat):
+            yield cat
+
     def iter_videos(self, cat=""):
         return self.home.go(cat=cat).iter_videos()
