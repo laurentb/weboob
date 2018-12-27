@@ -51,8 +51,9 @@ class CreditDuNordBrowser(LoginBrowser):
     labels_page = URL("/icd/zco/public-data/ws-menu.json", LabelsPage)
     profile_page = URL("/icd/zco/data/user.json", ProfilePage)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, website, *args, **kwargs):
         self.weboob = kwargs['weboob']
+        self.BASEURL = "https://%s" % website
         super(CreditDuNordBrowser, self).__init__(*args, **kwargs)
 
     def is_logged(self):
