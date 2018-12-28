@@ -46,7 +46,7 @@ class WeatherPage(JsonPage):
     class get_current(ItemElement):
         klass = Current
 
-        obj_date = DateTime(Dict('vt1currentdatetime/datetime'))
+        obj_date = DateTime(Dict('vt1currentdatetime/dateTime'))
         obj_id = Env('city_id')
         obj_text = Format('%shPa (%s) - humidity %s%% - feels like %s°C - %s',
                           Dict('vt1observation/altimeter'),
