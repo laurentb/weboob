@@ -269,7 +269,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         if data.get('authMode', '') == 'redirect':  # the connection type EU could also be used as a criteria
             raise SiteSwitch('cenet')
 
-        typeAccount = accounts_types[0]
+        typeAccount = data['account'][0]
 
         if self.multi_type:
             assert typeAccount == self.typeAccount
