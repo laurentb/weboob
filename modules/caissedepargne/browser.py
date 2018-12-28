@@ -33,7 +33,9 @@ from weboob.capabilities.bank import Account, AddRecipientStep, Recipient, Trans
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.profile import Profile
 from weboob.browser.exceptions import BrowserHTTPNotFound, ClientError
-from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, BrowserHTTPError, BrowserPasswordExpired
+from weboob.exceptions import (
+    BrowserIncorrectPassword, BrowserUnavailable, BrowserHTTPError, BrowserPasswordExpired, ActionNeeded
+)
 from weboob.tools.capabilities.bank.transactions import sorted_transactions, FrenchTransaction
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
 from weboob.tools.compat import urljoin
@@ -309,6 +311,11 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             # the only possible way to log in w/o nuser is on WE. if we're here no need to go further.
             if not self.nuser and self.typeAccount == 'WE':
                 raise BrowserIncorrectPassword(response['error'])
+
+            # we tested all, next iteration will throw the assertion
+            if self.inexttype == len(accounts_types) and 'Temporairement votre abonnement est bloqué' in response['error']:
+                raise ActionNeeded(response['error'])
+
             if self.multi_type:
                 # try to log in with the next connection type's value
                 self.do_login()
