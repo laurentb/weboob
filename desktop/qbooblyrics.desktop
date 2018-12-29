@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=QBoobLyrics
+Comment=Search for songs, and get lyrics
+Exec=qbooblyrics
+Icon=qbooblyrics
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=Network;Qt;
+Keywords=lyrics;songs;media;
