@@ -26,7 +26,7 @@ from .pages import CitiesPage, SearchPage, HousingPage, PhonePage
 
 
 class LogicimmoBrowser(PagesBrowser):
-    BASEURL = 'http://www.logic-immo.com/'
+    BASEURL = 'https://www.logic-immo.com/'
     PROFILE = Firefox()
     city = URL('asset/t9/getLocalityT9.php\?site=fr&lang=fr&json=%22(?P<pattern>.*)%22',
                CitiesPage)
