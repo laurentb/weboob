@@ -34,6 +34,8 @@ class Time(Dict):
     def filter(self, el):
         if el and not isinstance(el, NotFound):
             el = el.replace('PT', '')
+            if el == u'P':
+                return NotAvailable
             _time = parse_date(el, dayfirst=False, fuzzy=False)
             _time = _time - datetime.combine(date.today(), time(0))
             return _time.seconds // 60
@@ -59,7 +61,7 @@ class ResultsPage(HTMLPage):
 
             obj_id = Regexp(CleanText('./div/h2/a/@href'),
                             '/(.*).htm')
-            obj_id = CleanText('.')
+
             obj_title = CleanText('./div/h2/a')
 
             class obj_picture(ItemElement):
