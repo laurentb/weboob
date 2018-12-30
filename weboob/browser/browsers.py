@@ -49,7 +49,7 @@ except ImportError:
 from weboob.exceptions import BrowserHTTPSDowngrade, ModuleInstallError, BrowserRedirect, BrowserIncorrectPassword
 
 from weboob.tools.log import getLogger
-from weboob.tools.compat import basestring, unicode, urlparse, urljoin, quote_plus, parse_qsl
+from weboob.tools.compat import basestring, unicode, urlparse, urljoin, urlencode, parse_qsl
 from weboob.tools.json import json
 
 from .cookies import WeboobCookieJar
@@ -996,11 +996,18 @@ class OAuth2Mixin(StatesMixin):
         else:
             self.request_authorization()
 
+    def build_authorization_parameters(self):
+        return {'redirect_uri':    self.redirect_uri,
+                'scope':           self.SCOPE,
+                'client_id':       self.client_id,
+                'response_type':   'code',
+               }
+
     def build_authorization_uri(self):
-        return self.AUTHORIZATION_URI % {'redirect_uri':    quote_plus(self.redirect_uri),
-                                         'scope':           quote_plus(self.SCOPE),
-                                         'client_id':       quote_plus(self.client_id)
-                                        }
+        p = urlparse(self.AUTHORIZATION_URI)
+        q = dict(parse_qsl(p.query))
+        q.update(self.build_authorization_parameters())
+        return p._replace(query=urlencode(q)).geturl()
 
     def request_authorization(self):
         raise BrowserRedirect(self.build_authorization_uri())
@@ -1062,11 +1069,11 @@ class OAuth2PKCEMixin(OAuth2Mixin):
         digest = sha256(verifier).hexdigest()
         return base64.urlsafe_b64encode(digest)
 
-    def build_authorization_uri(self):
-        return self.AUTHORIZATION_URI % {'redirect_uri':    (self.redirect_uri),
-                                         'pkce_challenge':  quote_plus(self.pkce_challenge),
-                                         'client_id':    quote_plus(self.client_id)
-                                        }
+    def build_authorization_parameters(self):
+        return {'redirect_uri':    self.redirect_uri,
+                'code_challenge':  self.pkce_challenge,
+                'client_id':       self.client_id
+               }
 
     def build_access_token_parameters(self, values):
         return {'code':             values['code'],
