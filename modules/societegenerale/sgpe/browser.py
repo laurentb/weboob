@@ -61,7 +61,7 @@ class SGPEBrowser(LoginBrowser):
                       '/gae/afficherInscriptionUtilisateur.html',
                       '/gae/afficherChangementCodeSecretExpire.html',
                       ChangePassPage)
-    inscription_page = URL('/icd-web/gax/gax-inscription.html', InscriptionPage)
+    inscription_page = URL('/icd-web/gax/gax-inscription-utilisateur.html', InscriptionPage)
 
     def check_logged_status(self):
         if not self.page or self.login.is_here():
@@ -108,6 +108,10 @@ class SGPEBrowser(LoginBrowser):
     @need_login
     def get_cb_operations(self, account):
         self.location('/Pgn/NavigationServlet?PageID=Cartes&MenuID=%sOPF&Classeur=1&NumeroPage=1&Rib=%s&Devise=%s' % (self.MENUID, account.id, account.currency))
+
+        if self.inscription_page.is_here():
+            raise ActionNeeded(self.page.get_error())
+
         for coming in self.page.get_coming_list():
             if coming['date'] == 'Non definie':
                 # this is a very recent transaction and we don't know his date yet
