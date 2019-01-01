@@ -21,7 +21,7 @@
 from weboob.capabilities.bank import CapBankWealth, AccountNotFound
 from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.value import ValueBackendPassword, Value
+from weboob.tools.value import ValueBackendPassword
 from weboob.capabilities.profile import CapProfile
 from .browser import HSBC
 
