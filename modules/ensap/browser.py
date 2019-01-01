@@ -26,7 +26,7 @@ from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.base import find_object
 from weboob.capabilities.bill import DocumentNotFound
 from .pages import LoginPage, DocumentsPage, HomePage, LoginControlPage,\
-                   LoginValidityPage
+                   LoginValidityPage, ListYear
 
 
 class EnsapBrowser(LoginBrowser):
@@ -37,7 +37,8 @@ class EnsapBrowser(LoginBrowser):
     loginvalidity = URL('/authentification', LoginValidityPage)
     authp = URL('/prive/initialiserhabilitation/v1', LoginControlPage)
     homep = URL('/prive/accueilconnecte/v1', HomePage)
-    documents = URL('/prive/remuneration/v1', DocumentsPage)
+    documents = URL('/prive/remuneration/v1/(?P<year>\d+)', DocumentsPage)
+    listyears = URL('/prive/listeanneeremuneration/v1', ListYear)
     logged = False
     token = None
 
@@ -57,10 +58,14 @@ class EnsapBrowser(LoginBrowser):
 
     @need_login
     def iter_documents(self, subscription):
-        self.documents.stay_or_go(headers={"X-XSRF-TOKEN": self.token})
-        self.token = self.session.cookies.get("XSRF-TOKEN")
-#        return self.bills.go().iter_bills(subid=subscription.id)
-        return self.page.iter_documents()
+        self.listyears.go()
+        years = self.page.get_years()
+        # use reverse order of list to get recent documents first
+        for year in years[::-1]:
+            self.documents.stay_or_go(year=year, headers={"X-XSRF-TOKEN": self.token})
+            self.token = self.session.cookies.get("XSRF-TOKEN")
+            for doc in self.page.iter_documents():
+                yield doc
 
     @need_login
     def iter_subscription(self):

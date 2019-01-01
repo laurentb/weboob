@@ -50,21 +50,26 @@ class HomePage(JsonPage):
 class DocumentsPage(JsonPage):
     @method
     class iter_documents(DictElement):
-        item_xpath = 'donnee/listeDocument'
+        item_xpath = 'donnee'
         ignore_duplicate = True
 
         class item(ItemElement):
             klass = Document
-            obj_date = Date(Dict('date'))
+            obj_date = Date(Dict('dateDocument'))
             obj_format = "pdf"
             obj_label = Format("%s : %s", Dict('libelle1'), Dict('libelle3'))
             obj_type = CleanText(Dict('libelleIcone'),
                                  replace=[('Icône ', '')])
             obj_id = Regexp(Dict('libelle2'), r"(\S+)\.", nth=0)
-            obj_url = Format("/prive/telechargerdocument/v1?documentUuid=%s",
+            obj_url = Format("/prive/telechargerdocumentremuneration/v1?documentUuid=%s",
                              Dict('documentUuid'))
 
 
 class LoginControlPage(JsonPage):
     def get_xsrf(self):
         return self.get("xcrf")
+
+
+class ListYear(JsonPage):
+    def get_years(self):
+        return self.get("donnee")
