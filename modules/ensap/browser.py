@@ -51,7 +51,7 @@ class EnsapBrowser(LoginBrowser):
                                     "secret": self.password})
         if not self.page.check_logged():
             raise BrowserIncorrectPassword()
-        self.authp.go(data={"": ""})
+        self.authp.go(data="{}", headers={'Content-Type': 'application/json'})
         self.token = self.page.get_xsrf()
         self.logged = True
 
