@@ -1,1 +1,6 @@
 simplejson
+python-jose
+feedparser
+geopy
+google-api-python-client
+pycryptodomex
