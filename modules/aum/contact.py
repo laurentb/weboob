@@ -26,6 +26,7 @@ from collections import OrderedDict
 
 from weboob.capabilities.contact import Contact as _Contact, ProfileNode
 from weboob.tools.html import html2text
+from weboob.tools.compat import unicode, basestring
 
 
 class FieldBase(object):
@@ -242,7 +243,7 @@ class Contact(_Contact):
         self.profile = OrderedDict()
 
         if 'sex' in profile:
-            for section, d in self.TABLE.iteritems():
+            for section, d in self.TABLE.items():
                 flags = ProfileNode.SECTION
                 if section.startswith('_'):
                     flags |= ProfileNode.HEAD
@@ -254,7 +255,7 @@ class Contact(_Contact):
 
                 s = ProfileNode(section, section.capitalize(), OrderedDict(), flags=flags)
 
-                for key, builder in d.iteritems():
+                for key, builder in d.items():
                     try:
                         value = builder.get_value(profile, consts[int(profile['sex'])])
                     except KeyError:

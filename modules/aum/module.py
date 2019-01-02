@@ -36,6 +36,7 @@ from weboob.exceptions import BrowserUnavailable, BrowserHTTPNotFound
 from weboob.tools.value import Value, ValueBool, ValueBackendPassword
 from weboob.tools.date import local2utc
 from weboob.tools.misc import to_unicode
+from weboob.tools.compat import unicode, long, basestring
 
 from .contact import Contact
 from .antispam import AntiSpam
@@ -104,7 +105,7 @@ class AuMModule(Module, CapMessages, CapMessagesPost, CapDating, CapChat, CapCon
         all_events[u'baskets'] = (self.browser.get_baskets, 'You were put into %s\'s basket')
         all_events[u'flashs'] =  (self.browser.get_flashs, 'You sent a charm to %s')
         all_events[u'visits'] =  (self.browser.get_visits, 'Visited by %s')
-        for type, (events, message) in all_events.iteritems():
+        for type, (events, message) in all_events.items():
             for event in events():
                 e = Event(event['who']['id'])
 
@@ -343,7 +344,7 @@ class AuMModule(Module, CapMessages, CapMessagesPost, CapDating, CapChat, CapCon
         if 'profile' in fields:
             contact = self.get_contact(contact)
         if contact and 'photos' in fields:
-            for name, photo in contact.photos.iteritems():
+            for name, photo in contact.photos.items():
                 if photo.url and not photo.data:
                     data = self.browser.openurl(photo.url).read()
                     contact.set_photo(name, data=data)

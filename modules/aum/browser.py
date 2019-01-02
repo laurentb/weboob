@@ -154,9 +154,9 @@ class AuMBrowser(DomainBrowser):
         headers = kwargs.setdefault('headers', {})
         if 'applications' not in url:
             today = local2utc(datetime.now()).strftime('%Y-%m-%d')
-            token = sha256(self.username + self.APITOKEN + today).hexdigest()
+            token = sha256((self.username + self.APITOKEN + today).encode('utf-8')).hexdigest()
 
-            headers['Authorization'] = 'Basic %s' % (b64encode('%s:%s' % (self.username, self.password)))
+            headers['Authorization'] = 'Basic %s' % (b64encode(b'%s:%s' % (self.username.encode('utf-8'), self.password.encode('utf-8')))).decode('utf-8')
             headers['X-Platform'] = 'android'
             headers['X-Client-Version'] = self.APIVERSION
             headers['X-AUM-Token'] = token
@@ -181,8 +181,8 @@ class AuMBrowser(DomainBrowser):
             return self.consts
 
         self.consts = [{}, {}]
-        for key, sexes in self.request('values').iteritems():
-            for sex, values in sexes.iteritems():
+        for key, sexes in self.request('values').items():
+            for sex, values in sexes.items():
                 if sex in ('boy', 'both'):
                     self.consts[0][key] = values
                 if sex in ('girl', 'both'):
