@@ -167,7 +167,7 @@ class AddRecipientPage(LoggedPage, BasePage):
         return bool(CleanText(u'//h3[contains(text(), "Ajouter un compte bénéficiaire de virement")]')(self.doc)) or \
                 bool(CleanText(u'//h1[contains(text(), "Ajouter un compte bénéficiaire de virement")]')(self.doc)) or \
                 bool(CleanText(u'//h3[contains(text(), "Veuillez vérifier les informations du compte à ajouter")]')(self.doc)) or \
-                bool(Link('//a[contains(@href, "per_cptBen_ajouterFrBic")]', default=NotAvailable)(self.doc))
+                bool(Link('//a[contains(@href, "per_cptBen_ajouter")]', default=NotAvailable)(self.doc))
 
     def post_iban(self, recipient):
         form = self.get_form(name='persoAjoutCompteBeneficiaire')
