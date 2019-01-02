@@ -249,7 +249,7 @@ class ContactProfile(QWidget):
         if contact.summary is NotLoaded:
             self.ui.descriptionEdit.setText('<h1>Description</h1><p><i>Receiving...</i></p>')
             missing_fields.add('summary')
-        else:
+        elif contact.summary:
             self.ui.descriptionEdit.setText('<h1>Description</h1><p>%s</p>' % contact.summary.replace('\n', '<br />'))
 
         if not contact.profile:
