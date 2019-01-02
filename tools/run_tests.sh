@@ -22,6 +22,24 @@ if ! $PYTHON -c "import nose" 2>/dev/null; then
     exit 1
 fi
 
+TEST_CORE=1
+TEST_MODULES=1
+
+for i in "$@"
+do
+case $i in
+    --no-modules)
+        TEST_MODULES=0
+        shift
+        ;;
+    --no-core)
+        TEST_CORE=0
+        shift
+        ;;
+    *)
+    ;;
+esac
+done
 
 # path to sources
 WEBOOB_DIR=$(cd $(dirname $0)/.. && pwd -P)
@@ -92,44 +110,58 @@ export WEBOOB_WORKDIR="${WEBOOB_TMPDIR}"
 export WEBOOB_DATADIR="${WEBOOB_TMPDIR}"
 export PYTHONPATH="${WEBOOB_DIR}:${PYTHONPATH}"
 export NOSE_NOPATH="1"
-${PYTHON} "${WEBOOB_DIR}/scripts/weboob-config" update
+
+if [[ ($TEST_MODULES = 1) || (-n "${BACKEND}") ]]; then
+    ${PYTHON} "${WEBOOB_DIR}/scripts/weboob-config" update
+fi
 
 # allow failing commands past this point
 set +e
 set -o pipefail
+STATUS_CORE=0
+STATUS=0
 if [ -n "${BACKEND}" ]; then
     ${PYTHON} -m nose -c /dev/null --logging-level=DEBUG -sv "${WEBOOB_MODULES}/${BACKEND}/test.py" ${XUNIT_ARGS}
     STATUS=$?
-    STATUS_CORE=0
 else
-    echo "=== Weboob ==="
-    CORE_TESTS=$(mktemp)
-    ${PYTHON} -m nose --cover-package weboob -c ${WEBOOB_DIR}/setup.cfg --logging-level=DEBUG -sv 2>&1 | tee "${CORE_TESTS}"
-    STATUS_CORE=$?
-    echo "=== Modules ==="
-    MODULES_TESTS=$(mktemp)
-    MODULES_TO_TEST=$(find "${WEBOOB_MODULES}" -name "test.py" | sort | xargs echo)
-    ${PYTHON} -m nose --with-coverage --cover-package modules -c /dev/null --logging-level=DEBUG -sv ${XUNIT_ARGS} ${MODULES_TO_TEST} 2>&1 | tee ${MODULES_TESTS}
-    STATUS=$?
+    if [ $TEST_CORE = 1 ]; then
+        echo "=== Weboob ==="
+        CORE_TESTS=$(mktemp)
+        ${PYTHON} -m nose --cover-package weboob -c ${WEBOOB_DIR}/setup.cfg --logging-level=DEBUG -sv 2>&1 | tee "${CORE_TESTS}"
+        STATUS_CORE=$?
+        CORE_STMTS=$(grep "TOTAL" ${CORE_TESTS} | awk '{ print $2; }')
+        CORE_MISS=$(grep "TOTAL" ${CORE_TESTS} | awk '{ print $3; }')
+        CORE_COVERAGE=$(grep "TOTAL" ${CORE_TESTS} | awk '{ print $4; }')
+        rm ${CORE_TESTS}
+    fi
+
+    if [ $TEST_MODULES = 1 ]; then
+        echo "=== Modules ==="
+        MODULES_TESTS=$(mktemp)
+        MODULES_TO_TEST=$(find "${WEBOOB_MODULES}" -name "test.py" | sort | xargs echo)
+        ${PYTHON} -m nose --with-coverage --cover-package modules -c /dev/null --logging-level=DEBUG -sv ${XUNIT_ARGS} ${MODULES_TO_TEST} 2>&1 | tee ${MODULES_TESTS}
+        STATUS=$?
+        MODULES_STMTS=$(grep "TOTAL" ${MODULES_TESTS} | awk '{ print $2; }')
+        MODULES_MISS=$(grep "TOTAL" ${MODULES_TESTS} | awk '{ print $3; }')
+        MODULES_COVERAGE=$(grep "TOTAL" ${MODULES_TESTS} | awk '{ print $4; }')
+        rm ${MODULES_TESTS}
+    fi
 
     # Compute total coverage
     echo "=== Total coverage ==="
-    CORE_STMTS=$(grep "TOTAL" ${CORE_TESTS} | awk '{ print $2; }')
-    CORE_MISS=$(grep "TOTAL" ${CORE_TESTS} | awk '{ print $3; }')
-    CORE_COVERAGE=$(grep "TOTAL" ${CORE_TESTS} | awk '{ print $4; }')
-    MODULES_STMTS=$(grep "TOTAL" ${MODULES_TESTS} | awk '{ print $2; }')
-    MODULES_MISS=$(grep "TOTAL" ${MODULES_TESTS} | awk '{ print $3; }')
-    MODULES_COVERAGE=$(grep "TOTAL" ${MODULES_TESTS} | awk '{ print $4; }')
-    echo "CORE COVERAGE: ${CORE_COVERAGE}"
-    echo "MODULES COVERAGE: ${MODULES_COVERAGE}"
-    TOTAL_STMTS=$((${CORE_STMTS} + ${MODULES_STMTS}))
-    TOTAL_MISS=$((${CORE_MISS} + ${MODULES_MISS}))
-    TOTAL_COVERAGE=$((100 * (${TOTAL_STMTS} - ${TOTAL_MISS}) / ${TOTAL_STMTS}))
-    echo "TOTAL: ${TOTAL_COVERAGE}%"
+    if [ $TEST_CORE = 1 ]; then
+        echo "CORE COVERAGE: ${CORE_COVERAGE}"
+    fi
+    if [ $TEST_MODULES = 1 ]; then
+        echo "MODULES COVERAGE: ${MODULES_COVERAGE}"
+    fi
 
-    # removal of temp files
-    rm ${CORE_TESTS}
-    rm ${MODULES_TESTS}
+    if [[ ($TEST_CORE = 1) && ($TEST_MODULES = 1) ]]; then
+        TOTAL_STMTS=$((${CORE_STMTS} + ${MODULES_STMTS}))
+        TOTAL_MISS=$((${CORE_MISS} + ${MODULES_MISS}))
+        TOTAL_COVERAGE=$((100 * (${TOTAL_STMTS} - ${TOTAL_MISS}) / ${TOTAL_STMTS}))
+        echo "TOTAL: ${TOTAL_COVERAGE}%"
+    fi
 fi
 
 # Rsync xunit transfer
@@ -146,7 +178,9 @@ if [ -n "${WEBOOB_CI_TARGET}" ]; then
 fi
 
 # safe removal
-rm -r "${WEBOOB_TMPDIR}/icons" "${WEBOOB_TMPDIR}/repositories" "${WEBOOB_TMPDIR}/modules" "${WEBOOB_TMPDIR}/keyrings"
+if [[ ($TEST_MODULES = 1) || (-n "${BACKEND}") ]]; then
+    rm -r "${WEBOOB_TMPDIR}/icons" "${WEBOOB_TMPDIR}/repositories" "${WEBOOB_TMPDIR}/modules" "${WEBOOB_TMPDIR}/keyrings"
+fi
 rm "${WEBOOB_TMPDIR}/backends" "${WEBOOB_TMPDIR}/sources.list"
 rmdir "${WEBOOB_TMPDIR}"
 
