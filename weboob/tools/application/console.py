@@ -263,7 +263,7 @@ class ConsoleApplication(Application):
     def register_backend(self, name, ask_add=True):
         try:
             backend = self.weboob.modules_loader.get_or_load_module(name)
-        except ModuleLoadError as e:
+        except ModuleLoadError:
             backend = None
 
         if not backend:

@@ -163,6 +163,7 @@ class QtApplication(QApplication, Application):
                 return Application.load_backends(self, *args, **kwargs)
             except VersionsMismatchError as e:
                 msg = 'Versions of modules mismatch with version of weboob.'
+                last_exc = e
             except ConfigError as e:
                 msg = unicode(e)
                 last_exc = e

@@ -29,6 +29,7 @@ from weboob.browser.elements import DictElement, ItemElement, ListElement, metho
 from weboob.browser.filters.standard import Date, Env, CleanText, Field, ItemNotFound, BrowserURL
 from weboob.browser.filters.json import Dict
 from weboob.tools.date import parse_french_date
+from weboob.tools.compat import basestring
 
 
 class ArteItemElement(ItemElement):

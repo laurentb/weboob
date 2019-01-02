@@ -173,7 +173,7 @@ class Repository(object):
             filename = os.path.join(self.localurl2path(), self.INDEX)
             try:
                 fp = open(filename, 'r')
-            except IOError as e:
+            except IOError:
                 # This local repository doesn't contain a built modules.list index.
                 self.name = Repositories.url2filename(self.url)
                 self.build_index(self.localurl2path(), filename)
