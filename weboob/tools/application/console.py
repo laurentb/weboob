@@ -571,7 +571,7 @@ class ConsoleApplication(Application):
                 print('Reading content from stdin... Type ctrl-D '
                           'from an empty line to stop.')
             text = self._readall()
-        return text
+        return to_unicode(text)
 
     def bcall_error_handler(self, backend, error, backtrace):
         """
