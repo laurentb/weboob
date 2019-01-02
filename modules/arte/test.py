@@ -49,7 +49,6 @@ class ArteTest(BackendTest):
             assert len(l1)
 
             while not isinstance(l1[0], BaseVideo):
-                print(l1[-1].split_path)
                 l1 = list(self.backend.iter_resources([BaseVideo], l1[-1].split_path))
                 assert len(l1)
 
