@@ -26,7 +26,14 @@ unittests:2.7:
   image: "python:2.7"
   stage: "test"
   script:
-    - "./tools/run_tests.sh"
+    - "./tools/run_tests.sh --no-modules"
+
+unittests-modules:2.7:
+  image: "python:2.7"
+  stage: "test"
+  allow_failure: true
+  script:
+    - "./tools/run_tests.sh --no-core"
 
 doc:2.7:
   image: "python:2.7"
@@ -57,7 +64,14 @@ unittests:3:
   image: "python:3"
   stage: "test"
   script:
-    - "./tools/run_tests.sh -3"
+    - "./tools/run_tests.sh -3 --no-modules"
+
+unittests-modules:3:
+  image: "python:3"
+  stage: "test"
+  allow_failure: true
+  script:
+    - "./tools/run_tests.sh -3 --no-core"
 
 doc:3:
   image: "python:3"
