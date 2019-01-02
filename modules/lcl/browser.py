@@ -229,7 +229,9 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                 continue
 
             self.location('/outil/UWRI/Accueil/')
-            if self.page.has_iban_choice():
+            if self.no_perm.is_here():
+                self.logger.warning('RIB is unavailable.')
+            elif self.page.has_iban_choice():
                 self.rib.go(data={'compte': '%s/%s/%s' % (a.id[0:5], a.id[5:11], a.id[11:])})
                 if self.rib.is_here():
                     iban = self.page.get_iban()
