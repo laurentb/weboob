@@ -114,7 +114,7 @@ class TransferJson(LoggedPage, JsonPage):
         transfer.label = json_response['motif']
         transfer.amount = CleanDecimal.French((CleanText(Dict('montantToDisplay'))))(json_response)
         transfer.currency = json_response['devise']
-        transfer.exec_date = Date(Dict('dateExecution'))(json_response)
+        transfer.exec_date = Date(Dict('dateExecution'), dayfirst=True)(json_response)
 
         transfer.account_id = Format('%s%s', Dict('codeGuichet'), Dict('numeroCompte'))(json_response['compteEmetteur'])
         transfer.account_iban = json_response['compteEmetteur']['iban']
