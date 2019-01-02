@@ -1865,7 +1865,6 @@ class NewCardsListPage(LoggedPage, HTMLPage):
             obj_type = Account.TYPE_CARD
             obj__new_space = True
             obj__is_inv = False
-            load_details = Field('_link_id') & AsyncLoad
 
             def obj__secondpage(self):
                 # Necessary to reach the good history page
@@ -1909,8 +1908,8 @@ class NewCardsListPage(LoggedPage, HTMLPage):
 
             def parse(self, el):
                 # We have to reach the good page with the information of the type of card
-                async_page = Async('details').loaded_page(self)
-                card_type_page = Link('//div/ul/li/a[contains(text(), "Fonctions")]')(async_page.doc)
+                history_page = self.page.browser.open(Field('_link_id')(self)).page
+                card_type_page = Link('//div/ul/li/a[contains(text(), "Fonctions")]')(history_page.doc)
                 doc = self.page.browser.open(card_type_page).page.doc
                 card_type_line = doc.xpath('//tbody/tr[th[contains(text(), "Débit des paiements")]]')
                 if card_type_line:
