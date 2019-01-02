@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import BrowserUnavailable
+from weboob.exceptions import BrowserUnavailable
 from weboob.capabilities.dating import Optimization
 
 
@@ -43,7 +43,6 @@ class Visibility(Optimization):
 
     def reconnect(self):
         try:
-            with self._browser:
-                self._browser.login()
+            self._browser.login()
         except BrowserUnavailable:
             pass

@@ -32,7 +32,7 @@ from weboob.capabilities.dating import CapDating, OptimizationNotFound, Event
 from weboob.capabilities.contact import CapContact, ContactPhoto, Query, QueryError
 from weboob.capabilities.account import CapAccount, StatusField
 from weboob.tools.backend import Module, BackendConfig
-from weboob.deprecated.browser import BrowserUnavailable, BrowserHTTPNotFound
+from weboob.exceptions import BrowserUnavailable, BrowserHTTPNotFound
 from weboob.tools.value import Value, ValueBool, ValueBackendPassword
 from weboob.tools.date import local2utc
 from weboob.tools.misc import to_unicode
@@ -87,11 +87,10 @@ class AuMModule(Module, CapMessages, CapMessagesPost, CapDating, CapChat, CapCon
                                    self.config['search_query'].get())
 
     def report_spam(self, id):
-        with self.browser:
-            pass
-            #self.browser.delete_thread(id)
-            # Do not report fakes to website, to let them to other guys :)
-            #self.browser.report_fake(id)
+        pass
+        #self.browser.delete_thread(id)
+        # Do not report fakes to website, to let them to other guys :)
+        #self.browser.report_fake(id)
 
     # ---- CapDating methods ---------------------
 
@@ -102,10 +101,9 @@ class AuMModule(Module, CapMessages, CapMessagesPost, CapDating, CapChat, CapCon
 
     def iter_events(self):
         all_events = {}
-        with self.browser:
-            all_events[u'baskets'] = (self.browser.get_baskets, 'You were put into %s\'s basket')
-            all_events[u'flashs'] =  (self.browser.get_flashs, 'You sent a charm to %s')
-            all_events[u'visits'] =  (self.browser.get_visits, 'Visited by %s')
+        all_events[u'baskets'] = (self.browser.get_baskets, 'You were put into %s\'s basket')
+        all_events[u'flashs'] =  (self.browser.get_flashs, 'You sent a charm to %s')
+        all_events[u'visits'] =  (self.browser.get_visits, 'Visited by %s')
         for type, (events, message) in all_events.iteritems():
             for event in events():
                 e = Event(event['who']['id'])
@@ -124,10 +122,9 @@ class AuMModule(Module, CapMessages, CapMessagesPost, CapDating, CapChat, CapCon
                 yield e
 
     def iter_new_contacts(self):
-        with self.browser:
-            for _id in self.browser.search_profiles():#.difference(self.OPTIM_PROFILE_WALKER.visited_profiles):
-                contact = Contact(_id, '', 0)
-                yield contact
+        for _id in self.browser.search_profiles():#.difference(self.OPTIM_PROFILE_WALKER.visited_profiles):
+            contact = Contact(_id, '', 0)
+            yield contact
 
     # ---- CapMessages methods ---------------------
 
@@ -135,13 +132,11 @@ class AuMModule(Module, CapMessages, CapMessagesPost, CapDating, CapChat, CapCon
         return self.get_thread(thread)
 
     def iter_threads(self):
-        with self.browser:
-            threads = self.browser.get_threads_list()
+        threads = self.browser.get_threads_list()
 
         for thread in threads:
             #if thread['member'].get('isBan', thread['member'].get('dead', False)):
-            #    with self.browser:
-            #        self.browser.delete_thread(thread['member']['id'])
+            #    self.browser.delete_thread(thread['member']['id'])
             #    continue
             if self.antispam and not self.antispam.check_thread(thread):
                 self.logger.info('Skipped a spam-thread from %s' % thread['pseudo'])
@@ -170,9 +165,8 @@ class AuMModule(Module, CapMessages, CapMessagesPost, CapDating, CapChat, CapCon
         else:
             full = True
 
-        with self.browser:
-            mails = self.browser.get_thread_mails(id, 100)
-            my_name = self.browser.get_my_name()
+        mails = self.browser.get_thread_mails(id, 100)
+        my_name = self.browser.get_my_name()
 
         child = None
         msg = None
@@ -199,8 +193,7 @@ class AuMModule(Module, CapMessages, CapMessagesPost, CapDating, CapChat, CapCon
                 if get_profiles:
                     if mail['from'] not in contacts:
                         try:
-                            with self.browser:
-                                contacts[mail['from']] = self.get_contact(mail['from'])
+                            contacts[mail['from']] = self.get_contact(mail['from'])
                         except BrowserHTTPNotFound:
                             pass
                     if self.antispam and mail['from'] in contacts and not self.antispam.check_contact(contacts[mail['from']]):
@@ -251,12 +244,10 @@ class AuMModule(Module, CapMessages, CapMessagesPost, CapDating, CapChat, CapCon
     def iter_unread_messages(self):
         try:
             contacts = {}
-            with self.browser:
-                threads = self.browser.get_threads_list()
+            threads = self.browser.get_threads_list()
             for thread in threads:
                 #if thread['member'].get('isBan', thread['member'].get('dead', False)):
-                #    with self.browser:
-                #        self.browser.delete_thread(int(thread['member']['id']))
+                #    self.browser.delete_thread(int(thread['member']['id']))
                 #    continue
                 if self.antispam and not self.antispam.check_thread(thread):
                     self.logger.info('Skipped a spam-unread-thread from %s' % thread['who']['pseudo'])
@@ -278,35 +269,34 @@ class AuMModule(Module, CapMessages, CapMessagesPost, CapDating, CapChat, CapCon
             # Send mail when someone added me in her basket.
             # XXX possibly race condition if a contact adds me in her basket
             #     between the aum.nb_new_baskets() and aum.get_baskets().
-            with self.browser:
-                contact = self._get_contact(-self.MAGIC_ID_BASKET)
+            contact = self._get_contact(-self.MAGIC_ID_BASKET)
 
-                new_baskets = self.browser.nb_new_baskets()
-                if new_baskets > 0:
-                    baskets = self.browser.get_baskets()
-                    my_name = self.browser.get_my_name()
-                    for basket in baskets:
-                        if parse_dt(basket['date']) <= contact['lastmsg']:
-                            continue
-                        contact = self.get_contact(basket['who']['id'])
-                        if self.antispam and not self.antispam.check_contact(contact):
-                            self.logger.info('Skipped a spam-basket from %s' % contact.name)
-                            self.report_spam(basket['who']['id'])
-                            continue
+            new_baskets = self.browser.nb_new_baskets()
+            if new_baskets > 0:
+                baskets = self.browser.get_baskets()
+                my_name = self.browser.get_my_name()
+                for basket in baskets:
+                    if parse_dt(basket['date']) <= contact['lastmsg']:
+                        continue
+                    contact = self.get_contact(basket['who']['id'])
+                    if self.antispam and not self.antispam.check_contact(contact):
+                        self.logger.info('Skipped a spam-basket from %s' % contact.name)
+                        self.report_spam(basket['who']['id'])
+                        continue
 
-                        thread = Thread(int(basket['who']['id']))
-                        thread.title = 'Basket of %s' % contact.name
-                        thread.root = Message(thread=thread,
-                                              id=self.MAGIC_ID_BASKET,
-                                              title=thread.title,
-                                              sender=contact.name,
-                                              receivers=[my_name],
-                                              date=parse_dt(basket['date']),
-                                              content='You are taken in her basket!',
-                                              signature=contact.get_text(),
-                                              children=[],
-                                              flags=Message.IS_UNREAD)
-                        yield thread.root
+                    thread = Thread(int(basket['who']['id']))
+                    thread.title = 'Basket of %s' % contact.name
+                    thread.root = Message(thread=thread,
+                                          id=self.MAGIC_ID_BASKET,
+                                          title=thread.title,
+                                          sender=contact.name,
+                                          receivers=[my_name],
+                                          date=parse_dt(basket['date']),
+                                          content='You are taken in her basket!',
+                                          signature=contact.get_text(),
+                                          children=[],
+                                          flags=Message.IS_UNREAD)
+                    yield thread.root
         except BrowserUnavailable as e:
             self.logger.debug('No messages, browser is unavailable: %s' % e)
             pass  # don't care about waiting
@@ -345,8 +335,7 @@ class AuMModule(Module, CapMessages, CapMessagesPost, CapDating, CapChat, CapCon
     # ---- CapMessagesPost methods ---------------------
 
     def post_message(self, message):
-        with self.browser:
-            self.browser.post_mail(message.thread.id, message.content)
+        self.browser.post_mail(message.thread.id, message.content)
 
     # ---- CapContact methods ---------------------
 
@@ -355,45 +344,42 @@ class AuMModule(Module, CapMessages, CapMessagesPost, CapDating, CapChat, CapCon
             contact = self.get_contact(contact)
         if contact and 'photos' in fields:
             for name, photo in contact.photos.iteritems():
-                with self.browser:
-                    if photo.url and not photo.data:
-                        data = self.browser.openurl(photo.url).read()
-                        contact.set_photo(name, data=data)
-                    if photo.thumbnail_url and not photo.thumbnail_data:
-                        data = self.browser.openurl(photo.thumbnail_url).read()
-                        contact.set_photo(name, thumbnail_data=data)
+                if photo.url and not photo.data:
+                    data = self.browser.openurl(photo.url).read()
+                    contact.set_photo(name, data=data)
+                if photo.thumbnail_url and not photo.thumbnail_data:
+                    data = self.browser.openurl(photo.thumbnail_url).read()
+                    contact.set_photo(name, thumbnail_data=data)
 
     def fill_photo(self, photo, fields):
-        with self.browser:
-            if 'data' in fields and photo.url and not photo.data:
-                photo.data = self.browser.readurl(photo.url)
-            if 'thumbnail_data' in fields and photo.thumbnail_url and not photo.thumbnail_data:
-                photo.thumbnail_data = self.browser.readurl(photo.thumbnail_url)
+        if 'data' in fields and photo.url and not photo.data:
+            photo.data = self.browser.open(photo.url).content
+        if 'thumbnail_data' in fields and photo.thumbnail_url and not photo.thumbnail_data:
+            photo.thumbnail_data = self.browser.open(photo.thumbnail_url).content
         return photo
 
     def get_contact(self, contact):
-        with self.browser:
-            if isinstance(contact, Contact):
-                _id = contact.id
-            elif isinstance(contact, (int,long,basestring)):
-                _id = contact
-            else:
-                raise TypeError("The parameter 'contact' isn't a contact nor a int/long/str/unicode: %s" % contact)
+        if isinstance(contact, Contact):
+            _id = contact.id
+        elif isinstance(contact, (int,long,basestring)):
+            _id = contact
+        else:
+            raise TypeError("The parameter 'contact' isn't a contact nor a int/long/str/unicode: %s" % contact)
 
-            profile = self.browser.get_full_profile(_id)
-            if not profile:
-                return None
+        profile = self.browser.get_full_profile(_id)
+        if not profile:
+            return None
 
-            _id = profile['id']
+        _id = profile['id']
 
-            if isinstance(contact, Contact):
-                contact.id = _id
-                contact.name = profile['pseudo']
-            else:
-                contact = Contact(_id, profile['pseudo'], Contact.STATUS_ONLINE)
-            contact.url = self.browser.id2url(_id)
-            contact.parse_profile(profile, self.browser.get_consts())
-            return contact
+        if isinstance(contact, Contact):
+            contact.id = _id
+            contact.name = profile['pseudo']
+        else:
+            contact = Contact(_id, profile['pseudo'], Contact.STATUS_ONLINE)
+        contact.url = self.browser.id2url(_id)
+        contact.parse_profile(profile, self.browser.get_consts())
+        return contact
 
     def _get_partial_contact(self, contact):
         s = 0
@@ -417,8 +403,7 @@ class AuMModule(Module, CapMessages, CapMessagesPost, CapDating, CapChat, CapCon
         return c
 
     def iter_contacts(self, status=Contact.STATUS_ALL, ids=None):
-        with self.browser:
-            threads = self.browser.get_threads_list(count=100)
+        threads = self.browser.get_threads_list(count=100)
 
         for thread in threads:
             c = self._get_partial_contact(thread['who'])
@@ -441,10 +426,9 @@ class AuMModule(Module, CapMessages, CapMessagesPost, CapDating, CapChat, CapCon
             else:
                 return Query(id, 'Unable to send charm: it has been enqueued')
         else:
-            with self.browser:
-                if not self.browser.send_charm(id):
-                    raise QueryError('No enough charms available')
-                return Query(id, 'A charm has been sent')
+            if not self.browser.send_charm(id):
+                raise QueryError('No enough charms available')
+            return Query(id, 'A charm has been sent')
 
     def get_notes(self, id):
         if isinstance(id, Contact):
@@ -462,24 +446,21 @@ class AuMModule(Module, CapMessages, CapMessagesPost, CapDating, CapChat, CapCon
     # ---- CapChat methods ---------------------
 
     def iter_chat_messages(self, _id=None):
-        with self.browser:
-            return self.browser.iter_chat_messages(_id)
+        return self.browser.iter_chat_messages(_id)
 
     def send_chat_message(self, _id, message):
-        with self.browser:
-            return self.browser.send_chat_message(_id, message)
+        return self.browser.send_chat_message(_id, message)
 
     #def start_chat_polling(self):
         #self._profile_walker = ProfilesWalker(self.weboob.scheduler, self.storage, self.browser)
 
     def get_account_status(self):
-        with self.browser:
-            return (
-                    StatusField(u'myname', u'My name', unicode(self.browser.get_my_name())),
-                    StatusField(u'score', u'Score', unicode(self.browser.score())),
-                    StatusField(u'avcharms', u'Available charms', unicode(self.browser.nb_available_charms())),
-                    StatusField(u'newvisits', u'New visits', unicode(self.browser.nb_new_visites())),
-                   )
+        return (
+                StatusField(u'myname', u'My name', unicode(self.browser.get_my_name())),
+                StatusField(u'score', u'Score', unicode(self.browser.score())),
+                StatusField(u'avcharms', u'Available charms', unicode(self.browser.nb_available_charms())),
+                StatusField(u'newvisits', u'New visits', unicode(self.browser.nb_new_visites())),
+               )
 
     OBJECTS = {Thread: fill_thread,
                Contact: fill_contact,

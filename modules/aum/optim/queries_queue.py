@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.deprecated.browser import BrowserUnavailable
+from weboob.exceptions import BrowserUnavailable
 from weboob.capabilities.dating import Optimization
 from weboob.capabilities.contact import QueryError
 from weboob.tools.log import getLogger
@@ -81,13 +81,12 @@ class QueriesQueue(Optimization):
                     if not id:
                         continue
 
-                    with self._browser:
-                        if self._browser.send_charm(id):
-                            self._logger.info('Charm sent to %s', id)
-                        else:
-                            self._queue.append((priority, id))
-                            self._logger.info("Charm can't be send to %s", id)
-                            break
+                    if self._browser.send_charm(id):
+                        self._logger.info('Charm sent to %s', id)
+                    else:
+                        self._queue.append((priority, id))
+                        self._logger.info("Charm can't be send to %s", id)
+                        break
 
                     # As the charm has been correctly sent (no exception raised),
                     # we don't store anymore ID, because if nbAvailableCharms()

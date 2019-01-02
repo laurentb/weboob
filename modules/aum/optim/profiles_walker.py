@@ -19,7 +19,7 @@
 
 from random import randint
 
-from weboob.deprecated.browser import BrowserUnavailable
+from weboob.exceptions import BrowserUnavailable
 from weboob.capabilities.dating import Optimization
 from weboob.tools.log import getLogger
 
@@ -59,10 +59,9 @@ class ProfilesWalker(Optimization):
 
     def enqueue_profiles(self):
         try:
-            with self._browser:
-                profiles_to_visit = self._browser.search_profiles().difference(self._visited_profiles)
-                self._logger.info(u'Enqueuing profiles to visit: %s' % profiles_to_visit)
-                self._profiles_queue = set(profiles_to_visit)
+            profiles_to_visit = self._browser.search_profiles().difference(self._visited_profiles)
+            self._logger.info(u'Enqueuing profiles to visit: %s' % profiles_to_visit)
+            self._profiles_queue = set(profiles_to_visit)
             self.save()
         except BrowserUnavailable:
             return
@@ -75,8 +74,7 @@ class ProfilesWalker(Optimization):
                 return  # empty queue
 
             try:
-                with self._browser:
-                    profile = self._browser.get_profile(id)
+                profile = self._browser.get_profile(id)
                 self._logger.info(u'Visited profile %s (%s)' % (profile['pseudo'], id))
 
                 # Get score from the aum_score module
