@@ -93,7 +93,7 @@ class Bill(Document, Currency):
 
     def __init__(self, *args, **kwargs):
         super(Bill, self).__init__(*args, **kwargs)
-        self.type = u'bill'
+        self.type = DocumentTypes.BILL
 
 
 class Subscription(BaseObject):
