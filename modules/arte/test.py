@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+import itertools
 
 from weboob.tools.test import BackendTest
 from weboob.tools.value import Value
@@ -45,11 +46,11 @@ class ArteTest(BackendTest):
     def test_sites(self):
         for site in SITE.values:
 
-            l1 = list(self.backend.iter_resources([BaseVideo], [site.get('id')]))
+            l1 = list(itertools.islice(self.backend.iter_resources([BaseVideo], [site.get('id')]), 0, 20))
             assert len(l1)
 
             while not isinstance(l1[0], BaseVideo):
-                l1 = list(self.backend.iter_resources([BaseVideo], l1[-1].split_path))
+                l1 = list(itertools.islice(self.backend.iter_resources([BaseVideo], l1[-1].split_path), 0, 20))
                 assert len(l1)
 
             for v in l1:
