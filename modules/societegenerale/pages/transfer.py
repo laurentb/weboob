@@ -33,6 +33,7 @@ from weboob.browser.filters.html import Link
 from weboob.browser.filters.json import Dict
 from weboob.tools.value import Value, ValueBool
 from weboob.tools.json import json
+from weboob.exceptions import BrowserUnavailable
 
 from .base import BasePage
 from .login import LoginPage
@@ -43,6 +44,9 @@ class TransferJson(LoggedPage, JsonPage):
         if Dict('commun/statut')(self.doc).upper() == 'NOK':
             if self.doc['commun'].get('action'):
                 raise TransferBankError(message=Dict('commun/action')(self.doc))
+            elif self.doc['commun'].get('raison') == 'err_tech':
+                # on SG website, there is unavalaible message 'Le service est momentanément indisponible.'
+                raise BrowserUnavailable()
             else:
                 assert False, 'Something went wrong, transfer is not created: %s' % self.doc['commun'].get('raison')
 
