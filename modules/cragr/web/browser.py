@@ -450,7 +450,10 @@ class Cragr(LoginBrowser, StatesMixin):
                 url = self.page.get_next_url()
 
         elif self.page and not self.no_fixed_deposit_page.is_here():
-            date_guesser = LinearDateGuesser()
+            if account.type == Account.TYPE_SAVINGS:
+                date_guesser = LinearDateGuesser(date_max_bump=timedelta(2))
+            else:
+                date_guesser = LinearDateGuesser()
             self.page.order_transactions()
             while True:
                 assert self.transactions.is_here()

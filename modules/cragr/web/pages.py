@@ -19,6 +19,7 @@
 
 from __future__ import unicode_literals
 
+from dateutil.relativedelta import relativedelta
 from datetime import date as ddate, datetime
 from decimal import Decimal
 import re
@@ -874,6 +875,12 @@ class TransactionsPage(MyLoggedPage, BasePage):
                 t.date = MyDate().filter(date)
             t.rdate = t.date
             t.raw = raw
+            # Transactions DO NOT have a year. its only DD/MM. In some cases, if there is not enough
+            # transactions in the account, a transaction dating from last year has it date incorrectly
+            # guessed (with the date_guesser/ to avoid this we had to reduce de data_guesser.date_max_bump
+            # to 2 in order to prevenmt such problems, but only for savings accounts. It is not perfect,
+            # hence the assertion to make sure we aren't returning a future date that is more than 2 days forward.
+            assert datetime(year=t.date.year, month=t.date.month, day=t.date.day) + relativedelta(date_guesser.date_max_bump.days) < datetime.today()
 
             # On some accounts' history page, there is a <font> tag in columns.
             if col_text.find('font') is not None:
