@@ -502,6 +502,9 @@ class LifeInsurance(LoggedPage, BasePage):
     def has_link(self):
         return Link('//a[@href="asvcns20a.html"]', default=NotAvailable)(self.doc)
 
+    def get_error_msg(self):
+        # to check page errors
+        return CleanText('//span[@class="error_msg"]')(self.doc)
 
 class LifeInsuranceInvest(LifeInsurance, Invest):
     COL_LABEL = 0

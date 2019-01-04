@@ -232,6 +232,12 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
                 # Other Life Insurance pages:
                 self.life_insurance_invest.go()
 
+            if self.life_insurance.is_here():
+                # check that investements are here
+                error_msg = self.page.get_error_msg()
+                if error_msg and 'Le service est momentanément indisponible' in error_msg:
+                    raise BrowserUnavailable(error_msg)
+
             # Yield investments from the first page:
             for invest in self.page.iter_investment():
                 yield invest
