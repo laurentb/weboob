@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Copyright(C) 2016      Bezleputh
+# Copyright(C) 2018 Ludovic LANGE
 #
 # This file is part of a weboob module.
 #
@@ -18,10 +19,9 @@
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.value import ValueBackendPassword
-
-from weboob.capabilities.bank import CapBankWealth
+from weboob.tools.backend import AbstractModule, BackendConfig
+from weboob.tools.value import ValueBackendPassword, Value
+from weboob.capabilities.bank import CapBank
 
 from .browser import CreditdunordpeeBrowser
 
@@ -29,33 +29,21 @@ from .browser import CreditdunordpeeBrowser
 __all__ = ['CreditdunordpeeModule']
 
 
-class CreditdunordpeeModule(Module, CapBankWealth):
+class CreditdunordpeeModule(AbstractModule, CapBank):
     NAME = 'creditdunordpee'
-    DESCRIPTION = u'Site de gestion du PEE du groupe Credit du nord'
-    MAINTAINER = u'Bezleputh'
-    EMAIL = 'carton_ben@yahoo.fr'
+    DESCRIPTION = u'Crédit du Nord Épargne Salariale'
+    MAINTAINER = u'Ludovic LANGE'
+    EMAIL = 'llange@users.noreply.github.com'
     LICENSE = 'LGPLv3+'
-    VERSION = '1.6'
+    VERSION = '1.4'
+    CONFIG = BackendConfig(
+             ValueBackendPassword('login',    label='Identifiant', masked=False),
+             ValueBackendPassword('password', label='Code secret', regexp='^(\d{6})$'),
+             Value('otp', label='Code unique temporaire', default=''),
+    )
 
     BROWSER = CreditdunordpeeBrowser
-
-    CONFIG = BackendConfig(ValueBackendPassword('login', label='Identifiant', regexp='\d{8}', masked=False),
-                           ValueBackendPassword('password', label='Mot de passe'))
+    PARENT = 's2e'
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(), self.config['password'].get())
-
-    def get_account(self, id):
-        return self.browser.iter_accounts()
-
-    def iter_accounts(self):
-        return self.browser.iter_accounts()
-
-    def iter_coming(self, account):
-        raise NotImplementedError()
-
-    def iter_history(self, account):
-        return self.browser.get_history()
-
-    def iter_investment(self, account):
-        return self.browser.iter_investment()
+        return self.create_browser(self.config, weboob=self.weboob)

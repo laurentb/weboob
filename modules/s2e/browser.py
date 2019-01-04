@@ -24,6 +24,7 @@ from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from .pages import (
     LoginPage, AccountsPage, AMFHSBCPage, AMFAmundiPage, AMFSGPage, HistoryPage,
     ErrorPage, LyxorfcpePage, EcofiPage, EcofiDummyPage, LandingPage, SwissLifePage, LoginErrorPage,
+    EtoileGestionPage, EtoileGestionCharacteristicsPage,
 )
 
 
@@ -44,6 +45,8 @@ class S2eBrowser(LoginBrowser, StatesMixin):
     history = URL('/portal/salarie-(?P<slug>\w+)/operations/consulteroperations', HistoryPage)
     error = URL('/maintenance/.+/', ErrorPage)
     swisslife = URL('http://fr.swisslife-am.com/fr/produits/.*', SwissLifePage)
+    etoile_gestion = URL('http://www.etoile-gestion.com/index.php/etg_fr_fr/productsheet/view/.*', EtoileGestionPage)
+    etoile_gestion_characteristics = URL('http://www.etoile-gestion.com/etg_fr_fr/ezjscore/.*', EtoileGestionCharacteristicsPage)
 
     STATE_DURATION = 10
 
@@ -169,4 +172,10 @@ class ErehsbcBrowser(S2eBrowser):
 class BnppereBrowser(S2eBrowser):
     BASEURL = 'https://personeo.epargne-retraite-entreprises.bnpparibas.com'
     SLUG = 'bnp'
+    LANG = 'fr' # ['fr', 'en']
+
+
+class CreditdunordpeeBrowser(S2eBrowser):
+    BASEURL = 'https://salaries.pee.credit-du-nord.fr'
+    SLUG = 'cdn'
     LANG = 'fr' # ['fr', 'en']

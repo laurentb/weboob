@@ -33,6 +33,7 @@ from weboob.capabilities.base import NotAvailable
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard
 from weboob.exceptions import NoAccountsException, BrowserUnavailable, ActionNeeded, BrowserQuestion, BrowserIncorrectPassword
 from weboob.tools.value import Value
+from weboob.tools.compat import urljoin
 
 
 def MyDecimal(*args, **kwargs):
@@ -592,4 +593,39 @@ class SwissLifePage(HTMLPage):
         code = CleanText('//span[contains(text(), "Code ISIN")]/following-sibling::span[@class="data"]', default=NotAvailable)(self.doc)
         if code == "n/a":
             return NotAvailable
+        return code
+
+
+class EtoileGestionPage(HTMLPage):
+    CODE_TYPE = NotAvailable
+
+    def get_code(self):
+        # Codes (AMF / ISIN) are available after a click on a tab
+        characteristics_url = urljoin(self.url, Attr(u'//a[contains(text(), "Caractéristiques")]', 'data-href', default=None)(self.doc))
+        if characteristics_url is not None:
+            detail_page = self.browser.open(characteristics_url).page
+
+            # We prefer to return an ISIN code by default
+            code_isin = detail_page.get_code_isin()
+            if code_isin is not None:
+                self.CODE_TYPE = Investment.CODE_TYPE_ISIN
+                return code_isin
+
+            # But if it's unavailable we can fallback to an AMF code
+            code_amf = detail_page.get_code_amf()
+            if code_amf is not None:
+                self.CODE_TYPE = Investment.CODE_TYPE_AMF
+                return code_amf
+
+        return NotAvailable
+
+
+class EtoileGestionCharacteristicsPage(PartialHTMLPage):
+
+    def get_code_isin(self):
+        code = CleanText('//td[contains(text(), "Code Isin")]/following-sibling::td', default=None)(self.doc)
+        return code
+
+    def get_code_amf(self):
+        code = CleanText('//td[contains(text(), "Code AMF")]/following-sibling::td', default=None)(self.doc)
         return code
