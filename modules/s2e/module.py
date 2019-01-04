@@ -20,9 +20,10 @@
 
 from weboob.tools.backend import Module
 from weboob.capabilities.bank import CapBankWealth
+from weboob.capabilities.profile import CapProfile
 
 
-class S2eModule(Module, CapBankWealth):
+class S2eModule(Module, CapBankWealth, CapProfile):
     NAME = 's2e'
     DESCRIPTION = u'Épargne Salariale'
     MAINTAINER = u'Edouard Lambert'
@@ -41,3 +42,6 @@ class S2eModule(Module, CapBankWealth):
 
     def iter_pocket(self, account):
         return self.browser.iter_pocket(account)
+
+    def get_profile(self):
+        return self.browser.get_profile()

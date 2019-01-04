@@ -36,6 +36,7 @@ from weboob.browser.filters.html import Attr, TableCell
 from weboob.browser.filters.json import Dict
 from weboob.browser.exceptions import HTTPNotFound
 from weboob.capabilities.bank import Account, Investment, Pocket, Transaction
+from weboob.capabilities.profile import Person
 from weboob.capabilities.base import NotAvailable, empty
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard
 from weboob.exceptions import BrowserUnavailable, ActionNeeded, BrowserQuestion, BrowserIncorrectPassword
@@ -848,6 +849,19 @@ class AmundiDetailsPage(LoggedPage, HTMLPage):
 class ProfilePage(LoggedPage, MultiPage):
     def get_company_name(self):
         return CleanText('//div[contains(@class, "operation-bloc")]//span[contains(text(), "Entreprise")]/following-sibling::span[1]')(self.doc)
+
+    def get_profile(self):
+        profile = Person()
+        civilite = CleanText('//div/span[contains(text(), "Civilité")]/following-sibling::div/span')(self.doc)
+        familly_name = CleanText('//div/span[contains(text(), "Nom")]/following-sibling::div/span')(self.doc)
+        given_name = CleanText('//div/span[contains(text(), "Prénom")]/following-sibling::div/span')(self.doc)
+        profile.name = u'%s %s %s' % (civilite, given_name, familly_name)
+        profile.address = CleanText('//div/span[contains(text(), "Adresse postale")]/following-sibling::div/div[2]')(self.doc)
+        profile.phone = CleanText('//div/span[contains(text(), "Tél. portable")]/following-sibling::div/span')(self.doc)
+        profile.email = CleanText('//div/span[contains(text(), "E-mail")]/following-sibling::div/span')(self.doc)
+        profile.company_name = CleanText('//div[contains(@class, "operation-bloc")]//span[contains(text(), "Entreprise")]/following-sibling::span[1]')(self.doc)
+
+        return profile
 
 
 class APIInvestmentDetailsPage(LoggedPage, JsonPage):

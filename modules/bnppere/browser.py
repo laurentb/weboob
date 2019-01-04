@@ -31,9 +31,6 @@ class BnppereBrowser(AbstractBrowser):
     PARENT = 's2e'
     PARENT_ATTR = 'package.browser.BnppereBrowser'
 
-    def get_profile(self):
-        raise NotImplementedError()
-
 
 class VisiogoBrowser(LoginBrowser):
     BASEURL = 'https://visiogo.bnpparibas.com/'

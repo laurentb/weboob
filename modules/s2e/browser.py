@@ -269,6 +269,12 @@ class S2eBrowser(LoginBrowser, StatesMixin):
         # Go back to first page
         self.page.go_start()
 
+    @need_login
+    def get_profile(self):
+        self.profile.stay_or_go(slug=self.SLUG)
+        profile = self.page.get_profile()
+        return profile
+
 
 class EsaliaBrowser(S2eBrowser):
     BASEURL = 'https://salaries.esalia.com'
