@@ -762,13 +762,11 @@ class NatixisRedirectPage(LoggedPage, HTMLPage):
 
 
 class MarketPage(LoggedPage, HTMLPage):
-    def is_error(self):
-        try:
-            return self.doc.xpath('//caption')[0].text == "Erreur"
-        except IndexError:
-            return False
-        except AssertionError:
-            return True
+    def on_load(self):
+        error = CleanText('//caption[contains(text(),"Erreur")]')(self.doc)
+        if error:
+            message = CleanText('//td[contains(@class,"donneeLongIdent")]')(self.doc)
+            raise BrowserUnavailable(message)
 
     def parse_decimal(self, td, percentage=False):
         value = CleanText('.')(td)
