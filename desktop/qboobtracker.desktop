@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=QBoobTracker
+Comment=Qt application to search for bugs and tasks
+Exec=qboobtracker
+Icon=qboobtracker
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=Development;ProjectManagement;Qt;
+Keywords=bug;tracker;bugtracker;
