@@ -449,28 +449,6 @@ class Boomoney(Boobank):
             self.config.set(t.account, 'last_date', t.last_date)
 
         self.config.save()
-        return
-        # The above line doesn't work with unicode strings because the
-        # file is not open with the right encoding.
-        # The below is a copy of the INIConfig.save method but opens
-        # the file with the utf-8 encoding
-        from decimal import Decimal
-
-        def save_section(values, root_section=self.config.ROOTSECT):
-            for k, v in values.items():
-                if isinstance(v, (int, Decimal, float, basestring)):
-                    if not self.config.config.has_section(root_section):
-                        self.config.config.add_section(root_section)
-                    self.config.config.set(root_section, k, unicode(v))
-                elif isinstance(v, dict):
-                    new_section = ':'.join((root_section, k)) if (root_section != self.config.ROOTSECT or k == self.config.ROOTSECT) else k
-                    if not self.config.config.has_section(new_section):
-                        self.config.config.add_section(new_section)
-                    save_section(v, new_section)
-        save_section(self.config.values)
-        import io
-        with io.open(self.config.path, 'w', encoding='utf-8') as f:
-            self.config.config.write(f)
 
     def getList(self):
         self.onecmd("select id label")
