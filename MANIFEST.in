@@ -6,6 +6,7 @@ include ChangeLog
 include desktop/*
 include icons/*
 include man/*
+include build.mk
 recursive-include contrib *
 recursive-include weboob/applications Makefile
 recursive-include weboob/tools/application Makefile
