@@ -136,7 +136,7 @@ def previous_version():
 
 
 def prepare(start, end, version):
-    print(changelog(start, end))
+    print(changelog(start, end).encode('utf-8'))
 
 
 if __name__ == '__main__':

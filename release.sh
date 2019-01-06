@@ -4,26 +4,24 @@ set -e
 
 function set_version {
 	echo -n "Replacing version in source files to $1"
-	for fl in $(find . -iregex ".*\.\(py\|rst\)$" ! -path "./contrib/*"); do
-        sed "s/^\(\s*\)\(VERSION\|version\|release\)\( *\)=\( *\)[\"'][0-9]\+\..\+[\"']\(,\?\)$/\1\2\3=\4'$1'\5/g" $fl > $fl.new
-		diff $fl.new $fl >/dev/null && echo -n "." || echo -n "+"
-		cp -f $fl.new $fl
-		rm -f $fl.new
-	done
-
-	echo -e " done.\n"
+	sed -i "s/^\(\s*\)\(VERSION\|version\|release\|__version__\)\( *\)=\( *\)[\"'][0-9]\+\..\+[\"']\(,\?\)$/\1\2\3=\4'$1'\5/g" $(git ls-files -x contrib | grep "\(.py\|.rst\)$")
+	echo -n "done.\n"
 }
 
-if [ "$1" = "" ]; then
+if [ -z "$1" ]; then
 	echo "Syntax: $0 VERSION"
 	exit 1
 fi
 
 VERSION=$1
 
+echo "Generating ChangeLog..."
+
 export LANG=en_US.utf8
 mv ChangeLog ChangeLog.old
-echo -e "Weboob $VERSION (`date +%Y-%m-%d`)\n\t \n\n" > ChangeLog
+echo -e "Weboob $VERSION (`date +%Y-%m-%d`)\n" > ChangeLog
+python release.py prepare $VERSION >> ChangeLog
+echo -e "\n\n" >> ChangeLog
 cat ChangeLog.old >> ChangeLog
 rm -f ChangeLog.old
 
