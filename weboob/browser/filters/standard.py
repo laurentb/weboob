@@ -244,7 +244,7 @@ class TableCell(_Filter):
                     if not ret:
                         # There might no be no TD at all
                         # ColumnNotFound seems for case when corresponding header is not found
-                        # Thus for compat return empty
+                        # Thus for compat return empty
                         return []
 
                     current_col += int(ret[0].attrib.get('colspan', 1))

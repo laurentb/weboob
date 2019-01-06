@@ -394,7 +394,6 @@ class Browser(object):
         # in case we did not catch something that should be
         response.raise_for_status()
 
-
     def build_request(self, url, referrer=None, data_encoding=None, **kwargs):
         """
         Does the same job as open(), but returns a Request without
@@ -1021,7 +1020,7 @@ class OAuth2Mixin(StatesMixin):
                 }
 
     def do_token_request(self, data):
-         return self.open(self.ACCESS_TOKEN_URI, data=data)
+        return self.open(self.ACCESS_TOKEN_URI, data=data)
 
     def request_access_token(self, auth_uri):
         if isinstance(auth_uri, dict):
@@ -1053,6 +1052,7 @@ class OAuth2Mixin(StatesMixin):
             self.refresh_token = auth_response['refresh_token']
         self.access_token = auth_response['access_token']
         self.access_token_expire = datetime.now() + timedelta(seconds=int(auth_response['expires_in']))
+
 
 class OAuth2PKCEMixin(OAuth2Mixin):
     def __init__(self, *args, **kwargs):

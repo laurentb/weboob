@@ -55,7 +55,7 @@ def video_info(url):
     v.description = unicode(j.get('description')) if j.get('description') else NotAvailable
     v.url = unicode(j['url'])
     v.duration = timedelta(seconds=j.get('duration')) if j.get('duration') else NotAvailable
-    v.author = unicode(j.get('uploader')) if j.get('uploader')  else NotAvailable
+    v.author = unicode(j.get('uploader')) if j.get('uploader') else NotAvailable
     v.rating = j.get('average_rating') or NotAvailable
 
     if j.get('thumbnail'):
