@@ -1,57 +1,233 @@
 .\" -*- coding: utf-8 -*-
 .\" This file was generated automatically by tools/make_man.sh.
-.TH COOKBOOB 1 "06 January 2019" "cookboob 1\&.4"
+.TH BOOMONEY 1 "06 January 2019" "boomoney 1\&.4"
 .SH NAME
-cookboob \- search and consult recipes
+boomoney \- import bank accounts into Microsoft Money
 .SH SYNOPSIS
-.B cookboob
+.B boomoney
 [\-dqv] [\-b \fIbackends\fR] [\-cnfs] [\fIcommand\fR [\fIarguments\fR..]]
 .br
-.B cookboob
+.B boomoney
 [\-\-help] [\-\-version]
 
 .SH DESCRIPTION
 .LP
 
-Console application allowing to search for recipes on various websites.
+Console application that imports bank accounts into Microsoft Money
 
 .SS Supported websites:
-* 750g (750g French recipe website)
+* afer (Association française d'épargne et de retraite)
 .br
-* allrecipes (Allrecipes English recipe website)
+* amazonstorecard (Amazon Store Card)
 .br
-* cuisineaz (Cuisine AZ French recipe website)
+* americanexpress (American Express)
 .br
-* journaldesfemmes (journaldesfemmes website)
+* amundi (Amundi)
 .br
-* marmiton (Marmiton French recipe website)
+* apivie (Apivie)
 .br
-* supertoinette (Super Toinette, la cuisine familiale French recipe website)
-.SH COOKBOOB COMMANDS
+* axabanque (AXA Banque)
+.br
+* banqueaccord (Banque Accord)
+.br
+* banquepopulaire (Banque Populaire)
+.br
+* barclays (Barclays)
+.br
+* becm (Banque Européenne Crédit Mutuel)
+.br
+* bforbank (BforBank)
+.br
+* binck (Binck)
+.br
+* bnpcards (BNP Cartes Entreprises)
+.br
+* bnporc (BNP Paribas)
+.br
+* bnppere (BNP Épargne Salariale)
+.br
+* bolden (Bolden)
+.br
+* boursorama (Boursorama)
+.br
+* bp (La Banque Postale)
+.br
+* bred (Bred)
+.br
+* btpbanque (BTP Banque)
+.br
+* caels (Crédit Agricole \- Épargne Longue des Salariés)
+.br
+* caissedepargne (Caisse d'Épargne)
+.br
+* capeasi (AXA Épargne Salariale)
+.br
+* carrefourbanque (Carrefour Banque)
+.br
+* cic (CIC)
+.br
+* cices (CIC Épargne Salariale)
+.br
+* citibank (Citibank)
+.br
+* cmb (Crédit Mutuel de Bretagne)
+.br
+* cmes (Crédit Mutuel Épargne Salariale)
+.br
+* cmmc (Crédit Mutuel Massif Central)
+.br
+* cmso (Crédit Mutuel Sud\-Ouest)
+.br
+* cragr (Crédit Agricole)
+.br
+* creditcooperatif (Crédit Coopératif)
+.br
+* creditdunord (Crédit du Nord, Banque Courtois, Kolb, Nuger, Laydernier, Tarneaud, Société Marseillaise de Crédit)
+.br
+* creditdunordpee (Site de gestion du PEE du groupe Credit du nord)
+.br
+* creditmutuel (Crédit Mutuel)
+.br
+* delubac (Banque Delubac & Cie)
+.br
+* erehsbc (HSBC Épargne Salariale)
+.br
+* esalia (Société Générale Épargne Salariale)
+.br
+* fortuneo (Fortuneo)
+.br
+* ganassurances (Gan Assurances)
+.br
+* gmf (GMF)
+.br
+* groupama (Groupama)
+.br
+* groupamaes (Groupama Épargne Salariale)
+.br
+* hsbc (HSBC France)
+.br
+* ing (ING Direct)
+.br
+* kiwibank (Kiwibank)
+.br
+* lcl (LCL)
+.br
+* linebourse (linebourse website)
+.br
+* myedenred (MyEdenRed)
+.br
+* n26 (Bank N26)
+.br
+* nalo (Nalo)
+.br
+* oney (Oney)
+.br
+* paypal (PayPal)
+.br
+* pradoepargne (Prado Épargne Salariale)
+.br
+* s2e (Épargne Salariale)
+.br
+* societegenerale (Société Générale)
+.br
+* spirica (Spirica)
+.br
+* suravenir (Assurance\-vie Suravenir à travers différents courtiers (assurancevie.com, linxea, ...))
+.br
+* vicseccard (Victoria's Secret Angel Card)
+.br
+* wellsfargo (Wells Fargo)
+.br
+* yomoni (Yomoni)
+.SH BOOMONEY COMMANDS
+.TP
+\fBadd_recipient\fR iban label
+.br
+Add a recipient to a backend.
+.TP
+\fBadvisor\fR
+.br
+Display advisors.
+.TP
+\fBbudgea\fR \fIUSERNAME\fR \fIPASSWORD\fR
+.br
+Export your bank accounts and transactions to Budgea.
+.br
+
+.br
+Budgea is an online web and mobile application to manage your bank
+.br
+accounts. To avoid giving your credentials to this service, you can use
+.br
+this command.
+.br
+
+.br
+https://www.budgea.com
+.TP
+\fBcoming\fR \fIID\fR [\fIEND_DATE\fR]
+.br
+Display future transactions.
+.br
+
+.br
+If END_DATE is supplied, show all transactions until this date.
+.br
+
+.br
+Default is limited to 10 results.
 .TP
 \fBdebug\fR
 .br
 Launch a debug Python shell
 .TP
-\fBexport\fR \fIID\fR [\fIFILENAME\fR]
+\fBhistory\fR \fIID\fR [\fIEND_DATE\fR]
 .br
-Export the recipe to a KRecipes XML file
+Display history of transactions.
 .br
-FILENAME is where to write the file. If FILENAME is '\-',
+
 .br
-the file is written to stdout.
-.TP
-\fBinfo\fR \fIID\fR
-.br
-Get information about a recipe.
-.TP
-\fBsearch\fR [\fIPATTERN\fR]
-.br
-Search recipes.
+If END_DATE is supplied, list all transactions until this date.
 .br
 
 .br
 Default is limited to 10 results.
+.TP
+\fBinvestment\fR \fIID\fR
+.br
+Display investments of an account.
+.TP
+\fBlist\fR [\-\fIU\fR]
+.br
+List accounts.
+.br
+Use \-U to disable sorting of results.
+.TP
+\fBpocket\fR \fIID\fR
+.br
+Display pockets of an account.
+.TP
+\fBprofile\fR
+.br
+Display detailed information about person or company.
+.TP
+\fBrecipients\fR \fIACCOUNT\fR
+.br
+List recipients of ACCOUNT
+.TP
+\fBtransfer\fR [\fIACCOUNT\fR \fIRECIPIENT\fR \fIAMOUNT\fR [\fILABEL\fR [\fIEXEC_DATE\fR]]]
+.br
+Make a transfer beetwen two account
+.br
+\- ACCOUNT    the source account
+.br
+\- RECIPIENT  the recipient
+.br
+\- AMOUNT     amount to transfer
+.br
+\- LABEL      label of transfer
+.br
+\- EXEC_DATE  date when to execute the transfer
 .SH WEBOOB COMMANDS
 .TP
 \fBbackends\fR [\fIACTION\fR] [\fIBACKEND_NAME\fR]...
@@ -242,8 +418,8 @@ select result item keys to display (comma separated)
 .SH FORMATTING OPTIONS
 .TP
 \fB\-f FORMATTER\fR, \fB\-\-formatter=FORMATTER\fR
-select output formatter (csv, htmltable, json, json_line, multiline,
-recipe_info, recipe_list, simple, table, webkit)
+select output formatter (csv, htmltable, json, json_line, list, multiline,
+simple, table, webkit)
 .TP
 \fB\-\-no\-header\fR
 do not display header
@@ -253,6 +429,25 @@ do not display item keys
 .TP
 \fB\-O OUTFILE\fR, \fB\-\-outfile=OUTFILE\fR
 file to export result
+
+.SH BOOMONEY OPTIONS
+.TP
+\fB\-F\fR, \fB\-\-force\fR
+forces the retrieval of transactions (10 maximum), otherwise retrieves only the
+transactions newer than the previous retrieval date
+.TP
+\fB\-A ACCOUNT\fR, \fB\-\-account=ACCOUNT\fR
+retrieves only the specified account. By default, all accounts are retrieved
+.TP
+\fB\-N\fR, \fB\-\-noimport\fR
+no import. Generates the files, but they are not imported in MSMoney. Last
+import dates are not modified
+.TP
+\fB\-D\fR, \fB\-\-display\fR
+displays the generated OFX file
+.TP
+\fB\-P\fR, \fB\-\-parallel\fR
+retrieves all accounts in parallel instead of one by one (experimental)
 
 .SH CONDITION
 The \-c and \-\-condition is a flexible way to filter and get only interesting results. It supports conditions on numerical values, dates, durations and strings. Dates are given in YYYY\-MM\-DD or YYYY\-MM\-DD HH:MM format. Durations look like XhYmZs where X, Y and Z are integers. Any of them may be omitted. For instance, YmZs, XhZs or Ym are accepted.
@@ -307,7 +502,7 @@ Get transactions betweens the 2th December and 8th December 2013.
 Get transactions after the 2th December in the last 10 transactions
 
 .SH COPYRIGHT
-Copyright(C) 2013-2019 Julien Veyssier
+Copyright(C) 2018-2019 Bruno Chabrier
 .LP
 For full copyright information see the COPYING file in the weboob package.
 .LP
@@ -316,4 +511,4 @@ For full copyright information see the COPYING file in the weboob package.
 "~/.config/weboob/backends" 
 
 .SH SEE ALSO
-Home page: http://weboob.org/applications/cookboob
+Home page: http://weboob.org/applications/boomoney

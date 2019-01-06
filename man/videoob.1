@@ -1,6 +1,6 @@
 .\" -*- coding: utf-8 -*-
 .\" This file was generated automatically by tools/make_man.sh.
-.TH VIDEOOB 1 "20 September 2017" "videoob 1\&.3"
+.TH VIDEOOB 1 "06 January 2019" "videoob 1\&.4"
 .SH NAME
 videoob \- search and play videos
 .SH SYNOPSIS
@@ -18,46 +18,40 @@ Console application allowing to search for videos on various websites, play and 
 .SS Supported websites:
 * allocine (AlloCiné French cinema database service)
 .br
-* arretsurimages (arretsurimages website)
-.br
 * arte (Arte French and German TV)
 .br
 * canalplus (Canal Plus French TV)
 .br
-* cappedtv (Capped.tv demoscene website)
-.br
 * dailymotion (Dailymotion video streaming website)
-.br
-* europarl (Europarl parliamentary video streaming website)
 .br
 * francetelevisions (France Télévisions video website)
 .br
 * funmooc (France\-Université\-Numérique MOOC website)
 .br
-* gdcvault (Game Developers Conferences Vault video streaming website)
-.br
 * ina (INA French TV video archives)
 .br
-* jacquieetmichel (Jacquie et Michel TV)
-.br
-* nolifetv (NolifeTV French video streaming website)
+* peertube (Peertube)
 .br
 * pornhub (Pornhub pornographic video streaming website)
 .br
-* quvi (Multi\-website video helper with quvi. Handles Youtube, BBC, and a lot more)
-.br
 * rmll (Videos from RMLL)
-.br
-* trictractv (TricTrac.tv video website)
 .br
 * vimeo (Vimeo video streaming website)
 .br
 * vine (vine website)
 .br
+* xhamster (xhamster website)
+.br
 * youjizz (YouJizz pornographic video streaming website)
 .br
 * youporn (YouPorn pornographic video streaming website)
+.br
+* youtube (YouTube video streaming website)
 .SH VIDEOOB COMMANDS
+.TP
+\fBdebug\fR
+.br
+Launch a debug Python shell
 .TP
 \fBdownload\fR \fIID\fR [\fIFILENAME\fR]
 .br
@@ -261,6 +255,9 @@ do not validate SSL
 .TP
 \fB\-\-nss\fR
 Use NSS instead of OpenSSL
+.TP
+\fB\-\-auto\-update\fR
+Automatically check for updates when a bug in a module is encountered
 
 .SH LOGGING OPTIONS
 .TP
@@ -362,7 +359,7 @@ Get transactions betweens the 2th December and 8th December 2013.
 Get transactions after the 2th December in the last 10 transactions
 
 .SH COPYRIGHT
-Copyright(C) 2010-2017 Christophe Benz, Romain Bignon, John Obbele
+Copyright(C) 2010-2019 Christophe Benz, Romain Bignon, John Obbele
 .LP
 For full copyright information see the COPYING file in the weboob package.
 .LP

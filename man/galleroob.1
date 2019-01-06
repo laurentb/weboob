@@ -1,6 +1,6 @@
 .\" -*- coding: utf-8 -*-
 .\" This file was generated automatically by tools/make_man.sh.
-.TH GALLEROOB 1 "20 September 2017" "galleroob 1\&.3"
+.TH GALLEROOB 1 "06 January 2019" "galleroob 1\&.4"
 .SH NAME
 galleroob \- browse and download web image galleries
 .SH SYNOPSIS
@@ -16,30 +16,16 @@ galleroob \- browse and download web image galleries
 galleroob browses and downloads web image galleries
 
 .SS Supported websites:
-* batoto (Batoto manga reading website)
-.br
-* eatmanga (EatManga manga reading website)
-.br
-* ehentai (E\-Hentai galleries)
-.br
 * imgur (imgur image upload service)
-.br
-* izneo (Izneo digital comics)
-.br
-* mangafox (Manga Fox manga reading website)
-.br
-* mangago (Mangago manga reading site)
-.br
-* mangahere (Manga Here manga reading website)
-.br
-* mangareader (MangaReader manga reading website)
 .br
 * mediawiki (Wikis running MediaWiki, like Wikipedia)
 .br
-* simplyreadit (SimplyReadIt manga reading website)
-.br
 * tumblr (images in tumblr blogs)
 .SH GALLEROOB COMMANDS
+.TP
+\fBdebug\fR
+.br
+Launch a debug Python shell
 .TP
 \fBdownload\fR \fIID\fR [\fIFIRST\fR [\fIFOLDER\fR]]
 .br
@@ -211,6 +197,9 @@ do not validate SSL
 .TP
 \fB\-\-nss\fR
 Use NSS instead of OpenSSL
+.TP
+\fB\-\-auto\-update\fR
+Automatically check for updates when a bug in a module is encountered
 
 .SH LOGGING OPTIONS
 .TP

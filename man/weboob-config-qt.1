@@ -1,6 +1,6 @@
 .\" -*- coding: utf-8 -*-
 .\" This file was generated automatically by tools/make_man.sh.
-.TH WEBOOB-CONFIG-QT 1 "08 January 2017" "weboob-config-qt 1\&.2"
+.TH WEBOOB-CONFIG-QT 1 "06 January 2019" "weboob-config-qt 1\&.4"
 .SH NAME
 weboob-config-qt \- manage backends or register new accounts
 .SH SYNOPSIS
@@ -31,6 +31,9 @@ what backend(s) to exclude (comma separated)
 .TP
 \fB\-I\fR, \fB\-\-insecure\fR
 do not validate SSL
+.TP
+\fB\-\-nss\fR
+Use NSS instead of OpenSSL
 
 .SH LOGGING OPTIONS
 .TP
@@ -48,6 +51,9 @@ file to save logs
 .TP
 \fB\-a\fR, \fB\-\-save\-responses\fR
 save every response
+.TP
+\fB\-\-export\-session\fR
+log browser session cookies after login
 
 .SH CONDITION
 The \-c and \-\-condition is a flexible way to filter and get only interesting results. It supports conditions on numerical values, dates, durations and strings. Dates are given in YYYY\-MM\-DD or YYYY\-MM\-DD HH:MM format. Durations look like XhYmZs where X, Y and Z are integers. Any of them may be omitted. For instance, YmZs, XhZs or Ym are accepted.

@@ -44,18 +44,6 @@ _weboob_weboob_debug()
 }
 complete -F _weboob_weboob_debug weboob-debug
 
-_weboob_qcookboob()
-{
-    local cur args
-
-    COMPREPLY=()
-    cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e -d -a --logging-file --insecure -b -I --quiet --exclude-backends -h --version -v --debug --save-responses --export-session --verbose -q --backends --help --nss"
-
-    COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
-}
-complete -F _weboob_qcookboob qcookboob
-
 _weboob_boobathon()
 {
     local cur args
@@ -128,6 +116,18 @@ _weboob_boobank()
 }
 complete -F _weboob_boobank boobank
 
+_weboob_qbooblyrics()
+{
+    local cur args
+
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+    args="-e -d -a --logging-file --insecure -b -I --quiet --exclude-backends -h --version -v --debug --save-responses --export-session --verbose -q --backends --help --nss"
+
+    COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
+}
+complete -F _weboob_qbooblyrics qbooblyrics
+
 _weboob_qwebcontentedit()
 {
     local cur args
@@ -152,17 +152,17 @@ _weboob_qhavedate()
 }
 complete -F _weboob_qhavedate qhavedate
 
-_weboob_booblyrics()
+_weboob_traveloob()
 {
     local cur args
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="help --insecure -O -I --verbose cd --formatter --count --backends -e -d -f -a -c -b backends --select -n --no-header -h -v --debug --no-keys -s -q --auto-update --nss --logging-file get --exclude-backends search --version --outfile --export-session --quiet --condition --save-responses ls --help"
+    args="help --insecure -O -I --verbose cd --formatter --count --backends -e -d -f -a -c -b backends --select -n --no-header -h -v --debug --no-keys -s -q --auto-update --nss --departure-time --logging-file --exclude-backends --version --outfile --export-session roadmap --quiet --condition stations --arrival-time --save-responses ls --help departures"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
-complete -F _weboob_booblyrics booblyrics
+complete -F _weboob_traveloob traveloob
 
 _weboob_qboobmsg()
 {
@@ -187,6 +187,18 @@ _weboob_monboob()
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
 complete -F _weboob_monboob monboob
+
+_weboob_boobtracker()
+{
+    local cur args
+
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+    args="comment help --insecure --no-header -O -I --verbose cd --count --formatter --category --author --start -e -d --tracker -a -c -b --assignee --select -n --priority -h --backends attach -v --debug --no-keys -s --status -q --auto-update --nss logtime --logging-file get --exclude-backends search --target-version --version --due -f --outfile --export-session post --quiet --condition edit backends remove --save-responses ls --help --title"
+
+    COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
+}
+complete -F _weboob_boobtracker boobtracker
 
 _weboob_handjoob()
 {
@@ -320,29 +332,17 @@ _weboob_qhandjoob()
 }
 complete -F _weboob_qhandjoob qhandjoob
 
-_weboob_cineoob()
+_weboob_qcineoob()
 {
     local cur args
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="getfile_subtitle info_movie help --insecure persons_in_common -O -I --verbose cd search_subtitle --formatter --count info_subtitle --backends search_torrent biography search_movie -e -d -f -a releases -c -b backends --select -n --no-header -h -v --debug --no-keys -s search_person -q --auto-update info_torrent search_movie_subtitle --nss casting --logging-file movies_in_common --exclude-backends --version filmography --outfile --export-session search_movie_torrent info_person --quiet --condition getfile_torrent --save-responses ls --help"
+    args="-e -d -a --logging-file --insecure -b -I --quiet --exclude-backends -h --version -v --debug --save-responses --export-session --verbose -q --backends --help --nss"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
-complete -F _weboob_cineoob cineoob
-
-_weboob_weboorrents()
-{
-    local cur args
-
-    COMPREPLY=()
-    cur=${COMP_WORDS[COMP_CWORD]}
-    args="help --insecure -O -I --verbose cd --formatter --count getfile --backends -e -d -f -a -c -b backends --select -n --no-header -h -v --debug --no-keys -s -q --auto-update --nss --logging-file --exclude-backends search --version --outfile --export-session info --quiet --condition --save-responses ls --help"
-
-    COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
-}
-complete -F _weboob_weboorrents weboorrents
+complete -F _weboob_qcineoob qcineoob
 
 _weboob_boobmsg()
 {
@@ -355,18 +355,6 @@ _weboob_boobmsg()
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
 complete -F _weboob_boobmsg boobmsg
-
-_weboob_traveloob()
-{
-    local cur args
-
-    COMPREPLY=()
-    cur=${COMP_WORDS[COMP_CWORD]}
-    args="help --insecure -O -I --verbose cd --formatter --count --backends -e -d -f -a -c -b backends --select -n --no-header -h -v --debug --no-keys -s -q --auto-update --nss --departure-time --logging-file --exclude-backends --version --outfile --export-session roadmap --quiet --condition stations --arrival-time --save-responses ls --help departures"
-
-    COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
-}
-complete -F _weboob_traveloob traveloob
 
 _weboob_shopoob()
 {
@@ -392,6 +380,18 @@ _weboob_boobill()
 }
 complete -F _weboob_boobill boobill
 
+_weboob_qcookboob()
+{
+    local cur args
+
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+    args="-e -d -a --logging-file --insecure -b -I --quiet --exclude-backends -h --version -v --debug --save-responses --export-session --verbose -q --backends --help --nss"
+
+    COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
+}
+complete -F _weboob_qcookboob qcookboob
+
 _weboob_boobcoming()
 {
     local cur args
@@ -404,17 +404,17 @@ _weboob_boobcoming()
 }
 complete -F _weboob_boobcoming boobcoming
 
-_weboob_boobtracker()
+_weboob_cineoob()
 {
     local cur args
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="comment help --insecure --no-header -O -I --verbose cd --count --formatter --category --author --start -e -d --tracker -a -c -b --assignee --select -n --priority -h --backends attach -v --debug --no-keys -s --status -q --auto-update --nss logtime --logging-file get --exclude-backends search --target-version --version --due -f --outfile --export-session post --quiet --condition edit backends remove --save-responses ls --help --title"
+    args="getfile_subtitle info_movie help --insecure persons_in_common -O -I --verbose cd search_subtitle --formatter --count info_subtitle --backends search_torrent biography search_movie -e -d -f -a releases -c -b backends --select -n --no-header -h -v --debug --no-keys -s search_person -q --auto-update info_torrent search_movie_subtitle --nss casting --logging-file movies_in_common --exclude-backends --version filmography --outfile --export-session search_movie_torrent info_person --quiet --condition getfile_torrent --save-responses ls --help"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
-complete -F _weboob_boobtracker boobtracker
+complete -F _weboob_cineoob cineoob
 
 _weboob_pastoob()
 {
@@ -446,7 +446,7 @@ _weboob_boobooks()
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="help --insecure -O -I --verbose cd --formatter --count --backends -e -d -f -a -c -b backends --select -n --no-header -h -v --debug --no-keys -s -q --auto-update --nss rented --logging-file --exclude-backends --version --outfile --export-session --quiet --condition renew --save-responses ls --help"
+    args="help --insecure -O -I --verbose cd --formatter --count --backends -e -d -f -a -c -b backends --select -n --no-header -h -v --debug --no-keys -s -q --auto-update --nss rented --logging-file --exclude-backends search --version --outfile --export-session --quiet --condition renew --save-responses ls --help"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
@@ -464,7 +464,19 @@ _weboob_comparoob()
 }
 complete -F _weboob_comparoob comparoob
 
-_weboob_qbooblyrics()
+_weboob_boomoney()
+{
+    local cur args
+
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+    args="-D -F -A help --insecure --parallel -O -N -I --verbose advisor cd --account --formatter -P --count --backends investment --noimport -e -d -f -a recipients -c -b transfer --select -n --no-header -h -v --debug --no-keys -s -q --auto-update --nss --force --logging-file --display --exclude-backends --version pocket budgea profile --outfile --export-session --quiet --condition backends list coming --save-responses ls add_recipient --help history"
+
+    COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
+}
+complete -F _weboob_boomoney boomoney
+
+_weboob_qboobtracker()
 {
     local cur args
 
@@ -474,7 +486,7 @@ _weboob_qbooblyrics()
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
-complete -F _weboob_qbooblyrics qbooblyrics
+complete -F _weboob_qboobtracker qboobtracker
 
 _weboob_cookboob()
 {
@@ -488,17 +500,17 @@ _weboob_cookboob()
 }
 complete -F _weboob_cookboob cookboob
 
-_weboob_qcineoob()
+_weboob_weboorrents()
 {
     local cur args
 
     COMPREPLY=()
     cur=${COMP_WORDS[COMP_CWORD]}
-    args="-e -d -a --logging-file --insecure -b -I --quiet --exclude-backends -h --version -v --debug --save-responses --export-session --verbose -q --backends --help --nss"
+    args="help --insecure -O -I --verbose cd --formatter --count getfile --backends -e -d -f -a -c -b backends --select -n --no-header -h -v --debug --no-keys -s -q --auto-update --nss --logging-file --exclude-backends search --version --outfile --export-session info --quiet --condition --save-responses ls --help"
 
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
-complete -F _weboob_qcineoob qcineoob
+complete -F _weboob_weboorrents weboorrents
 
 _weboob_qvideoob()
 {
@@ -523,6 +535,18 @@ _weboob_weboob()
     COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
 }
 complete -F _weboob_weboob weboob
+
+_weboob_booblyrics()
+{
+    local cur args
+
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+    args="help --insecure -O -I --verbose cd --formatter --count --backends -e -d -f -a -c -b backends --select -n --no-header -h -v --debug --no-keys -s -q --auto-update --nss --logging-file get --exclude-backends search --version --outfile --export-session --quiet --condition --save-responses ls --help"
+
+    COMPREPLY=( $(compgen -o default -W "${args}" -- "$cur" ) )
+}
+complete -F _weboob_booblyrics booblyrics
 
 _weboob_qgalleroob()
 {

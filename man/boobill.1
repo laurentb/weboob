@@ -1,6 +1,6 @@
 .\" -*- coding: utf-8 -*-
 .\" This file was generated automatically by tools/make_man.sh.
-.TH BOOBILL 1 "20 September 2017" "boobill 1\&.3"
+.TH BOOBILL 1 "06 January 2019" "boobill 1\&.4"
 .SH NAME
 boobill \- get/download documents and bills
 .SH SYNOPSIS
@@ -22,17 +22,29 @@ Console application allowing to get/download documents and bills.
 .br
 * amelipro (Ameli website: French Health Insurance for Professionals)
 .br
+* axabanque (AXA Banque)
+.br
+* bolden (Bolden)
+.br
 * bouygues (Bouygues Télécom French mobile phone provider)
+.br
+* bp (La Banque Postale)
+.br
+* caissedepargne (Caisse d'Épargne)
 .br
 * cityscoot (Le scooter électrique en libre\-service, sans bornes.)
 .br
+* creditmutuel (Crédit Mutuel)
+.br
 * edf (EDF)
+.br
+* ekwateur (ekwateur website)
 .br
 * ensap (ensap website)
 .br
 * freemobile (Free Mobile website)
 .br
-* gdfsuez (GDF\-Suez French energy provider)
+* infomaniak (Infomaniak)
 .br
 * ing (ING Direct)
 .br
@@ -42,13 +54,9 @@ Console application allowing to get/download documents and bills.
 .br
 * ldlc (ldlc website)
 .br
-* leclercmobile (Leclerc Mobile website)
-.br
 * materielnet (Materiel.net)
 .br
 * myfoncia (Foncia billing capabilities)
-.br
-* nettokom (Nettokom website)
 .br
 * onlinenet (Online.net)
 .br
@@ -57,6 +65,8 @@ Console application allowing to get/download documents and bills.
 * ovh (Ovh)
 .br
 * poivy (Poivy website)
+.br
+* societegenerale (Société Générale)
 .br
 * trainline (trainline website)
 .SH BOOBILL COMMANDS
@@ -77,6 +87,10 @@ If no ID given, display bills of all backends
 .br
 Default is limited to 10 results.
 .TP
+\fBdebug\fR
+.br
+Launch a debug Python shell
+.TP
 \fBdetails\fR [\fIID\fR]
 .br
 Get details of subscriptions.
@@ -93,15 +107,15 @@ If no ID given, display documents of all backends
 .br
 Default is limited to 10 results.
 .TP
-\fBdownload\fR [\fIID\fR | all] [\fIFILENAME\fR]
+\fBdownload\fR [\fIDOC_ID\fR | all] [\fIFILENAME\fR]
 .br
-download ID [FILENAME]
+download DOC_ID [FILENAME]
 .br
 
 .br
 download the document
 .br
-id is the identifier of the document (hint: try documents command)
+DOC_ID is the identifier of the document (hint: try documents command)
 .br
 FILENAME is where to write the file. If FILENAME is '\-',
 .br
@@ -109,15 +123,19 @@ the file is written to stdout.
 .br
 
 .br
-download all [ID]
+download all [SUB_ID]
 .br
 
 .br
 You can use special word "all" and download all documents of
 .br
-subscription identified by ID.
+subscription identified by SUB_ID.
 .br
-If Id not given, download documents of all subscriptions.
+If SUB_ID is not given, download documents of all subscriptions.
+.TP
+\fBdownload_pdf\fR [id | all]
+.br
+download function with forced PDF conversion.
 .TP
 \fBhistory\fR [\fIID\fR]
 .br
@@ -128,6 +146,10 @@ If no ID given, display histories of all backends.
 
 .br
 Default is limited to 10 results.
+.TP
+\fBprofile\fR
+.br
+Display detailed information about person or company.
 .TP
 \fBsubscriptions\fR
 .br
@@ -283,6 +305,9 @@ do not validate SSL
 .TP
 \fB\-\-nss\fR
 Use NSS instead of OpenSSL
+.TP
+\fB\-\-auto\-update\fR
+Automatically check for updates when a bug in a module is encountered
 
 .SH LOGGING OPTIONS
 .TP
@@ -384,7 +409,7 @@ Get transactions betweens the 2th December and 8th December 2013.
 Get transactions after the 2th December in the last 10 transactions
 
 .SH COPYRIGHT
-Copyright(C) 2012-2017 Florent Fourcot
+Copyright(C) 2012-2019 Florent Fourcot
 .LP
 For full copyright information see the COPYING file in the weboob package.
 .LP

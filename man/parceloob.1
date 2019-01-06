@@ -1,6 +1,6 @@
 .\" -*- coding: utf-8 -*-
 .\" This file was generated automatically by tools/make_man.sh.
-.TH PARCELOOB 1 "20 September 2017" "parceloob 1\&.3"
+.TH PARCELOOB 1 "06 January 2019" "parceloob 1\&.4"
 .SH NAME
 parceloob \- manage your parcels
 .SH SYNOPSIS
@@ -16,7 +16,7 @@ parceloob \- manage your parcels
 Console application to track your parcels.
 
 .SS Supported websites:
-* chronopost (Chronopost website)
+* chronopost (Chronopost)
 .br
 * colisprive (Colisprive parcel tracking website)
 .br
@@ -30,8 +30,12 @@ Console application to track your parcels.
 .br
 * itella (Itella website)
 .br
-* ups (UPS website)
+* relaiscolis (Relais colis parcel tracking website)
 .SH PARCELOOB COMMANDS
+.TP
+\fBdebug\fR
+.br
+Launch a debug Python shell
 .TP
 \fBinfo\fR \fIID\fR
 .br
@@ -199,6 +203,9 @@ do not validate SSL
 .TP
 \fB\-\-nss\fR
 Use NSS instead of OpenSSL
+.TP
+\fB\-\-auto\-update\fR
+Automatically check for updates when a bug in a module is encountered
 
 .SH LOGGING OPTIONS
 .TP
@@ -300,7 +307,7 @@ Get transactions betweens the 2th December and 8th December 2013.
 Get transactions after the 2th December in the last 10 transactions
 
 .SH COPYRIGHT
-Copyright(C) 2013-2017 Romain Bignon
+Copyright(C) 2013-2019 Romain Bignon
 .LP
 For full copyright information see the COPYING file in the weboob package.
 .LP

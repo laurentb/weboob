@@ -1,6 +1,6 @@
 .\" -*- coding: utf-8 -*-
 .\" This file was generated automatically by tools/make_man.sh.
-.TH QCINEOOB 1 "08 January 2017" "qcineoob 1\&.2"
+.TH QCINEOOB 1 "06 January 2019" "qcineoob 1\&.4"
 .SH NAME
 qcineoob \- search movies, people, torrent and subtitles
 .SH SYNOPSIS
@@ -18,17 +18,15 @@ Qt application allowing to search movies, people, torrent and subtitles.
 .SS Supported websites:
 * allocine (AlloCiné French cinema database service)
 .br
-* attilasub ("Attila's Website 2.0" French subtitles)
-.br
 * btmon (BTMon BitTorrent database)
 .br
 * cpasbien (Cpasbien Torrents BitTorrent tracker)
 .br
-* gazelle (Gazelle\-based BitTorrent trackers)
-.br
 * imdb (Internet Movie Database service)
 .br
 * kickass (Kickass Torrents BitTorrent tracker)
+.br
+* limetorrents (Limetorrents BitTorrent tracker)
 .br
 * opensubtitles (Opensubtitles subtitle website)
 .br
@@ -41,6 +39,8 @@ Qt application allowing to search movies, people, torrent and subtitles.
 * torrentz (Torrentz Search Engine.)
 .br
 * tvsubtitles (Tvsubtitles subtitle website)
+.br
+* yggtorrent (YGG BitTorrent tracker)
 .SH OPTIONS
 .TP
 \fB\-\-version\fR
@@ -57,6 +57,9 @@ what backend(s) to exclude (comma separated)
 .TP
 \fB\-I\fR, \fB\-\-insecure\fR
 do not validate SSL
+.TP
+\fB\-\-nss\fR
+Use NSS instead of OpenSSL
 
 .SH LOGGING OPTIONS
 .TP
@@ -74,6 +77,9 @@ file to save logs
 .TP
 \fB\-a\fR, \fB\-\-save\-responses\fR
 save every response
+.TP
+\fB\-\-export\-session\fR
+log browser session cookies after login
 
 .SH CONDITION
 The \-c and \-\-condition is a flexible way to filter and get only interesting results. It supports conditions on numerical values, dates, durations and strings. Dates are given in YYYY\-MM\-DD or YYYY\-MM\-DD HH:MM format. Durations look like XhYmZs where X, Y and Z are integers. Any of them may be omitted. For instance, YmZs, XhZs or Ym are accepted.
@@ -128,7 +134,7 @@ Get transactions betweens the 2th December and 8th December 2013.
 Get transactions after the 2th December in the last 10 transactions
 
 .SH COPYRIGHT
-Copyright(C) 2013-2017 Julien Veyssier
+Copyright(C) 2013-2019 Julien Veyssier
 .LP
 For full copyright information see the COPYING file in the weboob package.
 .LP

@@ -1,6 +1,6 @@
 .\" -*- coding: utf-8 -*-
 .\" This file was generated automatically by tools/make_man.sh.
-.TH WEBOORRENTS 1 "20 September 2017" "weboorrents 1\&.3"
+.TH WEBOORRENTS 1 "06 January 2019" "weboorrents 1\&.4"
 .SH NAME
 weboorrents \- search and download torrents
 .SH SYNOPSIS
@@ -20,16 +20,22 @@ Console application allowing to search for torrents on various trackers and down
 .br
 * cpasbien (Cpasbien Torrents BitTorrent tracker)
 .br
-* gazelle (Gazelle\-based BitTorrent trackers)
-.br
 * kickass (Kickass Torrents BitTorrent tracker)
+.br
+* limetorrents (Limetorrents BitTorrent tracker)
 .br
 * piratebay (The Pirate Bay BitTorrent tracker)
 .br
 * t411 (T411 BitTorrent tracker)
 .br
 * torrentz (Torrentz Search Engine.)
+.br
+* yggtorrent (YGG BitTorrent tracker)
 .SH WEBOORRENTS COMMANDS
+.TP
+\fBdebug\fR
+.br
+Launch a debug Python shell
 .TP
 \fBgetfile\fR \fIID\fR [\fIFILENAME\fR]
 .br
@@ -201,6 +207,9 @@ do not validate SSL
 .TP
 \fB\-\-nss\fR
 Use NSS instead of OpenSSL
+.TP
+\fB\-\-auto\-update\fR
+Automatically check for updates when a bug in a module is encountered
 
 .SH LOGGING OPTIONS
 .TP
@@ -302,7 +311,7 @@ Get transactions betweens the 2th December and 8th December 2013.
 Get transactions after the 2th December in the last 10 transactions
 
 .SH COPYRIGHT
-Copyright(C) 2010-2017 Romain Bignon
+Copyright(C) 2010-2019 Romain Bignon
 .LP
 For full copyright information see the COPYING file in the weboob package.
 .LP

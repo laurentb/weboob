@@ -1,6 +1,6 @@
 .\" -*- coding: utf-8 -*-
 .\" This file was generated automatically by tools/make_man.sh.
-.TH QBOOBMSG 1 "08 January 2017" "qboobmsg 1\&.2"
+.TH QBOOBMSG 1 "06 January 2019" "qboobmsg 1\&.4"
 .SH NAME
 qboobmsg \- send and receive message threads
 .SH SYNOPSIS
@@ -18,6 +18,8 @@ Qt application allowing to read messages on various websites and reply to them.
 .SS Supported websites:
 * aum ("Adopte un Mec" French dating website)
 .br
+* blogspot (Blog reader for blogspot. Read\-only and without comments.)
+.br
 * bnporc (BNP Paribas)
 .br
 * bouygues (Bouygues Télécom French mobile phone provider)
@@ -26,7 +28,7 @@ Qt application allowing to read messages on various websites and reply to them.
 .br
 * feedly (handle the popular RSS reading service Feedly)
 .br
-* fourchan (4chan image board)
+* freemobile (Free Mobile website)
 .br
 * guerrillamail (GuerrillaMail temp mailbox)
 .br
@@ -50,17 +52,13 @@ Qt application allowing to read messages on various websites and reply to them.
 .br
 * openedx (Discussions on OpenEDX\-powered coursewares)
 .br
-* orange (Orange French mobile phone provider)
-.br
-* ovs (OnVaSortir website. Handles private messages only)
-.br
 * phpbb (phpBB forum)
 .br
 * playme (PlayMe dating mobile application)
 .br
 * presseurop (Presseurop website)
 .br
-* sfr (SFR French mobile phone provider)
+* reddit (reddit website)
 .br
 * tapatalk (Tapatalk\-compatible sites)
 .br
@@ -85,6 +83,9 @@ what backend(s) to exclude (comma separated)
 .TP
 \fB\-I\fR, \fB\-\-insecure\fR
 do not validate SSL
+.TP
+\fB\-\-nss\fR
+Use NSS instead of OpenSSL
 
 .SH LOGGING OPTIONS
 .TP
@@ -102,6 +103,9 @@ file to save logs
 .TP
 \fB\-a\fR, \fB\-\-save\-responses\fR
 save every response
+.TP
+\fB\-\-export\-session\fR
+log browser session cookies after login
 
 .SH CONDITION
 The \-c and \-\-condition is a flexible way to filter and get only interesting results. It supports conditions on numerical values, dates, durations and strings. Dates are given in YYYY\-MM\-DD or YYYY\-MM\-DD HH:MM format. Durations look like XhYmZs where X, Y and Z are integers. Any of them may be omitted. For instance, YmZs, XhZs or Ym are accepted.
@@ -156,7 +160,7 @@ Get transactions betweens the 2th December and 8th December 2013.
 Get transactions after the 2th December in the last 10 transactions
 
 .SH COPYRIGHT
-Copyright(C) 2010-2017 Romain Bignon
+Copyright(C) 2010-2019 Romain Bignon
 .LP
 For full copyright information see the COPYING file in the weboob package.
 .LP

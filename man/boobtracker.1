@@ -1,6 +1,6 @@
 .\" -*- coding: utf-8 -*-
 .\" This file was generated automatically by tools/make_man.sh.
-.TH BOOBTRACKER 1 "20 September 2017" "boobtracker 1\&.3"
+.TH BOOBTRACKER 1 "06 January 2019" "boobtracker 1\&.4"
 .SH NAME
 boobtracker \- manage bug tracking issues
 .SH SYNOPSIS
@@ -16,6 +16,8 @@ boobtracker \- manage bug tracking issues
 Console application allowing to create, edit, view bug tracking issues.
 
 .SS Supported websites:
+* asana (Asana)
+.br
 * github (GitHub issues tracking)
 .br
 * redmine (The Redmine project management web application)
@@ -28,6 +30,10 @@ Attach a file to an issue (Not implemented yet).
 \fBcomment\fR \fIISSUE\fR [\fITEXT\fR]
 .br
 Comment an issue. If no text is given, enter it in standard input.
+.TP
+\fBdebug\fR
+.br
+Launch a debug Python shell
 .TP
 \fBedit\fR \fIISSUE\fR [\fIKEY\fR [\fIVALUE\fR]]
 .br
@@ -249,6 +255,9 @@ do not validate SSL
 .TP
 \fB\-\-nss\fR
 Use NSS instead of OpenSSL
+.TP
+\fB\-\-auto\-update\fR
+Automatically check for updates when a bug in a module is encountered
 
 .SH BOOBTRACKER OPTIONS
 .TP
@@ -372,7 +381,7 @@ Get transactions betweens the 2th December and 8th December 2013.
 Get transactions after the 2th December in the last 10 transactions
 
 .SH COPYRIGHT
-Copyright(C) 2011-2017 Romain Bignon
+Copyright(C) 2011-2019 Romain Bignon
 .LP
 For full copyright information see the COPYING file in the weboob package.
 .LP

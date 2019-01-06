@@ -1,6 +1,6 @@
 .\" -*- coding: utf-8 -*-
 .\" This file was generated automatically by tools/make_man.sh.
-.TH QVIDEOOB 1 "08 January 2017" "qvideoob 1\&.2"
+.TH QVIDEOOB 1 "06 January 2019" "qvideoob 1\&.4"
 .SH NAME
 qvideoob \- search and play videos
 .SH SYNOPSIS
@@ -18,41 +18,29 @@ Qt application allowing to search videos on various websites and play them.
 .SS Supported websites:
 * allocine (AlloCiné French cinema database service)
 .br
-* arretsurimages (arretsurimages website)
-.br
 * arte (Arte French and German TV)
 .br
 * canalplus (Canal Plus French TV)
 .br
-* cappedtv (Capped.tv demoscene website)
-.br
 * dailymotion (Dailymotion video streaming website)
-.br
-* europarl (Europarl parliamentary video streaming website)
 .br
 * francetelevisions (France Télévisions video website)
 .br
 * funmooc (France\-Université\-Numérique MOOC website)
 .br
-* gdcvault (Game Developers Conferences Vault video streaming website)
-.br
 * ina (INA French TV video archives)
 .br
-* jacquieetmichel (Jacquie et Michel TV)
-.br
-* nolifetv (NolifeTV French video streaming website)
+* peertube (Peertube)
 .br
 * pornhub (Pornhub pornographic video streaming website)
 .br
-* quvi (Multi\-website video helper with quvi. Handles Youtube, BBC, and a lot more)
-.br
 * rmll (Videos from RMLL)
-.br
-* trictractv (TricTrac.tv video website)
 .br
 * vimeo (Vimeo video streaming website)
 .br
 * vine (vine website)
+.br
+* xhamster (xhamster website)
 .br
 * youjizz (YouJizz pornographic video streaming website)
 .br
@@ -75,6 +63,9 @@ what backend(s) to exclude (comma separated)
 .TP
 \fB\-I\fR, \fB\-\-insecure\fR
 do not validate SSL
+.TP
+\fB\-\-nss\fR
+Use NSS instead of OpenSSL
 
 .SH LOGGING OPTIONS
 .TP
@@ -92,6 +83,9 @@ file to save logs
 .TP
 \fB\-a\fR, \fB\-\-save\-responses\fR
 save every response
+.TP
+\fB\-\-export\-session\fR
+log browser session cookies after login
 
 .SH CONDITION
 The \-c and \-\-condition is a flexible way to filter and get only interesting results. It supports conditions on numerical values, dates, durations and strings. Dates are given in YYYY\-MM\-DD or YYYY\-MM\-DD HH:MM format. Durations look like XhYmZs where X, Y and Z are integers. Any of them may be omitted. For instance, YmZs, XhZs or Ym are accepted.

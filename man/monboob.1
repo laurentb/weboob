@@ -1,6 +1,6 @@
 .\" -*- coding: utf-8 -*-
 .\" This file was generated automatically by tools/make_man.sh.
-.TH MONBOOB 1 "20 September 2017" "monboob 1\&.3"
+.TH MONBOOB 1 "06 January 2019" "monboob 1\&.4"
 .SH NAME
 monboob \- daemon to send and check messages
 .SH SYNOPSIS
@@ -28,11 +28,11 @@ Daemon allowing to regularly check for new messages on various websites, and sen
 .br
 * feedly (handle the popular RSS reading service Feedly)
 .br
-* fourchan (4chan image board)
-.br
 * freemobile (Free Mobile website)
 .br
 * guerrillamail (GuerrillaMail temp mailbox)
+.br
+* happn (Happn dating mobile application)
 .br
 * hds (Histoires de Sexe French erotic novels)
 .br
@@ -52,15 +52,13 @@ Daemon allowing to regularly check for new messages on various websites, and sen
 .br
 * openedx (Discussions on OpenEDX\-powered coursewares)
 .br
-* orange (Orange French mobile phone provider)
-.br
 * phpbb (phpBB forum)
 .br
 * playme (PlayMe dating mobile application)
 .br
 * presseurop (Presseurop website)
 .br
-* sfr (SFR French mobile phone provider)
+* reddit (reddit website)
 .br
 * tapatalk (Tapatalk\-compatible sites)
 .br
@@ -70,6 +68,10 @@ Daemon allowing to regularly check for new messages on various websites, and sen
 .br
 * twitter (twitter website)
 .SH MONBOOB COMMANDS
+.TP
+\fBdebug\fR
+.br
+Launch a debug Python shell
 .TP
 \fBonce\fR
 .br
@@ -102,6 +104,9 @@ do not validate SSL
 .TP
 \fB\-\-nss\fR
 Use NSS instead of OpenSSL
+.TP
+\fB\-\-auto\-update\fR
+Automatically check for updates when a bug in a module is encountered
 
 .SH MONBOOB OPTIONS
 .TP
@@ -208,7 +213,7 @@ Get transactions betweens the 2th December and 8th December 2013.
 Get transactions after the 2th December in the last 10 transactions
 
 .SH COPYRIGHT
-Copyright(C) 2010-2017 Romain Bignon
+Copyright(C) 2010-2019 Romain Bignon
 .LP
 For full copyright information see the COPYING file in the weboob package.
 .LP

@@ -1,6 +1,6 @@
 .\" -*- coding: utf-8 -*-
 .\" This file was generated automatically by tools/make_man.sh.
-.TH FLATBOOB 1 "20 September 2017" "flatboob 1\&.3"
+.TH FLATBOOB 1 "06 January 2019" "flatboob 1\&.4"
 .SH NAME
 flatboob \- search for housing
 .SH SYNOPSIS
@@ -16,6 +16,8 @@ flatboob \- search for housing
 Console application to search for housing.
 
 .SS Supported websites:
+* avendrealouer (avendrealouer website)
+.br
 * entreparticuliers (entreparticuliers.com website)
 .br
 * explorimmo (explorimmo website)
@@ -30,6 +32,10 @@ Console application to search for housing.
 .br
 * seloger (French housing website)
 .SH FLATBOOB COMMANDS
+.TP
+\fBdebug\fR
+.br
+Launch a debug Python shell
 .TP
 \fBinfo\fR \fIID\fR
 .br
@@ -201,6 +207,9 @@ do not validate SSL
 .TP
 \fB\-\-nss\fR
 Use NSS instead of OpenSSL
+.TP
+\fB\-\-auto\-update\fR
+Automatically check for updates when a bug in a module is encountered
 
 .SH LOGGING OPTIONS
 .TP
@@ -302,7 +311,7 @@ Get transactions betweens the 2th December and 8th December 2013.
 Get transactions after the 2th December in the last 10 transactions
 
 .SH COPYRIGHT
-Copyright(C) 2012-2017 Romain Bignon
+Copyright(C) 2012-2019 Romain Bignon
 .LP
 For full copyright information see the COPYING file in the weboob package.
 .LP
