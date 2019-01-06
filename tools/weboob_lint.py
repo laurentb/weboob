@@ -3,7 +3,6 @@ from __future__ import print_function
 
 import logging
 import os
-import subprocess
 import sys
 
 from weboob.core import Weboob
@@ -19,7 +18,6 @@ weboob.modules_loader.load_all()
 
 modules_without_tests = []
 modules_without_icons = []
-modules_using_deprecated = []
 modules_without_py3 = []
 
 with open(os.path.join(os.path.dirname(__file__), 'py3-compatible.modules')) as p:
@@ -37,8 +35,6 @@ for name, module in weboob.modules_loader.loaded.items():
        not module.icon:
         modules_without_icons.append(name)
 
-    if subprocess.call(['grep', '-q', '-r', 'weboob.deprecated.browser', path]) == 0:
-        modules_using_deprecated.append(name)
     if name not in modules_py3_compatible:
         modules_without_py3.append(name)
 
@@ -47,11 +43,9 @@ if modules_without_tests:
     print('\nModules without tests: %s' % ', '.join(sorted(modules_without_tests)))
 if modules_without_icons:
     print('\nModules without icons: %s' % ', '.join(sorted(modules_without_icons)))
-if modules_using_deprecated:
-    print('\nModules using deprecated Browser 1: %s' % ', '.join(sorted(modules_using_deprecated)))
 if modules_without_py3:
     print('\nModules for Python 2 only: %s' % ', '.join(sorted(modules_without_py3)))
 
 
-if modules_without_tests or modules_without_icons or modules_using_deprecated or modules_without_py3:
+if modules_without_tests or modules_without_icons or modules_without_py3:
     sys.exit(1)
