@@ -249,7 +249,11 @@ class HistoryThread(Thread):
                                 else:
                                     field[f] = value
                                     if f not in fields.strip().split(" "):
-                                        fields = fields + f + " "
+                                        # MSMoney does not like when CHECKNUM is after MEMO
+                                        if f == "CHECKNUM":
+                                            fields = fields.replace("MEMO", "CHECKNUM MEMO")
+                                        else:
+                                            fields = fields + f + " "
 
                 if not IGNORE:
                     # dump transaction
