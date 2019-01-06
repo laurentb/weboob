@@ -142,9 +142,6 @@ echo.
 echo -- html2text
 %PythonPath%Scripts\easy_install.exe html2text || goto :InstallFailed
 echo.
-echo -- mechanize
-%PythonPath%Scripts\easy_install.exe mechanize || goto :InstallFailed
-echo.
 echo -- google-api-python-client
 %PythonPath%Scripts\easy_install.exe google-api-python-client || goto :InstallFailed
 echo.

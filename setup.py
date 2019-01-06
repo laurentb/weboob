@@ -149,7 +149,6 @@ def install_weboob(qt, xdg):
         'six',
         'unidecode',
         'Pillow',
-        'mechanize; python_version < "3.0"',
         'futures; python_version < "3.2"',
     ]
 

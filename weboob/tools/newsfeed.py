@@ -24,12 +24,6 @@ try:
 except ImportError:
     raise ImportError('Please install python-feedparser')
 
-if '5.1' > feedparser.__version__ >= '5.0':
-    # feedparser 5.0.x replaces this regexp on sgmllib
-    # and mechanize < 0.2 fails with malformed pages.
-    import sgmllib
-    import re
-    sgmllib.endbracket = re.compile('[<>]')
 
 __all__ = ['Entry', 'Newsfeed']
 
