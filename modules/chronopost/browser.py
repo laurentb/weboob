@@ -17,29 +17,19 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.deprecated.browser import Browser
+from weboob.browser import PagesBrowser, URL
 
-from .pages import IndexPage, TrackPage
+from .pages import TrackPage
 
 
 __all__ = ['ChronopostBrowser']
 
 
-class ChronopostBrowser(Browser):
-    PROTOCOL = 'http'
-    DOMAIN = 'www.chronopost.fr'
-    ENCODING = None
+class ChronopostBrowser(PagesBrowser):
+    BASEURL = 'https://www.chronopost.fr'
 
-    PAGES = {
-        'http://www.chronopost.fr/transport-express/livraison-colis':  IndexPage,
-        'http://www.chronopost.fr/transport-express/livraison-colis/.*accueil/suivi.*':  TrackPage,
-    }
+    track = URL(r'/tracking-no-drupal/suivi-colis\?listeNumerosLT=(?P<id>\w+)&langue=fr', TrackPage)
 
     def get_tracking_info(self, _id):
-        self.home()
-
-        assert self.is_on_page(IndexPage)
-        self.page.track_package(_id)
-
-        assert self.is_on_page(TrackPage)
-        return self.page.get_info(_id)
+        self.track.go(id=_id, headers={'Referer': 'https://www.chronopost.fr/fr/chrono_suivi_search?listeNumerosLT=%s' % id})
+        return self.page.get_parcel()

@@ -29,7 +29,7 @@ __all__ = ['ChronopostModule']
 
 class ChronopostModule(Module, CapParcel):
     NAME = 'chronopost'
-    DESCRIPTION = u'Chronopost website'
+    DESCRIPTION = u'Chronopost'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '1.4'
@@ -37,5 +37,4 @@ class ChronopostModule(Module, CapParcel):
     BROWSER = ChronopostBrowser
 
     def get_parcel_tracking(self, id):
-        with self.browser:
-            return self.browser.get_tracking_info(id)
+        return self.browser.get_tracking_info(id)

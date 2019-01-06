@@ -18,51 +18,47 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-import re
-from dateutil.parser import parse as parse_date
-
 from weboob.capabilities.parcel import Parcel, Event
 from weboob.capabilities import NotAvailable
-from weboob.deprecated.browser import Page
+from weboob.browser.pages import JsonPage, HTMLPage
+from weboob.browser.elements import ItemElement, ListElement, method
+from weboob.browser.filters.standard import Env, CleanText, DateTime
+from weboob.tools.date import parse_french_date
 
 
-class IndexPage(Page):
-    def track_package(self, _id):
-        self.browser.select_form(predicate=lambda form: form.attrs.get('id', '') == 'suivreEnvoi')
-        self.browser['chronoNumbers'] = _id.encode('utf-8')
-        self.browser.submit()
+class TrackPage(JsonPage):
+    def build_doc(self, text):
+        doc = super(TrackPage, self).build_doc(text)
 
+        content = ''.join([doc['top'], doc['tab']])
+        html_page = HTMLPage(self.browser, self.response)
+        return html_page.build_doc(content.encode(self.encoding))
 
-class TrackPage(Page):
-    def get_info(self, id):
-        if len(self.document.xpath('//libelle[@nom="MSG_AUCUN_EVT"]')) > 0:
-            return None
+    @method
+    class get_parcel(ItemElement):
+        klass = Parcel
 
-        p = Parcel(id)
-        p.arrival = NotAvailable
-        p.history = []
+        obj_id = Env('id')
+        obj_info = CleanText('//div[has-class("ch-block-subtitle-content")]//div[has-class("ch-colis-information")]/text()')
+        obj_arrival = CleanText('//div[has-class("ch-block-subtitle-content")]//div[has-class("ch-colis-information")]/text()[3]',
+                                replace=[(u'\xe0', '')], default=NotAvailable) \
+                      & DateTime(dayfirst=True, parse_func=parse_french_date, default=NotAvailable)
 
-        for i, tr in enumerate(self.document.xpath('//table[@class="tabListeEnvois"]//tr')):
-            tds = tr.findall('td')
-            if len(tds) < 3:
-                continue
+        def obj_status(self):
+            el = self.el.xpath('//div[has-class("ch-suivi-colis-light-info") and has-class("active")]')[0]
+            if 'last' in el.attrib['class']:
+                return Parcel.STATUS_ARRIVED
+            if 'first' in el.attrib['class']:
+                return Parcel.STATUS_PLANNED
 
-            ev = Event(i)
-            ev.location = unicode(tds[1].text) if tds[1].text else None
-            ev.activity = unicode(tds[1].find('br').tail)
-            if tds[-1].text is not None:
-                ev.activity += ', ' + self.parser.tocleanstring(tds[-1])
-            date = re.sub('[a-z]+', '', self.parser.tocleanstring(tds[0])).strip()
-            date = re.sub('(\d+)/(\d+)/(\d+)', r'\3-\2-\1', date)
-            ev.date = parse_date(date)
-            p.history.append(ev)
+            return Parcel.STATUS_IN_TRANSIT
 
-        p.info = ' '.join([t.strip() for t in self.document.xpath('//div[@class="numeroColi2"]')[0].itertext()][1:])
-        if u'Livraison effectuée' in p.history[0].activity:
-            p.status = p.STATUS_ARRIVED
-        elif u"en cours d'acheminement" in p.history[0].activity or \
-             u"en cours de livraison" in p.history[0].activity or \
-             u"Envoi entré dans le pays de destination" in p.history[0].activity:
-            p.status = p.STATUS_IN_TRANSIT
+        class obj_history(ListElement):
+            item_xpath = '//table[has-class("ch-block-suivi-tab")]//tr[has-class("toggleElmt")]'
 
-        return p
+            class item(ItemElement):
+                klass = Event
+
+                obj_date = CleanText('.//td[1]') & DateTime(dayfirst=True, parse_func=parse_french_date)
+                obj_location = CleanText('.//td[2]/text()[following-sibling::br]')
+                obj_activity = CleanText('.//td[2]/text()[preceding-sibling::br]')
