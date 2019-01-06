@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.parcel import Parcel, Event
+from weboob.capabilities.parcel import Parcel, Event, ParcelNotFound
 from weboob.capabilities import NotAvailable
 from weboob.browser.pages import JsonPage, HTMLPage
 from weboob.browser.elements import ItemElement, ListElement, method
@@ -37,6 +37,11 @@ class TrackPage(JsonPage):
     @method
     class get_parcel(ItemElement):
         klass = Parcel
+
+        def parse(self, el):
+            error = CleanText('//div[has-class("ch-colis-information")]')(el)
+            if "pas d'information" in error:
+                raise ParcelNotFound(error)
 
         obj_id = Env('id')
         obj_info = CleanText('//div[has-class("ch-block-subtitle-content")]//div[has-class("ch-colis-information")]/text()')
