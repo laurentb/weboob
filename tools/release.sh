@@ -2,10 +2,12 @@
 # This script is used to release a version.
 set -e
 
+cd "$(dirname $0)/.."
+
 function set_version {
-	echo -n "Replacing version in source files to $1"
+	echo -n "Replacing version in source files to $1... "
 	sed -i "s/^\(\s*\)\(VERSION\|version\|release\|__version__\)\( *\)=\( *\)[\"'][0-9]\+\..\+[\"']\(,\?\)$/\1\2\3=\4'$1'\5/g" $(git ls-files -x contrib | grep "\(.py\|.rst\)$")
-	echo -n "done.\n"
+	echo -e "done.\n"
 }
 
 if [ -z "$1" ]; then
@@ -19,7 +21,7 @@ echo "Generating ChangeLog..."
 
 export LANG=en_US.utf8
 mv ChangeLog ChangeLog.old
-./release.py prepare $VERSION > ChangeLog
+tools/release.py prepare $VERSION > ChangeLog
 echo -e "\n" >> ChangeLog
 cat ChangeLog.old >> ChangeLog
 rm -f ChangeLog.old
@@ -46,7 +48,7 @@ echo "Release tag:"
 git tag $VERSION -s -m "Weboob $VERSION"
 echo -ne "\n"
 
-./release.py tarball $VERSION
+tools/release.py tarball $VERSION
 
 echo -ne "\nDo you want to change the version number (y/n) "
 read change_version

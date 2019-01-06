@@ -64,7 +64,7 @@ def get_caps(module, config):
         return ['**** FILL ME **** (running weboob update could help)']
 
 def new_modules(start, end):
-    #os.chdir(os.path.dirname(__file__))
+    os.chdir(os.path.join(os.path.dirname(__file__), os.path.pardir))
     modules_info = configparser.ConfigParser()
     with open('modules/modules.list') as f:
         modules_info.read_file(f)
