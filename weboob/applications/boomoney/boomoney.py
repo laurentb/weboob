@@ -24,9 +24,7 @@ from __future__ import print_function
 # python d:\Dropbox\Projets\boomoney\scripts\boomoney -N
 
 
-from pprint import pprint
 from threading import Thread, Lock
-import time
 import copy
 import sys
 import StringIO
@@ -37,7 +35,7 @@ import datetime
 from optparse import OptionGroup
 
 import shutil
-from colorama import init, Fore, Back, Style
+from colorama import init, Fore, Style
 
 from weboob.exceptions import BrowserUnavailable
 from weboob.capabilities.bank import AccountNotFound
