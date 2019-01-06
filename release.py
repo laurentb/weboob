@@ -1,10 +1,11 @@
-#!/usr/bin/python
-from __future__ import print_function
+#!/usr/bin/env python3
 
 import argparse
+import configparser
 import os
 import re
 import sys
+import datetime
 from subprocess import check_call, check_output
 
 from weboob.tools.misc import to_unicode
@@ -47,8 +48,38 @@ def make_tarball(tag, wheel):
     print('To upload to PyPI, run: twine upload -s %s' % ' '.join(files))
 
 
+def changed_modules(changes, changetype):
+    for change in changes:
+        change = change.decode('utf-8').split()
+        if change[0] == changetype:
+            m = re.match(r'modules/([^/]+)/__init__\.py', change[1])
+            if m:
+                yield m.group(1)
+
+
+def get_caps(module, config):
+    try:
+        return sorted(c for c in config[module]['capabilities'].split() if c != 'CapCollection')
+    except KeyError:
+        return ['**** FILL ME **** (running weboob update could help)']
+
+def new_modules(start, end):
+    #os.chdir(os.path.dirname(__file__))
+    modules_info = configparser.ConfigParser()
+    with open('modules/modules.list') as f:
+        modules_info.read_file(f)
+    git_cmd = ['git', 'diff', '--no-renames', '--name-status', '%s..%s' % (start, end), '--', 'modules/']
+
+    added_modules = sorted(changed_modules(check_output(git_cmd).splitlines(), 'A'))
+    deleted_modules = sorted(changed_modules(check_output(git_cmd).splitlines(), 'D'))
+
+    for added_module in added_modules:
+        yield 'New %s module (%s)' % (added_module, ', '.join(get_caps(added_module, modules_info)))
+    for deleted_module in deleted_modules:
+        yield 'Deleted %s module' % deleted_module
+
+
 def changelog(start, end='HEAD'):
-    # TODO new modules, deleted modules
     def sortkey(d):
         """Put the commits with multiple domains at the end"""
         return (len(d), d)
@@ -57,6 +88,9 @@ def changelog(start, end='HEAD'):
     for commithash in check_output(['git', 'rev-list', '{}..{}'.format(start, end)]).splitlines():
         title, domains = commitinfo(commithash)
         commits.setdefault(domains, []).append(title)
+
+    for line in new_modules(start, end):
+        commits.setdefault(('General',), []).append(line)
 
     cl = ''
     for domains in sorted(commits.keys(), key=sortkey):
@@ -85,8 +119,6 @@ def domain(path):
                         return 'Browser: Filters'
                 except IndexError:
                     return 'Browser'
-            elif dirs[1] == 'deprecated':
-                return 'Old Browser'
             elif dirs[1] == 'applications':
                 try:
                     return 'Applications: {}'.format(dirs[2])
@@ -112,7 +144,7 @@ def domain(path):
 
 
 def commitinfo(commithash):
-    info = check_output(['git', 'show', '--format=%s', '--name-only', commithash]).splitlines()
+    info = check_output(['git', 'show', '--format=%s', '--name-only', commithash]).decode('utf-8').splitlines()
     title = to_unicode(info[0])
     domains = set([domain(p) for p in info[2:] if domain(p)])
     if 'Unknown' in domains and len(domains) > 1:
@@ -122,7 +154,7 @@ def commitinfo(commithash):
 
     if 'Unknown' not in domains:
         # When the domains are known, hide the title prefixes
-        title = re.sub('^(?:[\w\./\s]+:|\[[\w\./\s]+\])\s*', '', title, flags=re.UNICODE)
+        title = re.sub(r'^(?:[\w\./\s]+:|\[[\w\./\s]+\])\s*', '', title, flags=re.UNICODE)
 
     return title, tuple(sorted(domains))
 
@@ -132,11 +164,12 @@ def previous_version():
     Get the highest version tag
     """
     for v in check_output(['git', 'tag', '-l', '*.*', '--sort=-v:refname']).splitlines():
-        return v
+        return v.decode()
 
 
 def prepare(start, end, version):
-    print(changelog(start, end).encode('utf-8'))
+    print('Weboob %s (%s)\n' % (version, datetime.date.today().strftime('%Y-%m-%d')))
+    print(changelog(start, end))
 
 
 if __name__ == '__main__':

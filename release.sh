@@ -19,9 +19,8 @@ echo "Generating ChangeLog..."
 
 export LANG=en_US.utf8
 mv ChangeLog ChangeLog.old
-echo -e "Weboob $VERSION (`date +%Y-%m-%d`)\n" > ChangeLog
-python release.py prepare $VERSION >> ChangeLog
-echo -e "\n\n" >> ChangeLog
+./release.py prepare $VERSION > ChangeLog
+echo -e "\n" >> ChangeLog
 cat ChangeLog.old >> ChangeLog
 rm -f ChangeLog.old
 
@@ -47,7 +46,7 @@ echo "Release tag:"
 git tag $VERSION -s -m "Weboob $VERSION"
 echo -ne "\n"
 
-python release.py tarball $VERSION
+./release.py tarball $VERSION
 
 echo -ne "\nDo you want to change the version number (y/n) "
 read change_version
