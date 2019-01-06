@@ -28,7 +28,7 @@ __all__ = ['Geolooc']
 
 class Geolooc(ReplApplication):
     APPNAME = 'geolooc'
-    VERSION = '1.4'
+    VERSION = '1.5'
     COPYRIGHT = 'Copyright(C) 2010-YEAR Romain Bignon'
     DESCRIPTION = "Console application allowing to geolocalize IP addresses."
     SHORT_DESCRIPTION = "geolocalize IP addresses"

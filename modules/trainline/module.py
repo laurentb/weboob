@@ -35,7 +35,7 @@ class TrainlineModule(Module, CapDocument):
     MAINTAINER = u'Edouard Lambert'
     EMAIL = 'elambert@budget-insight.com'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.4'
+    VERSION = '1.5'
     CONFIG = BackendConfig(Value('login', label='Adresse email'),
                        ValueBackendPassword('password', label='Mot de passe'))
 

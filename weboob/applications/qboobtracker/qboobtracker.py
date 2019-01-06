@@ -28,7 +28,7 @@ from .main_window import MainWindow
 
 class QBoobTracker(QtApplication):
     APPNAME = 'qboobtracker'
-    VERSION = '1.4'
+    VERSION = '1.5'
     COPYRIGHT = 'Copyright(C) 2018-YEAR Vincent A'
     DESCRIPTION = "Qt application to search for bugs and tasks."
     SHORT_DESCRIPTION = "search for bugs/tasks"

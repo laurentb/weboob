@@ -31,7 +31,7 @@ class CmmcModule(AbstractModule, CapBank, CapContact):
     NAME = 'cmmc'
     MAINTAINER = u'Edouard Lambert'
     EMAIL = 'elambert@budget-insight.com'
-    VERSION = '1.4'
+    VERSION = '1.5'
     DESCRIPTION = u'Crédit Mutuel Massif Central'
     LICENSE = 'AGPLv3+'
     PARENT = 'cmso'

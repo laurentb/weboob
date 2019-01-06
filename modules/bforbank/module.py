@@ -34,7 +34,7 @@ class BforbankModule(Module, CapBankWealth):
     MAINTAINER = u'Baptiste Delpey'
     EMAIL = 'b.delpey@hotmail.fr'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.4'
+    VERSION = '1.5'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
                            ValueBackendPassword('password', label='Code personnel', regexp=r'\d+$'),
                            ValueDate('birthdate', label='Date de naissance', formats=('%d/%m/%Y',))

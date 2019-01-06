@@ -49,7 +49,7 @@ class CreditMutuelModule(
     NAME = 'creditmutuel'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '1.4'
+    VERSION = '1.5'
     DESCRIPTION = u'Crédit Mutuel'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),

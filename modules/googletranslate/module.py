@@ -33,7 +33,7 @@ __all__ = ['GoogleTranslateModule']
 class GoogleTranslateModule(Module, CapTranslate):
     MAINTAINER = u'Lucien Loiseau'
     EMAIL = 'loiseau.lucien@gmail.com'
-    VERSION = '1.4'
+    VERSION = '1.5'
     LICENSE = 'AGPLv3+'
     NAME = 'googletranslate'
     DESCRIPTION = u'Google translation web service'

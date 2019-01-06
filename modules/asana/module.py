@@ -36,7 +36,7 @@ class AsanaModule(Module, CapBugTracker):
     MAINTAINER = 'Vincent A'
     EMAIL = 'dev@indigo.re'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.4'
+    VERSION = '1.5'
     CONFIG = BackendConfig(ValueBackendPassword('token', label='Personal access token'))
 
     BROWSER = AsanaBrowser

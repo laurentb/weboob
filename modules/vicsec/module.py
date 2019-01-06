@@ -31,7 +31,7 @@ class VicSecModule(Module, CapShop):
     NAME = 'vicsec'
     MAINTAINER = u'Oleg Plakhotniuk'
     EMAIL = 'olegus8@gmail.com'
-    VERSION = '1.4'
+    VERSION = '1.5'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'Victoria\'s Secret'
     CONFIG = BackendConfig(

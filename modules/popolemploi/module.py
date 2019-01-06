@@ -35,7 +35,7 @@ class PopolemploiModule(Module, CapJob):
     DESCRIPTION = u'Pole Emploi website'
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
-    VERSION = '1.4'
+    VERSION = '1.5'
 
     BROWSER = PopolemploiBrowser
 

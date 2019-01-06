@@ -189,7 +189,7 @@ class HappnModule(Module, CapMessages, CapMessagesPost, CapDating, CapContact):
     MAINTAINER = u'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.4'
+    VERSION = '1.5'
     CONFIG = BackendConfig(Value('username',                label='Facebook email'),
                            ValueBackendPassword('password', label='Facebook password'),
                            Value('location',                label='Location (example: 49.6008457,6.129709)'),

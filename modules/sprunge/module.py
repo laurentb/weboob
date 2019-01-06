@@ -28,7 +28,7 @@ class SprungeModule(Module, BasePasteModule):
     NAME = 'sprunge'
     MAINTAINER = u'Laurent Bachelier'
     EMAIL = 'laurent@bachelier.name'
-    VERSION = '1.4'
+    VERSION = '1.5'
     DESCRIPTION = u'Sprunge text sharing tool'
     LICENSE = 'AGPLv3+'
     BROWSER = SprungeBrowser

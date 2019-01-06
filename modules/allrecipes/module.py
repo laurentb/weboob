@@ -31,7 +31,7 @@ class AllrecipesModule(Module, CapRecipe):
     NAME = 'allrecipes'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '1.4'
+    VERSION = '1.5'
     DESCRIPTION = u'Allrecipes English recipe website'
     LICENSE = 'AGPLv3+'
     BROWSER = AllrecipesBrowser

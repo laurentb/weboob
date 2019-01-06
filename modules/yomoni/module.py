@@ -35,7 +35,7 @@ class YomoniModule(Module, CapBankWealth):
     MAINTAINER = u'Edouard Lambert'
     EMAIL = 'elambert@budget-insight.com'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.4'
+    VERSION = '1.5'
     CONFIG = BackendConfig(
             ValueBackendPassword('login',    label='Adresse email', masked=False),
             ValueBackendPassword('password', label='Mot de passe'))

@@ -32,7 +32,7 @@ class AmeliModule(Module, CapDocument):
     DESCRIPTION = 'Ameli website: French Health Insurance'
     MAINTAINER = 'Christophe Lampin'
     EMAIL = 'weboob@lampin.net'
-    VERSION = '1.4'
+    VERSION = '1.5'
     LICENSE = 'AGPLv3+'
     BROWSER = AmeliBrowser
     CONFIG = BackendConfig(ValueBackendPassword('login', label='Numero de SS', regexp=r'^\d{13}$', masked=False),

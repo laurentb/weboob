@@ -35,7 +35,7 @@ class JournaldesfemmesModule(Module, CapRecipe):
     MAINTAINER = 'Phyks (Lucas Verney)'
     EMAIL = 'phyks@phyks.me'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.4'
+    VERSION = '1.5'
 
     BROWSER = JournaldesfemmesBrowser
 

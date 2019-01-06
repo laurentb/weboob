@@ -28,7 +28,7 @@ class NectarineModule(Module, CapRadio, CapCollection):
     NAME = 'nectarine'
     MAINTAINER = u'Thomas Lecavelier'
     EMAIL = 'thomas-weboob@lecavelier.name'
-    VERSION = '1.4'
+    VERSION = '1.5'
     DESCRIPTION = u'Nectarine Demoscene Radio'
     # License of your module
     LICENSE = 'AGPLv3+'

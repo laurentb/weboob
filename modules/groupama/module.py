@@ -33,7 +33,7 @@ class GroupamaModule(Module, CapBankWealth):
     NAME = 'groupama'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '1.4'
+    VERSION = '1.5'
     DESCRIPTION = u'Groupama'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(Value('login',    label=u'Numéro client'), \

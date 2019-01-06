@@ -36,7 +36,7 @@ class BouyguesModule(Module, CapMessages, CapMessagesPost, CapDocument, CapProfi
     NAME = 'bouygues'
     MAINTAINER = 'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
-    VERSION = '1.4'
+    VERSION = '1.5'
     DESCRIPTION = u'Bouygues Télécom French mobile phone provider'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(Value('login', label='E-mail / N° de Téléphone'),

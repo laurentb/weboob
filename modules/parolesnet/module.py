@@ -29,7 +29,7 @@ class ParolesnetModule(Module, CapLyrics):
     NAME = 'parolesnet'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '1.4'
+    VERSION = '1.5'
     DESCRIPTION = 'paroles.net lyrics website'
     LICENSE = 'AGPLv3+'
     BROWSER = ParolesnetBrowser

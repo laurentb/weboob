@@ -35,7 +35,7 @@ class ZerobinModule(Module, CapPaste):
     MAINTAINER = u'Vincent A'
     EMAIL = 'dev@indigo.re'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.4'
+    VERSION = '1.5'
     CONFIG = BackendConfig(
         Value('url', label='URL of the zerobin/0bin/privatebin', regexp='https?://.*', default='https://zerobin.net'),
         ValueBool('discussion', label='Allow paste comments (ZeroBin only)', default=False),
