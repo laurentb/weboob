@@ -133,13 +133,14 @@ class CreditDuNordBrowser(LoginBrowser):
         return find_object(account_list, id=id)
 
     @need_login
-    def iter_transactions(self, link, args, acc_type):
+    def iter_transactions(self, account):
+        args = account._args
         if args is None:
             return
         while args is not None:
-            self.location(link, data=args)
+            self.location(account._link, data=args)
             assert (self.transactions.is_here() or self.protransactions.is_here())
-            for tr in self.page.get_history(acc_type):
+            for tr in self.page.get_history(account):
                 yield tr
 
             args = self.page.get_next_args(args)
@@ -148,7 +149,7 @@ class CreditDuNordBrowser(LoginBrowser):
     def get_history(self, account, coming=False):
         if coming and account.type != Account.TYPE_CARD or account.type == Account.TYPE_LOAN:
             return
-        for tr in self.iter_transactions(account._link, account._args, account.type):
+        for tr in self.iter_transactions(account):
             yield tr
 
     @need_login

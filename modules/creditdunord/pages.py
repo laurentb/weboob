@@ -602,7 +602,7 @@ class TransactionsPage(LoggedPage, CDNBasePage):
             t.type = t.TYPE_DEFERRED_CARD
         return False
 
-    def get_history(self, acc_type):
+    def get_history(self, account):
         txt = self.get_from_js('ListeMvts_data = new Array(', ');\n')
         if txt is None:
             no_trans = self.get_from_js('js_noMvts = new Ext.Panel(', ')')
@@ -618,7 +618,7 @@ class TransactionsPage(LoggedPage, CDNBasePage):
         for line in data:
             t = self.TRANSACTION()
 
-            if acc_type is Account.TYPE_CARD and MyStrip(line[self.COL_DEBIT_DATE]):
+            if account.type is Account.TYPE_CARD and MyStrip(line[self.COL_DEBIT_DATE]):
                 date = vdate = Date(dayfirst=True).filter(MyStrip(line[self.COL_DEBIT_DATE]))
             else:
                 date = Date(dayfirst=True, default=NotAvailable).filter(MyStrip(line[self.COL_DATE]))
@@ -638,7 +638,7 @@ class TransactionsPage(LoggedPage, CDNBasePage):
                     t.amount = -CleanDecimal(replace_dots=True).filter(m.group(1))
                     self.logger.info('parsing amount in transaction label: %r', t)
 
-            if self.condition(t, acc_type):
+            if self.condition(t, account.type):
                 continue
 
             yield t
@@ -720,6 +720,7 @@ class TransactionsPage(LoggedPage, CDNBasePage):
 
 class ProTransactionsPage(TransactionsPage):
     TRANSACTION = Transaction
+
     def get_next_args(self, args):
         if len(self.doc.xpath('//a[contains(text(), "Suivant")]')) > 0:
             args['PageDemandee'] = int(args.get('PageDemandee', 1)) + 1
@@ -742,10 +743,12 @@ class ProTransactionsPage(TransactionsPage):
 
         return sorted(transactions.items())
 
-    def detect_currency(self, t, raw):
+    # We don't want detect the account_devise as an original_currency, since it's
+    # already the main currency
+    def detect_currency(self, t, raw, account_devise):
         matches = []
         for currency in Currency.CURRENCIES:
-            if ' ' + currency + ' ' in raw:
+            if currency != account_devise and '' + currency + ' ' in raw:
                 m = re.search(r'(\d+[,.]\d{1,2}? ' + currency + r')', raw)
                 if m:
                     matches.append((m, currency))
@@ -758,11 +761,11 @@ class ProTransactionsPage(TransactionsPage):
             if (t.amount < 0):
                 t.original_amount = -t.original_amount
 
-    def get_history(self, acc_type):
+    def get_history(self, account):
         for i, tr in self.parse_transactions():
             t = self.TRANSACTION()
 
-            if acc_type is Account.TYPE_CARD:
+            if account.type is Account.TYPE_CARD:
                 date = vdate = Date(dayfirst=True, default=None).filter(tr['dateval'])
             else:
                 date = Date(dayfirst=True, default=None).filter(tr['date'])
@@ -770,9 +773,9 @@ class ProTransactionsPage(TransactionsPage):
             raw = MyStrip(' '.join([tr['typeope'], tr['LibComp']]))
             t.parse(date, raw, vdate)
             t.set_amount(tr['mont'])
-            self.detect_currency(t, raw)
+            self.detect_currency(t, raw, account.currency)
 
-            if self.condition(t, acc_type):
+            if self.condition(t, account.type):
                 continue
 
             yield t
