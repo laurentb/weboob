@@ -748,7 +748,7 @@ class ProTransactionsPage(TransactionsPage):
     def detect_currency(self, t, raw, account_devise):
         matches = []
         for currency in Currency.CURRENCIES:
-            if currency != account_devise and '' + currency + ' ' in raw:
+            if currency != account_devise and ' ' + currency + ' ' in raw:
                 m = re.search(r'(\d+[,.]\d{1,2}? ' + currency + r')', raw)
                 if m:
                     matches.append((m, currency))
