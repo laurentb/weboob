@@ -33,6 +33,7 @@ from .pages import (
     EtoileGestionPage, EtoileGestionCharacteristicsPage, EtoileGestionDetailsPage,
     APIInvestmentDetailsPage, LyxorFundsPage, EsaliaDetailsPage, EsaliaPerformancePage,
     AmundiDetailsPage, AmundiPerformancePage, ProfilePage,
+    EServicePage, EServicePartialPage,
 )
 
 
@@ -75,6 +76,9 @@ class S2eBrowser(LoginBrowser, StatesMixin):
     # Esalia pages
     esalia_details = URL(r'https://www.societegeneralegestion.fr/psSGGestionEntr/productsheet/view', EsaliaDetailsPage)
     esalia_performance = URL(r'https://www.societegeneralegestion.fr/psSGGestionEntr/ezjscore/call(.*)_tab_2', EsaliaPerformancePage)
+
+    e_service_page = URL('/portal/salarie-(?P<slug>\w+)/mesdonnees/eservice\?scenario=ConsulterEService', EServicePage)
+    e_service_partial_page = URL('/portal/salarie-(?P<slug>\w+)/mesdonnees/eservice\?portal:componentId=a835f01c-278d-46c3-9910-06e43e7ccc5a&portal:type=resource', EServicePartialPage)
 
     STATE_DURATION = 10
 
@@ -274,6 +278,24 @@ class S2eBrowser(LoginBrowser, StatesMixin):
         self.profile.stay_or_go(slug=self.SLUG)
         profile = self.page.get_profile()
         return profile
+
+    def iter_documents(self):
+        self.e_service_page.stay_or_go(slug=self.SLUG)
+        viewstate = self.page.get_view_state()
+
+        data = {
+            "pb68893:j_idt2:form": "pb68893:j_idt2:form",
+            "pb68893:j_idt2:form:onglets-value": "eService",
+            "javax.faces.ViewState": viewstate,
+            "org.richfaces.ajax.component": "pb68893:j_idt2:form:onglet4",
+            "pb68893:j_idt2:form:onglet4": "pb68893:j_idt2:form:onglet4",
+            "AJAX:EVENTS_COUNT": 1,
+            "javax.faces.partial.ajax": "true"
+            }
+        self.e_service_partial_page.go(data=data, slug=self.SLUG)
+
+        documents = self.page.iter_documents()
+        return documents
 
 
 class EsaliaBrowser(S2eBrowser):
