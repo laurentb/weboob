@@ -188,6 +188,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
             self.unavailablecards = []
             self.cards_histo_available = []
             self.cards_list =[]
+            self.cards_list2 =[]
 
             # For some cards the validity information is only availaible on these 2 links
             self.cards_hist_available.go(subbank=self.currentSubBank)
@@ -218,6 +219,8 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
             companies = self.page.companies_link() if self.cards_activity.is_here() else \
                         [self.page] if self.is_new_website else []
             for company in companies:
+                # We need to return to the main page to avoid navigation error
+                self.cards_activity.go(subbank=self.currentSubBank)
                 page = self.open(company).page if isinstance(company, basestring) else company
                 for card in page.iter_cards():
                     card2 = find_object(self.cards_list, id=card.id[:16])
@@ -230,7 +233,8 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                         card._secondpage = card2._secondpage
                         self.accounts_list.remove(card2)
                     self.accounts_list.append(card)
-                    self.cards_list.append(card)
+                    self.cards_list2.append(card)
+            self.cards_list.extend(self.cards_list2)
 
             # Populate accounts from old website
             if not self.is_new_website:

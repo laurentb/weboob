@@ -551,8 +551,6 @@ class CardsListPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Account
 
-            load_details = Field('_link_id') & AsyncLoad
-
             obj_number = Field('_link_id') & Regexp(pattern=r'ctr=(\d+)')
             obj__card_number = Env('id', default="")
             obj_id = Format('%s%s', Env('id', default=""), Field('number'))
@@ -574,7 +572,7 @@ class CardsListPage(LoggedPage, HTMLPage):
                 return Link(TableCell('card')(self)[0].xpath('./a'))(self)
 
             def parse(self, el):
-                page = Async('details').loaded_page(self)
+                page = self.page.browser.open(Field('_link_id')(self)).page
                 self.env['page'] = [page]
 
                 if len(page.doc.xpath('//caption[contains(text(), "débits immédiats")]')):
