@@ -140,8 +140,12 @@ class CenetBrowser(LoginBrowser, StatesMixin):
 
             for account in self.accounts:
                 try:
-                    account._cards = [card for card in self.cenet_cards.go(data=json.dumps(data), headers=headers).get_cards() \
-                                    if card['Compte']['Numero'] == account.id]
+                    account._cards = []
+                    self.cenet_cards.go(data=json.dumps(data), headers=headers)
+
+                    for card in self.page.get_cards():
+                        if card['Compte']['Numero'] == account.id:
+                            account._cards.append(card)
                 except BrowserUnavailable:
                     # for some accounts, the site can throw us an error, during weeks
                     self.logger.warning('ignoring cards because site is unavailable...')
@@ -218,15 +222,16 @@ class CenetBrowser(LoginBrowser, StatesMixin):
         }
 
         for card in account._cards:
-            data = {
-                'contexte': '',
-                'dateEntree': None,
-                'donneesEntree': json.dumps(card),
-                'filtreEntree': None
-            }
+            if card['CumulEnCours']['Montant']['Valeur'] != 0:
+                data = {
+                    'contexte': '',
+                    'dateEntree': None,
+                    'donneesEntree': json.dumps(card),
+                    'filtreEntree': None
+                }
 
-            for tr in self.cenet_account_coming.go(data=json.dumps(data), headers=headers).get_history():
-                trs.append(tr)
+                for tr in self.cenet_account_coming.go(data=json.dumps(data), headers=headers).get_history():
+                    trs.append(tr)
 
         return sorted_transactions(trs)
 
