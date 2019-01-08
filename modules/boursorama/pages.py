@@ -546,8 +546,8 @@ class CardHistoryPage(LoggedPage, CsvPage):
 class Myiter_investment(TableElement):
     # We do not scrape the investments contained in the "Engagements en liquidation" table
     # so we must check that the <h3> before the <div><table> does not contain this title.
-    item_xpath = '//div[preceding-sibling::h3[text()!="Engagements en liquidation"]]//table[contains(@class, "operations")]/tbody/tr'
-    head_xpath = '//div[preceding-sibling::h3[text()!="Engagements en liquidation"]]//table[contains(@class, "operations")]/thead/tr/th'
+    item_xpath = '//div[preceding-sibling::h3[1][text()!="Engagements en liquidation"]]//table[contains(@class, "operations")]/tbody/tr'
+    head_xpath = '//div[preceding-sibling::h3[1][text()!="Engagements en liquidation"]]//table[contains(@class, "operations")]/thead/tr/th'
 
     col_value = u'Valeur'
     col_quantity = u'Quantité'
@@ -639,7 +639,9 @@ class MarketPage(LoggedPage, HTMLPage):
                 return CleanDecimal(replace_dots=True, default=NotAvailable).filter((TableCell('unitvalue')(self)[0]).xpath('./span[not(@class)]'))
 
     def iter_investment(self):
-        valuation = CleanDecimal('//li/span[contains(text(), "Solde Espèces")]/following-sibling::span', replace_dots=True, default=None)(self.doc)
+        # Xpath can be h3/h4 or div/span; in both cases
+        # the first node contains "Solde Espèces":
+        valuation = CleanDecimal('//li/*[contains(text(), "Solde Espèces")]/following-sibling::*', replace_dots=True, default=None)(self.doc)
         if valuation:
             yield create_french_liquidity(valuation)
 
