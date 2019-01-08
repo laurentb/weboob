@@ -464,6 +464,11 @@ class HistoryPage(LoggedPage, HTMLPage):
                     return not len(self.xpath(u'.//span[has-class("icon-carte-bancaire")]')) and \
                            not len(self.xpath(u'.//a[contains(@href, "/carte")]')) \
                            and obj.type != Transaction.TYPE_DEFERRED_CARD
+                elif Env('coming', default=False)(self):
+                    # Do not return coming from deferred cards if their
+                    # summary does not have a fixed amount yet:
+                    if 'CARTE' in obj.raw:
+                        return False
                 return True
 
     def get_cards_number_link(self):
