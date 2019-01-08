@@ -37,6 +37,7 @@ from optparse import OptionGroup
 import shutil
 from colorama import init, Fore, Style
 
+from weboob.tools.compat import unicode
 from weboob.exceptions import BrowserUnavailable
 from weboob.capabilities.bank import AccountNotFound
 from weboob.applications.boobank import Boobank
@@ -409,14 +410,14 @@ class Boomoney(Boobank):
     def getDownloadsPath(self):
         if not hasattr(self, '_downloadsPath'):
             s = subprocess.check_output(
-                'reg query "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" /v "{374DE290-123F-4565-9164-39C4925E467B}"')
+                'reg query "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders" /v "{374DE290-123F-4565-9164-39C4925E467B}"')
             t = re.sub(r'^(.|\r|\n)+REG_EXPAND_SZ\s+([^\n\r]+)(.|\r|\n)*$', r'\2', s)
             self._downloadsPath = os.path.expandvars(t).decode(sys.stdout.encoding)
         return self._downloadsPath
 
     def getMoneyPath(self):
         if not hasattr(self, '_moneyPath'):
-            s = subprocess.check_output('reg query HKEY_CLASSES_ROOT\money\Shell\Open\Command /ve')
+            s = subprocess.check_output('reg query HKEY_CLASSES_ROOT\\money\\Shell\\Open\\Command /ve')
             t = re.sub(r'^(.|\r|\n)+REG_SZ\s+([^\n\r]+)(.|\r|\n)*$', r'\2', s)
             self._moneyPath = os.path.expandvars(os.path.dirname(t)).decode(sys.stdout.encoding)
         return self._moneyPath
