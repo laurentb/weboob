@@ -129,6 +129,7 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
         self.config = config
         self.auth_token = None
         self.accounts_list = None
+        self.cards_list = None
         self.deferred_card_calendar = None
         kwargs['username'] = self.config['login'].get()
         kwargs['password'] = self.config['password'].get()
@@ -245,13 +246,13 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
                     self.accounts_list.remove(account)
             self.accounts_list.extend(self.loans_list)
 
-            cards = [acc for acc in self.accounts_list if acc.type == Account.TYPE_CARD]
-            if cards:
-                self.go_cards_number(cards[0].url)
+            self.cards_list = [acc for acc in self.accounts_list if acc.type == Account.TYPE_CARD]
+            if self.cards_list:
+                self.go_cards_number(self.cards_list[0].url)
                 if self.cards.is_here():
-                    self.page.populate_cards_number(cards)
+                    self.page.populate_cards_number(self.cards_list)
             # Cards without a number are not activated yet:
-            for card in cards:
+            for card in self.cards_list:
                 if not card.number:
                     self.accounts_list.remove(card)
 
@@ -259,7 +260,7 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
                 if account.type not in (Account.TYPE_CARD, Account.TYPE_LOAN, Account.TYPE_CONSUMER_CREDIT, Account.TYPE_MORTGAGE, Account.TYPE_REVOLVING_CREDIT, Account.TYPE_LIFE_INSURANCE):
                     account.iban = self.iban.go(webid=account._webid).get_iban()
 
-            for card in cards:
+            for card in self.cards_list:
                 checking, = [account for account in self.accounts_list if account.type == Account.TYPE_CHECKING and account.url in card.url]
                 card.parent = checking
 
@@ -281,6 +282,33 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
             if i[0] < debit_date <= j[0]:
                 return j[1]
 
+    @retry_on_logout()
+    @need_login
+    def get_history(self, account, coming=False):
+        if account.type in (Account.TYPE_LOAN, Account.TYPE_CONSUMER_CREDIT) or '/compte/derive' in account.url:
+            return []
+        if account.type is Account.TYPE_SAVINGS and u"PLAN D'ÉPARGNE POPULAIRE" in account.label:
+            return []
+        if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET):
+            return self.get_invest_transactions(account, coming)
+        elif account.type == Account.TYPE_CARD:
+            return self.get_card_transactions(account, coming)
+        return self.get_regular_transactions(account, coming)
+
+    def get_regular_transactions(self, account, coming):
+        # We look for 3 years of history.
+        params = {}
+        params['movementSearch[toDate]'] = (date.today() + relativedelta(days=40)).strftime('%d/%m/%Y')
+        params['movementSearch[fromDate]'] = (date.today() - relativedelta(years=3)).strftime('%d/%m/%Y')
+        params['movementSearch[selectedAccounts][]'] = account._webid
+        self.location('%s/mouvements' % account.url.rstrip('/'), params=params)
+        for t in self.page.iter_history():
+                yield t
+        if coming and account.type == Account.TYPE_CHECKING:
+            self.location('%s/mouvements-a-venir' % account.url.rstrip('/'), params=params)
+            for t in self.page.iter_history(coming=True):
+                yield t
+
     def get_card_transactions(self, account, coming):
         # All card transactions can be found in the CSV (history and coming),
         # however the CSV shows a maximum of 1000 transactions from all accounts.
@@ -289,7 +317,6 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
             # for some cards, the site redirects us to '/'...
             return
 
-        self.location(account.url)
         if self.deferred_card_calendar is None:
             self.location(self.page.get_calendar_link())
         params = {}
@@ -320,33 +347,6 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
             transactions.append(t)
         for t in sorted(transactions, key=lambda tr: tr.date, reverse=True):
             yield t
-
-    def get_regular_transactions(self, account, coming):
-        # We look for 3 years of history.
-        params = {}
-        params['movementSearch[toDate]'] = (date.today() + relativedelta(days=40)).strftime('%d/%m/%Y')
-        params['movementSearch[fromDate]'] = (date.today() - relativedelta(years=3)).strftime('%d/%m/%Y')
-        params['movementSearch[selectedAccounts][]'] = account._webid
-        self.location('%s/mouvements' % account.url.rstrip('/'), params=params)
-        for t in self.page.iter_history():
-            yield t
-        if coming and account.type == Account.TYPE_CHECKING:
-            self.location('%s/mouvements-a-venir' % account.url.rstrip('/'), params=params)
-            for t in self.page.iter_history(coming=True):
-                yield t
-
-    @retry_on_logout()
-    @need_login
-    def get_history(self, account, coming=False):
-        if account.type in (Account.TYPE_LOAN, Account.TYPE_CONSUMER_CREDIT) or '/compte/derive' in account.url:
-            return []
-        if account.type is Account.TYPE_SAVINGS and u"PLAN D'\xc9PARGNE POPULAIRE" in account.label:
-            return []
-        if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET):
-            return self.get_invest_transactions(account, coming)
-        elif account.type == Account.TYPE_CARD:
-            return self.get_card_transactions(account, coming)
-        return self.get_regular_transactions(account, coming)
 
     @need_login
     def get_investment(self, account):

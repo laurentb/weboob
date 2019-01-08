@@ -113,7 +113,7 @@ class Transaction(FrenchTransaction):
                 (re.compile(r'^(?P<text>.+)?(ACHAT|PAIEMENT) CARTE (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{4}) (?P<text2>.*)'),
                                                             FrenchTransaction.TYPE_CARD),
                 (re.compile(r'^(?P<text>.+)?((ACHAT|PAIEMENT)\s)?CARTE (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{4}) (?P<text2>.*)'),
-                                                            FrenchTransaction.TYPE_DEFERRED_CARD),
+                                                            FrenchTransaction.TYPE_CARD),
                 (re.compile('^(PRLV SEPA |PRLV |TIP )(?P<text>.*)'),
                                                             FrenchTransaction.TYPE_ORDER),
                 (re.compile('^RETRAIT DAB (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (?P<text>.*)'),
@@ -126,6 +126,7 @@ class Transaction(FrenchTransaction):
                 (re.compile(r'^(?P<text>[A-Z][\sa-z]* )?AVOIR (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{4}) (?P<text2>.*)'),   FrenchTransaction.TYPE_PAYBACK),
                 (re.compile('^REM CHQ (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
                 (re.compile(u'^([*]{3} solde des operations cb [*]{3} )?Relevé différé Carte (.*)'), FrenchTransaction.TYPE_CARD_SUMMARY),
+                (re.compile(r'^Ech pret'), FrenchTransaction.TYPE_LOAN_PAYMENT),
                ]
 
 
@@ -419,18 +420,27 @@ class HistoryPage(LoggedPage, HTMLPage):
             obj_raw = Transaction.Raw(CleanText('.//div[has-class("list__movement__line--label__name")]'))
             obj_date = Date(Attr('.//time', 'datetime'))
             obj_amount = CleanDecimal('.//div[has-class("list__movement__line--amount")]', replace_dots=True)
-            obj_category = CleanText('.//div[has-class("category")]')
+            obj_category = CleanText('.//span[has-class("category")]')
+            obj__account_name = CleanText('.//span[contains(@class, "account__name-xs")]', default=None)
 
             def obj_id(self):
                 return Attr('.', 'data-id', default=NotAvailable)(self) or Attr('.', 'data-custom-id', default=NotAvailable)(self)
 
             def obj_type(self):
+                # In order to set TYPE_DEFERRED_CARD transactions correctly,
+                # we must check if the transaction's account_name is in the list
+                # of deferred cards, but summary transactions must escape this rule.
+                if self.obj.type == Transaction.TYPE_CARD_SUMMARY:
+                    return self.obj.type
+                deferred_card_labels = [card.label for card in self.page.browser.cards_list]
+                if 'cartes débit différé' in Field('category')(self) or Field('_account_name')(self).upper() in deferred_card_labels:
+                    return Transaction.TYPE_DEFERRED_CARD
                 if not Env('is_card', default=False)(self):
                     if Env('coming', default=False)(self) and Field('raw')(self).startswith('CARTE '):
                         return Transaction.TYPE_CARD_SUMMARY
                     # keep the value previously set by Transaction.Raw
                     return self.obj.type
-                return Transaction.TYPE_DEFERRED_CARD
+                return Transaction.TYPE_UNKNOWN
 
             def obj_rdate(self):
                 if self.obj.rdate:
@@ -461,8 +471,8 @@ class HistoryPage(LoggedPage, HTMLPage):
                 # TYPE_DEFERRED_CARD transactions are already present in the card history
                 # so we only return TYPE_DEFERRED_CARD for the coming:
                 if not Env('coming', default=False)(self):
-                    return not len(self.xpath(u'.//span[has-class("icon-carte-bancaire")]')) and \
-                           not len(self.xpath(u'.//a[contains(@href, "/carte")]')) \
+                    return not len(self.xpath(u'.//span[has-class("icon-carte-bancaire")]')) \
+                           and not len(self.xpath(u'.//a[contains(@href, "/carte")]')) \
                            and obj.type != Transaction.TYPE_DEFERRED_CARD
                 elif Env('coming', default=False)(self):
                     # Do not return coming from deferred cards if their
