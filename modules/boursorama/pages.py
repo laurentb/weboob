@@ -477,7 +477,7 @@ class HistoryPage(LoggedPage, HTMLPage):
                 elif Env('coming', default=False)(self):
                     # Do not return coming from deferred cards if their
                     # summary does not have a fixed amount yet:
-                    if 'CARTE' in obj.raw:
+                    if obj.type == Transaction.TYPE_CARD_SUMMARY:
                         return False
                 return True
 
