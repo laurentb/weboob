@@ -20,7 +20,7 @@
 
 from weboob.tools.backend import Module
 from weboob.capabilities.housing import (CapHousing, HousingPhoto,
-                                         ADVERT_TYPES)
+                                         ADVERT_TYPES, Housing)
 
 from .browser import EntreparticuliersBrowser
 
@@ -61,4 +61,10 @@ class EntreparticuliersModule(Module, CapHousing):
             photo.data = self.browser.open(photo.url).content
         return photo
 
-    OBJECTS = {HousingPhoto: fill_photo}
+    def fill_housing(self, housing, fields):
+        if len(fields) > 0:
+            self.browser.get_housing(housing.id, housing)
+
+        return housing
+
+    OBJECTS = {HousingPhoto: fill_photo, Housing: fill_housing}
