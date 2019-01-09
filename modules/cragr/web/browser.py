@@ -28,7 +28,7 @@ from weboob.capabilities.bank import (
     Account, AddRecipientStep, AddRecipientBankError, RecipientInvalidLabel,
     Recipient, AccountNotFound,
 )
-from weboob.capabilities.base import NotLoaded, find_object, empty
+from weboob.capabilities.base import find_object, empty
 from weboob.capabilities.profile import ProfileMissing
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.browser.pages import FormNotFound
@@ -269,7 +269,7 @@ class Cragr(LoginBrowser, StatesMixin):
                 if (self.page and not self.page.get_current()) or self.current_perimeter != perimeter:
                     self.go_perimeter(perimeter)
                 for account in self.get_list():
-                    if not account in l:
+                    if account not in l:
                         l.append(account)
         else:
             l = self.get_list()
@@ -380,7 +380,7 @@ class Cragr(LoginBrowser, StatesMixin):
 
         # update life insurances with unavailable balance
         for account in accounts_list:
-            if account.type == Account.TYPE_LIFE_INSURANCE and not account.balance:
+            if account.type == Account.TYPE_LIFE_INSURANCE and not account.balance and self.bgpi.is_here():
                 if account._perimeter != self.current_perimeter:
                     self.go_perimeter(account._perimeter)
                 new_location = self.moveto_insurance_website(account)
@@ -388,7 +388,7 @@ class Cragr(LoginBrowser, StatesMixin):
                 account.label, account.balance = self.page.get_li_details(account.id)
 
         # be sure that we send accounts with balance
-        return [acc for acc in accounts_list if acc.balance is not NotLoaded]
+        return [acc for acc in accounts_list if not empty(acc.balance)]
 
     @need_login
     def market_accounts_matching(self, accounts_list, market_accounts_list):
