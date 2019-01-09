@@ -149,7 +149,7 @@ class LCLModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapContact, 
         old = old.encode('latin-1', errors='replace').decode('latin-1')
         return super(LCLModule, self).transfer_check_label(old, new)
 
-    @only_for_websites('par')
+    @only_for_websites('par', 'elcl', 'pro')
     def iter_contacts(self):
         return self.browser.get_advisor()
 
@@ -162,30 +162,30 @@ class LCLModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapContact, 
             return profile
         raise NotImplementedError()
 
-    @only_for_websites('par')
+    @only_for_websites('par', 'elcl', 'pro')
     def get_document(self, _id):
         return find_object(self.iter_documents(None), id=_id, error=DocumentNotFound)
 
-    @only_for_websites('par')
+    @only_for_websites('par', 'elcl', 'pro')
     def get_subscription(self, _id):
         return find_object(self.iter_subscription(), id=_id, error=SubscriptionNotFound)
 
-    @only_for_websites('par')
+    @only_for_websites('par', 'elcl', 'pro')
     def iter_bills(self, subscription):
         return self.iter_documents(None)
 
-    @only_for_websites('par')
+    @only_for_websites('par', 'elcl', 'pro')
     def iter_documents(self, subscription):
         if not isinstance(subscription, Subscription):
             subscription = self.get_subscription(subscription)
 
         return self.browser.iter_documents(subscription)
 
-    @only_for_websites('par')
+    @only_for_websites('par', 'elcl', 'pro')
     def iter_subscription(self):
         return self.browser.iter_subscriptions()
 
-    @only_for_websites('par')
+    @only_for_websites('par', 'elcl', 'pro')
     def download_document(self, document):
         if not isinstance(document, Document):
             document = self.get_document(document)

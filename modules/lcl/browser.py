@@ -109,8 +109,8 @@ class LCLBrowser(LoginBrowser, StatesMixin):
     send_sms = URL('/outil/UWBE/Otp/envoiCodeOtp\?telChoisi=MOBILE', '/outil/UWBE/Otp/getValidationCodeOtp\?codeOtp', SmsPage)
     recip_recap = URL('/outil/UWBE/Creation/executeCreation', RecipRecapPage)
     documents = URL('/outil/UWDM/ConsultationDocument/derniersReleves',
-                    '/outil/UWDM/Recherche/afficherPlus',
                     '/outil/UWDM/Recherche/rechercherAll', DocumentsPage)
+    documents_plus = URL('/outil/UWDM/Recherche/afficherPlus', DocumentsPage)
 
     profile = URL('/outil/UWIP/Accueil/rafraichir', ProfilePage)
 
@@ -516,7 +516,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
     def iter_documents(self, subscription):
         documents = []
         self.documents.go()
-        self.location('https://particuliers.secure.lcl.fr/outil/UWDM/Recherche/afficherPlus')
+        self.documents_plus.go()
         self.page.do_search_request()
         for document in self.page.get_list():
             documents.append(document)

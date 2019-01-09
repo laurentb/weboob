@@ -1109,6 +1109,8 @@ class DocumentsPage(LoggedPage, HTMLPage):
         head_xpath = '//table[@class="dematTab"]/thead/tr/th'
         item_xpath = u'//table[@class="dematTab"]/tbody/tr[./td[@class="dematTab-firstCell"]]'
 
+        ignore_duplicate = True
+
         col_label = 'Nature de document'
         col_id = 'Type de document'
         col_url = 'Visualiser'
