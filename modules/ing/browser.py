@@ -45,20 +45,20 @@ def start_with_main_site(f):
     def wrapper(*args, **kwargs):
         browser = args[0]
 
-        if browser.url and browser.url.startswith('https://bourse.ingdirect.fr/'):
+        if browser.url and browser.url.startswith('https://bourse.ing.fr/'):
             for i in range(3):
                 try:
-                    browser.location('https://bourse.ingdirect.fr/priv/redirectIng.php?pageIng=COMPTE')
+                    browser.location('https://bourse.ing.fr/priv/redirectIng.php?pageIng=COMPTE')
                 except ServerError:
                     pass
                 else:
                     break
             browser.where = 'start'
-        elif browser.url and browser.url.startswith('https://ingdirectvie.ingdirect.fr/'):
+        elif browser.url and browser.url.startswith('https://ingdirectvie.ing.fr/'):
             browser.lifeback.go()
             browser.where = 'start'
 
-        elif browser.url and browser.url.startswith('https://subscribe.ingdirect.fr/'):
+        elif browser.url and browser.url.startswith('https://subscribe.ing.fr/'):
             browser.return_from_loan_site()
 
         return f(*args, **kwargs)
@@ -66,12 +66,12 @@ def start_with_main_site(f):
 
 
 class IngBrowser(LoginBrowser):
-    BASEURL = 'https://secure.ingdirect.fr'
+    BASEURL = 'https://secure.ing.fr'
     TIMEOUT = 60.0
     DEFERRED_CB = 'deferred'
     IMMEDIATE_CB = 'immediate'
     # avoid relogin every time
-    lifeback = URL(r'https://ingdirectvie.ingdirect.fr/b2b2c/entreesite/EntAccExit', ReturnPage)
+    lifeback = URL(r'https://ingdirectvie.ing.fr/b2b2c/entreesite/EntAccExit', ReturnPage)
 
     # Login and error
     loginpage = URL('/public/displayLogin.jsf.*', LoginPage)
@@ -85,18 +85,18 @@ class IngBrowser(LoginBrowser):
     titredetails = URL('/general\?command=display.*', TitreDetails)
     ibanpage = URL('/protected/pages/common/rib/initialRib.jsf', IbanPage)
     loantokenpage = URL('general\?command=goToConsumerLoanCommand&redirectUrl=account-details', LoanTokenPage)
-    loandetailpage = URL('https://subscribe.ingdirect.fr/consumerloan/consumerloan-v1/consumer/details', LoanDetailPage)
+    loandetailpage = URL('https://subscribe.ing.fr/consumerloan/consumerloan-v1/consumer/details', LoanDetailPage)
     # CapBank-Market
     netissima = URL('/data/asv/fiches-fonds/fonds-netissima.html', NetissimaPage)
     starttitre = URL('/general\?command=goToAccount&zone=COMPTE', TitrePage)
-    titrepage = URL('https://bourse.ingdirect.fr/priv/portefeuille-TR.php', TitrePage)
-    titrehistory = URL('https://bourse.ingdirect.fr/priv/compte.php\?ong=3', TitreHistory)
-    titrerealtime = URL('https://bourse.ingdirect.fr/streaming/compteTempsReelCK.php', TitrePage)
-    titrevalue = URL('https://bourse.ingdirect.fr/priv/fiche-valeur.php\?val=(?P<val>.*)&pl=(?P<pl>.*)&popup=1', TitreValuePage)
-    asv_history = URL('https://ingdirectvie.ingdirect.fr/b2b2c/epargne/CoeLisMvt',
-                      'https://ingdirectvie.ingdirect.fr/b2b2c/epargne/CoeDetMvt', ASVHistory)
-    asv_invest = URL('https://ingdirectvie.ingdirect.fr/b2b2c/epargne/CoeDetCon', ASVInvest)
-    detailfonds = URL('https://ingdirectvie.ingdirect.fr/b2b2c/fonds/PerDesFac\?codeFonds=(.*)', DetailFondsPage)
+    titrepage = URL('https://bourse.ing.fr/priv/portefeuille-TR.php', TitrePage)
+    titrehistory = URL('https://bourse.ing.fr/priv/compte.php\?ong=3', TitreHistory)
+    titrerealtime = URL('https://bourse.ing.fr/streaming/compteTempsReelCK.php', TitrePage)
+    titrevalue = URL('https://bourse.ing.fr/priv/fiche-valeur.php\?val=(?P<val>.*)&pl=(?P<pl>.*)&popup=1', TitreValuePage)
+    asv_history = URL('https://ingdirectvie.ing.fr/b2b2c/epargne/CoeLisMvt',
+                      'https://ingdirectvie.ing.fr/b2b2c/epargne/CoeDetMvt', ASVHistory)
+    asv_invest = URL('https://ingdirectvie.ing.fr/b2b2c/epargne/CoeDetCon', ASVInvest)
+    detailfonds = URL('https://ingdirectvie.ing.fr/b2b2c/fonds/PerDesFac\?codeFonds=(.*)', DetailFondsPage)
     # CapDocument
     billpage = URL('/protected/pages/common/estatement/eStatement.jsf', BillsPage)
     # CapProfile
@@ -279,8 +279,8 @@ class IngBrowser(LoginBrowser):
     def return_from_loan_site(self):
         data = {'context': '{"originatingApplication":"SECUREUI"}',
                     'targetSystem': 'INTERNET'}
-        self.location('https://subscribe.ingdirect.fr/consumerloan/consumerloan-v1/sso/exit', data=data)
-        self.location('https://secure.ingdirect.fr/', data={'token': self.response.text})
+        self.location('https://subscribe.ing.fr/consumerloan/consumerloan-v1/sso/exit', data=data)
+        self.location('https://secure.ing.fr/', data={'token': self.response.text})
 
     def get_account(self, _id, space=None):
         return find_object(self.get_accounts_list(get_iban=False, space=space), id=_id, error=AccountNotFound)
