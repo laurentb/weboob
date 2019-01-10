@@ -23,11 +23,16 @@ from time import time
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import ClientError
 from weboob.exceptions import BrowserIncorrectPassword, NocaptchaQuestion
+from weboob.tools.decorators import retry
 from weboob.tools.json import json
 from .pages import (
     HomePage, AuthenticatePage, AuthorizePage, CheckAuthenticatePage, ProfilPage,
     DocumentsPage, WelcomePage, UnLoggedPage, ProfilePage, BillDownload,
 )
+
+
+class BrokenPageError(Exception):
+    pass
 
 
 class EdfBrowser(LoginBrowser):
@@ -111,6 +116,7 @@ class EdfBrowser(LoginBrowser):
 
         return self.bills.go().iter_bills(subid=subscription.id)
 
+    @retry(BrokenPageError, tries=2, delay=4)
     @need_login
     def download_document(self, document):
         token = self.get_csrf_token()
@@ -127,9 +133,15 @@ class EdfBrowser(LoginBrowser):
             'parNumber': document._par_number
         })).get_bills_informations()
 
-        return self.bill_download.go(csrf_token=token, dn='FACTURE', pn=document._par_number,
-                                     di=document._doc_number, bn=bills_informations.get('bpNumber'),
-                                     an=bills_informations.get('numAcc')).content
+        self.bill_download.go(csrf_token=token, dn='FACTURE', pn=document._par_number,
+                              di=document._doc_number, bn=bills_informations.get('bpNumber'),
+                              an=bills_informations.get('numAcc'))
+
+        # sometimes we land to another page that tell us, this document doesn't exist, but just sometimes...
+        # make sure this page is the right one to avoid return a html page as document
+        if not self.bill_download.is_here():
+            raise BrokenPageError()
+        return self.page.content
 
     @need_login
     def get_profile(self):
