@@ -144,6 +144,9 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         if not self.password.isdigit():
             raise BrowserIncorrectPassword()
 
+        # Since a while the virtual keyboard accepts only the first 6 digits of the password
+        self.password = self.password[:6]
+
         self.contracts = []
         self.current_contract = None
 
