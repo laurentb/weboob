@@ -23,7 +23,7 @@ from weboob.browser import LoginBrowser, URL, need_login
 
 from .pages import (
     LoginPage, AccountsPage, FCPEInvestmentPage,
-    CCBInvestmentPage, HistoryPage, AlertPage,
+    CCBInvestmentPage, HistoryPage,
     )
 
 
@@ -36,11 +36,10 @@ class CmesBrowser(LoginBrowser):
                           r'/fr/espace/devbavoirs.aspx\?.*SituationParFonds.*GoOpenDetailFond.*',
                           r'(?P<subsite>.*)fr/espace/devbavoirs.aspx\?_tabi=C&a_mode=net&a_menu=cpte&_pid=SituationGlobale&_fid=GoPositionsParFond',
                           r'(?P<subsite>.*)fr/espace/devbavoirs.aspx\?_tabi=C&a_mode=net&a_menu=cpte&_pid=SituationParFonds.*', FCPEInvestmentPage)
-    ccb_investment = URL('(?P<subsite>.*)fr/.*LstSuppCCB.*', CCBInvestmentPage)
+    ccb_investment = URL('(?P<subsite>.*)fr/espace/devbavoirs.aspx\?_tabi=C&a_mode=net&a_menu=cpte&_pid=SituationGlobale&_fid=GoCCB', CCBInvestmentPage)
     history = URL('(?P<subsite>.*)fr/espace/devbavoirs.aspx\?mode=net&menu=cpte&page=operations',
                   '(?P<subsite>.*)fr/.*GoOperationsTraitees',
                   '(?P<subsite>.*)fr/.*GoOperationDetails', HistoryPage)
-    supp_alert = URL(r'(?P<subsite>.*)fr/espace/LstSuppAlerte.asp', AlertPage)
 
     def __init__(self, website, username, password, subsite="", *args, **kwargs):
         super(LoginBrowser, self).__init__(*args, **kwargs)
@@ -57,12 +56,12 @@ class CmesBrowser(LoginBrowser):
 
     @need_login
     def iter_accounts(self):
-        return self.accounts.stay_or_go(subsite=self.subsite).iter_accounts()
+        return self.accounts.go(subsite=self.subsite).iter_accounts()
 
     @need_login
     def iter_investment(self, account):
-        fcpe_link = self.accounts.stay_or_go(subsite=self.subsite).get_investment_link()
-        ccb_link = self.supp_alert.go(subsite=self.subsite).get_pocket_link()
+        fcpe_link = self.accounts.go(subsite=self.subsite).get_investment_link()
+        ccb_link = self.accounts.go(subsite=self.subsite).get_pocket_link()
 
         if fcpe_link or ccb_link:
             return self._iter_investment(fcpe_link, ccb_link)
@@ -80,18 +79,17 @@ class CmesBrowser(LoginBrowser):
 
     @need_login
     def iter_pocket(self, account):
-        self.accounts.stay_or_go(subsite=self.subsite)
+        self.accounts.go(subsite=self.subsite)
         for inv in self.iter_investment(account):
+            if inv._pocket_url:
+                # Only FCPE investments have pocket link:
+                self.location(inv._pocket_url)
+                for pocket in self.page.iter_pocket(inv=inv):
+                    yield pocket
 
-            self.location(inv._pocket_url)
-            for pocket in self.page.iter_pocket(inv=inv):
-                yield pocket
-
-        # don't know if it is still releavent
-        # need ccb case
-        ccb_link = self.supp_alert.stay_or_go(subsite=self.subsite).get_pocket_link()
+        ccb_link = self.accounts.go(subsite=self.subsite).get_pocket_link()
         if ccb_link:
-            for inv in self.location(ccb_link).page.iter_pocket():
+            for inv in self.location(ccb_link).page.iter_investment():
                 for poc in self.page.iter_pocket(inv=inv):
                     yield poc
 

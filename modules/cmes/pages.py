@@ -55,6 +55,9 @@ class AccountsPage(LoggedPage, HTMLPage):
     def get_investment_link(self):
         return Link('//a[contains(text(), "Par fonds") or contains(@href,"GoPositionsParFond")]', default=None)(self.doc)
 
+    def get_pocket_link(self):
+        return Link('//a[contains(@href, "CCB")]', default=None)(self.doc)
+
     @method
     class iter_accounts(ListElement):
         class item(ItemElement):
@@ -78,11 +81,6 @@ class AccountsPage(LoggedPage, HTMLPage):
                 if currency:
                     return Currency().filter(currency)
                 return Currency().filter(CleanText('//table[@class="fiche"]//td/small')(self))
-
-
-class AlertPage(LoggedPage, HTMLPage):
-    def get_pocket_link(self):
-        return Link('//a[contains(@href, "CCB")]', default=None)(self.doc)
 
 
 class FCPEInvestmentPage(LoggedPage, HTMLPage):
@@ -147,14 +145,13 @@ class CCBInvestmentPage(LoggedPage, HTMLPage):
                 continue
 
             inv = Investment()
-            inv.label = CleanText(el.xpath('./td[has-class("g")]'))(self.doc)
+            inv.label = CleanText(el.xpath('./td[has-class("i g")]'))(self.doc)
             inv.valuation = MyDecimal(el.xpath('./td[last()]'))(self.doc)
-            i = 1
-            while i < rowspan:
+            inv._pocket_url = None
+            for i in range(1, rowspan):
                 # valuation is not directly written on website, but it's separated by pocket, so we compute it here,
                 # and is also written in footer so it's sum of all valuation, not just one
                 inv.valuation += MyDecimal(el_list[index+i].xpath('./td[last()]'))(self.doc)
-                i += 1
 
             yield inv
 
