@@ -37,8 +37,12 @@ class BankStatementPage(LoggedPage, BasePage):
         head_xpath = '//table//th'
 
         col_id = 'Numéro de Compte'
+        col_label = 'Derniers relevés'
 
         class item(ItemElement):
+            def condition(self):
+                return 'Récapitulatif annuel' not in CleanText(TableCell('label'))(self)
+
             klass = Subscription
 
             obj_id = CleanText(TableCell('id'), replace=[(' ', '')])
