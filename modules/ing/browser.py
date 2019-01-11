@@ -45,10 +45,10 @@ def start_with_main_site(f):
     def wrapper(*args, **kwargs):
         browser = args[0]
 
-        if browser.url and browser.url.startswith('https://bourse.ing.fr/'):
+        if browser.url and browser.url.startswith('https://bourse.ingdirect.fr/'):
             for i in range(3):
                 try:
-                    browser.location('https://bourse.ing.fr/priv/redirectIng.php?pageIng=COMPTE')
+                    browser.location('https://bourse.ingdirect.fr/priv/redirectIng.php?pageIng=COMPTE')
                 except ServerError:
                     pass
                 else:
@@ -89,10 +89,10 @@ class IngBrowser(LoginBrowser):
     # CapBank-Market
     netissima = URL('/data/asv/fiches-fonds/fonds-netissima.html', NetissimaPage)
     starttitre = URL('/general\?command=goToAccount&zone=COMPTE', TitrePage)
-    titrepage = URL('https://bourse.ing.fr/priv/portefeuille-TR.php', TitrePage)
-    titrehistory = URL('https://bourse.ing.fr/priv/compte.php\?ong=3', TitreHistory)
-    titrerealtime = URL('https://bourse.ing.fr/streaming/compteTempsReelCK.php', TitrePage)
-    titrevalue = URL('https://bourse.ing.fr/priv/fiche-valeur.php\?val=(?P<val>.*)&pl=(?P<pl>.*)&popup=1', TitreValuePage)
+    titrepage = URL('https://bourse.ingdirect.fr/priv/portefeuille-TR.php', TitrePage)
+    titrehistory = URL('https://bourse.ingdirect.fr/priv/compte.php\?ong=3', TitreHistory)
+    titrerealtime = URL('https://bourse.ingdirect.fr/streaming/compteTempsReelCK.php', TitrePage)
+    titrevalue = URL('https://bourse.ingdirect.fr/priv/fiche-valeur.php\?val=(?P<val>.*)&pl=(?P<pl>.*)&popup=1', TitreValuePage)
     asv_history = URL('https://ingdirectvie.ing.fr/b2b2c/epargne/CoeLisMvt',
                       'https://ingdirectvie.ing.fr/b2b2c/epargne/CoeDetMvt', ASVHistory)
     asv_invest = URL('https://ingdirectvie.ing.fr/b2b2c/epargne/CoeDetCon', ASVInvest)
