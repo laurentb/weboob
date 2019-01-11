@@ -250,19 +250,15 @@ class CreditAccountPage(LoggedPage, HTMLPage):
     class get_account(ItemElement):
         klass = Account
 
-        obj_type = Account.TYPE_REVOLVING_CREDIT
-
+        obj_type = Account.TYPE_CHECKING
         obj__site = 'other'
+        obj_balance = 0
+        obj_id = CleanText('//tr[td[text()="Mon numéro de compte"]]/td[@class="droite"]', replace=[(' ', '')])
+        obj_coming = CleanDecimal('//div[@id="mod-paiementcomptant"]//tr[td[contains(text(),"débité le")]]/td[@class="droite"]', sign=lambda _: -1, default=0)
+        obj_currency = Currency('//div[@id="mod-paiementcomptant"]//tr[td[starts-with(normalize-space(text()),"Montant disponible")]]/td[@class="droite"]')
 
         def obj_label(self):
             return self.page.browser.card_name
-
-        obj_id = CleanText('//tr[td[text()="Mon numéro de compte"]]/td[@class="droite"]', replace=[(' ', '')])
-        obj_balance = CleanDecimal('//div[@id="mod-paiementcomptant"]//tr[td[starts-with(normalize-space(text()),"Montant disponible")]]/td[@class="droite"]')
-        obj_coming = CleanDecimal('//div[@id="mod-paiementcomptant"]//tr[td[contains(text(),"débité le")]]/td[@class="droite"]', sign=lambda _: -1, default=0)
-        obj_currency = Currency('//div[@id="mod-paiementcomptant"]//tr[td[starts-with(normalize-space(text()),"Montant disponible")]]/td[@class="droite"]')
-        # what's the balance anyway?
-        # there's "Paiements au comptant" and sometimes "Retraits d'argent au comptant"
 
 
 class CreditHistory(LoggedPage, XLSPage):
