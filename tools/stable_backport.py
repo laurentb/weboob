@@ -43,13 +43,6 @@ def create_compat_dir(name):
 
 
 MANUAL_PORTS = [
-    'weboob.capabilities.bank',
-    'weboob.capabilities.housing',
-    'weboob.capabilities.recipe',
-    'weboob.browser.pages',
-    'weboob.browser.exceptions',
-    'weboob.exceptions',
-    'weboob.browser.filters.html',
 ]
 
 MANUAL_PORT_DIR = path.join(path.dirname(__file__), 'stable_backport_data')
@@ -210,9 +203,6 @@ class StableBackport(object):
                 for error in errors:
                     error.fixup()
                 system('git add %s' % compat_dirname)
-
-        with log('Custom fixups'):
-            replace_all("from weboob.browser.exceptions import LoggedOut", "from .weboob_browser_exceptions import LoggedOut")
 
         system('git add -u')
 
