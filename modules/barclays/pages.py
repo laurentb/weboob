@@ -21,12 +21,10 @@ from __future__ import unicode_literals
 
 import re
 
-from six.moves.html_parser import HTMLParser
-
 from weboob.browser.pages import HTMLPage, PDFPage, LoggedPage
 from weboob.browser.elements import TableElement, ListElement, ItemElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Field, Date, Eval
-from weboob.browser.filters.html import Attr, TableCell
+from weboob.browser.filters.html import Attr, TableCell, ReplaceEntities
 from weboob.capabilities.bank import Account, Investment, NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_iban_valid
@@ -205,16 +203,6 @@ class Transaction(FrenchTransaction):
                ]
 
 
-class Entities(CleanText):
-    """
-    Filter to replace HTML entities like "&eacute;" or "&#x42;" with their unicode counterpart.
-    """
-    def filter(self, data):
-        h = HTMLParser()
-        txt = super(Entities, self).filter(data)
-        return h.unescape(txt)
-
-
 class AbstractAccountPage(StatefulPage):
     def has_iban(self):
         return len(self.doc.xpath('//a[contains(., "Edition RIB")]/ancestor::node()[2][not(contains(@style, "display: none;"))]')) > 1
@@ -255,7 +243,7 @@ class AbstractAccountPage(StatefulPage):
             obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
             obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True)
             obj_amount = MyDecimal(TableCell('credit'), default=TableCell('debit'))
-            obj_raw = Transaction.Raw(Entities(Regexp(CleanText('.//script[1]'), r"toggleDetails\([^,]+,[^,]+, '(.*?)', '(.*?)', '(.*?)',", r'\1 \2 \3')))
+            obj_raw = Transaction.Raw(ReplaceEntities(Regexp(CleanText('.//script[1]'), r"toggleDetails\([^,]+,[^,]+, '(.*?)', '(.*?)', '(.*?)',", r'\1 \2 \3')))
 
 
 class AccountPage(AbstractAccountPage):
