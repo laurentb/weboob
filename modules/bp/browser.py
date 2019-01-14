@@ -612,7 +612,7 @@ class BProBrowser(BPBrowser):
                 self.location('%s/voscomptes/rib/init-rib.ea' % self.base_url)
                 value = self.page.get_rib_value(acc.id)
                 if value:
-                    self.location('%s/voscomptes/rib/preparerRIB-rib.ea?%s' % (self.base_url, value))
+                    self.location('%s/voscomptes/rib/preparerRIB-rib.ea?idxSelection=%s' % (self.base_url, value))
                     if self.rib.is_here():
                         acc.iban = self.page.get_iban()
 
@@ -626,7 +626,7 @@ class BProBrowser(BPBrowser):
         self.location('%s/voscomptes/rib/init-rib.ea' % self.base_url)
         value = self.page.get_rib_value(acc.id)
         if value:
-            self.location('%s/voscomptes/rib/preparerRIB-rib.ea?%s' % (self.base_url, value))
+            self.location('%s/voscomptes/rib/preparerRIB-rib.ea?idxSelection=%s' % (self.base_url, value))
             if self.rib.is_here():
                 return self.page.get_profile()
 
