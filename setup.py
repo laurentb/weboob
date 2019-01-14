@@ -46,7 +46,7 @@ class BuildQt(Command):
     def run(self):
         self.announce('Building Qt applications...', WARN)
         make = self.find_executable('make', ('gmake', 'make'))
-        if PY3:
+        if not PY3:
             pyuic5 = self.find_executable(
                 'pyuic5',
                 ('python2-pyuic5', 'pyuic5-python2.7', 'pyuic5'))
