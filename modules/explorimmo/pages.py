@@ -192,7 +192,7 @@ class SearchPage(HTMLPage):
             )
 
             obj_url = Format(
-                "http://www.explorimmo.com/annonce-%s.html",
+                "https://immobilier.lefigaro.fr/annonces/annonce-%s.html",
                 CleanText('./@data-classified-id')
             )
 

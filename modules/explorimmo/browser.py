@@ -29,7 +29,7 @@ class ExplorimmoBrowser(PagesBrowser):
 
     cities = URL('/rest/locations\?q=(?P<city>.*)', CitiesPage)
     search = URL('/annonces/resultat/annonces.html\?(?P<query>.*)', SearchPage)
-    housing_html = URL('/annonce-(?P<_id>.*).html', HousingPage)
+    housing_html = URL('/annonces/annonce-(?P<_id>.*).html', HousingPage)
     phone = URL('/rest/classifieds/(?P<_id>.*)/phone', PhonePage)
     housing = URL('/rest/classifieds/(?P<_id>.*)',
                   '/rest/classifieds/\?(?P<js_datas>.*)', HousingPage2)
