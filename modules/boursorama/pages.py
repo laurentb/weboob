@@ -804,6 +804,10 @@ class NoTransferPage(LoggedPage, HTMLPage):
     pass
 
 
+class TransferMainPage(LoggedPage, HTMLPage):
+    pass
+
+
 class TransferAccounts(LoggedPage, HTMLPage):
     @method
     class iter_accounts(ListElement):

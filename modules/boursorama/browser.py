@@ -36,7 +36,7 @@ from weboob.capabilities.bank import (
 from weboob.capabilities.contact import Advisor
 from weboob.tools.captcha.virtkeyboard import VirtKeyboardError
 from weboob.tools.value import Value
-from weboob.tools.compat import basestring, urlsplit, urlunsplit
+from weboob.tools.compat import basestring, urlsplit
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages import (
@@ -45,7 +45,7 @@ from .pages import (
     CardsNumberPage, CalendarPage, HomePage, PEPPage,
     TransferAccounts, TransferRecipients, TransferCharac, TransferConfirm, TransferSent,
     AddRecipientPage, StatusPage, CardHistoryPage, CardCalendarPage, CurrencyListPage, CurrencyConvertPage,
-    AccountsErrorPage, NoAccountPage,
+    AccountsErrorPage, NoAccountPage, TransferMainPage,
 )
 
 
@@ -85,10 +85,11 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
     saving_pep = URL('/compte/epargne/pep',  PEPPage)
     incident = URL('/compte/cav/(?P<webid>.*)/mes-incidents.*', IncidentPage)
 
-    transfer_accounts = URL(r'/compte/(?P<type>[^/]+)/(?P<webid>\w+)/virements/nouveau/(?P<id>\w+)/1',
-                            r'/compte/(?P<type>[^/]+)/(?P<webid>\w+)/virements/nouveau$',
-                            TransferAccounts)
-    recipients_page = URL(r'/compte/(?P<type>[^/]+)/(?P<webid>\w+)/virements/$',
+    # transfer
+    transfer_main_page = URL(r'/compte/(?P<acc_type>[^/]+)/(?P<webid>\w+)/virements$', TransferMainPage)
+    transfer_accounts = URL(r'/compte/(?P<acc_type>[^/]+)/(?P<webid>\w+)/virements/nouveau$',
+                            r'/compte/(?P<type>[^/]+)/(?P<webid>\w+)/virements/nouveau/(?P<id>\w+)/1', TransferAccounts)
+    recipients_page = URL(r'/compte/(?P<type>[^/]+)/(?P<webid>\w+)/virements$',
                           r'/compte/(?P<type>[^/]+)/(?P<webid>\w+)/virements/nouveau/(?P<id>\w+)/2',
                           TransferRecipients)
     transfer_charac = URL(r'/compte/(?P<type>[^/]+)/(?P<webid>\w+)/virements/nouveau/(?P<id>\w+)/3',
@@ -376,23 +377,24 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
     def iter_transfer_recipients(self, account):
         if account.type in (Account.TYPE_LOAN, Account.TYPE_LIFE_INSURANCE):
             return []
-
         assert account.url
 
+        # url transfer preparation
         url = urlsplit(account.url)
         parts = [part for part in url.path.split('/') if part]
-        if account.type == Account.TYPE_SAVINGS:
-            self.logger.debug('Deleting account name %s to get recipients', parts[-2])
-            del parts[-2]
 
-        parts.append('virements')
-        url = url._replace(path='/'.join(parts))
-        target = urlunsplit(url)
+        assert len(parts) > 2, 'Account url missing some important part to iter recipient'
+        account_type = parts[1] # cav, ord, epargne ...
+        account_webid = parts[-1]
 
         try:
-            self.location(target)
+            self.transfer_main_page.go(acc_type=account_type, webid=account_webid)
         except BrowserHTTPNotFound:
             return []
+
+        # can check all account available transfer option
+        if self.transfer_main_page.is_here():
+            self.transfer_accounts.go(acc_type=account_type, webid=account_webid)
 
         if self.transfer_accounts.is_here():
             try:
