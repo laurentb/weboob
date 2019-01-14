@@ -55,6 +55,10 @@ class IndexPage(LoggedPage, HTMLPage):
         if "prendre connaissance des nouvelles conditions" in msg:
             raise ActionNeeded(msg)
 
+        msg = CleanText('//span[@id="txtErrorAccesBase"]')(self.doc)
+        if 'Merci de nous envoyer' in msg:
+            raise ActionNeeded(msg)
+
         # website sometime crash
         if self.doc.xpath(u'//div[@id="divError"]/span[contains(text(),"Une erreur est survenue")]'):
             raise BrowserUnavailable()
