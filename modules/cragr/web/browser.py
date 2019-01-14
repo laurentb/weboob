@@ -555,7 +555,7 @@ class Cragr(LoginBrowser, StatesMixin):
         if m:
             url = m.group(1)
         else:
-            self.logger.warn('Unable to go to market website')
+            self.logger.warning('Unable to go to market website')
             raise WebsiteNotSupported()
 
         self.open(url)
