@@ -29,7 +29,7 @@ from weboob.capabilities.base import NotAvailable
 
 from .pages import (
     LoginPage, AccountsPage, AccountPage, MarketAccountPage,
-    LifeInsuranceAccountPage, CardPage, IbanPDFPage,
+    LifeInsuranceAccountPage, CardPage, IbanPDFPage, ActionNeededPage,
 )
 
 
@@ -45,6 +45,7 @@ class Barclays(LoginBrowser):
     card_account = URL('/BconnectDesk/servletcontroller',           CardPage)
     market_account = URL('/BconnectDesk/servletcontroller',         MarketAccountPage)
     life_insurance_account = URL('/BconnectDesk/servletcontroller', LifeInsuranceAccountPage)
+    actionNeededPage = URL('/BconnectDesk/servletcontroller',       ActionNeededPage)
     iban = URL('/BconnectDesk/editique',                            IbanPDFPage)
 
     def __init__(self, secret, *args, **kwargs):

@@ -30,7 +30,7 @@ from weboob.browser.filters.html import Attr, TableCell
 from weboob.capabilities.bank import Account, Investment, NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_iban_valid
-
+from weboob.exceptions import ActionNeeded
 
 def MyDecimal(*args, **kwargs):
     kwargs.update(replace_dots=True, default=NotAvailable)
@@ -461,3 +461,15 @@ class IbanPDFPage(LoggedPage, PDFPage):
         assert is_iban_valid(iban)
 
         return iban
+
+
+class ActionNeededPage(LoggedPage, HTMLPage):
+    def on_load(self):
+        # We only need 2 sentences because the thirds is too specific
+        message = CleanText("//h2[contains(@class, 'ecDIB')]")(self.doc).split('.')
+        raise ActionNeeded('%s.' % '.'.join(message[:-2]))
+
+    def is_here(self):
+        message = CleanText("//h2[contains(@class, 'ecDIB')]")(self.doc)
+        text = "Afin de respecter nos obligations réglementaires, nous devons disposer d’une connaissance récente des données de nos clients."
+        return message and text in message
