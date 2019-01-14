@@ -343,7 +343,8 @@ class MarketPage(LoggedPage, HTMLPage):
     @method
     class iter_market_accounts(TableElement):
         def condition(self):
-            return not self.el.xpath('//table[@id="table-portefeuille"]//tr/td[contains(text(), "Aucun portefeuille à afficher")]')
+            return not self.el.xpath('//table[@id="table-portefeuille"]//tr/td[contains(text(), "Aucun portefeuille à afficher") \
+                or contains(text(), "No portfolio to display")]')
 
         item_xpath = '//table[@id="table-portefeuille"]/tbody[@class="main-content"]/tr'
         head_xpath = '//table[@id="table-portefeuille"]/thead/tr/th/label'
