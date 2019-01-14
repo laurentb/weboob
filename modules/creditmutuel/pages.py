@@ -772,7 +772,7 @@ class ComingPage(OperationsPage, LoggedPage):
 class CardPage(OperationsPage, LoggedPage):
     def select_card(self, card_number):
         for option in self.doc.xpath('//select[@name="Data_SelectedCardItemKey"]/option'):
-            card_id = Regexp(CleanText('.', symbols=' '), r'([\dx]+)')(option)
+            card_id = Regexp(CleanText('.', symbols=' '), r'(\d+x+\d+)')(option)
             if card_id != card_number:
                 continue
             if Attr('.', 'selected', default=None)(option):
