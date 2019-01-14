@@ -248,6 +248,16 @@ class AccountType(Enum):
     "Revolving credit"
 
 
+class AccountOwnerType(object):
+    """
+    Specifies the usage of the account
+    """
+    PRIVATE = u'PRIV'
+    """private personal account"""
+    ORGANIZATION = u'ORGA'
+    """professional account"""
+
+
 class Account(BaseAccount):
     """
     Bank account.
@@ -274,6 +284,7 @@ class Account(BaseAccount):
     TYPE_REVOLVING_CREDIT = AccountType.REVOLVING_CREDIT
 
     type =      EnumField('Type of account', AccountType, default=TYPE_UNKNOWN)
+    owner_type = StringField('Usage of account')  # cf AccountOwnerType class
     balance =   DecimalField('Balance on this bank account')
     coming =    DecimalField('Sum of coming movements')
     iban =      StringField('International Bank Account Number', mandatory=False)
