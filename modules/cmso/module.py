@@ -19,7 +19,7 @@
 
 from __future__ import unicode_literals
 
-from weboob.capabilities.bank import CapBankWealth, AccountNotFound
+from weboob.capabilities.bank import CapBankTransfer, CapBankWealth, Account, AccountNotFound
 from weboob.capabilities.contact import CapContact
 from weboob.capabilities.base import find_object
 from weboob.capabilities.profile import CapProfile
@@ -33,7 +33,7 @@ from .pro.browser import CmsoProBrowser
 __all__ = ['CmsoModule']
 
 
-class CmsoModule(Module, CapBankWealth, CapContact, CapProfile):
+class CmsoModule(Module, CapBankTransfer, CapBankWealth, CapContact, CapProfile):
     NAME = 'cmso'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -68,6 +68,14 @@ class CmsoModule(Module, CapBankWealth, CapContact, CapProfile):
 
     def iter_investment(self, account):
         return self.browser.iter_investment(account)
+
+    def iter_transfer_recipients(self, origin_account):
+        if self.config['website'].get() != "par":
+            raise NotImplementedError()
+
+        if not isinstance(origin_account, Account):
+            origin_account = self.get_account(origin_account)
+        return self.browser.iter_recipients(origin_account)
 
     def iter_contacts(self):
         if self.config['website'].get() != "par":

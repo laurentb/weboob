@@ -33,8 +33,9 @@ from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages import (
     LogoutPage, InfosPage, AccountsPage, HistoryPage, LifeinsurancePage, MarketPage,
-    AdvisorPage, LoginPage, RecipientsPage, ProfilePage,
+    AdvisorPage, LoginPage, ProfilePage,
 )
+from .transfer_pages import TransferInfoPage
 
 
 def retry(exc_check, tries=4):
@@ -92,7 +93,8 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
                  'https://www.*/domiweb/prive/particulier', MarketPage)
     advisor = URL('/edrapi/v(?P<version>\w+)/oauth/(?P<page>\w+)', AdvisorPage)
 
-    recipients = URL(r'/domiapi/oauth/json/transfer/transferinfos', RecipientsPage)
+    # transfer
+    transfer_info = URL(r'/domiapi/oauth/json/transfer/transferinfos', TransferInfoPage)
 
     profile = URL(r'/domiapi/oauth/json/edr/infosPerson', ProfilePage)
 
@@ -158,7 +160,7 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
 
         seen = {}
 
-        self.recipients.go(data='{"beneficiaryType":"INTERNATIONAL"}', headers=self.json_headers)
+        self.transfer_info.go(data='{"beneficiaryType":"INTERNATIONAL"}', headers=self.json_headers)
         numbers = self.page.get_numbers()
 
         # First get all checking accounts...
@@ -304,6 +306,33 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
                 return self.page.iter_investment()
             return []
         raise NotImplementedError()
+
+    @retry((ClientError, ServerError))
+    @need_login
+    def iter_recipients(self, account):
+        self.transfer_info.go(
+            data='{"beneficiaryType":"INTERNATIONAL"}',
+            headers=self.json_headers
+        )
+
+        if account.type in (Account.TYPE_LOAN, ):
+            return
+        if not account._eligible_debit:
+            return
+
+        # internal recipient
+        for rcpt in self.page.iter_titu_accounts():
+            if rcpt.id != account.id:
+                yield rcpt
+        for rcpt in self.page.iter_manda_accounts():
+            if rcpt.id != account.id:
+                yield rcpt
+        for rcpt in self.page.iter_legal_rep_accounts():
+            if rcpt.id != account.id:
+                yield rcpt
+        # external recipient
+        for rcpt in self.page.iter_external_recipients():
+            yield rcpt
 
     @retry((ClientError, ServerError))
     @need_login

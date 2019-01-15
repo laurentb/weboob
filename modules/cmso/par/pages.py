@@ -135,6 +135,8 @@ class AccountsPage(LoggedPage, JsonPage):
             # Iban is available without last 5 numbers, or by sms
             obj_iban = NotAvailable
             obj__index = Dict('index')
+            # to know if we can do transfer on account
+            obj__eligible_debit = Dict('eligibiliteDebit', default=False)
 
             def obj_balance(self):
                 balance = CleanDecimal(Dict('soldeEuro', default="0"))(self)
@@ -194,6 +196,8 @@ class AccountsPage(LoggedPage, JsonPage):
                 obj_coming = CleanDecimal(Dict('AVenir', default=None), default=NotAvailable)
                 obj__index = Dict('index')
                 obj__owner = Dict('nomTitulaire')
+                # to know if we can do transfer on account
+                obj__eligible_debit = Dict('eligibiliteDebit', default=False)
 
                 def obj_id(self):
                     type = Field('type')(self)
@@ -547,35 +551,6 @@ class AdvisorPage(LoggedPage, JsonPage):
         obj_fax = CleanText(Dict('numeroFax'), replace=[(' ', '')])
         obj_agency = Dict('nom')
         obj_address = Format('%s %s', Dict('adresse1'), Dict('adresse3'))
-
-
-class RecipientsPage(LoggedPage, JsonPage):
-    def get_numbers(self):
-        # If account information is not available when asking for the
-        # recipients (server error for ex.), return an empty dictionary
-        # that will be filled later after being returned the json of the
-        # account page (containing the accounts IDs too).
-        if 'listCompteTitulaireCotitulaire' not in self.doc and 'exception' in self.doc:
-            return {}
-
-        ret = {}
-
-        ret.update({
-            d['index']: d['numeroContratSouscrit']
-            for d in self.doc['listCompteTitulaireCotitulaire']
-        })
-        ret.update({
-            d['index']: d['numeroContratSouscrit']
-            for p in self.doc['listCompteMandataire'].values()
-            for d in p
-        })
-        ret.update({
-            d['index']: d['numeroContratSouscrit']
-            for p in self.doc['listCompteLegalRep'].values()
-            for d in p
-        })
-
-        return ret
 
 
 class ProfilePage(LoggedPage, JsonPage):
