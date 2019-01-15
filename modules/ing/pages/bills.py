@@ -87,5 +87,5 @@ class BillsPage(LoggedPage, HTMLPage):
             # Force first day of month as label is in form "janvier 2016"
             obj_date = Format("1 %s", Field('label')) & Date(parse_func=parse_french_date)
             obj_format = u"pdf"
-            obj_type = DocumentTypes.BILL
+            obj_type = DocumentTypes.STATEMENT
             obj__localid = Attr('a[2]', 'onclick')
