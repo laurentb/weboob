@@ -411,6 +411,10 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                     self.page.submit()
 
                     if 'offrebourse.com' in self.url:
+                        # Some users may not have access to this.
+                        if self.page.is_error():
+                            continue
+
                         self.update_linebourse_token()
                         page = self.linebourse.go_portfolio(account.id)
                         assert self.linebourse.portfolio.is_here()
