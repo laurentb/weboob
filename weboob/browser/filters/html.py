@@ -19,18 +19,22 @@
 
 
 import lxml.html as html
+from six.moves.html_parser import HTMLParser
 
 from weboob.tools.compat import basestring, unicode, urljoin
 from weboob.tools.html import html2text
 
 from .base import _NO_DEFAULT, Filter, FilterError, _Selector, debug, ItemNotFound
-from .standard import TableCell, ColumnNotFound # TODO move class here when modules are migrated
-
+from .standard import (
+    TableCell, ColumnNotFound, # TODO move class here when modules are migrated
+    CleanText,
+)
 
 __all__ = ['CSS', 'XPath', 'XPathNotFound', 'AttributeNotFound',
            'Attr', 'Link', 'AbsoluteLink',
            'CleanHTML', 'FormValue', 'HasElement',
            'TableCell', 'ColumnNotFound',
+           'ReplaceEntities',
           ]
 
 
@@ -209,3 +213,13 @@ class HasElement(Filter):
         if value:
             return self.yesvalue
         return self.default_or_raise(FilterError('No default value'))
+
+
+class ReplaceEntities(CleanText):
+    """
+    Filter to replace HTML entities like "&eacute;" or "&#x42;" with their unicode counterpart.
+    """
+    def filter(self, data):
+        h = HTMLParser()
+        txt = super(ReplaceEntities, self).filter(data)
+        return h.unescape(txt)
