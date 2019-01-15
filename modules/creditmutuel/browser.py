@@ -312,8 +312,11 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                                 form.pop(k, None)
                     form.submit()
             # IndexError when form xpath returns [], StopIteration if next called on empty iterable
-            except (IndexError, StopIteration, FormNotFound):
+            except (StopIteration, FormNotFound):
                 self.logger.warning('Could not get history on new website')
+            except IndexError:
+                # 6 months history is not available
+                pass
 
         while self.page:
             try:
