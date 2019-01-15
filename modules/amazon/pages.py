@@ -26,7 +26,7 @@ from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Env, Regexp, Format,
     Field, Currency, RegexpError, Date, Async, AsyncLoad
 )
-from weboob.capabilities.bill import Bill, Subscription
+from weboob.capabilities.bill import DocumentTypes, Bill, Subscription
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.date import parse_french_date
 
@@ -131,7 +131,7 @@ class DocumentsPage(LoggedPage, HTMLPage):
             obj_url = Async('details') & Link('//a[contains(@href, "download")]|//a[contains(@href, "generated_invoices")]')
             obj_format = 'pdf'
             obj_label = Format('Facture %s', Field('_simple_id'))
-            obj_type = 'bill'
+            obj_type = DocumentTypes.BILL
 
             def obj_date(self):
                 date = Date(CleanText('.//div[has-class("a-span4") and not(has-class("recipient"))]/div[2]'),

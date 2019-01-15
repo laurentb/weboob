@@ -24,7 +24,7 @@ from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Env, Format, Date
 from weboob.browser.filters.html import Attr, TableCell
 from weboob.browser.elements import ListElement, ItemElement, TableElement, method
-from weboob.capabilities.bill import Bill, Document, Subscription
+from weboob.capabilities.bill import DocumentTypes, Bill, Document, Subscription
 from weboob.capabilities.base import NotAvailable
 
 
@@ -68,7 +68,7 @@ class DocumentsPage(LoggedPage, HTMLPage):
             obj_date = Date(CleanText(TableCell('date')))
             obj_format = u"pdf"
             obj_label = Format('Facture %s', CleanDecimal(TableCell('id')))
-            obj_type = u"bill"
+            obj_type = DocumentTypes.BILL
             obj_price = CleanDecimal(TableCell('price'))
             obj_currency = u'EUR'
 
@@ -90,7 +90,7 @@ class DocumentsPage(LoggedPage, HTMLPage):
             obj__url = Attr('.', 'href')
             obj_format = u"pdf"
             obj_label = CleanText('.')
-            obj_type = u"other"
+            obj_type = DocumentTypes.OTHER
 
             def parse(self, el):
                 self.env['username'] = self.page.browser.username

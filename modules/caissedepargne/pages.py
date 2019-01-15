@@ -37,7 +37,7 @@ from weboob.capabilities.bank import (
     Account, Investment, Recipient, TransferError, TransferBankError, Transfer,
     AddRecipientBankError, Loan,
 )
-from weboob.capabilities.bill import Subscription, Document
+from weboob.capabilities.bill import DocumentTypes, Subscription, Document
 from weboob.tools.capabilities.bank.investments import is_isin_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_rib_valid, rib2iban, is_iban_valid
@@ -1388,7 +1388,7 @@ class SubscriptionPage(LoggedPage, HTMLPage):
 
             obj_label = Format('%s %s', CleanText('./preceding::h3[1]'), CleanText('./span'))
             obj_date = Date(CleanText('./span'), dayfirst=True)
-            obj_type = 'other'
+            obj_type = DocumentTypes.OTHER
             obj_format = 'pdf'
             obj_url = Regexp(Link('.'), r'WebForm_PostBackOptions\("(\S*)"')
             obj_id = Format('%s_%s_%s', Env('sub_id'), CleanText('./span', symbols='/'), Regexp(Field('url'), r'ctl(.*)'))

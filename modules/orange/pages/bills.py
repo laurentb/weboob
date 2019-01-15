@@ -33,7 +33,7 @@ from weboob.browser.filters.html import Link, TableCell
 from weboob.browser.filters.javascript import JSValue
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.bill import Bill
+from weboob.capabilities.bill import DocumentTypes, Bill
 from weboob.tools.date import parse_french_date
 from weboob.tools.compat import urlencode
 
@@ -82,7 +82,7 @@ class BillsPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Bill
 
-            obj_type = u"bill"
+            obj_type = DocumentTypes.BILL
             obj_format = u"pdf"
 
             # TableCell('date') can have other info like: 'duplicata'

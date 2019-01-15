@@ -27,7 +27,7 @@ from weboob.browser.pages import LoggedPage, JsonPage, HTMLPage, RawPage
 from weboob.browser.filters.standard import Env, Format, Date, Eval
 from weboob.browser.elements import ItemElement, DictElement, method
 from weboob.browser.filters.json import Dict
-from weboob.capabilities.bill import Bill, Subscription
+from weboob.capabilities.bill import DocumentTypes, Bill, Subscription
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.profile import Profile
 
@@ -96,7 +96,7 @@ class DocumentsPage(LoggedPage, JsonPage):
                                  .strftime('%Y-%m-%d'), Dict('creationDate')))
             obj_format = 'pdf'
             obj_label = Format('Facture %s', Dict('documentNumber'))
-            obj_type = 'bill'
+            obj_type = DocumentTypes.BILL
             obj_price = Env('price')
             obj_currency = 'EUR'
             obj_vat = NotAvailable

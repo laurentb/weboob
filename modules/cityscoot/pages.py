@@ -24,7 +24,7 @@ from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ItemElement, TableElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Env, Regexp, Format, Date, Async, AsyncLoad
 from weboob.browser.filters.html import Link
-from weboob.capabilities.bill import Bill, Subscription
+from weboob.capabilities.bill import DocumentTypes, Bill, Subscription
 from weboob.capabilities.base import NotAvailable
 
 class LoginPage(HTMLPage):
@@ -68,7 +68,7 @@ class DocumentsPage(LoggedPage, HTMLPage):
             obj_date = Async('details') & Date(Regexp(CleanText('.//h3'), r'(\d{2}\/\d{2}\/\d{4})'), dayfirst=True)
             obj_format = 'html'
             obj_label = Async('details') & CleanText('.//h3')
-            obj_type = 'bill'
+            obj_type = DocumentTypes.BILL
             obj_price = Async('details') & CleanDecimal('.//td[.="Total"]/following-sibling::td')
             obj_vat = Async('details') & CleanDecimal('.//td[contains(text(), "TVA")]/following-sibling::td')
             obj_currency = u'EUR'

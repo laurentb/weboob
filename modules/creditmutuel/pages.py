@@ -48,7 +48,7 @@ from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Profile
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.capabilities.bill import Subscription, Document
+from weboob.capabilities.bill import DocumentTypes, Subscription, Document
 from weboob.tools.compat import urlparse, parse_qs, urljoin, range, unicode
 from weboob.tools.date import parse_french_date
 from weboob.tools.value import Value
@@ -1826,7 +1826,7 @@ class SubscriptionPage(LoggedPage, HTMLPage):
             obj_label = Format('%s %s', CleanText(TableCell('url')), CleanText(TableCell('date')))
             obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
             obj_format = 'pdf'
-            obj_type = 'other'
+            obj_type = DocumentTypes.OTHER
 
             def obj_url(self):
                 return urljoin(self.page.url, '/fr/banque/%s' % Link('./a')(TableCell('url')(self)[0]))

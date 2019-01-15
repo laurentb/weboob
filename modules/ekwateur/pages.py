@@ -30,7 +30,7 @@ from weboob.browser.filters.standard import (
 )
 from weboob.browser.filters.html import AbsoluteLink, Attr, Link, XPath
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.bill import Subscription, Bill, Document
+from weboob.capabilities.bill import DocumentTypes, Subscription, Bill, Document
 
 
 class LoginPage(HTMLPage):
@@ -95,7 +95,7 @@ class BillsPage(EkwateurPage):
                 CleanText(TableCell('amount')),
                 CleanText(TableCell('date'))
             )
-            obj_type = 'bill'
+            obj_type = DocumentTypes.BILL
             obj_price = CleanDecimal(TableCell('amount'), replace_dots=True)
             obj_currency = Currency(TableCell('amount'))
             obj_duedate = Date(

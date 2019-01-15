@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bill import Bill, Subscription
+from weboob.capabilities.bill import DocumentTypes, Bill, Subscription
 from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage
 from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Format, Date
 from weboob.browser.filters.html import Attr
@@ -87,7 +87,7 @@ class BillsPage(LoggedPage, JsonPage):
             obj_id = Format('%s.%s', Env('subid'), Dict('orderId'))
             obj_date = Date(Dict('billingDate'))
             obj_format = u"pdf"
-            obj_type = u"bill"
+            obj_type = DocumentTypes.BILL
             obj_price = CleanDecimal(Dict('priceWithTax/value'))
             obj_url = Dict('pdfUrl')
             obj_label = Format('Facture %s', Dict('orderId'))

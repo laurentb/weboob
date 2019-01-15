@@ -25,7 +25,7 @@ from weboob.browser.pages import HTMLPage, LoggedPage, PartialHTMLPage
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Env, Format, Date, Async, Filter, Regexp, Field
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.html import Attr, Link
-from weboob.capabilities.bill import Bill, Subscription
+from weboob.capabilities.bill import DocumentTypes, Bill, Subscription
 from weboob.capabilities.base import NotAvailable
 from weboob.exceptions import BrowserIncorrectPassword
 
@@ -94,7 +94,7 @@ class DocumentsPage(LoggedPage, PartialHTMLPage):
             obj_date = Date(CleanText('./div[contains(@class, "date")]'), dayfirst=True)
             obj_format = 'pdf'
             obj_label = Regexp(CleanText('./div[contains(@class, "ref")]'), r' (.*)')
-            obj_type = 'bill'
+            obj_type = DocumentTypes.BILL
             obj_price = CleanDecimal(CleanText('./div[contains(@class, "price")]'), replace_dots=(' ', '€'))
             obj_currency = 'EUR'
 

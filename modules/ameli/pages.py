@@ -25,7 +25,7 @@ from decimal import Decimal
 
 from weboob.browser.filters.html import Attr, XPathNotFound
 from weboob.browser.pages import HTMLPage, RawPage, LoggedPage
-from weboob.capabilities.bill import Subscription, Detail, Bill
+from weboob.capabilities.bill import DocumentTypes, Subscription, Detail, Bill
 from weboob.browser.filters.standard import CleanText, Regexp
 from weboob.exceptions import BrowserUnavailable
 
@@ -132,7 +132,7 @@ class LastPaymentsPage(LoggedPage, AmeliBasePage):
             bil.id = sub._id + "." + date.strftime("%Y%m")
             bil.date = date
             bil.format = 'pdf'
-            bil.type = 'bill'
+            bil.type = DocumentTypes.BILL
             bil.label = date.strftime("%Y%m%d")
             bil.url = '/PortailAS/PDFServletReleveMensuel.dopdf?PDF.moisRecherche=' + date.strftime("%m%Y")
             yield bil

@@ -27,7 +27,7 @@ from weboob.browser.filters.standard import (
     CleanDecimal, Env, Regexp, Format, Currency, Field, Eval,
 )
 from weboob.browser.filters.json import Dict
-from weboob.capabilities.bill import Bill, Subscription
+from weboob.capabilities.bill import DocumentTypes, Bill, Subscription
 from weboob.tools.compat import urljoin
 
 
@@ -65,5 +65,5 @@ class DocumentsPage(LoggedPage, JsonPage):
             obj_label = Format('Facture %s', _num)
             obj_price = CleanDecimal(Dict('fMontant'))
             obj_currency = Currency(Dict('sMontant'))
-            obj_type = 'bill'
+            obj_type = DocumentTypes.BILL
             obj_format = 'pdf'

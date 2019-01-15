@@ -27,7 +27,7 @@ from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.filters.standard import Date, CleanText, Filter,\
     CleanDecimal, Currency, Regexp, Field, DateTime, Format, Env
 from weboob.browser.filters.html import AbsoluteLink, Attr
-from weboob.capabilities.bill import Detail, Bill
+from weboob.capabilities.bill import DocumentTypes, Detail, Bill
 from weboob.capabilities.base import NotAvailable
 from weboob.exceptions import ParseError
 from weboob.tools.compat import unicode
@@ -128,7 +128,7 @@ class DetailsPage(LoggedPage, BadUTF8Page):
             obj_id = Format('%s.%s', Env('subid'), Field('_localid'))
             obj_date = FormatDate(Field('label'))
             obj_format = u"pdf"
-            obj_type = u"bill"
+            obj_type = DocumentTypes.BILL
             obj_price = CleanDecimal('div[@class="montant"]', default=Decimal(0), replace_dots=False)
             obj_currency = Currency('div[@class="montant"]')
 

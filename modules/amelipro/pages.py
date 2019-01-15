@@ -22,7 +22,7 @@ from datetime import datetime
 import re
 from decimal import Decimal
 from weboob.browser.pages import HTMLPage
-from weboob.capabilities.bill import Subscription, Detail, Bill
+from weboob.capabilities.bill import DocumentTypes, Subscription, Detail, Bill
 
 
 # Ugly array to avoid the use of french locale
@@ -111,7 +111,7 @@ class BillsPage(HTMLPage):
                     bil.price = 0
                 bil.label = u''+date.strftime("%Y%m%d")
                 bil.format = u''+format
-                bil.type = u'bill'
+                bil.type = DocumentTypes.BILL
                 filedate = date.strftime("%m%Y")
                 bil.url = u'/PortailPS/fichier.do'
                 bil._data = {'FICHIER.type': format.lower()+'.releveCompteMensuel',

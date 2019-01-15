@@ -25,7 +25,7 @@ from weboob.browser.browsers import APIBrowser
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.filters.standard import CleanDecimal, Date
 from weboob.browser.exceptions import ClientError
-from weboob.capabilities.bill import Bill, Subscription
+from weboob.capabilities.bill import DocumentTypes, Bill, Subscription
 
 
 class TrainlineBrowser(APIBrowser):
@@ -79,7 +79,7 @@ class TrainlineBrowser(APIBrowser):
                     b.date = Date().filter(proof['created_at'])
                     b.format = u"pdf"
                     b.label = u'Trajet du %s' % Date().filter(trip['departure_date'])
-                    b.type = u"bill"
+                    b.type = DocumentTypes.BILL
                     b.vat = CleanDecimal().filter('0')
                     if pnr['cents']:
                         b.price = CleanDecimal().filter(format(pnr['cents']/float(100), '.2f'))

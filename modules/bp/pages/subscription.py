@@ -21,7 +21,7 @@ from __future__ import unicode_literals
 
 import re
 
-from weboob.capabilities.bill import Subscription, Document
+from weboob.capabilities.bill import DocumentTypes, Subscription, Document
 from weboob.browser.pages import LoggedPage, HTMLPage
 from weboob.browser.filters.standard import CleanText, Regexp, Env, Date, Format, Field
 from weboob.browser.filters.html import Link, Attr, TableCell
@@ -62,7 +62,7 @@ class SubscriptionPage(LoggedPage, HTMLPage):
             obj_label = Format('%s - %s', CleanText('.//span[contains(@class, "lib")]'), CleanText('.//span[contains(@class, "date")]'))
             obj_url = Format('/voscomptes/canalXHTML/relevePdf/relevePdf_historique/%s', Link('./a'))
             obj_format = 'pdf'
-            obj_type = 'other'
+            obj_type = DocumentTypes.OTHER
 
             def obj_date(self):
                 date = CleanText('.//span[contains(@class, "date")]')(self)
@@ -141,7 +141,7 @@ class ProSubscriptionPage(LoggedPage, HTMLPage):
             # on the page of the year XXX for the subscription YYYY
             obj_url = Link('.//a')
             obj_format = 'pdf'
-            obj_type = 'other'
+            obj_type = DocumentTypes.OTHER
 
     def submit_form(self, sub_number, year):
         form = self.get_form(name='formRechHisto')

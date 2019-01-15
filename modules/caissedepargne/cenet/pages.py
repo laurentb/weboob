@@ -29,7 +29,7 @@ from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Transaction
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Profile
-from weboob.capabilities.bill import Subscription, Document
+from weboob.capabilities.bill import DocumentTypes, Subscription, Document
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.exceptions import BrowserUnavailable
 
@@ -278,7 +278,7 @@ class SubscriptionPage(LoggedPage, CenetJsonPage):
 
             obj_id = Format('%s_%s_%s', Env('sub_id'), Dict('Numero'), CleanText(Env('french_date'), symbols='/'))
             obj_format = 'pdf'
-            obj_type = 'other'
+            obj_type = DocumentTypes.OTHER
             obj__numero = CleanText(Dict('Numero'))
             obj__sub_id = Env('sub_id')
             obj__sub_label = Env('sub_label')

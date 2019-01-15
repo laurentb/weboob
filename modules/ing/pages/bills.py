@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.bill import Bill, Subscription
+from weboob.capabilities.bill import DocumentTypes, Bill, Subscription
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.filters.standard import Filter, CleanText, Format, Field, Env, Date
 from weboob.browser.filters.html import Attr
@@ -87,5 +87,5 @@ class BillsPage(LoggedPage, HTMLPage):
             # Force first day of month as label is in form "janvier 2016"
             obj_date = Format("1 %s", Field('label')) & Date(parse_func=parse_french_date)
             obj_format = u"pdf"
-            obj_type = u"bill"
+            obj_type = DocumentTypes.BILL
             obj__localid = Attr('a[2]', 'onclick')

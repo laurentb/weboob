@@ -22,7 +22,7 @@ from __future__ import unicode_literals
 from datetime import timedelta, datetime
 
 from weboob.browser import LoginBrowser, need_login, URL
-from weboob.capabilities.bill import Document
+from weboob.capabilities.bill import DocumentTypes, Document
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
 
 from .pages import (
@@ -97,6 +97,6 @@ class BoldenBrowser(LoginBrowser):
             doc.id = inv.id
             doc.url = inv._docurl
             doc.label = 'Contrat %s' % inv.label
-            doc.type = 'other'
+            doc.type = DocumentTypes.OTHER
             doc.format = 'pdf'
             yield doc

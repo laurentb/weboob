@@ -26,7 +26,7 @@ from weboob.browser.elements import DictElement, ItemElement, method
 from weboob.browser.filters.standard import CleanDecimal, CleanText
 from weboob.browser.filters.html import CleanHTML
 from weboob.browser.filters.json import Dict
-from weboob.capabilities.bill import Subscription, Bill
+from weboob.capabilities.bill import DocumentTypes, Subscription, Bill
 from weboob.exceptions import ActionNeeded
 from weboob.capabilities.profile import Profile
 
@@ -98,7 +98,7 @@ class DocumentsPage(LoggedPage, JsonPage):
             doc.date = date.fromtimestamp(int(document['dateEmission'] / 1000))
             doc.format = 'PDF'
             doc.label = 'Facture %s' % document['numFactureLabel']
-            doc.type = 'bill'
+            doc.type = DocumentTypes.BILL
             doc.price = CleanDecimal().filter(document['montantTTC'])
             doc.currency = '€'
             doc._account_billing = document['compteFacturation']
