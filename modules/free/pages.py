@@ -23,7 +23,7 @@ from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Format, Regexp
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.html import Attr
-from weboob.capabilities.bill import Bill, Subscription
+from weboob.capabilities.bill import DocumentTypes, Bill, Subscription
 from weboob.capabilities.profile import Profile
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.date import parse_french_date
@@ -86,7 +86,7 @@ class DocumentsPage(LoggedPage, HTMLPage):
             obj_date = Env('date')
             obj_format = 'pdf'
             obj_label = Format('Facture %s', CleanText('./span[1]/strong'))
-            obj_type = 'bill'
+            obj_type = DocumentTypes.BILL
             obj_price = CleanDecimal(CleanText('./span[has-class("last")]'), replace_dots=True)
             obj_currency = 'EUR'
 
