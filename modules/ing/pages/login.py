@@ -84,7 +84,6 @@ class INGVirtKeyboard(VirtKeyboard):
         for i, font in enumerate(elems):
             if Attr('.', 'class')(font) == "vide":
                 temppasswd += password[i]
-        self.page.browser.logger.debug('We are looking for : ' + temppasswd)
         coordinates = self.get_string_code(temppasswd)
         self.page.browser.logger.debug("Coordonates: " + coordinates)
         return coordinates
