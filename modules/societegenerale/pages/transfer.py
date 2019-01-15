@@ -60,6 +60,9 @@ class TransferJson(LoggedPage, JsonPage):
     def is_able_to_transfer(self, account):
         return self.get_acc_transfer_id(account)
 
+    def get_first_available_transfer_date(self):
+        return Date(Dict('donnees/listeEmetteursBeneficiaires/premiereDateExecutionPossible'))(self.doc)
+
     @method
     class iter_recipients(DictElement):
         item_xpath = 'donnees/listeEmetteursBeneficiaires/listeDetailBeneficiaires'

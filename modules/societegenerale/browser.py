@@ -283,6 +283,11 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     @need_login
     def init_transfer(self, account, recipient, transfer):
         self.json_transfer.go()
+
+        first_transfer_date = self.page.get_first_available_transfer_date()
+        if transfer.exec_date and transfer.exec_date < first_transfer_date:
+            transfer.exec_date = first_transfer_date
+
         self.page.init_transfer(account, recipient, transfer)
         return self.page.handle_response(recipient)
 
