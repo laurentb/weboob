@@ -19,9 +19,9 @@
 
 from __future__ import unicode_literals
 
-from weboob.capabilities.bank import CapBankTransfer, CapBankWealth, Account, AccountNotFound
+from weboob.capabilities.bank import CapBankTransfer, CapBankWealth, Account, AccountNotFound, RecipientNotFound
 from weboob.capabilities.contact import CapContact
-from weboob.capabilities.base import find_object
+from weboob.capabilities.base import find_object, strict_find_object
 from weboob.capabilities.profile import CapProfile
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
@@ -76,6 +76,31 @@ class CmsoModule(Module, CapBankTransfer, CapBankWealth, CapContact, CapProfile)
         if not isinstance(origin_account, Account):
             origin_account = self.get_account(origin_account)
         return self.browser.iter_recipients(origin_account)
+
+    def init_transfer(self, transfer, **params):
+        if self.config['website'].get() != "par":
+            raise NotImplementedError()
+
+        self.logger.info('Going to do a new transfer')
+
+        account = strict_find_object(
+            self.iter_accounts(),
+            error=AccountNotFound,
+            iban=transfer.account_iban,
+            id=transfer.account_id
+        )
+
+        recipient = strict_find_object(
+            self.iter_transfer_recipients(account.id),
+            error=RecipientNotFound,
+            iban=transfer.recipient_iban,
+            id=transfer.recipient_id
+        )
+
+        return self.browser.init_transfer(account, recipient, transfer.amount, transfer.label, transfer.exec_date)
+
+    def execute_transfer(self, transfer, **params):
+        return self.browser.execute_transfer(transfer, **params)
 
     def iter_contacts(self):
         if self.config['website'].get() != "par":

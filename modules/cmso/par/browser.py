@@ -22,6 +22,7 @@ from __future__ import unicode_literals
 import re
 import json
 
+from datetime import date
 from functools import wraps
 
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
@@ -35,7 +36,7 @@ from .pages import (
     LogoutPage, InfosPage, AccountsPage, HistoryPage, LifeinsurancePage, MarketPage,
     AdvisorPage, LoginPage, ProfilePage,
 )
-from .transfer_pages import TransferInfoPage
+from .transfer_pages import TransferInfoPage, RecipientsListPage, TransferPage
 
 
 def retry(exc_check, tries=4):
@@ -95,6 +96,9 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
 
     # transfer
     transfer_info = URL(r'/domiapi/oauth/json/transfer/transferinfos', TransferInfoPage)
+    recipients_list = URL(r'/domiapi/oauth/json/transfer/beneficiariesListTransfer', RecipientsListPage)
+    init_transfer_page = URL(r'/domiapi/oauth/json/transfer/controlTransferOperation', TransferPage)
+    execute_transfer_page = URL(r'/domiapi/oauth/json/transfer/transferregister', TransferPage)
 
     profile = URL(r'/domiapi/oauth/json/edr/infosPerson', ProfilePage)
 
@@ -160,7 +164,7 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
 
         seen = {}
 
-        self.transfer_info.go(data='{"beneficiaryType":"INTERNATIONAL"}', headers=self.json_headers)
+        self.transfer_info.go(json={"beneficiaryType":"INTERNATIONAL"})
         numbers = self.page.get_numbers()
 
         # First get all checking accounts...
@@ -310,10 +314,7 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
     @retry((ClientError, ServerError))
     @need_login
     def iter_recipients(self, account):
-        self.transfer_info.go(
-            data='{"beneficiaryType":"INTERNATIONAL"}',
-            headers=self.json_headers
-        )
+        self.transfer_info.go(json={"beneficiaryType":"INTERNATIONAL"})
 
         if account.type in (Account.TYPE_LOAN, ):
             return
@@ -333,6 +334,50 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
         # external recipient
         for rcpt in self.page.iter_external_recipients():
             yield rcpt
+
+    @need_login
+    def init_transfer(self, account, recipient, amount, reason, exec_date):
+        self.recipients_list.go(json={"beneficiaryType":"INTERNATIONAL"})
+
+        transfer_data = {
+            'beneficiaryIndex': self.page.get_rcpt_index(recipient),
+            'debitAccountIndex': account._index,
+            'devise': account.currency,
+            'deviseReglement': account.currency,
+            'montant': amount,
+            'nature': 'externesepa',
+            'transferToBeneficiary': True,
+        }
+
+        if exec_date and exec_date > date.today():
+            transfer_data['date'] = int(exec_date.strftime('%s')) * 1000
+        else:
+            transfer_data['immediate'] =  True
+
+        # check if recipient is internal or external
+        if recipient.id != recipient.iban:
+            transfer_data['nature'] = 'interne'
+            transfer_data['transferToBeneficiary'] = False
+
+        self.init_transfer_page.go(json=transfer_data)
+        transfer = self.page.handle_transfer(account, recipient, amount, reason, exec_date)
+        # transfer_data is used in execute_transfer
+        transfer._transfer_data = transfer_data
+        return transfer
+
+    @need_login
+    def execute_transfer(self, transfer, **params):
+        assert transfer._transfer_data
+
+        transfer._transfer_data.update({
+            'enregistrerNouveauBeneficiaire': False,
+            'creditLabel': 'de %s' % transfer.account_label if not transfer.label else transfer.label,
+            'debitLabel': 'vers %s' % transfer.recipient_label,
+            'typeFrais': 'SHA'
+        })
+        self.execute_transfer_page.go(json=transfer._transfer_data)
+        transfer.id = self.page.get_transfer_confirm_id()
+        return transfer
 
     @retry((ClientError, ServerError))
     @need_login
