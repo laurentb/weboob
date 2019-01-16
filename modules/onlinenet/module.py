@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bill import CapDocument, Subscription, Document, SubscriptionNotFound, DocumentNotFound
+from weboob.capabilities.bill import DocumentTypes, CapDocument, Subscription, Document, SubscriptionNotFound, DocumentNotFound
 from weboob.capabilities.base import find_object, NotAvailable
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
@@ -40,6 +40,8 @@ class OnlinenetModule(Module, CapDocument):
                        ValueBackendPassword('password', label='Mot de passe'))
 
     BROWSER = OnlinenetBrowser
+
+    accepted_document_types = (DocumentTypes.BILL, DocumentTypes.OTHER,)
 
     def create_default_browser(self):
         return self.create_browser(self.config['login'].get(), self.config['password'].get())

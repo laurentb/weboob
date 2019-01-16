@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bill import CapDocument, Subscription, Document, SubscriptionNotFound, DocumentNotFound
+from weboob.capabilities.bill import DocumentTypes, CapDocument, Subscription, Document, SubscriptionNotFound, DocumentNotFound
 from weboob.capabilities.base import find_object, NotAvailable
 from weboob.capabilities.account import CapAccount
 from weboob.capabilities.profile import CapProfile
@@ -45,6 +45,8 @@ class OrangeModule(Module, CapAccount, CapDocument, CapProfile):
     def __init__(self, *args, **kwargs):
         self._browsers = dict()
         super(OrangeModule, self).__init__(*args, **kwargs)
+
+    accepted_document_types = (DocumentTypes.BILL,)
 
     def create_default_browser(self):
         return self.create_browser(self.config['login'].get(), self.config['password'].get())

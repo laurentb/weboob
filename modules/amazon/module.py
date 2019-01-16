@@ -20,7 +20,7 @@
 from __future__ import unicode_literals
 from collections import OrderedDict
 
-from weboob.capabilities.bill import CapDocument, Subscription, Document, SubscriptionNotFound, DocumentNotFound
+from weboob.capabilities.bill import DocumentTypes, CapDocument, Subscription, Document, SubscriptionNotFound, DocumentNotFound
 from weboob.capabilities.base import find_object, NotAvailable
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
@@ -63,6 +63,8 @@ class AmazonModule(Module, CapDocument):
         Value('captcha_response', label='Captcha Response', required=False, default=''),
         Value('pin_code', label='OTP response', required=False, default='')
     )
+
+    accepted_document_types = (DocumentTypes.BILL,)
 
     def create_default_browser(self):
         self.BROWSER = self.BROWSERS[self.config['website'].get()]

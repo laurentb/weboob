@@ -24,7 +24,7 @@ from decimal import Decimal
 from weboob.capabilities.bank import CapBankWealth, CapBankTransferAddRecipient, AccountNotFound, Account, RecipientNotFound
 from weboob.capabilities.bill import (
     CapDocument, Subscription, SubscriptionNotFound,
-    Document, DocumentNotFound,
+    Document, DocumentNotFound, DocumentTypes,
 )
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.contact import CapContact
@@ -55,6 +55,8 @@ class CaisseEpargneModule(Module, CapBankWealth, CapBankTransferAddRecipient, Ca
                            ValueBackendPassword('password', label='Code personnel', regexp='\d+'),
                            Value('nuser',                   label='User ID (optional)', default='', regexp='\d{0,8}'),
                            Value('pincode',                 label='pincode', required=False))
+
+    accepted_document_types = (DocumentTypes.OTHER,)
 
     def create_default_browser(self):
         return self.create_browser(nuser=self.config['nuser'].get(),

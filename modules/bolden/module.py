@@ -26,6 +26,7 @@ from weboob.capabilities.bank import CapBankWealth, Account
 from weboob.capabilities.base import find_object
 from weboob.capabilities.bill import (
     CapDocument, Subscription, SubscriptionNotFound, DocumentNotFound, Document,
+    DocumentTypes,
 )
 from weboob.capabilities.profile import CapProfile
 
@@ -49,6 +50,8 @@ class BoldenModule(Module, CapBankWealth, CapDocument, CapProfile):
         ValueBackendPassword('login', label='Email', masked=False),
         ValueBackendPassword('password', label='Mot de passe'),
     )
+
+    accepted_document_types = (DocumentTypes.OTHER,)
 
     def create_default_browser(self):
         return self.create_browser(self.config['login'].get(), self.config['password'].get())

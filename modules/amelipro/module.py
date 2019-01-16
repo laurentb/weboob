@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.bill import CapDocument, SubscriptionNotFound, DocumentNotFound, Subscription, Bill
+from weboob.capabilities.bill import DocumentTypes, CapDocument, SubscriptionNotFound, DocumentNotFound, Subscription, Bill
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 from .browser import AmeliProBrowser
@@ -39,6 +39,8 @@ class AmeliProModule(Module, CapDocument):
                                                 label='Password',
                                                 masked=True)
                            )
+
+    accepted_document_types = (DocumentTypes.BILL,)
 
     def create_default_browser(self):
         self.logger.settings['save_responses'] = False # Set to True to help debugging

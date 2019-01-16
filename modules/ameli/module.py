@@ -19,7 +19,7 @@
 
 from __future__ import unicode_literals
 
-from weboob.capabilities.bill import CapDocument, SubscriptionNotFound, DocumentNotFound, Subscription, Bill
+from weboob.capabilities.bill import DocumentTypes, CapDocument, SubscriptionNotFound, DocumentNotFound, Subscription, Bill
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 from .browser import AmeliBrowser
@@ -37,6 +37,8 @@ class AmeliModule(Module, CapDocument):
     BROWSER = AmeliBrowser
     CONFIG = BackendConfig(ValueBackendPassword('login', label='Numero de SS', regexp=r'^\d{13}$', masked=False),
                            ValueBackendPassword('password', label='Password', masked=True))
+
+    accepted_document_types = (DocumentTypes.BILL,)
 
     def create_default_browser(self):
         return self.create_browser(self.config['login'].get(),

@@ -24,7 +24,7 @@ from decimal import Decimal
 from weboob.capabilities.bank import CapBankWealth, CapBankTransfer, Account, AccountNotFound, RecipientNotFound
 from weboob.capabilities.bill import (
     CapDocument, Bill, Subscription,
-    SubscriptionNotFound, DocumentNotFound
+    SubscriptionNotFound, DocumentNotFound, DocumentTypes,
 )
 from weboob.capabilities.profile import CapProfile
 from weboob.capabilities.base import find_object, NotAvailable
@@ -55,6 +55,8 @@ class INGModule(Module, CapBankWealth, CapBankTransfer, CapDocument, CapProfile)
                                      formats=('%d%m%Y', '%d/%m/%Y', '%d-%m-%Y'))
                            )
     BROWSER = IngBrowser
+
+    accepted_document_types = (DocumentTypes.STATEMENT,)
 
     def create_default_browser(self):
         return self.create_browser(self.config['login'].get(),

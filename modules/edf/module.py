@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bill import CapDocument, Subscription, Document, SubscriptionNotFound, DocumentNotFound
+from weboob.capabilities.bill import DocumentTypes, CapDocument, Subscription, Document, SubscriptionNotFound, DocumentNotFound
 from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
@@ -43,6 +43,8 @@ class EdfModule(Module, CapDocument, CapProfile):
                            Value('website', label='Type de compte', default='par',
                                  choices={'par': 'Particulier', 'pro': 'Entreprise'}),
                            Value('captcha_response', label='Reponse Captcha', required=False, default=''))
+
+    accepted_document_types = (DocumentTypes.BILL,)
 
     def create_default_browser(self):
         browsers = {'pro': EdfproBrowser, 'par': EdfBrowser}

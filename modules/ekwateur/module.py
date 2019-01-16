@@ -24,7 +24,7 @@ from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
 from weboob.capabilities.base import find_object
 from weboob.capabilities.bill import (
-    CapDocument, Document, DocumentNotFound, Subscription
+    CapDocument, Document, DocumentNotFound, Subscription, DocumentTypes,
 )
 
 from .browser import EkwateurBrowser
@@ -47,6 +47,8 @@ class EkwateurModule(Module, CapDocument):
         Value('login', help='Email or identifier'),
         ValueBackendPassword('password', help='Password'),
     )
+
+    accepted_document_types = (DocumentTypes.BILL,)
 
     def create_default_browser(self):
         return self.create_browser(self.config['login'].get(), self.config['password'].get())

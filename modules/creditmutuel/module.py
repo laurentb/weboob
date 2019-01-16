@@ -30,7 +30,7 @@ from weboob.capabilities.contact import CapContact
 from weboob.capabilities.profile import CapProfile
 from weboob.capabilities.bill import (
     CapDocument, Subscription, SubscriptionNotFound,
-    Document, DocumentNotFound,
+    Document, DocumentNotFound, DocumentTypes,
 )
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
@@ -55,6 +55,8 @@ class CreditMutuelModule(
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
                            ValueBackendPassword('password', label='Mot de passe'))
     BROWSER = CreditMutuelBrowser
+
+    accepted_document_types = (DocumentTypes.OTHER,)
 
     def create_default_browser(self):
         return self.create_browser(self.config['login'].get(), self.config['password'].get())
