@@ -18,7 +18,7 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.capabilities.bill import DocumentTypes, Bill, Subscription
-from weboob.browser.pages import HTMLPage, LoggedPage, pagination
+from weboob.browser.pages import HTMLPage, LoggedPage, pagination, Form
 from weboob.browser.filters.standard import Filter, CleanText, Format, Field, Env, Date
 from weboob.browser.filters.html import Attr
 from weboob.browser.elements import ListElement, ItemElement, method
@@ -32,9 +32,18 @@ class FormId(Filter):
         return formid
 
 
+class MyForm(Form):
+    def submit(self, **kwargs):
+        """
+        Submit the form but keep current browser.page
+        """
+        kwargs.setdefault('data_encoding', self.page.encoding)
+        return self.page.browser.open(self.request, **kwargs)
+
+
 class BillsPage(LoggedPage, HTMLPage):
     @method
-    class iter_account(ListElement):
+    class iter_subscriptions(ListElement):
         item_xpath = '//ul[@class="unstyled striped"]/li'
 
         class item(ItemElement):
@@ -45,16 +54,38 @@ class BillsPage(LoggedPage, HTMLPage):
             obj_label = CleanText('label')
             obj__formid = FormId(Attr('input', 'onclick'))
 
-    def postpredown(self, _id):
-        _id = _id.split("'")[3]
+    def get_selected_year(self):
+        return int(CleanText('//form[@id="years_form"]//ul/li[@class="rich-list-item selected"]')(self.doc))
+
+    def go_to_year(self, year):
+        if year == self.get_selected_year():
+            return
+
+        ref = Attr('//form[@id="years_form"]//ul//a[text()="%s"]' % year, 'id')(self.doc)
+
+        self.FORM_CLASS = Form
+        form = self.get_form(name="years_form")
+        form.pop('years_form:j_idcl')
+        form.pop('years_form:_link_hidden_')
+        form['AJAXREQUEST'] = 'years_form:year_region'
+        form[ref] = ref
+
+        return form.submit()
+
+    def download_document(self, bill):
+        # MyForm do open, and not location to keep html page as self.page, to reduce number of request on this html page
+        self.FORM_CLASS = MyForm
+        _id = bill._localid.split("'")[3]
+
         form = self.get_form(name="downpdf_form")
         form['statements_form'] = 'statements_form'
         form['statements_form:j_idcl'] = _id
-        form.submit()
+        return form.submit()
 
     @pagination
     @method
     class iter_documents(ListElement):
+        flush_at_end = True
         item_xpath = '//ul[@id="statements_form:statementsel"]/li'
 
         def next_page(self):
@@ -77,6 +108,10 @@ class BillsPage(LoggedPage, HTMLPage):
             form[ref] = ref
             return form.request
 
+        def flush(self):
+            for obj in reversed(self.objects.values()):
+                yield obj
+
         class item(ItemElement):
             klass = Bill
 
@@ -89,3 +124,6 @@ class BillsPage(LoggedPage, HTMLPage):
             obj_format = u"pdf"
             obj_type = DocumentTypes.STATEMENT
             obj__localid = Attr('a[2]', 'onclick')
+
+            def obj__year(self):
+                return int(CleanText('a[1]')(self).split(' ')[1])

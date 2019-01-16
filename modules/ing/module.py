@@ -27,10 +27,9 @@ from weboob.capabilities.bill import (
     SubscriptionNotFound, DocumentNotFound, DocumentTypes,
 )
 from weboob.capabilities.profile import CapProfile
-from weboob.capabilities.base import find_object, NotAvailable
+from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, ValueDate
-from weboob.browser.exceptions import ServerError
 
 from .browser import IngBrowser
 
@@ -138,13 +137,8 @@ class INGModule(Module, CapBankWealth, CapBankTransfer, CapDocument, CapProfile)
     def download_document(self, bill):
         if not isinstance(bill, Bill):
             bill = self.get_document(bill)
-        self.get_document(bill.id)
-        try:
-            self.browser.predownload(bill)
-        except ServerError:
-            return NotAvailable
-        assert(self.browser.response.headers['content-type'] in ["application/pdf", "application/download"])
-        return self.browser.response.content
+
+        return self.browser.download_document(bill).content
 
     def get_profile(self):
         return self.browser.get_profile()

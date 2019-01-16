@@ -120,6 +120,10 @@ class IngBrowser(LoginBrowser):
         self.multispace = None
         self.current_space = None
 
+        # ing website is stateful, so we need to store the current subscription when download document to be sure
+        # we download file for the right subscription
+        self.current_subscription = None
+
     def do_login(self):
         assert self.password.isdigit()
         assert self.birthday.isdigit()
@@ -535,25 +539,44 @@ class IngBrowser(LoginBrowser):
         self.billpage.go()
         if self.loginpage.is_here():
             self.do_login()
-            return self.billpage.go().iter_account()
+            subscriptions = list(self.billpage.go().iter_subscriptions())
         else:
-            return self.page.iter_account()
+            subscriptions = list(self.page.iter_subscriptions())
+
+        self.cache['subscriptions'] = {}
+        for sub in subscriptions:
+            self.cache['subscriptions'][sub.id] = sub
+
+        return subscriptions
+
+    def _go_to_subscription(self, subscription):
+        # ing website is not stateless, make sure we are on the correct documents page before doing anything else
+        if self.current_subscription and self.current_subscription.id == subscription.id:
+            return
+
+        self.billpage.go()
+        data = {
+            "AJAXREQUEST": "_viewRoot",
+            "accountsel_form": "accountsel_form",
+            subscription._formid: subscription._formid,
+            "autoScroll": "",
+            "javax.faces.ViewState": subscription._javax,
+            "transfer_issuer_radio": subscription.id
+        }
+        self.billpage.go(data=data)
+        self.current_subscription = subscription
 
     @need_login
     def get_documents(self, subscription):
-        self.billpage.go()
-        data = {"AJAXREQUEST": "_viewRoot",
-                "accountsel_form": "accountsel_form",
-                subscription._formid: subscription._formid,
-                "autoScroll": "",
-                "javax.faces.ViewState": subscription._javax,
-                "transfer_issuer_radio": subscription.id
-                }
-        self.billpage.go(data=data)
+        self._go_to_subscription(subscription)
         return self.page.iter_documents(subid=subscription.id)
 
-    def predownload(self, bill):
-        self.page.postpredown(bill._localid)
+    def download_document(self, bill):
+        subid = bill.id.split('-')[0]
+        # make sure we are on the right page to not download a document from another subscription
+        self._go_to_subscription(self.cache['subscriptions'][subid])
+        self.page.go_to_year(bill._year)
+        return self.page.download_document(bill)
 
     ############# CapProfile #############
     @start_with_main_site
