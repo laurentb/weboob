@@ -18,7 +18,7 @@
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bill import CapDocument, Subscription, Document, SubscriptionNotFound, DocumentNotFound
+from weboob.capabilities.bill import DocumentTypes, CapDocument, Subscription, Document, SubscriptionNotFound, DocumentNotFound
 from weboob.capabilities.profile import CapProfile
 from weboob.capabilities.base import find_object, NotAvailable
 from weboob.tools.backend import Module, BackendConfig
@@ -41,6 +41,8 @@ class FreeModule(Module, CapDocument, CapProfile):
                            ValueBackendPassword('password', label='Mot de passe'))
 
     BROWSER = FreeBrowser
+
+    accepted_document_types = (DocumentTypes.BILL,)
 
     def create_default_browser(self):
         return self.create_browser(self.config['login'].get(), self.config['password'].get())
