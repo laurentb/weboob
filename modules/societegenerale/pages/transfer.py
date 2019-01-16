@@ -25,6 +25,7 @@ from weboob.browser.elements import method, ItemElement, DictElement
 from weboob.capabilities.bank import (
     Recipient, Transfer, TransferBankError, AddRecipientBankError, AddRecipientStep,
 )
+from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.capabilities.base import NotAvailable
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Env, Date, Field, Format,
@@ -99,7 +100,7 @@ class TransferJson(LoggedPage, JsonPage):
                 return Dict('iban')(self)
 
             def condition(self):
-                return Field('id')(self) != Env('account_id')(self)
+                return Field('id')(self) != Env('account_id')(self) and is_iban_valid(Field('iban')(self))
 
     def init_transfer(self, account, recipient, transfer):
         assert self.is_able_to_transfer(account), 'Account %s seems to be not able to do transfer' % account.id
