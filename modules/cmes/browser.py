@@ -30,7 +30,7 @@ from .pages import (
 class CmesBrowser(LoginBrowser):
     BASEURL = 'https://www.cic-epargnesalariale.fr'
 
-    login = URL('(?P<subsite>.*)fr/identification/default.cgi', LoginPage)
+    login = URL('/fr/identification/authentification.html', LoginPage)
     accounts = URL('(?P<subsite>.*)fr/espace/devbavoirs.aspx\?mode=net&menu=cpte$', AccountsPage)
     fcpe_investment = URL(r'/fr/.*GoPositionsParFond.*',
                           r'/fr/espace/devbavoirs.aspx\?.*SituationParFonds.*GoOpenDetailFond.*',
@@ -49,7 +49,8 @@ class CmesBrowser(LoginBrowser):
         self.subsite = subsite
 
     def do_login(self):
-        self.login.go(subsite=self.subsite).login(self.username, self.password)
+        self.login.go()
+        self.page.login(self.username, self.password)
 
         if self.login.is_here():
             raise BrowserIncorrectPassword
