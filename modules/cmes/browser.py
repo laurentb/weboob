@@ -23,14 +23,14 @@ from weboob.browser import LoginBrowser, URL, need_login
 
 from .pages import (
     LoginPage, AccountsPage, FCPEInvestmentPage,
-    CCBInvestmentPage, HistoryPage,
+    CCBInvestmentPage, HistoryPage, CustomPage,
     )
 
 
 class CmesBrowser(LoginBrowser):
     BASEURL = 'https://www.cic-epargnesalariale.fr'
 
-    login = URL('/fr/identification/authentification.html', LoginPage)
+    login = URL('/espace-client/fr/identification/authentification.html', LoginPage)
     accounts = URL('(?P<subsite>.*)fr/espace/devbavoirs.aspx\?mode=net&menu=cpte$', AccountsPage)
     fcpe_investment = URL(r'/fr/.*GoPositionsParFond.*',
                           r'/fr/espace/devbavoirs.aspx\?.*SituationParFonds.*GoOpenDetailFond.*',
@@ -40,6 +40,8 @@ class CmesBrowser(LoginBrowser):
     history = URL('(?P<subsite>.*)fr/espace/devbavoirs.aspx\?mode=net&menu=cpte&page=operations',
                   '(?P<subsite>.*)fr/.*GoOperationsTraitees',
                   '(?P<subsite>.*)fr/.*GoOperationDetails', HistoryPage)
+    custom_page = URL('/fr/espace/personnel/index.html', CustomPage)
+
 
     def __init__(self, website, username, password, subsite="", *args, **kwargs):
         super(LoginBrowser, self).__init__(*args, **kwargs)
@@ -57,7 +59,13 @@ class CmesBrowser(LoginBrowser):
 
     @need_login
     def iter_accounts(self):
-        return self.accounts.go(subsite=self.subsite).iter_accounts()
+        self.accounts.go(subsite=self.subsite)
+
+        if self.custom_page.is_here():
+            # it can be redirected by accounts page, return on accounts page should be enough
+            self.accounts.go(subsite=self.subsite)
+
+        return self.page.iter_accounts()
 
     @need_login
     def iter_investment(self, account):

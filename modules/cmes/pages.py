@@ -262,3 +262,7 @@ class HistoryPage(LoggedPage, HTMLPage):
                 self.env['label'] = label
                 self.env['amount'] = amount
                 self.env['investments'] = list(page.get_investments())
+
+
+class CustomPage(LoggedPage, HTMLPage):
+    pass
