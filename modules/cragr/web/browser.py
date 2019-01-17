@@ -31,6 +31,7 @@ from weboob.capabilities.bank import (
 from weboob.capabilities.base import find_object, empty
 from weboob.capabilities.profile import ProfileMissing
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
+from weboob.browser.switch import SiteSwitch
 from weboob.browser.pages import FormNotFound
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.tools.date import ChaoticDateGuesser, LinearDateGuesser
@@ -42,7 +43,7 @@ from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
 
 from .pages import (
-    HomePage, LoginPage, LoginErrorPage, AccountsPage,
+    HomePage, NewWebsitePage, LoginPage, LoginErrorPage, AccountsPage,
     SavingsPage, TransactionsPage, AdvisorPage, UselessPage,
     CardsPage, LifeInsurancePage, MarketPage, LoansPage, PerimeterPage,
     ChgPerimeterPage, MarketHomePage, FirstVisitPage, BGPIPage,
@@ -61,6 +62,7 @@ class WebsiteNotSupported(Exception):
 
 class Cragr(LoginBrowser, StatesMixin):
     home_page = URL('/$', '/particuliers.html', 'https://www.*.fr/Vitrine/jsp/CMDS/b.js', HomePage)
+    new_website = URL(r'https://www.credit-agricole.fr/.*', NewWebsitePage)
     login_page = URL(r'/stb/entreeBam$',
                      r'/stb/entreeBam\?.*typeAuthentification=CLIC_ALLER.*',
                      LoginPage)
@@ -169,6 +171,10 @@ class Cragr(LoginBrowser, StatesMixin):
 
         if not self.home_page.is_here():
             self.home_page.go()
+
+        if self.new_website.is_here():
+            self.logger.warning('This connection uses the new API website')
+            raise SiteSwitch('api')
 
         if self.new_login:
             self.page.go_to_auth()

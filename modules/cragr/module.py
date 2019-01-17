@@ -28,7 +28,7 @@ from weboob.capabilities.profile import CapProfile
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
-from .web.browser import Cragr
+from .proxy_browser import ProxyBrowser
 
 
 __all__ = ['CragrModule']
@@ -82,10 +82,12 @@ class CragrModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapContact
         'm.ca-valdefrance.fr': u'Val de France',
         'm.lefil.com': u'Pyrénées Gascogne',
         }.items())])
+
     CONFIG = BackendConfig(Value('website',  label=u'Région', choices=website_choices),
                            ValueBackendPassword('login',    label=u'N° de compte', masked=False),
                            ValueBackendPassword('password', label=u'Code personnel', regexp=r'\d{6}'))
-    BROWSER = Cragr
+
+    BROWSER = ProxyBrowser
 
     COMPAT_DOMAINS = {
         'm.lefil.com': 'm.ca-pyrenees-gascogne.fr',
