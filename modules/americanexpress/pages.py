@@ -111,6 +111,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                     acc._idforJSON =  account_data[10][-1]
                 else:
                     acc._idforJSON = account_data[-5][-1]
+                acc._idforJSON = re.sub('\s+', ' ', acc._idforJSON)
                 acc.number = '-%s' % account_data[2][2]
                 acc.label = '%s %s' % (account_data[6][4], account_data[10][-1])
                 acc._balances_token = acc.id = balances_token
