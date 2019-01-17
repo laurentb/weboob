@@ -20,193 +20,132 @@
 from __future__ import unicode_literals
 
 import datetime
-from lxml.etree import XML
-from lxml.html import fromstring
-from decimal import Decimal, InvalidOperation
 import re
 
-from weboob.capabilities.base import empty, NotAvailable, find_object
-from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.bank import Account, Investment, Loan
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Person, ProfileMissing
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.investments import is_isin_valid
-from weboob.tools.compat import parse_qs, urlparse, parse_qsl, urlunparse, urlencode, unicode
-from weboob.tools.date import parse_date as parse_d
-from weboob.browser.elements import DictElement, ItemElement, TableElement, method
+from weboob.tools.compat import urlparse, parse_qsl, urlunparse, urlencode, unicode
+from weboob.browser.elements import DictElement, ItemElement, TableElement, method, ListElement
 from weboob.browser.filters.json import Dict
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, RegexpError
-from weboob.browser.filters.html import Link, TableCell, Attr
-from weboob.browser.pages import HTMLPage, XMLPage, JsonPage, LoggedPage
-from weboob.exceptions import NoAccountsException, BrowserUnavailable, ActionNeeded
+from weboob.browser.filters.standard import (
+    CleanText, CleanDecimal, Regexp, RegexpError, Currency, Eval, Field, Format, Date,
+)
+from weboob.browser.filters.html import Link, TableCell
+from weboob.browser.pages import HTMLPage, XMLPage, JsonPage, LoggedPage, pagination
+from weboob.exceptions import BrowserUnavailable, ActionNeeded
 
 from .base import BasePage
+
 
 def MyDecimal(*args, **kwargs):
     kwargs.update(replace_dots=True, default=NotAvailable)
     return CleanDecimal(*args, **kwargs)
 
 
-class NotTransferBasePage(BasePage):
-    def is_transfer_here(self):
-        # check that we aren't on transfer or add recipient page
-        return bool(CleanText('//h1[contains(text(), "Effectuer un virement")]')(self.doc)) or \
-               bool(CleanText(u'//h3[contains(text(), "Ajouter un compte bénéficiaire de virement")]')(self.doc)) or \
-               bool(CleanText(u'//h1[contains(text(), "Ajouter un compte bénéficiaire de virement")]')(self.doc)) or \
-               bool(CleanText(u'//h3[contains(text(), "Veuillez vérifier les informations du compte à ajouter")]')(self.doc)) or \
-               bool(Link('//a[contains(@href, "per_cptBen_ajouterFrBic")]', default=NotAvailable)(self.doc))
+class AccountsMainPage(LoggedPage, HTMLPage):
+    def is_old_website(self):
+        return Link('//a[contains(text(), "Afficher la nouvelle consultation")]', default=None)(self.doc)
 
 
-class AccountsList(LoggedPage, BasePage):
-    LINKID_REGEXP = re.compile(".*ch4=(\w+).*")
+class AccountDetailsPage(LoggedPage, HTMLPage):
+    pass
 
-    TYPES = {u'Compte Bancaire':     Account.TYPE_CHECKING,
-             u'Compte Epargne':      Account.TYPE_SAVINGS,
-             u'Compte Sur Livret':   Account.TYPE_SAVINGS,
-             u'Compte Titres':       Account.TYPE_MARKET,
-             'Déclic Tempo':         Account.TYPE_MARKET,
-             u'Compte Alterna':      Account.TYPE_LOAN,
-             u'Crédit':              Account.TYPE_LOAN,
-             u'Ldd':                 Account.TYPE_SAVINGS,
-             u'Livret':              Account.TYPE_SAVINGS,
-             u'PEA':                 Account.TYPE_PEA,
-             u'PEL':                 Account.TYPE_SAVINGS,
-             u'Plan Epargne':        Account.TYPE_SAVINGS,
-             u'Prêt':                Account.TYPE_LOAN,
-             'Avance Patrimoniale':  Account.TYPE_LOAN,
+
+class AccountsPage(LoggedPage, JsonPage):
+    @method
+    class iter_accounts(DictElement):
+        item_xpath = 'donnees'
+
+        class item(ItemElement):
+            klass = Account
+
+            # There are more account type to find
+            TYPES = {
+                'COMPTE_COURANT': Account.TYPE_CHECKING,
+                'PEL': Account.TYPE_SAVINGS,
+                'LDD': Account.TYPE_SAVINGS,
+                'LIVRETA': Account.TYPE_SAVINGS,
+                'LIVRET_JEUNE': Account.TYPE_SAVINGS,
+                'COMPTE_SUR_LIVRET': Account.TYPE_SAVINGS,
+                'BANQUE_FRANCAISE_MUTUALISEE': Account.TYPE_SAVINGS,
+                'PRET_GENERAL': Account.TYPE_LOAN,
+                'PRET_PERSONNEL_MUTUALISE': Account.TYPE_LOAN,
+                'COMPTE_TITRE_GENERAL': Account.TYPE_MARKET,
+                'PEA_ESPECES': Account.TYPE_PEA,
+                'PEA_PME_ESPECES': Account.TYPE_PEA,
+                'COMPTE_TITRE_PEA': Account.TYPE_PEA,
+                'COMPTE_TITRE_PEA_PME': Account.TYPE_PEA,
+                'VIE_FEDER': Account.TYPE_LIFE_INSURANCE,
+                'ASSURANCE_VIE_GENERALE': Account.TYPE_LIFE_INSURANCE,
+                'AVANCE_PATRIMOINE': Account.TYPE_REVOLVING_CREDIT,
             }
 
-    def get_coming_url(self):
-        for script in self.doc.xpath('//script'):
-            s_content = CleanText('.')(script)
-            if "var url_encours" in s_content:
-                break
-        return re.search(r'url_encours=\"(.+)\"; ', s_content).group(1)
+            obj_id = obj_number = CleanText(Dict('numeroCompteFormate'), replace=[(' ', '')])
+            obj_label = Dict('labelToDisplay')
+            obj_balance = CleanDecimal(Dict('soldes/soldeTotal'))
+            obj_coming = CleanDecimal(Dict('soldes/soldeEnCours'))
+            obj_currency = Currency(Dict('soldes/devise'))
+            obj__cards = Dict('cartes', default=[])
 
-    def get_list(self):
-        err = CleanText('//span[@class="error_msg"]', default='')(self.doc)
-        if err == 'Vous ne disposez pas de compte consultable.':
-            raise NoAccountsException()
+            def obj_type(self):
+                return self.TYPES.get(Dict('produit')(self), Account.TYPE_UNKNOWN)
 
-        def check_valid_url(url):
-            pattern = ['/restitution/cns_detailAVPAT.html',
-                       '/restitution/cns_detailAlterna.html',
-                      ]
+            # Useful for navigation
+            obj__internal_id = Dict('idTechnique')
+            obj__prestation_id = Dict('id')
 
-            for p in pattern:
-                if url.startswith(p):
-                    return False
-            return True
-
-        accounts_list = []
-
-        for tr in self.doc.getiterator('tr'):
-            if 'LGNTableRow' not in tr.attrib.get('class', '').split():
-                continue
-
-            account = Account()
-            for td in tr.getiterator('td'):
-                if td.attrib.get('headers', '') == 'TypeCompte':
-                    a = td.find('a')
-                    if a is None:
-                        break
-                    account.label = CleanText('.')(a)
-                    account._link_id = a.get('href', '')
-                    for pattern, actype in self.TYPES.items():
-                        if account.label.startswith(pattern):
-                            account.type = actype
-                            break
-                    else:
-                        if account._link_id.startswith('/asv/asvcns10.html'):
-                            account.type = Account.TYPE_LIFE_INSURANCE
-                    # Website crashes when going on theses URLs
-                    if not check_valid_url(account._link_id):
-                        account._link_id = None
-
-                elif td.attrib.get('headers', '') == 'NumeroCompte':
-                    account.id = CleanText(u'.', replace=[(' ', '')])(td)
-
-                elif td.attrib.get('headers', '') == 'Libelle':
-                    text = CleanText('.')(td)
-                    if text != '':
-                        account.label = text
-
-                elif td.attrib.get('headers', '') == 'Solde':
-                    div = td.xpath('./div[@class="Solde"]')
-                    if len(div) > 0:
-                        balance = CleanText('.')(div[0])
-                        if len(balance) > 0 and balance not in ('ANNULEE', 'OPPOSITION'):
-                            try:
-                                account.balance = Decimal(FrenchTransaction.clean_amount(balance))
-                            except InvalidOperation:
-                                self.logger.error('Unable to parse balance %r' % balance)
-                                continue
-                            account.currency = account.get_currency(balance)
-                        else:
-                            account.balance = NotAvailable
-            if not account.label or empty(account.balance):
-                continue
-
-            if account._link_id and 'CARTE_' in account._link_id:
-                account.type = account.TYPE_CARD
-                page = self.browser.open(account._link_id).page
-
-                # Layout with several cards
-                line = CleanText('//table//div[contains(text(), "Liste des cartes")]', replace=[(' ', '')])(page.doc)
-                m = re.search(r'(\d+)', line)
-                if m:
-                    parent_id = m.group()
-                else:
-                    parent_id = CleanText('//div[contains(text(), "Numéro de compte débité")]/following::div[1]', replace=[(' ', '')])(page.doc)
-                account.parent = find_object(accounts_list, id=parent_id)
-
-            if account.type == Account.TYPE_UNKNOWN:
-                self.logger.debug('Unknown account type: %s', account.label)
-
-            accounts_list.append(account)
-
-        return accounts_list
+            def obj__loan_type(self):
+                if Field('type')(self) == Account.TYPE_LOAN:
+                    return Dict('codeFamille')(self)
+                return None
 
 
-class ComingPage(LoggedPage, XMLPage):
-    def set_coming(self, accounts_list):
-        for a in accounts_list:
-            a.coming = CleanDecimal('//EnCours[contains(@id, "%s")]' % a.id, replace_dots=True, default=NotAvailable)(self.doc)
+class LoansPage(LoggedPage, JsonPage):
+    def on_load(self):
+        if 'action' in self.doc['commun'] and self.doc['commun']['action'] == 'BLOCAGE':
+            raise ActionNeeded()
+        assert self.doc['commun']['statut'] != 'nok'
 
+    def get_loan_account(self, account):
+        assert account._prestation_id in Dict('donnees/tabIdAllPrestations')(self.doc), \
+            'Loan with prestation id %s should be on this page ...' % account._prestation_id
 
-class IbanPage(LoggedPage, NotTransferBasePage):
-    def is_here(self):
-        if self.is_transfer_here():
-            return False
-        return 'Imprimer ce RIB' in Attr('.//img', 'alt')(self.doc) or \
-               CleanText('//span[@class="error_msg"]')(self.doc)
+        for acc in Dict('donnees/tabPrestations')(self.doc):
+            if CleanText(Dict('idPrestation'))(acc) == account._prestation_id:
+                loan = Loan()
+                loan.id = loan.number = account.id
+                loan.label = account.label
+                loan.type = account.type
 
+                loan.currency = Currency(Dict('capitalRestantDu/devise'))(acc)
+                loan.balance = Eval(lambda x: x / 100, CleanDecimal(Dict('capitalRestantDu/valeur')))(acc)
+                loan.coming = account.coming
 
-    def get_iban(self):
-        if not CleanText('//span[@class="error_msg"]')(self.doc):
-            return CleanText().filter(self.doc.xpath("//font[contains(text(),'IBAN')]/b[1]")[0]).replace(' ', '')
+                loan.total_amount = Eval(lambda x: x / 100, CleanDecimal(Dict('montantPret/valeur')))(acc)
+                loan.next_payment_amount = Eval(lambda x: x / 100, CleanDecimal(Dict('montantEcheance/valeur')))(acc)
 
+                loan.duration = Dict('dureeNbMois')(acc)
+                loan.maturity_date = datetime.datetime.strptime(Dict('dateFin')(acc), '%Y%m%d')
 
-class CardsList(LoggedPage, BasePage):
-    def iter_cards(self):
-        for tr in self.doc.getiterator('tr'):
-            tds = tr.findall('td')
-            if len(tds) < 4 or tds[0].attrib.get('class', '') != 'tableauIFrameEcriture1':
-                continue
-
-            yield tr.xpath('.//a')[0].attrib['href']
+                loan._internal_id = account._internal_id
+                loan._prestation_id = account._prestation_id
+                return loan
 
 
 class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile(r'^CARTE \w+ RETRAIT DAB.*? (?P<dd>\d{2})/(?P<mm>\d{2})( (?P<HH>\d+)H(?P<MM>\d+))? (?P<text>.*)'),
+    PATTERNS = [(re.compile(r'^CARTE \w+ RETRAIT DAB.*? (?P<dd>\d{2})\/(?P<mm>\d{2})( (?P<HH>\d+)H(?P<MM>\d+))? (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile(r'^CARTE \w+ (?P<dd>\d{2})/(?P<mm>\d{2})( A (?P<HH>\d+)H(?P<MM>\d+))? RETRAIT DAB (?P<text>.*)'),
+                (re.compile(r'^CARTE \w+ (?P<dd>\d{2})\/(?P<mm>\d{2})( A (?P<HH>\d+)H(?P<MM>\d+))? RETRAIT DAB (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile(r'^CARTE \w+ REMBT (?P<dd>\d{2})/(?P<mm>\d{2})( A (?P<HH>\d+)H(?P<MM>\d+))? (?P<text>.*)'),
+                (re.compile(r'^CARTE \w+ REMBT (?P<dd>\d{2})\/(?P<mm>\d{2})( A (?P<HH>\d+)H(?P<MM>\d+))? (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_PAYBACK),
-                (re.compile(r'^(?P<category>CARTE) \w+ (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'),
+                (re.compile(r'^(?P<category>CARTE) \w+ (?P<dd>\d{2})\/(?P<mm>\d{2}) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_CARD),
-                (re.compile(r'^(?P<dd>\d{2})(?P<mm>\d{2})/(?P<text>.*?)/?(-[\d,]+)?$'),
+                (re.compile(r'^(?P<dd>\d{2})(?P<mm>\d{2})\/(?P<text>.*?)\/?(-[\d,]+)?$'),
                                                             FrenchTransaction.TYPE_CARD),
                 (re.compile(r'^(?P<category>(COTISATION|PRELEVEMENT|TELEREGLEMENT|TIP)) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_ORDER),
@@ -231,137 +170,182 @@ class Transaction(FrenchTransaction):
                ]
 
 
-class AccountHistory(LoggedPage, NotTransferBasePage):
-    def is_here(self):
-        return not self.is_transfer_here()
+class HistoryPage(LoggedPage, JsonPage):
+    @pagination
+    @method
+    class iter_history(DictElement):
+        def next_page(self):
+            conditions = (
+                not Dict('donnees/listeOperations')(self),
+                not Dict('donnees/recapitulatifCompte/chargerPlusOperations')(self)
+            )
 
+            if any(conditions):
+                return
+
+            if '&an200_operationsSupplementaires=true' in self.page.url:
+                return self.page.url
+            return self.page.url + '&an200_operationsSupplementaires=true'
+
+        item_xpath = 'donnees/listeOperations'
+
+        class item(ItemElement):
+            def condition(self):
+                return Dict('statutOperation')(self) == 'COMPTABILISE'
+
+            klass = Transaction
+
+            # not 'idOpe' means that it's a comming transaction
+            def obj_id(self):
+                if Dict('idOpe')(self):
+                    return Regexp(CleanText(Dict('idOpe')), r'(\d+)/')(self)
+
+            def obj_rdate(self):
+                if Dict('dateChargement')(self):
+                    return Eval(lambda t: datetime.date.fromtimestamp(int(t)/1000),Dict('dateChargement'))(self)
+
+            obj_date = Eval(lambda t: datetime.date.fromtimestamp(int(t)/1000), Dict('dateOpe'))
+            obj_amount = CleanDecimal(Dict('mnt'))
+            obj_raw = Dict('libOpe')
+
+
+    @method
+    class iter_pea_history(DictElement):
+        item_xpath = 'donnees/listeOperations'
+
+        class item(ItemElement):
+            klass = Transaction
+
+            obj_date = Eval(lambda t: datetime.date.fromtimestamp(int(t)/1000), Dict('dateOpe'))
+            obj_amount = CleanDecimal(Dict('mnt'))
+            obj_raw = Dict('libOpe')
+
+
+    @method
+    class iter_coming(DictElement):
+        item_xpath = 'donnees/listeOperations'
+
+        class item(ItemElement):
+            def condition(self):
+                return Dict('statutOperation')(self) != 'COMPTABILISE' and not Dict('idOpe')(self)
+
+            klass = Transaction
+
+            obj_rdate = Eval(lambda t: datetime.date.fromtimestamp(int(t)/1000), Dict('dateOpe'))
+            # there is no 'dateChargement' for coming transaction
+            obj_date = Eval(lambda t: datetime.date.fromtimestamp(int(t)/1000), Dict('dateOpe'))
+            obj_amount = CleanDecimal(Dict('mnt'))
+            obj_raw = Dict('libOpe')
+
+
+class ComingPage(LoggedPage, XMLPage):
+    def get_account_comings(self):
+        account_comings = {}
+        for el in self.doc.xpath('//EnCours'):
+            prestation_id = CleanText('./@id')(el).replace('montantEncours', '')
+            coming_amount = MyDecimal(Regexp(CleanText('.'), r'(.*)&nbsp;'))(el)
+            account_comings[prestation_id] = coming_amount
+        return account_comings
+
+
+class CardListPage(LoggedPage, HTMLPage):
+    def get_card_history_link(self, account):
+        for el in self.doc.xpath('//a[contains(@href, "detailCARTE")]'):
+            if CleanText('.', replace=[(' ', '')])(el) == account.number:
+                return Link('.')(el)
+
+    def get_card_transactions_link(self):
+        if 'Le détail de cette carte ne vous est pas accessible' in CleanText('//div')(self.doc):
+            return NotAvailable
+        return CleanText('//div[@id="operationsListView"]//select/option[@selected="selected"]/@value')(self.doc)
+
+
+class CardHistoryPage(LoggedPage, HTMLPage):
+    @method
+    class iter_card_history(ListElement):
+        item_xpath = '//tr'
+
+        class item(ItemElement):
+            klass = Transaction
+
+            obj_label = CleanText('.//td[@headers="Libelle"]/span')
+
+            def obj_date(self):
+                if not 'TOTAL DES FACTURES' in Field('label')(self):
+                    return Date(Regexp(CleanText('.//td[@headers="Date"]'), r'\d{2}\/\d{2}\/\d{4}'))(self)
+                else:
+                    return NotAvailable
+
+            def obj_amount(self):
+                if not 'TOTAL DES FACTURES' in Field('label')(self):
+                    return MyDecimal(CleanText('.//td[contains(@headers, "Debit")]'))(self)
+                else:
+                    return abs(MyDecimal(CleanText('.//td[contains(@headers, "Debit")]'))(self))
+
+            def obj_raw(self):
+                if not 'TOTAL DES FACTURES' in Field('label')(self):
+                    return Transaction.Raw(CleanText('.//td[@headers="Libelle"]/span'))(self)
+                return NotAvailable
+
+
+class MarketPage(LoggedPage, HTMLPage):
+    # TODO
+    pass
+
+
+class AdvisorPage(LoggedPage, XMLPage):
+    ENCODING = 'ISO-8859-15'
+
+    def get_advisor(self):
+        advisor = Advisor()
+        advisor.name = Format('%s %s', CleanText('//NomConseiller'), CleanText('//PrenomConseiller'))(self.doc)
+        advisor.phone = CleanText('//NumeroTelephone')(self.doc)
+        advisor.agency = CleanText('//liloes')(self.doc)
+        advisor.address = Format('%s %s %s',
+                                 CleanText('//ruadre'),
+                                 CleanText('//cdpost'),
+                                 CleanText('//loadre')
+                                 )(self.doc)
+        advisor.email = CleanText('//Email')(self.doc)
+        advisor.role = "wealth" if "patrimoine" in CleanText('//LibelleNatureConseiller')(self.doc).lower() else "bank"
+        yield advisor
+
+
+class HTMLProfilePage(LoggedPage, HTMLPage):
     def on_load(self):
-        super(AccountHistory, self).on_load()
+        msg = CleanText('//div[@id="connecteur_partenaire"]', default='')(self.doc)
+        service_unavailable_msg = CleanText('//span[@class="error_msg" and contains(text(), "indisponible")]')(self.doc)
 
-        msg = CleanText('//span[@class="error_msg"]', default='')(self.doc)
-        if 'Le service est momentanément indisponible' in msg:
+        if 'Erreur' in msg:
             raise BrowserUnavailable(msg)
+        if service_unavailable_msg:
+            raise ProfileMissing(service_unavailable_msg)
 
-    debit_date = None
+    def get_profile(self):
+        profile = Person()
+        profile.name = Regexp(CleanText('//div[@id="dcr-conteneur"]//div[contains(text(), "PROFIL DE")]'), r'PROFIL DE (.*)')(self.doc)
+        profile.address = CleanText('//div[@id="dcr-conteneur"]//div[contains(text(), "ADRESSE")]/following::table//tr[3]/td[2]')(self.doc)
+        profile.address += ' ' + CleanText('//div[@id="dcr-conteneur"]//div[contains(text(), "ADRESSE")]/following::table//tr[5]/td[2]')(self.doc)
+        profile.address += ' ' + CleanText('//div[@id="dcr-conteneur"]//div[contains(text(), "ADRESSE")]/following::table//tr[6]/td[2]')(self.doc)
+        profile.country = CleanText('//div[@id="dcr-conteneur"]//div[contains(text(), "ADRESSE")]/following::table//tr[7]/td[2]')(self.doc)
 
-    def get_part_url(self):
-        for script in self.doc.getiterator('script'):
-            if script.text is None:
-                continue
+        return profile
 
-            m = re.search('var listeEcrCavXmlUrl="(.*)";', script.text)
-            if m:
-                return m.group(1)
 
-        return None
+class XMLProfilePage(LoggedPage, XMLPage):
+    def get_email(self):
+        return CleanText('//AdresseEmailExterne')(self.doc)
 
-    def iter_transactions(self):
-        url = self.get_part_url()
-        if url is None:
-            # There are no transactions in this kind of account
-            return
 
-        is_deferred_card = bool(self.doc.xpath(u'//div[contains(text(), "Différé")]'))
-        has_summary = False
-
-        if is_deferred_card:
-            coming_debit_date = None
-            # get coming debit date for deferred_card
-            date_string = Regexp(CleanText(u'//option[contains(text(), "détail des factures à débiter le")]'),
-                                r'(\d{2}/\d{2}/\d{4})',
-                                default=NotAvailable)(self.doc)
-            if date_string:
-                coming_debit_date = parse_d(date_string)
-
-        while True:
-            d = XML(self.browser.open(url).content)
-            el = d.xpath('//dataBody')
-            if not el:
-                return
-
-            el = el[0]
-            s = unicode(el.text).encode('iso-8859-1')
-            doc = fromstring(s)
-
-            for tr in self._iter_transactions(doc):
-                if tr.type == Transaction.TYPE_CARD_SUMMARY:
-                    has_summary = True
-                if is_deferred_card and tr.type is Transaction.TYPE_CARD:
-                    tr.type = Transaction.TYPE_DEFERRED_CARD
-                    if not has_summary:
-                        if coming_debit_date:
-                            tr.date = coming_debit_date
-                        tr._coming = True
-                yield tr
-
-            el = d.xpath('//dataHeader')[0]
-            if int(el.find('suite').text) != 1:
-                return
-
-            url = urlparse(url)
-            p = parse_qs(url.query)
-
-            args = {}
-            args['n10_nrowcolor'] = 0
-            args['operationNumberPG'] = el.find('operationNumber').text
-            args['operationTypePG'] = el.find('operationType').text
-            args['pageNumberPG'] = el.find('pageNumber').text
-            args['idecrit'] = el.find('idecrit').text or ''
-            args['sign'] = p['sign'][0]
-            args['src'] = p['src'][0]
-
-            url = '%s?%s' % (url.path, urlencode(args))
-
-    def _iter_transactions(self, doc):
-        t = None
-        for i, tr in enumerate(doc.xpath('//tr')):
-            try:
-                raw = tr.attrib['title'].strip()
-            except KeyError:
-                raw = CleanText('./td[@headers="Libelle"]//text()')(tr)
-
-            date = CleanText('./td[@headers="Date"]')(tr)
-            if date == '':
-                m = re.search(r'(\d+)/(\d+)', raw)
-                if not m:
-                    continue
-
-                old_debit_date = self.debit_date
-                self.debit_date = t.date if t else datetime.date.today()
-                self.debit_date = self.debit_date.replace(day=int(m.group(1)), month=int(m.group(2)))
-
-                # Need to do it when years/date overlap, causing the previous `.replace()` to
-                # set the date at the end of the next year instead of the current year
-                if old_debit_date is None and self.debit_date > datetime.date.today():
-                    old_debit_date = self.debit_date
-
-                if old_debit_date is not None:
-                    while self.debit_date > old_debit_date:
-                        self.debit_date = self.debit_date.replace(year=self.debit_date.year - 1)
-                        self.logger.error('adjusting debit date to %s', self.debit_date)
-
-                if not t:
-                    continue
-
-            t = Transaction()
-
-            if 'EnTraitement' in tr.get('class', ''):
-                t._coming = True
-            else:
-                t._coming = False
-
-            t.set_amount(*reversed([el.text for el in tr.xpath('./td[@class="right"]')]))
-            if date == '':
-                # Credit from main account.
-                t.amount = -t.amount
-                date = self.debit_date
-            t.rdate = t.parse_date(date)
-            t.parse(raw=raw, date=(self.debit_date or date), vdate=(date or None))
-
-            yield t
-
-    def get_liquidities(self):
-        return CleanDecimal('//td[contains(@headers, "solde")]', replace_dots=True)(self.doc)
+# TODO: check if it work
+class NotTransferBasePage(BasePage):
+    def is_transfer_here(self):
+        # check that we aren't on transfer or add recipient page
+        return bool(CleanText('//h1[contains(text(), "Effectuer un virement")]')(self.doc)) or \
+               bool(CleanText(u'//h3[contains(text(), "Ajouter un compte bénéficiaire de virement")]')(self.doc)) or \
+               bool(CleanText(u'//h1[contains(text(), "Ajouter un compte bénéficiaire de virement")]')(self.doc)) or \
+               bool(CleanText(u'//h3[contains(text(), "Veuillez vérifier les informations du compte à ajouter")]')(self.doc)) or \
+               bool(Link('//a[contains(@href, "per_cptBen_ajouterFrBic")]', default=NotAvailable)(self.doc))
 
 
 class Invest(object):
@@ -506,6 +490,7 @@ class LifeInsurance(LoggedPage, BasePage):
         # to check page errors
         return CleanText('//span[@class="error_msg"]')(self.doc)
 
+
 class LifeInsuranceInvest(LifeInsurance, Invest):
     COL_LABEL = 0
     COL_QUANTITY = 1
@@ -525,6 +510,7 @@ class LifeInsuranceInvest(LifeInsurance, Invest):
         # "pages" value is for example "1/5"
         pages = CleanText('//div[@class="net2g_asv_tableau_pager"]')(self.doc)
         return re.search(r'/(.*)', pages).group(1) if pages else None
+
 
 class LifeInsuranceInvest2(LifeInsuranceInvest):
     @method
@@ -615,103 +601,7 @@ class LifeInsuranceHistory(LifeInsurance):
             return NotAvailable
 
 
-class ListRibPage(LoggedPage, BasePage):
-    def get_rib_url(self, account):
-        for div in self.doc.xpath('//table//td[@class="fond_cellule"]//div[@class="tableauBodyEcriture1"]//table//tr'):
-            if account.id == CleanText().filter(div.xpath('./td[2]//div/div')).replace(' ', ''):
-                href = CleanText().filter(div.xpath('./td[4]//a/@href'))
-                m = re.search("javascript:windowOpenerRib\('(.*?)'(.*)\)", href)
-                if m:
-                    return m.group(1)
-
-
-class AdvisorPage(LoggedPage, BasePage):
-    def get_advisor(self):
-        fax = CleanText('//div[contains(text(), "Fax")]/following-sibling::div[1]', replace=[(' ', '')])(self.doc)
-        agency = CleanText('//div[contains(@class, "agence")]/div[last()]')(self.doc)
-        address = CleanText('//div[contains(text(), "Adresse")]/following-sibling::div[1]')(self.doc)
-        for div in self.doc.xpath('//div[div[text()="Contacter mon conseiller"]]'):
-            a = Advisor()
-            a.name = CleanText('./div[2]')(div)
-            a.phone = Regexp(CleanText(u'./following-sibling::div[div[contains(text(), "Téléphone")]][1]/div[last()]', replace=[(' ', '')]), '([+\d]+)')(div)
-            a.fax = fax
-            a.agency = agency
-            a.address = address
-            a.mobile = a.email = NotAvailable
-            a.role = u"wealth" if "patrimoine" in CleanText('./div[1]')(div) else u"bank"
-            yield a
-
-
-class HTMLProfilePage(LoggedPage, HTMLPage):
-    def on_load(self):
-        msg = CleanText('//div[@id="connecteur_partenaire"]', default='')(self.doc)
-        service_unavailable_msg = CleanText('//span[@class="error_msg" and contains(text(), "indisponible")]')(self.doc)
-
-        if 'Erreur' in msg:
-            raise BrowserUnavailable(msg)
-        if service_unavailable_msg:
-            raise ProfileMissing(service_unavailable_msg)
-
-    def get_profile(self):
-        profile = Person()
-        profile.name = Regexp(CleanText('//div[@id="dcr-conteneur"]//div[contains(text(), "PROFIL DE")]'), r'PROFIL DE (.*)')(self.doc)
-        profile.address = CleanText('//div[@id="dcr-conteneur"]//div[contains(text(), "ADRESSE")]/following::table//tr[3]/td[2]')(self.doc)
-        profile.address += ' ' + CleanText('//div[@id="dcr-conteneur"]//div[contains(text(), "ADRESSE")]/following::table//tr[5]/td[2]')(self.doc)
-        profile.address += ' ' + CleanText('//div[@id="dcr-conteneur"]//div[contains(text(), "ADRESSE")]/following::table//tr[6]/td[2]')(self.doc)
-        profile.country = CleanText('//div[@id="dcr-conteneur"]//div[contains(text(), "ADRESSE")]/following::table//tr[7]/td[2]')(self.doc)
-
-        return profile
-
-
-class XMLProfilePage(LoggedPage, XMLPage):
-    def get_email(self):
-        return CleanText('//AdresseEmailExterne')(self.doc)
-
-
-class LoansPage(LoggedPage, JsonPage):
-    def on_load(self):
-        if 'action' in self.doc['commun'] and self.doc['commun']['action'] == 'BLOCAGE':
-            raise ActionNeeded()
-        assert self.doc['commun']['statut'] != 'nok'
-
-    @method
-    class iter_accounts(DictElement):
-        item_xpath = 'donnees/tabPrestations'
-
-        class item(ItemElement):
-            klass = Account
-
-            obj_id = Dict('idPrestation')
-            obj_type = Account.TYPE_LOAN
-            obj_label = Dict('libelle')
-            obj_currency = Dict('capitalRestantDu/devise', default=NotAvailable)
-            obj__link_id = None
-
-            def obj_balance(self):
-                val = Dict('capitalRestantDu/valeur', default=NotAvailable)(self)
-                if val is NotAvailable:
-                    return val
-
-                val = Decimal(val)
-                point = Decimal(Dict('capitalRestantDu/posDecimale')(self))
-                assert point >= 0
-                return val.scaleb(-point)
-
-            def validate(self, obj):
-                assert obj.id
-                assert obj.label
-                if obj.balance is NotAvailable:
-                    # ... but the account may be in the main AccountsList anyway
-                    self.logger.debug('skipping account %r %r due to missing balance', obj.id, obj.label)
-                    return False
-                return True
-
-
 class UnavailableServicePage(LoggedPage, HTMLPage):
     def on_load(self):
         if self.doc.xpath('//div[contains(@class, "erreur_404_content")]'):
             raise BrowserUnavailable()
-
-
-class NewLandingPage(LoggedPage, HTMLPage):
-    pass

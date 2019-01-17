@@ -25,8 +25,9 @@ import re
 from weboob.tools.json import json
 
 from weboob.exceptions import BrowserUnavailable, BrowserPasswordExpired, ActionNeeded
-from weboob.browser.pages import HTMLPage
+from weboob.browser.pages import HTMLPage, JsonPage
 from weboob.browser.filters.standard import CleanText
+from weboob.browser.filters.json import Dict
 
 from .base import BasePage
 from ..captcha import Captcha, TileError
@@ -61,19 +62,10 @@ class PasswordPage(object):
         return new_grid
 
 
-class LoginPage(BasePage, PasswordPage):
-    def on_load(self):
-        for td in self.doc.getroot().cssselect('td.LibelleErreur'):
-            if td.text is None:
-                continue
-            msg = td.text.strip()
-            if 'indisponible' in msg:
-                raise BrowserUnavailable(msg)
-
+class MainPage(BasePage, PasswordPage):
     def get_authentication_data(self):
-        headers = {'Referer': 'https://particuliers.societegenerale.fr/index.html'}
         url = self.browser.BASEURL + '//sec/vkm/gen_crypto?estSession=0'
-        infos_data = self.browser.open(url, headers=headers).text
+        infos_data = self.browser.open(url).text
         infos_data = re.match('^_vkCallback\((.*)\);$', infos_data).group(1)
         infos = json.loads(infos_data.replace("'", '"'))
 
@@ -97,20 +89,28 @@ class LoginPage(BasePage, PasswordPage):
     def login(self, login, password):
         authentication_data = self.get_authentication_data()
 
-        form = self.get_form(id='n2g_authentification')
-
         pwd = authentication_data['img'].get_codes(password[:6])
         t = pwd.split(',')
         newpwd = ','.join(t[self.strange_map[j]] for j in range(6))
 
-        form['codcli'] = login.encode('iso-8859-1')
-        form['user_id'] = login.encode('iso-8859-1')
-        form['codsec'] = newpwd
-        form['cryptocvcs'] = authentication_data['infos']['crypto'].encode('iso-8859-1')
-        form['vkm_op'] = 'auth'
-        form.url = 'https://particuliers.secure.societegenerale.fr//acces/authlgn.html'
-        del form['button']
-        form.submit()
+        data = {
+            'top_code_etoile': 0,
+            'top_ident': 1,
+            'jeton': '',
+            'cible': 300,
+            'user_id': login.encode('iso-8859-1'),
+            'codsec': newpwd,
+            'cryptocvcs': authentication_data['infos']['crypto'].encode('iso-8859-1'),
+            'vkm_op': 'auth',
+        }
+        self.browser.location(self.browser.absurl('/sec/vk/authent.json'), data=data)
+
+
+class LoginPage(JsonPage):
+    def get_error(self):
+        if (Dict('commun/statut')(self.doc)).lower() != 'ok':
+            return Dict('commun/raison')(self.doc), Dict('commun/action')(self.doc)
+        return None, None
 
 
 class BadLoginPage(BasePage):

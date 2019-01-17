@@ -36,7 +36,7 @@ from weboob.tools.json import json
 from weboob.exceptions import BrowserUnavailable
 
 from .base import BasePage
-from .login import LoginPage
+from .login import MainPage
 
 
 class TransferJson(LoggedPage, JsonPage):
@@ -62,6 +62,12 @@ class TransferJson(LoggedPage, JsonPage):
 
     def get_first_available_transfer_date(self):
         return Date(Dict('donnees/listeEmetteursBeneficiaires/premiereDateExecutionPossible'))(self.doc)
+
+    def get_account_ibans_dict(self):
+        account_ibans = {}
+        for account in Dict('donnees/listeEmetteursBeneficiaires/listeDetailEmetteurs')(self.doc):
+            account_ibans[Dict('identifiantPrestation')(account)] = Dict('iban')(account)
+        return account_ibans
 
     @method
     class iter_recipients(DictElement):
@@ -138,7 +144,7 @@ class TransferJson(LoggedPage, JsonPage):
         return Dict('commun/statut')(self.doc).upper() == 'OK'
 
 
-class SignTransferPage(LoggedPage, LoginPage):
+class SignTransferPage(LoggedPage, MainPage):
     def get_token(self):
         result_page = json.loads(self.content)
         assert result_page['commun']['statut'].upper() == 'OK', 'Something went wrong: %s' % result_page['commun']['raison']
