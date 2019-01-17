@@ -98,10 +98,9 @@ class InvestmentsPage(LoggedPage, HTMLPage):
 
         col_label = col_code = 'Valeur / Isin'
         col_quantity = 'Quantité'
-        col_unitprice = 'Prix de revient'
-        col_unitvalue = 'Cours'
+        col_unitvalue = col_vdate= 'Cours'
         col_valuation = 'Valorisation totale'
-        col_vdate = 'Cours'
+        col_unitprice = 'Prix de revient'
         col_diff = '+/- Value latente'
 
         # Due to a bug in TableCell, column's number match with tdcell-1
@@ -111,8 +110,16 @@ class InvestmentsPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Investment
 
+            obj_diff = CleanDecimal(TableCell('diff', colspan=True), replace_dots=True)
+            obj_unitprice = CleanDecimal(TableCell('unitprice', colspan=True), replace_dots=True)
+            obj_valuation = CleanDecimal(TableCell('valuation', colspan=True), replace_dots=True)
+
+            def obj_quantity(self):
+                tablecell = TableCell('quantity', colspan=True)(self)[0]
+                return CleanDecimal(tablecell.xpath('./span'), replace_dots=True)(self)
+
             def obj_label(self):
-                tablecell = TableCell('label')(self)[0]
+                tablecell = TableCell('label', colspan=True)(self)[0]
                 label = CleanText(tablecell.xpath('./following-sibling::td[@class=""]/div/a')[0])(self)
                 return label
 
@@ -121,8 +128,7 @@ class InvestmentsPage(LoggedPage, HTMLPage):
                 # We try to get the code from <a> div. If we didn't find code in url,
                 # we try to find it in the cell text
 
-                tablecell = TableCell('label')(self)[0]
-
+                tablecell = TableCell('label', colspan=True)(self)[0]
                 # url find try
                 url = tablecell.xpath('./following-sibling::td[position()=1]/div/a')[0].attrib['href']
                 code_match = re.search(r'sico=([A-Z0-9]*)', url)
@@ -143,15 +149,6 @@ class InvestmentsPage(LoggedPage, HTMLPage):
                     return Investment.CODE_TYPE_ISIN
                 return NotAvailable
 
-            def obj_quantity(self):
-                tablecell = TableCell('quantity')(self)[0]
-                qty = tablecell.xpath('./preceding-sibling::td[position()=1]//span/text()')[0]
-                return Decimal(CleanDecimal(replace_dots=True).filter(qty))
-
-            def obj_unitprice(self):
-                tablecell = TableCell('unitprice')(self)[0]
-                unitprice = tablecell.xpath('./preceding-sibling::td[position()=1]')[0]
-                return CleanDecimal(replace_dots=True).filter(unitprice)
 
             def obj_unitvalue(self):
                 currency, unitvalue = self.original_unitvalue()
@@ -172,13 +169,8 @@ class InvestmentsPage(LoggedPage, HTMLPage):
                 if currency != self.env['account_currency']:
                     return unitvalue
 
-            def obj_valuation(self):
-                tablecell = TableCell('valuation')(self)[0]
-                valuation = tablecell.xpath('./preceding-sibling::td[position()=1]')[0]
-                return CleanDecimal(replace_dots=True).filter(valuation)
-
             def obj_vdate(self):
-                tablecell = TableCell('vdate')(self)[0]
+                tablecell = TableCell('vdate', colspan=True)(self)[0]
                 vdate_scrapped = tablecell.xpath('./preceding-sibling::td[position()=1]//span/text()')[0]
 
                 # Scrapped date could be a schedule time (00:00) or a date (01/01/1970)
@@ -195,15 +187,10 @@ class InvestmentsPage(LoggedPage, HTMLPage):
 
                 return vdate
 
-            def obj_diff(self):
-                tablecell = TableCell('diff')(self)[0]
-                valuation = tablecell.xpath('./preceding-sibling::td[position()=1]//span/text()')[0]
-                return CleanDecimal(replace_dots=True).filter(valuation)
-
             # extract unitvalue and currency
             def original_unitvalue(self):
-                tablecell = TableCell('unitvalue')(self)[0]
-                text = tablecell.xpath('./preceding-sibling::td[position()=1]/text()')[0]
+                tablecell = TableCell('unitvalue', colspan=True)(self)[0]
+                text = tablecell.xpath('./text()')[0]
 
                 regex = '[0-9,]* (.*)'
                 currency = Currency().filter(re.search(regex, text).group(1))
