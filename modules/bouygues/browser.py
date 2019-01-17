@@ -41,15 +41,16 @@ class BouyguesBrowser(LoginBrowser):
     home = URL(r'https://www.bouyguestelecom.fr/mon-compte', HomePage)
     subscriber = URL(r'/personnes/(?P<idUser>\d+)$', SubscriberPage)
     subscriptions = URL(r'/personnes/(?P<idUser>\d+)/comptes-facturation', SubscriptionPage)
+
     subscriptions_details = URL(r'/comptes-facturation/(?P<idSub>\d+)/contrats-payes', SubscriptionDetailPage)
     document_file = URL(r'/comptes-facturation/(?P<idSub>\d+)/factures/\d+/documents', DocumentFilePage)
     documents = URL(r'/comptes-facturation/(?P<idSub>\d+)/factures', DocumentsPage)
 
-    sms_page = URL(r'http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/sendSMS.phtml',
-                   r'http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/confirmSendSMS.phtml',
+    sms_page = URL(r'https://www.secure.bbox.bouyguestelecom.fr/services/SMSIHD/sendSMS.phtml',
+                   r'https://www.secure.bbox.bouyguestelecom.fr/services/SMSIHD/confirmSendSMS.phtml',
                    SendSMSPage)
-    confirm = URL(r'http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/resultSendSMS.phtml', UselessPage)
-    sms_error_page = URL(r'http://www.mobile.service.bbox.bouyguestelecom.fr/services/SMSIHD/SMS_erreur.phtml',
+    confirm = URL(r'https://www.secure.bbox.bouyguestelecom.fr/services/SMSIHD/resultSendSMS.phtml', UselessPage)
+    sms_error_page = URL(r'https://www.secure.bbox.bouyguestelecom.fr/services/SMSIHD/SMS_erreur.phtml',
                          SendSMSErrorPage)
     profile = URL(r'/personnes/(?P<idUser>\d+)/coordonnees', ProfilePage)
 
