@@ -30,6 +30,7 @@ from weboob.capabilities.base import NotAvailable
 from .pages import (
     LoginPage, AccountsPage, AccountPage, MarketAccountPage,
     LifeInsuranceAccountPage, CardPage, IbanPDFPage, ActionNeededPage,
+    RevolvingAccountPage, LoanAccountPage,
 )
 
 
@@ -41,10 +42,12 @@ class Barclays(LoginBrowser):
 
     login = URL('/BconnectDesk/servletcontroller',                  LoginPage)
     accounts = URL('/BconnectDesk/servletcontroller',               AccountsPage)
+    loan_account = URL('/BconnectDesk/servletcontroller',           LoanAccountPage)
     account = URL('/BconnectDesk/servletcontroller',                AccountPage)
     card_account = URL('/BconnectDesk/servletcontroller',           CardPage)
     market_account = URL('/BconnectDesk/servletcontroller',         MarketAccountPage)
     life_insurance_account = URL('/BconnectDesk/servletcontroller', LifeInsuranceAccountPage)
+    revolving_account = URL('/BconnectDesk/servletcontroller',      RevolvingAccountPage)
     actionNeededPage = URL('/BconnectDesk/servletcontroller',       ActionNeededPage)
     iban = URL('/BconnectDesk/editique',                            IbanPDFPage)
 
@@ -128,8 +131,9 @@ class Barclays(LoginBrowser):
             traccounts = []
 
             for account in accounts:
-                if account.type != Account.TYPE_LOAN:
-                    self._go_to_account(account)
+                self._go_to_account(account)
+                if account.type == Account.TYPE_LOAN:
+                    account = self.page.get_loan_attributes(account)
 
                 if account.type == Account.TYPE_CARD:
                     if self.page.is_immediate_card():
@@ -139,6 +143,8 @@ class Barclays(LoginBrowser):
                         continue
 
                     account._attached_account = self.page.do_account_attachment([a for a in accounts if a.type == Account.TYPE_CHECKING])
+                if account.type == Account.TYPE_REVOLVING_CREDIT:
+                    account = self.page.get_revolving_attributes(account)
 
                 account.iban = self.iban.open().get_iban() if self.page.has_iban() else NotAvailable
 
@@ -152,7 +158,7 @@ class Barclays(LoginBrowser):
     def iter_history(self, account):
         if account._multiple_type and not self._multiple_account_choice(account):
             return []
-        elif account.type == Account.TYPE_LOAN:
+        elif account.type in (Account.TYPE_LOAN, Account.TYPE_REVOLVING_CREDIT):
             return []
 
         self._go_to_account(account)

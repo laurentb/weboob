@@ -25,7 +25,7 @@ from weboob.browser.pages import HTMLPage, PDFPage, LoggedPage
 from weboob.browser.elements import TableElement, ListElement, ItemElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Field, Date, Eval
 from weboob.browser.filters.html import Attr, TableCell, ReplaceEntities
-from weboob.capabilities.bank import Account, Investment, NotAvailable
+from weboob.capabilities.bank import Account, Investment, Loan, NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.exceptions import ActionNeeded
@@ -107,6 +107,8 @@ class AccountsPage(StatefulPage):
     ACCOUNT_EXTRA_TYPES = {'BMOOVIE': Account.TYPE_LIFE_INSURANCE,
                            'B. GESTION VIE': Account.TYPE_LIFE_INSURANCE,
                            'E VIE MILLEIS': Account.TYPE_LIFE_INSURANCE,
+                           'BANQUE PRIVILEGE': Account.TYPE_REVOLVING_CREDIT,
+                           'PRET PERSONNEL': Account.TYPE_LOAN,
                           }
     ACCOUNT_TYPE_TO_STR = {Account.TYPE_MARKET: 'TTR',
                            Account.TYPE_CARD: 'CRT'
@@ -435,6 +437,64 @@ class CardPage(AbstractAccountPage):
         form = self.get_form(id='form1')
 
         return (a[1], 'C4__WORKING[1].LISTCONTRATS', form['C4__WORKING[1].LISTCONTRATS'], a[2])
+
+
+class RevolvingAccountPage(AbstractAccountPage):
+    def is_here(self):
+        return bool(CleanText('//span[contains(., "Crédit renouvelable")]')(self.doc))
+
+    def has_iban(self):
+        return False
+
+    def get_revolving_attributes(self, account):
+        loan = Loan()
+
+        loan.available_amount = CleanDecimal('//div/span[contains(text(), "Montant disponible")]/following-sibling::*[1]', replace_dots=True)(self.doc)
+        loan.used_amount = CleanDecimal('//div/span[contains(text(), "Montant Utilisé")]/following-sibling::*[1]', replace_dots=True)(self.doc)
+        loan.total_amount = CleanDecimal('//div/span[contains(text(), "Réserve accordée")]/following-sibling::*[1]', replace_dots=True)(self.doc)
+        loan.last_payment_amount = CleanDecimal('//div/span[contains(text(), "Echéance Précédente")]/following-sibling::*[1]', replace_dots=True)(self.doc)
+        loan.last_payment_date = Date(Regexp(CleanText('//div/span[contains(text(), "Echéance Précédente")]/following-sibling::*[2]'), r'(\d{2}\/\d{2}\/\d{4})'), dayfirst=True)(self.doc)
+        owner_name = CleanText('//a[@class="lien-entete login"]/span')(self.doc)
+        loan.name = ' '.join(owner_name.split()[1:])
+
+        loan.id = account.id
+        loan.currency = account.currency
+        loan.label = account.label
+        loan.balance = account.balance
+        loan.coming = account.coming
+        loan.type = account.type
+        loan._uncleaned_id = account._uncleaned_id
+        loan._multiple_type = account._multiple_type
+        return loan
+
+
+class LoanAccountPage(AbstractAccountPage):
+    def is_here(self):
+        return bool(CleanText('//span[contains(., "Détail compte")]')(self.doc))
+
+    def has_iban(self):
+        return False
+
+    def get_loan_attributes(self, account):
+        loan = Loan()
+        loan.total_amount = CleanDecimal('//div/span[contains(text(), "Capital initial")]/following-sibling::*[1]', replace_dots=True)(self.doc)
+        owner_name = CleanText('//a[@class="lien-entete login"]/span')(self.doc)
+        loan.name = ' '.join(owner_name.split()[1:])
+        loan.subscription_date = Date(Regexp(CleanText('//h4[span[contains(text(), "Date de départ du prêt")]]'), r'(\d{2}\/\d{2}\/\d{4})'), dayfirst=True)(self.doc)
+        loan.maturity_date = Date(Regexp(CleanText('//h4[span[contains(text(), "Date de fin du prêt")]]'), r'(\d{2}\/\d{2}\/\d{4})'), dayfirst=True)(self.doc)
+        loan.rate = Eval(lambda x: x / 100, CleanDecimal('//div/span[contains(text(), "Taux fixe")]/following-sibling::*[1]', replace_dots=True))(self.doc)
+        loan.last_payment_amount = CleanDecimal('//div[@class="txt-detail  " and not (@style)]//span[contains(text(), "Echéance du")]/following-sibling::span[1]')(self.doc)
+        loan.last_payment_date = Date(Regexp(CleanText('//div[@class="txt-detail  " and not (@style)]//span[contains(text(), "Echéance du")]'), r'(\d{2}\/\d{2}\/\d{4})'), dayfirst=True)(self.doc)
+
+        loan.id = account.id
+        loan.currency = account.currency
+        loan.label = account.label
+        loan.balance = account.balance
+        loan.coming = account.coming
+        loan.type = account.type
+        loan._uncleaned_id = account._uncleaned_id
+        loan._multiple_type = account._multiple_type
+        return loan
 
 
 class IbanPDFPage(LoggedPage, PDFPage):
