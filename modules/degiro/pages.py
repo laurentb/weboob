@@ -21,6 +21,7 @@ from __future__ import unicode_literals
 
 from decimal import Decimal
 import re
+import datetime
 
 from weboob.browser.pages import JsonPage, LoggedPage
 from weboob.browser.elements import ItemElement, DictElement, method
@@ -154,11 +155,15 @@ class HistoryPage(LoggedPage, JsonPage):
 
             obj_raw = Transaction.Raw(CleanText(Dict('description')))
             obj_date = Date(CleanText(Dict('date')), dayfirst=True)
-
             obj__isin = Regexp(Dict('description'), r'\((.{12}?)\)', nth=-1, default=None)
             obj__number = Regexp(Dict('description'), r'^([Aa]chat|[Vv]ente|[Bb]uy|[Ss]ell) (\d+[,.]?\d*)', template='\\2', default=None)
-
             obj__datetime = Dict('date')
+
+            def obj_id(self):
+                date = CleanText(Dict('date'))(self).split('+')[0]
+                date = datetime.datetime.strptime(date, '%Y-%m-%dT%H:%M:%S')
+                _id = '%s_%s' % (CleanDecimal(Dict('id'))(self), date)
+                return _id
 
             def obj__action(self):
                 if not Field('_isin')(self):
