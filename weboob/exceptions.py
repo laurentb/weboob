@@ -93,6 +93,18 @@ class RecaptchaQuestion(CaptchaQuestion):
         super(RecaptchaQuestion, self).__init__(self.type, website_key=website_key, website_url=website_url)
 
 
+class FuncaptchaQuestion(CaptchaQuestion):
+    type = 'funcaptcha'
+
+    website_key = None
+    website_url = None
+    sub_domain = None
+
+    def __init__(self, website_key, website_url, sub_domain=None):
+        super(FuncaptchaQuestion, self).__init__(
+            self.type, website_key=website_key, website_url=website_url, sub_domain=sub_domain)
+
+
 class BrowserHTTPNotFound(BrowserUnavailable):
     pass
 
