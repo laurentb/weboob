@@ -71,6 +71,7 @@ class TransactionsPage(LoggedPage, HTMLPage):
 
             obj_date = DateGuesser(CleanText('.//span[contains(., "/")]'), LinearDateGuesser(date_max_bump=timedelta(45)))
             obj_label = CleanText('.//h3/strong')
+            obj_raw = Field('label')
             obj_amount = MyDecimal('./td[@class="al-r"]/div/span[has-class("badge")]')
             def obj_type(self):
                 amount = Field('amount')(self)
