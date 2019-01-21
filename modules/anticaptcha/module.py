@@ -21,7 +21,7 @@ from __future__ import unicode_literals
 
 
 from weboob.tools.backend import Module, BackendConfig
-from weboob.capabilities.captcha import CapCaptchaSolver, ImageCaptchaJob, RecaptchaJob, NocaptchaJob
+from weboob.capabilities.captcha import CapCaptchaSolver, ImageCaptchaJob, RecaptchaJob, NocaptchaJob, FuncaptchaJob
 from weboob.tools.value import ValueBackendPassword
 
 from .browser import AnticaptchaBrowser
@@ -55,6 +55,8 @@ class AnticaptchaModule(Module, CapCaptchaSolver):
             job.id = self.browser.post_recaptcha(job.site_url, job.site_key)
         elif isinstance(job, NocaptchaJob):
             job.id = self.browser.post_nocaptcha(job.site_url, job.site_key)
+        elif isinstance(job, FuncaptchaJob):
+            job.id = self.browser.post_funcaptcha(job.site_url, job.site_key, job.sub_domain)
         else:
             raise NotImplementedError()
 

@@ -24,7 +24,7 @@ from base64 import b64encode
 from weboob.browser.browsers import APIBrowser
 from weboob.exceptions import BrowserIncorrectPassword, BrowserBanned
 from weboob.capabilities.captcha import (
-    ImageCaptchaJob, RecaptchaJob, NocaptchaJob, CaptchaError,
+    ImageCaptchaJob, RecaptchaJob, NocaptchaJob, FuncaptchaJob, CaptchaError,
     InsufficientFunds, UnsolvableCaptcha, InvalidCaptcha,
 )
 
@@ -74,6 +74,21 @@ class AnticaptchaBrowser(APIBrowser):
         r = self.request('/createTask', data=data)
         return str(r['taskId'])
 
+    def post_funcaptcha(self, url, key, sub_domain):
+        data = {
+            "clientKey": self.apikey,
+            "task": {
+                "type": "FunCaptchaTaskProxyless",
+                "websiteURL": url,
+                "funcaptchaApiJSSubdomain": sub_domain,
+                "websitePublicKey": key,
+            },
+            "softId": 0,
+            "languagePool": "en",
+        }
+        r = self.request('/createTask', data=data)
+        return str(r['taskId'])
+
     def check_reply(self, r):
         excs = {
             'ERROR_KEY_DOES_NOT_EXIST': BrowserIncorrectPassword,
@@ -115,6 +130,8 @@ class AnticaptchaBrowser(APIBrowser):
             job.solution_challenge = sol['recaptchaChallenge']
         elif isinstance(job, NocaptchaJob):
             job.solution = sol['gRecaptchaResponse']
+        elif isinstance(job, FuncaptchaJob):
+            job.solution = sol['token']
         else:
             raise NotImplementedError()
 
