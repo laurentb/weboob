@@ -181,11 +181,12 @@ class AmazonBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def iter_documents(self, subscription):
-        documents = []
-
-        for y in range(date.today().year - 2, date.today().year + 1):
-            self.documents.go(year=y)
+        year = date.today().year
+        old_year = year - 2
+        while year >= old_year:
+            self.documents.go(year=year)
             request_id = self.page.response.headers['x-amz-rid']
             for doc in self.page.iter_documents(subid=subscription.id, currency=self.CURRENCY, request_id=request_id):
-                documents.append(doc)
-        return documents
+                yield doc
+
+            year -= 1

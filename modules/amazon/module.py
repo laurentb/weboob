@@ -24,7 +24,6 @@ from weboob.capabilities.bill import DocumentTypes, CapDocument, Subscription, D
 from weboob.capabilities.base import find_object, NotAvailable
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
-from weboob.tools.pdf import html_to_pdf
 
 from .browser import AmazonBrowser
 from .en.browser import AmazonEnBrowser
@@ -94,11 +93,3 @@ class AmazonModule(Module, CapDocument):
             return
 
         return self.browser.open(document.url).content
-
-    def download_document_pdf(self, document):
-        if not isinstance(document, Document):
-            document = self.get_document(document)
-        if document.url is NotAvailable:
-            return
-
-        return html_to_pdf(self.browser, url=self.browser.BASEURL + document.url)
