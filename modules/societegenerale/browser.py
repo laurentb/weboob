@@ -155,8 +155,13 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
             self.location(self.absurl('/com/icd-web/cbo/index.html'))
 
         # get account iban on transfer page
-        self.json_transfer.go()
-        account_ibans = self.page.get_account_ibans_dict()
+        account_ibans = {}
+        try:
+            self.json_transfer.go()
+            account_ibans = self.page.get_account_ibans_dict()
+        except TransferBankError:
+            # some user can't access this page
+            pass
 
         # get account coming on coming page, coming amount is not available yet on account page
         self.coming.go()
