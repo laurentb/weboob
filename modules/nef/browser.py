@@ -19,18 +19,22 @@
 
 from __future__ import unicode_literals
 
+import datetime
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 
-from .pages import LoginPage, HomePage, AccountsPage
+from .pages import LoginPage, HomePage, AccountsPage, TransactionsPage
 
+def next_week_string():
+    return (datetime.date.today() + datetime.timedelta(weeks=1)).strftime("%Y-%m-%d")
 
 class NefBrowser(LoginBrowser):
     BASEURL = 'https://espace-client.lanef.com'
 
     home = URL('/templates/home.cfm', HomePage)
     main = URL('/templates/main.cfm', HomePage)
+    download = URL(r'/templates/account/accountActivityListDownload.cfm\?viewMode=CSV&orderBy=TRANSACTION_DATE_DESCENDING&page=1&startDate=2016-01-01&endDate=%s&showBalance=true&AccNum=(?P<account_id>.*)' % next_week_string(), TransactionsPage)
     login = URL('/templates/logon/logon.cfm', LoginPage)
 
     def do_login(self):
@@ -49,3 +53,7 @@ class NefBrowser(LoginBrowser):
 
         page = AccountsPage(self, response)
         return page.get_items()
+
+    @need_login
+    def iter_transactions_list(self, account):
+        return self.download.go(account_id=account.id).iter_history()

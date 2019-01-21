@@ -76,7 +76,7 @@ class NefModule(Module, CapBank):
         :rtype: iter[:class:`Transaction`]
         :raises: :class:`AccountNotFound`
         """
-        raise NotImplementedError()
+        return self.browser.iter_transactions_list(account)
 
     def iter_resources(self, objs, split_path):
         """
@@ -95,4 +95,3 @@ class NefModule(Module, CapBank):
             self._restrict_level(split_path)
 
             return self.iter_accounts()
-

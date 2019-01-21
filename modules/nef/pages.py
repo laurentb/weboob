@@ -21,11 +21,16 @@ from __future__ import unicode_literals
 
 import re
 
-from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Field
-from weboob.browser.pages import HTMLPage, PartialHTMLPage, LoggedPage
+from weboob.browser.elements import ListElement, DictElement, ItemElement, method
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Field, Date
+from weboob.browser.pages import HTMLPage, PartialHTMLPage, CsvPage, LoggedPage
+from weboob.browser.filters.json import Dict
 
 from weboob.capabilities.bank import Account
+
+from weboob.tools.date import parse_french_date
+
+from .transaction import Transaction
 
 class LoginPage(HTMLPage):
     def login(self, username, password):
@@ -63,3 +68,25 @@ class AccountsPage(LoggedPage, PartialHTMLPage):
                         return account_type
 
                 return Account.TYPE_UNKNOWN
+
+class TransactionsPage(LoggedPage, CsvPage):
+    ENCODING = 'latin-1'
+    DIALECT = 'excel'
+
+    # lines 1 to 5 are meta-data
+    # line 6 is empty
+    # line 7 describes the columns
+    HEADER = 7
+
+    @method
+    class iter_history(DictElement):
+        class item(ItemElement):
+            klass = Transaction
+
+            # The CSV contains these columns:
+            #
+            # "Date opération","Date Valeur","Référence","Montant","Solde","Libellé"
+            obj_raw = Transaction.Raw(Dict(u'Libellé'))
+            obj_amount = CleanDecimal(Dict('Montant'), replace_dots=True)
+            obj_date = Date(Dict('Date opération'), parse_func=parse_french_date, dayfirst=True)
+            obj_vdate = Date(Dict('Date Valeur'), parse_func=parse_french_date, dayfirst=True)
