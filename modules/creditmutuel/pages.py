@@ -1821,7 +1821,9 @@ class SubscriptionPage(LoggedPage, HTMLPage):
 
         class item(ItemElement):
             def condition(self):
-                return Env('sub_id')(self) == Regexp(CleanText(TableCell('label'), replace=[('.', ''), (' ', '')]), r'(\d+)')(self)
+                # For some documents like "Synthèse ISF", the label column is empty.
+                # Consequently we can't associate the document to an account: we skip it.
+                return CleanText(TableCell('label'))(self) and Env('sub_id')(self) == Regexp(CleanText(TableCell('label'), replace=[('.', ''), (' ', '')]), r'(\d+)')(self)
 
             klass = Document
 
