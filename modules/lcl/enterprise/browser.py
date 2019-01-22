@@ -20,6 +20,7 @@
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
+from weboob.capabilities.bank import AccountOwnerType
 
 from .pages import LoginPage, MovementsPage, ProfilePage, PassExpiredPage
 
@@ -37,6 +38,8 @@ class LCLEnterpriseBrowser(LoginBrowser):
     def __init__(self, *args, **kwargs):
         super(LCLEnterpriseBrowser, self).__init__(*args, **kwargs)
         self.accounts = None
+        self.owner_type = AccountOwnerType.ORGANIZATION
+
 
     def deinit(self):
         if self.page and self.page.logged:
@@ -57,7 +60,10 @@ class LCLEnterpriseBrowser(LoginBrowser):
     def get_accounts_list(self):
         if not self.accounts:
             self.accounts = list(self.movements.go().iter_accounts())
-        return self.accounts
+
+        for account in self.accounts:
+            account.owner_type = self.owner_type
+            yield account
 
     @need_login
     def get_history(self, account):

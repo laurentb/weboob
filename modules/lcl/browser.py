@@ -27,7 +27,7 @@ from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.browser.exceptions import ServerError
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.bank import Account, AddRecipientBankError, AddRecipientStep, Recipient
+from weboob.capabilities.bank import Account, AddRecipientBankError, AddRecipientStep, Recipient, AccountOwnerType
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
 from weboob.tools.compat import basestring, urlsplit, parse_qsl, unicode
 from weboob.tools.value import Value
@@ -126,6 +126,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         self.accounts_list = None
         self.current_contract = None
         self.contracts = None
+        self.owner_type = AccountOwnerType.PRIVATE
 
     def load_state(self, state):
         super(LCLBrowser, self).load_state(state)
@@ -284,6 +285,9 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                     self.get_accounts()
             else:
                 self.get_accounts()
+
+        for account in self.accounts_list:
+            account.owner_type = self.owner_type
         return iter(self.accounts_list)
 
     def get_bourse_accounts_ids(self):
@@ -540,6 +544,7 @@ class LCLProBrowser(LCLBrowser):
     def __init__(self, *args, **kwargs):
         super(LCLProBrowser, self).__init__(*args, **kwargs)
         self.session.cookies.set("lclgen", "professionnels", domain=urlsplit(self.BASEURL).hostname)
+        self.owner_type = AccountOwnerType.ORGANIZATION
 
 
 class ELCLBrowser(LCLBrowser):
