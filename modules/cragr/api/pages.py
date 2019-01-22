@@ -32,7 +32,7 @@ from weboob.capabilities.bank import (
 
 from weboob.browser.elements import DictElement, ItemElement, method
 from weboob.browser.filters.standard import (
-    CleanText, CleanDecimal, Currency as CleanCurrency, Format, Field, Map, Eval
+    CleanText, CleanDecimal, Currency as CleanCurrency, Format, Field, Map, Eval, Env,
 )
 from weboob.browser.filters.json import Dict
 
@@ -102,12 +102,14 @@ ACCOUNT_TYPES = {
     'DAV TIGERE': Account.TYPE_SAVINGS,
     'CPTEXCPRO': Account.TYPE_SAVINGS,
     'CPTEXCENT': Account.TYPE_SAVINGS,
+    'DAT': Account.TYPE_SAVINGS,
     'PRET PERSO': Account.TYPE_LOAN,
     'P. ENTREPR': Account.TYPE_LOAN,
     'P. HABITAT': Account.TYPE_LOAN,
     'PRET 0%': Account.TYPE_LOAN,
     'INV PRO': Account.TYPE_LOAN,
     'TRES. PRO': Account.TYPE_LOAN,
+    'CT ATT HAB': Account.TYPE_LOAN,
     'PEA': Account.TYPE_PEA,
     'PEAP': Account.TYPE_PEA,
     'DAV PEA': Account.TYPE_PEA,
@@ -165,7 +167,7 @@ class AccountsPage(LoggedPage, JsonPage):
         obj_balance = Eval(float_to_decimal, Dict('comptePrincipal/solde'))
         obj_currency = CleanCurrency(Dict('comptePrincipal/idDevise'))
         obj__index = Dict('comptePrincipal/index')
-        obj__category = None # Main accounts have no category
+        obj__category = Dict('comptePrincipal/grandeFamilleProduitCode', default=None)
         obj__id_element_contrat = CleanText(Dict('comptePrincipal/idElementContrat'))
 
         def obj_type(self):
@@ -173,22 +175,6 @@ class AccountsPage(LoggedPage, JsonPage):
             if _type == Account.TYPE_UNKNOWN:
                 self.logger.warning('We got an untyped account: please add "%s" to ACCOUNT_TYPES.' % CleanText(Dict('comptePrincipal/libelleUsuelProduit'))(self))
             return _type
-
-        class obj__cards(DictElement):
-            item_xpath = 'comptePrincipal/cartesDD'
-
-            class item(ItemElement):
-                klass = Account
-
-                def obj_id(self):
-                    return CleanText(Dict('idCarte'))(self).replace(' ', '')
-
-                obj_label = Format('Carte %s %s', Field('id'), CleanText(Dict('titulaire')))
-                obj_type = Account.TYPE_CARD
-                obj_coming = Eval(float_to_decimal, Dict('encoursCarteM'))
-                obj_balance = CleanDecimal(0)
-                obj__index = Dict('index')
-                obj__category = None
 
     @method
     class iter_accounts(DictElement):
@@ -199,8 +185,13 @@ class AccountsPage(LoggedPage, JsonPage):
 
             klass = Account
 
-            obj_id = CleanText(Dict('numeroCompteBam'))
-            obj_number = CleanText(Dict('numeroCompteBam'))
+            def obj_id(self):
+                # Loan ids may be duplicated so we use the contract number for now:
+                if Field('type')(self) == Account.TYPE_LOAN:
+                    return CleanText(Dict('idElementContrat'))(self)
+                return CleanText(Dict('numeroCompte'))(self)
+
+            obj_number = CleanText(Dict('numeroCompte'))
             obj_label = CleanText(Dict('libelleProduit'))
             obj_currency = CleanCurrency(Dict('idDevise'))
             obj__index = Dict('index')
@@ -210,7 +201,7 @@ class AccountsPage(LoggedPage, JsonPage):
             def obj_type(self):
                 _type = Map(CleanText(Dict('libelleUsuelProduit')), ACCOUNT_TYPES, Account.TYPE_UNKNOWN)(self)
                 if _type == Account.TYPE_UNKNOWN:
-                    self.logger.warning('We got an untyped account: please add "%s" to ACCOUNT_TYPES.' % CleanText(Dict('libelleUsuelProduit'))(self))
+                    self.logger.warning('There is an untyped account: please add "%s" to ACCOUNT_TYPES.' % CleanText(Dict('libelleUsuelProduit'))(self))
                 return _type
 
             def obj_balance(self):
@@ -227,22 +218,26 @@ class AccountsPage(LoggedPage, JsonPage):
 
 class AccountDetailsPage(LoggedPage, JsonPage):
     def get_account_balances(self):
+        # We use the 'idElementContrat' key because it is unique
+        # whereas the account id may not be unique for Loans
         account_balances = {}
         for el in self.doc:
             value = el.get('solde', el.get('encoursActuel', el.get('valorisationContrat', el.get('montantRestantDu', el.get('capitalDisponible')))))
             assert value is not None, 'Could not find the account balance'
-            account_balances[Dict('numeroCompte')(el)] = float_to_decimal(value)
+            account_balances[Dict('idElementContrat')(el)] = float_to_decimal(value)
         return account_balances
 
     def get_loan_ids(self):
+        # We use the 'idElementContrat' key because it is unique
+        # whereas the account id may not be unique for Loans
         loan_ids = {}
         for el in self.doc:
             if el.get('numeroCredit'):
                 # Loans
-                loan_ids[Dict('numeroCompte')(el)] = Dict('numeroCredit')(el)
+                loan_ids[Dict('idElementContrat')(el)] = Dict('numeroCredit')(el)
             elif el.get('numeroContrat'):
                 # Revolving credits
-                loan_ids[Dict('numeroCompte')(el)] = Dict('numeroContrat')(el)
+                loan_ids[Dict('idElementContrat')(el)] = Dict('numeroContrat')(el)
         return loan_ids
 
 
@@ -252,6 +247,40 @@ class IbanPage(LoggedPage, JsonPage):
 
 
 class HistoryPage(LoggedPage, JsonPage):
+    pass
+
+
+class CardsPage(LoggedPage, JsonPage):
+    @method
+    class iter_card_parents(DictElement):
+        item_xpath = 'comptes'
+
+        class iter_cards(DictElement):
+            item_xpath = 'listeCartes'
+
+            def parse(self, el):
+                self.env['parent_id'] = Dict('idCompte')(el)
+
+            class item(ItemElement):
+                klass = Account
+
+                def obj_id(self):
+                    return CleanText(Dict('idCarte'))(self).replace(' ', '')
+
+                def condition(self):
+                    assert CleanText(Dict('codeTypeDebitPaiementCarte'))(self) in ('D', 'I')
+                    return CleanText(Dict('codeTypeDebitPaiementCarte'))(self)=='D'
+
+                obj_label = Format('Carte %s %s', Field('id'), CleanText(Dict('titulaire')))
+                obj_type = Account.TYPE_CARD
+                obj_coming = Eval(lambda x: -float_to_decimal(x), Dict('encoursCarteM'))
+                obj_balance = CleanDecimal(0)
+                obj__parent_id = Env('parent_id')
+                obj__index = Dict('index')
+                obj__id_element_contrat = None
+
+
+class CardHistoryPage(LoggedPage, JsonPage):
     pass
 
 

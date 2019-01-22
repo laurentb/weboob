@@ -20,20 +20,20 @@
 
 from __future__ import unicode_literals
 
+from decimal import Decimal
 import re
 
-from weboob.capabilities.bank import (
-    Account,
-)
-from weboob.capabilities.base import find_object, empty, NotAvailable
+from weboob.capabilities.bank import Account
+from weboob.capabilities.base import empty, NotAvailable
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
+from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, ActionNeeded
 from weboob.browser.exceptions import ServerError
+from weboob.capabilities.bank import Loan
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 
 from .pages import (
     LoginPage, LoggedOutPage, KeypadPage, SecurityPage, ContractsPage, AccountsPage, AccountDetailsPage,
-    IbanPage, HistoryPage, ProfilePage,
+    IbanPage, CardsPage, ProfilePage,
 )
 
 
@@ -62,9 +62,9 @@ class CragrAPI(LoginBrowser):
                        r'association/operations/operations-courantes/editer-rib/jcr:content.ibaninformation.json',
                        r'professionnel/operations/operations-courantes/editer-rib/jcr:content.ibaninformation.json', IbanPage)
 
-    history_page = URL(r'particulier/operations/synthese/detail-comptes/jcr:content.n3.compte.infos.json',
-                       r'association/operations/synthese/detail-comptes/jcr:content.n3.compte.infos.json',
-                       r'professionnel/operations/synthese/detail-comptes/jcr:content.n3.compte.infos.json', HistoryPage)
+    cards = URL(r'particulier/operations/moyens-paiement/mes-cartes/jcr:content.listeCartesParCompte.json',
+                r'association/operations/moyens-paiement/mes-cartes/jcr:content.listeCartesParCompte.json',
+                r'professionnel/operations/moyens-paiement/mes-cartes/jcr:content.listeCartesParCompte.json', CardsPage)
 
     profile_page = URL(r'particulier/operations/synthese/jcr:content.npc.store.client.json',
                        r'association/operations/synthese/jcr:content.npc.store.client.json',
@@ -97,6 +97,18 @@ class CragrAPI(LoginBrowser):
                 message = error.get('message', '')
                 if 'Votre identification est incorrecte' in message:
                     raise BrowserIncorrectPassword()
+                if 'obtenir un nouveau code' in message:
+                    raise ActionNeeded(message)
+                elif 'Un incident technique' in message:
+                    # If it is a technical error, we try login again
+                    try:
+                        self.security_check.go(data=form)
+                    except ServerError as exc:
+                        error = exc.response.json().get('error')
+                        if error:
+                            message = error.get('message', '')
+                            if 'Un incident technique' in message:
+                                raise BrowserUnavailable(message)
                 assert False, 'Unhandled Server Error encountered: %s' % error.get('message', '')
 
         # accounts_url may contain '/particulier', '/professionnel' or '/association'
@@ -112,6 +124,10 @@ class CragrAPI(LoginBrowser):
         self.location(self.accounts_url)
         total_spaces = self.page.count_spaces()
         self.logger.info('The total number of spaces on this connection is %s.' % total_spaces)
+
+        # Complete accounts list is required to match card parent accounts
+        # and to avoid accounts that are present on several spaces
+        all_accounts = {}
 
         for contract in range(total_spaces):
             # This request often returns a 500 error so we retry several times.
@@ -135,8 +151,8 @@ class CragrAPI(LoginBrowser):
                 account._contract = contract
                 account.owner_type = self.page.get_owner_type()
 
-            # Some accounts have no balance in the main JSON, so we must
-            # get all the (id, balance) pairs in the account_details JSON:
+            # Some accounts have no balance in the main JSON, so we must get all
+            # the (_id_element_contrat, balance) pairs in the account_details JSON:
             categories = {int(account._category) for account in accounts_list if account._category != None}
             account_balances = {}
             loan_ids = {}
@@ -145,7 +161,6 @@ class CragrAPI(LoginBrowser):
                 account_balances.update(self.page.get_account_balances())
                 loan_ids.update(self.page.get_loan_ids())
 
-            # Getting IBANs for checking accounts
             if main_account.type == Account.TYPE_CHECKING:
                 params = {
                     'compteIdx': int(main_account._index),
@@ -155,43 +170,64 @@ class CragrAPI(LoginBrowser):
                 iban = self.page.get_iban()
                 if is_iban_valid(iban):
                     main_account.iban = iban
-            yield main_account
-
-            for card in main_account._cards:
-                card.parent = main_account
-                card.currency = main_account.currency
-                card.owner_type = main_account.owner_type
-                card._contract = contract
-                yield card
+            if main_account.id not in all_accounts:
+                all_accounts[main_account.id] = main_account
+                yield main_account
 
             for account in accounts_list:
                 if empty(account.balance):
-                    account.balance = account_balances.get(account.id, NotAvailable)
+                    account.balance = account_balances.get(account._id_element_contrat, NotAvailable)
                 if account.type == Account.TYPE_CHECKING:
-                    try:
-                        params = {
-                            'compteIdx': int(account._index),
-                            'grandeFamilleCode': 1,
-                        }
-                        self.account_iban.go(params=params)
-                        iban = self.page.get_iban()
-                        if is_iban_valid(iban):
-                            account.iban = iban
-                    except ServerError:
-                        self.logger.warning('Could not fetch IBAN for checking account "%s %s"', account.label, account.id)
-                        pass
+                    params = {
+                        'compteIdx': int(account._index),
+                        'grandeFamilleCode': int(account._category),
+                    }
+                    self.account_iban.go(params=params)
+                    iban = self.page.get_iban()
+                    if is_iban_valid(iban):
+                        account.iban = iban
 
-                # TO-DO: Create Loan() object with its related attributes
                 # Loans have a specific ID that we need to fetch
                 # so the backend can match loans properly.
-                # If no there is no loan ID, we keep the account ID.
                 if account.type == Account.TYPE_LOAN:
-                    account.id = loan_ids.get(account.id, account.id)
-                    account.balance = -account.balance
+                    account.id = account.number = loan_ids.get(account._id_element_contrat, account.id)
+                    account = self.switch_account_to_loan(account)
                 elif account.type == Account.TYPE_REVOLVING_CREDIT:
-                    account.id = loan_ids.get(account.id, account.id)
-                    account.balance = 0
-                yield account
+                    account.id = account.number = loan_ids.get(account._id_element_contrat, account.id)
+                    account = self.switch_account_to_revolving(account)
+                if account.id not in all_accounts:
+                    all_accounts[account.id] = account
+                    yield account
+
+            # Fetch all deferred credit cards for this space
+            self.cards.go()
+            for card in self.page.iter_card_parents():
+                card.number = card.id
+                card.parent = all_accounts.get(card._parent_id, NotAvailable)
+                card.currency = card.parent.currency
+                card.owner_type = card.parent.owner_type
+                card._category = card.parent._category
+                card._contract = contract
+                if card.id not in all_accounts:
+                    all_accounts[card.id] = card
+                    yield card
+
+    def switch_account_to_loan(self, account):
+        loan = Loan()
+        copy_attrs = ('id', 'number', 'label', 'type', 'currency', '_index', '_category', '_contract', '_id_element_contrat', 'owner_type')
+        for attr in copy_attrs:
+            setattr(loan, attr, getattr(account, attr))
+        loan.balance = -account.balance
+        return loan
+
+    def switch_account_to_revolving(self, account):
+        loan = Loan()
+        copy_attrs = ('id', 'number', 'label', 'type', 'currency', '_index', '_category', '_contract', '_id_element_contrat', 'owner_type')
+        for attr in copy_attrs:
+            setattr(loan, attr, getattr(account, attr))
+        loan.balance = Decimal(0)
+        loan.available_amount = account.balance
+        return loan
 
     @need_login
     def go_to_account_space(self, contract):
@@ -199,15 +235,6 @@ class CragrAPI(LoginBrowser):
         # we already are on the right account space
         self.contracts_page.go(id_contract=contract)
         assert self.accounts_page.is_here()
-
-    @need_login
-    def get_card(self, id):
-        return find_object(self.get_cards(), id=id)
-
-    @need_login
-    def get_cards(self, accounts_list=None):
-        # accounts_list is only used by get_list
-        raise BrowserUnavailable()
 
     @need_login
     def get_history(self, account):
