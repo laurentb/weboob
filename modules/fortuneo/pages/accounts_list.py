@@ -287,10 +287,17 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
             date_oper       = tables[i].xpath("./td[2]/text()")[0]
             date_val        = tables[i].xpath("./td[3]/text()")[0]
             label           = tables[i].xpath("./td[4]/text()")[0]
-            label           = re.sub(r'[ \xa0]+', ' ', label).strip()
+            label           = re.sub(r'\s+', ' ', label).strip()
             amount          = tables[i].xpath("./td[5]/text() | ./td[6]/text()")
 
             operation.parse(date=date_oper, raw=label, vdate=date_val)
+            # Needed because operation.parse overwrite operation.label
+            # Theses lines must run after operation.parse.
+            if tables[i].xpath("./td[4]/div/text()"):
+                label = tables[i].xpath("./td[4]/div/text()")[0]
+            else:
+                label = tables[i].xpath("./td[4]/text()")[0]
+            operation.label = re.sub(r'\s+', ' ', label).strip()
 
             if amount[1] == u'\xa0':
                 amount = amount[0]
