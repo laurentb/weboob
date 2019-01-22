@@ -71,7 +71,7 @@ class AmazonBrowser(LoginBrowser, StatesMixin):
         super(AmazonBrowser, self).__init__(*args, **kwargs)
 
     def locate_browser(self, state):
-        pass
+        self.location(state['url'])
 
     def push_security_otp(self, pin_code):
         res_form = self.otp_form
