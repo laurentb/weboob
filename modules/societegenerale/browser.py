@@ -19,24 +19,22 @@
 
 from __future__ import unicode_literals
 
-from datetime import datetime, date
+from datetime import datetime
 from decimal import Decimal
 from dateutil.relativedelta import relativedelta
-import re
 
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
-from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded
+from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from weboob.capabilities.bank import Account, TransferBankError
 from weboob.capabilities.base import find_object, NotAvailable
 from weboob.browser.exceptions import BrowserHTTPNotFound
 from weboob.capabilities.profile import ProfileMissing
 
 from .pages.accounts_list import (
-    AccountsMainPage, AccountDetailsPage, AccountsPage, LoansPage, ComingPage, HistoryPage,
-    CardListPage, CardHistoryPage,
-    AdvisorPage, HTMLProfilePage, XMLProfilePage,
-    MarketPage,
-    LifeInsurance, LifeInsuranceHistory, LifeInsuranceInvest, LifeInsuranceInvest2,
+    AccountsMainPage, AccountDetailsPage, AccountsPage, LoansPage, HistoryPage,
+    CardHistoryPage, PeaLiquidityPage, AccountsSynthesesPage,
+    AdvisorPage, HTMLProfilePage, XMLProfilePage, CreditPage, CreditHistoryPage,
+    MarketPage, LifeInsurance, LifeInsuranceHistory, LifeInsuranceInvest, LifeInsuranceInvest2,
     UnavailableServicePage,
 )
 from .pages.transfer import AddRecipientPage, RecipientJson, TransferJson, SignTransferPage
@@ -52,16 +50,16 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     STATE_DURATION = 5
 
     # Bank
-    accounts_main_page = URL('/restitution/cns_listeprestation.html',
-                             '/com/icd-web/cbo/index.html', AccountsMainPage)
-    account_details_page = URL('/restitution/cns_detailPrestation.html', AccountDetailsPage)
-    accounts = URL('/icd/cbo/data/liste-prestations-navigation-authsec.json', AccountsPage)
-    coming = URL('/restitution/cns_listeEncours.xml', ComingPage)
-    history = URL('/icd/cbo/data/liste-operations-authsec.json', HistoryPage)
-    cards_list = URL('/restitution/cns_listeCartesDd.html',
-                     '/restitution/cns_detailCARTE_\w{3}.html', CardListPage)
-    card_history = URL('/restitution/cns_listeReleveCarteDd.xml', CardHistoryPage)
+    accounts_main_page = URL(r'/restitution/cns_listeprestation.html',
+                             r'/com/icd-web/cbo/index.html', AccountsMainPage)
+    account_details_page = URL(r'/restitution/cns_detailPrestation.html', AccountDetailsPage)
+    accounts = URL(r'/icd/cbo/data/liste-prestations-navigation-authsec.json', AccountsPage)
+    accounts_syntheses = URL(r'/icd/cbo/data/liste-prestations-authsec.json\?n10_avecMontant=1', AccountsSynthesesPage)
+    history = URL(r'/icd/cbo/data/liste-operations-authsec.json', HistoryPage)
+    card_history = URL(r'/restitution/cns_listeReleveCarteDd.xml', CardHistoryPage)
     loans = URL(r'/abm/restit/listeRestitutionPretsNET.json\?a100_isPretConso=(?P<conso>\w+)', LoansPage)
+    credit = URL(r'/restitution/cns_detailAVPAT.html', CreditPage)
+    credit_history = URL(r'/restitution/cns_listeEcrCav.xml', CreditHistoryPage)
 
     # Recipient
     add_recipient = URL(r'/personnalisation/per_cptBen_ajouterFrBic.html',
@@ -78,14 +76,17 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     confirm_transfer = URL(r'/icd/vupri/data/vupri-save.json', TransferJson)
 
     # Wealth
-    market = URL('/brs/cct/comti20.html', MarketPage)
-    life_insurance = URL('/asv/asvcns10.html', '/asv/AVI/asvcns10a.html', '/brs/fisc/fisca10a.html', LifeInsurance)
-    life_insurance_invest = URL('/asv/AVI/asvcns20a.html', LifeInsuranceInvest)
-    life_insurance_invest_2 = URL('/asv/PRV/asvcns10priv.html', LifeInsuranceInvest2)
-    life_insurance_history = URL('/asv/AVI/asvcns2(?P<n>[0-9])c.html', LifeInsuranceHistory)
+    market = URL(r'/brs/cct/comti20.html', MarketPage)
+    pea_liquidity = URL(r'/restitution/cns_detailPea.html', PeaLiquidityPage)
+    life_insurance = URL(r'/asv/asvcns10.html',
+                         r'/asv/AVI/asvcns10a.html',
+                         r'/brs/fisc/fisca10a.html', LifeInsurance)
+    life_insurance_invest = URL(r'/asv/AVI/asvcns20a.html', LifeInsuranceInvest)
+    life_insurance_invest_2 = URL(r'/asv/PRV/asvcns10priv.html', LifeInsuranceInvest2)
+    life_insurance_history = URL(r'/asv/AVI/asvcns2(?P<n>[0-9])c.html', LifeInsuranceHistory)
 
     # Profile
-    advisor = URL('/icd/pon/data/get-contacts.xml', AdvisorPage)
+    advisor = URL(r'/icd/pon/data/get-contacts.xml', AdvisorPage)
     html_profile_page = URL(r'/com/dcr-web/dcr/dcr-coordonnees.html', HTMLProfilePage)
     xml_profile_page = URL(r'/gms/gmsRestituerAdresseNotificationServlet.xml', XMLProfilePage)
 
@@ -94,16 +95,18 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     bank_statement_search = URL(r'/restitution/rce_recherche.html\?noRedirect=1',
                                 r'/restitution/rce_recherche_resultat.html', BankStatementPage)
 
-    bad_login = URL('\/acces/authlgn.html', '/error403.html', BadLoginPage)
-    reinit = URL('/acces/changecodeobligatoire.html', ReinitPasswordPage)
-    action_needed = URL('/com/icd-web/forms/cct-index.html',
-                        '/com/icd-web/gdpr/gdpr-recueil-consentements.html',
-                        '/com/icd-web/forms/kyc-index.html',
+    bad_login = URL(r'/acces/authlgn.html', r'/error403.html', BadLoginPage)
+    reinit = URL(r'/acces/changecodeobligatoire.html',
+                 r'/swm/swm-changemdpobligatoire.html', ReinitPasswordPage)
+    action_needed = URL(r'/com/icd-web/forms/cct-index.html',
+                        r'/com/icd-web/gdpr/gdpr-recueil-consentements.html',
+                        r'/com/icd-web/forms/kyc-index.html',
                         ActionNeededPage)
-    unavailable_service_page = URL(r'/com/service-indisponible.html', UnavailableServicePage)
-    error = URL('https://static.societegenerale.fr/pri/erreur.html', ErrorPage)
-    login = URL('/sec/vk', LoginPage)
-    main_page = URL('https://particuliers.societegenerale.fr', MainPage)
+    unavailable_service_page = URL(r'/com/service-indisponible.html',
+                                   r'/Technical-pages/503-error-page/unavailable.html', UnavailableServicePage)
+    error = URL(r'https://static.societegenerale.fr/pri/erreur.html', ErrorPage)
+    login = URL(r'/sec/vk', LoginPage)
+    main_page = URL(r'https://particuliers.societegenerale.fr', MainPage)
 
     context = None
     dup = None
@@ -132,6 +135,8 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
         reason, action = self.page.get_error()
         if reason == 'echec_authent':
             raise BrowserIncorrectPassword()
+        if reason == 'acces_bloq':
+            raise ActionNeeded()
 
     def iter_cards(self, account):
         for el in account._cards:
@@ -158,13 +163,14 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
         account_ibans = {}
         try:
             self.json_transfer.go()
-            account_ibans = self.page.get_account_ibans_dict()
         except TransferBankError:
             # some user can't access this page
             pass
+        else:
+            account_ibans = self.page.get_account_ibans_dict()
 
-        # get account coming on coming page, coming amount is not available yet on account page
-        self.coming.go()
+        # get accounts coming
+        self.accounts_syntheses.go()
         account_comings = self.page.get_account_comings()
 
         self.accounts.go()
@@ -186,89 +192,88 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
             yield account
 
     @need_login
-    def iter_card_transaction(self, account):
-        # TODO
-        raise BrowserUnavailable()
-        self.account_details_page.go(params={'idprest': account._prestation_id})
-        self.location(self.absurl(self.page.get_card_history_link(account)))
-
-        if self.page.get_card_transactions_link():
-            self.location(self.absurl(self.page.get_card_transactions_link()))
-
-            year = date.today().year
-            rdate = None
-            for tr in self.page.iter_card_history():
-
-                # search for the first card summary
-                if tr.date is NotAvailable:
-                    tr.type = tr.TYPE_CARD_SUMMARY
-                    d = re.search(r'(\d{2})\/(\d{2})', tr.label)
-                    if d:
-                        dd, mm = int(d.group(1)), int(d.group(2))
-                        tr.date = rdate = date(year, mm, dd)
-                year = tr.date.year
-
-                # if card summary is found, yield transaction with the right rdate
-                if rdate:
-                    tr.rdate = rdate
-                    yield tr
-
-    @need_login
     def iter_history(self, account):
-        # TODO: check matching
-        raise BrowserUnavailable()
-
         if account.type in (account.TYPE_LOAN, account.TYPE_MARKET, ):
             return
 
-        if account.type == account.TYPE_CARD:
-            for tr in self.iter_card_transaction(account):
+        if account.type == Account.TYPE_PEA and not ('Espèces' in account.label or 'ESPECE' in account.label):
+            return
+
+        if account.type == account.TYPE_LIFE_INSURANCE:
+            # request to get json is not available yet, old request to get html response
+            self.account_details_page.go(params={'idprest': account._prestation_id})
+            link = self.page.get_history_link()
+            if link:
+                self.location(self.absurl(link))
+                for tr in self.page.iter_li_history():
+                    yield tr
+            return
+
+        if account.type == account.TYPE_REVOLVING_CREDIT:
+            # request to get json is not available yet, old request to get html response
+            self.account_details_page.go(params={'idprest': account._prestation_id})
+            self.page.go_history_page()
+            for tr in self.page.iter_credit_history():
                 yield tr
             return
 
+        if account.type == account.TYPE_CARD:
+            self.history.go(params={'b64e200_prestationIdTechnique': account.parent._internal_id})
+            for summary_card_tr in self.page.iter_card_transactions(card_number=account.number):
+                yield summary_card_tr
+
+                for card_tr in summary_card_tr._card_transactions:
+                    card_tr.date = summary_card_tr.date
+                    yield card_tr
+            return
+
         self.history.go(params={'b64e200_prestationIdTechnique': account._internal_id})
-
-        iter_transactions = self.page.iter_history
-        if account.type == Account.TYPE_PEA:
-            iter_transactions = self.page.iter_pea_history
-
-        for transaction in iter_transactions():
+        for transaction in self.page.iter_history():
             yield transaction
 
     @need_login
     def iter_coming(self, account):
-        # TODO: check matching
-        raise BrowserUnavailable()
-        if account.type in (account.TYPE_LOAN, account.TYPE_MARKET ):
+        if account.type in (account.TYPE_LOAN, account.TYPE_MARKET, account.TYPE_PEA,
+                            account.TYPE_LIFE_INSURANCE, account.TYPE_REVOLVING_CREDIT):
             return
+
+        internal_id = account._internal_id
+        if account.type == account.TYPE_CARD:
+            internal_id = account.parent._internal_id
+        self.history.go(params={'b64e200_prestationIdTechnique': internal_id})
 
         if account.type == account.TYPE_CARD:
-            # TODO
-            return
+            for transaction in self.page.iter_future_transactions(acc_prestation_id=account._prestation_id):
+                # coming transactions on this page are not in coming balance
+                # except for defered card coming transaction, use only for it for the moment
+                if transaction._card_coming:
+                    for card_coming in transaction._card_coming:
+                        card_coming.date = transaction.date
+                        yield card_coming
+                    return
 
-        self.history.go(params={'b64e200_prestationIdTechnique': account._internal_id})
-        for transaction in self.page.iter_coming():
-            yield transaction
+        for intraday_tr in self.page.iter_intraday_comings():
+            yield intraday_tr
 
     @need_login
     def iter_investment(self, account):
-        # TODO
-        raise BrowserUnavailable()
         if account.type not in (Account.TYPE_MARKET, Account.TYPE_LIFE_INSURANCE, Account.TYPE_PEA):
             self.logger.debug('This account is not supported')
-            return []
+            return
 
-        raise BrowserUnavailable()
+        # request to get json is not available yet, old request to get html response
+        self.account_details_page.go(params={'idprest': account._prestation_id})
 
         if account.type in (Account.TYPE_PEA, Account.TYPE_MARKET):
-            self.account_details_page.go(params={'idprest': account._prestation_id})
-            for invest in self.page.iter_investment():
-                # TODO
-                pass
+            for invest in self.page.iter_investments(account=account):
+                yield invest
 
         if account.type == Account.TYPE_LIFE_INSURANCE:
-            # TODO
-            pass
+            if self.page.has_link():
+                self.life_insurance_invest.go()
+
+            for invest in self.page.iter_investment():
+                yield invest
 
     @need_login
     def iter_recipients(self, account):
@@ -310,11 +315,11 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
 
     def end_sms_recipient(self, recipient, **params):
         data = [('context', self.context), ('context', self.context), ('dup', self.dup), ('code', params['code']), ('csa_op', 'sign')]
-        self.add_recipient.go(data=data, headers={'Referer': 'https://particuliers.secure.societegenerale.fr/lgn/url.html'})
+        self.add_recipient.go(data=data, headers={'Referer': self.absurl('/lgn/url.html')})
         return self.page.get_recipient_object(recipient)
 
     def end_oob_recipient(self, recipient, **params):
-        r = self.open('https://particuliers.secure.societegenerale.fr/sec/oob_polling.json', data={'n10_id_transaction': self.id_transaction})
+        r = self.open(self.absurl('/sec/oob_polling.json'), data={'n10_id_transaction': self.id_transaction})
         assert r.page.doc['donnees']['transaction_status'] in ('available', 'in_progress'), \
             'transaction_status is %s' % r.page.doc['donnees']['transaction_status']
 

@@ -73,18 +73,11 @@ class SocieteGeneraleModule(Module, CapBankWealth, CapBankTransferAddRecipient, 
     def iter_coming(self, account):
         if hasattr(self.browser, 'get_cb_operations'):
             transactions = list(self.browser.get_cb_operations(account))
-        else:
-            transactions = [tr for tr in self.browser.iter_history(account) if tr._coming]
-        transactions = sorted_transactions(transactions)
-        return transactions
+            return sorted_transactions(transactions)
+        return self.browser.iter_coming(account)
 
     def iter_history(self, account):
-        if hasattr(self.browser, 'get_cb_operations'):
-            transactions = list(self.browser.iter_history(account))
-        else:
-            transactions = [tr for tr in self.browser.iter_history(account) if not tr._coming]
-        transactions = sorted_transactions(transactions)
-        return transactions
+        return self.browser.iter_history(account)
 
     def iter_investment(self, account):
         return self.browser.iter_investment(account)
