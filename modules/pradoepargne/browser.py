@@ -18,8 +18,15 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.browser import AbstractBrowser
+from weboob.browser import AbstractBrowser, URL
 
+from .pages import LoginPage
 
-class CmesBrowser(AbstractBrowser):
+class PradoBrowser(AbstractBrowser):
     PARENT = 'cmes'
+
+    login = URL('pradoepargne/fr/identification/default.cgi', LoginPage)
+
+    def __init__(self, baseurl, subsite, login, password, *args, **kwargs):
+        self.weboob = kwargs['weboob']
+        super(PradoBrowser, self).__init__(baseurl, login, password, subsite, *args, **kwargs)

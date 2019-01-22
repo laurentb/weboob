@@ -23,7 +23,7 @@ from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 from weboob.capabilities.base import find_object
 
-from .browser import CmesBrowser
+from .browser import PradoBrowser
 
 
 __all__ = ['PradoepargneModule']
@@ -40,13 +40,13 @@ class PradoepargneModule(Module, CapBankPockets):
             ValueBackendPassword('login',    label='Identifiant', masked=False),
             ValueBackendPassword('password', label='Mot de passe'))
 
-    BROWSER = CmesBrowser
+    BROWSER = PradoBrowser
 
     def create_default_browser(self):
         return self.create_browser("https://www.gestion-epargne-salariale.fr",
+                                   "pradoepargne/",
                                    self.config['login'].get(),
                                    self.config['password'].get(),
-                                   "pradoepargne/",
                                    weboob=self.weboob)
 
     def get_account(self, _id):
