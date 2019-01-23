@@ -160,7 +160,7 @@ class AccountsPage(GenericLandingPage):
             klass = Account
 
             def condition(self):
-                return len(self.el.xpath('./td')) > 2
+                return len(self.el.xpath('./td')) > 2 and "en opposition" not in CleanText('./td[1]')(self)
 
             # Some accounts have no <a> in the first <td>
             def obj_label(self):
