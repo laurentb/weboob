@@ -83,7 +83,7 @@ class CreditDuNordModule(Module, CapBankWealth, CapProfile):
                 yield tr
 
     def iter_coming(self, account):
-        account = self.get_account(account.id)
+        account = self.get_account_for_history(account.id)
         for tr in self.browser.get_history(account, coming=True):
             if tr._is_coming:
                 yield tr
