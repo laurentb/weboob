@@ -27,13 +27,11 @@ class PapTest(BackendTest, HousingTest):
 
     FIELDS_ALL_HOUSINGS_LIST = [
         "id", "type", "advert_type", "house_type", "url", "title", "area",
-        "cost", "currency", "utilities", "date", "location", "text"
+        "cost", "currency", "utilities", "location", "text"
     ]
     FIELDS_ANY_HOUSINGS_LIST = [
         "photos",
         "station",
-        "rooms",
-        "bedrooms"
     ]
     FIELDS_ALL_SINGLE_HOUSING = [
         "id", "url", "type", "advert_type", "house_type", "title", "area",
@@ -44,8 +42,7 @@ class PapTest(BackendTest, HousingTest):
         "photos",
         "rooms",
         "bedrooms",
-        "station",
-        "DPE"
+        "station"
     ]
 
     def test_pap_rent(self):
@@ -96,8 +93,7 @@ class PapTest(BackendTest, HousingTest):
         self.FIELDS_ANY_SINGLE_HOUSING = [
             "photos",
             "bedrooms",
-            "station",
-            "DPE"
+            "station"
         ]
         self.check_against_query(query)
 

@@ -62,13 +62,13 @@ class HousingPage(HTMLPage):
                 if self.env['query_type'] == POSTS_TYPES.RENT:
                     isNotFurnishedOk = 'meublé' not in title.lower()
                 return (
-                    Regexp(Link('./div/a[@class="item-title"]'), '/annonces/(.*)', default=None)(self) and
+                    Regexp(Link('./div/a[has-class("item-title")]'), '/annonces/(.*)', default=None)(self) and
                     isNotFurnishedOk
                 )
 
             def parse(self, el):
                 rooms_bedrooms_area = el.xpath(
-                    './/div[@class="clearfix"]/ul[has-class("item-tags")]/li'
+                    './div/a[has-class("item-title")]/ul[has-class("item-tags")]/li'
                 )
                 self.env['rooms'] = NotLoaded
                 self.env['bedrooms'] = NotLoaded
@@ -78,10 +78,10 @@ class HousingPage(HTMLPage):
                     name = CleanText('.')(item)
                     if 'chambre' in name.lower():
                         name = 'bedrooms'
-                        value = CleanDecimal('./strong')(item)
+                        value = CleanDecimal('.')(item)
                     elif 'pièce' in name.lower():
                         name = 'rooms'
-                        value = CleanDecimal('./strong')(item)
+                        value = CleanDecimal('.')(item)
                     else:
                         name = 'area'
                         value = CleanDecimal(
@@ -94,7 +94,7 @@ class HousingPage(HTMLPage):
                         )(item)
                     self.env[name] = value
 
-            obj_id = Regexp(Link('./div/a[@class="item-title"]'), '/annonces/(.*)')
+            obj_id = Regexp(Link('./div/a[has-class("item-title")]'), '/annonces/(.*)')
             obj_type = Env('query_type')
             obj_advert_type = ADVERT_TYPES.PERSONAL
 
@@ -112,23 +112,14 @@ class HousingPage(HTMLPage):
                 else:
                     return HOUSE_TYPES.OTHER
 
-            obj_title = CleanText('./div/a[@class="item-title"]')
+            obj_title = CleanText('./div/a[has-class("item-title")]')
             obj_area = Env('area')
-            obj_cost = CleanDecimal(CleanText('./div/a[@class="item-title"]/span[@class="item-price"]'),
+            obj_cost = CleanDecimal(CleanText('./div/a[has-class("item-title")]/span[@class="item-price"]'),
                                     replace_dots=True, default=Decimal(0))
             obj_currency = Currency(
                 './div/a[@class="item-title"]/span[@class="item-price"]'
             )
             obj_utilities = UTILITIES.UNKNOWN
-
-            def obj_date(self):
-                date = CleanText(
-                    './div/p[@class="item-date"]'
-                )(self).split(" / ")
-                if len(date) > 1:
-                    return parse_french_date(date[1].strip())
-                else:
-                    return NotLoaded
 
             obj_station = CleanText('./div/p[@class="item-transports"]', default=NotLoaded)
 
