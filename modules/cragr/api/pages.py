@@ -19,15 +19,17 @@
 
 from __future__ import unicode_literals
 
+from collections import OrderedDict
 from decimal import Decimal
 import re
 import json
+import dateutil
 
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
 from weboob.exceptions import BrowserUnavailable
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import (
-    Account, AccountOwnerType,
+    Account, AccountOwnerType, Transaction,
 )
 
 from weboob.browser.elements import DictElement, ItemElement, method
@@ -247,7 +249,48 @@ class IbanPage(LoggedPage, JsonPage):
 
 
 class HistoryPage(LoggedPage, JsonPage):
-    pass
+    def has_next_page(self):
+        return Dict('hasNext')(self.doc)
+
+    def get_next_index(self):
+        return Dict('nextSetStartIndex')(self.doc)
+
+    @method
+    class iter_history(DictElement):
+        item_xpath = 'listeOperations'
+
+        class item(ItemElement):
+
+            TRANSACTION_TYPES = OrderedDict((
+                ('PAIEMENT PAR CARTE',        Transaction.TYPE_CARD),
+                ('REMISE CARTE',              Transaction.TYPE_CARD),
+                ('PRELEVEMENT CARTE',         Transaction.TYPE_CARD_SUMMARY),
+                ('RETRAIT AU DISTRIBUTEUR',   Transaction.TYPE_WITHDRAWAL),
+                ('RETRAIT MUR D\'ARGENT',     Transaction.TYPE_WITHDRAWAL),
+                ('FRAIS',                     Transaction.TYPE_BANK),
+                ('COTISATION',                Transaction.TYPE_BANK),
+                ('VIREMENT',                  Transaction.TYPE_TRANSFER),
+                ('CHEQUE EMIS',               Transaction.TYPE_CHECK),
+                ('REMISE DE CHEQUE',          Transaction.TYPE_DEPOSIT),
+                ('PRELEVEMENT',               Transaction.TYPE_ORDER),
+                ('PRELEVT',                   Transaction.TYPE_ORDER),
+                ('PRELEVMNT',                 Transaction.TYPE_ORDER),
+                ('REMBOURSEMENT DE PRET',     Transaction.TYPE_LOAN_PAYMENT),
+            ))
+
+            klass = Transaction
+
+            obj_label = Format('%s %s', CleanText(Dict('libelleTypeOperation')), CleanText(Dict('libelleOperation')))
+            obj_amount = Eval(float_to_decimal, Dict('montant'))
+            obj_type = Map(CleanText(Dict('libelleTypeOperation')), TRANSACTION_TYPES, Transaction.TYPE_UNKNOWN)
+            # Needed to fetch deferred card summaries
+            obj__index = Dict('indexCarte')
+
+            def obj_date(self):
+                return dateutil.parser.parse(Dict('dateValeur')(self))
+
+            def obj_rdate(self):
+                return dateutil.parser.parse(Dict('dateOperation')(self))
 
 
 class CardsPage(LoggedPage, JsonPage):
@@ -281,7 +324,22 @@ class CardsPage(LoggedPage, JsonPage):
 
 
 class CardHistoryPage(LoggedPage, JsonPage):
-    pass
+    @method
+    class iter_card_history(DictElement):
+        item_xpath = None
+
+        class item(ItemElement):
+            klass = Transaction
+
+            obj_label = CleanText(Dict('libelleOperation'))
+            obj_amount = Eval(float_to_decimal, Dict('montant'))
+            obj_type = Transaction.TYPE_DEFERRED_CARD
+
+            def obj_date(self):
+                return dateutil.parser.parse(Dict('datePrelevement')(self))
+
+            def obj_rdate(self):
+                return dateutil.parser.parse(Dict('dateOperation')(self))
 
 
 class InvestmentPage(LoggedPage, JsonPage):

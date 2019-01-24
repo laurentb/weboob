@@ -114,15 +114,17 @@ class CragrModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapContact
                 return obj.date()
             return obj
 
-        for tr in self.browser.get_history(account):
+        for tr in self.browser.get_history(account, coming):
             tr_coming = to_date(tr.date) > today
             if coming == tr_coming:
                 yield tr
+            elif coming:
+                break
 
     def iter_history(self, account):
         if account.type == Account.TYPE_CARD:
             return self._history_filter(account, False)
-        return self.browser.get_history(account)
+        return self.browser.get_history(account, False)
 
     def iter_coming(self, account):
         if account.type == Account.TYPE_CARD:

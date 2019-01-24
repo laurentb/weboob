@@ -33,7 +33,7 @@ from weboob.tools.capabilities.bank.iban import is_iban_valid
 
 from .pages import (
     LoginPage, LoggedOutPage, KeypadPage, SecurityPage, ContractsPage, AccountsPage, AccountDetailsPage,
-    IbanPage, CardsPage, ProfilePage,
+    IbanPage, HistoryPage, CardsPage, CardHistoryPage, ProfilePage,
 )
 
 
@@ -65,6 +65,14 @@ class CragrAPI(LoginBrowser):
     cards = URL(r'particulier/operations/moyens-paiement/mes-cartes/jcr:content.listeCartesParCompte.json',
                 r'association/operations/moyens-paiement/mes-cartes/jcr:content.listeCartesParCompte.json',
                 r'professionnel/operations/moyens-paiement/mes-cartes/jcr:content.listeCartesParCompte.json', CardsPage)
+
+    history = URL(r'particulier/operations/synthese/detail-comptes/jcr:content.n3.operations.json',
+                  r'association/operations/synthese/detail-comptes/jcr:content.n3.operations.json',
+                  r'professionnel/operations/synthese/detail-comptes/jcr:content.n3.operations.json', HistoryPage)
+
+    card_history = URL(r'particulier/operations/synthese/detail-comptes/jcr:content.n3.operations.encours.carte.debit.differe.json',
+                       r'association/operations/synthese/detail-comptes/jcr:content.n3.operations.encours.carte.debit.differe.json',
+                       r'professionnel/operations/synthese/detail-comptes/jcr:content.n3.operations.encours.carte.debit.differe.json', CardHistoryPage)
 
     profile_page = URL(r'particulier/operations/synthese/jcr:content.npc.store.client.json',
                        r'association/operations/synthese/jcr:content.npc.store.client.json',
@@ -124,10 +132,6 @@ class CragrAPI(LoginBrowser):
         self.location(self.accounts_url)
         total_spaces = self.page.count_spaces()
         self.logger.info('The total number of spaces on this connection is %s.' % total_spaces)
-
-        # Complete accounts list is required to match card parent accounts
-        # and to avoid accounts that are present on several spaces
-        all_accounts = {}
 
         for contract in range(total_spaces):
             # This request often returns a 500 error so we retry several times.
@@ -237,8 +241,35 @@ class CragrAPI(LoginBrowser):
         assert self.accounts_page.is_here()
 
     @need_login
-    def get_history(self, account):
-        raise BrowserUnavailable()
+    def get_history(self, account, coming=False):
+        # These three parameters are required to get the transactions for non_card accounts
+        if empty(account._index) or empty(account._category) or empty(account._id_element_contrat):
+            return
+
+        self.go_to_account_space(account._contract)
+        params = {
+            'compteIdx': int(account._index),
+            'grandeFamilleCode': int(account._category),
+            'idDevise':	str(account.currency),
+            'idElementContrat':	str(account._id_element_contrat),
+        }
+        self.history.go(params=params)
+        for tr in self.page.iter_history():
+            yield tr
+
+        # Get other transactions 100 by 100:
+        while self.page.has_next_page():
+            next_index = self.page.get_next_index()
+            params = {
+                'grandeFamilleCode': int(account._category),
+                'compteIdx': int(account._index),
+                'idDevise': str(account.currency),
+                'startIndex': next_index,
+                'count': 100,
+            }
+            self.history.go(params=params)
+            for tr in self.page.iter_history():
+                yield tr
 
     @need_login
     def iter_investment(self, account):

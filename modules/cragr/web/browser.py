@@ -412,7 +412,7 @@ class Cragr(LoginBrowser, StatesMixin):
                     account.balance = self.page.get_pea_balance()
 
     @need_login
-    def get_history(self, account):
+    def get_history(self, account, coming=False):
         if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA, Account.TYPE_LIFE_INSURANCE, Account.TYPE_PERP):
             self.logger.warning('This account is not supported')
             raise NotImplementedError()
