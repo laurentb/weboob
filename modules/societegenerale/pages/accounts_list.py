@@ -396,7 +396,10 @@ class LifeInsurance(LoggedPage, HTMLPage):
         for error_msg in errors_msg:
             if error_msg and 'Le service est momentanément indisponible' in error_msg:
                 raise BrowserUnavailable(error_msg)
-        assert not any(errors_msg), 'Some errors are not handle yet'
+            if error_msg and 'Aucune opération' in error_msg:
+                break
+        else:
+            assert not any(errors_msg), 'Some errors are not handle yet'
 
     def has_link(self):
         return Link('//a[@href="asvcns20a.html"]', default=NotAvailable)(self.doc)
