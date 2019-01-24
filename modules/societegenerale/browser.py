@@ -185,7 +185,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
             if account._prestation_id in account_comings:
                 account.coming = account_comings[account._prestation_id]
 
-            if account.type == account.TYPE_LOAN:
+            if account.type in (account.TYPE_LOAN, account.TYPE_CONSUMER_CREDIT, ):
                 self.loans.go(conso=(account._loan_type == 'PR_CONSO'))
                 account = self.page.get_loan_account(account)
 
@@ -193,7 +193,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
 
     @need_login
     def iter_history(self, account):
-        if account.type in (account.TYPE_LOAN, account.TYPE_MARKET, ):
+        if account.type in (account.TYPE_LOAN, account.TYPE_MARKET, account.TYPE_CONSUMER_CREDIT, ):
             return
 
         if account.type == Account.TYPE_PEA and not ('Espèces' in account.label or 'ESPECE' in account.label):
@@ -234,7 +234,8 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     @need_login
     def iter_coming(self, account):
         if account.type in (account.TYPE_LOAN, account.TYPE_MARKET, account.TYPE_PEA,
-                            account.TYPE_LIFE_INSURANCE, account.TYPE_REVOLVING_CREDIT):
+                            account.TYPE_LIFE_INSURANCE, account.TYPE_REVOLVING_CREDIT,
+                            account.TYPE_CONSUMER_CREDIT, ):
             return
 
         internal_id = account._internal_id

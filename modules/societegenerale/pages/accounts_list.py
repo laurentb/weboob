@@ -98,6 +98,7 @@ class AccountsPage(JsonBasePage):
                 'VIE_FEDER': Account.TYPE_LIFE_INSURANCE,
                 'ASSURANCE_VIE_GENERALE': Account.TYPE_LIFE_INSURANCE,
                 'AVANCE_PATRIMOINE': Account.TYPE_REVOLVING_CREDIT,
+                'PRET_EXPRESSO': Account.TYPE_CONSUMER_CREDIT,
             }
 
             obj_id = obj_number = CleanText(Dict('numeroCompteFormate'), replace=[(' ', '')])
@@ -115,7 +116,7 @@ class AccountsPage(JsonBasePage):
             obj__prestation_id = Dict('id')
 
             def obj__loan_type(self):
-                if Field('type')(self) == Account.TYPE_LOAN:
+                if Field('type')(self) in (Account.TYPE_LOAN, Account.TYPE_CONSUMER_CREDIT, ):
                     return Dict('codeFamille')(self)
                 return None
 
