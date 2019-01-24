@@ -199,7 +199,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
         if account.type == Account.TYPE_PEA and not ('Espèces' in account.label or 'ESPECE' in account.label):
             return
 
-        if account.type == account.TYPE_LIFE_INSURANCE:
+        if account.type in (account.TYPE_LIFE_INSURANCE, account.TYPE_PERP, ):
             # request to get json is not available yet, old request to get html response
             self.account_details_page.go(params={'idprest': account._prestation_id})
             link = self.page.get_history_link()
@@ -235,7 +235,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     def iter_coming(self, account):
         if account.type in (account.TYPE_LOAN, account.TYPE_MARKET, account.TYPE_PEA,
                             account.TYPE_LIFE_INSURANCE, account.TYPE_REVOLVING_CREDIT,
-                            account.TYPE_CONSUMER_CREDIT, ):
+                            account.TYPE_CONSUMER_CREDIT, Account.TYPE_PERP, ):
             return
 
         internal_id = account._internal_id
@@ -258,7 +258,8 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
 
     @need_login
     def iter_investment(self, account):
-        if account.type not in (Account.TYPE_MARKET, Account.TYPE_LIFE_INSURANCE, Account.TYPE_PEA):
+        if account.type not in (Account.TYPE_MARKET, Account.TYPE_LIFE_INSURANCE,
+                                Account.TYPE_PEA, Account.TYPE_PERP, ):
             self.logger.debug('This account is not supported')
             return
 
@@ -269,7 +270,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
             for invest in self.page.iter_investments(account=account):
                 yield invest
 
-        if account.type == Account.TYPE_LIFE_INSURANCE:
+        if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_PERP, ):
             if self.page.has_link():
                 self.life_insurance_invest.go()
 

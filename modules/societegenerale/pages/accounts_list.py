@@ -99,6 +99,7 @@ class AccountsPage(JsonBasePage):
                 'ASSURANCE_VIE_GENERALE': Account.TYPE_LIFE_INSURANCE,
                 'AVANCE_PATRIMOINE': Account.TYPE_REVOLVING_CREDIT,
                 'PRET_EXPRESSO': Account.TYPE_CONSUMER_CREDIT,
+                'PERP_EPICEA': Account.TYPE_PERP,
             }
 
             obj_id = obj_number = CleanText(Dict('numeroCompteFormate'), replace=[(' ', '')])
@@ -447,7 +448,9 @@ class LifeInsuranceInvest(LifeInsurance):
             obj_code = Regexp(CleanText(TableCell('label')), r'Code ISIN : (\w+) ', default=NotAvailable)
             obj_quantity = MyDecimal(TableCell('quantity'), default=NotAvailable)
             obj_unitvalue = MyDecimal(TableCell('unitvalue'), default=NotAvailable)
-            obj_valuation = MyDecimal(TableCell('valuation'))
+
+            # Some PERP invests don't have valuation
+            obj_valuation = MyDecimal(TableCell('valuation', default=NotAvailable), default=NotAvailable)
 
             def obj_label(self):
                 if 'FONDS EN EUROS' in CleanText(TableCell('label'))(self):
