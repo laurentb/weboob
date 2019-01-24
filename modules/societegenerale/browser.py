@@ -24,10 +24,10 @@ from decimal import Decimal
 from dateutil.relativedelta import relativedelta
 
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
-from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
+from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded, BrowserUnavailable
 from weboob.capabilities.bank import Account, TransferBankError
 from weboob.capabilities.base import find_object, NotAvailable
-from weboob.browser.exceptions import BrowserHTTPNotFound
+from weboob.browser.exceptions import BrowserHTTPNotFound, ClientError
 from weboob.capabilities.profile import ProfileMissing
 
 from .pages.accounts_list import (
@@ -163,7 +163,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
         account_ibans = {}
         try:
             self.json_transfer.go()
-        except TransferBankError:
+        except (TransferBankError, ClientError, BrowserUnavailable):
             # some user can't access this page
             pass
         else:

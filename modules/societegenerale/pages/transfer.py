@@ -45,7 +45,7 @@ class TransferJson(LoggedPage, JsonPage):
         if Dict('commun/statut')(self.doc).upper() == 'NOK':
             if self.doc['commun'].get('action'):
                 raise TransferBankError(message=Dict('commun/action')(self.doc))
-            elif self.doc['commun'].get('raison') == 'err_tech':
+            elif self.doc['commun'].get('raison') in ('err_tech', 'err_is'):
                 # on SG website, there is unavalaible message 'Le service est momentanément indisponible.'
                 raise BrowserUnavailable()
             else:
