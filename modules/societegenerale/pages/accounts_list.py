@@ -44,6 +44,12 @@ def MyDecimal(*args, **kwargs):
     return CleanDecimal(*args, **kwargs)
 
 
+def eval_decimal_amount(value, decimal_position):
+    return Eval(lambda x,y: x / 10**y,
+                CleanDecimal(Dict(value)),
+                CleanDecimal(Dict(decimal_position)))
+
+
 class JsonBasePage(LoggedPage, JsonPage):
     def on_load(self):
         if Dict('commun/statut')(self.doc).upper() == 'NOK':
@@ -87,6 +93,7 @@ class AccountsPage(JsonBasePage):
                 'LDD': Account.TYPE_SAVINGS,
                 'LIVRETA': Account.TYPE_SAVINGS,
                 'LIVRET_JEUNE': Account.TYPE_SAVINGS,
+                'LIVRET_EUROKID': Account.TYPE_SAVINGS,
                 'COMPTE_SUR_LIVRET': Account.TYPE_SAVINGS,
                 'LIVRET_EPARGNE_PLUS': Account.TYPE_SAVINGS,
                 'PLAN_EPARGNE_BANCAIRE': Account.TYPE_SAVINGS,
@@ -102,6 +109,8 @@ class AccountsPage(JsonBasePage):
                 'VIE_FEDER': Account.TYPE_LIFE_INSURANCE,
                 'PALISSANDRE': Account.TYPE_LIFE_INSURANCE,
                 'ASSURANCE_VIE_GENERALE': Account.TYPE_LIFE_INSURANCE,
+                'RESERVEA': Account.TYPE_REVOLVING_CREDIT,
+                'COMPTE_ALTERNA': Account.TYPE_REVOLVING_CREDIT,
                 'AVANCE_PATRIMOINE': Account.TYPE_REVOLVING_CREDIT,
                 'PRET_EXPRESSO': Account.TYPE_CONSUMER_CREDIT,
                 'PRET_EVOLUTIF': Account.TYPE_CONSUMER_CREDIT,
@@ -123,7 +132,8 @@ class AccountsPage(JsonBasePage):
             obj__prestation_id = Dict('id')
 
             def obj__loan_type(self):
-                if Field('type')(self) in (Account.TYPE_LOAN, Account.TYPE_CONSUMER_CREDIT, ):
+                if Field('type')(self) in (Account.TYPE_LOAN, Account.TYPE_CONSUMER_CREDIT,
+                                           Account.TYPE_REVOLVING_CREDIT, ):
                     return Dict('codeFamille')(self)
                 return None
 
@@ -162,7 +172,49 @@ class LoansPage(JsonBasePage):
 
                 loan._internal_id = account._internal_id
                 loan._prestation_id = account._prestation_id
+                loan._loan_type = account._loan_type
                 return loan
+
+    def get_revolving_account(self, account):
+        loan = Loan()
+        loan.id = loan.number = account.id
+        loan.label = account.label
+        loan.type = account.type
+
+        loan.currency = account.currency
+        loan.balance = account.balance
+        loan.coming = account.coming
+
+        loan._internal_id = account._internal_id
+        loan._prestation_id = account._prestation_id
+        loan._loan_type = account._loan_type
+
+        if Dict('donnees/tabIdAllPrestations')(self.doc):
+            for acc in Dict('donnees/tabPrestations')(self.doc):
+                if CleanText(Dict('idPrestation'))(acc) == account._prestation_id:
+
+                    if Dict('encoursFinMois', default=NotAvailable)(acc):
+                        loan.coming = eval_decimal_amount('encoursFinMois/valeur', 'encoursFinMois/posDecimale')(acc)
+
+                    if Dict('reserveAutorisee', default=NotAvailable)(acc):
+                        loan.total_amount = eval_decimal_amount('reserveAutorisee/valeur', 'reserveAutorisee/posDecimale')(acc)
+                    else:
+                        loan.total_amount = eval_decimal_amount('reserveMaximum/valeur', 'reserveMaximum/posDecimale')(acc)
+
+                    loan.available_amount = eval_decimal_amount('reserveDispo/valeur', 'reserveDispo/posDecimale')(acc)
+
+                    if Dict('reserveUtilisee', default=NotAvailable)(acc):
+                        loan.used_amount = eval_decimal_amount('reserveUtilisee/valeur', 'reserveUtilisee/posDecimale')(acc)
+
+                    if Dict('prochaineEcheance', default=NotAvailable)(acc):
+                        loan.next_payment_amount = eval_decimal_amount('prochaineEcheance/valeur', 'prochaineEcheance/posDecimale')(acc)
+                    else:
+                        loan.next_payment_amount = eval_decimal_amount('montantMensualite/valeur', 'montantMensualite/posDecimale')(acc)
+                        loan.last_payment_amount = loan.next_payment_amount
+
+                    loan.duration = Dict('dureeNbMois')(acc)
+                    return loan
+        return loan
 
 
 class Transaction(FrenchTransaction):

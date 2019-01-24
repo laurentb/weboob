@@ -186,8 +186,12 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
                 account.coming = account_comings[account._prestation_id]
 
             if account.type in (account.TYPE_LOAN, account.TYPE_CONSUMER_CREDIT, ):
-                self.loans.go(conso=(account._loan_type == 'PR_CONSO'))
+                self.loans.stay_or_go(conso=(account._loan_type == 'PR_CONSO'))
                 account = self.page.get_loan_account(account)
+
+            if account.type == account.TYPE_REVOLVING_CREDIT:
+                self.loans.stay_or_go(conso=(account._loan_type == 'PR_CONSO'))
+                account = self.page.get_revolving_account(account)
 
             yield account
 
@@ -210,6 +214,9 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
             return
 
         if account.type == account.TYPE_REVOLVING_CREDIT:
+            if account._loan_type == 'PR_CONSO':
+                return
+
             # request to get json is not available yet, old request to get html response
             self.account_details_page.go(params={'idprest': account._prestation_id})
             self.page.go_history_page()
