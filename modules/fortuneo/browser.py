@@ -32,7 +32,7 @@ from weboob.tools.value import Value
 
 from .pages.login import LoginPage, UnavailablePage
 from .pages.accounts_list import (
-    AccountsList, AccountHistoryPage, CardHistoryPage, InvestmentHistoryPage, PeaHistoryPage, LoanPage, ProfilePage, ProfilePageCSV, SecurityPage,
+    AccountsList, AccountHistoryPage, CardHistoryPage, InvestmentHistoryPage, PeaHistoryPage, LoanPage, ProfilePage, ProfilePageCSV, SecurityPage, FakeActionPage,
 )
 from .pages.transfer import (
     RegisterTransferPage, ValidateTransferPage, ConfirmTransferPage, RecipientsPage, RecipientSMSPage
@@ -84,7 +84,7 @@ class Fortuneo(LoginBrowser, StatesMixin):
         r'fr/prive/mes-comptes/compte-courant/.*/init-confirmer-saisie-virement.jsp',
         r'/fr/prive/mes-comptes/compte-courant/.*/confirmer-saisie-virement.jsp',
         ConfirmTransferPage)
-
+    fake_action_page = URL(r'fr/prive/mes-comptes/synthese-globale/synthese-mes-comptes.jsp', FakeActionPage)
     profile = URL(r'/fr/prive/informations-client.jsp', ProfilePage)
     profile_csv = URL(r'/PdfStruts\?*', ProfilePageCSV)
 
@@ -160,7 +160,17 @@ class Fortuneo(LoginBrowser, StatesMixin):
             self.process_action_needed()
 
         assert self.accounts_page.is_here()
-        return self.page.get_list()
+        accounts_list = self.page.get_list()
+        if self.fake_action_page.is_here():
+            # A false action needed is present, it's a choice to make Fortuno your main bank.
+            # To avoid it, we need to first detect it on the account_page
+            # Then make a post request to mimic the click on choice 'later'
+            # And to finish we must to reload the page with a POST to get the accounts
+            # before going on the accounts_page, which will have the data.
+            self.location(self.absurl('ReloadContext?action=1&', base=True), method='POST')
+            self.accounts_page.go()
+            accounts_list = self.page.get_list()
+        return accounts_list
 
     def process_action_needed(self):
         # we have to go in an iframe to know if there are CGUs
