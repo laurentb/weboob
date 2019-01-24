@@ -263,8 +263,7 @@ class HistoryPage(JsonBasePage):
         class item(TransactionItemElement):
             def condition(self):
                 conditions = (
-                    Dict('idOpe')(self),
-                    Regexp(CleanText(Dict('idOpe')), r'(\d+)/')(self) == '0',
+                    Dict('idOpe')(self) and Regexp(CleanText(Dict('idOpe')), r'(\d+)/')(self) == '0',
                     Env('card_number')(self) in Dict('libOpe')(self),
                     Dict('statutOperation')(self) == 'COMPTABILISE',
                 )
