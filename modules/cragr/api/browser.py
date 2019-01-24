@@ -250,8 +250,8 @@ class CragrAPI(LoginBrowser):
         params = {
             'compteIdx': int(account._index),
             'grandeFamilleCode': int(account._category),
-            'idDevise':	str(account.currency),
-            'idElementContrat':	str(account._id_element_contrat),
+            'idDevise': str(account.currency),
+            'idElementContrat': str(account._id_element_contrat),
         }
         self.history.go(params=params)
         for tr in self.page.iter_history():
