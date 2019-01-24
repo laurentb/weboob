@@ -21,7 +21,9 @@ from __future__ import unicode_literals
 from datetime import date
 
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
-from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ImageCaptchaQuestion, BrowserQuestion
+from weboob.exceptions import (
+    BrowserIncorrectPassword, BrowserUnavailable, ImageCaptchaQuestion, BrowserQuestion, ActionNeeded
+)
 from weboob.tools.value import Value
 from weboob.browser.browsers import ClientError
 
@@ -85,6 +87,11 @@ class AmazonBrowser(LoginBrowser, StatesMixin):
             self.location('/ap/signin', data=res_form, headers=self.otp_headers)
 
     def handle_security(self):
+        otp_type = self.page.get_otp_type()
+        if otp_type == '/ap/signin':
+            # this otp will be always present until user deactivate it
+            raise ActionNeeded('You have enabled otp in your options, please deactivate it before synchronize')
+
         if self.page.doc.xpath('//span[@class="a-button-text"]'):
             self.page.send_code()
 

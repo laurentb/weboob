@@ -45,9 +45,20 @@ class PanelPage(LoggedPage, HTMLPage):
 
 
 class SecurityPage(HTMLPage):
+    def get_otp_type(self):
+        # amazon send us otp in two cases:
+        # - if it's the first time we connect to this account for an ip => manage it normally
+        # - if user has activated otp in his options => raise ActionNeeded, an ask user to deactivate it
+        form = self.get_form(xpath='//form[.//h1]')
+        url = form.url.replace(self.browser.BASEURL, '')
+
+        # verify: this otp is sent by amazon when we connect to the account for the first time from a new ip or computer
+        # /ap/signin: this otp is a user activated otp which is always present
+        assert url in ('verify', '/ap/signin'), url
+        return url
+
     def get_otp_message(self):
-        message = self.doc.xpath('//div[@class="a-box-inner"]/p')
-        return message[0] if message else None
+        return CleanText('//div[@class="a-box-inner"]/p')(self.doc)
 
     def send_code(self):
         form = self.get_form()
