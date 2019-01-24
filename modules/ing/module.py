@@ -16,6 +16,8 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
+from __future__ import unicode_literals
+
 
 import re
 from datetime import timedelta
@@ -38,13 +40,13 @@ __all__ = ['INGModule']
 
 class INGModule(Module, CapBankWealth, CapBankTransfer, CapDocument, CapProfile):
     NAME = 'ing'
-    MAINTAINER = u'Florent Fourcot'
+    MAINTAINER = 'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
     VERSION = '1.5'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = 'ING Direct'
     CONFIG = BackendConfig(ValueBackendPassword('login',
-                                                label=u'Numéro client',
+                                                label='Numéro client',
                                                 masked=False),
                            ValueBackendPassword('password',
                                                 label='Code secret',
@@ -88,7 +90,7 @@ class INGModule(Module, CapBankWealth, CapBankTransfer, CapDocument, CapProfile)
 
     def init_transfer(self, transfer, **params):
         self.logger.info('Going to do a new transfer')
-        transfer.label = ' '.join(w for w in re.sub('[^0-9a-zA-Z/\-\?:\(\)\.,\'\+ ]+', '', transfer.label).split()).upper()
+        transfer.label = ' '.join(w for w in re.sub(r'[^0-9a-zA-Z/\-\?:\(\)\.,\'\+ ]+', '', transfer.label).split()).upper()
         if transfer.account_iban:
             account = find_object(self.iter_accounts(), iban=transfer.account_iban, error=AccountNotFound)
         else:

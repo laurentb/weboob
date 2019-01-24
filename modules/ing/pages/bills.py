@@ -16,6 +16,8 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
+from __future__ import unicode_literals
+
 
 from weboob.capabilities.bill import DocumentTypes, Bill, Subscription
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination, Form
@@ -50,7 +52,7 @@ class BillsPage(LoggedPage, HTMLPage):
             klass = Subscription
 
             obj__javax = Attr("//form[@id='accountsel_form']/input[@name='javax.faces.ViewState']", 'value')
-            obj_id = Attr('input', "value")
+            obj_id = Attr('input', 'value')
             obj_label = CleanText('label')
             obj__formid = FormId(Attr('input', 'onclick'))
 
@@ -64,7 +66,7 @@ class BillsPage(LoggedPage, HTMLPage):
         ref = Attr('//form[@id="years_form"]//ul//a[text()="%s"]' % year, 'id')(self.doc)
 
         self.FORM_CLASS = Form
-        form = self.get_form(name="years_form")
+        form = self.get_form(name='years_form')
         form.pop('years_form:j_idcl')
         form.pop('years_form:_link_hidden_')
         form['AJAXREQUEST'] = 'years_form:year_region'
@@ -77,7 +79,7 @@ class BillsPage(LoggedPage, HTMLPage):
         self.FORM_CLASS = MyForm
         _id = bill._localid.split("'")[3]
 
-        form = self.get_form(name="downpdf_form")
+        form = self.get_form(name='downpdf_form')
         form['statements_form'] = 'statements_form'
         form['statements_form:j_idcl'] = _id
         return form.submit()
@@ -93,7 +95,7 @@ class BillsPage(LoggedPage, HTMLPage):
             selected = False
             ref = None
             for li in lis:
-                if "rich-list-item selected" in li.attrib['class']:
+                if 'rich-list-item selected' in li.attrib['class']:
                     selected = True
                 else:
                     if selected:
@@ -101,10 +103,10 @@ class BillsPage(LoggedPage, HTMLPage):
                         break
             if ref is None:
                 return
-            form = self.page.get_form(name="years_form")
+            form = self.page.get_form(name='years_form')
             form.pop('years_form:j_idcl')
             form.pop('years_form:_link_hidden_')
-            form['AJAXREQUEST'] = "years_form:year_region"
+            form['AJAXREQUEST'] = 'years_form:year_region'
             form[ref] = ref
             return form.request
 
@@ -115,13 +117,13 @@ class BillsPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Bill
 
-            condition = lambda self: not (u"tous les relev" in CleanText('a[1]')(self.el)) and not (u'annuel' in CleanText('a[1]')(self.el))
+            condition = lambda self: not ('tous les relev' in CleanText('a[1]')(self.el)) and not ('annuel' in CleanText('a[1]')(self.el))
 
             obj_label = CleanText('a[1]', replace=[(' ', '-')])
-            obj_id = Format(u"%s-%s", Env('subid'), Field('label'))
+            obj_id = Format('%s-%s', Env('subid'), Field('label'))
             # Force first day of month as label is in form "janvier 2016"
-            obj_date = Format("1 %s", Field('label')) & Date(parse_func=parse_french_date)
-            obj_format = u"pdf"
+            obj_date = Format('1 %s', Field('label')) & Date(parse_func=parse_french_date)
+            obj_format = 'pdf'
             obj_type = DocumentTypes.STATEMENT
             obj__localid = Attr('a[2]', 'onclick')
 

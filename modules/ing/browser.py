@@ -16,6 +16,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
+from __future__ import unicode_literals
 
 
 import hashlib
@@ -74,35 +75,35 @@ class IngBrowser(LoginBrowser):
     lifeback = URL(r'https://ingdirectvie.ing.fr/b2b2c/entreesite/EntAccExit', ReturnPage)
 
     # Login and error
-    loginpage = URL('/public/displayLogin.jsf.*', LoginPage)
-    errorpage = URL('.*displayCoordonneesCommand.*', StopPage)
-    actioneeded = URL('/general\?command=displayTRAlertMessage',
-                      '/protected/pages/common/eco1/moveMoneyForbidden.jsf', ActionNeededPage)
+    loginpage = URL(r'/public/displayLogin.jsf.*', LoginPage)
+    errorpage = URL(r'.*displayCoordonneesCommand.*', StopPage)
+    actioneeded = URL(r'/general\?command=displayTRAlertMessage',
+                      r'/protected/pages/common/eco1/moveMoneyForbidden.jsf', ActionNeededPage)
 
     # CapBank
-    accountspage = URL('/protected/pages/index.jsf',
-                       '/protected/pages/asv/contract/(?P<asvpage>.*).jsf', AccountsList)
-    titredetails = URL('/general\?command=display.*', TitreDetails)
-    ibanpage = URL('/protected/pages/common/rib/initialRib.jsf', IbanPage)
-    loantokenpage = URL('general\?command=goToConsumerLoanCommand&redirectUrl=account-details', LoanTokenPage)
-    loandetailpage = URL('https://subscribe.ing.fr/consumerloan/consumerloan-v1/consumer/details', LoanDetailPage)
+    accountspage = URL(r'/protected/pages/index.jsf',
+                       r'/protected/pages/asv/contract/(?P<asvpage>.*).jsf', AccountsList)
+    titredetails = URL(r'/general\?command=display.*', TitreDetails)
+    ibanpage = URL(r'/protected/pages/common/rib/initialRib.jsf', IbanPage)
+    loantokenpage = URL(r'general\?command=goToConsumerLoanCommand&redirectUrl=account-details', LoanTokenPage)
+    loandetailpage = URL(r'https://subscribe.ing.fr/consumerloan/consumerloan-v1/consumer/details', LoanDetailPage)
     # CapBank-Market
-    netissima = URL('/data/asv/fiches-fonds/fonds-netissima.html', NetissimaPage)
-    starttitre = URL('/general\?command=goToAccount&zone=COMPTE', TitrePage)
-    titrepage = URL('https://bourse.ingdirect.fr/priv/portefeuille-TR.php', TitrePage)
-    titrehistory = URL('https://bourse.ingdirect.fr/priv/compte.php\?ong=3', TitreHistory)
-    titrerealtime = URL('https://bourse.ingdirect.fr/streaming/compteTempsReelCK.php', TitrePage)
-    titrevalue = URL('https://bourse.ingdirect.fr/priv/fiche-valeur.php\?val=(?P<val>.*)&pl=(?P<pl>.*)&popup=1', TitreValuePage)
-    asv_history = URL('https://ingdirectvie.ing.fr/b2b2c/epargne/CoeLisMvt',
-                      'https://ingdirectvie.ing.fr/b2b2c/epargne/CoeDetMvt', ASVHistory)
-    asv_invest = URL('https://ingdirectvie.ing.fr/b2b2c/epargne/CoeDetCon', ASVInvest)
-    detailfonds = URL('https://ingdirectvie.ing.fr/b2b2c/fonds/PerDesFac\?codeFonds=(.*)', DetailFondsPage)
+    netissima = URL(r'/data/asv/fiches-fonds/fonds-netissima.html', NetissimaPage)
+    starttitre = URL(r'/general\?command=goToAccount&zone=COMPTE', TitrePage)
+    titrepage = URL(r'https://bourse.ingdirect.fr/priv/portefeuille-TR.php', TitrePage)
+    titrehistory = URL(r'https://bourse.ingdirect.fr/priv/compte.php\?ong=3', TitreHistory)
+    titrerealtime = URL(r'https://bourse.ingdirect.fr/streaming/compteTempsReelCK.php', TitrePage)
+    titrevalue = URL(r'https://bourse.ingdirect.fr/priv/fiche-valeur.php\?val=(?P<val>.*)&pl=(?P<pl>.*)&popup=1', TitreValuePage)
+    asv_history = URL(r'https://ingdirectvie.ing.fr/b2b2c/epargne/CoeLisMvt',
+                      r'https://ingdirectvie.ing.fr/b2b2c/epargne/CoeDetMvt', ASVHistory)
+    asv_invest = URL(r'https://ingdirectvie.ing.fr/b2b2c/epargne/CoeDetCon', ASVInvest)
+    detailfonds = URL(r'https://ingdirectvie.ing.fr/b2b2c/fonds/PerDesFac\?codeFonds=(.*)', DetailFondsPage)
     # CapDocument
-    billpage = URL('/protected/pages/common/estatement/eStatement.jsf', BillsPage)
+    billpage = URL(r'/protected/pages/common/estatement/eStatement.jsf', BillsPage)
     # CapProfile
-    profile = URL('/protected/pages/common/profil/(?P<page>\w+).jsf', ProfilePage)
+    profile = URL(r'/protected/pages/common/profil/(?P<page>\w+).jsf', ProfilePage)
 
-    transfer = URL('/protected/pages/common/virement/index.jsf', TransferPage)
+    transfer = URL(r'/protected/pages/common/virement/index.jsf', TransferPage)
 
     __states__ = ['where']
 
@@ -142,7 +143,7 @@ class IngBrowser(LoginBrowser):
     @need_login
     def set_multispace(self):
         self.accountspage.go()
-        self.where = "start"
+        self.where = 'start'
         self.page.load_space_page()
 
         self.multispace = self.page.get_multispace()
@@ -157,7 +158,7 @@ class IngBrowser(LoginBrowser):
     def change_space(self, space):
         if self.multispace and not self.is_same_space(space, self.current_space):
             self.accountspage.go()
-            self.where = "start"
+            self.where = 'start'
             self.page.load_space_page()
 
             self.page.change_space(space)
@@ -172,22 +173,22 @@ class IngBrowser(LoginBrowser):
 
     @start_with_main_site
     def get_market_balance(self, account):
-        if self.where != "start":
+        if self.where != 'start':
             self.accountspage.go()
-            self.where = "start"
+            self.where = 'start'
 
         self.change_space(account._space)
 
         data = self.get_investments_data(account)
         for i in range(5):
             if i > 0:
-                self.logger.debug('Can\'t get market balance, retrying in %s seconds...', (2**i))
+                self.logger.debug("Can't get market balance, retrying in %s seconds...", (2**i))
                 time.sleep(2**i)
             if self.accountspage.go(data=data).has_link():
                 break
 
         self.starttitre.go()
-        self.where = u"titre"
+        self.where = 'titre'
         self.titrepage.go()
         self.titrerealtime.go()
         account.balance = self.page.get_balance() or account.balance
@@ -228,7 +229,7 @@ class IngBrowser(LoginBrowser):
     @start_with_main_site
     def get_accounts_list(self, space=None, get_iban=True):
         self.accountspage.go()
-        self.where = "start"
+        self.where = 'start'
 
         self.set_multispace()
 
@@ -255,7 +256,7 @@ class IngBrowser(LoginBrowser):
     @start_with_main_site
     def iter_detailed_loans(self):
         self.accountspage.go()
-        self.where = "start"
+        self.where = 'start'
 
         for loan in self.page.get_detailed_loans():
             data = {'AJAXREQUEST': '_viewRoot',
@@ -306,7 +307,7 @@ class IngBrowser(LoginBrowser):
             self.only_deferred_cards[account._id] = all(
                 [card['kind'] == self.DEFERRED_CB for card in card_list]
             )
-        self.where = "history"
+        self.where = 'history'
 
     @need_login
     @start_with_main_site
@@ -410,10 +411,10 @@ class IngBrowser(LoginBrowser):
         try:
             if self.page.asv_is_other:
                 jid = self.page.get_asv_jid()
-                data = {'index': "index", 'javax.faces.ViewState': jid, 'index:j_idcl': "index:asvInclude:goToAsvPartner"}
+                data = {'index': "index", 'javax.faces.ViewState': jid, 'index:j_idcl': 'index:asvInclude:goToAsvPartner'}
                 self.accountspage.go(data=data)
             else:
-                self.accountspage.go(asvpage="manageASVContract")
+                self.accountspage.go(asvpage='manageASVContract')
                 self.page.submit()
             self.page.submit()
             self.location(link)
@@ -457,13 +458,13 @@ class IngBrowser(LoginBrowser):
                 break
 
         else:
-            self.logger.warning("Unable to get investments list...")
+            self.logger.warning('Unable to get investments list...')
 
         if self.page.is_asv:
             return
 
         self.starttitre.go()
-        self.where = u"titre"
+        self.where = 'titre'
         self.titrepage.go()
 
     @need_login
@@ -474,8 +475,8 @@ class IngBrowser(LoginBrowser):
 
         self.go_investments(account)
 
-        if self.where == u'titre':
-            if self.cache["investments_data"].get(account.id) is None:
+        if self.where == 'titre':
+            if self.cache['investments_data'].get(account.id) is None:
                 self.titrerealtime.go()
             for inv in self.page.iter_investments(account):
                 yield inv
@@ -485,7 +486,7 @@ class IngBrowser(LoginBrowser):
             for asv_investments in self.page.iter_asv_investments():
                 shares[asv_investments.label] = asv_investments.portfolio_share
             if self.go_on_asv_detail(account, '/b2b2c/epargne/CoeDetCon') is not False:
-                self.where = u"asv"
+                self.where = 'asv'
                 for inv in self.page.iter_investments():
                     inv.portfolio_share = shares[inv.label]
                     yield inv
@@ -493,7 +494,7 @@ class IngBrowser(LoginBrowser):
     def get_history_titre(self, account):
         self.go_investments(account)
 
-        if self.where == u'titre':
+        if self.where == 'titre':
             self.titrehistory.go()
         elif self.page.asv_has_detail or account._jid:
             if self.go_on_asv_detail(account, '/b2b2c/epargne/CoeLisMvt') is False:
