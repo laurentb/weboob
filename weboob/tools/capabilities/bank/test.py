@@ -19,7 +19,7 @@
 
 from datetime import date
 
-from weboob.capabilities.base import empty
+from weboob.capabilities.base import empty, NotLoaded
 from weboob.capabilities.bank import CapBankTransfer, CapBankWealth, CapBankPockets
 from weboob.exceptions import NoAccountsException
 from weboob.tools.capabilities.bank.iban import is_iban_valid
@@ -92,6 +92,7 @@ class BankStandardTest(object):
         self.assertFalse(empty(account.balance) and empty(account.coming), 'account %r should have balance or coming' % account)
         self.assertTrue(account.type, 'account %r is untyped' % account)
         self.assertTrue(account.currency, 'account %r has no currency' % account)
+        self.assertIsNot(account.number, NotLoaded)
         if account.iban:
             self.assertTrue(is_iban_valid(account.iban), 'account %r IBAN is invalid: %r' % (account, account.iban))
 
