@@ -280,11 +280,10 @@ class HistoryPage(LoggedPage, JsonPage):
 
             klass = Transaction
 
+            obj_raw = Format('%s %s %s', CleanText(Dict('libelleTypeOperation')), CleanText(Dict('libelleOperation')), CleanText(Dict('libelleComplementaire')))
             obj_label = Format('%s %s', CleanText(Dict('libelleTypeOperation')), CleanText(Dict('libelleOperation')))
             obj_amount = Eval(float_to_decimal, Dict('montant'))
             obj_type = Map(CleanText(Dict('libelleTypeOperation')), TRANSACTION_TYPES, Transaction.TYPE_UNKNOWN)
-            # Needed to fetch deferred card summaries
-            obj__index = Dict('indexCarte')
 
             def obj_date(self):
                 return dateutil.parser.parse(Dict('dateValeur')(self))

@@ -23,13 +23,14 @@ from __future__ import unicode_literals
 from decimal import Decimal
 import re
 
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, Transaction
 from weboob.capabilities.base import empty, NotAvailable
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, ActionNeeded
 from weboob.browser.exceptions import ServerError
 from weboob.capabilities.bank import Loan
 from weboob.tools.capabilities.bank.iban import is_iban_valid
+from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages import (
     LoginPage, LoggedOutPage, KeypadPage, SecurityPage, ContractsPage, AccountsPage, AccountDetailsPage,
@@ -242,6 +243,74 @@ class CragrAPI(LoginBrowser):
 
     @need_login
     def get_history(self, account, coming=False):
+        if account.type == Account.TYPE_CARD:
+            card_transactions = []
+            self.go_to_account_space(account._contract)
+            # Deferred cards transactions have a specific JSON.
+            # Only three months of history available for cards.
+            value = 0 if coming else 1
+            params = {
+                'grandeFamilleCode': int(account._category),
+                'compteIdx': int(account.parent._index),
+                'carteIdx': int(account._index),
+                'rechercheEncoursDebite': value
+            }
+            self.card_history.go(params=params)
+            for tr in self.page.iter_card_history():
+                card_transactions.append(tr)
+
+            # Before fetching card summaries, we must check if this card
+            # is unique on the parent account, otherwise it is impossible
+            # to know which summary corresponds to which card...
+            unique = True
+            for acc in self.all_accounts.values():
+                if acc.type == Account.TYPE_CARD:
+                    if (acc.parent == account.parent) and (acc.id != account.id):
+                        unique = False
+                        break
+
+            if not coming and card_transactions and unique:
+                # Get card summaries from parent account
+                # until we reach the oldest card transaction
+                last_transaction = card_transactions[-1]
+                before_last_transaction = False
+                params = {
+                    'compteIdx': int(account.parent._index),
+                    'grandeFamilleCode': int(account.parent._category),
+                    'idDevise': str(account.parent.currency),
+                    'idElementContrat': str(account.parent._id_element_contrat),
+                }
+                self.history.go(params=params)
+                for tr in self.page.iter_history():
+                    if tr.date < last_transaction.date:
+                        before_last_transaction = True
+                        break
+                    if tr.type == Transaction.TYPE_CARD_SUMMARY:
+                        tr.amount = -tr.amount
+                        card_transactions.append(tr)
+
+                while self.page.has_next_page() and not before_last_transaction:
+                    next_index = self.page.get_next_index()
+                    params = {
+                        'grandeFamilleCode': int(account.parent._category),
+                        'compteIdx': int(account.parent._index),
+                        'idDevise': str(account.parent.currency),
+                        'startIndex': next_index,
+                        'count': 100,
+                    }
+                    self.history.go(params=params)
+                    for tr in self.page.iter_history():
+                        if tr.date < last_transaction.date:
+                            before_last_transaction = True
+                            break
+                        if tr.type == Transaction.TYPE_CARD_SUMMARY:
+                            tr.amount = -tr.amount
+                            card_transactions.append(tr)
+
+            for tr in sorted_transactions(card_transactions):
+                yield tr
+            return
+
         # These three parameters are required to get the transactions for non_card accounts
         if empty(account._index) or empty(account._category) or empty(account._id_element_contrat):
             return
