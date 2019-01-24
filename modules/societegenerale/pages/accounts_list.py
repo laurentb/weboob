@@ -83,10 +83,14 @@ class AccountsPage(JsonBasePage):
             TYPES = {
                 'COMPTE_COURANT': Account.TYPE_CHECKING,
                 'PEL': Account.TYPE_SAVINGS,
+                'CEL': Account.TYPE_SAVINGS,
                 'LDD': Account.TYPE_SAVINGS,
                 'LIVRETA': Account.TYPE_SAVINGS,
                 'LIVRET_JEUNE': Account.TYPE_SAVINGS,
                 'COMPTE_SUR_LIVRET': Account.TYPE_SAVINGS,
+                'LIVRET_EPARGNE_PLUS': Account.TYPE_SAVINGS,
+                'PLAN_EPARGNE_BANCAIRE': Account.TYPE_SAVINGS,
+                'LIVRET_EPARGNE_POPULAIRE': Account.TYPE_SAVINGS,
                 'BANQUE_FRANCAISE_MUTUALISEE': Account.TYPE_SAVINGS,
                 'PRET_GENERAL': Account.TYPE_LOAN,
                 'PRET_PERSONNEL_MUTUALISE': Account.TYPE_LOAN,
@@ -96,9 +100,11 @@ class AccountsPage(JsonBasePage):
                 'COMPTE_TITRE_PEA': Account.TYPE_PEA,
                 'COMPTE_TITRE_PEA_PME': Account.TYPE_PEA,
                 'VIE_FEDER': Account.TYPE_LIFE_INSURANCE,
+                'PALISSANDRE': Account.TYPE_LIFE_INSURANCE,
                 'ASSURANCE_VIE_GENERALE': Account.TYPE_LIFE_INSURANCE,
                 'AVANCE_PATRIMOINE': Account.TYPE_REVOLVING_CREDIT,
                 'PRET_EXPRESSO': Account.TYPE_CONSUMER_CREDIT,
+                'PRET_EVOLUTIF': Account.TYPE_CONSUMER_CREDIT,
                 'PERP_EPICEA': Account.TYPE_PERP,
             }
 
