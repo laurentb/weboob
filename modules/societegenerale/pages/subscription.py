@@ -114,4 +114,6 @@ class BankStatementPage(LoggedPage, BasePage):
             yield d
 
     def has_error_msg(self):
-        return CleanText('//div[@class="MessageErreur"]')(self.doc) or CleanText('//span[@class="error_msg"]')(self.doc)
+        return any((CleanText('//div[@class="MessageErreur"]')(self.doc),
+                   CleanText('//span[@class="error_msg"]')(self.doc),
+                   self.doc.xpath('//div[contains(@class, "error_page")]'), ))
