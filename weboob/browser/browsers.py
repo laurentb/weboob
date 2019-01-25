@@ -1076,6 +1076,7 @@ class OAuth2PKCEMixin(OAuth2Mixin):
 
     def build_authorization_parameters(self):
         return {'redirect_uri':    self.redirect_uri,
+                'code_challenge_method': 'S256',
                 'code_challenge':  self.pkce_challenge,
                 'client_id':       self.client_id
                }
