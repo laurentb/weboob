@@ -1071,8 +1071,8 @@ class OAuth2PKCEMixin(OAuth2Mixin):
         return base64.urlsafe_b64encode(os.urandom(bytes_number)).rstrip(b'=')
 
     def code_challenge(self, verifier):
-        digest = sha256(verifier).hexdigest()
-        return base64.urlsafe_b64encode(digest)
+        digest = sha256(verifier).digest()
+        return base64.urlsafe_b64encode(digest).rstrip(b'=')
 
     def build_authorization_parameters(self):
         return {'redirect_uri':    self.redirect_uri,
