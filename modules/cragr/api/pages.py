@@ -27,14 +27,16 @@ import dateutil
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import (
-    Account, AccountOwnerType, Transaction,
+    Account, AccountOwnerType, Transaction, Investment,
 )
 
 from weboob.browser.elements import DictElement, ItemElement, method
 from weboob.browser.filters.standard import (
-    CleanText, CleanDecimal, Currency as CleanCurrency, Format, Field, Map, Eval, Env,
+    CleanText, CleanDecimal, Currency as CleanCurrency, Format, Field, Map, Eval, Env, Regexp,
 )
+from weboob.browser.filters.html import Attr
 from weboob.browser.filters.json import Dict
+from weboob.tools.capabilities.bank.investments import is_isin_valid
 
 
 def float_to_decimal(f):
@@ -65,10 +67,14 @@ class LoggedOutPage(HTMLPage):
         return self.doc.xpath('//b[text()="FIN DE CONNEXION"]')
 
 
-
 class SecurityPage(JsonPage):
     def get_accounts_url(self):
         return Dict('url')(self.doc)
+
+
+class TokenPage(LoggedPage, JsonPage):
+    def get_token(self):
+        return Dict('token')(self.doc)
 
 
 class ContractsPage(LoggedPage, HTMLPage):
@@ -166,6 +172,8 @@ class AccountsPage(LoggedPage, JsonPage):
         obj__index = Dict('comptePrincipal/index')
         obj__category = Dict('comptePrincipal/grandeFamilleProduitCode', default=None)
         obj__id_element_contrat = CleanText(Dict('comptePrincipal/idElementContrat'))
+        obj__fam_product_code = CleanText(Dict('comptePrincipal/codeFamilleProduitBam'))
+        obj__fam_contract_code = CleanText(Dict('comptePrincipal/codeFamilleContratBam'))
 
         def obj_type(self):
             _type = Map(CleanText(Dict('comptePrincipal/libelleUsuelProduit')), ACCOUNT_TYPES, Account.TYPE_UNKNOWN)(self)
@@ -194,6 +202,8 @@ class AccountsPage(LoggedPage, JsonPage):
             obj__index = Dict('index')
             obj__category = Dict('grandeFamilleProduitCode', default=None)
             obj__id_element_contrat = CleanText(Dict('idElementContrat'))
+            obj__fam_product_code = CleanText(Dict('codeFamilleProduitBam'))
+            obj__fam_contract_code = CleanText(Dict('codeFamilleContratBam'))
 
             def obj_type(self):
                 _type = Map(CleanText(Dict('libelleUsuelProduit')), ACCOUNT_TYPES, Account.TYPE_UNKNOWN)(self)
@@ -339,8 +349,56 @@ class CardHistoryPage(LoggedPage, JsonPage):
                 return dateutil.parser.parse(Dict('dateOperation')(self))
 
 
-class InvestmentPage(LoggedPage, JsonPage):
-    pass
+class NetfincaRedirectionPage(LoggedPage, HTMLPage):
+    def get_url(self):
+        return Regexp(Attr('//body', 'onload'), r'document.location="([^"]+)"')(self.doc)
+
+
+class PredicaRedirectionPage(LoggedPage, HTMLPage):
+    def on_load(self):
+        form = self.get_form()
+        form.submit()
+
+
+class PredicaInvestmentsPage(LoggedPage, JsonPage):
+    @method
+    class iter_investments(DictElement):
+        item_xpath = 'listeSupports/support'
+
+        class item(ItemElement):
+            klass = Investment
+
+            obj_label = CleanText(Dict('lcspt'))
+            obj_valuation = Eval(float_to_decimal, Dict('mtvalspt'))
+
+            def obj_portfolio_share(self):
+                portfolio_share = Dict('txrpaspt', default=None)(self)
+                if portfolio_share:
+                    return Eval(lambda x: float_to_decimal(x / 100), portfolio_share)(self)
+                return NotAvailable
+
+            def obj_unitvalue(self):
+                unit_value = Dict('mtliqpaaspt', default=None)(self)
+                if unit_value:
+                    return Eval(float_to_decimal, unit_value)(self)
+                return NotAvailable
+
+            def obj_quantity(self):
+                quantity = Dict('qtpaaspt', default=None)(self)
+                if quantity:
+                    return Eval(float_to_decimal, quantity)(self)
+                return NotAvailable
+
+            def obj_code(self):
+                code = Dict('cdsptisn')(self)
+                if is_isin_valid(code):
+                    return code
+                return NotAvailable
+
+            def obj_code_type(self):
+                if is_isin_valid(Field('code')(self)):
+                    return Investment.CODE_TYPE_ISIN
+                return NotAvailable
 
 
 class ProfilePage(LoggedPage, JsonPage):

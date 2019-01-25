@@ -98,7 +98,8 @@ class CragrModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapContact
         site_conf = self.COMPAT_DOMAINS.get(site_conf, site_conf)
         return self.create_browser(site_conf,
                                    self.config['login'].get(),
-                                   self.config['password'].get())
+                                   self.config['password'].get(),
+                                   weboob=self.weboob)
 
     def iter_accounts(self):
         return self.browser.get_accounts_list()

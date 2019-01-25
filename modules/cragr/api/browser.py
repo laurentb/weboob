@@ -27,15 +27,20 @@ from weboob.capabilities.bank import Account, Transaction
 from weboob.capabilities.base import empty, NotAvailable
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, ActionNeeded
-from weboob.browser.exceptions import ServerError
+from weboob.browser.exceptions import ServerError, BrowserHTTPNotFound
 from weboob.capabilities.bank import Loan
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages import (
     LoginPage, LoggedOutPage, KeypadPage, SecurityPage, ContractsPage, AccountsPage, AccountDetailsPage,
-    IbanPage, HistoryPage, CardsPage, CardHistoryPage, ProfilePage,
+    TokenPage, IbanPage, HistoryPage, CardsPage, CardHistoryPage, NetfincaRedirectionPage, PredicaRedirectionPage,
+    PredicaInvestmentsPage, ProfilePage,
 )
+
+from weboob.tools.capabilities.bank.investments import create_french_liquidity
+
+from .netfinca_browser import NetfincaBrowser
 
 
 __all__ = ['CragrAPI']
@@ -46,6 +51,8 @@ class CragrAPI(LoginBrowser):
     keypad = URL(r'particulier/acceder-a-mes-comptes.authenticationKeypad.json', KeypadPage)
     security_check = URL(r'particulier/acceder-a-mes-comptes.html/j_security_check', SecurityPage)
     logged_out = URL(r'.*', LoggedOutPage)
+
+    token_page = URL(r'libs/granite/csrf/token.json', TokenPage)
 
     contracts_page = URL(r'particulier/operations/.rechargement.contexte.html\?idBamIndex=(?P<id_contract>)',
                          r'association/operations/.rechargement.contexte.html\?idBamIndex=(?P<id_contract>)',
@@ -75,6 +82,19 @@ class CragrAPI(LoginBrowser):
                        r'association/operations/synthese/detail-comptes/jcr:content.n3.operations.encours.carte.debit.differe.json',
                        r'professionnel/operations/synthese/detail-comptes/jcr:content.n3.operations.encours.carte.debit.differe.json', CardHistoryPage)
 
+    netfinca_redirection = URL(r'particulier/operations/moco/catitres/jcr:content.init.html',
+                               r'association/operations/moco/catitres/jcr:content.init.html',
+                               r'professionnel/operations/moco/catitres/jcr:content.init.html',
+                               r'particulier/operations/moco/catitres/_jcr_content.init.html',
+                               r'association/operations/moco/catitres/_jcr_content.init.html',
+                               r'professionnel/operations/moco/catitres/_jcr_content.init.html', NetfincaRedirectionPage)
+
+    predica_redirection = URL(r'particulier/operations/moco/predica/jcr:content.init.html',
+                              r'association/operations/moco/predica/jcr:content.init.html',
+                              r'professionnel/operations/moco/predica/jcr:content.init.html', PredicaRedirectionPage)
+
+    predica_investments = URL(r'https://npcprediweb.predica.credit-agricole.fr/rest/detailEpargne/contrat/', PredicaInvestmentsPage)
+
     profile_page = URL(r'particulier/operations/synthese/jcr:content.npc.store.client.json',
                        r'association/operations/synthese/jcr:content.npc.store.client.json',
                        r'professionnel/operations/synthese/jcr:content.npc.store.client.json', ProfilePage)
@@ -86,6 +106,15 @@ class CragrAPI(LoginBrowser):
         self.region = re.sub('^m\.', 'www.credit-agricole.fr/', website)
         self.BASEURL = 'https://%s/' % self.region
         self.accounts_url = None
+
+        # Netfinca browser:
+        self.weboob = kwargs.pop('weboob')
+        dirname = self.responses_dirname
+        self.netfinca = NetfincaBrowser('', '', logger=self.logger, weboob=self.weboob, responses_dirname=dirname, proxy=self.PROXIES)
+
+    def deinit(self):
+        super(CragrAPI, self).deinit()
+        self.netfinca.deinit()
 
     def do_login(self):
         self.keypad.go()
@@ -131,6 +160,9 @@ class CragrAPI(LoginBrowser):
     def get_accounts_list(self):
         # Determine how many spaces are present on the connection:
         self.location(self.accounts_url)
+        if not self.accounts_page.is_here():
+            # We have been logged out.
+            self.do_login()
         total_spaces = self.page.count_spaces()
         self.logger.info('The total number of spaces on this connection is %s.' % total_spaces)
 
@@ -255,7 +287,11 @@ class CragrAPI(LoginBrowser):
         # TO-DO: Figure out a way to determine whether
         # we already are on the right account space
         self.contracts_page.go(id_contract=contract)
-        assert self.accounts_page.is_here()
+        if not self.accounts_page.is_here():
+            # We have been logged out.
+            self.do_login()
+            self.contracts_page.go(id_contract=contract)
+            assert self.accounts_page.is_here()
 
     @need_login
     def get_history(self, account, coming=False):
@@ -350,7 +386,60 @@ class CragrAPI(LoginBrowser):
 
     @need_login
     def iter_investment(self, account):
-        raise BrowserUnavailable()
+        if account.type in (Account.TYPE_PERP, Account.TYPE_PERCO, Account.TYPE_LIFE_INSURANCE, Account.TYPE_CAPITALISATION):
+            if account.label == "Vers l'avenir":
+                # Website crashes when clicking on these Life Insurances...
+                return
+            self.go_to_account_space(account._contract)
+            token = self.token_page.go().get_token()
+            data = {
+                'situation_travail': 'CONTRAT',
+                'idelco': account.id,
+                ':cq_csrf_token': token,
+            }
+            self.predica_redirection.go(data=data)
+            self.predica_investments.go()
+            for inv in self.page.iter_investments():
+                yield inv
+
+        elif account.type == Account.TYPE_PEA and account.label == 'Compte espèce PEA':
+            yield create_french_liquidity(account.balance)
+            return
+
+        elif account.type in (Account.TYPE_PEA, Account.TYPE_MARKET):
+            # Do not try to get to Netfinca if there is no money
+            # on the account or the server will return an error 500
+            if account.balance == 0:
+                return
+            self.go_to_account_space(account._contract)
+            token = self.token_page.go().get_token()
+            data = {
+                'situation_travail': 'BANCAIRE',
+                'num_compte': account.id,
+                'code_fam_produit': account._fam_product_code,
+                'code_fam_contrat_compte': account._fam_contract_code,
+                ':cq_csrf_token': token,
+            }
+
+            # For some market accounts, investments are not even accessible,
+            # and the only way to know if there are investments is to try
+            # to go to the Netfinca space with the accounts parameters.
+            try:
+                self.netfinca_redirection.go(data=data)
+            except BrowserHTTPNotFound:
+                self.logger.info('Investments are not available for this account.')
+                self.go_to_account_space(account._contract)
+                return
+            url = self.page.get_url()
+            if 'netfinca' in url:
+                self.location(url)
+                self.netfinca.session.cookies.update(self.session.cookies)
+                self.netfinca.accounts.go()
+                for inv in self.netfinca.iter_investments(account):
+                    if inv.code == 'XX-liquidity' and account.type == Account.TYPE_PEA:
+                        # Liquidities are already fetched on the "PEA espèces"
+                        continue
+                    yield inv
 
     @need_login
     def iter_advisor(self):
