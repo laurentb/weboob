@@ -69,6 +69,8 @@ class RecipientsJsonPage(LoggedPage, ErrorCheckedJsonPage):
             obj__formatted_iban = Dict('coordonnee/0/numeroCompteFormate')
             obj__bic = Dict('coordonnee/0/BIC')
             obj__ref = Dict('coordonnee/0/refSICoordonnee')
+            obj__code_origin = Dict('coordonnee/0/codeOrigine')
+            obj__created_date = Dict('dateCreationDest')
 
 
 class TransferDatesPage(LoggedPage, ErrorCheckedJsonPage):
@@ -121,6 +123,8 @@ class EasyTransferPage(LoggedPage, HTMLPage):
                 rcpt._account_title = json_data['intituleCompte']
                 rcpt._bic = json_data['bicCompte']
                 rcpt._ref = ''
+                rcpt._code_origin = ''
+                rcpt._created_date = ''
 
                 yield rcpt
 
