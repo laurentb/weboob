@@ -135,8 +135,12 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
         reason, action = self.page.get_error()
         if reason == 'echec_authent':
             raise BrowserIncorrectPassword()
-        if reason == 'acces_bloq':
+        elif reason == 'acces_bloq':
             raise ActionNeeded()
+        elif reason == 'err_tech':
+            # there is message "Service momentanément indisponible. Veuillez réessayer."
+            # in SG website in that case ...
+            raise BrowserUnavailable()
 
     def iter_cards(self, account):
         for el in account._cards:
