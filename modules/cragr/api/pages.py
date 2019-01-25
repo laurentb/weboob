@@ -19,7 +19,6 @@
 
 from __future__ import unicode_literals
 
-from collections import OrderedDict
 from decimal import Decimal
 import re
 import json
@@ -261,22 +260,24 @@ class HistoryPage(LoggedPage, JsonPage):
 
         class item(ItemElement):
 
-            TRANSACTION_TYPES = OrderedDict((
-                ('PAIEMENT PAR CARTE',        Transaction.TYPE_CARD),
-                ('REMISE CARTE',              Transaction.TYPE_CARD),
-                ('PRELEVEMENT CARTE',         Transaction.TYPE_CARD_SUMMARY),
-                ('RETRAIT AU DISTRIBUTEUR',   Transaction.TYPE_WITHDRAWAL),
-                ('RETRAIT MUR D\'ARGENT',     Transaction.TYPE_WITHDRAWAL),
-                ('FRAIS',                     Transaction.TYPE_BANK),
-                ('COTISATION',                Transaction.TYPE_BANK),
-                ('VIREMENT',                  Transaction.TYPE_TRANSFER),
-                ('CHEQUE EMIS',               Transaction.TYPE_CHECK),
-                ('REMISE DE CHEQUE',          Transaction.TYPE_DEPOSIT),
-                ('PRELEVEMENT',               Transaction.TYPE_ORDER),
-                ('PRELEVT',                   Transaction.TYPE_ORDER),
-                ('PRELEVMNT',                 Transaction.TYPE_ORDER),
-                ('REMBOURSEMENT DE PRET',     Transaction.TYPE_LOAN_PAYMENT),
-            ))
+            TRANSACTION_TYPES = {
+                'PAIEMENT PAR CARTE':        Transaction.TYPE_CARD,
+                'REMISE CARTE':              Transaction.TYPE_CARD,
+                'PRELEVEMENT CARTE':         Transaction.TYPE_CARD_SUMMARY,
+                'RETRAIT AU DISTRIBUTEUR':   Transaction.TYPE_WITHDRAWAL,
+                "RETRAIT MUR D'ARGENT":      Transaction.TYPE_WITHDRAWAL,
+                'FRAIS':                     Transaction.TYPE_BANK,
+                'COTISATION':                Transaction.TYPE_BANK,
+                'VIREMENT':                  Transaction.TYPE_TRANSFER,
+                'VIREMENT EN VOTRE FAVEUR':  Transaction.TYPE_TRANSFER,
+                'VIREMENT EMIS':             Transaction.TYPE_TRANSFER,
+                'CHEQUE EMIS':               Transaction.TYPE_CHECK,
+                'REMISE DE CHEQUE':          Transaction.TYPE_DEPOSIT,
+                'PRELEVEMENT':               Transaction.TYPE_ORDER,
+                'PRELEVT':                   Transaction.TYPE_ORDER,
+                'PRELEVMNT':                 Transaction.TYPE_ORDER,
+                'REMBOURSEMENT DE PRET':     Transaction.TYPE_LOAN_PAYMENT,
+            }
 
             klass = Transaction
 
@@ -330,6 +331,7 @@ class CardHistoryPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Transaction
 
+            obj_raw = CleanText(Dict('libelleOperation'))
             obj_label = CleanText(Dict('libelleOperation'))
             obj_amount = Eval(float_to_decimal, Dict('montant'))
             obj_type = Transaction.TYPE_DEFERRED_CARD
