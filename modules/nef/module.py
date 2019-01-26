@@ -22,7 +22,7 @@ from __future__ import unicode_literals
 
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
-from weboob.capabilities.bank import CapBank, Account
+from weboob.capabilities.bank import CapBankTransfer, Account
 
 from .browser import NefBrowser
 
@@ -30,7 +30,7 @@ from .browser import NefBrowser
 __all__ = ['NefModule']
 
 
-class NefModule(Module, CapBank):
+class NefModule(Module, CapBankTransfer):
     NAME = 'nef'
     DESCRIPTION = 'La Nef'
     MAINTAINER = 'Damien Cassou'
@@ -95,3 +95,35 @@ class NefModule(Module, CapBank):
             self._restrict_level(split_path)
 
             return self.iter_accounts()
+
+    # CapBankTransfer
+    def iter_transfer_recipients(self, account):
+        """
+        Iter recipients availables for a transfer from a specific account.
+
+        :param account: account which initiate the transfer
+        :type account: :class:`Account`
+        :rtype: iter[:class:`Recipient`]
+        :raises: :class:`AccountNotFound`
+        """
+        return self.browser.iter_recipients_list()
+
+    def init_transfer(self, transfer, **params):
+        """
+        Initiate a transfer.
+
+        :param :class:`Transfer`
+        :rtype: :class:`Transfer`
+        :raises: :class:`TransferError`
+        """
+        raise NotImplementedError()
+
+    def execute_transfer(self, transfer, **params):
+        """
+        Execute a transfer.
+
+        :param :class:`Transfer`
+        :rtype: :class:`Transfer`
+        :raises: :class:`TransferError`
+        """
+        raise NotImplementedError()

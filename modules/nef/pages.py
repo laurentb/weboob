@@ -21,12 +21,13 @@ from __future__ import unicode_literals
 
 import re
 
-from weboob.browser.elements import ListElement, DictElement, ItemElement, method
+from weboob.browser.elements import ListElement, DictElement, ItemElement, method, TableElement
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Field, Date
 from weboob.browser.pages import HTMLPage, PartialHTMLPage, CsvPage, LoggedPage
 from weboob.browser.filters.json import Dict
+from weboob.browser.filters.html import Attr, TableCell
 
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, Recipient
 
 from weboob.tools.date import parse_french_date
 
@@ -68,6 +69,22 @@ class AccountsPage(LoggedPage, PartialHTMLPage):
                         return account_type
 
                 return Account.TYPE_UNKNOWN
+
+class RecipientsPage(LoggedPage, PartialHTMLPage):
+    @method
+    class get_items(TableElement):
+        head_xpath = '//table[@id="tblBeneficiaryList"]/thead//td'
+        item_xpath = '//table[@id="tblBeneficiaryList"]//tr[has-class("beneficiary-data-rows")]'
+
+        col_label = re.compile('Nom.*')
+        col_iban = re.compile('IBAN.*')
+
+        class item(ItemElement):
+            klass = Recipient
+
+            obj_id = Attr('.', 'beneficiaryid')
+            obj_label = CleanText(TableCell('label'))
+            obj_iban = CleanText(TableCell('iban'))
 
 class TransactionsPage(LoggedPage, CsvPage):
     ENCODING = 'latin-1'

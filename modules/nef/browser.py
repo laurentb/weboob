@@ -24,7 +24,7 @@ import datetime
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 
-from .pages import LoginPage, HomePage, AccountsPage, TransactionsPage
+from .pages import LoginPage, HomePage, AccountsPage, RecipientsPage, TransactionsPage
 
 def next_week_string():
     return (datetime.date.today() + datetime.timedelta(weeks=1)).strftime("%Y-%m-%d")
@@ -57,3 +57,14 @@ class NefBrowser(LoginBrowser):
     @need_login
     def iter_transactions_list(self, account):
         return self.download.go(account_id=account.id).iter_history()
+
+    # CapBankTransfer
+    @need_login
+    def iter_recipients_list(self):
+        response = self.main.open(data={
+            'templateName': 'beneficiary/beneficiaryList.cfm',
+            'LISTTYPE': 'HISTORY'
+        })
+
+        page = RecipientsPage(self, response)
+        return page.get_items()
