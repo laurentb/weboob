@@ -628,7 +628,8 @@ class AdvisorPage(LoggedPage, XMLPage):
 
 class HTMLProfilePage(LoggedPage, HTMLPage):
     def on_load(self):
-        msg = CleanText('//div[@id="connecteur_partenaire"]', default='')(self.doc)
+        msg = CleanText('//div[@id="connecteur_partenaire"]', default='')(self.doc) or \
+              CleanText('//body', default='')(self.doc)
         service_unavailable_msg = CleanText('//div[@class="message-error" and contains(text(), "indisponible")]')(self.doc)
 
         if 'Erreur' in msg:
