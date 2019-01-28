@@ -408,7 +408,7 @@ class IndexPage(LoggedPage, HTMLPage):
         if m:
             account = m.group(1)
 
-        form = self.get_form(name="main")
+        form = self.get_form(id="main")
         form['__EVENTTARGET'] = 'MM$SYNTHESE_CREDITS'
         form['__EVENTARGUMENT'] = 'ACTIVDESACT_CREDITCONSO&%s' % account
         form['m_ScriptManager'] = 'MM$m_UpdatePanel|MM$SYNTHESE_CREDITS'
@@ -506,7 +506,7 @@ class IndexPage(LoggedPage, HTMLPage):
 
 
     def go_list(self):
-        form = self.get_form(name='main')
+        form = self.get_form(id='main')
 
         form['__EVENTARGUMENT'] = "CPTSYNT0"
 
@@ -525,7 +525,7 @@ class IndexPage(LoggedPage, HTMLPage):
 
     # On some pages, navigate to indexPage does not lead to the list of measures, so we need this form ...
     def go_measure_list(self):
-        form = self.get_form(name='main')
+        form = self.get_form(id='main')
 
         form['__EVENTARGUMENT'] = "MESLIST0"
         form['__EVENTTARGET'] = 'Menu_AJAX'
@@ -537,7 +537,7 @@ class IndexPage(LoggedPage, HTMLPage):
 
     # This function goes to the accounts page of one measure giving its id
     def go_measure_accounts_list(self, measure_id):
-        form = self.get_form(name='main')
+        form = self.get_form(id='main')
 
         form['__EVENTARGUMENT'] = "CPTSYNT0"
 
@@ -556,7 +556,7 @@ class IndexPage(LoggedPage, HTMLPage):
         form.submit()
 
     def go_loan_list(self):
-        form = self.get_form(name='main')
+        form = self.get_form(id='main')
 
         form['__EVENTARGUMENT'] = "CRESYNT0"
 
@@ -573,7 +573,7 @@ class IndexPage(LoggedPage, HTMLPage):
         form.submit()
 
     def go_history(self, info, is_cbtab=False):
-        form = self.get_form(name='main')
+        form = self.get_form(id='main')
 
         form['__EVENTTARGET'] = 'MM$%s' % (info['type'] if is_cbtab else 'SYNTHESE')
         form['__EVENTARGUMENT'] = info['link']
@@ -587,7 +587,7 @@ class IndexPage(LoggedPage, HTMLPage):
     def get_form_to_detail(self, transaction):
         m = re.match('.*\("(.*)", "(DETAIL_OP&[\d]+).*\)\)', transaction._link)
         # go to detailcard page
-        form = self.get_form(name='main')
+        form = self.get_form(id='main')
         form['__EVENTTARGET'] = m.group(1)
         form['__EVENTARGUMENT'] = m.group(2)
         fix_form(form)
@@ -650,7 +650,7 @@ class IndexPage(LoggedPage, HTMLPage):
         # <a id="MM_HISTORIQUE_CB_lnkSuivante" class="next" href="javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions(&quot;MM$HISTORIQUE_CB$lnkSuivante&quot;, &quot;&quot;, true, &quot;&quot;, &quot;&quot;, false, true))">Suivant<span class="arrow">></span></a>
 
         link = self.doc.xpath('//a[contains(@id, "lnkSuivante")]')
-        if len(link) == 0 or 'disabled' in link[0].attrib:
+        if len(link) == 0 or 'disabled' in link[0].attrib or link[0].attrib.get('class') == 'aspNetDisabled':
             return False
 
         account_type = 'COMPTE'
@@ -658,7 +658,7 @@ class IndexPage(LoggedPage, HTMLPage):
         if m:
             account_type = m.group(1)
 
-        form = self.get_form(name='main')
+        form = self.get_form(id='main')
 
         form['__EVENTTARGET'] = "MM$HISTORIQUE_%s$lnkSuivante" % account_type
         form['__EVENTARGUMENT'] = ''
@@ -679,7 +679,7 @@ class IndexPage(LoggedPage, HTMLPage):
         link = self.doc.xpath('//tr[td[contains(., ' + account.id + ') ]]//a')[0]
         m = re.search("PostBackOptions?\([\"']([^\"']+)[\"'],\s*['\"]((REDIR_ASS_VIE)?[\d\w&]+)?['\"]", link.attrib.get('href', ''))
         if m is not None:
-            form = self.get_form(name='main')
+            form = self.get_form(id='main')
 
             form['__EVENTTARGET'] = m.group(1)
             form['__EVENTARGUMENT'] = m.group(2)
@@ -712,7 +712,7 @@ class IndexPage(LoggedPage, HTMLPage):
         else:
             link = link[0]
         m = re.search("PostBackOptions?\([\"']([^\"']+)[\"'],\s*['\"]([^\"']+)?['\"]", link.attrib.get('href', ''))
-        form = self.get_form(name='main')
+        form = self.get_form(id='main')
         if 'MM$HISTORIQUE_COMPTE$btnCumul' in form:
             del form['MM$HISTORIQUE_COMPTE$btnCumul']
         form['__EVENTTARGET'] = m.group(1)
@@ -728,7 +728,7 @@ class IndexPage(LoggedPage, HTMLPage):
             return msg
 
     def go_subscription(self):
-        form = self.get_form(name='main')
+        form = self.get_form(id='main')
         form['m_ScriptManager'] = 'MM$m_UpdatePanel|MM$Menu_Ajax'
         form['__EVENTTARGET'] = 'MM$Menu_Ajax'
         link = Link('//a[contains(@title, "e-Documents") or contains(@title, "Relevés en ligne")]')(self.doc)
@@ -1005,7 +1005,7 @@ class TransferPage(TransferErrorPage, IndexPage):
         return recipient_value[0]
 
     def init_transfer(self, account, recipient, transfer):
-        form = self.get_form(name='main')
+        form = self.get_form(id='main')
         form['MM$VIREMENT$SAISIE_VIREMENT$ddlCompteDebiter'] = self.get_origin_account_value(account)
         form['MM$VIREMENT$SAISIE_VIREMENT$ddlCompteCrediter'] = self.get_recipient_value(recipient)
         form['MM$VIREMENT$SAISIE_VIREMENT$txtLibelleVirement'] = transfer.label
@@ -1021,7 +1021,7 @@ class TransferPage(TransferErrorPage, IndexPage):
         pass
 
     def continue_transfer(self, origin_label, recipient, label):
-        form = self.get_form(name='main')
+        form = self.get_form(id='main')
         type_ = 'intra' if recipient.category == u'Interne' else 'sepa'
         fill = lambda s, t: s % (t.upper(), t.capitalize())
         form['__EVENTTARGET'] = 'MM$VIREMENT$m_WizardBar$m_lnkNext$m_lnkButton'
@@ -1032,7 +1032,7 @@ class TransferPage(TransferErrorPage, IndexPage):
         form.submit()
 
     def go_add_recipient(self):
-        form = self.get_form(name='main')
+        form = self.get_form(id='main')
         link = self.doc.xpath(u'//a[span[contains(text(), "Ajouter un compte bénéficiaire")]]')[0]
         m = re.search("PostBackOptions?\([\"']([^\"']+)[\"'],\s*['\"]([^\"']+)?['\"]", link.attrib.get('href', ''))
         form['__EVENTTARGET'] = m.group(1)
@@ -1051,7 +1051,7 @@ class TransferConfirmPage(TransferErrorPage, IndexPage):
         return bool(CleanText(u'//h2[contains(text(), "Confirmer mon virement")]')(self.doc))
 
     def confirm(self):
-        form = self.get_form(name='main')
+        form = self.get_form(id='main')
         form['__EVENTTARGET'] = 'MM$VIREMENT$m_WizardBar$m_lnkNext$m_lnkButton'
         form.submit()
 
@@ -1152,7 +1152,7 @@ class ProTransferPage(TransferPage):
         pass
 
     def init_transfer(self, account, recipient, transfer):
-        form = self.get_form(name='main')
+        form = self.get_form(id='main')
         form['MM$VIREMENT$SAISIE_VIREMENT$ddlCompteDebiter'] = self.get_origin_account_value(account)
         form['MM$VIREMENT$SAISIE_VIREMENT$ddlCompteCrediterPro'] = self.get_recipient_value(recipient)
         form['MM$VIREMENT$SAISIE_VIREMENT$Libelle'] = transfer.label
@@ -1166,7 +1166,7 @@ class ProTransferPage(TransferPage):
         form.submit()
 
     def go_add_recipient(self):
-        form = self.get_form(name='main')
+        form = self.get_form(id='main')
         form['__EVENTTARGET'] = 'MM$VIREMENT$SAISIE_VIREMENT$ddlCompteCrediterPro'
         form['MM$VIREMENT$SAISIE_VIREMENT$ddlCompteCrediterPro'] = 'AC'
         form.submit()
@@ -1228,7 +1228,7 @@ class AuthentPage(LoggedPage, HTMLPage):
         return bool(CleanText(u'//h2[contains(text(), "Authentification réussie")]')(self.doc))
 
     def go_on(self):
-        form = self.get_form(name='main')
+        form = self.get_form(id='main')
         form['__EVENTTARGET'] = 'MM$RETOUR_OK_SOL$m_ChoiceBar$lnkRight'
         form.submit()
 
@@ -1247,7 +1247,7 @@ class RecipientPage(LoggedPage, HTMLPage):
                                 //h2[contains(text(), "Confirmer l\'ajout d\'un compte bénéficiaire")]')(self.doc))
 
     def post_recipient(self, recipient):
-        form = self.get_form(name='main')
+        form = self.get_form(id='main')
         form['__EVENTTARGET'] = '%s$m_WizardBar$m_lnkNext$m_lnkButton' % self.EVENTTARGET
         form['%s$m_RibIban$txtTitulaireCompte' % self.FORM_FIELD_ADD] = recipient.label
         for i in range(len(recipient.iban) // 4 + 1):
@@ -1255,7 +1255,7 @@ class RecipientPage(LoggedPage, HTMLPage):
         form.submit()
 
     def confirm_recipient(self):
-        form = self.get_form(name='main')
+        form = self.get_form(id='main')
         form['__EVENTTARGET'] = 'MM$WIZARD_AJOUT_COMPTE_EXTERNE$m_WizardBar$m_lnkNext$m_lnkButton'
         form.submit()
 
@@ -1270,7 +1270,7 @@ class ProAddRecipientOtpPage(IndexPage):
         return self.need_auth() and self.doc.xpath('//span[@id="MM_ANR_WS_AUTHENT_ANR_WS_AUTHENT_SAISIE_lblProcedure1"]')
 
     def set_browser_form(self):
-        form = self.get_form(name='main')
+        form = self.get_form(id='main')
         form['__EVENTTARGET'] = 'MM$ANR_WS_AUTHENT$m_WizardBar$m_lnkNext$m_lnkButton'
         self.browser.recipient_form = dict((k, v) for k, v in form.items())
         self.browser.recipient_form['url'] = form.url
@@ -1306,8 +1306,9 @@ class TransactionsDetailsPage(LoggedPage, HTMLPage):
 
         def next_page(self):
             # only for new website, don't have any accounts with enough deferred card transactions on old webiste
-            if self.page.doc.xpath('//a[contains(@id, "lnkSuivante") and not(contains(@disabled,"disabled"))]'):
-                form = self.page.get_form(name='main')
+            if self.page.doc.xpath('//a[contains(@id, "lnkSuivante") and not(contains(@disabled,"disabled")) \
+                                    and not(contains(@class, "aspNetDisabled"))]'):
+                form = self.page.get_form(id='main')
                 form['__EVENTTARGET'] = "MM$ECRITURE_GLOBALE$lnkSuivante"
                 form['__EVENTARGUMENT'] = ''
                 fix_form(form)
@@ -1329,12 +1330,12 @@ class TransactionsDetailsPage(LoggedPage, HTMLPage):
         # return to first page
         to_history = Link(self.doc.xpath(u'//a[contains(text(), "Retour à l\'historique")]'))(self.doc)
         n = re.match('.*\([\'\"](MM\$.*?)[\'\"],.*\)$', to_history)
-        form = self.get_form(name='main')
+        form = self.get_form(id='main')
         form['__EVENTTARGET'] = n.group(1)
         form.submit()
 
     def go_newsite_back_to_summary(self):
-        form = self.get_form(name='main')
+        form = self.get_form(id='main')
         form['__EVENTTARGET'] = "MM$ECRITURE_GLOBALE$lnkRetourHisto"
         form.submit()
 
@@ -1363,7 +1364,7 @@ class SubscriptionPage(LoggedPage, HTMLPage):
 
     def go_document_list(self, sub_id):
         target = Attr('//select[contains(@id, "ClientsBancaires")]', 'id')(self.doc)
-        form = self.get_form(name='main')
+        form = self.get_form(id='main')
         form['m_ScriptManager'] = target
         if 'palatine' in self.browser.BASEURL:
             form['MM$CONSULTATION_NUMERISATION_PALATINE$cboClientsBancaires'] = sub_id
@@ -1392,7 +1393,7 @@ class SubscriptionPage(LoggedPage, HTMLPage):
             obj__event_id = Regexp(Attr('.', 'onclick'), r"val\('(.*)'\);", default=None)
 
     def download_document(self, document):
-        form = self.get_form(name='main')
+        form = self.get_form(id='main')
         form['m_ScriptManager'] = document.url
         form['__EVENTTARGET'] = document.url
         form['MM$COMPTE_EDOCUMENTS$ctrlEDocumentsConsultationDocument$eventId'] = document._event_id
