@@ -46,4 +46,6 @@ class NetfincaBrowser(LoginBrowser):
         for invest in self.page.get_investments(account_currency=account.currency):
             yield invest
 
-        yield self.page.get_liquidity()
+        liquidity = self.page.get_liquidity()
+        if liquidity:
+            yield liquidity

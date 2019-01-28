@@ -97,9 +97,9 @@ class InvestmentsPage(LoggedPage, HTMLPage):
         head_xpath = '//table[@id="tableValeurs"]/thead//th'
 
         col_label = col_code = 'Valeur / Isin'
-        col_quantity = 'Quantité'
-        col_unitvalue = col_vdate= 'Cours'
-        col_valuation = 'Valorisation totale'
+        col_quantity = ['Quantité', 'Qté']
+        col_unitvalue = col_vdate = 'Cours'
+        col_valuation = ['Valorisation totale', 'Val. totale']
         col_unitprice = 'Prix de revient'
         col_diff = '+/- Value latente'
 
@@ -124,7 +124,6 @@ class InvestmentsPage(LoggedPage, HTMLPage):
                 return label
 
             def obj_code(self):
-
                 # We try to get the code from <a> div. If we didn't find code in url,
                 # we try to find it in the cell text
 
@@ -134,7 +133,8 @@ class InvestmentsPage(LoggedPage, HTMLPage):
                 code_match = re.search(r'sico=([A-Z0-9]*)', url)
 
                 if code_match:
-                    return code_match.group(1)
+                    if is_isin_valid(code_match.group(1)):
+                        return code_match.group(1)
 
                 # cell text find try
                 text = CleanText(tablecell.xpath('./following-sibling::td[position()=1]/div')[0])(self)
