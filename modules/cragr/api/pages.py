@@ -25,7 +25,6 @@ import json
 import dateutil
 
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
-from weboob.exceptions import BrowserUnavailable
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import (
     Account, AccountOwnerType, Transaction,
@@ -65,9 +64,6 @@ class LoggedOutPage(HTMLPage):
     def is_here(self):
         return self.doc.xpath('//b[text()="FIN DE CONNEXION"]')
 
-    def on_load(self):
-        self.logger.warning('We have been logged out!')
-        raise BrowserUnavailable()
 
 
 class SecurityPage(JsonPage):
