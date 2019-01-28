@@ -281,13 +281,12 @@ class SearchPage(HTMLPage):
                 offer_details_wrapper + '/div/div/p[@class="offer-type"]/a',
                 'title'
             )
-            obj_url = Format(
-                "http://www.logic-immo.com/%s.htm",
-                CleanText(
-                    './@id',
-                    replace=[('header-offer-', 'detail-location-')]
-                )
-            )
+
+            obj_url = Format(u'%s%s',
+                             CleanText('./div/div/div/div/div/p/a[@class="offer-link"]/@href'),
+                             CleanText('./div/div/div/div/div/p/a[@class="offer-link"]/\
+@data-orpi', default=""))
+
             obj_area = CleanDecimal(
                 (
                     offer_details_wrapper +
