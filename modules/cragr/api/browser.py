@@ -134,6 +134,11 @@ class CragrAPI(LoginBrowser):
         total_spaces = self.page.count_spaces()
         self.logger.info('The total number of spaces on this connection is %s.' % total_spaces)
 
+        # Complete accounts list is required to match card parent accounts
+        # and to avoid accounts that are present on several spaces
+        all_accounts = {}
+        deferred_cards = {}
+
         for contract in range(total_spaces):
             # This request often returns a 500 error so we retry several times.
             try:
@@ -213,9 +218,20 @@ class CragrAPI(LoginBrowser):
                 card.owner_type = card.parent.owner_type
                 card._category = card.parent._category
                 card._contract = contract
-                if card.id not in all_accounts:
-                    all_accounts[card.id] = card
-                    yield card
+                if card.id not in deferred_cards:
+                    deferred_cards[card.id] = card
+
+        # We must check if cards are unique on their parent account;
+        # if not, we cannot retrieve their summaries in iter_history.
+        parent_accounts = []
+        for card in deferred_cards.values():
+            parent_accounts.append(card.parent.id)
+        for card in deferred_cards.values():
+            if parent_accounts.count(card.parent.id) == 1:
+                card._unique = True
+            else:
+                card._unique = False
+            yield card
 
     def switch_account_to_loan(self, account):
         loan = Loan()
@@ -259,17 +275,9 @@ class CragrAPI(LoginBrowser):
             for tr in self.page.iter_card_history():
                 card_transactions.append(tr)
 
-            # Before fetching card summaries, we must check if this card
-            # is unique on the parent account, otherwise it is impossible
-            # to know which summary corresponds to which card...
-            unique = True
-            for acc in self.all_accounts.values():
-                if acc.type == Account.TYPE_CARD:
-                    if (acc.parent == account.parent) and (acc.id != account.id):
-                        unique = False
-                        break
-
-            if not coming and card_transactions and unique:
+            # If the card if not unique on the parent id, it is impossible
+            # to know which summary corresponds to which card.
+            if not coming and card_transactions and account._unique:
                 # Get card summaries from parent account
                 # until we reach the oldest card transaction
                 last_transaction = card_transactions[-1]
