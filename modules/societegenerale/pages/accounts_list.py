@@ -114,6 +114,7 @@ class AccountsPage(JsonBasePage):
                 'ASSURANCE_VIE_SOGECAP_GENERAL': Account.TYPE_LIFE_INSURANCE,
                 'RESERVEA': Account.TYPE_REVOLVING_CREDIT,
                 'COMPTE_ALTERNA': Account.TYPE_REVOLVING_CREDIT,
+                'CREDIT_CONFIANCE': Account.TYPE_REVOLVING_CREDIT,
                 'AVANCE_PATRIMOINE': Account.TYPE_REVOLVING_CREDIT,
                 'PRET_EXPRESSO': Account.TYPE_CONSUMER_CREDIT,
                 'PRET_EVOLUTIF': Account.TYPE_CONSUMER_CREDIT,
@@ -140,6 +141,11 @@ class AccountsPage(JsonBasePage):
                     return Dict('codeFamille')(self)
                 return None
 
+            def obj__is_json_histo(self):
+                # For TYPE_REVOLVING_CREDIT, to get transaction
+                if Field('type')(self) == Account.TYPE_REVOLVING_CREDIT and \
+                not Dict('produit')(self) in ('COMPTE_ALTERNA', 'AVANCE_PATRIMOINE'):
+                    return True
 
 class AccountsSynthesesPage(JsonBasePage):
     def get_account_comings(self):
@@ -191,27 +197,40 @@ class LoansPage(JsonBasePage):
         loan._internal_id = account._internal_id
         loan._prestation_id = account._prestation_id
         loan._loan_type = account._loan_type
+        loan._is_json_histo = account._is_json_histo
 
         if Dict('donnees/tabIdAllPrestations')(self.doc):
             for acc in Dict('donnees/tabPrestations')(self.doc):
                 if CleanText(Dict('idPrestation'))(acc) == account._prestation_id:
 
+                    # coming
                     if Dict('encoursFinMois', default=NotAvailable)(acc):
                         loan.coming = eval_decimal_amount('encoursFinMois/valeur', 'encoursFinMois/posDecimale')(acc)
 
+                    # total amount
                     if Dict('reserveAutorisee', default=NotAvailable)(acc):
                         loan.total_amount = eval_decimal_amount('reserveAutorisee/valeur', 'reserveAutorisee/posDecimale')(acc)
+                    elif Dict('montantAutorise', default=NotAvailable)(acc):
+                        loan.total_amount = eval_decimal_amount('montantAutorise/valeur', 'montantAutorise/posDecimale')(acc)
                     else:
                         loan.total_amount = eval_decimal_amount('reserveMaximum/valeur', 'reserveMaximum/posDecimale')(acc)
 
-                    loan.available_amount = eval_decimal_amount('reserveDispo/valeur', 'reserveDispo/posDecimale')(acc)
+                    # available amount
+                    if Dict('montantDisponible', default=NotAvailable)(acc):
+                        loan.available_amount = eval_decimal_amount('montantDisponible/valeur', 'montantDisponible/posDecimale')(acc)
+                    else:
+                        loan.available_amount = eval_decimal_amount('reserveDispo/valeur', 'reserveDispo/posDecimale')(acc)
 
+                    # used amount
                     if Dict('reserveUtilisee', default=NotAvailable)(acc):
                         loan.used_amount = eval_decimal_amount('reserveUtilisee/valeur', 'reserveUtilisee/posDecimale')(acc)
+                    elif Dict('montantUtilise', default=NotAvailable)(acc):
+                        loan.available_amount = eval_decimal_amount('montantUtilise/valeur', 'montantUtilise/posDecimale')(acc)
 
+                    # next payment amount
                     if Dict('prochaineEcheance', default=NotAvailable)(acc):
                         loan.next_payment_amount = eval_decimal_amount('prochaineEcheance/valeur', 'prochaineEcheance/posDecimale')(acc)
-                    else:
+                    elif Dict('montantMensualite', default=NotAvailable)(acc):
                         loan.next_payment_amount = eval_decimal_amount('montantMensualite/valeur', 'montantMensualite/posDecimale')(acc)
                         loan.last_payment_amount = loan.next_payment_amount
 

@@ -221,15 +221,16 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
                     yield tr
             return
 
-        if account.type == account.TYPE_REVOLVING_CREDIT:
-            if account._loan_type == 'PR_CONSO':
-                return
-
+        if account.type == account.TYPE_REVOLVING_CREDIT and account._loan_type != 'PR_CONSO':
             # request to get json is not available yet, old request to get html response
             self.account_details_page.go(params={'idprest': account._prestation_id})
             self.page.go_history_page()
             for tr in self.page.iter_credit_history():
                 yield tr
+            return
+
+        if account.type == account.TYPE_REVOLVING_CREDIT and not account._is_json_histo:
+            # Waiting for account with transactions
             return
 
         if account.type == account.TYPE_CARD:
