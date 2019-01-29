@@ -620,6 +620,9 @@ class MarketPage(LoggedPage, HTMLPage):
                 CleanText('//td[@class="MessErreur"]')(self.el)
 
         class item(ItemElement):
+            def condition(self):
+                return self.xpath('./td[contains(@class, "TabCelLeft")]')
+
             klass = Investment
 
             obj_code = Regexp(CleanText('./td[1]//@title'), '- (\w+) -')
