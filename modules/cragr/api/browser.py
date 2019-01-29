@@ -35,7 +35,7 @@ from weboob.tools.capabilities.bank.transactions import sorted_transactions
 from .pages import (
     LoginPage, LoggedOutPage, KeypadPage, SecurityPage, ContractsPage, AccountsPage, AccountDetailsPage,
     TokenPage, IbanPage, HistoryPage, CardsPage, CardHistoryPage, NetfincaRedirectionPage, PredicaRedirectionPage,
-    PredicaInvestmentsPage, ProfilePage,
+    PredicaInvestmentsPage, ProfilePage, ProfileDetailsPage, ProProfileDetailsPage,
 )
 
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
@@ -99,6 +99,10 @@ class CragrAPI(LoginBrowser):
                        r'association/operations/synthese/jcr:content.npc.store.client.json',
                        r'professionnel/operations/synthese/jcr:content.npc.store.client.json', ProfilePage)
 
+    profile_details = URL(r'particulier/operations/profil/infos-personnelles/gerer-coordonnees.html', ProfileDetailsPage)
+
+    pro_profile_details = URL(r'association/operations/profil/infos-personnelles/controler-coordonnees.html',
+                              r'professionnel/operations/profil/infos-personnelles/controler-coordonnees.html', ProProfileDetailsPage)
 
     def __init__(self, website, *args, **kwargs):
         super(CragrAPI, self).__init__(*args, **kwargs)
@@ -446,12 +450,36 @@ class CragrAPI(LoginBrowser):
 
     @need_login
     def iter_advisor(self):
-        raise BrowserUnavailable()
+        self.contracts_page.go(id_contract=0)
+        owner_type = self.page.get_owner_type()
+        self.profile_page.go()
+        if owner_type == 'PRIV':
+            advisor = self.page.get_advisor()
+            self.profile_details.go()
+            self.page.fill_advisor(obj=advisor)
+            return advisor
+        elif owner_type == 'ORGA':
+            advisor = self.page.get_advisor()
+            self.pro_profile_details.go()
+            self.page.fill_advisor(obj=advisor)
+            return advisor
 
     @need_login
     def get_profile(self):
-        #self.profile.go()
-        raise BrowserUnavailable()
+        # There is one profile per space, so we only fetch the first one
+        self.contracts_page.go(id_contract=0)
+        owner_type = self.page.get_owner_type()
+        self.profile_page.go()
+        if owner_type == 'PRIV':
+            profile = self.page.get_user_profile()
+            self.profile_details.go()
+            self.page.fill_profile(obj=profile)
+            return profile
+        elif owner_type == 'ORGA':
+            profile = self.page.get_company_profile()
+            self.pro_profile_details.go()
+            self.page.fill_profile(obj=profile)
+            return profile
 
     @need_login
     def iter_transfer_recipients(self, account):

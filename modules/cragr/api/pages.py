@@ -29,10 +29,11 @@ from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import (
     Account, AccountOwnerType, Transaction, Investment,
 )
-
+from weboob.capabilities.profile import Person, Company
+from weboob.capabilities.contact import Advisor
 from weboob.browser.elements import DictElement, ItemElement, method
 from weboob.browser.filters.standard import (
-    CleanText, CleanDecimal, Currency as CleanCurrency, Format, Field, Map, Eval, Env, Regexp,
+    CleanText, CleanDecimal, Currency as CleanCurrency, Format, Field, Map, Eval, Env, Regexp, Date,
 )
 from weboob.browser.filters.html import Attr
 from weboob.browser.filters.json import Dict
@@ -402,4 +403,43 @@ class PredicaInvestmentsPage(LoggedPage, JsonPage):
 
 
 class ProfilePage(LoggedPage, JsonPage):
+    @method
+    class get_user_profile(ItemElement):
+        klass = Person
+
+        obj_name = CleanText(Dict('displayName', default=NotAvailable))
+        obj_phone = CleanText(Dict('branchPhone', default=NotAvailable))
+        obj_birth_date = Date(Dict('birthdate', default=NotAvailable))
+
+    @method
+    class get_company_profile(ItemElement):
+        klass = Company
+
+        obj_name = CleanText(Dict('displayName', default=NotAvailable))
+        obj_phone = CleanText(Dict('branchPhone', default=NotAvailable))
+        obj_registration_date = Date(Dict('birthdate', default=NotAvailable))
+
+    @method
+    class get_advisor(ItemElement):
+        klass = Advisor
+
+        def obj_name(self):
+            # If no advisor is displayed, we return the agency advisor.
+            if Dict('advisorGivenName')(self) and Dict('advisorFamilyName')(self):
+                return Format('%s %s', CleanText(Dict('advisorGivenName')), CleanText(Dict('advisorFamilyName')))(self)
+            return Format('%s %s', CleanText(Dict('branchManagerGivenName')), CleanText(Dict('branchManagerFamilyName')))(self)
+
+
+class ProfileDetailsPage(LoggedPage, HTMLPage):
+    @method
+    class fill_profile(ItemElement):
+        obj_email = CleanText('//p[contains(@class, "Data mail")]', default=NotAvailable)
+        obj_address = CleanText('//p[strong[contains(text(), "Adresse")]]/text()[2]', default=NotAvailable)
+
+    @method
+    class fill_advisor(ItemElement):
+        obj_phone = CleanText('//div[@id="blockConseiller"]//a[contains(@class, "advisorNumber")]', default=NotAvailable)
+
+
+class ProProfileDetailsPage(ProfileDetailsPage):
     pass
