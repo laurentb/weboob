@@ -1384,13 +1384,22 @@ class SubscriptionPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Document
 
-            obj_label = Format('%s %s', CleanText('./preceding::h3[1]'), CleanText('./span'))
-            obj_date = Date(CleanText('./span'), dayfirst=True)
             obj_type = DocumentTypes.OTHER
             obj_format = 'pdf'
             obj_url = Regexp(Link('.'), r'WebForm_PostBackOptions\("(\S*)"')
-            obj_id = Format('%s_%s_%s', Env('sub_id'), CleanText('./span', symbols='/'), Regexp(Field('url'), r'ctl(.*)'))
+            obj_id = Format('%s_%s_%s', Env('sub_id'), CleanText('./span', symbols='/',  replace=[(' ', '_')]), Regexp(Field('url'), r'ctl(.*)'))
             obj__event_id = Regexp(Attr('.', 'onclick'), r"val\('(.*)'\);", default=None)
+
+            def obj_label(self):
+                if 'Récapitulatif de frais bancaires' in CleanText('./span')(self.el):
+                    return CleanText('./span')(self.el)
+                return Format('%s %s', CleanText('./preceding::h3[1]'), CleanText('./span'))(self.el)
+
+            def obj_date(self):
+                if 'Récapitulatif de frais bancaires' in CleanText('./span')(self.el):
+                    year = Regexp(CleanText('./span'), r'(\d{4})')(self.el)
+                    return Date(dayfirst=True).filter('31/12/%s' %year)
+                return Date(CleanText('./span'), dayfirst=True)(self.el)
 
     def download_document(self, document):
         form = self.get_form(id='main')
