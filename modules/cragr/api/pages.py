@@ -25,6 +25,7 @@ import json
 import dateutil
 
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
+from weboob.exceptions import ActionNeeded
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import (
     Account, AccountOwnerType, Transaction, Investment,
@@ -66,6 +67,13 @@ class LoginPage(HTMLPage):
 class LoggedOutPage(HTMLPage):
     def is_here(self):
         return self.doc.xpath('//b[text()="FIN DE CONNEXION"]')
+
+
+class FirstConnectionPage(LoggedPage, HTMLPage):
+    def on_load(self):
+        message = CleanText('//p[contains(text(), "votre première visite")]')(self.doc)
+        if message:
+            raise ActionNeeded(message)
 
 
 class SecurityPage(JsonPage):

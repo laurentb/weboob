@@ -33,7 +33,7 @@ from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages import (
-    LoginPage, LoggedOutPage, KeypadPage, SecurityPage, ContractsPage, AccountsPage, AccountDetailsPage,
+    LoginPage, LoggedOutPage, KeypadPage, SecurityPage, ContractsPage, FirstConnectionPage, AccountsPage, AccountDetailsPage,
     TokenPage, IbanPage, HistoryPage, CardsPage, CardHistoryPage, NetfincaRedirectionPage, PredicaRedirectionPage,
     PredicaInvestmentsPage, ProfilePage, ProfileDetailsPage, ProProfileDetailsPage,
 )
@@ -50,6 +50,7 @@ class CragrAPI(LoginBrowser):
     login_page = URL(r'particulier/acceder-a-mes-comptes.html$', LoginPage)
     keypad = URL(r'particulier/acceder-a-mes-comptes.authenticationKeypad.json', KeypadPage)
     security_check = URL(r'particulier/acceder-a-mes-comptes.html/j_security_check', SecurityPage)
+    first_connection = URL(r'.*/operations/interstitielles/premiere-connexion.html', FirstConnectionPage)
     logged_out = URL(r'.*', LoggedOutPage)
 
     token_page = URL(r'libs/granite/csrf/token.json', TokenPage)
