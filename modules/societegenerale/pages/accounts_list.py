@@ -257,11 +257,13 @@ class TransactionItemElement(ItemElement):
     klass = Transaction
 
     def obj_id(self):
-        if not Dict('idOpe')(self):
-            return
+        # real transaction id is like:
+        # <transaction_id>/DDMMYYYY/<internal_id>
+        if not Dict('idOpe')(self) or Regexp(CleanText(Dict('idOpe')), r'^(\d+)$', default=NotAvailable)(self):
+            return ''
         id_op = Regexp(CleanText(Dict('idOpe')), r'(\d+)/')(self)
         if id_op != '0':
-            # card summary has id '0'
+            # card summary has transaction id '0'
             return id_op
 
     def obj_vdate(self):
@@ -322,8 +324,11 @@ class HistoryPage(JsonBasePage):
 
         class item(TransactionItemElement):
             def condition(self):
+                # card summary transaction id is like:
+                # 0/DDMMYYYY/<internal_id>
                 conditions = (
-                    Dict('idOpe')(self) and Regexp(CleanText(Dict('idOpe')), r'(\d+)/')(self) == '0',
+                    Dict('idOpe')(self) and \
+                        Regexp(CleanText(Dict('idOpe')), r'(\d+)/', default=NotAvailable)(self) == '0',
                     Env('card_number')(self) in Dict('libOpe')(self),
                     Dict('statutOperation')(self) == 'COMPTABILISE',
                 )
