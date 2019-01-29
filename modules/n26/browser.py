@@ -139,6 +139,13 @@ class Number26Browser(DomainBrowser):
 
     @need_login
     def _internal_get_transactions(self, categories, filter_func):
+        TYPES = {
+            'PT': Transaction.TYPE_CARD,
+            'AA': Transaction.TYPE_CARD,
+            'CT': Transaction.TYPE_TRANSFER,
+            'WEE': Transaction.TYPE_BANK,
+        }
+
         transactions = self.request('/api/smrt/transactions?limit=1000')
 
         for t in transactions:
@@ -167,12 +174,7 @@ class Number26Browser(DomainBrowser):
             if "originalAmount" in t:
                 new.original_amount = Decimal(str(t["originalAmount"]))
 
-            if t["type"] == 'PT':
-                new.type = Transaction.TYPE_CARD
-            elif t["type"] == 'CT':
-                new.type = Transaction.TYPE_TRANSFER
-            elif t["type"] == 'WEE':
-                new.type = Transaction.TYPE_BANK
+            new.type = TYPES.get(t["type"], Transaction.TYPE_UNKNOWN)
 
             if t["category"] in categories:
                 new.category = categories[t["category"]]
