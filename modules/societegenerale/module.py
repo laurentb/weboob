@@ -100,7 +100,7 @@ class SocieteGeneraleModule(Module, CapBankWealth, CapBankTransferAddRecipient, 
         return self.browser.iter_recipients(origin_account)
 
     def new_recipient(self, recipient, **params):
-        if self.config['website'].get() not in ('pro', ):
+        if self.config['website'].get() not in ('par', 'pro'):
             raise NotImplementedError()
         recipient.label = ' '.join(w for w in re.sub('[^0-9a-zA-Z:\/\-\?\(\)\.,\'\+ ]+', '', recipient.label).split())
         return self.browser.new_recipient(recipient, **params)

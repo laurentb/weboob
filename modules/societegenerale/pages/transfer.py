@@ -23,7 +23,7 @@ import re
 from weboob.browser.pages import LoggedPage, JsonPage, FormNotFound
 from weboob.browser.elements import method, ItemElement, DictElement
 from weboob.capabilities.bank import (
-    Recipient, Transfer, TransferBankError, AddRecipientBankError, AddRecipientStep,
+    Recipient, Transfer, TransferBankError, AddRecipientBankError, AddRecipientTimeout,
 )
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.capabilities.base import NotAvailable
@@ -32,9 +32,8 @@ from weboob.browser.filters.standard import (
 )
 from weboob.browser.filters.html import Link
 from weboob.browser.filters.json import Dict
-from weboob.tools.value import Value, ValueBool
 from weboob.tools.json import json
-from weboob.exceptions import BrowserUnavailable
+from weboob.exceptions import BrowserUnavailable, ActionNeeded
 
 from .base import BasePage
 from .login import MainPage
@@ -167,8 +166,29 @@ class SignTransferPage(LoggedPage, MainPage):
         }
 
 
-class RecipientJson(LoggedPage, JsonPage):
-    pass
+class SignRecipientPage(LoggedPage, JsonPage):
+    def on_load(self):
+        assert Dict('commun/statut')(self.doc).upper() == 'OK', \
+            'Something went wrong on sign recipient page: %s' % Dict('commun/raison')(self.doc)
+
+    def get_sign_method(self):
+        return Dict('donnees/sign_proc')(self.doc).upper()
+
+    def check_recipient_status(self):
+        transaction_status = Dict('donnees/transaction_status')(self.doc)
+
+        # check add new recipient status
+        assert transaction_status in ('available', 'in_progress', 'aborted', 'rejected'), \
+            'transaction_status is %s' % transaction_status
+        if transaction_status == 'aborted':
+            raise AddRecipientTimeout()
+        elif transaction_status == 'rejected':
+            raise ActionNeeded("La demande d'ajout de bénéficiaire a été annulée.")
+        elif transaction_status == 'in_progress':
+            raise ActionNeeded('Veuillez valider le bénéficiaire sur votre application bancaire.')
+
+    def get_transaction_id(self):
+        return Dict('donnees/id-transaction')(self.doc)
 
 
 class AddRecipientPage(LoggedPage, BasePage):
@@ -201,40 +221,26 @@ class AddRecipientPage(LoggedPage, BasePage):
             if 'actionLevel' in CleanText('.')(script):
                 return re.search("'actionLevel': (\d{3}),", script.text).group(1)
 
-    def double_auth(self, recipient):
+    def get_signinfo_data_form(self):
         try:
             form = self.get_form(id='formCache')
         except FormNotFound:
-            assert False, 'Double auth form not found'
+            assert False, 'Transfer auth form not found'
+        return form
 
+    def update_browser_recipient_state(self):
+        form = self.get_signinfo_data_form()
+        # set browser variable used to continue new recipient
         self.browser.context = form['context']
         self.browser.dup = form['dup']
         self.browser.logged = 1
 
-        getsigninfo_data = {}
-        getsigninfo_data['b64_jeton_transaction'] = form['context']
-        getsigninfo_data['action_level'] = self.get_action_level()
-        r = self.browser.open('https://particuliers.secure.societegenerale.fr/sec/getsigninfo.json', data=getsigninfo_data)
-        assert r.page.doc['commun']['statut'] == 'ok'
-
-        recipient = self.get_recipient_object(recipient, get_info=True)
-        self.browser.page = None
-        if r.page.doc['donnees']['sign_proc'] == 'csa':
-            send_data = {}
-            send_data['csa_op'] = 'sign'
-            send_data['context'] = form['context']
-            r = self.browser.open('https://particuliers.secure.societegenerale.fr/sec/csa/send.json', data=send_data)
-            assert r.page.doc['commun']['statut'] == 'ok'
-            raise AddRecipientStep(recipient, Value('code', label=u'Cette opération doit être validée par un Code Sécurité.'))
-        elif r.page.doc['donnees']['sign_proc'] == 'OOB':
-            oob_data = {}
-            oob_data['b64_jeton_transaction'] = form['context']
-            r = self.browser.open('https://particuliers.secure.societegenerale.fr/sec/oob_sendoob.json', data=oob_data)
-            assert r.page.doc['commun']['statut'] == 'ok'
-            self.browser.id_transaction = r.page.doc['donnees']['id-transaction']
-            raise AddRecipientStep(recipient, ValueBool('pass', label=u'Valider cette opération sur votre applicaton société générale'))
-        else:
-            assert False, 'Sign process unknown: %s' % r.page.doc['donnees']['sign_proc']
+    def get_signinfo_data(self):
+        form = self.get_signinfo_data_form()
+        signinfo_data = {}
+        signinfo_data['b64_jeton_transaction'] = form['context']
+        signinfo_data['action_level'] = self.get_action_level()
+        return signinfo_data
 
     def get_recipient_object(self, recipient, get_info=False):
         r = Recipient()

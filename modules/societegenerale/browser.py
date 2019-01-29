@@ -25,10 +25,11 @@ from dateutil.relativedelta import relativedelta
 
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded, BrowserUnavailable
-from weboob.capabilities.bank import Account, TransferBankError
+from weboob.capabilities.bank import Account, TransferBankError, AddRecipientStep
 from weboob.capabilities.base import find_object, NotAvailable
 from weboob.browser.exceptions import BrowserHTTPNotFound, ClientError
 from weboob.capabilities.profile import ProfileMissing
+from weboob.tools.value import Value, ValueBool
 
 from .pages.accounts_list import (
     AccountsMainPage, AccountDetailsPage, AccountsPage, LoansPage, HistoryPage,
@@ -37,7 +38,7 @@ from .pages.accounts_list import (
     MarketPage, LifeInsurance, LifeInsuranceHistory, LifeInsuranceInvest, LifeInsuranceInvest2,
     UnavailableServicePage,
 )
-from .pages.transfer import AddRecipientPage, RecipientJson, TransferJson, SignTransferPage
+from .pages.transfer import AddRecipientPage, SignRecipientPage, TransferJson, SignTransferPage
 from .pages.login import MainPage, LoginPage, BadLoginPage, ReinitPasswordPage, ActionNeededPage, ErrorPage
 from .pages.subscription import BankStatementPage
 
@@ -67,7 +68,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     json_recipient = URL(r'/sec/getsigninfo.json',
                          r'/sec/csa/send.json',
                          r'/sec/oob_sendoob.json',
-                         r'/sec/oob_polling.json', RecipientJson)
+                         r'/sec/oob_polling.json', SignRecipientPage)
     # Transfer
     json_transfer = URL(r'/icd/vupri/data/vupri-liste-comptes.json\?an200_isBack=false',
                         r'/icd/vupri/data/vupri-check.json',
@@ -113,6 +114,9 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     id_transaction = None
 
     __states__ = ('context', 'dup', 'id_transaction')
+
+    def locate_browser(self, state):
+        self.location('/com/icd-web/cbo/index.html')
 
     def load_state(self, state):
         if state.get('dup') is not None and state.get('context') is not None:
@@ -327,17 +331,26 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
         return transfer
 
     def end_sms_recipient(self, recipient, **params):
-        data = [('context', self.context), ('context', self.context), ('dup', self.dup), ('code', params['code']), ('csa_op', 'sign')]
-        self.add_recipient.go(data=data, headers={'Referer': self.absurl('/lgn/url.html')})
+        """End adding recipient with OTP SMS authentication"""
+        data = [
+            ('context', [self.context, self.context]),
+            ('dup', self.dup),
+            ('code', params['code']),
+            ('csa_op', 'sign')
+        ]
+        # needed to confirm recipient validation
+        add_recipient_url = self.absurl('/lgn/url.html', base=True)
+        self.location(add_recipient_url, data=data, headers={'Referer': add_recipient_url})
         return self.page.get_recipient_object(recipient)
 
     def end_oob_recipient(self, recipient, **params):
-        r = self.open(self.absurl('/sec/oob_polling.json'), data={'n10_id_transaction': self.id_transaction})
-        assert r.page.doc['donnees']['transaction_status'] in ('available', 'in_progress'), \
-            'transaction_status is %s' % r.page.doc['donnees']['transaction_status']
-
-        if r.page.doc['donnees']['transaction_status'] == 'in_progress':
-            raise ActionNeeded('Veuillez valider le bénéficiaire sur votre application bancaire.')
+        """End adding recipient with 'pass sécurité' authentication"""
+        r = self.open(
+            self.absurl('/sec/oob_polling.json'),
+            data={'n10_id_transaction': self.id_transaction}
+        )
+        assert self.id_transaction, "Transaction id is missing, can't sign new recipient."
+        r.page.check_recipient_status()
 
         data = [
             ('context', self.context),
@@ -346,13 +359,26 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
             ('n10_id_transaction', self.id_transaction),
             ('oob_op', 'sign')
         ]
+        # needed to confirm recipient validation
         add_recipient_url = self.absurl('/lgn/url.html', base=True)
-        self.location(
-            add_recipient_url,
-            data=data,
-            headers={'Referer': add_recipient_url}
-        )
+        self.location(add_recipient_url, data=data, headers={'Referer': add_recipient_url})
         return self.page.get_recipient_object(recipient)
+
+    def send_sms_to_user(self, recipient):
+        """Add recipient with OTP SMS authentication"""
+        data = {}
+        data['csa_op'] = 'sign'
+        data['context'] = self.context
+        self.open(self.absurl('/sec/csa/send.json'), data=data)
+        raise AddRecipientStep(recipient, Value('code', label='Cette opération doit être validée par un Code Sécurité.'))
+
+    def send_notif_to_user(self, recipient):
+        """Add recipient with 'pass sécurité' authentication"""
+        data = {}
+        data['b64_jeton_transaction'] = self.context
+        r = self.open(self.absurl('/sec/oob_sendoob.json'), data=data)
+        self.id_transaction = r.page.get_transaction_id()
+        raise AddRecipientStep(recipient, ValueBool('pass', label='Valider cette opération sur votre applicaton société générale'))
 
     @need_login
     def new_recipient(self, recipient, **params):
@@ -360,10 +386,24 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
             return self.end_sms_recipient(recipient, **params)
         if 'pass' in params:
             return self.end_oob_recipient(recipient, **params)
+
         self.add_recipient.go()
         self.page.post_iban(recipient)
         self.page.post_label(recipient)
-        self.page.double_auth(recipient)
+
+        recipient = self.page.get_recipient_object(recipient, get_info=True)
+        self.page.update_browser_recipient_state()
+        data = self.page.get_signinfo_data()
+
+        r = self.open(self.absurl('/sec/getsigninfo.json'), data=data)
+        sign_method = r.page.get_sign_method()
+
+        # WARNING: this send validation request to user
+        if sign_method == 'CSA':
+            return self.send_sms_to_user(recipient)
+        elif sign_method == 'OOB':
+            return self.send_notif_to_user(recipient)
+        assert False, 'Sign process unknown: %s' % sign_method
 
     @need_login
     def get_advisor(self):
