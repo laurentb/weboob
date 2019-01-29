@@ -117,15 +117,7 @@ class CragrAPI(LoginBrowser):
         self.netfinca.deinit()
 
     def do_login(self):
-        self.keypad.go()
-        keypad_password = self.page.build_password(self.password[:6])
-        keypad_id = self.page.get_keypad_id()
-        assert keypad_password, 'Could not obtain keypad password'
-        assert keypad_id, 'Could not obtain keypad id'
-
-        self.login_page.go()
-        # Get the form data to POST the security check:
-        form = self.page.get_login_form(self.username, keypad_password, keypad_id)
+        form = self.get_security_form()
         try:
             self.security_check.go(data=form)
         except ServerError as exc:
@@ -137,8 +129,10 @@ class CragrAPI(LoginBrowser):
                     raise BrowserIncorrectPassword()
                 if 'obtenir un nouveau code' in message:
                     raise ActionNeeded(message)
-                elif 'Un incident technique' in message:
+                technical_errors = ('Un incident technique', 'Veuillez ressaisir votre identifiant')
+                if any(value in message for value in technical_errors):
                     # If it is a technical error, we try login again
+                    form = self.get_security_form()
                     try:
                         self.security_check.go(data=form)
                     except ServerError as exc:
@@ -155,6 +149,17 @@ class CragrAPI(LoginBrowser):
         self.location(self.accounts_url)
         assert self.accounts_page.is_here(), 'We failed to login after the security check!'
         # Once the security check is passed, we are logged in.
+
+    def get_security_form(self):
+        self.keypad.go()
+        keypad_password = self.page.build_password(self.password[:6])
+        keypad_id = self.page.get_keypad_id()
+        assert keypad_password, 'Could not obtain keypad password'
+        assert keypad_id, 'Could not obtain keypad id'
+        self.login_page.go()
+        # Get the form data to POST the security check:
+        form = self.page.get_login_form(self.username, keypad_password, keypad_id)
+        return form
 
     @need_login
     def get_accounts_list(self):
@@ -284,8 +289,6 @@ class CragrAPI(LoginBrowser):
 
     @need_login
     def go_to_account_space(self, contract):
-        # TO-DO: Figure out a way to determine whether
-        # we already are on the right account space
         self.contracts_page.go(id_contract=contract)
         if not self.accounts_page.is_here():
             # We have been logged out.
