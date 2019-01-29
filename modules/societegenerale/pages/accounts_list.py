@@ -36,7 +36,7 @@ from weboob.browser.filters.standard import (
 )
 from weboob.browser.filters.html import Link, TableCell
 from weboob.browser.pages import HTMLPage, XMLPage, JsonPage, LoggedPage, pagination
-from weboob.exceptions import BrowserUnavailable, ActionNeeded
+from weboob.exceptions import BrowserUnavailable, ActionNeeded, NoAccountsException
 
 
 def MyDecimal(*args, **kwargs):
@@ -71,6 +71,11 @@ class JsonBasePage(LoggedPage, JsonPage):
 class AccountsMainPage(LoggedPage, HTMLPage):
     def is_old_website(self):
         return Link('//a[contains(text(), "Afficher la nouvelle consultation")]', default=None)(self.doc)
+
+    def is_accounts(self):
+        error_msg = CleanText('//span[@class="error_msg"]')(self.doc)
+        if 'Vous ne disposez pas de compte consultable' in error_msg:
+            raise NoAccountsException(error_msg)
 
 
 class AccountDetailsPage(LoggedPage, HTMLPage):

@@ -162,6 +162,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     @need_login
     def get_accounts_list(self):
         self.accounts_main_page.go()
+        self.page.is_accounts()
 
         if self.page.is_old_website():
             # go on new_website
