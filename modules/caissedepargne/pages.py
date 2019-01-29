@@ -502,8 +502,7 @@ class IndexPage(LoggedPage, HTMLPage):
                 obj_currency = Currency(MyTableCell("balance"))
                 obj_last_payment_date = Date(CleanText(MyTableCell("last_payment_date")))
                 obj_next_payment_amount = MyDecimal(MyTableCell("next_payment_amount"))
-                obj_next_payment_date = Date(CleanText(MyTableCell("next_payment_date")))
-
+                obj_next_payment_date = Date(CleanText(MyTableCell("next_payment_date", default=''), default=NotAvailable), default=NotAvailable)
 
     def go_list(self):
         form = self.get_form(id='main')
