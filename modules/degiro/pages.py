@@ -167,12 +167,18 @@ class HistoryPage(LoggedPage, JsonPage):
                 label = Field('raw')(self).split()[0]
                 return {
                     'Buy': 'B',
-                    'Sell': 'S',
                     'Achat': 'B',
+                    'Compra': 'B',
+                    'Sell': 'S',
                     'Vente': 'S',
+                    'Venta': 'S',
+                    'Venda': 'S',
                     'Taxe': None,
                     'Frais': None,
                     'Intérêts': None,
+                    'Comisión': None,
+                    'Custo': None,
+                    'DEGIRO': None,
                     # make sure we don't miss transactions labels specifying an ISIN
                 }[label]
 
@@ -209,9 +215,9 @@ class HistoryPage(LoggedPage, JsonPage):
                     ]
                     amount = quantity * unitprice
                     raw = select_raw(self).lower()
-                    if 'vente' in raw:
+                    if any(i for i in ('vente', 'venta', 'venda', 'sell') if i in raw):
                         return amount
-                    elif 'achat' in raw:
+                    if any(i for i in ('achat', 'compra', 'buy') if i in raw):
                         return -amount
 
     @method
