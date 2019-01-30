@@ -230,6 +230,9 @@ class AccountDetailsPage(LoggedPage, JsonPage):
         # whereas the account id may not be unique for Loans
         account_balances = {}
         for el in self.doc:
+            # Insurances have no balance, we skip them
+            if el.get('typeProduit') == 'assurance':
+                continue
             value = el.get('solde', el.get('encoursActuel', el.get('valorisationContrat', el.get('montantRestantDu', el.get('capitalDisponible')))))
             assert value is not None, 'Could not find the account balance'
             account_balances[Dict('idElementContrat')(el)] = float_to_decimal(value)
