@@ -207,6 +207,9 @@ class AccountsPage(LoggedPage, JsonPage):
             obj__fam_contract_code = CleanText(Dict('codeFamilleContratBam'))
 
             def obj_type(self):
+                if CleanText(Dict('libelleUsuelProduit'))(self) in ('HABITATION',):
+                    # No need to log warning for "assurance" accounts
+                    return NotAvailable
                 _type = Map(CleanText(Dict('libelleUsuelProduit')), ACCOUNT_TYPES, Account.TYPE_UNKNOWN)(self)
                 if _type == Account.TYPE_UNKNOWN:
                     self.logger.warning('There is an untyped account: please add "%s" to ACCOUNT_TYPES.' % CleanText(Dict('libelleUsuelProduit'))(self))
