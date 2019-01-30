@@ -907,7 +907,11 @@ class CardPage2(CardPage, HTMLPage, XMLPage):
                 def obj_original_amount(self):
                     m = re.search(r'(([\s-]\d+)+,\d+)', CleanText(TableCell('commerce'))(self))
                     if m and not 'FRAIS' in CleanText(TableCell('commerce'))(self):
-                        return Decimal(m.group(1).replace(',', '.').replace(' ', '')).quantize(Decimal('0.01'))
+                        matched_text = m.group(1)
+                        submatch = re.search(r'\d+-(.*)', matched_text)
+                        if submatch:
+                            matched_text = submatch.group(1)
+                        return Decimal(matched_text.replace(',', '.').replace(' ', '')).quantize(Decimal('0.01'))
                     return NotAvailable
 
                 def obj_original_currency(self):
@@ -979,7 +983,11 @@ class CardPage2(CardPage, HTMLPage, XMLPage):
                 def obj_original_amount(self):
                     m = re.search(r'(([\s-]\d+)+,\d+)', CleanText(TableCell('commerce'))(self))
                     if m and not 'FRAIS' in CleanText(TableCell('commerce'))(self):
-                        return Decimal(m.group(1).replace(',', '.').replace(' ', '')).quantize(Decimal('0.01'))
+                        matched_text = m.group(1)
+                        submatch = re.search(r'\d+-(.*)', matched_text)
+                        if submatch:
+                            matched_text = submatch.group(1)
+                        return Decimal(matched_text.replace(',', '.').replace(' ', '')).quantize(Decimal('0.01'))
                     return NotAvailable
 
                 def obj_original_currency(self):
