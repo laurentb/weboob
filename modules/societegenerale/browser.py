@@ -135,7 +135,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
         reason, action = self.page.get_error()
         if reason == 'echec_authent':
             raise BrowserIncorrectPassword()
-        elif reason == 'acces_bloq':
+        elif reason in ('acces_bloq', 'acces_susp', 'pas_acces_bad', ):
             raise ActionNeeded()
         elif reason == 'err_tech':
             # there is message "Service momentanément indisponible. Veuillez réessayer."
