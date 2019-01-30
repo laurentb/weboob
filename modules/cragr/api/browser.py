@@ -202,9 +202,19 @@ class CragrAPI(LoginBrowser):
                 account._contract = contract
                 account.owner_type = self.page.get_owner_type()
 
-            # Some accounts have no balance in the main JSON, so we must get all
-            # the (_id_element_contrat, balance) pairs in the account_details JSON:
-            categories = {int(account._category) for account in accounts_list if account._category != None}
+            ''' Other accounts have no balance in the main JSON, so we must get all
+            the (_id_element_contrat, balance) pairs in the account_details JSON.
+
+            Account categories always correspond to the same account types:
+            # Category 1: Checking accounts,
+            # Category 2: To be determined,
+            # Category 3: Savings,
+            # Category 4: Loans & Credits,
+            # Category 5: Insurances (skipped),
+            # Category 6: To be determined,
+            # Category 7: Market accounts. '''
+
+            categories = {int(account._category) for account in accounts_list if account._category not in (None, '5')}
             account_balances = {}
             loan_ids = {}
             for category in categories:
