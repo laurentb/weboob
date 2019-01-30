@@ -61,8 +61,8 @@ class PortfolioPage(LoggedPage, HTMLPage):
             obj_label = 'Compte Bolden'
             obj_type = Account.TYPE_MARKET
             obj_currency = 'EUR'
-            obj_balance = CleanDecimal('//div[p[has-class("investor-state") and contains(text(),"Total compte Bolden :")]]/p[has-class("investor-status")]', replace_dots=True)
-            obj_valuation_diff = CleanDecimal('//p[has-class("rent-amount strong dashboard-text")]', replace_dots=True)
+            obj_balance = CleanDecimal.French('//div[p[has-class("investor-state") and contains(text(),"Total compte Bolden :")]]/p[has-class("investor-status")]', replace_dots=True)
+            obj_valuation_diff = CleanDecimal.French('//div[has-class("rent-total")]', replace_dots=True)
 
     @method
     class iter_investments(TableElement):
