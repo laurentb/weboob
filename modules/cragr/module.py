@@ -84,7 +84,7 @@ class CragrModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapContact
         }.items())])
 
     CONFIG = BackendConfig(Value('website',  label=u'Région', choices=website_choices),
-                           ValueBackendPassword('login',    label=u'N° de compte', masked=False),
+                           ValueBackendPassword('login', label=u'N° de compte', masked=False, regexp=r'\d+'),
                            ValueBackendPassword('password', label=u'Code personnel', regexp=r'\d{6}'))
 
     BROWSER = ProxyBrowser
