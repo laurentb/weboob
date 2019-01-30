@@ -686,5 +686,10 @@ class HTMLProfilePage(LoggedPage, HTMLPage):
 
 class UnavailableServicePage(LoggedPage, HTMLPage):
     def on_load(self):
-        if self.doc.xpath('//div[contains(@class, "erreur_404_content")]'):
+        conditions = (
+            self.doc.xpath('//div[contains(@class, "erreur_404_content")]'),
+            'Site momentanément indisponible' in CleanText('//h2[contains(@class, "error-page")]')(self.doc),
+        )
+
+        if any(conditions):
             raise BrowserUnavailable()
