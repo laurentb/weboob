@@ -142,7 +142,6 @@ class IngBrowser(LoginBrowser):
 
     @need_login
     def set_multispace(self):
-        self.accountspage.go()
         self.where = 'start'
         self.page.load_space_page()
 
@@ -211,8 +210,11 @@ class IngBrowser(LoginBrowser):
 
         for acc in self.page.get_list():
             acc._space = space
-            if get_iban:
-                self.get_iban(acc)
+            if fill_account:
+                try:
+                    self.fill_account(acc)
+                except ServerError:
+                    pass
 
             assert not find_object(accounts_list, id=acc.id), 'There is a duplicate account.'
             accounts_list.append(acc)
@@ -244,8 +246,11 @@ class IngBrowser(LoginBrowser):
         else:
             for acc in self.page.get_list():
                 acc._space = None
-                if get_iban:
-                    self.get_iban(acc)
+                if fill_account:
+                    try:
+                        self.fill_account(acc)
+                    except ServerError:
+                        pass
                 yield acc
 
             for loan in self.iter_detailed_loans():
@@ -289,7 +294,6 @@ class IngBrowser(LoginBrowser):
 
     def get_account(self, _id, space=None):
         return find_object(self.get_accounts_list(fill_account=False, space=space), id=_id, error=AccountNotFound)
-
 
     def go_account_page(self, account):
         data = {"AJAX:EVENTS_COUNT": 1,
