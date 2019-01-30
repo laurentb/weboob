@@ -459,6 +459,9 @@ class IndexPage(LoggedPage, HTMLPage):
                         account._card_links = []
 
                         if "renouvelables" in CleanText('.')(title):
+                            if 'JSESSIONID' in self.session.cookies:
+                                # Need to delete this to access the consumer loans space (a new one will be created)
+                                del self.browser.session.cookies['JSESSIONID']
                             self.go_loans_conso(tr)
                             d = self.browser.loans_conso()
                             if d:

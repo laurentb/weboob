@@ -333,7 +333,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         days = ('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun')
         month = ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
         now = datetime.datetime.today()
-        d = '%s %s %s %s:%s:%s GMT 0100 (CET)' % (days[now.weekday()], month[now.month - 1], now.year, now.hour, format(now.minute, "02"), now.second)
+        d = '%s %s %s %s %s:%s:%s GMT+0100 (heure normale d’Europe centrale)' % (days[now.weekday()], now.day, month[now.month - 1], now.year, now.hour, format(now.minute, "02"), now.second)
         if self.home.is_here():
             msg = self.page.loan_unavailable_msg()
             if msg:
