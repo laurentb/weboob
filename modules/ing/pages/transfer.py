@@ -73,7 +73,7 @@ class TransferPage(LoggedPage, HTMLPage):
 
                 def parse(self, el):
                     _id = Attr('.', 'data-acct-number')(self)
-                    accounts = [acc for acc in self.page.browser.get_accounts_list(get_iban=False, space=self.env['origin']._space) if _id in acc.id]
+                    accounts = [acc for acc in self.page.browser.get_accounts_list(fill_account=False, space=self.env['origin']._space) if _id in acc.id]
                     assert len(accounts) == 1
                     account = accounts[0]
                     self.env['id'] = account.id
