@@ -134,7 +134,7 @@ class CragrAPI(LoginBrowser):
                     raise BrowserIncorrectPassword()
                 if 'obtenir un nouveau code' in message:
                     raise ActionNeeded(message)
-                technical_errors = ('Un incident technique', 'Veuillez ressaisir votre identifiant')
+                technical_errors = ('Un incident technique', 'identifiant et votre code personnel')
                 if any(value in message for value in technical_errors):
                     # If it is a technical error, we try login again
                     form = self.get_security_form()
