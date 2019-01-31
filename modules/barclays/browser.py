@@ -133,6 +133,11 @@ class Barclays(LoginBrowser):
             traccounts = []
 
             for account in accounts:
+                if account._btn is None:
+                    # we can't access to account details without this button
+                    traccounts.append(account)
+                    continue
+
                 if account.type == Account.TYPE_CHECKING:
                     # Only checking accounts have an IBAN
                     self._go_to_account(account)
@@ -181,6 +186,8 @@ class Barclays(LoginBrowser):
             return []
         elif account.type in (Account.TYPE_LOAN, Account.TYPE_REVOLVING_CREDIT):
             return []
+        if account._btn is None:
+            return []
 
         self._go_to_account(account)
 
@@ -222,6 +229,8 @@ class Barclays(LoginBrowser):
     def iter_coming(self, account):
         if account.type != Account.TYPE_CARD:
             raise NotImplementedError()
+        if account._btn is None:
+            return []
 
         self._go_to_account(account)
         return self.page.iter_history()
@@ -230,6 +239,8 @@ class Barclays(LoginBrowser):
     def iter_investments(self, account):
         if account.type not in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET):
             raise NotImplementedError()
+        if account._btn is None:
+            return []
 
         self._go_to_account(account)
 
