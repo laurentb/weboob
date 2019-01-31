@@ -30,7 +30,7 @@ from weboob.capabilities.profile import Person
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement
 from weboob.browser.pages import LoggedPage, RawPage, PartialHTMLPage, HTMLPage
 from weboob.browser.filters.html import Link, TableCell
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, Field, BrowserURL, Currency, Async, Date, Format
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, Field, Currency, Async, Date, Format
 from weboob.exceptions import BrowserUnavailable
 from weboob.tools.compat import urljoin, unicode
 
@@ -74,9 +74,9 @@ class item_account_generic(ItemElement):
             has_coming = False
             coming = 0
 
-            self.page.browser.open(Field('url')(self))
-            coming_operations = self.page.browser.open(
-                BrowserURL('par_account_checking_coming', accountId=Field('id'))(self))
+            details_page = self.page.browser.open(Field('url')(self))
+            coming_op_link = Regexp(Link(u'//a[contains(text(), "Opérations à venir")]'), r'../(.*)')(details_page.page.doc)
+            coming_operations = self.page.browser.open(self.page.browser.BASEURL + '/voscomptes/canalXHTML/CCP/' + coming_op_link)
 
             if CleanText('//span[@id="amount_total"]')(coming_operations.page.doc):
                 has_coming = True
@@ -91,10 +91,11 @@ class item_account_generic(ItemElement):
         return NotAvailable
 
     def obj_iban(self):
-        response = self.page.browser.open(
-                '/voscomptes/canalXHTML/comptesCommun/imprimerRIB/init-imprimer_rib.ea?numeroCompte=%s' % Field('id')(
-                self))
-        return response.page.get_iban()
+        rib_link = Link('//a[abbr[contains(text(), "RIB")]]', default=NotAvailable)(self.el)
+        if rib_link:
+            response = self.page.browser.open(rib_link)
+            return response.page.get_iban()
+        return NotAvailable
 
     def obj_type(self):
         types = {'comptes? bancaires?': Account.TYPE_CHECKING,
