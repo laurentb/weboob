@@ -26,9 +26,10 @@ from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
+from weboob.tools.decorators import retry
 
 from .pages import (
-    LoginPage, AccountsPage, AccountPage, MarketAccountPage,
+    SecretTooShort, LoginPage, AccountsPage, AccountPage, MarketAccountPage,
     LifeInsuranceAccountPage, CardPage, IbanPDFPage, ActionNeededPage,
     RevolvingAccountPage, LoanAccountPage,
 )
@@ -103,6 +104,7 @@ class Barclays(LoginBrowser):
         accounts = [a for a in self.cache['accounts'] if a._uncleaned_id == account._uncleaned_id]
         return not any(a for a in accounts if a.id in self.cache['history'])
 
+    @retry(SecretTooShort, tries=4)
     def do_login(self):
         self.login.go()
         self.page.login(self.username, self.password)

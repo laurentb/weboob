@@ -30,9 +30,18 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.exceptions import ActionNeeded
 
+
 def MyDecimal(*args, **kwargs):
     kwargs.update(replace_dots=True, default=NotAvailable)
     return CleanDecimal(*args, **kwargs)
+
+
+class SecretTooShort(Exception):
+    # secret is a word which contains at least 8 char and website ask us to enter 2 chars of it
+    # char 3 and 4 or 6 and 7
+    # but sometimes it ask us to enter char 9 and 10 even if secret code contains just 8 char
+    # maybe because user didn't enter full secret code or because website is badly coded (who knows...)
+    pass
 
 
 class StatefulPage(LoggedPage, HTMLPage):
@@ -83,6 +92,8 @@ class LoginPage(HTMLPage):
 
         letters = ''
         for n in re.findall('(\d+)', label):
+            if int(n) > len(secret):
+                raise SecretTooShort()
             letters += secret[int(n) - 1]
 
         if ' ' in letters:
