@@ -58,7 +58,7 @@ class KeypadPage(JsonPage):
 class LoginPage(HTMLPage):
     def get_login_form(self, username, keypad_password, keypad_id):
         form = self.get_form(id="loginForm")
-        form['j_username'] = username
+        form['j_username'] = username[:11]
         form['j_password'] = keypad_password
         form['keypadId'] = keypad_id
         return form
