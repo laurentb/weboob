@@ -155,7 +155,7 @@ class HistoryPage(LoggedPage, JsonPage):
             klass = Transaction
 
             obj_raw = Transaction.Raw(CleanText(Dict('description')))
-            obj_date = Date(CleanText(Dict('date')), dayfirst=True)
+            obj_date = Date(CleanText(Dict('date')))
             obj__isin = Regexp(Dict('description'), r'\((.{12}?)\)', nth=-1, default=None)
             obj__number = Regexp(Dict('description'), r'^([Aa]chat|[Vv]ente|[Bb]uy|[Ss]ell) (\d+[,.]?\d*)', template='\\2', default=None)
             obj__datetime = Dict('date')
@@ -236,7 +236,7 @@ class HistoryPage(LoggedPage, JsonPage):
             obj__product_id = Dict('productId')
             obj_quantity = CleanDecimal(Dict('quantity'))
             obj_unitvalue = CleanDecimal(Dict('price'))
-            obj_vdate = Date(CleanText(Dict('date')), dayfirst=True)
+            obj_vdate = Date(CleanText(Dict('date')))
             obj__action = Dict('buysell')
 
             obj__datetime = Dict('date')
