@@ -142,7 +142,8 @@ class CragrAPI(LoginBrowser):
             error = exc.response.json().get('error')
             if error:
                 message = error.get('message', '')
-                if 'Votre identification est incorrecte' in message:
+                wrongpass_messages = ("Votre identification est incorrecte", "Vous n'avez plus droit")
+                if any(value in message for value in wrongpass_messages):
                     raise BrowserIncorrectPassword()
                 if 'obtenir un nouveau code' in message:
                     raise ActionNeeded(message)
