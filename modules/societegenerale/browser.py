@@ -34,7 +34,7 @@ from weboob.tools.value import Value, ValueBool
 from .pages.accounts_list import (
     AccountsMainPage, AccountDetailsPage, AccountsPage, LoansPage, HistoryPage,
     CardHistoryPage, PeaLiquidityPage, AccountsSynthesesPage,
-    AdvisorPage, HTMLProfilePage, XMLProfilePage, CreditPage, CreditHistoryPage,
+    AdvisorPage, HTMLProfilePage, CreditPage, CreditHistoryPage,
     MarketPage, LifeInsurance, LifeInsuranceHistory, LifeInsuranceInvest, LifeInsuranceInvest2,
     UnavailableServicePage,
 )
@@ -89,7 +89,6 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     # Profile
     advisor = URL(r'/icd/pon/data/get-contacts.xml', AdvisorPage)
     html_profile_page = URL(r'/com/dcr-web/dcr/dcr-coordonnees.html', HTMLProfilePage)
-    xml_profile_page = URL(r'/gms/gmsRestituerAdresseNotificationServlet.xml', XMLProfilePage)
 
     # Document
     bank_statement = URL(r'/restitution/rce_derniers_releves.html', BankStatementPage)
@@ -414,13 +413,11 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     @need_login
     def get_profile(self):
         self.html_profile_page.go()
-        profile = self.page.get_profile()
-        self.xml_profile_page.go()
-        profile.email = self.page.get_email()
-        return profile
+        return self.page.get_profile()
 
     @need_login
     def iter_subscription(self):
+        self.accounts_main_page.go()
         try:
             profile = self.get_profile()
             subscriber = profile.name

@@ -679,13 +679,9 @@ class HTMLProfilePage(LoggedPage, HTMLPage):
         profile.address += ' ' + CleanText('//div[@id="dcr-conteneur"]//div[contains(text(), "ADRESSE")]/following::table//tr[5]/td[2]')(self.doc)
         profile.address += ' ' + CleanText('//div[@id="dcr-conteneur"]//div[contains(text(), "ADRESSE")]/following::table//tr[6]/td[2]')(self.doc)
         profile.country = CleanText('//div[@id="dcr-conteneur"]//div[contains(text(), "ADRESSE")]/following::table//tr[7]/td[2]')(self.doc)
+        profile.email = CleanText('//span[@id="currentEmail"]')(self.doc)
 
         return profile
-
-
-class XMLProfilePage(LoggedPage, XMLPage):
-    def get_email(self):
-        return CleanText('//AdresseEmailExterne')(self.doc)
 
 
 class UnavailableServicePage(LoggedPage, HTMLPage):
