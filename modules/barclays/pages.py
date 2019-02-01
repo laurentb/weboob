@@ -105,8 +105,8 @@ class LoginPage(HTMLPage):
         form.submit()
         return True
 
-    def has_error(self):
-        return bool(CleanText('//div[@class="bloc-message error" and not(@style)]')(self.doc))
+    def get_error_message(self):
+        return CleanText('//div[@class="bloc-message error" and not(@style)]')(self.doc)
 
 
 class AccountsPage(StatefulPage):

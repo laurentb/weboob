@@ -109,8 +109,10 @@ class Barclays(LoginBrowser):
         self.login.go()
         self.page.login(self.username, self.password)
 
-        if self.page.has_error():
-            raise BrowserIncorrectPassword()
+        error_message = self.page.get_error_message()
+        if error_message:
+            assert 'Saisie incorrecte' in error_message, error_message
+            raise BrowserIncorrectPassword(error_message)
 
         # can't login if there is ' ' in the 2 characters asked
         if not self.page.login_secret(self.secret):
