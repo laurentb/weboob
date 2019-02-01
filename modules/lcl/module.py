@@ -94,8 +94,7 @@ class LCLModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapContact, 
         return find_object(self.browser.get_accounts_list(), id=_id, error=AccountNotFound)
 
     def iter_coming(self, account):
-        transactions = sorted_transactions(self.browser.get_cb_operations(account))
-        return transactions
+        return self.browser.get_coming(account)
 
     def iter_history(self, account):
         transactions = sorted_transactions(self.browser.get_history(account))

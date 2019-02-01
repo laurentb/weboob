@@ -20,6 +20,7 @@
 
 from __future__ import unicode_literals
 
+import re
 from datetime import datetime, timedelta, date
 from functools import wraps
 
@@ -28,17 +29,18 @@ from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.browser.exceptions import ServerError
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Account, AddRecipientBankError, AddRecipientStep, Recipient, AccountOwnerType
+from weboob.capabilities.base import find_object
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
-from weboob.tools.compat import basestring, urlsplit, parse_qsl, unicode
+from weboob.tools.compat import basestring, urlsplit, unicode
 from weboob.tools.value import Value
 
-from .pages import LoginPage, AccountsPage, AccountHistoryPage, \
-                   CBListPage, CBHistoryPage, ContractsPage, ContractsChoicePage, BoursePage, \
-                   AVListPage, AVPage, AVDetailPage, DiscPage, NoPermissionPage, RibPage, \
-                   HomePage, LoansPage, TransferPage, AddRecipientPage, \
-                   RecipientPage, RecipConfirmPage, SmsPage, RecipRecapPage, \
-                   LoansProPage, Form2Page, DocumentsPage, ClientPage, SendTokenPage, \
-                   CaliePage, ProfilePage, DepositPage, AVHistoryPage, AVInvestmentsPage
+from .pages import (
+    LoginPage, AccountsPage, AccountHistoryPage, ContractsPage, ContractsChoicePage, BoursePage,
+    AVPage, AVDetailPage, DiscPage, NoPermissionPage, RibPage, HomePage, LoansPage, TransferPage,
+    AddRecipientPage, RecipientPage, RecipConfirmPage, SmsPage, RecipRecapPage, LoansProPage,
+    Form2Page, DocumentsPage, ClientPage, SendTokenPage, CaliePage, ProfilePage, DepositPage,
+    AVHistoryPage, AVInvestmentsPage, CardsPage, AVListPage,
+)
 
 
 __all__ = ['LCLBrowser', 'LCLProBrowser', 'ELCLBrowser']
@@ -70,8 +72,11 @@ class LCLBrowser(LoginBrowser, StatesMixin):
     rib = URL('/outil/UWRI/Accueil/detailRib',
               '/outil/UWRI/Accueil/listeRib', RibPage)
     finalrib = URL('/outil/UWRI/Accueil/', RibPage)
-    cb_list = URL('/outil/UWCB/UWCBEncours.*/listeCBCompte.*', CBListPage)
-    cb_history = URL('/outil/UWCB/UWCBEncours.*/listeOperations.*', CBHistoryPage)
+
+    cards = URL(r'/outil/UWCB/UWCBEncours.*/listeCBCompte.*',
+                r'/outil/UWCB/UWCBEncours.*/listeOperations.*',
+                CardsPage)
+
     skip = URL('/outil/UAUT/Contrat/selectionnerContrat.*',
                '/index.html')
     no_perm = URL('/outil/UAUT/SansDroit/affichePageSansDroit.*', NoPermissionPage)
@@ -319,8 +324,24 @@ class LCLBrowser(LoginBrowser, StatesMixin):
             else:
                 self.get_accounts()
 
+        self.accounts.go()
+
+        deferred_cards = self.page.get_deferred_cards()
+
+        # We got deferred card page link and we have to go through it to get details.
+        for account_id, link in deferred_cards:
+            parent_account = find_object(self.accounts_list, id=account_id)
+            self.location(link)
+            # Url to go to each account card is made of agence id, parent account id,
+            # parent account key id and an index of the card (0,1,2,3,4...).
+            # This index is not related to any information, it's just an incremental integer
+            for card_position, a in enumerate(self.page.get_child_cards(parent_account)):
+                a._card_position = card_position
+                self.update_accounts(a)
+
         for account in self.accounts_list:
             account.owner_type = self.owner_type
+
         return iter(self.accounts_list)
 
     def get_bourse_accounts_ids(self):
@@ -350,7 +371,9 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                 raise BrowserUnavailable()
             for tr in self.page.get_operations():
                 yield tr
-            for tr in self.get_cb_operations(account, 1):
+
+        elif account.type == Account.TYPE_CARD:
+            for tr in self.get_cb_operations(account=account, month=1):
                 yield tr
 
         elif account.type == Account.TYPE_LIFE_INSURANCE:
@@ -374,7 +397,13 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                 yield tr
             self.go_back_from_life_insurance_website()
 
-    @go_contract
+    @need_login
+    def get_coming(self, account):
+        if account.type == Account.TYPE_CARD:
+            for tr in self.get_cb_operations(account=account, month=0):
+                yield tr
+
+    # %todo check this decorator : @go_contract
     @need_login
     def get_cb_operations(self, account, month=0):
         """
@@ -383,23 +412,37 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         * month=0 : current operations (non debited)
         * month=1 : previous month operations (debited)
         """
-        if not hasattr(account, '_coming_links'):
-            return
 
-        for link in account._coming_links:
-            v = urlsplit(self.absurl(link))
-            args = dict(parse_qsl(v.query))
-            args['MOIS'] = month
+        # Separation of bank account id and bank account key
+        # example : 123456A
+        regex = r'([0-9]{6})([A-Z]{1})'
+        account_id_regex = re.match(regex, account.parent._compte)
 
-            self.location(v.path, params=args)
+        args = {
+            'AGENCE': account.parent._agence,
+            'COMPTE': account_id_regex.group(1),
+            'CLE': account_id_regex.group(2),
+            'NUMEROCARTE': account._card_position,
+            'MOIS': month,
+        }
 
-            for tr in self.page.get_operations():
+        # We must go to '_cards_list' url first before transaction_link, otherwise, the website
+        # will show same transactions for all account, despite different values in 'args'.
+        assert 'MOIS=' in account._cards_list, 'Missing "MOIS=" in url'
+        init_url = account._cards_list.replace('MOIS=0', 'MOIS=%s' % month)
+        self.location(init_url)
+        self.location(account._transactions_link, params=args)
+
+        if month == 1:
+            summary = self.page.get_card_summary()
+            if summary:
+                yield summary
+
+        for tr in self.page.iter_transactions():
+            # Strange behavior, but sometimes, rdate > date.
+            # We skip it to avoid duplicate transactions.
+            if tr.date >= tr.rdate:
                 yield tr
-
-            for card_link in self.page.get_cards():
-                self.location(card_link)
-                for tr in self.page.get_operations():
-                    yield tr
 
     @go_contract
     @need_login
