@@ -115,9 +115,9 @@ class SocieteGeneraleModule(Module, CapBankWealth, CapBankTransferAddRecipient, 
         if not account:
             account = strict_find_object(self.iter_accounts(), id=transfer.account_id, error=AccountNotFound)
 
-        recipient = strict_find_object(self.iter_transfer_recipients(account.id), iban=transfer.recipient_iban)
+        recipient = strict_find_object(self.iter_transfer_recipients(account.id), id=transfer.recipient_id)
         if not recipient:
-            recipient = strict_find_object(self.iter_transfer_recipients(account.id), id=transfer.recipient_id, error=RecipientNotFound)
+            recipient = strict_find_object(self.iter_transfer_recipients(account.id), iban=transfer.recipient_iban, error=RecipientNotFound)
 
         transfer.amount = transfer.amount.quantize(Decimal('.01'))
         return self.browser.init_transfer(account, recipient, transfer)
