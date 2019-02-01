@@ -115,6 +115,8 @@ class AccountsPage(JsonBasePage):
                 'PROJECTIS': Account.TYPE_LIFE_INSURANCE,
                 'VIE_FEDER': Account.TYPE_LIFE_INSURANCE,
                 'PALISSANDRE': Account.TYPE_LIFE_INSURANCE,
+                'SOGECAPI_PATRIMOINE': Account.TYPE_LIFE_INSURANCE,
+                'EBENE_CAPITALISATION': Account.TYPE_LIFE_INSURANCE,
                 'ASSURANCE_VIE_GENERALE': Account.TYPE_LIFE_INSURANCE,
                 'ASSURANCE_VIE_SOGECAP_GENERAL': Account.TYPE_LIFE_INSURANCE,
                 'RESERVEA': Account.TYPE_REVOLVING_CREDIT,
