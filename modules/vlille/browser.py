@@ -28,7 +28,7 @@ __all__ = ['VlilleBrowser']
 
 class VlilleBrowser(PagesBrowser):
 
-    BASEURL = 'https://www.transpole.fr'
+    BASEURL = 'https://www.ilevia.fr'
     list_page = URL('/cms/vlille/les-stations-cartographies/', ListStationsPage)
 
     def get_station_list(self):

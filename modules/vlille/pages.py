@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from decimal import Decimal
 
 from weboob.browser.pages import HTMLPage
 from weboob.browser.elements import ItemElement, TableElement, method
@@ -52,7 +53,7 @@ class ListStationsPage(HTMLPage):
                 levelbikes.name = u'Bikes'
                 levelbikes.address = u'%s' % adresse
                 lastvalue = GaugeMeasure()
-                lastvalue.level = float(value)
+                lastvalue.level = Decimal(value)
                 lastvalue.date = last_update
                 if lastvalue.level < 1:
                     lastvalue.alarm = u'Empty station'
@@ -68,7 +69,7 @@ class ListStationsPage(HTMLPage):
                 lastvalue = GaugeMeasure()
                 if lastvalue.level < 1:
                     lastvalue.alarm = u'Full station'
-                lastvalue.level = float(value)
+                lastvalue.level = Decimal(value)
                 lastvalue.date = last_update
                 levelattach.lastvalue = lastvalue
                 levelattach.history = NotLoaded
