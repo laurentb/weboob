@@ -74,7 +74,10 @@ class BPBrowser(LoginBrowser, StatesMixin):
                             '/voscomptes/canalXHTML/pret/encours/detaillerOffrePretConsoListe-encoursPrets.ea',
                             '/voscomptes/canalXHTML/pret/creditRenouvelable/init-consulterCreditRenouvelable.ea',
                             '/voscomptes/canalXHTML/pret/encours/rechercherPret-encoursPrets.ea',
+                            '/voscomptes/canalXHTML/sso/commun/init-integration.ea\?partenaire',
+                            '/voscomptes/canalXHTML/sso/lbpf/souscriptionCristalFormAutoPost.jsp',
                             AccountList)
+    par_accounts_revolving = URL('https://espaceclientcreditconso.labanquepostale.fr/sav/accueil.do', AccountList)
 
     accounts_rib = URL(r'.*voscomptes/canalXHTML/comptesCommun/imprimerRIB/init-imprimer_rib.ea.*',
                        '/voscomptes/canalXHTML/comptesCommun/imprimerRIB/init-selection_rib.ea', AccountRIB)
@@ -219,6 +222,10 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def get_accounts_list(self):
+        if self.session.cookies.get('indicateur'):
+            # Malformed cookie to delete to reach other spaces
+            del self.session.cookies['indicateur']
+
         if self.accounts is None:
             accounts = []
             to_check = []
@@ -238,7 +245,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
                 for account in self.page.iter_accounts():
                     if account.type == Account.TYPE_LOAN:
                         self.location(account.url)
-                        if 'CreditRenouvelable' not in account.url:
+                        if 'initSSO' not in account.url:
                             for loan in self.page.iter_loans():
                                 loan.currency = account.currency
                                 accounts.append(loan)
@@ -249,9 +256,11 @@ class BPBrowser(LoginBrowser, StatesMixin):
                                 student_loan.currency = account.currency
                                 accounts.append(student_loan)
                         else:
-                            for loan in self.page.iter_revolving_loans():
-                                loan.currency = account.currency
-                                accounts.append(loan)
+                            # The main revolving page is not accessible, we can reach it by this new way
+                            self.location(self.absurl('/voscomptes/canalXHTML/sso/lbpf/souscriptionCristalFormAutoPost.jsp'))
+                            self.page.go_revolving()
+                            revolving_loan = self.page.get_revolving_attributes(account)
+                            accounts.append(revolving_loan)
                         page.go()
 
                     elif account.type == Account.TYPE_PERP:
@@ -309,7 +318,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
             self.go_linebourse(account)
             return self.linebourse.iter_history(account.id)
 
-        if account.type == Account.TYPE_LOAN:
+        if account.type in (Account.TYPE_LOAN, Account.TYPE_REVOLVING_CREDIT):
             return []
 
         if account.type == Account.TYPE_CARD:

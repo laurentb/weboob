@@ -58,6 +58,8 @@ class item_account_generic(ItemElement):
     def obj_url(self):
         url = Link(u'./a', default=NotAvailable)(self)
         if url:
+            if 'CreditRenouvelable' in url:
+                url = Link(u'.//a[contains(text(), "espace de gestion crédit renouvelable")]')(self.el)
             return urljoin(self.page.url, url)
         return url
 
@@ -138,6 +140,10 @@ class AccountList(LoggedPage, MyHTMLPage):
 
             raise BrowserUnavailable()
 
+    def go_revolving(self):
+        form = self.get_form()
+        form.submit()
+
     @property
     def no_accounts(self):
         return len(self.doc.xpath('//iframe[contains(@src, "/comptes_contrats/sans_")] |\
@@ -156,6 +162,22 @@ class AccountList(LoggedPage, MyHTMLPage):
         class item_account(item_account_generic):
             def condition(self):
                 return item_account_generic.condition(self)
+
+
+    def get_revolving_attributes(self, account):
+        loan = Loan()
+        loan.id = account.id
+        loan.label = '%s - %s' %(account.label, account.id)
+        loan.currency = account.currency
+        loan.url = account.url
+
+        loan.available_amount = CleanDecimal('//tr[td[contains(text(), "Montant Maximum Autorisé") or contains(text(), "Montant autorisé")]]/td[2]')(self.doc)
+        loan.used_amount = loan.used_amount =  CleanDecimal('//tr[td[contains(text(), "Montant Utilisé") or contains(text(), "Montant utilisé")]]/td[2]')(self.doc)
+        loan.available_amount = CleanDecimal(Regexp(CleanText('//tr[td[contains(text(), "Montant Disponible") or contains(text(), "Montant disponible")]]/td[2]'), r'(.*) au'))(self.doc)
+        loan._has_cards = False
+        loan.type = Account.TYPE_REVOLVING_CREDIT
+        return loan
+
 
     @method
     class iter_revolving_loans(ListElement):
