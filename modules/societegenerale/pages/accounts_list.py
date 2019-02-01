@@ -121,7 +121,7 @@ class AccountsPage(JsonBasePage):
 
         class item(ItemElement):
             def condition(self):
-                return not Dict('etatPrestation')(self) == 'INDISPONIBLE'
+                return Dict('etatPrestation')(self) != 'INDISPONIBLE'
 
             klass = Account
 
@@ -138,6 +138,7 @@ class AccountsPage(JsonBasePage):
                 'COMPTE_SUR_LIVRET': Account.TYPE_SAVINGS,
                 'LIVRET_EPARGNE_PLUS': Account.TYPE_SAVINGS,
                 'PLAN_EPARGNE_BANCAIRE': Account.TYPE_SAVINGS,
+                'PLAN_EPARGNE_POPULAIRE': Account.TYPE_SAVINGS,
                 'LIVRET_EPARGNE_POPULAIRE': Account.TYPE_SAVINGS,
                 'BANQUE_FRANCAISE_MUTUALISEE': Account.TYPE_SAVINGS,
                 'PRET_GENERAL': Account.TYPE_LOAN,
@@ -188,6 +189,10 @@ class AccountsPage(JsonBasePage):
                 # For TYPE_REVOLVING_CREDIT, to get transaction
                 if Field('type')(self) == Account.TYPE_REVOLVING_CREDIT and \
                 not Dict('produit')(self) in ('COMPTE_ALTERNA', 'AVANCE_PATRIMOINE'):
+                    return True
+                # PLAN_EPARGNE_POPULAIRE account type history is not in json yet
+                if Field('type')(self) == Account.TYPE_SAVINGS and \
+                not Dict('produit')(self) in ('PLAN_EPARGNE_POPULAIRE', ):
                     return True
 
 class AccountsSynthesesPage(JsonBasePage):
@@ -501,11 +506,11 @@ class CardHistoryPage(LoggedPage, HTMLPage):
 
 
 class CreditPage(LoggedPage, HTMLPage):
-    def go_history_page(self):
+    def get_history_url(self):
         redirection_script = CleanText('//script[contains(text(), "setPrestationURL")]')(self.doc)
         history_link = re.search(r'setPrestationURL\("(.*)"\)', redirection_script)
         if history_link:
-            self.browser.location(self.browser.absurl(history_link.group(1)))
+            return history_link.group(1)
 
 
 class CreditHistoryPage(LoggedPage, HTMLPage):
@@ -516,7 +521,7 @@ class CreditHistoryPage(LoggedPage, HTMLPage):
         return super(CreditHistoryPage, self).build_doc(content)
 
     @method
-    class iter_credit_history(ListElement):
+    class iter_history(ListElement):
         item_xpath = '//tr'
 
         class item(ItemElement):
@@ -530,6 +535,24 @@ class CreditHistoryPage(LoggedPage, HTMLPage):
                 if credit:
                     return credit
                 return MyDecimal(CleanText('./td[contains(@headers, "Debit")]', replace=[('&nbsp;', '')]))(self)
+
+
+class OldHistoryPage(LoggedPage, HTMLPage):
+    def get_history_url(self):
+        redirection = CleanText('//body/@onload')(self.doc)
+        history_link = re.search(r",'(/.*)',", redirection)
+        if history_link:
+            return history_link.group(1)
+
+    def iter_history(self):
+        is_no_transaction_msg = any((
+            self.doc.xpath(u'//div[contains(text(), "Aucune opération trouvée sur la période de restitution possible")]'),
+            self.doc.xpath(u'//div[contains(text(), "Aucune opération n\'a été réalisée depuis le dernier relevé")]'),
+        ))
+        assert is_no_transaction_msg, 'There are transactions, retrieve them !'
+
+        # waiting for account with history
+        return []
 
 
 class LifeInsurance(LoggedPage, HTMLPage):
@@ -549,8 +572,9 @@ class LifeInsurance(LoggedPage, HTMLPage):
     def has_link(self):
         return Link('//a[@href="asvcns20a.html"]', default=NotAvailable)(self.doc)
 
-    def get_history_link(self):
-        return Link('//a[img[@alt="Suivi des opérations"]]', default=NotAvailable)(self.doc)
+    def get_history_url(self):
+        history_url = Link('//a[img[@alt="Suivi des opérations"]]', default=NotAvailable)(self.doc)
+        return history_url
 
     def get_pages(self):
         pages = CleanText('//div[@class="net2g_asv_tableau_pager"]')(self.doc)
@@ -625,7 +649,7 @@ class LifeInsuranceInvest2(LifeInsuranceInvest):
 class LifeInsuranceHistory(LifeInsurance):
     @pagination
     @method
-    class iter_li_history(TableElement):
+    class iter_history(TableElement):
         def next_page(self):
             return self.page.li_pagination()
 

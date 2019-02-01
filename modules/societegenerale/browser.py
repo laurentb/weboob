@@ -34,7 +34,7 @@ from weboob.tools.value import Value, ValueBool
 from .pages.accounts_list import (
     AccountsMainPage, AccountDetailsPage, AccountsPage, LoansPage, HistoryPage,
     CardHistoryPage, PeaLiquidityPage, AccountsSynthesesPage,
-    AdvisorPage, HTMLProfilePage, CreditPage, CreditHistoryPage,
+    AdvisorPage, HTMLProfilePage, CreditPage, CreditHistoryPage, OldHistoryPage,
     MarketPage, LifeInsurance, LifeInsuranceHistory, LifeInsuranceInvest, LifeInsuranceInvest2,
     UnavailableServicePage,
 )
@@ -57,10 +57,15 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     accounts = URL(r'/icd/cbo/data/liste-prestations-navigation-authsec.json', AccountsPage)
     accounts_syntheses = URL(r'/icd/cbo/data/liste-prestations-authsec.json\?n10_avecMontant=1', AccountsSynthesesPage)
     history = URL(r'/icd/cbo/data/liste-operations-authsec.json', HistoryPage)
-    card_history = URL(r'/restitution/cns_listeReleveCarteDd.xml', CardHistoryPage)
     loans = URL(r'/abm/restit/listeRestitutionPretsNET.json\?a100_isPretConso=(?P<conso>\w+)', LoansPage)
+
+    card_history = URL(r'/restitution/cns_listeReleveCarteDd.xml', CardHistoryPage)
     credit = URL(r'/restitution/cns_detailAVPAT.html', CreditPage)
     credit_history = URL(r'/restitution/cns_listeEcrCav.xml', CreditHistoryPage)
+    old_hist_page = URL(r'/restitution/cns_detailPep.html',
+                        r'/restitution/cns_listeEcrPep.html',
+                        r'/restitution/cns_detailAlterna.html',
+                        r'/restitution/cns_listeEncoursAlterna.html', OldHistoryPage)
 
     # Recipient
     add_recipient = URL(r'/personnalisation/per_cptBen_ajouterFrBic.html',
@@ -223,26 +228,20 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
         if not account._internal_id:
             raise BrowserUnavailable()
 
-        if account.type in (account.TYPE_LIFE_INSURANCE, account.TYPE_PERP, ):
-            # request to get json is not available yet, old request to get html response
+        # get history for account on old website
+        # request to get json is not available yet, old request to get html response
+        if any((
+                account.type in (account.TYPE_LIFE_INSURANCE, account.TYPE_PERP),
+                account.type == account.TYPE_REVOLVING_CREDIT and account._loan_type != 'PR_CONSO',
+                account.type in (account.TYPE_REVOLVING_CREDIT, account.TYPE_SAVINGS) and not account._is_json_histo
+        )):
             self.account_details_page.go(params={'idprest': account._prestation_id})
-            link = self.page.get_history_link()
-            if link:
-                self.location(self.absurl(link))
-                for tr in self.page.iter_li_history():
-                    yield tr
-            return
+            history_url = self.page.get_history_url()
+            assert history_url
+            self.location(self.absurl(history_url))
 
-        if account.type == account.TYPE_REVOLVING_CREDIT and account._loan_type != 'PR_CONSO':
-            # request to get json is not available yet, old request to get html response
-            self.account_details_page.go(params={'idprest': account._prestation_id})
-            self.page.go_history_page()
-            for tr in self.page.iter_credit_history():
+            for tr in self.page.iter_history():
                 yield tr
-            return
-
-        if account.type == account.TYPE_REVOLVING_CREDIT and not account._is_json_histo:
-            # Waiting for account with transactions
             return
 
         if account.type == account.TYPE_CARD:
@@ -268,6 +267,10 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
 
         if not account._internal_id:
             raise BrowserUnavailable()
+
+        if account.type == account.TYPE_SAVINGS and not account._is_json_histo:
+            # Waiting for account with transactions
+            return
 
         internal_id = account._internal_id
         if account.type == account.TYPE_CARD:
