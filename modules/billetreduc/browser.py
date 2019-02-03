@@ -27,7 +27,7 @@ from .pages import ResultsPage, EventPage, EventDatesPage, SearchPage
 
 
 class BilletreducBrowser(PagesBrowser):
-    BASEURL = 'http://www.billetreduc.com'
+    BASEURL = 'https://www.billetreduc.com'
 
     search = URL(r'/recherche.htm', SearchPage)
     results = URL(r'/search.htm', ResultsPage)
