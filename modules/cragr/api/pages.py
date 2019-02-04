@@ -133,6 +133,7 @@ ACCOUNT_TYPES = {
     'réserves de crédit': Account.TYPE_CHECKING,
     'prêts personnels': Account.TYPE_LOAN,
     'crédits immobiliers': Account.TYPE_LOAN,
+    'ESC COM.': Account.TYPE_LOAN,
     'épargne disponible': Account.TYPE_SAVINGS,
     'épargne à terme': Account.TYPE_DEPOSIT,
     'épargne boursière': Account.TYPE_MARKET,
