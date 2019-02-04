@@ -245,7 +245,7 @@ class AccountDetailsPage(LoggedPage, JsonPage):
             # Insurances have no balance, we skip them
             if el.get('typeProduit') == 'assurance':
                 continue
-            value = el.get('solde', el.get('encoursActuel', el.get('valorisationContrat', el.get('montantRestantDu', el.get('capitalDisponible')))))
+            value = el.get('solde', el.get('encoursActuel', el.get('valorisationContrat', el.get('montantRestantDu', el.get('capitalDisponible', el.get('montantUtilise'))))))
             if value is None:
                 continue
             account_balances[Dict('idElementContrat')(el)] = float_to_decimal(value)
