@@ -1113,11 +1113,11 @@ class LIAccountsPage(LoggedPage, HTMLPage):
 
     @method
     class iter_investment(TableElement):
-        item_xpath = '//table[has-class("liste")]/tbody/tr[count(td)>=7]'
-        head_xpath = '//table[has-class("liste")]/thead/tr/th'
+        item_xpath = '//table[has-class("liste") and not (@summary="Avances")]/tbody/tr[count(td)>=7]'
+        head_xpath = '//table[has-class("liste") and not (@summary="Avances")]/thead/tr/th'
 
         col_label = 'Support'
-        col_unitprice = re.compile(r"^Prix d'achat moyen")
+        col_unitprice = re.compile(r'Prix')
         col_vdate = re.compile(r'Date de cotation')
         col_unitvalue = 'Valeur de la part'
         col_quantity = 'Nombre de parts'
