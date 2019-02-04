@@ -61,8 +61,8 @@ class PortfolioPage(LoggedPage, HTMLPage):
             obj_label = 'Compte Bolden'
             obj_type = Account.TYPE_MARKET
             obj_currency = 'EUR'
-            obj_balance = CleanDecimal.French('//div[p[has-class("investor-state") and contains(text(),"Total compte Bolden :")]]/p[has-class("investor-status")]', replace_dots=True)
-            obj_valuation_diff = CleanDecimal.French('//div[has-class("rent-total")]', replace_dots=True)
+            obj_balance = CleanDecimal.French('//div[p[has-class("investor-state") and contains(text(),"Total compte Bolden :")]]/p[has-class("investor-status")]')
+            obj_valuation_diff = CleanDecimal.French('//div[has-class("rent-total")]')
 
     @method
     class iter_investments(TableElement):
@@ -93,7 +93,7 @@ class PortfolioPage(LoggedPage, HTMLPage):
                 return urljoin(self.page.url, Link('.//a')(TableCell('doc')(self)[0]))
 
     def get_liquidity(self):
-        return CleanDecimal('//div[p[contains(text(), "Fonds disponibles")]]/p[@class="investor-status strong"]', replace_dots=True)(self.doc)
+        return CleanDecimal.French('//div[p[contains(text(), "Fonds disponibles")]]/p[has-class("investor-status")]')(self.doc)
 
 
 class OperationsPage(LoggedPage, HTMLPage):
