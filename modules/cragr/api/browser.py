@@ -58,50 +58,60 @@ class CragrAPI(LoginBrowser):
     contracts_page = URL(r'particulier/operations/.rechargement.contexte.html\?idBamIndex=(?P<id_contract>)',
                          r'association/operations/.rechargement.contexte.html\?idBamIndex=(?P<id_contract>)',
                          r'professionnel/operations/.rechargement.contexte.html\?idBamIndex=(?P<id_contract>)',
+                         r'agriculteur/operations/.rechargement.contexte.html\?idBamIndex=(?P<id_contract>)',
                          r'entreprise/operations/.rechargement.contexte.html\?idBamIndex=(?P<id_contract>)', ContractsPage)
 
     accounts_page = URL(r'particulier/operations/synthese.html',
                         r'association/operations/synthese.html',
                         r'professionnel/operations/synthese.html',
+                        r'agriculteur/operations/synthese.html',
                         r'entreprise/operations/synthese.html', AccountsPage)
 
     account_details = URL(r'particulier/operations/synthese/jcr:content.produits-valorisation.json/(?P<category>)',
                           r'association/operations/synthese/jcr:content.produits-valorisation.json/(?P<category>)',
                           r'professionnel/operations/synthese/jcr:content.produits-valorisation.json/(?P<category>)',
+                          r'agriculteur/operations/synthese/jcr:content.produits-valorisation.json/(?P<category>)',
                           r'entreprise/operations/synthese/jcr:content.produits-valorisation.json/(?P<category>)', AccountDetailsPage)
 
     account_iban = URL(r'particulier/operations/operations-courantes/editer-rib/jcr:content.ibaninformation.json',
                        r'association/operations/operations-courantes/editer-rib/jcr:content.ibaninformation.json',
                        r'professionnel/operations/operations-courantes/editer-rib/jcr:content.ibaninformation.json',
+                       r'agriculteur/operations/operations-courantes/editer-rib/jcr:content.ibaninformation.json',
                        r'entreprise/operations/operations-courantes/editer-rib/jcr:content.ibaninformation.json', IbanPage)
 
     cards = URL(r'particulier/operations/moyens-paiement/mes-cartes/jcr:content.listeCartesParCompte.json',
                 r'association/operations/moyens-paiement/mes-cartes/jcr:content.listeCartesParCompte.json',
                 r'professionnel/operations/moyens-paiement/mes-cartes/jcr:content.listeCartesParCompte.json',
+                r'agriculteur/operations/moyens-paiement/mes-cartes/jcr:content.listeCartesParCompte.json',
                 r'entreprise/operations/moyens-paiement/mes-cartes/jcr:content.listeCartesParCompte.json', CardsPage)
 
     history = URL(r'particulier/operations/synthese/detail-comptes/jcr:content.n3.operations.json',
                   r'association/operations/synthese/detail-comptes/jcr:content.n3.operations.json',
                   r'professionnel/operations/synthese/detail-comptes/jcr:content.n3.operations.json',
+                  r'agriculteur/operations/synthese/detail-comptes/jcr:content.n3.operations.json',
                   r'entreprise/operations/synthese/detail-comptes/jcr:content.n3.operations.json', HistoryPage)
 
     card_history = URL(r'particulier/operations/synthese/detail-comptes/jcr:content.n3.operations.encours.carte.debit.differe.json',
                        r'association/operations/synthese/detail-comptes/jcr:content.n3.operations.encours.carte.debit.differe.json',
                        r'professionnel/operations/synthese/detail-comptes/jcr:content.n3.operations.encours.carte.debit.differe.json',
+                       r'agriculteur/operations/synthese/detail-comptes/jcr:content.n3.operations.encours.carte.debit.differe.json',
                        r'entreprise/operations/synthese/detail-comptes/jcr:content.n3.operations.encours.carte.debit.differe.json', CardHistoryPage)
 
     netfinca_redirection = URL(r'particulier/operations/moco/catitres/jcr:content.init.html',
                                r'association/operations/moco/catitres/jcr:content.init.html',
                                r'professionnel/operations/moco/catitres/jcr:content.init.html',
+                               r'agriculteur/operations/moco/catitres/jcr:content.init.html',
                                r'entreprise/operations/moco/catitres/jcr:content.init.html',
                                r'particulier/operations/moco/catitres/_jcr_content.init.html',
                                r'association/operations/moco/catitres/_jcr_content.init.html',
                                r'professionnel/operations/moco/catitres/_jcr_content.init.html',
+                               r'agriculteur/operations/moco/catitres/_jcr_content.init.html',
                                r'entreprise/operations/moco/catitres/_jcr_content.init.html', NetfincaRedirectionPage)
 
     predica_redirection = URL(r'particulier/operations/moco/predica/jcr:content.init.html',
                               r'association/operations/moco/predica/jcr:content.init.html',
                               r'professionnel/operations/moco/predica/jcr:content.init.html',
+                              r'agriculteur/operations/moco/predica/jcr:content.init.html',
                               r'entreprise/operations/moco/predica/jcr:content.init.html', PredicaRedirectionPage)
 
     predica_investments = URL(r'https://npcprediweb.predica.credit-agricole.fr/rest/detailEpargne/contrat/', PredicaInvestmentsPage)
@@ -109,12 +119,14 @@ class CragrAPI(LoginBrowser):
     profile_page = URL(r'particulier/operations/synthese/jcr:content.npc.store.client.json',
                        r'association/operations/synthese/jcr:content.npc.store.client.json',
                        r'professionnel/operations/synthese/jcr:content.npc.store.client.json',
+                       r'agriculteur/operations/synthese/jcr:content.npc.store.client.json',
                        r'entreprise/operations/synthese/jcr:content.npc.store.client.json', ProfilePage)
 
     profile_details = URL(r'particulier/operations/profil/infos-personnelles/gerer-coordonnees.html', ProfileDetailsPage)
 
     pro_profile_details = URL(r'association/operations/profil/infos-personnelles/controler-coordonnees.html',
                               r'professionnel/operations/profil/infos-personnelles/controler-coordonnees.html',
+                              r'agriculteur/operations/profil/infos-personnelles/controler-coordonnees.html',
                               r'entreprise/operations/profil/infos-personnelles/controler-coordonnees.html', ProProfileDetailsPage)
 
     def __init__(self, website, *args, **kwargs):
@@ -160,7 +172,7 @@ class CragrAPI(LoginBrowser):
                             if 'Un incident technique' in message:
                                 raise BrowserUnavailable(message)
 
-        # accounts_url may contain '/particulier', '/professionnel', '/entreprise' or '/association'
+        # accounts_url may contain '/particulier', '/professionnel', '/entreprise', '/agriculteur' or '/association'
         self.accounts_url = self.page.get_accounts_url()
         assert self.accounts_url, 'Could not get accounts url from security check'
         self.location(self.accounts_url)
