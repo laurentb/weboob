@@ -245,7 +245,8 @@ class AccountDetailsPage(LoggedPage, JsonPage):
             if el.get('typeProduit') == 'assurance':
                 continue
             value = el.get('solde', el.get('encoursActuel', el.get('valorisationContrat', el.get('montantRestantDu', el.get('capitalDisponible')))))
-            assert value is not None, 'Could not find the account balance'
+            if value is None:
+                continue
             account_balances[Dict('idElementContrat')(el)] = float_to_decimal(value)
         return account_balances
 
