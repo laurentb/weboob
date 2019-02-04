@@ -164,7 +164,7 @@ class CragrAPI(LoginBrowser):
         self.accounts_url = self.page.get_accounts_url()
         assert self.accounts_url, 'Could not get accounts url from security check'
         self.location(self.accounts_url)
-        assert self.accounts_page.is_here(), 'We failed to login after the security check!'
+        assert self.accounts_page.is_here(), 'We failed to login after the security check: response URL is %s' % self.url
         # Once the security check is passed, we are logged in.
 
     def get_security_form(self):
