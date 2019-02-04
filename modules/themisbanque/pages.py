@@ -17,17 +17,22 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 import re
 
 from weboob.exceptions import BrowserIncorrectPassword
-from weboob.browser.pages import LoggedPage, HTMLPage, pagination
-from weboob.browser.elements import method, ListElement, ItemElement
+from weboob.browser.pages import LoggedPage, HTMLPage, pagination, PDFPage
+from weboob.browser.elements import method, ItemElement, TableElement
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.profile import Profile
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Map, Async, AsyncLoad, Regexp, Join
-from weboob.browser.filters.html import Attr, Link
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Async, Regexp, Join, Field
+from weboob.browser.filters.html import Attr, Link, TableCell, ColumnNotFound
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.capabilities.bank.iban import is_iban_valid
+from weboob.tools.compat import basestring
+from weboob.tools.pdf import extract_text
 
 
 class MyCleanText(CleanText):
@@ -62,30 +67,65 @@ class AccountsPage(LoggedPage, HTMLPage):
             return acc_link
 
     @method
-    class iter_accounts(ListElement):
+    class iter_accounts(TableElement):
         item_xpath = '//table[has-class("TableBicolore")]//tr[@id and count(td) > 4]'
+        head_xpath = '//table[has-class("TableBicolore")]//tr/td[@id]/@id'
+
+        col_id = 'idCompteLibelle'
+        col_label = 'idCompteIntitule'
+        col_balance = 'idCompteSolde'
+        col_currency = 'idCompteSoldeUM'
+        col_rib = 'idCompteRIB'
+        col_type = 'idCompteNature'
 
         class item(ItemElement):
             klass = Account
 
             def condition(self):
-                return CleanDecimal('./td[5]', replace_dots=True, default=NotAvailable)(self) is not NotAvailable
+                return CleanDecimal(TableCell('balance'), replace_dots=True, default=NotAvailable)(self) is not NotAvailable
 
-            TYPE = {'COMPTE COURANT ORDINAIRE': Account.TYPE_CHECKING,
-                   }
+            TYPE = {
+                'COMPTE COURANT': Account.TYPE_CHECKING,
+                'COMPTE TRANSACTION': Account.TYPE_CHECKING,
+                'COMPTE ORDINAIRE': Account.TYPE_CHECKING,
+            }
+            TYPE_BY_LABELS = {
+                'CAV': Account.TYPE_CHECKING,
+            }
 
-            obj_id = CleanText('./td[1]')
-            obj_label = CleanText('./td[2]')
-            obj_currency = FrenchTransaction.Currency('./td[4]')
-            obj_balance = CleanDecimal('./td[5]', replace_dots=True)
-            obj_type = Map(CleanText('./td[3]'), TYPE, default=Account.TYPE_UNKNOWN)
-            obj__link = Attr('./td[1]/a', 'href')
-            obj__url = Link('./td[last()]/a[img[starts-with(@alt, "RIB")]]', default=None)
+            obj_id = CleanText(TableCell('id'))
+            obj_label = CleanText(TableCell('label'))
+            obj_currency = FrenchTransaction.Currency(TableCell('currency'))
+            obj_balance = CleanDecimal(TableCell('balance'), replace_dots=True)
 
-            load_iban = Link('./td[last()]/a[img[starts-with(@alt, "RIB")]]', default=None) & AsyncLoad
+            def obj__link(self):
+                return Attr(TableCell('id')(self)[0].xpath('./a'), 'href')(self)
+
+            def obj__url(self):
+                return Link(TableCell('rib')(self)[0].xpath('./a[img[starts-with(@alt, "RIB")]]'), default=None)(self)
+
+            def load_iban(self):
+                link = Link(TableCell('rib')(self)[0].xpath('./a[img[starts-with(@alt, "RIB")]]'), default=None)(self)
+                return self.page.browser.async_open(link)
+
+            def obj_type(self):
+                try:
+                    el_to_check = CleanText(TableCell('type'))(self)
+                    type_dict = self.TYPE
+                except ColumnNotFound:
+                    el_to_check = Field('label')(self)
+                    type_dict = self.TYPE_BY_LABELS
+
+                for k, v in type_dict.items():
+                    if el_to_check.startswith(k):
+                        return v
+                return Account.TYPE_UNKNOWN
 
             def obj_iban(self):
-                return Async('iban', Join('', Regexp(CleanText('//td[has-class("ColonneCode")][starts-with(text(), "IBAN")]'), r'\b((?!IBAN)[A-Z0-9]+)\b', nth='*')))(self) or NotAvailable
+                rib_page = Async('iban').loaded_page(self)
+                if 'RibPdf' in rib_page.url:
+                    return rib_page.get_iban()
+                return Join('', Regexp(CleanText('//td[has-class("ColonneCode")][contains(text(), "IBAN")]'), r'\b((?!IBAN)[A-Z0-9]+)\b', nth='*'))(rib_page.doc) or NotAvailable
 
 
 class RibPage(LoggedPage, HTMLPage):
@@ -113,6 +153,14 @@ class RibPage(LoggedPage, HTMLPage):
         profile.name = profile.name.replace('MONSIEUR ', '').replace('MADAME ', '')
 
         return profile
+
+
+class RibPDFPage(LoggedPage, PDFPage):
+    def get_iban(self):
+        text = extract_text(self.doc)
+        iban = re.search(r'IBAN([A-Z]{2}\d+)', text).group(1)
+        assert is_iban_valid(iban), 'did not parse IBAN properly'
+        return iban
 
 
 class Transaction(FrenchTransaction):
@@ -163,6 +211,11 @@ class Transaction(FrenchTransaction):
                 (re.compile(r"^(?P<text>.*(CAUTION AVEC GAGE).*)"),                     FrenchTransaction.TYPE_BANK),
                 (re.compile(r"^(?P<text>.*(\bRAPATRIEMENT\b).*)"),                      FrenchTransaction.TYPE_BANK),
                 (re.compile(r"^(?P<text>.*(CHANGE REF).*)"),                            FrenchTransaction.TYPE_BANK),
+                (re.compile(r'^CARTE DU'),                                              FrenchTransaction.TYPE_CARD),
+                (re.compile(r'^(VIR (SEPA)?|Vir|VIR.)(?P<text>.*)'),                    FrenchTransaction.TYPE_TRANSFER),
+                (re.compile(r'^VIREMENT DE (?P<text>.*)'),                              FrenchTransaction.TYPE_TRANSFER),
+                (re.compile(r'^(CHQ|CHEQUE) (?P<text>.*)'),                             FrenchTransaction.TYPE_CHECK),
+                (re.compile(r'^(PRLV SEPA|PRELEVEMENT) (?P<text>.*)'),                  FrenchTransaction.TYPE_ORDER),
                ]
 
 
@@ -182,11 +235,11 @@ class HistoryPage(LoggedPage, HTMLPage):
                         return baseurl + '&numeroPage=%s&nbrPage=%s' % (cur_page + 1, nb_pages)
 
         head_xpath = '//div[has-class("TableauBicolore")]/table/tr[not(@id)]/td'
-        item_xpath = '//div[has-class("TableauBicolore")]/table/tr[@id and count(td) > 4]'
+        item_xpath = '//div[has-class("TableauBicolore")]/table/tr[@id and count(td) > 3]'
 
-        col_date = ['Date comptable']
+        col_date = ['Date comptable', "Date d'opération"]
         col_vdate = ['Date de valeur']
-        col_raw = [u'Libellé de l\'opération']
+        col_raw = ["Libellé de l'opération"]
 
         class item(Transaction.TransactionElement):
             pass
