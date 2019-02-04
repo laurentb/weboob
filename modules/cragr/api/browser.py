@@ -208,11 +208,11 @@ class CragrAPI(LoginBrowser):
         for contract in range(total_spaces):
             # This request often returns a 500 error so we retry several times.
             try:
-                self.contracts_page.go(id_contract=contract)
+                self.go_to_account_space(contract)
             except ServerError:
                 self.logger.warning('Server returned error 500 when trying to access space %s, we try again' % contract)
                 try:
-                    self.contracts_page.go(id_contract=contract)
+                    self.go_to_account_space(contract)
                 except ServerError:
                     self.logger.warning('Server returned error 500 twice when trying to access space %s, this space will be skipped' % contract)
                     continue
