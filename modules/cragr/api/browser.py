@@ -473,7 +473,7 @@ class CragrAPI(LoginBrowser):
 
     @need_login
     def iter_advisor(self):
-        self.contracts_page.go(id_contract=0)
+        self.go_to_account_space(0)
         owner_type = self.page.get_owner_type()
         self.profile_page.go()
         if owner_type == 'PRIV':
@@ -490,7 +490,7 @@ class CragrAPI(LoginBrowser):
     @need_login
     def get_profile(self):
         # There is one profile per space, so we only fetch the first one
-        self.contracts_page.go(id_contract=0)
+        self.go_to_account_space(0)
         owner_type = self.page.get_owner_type()
         self.profile_page.go()
         if owner_type == 'PRIV':
