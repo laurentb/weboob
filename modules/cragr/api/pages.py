@@ -122,6 +122,7 @@ ACCOUNT_TYPES = {
     'INV PRO': Account.TYPE_LOAN,
     'TRES. PRO': Account.TYPE_LOAN,
     'CT ATT HAB': Account.TYPE_LOAN,
+    'PRET CEL': Account.TYPE_LOAN,
     'PEA': Account.TYPE_PEA,
     'PEAP': Account.TYPE_PEA,
     'DAV PEA': Account.TYPE_PEA,
