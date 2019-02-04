@@ -51,7 +51,8 @@ class AmericanExpressBrowser(LoginBrowser):
     js_periods = URL(r'/account-data/v1/financials/statement_periods', JsonPeriods)
     currency_page = URL(r'https://www.aexp-static.com/cdaas/axp-app/modules/axp-offers/1.11.1/fr-fr/axp-offers.json', CurrencyPage)
 
-    no_card = URL('https://www.americanexpress.com/us/content/no-card/', NoCardPage)
+    no_card = URL('https://www.americanexpress.com/us/content/no-card/',
+                  'https://www.americanexpress.com/us/no-card/', NoCardPage)
 
     not_found = URL(r'/accounts/error', NotFoundPage)
 
