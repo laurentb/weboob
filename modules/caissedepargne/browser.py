@@ -597,7 +597,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     @need_login
     def get_investment(self, account):
         self.deleteCTX()
-        if account.type not in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET, Account.TYPE_PEA) or 'measure_id' in account._info:
+        if account.type not in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_CAPITALISATION, Account.TYPE_MARKET, Account.TYPE_PEA) or 'measure_id' in account._info:
             raise NotImplementedError()
 
         if account.type == Account.TYPE_PEA and account.label == 'PEA NUMERAIRE':
@@ -622,7 +622,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                     yield investment
                 return
 
-        elif account.type == Account.TYPE_LIFE_INSURANCE:
+        elif account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_CAPITALISATION):
             if "MILLEVIE" in account.label:
                 self.page.go_life_insurance(account)
                 label = account.label.split()[-1]
