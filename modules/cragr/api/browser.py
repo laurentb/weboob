@@ -159,9 +159,8 @@ class CragrAPI(LoginBrowser):
                             message = error.get('message', '')
                             if 'Un incident technique' in message:
                                 raise BrowserUnavailable(message)
-                assert False, 'Unhandled Server Error encountered: %s' % error.get('message', '')
 
-        # accounts_url may contain '/particulier', '/professionnel' or '/association'
+        # accounts_url may contain '/particulier', '/professionnel', '/entreprise' or '/association'
         self.accounts_url = self.page.get_accounts_url()
         assert self.accounts_url, 'Could not get accounts url from security check'
         self.location(self.accounts_url)
