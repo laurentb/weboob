@@ -64,6 +64,9 @@ class CmesBrowser(LoginBrowser):
         if self.custom_page.is_here():
             # it can be redirected by accounts page, return on accounts page should be enough
             self.accounts.go(subsite=self.subsite)
+            if self.custom_page.is_here():
+                # Need to do it twice
+                self.accounts.go(subsite=self.subsite)
 
         return self.page.iter_accounts()
 
