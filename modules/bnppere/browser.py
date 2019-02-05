@@ -66,7 +66,10 @@ class VisiogoBrowser(LoginBrowser):
         self.account_page.go()
         return self.page.get_accounts()
 
-    def iter_investment(self, accounts):
+    def iter_investment(self, account):
+        raise NotImplementedError()
+
+    def iter_pocket(self, account):
         raise NotImplementedError()
 
     def get_profile(self):
