@@ -77,8 +77,13 @@ class item_account_generic(ItemElement):
             coming = 0
 
             details_page = self.page.browser.open(Field('url')(self))
-            coming_op_link = Regexp(Link(u'//a[contains(text(), "Opérations à venir")]'), r'../(.*)')(details_page.page.doc)
-            coming_operations = self.page.browser.open(self.page.browser.BASEURL + '/voscomptes/canalXHTML/CCP/' + coming_op_link)
+            coming_op_link = Link('//a[contains(text(), "Opérations à venir")]', default=NotAvailable)(details_page.page.doc)
+            if coming_op_link:
+                coming_op_link = Regexp(Link('//a[contains(text(), "Opérations à venir")]'), r'../(.*)')(details_page.page.doc)
+                coming_operations = self.page.browser.open(self.page.browser.BASEURL + '/voscomptes/canalXHTML/CCP/' + coming_op_link)
+            else:
+                coming_op_link = Link('//a[contains(text(), "Opérations en cours")]')(details_page.page.doc)
+                coming_operations = self.page.browser.open(coming_op_link)
 
             if CleanText('//span[@id="amount_total"]')(coming_operations.page.doc):
                 has_coming = True
