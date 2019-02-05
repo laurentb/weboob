@@ -81,7 +81,7 @@ class PortfolioPage(LoggedPage, HTMLPage):
             obj_label = CleanText(TableCell('label'))
             obj_id = Slugify(Field('label'))
             obj_valuation = CleanDecimal(TableCell('valuation'), replace_dots=True)
-            obj_diff = CleanDecimal(TableCell('diff'), replace_dots=True)
+            obj_diff = CleanDecimal(TableCell('diff'), replace_dots=True, default=NotAvailable)
             obj_code = NotAvailable
             obj_code_type = NotAvailable
 
@@ -90,7 +90,7 @@ class PortfolioPage(LoggedPage, HTMLPage):
                 return CleanDecimal(TableCell('valuation'))(self)
 
             def obj__docurl(self):
-                return urljoin(self.page.url, Link('.//a')(TableCell('doc')(self)[0]))
+                return urljoin(self.page.url, Link('.//a', default=NotAvailable)(TableCell('doc')(self)[0]))
 
     def get_liquidity(self):
         return CleanDecimal.French('//div[p[contains(text(), "Fonds disponibles")]]/p[has-class("investor-status")]')(self.doc)
