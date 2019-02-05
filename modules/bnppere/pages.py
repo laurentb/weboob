@@ -69,6 +69,18 @@ class AccountPage(LoggedPage, HTMLPage):
     class get_accounts(ListElement):
         item_xpath = '//div[@id="desktop-data-tables"]/table//tr'
 
+        def store(self, obj):
+            # This code enables indexing account_id when there
+            # are several accounts with the exact same id.
+            id = obj.id
+            n = 1
+            while id in self.objects:
+                n += 1
+                id = '%s-%s' % (obj.id, n)
+            obj.id = id
+            self.objects[obj.id] = obj
+            return obj
+
         class item(ItemElement):
             klass = Account
 
