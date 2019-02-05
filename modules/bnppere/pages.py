@@ -21,7 +21,7 @@ from __future__ import unicode_literals
 
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import method, ItemElement, ListElement
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Format, Currency, Date
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Format, Currency, Date, NumberFormatError
 from weboob.capabilities.bank import Account, Transaction
 from weboob.browser.filters.html import Attr
 from weboob.capabilities.profile import Profile
@@ -97,8 +97,15 @@ class AccountPage(LoggedPage, HTMLPage):
             obj__login = CleanDecimal('./td[1]')
             obj_currency = Currency('./td[6]')
             obj__company = CleanText('./td[3]')
-            obj_balance = CleanDecimal('./td[6]', replace_dots=True)
             obj_type = Account.TYPE_PERP
+
+            def obj_balance(self):
+                # The page can be randomly in french or english and
+                # the valuations can be "€12,345.67" or "12 345,67 €"
+                try:
+                    return CleanDecimal.French('./td[6]')(self)
+                except NumberFormatError:
+                    return CleanDecimal.US('./td[6]')(self)
 
 
 class HistoryPage(LoggedPage, HTMLPage):
