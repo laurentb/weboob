@@ -61,7 +61,7 @@ class TransferJson(LoggedPage, JsonPage):
         return self.get_acc_transfer_id(account)
 
     def get_first_available_transfer_date(self):
-        return Date(Dict('donnees/listeEmetteursBeneficiaires/premiereDateExecutionPossible'))(self.doc)
+        return Date(Dict('donnees/listeEmetteursBeneficiaires/premiereDateExecutionPossible'), dayfirst=True)(self.doc)
 
     def get_account_ibans_dict(self):
         account_ibans = {}
