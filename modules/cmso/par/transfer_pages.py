@@ -119,6 +119,9 @@ class TransferInfoPage(LoggedPage, JsonPage):
 
     @method
     class iter_external_recipients(DictElement):
+        def condition(self):
+            return bool(self.el.get('listBeneficiaries'))
+
         item_xpath = 'listBeneficiaries'
         ignore_duplicate = True
 
