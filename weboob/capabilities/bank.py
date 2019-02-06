@@ -259,6 +259,8 @@ class AccountOwnerType(object):
     """private personal account"""
     ORGANIZATION = u'ORGA'
     """professional account"""
+    ASSOCIATION = u'ASSO'
+    """association account"""
 
 
 class Account(BaseAccount):
