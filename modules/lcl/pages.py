@@ -504,7 +504,13 @@ class BoursePage(LoggedPage, HTMLPage):
     ENCODING='latin-1'
     REFRESH_MAX = 0
 
-    TYPES = {u'plan épargne en actions': Account.TYPE_PEA
+    TYPES = {
+        'plan épargne en actions': Account.TYPE_PEA,
+        "plan d'épargne en actions": Account.TYPE_PEA,
+        'plan épargne en actions bourse': Account.TYPE_PEA,
+        "plan d'épargne en actions bourse": Account.TYPE_PEA,
+        'pea pme bourse': Account.TYPE_PEA,
+        'pea pme': Account.TYPE_PEA,
             }
 
     def on_load(self):
