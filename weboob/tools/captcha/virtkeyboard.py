@@ -380,10 +380,10 @@ class SimpleVirtualKeyboard(object):
         # Resize image if margin is given
         if margin:
             self.image = self.cut_margin(self.image, margin)
-        # Give possibility to alter image before get tiles, overwrite :func:`alter_image`.
-        self.alter_image()
         if convert:
             self.image = self.image.convert(convert)
+        # Give possibility to alter image before get tiles, overwrite :func:`alter_image`.
+        self.alter_image()
         self.width, self.height = self.image.size
 
     def alter_image(self):
@@ -444,11 +444,9 @@ class SimpleVirtualKeyboard(object):
             self.tiles.append(Tile(matching_symbol=matching_symbol, coords=coords))
 
     def get_tile_coords_in_grid(self, case_index):
-        lenH =  self.tileH * case_index
-
         # Get the top left pixel coords of the tile
-        x0 = self.tileW * case_index%self.width
-        y0 = self.tileH * ((lenH - lenH%self.width) // self.width)
+        x0 = (case_index % self.cols) * self.tileW
+        y0 = (case_index // self.cols) * self.tileH
 
         # Get the bottom right coords of the tile
         x1 = x0 + self.tileW
