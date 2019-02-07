@@ -730,7 +730,7 @@ class Boobank(CaptchaMixin, ReplApplication):
         """
         transfer [ACCOUNT RECIPIENT AMOUNT [LABEL [EXEC_DATE]]]
 
-        Make a transfer beetwen two account
+        Make a transfer beetwen two accounts
         - ACCOUNT    the source account
         - RECIPIENT  the recipient
         - AMOUNT     amount to transfer
