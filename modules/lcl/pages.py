@@ -1179,7 +1179,7 @@ class ProfilePage(LoggedPage, HTMLPage):
         profile = Person()
         profile.name = name
         try:
-            profile.email = Attr('//input[@id="textMail"]', 'value')(self.doc)
+            profile.email = Attr('//input[@id="textMail"]', 'value', default=NotAvailable)(self.doc)
         except AttributeNotFound:
             pass
         nb = Attr('//input[@id="nbEnfant"]', 'value', default=NotAvailable)(self.doc)
