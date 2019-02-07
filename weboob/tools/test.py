@@ -22,6 +22,7 @@ import sys
 from functools import wraps
 from unittest import TestCase
 
+from weboob.capabilities.base import empty
 from weboob.core import Weboob
 
 # This is what nose does for Python 2.6 and lower compatibility
@@ -89,6 +90,14 @@ class BackendTest(TestCase):
         Check if the backend is in the user configuration file
         """
         return self.weboob.backends_config.backend_exists(self.backend.config.instname)
+
+    def assertNotEmpty(self, obj, *args):
+        """
+        Assert an object is neither `empty` in the BaseObject parlance.
+
+        `obj` should not be `None`, `NotLoaded`, or `NotAvailable`.
+        """
+        self.assertFalse(empty(obj), *args)
 
 
 def skip_without_config(*keys):
