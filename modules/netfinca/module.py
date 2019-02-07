@@ -33,6 +33,6 @@ class NetfincaModule(Module):
     MAINTAINER = 'Martin Sicot'
     EMAIL = 'martin.sicot@budget-insight.com'
     LICENSE = 'LGPLv3+'
-    VERSION = '1.4'
+    VERSION = '1.5'
 
     BROWSER = NetfincaBrowser
