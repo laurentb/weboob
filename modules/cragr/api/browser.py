@@ -410,6 +410,11 @@ class CragrAPI(LoginBrowser):
         }
         self.history.go(params=params)
         for tr in self.page.iter_history():
+            # For "Livret A", value dates of transactions are always
+            # 1st or 15th of the month so we specify a valuation date.
+            # Example: rdate = 21/02, date=01/02 then vdate = 01/02.
+            if account.type == Account.TYPE_SAVINGS:
+                tr.vdate = tr.date
             yield tr
 
         # Get other transactions 100 by 100:
