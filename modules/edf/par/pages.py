@@ -33,11 +33,13 @@ from weboob.capabilities.profile import Profile
 
 
 class HomePage(HTMLPage):
-    def has_captcha_request(self):
-        return len(self.doc.xpath('//div[@class="captcha"]')) > 0
+    pass
 
 
 class AuthenticatePage(JsonPage):
+    def has_captcha_request(self):
+        return self.doc['stage'] == "RecaptchaModuleS1"
+
     def get_data(self):
         return self.doc
 

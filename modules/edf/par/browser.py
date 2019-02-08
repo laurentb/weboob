@@ -92,10 +92,8 @@ class EdfBrowser(LoginBrowser):
             """
             self.check_authenticate.go()
         else:
-            self.home.go()
+            self.authenticate.go(method='POST', params=auth_params)
             if self.page.has_captcha_request():
-                # google recaptcha site key is returned here, but it's not a good one, take it from another url
-                self.authenticate.go(method='POST', params=auth_params)
                 data = self.page.get_data()
                 website_key = data['callbacks'][4]['output'][0]['value']
                 website_url = "https://espace-client.edf.fr/sso/XUI/#login/&realm=%2FINTERNET"
