@@ -38,7 +38,9 @@ class Profile(BaseObject):
     address =                     StringField('Full Address')
     country =                     StringField('Country of owner')
     phone =                       StringField('Phone number')
+    professional_phone =          StringField('Professional phone number')
     email =                       StringField('Mail of owner')
+    professional_email =          StringField('Professional email of owner')
     main_bank =                   StringField('Main bank of owner')
 
 
@@ -49,6 +51,8 @@ class Person(Profile):
     birth_date =                  DateField('Birth date')
     nationality =                 StringField('Nationality of owner')
     mobile =                      StringField('Mobile number of owner')
+    gender =                      StringField('Gender of owner (Male/Female)')
+    maiden_name =                 StringField('Maiden name')
     spouse_name =                 StringField('Name of spouse')
     children =                    DecimalField('Number of dependent children')
     family_situation =            StringField('Family situation')
