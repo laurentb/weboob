@@ -171,6 +171,13 @@ class AccountsPage(LoggedPage, JsonPage):
         }
         return OWNER_TYPES.get(Dict('marche')(self.doc), NotAvailable)
 
+    def get_connection_id(self):
+        connection_id = Regexp(
+            CleanText('//script[contains(text(), "NPC.utilisateur.ccptea")]'),
+            r"NPC.utilisateur.ccptea = '(\d+)';"
+        )(self.html_doc)
+        return connection_id
+
     @method
     class get_main_account(ItemElement):
         klass = Account

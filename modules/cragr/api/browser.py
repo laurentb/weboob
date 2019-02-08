@@ -23,8 +23,8 @@ from __future__ import unicode_literals
 from decimal import Decimal
 import re
 
-from weboob.capabilities.bank import Account, Transaction
-from weboob.capabilities.base import empty, NotAvailable
+from weboob.capabilities.bank import Account, Transaction, AccountNotFound, RecipientNotFound
+from weboob.capabilities.base import empty, NotAvailable, strict_find_object
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, ActionNeeded
 from weboob.browser.exceptions import ServerError, BrowserHTTPNotFound
@@ -36,6 +36,9 @@ from .pages import (
     LoginPage, LoggedOutPage, KeypadPage, SecurityPage, ContractsPage, FirstConnectionPage, AccountsPage, AccountDetailsPage,
     TokenPage, IbanPage, HistoryPage, CardsPage, CardHistoryPage, NetfincaRedirectionPage, PredicaRedirectionPage,
     PredicaInvestmentsPage, ProfilePage, ProfileDetailsPage, ProProfileDetailsPage,
+)
+from .transfer_pages import (
+    RecipientsPage, TransferPage, TransferTokenPage,
 )
 
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
@@ -128,6 +131,18 @@ class CragrAPI(LoginBrowser):
                               r'professionnel/operations/profil/infos-personnelles/controler-coordonnees.html',
                               r'agriculteur/operations/profil/infos-personnelles/controler-coordonnees.html',
                               r'entreprise/operations/profil/infos-personnelles/controler-coordonnees.html', ProProfileDetailsPage)
+
+    recipients = URL('(?P<space>.*)/operations/(?P<op>.*)/virement/jcr:content.accounts.json',
+                     RecipientsPage)
+    transfer_token = URL('(?P<space>.*)/operations/(?P<op>.*)/virement.npcgeneratetoken.json\?tokenTypeId=1',
+                         TransferTokenPage)
+    transfer = URL('(?P<space>.*)/operations/(?P<op>.*)/virement/jcr:content.check-transfer.json',
+                   TransferPage)
+    transfer_recap = URL('(?P<space>.*)/operations/(?P<op>.*)/virement/jcr:content.transfer-data.json\?useSession=true',
+                         TransferPage)
+    transfer_exec = URL('(?P<space>.*)/operations/(?P<op>.*)/virement/jcr:content.process-transfer.json',
+                        TransferPage)
+
 
     def __init__(self, website, *args, **kwargs):
         super(CragrAPI, self).__init__(*args, **kwargs)
@@ -522,16 +537,130 @@ class CragrAPI(LoginBrowser):
             return profile
 
     @need_login
-    def iter_transfer_recipients(self, account):
-        raise BrowserUnavailable()
+    def get_account_transfer_space_info(self, account):
+        self.go_to_account_space(account._contract)
+
+        space = self.session.cookies['marche']
+        connection_id = self.page.get_connection_id()
+
+        operations = {
+            'particulier': 'moyens-paiement',
+            'professionnel': 'paiements-encaissements',
+            'association': 'paiements-encaissements',
+            'entreprise': 'paiements-encaissements',
+        }
+
+        referer = self.absurl('/%s/operations/%s/virement.html.html' % (space, operations[space]))
+
+        return space, operations[space], referer, connection_id
+
+    @need_login
+    def iter_debit_accounts(self):
+        assert self.recipients.is_here()
+        for index, debit_accounts in enumerate(self.page.iter_debit_accounts()):
+            debit_accounts._index = index
+            yield debit_accounts
+
+    @need_login
+    def iter_transfer_recipients(self, account, transfer_space_info=None):
+        # avoid to call `get_account_transfer_space_info()` several time
+        if transfer_space_info:
+            space, operation, referer = transfer_space_info
+        else:
+            space, operation, referer, _ = self.get_account_transfer_space_info(account)
+
+        self.recipients.go(space=space, op=operation, headers={'Referer': referer})
+
+        if not self.page.is_sender_account(account.id):
+            return
+
+        for index, internal_rcpt in enumerate(self.page.iter_internal_recipient(account_id=account.id)):
+            internal_rcpt._index = index
+            yield internal_rcpt
+
+        # can't use 'ignore_duplicate' in DictElement because we need the 'index' to do transfer
+        seen = set()
+        for index, external_rcpt in enumerate(self.page.iter_external_recipient()):
+            external_rcpt._index = index
+            if not external_rcpt.iban in seen:
+                seen.add(external_rcpt.iban)
+                yield external_rcpt
 
     @need_login
     def init_transfer(self, transfer, **params):
-        raise BrowserUnavailable()
+        # first, get _account on account list to get recipient
+        _account = strict_find_object(self.get_accounts_list(), id=transfer.account_id, error=AccountNotFound)
+
+        # get information to go on transfer page
+        space, operation, referer, connection_id = self.get_account_transfer_space_info(account=_account)
+
+        recipient = strict_find_object(
+            self.iter_transfer_recipients(_account, transfer_space_info=(space, operation, referer)),
+            id=transfer.recipient_id,
+            error=RecipientNotFound
+        )
+        # Then, get account on transfer account list to get index and other information
+        account = strict_find_object(self.iter_debit_accounts(), id=_account.id, error=AccountNotFound)
+
+        # get token and transfer token to init transfer
+        token = self.token_page.go().get_token()
+        transfer_token = self.transfer_token.go(space=space, op=operation, headers={'Referer': referer}).get_token()
+
+        data = {
+            'connexionId': connection_id,
+            'cr': self.session.cookies['caisse-regionale'],
+            'creditAccountIban': recipient.iban,
+            'creditAccountIndex': recipient._index,
+            'debitAccountIndex': account._index,
+            'debitAccountNumber': account.number,
+            'externalAccount': recipient.category == 'Externe',
+            'recipientName': recipient.label,
+            'transferAmount': transfer.amount,
+            'transferComplementaryInformation1': transfer.label,
+            'transferComplementaryInformation2': '',
+            'transferComplementaryInformation3': '',
+            'transferComplementaryInformation4': '',
+            'transferCurrencyCode': account.currency,
+            'transferDate': transfer.exec_date.strftime('%d/%m/%Y'),
+            'transferFrequency': 'U',
+            'transferRef': '',
+            'transferType': 'UNIQUE',
+            'typeCompte': account.label,
+        }
+        # init transfer request
+        self.transfer.go(
+            space=space,
+            op=operation,
+            headers={'Referer': referer, 'CSRF-Token': token, 'NPC-Generated-Token': transfer_token},
+            json=data
+        )
+        assert self.page.check_transfer()
+        # get recap because it's not returned by init transfer request
+        self.transfer_recap.go(
+            space=space,
+            op=operation,
+            headers={'Referer': self.absurl('/%s/operations/%s/virement.postredirect.html' % (space, operation))}
+        )
+        # information needed to exec transfer
+        transfer._space = space
+        transfer._operation = operation
+        transfer._token = token
+        transfer._connection_id = connection_id
+        return self.page.handle_response(transfer)
 
     @need_login
     def execute_transfer(self, transfer, **params):
-        raise BrowserUnavailable()
+        self.transfer_exec.go(
+            space=transfer._space,
+            op=transfer._operation,
+            headers={
+                'Referer': self.absurl('/%s/operations/%s/virement.postredirect.html' % (transfer._space, transfer._operation)),
+                'CSRF-Token': transfer._token
+            },
+            json={'connexionId': transfer._connection_id}
+        )
+        assert self.page.check_transfer_exec()
+        return transfer
 
     @need_login
     def build_recipient(self, recipient):
