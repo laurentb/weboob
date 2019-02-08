@@ -177,8 +177,16 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
         else:
             account_ibans = self.page.get_account_ibans_dict()
 
-        # get accounts coming
         self.accounts_syntheses.go()
+
+        if not self.page.is_new_website_available():
+            # return in old pages to get accounts
+            self.accounts_main_page.go(params={'NoRedirect': True})
+            for acc in self.page.iter_accounts():
+                yield acc
+            return
+
+        # get accounts coming
         account_comings = self.page.get_account_comings()
 
         self.accounts.go()
@@ -210,6 +218,9 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
 
         if account.type == Account.TYPE_PEA and not ('Espèces' in account.label or 'ESPECE' in account.label):
             return
+
+        if not account._internal_id:
+            raise BrowserUnavailable()
 
         if account.type in (account.TYPE_LIFE_INSURANCE, account.TYPE_PERP, ):
             # request to get json is not available yet, old request to get html response
@@ -253,6 +264,9 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
                             account.TYPE_LIFE_INSURANCE, account.TYPE_REVOLVING_CREDIT,
                             account.TYPE_CONSUMER_CREDIT, Account.TYPE_PERP, ):
             return
+
+        if not account._internal_id:
+            raise BrowserUnavailable()
 
         internal_id = account._internal_id
         if account.type == account.TYPE_CARD:

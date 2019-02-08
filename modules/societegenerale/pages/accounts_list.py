@@ -59,13 +59,15 @@ class JsonBasePage(LoggedPage, JsonPage):
             if action and 'BLOCAGE' in action:
                 raise ActionNeeded()
 
-            if 'le service est momentanement indisponible' in reason:
-                # TODO: iter account on old website
-                # can't access new website
+            if ('le service est momentanement indisponible' in reason and
+            Dict('commun/origine')(self.doc) != 'cbo'):
                 raise BrowserUnavailable()
 
-            assert 'pas encore géré' in reason, 'Error %s is not handled yet' % reason
-            self.browser.logger.warning('This page is not handled yet by SG')
+            conditions = (
+                'pas encore géré' in reason, # this page is not handled by SG api website
+                'le service est momentanement indisponible' in reason, # can't access new website
+            )
+            assert any(conditions), 'Error %s is not handled yet' % reason
 
 
 class AccountsMainPage(LoggedPage, HTMLPage):
@@ -76,6 +78,36 @@ class AccountsMainPage(LoggedPage, HTMLPage):
         error_msg = CleanText('//span[@class="error_msg"]')(self.doc)
         if 'Vous ne disposez pas de compte consultable' in error_msg:
             raise NoAccountsException(error_msg)
+
+    @method
+    class iter_accounts(TableElement):
+        """iter account on old website"""
+        head_xpath = '//table[@class="LGNTableA ListePrestation"]//tr[@class="LGNTableHead"]/th'
+        item_xpath = '//table[@class="LGNTableA ListePrestation"]//tr[has-class("LGNTableRow")]'
+
+        col_id = 'Numéro de Compte'
+        col_type = 'Type de Compte'
+        col_label = 'Libellé'
+        col_balance = 'Solde'
+
+        class item(ItemElement):
+            klass = Account
+
+            TYPES = {
+                'LIVRET': Account.TYPE_SAVINGS,
+            }
+
+            obj_id = obj_number = CleanText(TableCell('id'), replace=[(' ', '')])
+            obj_label = CleanText('.//span[@class="TypeCompte"]')
+            obj_balance = MyDecimal(TableCell('balance'))
+            obj_currency = Currency(CleanText(TableCell('balance')))
+            obj__internal_id = None
+
+            def obj_type(self):
+                for acc_type in self.TYPES:
+                    if acc_type in Field('label')(self).upper():
+                        return self.TYPES[acc_type]
+                return Account.TYPE_UNKNOWN
 
 
 class AccountDetailsPage(LoggedPage, HTMLPage):
@@ -155,6 +187,14 @@ class AccountsPage(JsonBasePage):
                     return True
 
 class AccountsSynthesesPage(JsonBasePage):
+    def is_new_website_available(self):
+        if not Dict('commun/raison')(self.doc):
+            return True
+        elif not 'le service est momentanement indisponible' in Dict('commun/raison')(self.doc):
+            return True
+        self.logger.warning("SG new website is not available yet for this user")
+        return False
+
     def get_account_comings(self):
         account_comings = {}
 
