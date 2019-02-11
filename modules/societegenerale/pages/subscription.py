@@ -33,19 +33,21 @@ from .base import BasePage
 class BankStatementPage(LoggedPage, BasePage):
     @method
     class iter_subscription(TableElement):
-        item_xpath = '//table[.//th]//tr[td]'
+        item_xpath = '//table[.//th]//tr[td and @class="LGNTableRow"]'
         head_xpath = '//table//th'
 
         col_id = 'Numéro de Compte'
-        col_label = 'Derniers relevés'
+        col_label = 'Type de Compte'
+        col__last_document_label = 'Derniers relevés'
 
         class item(ItemElement):
             def condition(self):
-                return 'Récapitulatif annuel' not in CleanText(TableCell('label'))(self)
+                return 'Récapitulatif annuel' not in CleanText(TableCell('_last_document_label'))(self)
 
             klass = Subscription
 
             obj_id = CleanText(TableCell('id'), replace=[(' ', '')])
+            obj_label = CleanText(TableCell('label'))
 
     @method
     class iter_searchable_subscription(TableElement):
