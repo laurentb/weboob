@@ -21,7 +21,7 @@
 from decimal import Decimal
 from weboob.capabilities.bank import CapBankWealth, CapBankTransferAddRecipient, Account, AccountNotFound, RecipientNotFound, TransferError
 from weboob.capabilities.contact import CapContact
-from weboob.capabilities.base import find_object, NotAvailable
+from weboob.capabilities.base import find_object, strict_find_object, NotAvailable
 from weboob.capabilities.profile import CapProfile
 from weboob.capabilities.bill import (
     CapDocument, Subscription, SubscriptionNotFound,
@@ -86,15 +86,13 @@ class BPModule(
             raise NotImplementedError()
 
         self.logger.info('Going to do a new transfer')
-        if transfer.account_iban:
-            account = find_object(self.iter_accounts(), iban=transfer.account_iban, error=AccountNotFound)
-        else:
-            account = find_object(self.iter_accounts(), id=transfer.account_id, error=AccountNotFound)
+        account = strict_find_object(self.iter_accounts(), iban=transfer.account_iban)
+        if not account:
+            account = strict_find_object(self.iter_accounts(), id=transfer.account_id, error=AccountNotFound)
 
-        if transfer.recipient_iban:
-            recipient = find_object(self.iter_transfer_recipients(account.id), iban=transfer.recipient_iban, error=RecipientNotFound)
-        else:
-            recipient = find_object(self.iter_transfer_recipients(account.id), id=transfer.recipient_id, error=RecipientNotFound)
+        recipient = strict_find_object(self.iter_transfer_recipients(account.id), iban=transfer.recipient_iban)
+        if not recipient:
+            recipient = strict_find_object(self.iter_transfer_recipients(account.id), id=transfer.recipient_id, error=RecipientNotFound)
 
         try:
             # quantize to show 2 decimals.
