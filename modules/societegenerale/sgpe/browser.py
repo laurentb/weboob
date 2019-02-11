@@ -19,8 +19,8 @@
 
 from __future__ import unicode_literals
 
-import re
 from datetime import date
+from dateutil.relativedelta import relativedelta
 
 from weboob.browser.browsers import LoginBrowser, need_login, StatesMixin
 from weboob.browser.url import URL
@@ -256,41 +256,6 @@ class SGProfessionalBrowser(SGEnterpriseBrowser, StatesMixin):
             self.need_reload_state = None
             super(SGProfessionalBrowser, self).load_state(state)
 
-    @need_login
-    def iter_subscription(self):
-        profile = self.get_profile()
-        subscriber = profile.name
-
-        self.bank_statement_menu.go()
-        self.date_min, self.date_max = self.page.get_min_max_date()
-
-        return self.page.iter_subscription(subscriber=subscriber)
-
-    def get_month_by_range(self, end_month, month_range=3, january_limit=False):
-        begin_month = ((end_month - month_range) % 12) + 1
-
-        if january_limit:
-            if begin_month >=end_month:
-                return 1
-
-        return begin_month
-
-    def exceed_date_min(self, month_min, end_month):
-        if end_month <= month_min:
-            return True
-
-    def advance_month(self, end_month, end_year, month_range=3):
-        new_end_month = self.get_month_by_range(end_month, month_range)
-        if new_end_month > end_month:
-            end_year -= 1
-
-        begin_month = self.get_month_by_range(new_end_month, month_range)
-        begin_year = end_year
-        if begin_month > new_end_month:
-            begin_year -= 1
-
-        return new_end_month, end_year, begin_month, begin_year
-
     def copy_recipient_obj(self, recipient):
         rcpt = Recipient()
         rcpt.id = recipient.iban
@@ -509,52 +474,36 @@ class SGProfessionalBrowser(SGEnterpriseBrowser, StatesMixin):
         return transfer
 
     @need_login
+    def iter_subscription(self):
+        profile = self.get_profile()
+        subscriber = profile.name
+
+        self.bank_statement_menu.go()
+        self.date_min, self.date_max = self.page.get_min_max_date()
+        return self.page.iter_subscription(subscriber=subscriber)
+
+    @need_login
     def iter_documents(self, subscribtion):
         # This quality website can only fetch documents through a form, looking for dates
         # with a range of 3 months maximum
-
-        m = re.search(r'(\d{2})/(\d{2})/(\d{4})', self.date_max)
-        end_day = int(m.group(1))
-        end_month = int(m.group(2))
-        end_year = int(m.group(3))
-
-        month_range = 3
-        begin_day = 2
-        begin_month = self.get_month_by_range(end_month)
-        begin_year = end_year
-        if begin_month > end_month:
-            begin_year -= 1
-
-        # current month
-        data = {
-            'dt10_dateDebut' :'%02d/%02d/%d' % (begin_day, begin_month, begin_year),
-            'dt10_dateFin': '%02d/%02d/%d' % (end_day, end_month, end_year),
-            'cl2000_comptes': '["%s"]' % subscribtion.id,
-            'cl200_typeRecherche': 'ADVANCED',
-        }
-        self.bank_statement_search.go(data=data)
-        for d in self.page.iter_documents():
-            yield d
-
-        # other months
-        m = re.search(r'(\d{2})/(\d{2})/(\d{4})', self.date_min)
-        year_min = int(m.group(3))
-        month_min = int(m.group(2))
-        day_min = int(m.group(1))
-
-        end_day = 1
+        search_date_max = self.date_max
+        search_date_min = None
         is_end = False
-        while not is_end:
-            end_month, end_year, begin_month, begin_year = self.advance_month(end_month, end_year, month_range)
 
-            if year_min == begin_year and self.exceed_date_min(month_min, begin_month):
-                begin_day = day_min
-                begin_month = month_min
+        # to avoid infinite loop
+        counter = 0
+
+        while not is_end and counter < 50:
+            # search for every 2 months
+            search_date_min = search_date_max - relativedelta(months=2)
+
+            if search_date_min < self.date_min:
+                search_date_min = self.date_min
                 is_end = True
 
             data = {
-                'dt10_dateDebut' :'%02d/%02d/%d' % (begin_day, begin_month, begin_year),
-                'dt10_dateFin': '%02d/%02d/%d' % (end_day, end_month, end_year),
+                'dt10_dateDebut' : search_date_min.strftime('%d/%m/%Y'),
+                'dt10_dateFin': search_date_max.strftime('%d/%m/%Y'),
                 'cl2000_comptes': '["%s"]' % subscribtion.id,
                 'cl200_typeRecherche': 'ADVANCED',
             }
@@ -562,3 +511,6 @@ class SGProfessionalBrowser(SGEnterpriseBrowser, StatesMixin):
 
             for d in self.page.iter_documents():
                 yield d
+
+            search_date_max = search_date_min - relativedelta(days=1)
+            counter += 1

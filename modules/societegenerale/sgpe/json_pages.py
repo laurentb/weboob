@@ -213,8 +213,10 @@ class HistoryJsonPage(LoggedPage, JsonPage):
 
 class BankStatementPage(LoggedPage, JsonPage):
     def get_min_max_date(self):
-        criterium = self.doc['donnees']['criteres']
-        return criterium['dateMin'], criterium['dateMax']
+        min_date = Date(Dict('donnees/criteres/dateMin'), dayfirst=True, default=None)(self.doc)
+        max_date = Date(Dict('donnees/criteres/dateMax'), dayfirst=True, default=None)(self.doc)
+        assert min_date and max_date, 'There should have min date and max date to retrieve document'
+        return min_date, max_date
 
     @method
     class iter_subscription(DictElement):
