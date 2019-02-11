@@ -693,6 +693,7 @@ class TransactionsPage(LoggedPage, CDNBasePage):
         col_quantity = u'Quantité'
         col_unitvalue = re.compile(u"Valeur liquidative")
         col_valuation = re.compile(u"Montant")
+        col_portfolio_share = 'Répartition (%)'
 
         class item(ItemElement):
             klass = Investment
@@ -700,6 +701,18 @@ class TransactionsPage(LoggedPage, CDNBasePage):
             obj_quantity = MyDecimal(CleanText(TableCell('quantity')))
             obj_valuation = MyDecimal(TableCell('valuation'))
             obj_unitvalue = MyDecimal(TableCell('unitvalue'))
+
+            def obj_portfolio_share(self):
+                if MyDecimal(TableCell('portfolio_share'), default=None)(self):
+                    return Eval(lambda x: x / 100, MyDecimal(TableCell('portfolio_share')))(self)
+                return NotAvailable
+
+            def obj_code(self):
+                for code in Field('label')(self).split():
+                    if is_isin_valid(code):
+                        return code
+                return NotAvailable
+
             def obj_vdate(self):
                 if Field('unitvalue') is NotAvailable:
                     vdate = Date(dayfirst=True, default=NotAvailable)\
