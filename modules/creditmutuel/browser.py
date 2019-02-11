@@ -276,7 +276,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
             self.currentSubBank = 'banqueprivee/mabanque/'
         if self.currentSubBank and paths[1] == "decouverte":
             self.currentSubBank += paths[1] + "/"
-        if paths[0] in ["fr", "mabanque"]:
+        if paths[0] in ["fr", "mabanque", "banqueprivee"]:
             self.is_new_website = True
 
     def list_operations(self, page, account):
