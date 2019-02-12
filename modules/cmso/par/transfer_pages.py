@@ -55,7 +55,7 @@ class RecipientsListPage(LoggedPage, JsonPage):
 
 
 class TransferInfoPage(LoggedPage, JsonPage):
-    def get_numbers(self):
+    def get_transfer_info(self, info):
         # If account information is not available when asking for the
         # recipients (server error for ex.), return an empty dictionary
         # that will be filled later after being returned the json of the
@@ -63,24 +63,35 @@ class TransferInfoPage(LoggedPage, JsonPage):
         if 'listCompteTitulaireCotitulaire' not in self.doc and 'exception' in self.doc:
             return {}
 
-        ret = {}
+        information = {
+            'numbers': ('index', 'numeroContratSouscrit'),
+            'eligibilite_debit': ('numeroContratSouscrit', 'eligibiliteDebit'),
+        }
+        key = information[info][0]
+        value = information[info][1]
 
+        ret = {}
         ret.update({
-            d['index']: d['numeroContratSouscrit']
+            d[key]: d[value]
             for d in self.doc['listCompteTitulaireCotitulaire']
         })
         ret.update({
-            d['index']: d['numeroContratSouscrit']
+            d[key]: d[value]
             for p in self.doc['listCompteMandataire'].values()
             for d in p
         })
         ret.update({
-            d['index']: d['numeroContratSouscrit']
+            d[key]: d[value]
             for p in self.doc['listCompteLegalRep'].values()
             for d in p
         })
-
         return ret
+
+    def get_numbers(self):
+        return self.get_transfer_info('numbers')
+
+    def get_eligibilite_debit(self):
+        return self.get_transfer_info('eligibilite_debit')
 
     @method
     class iter_titu_accounts(DictElement):

@@ -135,8 +135,6 @@ class AccountsPage(LoggedPage, JsonPage):
             # Iban is available without last 5 numbers, or by sms
             obj_iban = NotAvailable
             obj__index = Dict('index')
-            # to know if we can do transfer on account
-            obj__eligible_debit = Dict('eligibiliteDebit', default=False)
 
             def obj_balance(self):
                 balance = CleanDecimal(Dict('soldeEuro', default="0"))(self)
@@ -196,8 +194,6 @@ class AccountsPage(LoggedPage, JsonPage):
                 obj_coming = CleanDecimal(Dict('AVenir', default=None), default=NotAvailable)
                 obj__index = Dict('index')
                 obj__owner = Dict('nomTitulaire')
-                # to know if we can do transfer on account
-                obj__eligible_debit = Dict('eligibiliteDebit', default=False)
 
                 def obj_id(self):
                     type = Field('type')(self)
