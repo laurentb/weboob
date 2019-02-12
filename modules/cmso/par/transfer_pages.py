@@ -106,6 +106,7 @@ class TransferInfoPage(LoggedPage, JsonPage):
     @method
     class iter_external_recipients(DictElement):
         item_xpath = 'listBeneficiaries'
+        ignore_duplicate = True
 
         class item(ItemElement):
             klass = Recipient
