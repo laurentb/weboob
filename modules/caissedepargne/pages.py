@@ -1425,4 +1425,5 @@ class CreditCooperatifMarketPage(LoggedPage, HTMLPage):
     # Stay logged when landing on the new Linebourse
     # (which is used by Credit Cooperatif's connections)
     # The parsing is done in linebourse.api.pages
-    pass
+    def is_error(self):
+        return CleanText('//caption[contains(text(),"Erreur")]')(self.doc)
