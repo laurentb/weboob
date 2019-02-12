@@ -50,7 +50,7 @@ class LoginPage(PartialHTMLPage):
         form.submit()
 
     def get_error(self):
-        return CleanText('//div[contains(@class, "error")]')(self.doc)
+        return CleanText('//span[contains(@class, "field-validation-error")]')(self.doc)
 
 
 class CaptchaPage(HTMLPage):
