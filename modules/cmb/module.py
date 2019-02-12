@@ -19,7 +19,7 @@
 
 
 from weboob.tools.backend import AbstractModule, BackendConfig
-from weboob.capabilities.bank import CapBank
+from weboob.capabilities.bank import CapBankTransfer
 from weboob.capabilities.contact import CapContact
 from weboob.tools.value import Value, ValueBackendPassword
 
@@ -27,7 +27,7 @@ from weboob.tools.value import Value, ValueBackendPassword
 __all__ = ['CmbModule']
 
 
-class CmbModule(AbstractModule, CapBank, CapContact):
+class CmbModule(AbstractModule, CapBankTransfer, CapContact):
     NAME = 'cmb'
     MAINTAINER = u'Edouard Lambert'
     EMAIL = 'elambert@budget-insight.com'
