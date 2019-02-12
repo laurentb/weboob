@@ -48,7 +48,8 @@ class LoginPage(JsonPage):
         return Dict('sessionId')(self.doc)
 
     def get_information(self, information):
-        return Dict(information, default=None)(self.doc)
+        key = 'data/' + information
+        return Dict(key, default=None)(self.doc)
 
 
 def list_to_dict(l):
