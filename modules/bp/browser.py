@@ -592,6 +592,7 @@ class BProBrowser(BPBrowser):
 
         self.location(v.path, params=args)
 
+        self.first_transactions = []
         for tr in self.page.iter_history():
             transactions.append(tr)
         transactions.sort(key=lambda tr: tr.rdate, reverse=True)

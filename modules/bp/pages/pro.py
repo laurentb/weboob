@@ -84,7 +84,27 @@ class ProAccountHistory(LoggedPage, MyHTMLPage):
     @method
     class iter_history(ListElement):
         item_xpath = u'//div[@id="tabReleve"]//tbody/tr'
-        next_page = Link('//div[@class="pagination"]//li[@class="pagin-on-right"]/a')
+
+        def next_page(self):
+            # The next page on the website can return pages already visited without logical mechanism
+            # Nevertheless we can skip these pages with the comparaison of the first transaction of the page
+
+            next_page_xpath = '//div[@class="pagination"]//li[@class="pagin-on-right"]/a'
+            tr_xpath = '//tbody/tr[1]'
+            self.page.browser.first_transactions.append(CleanText(tr_xpath)(self.el))
+            next_page_link = Link(next_page_xpath)(self.el)
+            next_page = self.page.browser.location(next_page_link)
+            first_transaction = CleanText(tr_xpath)(next_page.page.doc)
+            count = 0 # avoid an infinite loop
+
+            while first_transaction in self.page.browser.first_transactions and count < 30:
+                next_page = self.page.browser.location(next_page_link)
+                next_page_link = Link(next_page_xpath)(next_page.page.doc)
+                first_transaction =  CleanText(tr_xpath)(next_page.page.doc)
+                count += 1
+
+            if count < 30:
+                return next_page.page
 
         class item(ItemElement):
             klass = Transaction
