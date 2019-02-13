@@ -53,9 +53,13 @@ backupMutex = Lock()
 
 
 class MoneyOfxFormatter(OfxFormatter):
-    def __init__(self):
+    def start_format(self, **kwargs):
+        self.seen = set()
         # MSMoney only supports CHECKING accounts
-        self.account_type = 'CHECKING'
+        t = kwargs['account'].type
+        kwargs['account'].type = AccountType.CHECKING
+        OfxFormatter.start_format(self, **kwargs)
+        kwargs['account'].type = t
 
     def output(self, formatted):
         if self.outfile != sys.stdout:
