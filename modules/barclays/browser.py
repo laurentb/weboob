@@ -158,10 +158,23 @@ class Barclays(LoginBrowser):
 
             self.cache['accounts'] = traccounts
 
+            # Twin accounts are double accounts with different currencies.
+            # Transactions for twin accounts are all mixed and the currency
+            # is not specified, therefore to avoid transaction duplicates,
+            # we only return transactions from the 'EUR' twin account.
+            for account in self.cache['accounts']:
+                if (account.id.replace(account.currency, '') in
+                    [acc.id.replace(acc.currency, '') for acc in self.cache['accounts'] if acc.id != account.id]):
+                    account._twin = True
+                else:
+                    account._twin = False
+
         return self.cache['accounts']
 
     @need_login
     def iter_history(self, account):
+        if account._twin and account.currency != 'EUR':
+            return []
         if account._multiple_type and not self._multiple_account_choice(account):
             return []
         elif account.type in (Account.TYPE_LOAN, Account.TYPE_REVOLVING_CREDIT):
