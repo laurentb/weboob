@@ -44,6 +44,10 @@ class FreeBrowser(LoginBrowser):
         self.page.login(self.username, self.password)
 
         if self.login.is_here():
+            if all(var in self.url for var in ('error=1', '$flink')):
+                # when login or password is incorrect they redirect us to login page but with $flink at the end of url
+                # and when this is present, error message is not there, we remove it and reload page to get it
+                self.location(self.url.replace('$flink', ''))
             error = self.page.get_error()
             if error and 'mot de passe' in error:
                 raise BrowserIncorrectPassword(error)
