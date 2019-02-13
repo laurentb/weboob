@@ -491,9 +491,10 @@ class Boomoney(Boobank):
 
         self.logger.info(self.config.config.sections())
         for account in self.config.config.sections():
-            if self.config.config.getboolean(account, "disabled") == False:
-                # time.sleep(3)
-                self.threads.add(self.getHistory(account))
+            if self.options.account == None or account == self.options.account:
+                if self.config.config.getboolean(account, "disabled") == False:
+                    # time.sleep(3)
+                    self.threads.add(self.getHistory(account))
 
         if self.options.parallel:
             self.print(Fore.MAGENTA + Style.BRIGHT + "Starting %i history threads..." % len(self.threads) + Style.RESET_ALL)
