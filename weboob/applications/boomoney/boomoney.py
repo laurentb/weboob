@@ -41,7 +41,7 @@ from weboob.tools.compat import unicode
 from weboob.exceptions import BrowserUnavailable
 from weboob.capabilities.bank import AccountNotFound
 from weboob.applications.boobank import Boobank
-from weboob.applications.boobank.boobank import OfxFormatter
+from weboob.applications.boobank.boobank import OfxFormatter, AccountType
 from weboob.tools.application.formatters.simple import SimpleFormatter
 
 
@@ -65,7 +65,7 @@ class MoneyOfxFormatter(OfxFormatter):
         if self.outfile != sys.stdout:
             self.outfile.write(formatted + os.linesep)
         else:
-            super.output(self, formatted)
+            super(MoneyOfxFormatter, self).output(formatted)
 
 
 class ListFormatter(SimpleFormatter):
@@ -73,7 +73,7 @@ class ListFormatter(SimpleFormatter):
         if self.outfile != sys.stdout:
             self.outfile.write(formatted + os.linesep)
         else:
-            super.output(self, formatted)
+            super(ListFormatter, self).output(formatted)
 
 
 class BoobankNoBackend(Boobank):
@@ -416,21 +416,21 @@ class Boomoney(Boobank):
             s = subprocess.check_output(
                 'reg query "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders" /v "{374DE290-123F-4565-9164-39C4925E467B}"')
             t = re.sub(r'^(.|\r|\n)+REG_EXPAND_SZ\s+([^\n\r]+)(.|\r|\n)*$', r'\2', s)
-            self._downloadsPath = os.path.expandvars(t).decode(sys.stdout.encoding)
+            self._downloadsPath = os.path.expandvars(t).decode('CP850')
         return self._downloadsPath
 
     def getMoneyPath(self):
         if not hasattr(self, '_moneyPath'):
             s = subprocess.check_output('reg query HKEY_CLASSES_ROOT\\money\\Shell\\Open\\Command /ve')
             t = re.sub(r'^(.|\r|\n)+REG_SZ\s+([^\n\r]+)(.|\r|\n)*$', r'\2', s)
-            self._moneyPath = os.path.expandvars(os.path.dirname(t)).decode(sys.stdout.encoding)
+            self._moneyPath = os.path.expandvars(os.path.dirname(t)).decode('CP850')
         return self._moneyPath
 
     def getMoneyFile(self):
         if not hasattr(self, '_moneyFile'):
             s = subprocess.check_output('reg query HKEY_CURRENT_USER\\Software\\Microsoft\\Money\\14.0 /v CurrentFile')
             t = re.sub(r'^(.|\r|\n)+REG_SZ\s+([^\n\r]+)(.|\r|\n)*$', r'\2', s)
-            self._moneyFile = os.path.expandvars(t).decode(sys.stdout.encoding)
+            self._moneyFile = os.path.expandvars(t).decode('CP850')
         return self._moneyFile
 
     def backupIfNeeded(self):
