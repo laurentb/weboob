@@ -109,6 +109,7 @@ class AccountsPage(StatefulPage):
                            'E VIE MILLEIS': Account.TYPE_LIFE_INSURANCE,
                            'BANQUE PRIVILEGE': Account.TYPE_REVOLVING_CREDIT,
                            'PRET PERSONNEL': Account.TYPE_LOAN,
+                           'CREDIT IMMOBILIE': Account.TYPE_LOAN,
                           }
     ACCOUNT_TYPE_TO_STR = {Account.TYPE_MARKET: 'TTR',
                            Account.TYPE_CARD: 'CRT'
@@ -470,7 +471,7 @@ class RevolvingAccountPage(AbstractAccountPage):
 
 class LoanAccountPage(AbstractAccountPage):
     def is_here(self):
-        return bool(CleanText('//span[contains(., "Détail compte")]')(self.doc))
+        return bool(CleanText('//span[contains(., "prêt")]')(self.doc))
 
     def has_iban(self):
         return False

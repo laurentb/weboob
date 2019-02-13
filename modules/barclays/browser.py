@@ -131,11 +131,17 @@ class Barclays(LoginBrowser):
             traccounts = []
 
             for account in accounts:
-                self._go_to_account(account)
+                if account.type == Account.TYPE_CHECKING:
+                    # Only checking accounts have an IBAN
+                    self._go_to_account(account)
+                    account.iban = self.iban.open().get_iban() if self.page.has_iban() else NotAvailable
+
                 if account.type == Account.TYPE_LOAN:
+                    self._go_to_account(account)
                     account = self.page.get_loan_attributes(account)
 
                 if account.type == Account.TYPE_CARD:
+                    self._go_to_account(account)
                     if self.page.is_immediate_card():
                         account.type = Account.TYPE_CHECKING
 
@@ -143,10 +149,10 @@ class Barclays(LoginBrowser):
                         continue
 
                     account._attached_account = self.page.do_account_attachment([a for a in accounts if a.type == Account.TYPE_CHECKING])
-                if account.type == Account.TYPE_REVOLVING_CREDIT:
-                    account = self.page.get_revolving_attributes(account)
 
-                account.iban = self.iban.open().get_iban() if self.page.has_iban() else NotAvailable
+                if account.type == Account.TYPE_REVOLVING_CREDIT:
+                    self._go_to_account(account)
+                    account = self.page.get_revolving_attributes(account)
 
                 traccounts.append(account)
 
