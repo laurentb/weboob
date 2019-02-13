@@ -28,6 +28,7 @@ from weboob.capabilities.bank import Account
 from weboob.capabilities.profile import Company
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.compat import urljoin, unicode
+from weboob.exceptions import BrowserUnavailable
 
 from .accounthistory import Transaction
 from .base import MyHTMLPage
@@ -39,6 +40,10 @@ class RedirectPage(LoggedPage, MyHTMLPage):
 
 
 class ProAccountsList(LoggedPage, MyHTMLPage):
+    def on_load(self):
+        if self.doc.xpath('//div[@id="erreur_generale"]'):
+            raise BrowserUnavailable(CleanText(u'//div[@id="erreur_generale"]//p[contains(text(), "Le service est momentanément indisponible")]')(self.doc))
+
     ACCOUNT_TYPES = {u'comptes titres': Account.TYPE_MARKET,
                      u'comptes Ã©pargne':    Account.TYPE_SAVINGS,
                      # wtf? ^
