@@ -21,14 +21,15 @@
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 
-from .pages import LoginPage, HomePage, DocumentsPage, ProfilePage
+from .pages import LoginPage, HomePage, ConsolePage, DocumentsPage, ProfilePage
 
 
 class FreeBrowser(LoginBrowser):
     BASEURL = 'https://adsl.free.fr'
 
-    login = URL('https://subscribe.free.fr/login/', LoginPage)
+    login = URL(r'https://subscribe.free.fr/login/', LoginPage)
     home = URL(r'/home.pl(?P<urlid>.*)', HomePage)
+    console = URL(r'https://subscribe.free.fr/accesgratuit/console/console.pl(?P<urlid>.*)', ConsolePage)
     documents = URL(r'/liste-factures.pl(?P<urlid>.*)', DocumentsPage)
     profile = URL(r'/modif_infoscontact.pl(?P<urlid>.*)', ProfilePage)
     address = URL(r'/show_adresse.pl(?P<urlid>.*)', ProfilePage)
@@ -59,6 +60,10 @@ class FreeBrowser(LoginBrowser):
 
     @need_login
     def get_subscription_list(self):
+        if self.console.is_here():
+            # user is logged but has no subscription, he didn't activated anything, there is nothing to return
+            return []
+
         self.urlid = self.page.url.rsplit('.pl', 2)[1]
         if self.status is "inactive":
             return self.documents.stay_or_go(urlid=self.urlid).get_list()

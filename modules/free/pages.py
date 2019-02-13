@@ -19,7 +19,7 @@
 
 from __future__ import unicode_literals
 
-from weboob.browser.pages import HTMLPage, LoggedPage
+from weboob.browser.pages import HTMLPage, LoggedPage, RawPage
 from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Format, Regexp
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.html import Attr
@@ -59,6 +59,10 @@ class HomePage(LoggedPage, HTMLPage):
                     subscriber = username
                 self.env['subscriber'] = subscriber
                 self.env['subid'] = username
+
+
+class ConsolePage(RawPage):
+    pass
 
 
 class DocumentsPage(LoggedPage, HTMLPage):
