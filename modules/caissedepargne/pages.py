@@ -739,6 +739,16 @@ class IndexPage(LoggedPage, HTMLPage):
         form['__EVENTARGUMENT'] = re.search(r'Ajax", "(.*)", true', link).group(1)
         form.submit()
 
+    def go_pro_transfer_availability(self):
+        form = self.get_form(id='main')
+        form['__EVENTTARGET'] = 'Menu_AJAX'
+        form['__EVENTARGUMENT'] = 'VIRLSRM0'
+        form['m_ScriptManager'] = 'm_ScriptManager|Menu_AJAX'
+        form.submit()
+
+    def is_transfer_allowed(self):
+        return not self.doc.xpath('//ul/li[contains(text(), "Aucun compte tiers n\'est disponible")]')
+
 
 class ConsLoanPage(JsonPage):
     def get_conso(self):

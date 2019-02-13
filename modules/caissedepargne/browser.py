@@ -672,6 +672,13 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         if origin_account.type == Account.TYPE_LOAN:
             return []
 
+        if 'pro' in self.url:
+            # If transfer is not yet allowed, the next step will send a sms to the customer to validate it
+            self.home.go()
+            self.page.go_pro_transfer_availability()
+            if not self.page.is_transfer_allowed():
+                return []
+
         # Transfer unavailable
         try:
             self.pre_transfer(origin_account)
