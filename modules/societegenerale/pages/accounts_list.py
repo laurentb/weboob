@@ -130,7 +130,7 @@ class AccountsPage(JsonBasePage):
 
             obj_id = obj_number = CleanText(Dict('numeroCompteFormate'), replace=[(' ', '')])
             obj_label = Dict('labelToDisplay')
-            obj_balance = CleanDecimal(Dict('soldes/soldeTotal'))
+            obj_balance = CleanDecimal(Dict('soldes/soldeActuel'))
             obj_coming = CleanDecimal(Dict('soldes/soldeEnCours'))
             obj_currency = Currency(Dict('soldes/devise'))
             obj__cards = Dict('cartes', default=[])
