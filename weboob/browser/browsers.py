@@ -1010,7 +1010,7 @@ class OAuth2Mixin(StatesMixin):
 
     @property
     def logged(self):
-        return self.access_token is not None and self.access_token_expire > datetime.now()
+        return self.access_token is not None and (not self.access_token_expire or self.access_token_expire > datetime.now())
 
     def do_login(self):
         if self.refresh_token:
