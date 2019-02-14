@@ -58,8 +58,15 @@ class MoneyOfxFormatter(OfxFormatter):
         # MSMoney only supports CHECKING accounts
         t = kwargs['account'].type
         kwargs['account'].type = AccountType.CHECKING
-        OfxFormatter.start_format(self, **kwargs)
+        super(MoneyOfxFormatter, self).start_format(**kwargs)
         kwargs['account'].type = t
+
+    def format_obj(self, obj, alias):
+        cat = obj.category
+        obj.category = obj.raw
+        result = super(MoneyOfxFormatter, self).format_obj(obj, alias)
+        obj.category = cat
+        return result
 
     def output(self, formatted):
         if self.outfile != sys.stdout:
