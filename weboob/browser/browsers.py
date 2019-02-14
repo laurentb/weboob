@@ -1002,6 +1002,12 @@ class OAuth2Mixin(StatesMixin):
         super(OAuth2Mixin, self).load_state(state)
         self.access_token_expire = parser.parse(self.access_token_expire) if self.access_token_expire else None
 
+    def raise_for_status(self, response):
+        if response.status_code == 401:
+            self.access_token = None
+
+        return super(OAuth2Mixin, self).raise_for_status(response)
+
     @property
     def logged(self):
         return self.access_token is not None and self.access_token_expire > datetime.now()
