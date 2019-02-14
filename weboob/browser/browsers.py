@@ -1086,7 +1086,7 @@ class OAuth2Mixin(StatesMixin):
         self.update_token(auth_response)
 
     def update_token(self, auth_response):
-        self.token_type = auth_response['token_type'].capitalize() # don't know yet if this is a good idea, but required by bnpstet
+        self.token_type = auth_response.get('token_type', 'Bearer').capitalize() # don't know yet if this is a good idea, but required by bnpstet
         if 'refresh_token' in auth_response:
             self.refresh_token = auth_response['refresh_token']
         self.access_token = auth_response['access_token']
