@@ -358,6 +358,8 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
         if recipient.id != recipient.iban:
             transfer_data['nature'] = 'interne'
             transfer_data['transferToBeneficiary'] = False
+            transfer_data['creditAccountIndex'] = transfer_data['beneficiaryIndex']
+            transfer_data.pop('beneficiaryIndex')
 
         self.init_transfer_page.go(json=transfer_data)
         transfer = self.page.handle_transfer(account, recipient, amount, reason, exec_date)

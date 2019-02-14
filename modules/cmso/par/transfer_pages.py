@@ -130,7 +130,7 @@ class TransferPage(LoggedPage, JsonPage):
                     (Dict('exception/code')(self.doc), Dict('exception/message')(self.doc))
             elif Dict('exception/type')(self.doc) == 2:
                 # user error
-                TransferBankError(message=Dict('exception/message')(self.doc))
+                raise TransferBankError(message=Dict('exception/message')(self.doc))
 
     def handle_transfer(self, account, recipient, amount, reason, exec_date):
         transfer = Transfer()
