@@ -102,6 +102,14 @@ class item_account_generic(ItemElement):
         if rib_link:
             response = self.page.browser.open(rib_link)
             return response.page.get_iban()
+
+        elif Field('type')(self) == Account.TYPE_SAVINGS:
+            # The rib link is available on the history page (ex: Livret A)
+            his_page = self.page.browser.open(Field('url')(self))
+            rib_link = Link('//a[abbr[contains(text(), "RIB")]]', default=NotAvailable)(his_page.page.doc)
+            if rib_link:
+                response = self.page.browser.open(rib_link)
+                return response.page.get_iban()
         return NotAvailable
 
     def obj_type(self):
