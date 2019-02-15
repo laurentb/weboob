@@ -582,7 +582,7 @@ class CragrAPI(LoginBrowser):
         seen = set()
         for index, external_rcpt in enumerate(self.page.iter_external_recipient()):
             external_rcpt._index = index
-            if not external_rcpt.iban in seen:
+            if external_rcpt.iban not in seen:
                 seen.add(external_rcpt.iban)
                 yield external_rcpt
 

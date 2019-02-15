@@ -74,6 +74,9 @@ class RecipientsPage(LoggedPage, JsonPage):
 
     @method
     class iter_external_recipient(DictElement):
+        def store(self, obj):
+            return obj
+
         class item(ItemElement):
             def condition(self):
                 return Dict('recipientId', default=None)(self)
