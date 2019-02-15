@@ -175,8 +175,7 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
         self.page.check_response()
         for key in self.page.get_keys():
             for a in self.page.iter_accounts(key=key):
-                if a.id in accounts_eligibilite_debit:
-                    a._eligible_debit = accounts_eligibilite_debit[a.id]
+                a._eligible_debit = accounts_eligibilite_debit.get(a.id, False)
                 # Can have duplicate account, avoid them
                 if a._index not in seen:
                     self.accounts_list.append(a)
@@ -187,8 +186,7 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
         page = self.accounts.go(data=json.dumps({}), type='epargne', headers=self.json_headers)
         for key in page.get_keys():
             for a in page.iter_savings(key=key, numbers=numbers):
-                if a.id in accounts_eligibilite_debit:
-                    a._eligible_debit = accounts_eligibilite_debit[a.id]
+                a._eligible_debit = accounts_eligibilite_debit.get(a.id, False)
                 if a._index in seen:
                     acc = seen[a._index]
                     self.accounts_list.remove(acc)

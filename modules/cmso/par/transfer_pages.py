@@ -72,23 +72,26 @@ class TransferInfoPage(LoggedPage, JsonPage):
 
         ret = {}
         ret.update({
-            d[key]: d[value]
+            d[key]: d.get(value)
             for d in self.doc['listCompteTitulaireCotitulaire']
         })
         ret.update({
-            d[key]: d[value]
+            d[key]: d.get(value)
             for p in self.doc['listCompteMandataire'].values()
             for d in p
         })
         ret.update({
-            d[key]: d[value]
+            d[key]: d.get(value)
             for p in self.doc['listCompteLegalRep'].values()
             for d in p
         })
         return ret
 
     def get_numbers(self):
-        return self.get_transfer_info('numbers')
+        transfer_numbers = self.get_transfer_info('numbers')
+        for key, value in transfer_numbers.items():
+            assert value, "The 'numeroContratSouscrit' associated with the account index: %s is empty" % key
+        return transfer_numbers
 
     def get_eligibilite_debit(self):
         return self.get_transfer_info('eligibilite_debit')
