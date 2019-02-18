@@ -29,6 +29,7 @@ grep -nE "^ *print(\(| )" ${MODULE_FILES} && echo 'Error: Use of print in module
 grep -n xrange ${MODULE_FILES3} && echo 'Error: xrange is forbidden' && err=21
 grep -nE "from (urllib|urlparse) import" ${MODULE_FILES3} && echo 'Error: python2 urllib is forbidden' && err=22
 grep -nE "^import (urllib|urlparse)$" ${MODULE_FILES3} && echo 'Error: python2 urllib is forbidden' && err=22
+grep -nE "HEADLESS[[:space:]]*=[[:space:]]*False" ${MODULE_FILES} && echo 'Error: HEADLESS must be set back to True' && err=23
 
 if [ ${VER} -eq 2 ]
 then
