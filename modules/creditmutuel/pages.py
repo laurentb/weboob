@@ -1950,3 +1950,6 @@ class NewCardsListPage(LoggedPage, HTMLPage):
         if other_cards:
             return Link(other_cards)(self)
 
+
+class ConditionsPage(LoggedPage, HTMLPage):
+    pass

@@ -48,7 +48,8 @@ from .pages import (
     LIAccountsPage, CardsActivityPage, CardsListPage,
     CardsOpePage, NewAccountsPage, InternalTransferPage,
     ExternalTransferPage, RevolvingLoanDetails, RevolvingLoansList,
-    ErrorPage, SubscriptionPage, NewCardsListPage, CardPage2
+    ErrorPage, SubscriptionPage, NewCardsListPage, CardPage2,
+    ConditionsPage,
 )
 
 
@@ -136,6 +137,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
     error = URL(r'/(?P<subbank>.*)validation/infos.cgi', ErrorPage)
 
     subscription = URL(r'/(?P<subbank>.*)fr/banque/MMU2_LstDoc.aspx', SubscriptionPage)
+    terms_and_conditions = URL(r'/(?P<subbank>.*)fr/banque/conditions-generales.html', ConditionsPage)
 
     currentSubBank = None
     is_new_website = None
