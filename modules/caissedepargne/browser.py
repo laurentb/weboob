@@ -30,13 +30,16 @@ from weboob.browser import LoginBrowser, need_login, StatesMixin
 from weboob.browser.switch import SiteSwitch
 from weboob.browser.url import URL
 from weboob.capabilities.bank import Account, AddRecipientStep, Recipient, TransferBankError, Transaction, TransferStep
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable, find_object
 from weboob.capabilities.profile import Profile
 from weboob.browser.exceptions import BrowserHTTPNotFound, ClientError, ServerError
 from weboob.exceptions import (
     BrowserIncorrectPassword, BrowserUnavailable, BrowserHTTPError, BrowserPasswordExpired, ActionNeeded
 )
-from weboob.tools.capabilities.bank.transactions import sorted_transactions, FrenchTransaction
+from weboob.tools.capabilities.bank.transactions import (
+    sorted_transactions, FrenchTransaction, keep_only_card_transactions,
+    omit_deferred_transactions,
+)
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
 from weboob.tools.compat import urljoin, urlparse
 from weboob.tools.value import Value
@@ -49,7 +52,7 @@ from .pages import (
     ProTransferSummaryPage, ProAddRecipientOtpPage, ProAddRecipientPage,
     SmsPage, SmsPageOption, SmsRequest, AuthentPage, RecipientPage, CanceledAuth, CaissedepargneKeyboard,
     TransactionsDetailsPage, LoadingPage, ConsLoanPage, MeasurePage, NatixisLIHis, NatixisLIInv, NatixisRedirectPage,
-    SubscriptionPage, CreditCooperatifMarketPage, UnavailablePage,
+    SubscriptionPage, CreditCooperatifMarketPage, UnavailablePage, CardsPage, CardsComingPage, CardsOldWebsitePage,
 )
 
 from .linebourse_browser import LinebourseAPIBrowser
@@ -81,6 +84,9 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     pro_add_recipient_otp = URL('https://.*/Portail.aspx.*', ProAddRecipientOtpPage)
     pro_add_recipient = URL('https://.*/Portail.aspx.*', ProAddRecipientPage)
     measure_page = URL('https://.*/Portail.aspx.*', MeasurePage)
+    cards_old = URL('https://.*/Portail.aspx.*', CardsOldWebsitePage)
+    cards = URL('https://.*/Portail.aspx.*', CardsPage)
+    cards_coming = URL('https://.*/Portail.aspx.*', CardsComingPage)
     authent = URL('https://.*/Portail.aspx.*', AuthentPage)
     subscription = URL('https://.*/Portail.aspx\?tache=(?P<tache>).*', SubscriptionPage)
     home = URL('https://.*/Portail.aspx.*', IndexPage)
@@ -430,6 +436,26 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                     else:
                         assert False, "new domain that hasn't been seen so far ?"
 
+            self.home.go()
+            self.page.go_list()
+            self.page.go_cards()
+
+            if self.cards.is_here() or self.cards_old.is_here():
+                cards = list(self.page.iter_cards())
+                for card in cards:
+                    card.parent = find_object(self.accounts, number=card._parent_id)
+                    assert card.parent, 'card account %r parent was not found' % card
+
+                # If we are in the new site, we have to get each card coming transaction link.
+                if self.cards.is_here():
+                    for card in cards:
+                        info = card.parent._card_links
+                        self.page.go_list()
+                        self.page.go_history(info)
+                        card._coming_info = self.page.get_card_coming_info(card.number, info.copy())
+
+                self.accounts.extend(cards)
+
         # Some accounts have no available balance or label and cause issues
         # in the backend so we must exclude them from the accounts list:
         self.accounts = [account for account in self.accounts if account.label and account.balance != NotAvailable]
@@ -475,8 +501,13 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
         return iter(self.loans)
 
+    # For all account, we fill up the history with transaction. For checking account, there will have
+    # also deferred_card transaction too.
+    # From this logic, if we send "account_card", that mean we recover all transactions from the parent
+    # checking account of the account_card, then we filter later the deferred transaction.
     @need_login
-    def _get_history(self, info):
+    def _get_history(self, info, account_card=None):
+        # Only fetch deferred debit card transactions if `account_card` is not None
         if isinstance(info['link'], list):
             info['link'] = info['link'][0]
         if not info['link'].startswith('HISTORIQUE'):
@@ -495,6 +526,11 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         if 'netpro' in self.page.url and not self.page.is_history_of(info['id']):
             self.page.go_history_netpro(info)
 
+        # In this case, we want the coming transaction for the new website
+        # (old website return coming directly in `get_coming()` )
+        if account_card and info['type'] == 'HISTORIQUE_CB':
+            self.page.go_coming(account_card._coming_info['link'])
+
         info['link'] = [info['link']]
 
         for i in range(self.HISTORY_MAX_PAGE):
@@ -503,14 +539,25 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
             # list of transactions on account page
             transactions_list = []
-            list_form = []
+            card_and_forms = []
             for tr in self.page.get_history():
                 transactions_list.append(tr)
                 if tr.type == tr.TYPE_CARD_SUMMARY:
-                    list_form.append(self.page.get_form_to_detail(tr))
+                    if account_card:
+                        if self.card_matches(tr.card, account_card.number):
+                            card_and_forms.append((tr.card, self.page.get_form_to_detail(tr)))
+                        else:
+                            self.logger.debug('will skip summary detail (%r) for different card %r', tr, account_card.number)
 
-            # add detail card to list of transactions
-            for form in list_form:
+            # For deferred card history only :
+            #
+            # Now that we find transactions that have TYPE_CARD_SUMMARY on the checking account AND the account_card number we want,
+            # we browse deferred card transactions that are resume by that list of TYPE_CARD_SUMMARY transaction.
+
+            # Checking account transaction:
+            #  - 01/01 - Summary 5134XXXXXX103 - 900.00€ - TYPE_CARD_SUMMARY  <-- We have to go in the form of this tr to get
+            #   cards details transactions.
+            for card, form in card_and_forms:
                 form.submit()
                 if self.home.is_here() and self.page.is_access_error():
                     self.logger.warning('Access to card details is unavailable for this user')
@@ -518,6 +565,8 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                 assert self.transaction_detail.is_here()
                 for tr in self.page.get_detail():
                     tr.type = Transaction.TYPE_DEFERRED_CARD
+                    if account_card:
+                        tr.card = card
                     transactions_list.append(tr)
                 if self.new_website:
                     self.page.go_newsite_back_to_summary()
@@ -587,6 +636,15 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     def get_history(self, account):
         self.home.go()
         self.deleteCTX()
+
+        if account.type == account.TYPE_CARD:
+            def match_cb(tr):
+                return self.card_matches(tr.card, account.number)
+
+            hist = self._get_history(account.parent._info, account)
+            hist = keep_only_card_transactions(hist, match_cb)
+            return hist
+
         if not hasattr(account, '_info'):
             raise NotImplementedError
         if account.type is Account.TYPE_LIFE_INSURANCE and 'measure_id' not in account._info:
@@ -603,19 +661,36 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                     self.linebourse.session.cookies.update(self.session.cookies)
                     self.update_linebourse_token()
                     return self.linebourse.iter_history(account.id)
-        return self._get_history(account._info)
+
+        hist = self._get_history(account._info, False)
+        return omit_deferred_transactions(hist)
 
     @need_login
     def get_coming(self, account):
+        if account.type != account.TYPE_CARD:
+            return []
+
         trs = []
 
-        if not hasattr(account, '_info'):
+        if not hasattr(account.parent, '_info'):
             raise NotImplementedError()
-        for info in account._card_links:
-            for tr in self._get_history(info.copy()):
-                tr.type = tr.TYPE_DEFERRED_CARD
-                tr.nopurge = True
-                trs.append(tr)
+
+        # We are on the old website
+        if hasattr(account, '_coming_eventargument'):
+
+            if not self.cards_old.is_here():
+                self.home.go()
+                self.page.go_list()
+                self.page.go_cards()
+            self.page.go_card_coming(account._coming_eventargument)
+
+            return sorted_transactions(self.page.iter_coming())
+
+        # We are on the new website.
+        info = account.parent._card_links
+        for tr in self._get_history(info.copy(), account):
+            tr.type = tr.TYPE_DEFERRED_CARD
+            trs.append(tr)
 
         return sorted_transactions(trs)
 
@@ -701,7 +776,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
     @need_login
     def iter_recipients(self, origin_account):
-        if origin_account.type == Account.TYPE_LOAN:
+        if origin_account.type in [Account.TYPE_LOAN, Account.TYPE_CARD]:
             return []
 
         if 'pro' in self.url:
@@ -928,3 +1003,9 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         self.page.go_document_list(sub_id=sub_id)
 
         return self.page.download_document(document).content
+
+    def card_matches(self, a, b):
+        # For the same card, depending where we scrape it, we have
+        # more or less visible number. `X` are visible number, `*` hidden one's.
+        # tr.card: XXXX******XXXXXX, account.number: XXXXXX******XXXX
+        return (a[:4], a[-4:]) == (b[:4], b[-4:])

@@ -284,7 +284,7 @@ class IndexPage(LoggedPage, HTMLPage):
     def is_account_inactive(self, account_id):
         return self.doc.xpath('//tr[td[contains(text(), $id)]][@class="Inactive"]', id=account_id)
 
-    def _add_account(self, accounts, link, label, account_type, balance):
+    def _add_account(self, accounts, link, label, account_type, balance, number=None):
         info = self._get_account_info(link, accounts)
         if info is None:
             self.logger.warning('Unable to parse account %r: %r' % (label, link))
@@ -295,6 +295,7 @@ class IndexPage(LoggedPage, HTMLPage):
         if is_rib_valid(info['id']):
             account.iban = rib2iban(info['id'])
         account._info = info
+        account.number = number
         account.label = label
         account.type = self.ACCOUNT_TYPES.get(label, info['acc_type'] if 'acc_type' in info else account_type)
         if 'PERP' in account.label:
@@ -309,16 +310,15 @@ class IndexPage(LoggedPage, HTMLPage):
         account.currency = account.get_currency(balance) if balance and balance is not NotAvailable else NotAvailable
         account._card_links = []
 
+        # Set coming history link to the parent account. At this point, we don't have card account yet.
         if account._info['type'] == 'HISTORIQUE_CB' and account.id in accounts:
             a = accounts[account.id]
-            if not a.coming:
-                a.coming = Decimal('0.0')
-            if account.balance and account.balance is not NotAvailable:
-                a.coming += account.balance
-            a._card_links.append(account._info)
+            a.coming = Decimal('0.0')
+            a._card_links = account._info
             return
 
         accounts[account.id] = account
+        return account
 
     def get_balance(self, account):
         if account.type not in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_PERP, Account.TYPE_CAPITALISATION):
@@ -368,19 +368,26 @@ class IndexPage(LoggedPage, HTMLPage):
                                    self.ACCOUNT_TYPES.get(CleanText('.')(tds[2])) or\
                                    self.ACCOUNT_TYPES.get(CleanText('.')(tds[3]), Account.TYPE_UNKNOWN)
                 else:
-                    # On the same row, there are many accounts (for example a
-                    # check accound and a card one).
+                    # On the same row, there could have many accounts (check account and a card one).
+                    # For the card line, the number will be the same than the checking account, so we skip it.
                     if len(tds) > 4:
                         for i, a in enumerate(tds[2].xpath('./a')):
                             label = CleanText('.')(a)
                             balance = CleanText('.')(tds[-2].xpath('./a')[i])
-                            self._add_account(accounts, a, label, account_type, balance)
-                    # Only 4 tds on banque de la reunion website.
+                            number = None
+                            # if i > 0, that mean it's a card account. The number will be the same than it's
+                            # checking parent account, we have to skip it.
+                            if i == 0:
+                                number = CleanText('.')(tds[-4].xpath('./a')[0])
+                            self._add_account(accounts, a, label, account_type, balance, number)
+                    # Only 4 tds on "banque de la reunion" website.
                     elif len(tds) == 4:
                         for i, a in enumerate(tds[1].xpath('./a')):
                             label = CleanText('.')(a)
                             balance = CleanText('.')(tds[-1].xpath('./a')[i])
                             self._add_account(accounts, a, label, account_type, balance)
+
+        self.logger.debug('we are on the %s website', 'old' if accounts else 'new')
 
         if len(accounts) == 0:
             # New website
@@ -405,7 +412,9 @@ class IndexPage(LoggedPage, HTMLPage):
                     label = CleanText('./strong')(tds[0])
                     balance = CleanText('.')(tds[-1])
 
-                    self._add_account(accounts, a, label, account_type, balance)
+                    account = self._add_account(accounts, a, label, account_type, balance)
+                    if account:
+                        account.number = CleanText('.')(tds[1])
 
         return accounts.values()
 
@@ -443,6 +452,8 @@ class IndexPage(LoggedPage, HTMLPage):
             account.balance = -CleanDecimal('./a', replace_dots=True)(tds[4])
             account.currency = account.get_currency(CleanText('./a')(tds[4]))
             accounts[account.id] = account
+
+        self.logger.debug('we are on the %s website', 'old' if accounts else 'new')
 
         if len(accounts) == 0:
             # New website
@@ -522,23 +533,58 @@ class IndexPage(LoggedPage, HTMLPage):
                 obj_next_payment_amount = MyDecimal(MyTableCell("next_payment_amount"))
                 obj_next_payment_date = Date(CleanText(MyTableCell("next_payment_date", default=''), default=NotAvailable), default=NotAvailable)
 
-    def go_list(self):
-        form = self.get_form(id='main')
+    def submit_form(self, form, eventargument, eventtarget, scriptmanager):
+        form['__EVENTARGUMENT'] = eventargument
+        form['__EVENTTARGET'] = eventtarget
+        form['m_ScriptManager'] = scriptmanager
+        fix_form(form)
+        form.submit()
 
-        form['__EVENTARGUMENT'] = "CPTSYNT0"
+    def go_list(self):
+
+        form = self.get_form(id='main')
+        eventargument = "CPTSYNT0"
 
         if "MM$m_CH$IsMsgInit" in form:
             # Old website
-            form['__EVENTTARGET'] = "Menu_AJAX"
-            form['m_ScriptManager'] = "m_ScriptManager|Menu_AJAX"
+            eventtarget = "Menu_AJAX"
+            scriptmanager = "m_ScriptManager|Menu_AJAX"
         else:
             # New website
-            form['__EVENTTARGET'] = "MM$m_PostBack"
-            form['m_ScriptManager'] = "MM$m_UpdatePanel|MM$m_PostBack"
+            eventtarget = "MM$m_PostBack"
+            scriptmanager = "MM$m_UpdatePanel|MM$m_PostBack"
 
-        fix_form(form)
+        self.submit_form(form, eventargument, eventtarget, scriptmanager)
 
-        form.submit()
+    def go_cards(self):
+        form = self.get_form(id='main')
+        eventargument = ""
+
+        if "MM$m_CH$IsMsgInit" in form:
+            # Old website
+            eventtarget = "Menu_AJAX"
+            eventargument = "HISENCB0"
+            scriptmanager = "m_ScriptManager|Menu_AJAX"
+        else:
+            # New website
+            eventtarget = "MM$SYNTHESE$btnSyntheseCarte"
+            scriptmanager = "MM$m_UpdatePanel|MM$SYNTHESE$btnSyntheseCarte"
+
+        self.submit_form(form, eventargument, eventtarget, scriptmanager)
+
+    # only for old website
+    def go_card_coming(self, eventargument):
+        form = self.get_form(id='main')
+        eventtarget = "MM$HISTORIQUE_CB"
+        scriptmanager = "m_ScriptManager|Menu_AJAX"
+        self.submit_form(form, eventargument, eventtarget, scriptmanager)
+
+    # only for new website
+    def go_coming(self, eventargument):
+        form = self.get_form(id='main')
+        eventtarget = "MM$HISTORIQUE_CB"
+        scriptmanager = "MM$m_UpdatePanel|MM$HISTORIQUE_CB"
+        self.submit_form(form, eventargument, eventtarget, scriptmanager)
 
     # On some pages, navigate to indexPage does not lead to the list of measures, so we need this form ...
     def go_measure_list(self):
@@ -679,7 +725,11 @@ class IndexPage(LoggedPage, HTMLPage):
                 continue
             if 'tot dif' in t.raw.lower():
                 t._link = Link(tr.xpath('./td/a'))(self.doc)
-                t.deleted = True
+
+            # "Cb" for new site, "CB" for old one
+            mtc = re.match(r'(Cb|CB) (\d{4}\*+\d{6}) ', raw)
+            if mtc is not None:
+                t.card = mtc.group(2)
 
             t.set_amount(credit, debit)
             yield t
@@ -784,6 +834,137 @@ class IndexPage(LoggedPage, HTMLPage):
 
     def is_transfer_allowed(self):
         return not self.doc.xpath('//ul/li[contains(text(), "Aucun compte tiers n\'est disponible")]')
+
+
+class CardsPage(IndexPage):
+    def is_here(self):
+        return CleanText('//h3[normalize-space(text())="Mes cartes (cartes dont je suis le titulaire)"]')(self.doc)
+
+    @method
+    class iter_cards(TableElement):
+        head_xpath = '//table[@class="cartes"]/tbody/tr/th'
+
+        col_label = 'Carte'
+        col_number = 'N°'
+        col_parent = 'Compte dépot associé'
+        col_coming = 'Encours'
+
+        item_xpath = '//table[@class="cartes"]/tbody/tr[not(th)]'
+
+        class item(ItemElement):
+            klass = Account
+
+            obj_type = Account.TYPE_CARD
+            obj_label = Format('%s %s', CleanText(TableCell('label')), Field('id'))
+            obj_number = CleanText(TableCell('number'))
+            obj_id = CleanText(TableCell('number'), replace=[('*', 'X')])
+            obj__parent_id = CleanText(TableCell('parent'))
+            obj_balance = 0
+            obj_currency = Currency(TableCell('coming'))
+
+            def obj_coming(self):
+                if CleanText(TableCell('coming'))(self) == '-':
+                    raise SkipItem('immediate debit card?')
+                return CleanDecimal.French(TableCell('coming'), sign=lambda x: -1)(self)
+
+
+class CardsComingPage(IndexPage):
+    def is_here(self):
+        return CleanText('//h2[text()="Encours de carte à débit différé"]')(self.doc)
+
+    def get_card_coming_info(self, number, info):
+
+        # If the xpath match, that mean there are only one card
+        # We have enought information in `info` to get its coming transaction
+        if CleanText('//tr[@id="MM_HISTORIQUE_CB_rptMois0_ctl01_trItem"]')(self.doc):
+            return info
+
+        # If the xpath match, that mean there are at least 2 cards
+        xpath = '//tr[@id="MM_HISTORIQUE_CB_rptMois0_trItem_0"]'
+
+        # In case of multiple card, first card coming's transactions are reachable
+        # with information in `info`.
+        if Regexp(CleanText(xpath), r'(\d{6}\*{6}\d{4})')(self.doc) == number:
+            return info
+
+        # For all card except the first one for the same check account, we have to get info through their href info
+        link = CleanText(Attr('//a[contains(text(),"%s")]' % number, 'href'))(self.doc)
+        infos = re.match(r'.*(DETAIL_OP_M0&[^\"]+).*', link)
+        info['link'] = infos.group(1)
+
+        return info
+
+
+class CardsOldWebsitePage(IndexPage):
+    def is_here(self):
+        return CleanText('//span[@id="MM_m_CH_lblTitle" and contains(text(), "Historique de vos encours CB")]')(self.doc)
+
+    def get_account(self):
+        infos = CleanText('.//span[@id="MM_HISTORIQUE_CB"]/table[position()=1]//td')(self.doc)
+        result = re.search(r'.*(\d{11}).*', infos)
+        return result.group(1)
+
+    def get_date(self):
+        title = CleanText('//span[@id="MM_HISTORIQUE_CB_m_TableTitle3_lblTitle"]')(self.doc)
+        title_date = re.match('.*le (.*) sur .*', title)
+        return Date(dayfirst=True).filter(title_date.group(1))
+
+    @method
+    class iter_cards(TableElement):
+        head_xpath = '//table[@id="MM_HISTORIQUE_CB_m_ExDGOpeM0"]//tr[@class="DataGridHeader"]/td'
+        item_xpath = '//table[@id="MM_HISTORIQUE_CB_m_ExDGOpeM0"]//tr[not(contains(@class, "DataGridHeader")) and position() < last()]'
+
+        col_label = 'Libellé'
+        col_coming = 'Solde'
+
+        class item(ItemElement):
+            klass = Account
+
+            obj_type = Account.TYPE_CARD
+            obj_label = Format('%s %s', CleanText(TableCell('label')), CleanText(Field('number')))
+            obj_balance = 0
+            obj_coming = CleanDecimal.French(TableCell('coming'))
+            obj_currency = Currency(TableCell('coming'))
+
+            def obj__parent_id(self):
+                return self.page.get_account()
+
+            def obj_number(self):
+                return CleanText(TableCell('number'))(self).replace('*', 'X')
+
+            def obj_id(self):
+                number = Field('number')(self).replace('X', '')
+                account_id = '%s-%s' % (self.obj__parent_id(), number)
+                return account_id
+
+            def obj__coming_eventargument(self):
+                url = Attr('.//a', 'href')(self)
+                res = re.match(r'.*(DETAIL_OP_M0\&.*;\d{8})", .*', url)
+                return res.group(1)
+
+        def parse(self, obj):
+            # There are no thead name for this column.
+            self._cols['number'] = 3
+
+    @method
+    class iter_coming(TableElement):
+        head_xpath = '//table[@id="MM_HISTORIQUE_CB_m_ExDGDetailOpe"]//tr[@class="DataGridHeader"]/td'
+        item_xpath = '//table[@id="MM_HISTORIQUE_CB_m_ExDGDetailOpe"]//tr[not(contains(@class, "DataGridHeader"))]'
+
+        col_label = 'Libellé'
+        col_coming = 'Débit'
+        col_date = 'Date'
+
+        class item(ItemElement):
+            klass = Transaction
+
+            obj_type = Transaction.TYPE_DEFERRED_CARD
+            obj_label = CleanText(TableCell('label'))
+            obj_amount = CleanDecimal.French(TableCell('coming'))
+            obj_rdate = Date(CleanText(TableCell('date')), dayfirst=True)
+
+            def obj_date(self):
+                return self.page.get_date()
 
 
 class ConsLoanPage(JsonPage):
@@ -992,7 +1173,9 @@ class MyRecipients(ListElement):
                 # TODO use after 'I'?
                 _id = Regexp(CleanText('.'), r'- (\w+\d\w+)')(self) # at least one digit
                 accounts = list(self.page.browser.get_accounts_list()) + list(self.page.browser.get_loans_list())
-                match = [acc for acc in accounts if _id in acc.id]
+                # If it's an internal account, we should always find only one account with _id in it's id.
+                # Type card account contains their parent account id, and should not be listed in recipient account.
+                match = [acc for acc in accounts if _id in acc.id and acc.type != Account.TYPE_CARD]
                 assert len(match) == 1
                 match = match[0]
                 self.env['id'] = match.id
