@@ -18,18 +18,15 @@
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bank import CapBankPockets, AccountNotFound
-from weboob.tools.backend import Module, BackendConfig
+from weboob.tools.backend import AbstractModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword
-from weboob.capabilities.base import find_object
-
-from .browser import PradoBrowser
+from weboob.capabilities.bank import CapBankPockets
 
 
 __all__ = ['PradoepargneModule']
 
 
-class PradoepargneModule(Module, CapBankPockets):
+class PradoepargneModule(AbstractModule, CapBankPockets):
     NAME = 'pradoepargne'
     DESCRIPTION = u'Prado Épargne Salariale'
     MAINTAINER = u'Edouard Lambert'
@@ -40,26 +37,4 @@ class PradoepargneModule(Module, CapBankPockets):
             ValueBackendPassword('login',    label='Identifiant', masked=False),
             ValueBackendPassword('password', label='Mot de passe'))
 
-    BROWSER = PradoBrowser
-
-    def create_default_browser(self):
-        return self.create_browser("https://www.gestion-epargne-salariale.fr",
-                                   "pradoepargne/",
-                                   self.config['login'].get(),
-                                   self.config['password'].get(),
-                                   weboob=self.weboob)
-
-    def get_account(self, _id):
-        return find_object(self.browser.iter_accounts(), id=_id, error=AccountNotFound)
-
-    def iter_accounts(self):
-        return self.browser.iter_accounts()
-
-    def iter_history(self, account):
-        return self.browser.iter_history(account)
-
-    def iter_investment(self, account):
-        return self.browser.iter_investment(account)
-
-    def iter_pocket(self, account):
-        return self.browser.iter_pocket(account)
+    PARENT = 'humanis'
