@@ -1,4 +1,4 @@
-<%inherit file="layout.py"/>
+<%inherit file="layout.pyt"/>
 from weboob.browser import ${'LoginBrowser, need_login' if r.login else 'PagesBrowser'}, URL
 
 from .pages import Page1, Page2

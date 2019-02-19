@@ -1,4 +1,4 @@
-<%inherit file="layout.py"/>
+<%inherit file="layout.pyt"/>
 from weboob.tools.capabilities.gallery.genericcomicreadertest import GenericComicReaderTest
 
 

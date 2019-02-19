@@ -1,4 +1,4 @@
-<%inherit file="layout.py"/>
+<%inherit file="layout.pyt"/>
 from .module import ${r.classname}Module
 
 

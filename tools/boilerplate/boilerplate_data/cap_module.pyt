@@ -1,4 +1,4 @@
-<%inherit file="layout.py"/>
+<%inherit file="layout.pyt"/>
 from weboob.tools.backend import Module${', BackendConfig' if r.login else ''}
 % if login:
 from weboob.tools.value import Value, ValueBackendPassword

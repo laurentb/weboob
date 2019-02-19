@@ -1,4 +1,4 @@
-<%inherit file="layout.py"/>
+<%inherit file="layout.pyt"/>
 from weboob.tools.backend import Module
 
 from .browser import ${r.classname}Browser

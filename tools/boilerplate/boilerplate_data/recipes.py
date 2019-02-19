@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2013      Laurent Bachelier
+# Copyright(C) 2013-2019      Laurent Bachelier, Sébastien Jean
 #
 # This file is part of weboob.
 #
@@ -20,82 +20,13 @@
 
 from __future__ import print_function
 
-import argparse
-import subprocess
-import datetime
 import importlib
-import os
 import sys
-import codecs
-from mako.lookup import TemplateLookup
 
-MODULE_PATH = os.getenv(
-    'MODULE_PATH',
-    os.path.realpath(os.path.join(os.path.dirname(__file__), '../modules')))
-TEMPLATE_PATH = os.getenv(
-    'TEMPLATE_PATH',
-    os.path.realpath(os.path.join(os.path.dirname(__file__), 'boilerplate_data')))
-VERSION = '1.5'
-
-TEMPLATES = TemplateLookup(directories=[TEMPLATE_PATH])
+from recipe import _Recipe
 
 
-def u8(s):
-    if isinstance(s, bytes):
-        return s.decode('utf-8')
-    return s
-
-
-def gitconfig(entry):
-    return u8(subprocess.check_output('git config -z --get %s' % entry, shell=True)[:-1])
-
-
-def write(target, contents):
-    if not os.path.isdir(os.path.dirname(target)):
-        os.makedirs(os.path.dirname(target))
-    if os.path.exists(target):
-        print("%s already exists." % target, file=sys.stderr)
-        sys.exit(4)
-    with codecs.open(target, mode='w', encoding='utf-8') as f:
-        f.write(contents)
-    print('Created %s' % target)
-
-
-class Recipe(object):
-    @classmethod
-    def configure_subparser(cls, subparsers):
-        subparser = subparsers.add_parser(cls.NAME)
-        subparser.add_argument('name', help='Module name')
-        subparser.set_defaults(recipe=cls)
-        return subparser
-
-    def __init__(self, args):
-        self.name = args.name.lower().replace(' ', '')
-        self.classname = args.name.title().replace(' ', '')
-        self.year = datetime.date.today().year
-        self.author = args.author
-        self.email = args.email
-        self.version = VERSION
-        self.login = False
-
-    def write(self, filename, contents):
-        return write(os.path.join(MODULE_PATH, self.name, filename), contents)
-
-    def template(self, name, **kwargs):
-        if '.' not in name:
-            name += '.py'
-        return TEMPLATES.get_template(name) \
-            .render(r=self,
-                    # workaround, as it's also a mako directive
-                    coding='# -*- coding: utf-8 -*-',
-                    login=self.login,
-                    **kwargs)
-
-    def generate(self):
-        raise NotImplementedError()
-
-
-class BaseRecipe(Recipe):
+class BaseRecipe(_Recipe):
     NAME = 'base'
 
     def generate(self):
@@ -106,7 +37,7 @@ class BaseRecipe(Recipe):
         self.write('test.py', self.template('base_test'))
 
 
-class CapRecipe(Recipe):
+class CapRecipe(_Recipe):
     NAME = 'cap'
 
     def __init__(self, args):
@@ -185,7 +116,7 @@ class CapRecipe(Recipe):
         self.write('test.py', self.template('base_test'))
 
 
-class ComicRecipe(Recipe):
+class ComicRecipe(_Recipe):
     NAME = 'comic'
 
     def generate(self):
@@ -193,7 +124,7 @@ class ComicRecipe(Recipe):
         self.write('module.py', self.template('comic_module'))
 
 
-class ComicTestRecipe(Recipe):
+class ComicTestRecipe(_Recipe):
     NAME = 'comic.test'
 
     @classmethod
@@ -208,26 +139,3 @@ class ComicTestRecipe(Recipe):
 
     def generate(self):
         self.write('test.py', self.template('comic_test'))
-
-
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '-a', '--author',
-        default=gitconfig('user.name'), type=u8)
-    parser.add_argument(
-        '-e', '--email',
-        default=gitconfig('user.email'), type=u8)
-    subparsers = parser.add_subparsers()
-
-    recipes = [BaseRecipe, ComicRecipe, ComicTestRecipe, CapRecipe]
-    for recipe in recipes:
-        recipe.configure_subparser(subparsers)
-
-    args = parser.parse_args()
-
-    recipe = args.recipe(args)
-    recipe.generate()
-
-if __name__ == '__main__':
-    main()
