@@ -50,7 +50,7 @@ class AmundiBrowser(LoginBrowser):
                              .iter_accounts())
 
     @need_login
-    def iter_investments(self, account):
+    def iter_investment(self, account):
         return (self.accounts.go(headers={'X-noee-authorization': ('noeprd %s' % self.token)})
                              .iter_investments(account_id=account.id))
 

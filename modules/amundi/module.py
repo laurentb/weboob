@@ -53,7 +53,7 @@ class AmundiModule(Module, CapBankWealth):
         return self.browser.iter_accounts()
 
     def iter_investment(self, account):
-        for inv in self.browser.iter_investments(account):
+        for inv in self.browser.iter_investment(account):
             if inv.valuation != 0:
                 yield inv
 
