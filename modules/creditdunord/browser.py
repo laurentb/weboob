@@ -118,8 +118,9 @@ class CreditDuNordBrowser(LoginBrowser):
         link = self.page.iban_go()
 
         for a in [a for a in accounts if a._acc_nb]:
-            self.location(link + a._acc_nb)
-            a.iban = self.page.get_iban()
+            if a.type != Account.TYPE_CARD:
+                self.location(link + a._acc_nb)
+                a.iban = self.page.get_iban()
 
         return accounts
 
