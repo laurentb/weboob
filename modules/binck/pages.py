@@ -64,7 +64,7 @@ class HomePage(LoggedPage, HTMLPage):
 
 class ChangePassPage(LoggedPage, HTMLPage):
     def on_load(self):
-        message = CleanText('//h3')(self.doc)
+        message = CleanText('//h3')(self.doc) or CleanText('//h1')(self.doc)
         raise BrowserPasswordExpired(message)
 
 
