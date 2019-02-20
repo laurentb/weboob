@@ -389,7 +389,7 @@ class RecipientsPage(BNPPage):
 
         class item(MyRecipient):
             # For the moment, only yield ready to transfer on recipients.
-            condition = lambda self: Dict('libelleStatut')(self.el) in [u'Activé', u'Temporisé']
+            condition = lambda self: Dict('libelleStatut')(self.el) in [u'Activé', u'Temporisé', u'En attente']
 
             obj_id = Dict('idBeneficiaire')
             obj_label = Dict('nomBeneficiaire')
