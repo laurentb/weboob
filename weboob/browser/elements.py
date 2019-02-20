@@ -40,6 +40,41 @@ from .filters.html import AttributeNotFound, XPathNotFound
 __all__ = ['DataError', 'AbstractElement', 'ListElement', 'ItemElement', 'TableElement', 'SkipItem']
 
 
+def generate_table_element(doc, head_xpath, cleaner=CleanText):
+    """
+    Prints generated base code for TableElement/TableCell usage.
+    It is intended for development purposes, typically in weboob-debug.
+    :param doc: lxml tree of the page (e.g. browser.page.doc)
+    :param head_xpath: xpath of header columns (e.g. //table//th)
+    :type head_xpath: str
+    :param cleaner: cleaner class (Filter)
+    :type cleaner: Filter
+    """
+    from unidecode import unidecode
+    indent = 4
+    headers = doc.xpath(head_xpath)
+    cols = dict()
+    for el in headers:
+        th = cleaner.clean(el)
+        cols.update({re.sub('[^a-zA-Z]', '_', unidecode(th)).lower(): th})
+
+    print(' ' * indent + '@method')
+    print(' ' * indent + 'class get_items(TableElement):')
+    if cleaner is not CleanText:
+        print(' ' * indent * 2 + 'cleaner = %s' % cleaner.__name__)
+    print(' ' * indent * 2 + 'head_xpath = ' + repr(head_xpath))
+    print(' ' * indent * 2 + 'item_xpath = ' + repr('...') + '\n')
+
+    for col, name in cols.items():
+        print(' ' * indent * 2 + 'col_' + col + ' = ' + repr(name))
+
+    print('\n' + ' ' * indent * 2 + 'class item(ItemElement):')
+    print(' ' * indent * 3 + 'klass = BaseObject' + '\n')
+
+    for col in cols:
+        print(' ' * indent * 3 + 'obj_' + col + ' = ' + "TableCell('%s') & CleanText()" % col)
+
+
 class DataError(Exception):
     """
     Returned data from pages are incoherent.

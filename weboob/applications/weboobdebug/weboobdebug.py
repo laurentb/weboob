@@ -22,6 +22,7 @@ from __future__ import print_function
 from optparse import OptionGroup
 
 from weboob.tools.application.base import Application
+from weboob.browser.elements import generate_table_element
 
 
 class WeboobDebug(Application):
@@ -57,7 +58,9 @@ class WeboobDebug(Application):
             print(u'Unable to load backend "%s"' % backend_name, file=self.stderr)
             return 1
 
-        locs = dict(backend=backend, browser=backend.browser, application=self, weboob=self.weboob)
+        locs = dict(backend=backend, browser=backend.browser,
+                    application=self, weboob=self.weboob,
+                    generate_table_element=generate_table_element)
         banner = 'Weboob debug shell\nBackend "%s" loaded.\nAvailable variables:\n' % backend_name \
                  + '\n'.join(['  %s: %s' % (k, v) for k, v in locs.items()])
 
