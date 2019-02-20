@@ -42,8 +42,7 @@ class CmesBrowser(LoginBrowser):
                   '(?P<subsite>.*)fr/.*GoOperationDetails', HistoryPage)
     custom_page = URL('/fr/espace/personnel/index.html', CustomPage)
 
-
-    def __init__(self, website, username, password, subsite="", *args, **kwargs):
+    def __init__(self, username, password, website, subsite="", *args, **kwargs):
         super(LoginBrowser, self).__init__(*args, **kwargs)
         self.BASEURL = website
         self.username = username
