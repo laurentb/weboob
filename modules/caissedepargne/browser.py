@@ -715,6 +715,8 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     def init_transfer(self, account, recipient, transfer):
         self.pre_transfer(account)
         self.page.init_transfer(account, recipient, transfer)
+        if self.sms_option.is_here():
+            raise NotImplementedError()
         self.page.continue_transfer(account.label, recipient, transfer.label)
         return self.page.create_transfer(account, recipient, transfer)
 
