@@ -173,12 +173,14 @@ class LabelsPage(LoggedPage, JsonPage):
 
     def get_labels(self):
         synthesis_labels = ["Synthèse"]
-        loan_labels = ["Crédits en cours", "Crédits perso et immo", "Crédits"]
-        for element in Dict('donnees/1/submenu')(self.doc):
-            if CleanText(Dict('label'))(element) in synthesis_labels:
-                synthesis_label = CleanText(Dict('link'))(element).split("/")[-1]
-            if CleanText(Dict('label'))(element) in loan_labels:
-                loan_label  = CleanText(Dict('link'))(element).split("/")[-1]
+        loan_labels = ["Crédits en cours", "Crédits perso et immo", "Crédits", "Crédits Personnels et immobiliers"]
+        keys = [key for key in Dict('donnees')(self.doc) if key.get('label') in ['Crédits', 'Comptes et cartes']]
+        for key in keys:
+            for element in Dict('submenu')(key):
+                if CleanText(Dict('label'))(element) in synthesis_labels:
+                    synthesis_label = CleanText(Dict('link'))(element).split("/")[-1]
+                if CleanText(Dict('label'))(element) in loan_labels:
+                    loan_label  = CleanText(Dict('link'))(element).split("/")[-1]
         return (synthesis_label, loan_label)
 
 
