@@ -42,7 +42,7 @@ class EdfModule(Module, CapDocument, CapProfile):
                            ValueBackendPassword('password', label='Mot de passe'),
                            Value('website', label='Type de compte', default='par',
                                  choices={'par': 'Particulier', 'pro': 'Entreprise'}),
-                           Value('captcha_response', label='Reponse Captcha', required=False, default=''))
+                           Value('otp', label='Entrez le code reçu par SMS', required=False))
 
     accepted_document_types = (DocumentTypes.BILL,)
 

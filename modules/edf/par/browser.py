@@ -20,13 +20,13 @@
 
 from time import time
 
-from weboob.browser import LoginBrowser, URL, need_login
-from weboob.browser.exceptions import ClientError
-from weboob.exceptions import BrowserIncorrectPassword, NocaptchaQuestion
+from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
+from weboob.exceptions import BrowserIncorrectPassword, BrowserQuestion
 from weboob.tools.decorators import retry
 from weboob.tools.json import json
+from weboob.tools.value import Value
 from .pages import (
-    HomePage, AuthenticatePage, AuthorizePage, CheckAuthenticatePage, ProfilPage,
+    HomePage, AuthenticatePage, AuthorizePage, WrongPasswordPage, CheckAuthenticatePage, ProfilPage,
     DocumentsPage, WelcomePage, UnLoggedPage, ProfilePage, BillDownload,
 )
 
@@ -35,13 +35,15 @@ class BrokenPageError(Exception):
     pass
 
 
-class EdfBrowser(LoginBrowser):
+class EdfBrowser(LoginBrowser, StatesMixin):
     BASEURL = 'https://particulier.edf.fr'
 
     home = URL('/fr/accueil/contrat-et-conso/mon-compte-edf.html', HomePage)
     authenticate = URL(r'https://espace-client.edf.fr/sso/json/authenticate', AuthenticatePage)
     authorize = URL(r'https://espace-client.edf.fr/sso/oauth2/INTERNET/authorize', AuthorizePage)
+    wrong_password = URL(r'https://espace-client.edf.fr/connexion/mon-espace-client/templates/openam/authn/PasswordAuth2.html', WrongPasswordPage)
     check_authenticate = URL('/services/rest/openid/checkAuthenticate', CheckAuthenticatePage)
+    user_status = URL('/services/rest/checkuserstatus/getUserStatus')
     not_connected = URL('/fr/accueil/connexion/mon-espace-client.html', UnLoggedPage)
     connected = URL('/fr/accueil/espace-client/tableau-de-bord.html', WelcomePage)
     profil = URL('/services/rest/authenticate/getListContracts', ProfilPage)
@@ -54,52 +56,96 @@ class EdfBrowser(LoginBrowser):
                         r'&di=(?P<di>.*)&bn=(?P<bn>.*)&an=(?P<an>.*)', BillDownload)
     profile = URL('/services/rest/context/getCustomerContext', ProfilePage)
 
+    __states__ = ['id_token1']
+
     def __init__(self, config, *args, **kwargs):
         self.config = config
-        self.authId = None
+        self.otp_data = None
+        self.otp_url = None
+        self.id_token1 = None
         kwargs['username'] = self.config['login'].get()
         kwargs['password'] = self.config['password'].get()
         super(EdfBrowser, self).__init__(*args, **kwargs)
 
+    def locate_browser(self, state):
+        pass
+
     def do_login(self):
+        # ********** admire how login works on edf par website **********
+        # login part on edf particulier website is very tricky
+        # FIRST time we connect we have an otp, BUT not password, we can't know if it is wrong at this moment
+        # SECOND time we use password, and not otp
         auth_params = {'realm': '/INTERNET'}
-        if self.config['captcha_response'].get() and self.authId:
+
+        if self.config['otp'].get():
+            self.otp_data['callbacks'][0]['input'][0]['value'] = self.config['otp'].get()
+            self.authenticate.go(json=self.otp_data, params=auth_params)
+            self.id_token1 = self.page.get_data()['callbacks'][1]['output'][0]['value']
+            # id_token1 is VERY important, we keep it indefinitely, without it edf will ask again otp
+        else:
+            self.location('/bin/edf_rc/servlets/sasServlet', params={'processus': 'TDB'})
+            if self.connected.is_here():
+                # we are already logged
+                # sometimes even if password is wrong, you can be logged if you retry
+                self.logger.info('already logged')
+                return
+
+            self.otp_url = self.url
             self.authenticate.go(method='POST', params=auth_params)
             data = self.page.get_data()
-            data['authId'] = self.authId
             data['callbacks'][0]['input'][0]['value'] = self.username
-            data['callbacks'][1]['input'][0]['value'] = self.password
-            data['callbacks'][2]['input'][0]['value'] = self.config['captcha_response'].get()
-            data['callbacks'][3]['input'][0]['value'] = '0'
 
-            try:
-                self.authenticate.go(json=data, params=auth_params)
-            except ClientError as error:
-                resp = error.response
-                if resp.status_code == 401:
-                    raise BrowserIncorrectPassword(resp.json()['message'])
-                raise
+            self.authenticate.go(json=data, params=auth_params)
+            data = self.page.get_data()  # yes, we have to get response and send it again, beautiful isn't it ?
+            if data['stage'] == 'UsernameAuth2':
+                # username is wrong
+                raise BrowserIncorrectPassword(data['callbacks'][1]['output'][0]['value'])
 
-            self.session.cookies['ivoiream'] = self.page.get_data()['tokenId']
+            if self.id_token1:
+                data['callbacks'][0]['input'][0]['value'] = self.id_token1
+            else:
+                # the FIRST time we connect, we don't have id_token1, we have no choice, we'll receive an otp
+                data['callbacks'][0]['input'][0]['value'] = ' '
 
-            # go to this url will auto submit a form which will finalize login
-            self.connected.go()
+            self.authenticate.go(json=data, params=auth_params)
+            data = self.page.get_data()
 
-            """
-            call check_authenticate url before get subscription in profil, or we'll get an error 'invalid session'
-            we do nothing with this response (which contains false btw)
-            but edf website expect we call it before or will reject us
-            """
-            self.check_authenticate.go()
-        else:
-            self.authenticate.go(method='POST', params=auth_params)
-            if self.page.has_captcha_request():
-                data = self.page.get_data()
-                website_key = data['callbacks'][4]['output'][0]['value']
-                website_url = "https://espace-client.edf.fr/sso/XUI/#login/&realm=%2FINTERNET"
-                self.authId = data['authId']
+            assert data['stage'] in ('HOTPcust3', 'PasswordAuth2'), 'stage is %s' % data['stage']
 
-                raise NocaptchaQuestion(website_key=website_key, website_url=website_url)
+            if data['stage'] == 'HOTPcust3':  # OTP part
+                if self.id_token1:
+                    # this shouldn't happen except if id_token1 expire one day, who knows...
+                    self.logger.warning('id_token1 is not null but edf ask again for otp')
+
+                # a legend say this url is the answer to life the universe and everything, because it is use EVERYWHERE in login
+                self.authenticate.go(json=self.page.get_data(), params=auth_params)
+                self.otp_data = self.page.get_data()
+                label = self.otp_data['callbacks'][0]['output'][0]['value']
+                raise BrowserQuestion(Value('otp', label=label))
+
+            if data['stage'] == 'PasswordAuth2':  # password part
+                data['callbacks'][0]['input'][0]['value'] = self.password
+                self.authenticate.go(json=self.page.get_data(), params=auth_params)
+
+                # should be SetPasAuth2 if password is ok
+                if self.page.get_data()['stage'] == 'PasswordAuth2':
+                    attempt_number = self.page.get_data()['callbacks'][1]['output'][0]['value']
+                    # attempt_number is the number of wrong password
+                    msg = self.wrong_password.go().get_wrongpass_message(attempt_number)
+                    raise BrowserIncorrectPassword(msg)
+
+        data = self.page.get_data()
+        # yes, send previous data again, i know i know
+        self.authenticate.go(json=data, params=auth_params)
+        self.session.cookies['ivoiream'] = self.page.get_token()
+        self.user_status.go()
+
+        """
+        call check_authenticate url before get subscription in profil, or we'll get an error 'invalid session'
+        we do nothing with this response (which contains false btw)
+        but edf website expect we call it before or will reject us
+        """
+        self.check_authenticate.go()
 
     def get_csrf_token(self):
         return self.csrf_token.go(timestamp=int(time())).get_token()

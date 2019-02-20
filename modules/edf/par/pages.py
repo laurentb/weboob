@@ -24,7 +24,7 @@ from decimal import Decimal
 
 from weboob.browser.filters.html import Attr
 from weboob.browser.pages import LoggedPage, JsonPage, HTMLPage, RawPage
-from weboob.browser.filters.standard import Env, Format, Date, Eval
+from weboob.browser.filters.standard import Env, Format, Date, Eval, CleanText, Regexp
 from weboob.browser.elements import ItemElement, DictElement, method
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.bill import DocumentTypes, Bill, Subscription
@@ -43,11 +43,28 @@ class AuthenticatePage(JsonPage):
     def get_data(self):
         return self.doc
 
+    def get_token(self):
+        return self.doc['tokenId']
+
 
 class AuthorizePage(HTMLPage):
     def on_load(self):
         if Attr('//body', 'onload', default=NotAvailable)(self.doc):
             self.get_form().submit()
+
+
+class WrongPasswordPage(HTMLPage):
+    def get_wrongpass_message(self, attempt_number):
+        # edf website block access after 5 wrong password, and user will have to change his password
+        # this is very important because it can tell to user how much attempt it remains
+        script = CleanText('//script[contains(text(), "Mot de passe incorrect")]')
+
+        if attempt_number > 0:
+            return Format('%s %s %s',
+                          Regexp(script, r">(Mot de passe incorrect.*?)<"),
+                          CleanText('//div[@class="arrow_box--content"]', children=False), int(attempt_number))(self.doc)
+        return Regexp(script, r">(Vous avez atteint.*?)<")(self.doc)
+
 
 
 class WelcomePage(LoggedPage, HTMLPage):
@@ -62,7 +79,11 @@ class UnLoggedPage(HTMLPage):
     pass
 
 
-class ProfilPage(LoggedPage, JsonPage):
+class ProfilPage(JsonPage):
+    @property
+    def logged(self):
+        return self.doc['errorCode'] == 0
+
     @method
     class iter_subscriptions(DictElement):
         item_xpath = 'customerAccordContracts'
