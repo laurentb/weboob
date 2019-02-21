@@ -82,7 +82,8 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
     login = URL('/securityapi/tokens',
                 '/auth/checkuser', LoginPage)
     logout = URL('/securityapi/revoke',
-                 '/auth/errorauthn', LogoutPage)
+                 '/auth/errorauthn',
+                 '/\/auth/errorauthn', LogoutPage)
     infos = URL('/comptes/', InfosPage)
     accounts = URL('/domiapi/oauth/json/accounts/synthese(?P<type>.*)', AccountsPage)
     history = URL('/domiapi/oauth/json/accounts/(?P<page>.*)', HistoryPage)
