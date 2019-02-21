@@ -687,9 +687,9 @@ class TransactionsPage(LoggedPage, CDNBasePage):
                 return "Sous-total" not in Field('label')(self)
 
     @method
-    class get_deposit_investment(TableElement):
+    class get_li_investments(TableElement):
         item_xpath = '//table[@class="datas"]//tr[position()>1]'
-        head_xpath = '//table[@class="datas"]//tr[@class="entete"]/td/b'
+        head_xpath = '//table[@class="datas"]//tr[@class="entete"]/td/*'
 
         col_label = u'Libellé'
         col_quantity = u'Quantité'
@@ -726,7 +726,7 @@ class TransactionsPage(LoggedPage, CDNBasePage):
 
     def fill_diff_currency(self, account):
         valuation_diff = CleanText(u'//td[span[contains(text(), "dont +/- value : ")]]//b', default=None)(self.doc)
-        account.balance = CleanDecimal.French(Regexp(CleanText('//table[@class="v1-formbloc"]//td[@class="v1-labels"]/b[contains(text(), "Estimation du contrat")]/ancestor::td/following-sibling::td[1]'), r'^(.+) EUR'))(self.doc)
+        account.balance = CleanDecimal.French(Regexp(CleanText('//table[@class="v1-formbloc"]//td[@class="v1-labels"]//b[contains(text(), "Estimation du contrat")]/ancestor::td/following-sibling::td[1]'), r'^(.+) EUR'))(self.doc)
         # NC == Non communiqué
         if valuation_diff and "NC" not in valuation_diff:
             account.valuation_diff = MyDecimal().filter(valuation_diff)

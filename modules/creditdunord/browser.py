@@ -165,11 +165,12 @@ class CreditDuNordBrowser(LoginBrowser):
             self.location(account._link, data=account._args)
             if self.page.can_iter_investments() and self.page.not_restrained():
                 return self.page.get_market_investment()
+
         elif account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_CAPITALISATION):
             self.location(account._link, data=account._args)
             self.location(account._link.replace("_attente", "_detail_contrat_rep"), data=account._args)
             if self.page.can_iter_investments():
-                return self.page.get_deposit_investment()
+                return self.page.get_li_investments()
         return []
 
     @need_login
