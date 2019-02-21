@@ -40,7 +40,10 @@ def MyDecimal(*args, **kwargs):
 
 class QuestionPage(HTMLPage):
     def on_load(self):
-        form = self.get_form('//form[@action="/FDL_Complex_FR_Compte/Introduction/SkipQuestionnaire"]')
+        if self.doc.xpath(u'//h1[contains(text(), "Questionnaires connaissance et expérience")]'):
+            form = self.get_form('//form[@action="/FsmaMandatoryQuestionnairesOverview/PostponeQuestionnaires"]')
+        else:
+            form = self.get_form('//form[@action="/FDL_Complex_FR_Compte/Introduction/SkipQuestionnaire"]')
         form.submit()
 
 
