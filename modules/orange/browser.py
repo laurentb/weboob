@@ -19,13 +19,16 @@
 
 from __future__ import unicode_literals
 
+from requests.exceptions import ConnectTimeout
+
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from .pages import LoginPage, BillsPage
 from .pages.bills import SubscriptionsPage, BillsApiPage, ContractsPage
 from .pages.profile import ProfilePage
 from weboob.browser.exceptions import ClientError, ServerError
 from weboob.tools.compat import basestring
+from weboob.tools.decorators import retry
 
 
 __all__ = ['OrangeBillBrowser']
@@ -80,9 +83,15 @@ class OrangeBillBrowser(LoginBrowser):
             sub.subscriber = name
             yield sub
 
+    @retry(BrowserUnavailable, tries=2, delay=10)
     @need_login
     def get_subscription_list(self):
-        profile = self.profile.go().get_profile()
+        try:
+            profile = self.profile.go().get_profile()
+        except ConnectTimeout:
+            # sometimes server just doesn't answer
+            raise BrowserUnavailable()
+
         # this only works when there are pro subs.
         nb_sub = 0
         try:
