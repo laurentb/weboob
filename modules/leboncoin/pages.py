@@ -74,9 +74,9 @@ class HomePage(HTMLPage):
     def __init__(self, *args, **kwargs):
         HTMLPage.__init__(self, *args, **kwargs)
 
-        add_content = CleanText('(//body/script)[3]', replace=[('window.FLUX_STATE = ', '')])(self.doc)
+        add_content = CleanText('(//body/script)[4]', replace=[('window.FLUX_STATE = ', '')])(self.doc)
 
-        api_content = CleanText('(//body/script)[2]', replace=[('window.APP_CONFIG = ', '')])(self.doc)
+        api_content = CleanText('(//body/script)[3]', replace=[('window.APP_CONFIG = ', '')])(self.doc)
 
         self.htmldoc = self.doc
         self.api_content = json.loads(api_content)
