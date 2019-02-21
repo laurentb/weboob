@@ -29,7 +29,7 @@ import re
 
 from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage
 from weboob.browser.elements import method, ItemElement, TableElement
-from weboob.browser.filters.standard import CleanText, Date, CleanDecimal, Regexp, Format, Field, Eval
+from weboob.browser.filters.standard import CleanText, Date, CleanDecimal, Regexp, Format, Field, Eval, Lower
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import Attr, TableCell
 from weboob.exceptions import ActionNeeded, BrowserIncorrectPassword, BrowserUnavailable, BrowserPasswordExpired
@@ -172,15 +172,15 @@ class LabelsPage(LoggedPage, JsonPage):
             raise ActionNeeded()
 
     def get_labels(self):
-        synthesis_labels = ["Synthèse"]
-        loan_labels = ["Crédits en cours", "Crédits perso et immo", "Crédits", "Crédits Personnels et immobiliers"]
-        keys = [key for key in Dict('donnees')(self.doc) if key.get('label') in ['Crédits', 'Comptes et cartes']]
+        synthesis_labels = ["synthèse"]
+        loan_labels = ["crédits en cours", "crédits perso et immo", "crédits", "crédits personnels et immobiliers"]
+        keys = [key for key in Dict('donnees')(self.doc) if key.get('label').lower() in ['crédits', 'comptes et cartes']]
         for key in keys:
             for element in Dict('submenu')(key):
-                if CleanText(Dict('label'))(element) in synthesis_labels:
+                if Lower(CleanText(Dict('label')))(element) in synthesis_labels:
                     synthesis_label = CleanText(Dict('link'))(element).split("/")[-1]
-                if CleanText(Dict('label'))(element) in loan_labels:
-                    loan_label = CleanText(Dict('link'))(element).split("/")[-1]
+                if CleanText(Dict('label'))(element).lower() in loan_labels:
+                    loan_label = Lower(CleanText(Dict('link')))(element).split("/")[-1]
         return (synthesis_label, loan_label)
 
 
