@@ -460,6 +460,9 @@ class Cragr(LoginBrowser, StatesMixin):
                 date_guesser = LinearDateGuesser(date_max_bump=timedelta(2))
             else:
                 date_guesser = LinearDateGuesser()
+            if self.predica_redirect.is_here():
+                self.logger.warning('Predica transactions are not handled.')
+                return
             self.page.order_transactions()
             while True:
                 assert self.transactions.is_here()
