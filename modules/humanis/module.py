@@ -43,10 +43,10 @@ class HumanisModule(Module, CapBankPockets):
 
     def create_default_browser(self):
         return self.create_browser(
-            'https://www.gestion-epargne-salariale.fr',
-            'humanis/',
             self.config['login'].get(),
             self.config['password'].get(),
+            'https://www.gestion-epargne-salariale.fr',
+            'humanis/',
             weboob=self.weboob
         )
 
