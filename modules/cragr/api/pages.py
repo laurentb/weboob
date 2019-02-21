@@ -27,6 +27,7 @@ import dateutil
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
 from weboob.exceptions import ActionNeeded
 from weboob.capabilities import NotAvailable
+from weboob.capabilities.base import empty
 from weboob.capabilities.bank import (
     Account, AccountOwnerType, Transaction, Investment,
 )
@@ -159,9 +160,13 @@ class AccountsPage(LoggedPage, JsonPage):
         return d.raw_decode(raw)[0]
 
     def count_spaces(self):
-        # The total number of spaces corresponds to the number
-        # of available space choices plus the one we are on now:
-        return len(self.html_doc.xpath('//div[@class="HubAccounts-content"]/a')) + 1
+        ''' The total number of spaces corresponds to the number
+        of available space choices plus the one we are on now.
+        Some professional connections have a very specific xpath
+        so we must look for nodes with 'idBamIndex' as well as
+        "HubAccounts-link--cael" otherwise there might be space duplicates.'''
+        return len(self.html_doc.xpath('//a[contains(@class, "HubAccounts-link--cael") and contains(@href, "idBamIndex=")]')) + 1
+
 
     def get_owner_type(self):
         OWNER_TYPES = {
@@ -185,7 +190,13 @@ class AccountsPage(LoggedPage, JsonPage):
         obj_id = CleanText(Dict('comptePrincipal/numeroCompte'))
         obj_number = CleanText(Dict('comptePrincipal/numeroCompte'))
         obj_label = CleanText(Dict('comptePrincipal/libelleProduit'))
-        obj_balance = Eval(float_to_decimal, Dict('comptePrincipal/solde'))
+
+        def obj_balance(self):
+            balance = Dict('comptePrincipal/solde', default=NotAvailable)(self)
+            if not empty(balance):
+                return Eval(float_to_decimal, balance)(self)
+            return NotAvailable
+
         obj_currency = CleanCurrency(Dict('comptePrincipal/idDevise'))
         obj__index = Dict('comptePrincipal/index')
         obj__category = Dict('comptePrincipal/grandeFamilleProduitCode', default=None)
@@ -204,7 +215,7 @@ class AccountsPage(LoggedPage, JsonPage):
         item_xpath = 'grandesFamilles/*/elementsContrats'
 
         class item(ItemElement):
-            IGNORED_ACCOUNTS = ("MES ASSURANCES",)
+            IGNORED_ACCOUNTS = ('MES ASSURANCES', 'VOS ASSURANCES',)
 
             klass = Account
 
@@ -253,7 +264,14 @@ class AccountDetailsPage(LoggedPage, JsonPage):
             # Insurances have no balance, we skip them
             if el.get('typeProduit') == 'assurance':
                 continue
-            value = el.get('solde', el.get('encoursActuel', el.get('valorisationContrat', el.get('montantRestantDu', el.get('capitalDisponible', el.get('montantUtilise'))))))
+            value = el.get('solde',
+                    el.get('encoursActuel',
+                    el.get('valorisationContrat',
+                    el.get('montantRestantDu',
+                    el.get('capitalDisponible',
+                    el.get('montantUtilise',
+                    el.get('montantPlafondAutorise')))))))
+
             if value is None:
                 continue
             account_balances[Dict('idElementContrat')(el)] = float_to_decimal(value)
@@ -343,7 +361,7 @@ class CardsPage(LoggedPage, JsonPage):
 
                 def condition(self):
                     assert CleanText(Dict('codeTypeDebitPaiementCarte'))(self) in ('D', 'I')
-                    return CleanText(Dict('codeTypeDebitPaiementCarte'))(self)=='D'
+                    return CleanText(Dict('codeTypeDebitPaiementCarte'))(self) == 'D'
 
                 obj_label = Format('Carte %s %s', Field('id'), CleanText(Dict('titulaire')))
                 obj_type = Account.TYPE_CARD

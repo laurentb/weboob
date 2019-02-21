@@ -27,7 +27,7 @@ from weboob.capabilities.bank import Account, Transaction, AccountNotFound, Reci
 from weboob.capabilities.base import empty, NotAvailable, strict_find_object
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, ActionNeeded
-from weboob.browser.exceptions import ServerError, BrowserHTTPNotFound
+from weboob.browser.exceptions import ServerError, ClientError, BrowserHTTPNotFound
 from weboob.capabilities.bank import Loan
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
@@ -206,6 +206,20 @@ class CragrAPI(LoginBrowser):
         return form
 
     @need_login
+    def check_space_connection(self, contract):
+        # Going to a specific space often returns a 500 error
+        # so we might have to retry several times.
+        try:
+            self.go_to_account_space(contract)
+        except ServerError:
+            self.logger.warning('Server returned error 500 when trying to access space %s, we try again' % contract)
+            try:
+                self.go_to_account_space(contract)
+            except ServerError:
+                return False
+        return True
+
+    @need_login
     def get_accounts_list(self):
         # Determine how many spaces are present on the connection:
         self.location(self.accounts_url)
@@ -221,19 +235,17 @@ class CragrAPI(LoginBrowser):
         deferred_cards = {}
 
         for contract in range(total_spaces):
-            # This request often returns a 500 error so we retry several times.
-            try:
-                self.go_to_account_space(contract)
-            except ServerError:
-                self.logger.warning('Server returned error 500 when trying to access space %s, we try again' % contract)
-                try:
-                    self.go_to_account_space(contract)
-                except ServerError:
-                    self.logger.warning('Server returned error 500 twice when trying to access space %s, this space will be skipped' % contract)
-                    continue
-
+            if not self.check_space_connection(contract):
+                self.logger.warning('Server returned error 500 twice when trying to access space %s, this space will be skipped' % contract)
+                continue
             # The main account is not located at the same place in the JSON.
             main_account = self.page.get_main_account()
+            if main_account.balance == NotAvailable:
+                self.check_space_connection(contract)
+                main_account = self.page.get_main_account()
+                if main_account.balance == NotAvailable:
+                    self.logger.warning('Could not fetch the balance for main account %s.' % main_account.id)
+
             main_account.owner_type = self.page.get_owner_type()
             main_account._contract = contract
 
@@ -301,16 +313,27 @@ class CragrAPI(LoginBrowser):
                     yield account
 
             # Fetch all deferred credit cards for this space
-            self.cards.go()
-            for card in self.page.iter_card_parents():
-                card.number = card.id
-                card.parent = all_accounts.get(card._parent_id, NotAvailable)
-                card.currency = card.parent.currency
-                card.owner_type = card.parent.owner_type
-                card._category = card.parent._category
-                card._contract = contract
-                if card.id not in deferred_cards:
-                    deferred_cards[card.id] = card
+            # Once again, this request tends to crash often.
+            try:
+                self.cards.go()
+            except ClientError:
+                self.logger.warning('Request to cards failed, we try again')
+                try:
+                    self.check_space_connection(contract)
+                    self.cards.go()
+                except ClientError:
+                    self.logger.warning('Request to cards failed twice, cards of this space will be skipped.')
+
+            if self.cards.is_here():
+                for card in self.page.iter_card_parents():
+                    card.number = card.id
+                    card.parent = all_accounts.get(card._parent_id, NotAvailable)
+                    card.currency = card.parent.currency
+                    card.owner_type = card.parent.owner_type
+                    card._category = card.parent._category
+                    card._contract = contract
+                    if card.id not in deferred_cards:
+                        deferred_cards[card.id] = card
 
         # We must check if cards are unique on their parent account;
         # if not, we cannot retrieve their summaries in iter_history.
