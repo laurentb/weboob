@@ -36,7 +36,7 @@ BOILERPLATE_PATH = os.getenv(
     'BOILERPLATE_PATH',
     os.path.realpath(os.path.join(os.path.dirname(__file__), 'boilerplate_data')))
 
-TEMPLATES = TemplateLookup(directories=[BOILERPLATE_PATH])
+TEMPLATES = TemplateLookup(directories=[BOILERPLATE_PATH], input_encoding='utf-8')
 
 
 def write(target, contents):
