@@ -327,11 +327,18 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
         except TransferError:
             return
 
+        # avoid recipient with same iban
+        seen = set()
         for recipient in self.page.transferable_on(origin_account_ibancrypte=origin_account_id):
-            yield recipient
+            if recipient.iban not in seen:
+                seen.add(recipient.iban)
+                yield recipient
+
         if self.page.can_transfer_to_recipients(origin_account_id):
             for recipient in self.recipients.go(data=JSON({'type': 'TOUS'})).iter_recipients():
-                yield recipient
+                if recipient.iban not in seen:
+                    seen.add(recipient.iban)
+                    yield recipient
 
     @need_login
     def new_recipient(self, recipient, **params):

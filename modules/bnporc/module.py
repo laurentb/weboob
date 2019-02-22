@@ -30,7 +30,7 @@ from weboob.capabilities.bank import (
 from weboob.capabilities.messages import CapMessages, Thread
 from weboob.capabilities.contact import CapContact
 from weboob.capabilities.profile import CapProfile
-from weboob.capabilities.base import find_object
+from weboob.capabilities.base import find_object, strict_find_object
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value, ValueBool
 
@@ -119,7 +119,9 @@ class BNPorcModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapMessag
         else:
             account = find_object(self.iter_accounts(), id=transfer.account_id, error=AccountNotFound)
 
-        recipient = find_object(self.iter_transfer_recipients(account.id), id=transfer.recipient_id, error=RecipientNotFound)
+        recipient = strict_find_object(self.iter_transfer_recipients(account.id), iban=transfer.recipient_iban)
+        if not recipient:
+            recipient = strict_find_object(self.iter_transfer_recipients(account.id), id=transfer.recipient_id, error=RecipientNotFound)
 
         assert account.id.isdigit()
         # quantize to show 2 decimals.
