@@ -29,7 +29,7 @@ class NaloBrowser(LoginBrowser):
     BASEURL = 'https://nalo.fr'
 
     login = URL(r'/api/v1/login', LoginPage)
-    accounts = URL(r'/api/v1/projects/mine/without_details', AccountsPage)
+    accounts = URL(r'/api/v1/projects/mine/without-details', AccountsPage)
     history = URL(r'/api/v1/projects/(?P<id>\d+)/history')
     account = URL(r'/api/v1/projects/(?P<id>\d+)', AccountPage)
     invests = URL(r'https://app.nalo.fr/scripts/data/data.json', InvestPage)
