@@ -27,7 +27,7 @@ from weboob.capabilities.bank import (
     Account, Recipient, Transfer, TransferBankError,
 )
 from weboob.browser.filters.standard import (
-    CleanDecimal, Env, Date, CleanText,
+    CleanDecimal, Date, CleanText,
 )
 from weboob.browser.filters.json import Dict
 
@@ -59,10 +59,12 @@ class RecipientsPage(LoggedPage, JsonPage):
 
     @method
     class iter_internal_recipient(DictElement):
+        def store(self, obj):
+            return obj
+
         class item(ItemElement):
             def condition(self):
-                return Dict('recipientOfTransfert', default=None)(self) and \
-                       Env('account_id')(self) != Dict('accountNumber', default=None)(self)
+                return Dict('accountNumber', default=None)(self)
 
             klass = Recipient
 
@@ -71,6 +73,7 @@ class RecipientsPage(LoggedPage, JsonPage):
             obj_iban = Dict('ibanCode')
             obj_category = 'Interne'
             obj_enabled_at = date.today()
+            obj__is_recipient = Dict('recipientOfTransfert', default=False)
 
     @method
     class iter_external_recipient(DictElement):

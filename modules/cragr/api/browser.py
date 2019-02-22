@@ -563,6 +563,10 @@ class CragrAPI(LoginBrowser):
 
     @need_login
     def iter_transfer_recipients(self, account, transfer_space_info=None):
+        if account.type in (account.TYPE_CARD, account.TYPE_LOAN, account.TYPE_LIFE_INSURANCE,
+                            account.TYPE_PEA, account.TYPE_CONSUMER_CREDIT, account.TYPE_REVOLVING_CREDIT, ):
+            return
+
         # avoid to call `get_account_transfer_space_info()` several time
         if transfer_space_info:
             space, operation, referer = transfer_space_info
@@ -574,12 +578,16 @@ class CragrAPI(LoginBrowser):
         if not self.page.is_sender_account(account.id):
             return
 
-        for index, internal_rcpt in enumerate(self.page.iter_internal_recipient(account_id=account.id)):
-            internal_rcpt._index = index
-            yield internal_rcpt
-
         # can't use 'ignore_duplicate' in DictElement because we need the 'index' to do transfer
         seen = set()
+        seen.add(account.iban)
+
+        for index, internal_rcpt in enumerate(self.page.iter_internal_recipient()):
+            internal_rcpt._index = index
+            if internal_rcpt._is_recipient and (internal_rcpt.iban not in seen):
+                seen.add(internal_rcpt.iban)
+                yield internal_rcpt
+
         for index, external_rcpt in enumerate(self.page.iter_external_recipient()):
             external_rcpt._index = index
             if external_rcpt.iban not in seen:
