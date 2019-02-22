@@ -535,12 +535,12 @@ class CragrAPI(LoginBrowser):
             advisor = self.page.get_advisor()
             self.profile_details.go()
             self.page.fill_advisor(obj=advisor)
-            return advisor
+            yield advisor
         elif owner_type == 'ORGA':
             advisor = self.page.get_advisor()
             self.pro_profile_details.go()
             self.page.fill_advisor(obj=advisor)
-            return advisor
+            yield advisor
 
     @need_login
     def get_profile(self):
