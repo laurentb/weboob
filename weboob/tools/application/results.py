@@ -100,8 +100,7 @@ class ResultsCondition(IResultsCondition):
 
     def is_valid(self, obj):
         import weboob.tools.date as date_utils
-        import re
-        from datetime import date, datetime, timedelta
+        from datetime import date, datetime
         d = obj.to_dict()
         # We evaluate all member of a list at each iteration.
         for _or in self.condition:
@@ -124,12 +123,6 @@ class ResultsCondition(IResultsCondition):
                                 splitted_datetime = condition.right.split(' ')
                                 tocompare = datetime(*([int(x) for x in splitted_datetime[0].split('-')] +
                                                        [int(x) for x in splitted_datetime[1].split(':')]))
-                            elif isinstance(d[condition.left], timedelta):
-                                time_dict = re.match('^\s*((?P<hours>\d+)\s*h)?\s*((?P<minutes>\d+)\s*m)?\s*((?P<seconds>\d+)\s*s)?\s*$',
-                                                     condition.right).groupdict()
-                                tocompare = timedelta(seconds=int(time_dict['seconds'] or "0"),
-                                                      minutes=int(time_dict['minutes'] or "0"),
-                                                      hours=int(time_dict['hours'] or "0"))
                             else:
                                 tocompare = typed(condition.right)
                             myeval = functions[condition.op](tocompare, d[condition.left])
