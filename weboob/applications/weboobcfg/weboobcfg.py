@@ -186,30 +186,6 @@ class WeboobCfg(ReplApplication):
             print('Backend instance "%s" does not exist' % backend_name, file=self.stderr)
             return 1
 
-    def _do_toggle(self, backend_name, state):
-        try:
-            module_name, items = self.weboob.backends_config.get_backend(backend_name)
-        except KeyError:
-            print('Backend instance "%s" does not exist' % backend_name, file=self.stderr)
-            return 1
-        self.weboob.backends_config.edit_backend(backend_name, module_name, {'_enabled': state})
-
-    def do_enable(self, backend_name):
-        """
-        enable BACKEND
-
-        Enable a disabled backend
-        """
-        return self._do_toggle(backend_name, "true")
-
-    def do_disable(self, backend_name):
-        """
-        disable BACKEND
-
-        Disable a backend
-        """
-        return self._do_toggle(backend_name, "false")
-
     def do_edit(self, line):
         """
         edit BACKEND

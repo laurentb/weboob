@@ -276,9 +276,6 @@ Stefano Zacchiroli <zack@upsilon.cc>
 Adrien Kunysz <adrien@kunysz.be>
         * Fixes on setup.py.
 
-Michael Scherer <misc@zarb.org>
-        * Contribution on weboob-config.
-
 Damien Cassou <damien.cassou@gmail.com>
         * Minor fixes on housing modules.
 
