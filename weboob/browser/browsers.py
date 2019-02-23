@@ -629,11 +629,11 @@ class PagesBrowser(DomainBrowser):
 
     Example:
 
-    >>> from .pages import HTMLPage
-    >>> class HomePage(HTMLPage):
+    >>> from .pages import Page
+    >>> class HomePage(Page):
     ...     pass
     ...
-    >>> class ListPage(HTMLPage):
+    >>> class ListPage(Page):
     ...     pass
     ...
     >>> class MyBrowser(PagesBrowser):
