@@ -66,7 +66,7 @@ class LoansPage(LoggedPage, JsonMixin):
 
         @method
         class get_loans(ListElement):
-            item_xpath = '//li[has-class("loan-item")]'
+            item_xpath = '//div[@id="loans-box"]//li[has-class("loan-item")]'
 
             class item(ItemElement):
                 klass = Book
