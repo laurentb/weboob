@@ -22,7 +22,8 @@ import requests
 from weboob.browser.pages import HTMLPage, CsvPage, pagination
 from weboob.exceptions import BrowserIncorrectPassword, BrowserPasswordExpired
 from weboob.browser.elements import DictElement, ItemElement, method, TableElement
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Env, TableCell
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Env
+from weboob.browser.filters.html import TableCell
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
