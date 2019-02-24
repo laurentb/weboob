@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2012-2014 Laurent Bachelier
+# Copyright(C) 2012-2019 Laurent Bachelier
 #
 # This file is part of weboob.
 #
@@ -16,6 +16,13 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
+
+
+try:
+    from requests.packages.urllib3.util.request import ACCEPT_ENCODING
+except ImportError:
+    from urllib3.util.request import ACCEPT_ENCODING
+ENCODINGS = [e.strip() for e in ACCEPT_ENCODING.split(',')]
 
 
 class Profile(object):
@@ -69,12 +76,14 @@ class Firefox(Profile):
         # https://developer.mozilla.org/en/Gecko_user_agent_string_reference
         # https://bugzilla.mozilla.org/show_bug.cgi?id=572650
         session.headers = {
-            'Accept-Language': 'en-us,en;q=0.5',
+            'Accept-Language': 'en-US,en;q=0.5',
             'Accept-Encoding': 'gzip, deflate',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0',
-            'Upgrade-Insecure-Requests' : '1',
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0',
+            'Upgrade-Insecure-Requests': '1',
             'DNT': '1'}
+        if 'br' in ENCODINGS:
+            session.headers['Accept-Encoding'] += ', br'
 
 
 class GoogleBot(Profile):
@@ -133,7 +142,7 @@ class Android(Profile):
         """
         session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Linux; U; Android 4.0.3; fr-fr; LG-L160L Build/IML74K) AppleWebkit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30',
-            'Upgrade-Insecure-Requests' : '1',
+            'Upgrade-Insecure-Requests': '1',
         })
 
 
