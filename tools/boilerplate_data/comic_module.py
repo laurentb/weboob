@@ -11,7 +11,7 @@ class ${r.classname}Module(GenericComicReaderModule):
     MAINTAINER = u'${r.author}'
     EMAIL = '${r.email}'
     VERSION = '${r.version}'
-    LICENSE = 'AGPLv3+'
+    LICENSE = 'LGPLv3+'
 
     DOMAIN = 'www.${r.name}.com'
     BROWSER_PARAMS = dict(

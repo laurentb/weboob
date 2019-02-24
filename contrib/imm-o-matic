@@ -3,7 +3,7 @@
 #
 # Copyright 2015-2016, Roland Mas <lolando@debian.org>
 #
-# Licensed under the GNU Affero General Public License, version 3
+# Licensed under the GNU Lesser General Public License, version 3
 #
 # This is imm-o-matic, a script that filters the results of real estate sites
 # according to keywords, then generates PDF files containing the description

@@ -33,7 +33,7 @@ Installation is described on [the website](http://weboob.org) or in the
 
 ## License
 
-Weboob is written in Python and is distributed under the AGPLv3+ license.
+Weboob is written in Python and is distributed under the LGPLv3+ license.
 
 ## Documentation
 

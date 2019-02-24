@@ -42,7 +42,7 @@ C<timeout 30> (optional): Munin internal option. The plugin can be slow,
 
 =head1 LICENSE
 
-AGPLv3
+LGPLv3
 
 =cut
 use strict;

@@ -11,7 +11,7 @@ class ${r.classname}Module(Module):
     DESCRIPTION = '${r.name} website'
     MAINTAINER = '${r.author}'
     EMAIL = '${r.email}'
-    LICENSE = 'AGPLv3+'
+    LICENSE = 'LGPLv3+'
     VERSION = '${r.version}'
 
     BROWSER = ${r.classname}Browser

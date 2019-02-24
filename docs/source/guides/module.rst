@@ -91,7 +91,7 @@ To be sure your module is correctly added, use this command::
     +-----------------.------------------------------------------------------------'
     | Version         | 201405191420
     | Maintainer      | John Smith <john.smith@example.com>
-    | License         | AGPLv3+
+    | License         | LGPLv3+
     | Description     | Example bank website
     | Capabilities    | CapBank, CapCollection
     | Installed       | yes
@@ -116,7 +116,7 @@ Edit ``module.py``. It contains the main class of the module derived from :class
         DESCRIPTION = u'Example bank website'    # Description of your module
         MAINTAINER = u'John Smith'               # Name of maintainer of this module
         EMAIL = 'john.smith@example.com'         # Email address of the maintainer
-        LICENSE = 'AGPLv3+'                      # License of your module
+        LICENSE = 'LGPLv3+'                      # License of your module
         # Version of weboob
         VERSION = '1.5'
 

@@ -20,7 +20,7 @@ in a multi-threaded way.
 The core library provides base classes which help developers write
 modules and applications.
 
-Weboob is written in Python and is distributed under the AGPLv3+ license.
+Weboob is written in Python and is distributed under the LGPLv3+ license.
 
 For more information, please go to the official website at http://weboob.org/
 
@@ -39,13 +39,13 @@ sudo python setup.py install
 
 After that, you can run `boobank_indicator` from anywhere and it will run. You can
 now add it to your OS dependent session autostart method. In Ubuntu, you can
-access it via: 
+access it via:
 
-1. System > Preferences > Sessions  
+1. System > Preferences > Sessions
 (OR)
-2. System > Preferences > Startup Applications 
+2. System > Preferences > Startup Applications
 
-depending on your Ubuntu Version. Or put it in `~/.config/openbox/autostart` 
+depending on your Ubuntu Version. Or put it in `~/.config/openbox/autostart`
 
 ###Dependencies
 
@@ -55,7 +55,7 @@ depending on your Ubuntu Version. Or put it in `~/.config/openbox/autostart`
 
 ###Troubleshooting
 
-If the app indicator fails to show in Ubuntu versions, consider installing 
+If the app indicator fails to show in Ubuntu versions, consider installing
 python-appindicator with
 
 `sudo apt-get install python-appindicator` weboob gir1.2-appindicator3 gir1.2-notify`
