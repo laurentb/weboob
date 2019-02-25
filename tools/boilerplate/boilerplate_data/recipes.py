@@ -23,10 +23,13 @@ from __future__ import print_function
 import importlib
 import sys
 
-from recipe import _Recipe
+from recipe import Recipe
 
 
-class BaseRecipe(_Recipe):
+__all__ = ['BaseRecipe', 'CapRecipe', 'ComicRecipe', 'ComicTestRecipe']
+
+
+class BaseRecipe(Recipe):
     NAME = 'base'
 
     def generate(self):
@@ -37,7 +40,7 @@ class BaseRecipe(_Recipe):
         self.write('test.py', self.template('base_test'))
 
 
-class CapRecipe(_Recipe):
+class CapRecipe(Recipe):
     NAME = 'cap'
 
     def __init__(self, args):
@@ -116,7 +119,7 @@ class CapRecipe(_Recipe):
         self.write('test.py', self.template('base_test'))
 
 
-class ComicRecipe(_Recipe):
+class ComicRecipe(Recipe):
     NAME = 'comic'
 
     def generate(self):
@@ -124,7 +127,7 @@ class ComicRecipe(_Recipe):
         self.write('module.py', self.template('comic_module'))
 
 
-class ComicTestRecipe(_Recipe):
+class ComicTestRecipe(Recipe):
     NAME = 'comic.test'
 
     @classmethod

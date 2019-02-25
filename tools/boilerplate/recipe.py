@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2013      Laurent Bachelier
+# Copyright(C) 2013-2019      Laurent Bachelier, Sébastien Jean
 #
 # This file is part of weboob.
 #
@@ -20,14 +20,15 @@
 
 
 from __future__ import print_function
-import os
-import datetime
-import sys
+
 import codecs
+import datetime
+import os
+import sys
 
 from mako.lookup import TemplateLookup
-from weboob import __version__
 
+from weboob import __version__
 
 WEBOOB_MODULES = os.getenv(
     'WEBOOB_MODULES',
@@ -50,7 +51,7 @@ def write(target, contents):
     print('Created %s' % target)
 
 
-class _Recipe(object):
+class Recipe(object):
     @classmethod
     def configure_subparser(cls, subparsers):
         subparser = subparsers.add_parser(cls.NAME)

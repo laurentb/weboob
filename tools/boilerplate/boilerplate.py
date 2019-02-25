@@ -21,12 +21,9 @@
 from __future__ import print_function
 
 import argparse
-import inspect
-import subprocess
 import os
+import subprocess
 import sys
-
-
 from importlib import import_module
 
 BOILERPLATE_PATH = os.getenv(
@@ -35,6 +32,8 @@ BOILERPLATE_PATH = os.getenv(
 
 sys.path.append(os.path.dirname(__file__))
 sys.path.append(BOILERPLATE_PATH)
+
+from recipe import Recipe  # NOQA
 
 
 def u8(s):
@@ -59,9 +58,14 @@ def main():
 
     recipes_module = import_module('recipes', package='boilerplate_data')
 
-    for k, v in recipes_module.__dict__.items():
-        if inspect.isclass(v) and not k.startswith('_'):
-            v.configure_subparser(subparsers)
+    if hasattr(recipes_module, '__all__'):
+        for k in recipes_module.__all__:
+            getattr(recipes_module, k).configure_subparser(subparsers)
+    else:
+        for k in dir(recipes_module):
+            print(k)
+            if issubclass(getattr(recipes_module, k), Recipe) and not k.startswith('_'):
+                getattr(recipes_module, k).configure_subparser(subparsers)
 
     args = parser.parse_args()
 
