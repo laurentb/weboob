@@ -179,8 +179,8 @@ class LabelsPage(LoggedPage, JsonPage):
             for element in Dict('submenu')(key):
                 if Lower(CleanText(Dict('label')))(element) in synthesis_labels:
                     synthesis_label = CleanText(Dict('link'))(element).split("/")[-1]
-                if CleanText(Dict('label'))(element).lower() in loan_labels:
-                    loan_label = Lower(CleanText(Dict('link')))(element).split("/")[-1]
+                if Lower(CleanText(Dict('label')))(element) in loan_labels:
+                    loan_label = CleanText(Dict('link'))(element).split("/")[-1]
         return (synthesis_label, loan_label)
 
 
