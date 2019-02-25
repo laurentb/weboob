@@ -149,7 +149,7 @@ class WeboobRepos(ReplApplication):
 
             print('Create archive for %s' % name)
             with closing(tarfile.open(tarname, 'w:gz')) as tar:
-                tar.add(module_path, arcname=name, exclude=self._archive_excludes)
+                tar.add(module_path, arcname=name, filter=self._archive_excludes)
             tar_mtime = mktime(strptime(str(module.version), '%Y%m%d%H%M'))
             os.utime(tarname, (tar_mtime, tar_mtime))
 
@@ -164,7 +164,7 @@ class WeboobRepos(ReplApplication):
                 raise Exception('Unable to find the gpg executable.')
 
             # Find out which keys are allowed to sign
-            fingerprints = [gpgline.strip(':').split(':')[-1]
+            fingerprints = [gpgline.decode('utf-8').strip(':').split(':')[-1]
                             for gpgline
                             in subprocess.Popen([
                                 gpg,
@@ -174,7 +174,7 @@ class WeboobRepos(ReplApplication):
                                 '--no-default-keyring',
                                 '--keyring', os.path.realpath(krname)],
                                 stdout=subprocess.PIPE).communicate()[0].splitlines()
-                            if gpgline.startswith('fpr:')]
+                            if gpgline.startswith(b'fpr:')]
             # Find out the first secret key we have that is allowed to sign
             secret_fingerprint = None
             for fingerprint in fingerprints:
@@ -214,11 +214,12 @@ class WeboobRepos(ReplApplication):
                     os.utime(sigpath, (file_mtime, file_mtime))
             print('Signatures are up to date')
 
-    def _archive_excludes(self, filename):
+    def _archive_excludes(self, tarinfo):
+        filename = tarinfo.name
         # Skip *.pyc files in tarballs.
         if filename.endswith('.pyc'):
-            return True
+            return
         # Don't include *.png files in tarball
         if filename.endswith('.png'):
-            return True
-        return False
+            return
+        return tarinfo
