@@ -132,6 +132,17 @@ class BNPorcModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapMessag
     def execute_transfer(self, transfer, **params):
         return self.browser.execute_transfer(transfer)
 
+    def transfer_check_recipient_id(self, old, new):
+        # external recipient id can change, check the iban in recipient id
+        iban = re.search(r'([A-Z]{2}[A-Z\d]+)', old)
+        if iban:
+            # external recipients id
+            iban = iban.group(1)
+            return iban in new
+        else:
+            # iternal recipients id
+            return old == new
+
     def iter_contacts(self):
         if not hasattr(self.browser, 'get_advisor'):
             raise NotImplementedError()
