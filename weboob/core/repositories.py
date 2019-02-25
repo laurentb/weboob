@@ -711,13 +711,13 @@ class Repositories(object):
         module_dir = os.path.join(self.modules_dir, module.name)
         installed = self.versions.get(module.name)
         if installed is None or not os.path.exists(module_dir):
-            progress.progress(0.3, 'Module %s is not installed yet' % module.name)
+            progress.progress(0.2, 'Module %s is not installed yet' % module.name)
         elif module.version > installed:
-            progress.progress(0.3, 'A new version of %s is available' % module.name)
+            progress.progress(0.2, 'A new version of %s is available' % module.name)
         else:
             raise ModuleInstallError('The latest version of %s is already installed' % module.name)
 
-        progress.progress(0.2, 'Downloading module...')
+        progress.progress(0.3, 'Downloading module...')
         try:
             tardata = self.browser.open(module.url).content
         except BrowserHTTPError as e:
