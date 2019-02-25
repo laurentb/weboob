@@ -221,33 +221,49 @@ class Module(object):
     """
     # Module name.
     NAME = None
-    # Name of the maintainer of this module.
+    """Name of the maintainer of this module."""
+
     MAINTAINER = u'<unspecified>'
-    # Email address of the maintainer.
+
     EMAIL = '<unspecified>'
-    # Version of module (for information only).
+    """Email address of the maintainer."""
+
     VERSION = '<unspecified>'
-    # Description
+    """Version of module (for information only)."""
+
     DESCRIPTION = '<unspecified>'
+    """Description"""
+
     # License of this module.
     LICENSE = '<unspecified>'
-    # Configuration required for backends.
-    # Values must be weboob.tools.value.Value objects.
+
     CONFIG = BackendConfig()
-    # Storage
+    """Configuration required for backends.
+
+    Values must be weboob.tools.value.Value objects.
+    """
+
     STORAGE = {}
-    # Browser class
+    """Storage"""
+
     BROWSER = None
-    # URL to an optional icon.
-    # If you want to create your own icon, create a 'favicon.ico' ico in
-    # the module's directory, and keep the ICON value to None.
+    """Browser class"""
+
     ICON = None
-    # Supported objects to fill
-    # The key is the class and the value the method to call to fill
-    # Method prototype: method(object, fields)
-    # When the method is called, fields are only the one which are
-    # NOT yet filled.
+    """URL to an optional icon.
+
+    If you want to create your own icon, create a 'favicon.png' icon in
+    the module's directory, and keep the ICON value to None.
+    """
+
     OBJECTS = {}
+    """Supported objects to fill
+
+    The key is the class and the value the method to call to fill
+    Method prototype: method(object, fields)
+    When the method is called, fields are only the one which are
+    NOT yet filled.
+    """
 
     class ConfigError(Exception):
         """
