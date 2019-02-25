@@ -901,7 +901,9 @@ class CardPage2(CardPage, HTMLPage, XMLPage):
                 return not CleanText('//td[contains(., "Aucun mouvement")]', default=False)(self) or not CleanText('//td[contains(., "Aucune opération")]', default=False)(self)
 
             class item(Transaction.TransactionElement):
-                condition = lambda self: len(self.el.xpath('./td')) >= 4
+                def condition(self):
+                    # Withdraw transactions are also presents on the checking account
+                    return len(self.el.xpath('./td')) >= 4 and not CleanText(TableCell('commerce'))(self).startswith('RETRAIT CB')
 
                 obj_raw = Transaction.Raw(Format("%s %s", CleanText(TableCell('commerce')), CleanText(TableCell('ville'))))
                 obj_rdate = Field('vdate')
@@ -949,7 +951,7 @@ class CardPage2(CardPage, HTMLPage, XMLPage):
 
             class item(Transaction.TransactionElement):
                 def condition(self):
-                    return len(self.el.xpath('./td')) >= 4
+                    return len(self.el.xpath('./td')) >= 4 and not CleanText(TableCell('operation'))(self).startswith('RETRAIT CB')
 
                 obj_label = CleanText(TableCell('operation'))
 
@@ -979,6 +981,10 @@ class CardPage2(CardPage, HTMLPage, XMLPage):
             col_ville = 'Ville'
 
             class item(Transaction.TransactionElement):
+                def condition(self):
+                    # Withdraw transactions are also presents on the checking account
+                    return not CleanText(TableCell('commerce'))(self).startswith('RETRAIT CB')
+
                 obj_raw = Transaction.Raw(Format("%s %s", CleanText(TableCell('commerce')), CleanText(TableCell('ville'))))
                 obj_rdate = Field('vdate')
                 obj_date = Env('date')
