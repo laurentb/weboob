@@ -135,6 +135,8 @@ ACCOUNT_TYPES = {
     'prêts personnels': Account.TYPE_LOAN,
     'crédits immobiliers': Account.TYPE_LOAN,
     'ESC COM.': Account.TYPE_LOAN,
+    'LIM TRESO': Account.TYPE_LOAN,
+    'P.ETUDIANT': Account.TYPE_LOAN,
     'épargne disponible': Account.TYPE_SAVINGS,
     'épargne à terme': Account.TYPE_DEPOSIT,
     'épargne boursière': Account.TYPE_MARKET,
@@ -143,7 +145,9 @@ ACCOUNT_TYPES = {
     'PREDI9 S2': Account.TYPE_LIFE_INSURANCE,
     'V.AVENIR': Account.TYPE_LIFE_INSURANCE,
     'FLORIA': Account.TYPE_LIFE_INSURANCE,
+    'CAP DECOUV': Account.TYPE_LIFE_INSURANCE,
     'ATOUT LIB': Account.TYPE_REVOLVING_CREDIT,
+    'PAGR': Account.TYPE_MADELIN,
 }
 
 
