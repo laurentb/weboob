@@ -176,7 +176,8 @@ class AccountsPage(LoggedPage, JsonPage):
         OWNER_TYPES = {
             'PARTICULIER':   AccountOwnerType.PRIVATE,
             'PROFESSIONNEL': AccountOwnerType.ORGANIZATION,
-            'ASSOC_CA_MODERE': AccountOwnerType.ORGANIZATION,
+            'AGRICULTEUR': AccountOwnerType.ORGANIZATION,
+            'ASSOC_CA_MODERE': AccountOwnerType.ASSOCIATION,
         }
         return OWNER_TYPES.get(Dict('marche')(self.doc), NotAvailable)
 
