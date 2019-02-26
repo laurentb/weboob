@@ -29,7 +29,7 @@ from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Person
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement
 from weboob.browser.pages import LoggedPage, RawPage, PartialHTMLPage, HTMLPage
-from weboob.browser.filters.html import Link, TableCell
+from weboob.browser.filters.html import Link, TableCell, Attr
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, Field, Currency, Async, Date, Format
 from weboob.exceptions import BrowserUnavailable
 from weboob.tools.compat import urljoin, unicode
@@ -57,6 +57,8 @@ class item_account_generic(ItemElement):
 
     def obj_url(self):
         url = Link(u'./a', default=NotAvailable)(self)
+        if not url:
+            url = Regexp(Attr(u'.//span', 'onclick', default=''), r'\'(https.*)\'', default=NotAvailable)(self)
         if url:
             if 'CreditRenouvelable' in url:
                 url = Link(u'.//a[contains(text(), "espace de gestion crédit renouvelable")]')(self.el)
