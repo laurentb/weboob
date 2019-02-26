@@ -176,6 +176,30 @@ class WeboobCfg(ReplApplication):
                                ])
             self.format(row)
 
+    def do_enable(self, backend_name):
+        """
+        enable NAME
+
+        Enable a backend.
+        """
+        try:
+            self.weboob.backends_config.edit_backend(backend_name, {'_enabled': '1'})
+        except KeyError:
+            print('Backend instance "%s" does not exist' % backend_name, file=self.stderr)
+            return 1
+
+    def do_disable(self, backend_name):
+        """
+        disable NAME
+
+        Disable a backend.
+        """
+        try:
+            self.weboob.backends_config.edit_backend(backend_name, {'_enabled': '0'})
+        except KeyError:
+            print('Backend instance "%s" does not exist' % backend_name, file=self.stderr)
+            return 1
+
     def do_remove(self, backend_name):
         """
         remove NAME
