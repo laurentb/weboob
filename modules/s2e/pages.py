@@ -349,6 +349,7 @@ class AccountsPage(LoggedPage, MultiPage):
         'PERCOI': Account.TYPE_PERCO,
         'SWISS': Account.TYPE_MARKET,
         'RSP': Account.TYPE_RSP,
+        'CCB': Account.TYPE_DEPOSIT,
     }
 
     CONDITIONS = {
