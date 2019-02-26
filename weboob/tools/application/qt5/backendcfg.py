@@ -248,7 +248,6 @@ class BackendCfg(QDialog):
         self.is_enabling += 1
 
         backend_name = item.text(0)
-        module_name = item.text(1)
         if item.checkState(0) == Qt.Checked:
             self.to_load.add(backend_name)
             enabled = 'true'
@@ -260,7 +259,7 @@ class BackendCfg(QDialog):
                 pass
             enabled = 'false'
 
-        self.weboob.backends_config.edit_backend(backend_name, module_name, {'_enabled': enabled})
+        self.weboob.backends_config.edit_backend(backend_name, {'_enabled': enabled})
 
     @Slot(QTreeWidgetItem, int)
     def backendClicked(self, item, col):

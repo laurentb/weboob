@@ -199,7 +199,10 @@ class BackendConfig(ValuesDict):
         if params is not None:
             dump.update(params)
 
-        self.weboob.backends_config.add_backend(self.instname, self.modname, dump, edit)
+        if edit:
+            self.weboob.backends_config.edit_backend(self.instname, dump)
+        else:
+            self.weboob.backends_config.add_backend(self.instname, self.modname, dump)
 
 
 class Module(object):

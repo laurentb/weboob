@@ -128,7 +128,7 @@ class BackendsConfig(object):
         config = self._read_config()
         return name in config.sections()
 
-    def add_backend(self, backend_name, module_name, params, edit=False):
+    def add_backend(self, backend_name, module_name, params):
         """
         Add a backend to config.
 
@@ -140,20 +140,32 @@ class BackendsConfig(object):
         if not backend_name:
             raise ValueError(u'Please give a name to the configured backend.')
         config = self._read_config()
-        if not edit:
-            try:
-                config.add_section(backend_name)
-            except DuplicateSectionError:
-                raise BackendAlreadyExists(backend_name)
+        try:
+            config.add_section(backend_name)
+        except DuplicateSectionError:
+            raise BackendAlreadyExists(backend_name)
         config.set(backend_name, '_module', module_name)
         for key, value in params.items():
             config.set(backend_name, key, value)
 
         self._write_config(config)
 
-    def edit_backend(self, backend_name, module_name, params):
-        """Edit a backend from config."""
-        return self.add_backend(backend_name, module_name, params, True)
+    def edit_backend(self, backend_name, params):
+        """
+        Edit a backend from config.
+
+        :param backend_name: name of the backend in config
+        :param params: params to change
+        :type params: :class:`dict`
+        """
+        config = self._read_config()
+        if not config.has_section(backend_name):
+            raise KeyError(u'Configured backend "%s" not found' % backend_name)
+
+        for key, value in params.items():
+            config.set(backend_name, key, value)
+
+        self._write_config(config)
 
     def get_backend(self, backend_name):
         """
