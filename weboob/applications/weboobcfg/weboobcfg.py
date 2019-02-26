@@ -231,7 +231,7 @@ class WeboobCfg(ReplApplication):
         caps = line.split()
         for name, info in sorted(self.weboob.repositories.get_all_modules_info(caps).items()):
             row = OrderedDict([('Name', name),
-                               ('Capabilities', ', '.join(info.capabilities)),
+                               ('Capabilities', info.capabilities),
                                ('Description', info.description),
                                ])
             self.format(row)
