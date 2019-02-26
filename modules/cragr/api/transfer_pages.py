@@ -69,7 +69,7 @@ class RecipientsPage(LoggedPage, JsonPage):
             klass = Recipient
 
             obj_id = Dict('accountNumber')
-            obj_label = Dict('accountNatureLongLabel')
+            obj_label = Dict('accountNatureLongLabel', default='')
             obj_iban = Dict('ibanCode')
             obj_category = 'Interne'
             obj_enabled_at = date.today()
