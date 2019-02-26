@@ -331,8 +331,10 @@ class IndexPage(LoggedPage, HTMLPage):
 
     def get_measure_balance(self, account):
         for tr in self.doc.xpath('//table[@cellpadding="1"]/tr[not(@class)]'):
-            if re.search('[A-Z]*(\d{3,})', CleanText('./td/a[@class="NumeroDeCompte"]')(tr)).group() in account.id:
-                return re.search('\s\d{1,3}(?:[\s.,]\d{3})*(?:[\s.,]\d{2})', CleanText('./td/a[@class="NumeroDeCompte"]')(tr)).group()
+            account_number = CleanText('./td/a[contains(@class, "NumeroDeCompte")]')(tr)
+            if re.search(r'[A-Z]*\d{3,}', account_number).group() in account.id:
+                # The regex '\s\d{1,3}(?:[\s.,]\d{3})*(?:[\s.,]\d{2})' matches for example '106 100,64'
+                return re.search(r'\s\d{1,3}(?:[\s.,]\d{3})*(?:[\s.,]\d{2})', account_number).group()
         return NotAvailable
 
     def get_measure_ids(self):
