@@ -88,7 +88,7 @@ class TableFormatter(IFormatter):
         for line in queue:
             for _ in range(maxrow - len(line)):
                 line += ('',)
-            table.add_row(line)
+            table.add_row([self.format_cell(cell) for cell in line])
 
         if self.HTML:
             s += table.get_html_string()
@@ -98,6 +98,12 @@ class TableFormatter(IFormatter):
         self.queue = []
 
         return s
+
+    def format_cell(self, cell):
+        if isinstance(cell, list):
+            return ', '.join(['%s' % item for item in cell])
+
+        return cell
 
     def format_dict(self, item):
         if self.keys is None:
