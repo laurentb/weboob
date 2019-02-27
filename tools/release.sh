@@ -6,7 +6,7 @@ cd "$(dirname $0)/.."
 
 function set_version {
 	echo -n "Replacing version in source files to $1... "
-	sed -i "s/^\(\s*\)\(VERSION\|version\|release\|__version__\)\( *\)=\( *\)[\"'][0-9]\+\..\+[\"']\(,\?\)$/\1\2\3=\4'$1'\5/g" $(git ls-files -x contrib | grep "\(.py\|.rst\)$")
+	sed -i "s/^\(\s*\)\(VERSION\|version\|release\|__version__\)\( *\)=\( *\)[\"'][0-9]\+\..\+[\"']\(,\?\)$/\1\2\3=\4'$1'\5/g" $(git ls-files -x contrib | grep -v "\.svg$")
 	echo -e "done.\n"
 }
 
