@@ -39,9 +39,9 @@ from colorama import init, Fore, Style
 
 from weboob.tools.compat import unicode
 from weboob.exceptions import BrowserUnavailable
-from weboob.capabilities.bank import AccountNotFound
+from weboob.capabilities.bank import AccountNotFound, AccountType
 from weboob.applications.boobank import Boobank
-from weboob.applications.boobank.boobank import OfxFormatter, AccountType
+from weboob.applications.boobank.boobank import OfxFormatter
 from weboob.tools.application.formatters.simple import SimpleFormatter
 
 
