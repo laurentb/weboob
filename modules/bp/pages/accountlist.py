@@ -74,7 +74,9 @@ class item_account_generic(ItemElement):
         return CleanDecimal('.//span[@class="number"]', replace_dots=True, default=NotAvailable)(self)
 
     def obj_coming(self):
-        if Field('type')(self) == Account.TYPE_CHECKING:
+        if Field('type')(self) == Account.TYPE_CHECKING and Field('balance')(self) != 0:
+            # When the balance is 0, we get a website unavailable on the history page
+            # and the following navigation is broken
             has_coming = False
             coming = 0
 

@@ -312,6 +312,10 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def get_history(self, account):
+        if account.type == Account.TYPE_CHECKING and account.balance == 0:
+            # When the balance is 0, we get a website unavailable on the history page
+            # and the following navigation is broken
+            return []
         # TODO scrap pdf to get history of mandate accounts
         if 'gestion-sous-mandat' in account.url:
             return []
@@ -366,8 +370,9 @@ class BPBrowser(LoginBrowser, StatesMixin):
     def get_coming(self, account):
         if 'gestion-sous-mandat' in account.url:
             return []
-
-        if account.type == Account.TYPE_CHECKING:
+        # When the balance is 0, we get a website unavailable on the history page
+        # and the following navigation is broken
+        if account.type == Account.TYPE_CHECKING and account.balance != 0:
             return self._get_coming_transactions(account)
         elif account.type == Account.TYPE_CARD:
             transactions = []
