@@ -20,17 +20,21 @@
 from __future__ import unicode_literals
 
 import re
-from decimal import Decimal
 import datetime
 
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import method, ItemElement, TableElement
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Currency
-from weboob.browser.filters.html import TableCell, Attr
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Currency, Map, Field, Regexp
+from weboob.browser.filters.html import TableCell, Attr, Link
 from weboob.capabilities.bank import Investment, Account
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.investments import is_isin_valid, create_french_liquidity
 
+
+ACCOUNT_TYPES = {
+    'COMPTE PEA': Account.TYPE_PEA,
+    'COMPTE TITRES': Account.TYPE_MARKET,
+}
 
 class AccountsPage(LoggedPage, HTMLPage):
 
@@ -52,13 +56,13 @@ class AccountsPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Account
 
-            obj_owner = CleanText(TableCell('owner'))
-            obj_type = Account.TYPE_MARKET
+            obj_type = Map(Field('label'), ACCOUNT_TYPES, Account.TYPE_UNKNOWN)
+            obj__owner = CleanText(TableCell('owner'))
 
             def obj_id(self):
                 tablecell = TableCell('id')(self)[0]
-                id = tablecell.xpath('./div[position()=2]')
-                return CleanText().filter(id)
+                _id = tablecell.xpath('./div[position()=2]')
+                return CleanText(_id)(self)
 
             def obj_label(self):
                 tablecell = TableCell('label')(self)[0]
@@ -67,17 +71,14 @@ class AccountsPage(LoggedPage, HTMLPage):
 
             def obj_balance(self):
                 tablecell = TableCell('balance')(self)[0]
-                b = tablecell.xpath('./span[@class="intraday"]')
-                balance = CleanDecimal(replace_dots=True).filter(b)
-                return Decimal(balance)
+                balance = tablecell.xpath('./span[@class="intraday"]')
+                return CleanDecimal.French(balance)(self)
 
             def obj_currency(self):
                 tablecell = TableCell('balance')(self)[0]
-                text = tablecell.xpath('./span/text()')[0]
-                regex = '[0-9,.]* (.*)'
-                currency = Currency().filter(re.search(regex, text).group(1))
+                currency = tablecell.xpath('./span[@class="intraday"]')
+                return Currency(currency)(self)
 
-                return currency
 
     def get_nump_id(self, account):
         # Return an element needed in the request in order to access investments details
@@ -111,8 +112,9 @@ class InvestmentsPage(LoggedPage, HTMLPage):
             klass = Investment
 
             obj_diff = CleanDecimal(TableCell('diff', colspan=True), replace_dots=True)
-            obj_unitprice = CleanDecimal(TableCell('unitprice', colspan=True), replace_dots=True)
             obj_valuation = CleanDecimal(TableCell('valuation', colspan=True), replace_dots=True)
+            # Some invests have a format such as '22,120' but some others have '0,7905 (79,05%)'
+            obj_unitprice = CleanDecimal.French(Regexp(CleanText(TableCell('unitprice', colspan=True)), r'([0-9]+,[0-9]+)'))
 
             def obj_quantity(self):
                 tablecell = TableCell('quantity', colspan=True)(self)[0]
@@ -129,12 +131,12 @@ class InvestmentsPage(LoggedPage, HTMLPage):
 
                 tablecell = TableCell('label', colspan=True)(self)[0]
                 # url find try
-                url = tablecell.xpath('./following-sibling::td[position()=1]/div/a')[0].attrib['href']
-                code_match = re.search(r'sico=([A-Z0-9]*)', url)
-
-                if code_match:
-                    if is_isin_valid(code_match.group(1)):
-                        return code_match.group(1)
+                code_match = Regexp(
+                    Link(tablecell.xpath('./following-sibling::td[position()=1]/div/a')),
+                    r'sico=([A-Z0-9]*)',
+                    default=None)(self)
+                if is_isin_valid(code_match):
+                    return code_match
 
                 # cell text find try
                 text = CleanText(tablecell.xpath('./following-sibling::td[position()=1]/div')[0])(self)
@@ -190,16 +192,10 @@ class InvestmentsPage(LoggedPage, HTMLPage):
             # extract unitvalue and currency
             def original_unitvalue(self):
                 tablecell = TableCell('unitvalue', colspan=True)(self)[0]
-                text = tablecell.xpath('./text()')[0]
-
-                regex = '[0-9,]* (.*)'
-                currency = Currency().filter(re.search(regex, text).group(1))
-
-                return currency, CleanDecimal(replace_dots=True).filter(text)
+                text = tablecell.xpath('./text()')
+                return Currency(text, default=NotAvailable)(self), CleanDecimal.French(text, default=NotAvailable)(self)
 
     def get_liquidity(self):
-        liquidity_element = self.doc.xpath('//td[contains(text(), "Solde espèces en euros")]//following-sibling::td[position()=1]')
-        assert len(liquidity_element) <= 1
+        liquidity_element = CleanDecimal.French('//td[contains(text(), "Solde espèces en euros")]//following-sibling::td[position()=1]')(self.doc)
         if liquidity_element:
-            valuation = CleanDecimal(replace_dots=True).filter(liquidity_element[0])
-            return create_french_liquidity(valuation)
+            return create_french_liquidity(liquidity_element)
