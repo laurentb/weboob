@@ -176,7 +176,7 @@ def install_weboob(qt, xdg):
         classifiers=[
             'Environment :: Console',
             'Environment :: X11 Applications :: Qt',
-            'License :: OSI Approved :: GNU Lesser General Public License v3',
+            'License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)',
             'Programming Language :: Python',
             'Programming Language :: Python :: 2',
             'Programming Language :: Python :: 2.7',
