@@ -200,9 +200,11 @@ class iter_history_generic(Transaction.TransactionsElement):
             if len(self.el.xpath('./td')) <= 3:
                 return Transaction.TYPE_BANK
 
-            debittype = CleanText(TableCell('debittype'))(self)
-            if debittype == 'Différé':
-                return Transaction.TYPE_DEFERRED_CARD
+            col = TableCell('debittype', default=None)
+            if col(self):
+                debittype = CleanText(col)(self)
+                if debittype == 'Différé':
+                    return Transaction.TYPE_DEFERRED_CARD
             return Transaction.TYPE_CARD
 
         def condition(self):
