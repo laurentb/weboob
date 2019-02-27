@@ -125,6 +125,9 @@ class LoginPage(HTMLPage):
         form['name'] = username
         form.submit()
 
+    def get_message_if_old_login(self):
+        return CleanText('//div[@class="messages error"]', children=False)(self.doc)
+
     def enter_password(self, password):
         data_code = {}
         for img in self.doc.xpath('//img[@class="digit"]'):

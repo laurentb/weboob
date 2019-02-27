@@ -93,6 +93,11 @@ class CarrefourBanqueBrowser(LoginBrowser, StatesMixin):
             raise BrowserUnavailable(self.page.get_message())
 
         self.page.enter_login(self.username)
+        msg = self.page.get_message_if_old_login()
+        if msg:
+            # carrefourbanque has changed login of their user, they have to use their new internet id
+            raise BrowserIncorrectPassword(msg)
+
         self.page.enter_password(self.password)
 
         if not self.home.is_here():
