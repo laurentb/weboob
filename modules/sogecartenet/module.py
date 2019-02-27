@@ -35,7 +35,7 @@ class SogecartenetModule(Module, CapBank):
     MAINTAINER = u'Vincent Paredes'
     EMAIL = 'vparedes@budget-insight.fr'
     LICENSE = 'LGPLv3+'
-    VERSION = '1.5'
+    VERSION = '1.6'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
                            ValueBackendPassword('password', label='Mot de passe'))
 

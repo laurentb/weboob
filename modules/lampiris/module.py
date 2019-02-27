@@ -37,7 +37,7 @@ class LampirisModule(Module, CapDocument):
     MAINTAINER = u'Phyks (Lucas Verney)'
     EMAIL = 'phyks@phyks.me'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.5'
+    VERSION = '1.6'
 
     CONFIG = BackendConfig(
         Value(

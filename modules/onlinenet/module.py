@@ -35,7 +35,7 @@ class OnlinenetModule(Module, CapDocument):
     MAINTAINER = u'Edouard Lambert'
     EMAIL = 'elambert@budget-insight.com'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.5'
+    VERSION = '1.6'
     CONFIG = BackendConfig(Value('login', label='Identifiant'),
                        ValueBackendPassword('password', label='Mot de passe'))
 

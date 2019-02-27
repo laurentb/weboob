@@ -26,7 +26,7 @@ from .main_window import MainWindow
 
 class QBooblyrics(QtApplication):
     APPNAME = 'qbooblyrics'
-    VERSION = '1.5'
+    VERSION = '1.6'
     COPYRIGHT = 'Copyright(C) 2016 Julien Veyssier'
     DESCRIPTION = "Qt application allowing to search song lyrics."
     SHORT_DESCRIPTION = "search lyrics"

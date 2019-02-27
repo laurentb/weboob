@@ -35,7 +35,7 @@ class HumanisModule(Module, CapBankPockets):
     MAINTAINER = u'Jean Walrave'
     EMAIL = 'jwalrave@budget-insight.com'
     LICENSE = 'LGPLv3+'
-    VERSION = '1.5'
+    VERSION = '1.6'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label=u'Code d\'accès', masked=False),
                            ValueBackendPassword('password', label='Mot de passe'))
 

@@ -36,7 +36,7 @@ class BanquePopulaireModule(Module, CapBankWealth, CapContact, CapProfile):
     NAME = 'banquepopulaire'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '1.5'
+    VERSION = '1.6'
     DESCRIPTION = u'Banque Populaire'
     LICENSE = 'AGPLv3+'
     website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({

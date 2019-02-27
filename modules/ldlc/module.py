@@ -35,7 +35,7 @@ class LdlcModule(Module, CapDocument):
     MAINTAINER = u'Vincent Paredes'
     EMAIL = 'vparedes@budget-insight.com'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.5'
+    VERSION = '1.6'
     CONFIG = BackendConfig(Value('login', label='Email'),
                            ValueBackendPassword('password', label='Password'),
                            Value('website', label='Site web', default='part',

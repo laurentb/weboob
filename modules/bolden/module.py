@@ -42,7 +42,7 @@ class BoldenModule(Module, CapBankWealth, CapDocument, CapProfile):
     MAINTAINER = 'Vincent A'
     EMAIL = 'dev@indigo.re'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.5'
+    VERSION = '1.6'
 
     BROWSER = BoldenBrowser
 

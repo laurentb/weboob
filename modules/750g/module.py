@@ -36,7 +36,7 @@ class SevenFiftyGramsModule(Module, CapRecipe):
     NAME = '750g'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '1.5'
+    VERSION = '1.6'
     DESCRIPTION = u'750g French recipe website'
     LICENSE = 'AGPLv3+'
     BROWSER = SevenFiftyGramsBrowser

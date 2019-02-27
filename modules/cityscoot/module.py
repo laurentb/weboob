@@ -37,7 +37,7 @@ class CityscootModule(Module, CapDocument):
     MAINTAINER = 'P4ncake'
     EMAIL = 'me@p4ncake.fr'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.5'
+    VERSION = '1.6'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Adresse email', masked=False),
                            ValueBackendPassword('password', label='Mot de passe'))
 

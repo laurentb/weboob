@@ -31,7 +31,7 @@ from weboob.tools.newsfeed import Newsfeed
 class NewspaperPresseuropModule(AbstractModule, CapMessages):
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
-    VERSION = '1.5'
+    VERSION = '1.6'
     LICENSE = 'AGPLv3+'
     STORAGE = {'seen': {}}
     NAME = 'presseurop'

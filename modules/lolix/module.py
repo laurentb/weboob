@@ -33,7 +33,7 @@ class LolixModule(Module, CapJob):
     DESCRIPTION = u'Lolix French free software employment website'
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
-    VERSION = '1.5'
+    VERSION = '1.6'
     LICENSE = 'AGPLv3+'
 
     BROWSER = LolixBrowser

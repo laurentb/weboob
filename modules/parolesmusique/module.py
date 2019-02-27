@@ -29,7 +29,7 @@ class ParolesmusiqueModule(Module, CapLyrics):
     NAME = 'parolesmusique'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'eneiluj@gmx.fr'
-    VERSION = '1.5'
+    VERSION = '1.6'
     DESCRIPTION = 'paroles-musique lyrics website'
     LICENSE = 'AGPLv3+'
     BROWSER = ParolesmusiqueBrowser

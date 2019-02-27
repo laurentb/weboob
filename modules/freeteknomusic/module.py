@@ -36,7 +36,7 @@ class FreeteknomusicModule(Module, CapAudio, CapCollection):
     MAINTAINER = 'Vincent A'
     EMAIL = 'dev@indigo.re'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.5'
+    VERSION = '1.6'
 
     BROWSER = FreeteknomusicBrowser
 

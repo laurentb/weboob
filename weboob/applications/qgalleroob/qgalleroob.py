@@ -40,7 +40,7 @@ FILL_JOB = 'f'
 
 class QGalleroob(QtApplication):
     APPNAME = 'qgalleroob'
-    VERSION = '1.5'
+    VERSION = '1.6'
     COPYRIGHT = u'Copyright(C) 2016 Vincent A'
     DESCRIPTION = "Qt application to view image galleries."
     SHORT_DESCRIPTION = "search for images"

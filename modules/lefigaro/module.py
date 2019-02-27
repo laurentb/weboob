@@ -32,7 +32,7 @@ from .tools import rssid
 class NewspaperFigaroModule(AbstractModule, CapMessages):
     MAINTAINER = u'Julien Hebert'
     EMAIL = 'juke@free.fr'
-    VERSION = '1.5'
+    VERSION = '1.6'
     LICENSE = 'AGPLv3+'
     STORAGE = {'seen': {}}
     NAME = 'lefigaro'

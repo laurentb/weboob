@@ -35,7 +35,7 @@ class BibliothequesparisModule(Module, CapBook):
     MAINTAINER = u'Vincent A'
     EMAIL = 'dev@indigo.re'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.5'
+    VERSION = '1.6'
 
     BROWSER = BibliothequesparisBrowser
 

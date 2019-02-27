@@ -39,7 +39,7 @@ class RadioFranceModule(Module, CapRadio, CapCollection, CapAudio):
     NAME = 'radiofrance'
     MAINTAINER = u'Laurent Bachelier'
     EMAIL = 'laurent@bachelier.name'
-    VERSION = '1.5'
+    VERSION = '1.6'
     DESCRIPTION = u'Radios of Radio France: Inter, Info, Bleu, Culture, Musique, FIP, Le Mouv\''
     LICENSE = 'AGPLv3+'
     BROWSER = RadioFranceBrowser

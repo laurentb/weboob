@@ -32,7 +32,7 @@ class VlilleModule(Module, CapGauge):
     DESCRIPTION = u'Lille bike renting availability information'
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
-    VERSION = '1.5'
+    VERSION = '1.6'
 
     BROWSER = VlilleBrowser
 

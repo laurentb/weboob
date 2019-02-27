@@ -46,7 +46,7 @@ class BNPorcModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapMessag
     NAME = 'bnporc'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '1.5'
+    VERSION = '1.6'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = 'BNP Paribas'
     CONFIG = BackendConfig(

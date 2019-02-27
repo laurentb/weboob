@@ -33,7 +33,7 @@ class Number26Module(Module, CapBank):
     MAINTAINER = u'Benjamin Bouvier'
     EMAIL = 'public@benj.me'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.5'
+    VERSION = '1.6'
 
     BROWSER = Number26Browser
 

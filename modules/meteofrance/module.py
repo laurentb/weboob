@@ -31,7 +31,7 @@ class MeteofranceModule(Module, CapWeather):
     NAME = 'meteofrance'
     MAINTAINER = u'Cedric Defortis'
     EMAIL = 'cedric@aiur.fr'
-    VERSION = '1.5'
+    VERSION = '1.6'
     DESCRIPTION = 'Get forecasts from the MeteoFrance website'
     LICENSE = 'AGPLv3+'
     BROWSER = MeteofranceBrowser

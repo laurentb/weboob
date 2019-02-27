@@ -29,7 +29,7 @@ class S2eModule(Module, CapBankPockets):
     MAINTAINER = u'Edouard Lambert'
     EMAIL = 'elambert@budget-insight.com'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.5'
+    VERSION = '1.6'
 
     def get_account(self, _id):
         return find_object(self.browser.iter_accounts(), id=_id, error=AccountNotFound)

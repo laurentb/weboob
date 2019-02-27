@@ -32,7 +32,7 @@ class DelubacModule(AbstractModule, CapBank):
     DESCRIPTION = u'Banque Delubac & Cie'
     MAINTAINER = u'Noe Rubinstein'
     EMAIL = 'nru@budget-insight.com'
-    VERSION = '1.5'
+    VERSION = '1.6'
     LICENSE = 'LGPLv3+'
 
     BROWSER = DelubacBrowser

@@ -13,7 +13,7 @@ class TorrentzModule(Module, CapTorrent):
     NAME = 'torrentz'
     MAINTAINER = u'Matthieu Weber'
     EMAIL = 'weboob@weber.fi.eu.org'
-    VERSION = '1.5'
+    VERSION = '1.6'
     DESCRIPTION = 'Torrentz Search Engine.'
     LICENSE = 'AGPL'
     BROWSER = TorrentzBrowser

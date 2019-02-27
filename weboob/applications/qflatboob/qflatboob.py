@@ -27,7 +27,7 @@ from .main_window import MainWindow
 
 class QFlatBoob(QtApplication):
     APPNAME = 'qflatboob'
-    VERSION = '1.5'
+    VERSION = '1.6'
     COPYRIGHT = 'Copyright(C) 2010-2014 Romain Bignon'
     DESCRIPTION = "Qt application to search for housing."
     SHORT_DESCRIPTION = "search for housing"

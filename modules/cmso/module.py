@@ -37,7 +37,7 @@ class CmsoModule(Module, CapBankTransfer, CapBankWealth, CapContact, CapProfile)
     NAME = 'cmso'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '1.5'
+    VERSION = '1.6'
     DESCRIPTION = 'Crédit Mutuel Sud-Ouest'
     LICENSE = 'AGPLv3+'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),

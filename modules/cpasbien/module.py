@@ -31,7 +31,7 @@ class CpasbienModule(Module, CapTorrent):
     NAME = 'cpasbien'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'eneiluj@gmx.fr'
-    VERSION = '1.5'
+    VERSION = '1.6'
     DESCRIPTION = 'Cpasbien Torrents BitTorrent tracker'
     LICENSE = 'AGPLv3+'
     BROWSER = CpasbienBrowser

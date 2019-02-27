@@ -36,7 +36,7 @@ class LuccaModule(Module, CapCalendarEvent):
     MAINTAINER = 'Vincent A'
     EMAIL = 'dev@indigo.re'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.5'
+    VERSION = '1.6'
 
     BROWSER = LuccaBrowser
 

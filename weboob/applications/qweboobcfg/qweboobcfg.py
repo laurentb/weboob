@@ -23,7 +23,7 @@ from weboob.tools.application.qt5 import BackendCfg, QtApplication
 
 class QWeboobCfg(QtApplication):
     APPNAME = 'qweboobcfg'
-    VERSION = '1.5'
+    VERSION = '1.6'
     COPYRIGHT = 'Copyright(C) 2010-2014 Romain Bignon'
     DESCRIPTION = "weboob-config-qt is a graphical application to add/edit/remove backends, " \
                   "and to register new website accounts."

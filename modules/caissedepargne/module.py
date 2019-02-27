@@ -42,7 +42,7 @@ class CaisseEpargneModule(Module, CapBankWealth, CapBankTransferAddRecipient, Ca
     NAME = 'caissedepargne'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '1.5'
+    VERSION = '1.6'
     DESCRIPTION = u'Caisse d\'Épargne'
     LICENSE = 'AGPLv3+'
     BROWSER = ProxyBrowser

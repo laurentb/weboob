@@ -42,7 +42,7 @@ class INGModule(Module, CapBankWealth, CapBankTransfer, CapDocument, CapProfile)
     NAME = 'ing'
     MAINTAINER = 'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
-    VERSION = '1.5'
+    VERSION = '1.6'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = 'ING Direct'
     CONFIG = BackendConfig(ValueBackendPassword('login',
