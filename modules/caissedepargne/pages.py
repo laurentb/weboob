@@ -281,6 +281,9 @@ class IndexPage(LoggedPage, HTMLPage):
                 info['acc_type'] = Account.TYPE_MARKET
             return info
 
+    def is_account_inactive(self, account_id):
+        return self.doc.xpath('//tr[td[contains(text(), $id)]][@class="Inactive"]', id=account_id)
+
     def _add_account(self, accounts, link, label, account_type, balance):
         info = self._get_account_info(link, accounts)
         if info is None:

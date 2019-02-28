@@ -536,6 +536,9 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
         self.page.go_history(account._info)
         if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_PERP):
+            if self.page.is_account_inactive(account.id):
+                self.logger.warning('Account %s %s is inactive.' % (account.label, account.id))
+                return iter([])
             if "MILLEVIE" in account.label:
                 self.page.go_life_insurance(account)
                 label = account.label.split()[-1]
@@ -627,6 +630,9 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                 return
 
         elif account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_CAPITALISATION):
+            if self.page.is_account_inactive(account.id):
+                self.logger.warning('Account %s %s is inactive.' % (account.label, account.id))
+                return
             if "MILLEVIE" in account.label:
                 self.page.go_life_insurance(account)
                 label = account.label.split()[-1]
