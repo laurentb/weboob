@@ -105,7 +105,7 @@ class WritePageZero(HTMLPage):
         data = {
             'data': json.dumps(d),
             'expire': self.AGES[max_age],
-            'burnafterreading': str(int(max_age is 0)),
+            'burnafterreading': str(int(max_age == 0)),
             'opendiscussion': str(int(self.browser.opendiscussion)),
             'syntaxcoloring': '1',
         }
