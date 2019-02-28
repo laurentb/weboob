@@ -65,7 +65,7 @@ class FreeBrowser(LoginBrowser):
             return []
 
         self.urlid = self.page.url.rsplit('.pl', 2)[1]
-        if self.status is "inactive":
+        if self.status == "inactive":
             return self.documents.stay_or_go(urlid=self.urlid).get_list()
         return self.home.stay_or_go(urlid=self.urlid).get_list()
 
