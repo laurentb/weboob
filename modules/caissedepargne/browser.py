@@ -38,7 +38,7 @@ from weboob.exceptions import (
 )
 from weboob.tools.capabilities.bank.transactions import sorted_transactions, FrenchTransaction
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
-from weboob.tools.compat import urljoin
+from weboob.tools.compat import urljoin, urlparse
 from weboob.tools.value import Value
 from weboob.tools.decorators import retry
 
@@ -380,7 +380,11 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     def update_linebourse_token(self):
         assert self.linebourse is not None, "linebourse browser should already exist"
         self.linebourse.session.cookies.update(self.session.cookies)
-        self.linebourse.session.headers['X-XSRF-TOKEN'] = self.session.cookies.get('XSRF-TOKEN', domain='www.caisse-epargne.offrebourse.com')
+        # It is important to fetch the domain dynamically because
+        # for caissedepargne the domain is 'www.caisse-epargne.offrebourse.com'
+        # whereas for creditcooperatif it is 'www.offrebourse.com'
+        domain = urlparse(self.url).netloc
+        self.linebourse.session.headers['X-XSRF-TOKEN'] = self.session.cookies.get('XSRF-TOKEN', domain=domain)
 
     @need_login
     @retry(ClientError, tries=3)
