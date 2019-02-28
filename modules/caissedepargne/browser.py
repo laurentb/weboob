@@ -582,6 +582,10 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             if "Bourse" in self.url:
                 self.page.submit()
                 if 'offrebourse.com' in self.url:
+                    # Some users may not have access to this.
+                    if self.page.is_error():
+                        return iter([])
+
                     self.linebourse.session.cookies.update(self.session.cookies)
                     self.update_linebourse_token()
                     return self.linebourse.iter_history(account.id)
@@ -624,6 +628,10 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             self.page.submit()
 
             if 'offrebourse.com' in self.url:
+                # Some users may not have access to this.
+                if self.page.is_error():
+                    return
+
                 self.update_linebourse_token()
                 for investment in self.linebourse.iter_investments(account.id):
                     yield investment
