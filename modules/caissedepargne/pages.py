@@ -300,6 +300,7 @@ class IndexPage(LoggedPage, HTMLPage):
             account.type = Account.TYPE_CAPITALISATION
 
         balance = balance or self.get_balance(account)
+
         account.balance = Decimal(FrenchTransaction.clean_amount(balance)) if balance and balance is not NotAvailable else NotAvailable
 
         account.currency = account.get_currency(balance) if balance and balance is not NotAvailable else NotAvailable
@@ -324,8 +325,15 @@ class IndexPage(LoggedPage, HTMLPage):
         if len(balance) > 0:
             balance = CleanText('.')(balance[0])
             balance = balance if balance != u'' else NotAvailable
-        else: # sometimes the accounts are attached but no info is available
-            balance = NotAvailable
+        else:
+            # Specific xpath for some Life Insurances:
+            balance = page.doc.xpath('//tr[td[contains(text(), $id)]]/td/div[contains(@id, "Solde")]', id=account.id)
+            if len(balance) > 0:
+                balance = CleanText('.')(balance[0])
+                balance = balance if balance != u'' else NotAvailable
+            else:
+                # sometimes the accounts are attached but no info is available
+                balance = NotAvailable
         self.go_list()
         return balance
 
