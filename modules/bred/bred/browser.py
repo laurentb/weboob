@@ -21,10 +21,10 @@ from __future__ import unicode_literals
 
 import json
 import time
+import operator
 from datetime import date
-from decimal import Decimal
 
-from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities.bank import Account
 from weboob.browser import LoginBrowser, need_login, URL
 from weboob.capabilities.base import find_object
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
@@ -117,10 +117,12 @@ class BredBrowser(LoginBrowser):
         for universe_key in self.get_universes():
             self.move_to_univers(universe_key)
             accounts.extend(self.get_list())
-            accounts.extend(self.get_loans_list())
             accounts.extend(self.get_life_insurance_list(accounts))
+            accounts.extend(self.get_loans_list())
 
-        return sorted(accounts, key=lambda x: x._univers)
+        # Life insurances are sometimes in multiple universes, we have to remove duplicates
+        unique_accounts = {account.id: account for account in accounts}
+        return sorted(unique_accounts.values(), key=operator.attrgetter('_univers'))
 
     @need_login
     def get_loans_list(self):
@@ -138,12 +140,11 @@ class BredBrowser(LoginBrowser):
 
     @need_login
     def get_life_insurance_list(self, accounts):
-        accounts = self.get_list()
 
         self.life_insurances.go()
 
-        for ins in self.page.iter_life_insurances(current_univers=self.current_univers):
-            ins.parent = find_object(accounts, _number=ins._number, type=Account.TYPE_CHECKING)
+        for ins in self.page.iter_lifeinsurances(univers=self.current_univers):
+            ins.parent = find_object(accounts, _number=ins._parent_number, type=Account.TYPE_CHECKING)
             yield ins
 
     @need_login
@@ -170,7 +171,7 @@ class BredBrowser(LoginBrowser):
 
     @need_login
     def get_history(self, account, coming=False):
-        if account.type is Account.TYPE_LOAN or not account._consultable:
+        if account.type in (Account.TYPE_LOAN, Account.TYPE_LIFE_INSURANCE) or not account._consultable:
             raise NotImplementedError()
 
         if account._univers != self.current_univers:
@@ -210,15 +211,8 @@ class BredBrowser(LoginBrowser):
         if account.type != Account.TYPE_LIFE_INSURANCE:
             raise NotImplementedError()
 
-        if account._univers != self.current_univers:
-            self.move_to_univers(account._univers)
-
         for invest in account._investments:
-            inv = Investment()
-            inv.label = invest['libelle'].strip()
-            inv.code = invest['code']
-            inv.valuation = Decimal(str(invest['montant']))
-            yield inv
+            yield invest
 
     @need_login
     def get_profile(self):

@@ -28,9 +28,12 @@ from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, Acti
 from weboob.capabilities.base import find_object
 from weboob.browser.pages import JsonPage, LoggedPage, HTMLPage
 from weboob.capabilities import NotAvailable
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, Investment
+from weboob.tools.capabilities.bank.investments import is_isin_valid
 from weboob.capabilities.profile import Person
-from weboob.browser.filters.standard import CleanText
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Env, Eval
+from weboob.browser.filters.json import Dict
+from weboob.browser.elements import DictElement, ItemElement, method
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
@@ -187,21 +190,56 @@ class IbanPage(MyJsonPage):
         account.iban = iban_response.get('iban', NotAvailable)
 
 
-class LifeInsurancesPage(MyJsonPage):
-    def iter_life_insurances(self, current_univers):
-        for content in self.get_content():
-            a = Account()
-            a.id = str(content['avoirs']['contrats'][0]['numero'])
-            a._number = content['avoirs']['contrats'][0]['cptRattachement'].rstrip('0')
-            a.type = Account.TYPE_LIFE_INSURANCE
-            a.label = ' '.join([content['titulaire'].strip(), content['avoirs']['contrats'][0]['libelleProduit'].strip()])
-            a.balance = Decimal(str(content['avoirs']['valeur']))
-            a.currency = 'EUR'
-            a._univers = current_univers
-            # The investment list for each life insurance is available here:
-            a._investments = [inv for inv in content['avoirs']['contrats'][0]['allocations']]
-            a._consultable = False
-            yield a
+class LifeInsurancesPage(LoggedPage, JsonPage):
+
+    @method
+    class iter_lifeinsurances(DictElement):
+        item_xpath = 'content'
+
+        class iter_accounts(DictElement):
+            item_xpath = 'avoirs/contrats'
+
+            def get_owner(self):
+                return CleanText(Dict('titulaire'))(self)
+
+            class item(ItemElement):
+                klass = Account
+
+                obj_balance = CleanDecimal(Dict('valorisation'))
+                obj_type = Account.TYPE_LIFE_INSURANCE
+                obj_currency = 'EUR'
+                obj__univers = Env('univers')
+
+                def obj_id(self):
+                    return Eval(str, Dict('numero'))(self)
+
+                def obj_label(self):
+                    return '%s - %s' % (CleanText(Dict('libelleProduit'))(self), self.parent.get_owner())
+
+                def obj__parent_number(self):
+                    return CleanText(Dict('cptRattachement'))(self).rstrip('0')
+
+                # Investments are already present in this JSON,
+                # so we fill the lists of Investment objects now
+                class obj__investments(DictElement):
+                    item_xpath = 'allocations'
+
+                    class item(ItemElement):
+                        klass = Investment
+
+                        obj_label = CleanText(Dict('libelle'))
+                        obj_valuation = CleanDecimal(Dict('montant'))
+
+                        def obj_code_type(self):
+                            if is_isin_valid(CleanText(Dict('code'))(self)):
+                                return Investment.CODE_TYPE_ISIN
+                            return NotAvailable
+
+                        def obj_code(self):
+                            code = CleanText(Dict('code'))(self)
+                            if is_isin_valid(code):
+                                return code
+                            return NotAvailable
 
 
 class SearchPage(LoggedPage, JsonPage):
