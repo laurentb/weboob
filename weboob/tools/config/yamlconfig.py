@@ -78,8 +78,6 @@ class YamlConfig(IConfig):
             f = tempfile.NamedTemporaryFile(mode='w', dir=os.path.dirname(self.path), delete=False, encoding='utf-8')
         with f:
             yaml.dump(self.values, f, Dumper=WeboobDumper, default_flow_style=False)
-        if os.path.isfile(self.path):
-            os.remove(self.path)
         os.rename(f.name, self.path)
 
     def get(self, *args, **kwargs):
