@@ -87,8 +87,7 @@ class YamlConfig(IConfig):
                 v = v[a]
             except KeyError:
                 if 'default' in kwargs:
-                    v[a] = {}
-                    v = v[a]
+                    return kwargs['default']
                 else:
                     raise ConfigError()
             except TypeError:
