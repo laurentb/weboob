@@ -20,14 +20,14 @@
 from __future__ import unicode_literals
 
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import BrowserIncorrectPassword, BrowserPasswordExpired
+from weboob.exceptions import BrowserIncorrectPassword, BrowserPasswordExpired, ActionNeeded
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import find_object
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
 from .pages import (
     LoginPage, ProfilePage, AccountTypePage, AccountsPage, ProAccountsPage,
     TransactionsPage, IbanPage, RedirectPage, EntryPage, AVPage, ProIbanPage,
-    ProTransactionsPage, LabelsPage,
+    ProTransactionsPage, LabelsPage, RgpdPage,
 )
 
 class CreditDuNordBrowser(LoginBrowser):
@@ -50,6 +50,7 @@ class CreditDuNordBrowser(LoginBrowser):
     account_type_page = URL("/icd/zco/public-data/public-ws-menuespaceperso.json", AccountTypePage)
     labels_page = URL("/icd/zco/public-data/ws-menu.json", LabelsPage)
     profile_page = URL("/icd/zco/data/user.json", ProfilePage)
+    bypass_rgpd = URL('/icd/zcd/data/gdpr-get-out-zs-client.json', RgpdPage)
 
     def __init__(self, website, *args, **kwargs):
         self.weboob = kwargs['weboob']
@@ -104,7 +105,14 @@ class CreditDuNordBrowser(LoginBrowser):
 
     @need_login
     def get_pages_labels(self):
-        self.labels_page.go()
+        # When retrieving labels_page,
+        # If GDPR was accepted partially the website throws a page that we treat
+        # as an ActionNeeded. Sometime we can by-pass it. Hence this fix
+        try:
+            self.labels_page.go()
+        except ActionNeeded:
+            self.bypass_rgpd.go()
+            self.labels_page.go()
         return self.page.get_labels()
 
     @need_login

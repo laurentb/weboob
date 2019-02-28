@@ -169,7 +169,7 @@ class LabelsPage(LoggedPage, JsonPage):
         if Dict('commun/statut', default='')(self.doc) == 'nok':
             reason = Dict('commun/raison')(self.doc)
             assert reason == 'GDPR', 'Labels page is not available with message %s' % reason
-            raise ActionNeeded()
+            raise ActionNeeded(reason)
 
     def get_labels(self):
         synthesis_labels = ["synthèse"]
@@ -794,3 +794,7 @@ class ProTransactionsPage(TransactionsPage):
                 continue
 
             yield t
+
+
+class RgpdPage(LoggedPage, CDNBasePage):
+    pass
