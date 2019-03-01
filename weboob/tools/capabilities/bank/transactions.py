@@ -49,6 +49,67 @@ class classproperty(object):
         return self.f(owner)
 
 
+def parse_with_patterns(raw, obj, patterns):
+    obj.category = NotAvailable
+
+    if '  ' in raw:
+        # FIXME is this still relevant?
+        obj.category, _, obj.label = [part.strip() for part in raw.partition('  ')]
+    else:
+        obj.label = raw
+
+    for pattern, _type in patterns:
+        m = pattern.match(raw)
+        if m:
+            args = m.groupdict()
+
+            def inargs(key):
+                """
+                inner function to check if a key is in args,
+                and is not None.
+                """
+                return args.get(key, None) is not None
+
+            obj.type = _type
+            labels = [args[name].strip() for name in ('text', 'text2') if inargs(name)]
+            if labels:
+                obj.label = ' '.join(labels)
+
+            if inargs('category'):
+                obj.category = args['category'].strip()
+
+            # Set date from information in raw label.
+            if inargs('dd') and inargs('mm'):
+                dd = int(args['dd']) if args['dd'] != '00' else 1
+                mm = int(args['mm'])
+
+                if inargs('yy'):
+                    yy = int(args['yy'])
+                else:
+                    d = obj.date
+                    try:
+                        d = d.replace(month=mm, day=dd)
+                    except ValueError:
+                        d = d.replace(year=d.year-1, month=mm, day=dd)
+
+                    yy = d.year
+                    if d > obj.date:
+                        yy -= 1
+
+                if yy < 100:
+                    yy += 2000
+
+                try:
+                    if inargs('HH') and inargs('MM'):
+                        obj.rdate = datetime.datetime(yy, mm, dd, int(args['HH']), int(args['MM']))
+                    else:
+                        obj.rdate = datetime.date(yy, mm, dd)
+                except ValueError as e:
+                    raise ParseError('Unable to parse date in label %r: %s' % (raw, e))
+
+            break
+
+
 class FrenchTransaction(Transaction):
     """
     Transaction with some helpers for french bank websites.
@@ -127,63 +188,11 @@ class FrenchTransaction(Transaction):
         self.vdate = self.parse_date(vdate)
         self.rdate = self.date
         self.raw = to_unicode(raw.replace(u'\n', u' ').strip())
-        self.category = NotAvailable
 
-        if '  ' in self.raw:
-            self.category, _, self.label = [part.strip() for part in self.raw.partition('  ')]
-        else:
-            self.label = self.raw
-
-        for pattern, _type in self.PATTERNS:
-            m = pattern.match(self.raw)
-            if m:
-                args = m.groupdict()
-
-                def inargs(key):
-                    """
-                    inner function to check if a key is in args,
-                    and is not None.
-                    """
-                    return args.get(key, None) is not None
-
-                self.type = _type
-                labels = [args[name].strip() for name in ('text', 'text2') if inargs(name)]
-                if labels:
-                    self.label = ' '.join(labels)
-
-                if inargs('category'):
-                    self.category = args['category'].strip()
-
-                # Set date from information in raw label.
-                if inargs('dd') and inargs('mm'):
-                    dd = int(args['dd'])
-                    mm = int(args['mm'])
-
-                    if inargs('yy'):
-                        yy = int(args['yy'])
-                    else:
-                        d = self.date
-                        try:
-                            d = d.replace(month=mm, day=dd)
-                        except ValueError:
-                            d = d.replace(year=d.year-1, month=mm, day=dd)
-
-                        yy = d.year
-                        if d > self.date:
-                            yy -= 1
-
-                    if yy < 100:
-                        yy += 2000
-
-                    try:
-                        if inargs('HH') and inargs('MM'):
-                            self.rdate = datetime.datetime(yy, mm, dd, int(args['HH']), int(args['MM']))
-                        else:
-                            self.rdate = datetime.date(yy, mm, dd)
-                    except ValueError as e:
-                        self._logger.warning('Unable to date in label %r: %s' % (self.raw, e))
-
-                return
+        try:
+            parse_with_patterns(self.raw, self, self.PATTERNS)
+        except ParseError as e:
+            self._logger.warning('Unable to date in label %r: %s' % (self.raw, e))
 
     @classproperty
     def TransactionElement(k):
@@ -240,63 +249,8 @@ class FrenchTransaction(Transaction):
                 raw = super(Filter, self).__call__(item)
                 if item.obj.rdate is NotLoaded:
                     item.obj.rdate = item.obj.date
-                item.obj.category = NotAvailable
-                if '  ' in raw:
-                    item.obj.category, useless, item.obj.label = [part.strip() for part in raw.partition('  ')]
-                else:
-                    item.obj.label = raw
 
-                for pattern, _type in patterns:
-                    m = pattern.match(raw)
-                    if m:
-                        args = m.groupdict()
-
-                        def inargs(key):
-                            """
-                            inner function to check if a key is in args,
-                            and is not None.
-                            """
-                            return args.get(key, None) is not None
-
-                        item.obj.type = _type
-                        labels = [args[name].strip() for name in ('text', 'text2') if inargs(name)]
-                        if labels:
-                            item.obj.label = ' '.join(labels)
-
-                        if inargs('category'):
-                            item.obj.category = args['category'].strip()
-
-                        # Set date from information in raw label.
-                        if inargs('dd') and inargs('mm'):
-                            dd = int(args['dd']) if args['dd'] != '00' else 1
-                            mm = int(args['mm'])
-
-                            if inargs('yy'):
-                                yy = int(args['yy'])
-                            else:
-                                d = item.obj.date
-                                try:
-                                    d = d.replace(month=mm, day=dd)
-                                except ValueError:
-                                    d = d.replace(year=d.year-1, month=mm, day=dd)
-
-                                yy = d.year
-                                if d > item.obj.date:
-                                    yy -= 1
-
-                            if yy < 100:
-                                yy += 2000
-
-                            try:
-                                if inargs('HH') and inargs('MM'):
-                                    item.obj.rdate = datetime.datetime(yy, mm, dd, int(args['HH']), int(args['MM']))
-                                else:
-                                    item.obj.rdate = datetime.date(yy, mm, dd)
-                            except ValueError as e:
-                                raise ParseError('Unable to parse date in label %r: %s' % (raw, e))
-
-                        break
-
+                parse_with_patterns(raw, item.obj, patterns)
                 return raw
 
             def filter(self, text):
