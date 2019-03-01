@@ -110,6 +110,7 @@ def to_unicode(text):
 
 # Get Python 3 input function in Python2, impl here because of reliance on to_unicode
 if sys.version_info.major >= 3:
+    from builtins import input
     raw_input = input  # pyflakes3 is satisfied
 else:
     def input(prompt=''):
