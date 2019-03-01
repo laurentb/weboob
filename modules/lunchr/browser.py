@@ -21,6 +21,8 @@ from __future__ import unicode_literals
 
 from weboob.browser.filters.standard import CleanDecimal, CleanText, DateTime
 from weboob.browser.filters.json import Dict
+from weboob.browser.exceptions import ClientError
+from weboob.exceptions import BrowserIncorrectPassword
 
 from weboob.browser.browsers import APIBrowser
 from weboob.capabilities.bank import Account, Transaction
@@ -37,17 +39,26 @@ class LunchrBrowser(APIBrowser):
         self.session.headers['x-lunchr-app-version'] = 'b6c6ca66c79ca059222779fe8f1ac98c8485b9f0'
         self.session.headers['x-lunchr-platform'] = 'web'
         # self.credentials is the HTTP POST data used in self._auth()
-        self.credentials = {'user': {
-            'email': login,
-            'password': password,
-        }}
+        self.credentials = {
+            'user': {
+                'email': login,
+                'password': password,
+            }
+        }
 
     def _auth(self):
         """Authenticate to Lunchr API using self.credentials.
         If authentication succeeds, authorization header is set in self.headers
         and response's json payload is returned unwrapped into dictionary.
         """
-        response = self.open('/api/v0/users/login', data=self.credentials)
+        try:
+            response = self.open('/api/v0/users/login', data=self.credentials)
+        except ClientError as e:
+            json = e.response.json()
+            if e.response.status_code == 401:
+                message = json['result']['error']['message']
+                raise BrowserIncorrectPassword(message)
+            raise e
         json = Dict('user')(response.json())
         self.session.headers['Authorization'] = 'Bearer ' + Dict('token')(json)
         return json
