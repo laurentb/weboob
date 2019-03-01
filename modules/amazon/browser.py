@@ -22,7 +22,8 @@ from datetime import date
 
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.exceptions import (
-    BrowserIncorrectPassword, BrowserUnavailable, ImageCaptchaQuestion, BrowserQuestion, ActionNeeded
+    BrowserIncorrectPassword, BrowserUnavailable, ImageCaptchaQuestion, BrowserQuestion, ActionNeeded,
+    WrongCaptchaResponse
 )
 from weboob.tools.value import Value
 from weboob.browser.browsers import ClientError
@@ -41,6 +42,9 @@ class AmazonBrowser(LoginBrowser, StatesMixin):
     L_SIGNIN = 'Identifiez-vous'
     L_LOGIN = 'Connexion'
     L_SUBSCRIBER = 'Nom : (.*) Modifier E-mail'
+
+    WRONGPASS_MESSAGE = "Votre mot de passe est incorrect"
+    WRONG_CAPTCHA_RESPONSE = "Saisissez les caractères tels qu'ils apparaissent sur l'image."
 
     login = URL(r'/ap/signin(.*)', LoginPage)
     home = URL(r'/$', r'/\?language=\w+$', HomePage)
@@ -73,7 +77,9 @@ class AmazonBrowser(LoginBrowser, StatesMixin):
         super(AmazonBrowser, self).__init__(*args, **kwargs)
 
     def locate_browser(self, state):
-        self.location(state['url'])
+        if '/ap/cvf/verify' not in state['url']:
+            # don't perform a GET to this url, it's the otp url, which will be reached by otp_form
+            self.location(state['url'])
 
     def push_security_otp(self, pin_code):
         res_form = self.otp_form
@@ -130,7 +136,14 @@ class AmazonBrowser(LoginBrowser, StatesMixin):
                 self.handle_security()
 
             if self.login.is_here():
-                raise BrowserIncorrectPassword()
+                msg = self.page.get_error_message()
+
+                if self.WRONGPASS_MESSAGE in msg:
+                    raise BrowserIncorrectPassword(msg)
+                elif self.WRONG_CAPTCHA_RESPONSE in msg:
+                    raise WrongCaptchaResponse(msg)
+                else:
+                    assert False, msg
             else:
                 return
 
@@ -157,7 +170,9 @@ class AmazonBrowser(LoginBrowser, StatesMixin):
             if captcha and not self.config['captcha_response'].get():
                 self.handle_captcha(captcha)
             else:
-                raise BrowserIncorrectPassword()
+                msg = self.page.get_error_message()
+                assert self.WRONGPASS_MESSAGE in msg, msg
+                raise BrowserIncorrectPassword(msg)
 
     def is_login(self):
         if self.login.is_here():

@@ -26,3 +26,6 @@ class AmazonUkBrowser(AmazonEnBrowser):
     BASEURL = 'https://www.amazon.co.uk'
     CURRENCY = u'£'
     LANGUAGE = u'en-GB'
+
+    WRONGPASS_MESSAGE = "Your password is incorrect"
+    WRONG_CAPTCHA_RESPONSE = "Enter the characters as they are shown in the image."

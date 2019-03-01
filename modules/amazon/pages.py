@@ -108,6 +108,9 @@ class LoginPage(HTMLPage):
             form = self.get_form(nr=0)
             return form
 
+    def get_error_message(self):
+        return CleanText('//div[@id="auth-error-message-box"]')(self.doc)
+
 
 class SubscriptionsPage(LoggedPage, HTMLPage):
     @method

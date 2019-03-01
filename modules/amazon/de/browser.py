@@ -26,3 +26,7 @@ class AmazonDeBrowser(AmazonEnBrowser):
     BASEURL = 'https://www.amazon.de'
     CURRENCY = 'EUR'
     LANGUAGE = 'en-GB'
+
+    # it's in english even in for this browser
+    WRONGPASS_MESSAGE = "Your password is incorrect"
+    WRONG_CAPTCHA_RESPONSE = "Enter the characters as they are shown in the image."
