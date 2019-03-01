@@ -440,7 +440,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
             if self.home.is_here():
                 if self.page.check_no_accounts() or self.page.check_no_loans():
-                    return iter([])
+                    return []
 
             for _ in range(3):
                 self.home_tache.go(tache='CRESYNT0')
@@ -538,7 +538,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_PERP):
             if self.page.is_account_inactive(account.id):
                 self.logger.warning('Account %s %s is inactive.' % (account.label, account.id))
-                return iter([])
+                return []
             if "MILLEVIE" in account.label:
                 self.page.go_life_insurance(account)
                 label = account.label.split()[-1]
@@ -566,7 +566,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
             except (IndexError, AttributeError) as e:
                 self.logger.error(e)
-                return iter([])
+                return []
         return self.page.iter_history()
 
     @need_login
@@ -584,7 +584,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                 if 'offrebourse.com' in self.url:
                     # Some users may not have access to this.
                     if self.page.is_error():
-                        return iter([])
+                        return []
 
                     self.linebourse.session.cookies.update(self.session.cookies)
                     self.update_linebourse_token()
