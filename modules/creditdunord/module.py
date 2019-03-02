@@ -5,16 +5,16 @@
 # This file is part of a weboob module.
 #
 # This weboob module is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as published by
+# it under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
 # This weboob module is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Affero General Public License for more details.
+# GNU Lesser General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License
+# You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import unicode_literals
@@ -38,7 +38,7 @@ class CreditDuNordModule(Module, CapBankWealth, CapProfile):
     EMAIL = 'romain@weboob.org'
     VERSION = '1.6'
     DESCRIPTION = u'Crédit du Nord, Banque Courtois, Kolb, Nuger, Laydernier, Tarneaud, Société Marseillaise de Crédit'
-    LICENSE = 'AGPLv3+'
+    LICENSE = 'LGPLv3+'
     website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
         'www.credit-du-nord.fr':     u'Crédit du Nord',
         'www.banque-courtois.fr':    u'Banque Courtois',

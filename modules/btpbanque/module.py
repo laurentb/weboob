@@ -5,16 +5,16 @@
 # This file is part of a weboob module.
 #
 # This weboob module is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as published by
+# it under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
 # This weboob module is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Affero General Public License for more details.
+# GNU Lesser General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License
+# You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
 
@@ -34,7 +34,7 @@ class BtpbanqueModule(AbstractModule, CapBank):
     MAINTAINER = u'Edouard Lambert'
     EMAIL = 'elambert@budget-insight.com'
     VERSION = '1.6'
-    LICENSE = 'AGPLv3+'
+    LICENSE = 'LGPLv3+'
     auth_type = {'weak' : "Code confidentiel (pro)",
                  'strong': "Sesame (pro)"}
     CONFIG = BackendConfig(Value('auth_type', label='Type de compte', choices=auth_type, default="weak"),
