@@ -33,7 +33,7 @@ __all__ = ['TicketsCesuModule']
 
 class TicketsCesuModule(Module, CapBank):
     NAME = 'ticketscesu'
-    DESCRIPTION = 'Tickets CESU Endered'
+    DESCRIPTION = 'Tickets CESU Edenred'
     MAINTAINER = 'Antoine BOSSY'
     EMAIL = 'mail+github@abossy.fr'
     LICENSE = 'LGPLv3+'
