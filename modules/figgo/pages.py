@@ -21,10 +21,13 @@ from __future__ import unicode_literals
 
 from datetime import timedelta
 
-from dateutil.parser import parse as parse_date
 from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage
 from weboob.capabilities.calendar import BaseCalendarEvent, STATUS
-from weboob.tools.date import new_date
+from weboob.capabilities.bill import (
+    Subscription, Document, DocumentTypes,
+)
+from weboob.tools.date import new_date, parse_date
+from weboob.tools.compat import urljoin
 
 
 class LoginPage(HTMLPage):
@@ -96,3 +99,25 @@ class CalendarPage(LoggedPage, JsonPage):
                 continue
 
             yield ev
+
+
+class SubscriptionPage(LoggedPage, JsonPage):
+    def get_subscription(self):
+        sub = Subscription()
+        sub.id = str(self.doc['data']['id'])
+        sub.subscriber = sub.label = self.doc['header']['principal']
+        return sub
+
+
+class DocumentsPage(LoggedPage, JsonPage):
+    def iter_documents(self, subid):
+        for d in self.doc['data']['items']:
+            doc = Document()
+            doc.id = '%s_%s' % (subid, d['id'])
+            doc._docid = d['id']
+            doc.label = d['import']['name']
+            doc.date = parse_date(d['import']['endDate'])
+            doc.url = urljoin(self.url, '/pagga/download/%s' % doc._docid)
+            doc.type = DocumentTypes.BILL
+            doc.format = 'pdf'
+            yield doc

@@ -22,7 +22,12 @@ from __future__ import unicode_literals
 
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword
+from weboob.capabilities.base import find_object
 from weboob.capabilities.calendar import CapCalendarEvent
+from weboob.capabilities.bill import (
+    CapDocument, DocumentTypes, SubscriptionNotFound, DocumentNotFound,
+    Subscription,
+)
 
 from .browser import LuccaBrowser
 
@@ -30,7 +35,7 @@ from .browser import LuccaBrowser
 __all__ = ['LuccaModule']
 
 
-class LuccaModule(Module, CapCalendarEvent):
+class LuccaModule(Module, CapDocument, CapCalendarEvent):
     NAME = 'figgo'
     DESCRIPTION = 'Figgo - Lucca congés et absences'
     MAINTAINER = 'Vincent A'
@@ -45,6 +50,8 @@ class LuccaModule(Module, CapCalendarEvent):
         Value('login', label='Identifiant'),
         ValueBackendPassword('password', label='Mot de passe'),
     )
+
+    accepted_document_types = (DocumentTypes.BILL,)
 
     def create_default_browser(self):
         return self.create_browser(
@@ -74,3 +81,27 @@ class LuccaModule(Module, CapCalendarEvent):
             yield ev
 
     # TODO merge contiguous events?
+
+    def iter_subscription(self):
+        return [self.browser.get_subscription()]
+
+    def get_subscription(self, id):
+        return find_object(self.iter_subscription(), id=id, error=SubscriptionNotFound)
+
+    def iter_documents(self, subscription):
+        if not isinstance(subscription, str):
+            subscription = subscription.id
+        return self.browser.iter_documents(subscription)
+
+    def get_document(self, id):
+        subid = id.split('_')[0]
+        return find_object(self.iter_documents(subid), id=id, error=DocumentNotFound)
+
+    def download_document(self, document):
+        return self.browser.open(document.url).content
+
+    def iter_resources(self, objs, split_path):
+        if Subscription in objs:
+            return CapDocument.iter_resources(self, objs, split_path)
+        return CapCalendarEvent.iter_resources(self, objs, split_path)
+

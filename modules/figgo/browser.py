@@ -26,7 +26,10 @@ from weboob.browser.exceptions import ClientError
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.tools.date import new_datetime
 
-from .pages import LoginPage, CalendarPage, HomePage, UsersPage
+from .pages import (
+    LoginPage, CalendarPage, HomePage, UsersPage,
+    DocumentsPage, SubscriptionPage,
+)
 
 
 class LuccaBrowser(LoginBrowser):
@@ -36,6 +39,8 @@ class LuccaBrowser(LoginBrowser):
     home = URL('/home', HomePage)
     calendar = URL('/api/leaveAMPMs', CalendarPage)
     users = URL(r'/api/departments\?fields=id%2Cname%2Ctype%2Clevel%2Cusers.id%2Cusers.displayName%2Cusers.dtContractStart%2Cusers.dtContractEnd%2Cusers.manager.id%2Cusers.manager2.id%2Cusers.legalEntityID%2Cusers.calendar.id&date=since%2C1970-01-01', UsersPage)
+    subscriptions = URL(r'/api/v3/users/me\?fields=id,firstName,lastName,allowsElectronicPayslip,culture,login,mail,personalemail', SubscriptionPage)
+    payslips = URL(r'/api/v3/payslips\?fields=id,import\[name,endDate\]&orderby=import\.endDate,desc,import\.startDate,desc,import\.creationDate,desc&ownerID=(?P<subid>\d+)', DocumentsPage)
 
     def __init__(self, subdomain, *args, **kwargs):
         super(LuccaBrowser, self).__init__(*args, **kwargs)
@@ -87,3 +92,13 @@ class LuccaBrowser(LoginBrowser):
                 last = new_datetime(event.start_date)
 
             start = window_end
+
+    @need_login
+    def get_subscription(self):
+        self.subscriptions.go()
+        return self.page.get_subscription()
+
+    @need_login
+    def iter_documents(self, subid):
+        self.payslips.go(subid=subid)
+        return self.page.iter_documents(subid)
