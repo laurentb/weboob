@@ -85,25 +85,33 @@ class Application(object):
 
     # ------ Class attributes --------------------------------------
 
-    # Application name
     APPNAME = ''
-    # Configuration and work directory (if None, use the Weboob instance one)
+    """Application name"""
+
     CONFDIR = None
-    # Default configuration dict (can only contain key/values)
+    """Configuration and work directory (if None, use the Weboob instance one)"""
+
     CONFIG = {}
-    # Default storage tree
+    """Default configuration dict (can only contain key/values)"""
+
     STORAGE = {}
-    # Synopsis
+    """Default storage tree"""
+
     SYNOPSIS = 'Usage: %prog [-h] [-dqv] [-b backends] ...\n'
     SYNOPSIS += '       %prog [--help] [--version]'
-    # Description
+    """Synopsis"""
+
     DESCRIPTION = None
-    # Version
+    """Description"""
+
     VERSION = None
-    # Copyright
+    """Version"""
+
     COPYRIGHT = None
-    # Verbosity of DEBUG
+    """Copyright"""
+
     DEBUG_FILTER = 2
+    """Verbosity of DEBUG"""
 
     stdin = sys.stdin
     stdout = sys.stdout

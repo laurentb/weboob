@@ -121,8 +121,8 @@ class ReplApplication(ConsoleApplication, MyCmd):
     DEFAULT_FORMATTER = 'multiline'
     COMMANDS_FORMATTERS = {}
 
-    # Objects to allow in do_ls / do_cd
     COLLECTION_OBJECTS = tuple()
+    """Objects to allow in do_ls / do_cd"""
 
     weboob_commands = set(['backends', 'condition', 'count', 'formatter', 'logging', 'select', 'quit', 'ls', 'cd'])
     hidden_commands = set(['EOF'])
