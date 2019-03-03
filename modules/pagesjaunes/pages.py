@@ -41,7 +41,10 @@ class ResultsPage(HTMLPage):
 
             obj_name = CleanText('.//a[has-class("denomination-links")]')
             obj_address = CleanText('.//a[has-class("adresse")]')
-            obj_phone = Regexp(CleanText('.//strong[@class="num"]', replace=[(' ', '')]), r'^0(\d{9})$', r'+33\1')
+            obj_phone = Regexp(
+                CleanText(
+                    './/div[has-class("tel-zone")][span[contains(text(),"Tél")]]//strong[@class="num"]',
+                    replace=[(' ', '')]), r'^0(\d{9})$', r'+33\1')
             obj_url = AbsoluteLink('.//a[has-class("denomination-links")]')
             obj_opening = HasElement('.//span[text()="Horaires"]', NotLoaded, NotAvailable)
 
