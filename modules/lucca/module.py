@@ -36,8 +36,8 @@ __all__ = ['LuccaModule']
 
 
 class LuccaModule(Module, CapDocument, CapCalendarEvent):
-    NAME = 'figgo'
-    DESCRIPTION = 'Figgo - Lucca congés et absences'
+    NAME = 'lucca'
+    DESCRIPTION = 'Lucca RH'
     MAINTAINER = 'Vincent A'
     EMAIL = 'dev@indigo.re'
     LICENSE = 'AGPLv3+'
