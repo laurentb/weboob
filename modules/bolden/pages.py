@@ -36,9 +36,9 @@ MAIN_ID = '_bolden_'
 
 class LoginPage(HTMLPage):
     def do_login(self, username, password):
-        form = self.get_form(id='loginform')
-        form['Email'] = username
-        form['Password'] = password
+        form = self.get_form(id='signin-form')
+        form['LoginViewModel.Email'] = username
+        form['LoginViewModel.Password'] = password
         form.submit()
 
     def check_error(self):
