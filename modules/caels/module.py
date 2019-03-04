@@ -54,7 +54,7 @@ class CaelsModule(Module, CapBankWealth):
         return self.browser.iter_accounts()
 
     def iter_investment(self, account):
-        return self.browser.iter_investments(account)
+        return self.browser.iter_investment(account)
 
     def iter_history(self, account):
         return self.browser.iter_history(account)
