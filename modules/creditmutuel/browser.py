@@ -137,7 +137,9 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
     error = URL(r'/(?P<subbank>.*)validation/infos.cgi', ErrorPage)
 
     subscription = URL(r'/(?P<subbank>.*)fr/banque/MMU2_LstDoc.aspx', SubscriptionPage)
-    terms_and_conditions = URL(r'/(?P<subbank>.*)fr/banque/conditions-generales.html', ConditionsPage)
+    terms_and_conditions = URL(r'/(?P<subbank>.*)fr/banque/conditions-generales.html',
+                               r'/(?P<subbank>.*)fr/banque/coordonnees_personnelles.aspx',
+                               r'/(?P<subbank>.*)fr/banque/paci_engine/paci_wsd_pdta.aspx', ConditionsPage)
 
     currentSubBank = None
     is_new_website = None
