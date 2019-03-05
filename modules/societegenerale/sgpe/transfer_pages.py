@@ -163,20 +163,12 @@ class TransferPage(LoggedPage, ErrorCheckedJsonPage):
 
 
 class SignTransferPage(LoggedPage, LoginPage):
-    def get_token(self):
-        result_page = json.loads(self.content)
-        assert result_page['commun']['statut'] == 'ok', 'Something went wrong: %s' % result_page['commun']['raison']
-        return result_page['donnees']['jeton']
-
     def get_confirm_transfer_data(self, password):
-        token = self.get_token()
-
         authentication_data = self.get_authentication_data()
         return {
             'codsec': authentication_data['img'].get_codes(password[:6]),
             'cryptocvcs': authentication_data['infos']['crypto'],
             'vk_op': 'sign',
-            'context': token,
         }
 
 
