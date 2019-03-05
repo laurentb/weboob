@@ -120,11 +120,17 @@ class BouyguesBrowser(LoginBrowser):
             try:
                 self.subscriptions_details.go(idSub=sub.id, headers=self.headers)
                 sub.label = self.page.get_label()
+                sub._is_holder = self.page.is_holder()
             except ClientError:
                 # if another person pay for your subscription you may not have access to this page with your credentials
                 sub.label = phone_list
             if not sub.label:
-                sub.label = subscriber
+                if not sub._is_holder:
+                    sub.label = subscriber
+                else:
+                    # If the subscriber is the holder but the subscription does not have a phone number anyway
+                    # It means that the subscription has not been activated yet
+                    continue
             yield sub
 
     @need_login

@@ -86,12 +86,18 @@ class SubscriptionPage(LoggedPage, JsonPage):
 
 class SubscriptionDetailPage(LoggedPage, JsonPage):
     def get_label(self):
-        num_tel_list = []
+        label_list = []
         for s in self.doc['items']:
-            phone = re.sub(r'^\+\d{2}', '0', s['numeroTel'])
-            num_tel_list.append(' '.join([phone[i:i + 2] for i in range(0, len(phone), 2)]))
+            if 'numeroTel' in s:
+                phone = re.sub(r'^\+\d{2}', '0', s['numeroTel'])
+                label_list.append(' '.join([phone[i:i + 2] for i in range(0, len(phone), 2)]))
+            else:
+                continue
 
-        return ' - '.join(num_tel_list)
+        return ' - '.join(label_list)
+
+    def is_holder(self):
+        return any(CleanText(Dict('utilisateur/libelleProfilDroits'), default=None)(s) == 'Accès titulaire' for s in self.doc['items'] if 'utilisateur' in s)
 
 
 class SendSMSPage(HTMLPage):
