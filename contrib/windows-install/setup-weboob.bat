@@ -16,10 +16,9 @@ set WGET=wget-%ARCHITECTURE%.exe
 echo.
 echo 2.Check Python Installation
 
-rem check first possible key
 set KEY_NAME=HKLM\Software\Python\PythonCore\2.7\InstallPath
 if %ARCHITECTURE% == x64 (
-	set KEY_NAME=HKLM\SOFTWARE\Python\PythonCore\2.7\InstallPath
+  set KEY_NAME=HKLM\SOFTWARE\Python\PythonCore\2.7\InstallPath
 )
 
 set IsPythonInstalled=0
@@ -43,6 +42,7 @@ if %IsPythonInstalled% EQU 1 (
   )
 
   !PythonPath!python.exe --version 2>&1 | find /i "!PYTHON_VERSION!" > tmp.txt
+
   if %ERRORLEVEL% EQU 1 (
     set IsPythonInstalled=0
   ) else (
@@ -62,7 +62,7 @@ if %IsPythonInstalled% EQU 0 (
   )
 
   echo 2.1 Download !PYTHON_MSI!
-  "%WGET%" -o python_donwload --no-check-certificate "http://www.python.org/ftp/python/!PYTHON_VERSION!/!PYTHON_MSI!"
+  "%WGET%" -o python_donwload --no-check-certificate "https://www.python.org/ftp/python/!PYTHON_VERSION!/!PYTHON_MSI!"
 
   echo 2.2 Setup !PYTHON_MSI!
   !PYTHON_MSI!
@@ -94,10 +94,8 @@ if exist "%PythonPath%Scripts\easy_install.exe" (
   goto :step4
 ) else (
 
-  echo 3.1 Setup setuptools
-  %PythonPath%python.exe ez_setup.py || goto :InstallFailed
-
-  del setuptools-1.1.6.tar.gz
+  echo 3.1 Install pip
+  %PythonPath%python.exe get-pip.py || goto :InstallFailed
   goto :step4
 )
 
@@ -125,38 +123,8 @@ REG QUERY %KEY_NAME% > nul 2>NUL || (
 )
 
 echo.
-echo 6.Install Weboob Dependances
-echo.
-echo -- cssselect
-%PythonPath%Scripts\easy_install.exe cssselect || goto :InstallFailed
-echo.
-echo -- lxml
-%PythonPath%Scripts\easy_install.exe lxml==3.2.5 || goto :InstallFailed
-echo.
-echo -- dateutils
-%PythonPath%Scripts\easy_install.exe dateutils || goto :InstallFailed
-echo.
-echo -- pyyaml
-%PythonPath%Scripts\easy_install.exe pyyaml || goto :InstallFailed
-echo.
-echo -- html2text
-%PythonPath%Scripts\easy_install.exe html2text || goto :InstallFailed
-echo.
-echo -- google-api-python-client
-%PythonPath%Scripts\easy_install.exe google-api-python-client || goto :InstallFailed
-echo.
-echo -- feedparser
-%PythonPath%Scripts\easy_install.exe feedparser || goto :InstallFailed
-echo.
-echo -- pillow
-%PythonPath%Scripts\easy_install.exe pillow==2.3.0 || goto :InstallFailed
-echo.
-echo -- requests
-%PythonPath%Scripts\easy_install.exe requests==2.3.0 || goto :InstallFailed
-
-echo.
 echo 6.Install WeBoob
-%PythonPath%Scripts\easy_install.exe %WEBOOB% || goto :InstallFailed
+%PythonPath%Scripts\easy_install.exe weboob || goto :InstallFailed
 
 set StartupFolder=%AppData%\Microsoft\Windows\Start Menu\Programs
 if exist "%StartupFolder%" Goto :FoundStartup
@@ -168,30 +136,30 @@ goto :InstallSucceed
 
 :FoundStartup
 if exist "%StartupFolder%\Weboob" (
-	goto :CreateLauncher
+  goto :CreateLauncher
 ) else (
-	md "%StartupFolder%\Weboob"
-	goto :CreateLauncher
+  md "%StartupFolder%\Weboob"
+  goto :CreateLauncher
 )
 
 :CreateLauncher
 for %%i in (%LIST_APPLIQUATIONS_QT%) do (
-	echo Process %%i
+  echo Process %%i
 
-	(
-	  echo @echo off
-	  echo start %PythonPath%pythonw.exe %PythonPath%Scripts\%%i
-	) > %%i.bat
+  (
+    echo @echo off
+    echo start %PythonPath%pythonw.exe %PythonPath%Scripts\%%i
+  ) > %%i.bat
 
-	%PythonPath%python.exe convertPNG2ICO.py "%PythonPath%\Lib\site-packages\%WEBOOB%\share\icons\hicolor\64x64\apps\%%i.png" > nul
+  %PythonPath%python.exe convertPNG2ICO.py "%PythonPath%\Lib\site-packages\%WEBOOB%\share\icons\hicolor\64x64\apps\%%i.png" > nul
 
-	if exist "%StartupFolder%\Weboob\%%i.exe" (
-		del "%StartupFolder%\Weboob\%%i.exe"
-	)
+  if exist "%StartupFolder%\Weboob\%%i.exe" (
+    del "%StartupFolder%\Weboob\%%i.exe"
+  )
 
-	"Bat_To_Exe_Converter_%ARCHITECTURE%.exe" -bat "%%i.bat" -save "%StartupFolder%\Weboob\%%i.exe" -icon "%PythonPath%\Lib\site-packages\%WEBOOB%\share\icons\hicolor\64x64\apps\%%i.ico" "%%i"
-	del "%%i.bat"
-	del "%PythonPath%\Lib\site-packages\%WEBOOB%\share\icons\hicolor\64x64\apps\%%i.ico"
+  "Bat_To_Exe_Converter_%ARCHITECTURE%.exe" -bat "%%i.bat" -save "%StartupFolder%\Weboob\%%i.exe" -icon "%PythonPath%\Lib\site-packages\%WEBOOB%\share\icons\hicolor\64x64\apps\%%i.ico" "%%i"
+  del "%%i.bat"
+  del "%PythonPath%\Lib\site-packages\%WEBOOB%\share\icons\hicolor\64x64\apps\%%i.ico"
 )
 
 goto :InstallSucceed
@@ -213,8 +181,8 @@ goto :Quit
 
 :Quit
 
-del "%WEBOOB%"
-del ez_setup.py
+del .wget-hsts
+del get-pip.py
 del convertPNG2ICO.py
 del settings.cmd
 
