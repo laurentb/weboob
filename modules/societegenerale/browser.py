@@ -151,6 +151,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
                 card = Account()
                 card.id = card.number = el['numeroCompteFormate'].replace(' ', '')
                 card.label = el['labelToDisplay']
+                card.balance = Decimal('0')
                 card.coming = Decimal(str(el['montantProchaineEcheance']))
                 card.type = Account.TYPE_CARD
                 card.currency = account.currency
@@ -275,13 +276,13 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
 
         if account.type == account.TYPE_CARD:
             for transaction in self.page.iter_future_transactions(acc_prestation_id=account._prestation_id):
-                # coming transactions on this page are not in coming balance
-                # except for defered card coming transaction, use only for it for the moment
+                # coming transactions on this page are not include in coming balance
+                # use it only to retrive deferred card coming transactions
                 if transaction._card_coming:
                     for card_coming in transaction._card_coming:
                         card_coming.date = transaction.date
                         yield card_coming
-                    return
+            return
 
         for intraday_tr in self.page.iter_intraday_comings():
             yield intraday_tr
