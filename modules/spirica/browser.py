@@ -26,7 +26,7 @@ from .pages import LoginPage, AccountsPage, DetailsPage, MaintenancePage
 
 
 class SpiricaBrowser(LoginBrowser):
-    TIMEOUT = 60
+    TIMEOUT = 180
 
     login = URL('/securite/login.xhtml', LoginPage)
     accounts = URL('/sylvea/client/synthese.xhtml', AccountsPage)
