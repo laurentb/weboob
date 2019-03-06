@@ -33,6 +33,7 @@ from .pages import (
     LoginPage, CenetLoginPage, CenetHomePage,
     CenetAccountsPage, CenetAccountHistoryPage, CenetCardsPage,
     CenetCardSummaryPage, SubscriptionPage, DownloadDocumentPage,
+    CenetLoanPage,
 )
 from ..pages import CaissedepargneKeyboard
 
@@ -52,6 +53,7 @@ class CenetBrowser(LoginBrowser, StatesMixin):
     cenet_vk = URL('https://www.cenet.caisse-epargne.fr/Web/Api/ApiAuthentification.asmx/ChargerClavierVirtuel')
     cenet_home = URL('/Default.aspx$', CenetHomePage)
     cenet_accounts = URL('/Web/Api/ApiComptes.asmx/ChargerSyntheseComptes', CenetAccountsPage)
+    cenet_loans = URL('/Web/Api/ApiFinancements.asmx/ChargerListeFinancementsMLT', CenetLoanPage)
     cenet_account_history = URL('/Web/Api/ApiComptes.asmx/ChargerHistoriqueCompte', CenetAccountHistoryPage)
     cenet_account_coming = URL('/Web/Api/ApiCartesBanquaires.asmx/ChargerEnCoursCarte', CenetAccountHistoryPage)
     cenet_tr_detail = URL('/Web/Api/ApiComptes.asmx/ChargerDetailOperation', CenetCardSummaryPage)
@@ -120,11 +122,6 @@ class CenetBrowser(LoginBrowser, StatesMixin):
     @need_login
     def get_accounts_list(self):
         if self.accounts is None:
-            headers = {
-                'Content-Type': 'application/json; charset=UTF-8',
-                'Accept': 'application/json, text/javascript, */*; q=0.01'
-            }
-
             data = {
                 'contexte': '',
                 'dateEntree': None,
@@ -133,15 +130,17 @@ class CenetBrowser(LoginBrowser, StatesMixin):
             }
 
             try:
-                self.accounts = [account for account in self.cenet_accounts.go(data=json.dumps(data), headers=headers).get_accounts()]
+                self.accounts = [account for account in self.cenet_accounts.go(json=data).get_accounts()]
             except ClientError:
                 # Unauthorized due to wrongpass
                 raise BrowserIncorrectPassword()
-
+            self.cenet_loans.go(json=data)
+            for account in self.page.get_accounts():
+                self.accounts.append(account)
             for account in self.accounts:
                 try:
                     account._cards = []
-                    self.cenet_cards.go(data=json.dumps(data), headers=headers)
+                    self.cenet_cards.go(json=data)
 
                     for card in self.page.get_cards():
                         if card['Compte']['Numero'] == account.id:

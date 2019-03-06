@@ -23,10 +23,10 @@ from datetime import datetime
 
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage
 from weboob.browser.elements import DictElement, ItemElement, method
-from weboob.browser.filters.standard import Date, CleanDecimal, CleanText, Format, Field, Env, Regexp
+from weboob.browser.filters.standard import Date, CleanDecimal, CleanText, Format, Field, Env, Regexp, Currency
 from weboob.browser.filters.json import Dict
 from weboob.capabilities import NotAvailable
-from weboob.capabilities.bank import Account, Transaction
+from weboob.capabilities.bank import Account, Transaction, Loan
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Profile
 from weboob.capabilities.bill import DocumentTypes, Subscription, Document
@@ -115,6 +115,37 @@ class CenetAccountsPage(LoggedPage, CenetJsonPage):
 
             def obj__formated(self):
                 return self.el
+
+
+class CenetLoanPage(LoggedPage, CenetJsonPage):
+    @method
+    class get_accounts(DictElement):
+        item_xpath = "DonneesSortie"
+
+        class item(ItemElement):
+            klass = Loan
+
+            obj_id = CleanText(Dict('IdentifiantUniqueContrat'))
+            obj_label = CleanText(Dict('Libelle'))
+            obj_total_amount = CleanDecimal(Dict('MontantInitial/Valeur'))
+            obj_currency = Currency(Dict('MontantInitial/Devise'))
+            obj_balance = CleanDecimal(Dict('CapitalRestantDu/Valeur'))
+            obj_type = Account.TYPE_LOAN
+            obj_duration = CleanDecimal(Dict('Duree'))
+            obj_rate = CleanDecimal.French(Dict('Taux'))
+            obj_next_payment_amount = CleanDecimal(Dict('MontantProchaineEcheance/Valeur'))
+
+            def obj_subscription_date(self):
+                date = CleanDecimal(Dict('DateDebutEffet'))(self) / 1000
+                return datetime.fromtimestamp(date).date()
+
+            def obj_maturity_date(self):
+                date = CleanDecimal(Dict('DateDerniereEcheance'))(self) / 1000
+                return datetime.fromtimestamp(date).date()
+
+            def obj_next_payment_date(self):
+                date = CleanDecimal(Dict('DateProchaineEcheance'))(self) / 1000
+                return datetime.fromtimestamp(date).date()
 
 
 class CenetCardsPage(LoggedPage, CenetJsonPage):
