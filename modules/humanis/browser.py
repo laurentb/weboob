@@ -25,7 +25,7 @@ from .pages import LoginPage
 class HumanisBrowser(AbstractBrowser):
     PARENT = 'cmes'
 
-    login = URL('humanis/fr/identification/login.cgi', LoginPage)
+    login = URL('epsens/fr/identification/authentification.html', LoginPage)
 
     def __init__(self, login, password, baseurl, subsite, *args, **kwargs):
         self.weboob = kwargs['weboob']
