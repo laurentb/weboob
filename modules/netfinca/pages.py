@@ -196,6 +196,7 @@ class InvestmentsPage(LoggedPage, HTMLPage):
                 return Currency(text, default=NotAvailable)(self), CleanDecimal.French(text, default=NotAvailable)(self)
 
     def get_liquidity(self):
-        liquidity_element = CleanDecimal.French('//td[contains(text(), "Solde espèces en euros")]//following-sibling::td[position()=1]')(self.doc)
+        # Not all accounts have a Liquidity element
+        liquidity_element = CleanDecimal.French('//td[contains(text(), "Solde espèces en euros")]//following-sibling::td[position()=1]', default=None)(self.doc)
         if liquidity_element:
             return create_french_liquidity(liquidity_element)
