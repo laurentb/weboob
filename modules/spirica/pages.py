@@ -227,8 +227,11 @@ class DetailsPage(LoggedPage, HTMLPage):
 
     def go_historyall(self, page_number):
         form = self.get_form(xpath='//form[contains(@id, "ongletHistoOperations:ongletHistoriqueOperations")]')
-        # The form value varies (for example j_idt913 or j_idt62081) so we need to scrape it dynamically:
-        form_value = Attr('//div[@id="ongletHistoOperations:ongletHistoriqueOperations:newoperations"]/div[1]', 'id')(self.doc)
+        # The form value varies (for example j_idt913 or j_idt62081) so we need to scrape it dynamically.
+        # However, sometimes the form does not contain the 'id' attribute, in which case we must reload the page.
+        form_value = Attr('//div[@id="ongletHistoOperations:ongletHistoriqueOperations:newoperations"]/div[1]', 'id', default=None)(self.doc)
+        if not form_value:
+            return False
         form['javax.faces.partial.ajax'] =      'true'
         form['javax.faces.partial.execute'] =   form_value
         form['javax.faces.partial.render'] =    form_value
@@ -239,6 +242,7 @@ class DetailsPage(LoggedPage, HTMLPage):
         form[form_value + '_rows'] =            '100'
         form[form_value + '_first'] =           page_number * 100
         form.submit()
+        return True
 
     def go_investments_form(self, index):
         form = self.get_form(xpath='//form[contains(@id, "ongletHistoOperations:ongletHistoriqueOperations")]')
