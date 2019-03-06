@@ -554,6 +554,7 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                 account._next_debit = None
                 account._params = None
                 account._coming_params = None
+                account._coming_count = None
                 account._invest_params = None
                 if balance != u'' and len(tds[3].xpath('.//a')) > 0:
                     account._params = params.copy()
@@ -634,6 +635,7 @@ class CardsPage(LoggedPage, MyHTMLPage):
                 account._coming_params = params.copy()
                 account._coming_params['dialogActionPerformed'] = 'SELECTION_ENCOURS_CARTE'
                 account._coming_params['attribute($SEL_$%s)' % tr.attrib['id'].split('_')[0]] = tr.attrib['id'].split('_', 1)[1]
+                account._coming_count = len(self.doc.xpath('//table[@id="tbl1"]/tbody/tr/td[5]/span[not(contains(text(), "(1)"))]'))
             elif account is None:
                 raise BrokenPageError('Unable to find accounts on cards page')
             else:

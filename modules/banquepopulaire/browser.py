@@ -312,57 +312,68 @@ class BanquePopulaire(LoginBrowser):
     @retry(LoggedOut)
     @need_login
     def get_history(self, account, coming=False):
-        account = self.get_account(account.id)
+        def get_history_by_receipt(account, coming, sel_tbl1=None):
+            account = self.get_account(account.id)
 
-        if account is None:
-            raise BrowserUnavailable()
+            if account is None:
+                raise BrowserUnavailable()
 
-        if account._invest_params or (account.id.startswith('TIT') and account._params):
-            if not coming:
-                for tr in self.get_invest_history(account):
-                    yield tr
-            return
+            if account._invest_params or (account.id.startswith('TIT') and account._params):
+                if not coming:
+                    for tr in self.get_invest_history(account):
+                        yield tr
+                return
 
-        if coming:
-            params = account._coming_params
-        else:
-            params = account._params
-
-        if params is None:
-            return
-
-        params['token'] = self.page.build_token(params['token'])
-
-        self.location(self.absurl('/cyber/internet/ContinueTask.do', base=True), data=params)
-
-        if not self.page or self.error_page.is_here() or self.page.no_operations():
-            return
-
-        # Sort by values dates (see comment in TransactionsPage.get_history)
-        if len(self.page.doc.xpath('//a[@id="tcl4_srt"]')) > 0:
-            form = self.page.get_form(id='myForm')
-            form.url = self.absurl('/cyber/internet/Sort.do?property=tbl1&sortBlocId=blc2&columnName=dateValeur')
-            params['token'] = self.page.build_token(params['token'])
-            form.submit()
-
-        transactions_next_page = True
-
-        while transactions_next_page:
-            assert self.transactions_page.is_here()
-
-            transaction_list = self.page.get_history(account, coming)
-            for tr in transaction_list:
-                # Add information about GoCardless
-                if 'GoCardless' in tr.label and tr._has_link:
-                    self.set_gocardless_transaction_details(tr)
-                yield tr
-
-            next_params = self.page.get_next_params()
-            # Go to the next transaction page only if it exists:
-            if next_params is None:
-                transactions_next_page = False
+            if coming:
+                params = account._coming_params
             else:
-                self.location('/cyber/internet/Page.do', params=next_params)
+                params = account._params
+
+            if params is None:
+                return
+            params['token'] = self.page.build_token(params['token'])
+
+            if sel_tbl1 != None:
+                params['attribute($SEL_$tbl1)'] = str(sel_tbl1)
+
+            self.location(self.absurl('/cyber/internet/ContinueTask.do', base=True), data=params)
+
+            if not self.page or self.error_page.is_here() or self.page.no_operations():
+                return
+
+            # Sort by values dates (see comment in TransactionsPage.get_history)
+            if len(self.page.doc.xpath('//a[@id="tcl4_srt"]')) > 0:
+                form = self.page.get_form(id='myForm')
+                form.url = self.absurl('/cyber/internet/Sort.do?property=tbl1&sortBlocId=blc2&columnName=dateValeur')
+                params['token'] = self.page.build_token(params['token'])
+                form.submit()
+
+            transactions_next_page = True
+
+            while transactions_next_page:
+                assert self.transactions_page.is_here()
+
+                transaction_list = self.page.get_history(account, coming)
+                for tr in transaction_list:
+                    # Add information about GoCardless
+                    if 'GoCardless' in tr.label and tr._has_link:
+                        self.set_gocardless_transaction_details(tr)
+                    yield tr
+
+                next_params = self.page.get_next_params()
+                # Go to the next transaction page only if it exists:
+                if next_params is None:
+                    transactions_next_page = False
+                else:
+                    self.location('/cyber/internet/Page.do', params=next_params)
+
+        if coming and account._coming_count:
+            for i in range(account._coming_count):
+                for tr in get_history_by_receipt(account, coming, sel_tbl1=i):
+                    yield tr
+        else:
+            for tr in get_history_by_receipt(account, coming):
+                yield tr
 
     @need_login
     def go_investments(self, account, get_account=False):
