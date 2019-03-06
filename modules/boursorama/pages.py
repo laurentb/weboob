@@ -793,7 +793,11 @@ class CardsNumberPage(LoggedPage, HTMLPage):
             # With the card hash we can get the card number.
             # Non activated cards have no card_hash and therefore no
             # card number so we can easily eliminate them afterwards.
-            card.number = CleanText('//div[@data-card-key="%s"]/div/span' % card_hash)(self.doc)
+            card_details = CleanText('//div[@data-card-key="%s"]' % card_hash)(self.doc).replace(' ', '')
+            # We are looking for "4978********1234" in card_details:
+            number_search = re.search(r'\d{4}\*{8}\d{4}', card_details)
+            if number_search:
+                card.number = number_search.group(0)
 
 
 class HomePage(LoggedPage, HTMLPage):
