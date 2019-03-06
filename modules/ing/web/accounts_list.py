@@ -318,10 +318,13 @@ class AccountsList(LoggedPage, HTMLPage):
     def load_space_page(self):
         # The accounts page exists in two forms: with the spaces list and without
         # When having the spaceless page, a form must be submit to access the space page
-        form = self.get_form(id='user-menu')
-        on_click = self.doc.xpath('//a[contains(@class, "comptes")]/@onclick')[1]
+        form = self.get_form(id='header-menu')
+        on_click = Attr('//a[@class="home"]', 'onclick')(self.doc)
         self.fillup_form(form, r"\),\{(.*)\},'", on_click)
         form.submit()
+
+    def is_multispace_page(self):
+        return self.doc.xpath('//a[contains(@name, "mainMenu")]')
 
 
 class IbanPage(LoggedPage, HTMLPage):

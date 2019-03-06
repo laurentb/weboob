@@ -29,7 +29,7 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.date import parse_french_date
 
-from .login import INGVirtKeyboard
+from ..api.login import INGVirtKeyboard
 
 
 class MyRecipient(ItemElement):

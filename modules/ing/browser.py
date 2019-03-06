@@ -26,14 +26,14 @@ import json
 from requests.exceptions import SSLError
 
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
+from weboob.exceptions import BrowserUnavailable
 from weboob.browser.exceptions import ServerError
 from weboob.capabilities.bank import Account, AccountNotFound
 from weboob.capabilities.base import find_object, NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
-from .pages import (
-    AccountsList, LoginPage, NetissimaPage, TitrePage,
+from .web import (
+    AccountsList, NetissimaPage, TitrePage,
     TitreHistory, TransferPage, BillsPage, StopPage, TitreDetails,
     TitreValuePage, ASVHistory, ASVInvest, DetailFondsPage, IbanPage,
     ActionNeededPage, ReturnPage, ProfilePage, LoanTokenPage, LoanDetailPage,
@@ -75,7 +75,6 @@ class IngBrowser(LoginBrowser):
     lifeback = URL(r'https://ingdirectvie.ing.fr/b2b2c/entreesite/EntAccExit', ReturnPage)
 
     # Login and error
-    loginpage = URL(r'/public/displayLogin.jsf.*', LoginPage)
     errorpage = URL(r'.*displayCoordonneesCommand.*', StopPage)
     actioneeded = URL(r'/general\?command=displayTRAlertMessage',
                       r'/protected/pages/common/eco1/moveMoneyForbidden.jsf', ActionNeededPage)
@@ -108,7 +107,6 @@ class IngBrowser(LoginBrowser):
     __states__ = ['where']
 
     def __init__(self, *args, **kwargs):
-        self.birthday = kwargs.pop('birthday')
         self.where = None
         LoginBrowser.__init__(self, *args, **kwargs)
         self.cache = {}
@@ -126,24 +124,14 @@ class IngBrowser(LoginBrowser):
         self.current_subscription = None
 
     def do_login(self):
-        assert self.password.isdigit()
-        assert self.birthday.isdigit()
-
-        self.do_logout()
-        self.loginpage.go()
-
-        self.page.prelogin(self.username, self.birthday)
-        self.page.login(self.password)
-        if self.page.error():
-            raise BrowserIncorrectPassword()
-        if self.errorpage.is_here():
-            raise BrowserIncorrectPassword('Please login on website to fill the form and retry')
-        self.page.check_for_action_needed()
+        pass
 
     @need_login
     def set_multispace(self):
         self.where = 'start'
-        self.page.load_space_page()
+
+        if not self.page.is_multispace_page():
+            self.page.load_space_page()
 
         self.multispace = self.page.get_multispace()
 
@@ -156,6 +144,7 @@ class IngBrowser(LoginBrowser):
     @need_login
     def change_space(self, space):
         if self.multispace and not self.is_same_space(space, self.current_space):
+            self.logger.info('Change spaces')
             self.accountspage.go()
             self.where = 'start'
             self.page.load_space_page()

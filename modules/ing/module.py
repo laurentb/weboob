@@ -33,7 +33,7 @@ from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, ValueDate
 
-from .browser import IngBrowser
+from .api_browser import IngAPIBrowser
 
 __all__ = ['INGModule']
 
@@ -55,7 +55,7 @@ class INGModule(Module, CapBankWealth, CapBankTransfer, CapDocument, CapProfile)
                                      label='Date de naissance',
                                      formats=('%d%m%Y', '%d/%m/%Y', '%d-%m-%Y'))
                            )
-    BROWSER = IngBrowser
+    BROWSER = IngAPIBrowser
 
     accepted_document_types = (DocumentTypes.STATEMENT,)
 
