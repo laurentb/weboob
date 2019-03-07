@@ -32,7 +32,7 @@ __all__ = ['GroupamaesBrowser']
 class GroupamaesBrowser(LoginBrowser):
     BASEURL = 'https://www.gestion-epargne-salariale.fr'
 
-    login = URL('/groupama-es/fr/index.html', LoginPage)
+    login = URL('/groupama-es/espace-client/fr/identification/authentification.html', LoginPage)
     login_error = URL('/groupama-es/fr/identification/default.cgi', LoginErrorPage)
     groupamaes_page = URL('/groupama-es/fr/espace/devbavoirs.aspx\?mode=net&menu=cpte(?P<page>.*)', GroupamaesPage)
     groupamaes_pocket = URL('/groupama-es/fr/espace/devbavoirs.aspx\?_tabi=C&a_mode=net&a_mode=net&menu=cpte(?P<page>.*)', GroupamaesPocketPage)
