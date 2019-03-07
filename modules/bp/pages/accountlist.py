@@ -102,7 +102,11 @@ class item_account_generic(ItemElement):
         return NotAvailable
 
     def obj_iban(self):
-        rib_link = Link('//a[abbr[contains(text(), "RIB")]]', default=NotAvailable)(self.el)
+        if not Field('url')(self):
+            return NotAvailable
+
+        details_page = self.page.browser.open(Field('url')(self)).page
+        rib_link = Link('//a[abbr[contains(text(), "RIB")]]', default=NotAvailable)(details_page.doc)
         if rib_link:
             response = self.page.browser.open(rib_link)
             return response.page.get_iban()
