@@ -64,6 +64,12 @@ class CaptchaQuestion(Exception):
             setattr(self, key, value)
 
 
+class WrongCaptchaResponse(Exception):
+    """when website tell us captcha response is not good"""
+    def __init__(self, message=None):
+        super(WrongCaptchaResponse, self).__init__(message or "Captcha response is wrong")
+
+
 class ImageCaptchaQuestion(CaptchaQuestion):
     type = 'image_captcha'
 
