@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 
 
-__all__ = ['AutoCleanConfig', 'ForkingConfig', 'TimeBufferConfig']
+__all__ = ['AutoCleanConfig', 'ForkingConfig', 'TimeBufferConfig', 'time_buffer']
 
 
 """
@@ -62,33 +62,49 @@ class ForkingConfig(object):
         super(ForkingConfig, self).__exit__(t, v, tb)
 
 
+def time_buffer(since_seconds=None, last_run=True, logger=False):
+    def decorator_time_buffer(func):
+        def wrapper_time_buffer(*args, **kwargs):
+            since_seconds = kwargs.pop('since_seconds', None)
+            if since_seconds is None:
+                since_seconds = decorator_time_buffer.since_seconds
+            if logger:
+                logger.debug('Time buffer for %s of %s. Last run %s.'
+                             % (repr(func), since_seconds, decorator_time_buffer.last_run))
+            if since_seconds and decorator_time_buffer.last_run:
+                if (datetime.now() - decorator_time_buffer.last_run).seconds < since_seconds:
+                    if logger:
+                        logger.debug('Too soon to run %s, ignore.' % repr(func))
+                    return
+            if logger:
+                logger.debug('Run %s and record' % repr(func))
+            res = func(*args, **kwargs)
+            decorator_time_buffer.last_run = datetime.now()
+            return res
+
+        decorator_time_buffer.since_seconds = since_seconds
+        decorator_time_buffer.last_run = datetime.now() if last_run is True else last_run
+
+        return wrapper_time_buffer
+    return decorator_time_buffer
+
+
 class TimeBufferConfig(object):
     """
     Really saves only every saved_since_seconds seconds.
     It is possible to force save (e.g. at exit) with force_save().
     """
-    last_save = None
     saved_since_seconds = None
 
-    def __init__(self, path, saved_since_seconds=None):
-        super(TimeBufferConfig, self).__init__(path)
-        self.saved_since_seconds = saved_since_seconds
+    def __init__(self, path, saved_since_seconds=None, *args, **kwargs):
+        super(TimeBufferConfig, self).__init__(path, *args, **kwargs)
+        if saved_since_seconds:
+            self.saved_since_seconds = saved_since_seconds
 
-    def load(self, default={}):
-        super(TimeBufferConfig, self).load(default)
-        self.last_save = datetime.now()
-
-    def save(self, saved_since_seconds=None):
-        if saved_since_seconds is None:
-            saved_since_seconds = self.saved_since_seconds
-        if saved_since_seconds and self.last_save:
-            if (datetime.now() - self.last_save).seconds < saved_since_seconds:
-                return
-        super(TimeBufferConfig, self).save()
-        self.last_save = datetime.now()
+        self.save = time_buffer(since_seconds=self.saved_since_seconds)(self.save)
 
     def force_save(self):
-        self.save(False)
+        self.save(since_seconds=False)
 
     def __exit__(self, t, v, tb):
         self.force_save()
