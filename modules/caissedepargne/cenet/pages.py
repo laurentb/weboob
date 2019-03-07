@@ -168,11 +168,22 @@ class CenetCardsPage(LoggedPage, CenetJsonPage):
         return cards
 
 class CenetAccountHistoryPage(LoggedPage, CenetJsonPage):
-    TR_TYPES = {8: Transaction.TYPE_TRANSFER, # VIR
-                7: Transaction.TYPE_TRANSFER, # VIR COMPTE A COMPTE
-                6: Transaction.TYPE_CASH_DEPOSIT, # REMISE CHEQUE(s)
-                4: Transaction.TYPE_ORDER # PRELV
-                }
+    TR_TYPES_LABEL = {
+        'VIR': Transaction.TYPE_TRANSFER,
+        'CHEQUE': Transaction.TYPE_CHECK,
+        'REMISE CHEQUE': Transaction.TYPE_CASH_DEPOSIT,
+        'PRLV': Transaction.TYPE_ORDER,
+        'CB': Transaction.TYPE_CARD
+    }
+
+    TR_TYPES_API = {
+        'VIR': Transaction.TYPE_TRANSFER,
+        'PE': Transaction.TYPE_ORDER, # PRLV
+        'CE': Transaction.TYPE_CHECK, # CHEQUE
+        'CB': Transaction.TYPE_CARD,
+        'DE': Transaction.TYPE_CASH_DEPOSIT, # APPRO
+        'PI': Transaction.TYPE_CASH_DEPOSIT, # REMISE CHEQUE
+    }
 
     @method
     class get_history(DictElement):
@@ -187,7 +198,18 @@ class CenetAccountHistoryPage(LoggedPage, CenetJsonPage):
             obj_rdate = Date(Dict('DateGroupReglement'), dayfirst=True)
 
             def obj_type(self):
-                ret = self.page.TR_TYPES.get(Dict('TypeMouvement')(self), Transaction.TYPE_UNKNOWN)
+                ret = Transaction.TYPE_UNKNOWN
+
+                # The API may send the same key for 'PRLV' and 'VIR' transactions
+                # So the label is checked first, then the API key
+                for k, v in self.page.TR_TYPES_LABEL.items():
+                    if Field('label')(self).startswith(k):
+                        ret = v
+                        break
+
+                if ret == Transaction.TYPE_UNKNOWN:
+                    ret = self.page.TR_TYPES_API.get(Dict('TypeOperationDisplay')(self), Transaction.TYPE_UNKNOWN)
+
                 if ret != Transaction.TYPE_UNKNOWN:
                     return ret
 
