@@ -754,6 +754,12 @@ class SavingsPage(AccountsPage):
 
             obj__form = None
 
+            def validate(self, obj):
+                # Skip accounts with '0' as id
+                # They redirect to another cragr website
+                # The accounts contained by this space already appear in the accounts list
+                return Field('id')(self) != '0'
+
 
 class TransactionsPage(MyLoggedPage, BasePage):
     def get_missing_balance(self):
