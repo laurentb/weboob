@@ -25,6 +25,7 @@ from io import BytesIO
 from random import randint
 from decimal import Decimal
 from datetime import datetime, timedelta
+import lxml.html as html
 
 from weboob.browser.elements import DictElement, ListElement, TableElement, ItemElement, method
 from weboob.browser.filters.json import Dict
@@ -218,6 +219,12 @@ class LoginPage(JsonPage):
                 raise BrowserUnavailable(msg)
             else:
                 assert False, 'Unexpected error at login: "%s" (code=%s)' % (msg, error)
+
+        parser = html.HTMLParser(encoding=self.encoding)
+        doc = html.parse(BytesIO(self.content), parser)
+        error = CleanText('//div[h1[contains(text(), "Incident en cours")]]/p')(doc)
+        if error:
+            raise BrowserUnavailable(error)
 
     def login(self, username, password):
         url = '/identification-wspl-pres/grille/%s' % self.get('data.grille.idGrille')
