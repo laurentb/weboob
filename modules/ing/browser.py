@@ -30,13 +30,13 @@ from weboob.exceptions import BrowserUnavailable
 from weboob.browser.exceptions import ServerError
 from weboob.capabilities.bank import Account, AccountNotFound
 from weboob.capabilities.base import find_object, NotAvailable
-from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 from .web import (
     AccountsList, NetissimaPage, TitrePage,
-    TitreHistory, TransferPage, BillsPage, StopPage, TitreDetails,
+    TitreHistory, BillsPage, StopPage, TitreDetails,
     TitreValuePage, ASVHistory, ASVInvest, DetailFondsPage, IbanPage,
     ActionNeededPage, ReturnPage, ProfilePage, LoanTokenPage, LoanDetailPage,
+    ApiRedirectionPage,
 )
 
 __all__ = ['IngBrowser']
@@ -86,6 +86,7 @@ class IngBrowser(LoginBrowser):
     ibanpage = URL(r'/protected/pages/common/rib/initialRib.jsf', IbanPage)
     loantokenpage = URL(r'general\?command=goToConsumerLoanCommand&redirectUrl=account-details', LoanTokenPage)
     loandetailpage = URL(r'https://subscribe.ing.fr/consumerloan/consumerloan-v1/consumer/details', LoanDetailPage)
+
     # CapBank-Market
     netissima = URL(r'/data/asv/fiches-fonds/fonds-netissima.html', NetissimaPage)
     starttitre = URL(r'/general\?command=goToAccount&zone=COMPTE', TitrePage)
@@ -97,12 +98,16 @@ class IngBrowser(LoginBrowser):
                       r'https://ingdirectvie.ing.fr/b2b2c/epargne/CoeDetMvt', ASVHistory)
     asv_invest = URL(r'https://ingdirectvie.ing.fr/b2b2c/epargne/CoeDetCon', ASVInvest)
     detailfonds = URL(r'https://ingdirectvie.ing.fr/b2b2c/fonds/PerDesFac\?codeFonds=(.*)', DetailFondsPage)
+
+
     # CapDocument
     billpage = URL(r'/protected/pages/common/estatement/eStatement.jsf', BillsPage)
+
     # CapProfile
     profile = URL(r'/protected/pages/common/profil/(?P<page>\w+).jsf', ProfilePage)
 
-    transfer = URL(r'/protected/pages/common/virement/index.jsf', TransferPage)
+    # New website redirection
+    api_redirection_url = URL(r'/general\?command=goToSecureUICommand&redirectUrl=transfers', ApiRedirectionPage)
 
     __states__ = ['where']
 
@@ -125,6 +130,11 @@ class IngBrowser(LoginBrowser):
 
     def do_login(self):
         pass
+
+    def redirect_to_api_browser(self):
+        # get form to be redirected on transfer page
+        self.api_redirection_url.go()
+        self.page.go_new_website()
 
     @need_login
     def set_multispace(self):
@@ -151,6 +161,8 @@ class IngBrowser(LoginBrowser):
 
             self.page.change_space(space)
             self.current_space = space
+        else:
+            self.accountspage.go()
 
     def is_same_space(self, a, b):
         return (
@@ -307,15 +319,16 @@ class IngBrowser(LoginBrowser):
     def get_coming(self, account):
         self.change_space(account._space)
 
-        if account.type != Account.TYPE_CHECKING and\
-                account.type != Account.TYPE_SAVINGS:
-            raise NotImplementedError()
+        # checking accounts are handled on api website
+        if account.type != Account.TYPE_SAVINGS:
+            return []
+
         account = self.get_account(account.id, space=account._space)
         self.go_account_page(account)
         jid = self.page.get_history_jid()
         if jid is None:
             self.logger.info('There is no history for this account')
-            return
+            return []
         return self.page.get_coming()
 
     @need_login
@@ -328,31 +341,23 @@ class IngBrowser(LoginBrowser):
                 yield result
             return
 
-        elif account.type != Account.TYPE_CHECKING and\
-                account.type != Account.TYPE_SAVINGS:
-            raise NotImplementedError()
+        # checking accounts are handled on api website
+        elif account.type != Account.TYPE_SAVINGS:
+            return
+
         account = self.get_account(account.id, space=account._space)
         self.go_account_page(account)
         jid = self.page.get_history_jid()
-        only_deferred_cb = self.only_deferred_cards.get(account._id)
 
         if jid is None:
             self.logger.info('There is no history for this account')
             return
 
-        if account.type == Account.TYPE_CHECKING:
-            history_function = AccountsList.get_transactions_cc
-            index = -1  # disable the index. It works without it on CC
-        else:
-            history_function = AccountsList.get_transactions_others
-            index = 0
+        index = 0
         hashlist = set()
         while True:
             i = index
-            for transaction in history_function(self.page, index=index):
-                if only_deferred_cb and transaction.type == FrenchTransaction.TYPE_CARD:
-                    transaction.type = FrenchTransaction.TYPE_DEFERRED_CARD
-
+            for transaction in AccountsList.get_transactions_others(self.page, index=index):
                 transaction.id = hashlib.md5(transaction._hash).hexdigest()
                 while transaction.id in hashlist:
                     transaction.id = hashlib.md5((transaction.id + "1").encode('ascii')).hexdigest()
@@ -372,33 +377,6 @@ class IngBrowser(LoginBrowser):
                     "javax.faces.ViewState": account._jid
                     }
             self.accountspage.go(data=data)
-
-    @need_login
-    @start_with_main_site
-    def iter_recipients(self, account):
-        self.change_space(account._space)
-
-        self.transfer.go()
-        if not self.page.able_to_transfer(account):
-            return iter([])
-
-        self.page.go_to_recipient_selection(account)
-        return self.page.get_recipients(origin=account)
-
-    @need_login
-    @start_with_main_site
-    def init_transfer(self, account, recipient, transfer):
-        self.change_space(account._space)
-
-        self.transfer.go()
-        self.page.do_transfer(account, recipient, transfer)
-        return self.page.recap(account, recipient, transfer)
-
-    @need_login
-    @start_with_main_site
-    def execute_transfer(self, transfer):
-        self.page.confirm(self.password)
-        return transfer
 
     def go_on_asv_detail(self, account, link):
         try:
@@ -483,6 +461,10 @@ class IngBrowser(LoginBrowser):
                 for inv in self.page.iter_investments():
                     inv.portfolio_share = shares[inv.label]
                     yield inv
+
+                # return on old ing website
+                assert self.asv_invest.is_here(), "Should be on ING generali website"
+                self.lifeback.go()
 
     def get_history_titre(self, account):
         self.go_investments(account)
@@ -571,11 +553,3 @@ class IngBrowser(LoginBrowser):
         self._go_to_subscription(self.cache['subscriptions'][subid])
         self.page.go_to_year(bill._year)
         return self.page.download_document(bill)
-
-    ############# CapProfile #############
-    @start_with_main_site
-    @need_login
-    def get_profile(self):
-        profile = self.profile.go(page='coordonnees').get_profile()
-        self.profile.go(page='infosperso').update_profile(profile)
-        return profile

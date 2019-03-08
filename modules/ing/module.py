@@ -19,11 +19,7 @@
 from __future__ import unicode_literals
 
 
-import re
-from datetime import timedelta
-from decimal import Decimal
-
-from weboob.capabilities.bank import CapBankWealth, CapBankTransfer, Account, AccountNotFound, RecipientNotFound
+from weboob.capabilities.bank import CapBankWealth, CapBankTransfer, Account, AccountNotFound
 from weboob.capabilities.bill import (
     CapDocument, Bill, Subscription,
     SubscriptionNotFound, DocumentNotFound, DocumentTypes,
@@ -72,55 +68,42 @@ class INGModule(Module, CapBankWealth, CapBankTransfer, CapDocument, CapProfile)
             self._restrict_level(split_path)
             return self.iter_subscription()
 
+    ############# CapBank #############
     def iter_accounts(self):
-        return self.browser.get_accounts_list()
+        return self.browser.iter_matching_accounts()
 
     def get_account(self, _id):
-        return self.browser.get_account(_id)
+        return find_object(self.iter_accounts(), id=_id, error=AccountNotFound)
 
     def iter_history(self, account):
         if not isinstance(account, Account):
             account = self.get_account(account)
-        return self.browser.get_history(account)
+        return self.browser.iter_history(account)
 
+    def iter_coming(self, account):
+        if not isinstance(account, Account):
+            account = self.get_account(account)
+        return self.browser.iter_coming(account)
+
+    ############# CapWealth #############
+    def iter_investment(self, account):
+        if not isinstance(account, Account):
+            account = self.get_account(account)
+        return self.browser.get_investments(account)
+
+    ############# CapTransfer #############
     def iter_transfer_recipients(self, account):
         if not isinstance(account, Account):
             account = self.get_account(account)
         return self.browser.iter_recipients(account)
 
     def init_transfer(self, transfer, **params):
-        self.logger.info('Going to do a new transfer')
-        transfer.label = ' '.join(w for w in re.sub(r'[^0-9a-zA-Z/\-\?:\(\)\.,\'\+ ]+', '', transfer.label).split()).upper()
-        if transfer.account_iban:
-            account = find_object(self.iter_accounts(), iban=transfer.account_iban, error=AccountNotFound)
-        else:
-            account = find_object(self.iter_accounts(), id=transfer.account_id, error=AccountNotFound)
-
-        if transfer.recipient_iban:
-            recipient = find_object(self.iter_transfer_recipients(account.id), iban=transfer.recipient_iban, error=RecipientNotFound)
-        else:
-            recipient = find_object(self.iter_transfer_recipients(account.id), id=transfer.recipient_id, error=RecipientNotFound)
-
-        transfer.amount = Decimal(transfer.amount).quantize(Decimal('.01'))
-
-        return self.browser.init_transfer(account, recipient, transfer)
+        raise NotImplementedError()
 
     def execute_transfer(self, transfer, **params):
-        return self.browser.execute_transfer(transfer)
+        raise NotImplementedError()
 
-    def transfer_check_exec_date(self, old_exec_date, new_exec_date):
-        return old_exec_date <= new_exec_date <= old_exec_date + timedelta(days=4)
-
-    def iter_investment(self, account):
-        if not isinstance(account, Account):
-            account = self.get_account(account)
-        return self.browser.get_investments(account)
-
-    def iter_coming(self, account):
-        if not isinstance(account, Account):
-            account = self.get_account(account)
-        return self.browser.get_coming(account)
-
+    ############# CapDocument #############
     def iter_subscription(self):
         return self.browser.get_subscriptions()
 
@@ -142,5 +125,6 @@ class INGModule(Module, CapBankWealth, CapBankTransfer, CapDocument, CapProfile)
 
         return self.browser.download_document(bill).content
 
+    ############# CapProfile #############
     def get_profile(self):
         return self.browser.get_profile()
