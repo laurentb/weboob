@@ -641,7 +641,11 @@ class Transaction(FrenchTransaction):
 
 class OperationsPage(LoggedPage, HTMLPage):
     def go_on_history_tab(self):
-        form = self.get_form(id='I1:fm')
+        try:
+            # Maybe obsolete
+            form = self.get_form(id='I1:fm')
+        except FormNotFound:
+            form = self.get_form(id='I1:P:F')
         form['_FID_DoShowListView'] = ''
         form.submit()
 
