@@ -776,7 +776,11 @@ class CardPage(OperationsPage, LoggedPage):
             if Attr('.', 'selected', default=None)(option):
                 break
 
-            form = self.get_form(id="I1:fm")
+            try:
+                # Maybe obsolete
+                form = self.get_form(id="I1:fm")
+            except FormNotFound:
+                form = self.get_form(id='I1:P:F')
             form['_FID_DoChangeCardDetails'] = ""
             form['Data_SelectedCardItemKey'] = Attr('.', 'value')(option)
             return self.browser.open(form.url, data=dict(form)).page
