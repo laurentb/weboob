@@ -96,12 +96,16 @@ class TimeBufferConfig(object):
     """
     saved_since_seconds = None
 
-    def __init__(self, path, saved_since_seconds=None, *args, **kwargs):
+    def __init__(self, path, saved_since_seconds=None, last_run=True, logger=None, *args, **kwargs):
         super(TimeBufferConfig, self).__init__(path, *args, **kwargs)
         if saved_since_seconds:
             self.saved_since_seconds = saved_since_seconds
+        if self.saved_since_seconds:
+            self.save = time_buffer(since_seconds=self.saved_since_seconds, last_run=last_run, logger=logger)(self.save)
 
-        self.save = time_buffer(since_seconds=self.saved_since_seconds)(self.save)
+    def save(self, *args, **kwargs):
+        kwargs.pop('since_seconds', None)
+        super(TimeBufferConfig, self).save(*args, **kwargs)
 
     def force_save(self):
         self.save(since_seconds=False)
