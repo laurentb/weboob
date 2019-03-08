@@ -18,20 +18,31 @@
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.browser.pages import HTMLPage
+from weboob.browser.pages import HTMLPage, LoggedPage
+from weboob.tools.json import json
+from weboob.browser.filters.standard import CleanText, Format
 
 
 class LoginPage(HTMLPage):
     def login(self, username, password):
         json_data = {
-            'forcePwd': False,
             'login': username,
-            'mem': True,
+            'mem': False,
         }
-        self.browser.location('https://login.orange.fr/front/login', json=json_data)
+        response = self.browser.location('https://login.orange.fr/front/login', json=json_data)
 
         json_data = {
             'login': username,
             'password': password,
+            'loginEncrypt': json.loads(response.json()['options'])['loginEncrypt']
         }
         self.browser.location('https://login.orange.fr/front/password', json=json_data)
+
+
+class ManageCGI(HTMLPage):
+    pass
+
+
+class HomePage(LoggedPage, HTMLPage):
+    def get_error_message(self):
+        return Format('%s %s', CleanText('//div[has-class("modal-dialog")]//h3'), CleanText('//div[has-class("modal-dialog")]//p[1]'))(self.doc)

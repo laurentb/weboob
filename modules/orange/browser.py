@@ -22,8 +22,9 @@ from __future__ import unicode_literals
 from requests.exceptions import ConnectTimeout
 
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded
 from .pages import LoginPage, BillsPage
+from .pages.login import ManageCGI, HomePage
 from .pages.bills import SubscriptionsPage, BillsApiPage, ContractsPage
 from .pages.profile import ProfilePage
 from weboob.browser.exceptions import ClientError, ServerError
@@ -37,12 +38,14 @@ __all__ = ['OrangeBillBrowser']
 class OrangeBillBrowser(LoginBrowser):
     BASEURL = 'https://espaceclientv3.orange.fr'
 
+    home_page = URL('https://businesslounge.orange.fr/$', HomePage)
     loginpage = URL('https://login.orange.fr/\?service=sosh&return_url=https://www.sosh.fr/',
                     'https://login.orange.fr/front/login', LoginPage)
 
     contracts = URL('https://espaceclientpro.orange.fr/api/contracts\?page=1&nbcontractsbypage=15', ContractsPage)
 
     subscriptions = URL(r'https://espaceclientv3.orange.fr/js/necfe.php\?zonetype=bandeau&idPage=gt-home-page', SubscriptionsPage)
+    manage_cgi = URL('https://eui.orange.fr/manage_eui/bin/manage.cgi', ManageCGI)
 
     billspage = URL('https://m.espaceclientv3.orange.fr/\?page=factures-archives',
                     'https://.*.espaceclientv3.orange.fr/\?page=factures-archives',
@@ -87,7 +90,19 @@ class OrangeBillBrowser(LoginBrowser):
     @need_login
     def get_subscription_list(self):
         try:
-            profile = self.profile.go().get_profile()
+            self.profile.go()
+
+            assert self.profile.is_here() or self.manage_cgi.is_here()
+
+            # we land on manage_cgi page when there is cgu to validate
+            if self.manage_cgi.is_here():
+                # but they are not in this page, we have to go to home_page to get message
+                self.home_page.go()
+                msg = self.page.get_error_message()
+                assert "Nos Conditions Générales d'Utilisation ont évolué" in msg, msg
+                raise ActionNeeded(msg)
+            else:
+                profile = self.page.get_profile()
         except ConnectTimeout:
             # sometimes server just doesn't answer
             raise BrowserUnavailable()
