@@ -1896,7 +1896,7 @@ class NewCardsListPage(LoggedPage, HTMLPage):
 
             def condition(self):
                 # Numerous cards are not differed card, we keep the card only if there is a coming
-                return CleanText('.//div[1]/p')(self) == 'Active' and 'Dépenses' in CleanText('.//tr[1]/td/a[contains(@id,"C:more-card")]')(self)
+                return (CleanText('.//div[1]/p')(self) == 'Active' or Field('coming')(self) != 0) and 'Dépenses' in CleanText('.//tr[1]/td/a[contains(@id,"C:more-card")]')(self)
 
             obj_balance = 0
             obj_type = Account.TYPE_CARD
@@ -1946,18 +1946,23 @@ class NewCardsListPage(LoggedPage, HTMLPage):
             def parse(self, el):
                 # We have to reach the good page with the information of the type of card
                 history_page = self.page.browser.open(Field('_link_id')(self)).page
-                card_type_page = Link('//div/ul/li/a[contains(text(), "Fonctions")]')(history_page.doc)
-                doc = self.page.browser.open(card_type_page).page.doc
-                card_type_line = doc.xpath('//tbody/tr[th[contains(text(), "Débit des paiements")]]')
-                if card_type_line:
-                    if CleanText('./td')(card_type_line[0]) != 'Différé':
-                        raise SkipItem()
-                elif doc.xpath('//div/p[contains(text(), "Vous n\'avez pas l\'autorisation")]'):
-                    self.logger.warning("The user can't reach this page")
-                elif doc.xpath('//td[contains(text(), "Problème technique")]'):
-                    raise BrowserUnavailable(CleanText(doc.xpath('//td[contains(text(), "Problème technique")]'))(self))
-                else:
-                    assert False, 'xpath for card type information could have changed'
+                card_type_page = Link('//div/ul/li/a[contains(text(), "Fonctions")]', default=NotAvailable)(history_page.doc)
+                if card_type_page:
+                    doc = self.page.browser.open(card_type_page).page.doc
+                    card_type_line = doc.xpath('//tbody/tr[th[contains(text(), "Débit des paiements")]]')
+                    if card_type_line:
+                        if CleanText('./td')(card_type_line[0]) != 'Différé':
+                            raise SkipItem()
+                    elif doc.xpath('//div/p[contains(text(), "Vous n\'avez pas l\'autorisation")]'):
+                        self.logger.warning("The user can't reach this page")
+                    elif doc.xpath('//td[contains(text(), "Problème technique")]'):
+                        raise BrowserUnavailable(CleanText(doc.xpath('//td[contains(text(), "Problème technique")]'))(self))
+                    else:
+                        assert False, 'xpath for card type information could have changed'
+                elif not CleanText('//ul//a[contains(@title, "Consulter le différé")]')(history_page.doc):
+                    # If the card is not active the "Fonction" button is absent.
+                    # However we can check "Consulter le différé" button is present
+                    raise SkipItem()
 
     def get_unavailable_cards(self):
         cards = []
