@@ -22,7 +22,7 @@ from __future__ import unicode_literals
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import (
-    CleanText, Env, Field, Async, AsyncLoad, Currency
+    CleanText, Env, Field, Async, AsyncLoad, Currency, Map, Regexp
 )
 from weboob.browser.filters.html import AbsoluteLink
 from weboob.capabilities.bank import Account
@@ -31,15 +31,16 @@ from weboob.capabilities.base import NotAvailable
 from .detail_pages import InvestmentPage, BasePage
 
 
-class AccountsPage(LoggedPage, BasePage, HTMLPage):
-    TYPES = {
-        'Assurance vie': Account.TYPE_LIFE_INSURANCE,
-        'Epargne – Retraite': Account.TYPE_PERP,
-    }
+ACCOUNT_TYPES = {
+    'Assurance vie': Account.TYPE_LIFE_INSURANCE,
+    'Epargne – Retraite': Account.TYPE_PERP,
+}
 
+
+class AccountsPage(LoggedPage, BasePage, HTMLPage):
     @method
     class iter_accounts(ListElement):
-        item_xpath = '//div[@class="o-product-tabs__tab"]/div[has-class("o-product-tabs__tab-content")]/div[@data-policy]'
+        item_xpath = '//div[contains(@class, "o-product-roundels")]/div[@data-policy]'
 
         class item(ItemElement):
             klass = Account
@@ -53,6 +54,10 @@ class AccountsPage(LoggedPage, BasePage, HTMLPage):
             obj_valuation_diff = Async('details') & InvestmentPage.valuation_filter
             obj__link = AbsoluteLink(u'.//a[contains(text(), "Détail")]')
             obj_currency = Async('details') & Currency('//ul[has-class("m-data-group")]//strong')
+            obj_type = Map(Regexp(CleanText('../../../div[contains(@class, "o-product-roundels-category")]'),
+                           r'Vérifier votre (.*) contrats', default=NotAvailable),
+                           ACCOUNT_TYPES, Account.TYPE_UNKNOWN)
+
             # Additional waranty : need to know what to do with this
             obj__additionalwaranty = Env('additionalwaranty')
 
@@ -61,10 +66,6 @@ class AccountsPage(LoggedPage, BasePage, HTMLPage):
                 to_skip = ('Prévoyance', 'Responsabilité civile', 'Complémentaire santé', 'Protection juridique', 'Habitation', 'Automobile')
                 kind = CleanText('../../div[has-class("o-product-tab-category")]', default=NotAvailable)(self)
                 return (kind not in to_skip)
-
-            def obj_type(self):
-                kind = CleanText('../../div[has-class("o-product-tab-category")]', default=NotAvailable)(self)
-                return self.page.TYPES.get(kind, NotAvailable)
 
             def parse(self, el):
                 additionalwaranty = []
