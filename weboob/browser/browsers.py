@@ -1081,6 +1081,7 @@ class OAuth2Mixin(StatesMixin):
         try:
             auth_response = self.do_token_request(data).json()
         except ClientError:
+            self.refresh_token = None
             raise BrowserIncorrectPassword()
 
         self.update_token(auth_response)
