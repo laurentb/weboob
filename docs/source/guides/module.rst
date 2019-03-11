@@ -147,7 +147,7 @@ Available parameters of :class:`Value <weboob.tools.value.Value>` are:
 .. note::
 
     There is a special class, :class:`ValueBackendPassword <weboob.tools.value.ValueBackendPassword>`, which is used to manage
-    private parameters of the config (like passwords or sensible information).
+    private parameters of the config (like passwords or sensitive information).
 
 .. note::
 
