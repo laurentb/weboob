@@ -26,6 +26,7 @@ from weboob.browser.url import URL
 from weboob.browser.exceptions import ClientError
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.capabilities.base import find_object
+from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import sorted_transactions, FrenchTransaction
 
 from .pages import (
@@ -157,6 +158,8 @@ class CenetBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def get_history(self, account):
+        if account.type == Account.TYPE_LOAN:
+            return []
         headers = {
             'Content-Type': 'application/json; charset=UTF-8',
             'Accept': 'application/json, text/javascript, */*; q=0.01'
@@ -213,6 +216,8 @@ class CenetBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def get_coming(self, account):
+        if account.type == Account.TYPE_LOAN:
+            return []
         trs = []
 
         headers = {
