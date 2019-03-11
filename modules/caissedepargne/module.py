@@ -53,7 +53,7 @@ class CaisseEpargneModule(Module, CapBankWealth, CapBankTransferAddRecipient, Ca
     CONFIG = BackendConfig(Value('website',  label='Banque', choices=website_choices, default='www.caisse-epargne.fr'),
                            ValueBackendPassword('login',    label='Identifiant client', masked=False),
                            ValueBackendPassword('password', label='Code personnel', regexp='\d+'),
-                           Value('nuser',                   label='User ID (optional)', default='', regexp='\d{0,8}'),
+                           Value('nuser',                   label='User ID (optional)', default='', regexp='[A-Z\d]{0,8}'),
                            Value('pincode',                 label='pincode', required=False))
 
     accepted_document_types = (DocumentTypes.OTHER,)
