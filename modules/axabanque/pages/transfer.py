@@ -335,7 +335,8 @@ class ValidateTransferPage(LoggedPage, HTMLPage):
         img_src = CleanText('//div[@id="paveNumTrans"]//img[contains(@id, "imagePave")]/@src')(self.doc)
         f = BytesIO(self.browser.open(img_src).content)
 
-        vk = TransferVirtualKeyboard(file=f, cols=8, rows=3, matching_symbols=string.ascii_lowercase[:8*3])
+        vk = TransferVirtualKeyboard(file=f, cols=8, rows=3,
+                                     matching_symbols=string.ascii_lowercase[:8*3], browser=self.browser)
 
         return vk.get_string_code(password)
 
