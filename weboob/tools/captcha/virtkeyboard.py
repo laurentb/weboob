@@ -334,6 +334,9 @@ class SimpleVirtualKeyboard(object):
                                         (x0, y0, x1, y1) on grid image from left to right and top to
                                         down, European reading way. It's not symbols in the image.
         :type matching_symbols_coords: dict[str:4-tuple(int)]
+        :param browser: Browser of weboob session.
+                        Allow to dump tiles files in same directory than session folder
+        :type browser: obj(Browser)
 
     Attributes:
         :attribute codesep: Output separator between matching symbols
@@ -359,10 +362,12 @@ class SimpleVirtualKeyboard(object):
     symbols = None
     convert = None
 
-    def __init__(self, file, cols, rows, matching_symbols=None, matching_symbols_coords=None):
+    def __init__(self, file, cols, rows, matching_symbols=None, matching_symbols_coords=None, browser=None):
         self.cols = cols
         self.rows = rows
-        self.path = tempfile.mkdtemp(prefix='weboob_session_')
+
+        # Needed even if init is overwrite
+        self.path = self.build_path(browser)
 
         # Get self.image
         self.load_image(file, self.margin, self.convert)
@@ -374,6 +379,12 @@ class SimpleVirtualKeyboard(object):
         # Tiles processing
         self.cut_tiles(self.tile_margin)
         self.hash_md5_tiles()
+
+    def build_path(self, browser=None):
+        if browser and browser.responses_dirname:
+            return browser.responses_dirname
+        else:
+            return tempfile.mkdtemp(prefix='weboob_session_')
 
     def load_image(self, file, margin=None, convert=None):
         self.image = Image.open(file)
