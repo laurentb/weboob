@@ -64,6 +64,16 @@ class ForkingConfig(object):
         self.join()
         super(ForkingConfig, self).__exit__(t, v, tb)
 
+    def __getstate__(self):
+        d = self.__dict__.copy()
+        d.pop('lock', None)
+        return d
+
+    def __setstate__(self, d):
+        self.__init__(path=d['path'])
+        for k, v in d.items():
+            setattr(self, k, v)
+
 
 def time_buffer(since_seconds=None, last_run=True, logger=False):
     def decorator_time_buffer(func):
@@ -116,3 +126,20 @@ class TimeBufferConfig(object):
     def __exit__(self, t, v, tb):
         self.force_save()
         super(TimeBufferConfig, self).__exit__(t, v, tb)
+
+    def __getstate__(self):
+        try:
+            d = super(TimeBufferConfig, self).__getstate__()
+        except AttributeError:
+            d = self.__dict__.copy()
+        # When decorated, it is not serializable.
+        # The decorator will be added again by __setstate__.
+        d.pop('save', None)
+        return d
+
+    def __setstate__(self, d):
+        # Add the decorator if needed
+        self.__init__(path=d['path'],
+                      saved_since_seconds=d.get('saved_since_seconds'))
+        for k, v in d.items():
+            setattr(self, k, v)
