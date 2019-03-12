@@ -195,7 +195,10 @@ class CragrAPI(LoginBrowser):
         # Once the security check is passed, we are logged in.
 
     def get_security_form(self):
-        self.keypad.go()
+        headers = {'Referer': self.BASEURL + 'particulier/acceder-a-mes-comptes.html'}
+        data = {'user_id': self.username}
+        self.keypad.go(headers=headers, data=data)
+
         keypad_password = self.page.build_password(self.password[:6])
         keypad_id = self.page.get_keypad_id()
         assert keypad_password, 'Could not obtain keypad password'
