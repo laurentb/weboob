@@ -101,7 +101,7 @@ class LoginPage(JsonPage):
         pin_position = Dict('pinPositions')(self.doc)
         image = BytesIO(img)
 
-        vk = INGVirtKeyboard(image, 5, 2)
+        vk = INGVirtKeyboard(image, 5, 2, browser=self.browser)
         password_radom_coords = vk.password_tiles_coord(password)
         # pin positions (website side) start at 1, our positions start at 0
         return [password_radom_coords[index-1] for index in pin_position]
