@@ -623,7 +623,7 @@ class Boobank(CaptchaMixin, ReplApplication):
         self.objects = []
 
         self.start_format()
-        for recipient in self.do('iter_transfer_recipients', account.id, backends=account.backend, caps=CapBankTransfer):
+        for recipient in self.do('iter_transfer_recipients', account, backends=account.backend, caps=CapBankTransfer):
             self.cached_format(recipient)
 
     @contextmanager
