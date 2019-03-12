@@ -25,8 +25,11 @@ class AutoCleanConfig(object):
     def save(self):
         if self.values:
             super(AutoCleanConfig, self).save()
-        elif os.path.exists(self.path):
-            os.remove(self.path)
+        else:
+            try:
+                os.remove(self.path)
+            except OSError:
+                pass
 
 
 class ForkingConfig(object):
