@@ -27,9 +27,20 @@ from weboob.browser.filters.json import Dict
 
 
 class INGVirtKeyboard(SimpleVirtualKeyboard):
+    # from parent
     tile_margin = 3
     margin = (0, 4, 0, 0)
     convert = 'RGB'
+
+    # for children
+    safe_tile_margin = 10
+    small_img_size = (100, 40)
+    alter_img_params = {
+        'radius': 2,
+        'percent': 135,
+        'threshold': 3,
+        'limit_pixel': 160
+    }
 
     symbols = {
         '0': ('117b18365105224c7207d3ec0ce7516f',),
@@ -50,10 +61,14 @@ class INGVirtKeyboard(SimpleVirtualKeyboard):
         self.original_image = self.image
 
         # create miniature of image to get more reliable hash
-        self.image = self.image.resize((100, 40), resample=Image.BILINEAR)
+        self.image = self.image.resize(self.small_img_size, resample=Image.BILINEAR)
         # See ImageFilter.UnsharpMask from Pillow
-        self.image = self.image.filter(ImageFilter.UnsharpMask(radius=2, percent=135, threshold=3))
-        self.image = Image.eval(self.image, lambda px: 0 if px <= 160 else 255)
+        self.image = self.image.filter(ImageFilter.UnsharpMask(
+            radius=self.alter_img_params['radius'],
+            percent=self.alter_img_params['percent'],
+            threshold=self.alter_img_params['threshold'])
+        )
+        self.image = Image.eval(self.image, lambda px: 0 if px <= self.alter_img_params['limit_pixel'] else 255)
 
     def password_tiles_coord(self, password):
         # get image original size to get password coord
@@ -73,7 +88,7 @@ class INGVirtKeyboard(SimpleVirtualKeyboard):
                                 % (digit, self.path))
 
         formatted_password = []
-        safe_margin = 10
+        safe_margin = self.safe_tile_margin
         for tile in password_tiles:
             # default matching_symbol is str(range(cols*rows))
             x0 = (int(tile.matching_symbol) % self.cols) * tile_width
@@ -101,7 +116,7 @@ class LoginPage(JsonPage):
         pin_position = Dict('pinPositions')(self.doc)
         image = BytesIO(img)
 
-        vk = INGVirtKeyboard(image, 5, 2, browser=self.browser)
-        password_radom_coords = vk.password_tiles_coord(password)
+        vk = INGVirtKeyboard(image, cols=5, rows=2, browser=self.browser)
+        password_random_coords = vk.password_tiles_coord(password)
         # pin positions (website side) start at 1, our positions start at 0
-        return [password_radom_coords[index-1] for index in pin_position]
+        return [password_random_coords[index-1] for index in pin_position]

@@ -26,10 +26,11 @@ from functools import wraps
 from weboob.browser import LoginBrowser, URL
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded
 from weboob.browser.exceptions import ClientError
+from weboob.capabilities.bank import TransferBankError, TransferInvalidAmount
 
 from .api import (
     LoginPage, AccountsPage, HistoryPage, ComingPage,
-    DebitAccountsPage, CreditAccountsPage,
+    DebitAccountsPage, CreditAccountsPage, TransferPage,
     ProfilePage,
 )
 from .web import StopPage, ActionNeededPage
@@ -104,6 +105,8 @@ class IngAPIBrowser(LoginBrowser):
     # transfer
     credit_accounts = URL(r'/secure/api-v1/transfers/debitAccounts/(?P<account_uid>.*)/creditAccounts', CreditAccountsPage)
     debit_accounts = URL(r'/secure/api-v1/transfers/debitAccounts', DebitAccountsPage)
+    init_transfer_page = URL(r'/secure/api-v1/transfers/v2/new/validate', TransferPage)
+    exec_transfer_page = URL(r'/secure/api-v1/transfers/v2/new/execute/pin', TransferPage)
 
     # profile
     informations = URL(r'/secure/api-v1/customer/info', ProfilePage)
@@ -113,6 +116,7 @@ class IngAPIBrowser(LoginBrowser):
         super(IngAPIBrowser, self).__init__(*args, **kwargs)
 
         self.old_browser = IngBrowser(*args, **kwargs)
+        self.transfer_data = None
 
     def handle_login_error(self, r):
         error_page = r.response.json()
@@ -314,13 +318,55 @@ class IngAPIBrowser(LoginBrowser):
         for recipient in self.page.iter_recipients(acc_uid=account._uid):
             yield recipient
 
+    def handle_transfer_errors(self, r):
+        error_page = r.response.json()
+        assert 'error' in error_page, "Something went wrong, transfer is not created"
+
+        error = error_page['error']
+        error_msg = error['message']
+
+        if error['code'] == 'TRANSFER.INVALID_AMOUNT_MINIMUM':
+            raise TransferInvalidAmount(message=error_msg)
+        elif error['code'] == 'INPUT_INVALID' and len(error['values']):
+            for value in error['values']:
+                error_msg = '%s %s %s.' % (error_msg, value, error['values'][value])
+
+        raise TransferBankError(message=error_msg)
+
+    @need_to_be_on_website('api')
     @need_login
     def init_transfer(self, account, recipient, transfer):
-        raise NotImplementedError()
+        data = {
+            'amount': transfer.amount,
+            'executionDate': transfer.exec_date.strftime('%Y-%m-%d'),
+            'keyPadSize': {'width': 3800, 'height': 1520},
+            'label': transfer.label,
+            'fromAccount': account._uid,
+            'toAccount': recipient.id
+        }
+        try:
+            self.init_transfer_page.go(json=data, headers={'Referer': self.absurl('/secure/transfers/new')})
+        except ClientError as e:
+            self.handle_transfer_errors(e)
 
+        assert self.page.suggested_date == transfer.exec_date, "Transfer date is not valid"
+        self.transfer_data = data
+        self.transfer_data.pop('keyPadSize')
+        self.transfer_data['clickPositions'] = self.page.get_password_coord(self.password)
+
+        return transfer
+
+    @need_to_be_on_website('api')
     @need_login
     def execute_transfer(self, transfer):
-        raise NotImplementedError()
+        headers = {
+            'Referer': self.absurl('/secure/transfers/new'),
+            'Accept': 'application/json, text/plain, */*'
+        }
+        self.exec_transfer_page.go(json=self.transfer_data, headers=headers)
+
+        assert self.page.transfer_is_validated, "Transfer is not validated"
+        return transfer
 
     ############# CapDocument #############
     @need_login

@@ -19,13 +19,15 @@
 from __future__ import unicode_literals
 
 
-from weboob.capabilities.bank import CapBankWealth, CapBankTransfer, Account, AccountNotFound
+from decimal import Decimal
+
+from weboob.capabilities.bank import CapBankWealth, CapBankTransfer, Account, AccountNotFound, RecipientNotFound
 from weboob.capabilities.bill import (
     CapDocument, Bill, Subscription,
     SubscriptionNotFound, DocumentNotFound, DocumentTypes,
 )
 from weboob.capabilities.profile import CapProfile
-from weboob.capabilities.base import find_object
+from weboob.capabilities.base import find_object, strict_find_object
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, ValueDate
 
@@ -99,10 +101,18 @@ class INGModule(Module, CapBankWealth, CapBankTransfer, CapDocument, CapProfile)
         return self.browser.iter_recipients(account)
 
     def init_transfer(self, transfer, **params):
-        raise NotImplementedError()
+        self.logger.info('Going to do a new transfer')
+
+        account = strict_find_object(self.iter_accounts(), id=transfer.account_id, error=AccountNotFound)
+
+        recipient = strict_find_object(self.iter_transfer_recipients(account), id=transfer.recipient_id, error=RecipientNotFound)
+
+        transfer.amount = Decimal(transfer.amount).quantize(Decimal('.01'))
+
+        return self.browser.init_transfer(account, recipient, transfer)
 
     def execute_transfer(self, transfer, **params):
-        raise NotImplementedError()
+        return self.browser.execute_transfer(transfer)
 
     ############# CapDocument #############
     def iter_subscription(self):
