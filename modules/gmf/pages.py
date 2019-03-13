@@ -79,12 +79,12 @@ class AccountsPage(LoggedPage, HTMLPage):
                                                  '\\1 \\2')(el[0]).split(' ')
         data.append((parameter[0], parameter[1]))
 
-        form = self.get_form(id='j_idt254')
+        form = self.get_form('//form[contains(@id, "j_idt")]')
+        form_value = CleanText('//form[contains(@id, "j_idt")]/@id')(self.doc)
         # parameter 2
         data.append(('javax.faces.ViewState', form['javax.faces.ViewState']))
         # parameter 3
-        data.append(('j_idt254', form['j_idt254']))
-
+        data.append((form_value, form[form_value]))
         return form.url, data
 
 
