@@ -29,7 +29,7 @@ from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Regex
 from weboob.browser.filters.html import Attr, Link, TableCell
 from weboob.capabilities.bank import Account, Investment
 from weboob.tools.capabilities.bank.iban import is_iban_valid
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable, empty
 from weboob.capabilities.profile import Person
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.compat import unicode
@@ -126,11 +126,14 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                     account._args = args
                     account.label = CleanText().filter(tds[0].xpath('./ancestor::table[has-class("tableaux-pret-personnel")]/caption'))
                     account.id = account.label.split()[-1] + args['paramNumContrat']
-                    loan_details = self.browser.open("/webapp/axabanque/jsp/panorama.faces",data=args)
+                    loan_details = self.browser.open('/webapp/axabanque/jsp/panorama.faces', data=args).page
                     # Need to go back on home page after open
                     self.browser.bank_accounts.open()
-                    account.balance = -CleanDecimal().filter(loan_details.page.doc.xpath('//*[@id="table-detail"]/tbody/tr/td[7]/text()'))
-                    account.currency = Currency().filter(loan_details.page.doc.xpath('//*[@id="table-detail"]/tbody/tr/td[7]/text()'))
+                    account.balance = loan_details.get_loan_balance()
+                    account.currency = loan_details.get_loan_currency()
+                    # Skip loans without any balance (already fully reimbursed)
+                    if empty(account.balance):
+                        continue
                     account.type = Account.TYPE_LOAN
                     account._acctype = "bank"
                     account._hasinv = False
@@ -297,6 +300,12 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
     def check_error(self):
         error = CleanText(default="").filter(self.doc.xpath('//p[@class="question"]'))
         return error if u"a expiré" in error else None
+
+    def get_loan_balance(self):
+        return CleanDecimal.US('//*[@id="table-detail"]/tbody/tr/td[@class="capital"]', default=NotAvailable)(self.doc)
+
+    def get_loan_currency(self):
+        return Currency('//*[@id="table-detail"]/tbody/tr/td[@class="capital"]', default=NotAvailable)(self.doc)
 
     def open_market(self):
         # only for netfinca PEA
