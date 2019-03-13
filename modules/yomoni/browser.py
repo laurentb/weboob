@@ -17,6 +17,10 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+
+from __future__ import unicode_literals
+
+
 from base64 import b64encode
 from functools import wraps
 import json
@@ -28,6 +32,7 @@ from weboob.browser.filters.standard import CleanDecimal, Date
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from weboob.capabilities.bank import Account, Investment, Transaction
 from weboob.capabilities.base import NotAvailable
+from weboob.tools.capabilities.bank.investments import is_isin_valid
 
 
 def need_login(func):
@@ -137,12 +142,21 @@ class YomoniBrowser(APIBrowser):
                 i = Investment()
                 i.label = "%s - %s" % (inv['classification'], inv['description'])
                 i.code = inv['isin']
-                i.code_type = Investment.CODE_TYPE_ISIN
-                i.quantity = CleanDecimal().filter(inv['nombreParts'])
+                if not is_isin_valid(i.code):
+                    i.code = NotAvailable
+                    i.code_type = NotAvailable
+                    if u'Solde Espèces' in i.label:
+                        i.code = 'XX-liquidity'
+                else:
+                    i.code_type = Investment.CODE_TYPE_ISIN
+
+                i.quantity = CleanDecimal(default=NotAvailable).filter(inv['nombreParts'])
                 i.unitprice = CleanDecimal().filter(inv['prixMoyenAchat'])
                 i.unitvalue = CleanDecimal().filter(inv['valeurCotation'])
                 i.valuation = CleanDecimal().filter(inv['montantEuro'])
-                i.vdate = Date().filter(inv['datePosition'])
+                # For some invests the vdate returned is None
+                # Consequently we set the default value at NotAvailable
+                i.vdate = Date(default=NotAvailable).filter(inv['datePosition'])
                 # performanceEuro is null sometimes in the JSON we retrieve.
                 if inv['performanceEuro']:
                     i.diff = CleanDecimal().filter(inv['performanceEuro'])
