@@ -28,7 +28,7 @@ from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.profile import Profile
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Async, Regexp, Join, Field
-from weboob.browser.filters.html import Attr, Link, TableCell, ColumnNotFound
+from weboob.browser.filters.html import Link, TableCell, ColumnNotFound
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.compat import basestring
@@ -99,7 +99,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_balance = CleanDecimal(TableCell('balance'), replace_dots=True)
 
             def obj__link(self):
-                return Attr(TableCell('id')(self)[0].xpath('./a'), 'href')(self)
+                return Link(TableCell('id')(self)[0].xpath('./a'), default=None)(self)
 
             def obj__url(self):
                 return Link(TableCell('rib')(self)[0].xpath('./a[img[starts-with(@alt, "RIB")]]'), default=None)(self)
