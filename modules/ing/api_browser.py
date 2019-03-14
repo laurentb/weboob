@@ -64,6 +64,15 @@ def need_to_be_on_website(website):
     def decorator(func):
         @wraps(func)
         def wrapper(self, *args, **kwargs):
+            # if on other website than web or api, redirect to old website
+            if self.old_browser.url:
+                if 'https://bourse.ing.fr/' in self.old_browser.url:
+                    self.old_browser.return_from_titre_page.go()
+                elif 'https://ingdirectvie.ing.fr/' in self.old_browser.url:
+                    self.old_browser.lifeback.go()
+                elif 'https://subscribe.ing.fr/' in self.old_browser.url:
+                    self.old_browser.return_from_loan_site()
+
             if website == 'web' and self.is_on_new_website:
                 self.redirect_to_old_browser()
             elif website == 'api' and not self.is_on_new_website:

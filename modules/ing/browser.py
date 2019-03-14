@@ -108,6 +108,8 @@ class IngBrowser(LoginBrowser):
 
     # New website redirection
     api_redirection_url = URL(r'/general\?command=goToSecureUICommand&redirectUrl=transfers', ApiRedirectionPage)
+    # Old website redirection from bourse website
+    return_from_titre_page = URL(r'https://bourse.ing.fr/priv/redirectIng\.php\?pageIng=CC')
 
     __states__ = ['where']
 
@@ -451,6 +453,7 @@ class IngBrowser(LoginBrowser):
                 self.titrerealtime.go()
             for inv in self.page.iter_investments(account):
                 yield inv
+            self.return_from_titre_page.go()
         elif self.page.asv_has_detail or account._jid:
             self.accountspage.stay_or_go()
             shares = {}
@@ -483,6 +486,7 @@ class IngBrowser(LoginBrowser):
         isin_codes = {}
         for tr in self.page.iter_history():
             transactions.append(tr)
+        self.return_from_titre_page.go()
         if self.asv_history.is_here():
             for tr in transactions:
                 page = tr._detail.result().page if tr._detail else None
