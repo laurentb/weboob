@@ -27,6 +27,8 @@ from .pages import LoginPage, LoginConfirmPage, AccountsPage, RibPage, RibPDFPag
 class ThemisBrowser(LoginBrowser):
     BASEURL = 'https://esab.themisbanque.eu/'
 
+    TIMEOUT = 90
+
     home = URL('/es@b/fr/esab.jsp')
     login = URL('/es@b/fr/codeident.jsp', LoginPage)
     login_confirm = URL('/es@b/servlet/internet0.ressourceWeb.servlet.Login', LoginConfirmPage)
