@@ -19,7 +19,7 @@
 
 
 from decimal import Decimal
-from weboob.capabilities.bank import CapBankWealth, CapBankTransferAddRecipient, Account, AccountNotFound, RecipientNotFound, TransferError
+from weboob.capabilities.bank import CapBankWealth, CapBankTransferAddRecipient, Account, AccountNotFound, RecipientNotFound
 from weboob.capabilities.contact import CapContact
 from weboob.capabilities.base import find_object, strict_find_object, NotAvailable
 from weboob.capabilities.profile import CapProfile
@@ -94,11 +94,7 @@ class BPModule(
         if not recipient:
             recipient = strict_find_object(self.iter_transfer_recipients(account.id), id=transfer.recipient_id, error=RecipientNotFound)
 
-        try:
-            # quantize to show 2 decimals.
-            amount = Decimal(transfer.amount).quantize(Decimal(10) ** -2)
-        except (AssertionError, ValueError):
-            raise TransferError('something went wrong')
+        amount = Decimal(transfer.amount).quantize(Decimal(10) ** -2)
 
         # format label like label sent by firefox or chromium browser
         transfer.label = transfer.label.encode('latin-1', errors="xmlcharrefreplace").decode('latin-1')

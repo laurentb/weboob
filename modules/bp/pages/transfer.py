@@ -21,7 +21,7 @@
 from datetime import datetime
 
 from weboob.capabilities.bank import (
-    TransferError, TransferBankError, Transfer, TransferStep, NotAvailable, Recipient,
+    TransferBankError, Transfer, TransferStep, NotAvailable, Recipient,
     AccountNotFound, AddRecipientBankError
 )
 from weboob.capabilities.base import find_object
@@ -149,11 +149,10 @@ class TransferConfirm(LoggedPage, CheckTransferError):
     def handle_response(self, account, recipient, amount, reason):
         account_txt = CleanText('//form//dl/dt[span[contains(text(), "biter")]]/following::dd[1]', replace=[(' ', '')])(self.doc)
         recipient_txt = CleanText('//form//dl/dt[span[contains(text(), "diter")]]/following::dd[1]', replace=[(' ', '')])(self.doc)
-        try:
-            assert account.id in account_txt or ''.join(account.label.split()) == account_txt
-            assert recipient.id in recipient_txt or ''.join(recipient.label.split()) == recipient_txt
-        except AssertionError:
-            raise TransferError('Something went wrong')
+
+        assert account.id in account_txt or ''.join(account.label.split()) == account_txt, 'Something went wrong'
+        assert recipient.id in recipient_txt or ''.join(recipient.label.split()) == recipient_txt, 'Something went wrong'
+
         r_amount =  CleanDecimal('//form//dl/dt[span[contains(text(), "Montant")]]/following::dd[1]', replace_dots=True)(self.doc)
         exec_date = Date(CleanText('//form//dl/dt[span[contains(text(), "Date")]]/following::dd[1]'), dayfirst=True)(self.doc)
         currency = FrenchTransaction.Currency('//form//dl/dt[span[contains(text(), "Montant")]]/following::dd[1]')(self.doc)

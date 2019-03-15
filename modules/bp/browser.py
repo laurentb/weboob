@@ -42,7 +42,7 @@ from .pages.pro import RedirectPage, ProAccountsList, ProAccountHistory, Downloa
 from .pages.mandate import MandateAccountsList, PreMandate, PreMandateBis, MandateLife, MandateMarket
 from .linebourse_browser import LinebourseBrowser
 
-from weboob.capabilities.bank import TransferError, Account, Recipient, AddRecipientStep
+from weboob.capabilities.bank import Account, Recipient, AddRecipientStep
 from weboob.tools.value import Value
 
 __all__ = ['BPBrowser', 'BProBrowser']
@@ -457,8 +457,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def execute_transfer(self, transfer, code=None):
-        if not self.transfer_confirm.is_here():
-            raise TransferError('Case not handled.')
+        assert self.transfer_confirm.is_here(), 'Case not handled.'
         self.page.confirm()
         # Should only happen if double auth.
         if self.transfer_confirm.is_here():
