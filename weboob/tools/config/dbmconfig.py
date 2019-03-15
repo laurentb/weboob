@@ -45,7 +45,8 @@ class DBMConfig(IConfig):
         self.storage = dbm.open(self.path, 'c')
 
     def save(self):
-        pass
+        if hasattr(self.storage, 'sync'):
+            self.storage.sync()
 
     def get(self, *args, **kwargs):
         key = '.'.join(args)
