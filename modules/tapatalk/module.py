@@ -74,7 +74,7 @@ class TapatalkModule(Module, CapMessages):
 
     CONFIG = BackendConfig(Value('username',                label='Username',  default=''),
                            ValueBackendPassword('password', label='Password',  default=''),
-                           Value('url',                     label='Site URL', default="https://support.tapatalk.com/"))
+                           Value('url',                     label='Site URL', default="https://support.tapatalk.com/mobiquo/mobiquo.php"))
 
     def __init__(self, *args, **kwargs):
         super(TapatalkModule, self).__init__(*args, **kwargs)
@@ -83,7 +83,7 @@ class TapatalkModule(Module, CapMessages):
     @property
     def _conn(self):
         if self._xmlrpc_client is None:
-            url = self.config['url'].get().rstrip('/') + "/mobiquo/mobiquo.php"
+            url = self.config['url'].get().rstrip('/')
             username = self.config['username'].get()
             password = self.config['password'].get()
             self._xmlrpc_client = TapatalkServerProxy(url)
