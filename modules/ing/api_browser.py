@@ -121,7 +121,8 @@ class IngAPIBrowser(LoginBrowser):
 
         if error['code'] == 'AUTHENTICATION.INVALID_PIN_CODE':
             raise BrowserIncorrectPassword(error['message'])
-        elif error['code'] == 'AUTHENTICATION.ACCOUNT_INACTIVE':
+        elif error['code'] in ('AUTHENTICATION.ACCOUNT_INACTIVE', 'AUTHENTICATION.ACCOUNT_LOCKED',
+                               'AUTHENTICATION.NO_COMPLETE_ACCOUNT_FOUND'):
             raise ActionNeeded(error['message'])
         assert error['code'] != 'INPUT_INVALID', error['message']
         raise BrowserUnavailable(error['message'])
