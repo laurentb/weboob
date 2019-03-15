@@ -34,7 +34,7 @@ from weboob.browser.filters.standard import Date, CleanDecimal, Regexp, CleanTex
 from weboob.browser.filters.html import Link, Attr, TableCell
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import (
-    Account, Investment, Recipient, TransferError, TransferBankError, Transfer,
+    Account, Investment, Recipient, TransferBankError, Transfer,
     AddRecipientBankError, Loan,
 )
 from weboob.capabilities.bill import DocumentTypes, Subscription, Document
@@ -1016,8 +1016,7 @@ class TransferPage(TransferErrorPage, IndexPage):
     def get_origin_account_value(self, account):
         origin_value = [Attr('.', 'value')(o) for o in self.doc.xpath('//select[@id="MM_VIREMENT_SAISIE_VIREMENT_ddlCompteDebiter"]/option') if
                         Regexp(CleanText('.'), '- (\d+)')(o) in account.id]
-        if len(origin_value) != 1:
-            raise TransferError('error during origin account matching')
+        assert len(origin_value) == 1, 'error during origin account matching'
         return origin_value[0]
 
     def get_recipient_value(self, recipient):
@@ -1027,8 +1026,7 @@ class TransferPage(TransferErrorPage, IndexPage):
         elif recipient.category == u'Interne':
             recipient_value = [Attr('.', 'value')(o) for o in self.doc.xpath(self.RECIPIENT_XPATH) if
                                Regexp(CleanText('.'), '- (\d+)', default=NotAvailable)(o) and Regexp(CleanText('.'), '- (\d+)', default=NotAvailable)(o) in recipient.id]
-        if len(recipient_value) != 1:
-            raise TransferError('error during recipient matching')
+        assert len(recipient_value) == 1, 'error during recipient matching'
         return recipient_value[0]
 
     def init_transfer(self, account, recipient, transfer):
@@ -1095,7 +1093,7 @@ class TransferConfirmPage(TransferErrorPage, IndexPage):
                     transfer.recipient_iban = word
                     break
             else:
-                raise TransferError('Unable to find IBAN (original was %s)' % recipient.iban)
+                assert False, 'Unable to find IBAN (original was %s)' % recipient.iban
         else:
             transfer.recipient_iban = recipient.iban
         transfer.account_id = unicode(account.id)
@@ -1133,7 +1131,7 @@ class ProTransferConfirmPage(TransferConfirmPage):
                     t.recipient_iban = word
                     break
             else:
-                raise TransferError('Unable to find IBAN (original was %s)' % recipient.iban)
+                assert False, 'Unable to find IBAN (original was %s)' % recipient.iban
         else:
             t.recipient_iban = recipient.iban
         t.recipient_iban = recipient.iban
