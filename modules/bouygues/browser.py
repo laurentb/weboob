@@ -43,7 +43,7 @@ class BouyguesBrowser(LoginBrowser):
     subscriptions = URL(r'/personnes/(?P<idUser>\d+)/comptes-facturation', SubscriptionPage)
 
     subscriptions_details = URL(r'/comptes-facturation/(?P<idSub>\d+)/contrats-payes', SubscriptionDetailPage)
-    document_file = URL(r'/comptes-facturation/(?P<idSub>\d+)/factures/\d+/documents', DocumentFilePage)
+    document_file = URL(r'/comptes-facturation/(?P<idSub>\d+)/factures/.*/documents', DocumentFilePage)
     documents = URL(r'/comptes-facturation/(?P<idSub>\d+)/factures', DocumentsPage)
 
     sms_page = URL(r'https://www.secure.bbox.bouyguestelecom.fr/services/SMSIHD/sendSMS.phtml',
