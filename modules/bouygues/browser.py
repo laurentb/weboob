@@ -139,7 +139,7 @@ class BouyguesBrowser(LoginBrowser):
             self.location(subscription.url, headers=self.headers)
             return self.page.iter_documents(subid=subscription.id)
         except HTTPNotFound as error:
-            if error.response.json()['error'] == 'facture_introuvable':
+            if error.response.json()['error'] in ('facture_introuvable', 'compte_jamais_facture'):
                 return []
             raise
 
