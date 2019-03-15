@@ -213,6 +213,11 @@ class IngAPIBrowser(LoginBrowser):
             else:
                 assert False, 'There should be same account in web and api website'
 
+        # can use this to use export session on old browser
+        # new website is an API, export session is not relevant
+        if self.logger.settings.get('export_session'):
+            self.logger.debug('logged in with session: %s', json.dumps(self.export_session()))
+
     @need_to_be_on_website('web')
     def get_web_history(self, account):
         """iter history on old website"""
