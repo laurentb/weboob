@@ -243,7 +243,7 @@ class IngAPIBrowser(LoginBrowser):
 
             for tr in self.page.iter_history():
                 # transaction id is decreasing
-                first_transaction_id = int(tr.id)
+                first_transaction_id = int(tr._web_id)
                 yield tr
 
             # like website, add 1 to the last transaction id of the list to get next transactions page

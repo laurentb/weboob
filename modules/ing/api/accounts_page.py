@@ -73,7 +73,9 @@ class HistoryPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Transaction
 
-            obj_id = Eval(str, Dict('id'))
+            # Not sure that Dict('id') is unique and persist
+            # wait for the full API migration
+            obj__web_id = Eval(str, Dict('id'))
             obj_amount = CleanDecimal(Dict('amount'))
             obj_date = Date(Dict('effectiveDate'))
 
