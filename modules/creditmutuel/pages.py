@@ -41,7 +41,7 @@ from weboob.exceptions import (
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.base import empty, find_object
 from weboob.capabilities.bank import (
-    Account, Investment, Recipient, TransferError, TransferBankError,
+    Account, Investment, Recipient, TransferBankError,
     Transfer, AddRecipientBankError, AddRecipientStep, Loan,
 )
 from weboob.capabilities.contact import Advisor
@@ -1352,7 +1352,7 @@ class InternalTransferPage(LoggedPage, HTMLPage):
             if account.endswith(acct):
                 return inp.attrib['value']
         else:
-            raise TransferError("account %s not found" % account)
+            assert False, 'Transfer origin account %s not found' % account
 
     def get_from_account_index(self, account):
         return self.get_account_index('data_input_indiceCompteADebiter', account)
@@ -1400,8 +1400,8 @@ class InternalTransferPage(LoggedPage, HTMLPage):
 
     def check_success(self):
         # look for the known "all right" message
-        if not self.doc.xpath('//span[contains(text(), $msg)]', msg=self.READY_FOR_TRANSFER_MSG):
-            raise TransferError('The expected message "%s" was not found.' % self.READY_FOR_TRANSFER_MSG)
+        assert self.doc.xpath('//span[contains(text(), $msg)]', msg=self.READY_FOR_TRANSFER_MSG), \
+               'The expected transfer message "%s" was not found.' % self.READY_FOR_TRANSFER_MSG
 
     def check_data_consistency(self, account_id, recipient_id, amount, reason):
         assert account_id in CleanText('//div[div[p[contains(text(), "Compte à débiter")]]]',
@@ -1451,8 +1451,8 @@ class InternalTransferPage(LoggedPage, HTMLPage):
         transfer_ok_message = ['Votre virement a &#233;t&#233; ex&#233;cut&#233;',
                                'Ce virement a &#233;t&#233; enregistr&#233; ce jour',
                                'Ce virement a été enregistré ce jour']
-        if not any(msg for msg in transfer_ok_message if msg in content):
-            raise TransferError('The expected message "%s" was not found.' % transfer_ok_message)
+        assert any(msg for msg in transfer_ok_message if msg in content), \
+               'The expected transfer message "%s" was not found.' % transfer_ok_message
 
         exec_date, r_amount, currency = self.check_data_consistency(transfer.account_id, transfer.recipient_id, transfer.amount, transfer.label)
 
@@ -1465,7 +1465,7 @@ class InternalTransferPage(LoggedPage, HTMLPage):
             if valid_state in state:
                 break
         else:
-            raise TransferError('Transfer state is %r' % state)
+            assert False, 'Transfer state is %r' % state
 
         assert transfer.amount == r_amount
         assert transfer.exec_date == exec_date
