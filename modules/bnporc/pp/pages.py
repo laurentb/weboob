@@ -34,7 +34,7 @@ from weboob.browser.filters.html import TableCell
 from weboob.browser.pages import JsonPage, LoggedPage, HTMLPage
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import (
-    Account, Investment, Recipient, Transfer, TransferError, TransferBankError,
+    Account, Investment, Recipient, Transfer, TransferBankError,
     AddRecipientBankError, AddRecipientTimeout,
 )
 from weboob.capabilities.contact import Advisor
@@ -47,6 +47,10 @@ from weboob.tools.date import parse_french_date
 from weboob.tools.capabilities.bank.investments import is_isin_valid
 from weboob.tools.compat import unquote_plus
 from weboob.tools.html import html2text
+
+
+class TransferAssertionError(Exception):
+    pass
 
 
 class ConnectionThresholdPage(HTMLPage):
@@ -362,7 +366,7 @@ class TransferInitPage(BNPPage):
     def on_load(self):
         message_code = BNPPage.on_load(self)
         if message_code is not None:
-            raise TransferError('%s, code=%s' % (message_code[0], message_code[1]))
+            raise TransferAssertionError('%s, code=%s' % (message_code[0], message_code[1]))
 
     def get_ibans_dict(self, account_type):
         return dict([(a['ibanCrypte'], a['iban']) for a in self.path('data.infoVirement.listeComptes%s.*' % account_type)])
@@ -421,12 +425,12 @@ class ValidateTransferPage(BNPPage):
 
     def abort_if_unknown(self, transfer_data):
         try:
-            assert transfer_data['typeOperation'] in ['1', '2']
-            assert transfer_data['repartitionFrais'] == '0'
-            assert transfer_data['devise'] == 'EUR'
-            assert not transfer_data['montantDeviseEtrangere']
+            assert transfer_data['typeOperation'] in ['1', '2'], 'Transfer operation type is %s' % transfer_data['typeOperation']
+            assert transfer_data['repartitionFrais'] == '0', 'Transfer fees is not 0'
+            assert transfer_data['devise'] == 'EUR', "Transfer currency is not EUR, it's %s" % transfer_data['devise']
+            assert not transfer_data['montantDeviseEtrangere'], 'Transfer currency is foreign currency'
         except AssertionError as e:
-            raise TransferError(e)
+            raise TransferAssertionError(e)
 
     def handle_response(self, account, recipient, amount, reason):
         self.check_errors()

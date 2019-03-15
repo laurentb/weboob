@@ -27,7 +27,7 @@ from requests.exceptions import ConnectionError
 from weboob.browser.browsers import LoginBrowser, URL, need_login
 from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import (
-    AccountNotFound, Account, TransferError, AddRecipientStep, AddRecipientTimeout,
+    AccountNotFound, Account, AddRecipientStep, AddRecipientTimeout,
     TransferInvalidRecipient,
 )
 from weboob.capabilities.profile import ProfileMissing
@@ -46,7 +46,7 @@ from .pages import (
     MarketListPage, MarketPage, MarketHistoryPage, MarketSynPage, BNPKeyboard,
     RecipientsPage, ValidateTransferPage, RegisterTransferPage, AdvisorPage,
     AddRecipPage, ActivateRecipPage, ProfilePage, ListDetailCardPage, ListErrorPage,
-    UselessPage,
+    UselessPage, TransferAssertionError,
 )
 
 
@@ -176,7 +176,7 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
             # This page might be unavailable.
             try:
                 ibans.update(self.transfer_init.go(data=JSON({'modeBeneficiaire': '0'})).get_ibans_dict('Crediteur'))
-            except (TransferError, AttributeError):
+            except (TransferAssertionError, AttributeError):
                 pass
 
             accounts = list(self.accounts.go().iter_accounts(ibans))
@@ -333,7 +333,7 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
         try:
             if not origin_account_id in self.transfer_init.go(data=JSON({'modeBeneficiaire': '0'})).get_ibans_dict('Debiteur'):
                 raise NotImplementedError()
-        except TransferError:
+        except TransferAssertionError:
             return
 
         # avoid recipient with same iban
