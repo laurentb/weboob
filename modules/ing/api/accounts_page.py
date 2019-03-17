@@ -19,13 +19,31 @@
 
 from __future__ import unicode_literals
 
+import re
+
 from weboob.browser.pages import LoggedPage, JsonPage
 from weboob.browser.elements import method, DictElement, ItemElement
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import (
-    CleanText, CleanDecimal, Date, Eval,
+    CleanText, CleanDecimal, Date, Eval, Lower, Format, Field,
 )
-from weboob.capabilities.bank import Account, Transaction
+from weboob.capabilities.bank import Account
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+
+
+class Transaction(FrenchTransaction):
+    PATTERNS = [(re.compile(u'^retrait dab (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{4}) (?P<text>.*)'), FrenchTransaction.TYPE_WITHDRAWAL),
+                # Withdrawal in foreign currencies will look like "retrait 123 currency"
+                (re.compile(u'^retrait (?P<text>.*)'), FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile(u'^carte (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{4}) (?P<text>.*)'), FrenchTransaction.TYPE_CARD),
+                (re.compile(u'^virement (sepa )?(emis vers|recu|emis)? (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
+                (re.compile(u'^remise cheque(?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
+                (re.compile(u'^cheque (?P<text>.*)'), FrenchTransaction.TYPE_CHECK),
+                (re.compile(u'^prelevement (?P<text>.*)'), FrenchTransaction.TYPE_ORDER),
+                (re.compile(u'^prlv sepa (?P<text>.*?) : .*'), FrenchTransaction.TYPE_ORDER),
+                (re.compile(u'^prélèvement sepa en faveur de (?P<text>.*)'), FrenchTransaction.TYPE_ORDER),
+                (re.compile(u'^commission sur (?P<text>.*)'), FrenchTransaction.TYPE_BANK),
+                ]
 
 
 class AccountsPage(LoggedPage, JsonPage):
@@ -56,9 +74,11 @@ class HistoryPage(LoggedPage, JsonPage):
             klass = Transaction
 
             obj_id = Eval(str, Dict('id'))
-            obj_label = CleanText(Dict('detail'))
             obj_amount = CleanDecimal(Dict('amount'))
             obj_date = Date(Dict('effectiveDate'))
+
+            def obj_raw(self):
+                return Transaction.Raw(Lower(Dict('detail')))(self) or Format('%s %s', Field('date'), Field('amount'))(self)
 
 
 class ComingPage(LoggedPage, JsonPage):
@@ -69,7 +89,9 @@ class ComingPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Transaction
 
-            obj_label = Dict('label')
             obj_amount = CleanDecimal(Dict('amount'))
             obj_date = Date(Dict('effectiveDate'))
             obj_vdate = Date(Dict('operationDate'))
+
+            def obj_raw(self):
+                return Transaction.Raw(Lower(Dict('label')))(self) or Format('%s %s', Field('date'), Field('amount'))(self)
