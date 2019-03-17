@@ -419,7 +419,7 @@ class BaseObject(with_metaclass(_BaseObjectMeta, StrConv, object)):
     _fields = None
 
     def __init__(self, id=u'', url=NotLoaded, backend=None):
-        self.id = to_unicode(id)
+        self.id = to_unicode(id) if id is not None else u''
         self.backend = backend
         self._fields = deepcopy(self._fields)
         self.__setattr__('url', url)
