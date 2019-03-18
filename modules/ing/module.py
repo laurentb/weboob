@@ -40,7 +40,7 @@ class INGModule(Module, CapBankWealth, CapBankTransfer, CapDocument, CapProfile)
     EMAIL = 'weboob@flo.fourcot.fr'
     VERSION = '1.6'
     LICENSE = 'LGPLv3+'
-    DESCRIPTION = 'ING Direct'
+    DESCRIPTION = 'ING France'
     CONFIG = BackendConfig(ValueBackendPassword('login',
                                                 label='Numéro client',
                                                 masked=False),
