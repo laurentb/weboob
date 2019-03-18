@@ -43,7 +43,8 @@ class INGModule(Module, CapBankWealth, CapBankTransfer, CapDocument, CapProfile)
     DESCRIPTION = 'ING France'
     CONFIG = BackendConfig(ValueBackendPassword('login',
                                                 label='Numéro client',
-                                                masked=False),
+                                                masked=False,
+                                                regexp='^(\d{1,10})$'),
                            ValueBackendPassword('password',
                                                 label='Code secret',
                                                 regexp='^(\d{6})$'),

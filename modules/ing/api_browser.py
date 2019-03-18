@@ -128,8 +128,9 @@ class IngAPIBrowser(LoginBrowser):
         raise BrowserUnavailable(error['message'])
 
     def do_login(self):
-        assert self.password.isdigit()
         assert self.birthday.isdigit()
+        if not self.password.isdigit():
+            raise BrowserIncorrectPassword()
 
         # login on new website
         # update cookies
