@@ -47,7 +47,7 @@ class CreditDuNordBrowser(LoginBrowser):
     transactions = URL('/vos-comptes/IPT/appmanager/transac/particuliers\?_nfpb=true(.*)', TransactionsPage)
     protransactions = URL('/vos-comptes/(.*)/transac/(professionnels|entreprises)', ProTransactionsPage)
     iban = URL('/vos-comptes/IPT/cdnProxyResource/transacClippe/RIB_impress.asp', IbanPage)
-    account_type_page = URL("/icd/zco/public-data/public-ws-menuespaceperso.json", AccountTypePage)
+    account_type_page = URL('/icd/zco/data/public-ws-menuespaceperso.json', AccountTypePage)
     labels_page = URL("/icd/zco/public-data/ws-menu.json", LabelsPage)
     profile_page = URL("/icd/zco/data/user.json", ProfilePage)
     bypass_rgpd = URL('/icd/zcd/data/gdpr-get-out-zs-client.json', RgpdPage)
