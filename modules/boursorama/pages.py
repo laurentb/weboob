@@ -838,23 +838,23 @@ class TransferAccounts(LoggedPage, HTMLPage):
 class TransferRecipients(LoggedPage, HTMLPage):
     @method
     class iter_recipients(ListElement):
-        item_xpath = '//a[has-class("transfer__account-wrapper")]'
+        item_xpath = '//div[contains(@class, "deploy__wrapper")]//label[@class="account-choice__label"]'
 
         class item(ItemElement):
             klass = Recipient
 
-            obj_id = CleanText('.//div[@class="transfer__account-number"]')
+            obj_id = CleanText('.//div[@class="c-card-ghost__sub-label"]')
             obj_bank_name = Regexp(CleanText('.//div[@class="transfer__account-name"]'), pattern=r'- ([^-]*)$', default=NotAvailable)
 
             def obj_label(self):
-                label = Regexp(CleanText('.//div[@class="transfer__account-name"]'), pattern=r'^(.*?)(?: -[^-]*)?$')(self)
+                label = Regexp(CleanText('.//div[@class="c-card-ghost__top-label"]'), pattern=r'^(.*?)(?: -[^-]*)?$')(self)
                 return label.rstrip('-').rstrip()
 
             def obj_category(self):
                 text = CleanText('./ancestor::div[has-class("deploy--item")]//a[has-class("deploy__title")]')(self)
                 if 'Mes comptes Boursorama Banque' in text:
                     return 'Interne'
-                elif 'Comptes externes' in text or 'Comptes de tiers' in text:
+                elif any(exp in text for exp in ('Comptes externes', 'Comptes de tiers', 'Mes bénéficiaires')):
                     return 'Externe'
 
             def obj_iban(self):
@@ -864,7 +864,7 @@ class TransferRecipients(LoggedPage, HTMLPage):
             def obj_enabled_at(self):
                 return datetime.datetime.now().replace(microsecond=0)
 
-            obj__tempid = Attr('.', 'data-value')
+            obj__tempid = Attr('./div[@class="c-card-ghost "]', 'data-value')
 
             def condition(self):
                 iban = Field('iban')(self)
