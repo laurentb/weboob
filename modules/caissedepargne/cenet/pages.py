@@ -125,7 +125,7 @@ class CenetLoanPage(LoggedPage, CenetJsonPage):
         class item(ItemElement):
             klass = Loan
 
-            obj_id = CleanText(Dict('IdentifiantUniqueContrat'))
+            obj_id = CleanText(Dict('IdentifiantUniqueContrat'), replace=[(' ', '-')])
             obj_label = CleanText(Dict('Libelle'))
             obj_total_amount = CleanDecimal(Dict('MontantInitial/Valeur'))
             obj_currency = Currency(Dict('MontantInitial/Devise'))
