@@ -34,7 +34,7 @@ class CmesBrowser(LoginBrowser):
     accounts = URL('(?P<subsite>.*)fr/espace/devbavoirs.aspx\?mode=net&menu=cpte$', AccountsPage)
     fcpe_investment = URL(r'/fr/.*GoPositionsParFond.*',
                           r'/fr/espace/devbavoirs.aspx\?.*SituationParFonds.*GoOpenDetailFond.*',
-                          r'(?P<subsite>.*)fr/espace/devbavoirs.aspx\?_tabi=(C|I1)&a_mode=net&a_menu=cpte&_pid=SituationGlobale&_fid=GoPositionsParFond',
+                          r'(?P<subsite>.*)fr/espace/devbavoirs.aspx\?_tabi=(C|I1)&a_mode=net&a_menu=cpte&_pid=Situation(Globale|ParPlan)&_fid=GoPositionsParFond',
                           r'(?P<subsite>.*)fr/espace/devbavoirs.aspx\?_tabi=(C|I1)&a_mode=net&a_menu=cpte&_pid=SituationParFonds.*', FCPEInvestmentPage)
     ccb_investment = URL(r'(?P<subsite>.*)fr/espace/devbavoirs.aspx\?_tabi=C&a_mode=net&a_menu=cpte&_pid=SituationGlobale(&_fid=GoCCB|&k_support=CCB&_fid=GoPrint)', CCBInvestmentPage)
     history = URL('(?P<subsite>.*)fr/espace/devbavoirs.aspx\?mode=net&menu=cpte&page=operations',
