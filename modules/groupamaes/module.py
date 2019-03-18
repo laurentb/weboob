@@ -42,22 +42,24 @@ class GroupamaesModule(Module, CapBankPockets):
                            ValueBackendPassword('password', label='Mot de passe'))
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(), self.config['password'].get())
+        return self.create_browser(
+            self.config['login'].get(),
+            self.config['password'].get(),
+            'https://www.gestion-epargne-salariale.fr',
+            'groupama-es/',
+            weboob=self.weboob)
+
+    def get_account(self, _id):
+        return find_object(self.browser.iter_accounts(), id=_id, error=AccountNotFound)
 
     def iter_accounts(self):
-        return self.browser.get_accounts_list()
-
-    def iter_coming(self, account):
-        return self.browser.get_coming()
+        return self.browser.iter_accounts()
 
     def iter_history(self, account):
-        return self.browser.get_history()
+        return self.browser.iter_history(account)
 
     def iter_investment(self, account):
         return self.browser.iter_investment(account)
-
-    def get_account(self, _id):
-        return find_object(self.browser.get_accounts_list(), id=_id, error=AccountNotFound)
 
     def iter_pocket(self, account):
         return self.browser.iter_pocket(account)

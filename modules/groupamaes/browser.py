@@ -17,54 +17,19 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from weboob.browser import AbstractBrowser, URL
 
-from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import BrowserIncorrectPassword
-from weboob.tools.date import LinearDateGuesser
-from weboob.tools.capabilities.bank.transactions import sorted_transactions
-
-from .pages import LoginPage, LoginErrorPage, GroupamaesPage, GroupamaesPocketPage
+from .pages import LoginPage
 
 
 __all__ = ['GroupamaesBrowser']
 
 
-class GroupamaesBrowser(LoginBrowser):
-    BASEURL = 'https://www.gestion-epargne-salariale.fr'
+class GroupamaesBrowser(AbstractBrowser):
+    PARENT = 'cmes'
 
     login = URL('/groupama-es/espace-client/fr/identification/authentification.html', LoginPage)
-    login_error = URL('/groupama-es/fr/identification/default.cgi', LoginErrorPage)
-    groupamaes_page = URL('/groupama-es/fr/espace/devbavoirs.aspx\?mode=net&menu=cpte(?P<page>.*)', GroupamaesPage)
-    groupamaes_pocket = URL('/groupama-es/fr/espace/devbavoirs.aspx\?_tabi=C&a_mode=net&a_mode=net&menu=cpte(?P<page>.*)', GroupamaesPocketPage)
 
-    def do_login(self):
-        self.login.stay_or_go()
-
-        self.page.login(self.username, self.password)
-
-        if not self.page.logged or self.login_error.is_here():
-            raise BrowserIncorrectPassword()
-
-    @need_login
-    def get_accounts_list(self):
-        return self.groupamaes_page.stay_or_go(page='&page=situglob').iter_accounts()
-
-    @need_login
-    def get_history(self):
-        transactions = list(self.groupamaes_page.go(page='&_pid=MenuOperations&_fid=GoOperationsTraitees').get_history(date_guesser=LinearDateGuesser()))
-        transactions = sorted_transactions(transactions)
-        return transactions
-
-    @need_login
-    def get_coming(self):
-        transactions = list(self.groupamaes_page.go(page='&_pid=OperationsTraitees&_fid=GoWaitingOperations').get_history(date_guesser=LinearDateGuesser(), coming=True))
-        transactions = sorted_transactions(transactions)
-        return transactions
-
-    @need_login
-    def iter_investment(self, account):
-        return self.groupamaes_pocket.go(page='&_pid=SituationParPlan&_fid=GoPositionsDetaillee').iter_investment(account.label)
-
-    @need_login
-    def iter_pocket(self, account):
-        return self.groupamaes_pocket.go(page='&_pid=SituationParPlan&_fid=GoPositionsDetaillee').iter_pocket(account.label)
+    def __init__(self, login, password, baseurl, subsite, *args, **kwargs):
+        self.weboob = kwargs['weboob']
+        super(GroupamaesBrowser, self).__init__(login, password, baseurl, subsite, *args, **kwargs)
