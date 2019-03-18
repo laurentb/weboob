@@ -126,6 +126,7 @@ class Transaction(FrenchTransaction):
                 (re.compile(r'^(?P<text>[A-Z][\sa-z]* )?AVOIR (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{4}) (?P<text2>.*)'),   FrenchTransaction.TYPE_PAYBACK),
                 (re.compile('^REM CHQ (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
                 (re.compile(u'^([*]{3} solde des operations cb [*]{3} )?Relevé différé Carte (.*)'), FrenchTransaction.TYPE_CARD_SUMMARY),
+                (re.compile(u'^[*]{3} solde des operations cb [*]{3}(.*)'), FrenchTransaction.TYPE_CARD),
                 (re.compile(r'^Ech pret'), FrenchTransaction.TYPE_LOAN_PAYMENT),
                ]
 
@@ -433,7 +434,7 @@ class HistoryPage(LoggedPage, HTMLPage):
                 if self.obj.type == Transaction.TYPE_CARD_SUMMARY:
                     return self.obj.type
                 deferred_card_labels = [card.label for card in self.page.browser.cards_list]
-                if 'cartes débit différé' in Field('category')(self) or Field('_account_name')(self).upper() in deferred_card_labels:
+                if Field('_account_name')(self).upper() in deferred_card_labels:
                     return Transaction.TYPE_DEFERRED_CARD
                 if not Env('is_card', default=False)(self):
                     if Env('coming', default=False)(self) and Field('raw')(self).startswith('CARTE '):
