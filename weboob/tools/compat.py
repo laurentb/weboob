@@ -107,14 +107,14 @@ try:
         s = _reencode(s)
         return _unquote_plus(s).decode('utf-8')
 
-    def parse_qs(s):
+    def parse_qs(s, *args, **kwargs):
         s = _reencode(s)
-        orig = _parse_qs(s)
+        orig = _parse_qs(s, *args, **kwargs)
         return {k.decode('utf-8'): [vv.decode('utf-8') for vv in v] for k, v in orig.items()}
 
-    def parse_qsl(s):
+    def parse_qsl(s, *args, **kwargs):
         s = _reencode(s)
-        return [(k.decode('utf-8'), v.decode('utf-8')) for k, v in _parse_qsl(s)]
+        return [(k.decode('utf-8'), v.decode('utf-8')) for k, v in _parse_qsl(s, *args, **kwargs)]
 
 except ImportError:
     from urllib.parse import (
