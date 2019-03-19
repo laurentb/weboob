@@ -95,6 +95,9 @@ class CaisseEpargneModule(Module, CapBankWealth, CapBankTransferAddRecipient, Ca
         return self.browser.iter_recipients(origin_account)
 
     def init_transfer(self, transfer, **params):
+        if 'otp_sms' in params:
+            return self.browser.otp_sms_continue_transfer(transfer, **params)
+
         self.logger.info('Going to do a new transfer')
         transfer.label = ' '.join(w for w in re.sub('[^0-9a-zA-Z/\-\?:\(\)\.,\'\+ ]+', '', transfer.label).split()).upper()
         if transfer.account_iban:

@@ -29,7 +29,7 @@ from dateutil import parser
 from weboob.browser import LoginBrowser, need_login, StatesMixin
 from weboob.browser.switch import SiteSwitch
 from weboob.browser.url import URL
-from weboob.capabilities.bank import Account, AddRecipientStep, Recipient, TransferBankError, Transaction
+from weboob.capabilities.bank import Account, AddRecipientStep, Recipient, TransferBankError, Transaction, TransferStep
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.profile import Profile
 from weboob.browser.exceptions import BrowserHTTPNotFound, ClientError
@@ -731,12 +731,32 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
     @need_login
     def init_transfer(self, account, recipient, transfer):
+        self.is_send_sms = False
         self.pre_transfer(account)
         self.page.init_transfer(account, recipient, transfer)
+
         if self.sms_option.is_here():
-            raise NotImplementedError()
-        self.page.continue_transfer(account.label, recipient, transfer.label)
-        return self.page.create_transfer(account, recipient, transfer)
+            self.is_send_sms = True
+            raise TransferStep(
+                transfer,
+                Value(
+                    'otp_sms',
+                    label='Veuillez renseigner le mot de passe unique qui vous a été envoyé par SMS dans le champ réponse.'
+                )
+            )
+
+        self.page.continue_transfer(account.label, recipient.label, transfer.label)
+        return self.page.update_transfer(transfer, account, recipient)
+
+    @need_login
+    def otp_sms_continue_transfer(self, transfer, **params):
+        self.is_send_sms = False
+        assert 'otp_sms' in params, 'OTP SMS is missing'
+
+        self.otp_sms_validation(params['otp_sms'])
+        if self.transfer.is_here():
+            self.page.continue_transfer(transfer.account_label, transfer.recipient_label, transfer.label)
+            return self.page.update_transfer(transfer)
 
     @need_login
     def execute_transfer(self, transfer):
@@ -753,6 +773,32 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         r.currency = u'EUR'
         r.bank_name = NotAvailable
         return r
+
+    def otp_sms_validation(self, otp_sms):
+        tr_id = re.search(r'transactionID=(.*)', self.page.url)
+        if tr_id:
+            transaction_id = tr_id.group(1)
+        else:
+            assert False, 'Transfer transaction id was not found in url'
+
+        self.request_sms.go(param=transaction_id)
+
+        key = self.page.validate_key()
+        data = {
+            'validate': {
+                key: [{
+                    'id': self.page.validation_id(key),
+                    'otp_sms': otp_sms,
+                    'type': 'SMS'
+                }]
+            }
+        }
+        headers = {'Content-Type': 'application/json'}
+        self.location(self.url + '/step', json=data, headers=headers)
+
+        saml = self.page.get_saml()
+        action = self.page.get_action()
+        self.location(action, data={'SAMLResponse': saml})
 
     def post_sms_password(self, otp, otp_field_xpath):
         data = {}
@@ -785,22 +831,8 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             return self.end_sms_recipient(recipient, **params)
 
         if 'otp_sms' in params:
-            transactionid = re.search(r'transactionID=(.*)', self.page.url).group(1)
-            self.request_sms.go(param=transactionid)
-            validation = {}
-            validation['validate'] = {}
-            key = self.page.validate_key()
-            validation['validate'][key] = []
-            inner_param = {}
-            inner_param['id'] = self.page.validation_id(key)
-            inner_param['type'] = 'SMS'
-            inner_param['otp_sms'] = params['otp_sms']
-            validation['validate'][key].append(inner_param)
-            headers = {'Content-Type': 'application/json', 'Accept': 'application/json, text/plain, */*'}
-            self.location(self.url + '/step', data=json.dumps(validation), headers=headers)
-            saml = self.page.get_saml()
-            action = self.page.get_action()
-            self.location(action, data={'SAMLResponse': saml})
+            self.otp_sms_validation(params['otp_sms'])
+
             if self.authent.is_here():
                 self.page.go_on()
                 return self.facto_post_recip(recipient)
