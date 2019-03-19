@@ -402,6 +402,7 @@ class RecipientsPage(BNPPage):
             obj_label = Dict('nomBeneficiaire')
             obj_iban = Dict('ibanNumCompte')
             obj_category = u'Externe'
+            obj__web_state = Dict('libelleStatut')
 
             def obj_bank_name(self):
                 return Dict('nomBanque')(self) or NotAvailable

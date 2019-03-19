@@ -28,6 +28,7 @@ from weboob.browser.browsers import LoginBrowser, URL, need_login
 from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import (
     AccountNotFound, Account, TransferError, AddRecipientStep, AddRecipientTimeout,
+    TransferInvalidRecipient,
 )
 from weboob.capabilities.profile import ProfileMissing
 from weboob.tools.decorators import retry
@@ -458,6 +459,9 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
 
     @need_login
     def init_transfer(self, account, recipient, amount, reason, exec_date):
+        if recipient._web_state == 'En attente':
+            raise TransferInvalidRecipient(message="Le bénéficiaire sélectionné n'est pas activé")
+
         data = self.prepare_transfer(account, recipient, amount, reason, exec_date)
         return self.validate_transfer.go(data=JSON(data)).handle_response(account, recipient, amount, reason)
 
