@@ -697,6 +697,9 @@ class OperationsPage(LoggedPage, HTMLPage):
         else:
             return a.attrib['href']
 
+    def has_more_operations(self):
+        return bool(self.doc.xpath('//a/span[contains(text(), "Plus d\'opérations")]'))
+
 
 class CardsOpePage(OperationsPage):
     def select_card(self, card_number):

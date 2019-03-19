@@ -21,7 +21,6 @@ from __future__ import unicode_literals
 
 import re
 from datetime import datetime
-from dateutil.relativedelta import relativedelta
 from itertools import groupby
 from operator import attrgetter
 
@@ -300,20 +299,15 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
         if account.type == Account.TYPE_SAVINGS and "Capital Expansion" in account.label:
             self.page.go_on_history_tab()
 
-        # Getting about 6 months history on new website
         if self.is_new_website and self.page:
             try:
-                # Submit search form two times, at first empty, then filled based on available fields
-                for x in range(2):
-                    form = self.page.get_form(id="I1:fm", submit='//input[@name="_FID_DoActivateSearch"]')
-                    if x == 1:
-                        form.update({
-                            next(k for k in form.keys() if "DateStart" in k): (datetime.now() - relativedelta(months=7)).strftime('%d/%m/%Y'),
-                            next(k for k in form.keys() if "DateEnd" in k): datetime.now().strftime('%d/%m/%Y')
-                        })
-                        for k in form.keys():
-                            if "_FID_Do" in k and "DoSearch" not in k:
-                                form.pop(k, None)
+                for page in range(1, 50):
+                    # Need to reach the page with all transactions
+                    if not self.page.has_more_operations():
+                        break
+                    form = self.page.get_form(id="I1:P:F")
+                    form['_FID_DoLoadMoreTransactions'] = ''
+                    form['_wxf2_pseq'] = page
                     form.submit()
             # IndexError when form xpath returns [], StopIteration if next called on empty iterable
             except (StopIteration, FormNotFound):
