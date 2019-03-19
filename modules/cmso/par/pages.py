@@ -289,6 +289,7 @@ class Transaction(FrenchTransaction):
                 (re.compile(r'^(?P<text>VIR.*)'), FrenchTransaction.TYPE_TRANSFER),
                 (re.compile(r'^(?P<text>ANN.*)'), FrenchTransaction.TYPE_PAYBACK),
                 (re.compile(r'^(?P<text>(VRST|VERSEMENT).*)'), FrenchTransaction.TYPE_DEPOSIT),
+                (re.compile(r'^(?P<text>CHQ.*)'), FrenchTransaction.TYPE_CHECK),
                 (re.compile(r'^(?P<text>.*)'), FrenchTransaction.TYPE_BANK)
                ]
 
