@@ -142,8 +142,6 @@ class DocumentsPage(LoggedPage, HTMLPage):
             obj_id = Format('%s_%s', Env('subid'), Field('_simple_id'))
             obj__pre_url = Format('/gp/shared-cs/ajax/invoice/invoice.html?orderId=%s&relatedRequestId=%s&isADriveSubscription=&isHFC=',
                                   Field('_simple_id'), Env('request_id'))
-            obj_url = Async('details') & Link('//a[contains(@href, "download")]|//a[contains(@href, "generated_invoices")]')
-            obj_format = 'pdf'
             obj_label = Format('Facture %s', Field('_simple_id'))
             obj_type = DocumentTypes.BILL
 
@@ -162,6 +160,18 @@ class DocumentsPage(LoggedPage, HTMLPage):
             def obj_currency(self):
                 currency = Env('currency')(self)
                 return Currency('.//div[has-class("a-col-left")]//span[has-class("value") and contains(., "%s")]' % currency)(self)
+
+            def obj_url(self):
+                async_page = Async('details').loaded_page(self)
+                url = Link('//a[contains(@href, "download")]|//a[contains(@href, "generated_invoices")]', default=NotAvailable)(async_page.doc)
+                if not url:
+                    url = Link('//a[contains(text(), "Imprimer un récapitulatif de commande")]')(self)
+                return url
+
+            def obj_format(self):
+                if 'summary' in Field('url')(self):
+                    return 'html'
+                return 'pdf'
 
 
 class DownloadDocumentPage(LoggedPage, PartialHTMLPage):
