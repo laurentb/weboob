@@ -19,11 +19,13 @@
 
 from __future__ import unicode_literals
 
+
+import re
+
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import (
-    CleanText, Capitalize, Format, Date, Regexp, CleanDecimal, Env,
-    Field, Async, Eval, BrowserURL
+    CleanText, Capitalize, Format, Date, Regexp, CleanDecimal, Env, Currency, Field, Eval,
 )
 from weboob.capabilities.bank import Investment, Transaction
 from weboob.capabilities.base import NotAvailable
@@ -59,12 +61,15 @@ class LoginPage(BasePage, HTMLPage):
 
 
 class InvestmentPage(LoggedPage, HTMLPage):
-    balance_filter = MyDecimal('//ul[has-class("m-data-group")]//strong')
-    valuation_filter = MyDecimal('//h3[contains(., "value latente")]/following-sibling::p[1]')
+    @method
+    class fill_account(ItemElement):
+        obj_balance = MyDecimal('//ul[has-class("m-data-group")]//strong')
+        obj_currency = Currency('//ul[has-class("m-data-group")]//strong')
+        obj_valuation_diff = MyDecimal('//h3[contains(., "value latente")]/following-sibling::p[1]')
 
     def get_history_link(self):
-        historique_link = self.doc.xpath('//li/a[contains(text(), "Historique")]/@href')
-        return urljoin(self.browser.BASEURL, historique_link[0]) if historique_link else ''
+        history_link = self.doc.xpath('//li/a[contains(text(), "Historique")]/@href')
+        return urljoin(self.browser.BASEURL, history_link[0]) if history_link else ''
 
     @method
     class iter_investment(ListElement):
@@ -74,58 +79,31 @@ class InvestmentPage(LoggedPage, HTMLPage):
             klass = Investment
 
             def condition(self):
-                label = self.obj_label()
-                if label == 'Total' or label == '':
-                    return False
-                return True
+                return self.obj_label() not in ('Total', '')
 
-            def load_details(self):
-                # create URL with ISIN code if exists
-                code = Field('code')(self)
-                if code:
-                    return self.page.browser.async_open(BrowserURL('invest_detail')(self), data={'isin': code})
-
-            obj_code = Regexp(  # code ISIN
-                CleanText('./td[@data-label="Nom du support"]/a/@onclick'), r'"([A-Z]{2}[0-9]{10})"',
-                default=NotAvailable
-            )
-
-            def obj_code_type(self):
-                if is_isin_valid(Field('code')(self)):
-                    return Investment.CODE_TYPE_ISIN
-                return NotAvailable
-
-            def obj_label(self):
-                if not CleanText('./td[@data-label="Nom du support"]')(self):
-                    return CleanText('./th[@data-label="Nom du support"]/a')(self)
-                return CleanText('./td[@data-label="Nom du support"]')(self)
-
-            obj_quantity = MyDecimal(
-                './td[@data-label="Nombre de parts"]', default=NotAvailable,
-            )
+            obj_quantity = MyDecimal('./td[@data-label="Nombre de parts"]', default=NotAvailable)
             obj_unitvalue = MyDecimal('./td[@data-label="Valeur de la part"]')
             obj_valuation = MyDecimal('./td[@data-label="Valeur de rachat"]', default=NotAvailable)
             obj_vdate = Date(
                 CleanText('./td[@data-label="Date de valeur"]'), dayfirst=True, default=NotAvailable
             )
 
-            def obj_unitprice(self):
-                unitprice = (Async('details') & CleanDecimal('//td[@class="donnees"]/span[@id="VL_achat"]',
-                                                             default=NotAvailable))(self)
-                return unitprice or NotAvailable
+            def obj_label(self):
+                label = CleanText('./th[@data-label="Nom du support"]/a')(self)
+                if not label:
+                    return CleanText('./td[@data-label="Nom du support"]')(self)
+                return label
 
-            def obj_diff_percent(self):
-                diff_percent = (Async('details') & CleanDecimal('//td[@class="donnees"]/span[@id="Performance"]', default=NotAvailable))(self)
-                # idem
-                if not diff_percent:
-                    return NotAvailable
-                return diff_percent / 100
+            def obj_code(self):
+                code = re.search(r'"(.*)"', CleanText('./th[@data-label="Nom du support"]/a/@onclick')(self))
+                if code and is_isin_valid(code.group(1)):
+                    return code.group(1)
+                return NotAvailable
 
-            def obj_description(self):
-                # idem
-                description = (Async('details') & CleanText('//td[@class="donnees"]/span[@id="Nature"]',
-                                                            default=NotAvailable))(self)
-                return description or NotAvailable
+            def obj_code_type(self):
+                if Field('code')(self) != NotAvailable:
+                    return Investment.CODE_TYPE_ISIN
+                return NotAvailable
 
 
 class InvestmentElement(ItemElement):
@@ -242,5 +220,9 @@ class ValidationPage(LoggedPage, HTMLPage):
             raise ActionNeeded(error_message)
 
 
-class InvestDetail(LoggedPage, HTMLPage):
-    pass
+class InvestDetailPage(LoggedPage, HTMLPage):
+    @method
+    class fill_investment(ItemElement):
+        obj_unitprice = CleanDecimal('//td[@class="donnees"]/span[@id="VL_achat"]', default=NotAvailable)
+        obj_diff_percent = Eval(lambda x: x / 100, CleanDecimal('//td[@class="donnees"]/span[@id="Performance"]', default=NotAvailable))
+        obj_description = CleanText('//td[@class="donnees"]/span[@id="Nature"]', default=NotAvailable)

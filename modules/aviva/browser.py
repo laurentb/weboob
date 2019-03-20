@@ -20,14 +20,12 @@
 from __future__ import unicode_literals
 
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.capabilities.base import empty
-from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
+from weboob.capabilities.base import empty, NotAvailable
+from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded, BrowserHTTPError
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages.detail_pages import (
-    LoginPage, InvestmentPage, HistoryPage,
-    ActionNeededPage, InvestDetail, PrevoyancePage,
-    ValidationPage,
+    LoginPage, InvestmentPage, HistoryPage, ActionNeededPage, InvestDetailPage, PrevoyancePage, ValidationPage,
 )
 
 from .pages.account_page import AccountsPage
@@ -44,7 +42,7 @@ class AvivaBrowser(LoginBrowser):
     prevoyance = URL(r'/espaceclient/contrat/prevoyance/-(?P<page_id>[0-9]{10})', PrevoyancePage)
     history = URL(r'/espaceclient/contrat/getOperations\?param1=(?P<history_token>.*)', HistoryPage)
     action_needed = URL(r'/espaceclient/coordonnees/detailspersonne\?majcontacts=true', ActionNeededPage)
-    invest_detail = URL(r'http://aviva.sixtelekurs.fr/opcvm.hts.*', InvestDetail)
+    invest_detail = URL(r'http://aviva.sixtelekurs.fr/opcvm.hts.*', InvestDetailPage)
 
     def do_login(self):
         self.login.go().login(self.username, self.password)
@@ -56,19 +54,45 @@ class AvivaBrowser(LoginBrowser):
 
     @need_login
     def iter_accounts(self):
-        return self.accounts.stay_or_go().iter_accounts()
+        self.accounts.stay_or_go()
+        for account in self.page.iter_accounts():
+            # Request to account details sometimes returns a 500
+            try:
+                self.location(account.url)
+                self.page.fill_account(obj=account)
+                yield account
+            except BrowserHTTPError:
+                self.logger.warning('Could not get the account details: account %s will be skipped', account.id)
 
     @need_login
     def iter_investment(self, account):
-        return self.location(account._link).page.iter_investment()
+        # Request to account details sometimes returns a 500
+        try:
+            self.location(account.url)
+        except BrowserHTTPError:
+            self.logger.warning('Could not get the account investments for account %s', account.id)
+            return
+        for inv in self.page.iter_investment():
+            if not empty(inv.code):
+                # Fill investments details with ISIN code
+                params = {'isin': inv.code}
+                self.invest_detail.go(params=params)
+                self.page.fill_investment(obj=inv)
+            else:
+                inv.unitprice = inv.diff_percent = inv.description = NotAvailable
+            yield inv
 
     @need_login
     def iter_history(self, account):
-        if empty(account._link):
+        if empty(account.url):
             # An account should always have a link to the details
             raise NotImplementedError()
+        try:
+            self.location(account.url)
+        except BrowserHTTPError:
+            self.logger.warning('Could not get the history for account %s', account.id)
+            return
 
-        self.location(account._link)  # go on detail page
         history_link = self.page.get_history_link()
 
         if not history_link:

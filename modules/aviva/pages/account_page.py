@@ -22,13 +22,13 @@ from __future__ import unicode_literals
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import (
-    CleanText, Env, Field, Async, AsyncLoad, Currency, Map, Regexp
+    CleanText, Field, Map, Regexp
 )
 from weboob.browser.filters.html import AbsoluteLink
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
 
-from .detail_pages import InvestmentPage, BasePage
+from .detail_pages import BasePage
 
 
 ACCOUNT_TYPES = {
@@ -45,36 +45,18 @@ class AccountsPage(LoggedPage, BasePage, HTMLPage):
         class item(ItemElement):
             klass = Account
 
-            load_details = Field('_link') & AsyncLoad  # details on investment, balance, etc
-
             obj_id = CleanText('./@data-policy')
             obj_number = Field('id')
             obj_label = CleanText('.//p[has-class("a-heading")]', default=NotAvailable)
-            obj_balance = Async('details') & InvestmentPage.balance_filter
-            obj_valuation_diff = Async('details') & InvestmentPage.valuation_filter
-            obj__link = AbsoluteLink(u'.//a[contains(text(), "Détail")]')
-            obj_currency = Async('details') & Currency('//ul[has-class("m-data-group")]//strong')
+            obj_url = AbsoluteLink('.//a[contains(text(), "Détail")]')
             obj_type = Map(Regexp(CleanText('../../../div[contains(@class, "o-product-roundels-category")]'),
                            r'Vérifier votre (.*) contrats', default=NotAvailable),
                            ACCOUNT_TYPES, Account.TYPE_UNKNOWN)
 
-            # Additional waranty : need to know what to do with this
-            obj__additionalwaranty = Env('additionalwaranty')
-
             def condition(self):
                 # 'Prévoyance' div is for insurance contracts -- they are not bank accounts and thus are skipped
-                to_skip = ('Prévoyance', 'Responsabilité civile', 'Complémentaire santé', 'Protection juridique', 'Habitation', 'Automobile')
-                kind = CleanText('../../div[has-class("o-product-tab-category")]', default=NotAvailable)(self)
-                return (kind not in to_skip)
-
-            def parse(self, el):
-                additionalwaranty = []
-                detail_page = self.page.browser.location(Field('_link')(self)).page
-                for line in detail_page.doc.xpath(
-                        u'//h2[contains(text(), "complémentaire")]/following-sibling::div//div[@class="line"]'
-                ):
-                    values = {}
-                    values['label'] = CleanText().filter(line.xpath('./div[@data-label="Nom du support"]'))
-                    values['amount'] = CleanText().filter(line.xpath('./div[@data-label="Montant total investi"]'))
-                    additionalwaranty.append(values)
-                self.env['additionalwaranty'] = additionalwaranty
+                ignored_accounts = (
+                    'Prévoyance', 'Responsabilité civile', 'Complémentaire santé', 'Protection juridique',
+                    'Habitation', 'Automobile',
+                )
+                return CleanText('../../div[has-class("o-product-tab-category")]', default=NotAvailable)(self) not in ignored_accounts
