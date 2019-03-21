@@ -944,7 +944,8 @@ class TransferConfirm(LoggedPage, HTMLPage):
 
 
 class TransferSent(LoggedPage, HTMLPage):
-    pass
+    def get_transfer_error(self):
+        return CleanText('//form[@name="Confirm"]/div[@class="form-errors"]//li')(self.doc)
 
 
 class AddRecipientPage(LoggedPage, HTMLPage):

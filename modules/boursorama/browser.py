@@ -31,7 +31,7 @@ from weboob.browser.exceptions import LoggedOut, ClientError
 from weboob.capabilities.bank import (
     Account, AccountNotFound, TransferError, TransferInvalidAmount,
     TransferInvalidEmitter, TransferInvalidLabel, TransferInvalidRecipient,
-    AddRecipientStep, Recipient, Rate
+    AddRecipientStep, Recipient, Rate, TransferBankError,
 )
 from weboob.capabilities.contact import Advisor
 from weboob.tools.captcha.virtkeyboard import VirtKeyboardError
@@ -465,6 +465,10 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
         self.page.submit()
 
         assert self.transfer_sent.is_here()
+        transfer_error = self.page.get_transfer_error()
+        if transfer_error:
+            raise TransferBankError(transfer_error)
+
         # the last page contains no info, return the last transfer object from init_transfer
         return transfer
 
