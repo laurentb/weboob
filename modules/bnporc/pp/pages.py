@@ -385,6 +385,7 @@ class TransferInitPage(BNPPage):
             obj_label = Dict('libelleCompte')
             obj_iban = Dict('iban')
             obj_category = u'Interne'
+            obj__web_state = None
 
             def obj_bank_name(self):
                 return u'BNP PARIBAS'
