@@ -18,6 +18,7 @@
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
 import datetime
+from decimal import Decimal
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import ClientError
@@ -82,6 +83,8 @@ class DegiroBrowser(LoginBrowser):
             staging = '_s' if 'staging' in self.sessionId else ''
             self.accounts.stay_or_go(staging=staging, accountId=self.intAccount, sessionId=self.sessionId)
             self.account = self.page.get_account()
+            # Account balance is the sum of investments valuations
+            self.account.balance = sum(inv.valuation.quantize(Decimal('0.00')) for inv in self.iter_investment(self.account))
         yield self.account
 
     @need_login

@@ -56,15 +56,19 @@ def list_to_dict(l):
     return {d['name']: d.get('value') for d in l}
 
 
+# Specific currencies are displayed with a factor
+# in the API so we must divide the invest valuations
+SPECIFIC_CURRENCIES = {
+    'JPY': 100,
+}
+
 class AccountsPage(LoggedPage, JsonPage):
     @method
     class get_account(ItemElement):
         klass = Account
 
-        def obj_balance(self):
-            return CleanDecimal().filter(sum(
-                [round(y['value'], 2) for x in Dict('portfolio/value')(self) for y in x['value'] if y['name'] == 'value']
-                ))
+        # account balance will be filled with the
+        # sum of its investments in browser.py
 
         def obj_id(self):
             return str(self.page.browser.intAccount)
@@ -93,15 +97,13 @@ class AccountsPage(LoggedPage, JsonPage):
             obj_unitvalue = Env('unitvalue', default=NotAvailable)
             obj_original_currency = Env('original_currency', default=NotAvailable)
             obj_original_unitvalue = Env('original_unitvalue', default=NotAvailable)
+            obj_valuation = Env('valuation')
 
             def obj__product_id(self):
                 return str(list_to_dict(self.el['value'])['id'])
 
             def obj_quantity(self):
                 return Decimal(str(list_to_dict(self.el['value'])['size']))
-
-            def obj_valuation(self):
-                return Decimal(str(list_to_dict(self.el['value'])['value']))
 
             def obj_label(self):
                 return self._product()['name']
@@ -125,6 +127,8 @@ class AccountsPage(LoggedPage, JsonPage):
             def parse(self, el):
                 currency = self._product()['currency']
                 unitvalue = Decimal(str(list_to_dict(self.el['value'])['price']))
+                valuation = Decimal(str(list_to_dict(self.el['value'])['value']))
+                self.env['valuation'] = valuation / SPECIFIC_CURRENCIES.get(currency, 1)
 
                 if currency == self.env['currency']:
                     self.env['unitvalue'] = unitvalue
