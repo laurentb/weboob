@@ -946,6 +946,19 @@ class QueryValue(Filter):
         return qs[self.querykey][0]
 
 
+class Coalesce(MultiFilter):
+    """
+    Returns the first value that is not falsy,
+    or default if all values are falsy.
+    """
+    @debug()
+    def filter(self, values):
+        for value in values:
+            if value:
+                return value
+        return self.default_or_raise(FilterError('All falsy and no default.'))
+
+
 def test_CleanText():
     # This test works poorly under a doctest, or would be hard to read
     assert CleanText().filter(u' coucou  \n\théhé') == u'coucou héhé'
