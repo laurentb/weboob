@@ -180,7 +180,12 @@ class AccountsList(LoggedPage, HTMLPage):
                 return -abs(balance) if Field('type')(self) == Account.TYPE_LOAN else balance
 
             def obj__id(self):
-                return CleanText('./span[@class="account-number"]')(self) or CleanText('./span[@class="life-insurance-application"]')(self)
+                return CleanText('./span[@class="account-number"]')(self)
+
+            def condition(self):
+                # do not return accounts in application state
+                # they are not displayed on new website
+                return not CleanText('./span[@class="life-insurance-application"]')(self)
 
     @method
     class get_detailed_loans(ListElement):
