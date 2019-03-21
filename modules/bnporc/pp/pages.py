@@ -403,9 +403,9 @@ class RecipientsPage(BNPPage):
             # For the moment, only yield ready to transfer on recipients.
             condition = lambda self: Dict('libelleStatut')(self.el) in [u'Activé', u'Temporisé', u'En attente']
 
-            obj_id = Dict('idBeneficiaire')
+            obj_id = obj_iban = Dict('ibanNumCompte')
+            obj__transfer_id = Dict('idBeneficiaire')
             obj_label = Dict('nomBeneficiaire')
-            obj_iban = Dict('ibanNumCompte')
             obj_category = u'Externe'
             obj__web_state = Dict('libelleStatut')
 
@@ -440,7 +440,7 @@ class ValidateTransferPage(BNPPage):
         self.abort_if_unknown(transfer_data)
 
         if 'idBeneficiaire' in transfer_data and transfer_data['idBeneficiaire'] is not None:
-            assert transfer_data['idBeneficiaire'] == recipient.id
+            assert transfer_data['idBeneficiaire'] == recipient._transfer_id
         elif transfer_data.get('ibanCompteCrediteur'):
             assert transfer_data['ibanCompteCrediteur'] == recipient.iban
 

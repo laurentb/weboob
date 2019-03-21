@@ -404,7 +404,7 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
         add recipient with sms otp authentication
         """
         data = {}
-        data['idBeneficiaire'] = recipient.id
+        data['idBeneficiaire'] = recipient._transfer_id
         data['typeActivation'] = 1
         data['codeActivation'] = params['code']
         return self.activate_recip_sms.go(data=json.dumps(data), headers={'Content-Type': 'application/json'}).get_recipient(recipient)
@@ -422,7 +422,7 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
         # prepare data for polling
         assert recipient._id_transaction
         polling_data = {}
-        polling_data['idBeneficiaire'] = recipient.id
+        polling_data['idBeneficiaire'] = recipient._transfer_id
         polling_data['idTransaction'] = recipient._id_transaction
         polling_data['typeActivation'] = 2
 
@@ -452,7 +452,7 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
         data['montant'] = str(amount)
         data['typeVirement'] = 'SEPA'
         if recipient.category == u'Externe':
-            data['idBeneficiaire'] = recipient.id
+            data['idBeneficiaire'] = recipient._transfer_id
         else:
             data['compteCrediteur'] = recipient.id
         return data
