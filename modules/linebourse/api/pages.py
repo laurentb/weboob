@@ -49,6 +49,12 @@ class PortfolioPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Investment
 
+            def condition(self):
+                # Some rows do not contain an expected item format,
+                # There is no valuation (mnt) because some buy/sell orders are not yet finished.
+                # We want invalid values to fail in the CleanDecimal filter so we catch only when mnt is missing
+                return Dict('mnt', default=NotAvailable)(self) is not NotAvailable
+
             obj_label = Dict('libval')
             obj_code = Dict('codval')
             obj_code_type = Eval(
