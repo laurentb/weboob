@@ -22,27 +22,26 @@ from __future__ import absolute_import
 import datetime
 import re
 import unicodedata
+from collections import Iterator
 from decimal import Decimal, InvalidOperation
 from itertools import islice
-from collections import Iterator
 
 from dateutil.parser import parse as parse_date
 
-from weboob.capabilities.base import empty
-from weboob.capabilities.base import Currency as BaseCurrency
-from weboob.tools.compat import basestring, unicode, long
 from weboob.browser.url import URL
-from weboob.tools.compat import parse_qs, urlparse
+from weboob.capabilities.base import Currency as BaseCurrency
+from weboob.capabilities.base import empty
+from weboob.tools.compat import basestring, long, parse_qs, unicode, urlparse
 
-from .base import _NO_DEFAULT, FilterError, _Filter, Filter, debug, ItemNotFound
-
+from .base import _NO_DEFAULT, Filter, FilterError, ItemNotFound, _Filter, debug
 
 __all__ = ['FilterError', 'ColumnNotFound', 'RegexpError', 'FormatError',
            'Filter', 'Base', 'Env', 'TableCell', 'RawText',
            'CleanText', 'Lower', 'Upper', 'Capitalize', 'CleanDecimal',
            'Field', 'Regexp', 'Map', 'DateTime', 'Date', 'Time', 'DateGuesser',
            'Duration', 'MultiFilter', 'CombineDate', 'Format', 'Join', 'Type',
-           'Eval', 'BrowserURL', 'Async', 'AsyncLoad']
+           'Eval', 'BrowserURL', 'Async', 'AsyncLoad',
+           'QueryValue', 'Coalesce']
 
 
 class ColumnNotFound(FilterError):
