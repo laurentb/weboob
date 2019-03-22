@@ -195,6 +195,8 @@ class SQLiteConfig(IConfig):
         table = args[0]
         key = '.'.join(args[1:])
         self.ensure_table(table)
+        if not key:
+            return self.values[table]
         try:
             cur = self.storage.cursor()
             cur.execute('SELECT value FROM %s WHERE key=?;' % table, (key, ))
@@ -214,6 +216,8 @@ class SQLiteConfig(IConfig):
     def set(self, *args):
         table = args[0]
         key = '.'.join(args[1:-1])
+        if not key:
+            raise ConfigError('A minimum of two levels are required.')
         value = args[-1]
         self.ensure_table(table)
         try:
@@ -227,16 +231,25 @@ class SQLiteConfig(IConfig):
 
     def delete(self, *args):
         table = args[0]
-        self.ensure_table(table)
         key = '.'.join(args[1:])
-        cur = self.storage.cursor()
-        cur.execute('DELETE FROM %s WHERE key=?;' % table, (key, ))
-        if not cur.rowcount:
-            raise ConfigError()
+        if not key:
+            if table in self._tables:
+                cur = self.storage.cursor()
+                cur.execute('DROP TABLE %s;' % table)
+            else:
+                raise ConfigError()
+        else:
+            self.ensure_table(table)
+            cur = self.storage.cursor()
+            cur.execute('DELETE FROM %s WHERE key=?;' % table, (key, ))
+            if not cur.rowcount:
+                raise ConfigError()
 
     def has(self, *args):
         table = args[0]
         key = '.'.join(args[1:])
+        if not key:
+            return table in self._tables
         cur = self.storage.cursor()
         cur.execute('SELECT count(*) FROM %s WHERE key=?;' % table, (key, ))
         return cur.fetchone()[0] > 0
