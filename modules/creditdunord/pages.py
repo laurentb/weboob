@@ -98,9 +98,7 @@ class CDNVirtKeyboard(GridVirtKeyboard):
 
 
 class RedirectPage(HTMLPage):
-    def on_load(self):
-        for script in self.doc.xpath('//script'):
-            self.browser.location(re.search(r'href="([^"]+)"', script.text).group(1))
+    pass
 
 
 class EntryPage(LoggedPage, HTMLPage):
