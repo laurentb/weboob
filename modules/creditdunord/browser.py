@@ -57,12 +57,13 @@ class CreditDuNordBrowser(LoginBrowser):
         self.BASEURL = "https://%s" % website
         super(CreditDuNordBrowser, self).__init__(*args, **kwargs)
 
-    def is_logged(self):
+    @property
+    def logged(self):
         return self.page is not None and not self.login.is_here() and \
             not self.page.doc.xpath(u'//b[contains(text(), "vous devez modifier votre code confidentiel")]')
 
     def home(self):
-        if self.is_logged():
+        if self.logged:
             self.location("/icd/zco/")
             self.accounts.go(account_type=self.account_type)
         else:
@@ -84,7 +85,7 @@ class CreditDuNordBrowser(LoginBrowser):
                 # we'll check what's happening.
                 assert False, "Still on login page."
 
-        if not self.is_logged():
+        if not self.logged:
             raise BrowserIncorrectPassword()
 
     def _iter_accounts(self):
