@@ -103,7 +103,7 @@ class RedirectPage(HTMLPage):
             self.browser.location(re.search(r'href="([^"]+)"', script.text).group(1))
 
 
-class EntryPage(HTMLPage):
+class EntryPage(LoggedPage, HTMLPage):
     pass
 
 
