@@ -62,13 +62,6 @@ class CreditDuNordBrowser(LoginBrowser):
         return self.page is not None and not self.login.is_here() and \
             not self.page.doc.xpath(u'//b[contains(text(), "vous devez modifier votre code confidentiel")]')
 
-    def home(self):
-        if self.logged:
-            self.location("/icd/zco/")
-            self.accounts.go(account_type=self.account_type)
-        else:
-            self.do_login()
-
     def do_login(self):
         self.login.go().login(self.username, self.password)
         if self.accounts.is_here():
