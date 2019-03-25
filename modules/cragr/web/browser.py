@@ -728,7 +728,9 @@ class Cragr(LoginBrowser, StatesMixin):
     def execute_transfer(self, transfer, **params):
         assert self.transfer_page.is_here()
         assert self.page.is_confirm()
+
         self.page.submit_confirm()
+        self.page.check_error()
 
         assert self.page.is_sent()
         return self.page.get_transfer()

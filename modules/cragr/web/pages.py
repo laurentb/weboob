@@ -1414,8 +1414,16 @@ class TransferPage(RecipientAddingMixin, CollectePageMixin, MyLoggedPage, BasePa
         form['DEVISE'] = 'EUR'
         form.submit()
 
+    def check_error(self):
+        # this is for transfer error, it's not a `AddRecipientBankError` but a `TransferBankError`
+
+        msg = CleanText('//tr[@bgcolor="#C74545"]', default='')(self.doc) # there is no id, class or anything...
+        if msg:
+            raise TransferBankError(message=msg)
+
     def check_recipient_error(self):
         # this is a copy-paste from RecipientMiscPage, i can't test if it works on this page...
+        # this is for add recipient by initiate transfer
 
         msg = CleanText('//tr[@bgcolor="#C74545"]', default='')(self.doc) # there is no id, class or anything...
         if msg:
