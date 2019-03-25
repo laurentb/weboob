@@ -391,6 +391,7 @@ class Transaction(BaseObject):
     date =      DateField('Debit date on the bank statement')
     rdate =     DateField('Real date, when the payment has been made; usually extracted from the label or from credit card info')
     vdate =     DateField('Value date, or accounting date; usually for professional accounts')
+    bdate =     DateField('Bank date, when the transaction appear on website (usually extracted from column date)')
     type =      EnumField('Type of transaction, use TYPE_* constants', TransactionType, default=TYPE_UNKNOWN)
     raw =       StringField('Raw label of the transaction')
     category =  StringField('Category of the transaction')
