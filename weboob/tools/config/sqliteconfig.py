@@ -26,6 +26,8 @@ from collections import Mapping, MutableMapping
 import yaml
 from six import PY2
 
+from weboob.tools.compat import unicode
+
 from .extra import time_buffer
 from .iconfig import ConfigError, IConfig
 from .yamlconfig import WeboobDumper
@@ -142,7 +144,7 @@ class SQLiteConfig(IConfig):
         target = os.path.splitext(self.path)[0] + '.sql'
         with tempfile.NamedTemporaryFile(dir=os.path.dirname(self.path), delete=False) as f:
             for line in self.storage.iterdump():
-                f.write(line)
+                f.write(unicode(line).encode('utf-8'))
                 f.write(b'\n')
         os.rename(f.name, target)
 
