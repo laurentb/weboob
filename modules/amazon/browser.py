@@ -43,7 +43,11 @@ class AmazonBrowser(LoginBrowser, StatesMixin):
     L_LOGIN = 'Connexion'
     L_SUBSCRIBER = 'Nom : (.*) Modifier E-mail'
 
-    WRONGPASS_MESSAGE = "Votre mot de passe est incorrect"
+    WRONGPASS_MESSAGES = [
+        "Votre mot de passe est incorrect",
+        "Saisissez une adresse e-mail ou un numéro de téléphone portable valable",
+        "Impossible de trouver un compte correspondant à cette adresse e-mail"
+    ]
     WRONG_CAPTCHA_RESPONSE = "Saisissez les caractères tels qu'ils apparaissent sur l'image."
 
     login = URL(r'/ap/signin(.*)', LoginPage)
@@ -138,7 +142,7 @@ class AmazonBrowser(LoginBrowser, StatesMixin):
             if self.login.is_here():
                 msg = self.page.get_error_message()
 
-                if self.WRONGPASS_MESSAGE in msg:
+                if any(wrongpass_message in msg for wrongpass_message in self.WRONGPASS_MESSAGES):
                     raise BrowserIncorrectPassword(msg)
                 elif self.WRONG_CAPTCHA_RESPONSE in msg:
                     raise WrongCaptchaResponse(msg)
