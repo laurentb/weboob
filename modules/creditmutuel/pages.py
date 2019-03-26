@@ -1108,9 +1108,15 @@ class LIAccountsPage(LoggedPage, HTMLPage):
             obj__is_inv = True
             obj__card_number = None
 
+    @pagination
     @method
     class iter_history(ListElement):
         item_xpath = '//table[has-class("liste")]/tbody/tr'
+
+        def next_page(self):
+            next_page = Link('//a[img[@alt="Page suivante"]]', default=None)(self.el)
+            if next_page:
+                return next_page
 
         class item(ItemElement):
             klass = FrenchTransaction

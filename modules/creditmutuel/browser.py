@@ -299,6 +299,9 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
         if account.type == Account.TYPE_SAVINGS and "Capital Expansion" in account.label:
             self.page.go_on_history_tab()
 
+        if self.li.is_here():
+            return self.page.iter_history()
+
         if self.is_new_website and self.page:
             try:
                 for page in range(1, 50):
@@ -332,9 +335,6 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                 if exc.response.status_code == 413:
                     break
                 raise
-
-        if self.li.is_here():
-            return self.page.iter_history()
 
         if not self.operations.is_here():
             return iter([])
