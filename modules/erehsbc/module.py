@@ -38,7 +38,6 @@ class ErehsbcModule(AbstractModule, CapBank):
     CONFIG = BackendConfig(
              ValueBackendPassword('login',    label='Identifiant', masked=False),
              ValueBackendPassword('password', label='Code secret', regexp='^(\d{6})$'),
-             ValueBackendPassword('secret',   label=u'Réponse secrète'),
              Value('otp', label=u'Code de sécurité', default='', regexp='^(\d{6})$'))
 
     BROWSER = ErehsbcBrowser

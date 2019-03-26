@@ -161,13 +161,6 @@ class ErehsbcBrowser(S2eBrowser):
     SLUG = 'hsbc'
     LANG = 'fr' # ['fr', 'en']
 
-    def __init__(self, *args, **kwargs):
-        super(ErehsbcBrowser, self).__init__(*args, **kwargs)
-        # don't remove "secret" from config, it might still be useful to keep it in config.
-        # as of writing (2018/01/30), it seems the web doesn't ask for it.
-        # even worse: when passing it, we're asked for otp everytime, so don't pass it
-        self.secret = None
-
 
 class BnppereBrowser(S2eBrowser):
     BASEURL = 'https://personeo.epargne-retraite-entreprises.bnpparibas.com'
