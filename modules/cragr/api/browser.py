@@ -319,12 +319,12 @@ class CragrAPI(LoginBrowser):
             # Once again, this request tends to crash often.
             try:
                 self.cards.go()
-            except ClientError:
+            except (ServerError, ClientError):
                 self.logger.warning('Request to cards failed, we try again')
                 try:
                     self.check_space_connection(contract)
                     self.cards.go()
-                except ClientError:
+                except (ServerError, ClientError):
                     self.logger.warning('Request to cards failed twice, cards of this space will be skipped.')
 
             if self.cards.is_here():
