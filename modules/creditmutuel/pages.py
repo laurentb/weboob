@@ -35,7 +35,7 @@ from weboob.browser.filters.standard import (
 )
 from weboob.browser.filters.html import Link, Attr, TableCell, ColumnNotFound
 from weboob.exceptions import (
-    BrowserIncorrectPassword, ParseError, NoAccountsException, ActionNeeded, BrowserUnavailable,
+    BrowserIncorrectPassword, ParseError, ActionNeeded, BrowserUnavailable,
     AuthMethodNotImplemented,
 )
 from weboob.capabilities import NotAvailable
@@ -356,12 +356,8 @@ class item_account_generic(ItemElement):
 
 
 class AccountsPage(LoggedPage, HTMLPage):
-    def on_load(self):
-        super(AccountsPage, self).on_load()
-
-        no_account_message = CleanText('//td[contains(text(), "Votre contrat de banque à distance ne vous donne accès à aucun compte.")]')(self.doc)
-        if no_account_message:
-            raise NoAccountsException(no_account_message)
+    def has_no_account(self):
+        return CleanText('//td[contains(text(), "Votre contrat de banque à distance ne vous donne accès à aucun compte.")]')(self.doc)
 
     @method
     class iter_accounts(ListElement):

@@ -32,7 +32,7 @@ from weboob.browser.profiles import Wget
 from weboob.browser.url import URL
 from weboob.browser.pages import FormNotFound
 from weboob.browser.exceptions import ClientError, ServerError
-from weboob.exceptions import BrowserIncorrectPassword, AuthMethodNotImplemented, BrowserUnavailable
+from weboob.exceptions import BrowserIncorrectPassword, AuthMethodNotImplemented, BrowserUnavailable, NoAccountsException
 from weboob.capabilities.bank import Account, AddRecipientStep, Recipient
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
 from weboob.capabilities import NotAvailable
@@ -242,12 +242,14 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
             # Populate accounts from old website
             if not self.is_new_website:
                 self.accounts.stay_or_go(subbank=self.currentSubBank)
+                has_no_account = self.page.has_no_account()
                 self.accounts_list.extend(self.page.iter_accounts())
                 self.iban.go(subbank=self.currentSubBank).fill_iban(self.accounts_list)
                 self.por.go(subbank=self.currentSubBank).add_por_accounts(self.accounts_list)
             # Populate accounts from new website
             else:
                 self.new_accounts.stay_or_go(subbank=self.currentSubBank)
+                has_no_account = self.page.has_no_account()
                 self.accounts_list.extend(self.page.iter_accounts())
                 self.iban.go(subbank=self.currentSubBank).fill_iban(self.accounts_list)
                 self.por.go(subbank=self.currentSubBank).add_por_accounts(self.accounts_list)
@@ -261,6 +263,8 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
 
             excluded_label = ['etalis', 'valorisation totale']
             self.accounts_list = [acc for acc in self.accounts_list if not any(w in acc.label.lower() for w in excluded_label)]
+            if has_no_account and not self.accounts_list:
+                raise NoAccountsException(has_no_account)
 
         return self.accounts_list
 
