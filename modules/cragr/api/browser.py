@@ -208,6 +208,26 @@ class CragrAPI(LoginBrowser):
         form = self.page.get_login_form(self.username, keypad_password, keypad_id)
         return form
 
+    def get_account_iban(self, account_index, account_category, weboob_account_id):
+        """
+        Fetch an IBAN for a given account
+        It may fail from time to time (error 500 or 403)
+        """
+        params = {
+            'compteIdx': int(account_index),
+            'grandeFamilleCode': int(account_category),
+        }
+        try:
+            self.account_iban.go(params=params)
+        except (ClientError, ServerError):
+            self.logger.warning('Request to IBAN failed for account id "%s"', weboob_account_id)
+            return NotAvailable
+
+        iban = self.page.get_iban()
+        if is_iban_valid(iban):
+            return iban
+        return NotAvailable
+
     @need_login
     def check_space_connection(self, contract):
         # Going to a specific space often returns a 500 error
@@ -278,14 +298,8 @@ class CragrAPI(LoginBrowser):
                 loan_ids.update(self.page.get_loan_ids())
 
             if main_account.type == Account.TYPE_CHECKING:
-                params = {
-                    'compteIdx': int(main_account._index),
-                    'grandeFamilleCode': 1,
-                }
-                self.account_iban.go(params=params)
-                iban = self.page.get_iban()
-                if is_iban_valid(iban):
-                    main_account.iban = iban
+                main_account.iban = self.get_account_iban(main_account._index, 1, main_account.id)
+
             if main_account.id not in all_accounts:
                 all_accounts[main_account.id] = main_account
                 yield main_account
@@ -294,14 +308,7 @@ class CragrAPI(LoginBrowser):
                 if empty(account.balance):
                     account.balance = account_balances.get(account._id_element_contrat, NotAvailable)
                 if account.type == Account.TYPE_CHECKING:
-                    params = {
-                        'compteIdx': int(account._index),
-                        'grandeFamilleCode': int(account._category),
-                    }
-                    self.account_iban.go(params=params)
-                    iban = self.page.get_iban()
-                    if is_iban_valid(iban):
-                        account.iban = iban
+                    account.iban = self.get_account_iban(account._index, account._category, account.id)
 
                 # Loans have a specific ID that we need to fetch
                 # so the backend can match loans properly.
