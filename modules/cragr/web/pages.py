@@ -145,10 +145,6 @@ class HomePage(BasePage):
         return Regexp(CleanText('.'), r'public_key.+?(\w+)')(self.doc)
 
 
-class NewWebsitePage(BasePage):
-    pass
-
-
 class LoginPage(BasePage):
     def on_load(self):
         if self.doc.xpath('//font[@class="taille2"]'):
