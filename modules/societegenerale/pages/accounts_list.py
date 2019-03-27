@@ -317,6 +317,8 @@ class Transaction(FrenchTransaction):
                                                             FrenchTransaction.TYPE_CARD_SUMMARY),
                 (re.compile(r'^CREDIT MENSUEL CARTE (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_CARD_SUMMARY),
+                (re.compile(r'^Paiements CB (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_CARD_SUMMARY),
                 (re.compile(r'^CARTE \w+ (?P<dd>\d{2})\/(?P<mm>\d{2}) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_CARD),
                ]
@@ -415,6 +417,9 @@ class HistoryPage(JsonBasePage):
                     def condition(self):
                         return Dict('statutOperation')(self) == 'COMPTABILISE'
 
+                    obj_raw = Dict('libOpe')
+                    obj_type = Transaction.TYPE_DEFERRED_CARD
+
     @pagination
     @method
     class iter_intraday_comings(DictElement):
@@ -469,6 +474,7 @@ class CardHistoryPage(LoggedPage, HTMLPage):
             klass = Transaction
 
             obj_label = CleanText('.//td[@headers="Libelle"]/span')
+            obj_type = Transaction.TYPE_DEFERRED_CARD
 
             def obj_date(self):
                 if not 'TOTAL DES FACTURES' in Field('label')(self):
@@ -484,7 +490,7 @@ class CardHistoryPage(LoggedPage, HTMLPage):
 
             def obj_raw(self):
                 if not 'TOTAL DES FACTURES' in Field('label')(self):
-                    return Transaction.Raw(CleanText('.//td[@headers="Libelle"]/span'))(self)
+                    return CleanText('.//td[@headers="Libelle"]/span')(self)
                 return NotAvailable
 
 
