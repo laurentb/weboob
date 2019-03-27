@@ -31,7 +31,6 @@ from weboob.capabilities.bank import (
 from weboob.capabilities.base import find_object, empty
 from weboob.capabilities.profile import ProfileMissing
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
-from weboob.browser.switch import SiteSwitch
 from weboob.browser.pages import FormNotFound
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.tools.date import ChaoticDateGuesser, LinearDateGuesser
@@ -43,7 +42,7 @@ from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
 
 from .pages import (
-    HomePage, NewWebsitePage, LoginPage, LoginErrorPage, AccountsPage,
+    HomePage, LoginPage, LoginErrorPage, AccountsPage,
     SavingsPage, TransactionsPage, AdvisorPage, UselessPage,
     CardsPage, LifeInsurancePage, MarketPage, LoansPage, PerimeterPage,
     ChgPerimeterPage, MarketHomePage, FirstVisitPage, BGPIPage,
@@ -62,7 +61,6 @@ class WebsiteNotSupported(Exception):
 
 class Cragr(LoginBrowser, StatesMixin):
     home_page = URL('/$', '/particuliers.html', 'https://www.*.fr/Vitrine/jsp/CMDS/b.js', HomePage)
-    new_website = URL(r'https://www.credit-agricole.fr/.*', NewWebsitePage)
     login_page = URL(r'/stb/entreeBam$',
                      r'/stb/entreeBam\?.*typeAuthentification=CLIC_ALLER.*',
                      LoginPage)
@@ -172,10 +170,6 @@ class Cragr(LoginBrowser, StatesMixin):
         if not self.home_page.is_here():
             self.home_page.go()
 
-        if self.new_website.is_here():
-            self.logger.warning('This connection uses the new API website')
-            raise SiteSwitch('api')
-
         if self.new_login:
             self.page.go_to_auth()
             parsed = urlparse(self.url)
@@ -268,7 +262,7 @@ class Cragr(LoginBrowser, StatesMixin):
             self.broken_perimeters.append(perimeter)
 
     @need_login
-    def get_accounts_list(self):
+    def iter_accounts(self):
         l = list()
         if self.perimeters:
             for perimeter in [p for p in self.perimeters if p not in self.broken_perimeters]:
@@ -412,7 +406,7 @@ class Cragr(LoginBrowser, StatesMixin):
                     account.balance = self.page.get_pea_balance()
 
     @need_login
-    def get_history(self, account, coming=False):
+    def iter_history(self, account, coming=False):
         if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA, Account.TYPE_LIFE_INSURANCE, Account.TYPE_PERP):
             self.logger.warning('This account is not supported')
             raise NotImplementedError()
@@ -684,7 +678,7 @@ class Cragr(LoginBrowser, StatesMixin):
 
     @need_login
     def init_transfer(self, transfer, **params):
-        accounts = list(self.get_accounts_list())
+        accounts = list(self.iter_accounts())
 
         assert transfer.recipient_id
         assert transfer.account_id
@@ -756,7 +750,7 @@ class Cragr(LoginBrowser, StatesMixin):
             raise AddRecipientBankError("SMS code %s is invalid" % params['sms_code'])
 
         if self.perimeters:
-            accounts = list(self.get_accounts_list())
+            accounts = list(self.iter_accounts())
             assert recipient.origin_account_id, 'Origin account id is mandatory for multispace'
             account = find_object(accounts, id=recipient.origin_account_id, error=AccountNotFound)
             if account._perimeter != self.current_perimeter:
