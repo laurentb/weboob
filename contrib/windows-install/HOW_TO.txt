@@ -8,4 +8,6 @@ unzip and rename to => wget-x64.exe
 4. Download https://eternallybored.org/misc/wget/releases/wget-1.20-win32.zip, 
 unzip and rename to => wget-x32.exe
 
-5. run create-exe-setup-weboob.bat
+5. Download https://bootstrap.pypa.io/get-pip.py
+
+6. run create-exe-setup-weboob.bat
