@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2012-2019 Romain Bignon
+# Copyright(C) 2012-2019  Budget Insight
 #
 # This file is part of a weboob module.
 #
 # This weboob module is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as published by
+# it under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
 # This weboob module is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Affero General Public License for more details.
+# GNU Lesser General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License
+# You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
 
@@ -23,19 +23,19 @@ from __future__ import unicode_literals
 from decimal import Decimal
 import re
 
-from weboob.capabilities.bank import Account, Transaction, AccountNotFound, RecipientNotFound
+from weboob.capabilities.bank import Account, Loan, Transaction, AccountNotFound, RecipientNotFound
 from weboob.capabilities.base import empty, NotAvailable, strict_find_object
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, ActionNeeded
+from weboob.browser.switch import SiteSwitch
 from weboob.browser.exceptions import ServerError, ClientError, BrowserHTTPNotFound
-from weboob.capabilities.bank import Loan
+from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, ActionNeeded
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages import (
     LoginPage, LoggedOutPage, KeypadPage, SecurityPage, ContractsPage, FirstConnectionPage, AccountsPage, AccountDetailsPage,
     TokenPage, IbanPage, HistoryPage, CardsPage, CardHistoryPage, NetfincaRedirectionPage, PredicaRedirectionPage,
-    PredicaInvestmentsPage, ProfilePage, ProfileDetailsPage, ProProfileDetailsPage,
+    PredicaInvestmentsPage, ProfilePage, ProfileDetailsPage, ProProfileDetailsPage, OldWebsitePage,
 )
 from .transfer_pages import (
     RecipientsPage, TransferPage, TransferTokenPage,
@@ -55,7 +55,6 @@ class CragrAPI(LoginBrowser):
     security_check = URL(r'particulier/acceder-a-mes-comptes.html/j_security_check', SecurityPage)
     first_connection = URL(r'.*/operations/interstitielles/premiere-connexion.html', FirstConnectionPage)
     logged_out = URL(r'.*', LoggedOutPage)
-
     token_page = URL(r'libs/granite/csrf/token.json', TokenPage)
 
     contracts_page = URL(r'particulier/operations/.rechargement.contexte.html\?idBamIndex=(?P<id_contract>)',
@@ -142,13 +141,12 @@ class CragrAPI(LoginBrowser):
                          TransferPage)
     transfer_exec = URL('(?P<space>.*)/operations/(?P<op>.*)/virement/jcr:content.process-transfer.json',
                         TransferPage)
+    old_website = URL(r'https://.*particuliers.html$', OldWebsitePage)
 
 
     def __init__(self, website, *args, **kwargs):
         super(CragrAPI, self).__init__(*args, **kwargs)
-        website = website.replace('.fr', '')
-        self.region = re.sub('^m\.', 'www.credit-agricole.fr/', website)
-        self.BASEURL = 'https://%s/' % self.region
+        self.website = website
         self.accounts_url = None
 
         # Netfinca browser:
@@ -161,6 +159,17 @@ class CragrAPI(LoginBrowser):
         self.netfinca.deinit()
 
     def do_login(self):
+        # First we try to connect to the new website: if the connection
+        # is on the old website, we will automatically redirected.
+        website = self.website.replace('.fr', '')
+        region_domain = re.sub(r'^www\.', 'www.credit-agricole.fr/', website)
+        self.BASEURL = 'https://%s/' % region_domain
+        self.login_page.go()
+        if self.old_website.is_here():
+            self.BASEURL = 'https://%s/' % self.website
+            self.logger.warning('This is a regional connection, switching to old website with URL %s', self.BASEURL)
+            raise SiteSwitch('web')
+
         form = self.get_security_form()
         try:
             self.security_check.go(data=form)
@@ -243,7 +252,7 @@ class CragrAPI(LoginBrowser):
         return True
 
     @need_login
-    def get_accounts_list(self):
+    def iter_accounts(self):
         # Determine how many spaces are present on the connection:
         self.location(self.accounts_url)
         if not self.accounts_page.is_here():
@@ -384,7 +393,7 @@ class CragrAPI(LoginBrowser):
             assert self.accounts_page.is_here()
 
     @need_login
-    def get_history(self, account, coming=False):
+    def iter_history(self, account, coming=False):
         if account.type == Account.TYPE_CARD:
             card_transactions = []
             self.go_to_account_space(account._contract)
@@ -632,7 +641,7 @@ class CragrAPI(LoginBrowser):
     @need_login
     def init_transfer(self, transfer, **params):
         # first, get _account on account list to get recipient
-        _account = strict_find_object(self.get_accounts_list(), id=transfer.account_id, error=AccountNotFound)
+        _account = strict_find_object(self.iter_accounts(), id=transfer.account_id, error=AccountNotFound)
 
         # get information to go on transfer page
         space, operation, referer, connection_id = self.get_account_transfer_space_info(account=_account)
