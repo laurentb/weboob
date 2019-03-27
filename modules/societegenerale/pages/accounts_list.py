@@ -304,6 +304,8 @@ class Transaction(FrenchTransaction):
                 (re.compile(r'^(?P<category>VIR(EMEN)?T? \w+) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_TRANSFER),
                 (re.compile(r'^(CHEQUE) (?P<text>.*)'),     FrenchTransaction.TYPE_CHECK),
+                (re.compile(r'^REMISE CHEQUE (?P<text>.*)'),
+                                                            FrenchTransaction.TYPE_CHECK),
                 (re.compile(r'^(FRAIS) (?P<text>.*)'),      FrenchTransaction.TYPE_BANK),
                 (re.compile(r'^(?P<category>ECHEANCEPRET)(?P<text>.*)'),
                                                             FrenchTransaction.TYPE_LOAN_PAYMENT),
