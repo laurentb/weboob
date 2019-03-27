@@ -51,6 +51,9 @@ WeboobDumper.add_representer(weboob.tools.date.datetime,
 
 
 class YamlConfig(IConfig):
+    DUMPER = WeboobDumper
+    LOADER = Loader
+
     def __init__(self, path):
         self.path = path
         self.values = {}
@@ -61,7 +64,7 @@ class YamlConfig(IConfig):
         logging.debug(u'Loading application configuration file: %s.' % self.path)
         try:
             with open(self.path, 'r') as f:
-                self.values = yaml.load(f, Loader=Loader)
+                self.values = yaml.load(f, Loader=self.LOADER)
             logging.debug(u'Application configuration file loaded: %s.' % self.path)
         except IOError:
             self.save()
@@ -77,7 +80,7 @@ class YamlConfig(IConfig):
         else:
             f = tempfile.NamedTemporaryFile(mode='w', dir=os.path.dirname(self.path), delete=False, encoding='utf-8')
         with f:
-            yaml.dump(self.values, f, Dumper=WeboobDumper, default_flow_style=False)
+            yaml.dump(self.values, f, Dumper=self.DUMPER, default_flow_style=False)
         os.rename(f.name, self.path)
 
     def get(self, *args, **kwargs):
