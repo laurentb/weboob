@@ -629,18 +629,26 @@ class PagesBrowser(DomainBrowser):
 
     Example:
 
-    >>> from .pages import Page
-    >>> class HomePage(Page):
-    ...     pass
+    >>> from .pages import HTMLPage
+    >>> class ListPage(HTMLPage):
+    ...     def get_items():
+    ...         return [el.attrib['id'] for el in self.doc.xpath('//div[@id="items"]/div')]
     ...
-    >>> class ListPage(Page):
+    >>> class ItemPage(HTMLPage):
     ...     pass
     ...
     >>> class MyBrowser(PagesBrowser):
-    ...     BASEURL = 'http://example.org'
-    ...     home = URL('/(index\.html)?', HomePage)
-    ...     list = URL('/list\.html', ListPage)
+    ...     BASEURL = 'http://example.org/'
+    ...     list = URL('list-items', ListPage)
+    ...     item = URL('item/view/(?P<id>\d+)', ItemPage)
     ...
+    >>> MyBrowser().list.stay_or_go().get_items() # doctest: +SKIP
+    >>> bool(MyBrowser().list.match('http://example.org/list-items'))
+    True
+    >>> bool(MyBrowser().list.match('http://example.org/'))
+    False
+    >>> str(MyBrowser().item.build(id=42))
+    'http://example.org/item/view/42'
 
     You can then use URL instances to go on pages.
     """
