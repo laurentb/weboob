@@ -43,6 +43,11 @@ class WeboobDumper(Dumper):
     pass
 
 
+class WeboobNoAliasDumper(WeboobDumper):
+    def ignore_aliases(self, data):
+        return True
+
+
 WeboobDumper.add_representer(weboob.tools.date.date,
                              WeboobDumper.represent_date)
 
