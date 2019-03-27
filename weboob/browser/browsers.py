@@ -877,7 +877,7 @@ class StatesMixin(object):
         state = {}
         if hasattr(self, 'page') and self.page:
             state['url'] = self.page.url
-        state['cookies'] = base64.b64encode(zlib.compress(pickle.dumps(self.session.cookies, -1)))
+        state['cookies'] = base64.b64encode(zlib.compress(pickle.dumps(self.session.cookies, -1))).decode('ascii')
         for attrname in self.__states__:
             try:
                 state[attrname] = getattr(self, attrname)
