@@ -517,11 +517,7 @@ class IngBrowser(LoginBrowser):
     @need_login
     def get_subscriptions(self):
         self.billpage.go()
-        if self.loginpage.is_here():
-            self.do_login()
-            subscriptions = list(self.billpage.go().iter_subscriptions())
-        else:
-            subscriptions = list(self.page.iter_subscriptions())
+        subscriptions = list(self.page.iter_subscriptions())
 
         self.cache['subscriptions'] = {}
         for sub in subscriptions:

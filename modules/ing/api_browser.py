@@ -324,18 +324,23 @@ class IngAPIBrowser(LoginBrowser):
 
     ############# CapDocument #############
     @need_login
+    @need_to_be_on_website('web')
     def get_subscriptions(self):
-        raise BrowserUnavailable()
+        return self.old_browser.get_subscriptions()
 
     @need_login
+    @need_to_be_on_website('web')
     def get_documents(self, subscription):
-        raise BrowserUnavailable()
+        return self.old_browser.get_documents(subscription)
 
+    @need_login
+    @need_to_be_on_website('web')
     def download_document(self, bill):
-        raise BrowserUnavailable()
+        return self.old_browser.download_document(bill)
 
     ############# CapProfile #############
     @need_login
+    @need_to_be_on_website('api')
     def get_profile(self):
         self.informations.go()
         return self.page.get_profile()
