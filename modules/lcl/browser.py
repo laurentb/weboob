@@ -434,7 +434,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def send_code(self, recipient, **params):
-        res = self.open('/outil/UWBE/Otp/getValidationCodeOtp?codeOtp=%s' % params['code'])
+        res = self.open('/outil/UWBE/Otp/validationCodeOtp?codeOtp=%s' % params['code'])
         if res.text == 'false':
             raise AddRecipientBankError(message='Mauvais code sms.')
         self.recip_recap.go().check_values(recipient.iban, recipient.label)
