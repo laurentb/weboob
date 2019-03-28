@@ -34,6 +34,7 @@ from .pages import (
     TokenPage, MoveUniversePage, SwitchPage,
     LoansPage, AccountsPage, IbanPage, LifeInsurancesPage,
     SearchPage, ProfilePage, EmailsPage, ErrorPage,
+    ErrorCodePage,
 )
 
 __all__ = ['BredBrowser']
@@ -59,6 +60,7 @@ class BredBrowser(LoginBrowser):
     search =            URL('/transactionnel/services/applications/operations/getSearch/', SearchPage)
     profile =           URL('/transactionnel/services/rest/User/user', ProfilePage)
     emails =            URL('/transactionnel/services/applications/gestionEmail/getAdressesMails', EmailsPage)
+    error_code =        URL('/.*\?errorCode=.*', ErrorCodePage)
 
     def __init__(self, accnum, login, password, *args, **kwargs):
         kwargs['username'] = login

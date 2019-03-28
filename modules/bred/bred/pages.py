@@ -325,3 +325,15 @@ class ErrorPage(LoggedPage, HTMLPage):
         if '/pages-gestion-des-erreurs/message-tiers-oppose' in self.url:
             # need a case to retrieve the error message
             raise ActionNeeded("Impossible de se connecter au compte car l'identification en 2 étapes a été activée")
+
+
+class ErrorCodePage(HTMLPage):
+    def on_load(self):
+        code = re.search(r'\/\?errorCode=(\d+)', self.url).group(1)
+        page = self.browser.open('/particuliers/compte-bancaire/comptes-en-ligne/bredconnect-compte-ligne?errorCode=%s' % code).page
+        # invalid login/password
+        if code == '20100':
+            msg = CleanText('//label[contains(@class, "error")]')(page.doc)
+            raise BrowserIncorrectPassword(msg)
+
+        assert False, 'The % error is not handled.' % code
