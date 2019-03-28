@@ -28,9 +28,8 @@ from six import PY2
 
 from weboob.tools.compat import unicode
 
-from .extra import time_buffer
 from .iconfig import ConfigError, IConfig
-from .util import replace
+from .util import replace, time_buffer
 from .yamlconfig import WeboobDumper
 
 try:

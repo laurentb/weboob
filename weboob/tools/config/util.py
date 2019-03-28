@@ -19,8 +19,9 @@
 
 
 import os
+from datetime import datetime
 
-__all__ = ['replace']
+__all__ = ['replace', 'time_buffer']
 
 
 try:
@@ -33,3 +34,30 @@ except ImportError:
             except OSError:
                 pass
         return os.rename(src, dst, *args, **kwargs)
+
+
+def time_buffer(since_seconds=None, last_run=True, logger=False):
+    def decorator_time_buffer(func):
+        def wrapper_time_buffer(*args, **kwargs):
+            since_seconds = kwargs.pop('since_seconds', None)
+            if since_seconds is None:
+                since_seconds = decorator_time_buffer.since_seconds
+            if logger:
+                logger.debug('Time buffer for %s of %s. Last run %s.'
+                             % (repr(func), since_seconds, decorator_time_buffer.last_run))
+            if since_seconds and decorator_time_buffer.last_run:
+                if (datetime.now() - decorator_time_buffer.last_run).seconds < since_seconds:
+                    if logger:
+                        logger.debug('Too soon to run %s, ignore.' % repr(func))
+                    return
+            if logger:
+                logger.debug('Run %s and record' % repr(func))
+            res = func(*args, **kwargs)
+            decorator_time_buffer.last_run = datetime.now()
+            return res
+
+        decorator_time_buffer.since_seconds = since_seconds
+        decorator_time_buffer.last_run = datetime.now() if last_run is True else last_run
+
+        return wrapper_time_buffer
+    return decorator_time_buffer
