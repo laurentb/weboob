@@ -148,6 +148,9 @@ ACCOUNT_TYPES = {
     'FLORIA': Account.TYPE_LIFE_INSURANCE,
     'CAP DECOUV': Account.TYPE_LIFE_INSURANCE,
     'ESP LIB 2': Account.TYPE_LIFE_INSURANCE,
+    'AUTRO': Account.TYPE_LIFE_INSURANCE,  # Autre Contrats Rothschild
+    'OPPER': Account.TYPE_LIFE_INSURANCE,  # Open Perspective
+    'OPEN STRAT': Account.TYPE_LIFE_INSURANCE,  # Open Strategie
     'ATOUT LIB': Account.TYPE_REVOLVING_CREDIT,
     'PAGR': Account.TYPE_MADELIN,
 }
@@ -450,6 +453,10 @@ class PredicaInvestmentsPage(LoggedPage, JsonPage):
                     return Investment.CODE_TYPE_ISIN
                 return NotAvailable
 
+
+class LifeInsuranceInvestmentsPage(LoggedPage, HTMLPage):
+    # TODO
+    pass
 
 class ProfilePage(LoggedPage, JsonPage):
     @method

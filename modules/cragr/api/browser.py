@@ -35,7 +35,7 @@ from weboob.tools.capabilities.bank.transactions import sorted_transactions
 from .pages import (
     LoginPage, LoggedOutPage, KeypadPage, SecurityPage, ContractsPage, FirstConnectionPage, AccountsPage, AccountDetailsPage,
     TokenPage, IbanPage, HistoryPage, CardsPage, CardHistoryPage, NetfincaRedirectionPage, PredicaRedirectionPage,
-    PredicaInvestmentsPage, ProfilePage, ProfileDetailsPage, ProProfileDetailsPage, OldWebsitePage,
+    PredicaInvestmentsPage, ProfilePage, ProfileDetailsPage, ProProfileDetailsPage, LifeInsuranceInvestmentsPage, OldWebsitePage,
 )
 from .transfer_pages import (
     RecipientsPage, TransferPage, TransferTokenPage,
@@ -57,74 +57,32 @@ class CragrAPI(LoginBrowser):
     logged_out = URL(r'.*', LoggedOutPage)
     token_page = URL(r'libs/granite/csrf/token.json', TokenPage)
 
-    contracts_page = URL(r'particulier/operations/.rechargement.contexte.html\?idBamIndex=(?P<id_contract>)',
-                         r'association/operations/.rechargement.contexte.html\?idBamIndex=(?P<id_contract>)',
-                         r'professionnel/operations/.rechargement.contexte.html\?idBamIndex=(?P<id_contract>)',
-                         r'agriculteur/operations/.rechargement.contexte.html\?idBamIndex=(?P<id_contract>)',
-                         r'entreprise/operations/.rechargement.contexte.html\?idBamIndex=(?P<id_contract>)', ContractsPage)
+    contracts_page = URL(r'(?P<space>[\w-]+)/operations/.rechargement.contexte.html\?idBamIndex=(?P<id_contract>)', ContractsPage)
 
-    accounts_page = URL(r'particulier/operations/synthese.html',
-                        r'association/operations/synthese.html',
-                        r'professionnel/operations/synthese.html',
-                        r'agriculteur/operations/synthese.html',
-                        r'entreprise/operations/synthese.html', AccountsPage)
+    accounts_page = URL(r'[\w-]+/operations/synthese.html', AccountsPage)
 
-    account_details = URL(r'particulier/operations/synthese/jcr:content.produits-valorisation.json/(?P<category>)',
-                          r'association/operations/synthese/jcr:content.produits-valorisation.json/(?P<category>)',
-                          r'professionnel/operations/synthese/jcr:content.produits-valorisation.json/(?P<category>)',
-                          r'agriculteur/operations/synthese/jcr:content.produits-valorisation.json/(?P<category>)',
-                          r'entreprise/operations/synthese/jcr:content.produits-valorisation.json/(?P<category>)', AccountDetailsPage)
+    account_details = URL(r'(?P<space>[\w-]+)/operations/synthese/jcr:content.produits-valorisation.json/(?P<category>)', AccountDetailsPage)
 
-    account_iban = URL(r'particulier/operations/operations-courantes/editer-rib/jcr:content.ibaninformation.json',
-                       r'association/operations/operations-courantes/editer-rib/jcr:content.ibaninformation.json',
-                       r'professionnel/operations/operations-courantes/editer-rib/jcr:content.ibaninformation.json',
-                       r'agriculteur/operations/operations-courantes/editer-rib/jcr:content.ibaninformation.json',
-                       r'entreprise/operations/operations-courantes/editer-rib/jcr:content.ibaninformation.json', IbanPage)
+    account_iban = URL(r'(?P<space>[\w-]+)/operations/operations-courantes/editer-rib/jcr:content.ibaninformation.json', IbanPage)
 
-    cards = URL(r'particulier/operations/moyens-paiement/mes-cartes/jcr:content.listeCartesParCompte.json',
-                r'association/operations/moyens-paiement/mes-cartes/jcr:content.listeCartesParCompte.json',
-                r'professionnel/operations/moyens-paiement/mes-cartes/jcr:content.listeCartesParCompte.json',
-                r'agriculteur/operations/moyens-paiement/mes-cartes/jcr:content.listeCartesParCompte.json',
-                r'entreprise/operations/moyens-paiement/mes-cartes/jcr:content.listeCartesParCompte.json', CardsPage)
+    cards = URL(r'(?P<space>[\w-]+)/operations/moyens-paiement/mes-cartes/jcr:content.listeCartesParCompte.json', CardsPage)
 
-    history = URL(r'particulier/operations/synthese/detail-comptes/jcr:content.n3.operations.json',
-                  r'association/operations/synthese/detail-comptes/jcr:content.n3.operations.json',
-                  r'professionnel/operations/synthese/detail-comptes/jcr:content.n3.operations.json',
-                  r'agriculteur/operations/synthese/detail-comptes/jcr:content.n3.operations.json',
-                  r'entreprise/operations/synthese/detail-comptes/jcr:content.n3.operations.json', HistoryPage)
+    history = URL(r'(?P<space>[\w-]+)/operations/synthese/detail-comptes/jcr:content.n3.operations.json', HistoryPage)
 
-    card_history = URL(r'particulier/operations/synthese/detail-comptes/jcr:content.n3.operations.encours.carte.debit.differe.json',
-                       r'association/operations/synthese/detail-comptes/jcr:content.n3.operations.encours.carte.debit.differe.json',
-                       r'professionnel/operations/synthese/detail-comptes/jcr:content.n3.operations.encours.carte.debit.differe.json',
-                       r'agriculteur/operations/synthese/detail-comptes/jcr:content.n3.operations.encours.carte.debit.differe.json',
-                       r'entreprise/operations/synthese/detail-comptes/jcr:content.n3.operations.encours.carte.debit.differe.json', CardHistoryPage)
+    card_history = URL(r'(?P<space>[\w-]+)/operations/synthese/detail-comptes/jcr:content.n3.operations.encours.carte.debit.differe.json', CardHistoryPage)
 
-    netfinca_redirection = URL(r'particulier/operations/moco/catitres/jcr:content.init.html',
-                               r'association/operations/moco/catitres/jcr:content.init.html',
-                               r'professionnel/operations/moco/catitres/jcr:content.init.html',
-                               r'agriculteur/operations/moco/catitres/jcr:content.init.html',
-                               r'entreprise/operations/moco/catitres/jcr:content.init.html',
-                               r'particulier/operations/moco/catitres/_jcr_content.init.html',
-                               r'association/operations/moco/catitres/_jcr_content.init.html',
-                               r'professionnel/operations/moco/catitres/_jcr_content.init.html',
-                               r'agriculteur/operations/moco/catitres/_jcr_content.init.html',
-                               r'entreprise/operations/moco/catitres/_jcr_content.init.html', NetfincaRedirectionPage)
+    life_insurance_investments = URL(r'(?P<space>[\w-]+)/operations/synthese/detail-assurance-vie.html\?idx=(?P<idx>\d+)&famillecode=(?P<category>\d+)',
+                                     LifeInsuranceInvestmentsPage)
 
-    predica_redirection = URL(r'particulier/operations/moco/predica/jcr:content.init.html',
-                              r'association/operations/moco/predica/jcr:content.init.html',
-                              r'professionnel/operations/moco/predica/jcr:content.init.html',
-                              r'agriculteur/operations/moco/predica/jcr:content.init.html',
-                              r'entreprise/operations/moco/predica/jcr:content.init.html', PredicaRedirectionPage)
+    netfinca_redirection = URL(r'(?P<space>[\w-]+)/operations/moco/catitres/_?jcr[:_]content.init.html', NetfincaRedirectionPage)
+
+    predica_redirection = URL(r'(?P<space>[\w-]+)/operations/moco/predica/_?jcr[:_]content.init.html', PredicaRedirectionPage)
 
     predica_investments = URL(r'https://npcprediweb.predica.credit-agricole.fr/rest/detailEpargne/contrat/', PredicaInvestmentsPage)
 
-    profile_page = URL(r'particulier/operations/synthese/jcr:content.npc.store.client.json',
-                       r'association/operations/synthese/jcr:content.npc.store.client.json',
-                       r'professionnel/operations/synthese/jcr:content.npc.store.client.json',
-                       r'agriculteur/operations/synthese/jcr:content.npc.store.client.json',
-                       r'entreprise/operations/synthese/jcr:content.npc.store.client.json', ProfilePage)
+    profile_page = URL(r'(?P<space>[\w-]+)/operations/synthese/jcr:content.npc.store.client.json', ProfilePage)
 
-    profile_details = URL(r'particulier/operations/profil/infos-personnelles/gerer-coordonnees.html', ProfileDetailsPage)
+    profile_details = URL(r'(?P<space>[\w-]+)/operations/profil/infos-personnelles/gerer-coordonnees.html', ProfileDetailsPage)
 
     pro_profile_details = URL(r'association/operations/profil/infos-personnelles/controler-coordonnees.html',
                               r'professionnel/operations/profil/infos-personnelles/controler-coordonnees.html',
@@ -153,6 +111,10 @@ class CragrAPI(LoginBrowser):
         self.weboob = kwargs.pop('weboob')
         dirname = self.responses_dirname
         self.netfinca = NetfincaBrowser('', '', logger=self.logger, weboob=self.weboob, responses_dirname=dirname, proxy=self.PROXIES)
+
+    @property
+    def space(self):
+        return self.session.cookies.get('marche', None)
 
     def deinit(self):
         super(CragrAPI, self).deinit()
@@ -227,7 +189,7 @@ class CragrAPI(LoginBrowser):
             'grandeFamilleCode': int(account_category),
         }
         try:
-            self.account_iban.go(params=params)
+            self.account_iban.go(space=self.space, params=params)
         except (ClientError, ServerError):
             self.logger.warning('Request to IBAN failed for account id "%s"', weboob_account_id)
             return NotAvailable
@@ -302,7 +264,8 @@ class CragrAPI(LoginBrowser):
             account_balances = {}
             loan_ids = {}
             for category in categories:
-                self.account_details.go(category=category)
+                self.account_details.go(space=self.space,
+                                        category=category)
                 account_balances.update(self.page.get_account_balances())
                 loan_ids.update(self.page.get_loan_ids())
 
@@ -334,12 +297,12 @@ class CragrAPI(LoginBrowser):
             # Fetch all deferred credit cards for this space
             # Once again, this request tends to crash often.
             try:
-                self.cards.go()
+                self.cards.go(space=self.space)
             except (ServerError, ClientError):
                 self.logger.warning('Request to cards failed, we try again')
                 try:
                     self.check_space_connection(contract)
-                    self.cards.go()
+                    self.cards.go(space=self.space)
                 except (ServerError, ClientError):
                     self.logger.warning('Request to cards failed twice, cards of this space will be skipped.')
 
@@ -385,11 +348,11 @@ class CragrAPI(LoginBrowser):
 
     @need_login
     def go_to_account_space(self, contract):
-        self.contracts_page.go(id_contract=contract)
+        self.contracts_page.go(space=self.space, id_contract=contract)
         if not self.accounts_page.is_here():
             # We have been logged out.
             self.do_login()
-            self.contracts_page.go(id_contract=contract)
+            self.contracts_page.go(space=self.space, id_contract=contract)
             assert self.accounts_page.is_here()
 
     @need_login
@@ -406,7 +369,8 @@ class CragrAPI(LoginBrowser):
                 'carteIdx': int(account._index),
                 'rechercheEncoursDebite': value
             }
-            self.card_history.go(params=params)
+            self.card_history.go(space=self.space,
+                                 params=params)
             for tr in self.page.iter_card_history():
                 card_transactions.append(tr)
 
@@ -423,7 +387,7 @@ class CragrAPI(LoginBrowser):
                     'idDevise': str(account.parent.currency),
                     'idElementContrat': str(account.parent._id_element_contrat),
                 }
-                self.history.go(params=params)
+                self.history.go(space=self.space, params=params)
                 for tr in self.page.iter_history():
                     if tr.date < last_transaction.date:
                         before_last_transaction = True
@@ -441,7 +405,7 @@ class CragrAPI(LoginBrowser):
                         'startIndex': next_index,
                         'count': 100,
                     }
-                    self.history.go(params=params)
+                    self.history.go(space=self.space, params=params)
                     for tr in self.page.iter_history():
                         if tr.date < last_transaction.date:
                             before_last_transaction = True
@@ -465,7 +429,7 @@ class CragrAPI(LoginBrowser):
             'idDevise': str(account.currency),
             'idElementContrat': str(account._id_element_contrat),
         }
-        self.history.go(params=params)
+        self.history.go(space=self.space, params=params)
         for tr in self.page.iter_history():
             # For "Livret A", value dates of transactions are always
             # 1st or 15th of the month so we specify a valuation date.
@@ -484,16 +448,29 @@ class CragrAPI(LoginBrowser):
                 'startIndex': next_index,
                 'count': 100,
             }
-            self.history.go(params=params)
+            self.history.go(space=self.space,
+                            params=params)
             for tr in self.page.iter_history():
                 yield tr
 
     @need_login
     def iter_investment(self, account):
-        if account.type in (Account.TYPE_PERP, Account.TYPE_PERCO, Account.TYPE_LIFE_INSURANCE, Account.TYPE_CAPITALISATION):
+        if account.type == Account.TYPE_LIFE_INSURANCE and (
+              'rothschild' in account.label.lower()
+            or re.match(r'^open (perspective|strat)', account.label, re.I)
+        ):
+            self.life_insurance_investments.go(space=self.space,
+                                               idx=account._index,
+                                               category=account._category)
+            # TODO
+            #for inv in self.page.iter_investments():
+            #    yield inv
+
+        elif account.type in (Account.TYPE_PERP, Account.TYPE_PERCO, Account.TYPE_LIFE_INSURANCE, Account.TYPE_CAPITALISATION):
             if account.label == "Vers l'avenir":
                 # Website crashes when clicking on these Life Insurances...
                 return
+
             self.go_to_account_space(account._contract)
             token = self.token_page.go().get_token()
             data = {
@@ -501,7 +478,7 @@ class CragrAPI(LoginBrowser):
                 'idelco': account.id,
                 ':cq_csrf_token': token,
             }
-            self.predica_redirection.go(data=data)
+            self.predica_redirection.go(space=self.space, data=data)
             self.predica_investments.go()
             for inv in self.page.iter_investments():
                 yield inv
@@ -529,7 +506,8 @@ class CragrAPI(LoginBrowser):
             # and the only way to know if there are investments is to try
             # to go to the Netfinca space with the accounts parameters.
             try:
-                self.netfinca_redirection.go(data=data)
+                self.netfinca_redirection.go(space=self.space,
+                                             data=data)
             except BrowserHTTPNotFound:
                 self.logger.info('Investments are not available for this account.')
                 self.go_to_account_space(account._contract)
@@ -549,15 +527,15 @@ class CragrAPI(LoginBrowser):
     def iter_advisor(self):
         self.go_to_account_space(0)
         owner_type = self.page.get_owner_type()
-        self.profile_page.go()
+        self.profile_page.go(space=self.space)
         if owner_type == 'PRIV':
             advisor = self.page.get_advisor()
-            self.profile_details.go()
+            self.profile_details.go(space=self.space)
             self.page.fill_advisor(obj=advisor)
             yield advisor
         elif owner_type == 'ORGA':
             advisor = self.page.get_advisor()
-            self.pro_profile_details.go()
+            self.pro_profile_details.go(space=self.space)
             self.page.fill_advisor(obj=advisor)
             yield advisor
 
@@ -566,15 +544,15 @@ class CragrAPI(LoginBrowser):
         # There is one profile per space, so we only fetch the first one
         self.go_to_account_space(0)
         owner_type = self.page.get_owner_type()
-        self.profile_page.go()
+        self.profile_page.go(space=self.space)
         if owner_type == 'PRIV':
             profile = self.page.get_user_profile()
-            self.profile_details.go()
+            self.profile_details.go(space=self.space)
             self.page.fill_profile(obj=profile)
             return profile
         elif owner_type == 'ORGA':
             profile = self.page.get_company_profile()
-            self.pro_profile_details.go()
+            self.pro_profile_details.go(space=self.space)
             self.page.fill_profile(obj=profile)
             return profile
 
@@ -582,7 +560,6 @@ class CragrAPI(LoginBrowser):
     def get_account_transfer_space_info(self, account):
         self.go_to_account_space(account._contract)
 
-        space = self.session.cookies['marche']
         connection_id = self.page.get_connection_id()
 
         operations = {
@@ -590,11 +567,12 @@ class CragrAPI(LoginBrowser):
             'professionnel': 'paiements-encaissements',
             'association': 'paiements-encaissements',
             'entreprise': 'paiements-encaissements',
+            'banque-privee': 'moyens-paiement',
         }
 
-        referer = self.absurl('/%s/operations/%s/virement.html.html' % (space, operations[space]))
+        referer = self.absurl('/%s/operations/%s/virement.html.html' % (self.space, operations[self.space]))
 
-        return space, operations[space], referer, connection_id
+        return self.space, operations[self.space], referer, connection_id
 
     @need_login
     def iter_debit_accounts(self):
