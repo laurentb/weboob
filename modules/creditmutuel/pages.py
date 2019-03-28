@@ -1896,7 +1896,7 @@ class NewCardsListPage(LoggedPage, HTMLPage):
 
             def condition(self):
                 # Numerous cards are not differed card, we keep the card only if there is a coming
-                return (CleanText('.//div[1]/p')(self) == 'Active' or Field('coming')(self) != 0) and 'Dépenses' in CleanText('.//tr[1]/td/a[contains(@id,"C:more-card")]')(self)
+                return 'Dépenses' in CleanText('.//tr[1]/td/a[contains(@id,"C:more-card")]')(self) and (CleanText('.//div[1]/p')(self) == 'Active' or Field('coming')(self) != 0)
 
             obj_balance = 0
             obj_type = Account.TYPE_CARD
