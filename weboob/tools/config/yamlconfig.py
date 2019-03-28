@@ -27,6 +27,7 @@ import weboob.tools.date
 import yaml
 
 from .iconfig import ConfigError, IConfig
+from .util import replace
 
 try:
     from yaml import CLoader as Loader
@@ -86,7 +87,7 @@ class YamlConfig(IConfig):
             f = tempfile.NamedTemporaryFile(mode='w', dir=os.path.dirname(self.path), delete=False, encoding='utf-8')
         with f:
             yaml.dump(self.values, f, Dumper=self.DUMPER, default_flow_style=False)
-        os.rename(f.name, self.path)
+        replace(f.name, self.path)
 
     def get(self, *args, **kwargs):
         v = self.values

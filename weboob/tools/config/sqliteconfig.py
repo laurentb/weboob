@@ -30,6 +30,7 @@ from weboob.tools.compat import unicode
 
 from .extra import time_buffer
 from .iconfig import ConfigError, IConfig
+from .util import replace
 from .yamlconfig import WeboobDumper
 
 try:
@@ -146,7 +147,7 @@ class SQLiteConfig(IConfig):
             for line in self.storage.iterdump():
                 f.write(unicode(line).encode('utf-8'))
                 f.write(b'\n')
-        os.rename(f.name, target)
+        replace(f.name, target)
 
     def ensure_table(self, name):
         if name not in self._tables:
