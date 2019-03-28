@@ -43,15 +43,15 @@ def time_buffer(since_seconds=None, last_run=True, logger=False):
             if since_seconds is None:
                 since_seconds = decorator_time_buffer.since_seconds
             if logger:
-                logger.debug('Time buffer for %s of %s. Last run %s.'
-                             % (repr(func), since_seconds, decorator_time_buffer.last_run))
+                logger.debug('Time buffer for %r of %s. Last run %s.'
+                             % (func, since_seconds, decorator_time_buffer.last_run))
             if since_seconds and decorator_time_buffer.last_run:
                 if (datetime.now() - decorator_time_buffer.last_run).seconds < since_seconds:
                     if logger:
-                        logger.debug('Too soon to run %s, ignore.' % repr(func))
+                        logger.debug('Too soon to run %r, ignore.' % func)
                     return
             if logger:
-                logger.debug('Run %s and record' % repr(func))
+                logger.debug('Run %r and record' % func)
             res = func(*args, **kwargs)
             decorator_time_buffer.last_run = datetime.now()
             return res
