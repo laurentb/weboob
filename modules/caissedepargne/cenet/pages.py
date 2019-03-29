@@ -129,11 +129,16 @@ class CenetLoanPage(LoggedPage, CenetJsonPage):
             obj_label = CleanText(Dict('Libelle'))
             obj_total_amount = CleanDecimal(Dict('MontantInitial/Valeur'))
             obj_currency = Currency(Dict('MontantInitial/Devise'))
-            obj_balance = CleanDecimal(Dict('CapitalRestantDu/Valeur'))
             obj_type = Account.TYPE_LOAN
             obj_duration = CleanDecimal(Dict('Duree'))
             obj_rate = CleanDecimal.French(Dict('Taux'))
             obj_next_payment_amount = CleanDecimal(Dict('MontantProchaineEcheance/Valeur'))
+
+            def obj_balance(self):
+                balance = CleanDecimal(Dict('CapitalRestantDu/Valeur'))(self)
+                if balance > 0:
+                    balance *= -1
+                return balance
 
             def obj_subscription_date(self):
                 sub_date = Dict('DateDebutEffet')(self)
