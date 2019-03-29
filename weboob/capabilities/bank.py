@@ -45,7 +45,7 @@ __all__ = [
     'TransferStep',
     'CapBankTransferAddRecipient',
     'RecipientNotFound', 'AddRecipientError', 'AddRecipientBankError', 'AddRecipientTimeout',
-    'AddRecipientStep', 'RecipientInvalidIban', 'RecipientInvalidLabel',
+    'AddRecipientStep', 'RecipientInvalidIban', 'RecipientInvalidLabel', 'RecipientInvalidOTP',
     'Rate', 'CapCurrencyRate',
 ]
 
@@ -168,6 +168,10 @@ class RecipientInvalidIban(AddRecipientError):
 
 class RecipientInvalidLabel(AddRecipientError):
     code = 'invalidLabel'
+
+
+class RecipientInvalidOTP(AddRecipientError):
+    code = 'invalidOTP'
 
 
 class BaseAccount(BaseObject, Currency):
