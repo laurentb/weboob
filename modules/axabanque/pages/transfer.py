@@ -148,6 +148,17 @@ class RecipientConfirmationPage(LoggedPage, HTMLPage):
     def is_add_recipient_confirmation(self):
         return self.doc.xpath('//table[@id="idConfirmation"]//p[contains(., "Votre bénéficiaire est en cours de création automatique")]')
 
+    def check_errors(self):
+        # check if user can add new recipient
+        errors_id = ('popinClientNonEligible', 'popinClientNonEligibleBis')
+
+        for error_id in errors_id:
+            if self.doc.xpath('//script[contains(text(), "showDivJQInfo(\'%s\')")]' % error_id):
+                msg = CleanText('//div[@id="%s"]//p' % error_id)(self.doc)
+                # get the first sentence of information message
+                # beacause the message is too long and contains unnecessary recommendations
+                raise AddRecipientBankError(message=msg.split('.')[0])
+
 
 class AddRecipientPage(LoggedPage, HTMLPage):
     is_here = '//table[@id="tab_SaisieBenef"]'

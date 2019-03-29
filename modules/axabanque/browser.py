@@ -451,6 +451,9 @@ class AXABanque(AXABrowser, StatesMixin):
             # Confirm that user want to add recipient
             self.page.continue_new_recipient()
 
+        if self.recipient_confirmation_page.is_here():
+            self.page.check_errors()
+
         assert self.add_recipient.is_here()
         self.page.set_new_recipient_iban(recipient.iban)
         rcpt = self.copy_recipient_obj(recipient)
