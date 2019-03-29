@@ -138,7 +138,7 @@ class DocumentsPage(LoggedPage, HTMLPage):
             klass = Bill
             load_details = Field('_pre_url') & AsyncLoad
 
-            obj__simple_id = CleanText('.//div[has-class("actions")]//span[has-class("value")]')
+            obj__simple_id = CleanText('.//span[contains(text(), "N° de commande")]/following-sibling::span')
             obj_id = Format('%s_%s', Env('subid'), Field('_simple_id'))
             obj__pre_url = Format('/gp/shared-cs/ajax/invoice/invoice.html?orderId=%s&relatedRequestId=%s&isADriveSubscription=&isHFC=',
                                   Field('_simple_id'), Env('request_id'))
@@ -165,7 +165,7 @@ class DocumentsPage(LoggedPage, HTMLPage):
                 async_page = Async('details').loaded_page(self)
                 url = Link('//a[contains(@href, "download")]|//a[contains(@href, "generated_invoices")]', default=NotAvailable)(async_page.doc)
                 if not url:
-                    url = Link('//a[contains(text(), "Imprimer un récapitulatif de commande")]')(self)
+                    url = Link('//a[contains(text(), "Imprimer un récapitulatif de commande")]')(async_page.doc)
                 return url
 
             def obj_format(self):

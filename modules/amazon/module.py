@@ -23,7 +23,9 @@ from collections import OrderedDict
 from weboob.capabilities.bill import DocumentTypes, CapDocument, Subscription, Document, SubscriptionNotFound, DocumentNotFound
 from weboob.capabilities.base import find_object, NotAvailable
 from weboob.tools.backend import Module, BackendConfig
+from weboob.tools.compat import urljoin
 from weboob.tools.value import ValueBackendPassword, Value
+from weboob.tools.pdf import html_to_pdf
 
 from .browser import AmazonBrowser
 from .en.browser import AmazonEnBrowser
@@ -93,3 +95,14 @@ class AmazonModule(Module, CapDocument):
             return
 
         return self.browser.open(document.url).content
+
+    def download_document_pdf(self, document):
+        if not isinstance(document, Document):
+            document = self.get_document(document)
+        if document.url is NotAvailable:
+            return
+        if document.format == 'pdf':
+            return self.browser.open(document.url).content
+
+        url = urljoin(self.browser.BASEURL, document.url)
+        return html_to_pdf(self.browser, url=url)
