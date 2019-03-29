@@ -35,7 +35,7 @@ from weboob.browser.filters.html import Link, Attr, TableCell
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import (
     Account, Investment, Recipient, TransferBankError, Transfer,
-    AddRecipientBankError, Loan,
+    AddRecipientBankError, Loan, RecipientInvalidOTP,
 )
 from weboob.capabilities.bill import DocumentTypes, Subscription, Document
 from weboob.tools.capabilities.bank.investments import is_isin_valid
@@ -1265,6 +1265,13 @@ class SmsRequest(LoggedPage, JsonPage):
         return self.doc['step']['validationUnits'][0][key][0]['id']
 
     def get_saml(self):
+        if not 'response' in self.doc:
+            error = self.doc['phase']['previousResult']
+
+            if error == 'FAILED_AUTHENTICATION':
+                raise RecipientInvalidOTP()
+            assert not error, 'Error during recipient validation: %s' % error
+
         return self.doc['response']['saml2_post']['samlResponse']
 
     def get_action(self):
