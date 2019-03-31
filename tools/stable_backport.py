@@ -180,7 +180,7 @@ class StableBackport(object):
             system('git add -u')
 
         with log('Lookup modules errors'):
-            r = check_output("pylint modules -f parseable -E -d all -e no-name-in-module,import-error; exit 0", shell=True, stderr=STDOUT).decode('utf-8')
+            r = check_output("pylint modules/* -f parseable -E -d all -e no-name-in-module,import-error; exit 0", shell=True, stderr=STDOUT).decode('utf-8')
 
         dirnames = defaultdict(list)
         for line in r.split('\n'):
