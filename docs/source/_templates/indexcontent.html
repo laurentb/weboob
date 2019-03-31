@@ -1,5 +1,12 @@
-{% extends "defindex.html" %}
-{% block tables %}
+{% extends "layout.html" %}
+{%- block htmltitle -%}
+<title>{{ shorttitle }}</title>
+{%- endblock -%}
+{% block body %}
+  <h1>{{ docstitle|e }}</h1>
+  <p>
+  {% trans %}Welcome! This is the documentation for Weboob {{ release }}{% endtrans %}
+  </p>
   <div class="admonition note">
   <p class="first admonition-title">Note</p>
   <p class="last">This is the developer documentation. If you are not a developer and you are looking for information about the project, check the <a href="http://weboob.org" class="reference external">official website</a>.</p>
