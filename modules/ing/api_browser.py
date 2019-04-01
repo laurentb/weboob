@@ -119,7 +119,7 @@ class IngAPIBrowser(LoginBrowser):
         assert 'error' in error_page, "Something went wrong in login"
         error = error_page['error']
 
-        if error['code'] == 'AUTHENTICATION.INVALID_PIN_CODE':
+        if error['code'] in ('AUTHENTICATION.INVALID_PIN_CODE', 'AUTHENTICATION.INVALID_CIF_AND_BIRTHDATE_COMBINATION'):
             raise BrowserIncorrectPassword(error['message'])
         elif error['code'] in ('AUTHENTICATION.ACCOUNT_INACTIVE', 'AUTHENTICATION.ACCOUNT_LOCKED',
                                'AUTHENTICATION.NO_COMPLETE_ACCOUNT_FOUND'):
