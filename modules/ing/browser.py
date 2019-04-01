@@ -23,6 +23,7 @@ import hashlib
 import time
 import json
 
+from decimal import Decimal
 from requests.exceptions import SSLError
 
 from weboob.browser import LoginBrowser, URL, need_login
@@ -178,6 +179,11 @@ class IngBrowser(LoginBrowser):
         if self.where != 'start':
             self.accountspage.go()
             self.where = 'start'
+
+        if account.balance == Decimal('0'):
+            # some market accounts link with null balance redirect to logout page
+            # avoid it because it can crash iter accounts
+            return
 
         self.change_space(account._space)
 
