@@ -745,6 +745,9 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                 )
             )
 
+        if 'netpro' in self.url:
+            return self.page.create_transfer(account, recipient, transfer)
+
         self.page.continue_transfer(account.label, recipient.label, transfer.label)
         return self.page.update_transfer(transfer, account, recipient)
 
