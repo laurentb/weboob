@@ -81,6 +81,9 @@ class CreditDuNordBrowser(LoginBrowser):
         if not self.logged:
             raise BrowserIncorrectPassword()
 
+        if self.page.doc.xpath('//head[title="Authentification"]/script[contains(text(), "_pageLabel=reinitialisation_mot_de_passe")]'):
+            raise BrowserPasswordExpired()
+
     def _iter_accounts(self):
         self.loans.go(account_type=self.account_type, loans_page_label=self.loans_page_label)
         for a in self.page.get_list():
