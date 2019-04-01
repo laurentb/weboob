@@ -21,11 +21,11 @@
 from weboob.browser.switch import SwitchingBrowser
 
 from .api.browser import CragrAPI
-from .web.browser import Cragr
+from .regions.browser import CragrRegion
 
 
 class ProxyBrowser(SwitchingBrowser):
     BROWSERS = {
         'main': CragrAPI,
-        'web': Cragr,
+        'region': CragrRegion,
     }
