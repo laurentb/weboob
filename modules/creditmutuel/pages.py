@@ -1393,7 +1393,9 @@ class InternalTransferPage(LoggedPage, HTMLPage):
                     'Montant maximum autorisé au crédit pour ce compte',
                     'Débit interdit sur ce compte',
                     'Virement interdit sur compte clos',
-                    "L'intitulé du virement ne peut contenir le ou les caractères suivants",]
+                    "L'intitulé du virement ne peut contenir le ou les caractères suivants",
+                    'La date ne peut être inférieure à la date du jour. Veuillez la corriger',
+                   ]
 
         for message in messages:
             if message in content:
