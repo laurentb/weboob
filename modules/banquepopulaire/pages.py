@@ -319,7 +319,7 @@ class Login2Page(LoginPage):
         r = self.browser.open(self.request_url)
         doc = r.json()
 
-        self.form_id, = [(k, v[0]['id']) for k, v in doc['step']['validationUnits'][0].items() if v[0]['type'] == 'PASSWORD_LOOKUP']
+        self.form_id, = [(k, v[0]['id'], v[0]['type']) for k, v in doc['step']['validationUnits'][0].items() if v[0]['type'] in ('PASSWORD_LOOKUP', 'IDENTIFIER')]
 
     def login(self, login, password):
         payload = {
@@ -332,10 +332,22 @@ class Login2Page(LoginPage):
                 } ]
             }
         }
-
         url = self.request_url + '/step'
-        headers = {'Content-Type': 'application/json'}
-        r = self.browser.open(url, data=json.dumps(payload), headers=headers)
+        if self.form_id[2] == 'IDENTIFIER':
+            del payload['validate'][self.form_id[0]][0]['password']
+            payload['validate'][self.form_id[0]][0]['type'] = 'IDENTIFIER'
+            doc = self.browser.open(url, json=payload).json()
+            form_id, = [(k, v[0]['id'], v[0]['type']) for k, v in doc['validationUnits'][0].items() if v[0]['type'] in ('PASSWORD',)]
+            payload = {
+                'validate': {
+                    form_id[0]: [{
+                        'id': self.form_id[1],
+                        'password': password,
+                        'type': 'PASSWORD',
+                    }]
+                }
+            }
+        r = self.browser.open(url, json=payload)
 
         doc = r.json()
         self.logger.debug('doc = %s', doc)
@@ -349,8 +361,7 @@ class Login2Page(LoginPage):
             payload = {'validate': doc['validationUnits'][0]}
 
             url = self.request_url + '/step'
-            headers = {'Content-Type': 'application/json'}
-            r = self.browser.open(url, data=json.dumps(payload), headers=headers)
+            r = self.browser.open(url, json=payload)
             doc = r.json()
             self.logger.debug('doc = %s', doc)
 
