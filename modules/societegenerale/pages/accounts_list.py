@@ -129,6 +129,7 @@ class AccountsPage(JsonBasePage):
                 'CEL': Account.TYPE_SAVINGS,
                 'LDD': Account.TYPE_SAVINGS,
                 'LIVRETA': Account.TYPE_SAVINGS,
+                'SOGEMONDE': Account.TYPE_SAVINGS,
                 'LIVRET_JEUNE': Account.TYPE_SAVINGS,
                 'LIVRET_EUROKID': Account.TYPE_SAVINGS,
                 'COMPTE_SUR_LIVRET': Account.TYPE_SAVINGS,
