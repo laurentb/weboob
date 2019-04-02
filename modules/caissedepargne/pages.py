@@ -589,6 +589,12 @@ class IndexPage(LoggedPage, HTMLPage):
 
         form.submit()
 
+    def is_history_of(self, account_id):
+        """
+        Check whether the displayed history is for the correct account
+        """
+        return bool(self.doc.xpath('//option[@value="%s" and @selected]' % account_id))
+
     def go_history(self, info, is_cbtab=False):
         form = self.get_form(id='main')
 
@@ -597,6 +603,20 @@ class IndexPage(LoggedPage, HTMLPage):
 
         if "MM$m_CH$IsMsgInit" in form and (form['MM$m_CH$IsMsgInit'] == "0" or info['type'] == 'ASSURANCE_VIE'):
             form['m_ScriptManager'] = "MM$m_UpdatePanel|MM$SYNTHESE"
+
+        fix_form(form)
+        return form.submit()
+
+    def go_history_netpro(self, info, ):
+        """
+        On the netpro website the go_history() does not work.
+        Even from a web browser the site does not work, and display the history of the first account
+        We use a different post to go through and display the history we need
+        """
+        form = self.get_form(id='main')
+        form['m_ScriptManager'] = 'MM$m_UpdatePanel|MM$HISTORIQUE_COMPTE$m_ExDropDownList'
+        form['MM$HISTORIQUE_COMPTE$m_ExDropDownList'] = info['id']
+        form['__EVENTTARGET'] = 'MM$HISTORIQUE_COMPTE$m_ExDropDownList'
 
         fix_form(form)
         return form.submit()

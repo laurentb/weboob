@@ -481,6 +481,10 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
         self.page.go_history(info)
 
+        # ensure we are on the correct history page
+        if 'netpro' in self.page.url and not self.page.is_history_of(info['id']):
+            self.page.go_history_netpro(info)
+
         info['link'] = [info['link']]
 
         for i in range(self.HISTORY_MAX_PAGE):
