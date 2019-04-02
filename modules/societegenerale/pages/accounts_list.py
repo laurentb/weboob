@@ -120,6 +120,9 @@ class AccountsPage(JsonBasePage):
         item_xpath = 'donnees'
 
         class item(ItemElement):
+            def condition(self):
+                return not Dict('etatPrestation')(self) == 'INDISPONIBLE'
+
             klass = Account
 
             # There are more account type to find
