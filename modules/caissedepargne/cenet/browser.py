@@ -185,8 +185,10 @@ class CenetBrowser(LoginBrowser, StatesMixin):
 
                 if tr.type is FrenchTransaction.TYPE_CARD_SUMMARY:
                     if find_object(card_tr_list, label=tr.label, amount=tr.amount, raw=tr.raw, date=tr.date, rdate=tr.rdate):
-                        self.logger.warning('Duplicate transaction: %s' % tr)
+                        self.logger.warning('Duplicated transaction: %s', tr)
+                        items.pop()
                         continue
+
                     card_tr_list.append(tr)
                     tr.deleted = True
                     tr_dict = [tr_dict for tr_dict in data_out if tr_dict['Libelle'] == tr.label]

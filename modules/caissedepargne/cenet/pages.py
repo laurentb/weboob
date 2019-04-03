@@ -26,12 +26,45 @@ from weboob.browser.elements import DictElement, ItemElement, method
 from weboob.browser.filters.standard import Date, CleanDecimal, CleanText, Format, Field, Env, Regexp, Currency
 from weboob.browser.filters.json import Dict
 from weboob.capabilities import NotAvailable
-from weboob.capabilities.bank import Account, Transaction, Loan
+from weboob.capabilities.bank import Account, Loan
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Profile
 from weboob.capabilities.bill import DocumentTypes, Subscription, Document
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.exceptions import BrowserUnavailable
+
+
+class Transaction(FrenchTransaction):
+    PATTERNS = [(re.compile('^CB (?P<text>.*?) FACT (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2})', re.IGNORECASE),
+                                                            FrenchTransaction.TYPE_CARD),
+                (re.compile('^RET(RAIT)? DAB (?P<dd>\d+)-(?P<mm>\d+)-.*', re.IGNORECASE),
+                                                            FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile('^RET(RAIT)? DAB (?P<text>.*?) (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (?P<HH>\d{2})H(?P<MM>\d{2})', re.IGNORECASE),
+                                                            FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile('^VIR(EMENT)?(\.PERIODIQUE)? (?P<text>.*)', re.IGNORECASE),
+                                                            FrenchTransaction.TYPE_TRANSFER),
+                (re.compile('^PRLV (?P<text>.*)', re.IGNORECASE),
+                                                            FrenchTransaction.TYPE_ORDER),
+                (re.compile('^CHEQUE.*', re.IGNORECASE),    FrenchTransaction.TYPE_CHECK),
+                (re.compile('^(CONVENTION \d+ )?COTIS(ATION)? (?P<text>.*)', re.IGNORECASE),
+                                                            FrenchTransaction.TYPE_BANK),
+                (re.compile(r'^\* (?P<text>.*)', re.IGNORECASE),
+                                                            FrenchTransaction.TYPE_BANK),
+                (re.compile('^REMISE (?P<text>.*)', re.IGNORECASE),
+                                                            FrenchTransaction.TYPE_DEPOSIT),
+                (re.compile('^(?P<text>.*)( \d+)? QUITTANCE .*', re.IGNORECASE),
+                                                            FrenchTransaction.TYPE_ORDER),
+                (re.compile('^CB [\d\*]+ TOT DIF .*', re.IGNORECASE),
+                                                            FrenchTransaction.TYPE_CARD_SUMMARY),
+                (re.compile('^CB [\d\*]+ (?P<text>.*)', re.IGNORECASE),
+                                                            FrenchTransaction.TYPE_CARD),
+                (re.compile('^CB (?P<text>.*?) (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2})', re.IGNORECASE),
+                                                            FrenchTransaction.TYPE_CARD),
+                (re.compile('\*CB (?P<text>.*?) (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2})', re.IGNORECASE),
+                                                            FrenchTransaction.TYPE_CARD),
+                (re.compile('^FAC CB (?P<text>.*?) (?P<dd>\d{2})/(?P<mm>\d{2})', re.IGNORECASE),
+                                                            FrenchTransaction.TYPE_CARD),
+               ]
 
 
 class LoginPage(JsonPage):
@@ -187,14 +220,12 @@ class CenetAccountHistoryPage(LoggedPage, CenetJsonPage):
         'CHEQUE': Transaction.TYPE_CHECK,
         'REMISE CHEQUE': Transaction.TYPE_CASH_DEPOSIT,
         'PRLV': Transaction.TYPE_ORDER,
-        'CB': Transaction.TYPE_CARD
     }
 
     TR_TYPES_API = {
         'VIR': Transaction.TYPE_TRANSFER,
         'PE': Transaction.TYPE_ORDER, # PRLV
         'CE': Transaction.TYPE_CHECK, # CHEQUE
-        'CB': Transaction.TYPE_CARD,
         'DE': Transaction.TYPE_CASH_DEPOSIT, # APPRO
         'PI': Transaction.TYPE_CASH_DEPOSIT, # REMISE CHEQUE
     }
@@ -289,39 +320,6 @@ class ErrorPage(_LogoutPage):
 class UnavailablePage(HTMLPage):
     def on_load(self):
         raise BrowserUnavailable(CleanText('//div[@id="message_error_hs"]')(self.doc))
-
-
-class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile('^CB (?P<text>.*?) FACT (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2})', re.IGNORECASE),
-                                                            FrenchTransaction.TYPE_CARD),
-                (re.compile('^RET(RAIT)? DAB (?P<dd>\d+)-(?P<mm>\d+)-.*', re.IGNORECASE),
-                                                            FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('^RET(RAIT)? DAB (?P<text>.*?) (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (?P<HH>\d{2})H(?P<MM>\d{2})', re.IGNORECASE),
-                                                            FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('^VIR(EMENT)?(\.PERIODIQUE)? (?P<text>.*)', re.IGNORECASE),
-                                                            FrenchTransaction.TYPE_TRANSFER),
-                (re.compile('^PRLV (?P<text>.*)', re.IGNORECASE),
-                                                            FrenchTransaction.TYPE_ORDER),
-                (re.compile('^CHEQUE.*', re.IGNORECASE),    FrenchTransaction.TYPE_CHECK),
-                (re.compile('^(CONVENTION \d+ )?COTIS(ATION)? (?P<text>.*)', re.IGNORECASE),
-                                                            FrenchTransaction.TYPE_BANK),
-                (re.compile(r'^\* (?P<text>.*)', re.IGNORECASE),
-                                                            FrenchTransaction.TYPE_BANK),
-                (re.compile('^REMISE (?P<text>.*)', re.IGNORECASE),
-                                                            FrenchTransaction.TYPE_DEPOSIT),
-                (re.compile('^(?P<text>.*)( \d+)? QUITTANCE .*', re.IGNORECASE),
-                                                            FrenchTransaction.TYPE_ORDER),
-                (re.compile('^CB [\d\*]+ TOT DIF .*', re.IGNORECASE),
-                                                            FrenchTransaction.TYPE_CARD_SUMMARY),
-                (re.compile('^CB [\d\*]+ (?P<text>.*)', re.IGNORECASE),
-                                                            FrenchTransaction.TYPE_CARD),
-                (re.compile('^CB (?P<text>.*?) (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2})', re.IGNORECASE),
-                                                            FrenchTransaction.TYPE_CARD),
-                (re.compile('\*CB (?P<text>.*?) (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2})', re.IGNORECASE),
-                                                            FrenchTransaction.TYPE_CARD),
-                (re.compile('^FAC CB (?P<text>.*?) (?P<dd>\d{2})/(?P<mm>\d{2})', re.IGNORECASE),
-                                                            FrenchTransaction.TYPE_CARD),
-               ]
 
 
 class SubscriptionPage(LoggedPage, CenetJsonPage):
