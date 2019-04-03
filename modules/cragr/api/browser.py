@@ -128,7 +128,7 @@ class CragrAPI(LoginBrowser):
         if self.old_website.is_here():
             self.BASEURL = 'https://%s/' % self.website
             self.logger.warning('This is a regional connection, switching to old website with URL %s', self.BASEURL)
-            raise SiteSwitch('web')
+            raise SiteSwitch('region')
 
         form = self.get_security_form()
         try:
