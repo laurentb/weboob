@@ -492,3 +492,7 @@ class ProfileDetailsPage(LoggedPage, HTMLPage):
 
 class ProProfileDetailsPage(ProfileDetailsPage):
     pass
+
+
+class OldWebsitePage(HTMLPage):
+    pass
