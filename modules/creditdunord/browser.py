@@ -64,6 +64,8 @@ class CreditDuNordBrowser(LoginBrowser):
 
     def do_login(self):
         self.login.go().login(self.username, self.password)
+        if self.redirect.is_here():
+            self.page.check_error()
         if self.accounts.is_here():
             expired_error = self.page.get_password_expired()
             if expired_error:

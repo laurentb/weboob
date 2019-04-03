@@ -98,7 +98,15 @@ class CDNVirtKeyboard(GridVirtKeyboard):
 
 
 class RedirectPage(HTMLPage):
-    pass
+    def check_error(self):
+        error = CleanText(self.doc.xpath('//script[contains(text(), "erreur")]'))(self)
+        if error:
+            error_link = re.search(r'href="(.*)"', error).group(1)
+            error_page = self.browser.location(error_link)
+            err_message = CleanText(error_page.page.doc.xpath('//div/b[contains(@class, "attentionErreur")]'))(self)
+            if err_message == "Nous n'avons pas pu vous authentifier.":
+                raise BrowserIncorrectPassword("Nous n'avons pas pu vous authentifier.")
+            assert False, 'Never seen this error message before: %s' % err_message
 
 
 class EntryPage(LoggedPage, HTMLPage):
