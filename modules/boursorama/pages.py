@@ -31,7 +31,7 @@ from weboob.browser.elements import ListElement, ItemElement, method, TableEleme
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Field, Format,
     Regexp, Date, AsyncLoad, Async, Eval, Env,
-    Currency as CleanCurrency, Map,
+    Currency as CleanCurrency, Map, Coalesce,
 )
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import Attr, Link, TableCell
@@ -419,11 +419,18 @@ class HistoryPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Transaction
 
-            obj_raw = Transaction.Raw(CleanText('.//div[has-class("list__movement__line--label__name")]'))
             obj_date = Date(Attr('.//time', 'datetime'))
             obj_amount = CleanDecimal('.//div[has-class("list__movement__line--amount")]', replace_dots=True)
             obj_category = CleanText('.//span[has-class("category")]')
             obj__account_name = CleanText('.//span[contains(@class, "account__name-xs")]', default=None)
+
+            # div "label__name" contain two span: one with the short label (hidden in the website) and one with
+            # the long label. We try to get the long one. If it's empty, we take the content of "label__name" to
+            # be sure to have a value.
+            obj_raw = Coalesce(
+                Transaction.Raw(CleanText('.//span[has-class("list__movement--label-long")]')),
+                Transaction.Raw(CleanText('.//div[has-class("list__movement__line--label__name")]')),
+            )
 
             def obj_id(self):
                 return Attr('.', 'data-id', default=NotAvailable)(self) or Attr('.', 'data-custom-id', default=NotAvailable)(self)
