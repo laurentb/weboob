@@ -119,6 +119,7 @@ ACCOUNT_TYPES = {
     'PRET PERSO': Account.TYPE_LOAN,
     'P. ENTREPR': Account.TYPE_LOAN,
     'P. HABITAT': Account.TYPE_LOAN,
+    'P. CONV.': Account.TYPE_LOAN,
     'PRET 0%': Account.TYPE_LOAN,
     'INV PRO': Account.TYPE_LOAN,
     'TRES. PRO': Account.TYPE_LOAN,
