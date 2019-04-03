@@ -546,15 +546,28 @@ class OldHistoryPage(LoggedPage, HTMLPage):
         if history_link:
             return history_link.group(1)
 
-    def iter_history(self):
-        is_no_transaction_msg = any((
-            self.doc.xpath(u'//div[contains(text(), "Aucune opération trouvée sur la période de restitution possible")]'),
-            self.doc.xpath(u'//div[contains(text(), "Aucune opération n\'a été réalisée depuis le dernier relevé")]'),
-        ))
-        assert is_no_transaction_msg, 'There are transactions, retrieve them !'
+    @method
+    class iter_history(TableElement):
+        head_xpath = '//table[not(@id)]//td/div[contains(@class, "tableauHead")]'
+        item_xpath = '//table[@id]//tr'
 
-        # waiting for account with history
-        return []
+        def condition(self):
+            no_transaction_msg = any((
+                self.xpath('//div[contains(text(), "Aucune opération trouvée sur la période de restitution possible")]'),
+                self.xpath('//div[contains(text(), "Aucune opération n\'a été réalisée depuis le dernier relevé")]'),
+            ))
+            return not no_transaction_msg
+
+        col_label = 'Libellé'
+        col_amount = 'Montant'
+        col_date = 'Date'
+
+        class item(ItemElement):
+            klass = Transaction
+
+            obj_label = CleanText(TableCell('label'))
+            obj_amount = CleanDecimal(TableCell('amount'))
+            obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
 
 
 class LifeInsurance(LoggedPage, HTMLPage):
