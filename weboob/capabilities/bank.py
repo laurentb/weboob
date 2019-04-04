@@ -36,7 +36,7 @@ from .collection import CapCollection
 
 __all__ = [
     'CapBank', 'BaseAccount', 'Account', 'Loan', 'Transaction', 'AccountNotFound',
-    'AccountType',
+    'AccountType', 'AccountOwnership',
     'CapBankWealth', 'Investment', 'CapBankPockets', 'Pocket',
     'CapBankTransfer', 'Transfer', 'Recipient',
     'TransferError', 'TransferBankError', 'TransferInvalidAmount', 'TransferInsufficientFunds',
@@ -263,6 +263,18 @@ class AccountOwnerType(object):
     """association account"""
 
 
+class AccountOwnership(object):
+    """
+    Relationship between the credentials owner (PSU) and the account
+    """
+    OWNER = u'owner'
+    """The PSU is the account owner"""
+    CO_OWNER = u'co-owner'
+    """The PSU is the account co-owner"""
+    ATTORNEY = u'attorney'
+    """The PSU is the account attorney"""
+
+
 class Account(BaseAccount):
     """
     Bank account.
@@ -293,6 +305,7 @@ class Account(BaseAccount):
     balance =   DecimalField('Balance on this bank account')
     coming =    DecimalField('Sum of coming movements')
     iban =      StringField('International Bank Account Number', mandatory=False)
+    ownership = StringField('Relationship between the credentials owner (PSU) and the account')  # cf AccountOwnership class
 
     # card attributes
     paydate =   DateField('For credit cards. When next payment is due.')
