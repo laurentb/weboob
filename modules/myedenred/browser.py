@@ -22,7 +22,7 @@ from __future__ import unicode_literals
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.tools.capabilities.bank.transactions import merge_iterators
-from .pages import LoginPage, AccountsPage, TransactionsPage
+from .pages import LoginPage, AccountsPage, AccountDetailsPage, TransactionsPage
 
 
 class MyedenredBrowser(LoginBrowser):
@@ -31,6 +31,7 @@ class MyedenredBrowser(LoginBrowser):
     login = URL(r'/ctr\?Length=7',
                 r'/ExtendedAccount/Logon', LoginPage)
     accounts = URL(r'/$', AccountsPage)
+    accounts_details = URL(r'/ExtendedHome/ProductLine\?benId=(?P<token>\d+)', AccountDetailsPage)
     transactions = URL('/Card/TransactionSet', TransactionsPage)
 
     def __init__(self, *args, **kwargs):
@@ -46,8 +47,11 @@ class MyedenredBrowser(LoginBrowser):
             raise BrowserIncorrectPassword
 
     @need_login
-    def get_accounts_list(self):
-        return self.accounts.stay_or_go().iter_accounts()
+    def iter_accounts(self):
+        for acc_id in self.accounts.stay_or_go().get_accounts_id():
+            yield self.accounts_details.go(headers={'X-Requested-With': 'XMLHttpRequest'},
+                                                 token=acc_id).get_account()
+
 
     @need_login
     def iter_history(self, account):

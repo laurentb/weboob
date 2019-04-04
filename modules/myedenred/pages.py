@@ -20,7 +20,7 @@
 from __future__ import unicode_literals
 
 
-from weboob.browser.pages import HTMLPage, LoggedPage
+from weboob.browser.pages import HTMLPage, PartialHTMLPage, LoggedPage
 from weboob.browser.elements import ItemElement, method, ListElement
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal,
@@ -43,22 +43,26 @@ class LoginPage(HTMLPage):
 
 
 class AccountsPage(LoggedPage, HTMLPage):
+    def get_accounts_id(self):
+        for e in self.doc.xpath('//ul[@id="navSideProducts"]//strong[contains(text(), "Restaurant")]/ancestor::li'):
+            yield e.attrib['id'].split('_')[-1]
+
+
+class AccountDetailsPage(LoggedPage, PartialHTMLPage):
     @method
-    class iter_accounts(ListElement):
-        item_xpath = '//ul[@id="navSideProducts"]/li'
+    class get_account(ItemElement):
+        klass = Account
 
-        class item(ItemElement):
-            klass = Account
+        obj_type = Account.TYPE_CARD
+        obj_id = CleanText('//p[contains(text(), "Identifiant")]/a')
+        obj_label = obj_id
+        obj_currency = u'EUR'
+        obj_balance = MyDecimal('//p[@class="num"]/a')
 
-            obj_type = Account.TYPE_CARD
-            obj_id = CleanText('./a/p', replace=[('N° ', '')])
-            obj_label = obj_id
-            obj_currency = u'EUR'
-            obj_balance = MyDecimal(u'//p[@class="num"]//strong')
+        # Every subscription a product token and a type ex: card = 240
+        obj__product_token = Regexp(CleanText('//div[contains(@id, "product")]/@id'), r'productLine_(\d*)')
+        obj__product_type = Regexp(CleanText('(//div[@class="logo"])[1]//img/@src'), "/img/product_(\d*).png")
 
-            # Every subscription a product token and a type ex: card = 240
-            obj__product_token = Regexp(CleanText('./@id'), r'navSideProduct_(\d*)')
-            obj__product_type = Regexp(CleanText('(//div[@class="logo"])[1]//img/@src'), "/img/product_(\d*).png")
 
 
 class TransactionsPage(LoggedPage, HTMLPage):
@@ -73,6 +77,7 @@ class TransactionsPage(LoggedPage, HTMLPage):
             obj_label = CleanText('.//h3/strong')
             obj_raw = Field('label')
             obj_amount = MyDecimal('./td[@class="al-r"]/div/span[has-class("badge")]')
+
             def obj_type(self):
                 amount = Field('amount')(self)
                 if amount < 0:

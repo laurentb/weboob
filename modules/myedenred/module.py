@@ -47,7 +47,7 @@ class MyedenredModule(Module, CapBank):
         return self.create_browser(self.config['login'].get(), self.config['password'].get())
 
     def iter_accounts(self):
-        return self.browser.get_accounts_list()
+        return self.browser.iter_accounts()
 
     def get_account(self, id):
         return find_object(self.iter_accounts(), id=id, error=AccountNotFound)
