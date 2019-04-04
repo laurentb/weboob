@@ -478,10 +478,14 @@ class CragrAPI(LoginBrowser):
                 'idelco': account.id,
                 ':cq_csrf_token': token,
             }
-            self.predica_redirection.go(space=self.space, data=data)
-            self.predica_investments.go()
-            for inv in self.page.iter_investments():
-                yield inv
+            try:
+                self.predica_redirection.go(space=self.space, data=data)
+            except ServerError:
+                self.logger.warning('Got ServerError when fetching investments for account id %s', account.id)
+            else:
+                self.predica_investments.go()
+                for inv in self.page.iter_investments():
+                    yield inv
 
         elif account.type == Account.TYPE_PEA and account.label == 'Compte espèce PEA':
             yield create_french_liquidity(account.balance)
