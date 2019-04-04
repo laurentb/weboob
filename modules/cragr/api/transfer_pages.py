@@ -77,6 +77,7 @@ class RecipientsPage(LoggedPage, JsonPage):
             obj_category = 'Interne'
             obj_enabled_at = date.today()
             obj__is_recipient = Dict('recipientOfTransfert', default=False)
+            obj__owner_name = CleanText(Dict('accountHolderLongDesignation'))
 
     @method
     class iter_external_recipient(DictElement):
@@ -90,7 +91,7 @@ class RecipientsPage(LoggedPage, JsonPage):
             klass = Recipient
 
             obj_id = obj_iban = Dict('ibanCode')
-            obj_label = Dict('recipientName')
+            obj_label = CleanText(Dict('recipientName'))
             obj_category = 'Externe'
             obj_enabled_at = date.today()
 
@@ -123,8 +124,12 @@ class TransferPage(LoggedPage, JsonPage):
         t.account_iban = Dict('currentDebitIbanCode')(self.doc)
         t.account_label = Dict('typeCompte')(self.doc)
 
+        t.recipient_label = CleanText(Dict('currentCreditAccountName'))(self.doc)
         t.recipient_id = t.recipient_iban = Dict('currentCreditIbanCode')(self.doc)
-        t.recipient_label = Dict('currentCreditAccountName')(self.doc)
+
+        # Internal transfer
+        if not Dict('isExternalTransfer')(self.doc):
+            t.recipient_id = Dict('currentCreditAccountNumber')(self.doc)
 
         return t
 

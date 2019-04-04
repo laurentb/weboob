@@ -664,10 +664,16 @@ class CragrAPI(LoginBrowser):
             'transferCurrencyCode': account.currency,
             'transferDate': transfer.exec_date.strftime('%d/%m/%Y'),
             'transferFrequency': 'U',
-            'transferRef': '',
+            'transferRef': transfer.label,
             'transferType': 'UNIQUE',
             'typeCompte': account.label,
         }
+
+        # update transfer data according to recipient category
+        if recipient.category == 'Interne':
+            data['creditAccountNumber'] = recipient.id
+            data['recipientName'] = recipient._owner_name
+
         # init transfer request
         self.transfer.go(
             space=space,
