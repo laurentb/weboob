@@ -230,7 +230,7 @@ class AccountsPage(LoggedPage, JsonPage):
         item_xpath = 'grandesFamilles/*/elementsContrats'
 
         class item(ItemElement):
-            IGNORED_ACCOUNTS = ('MES ASSURANCES', 'VOS ASSURANCES',)
+            IGNORED_ACCOUNT_FAMILIES = ('MES ASSURANCES', 'VOS ASSURANCES',)
 
             klass = Account
 
@@ -267,7 +267,9 @@ class AccountsPage(LoggedPage, JsonPage):
 
             def condition(self):
                 # Ignore insurances (plus they all have identical IDs)
-                return CleanText(Dict('familleProduit/libelle', default=''))(self) not in self.IGNORED_ACCOUNTS
+                # Ignore some credits not displayed on the website
+                return CleanText(Dict('familleProduit/libelle', default=''))(self) not in self.IGNORED_ACCOUNT_FAMILIES \
+                    and 'non affiche' not in CleanText(Dict('sousFamilleProduit/libelle', default=''))(self)
 
 
 class AccountDetailsPage(LoggedPage, JsonPage):
