@@ -532,6 +532,11 @@ class CreditPage(LoggedPage, HTMLPage):
         if history_link:
             return history_link.group(1)
 
+    def get_error_msg(self):
+        # to be consistent with other iter_history from old website
+        # not encounter yet
+        pass
+
 
 class CreditHistoryPage(LoggedPage, HTMLPage):
     def build_doc(self, content):
@@ -587,6 +592,10 @@ class OldHistoryPage(LoggedPage, HTMLPage):
             obj_amount = CleanDecimal(TableCell('amount'))
             obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
 
+    def get_error_msg(self):
+        assert self.doc.xpath('//div[@class="error_content"]'), 'There should have link to history page.'
+        return CleanText('//div[@class="error_content"]//span[@class="error_msg"]')(self.doc)
+
 
 class LifeInsurance(LoggedPage, HTMLPage):
     def on_load(self):
@@ -606,8 +615,12 @@ class LifeInsurance(LoggedPage, HTMLPage):
         return Link('//a[@href="asvcns20a.html"]', default=NotAvailable)(self.doc)
 
     def get_history_url(self):
-        history_url = Link('//a[img[@alt="Suivi des opérations"]]', default=NotAvailable)(self.doc)
-        return history_url
+        return Link('//a[img[@alt="Suivi des opérations"]]', default=None)(self.doc)
+
+    def get_error_msg(self):
+        # to be consistent with other iter_history from old website
+        # not encounter yet
+        pass
 
     def get_pages(self):
         pages = CleanText('//div[@class="net2g_asv_tableau_pager"]')(self.doc)
@@ -665,6 +678,14 @@ class LifeInsuranceInvest(LifeInsurance):
 
 
 class LifeInsuranceInvest2(LifeInsuranceInvest):
+    def get_history_url(self):
+        return NotAvailable
+
+    def iter_history(self):
+        # on SG website, there are no transactions for this type of account
+        # there no trace on any space for the history on this page
+        return []
+
     @method
     class iter_investment(TableElement):
         item_xpath = '//table/tbody/tr[starts-with(@class, "net2g_asv_tableau_ligne_")]'

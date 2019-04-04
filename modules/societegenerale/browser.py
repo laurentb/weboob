@@ -240,8 +240,15 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
         )):
             self.account_details_page.go(params={'idprest': account._prestation_id})
             history_url = self.page.get_history_url()
-            assert history_url
-            self.location(self.absurl(history_url))
+
+            # history_url return NotAvailable when history page doesn't exist
+            # it return None when we don't know if history page exist
+            if history_url is None:
+                error_msg = self.page.get_error_msg()
+                assert error_msg, 'There should have error or history url'
+                raise BrowserUnavailable(error_msg)
+            elif history_url:
+                self.location(self.absurl(history_url))
 
             for tr in self.page.iter_history():
                 yield tr
