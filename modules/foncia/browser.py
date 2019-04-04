@@ -30,7 +30,7 @@ class FonciaBrowser(PagesBrowser):
     BASEURL = 'https://fr.foncia.com'
 
     cities = URL(r'/recherche/autocomplete\?term=(?P<term>.+)', CitiesPage)
-    housing = URL(r'/(?P<type>[^/]+)/.*/\d+.htm', HousingPage)
+    housing = URL(r'/(?P<type>[^/]+)/.*\d+.htm', HousingPage)
     search_results = URL(r'/(?P<type>[^/]+)/.*', SearchResultsPage)
     search = URL(r'/(?P<type>.+)', SearchPage)
 

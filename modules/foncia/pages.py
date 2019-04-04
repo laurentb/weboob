@@ -91,15 +91,18 @@ class HousingPage(HTMLPage):
                 CleanText(
                     '//div[has-class("MiniData")]//p[has-class("MiniData-item")][1]'
                 ),
-                r'(\d*\.*\d*) .*'
-            )
+                r'(\d*\.*\d*) .*',
+                default=NotAvailable
+            ),
+            default=NotAvailable
         )
         obj_cost = CleanDecimal(
-            '//p[has-class("OfferTop-price")]'
+            '//span[has-class("OfferTop-price")]',
+            default=NotAvailable
         )
         obj_price_per_meter = PricePerMeterFilter()
         obj_currency = Currency(
-            '//p[has-class("OfferTop-price")]'
+            '//span[has-class("OfferTop-price")]'
         )
         obj_location = Format(
             '%s - %s',
@@ -302,8 +305,10 @@ class SearchResultsPage(HTMLPage):
                     CleanText(
                         './/div[has-class("MiniData")]//p[@data-behat="surfaceDesBiens"]'
                     ),
-                    r'(\d*\.*\d*) .*'
-                )
+                    r'(\d*\.*\d*) .*',
+                    default=NotAvailable
+                ),
+                default=NotAvailable
             )
             obj_cost = CleanDecimal(
                 './/strong[has-class("TeaserOffer-price-num")]'
