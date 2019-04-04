@@ -116,6 +116,7 @@ ACCOUNT_TYPES = {
     'CPTEXCPRO': Account.TYPE_SAVINGS,
     'CPTEXCENT': Account.TYPE_SAVINGS,
     'DAT': Account.TYPE_SAVINGS,
+    'CB': Account.TYPE_SAVINGS,  # Carré bleu / PEL
     'PRET PERSO': Account.TYPE_LOAN,
     'P. ENTREPR': Account.TYPE_LOAN,
     'P. HABITAT': Account.TYPE_LOAN,
@@ -151,7 +152,11 @@ ACCOUNT_TYPES = {
     'AUTRO': Account.TYPE_LIFE_INSURANCE,  # Autre Contrats Rothschild
     'OPPER': Account.TYPE_LIFE_INSURANCE,  # Open Perspective
     'OPEN STRAT': Account.TYPE_LIFE_INSURANCE,  # Open Strategie
+    'ESPACELIB3': Account.TYPE_LIFE_INSURANCE,  # Espace Liberté 3
+    'ESPACE LIB': Account.TYPE_LIFE_INSURANCE,  # Espace Liberté
+    'ASS OPPORT': Account.TYPE_LIFE_INSURANCE,  # Assurance fonds opportunité
     'ATOUT LIB': Account.TYPE_REVOLVING_CREDIT,
+    'PACP': Account.TYPE_CONSUMER_CREDIT,
     'PAGR': Account.TYPE_MADELIN,
 }
 
