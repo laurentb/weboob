@@ -596,6 +596,10 @@ class OldHistoryPage(LoggedPage, HTMLPage):
         assert self.doc.xpath('//div[@class="error_content"]'), 'There should have link to history page.'
         return CleanText('//div[@class="error_content"]//span[@class="error_msg"]')(self.doc)
 
+    def get_error_msg(self):
+        assert self.doc.xpath('//div[@class="error_content"]'), 'There should have link to history page.'
+        return CleanText('//div[@class="error_content"]//span[@class="error_msg"]')(self.doc)
+
 
 class LifeInsurance(LoggedPage, HTMLPage):
     def on_load(self):
