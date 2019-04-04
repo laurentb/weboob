@@ -613,18 +613,18 @@ class CragrAPI(LoginBrowser):
 
         # can't use 'ignore_duplicate' in DictElement because we need the 'index' to do transfer
         seen = set()
-        seen.add(account.iban)
+        seen.add(account.id)
 
         for index, internal_rcpt in enumerate(self.page.iter_internal_recipient()):
             internal_rcpt._index = index
-            if internal_rcpt._is_recipient and (internal_rcpt.iban not in seen):
-                seen.add(internal_rcpt.iban)
+            if internal_rcpt._is_recipient and (internal_rcpt.id not in seen):
+                seen.add(internal_rcpt.id)
                 yield internal_rcpt
 
         for index, external_rcpt in enumerate(self.page.iter_external_recipient()):
             external_rcpt._index = index
-            if external_rcpt.iban not in seen:
-                seen.add(external_rcpt.iban)
+            if external_rcpt.id not in seen:
+                seen.add(external_rcpt.id)
                 yield external_rcpt
 
     @need_login
