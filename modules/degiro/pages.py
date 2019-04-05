@@ -25,7 +25,7 @@ import datetime
 
 from weboob.browser.pages import JsonPage, LoggedPage
 from weboob.browser.elements import ItemElement, DictElement, method
-from weboob.browser.filters.standard import CleanText, Date, Regexp, CleanDecimal, Env, Field, RegexpError
+from weboob.browser.filters.standard import CleanText, Date, Regexp, CleanDecimal, Env, Field, RegexpError, Currency
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
@@ -160,6 +160,7 @@ class HistoryPage(LoggedPage, JsonPage):
 
             obj_raw = Transaction.Raw(CleanText(Dict('description')))
             obj_date = Date(CleanText(Dict('date')))
+            obj_currency = Currency(Dict('currency'))
             obj__isin = Regexp(Dict('description'), r'\((.{12}?)\)', nth=-1, default=None)
             obj__number = Regexp(Dict('description'), r'^([Aa]chat|[Vv]ente|[Bb]uy|[Ss]ell) (\d+[,.]?\d*)', template='\\2', default=None)
             obj__datetime = Dict('date')
@@ -168,6 +169,12 @@ class HistoryPage(LoggedPage, JsonPage):
                 date = CleanText(Dict('date'))(self).split('+')[0]
                 date = datetime.datetime.strptime(date, '%Y-%m-%dT%H:%M:%S')
                 _id = '%s_%s' % (CleanDecimal(Dict('id'))(self), date)
+
+                # It is possible to have duplicated ID for 'Variation Fonds Monetaires (<currency>)', as
+                # they have id=0. So we append the currency to the id to avoid that.
+                if CleanDecimal(Dict('id'))(self) == 0 and CleanText(Dict('currency'))(self) != 'EUR':
+                    _id += "_%s" % CleanText(Dict('currency'))(self)
+
                 return _id
 
             def obj__action(self):
