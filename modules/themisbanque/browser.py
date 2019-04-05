@@ -61,8 +61,19 @@ class ThemisBrowser(LoginBrowser):
     def get_history(self, account):
         if account._link:
             self.location(account._link)
-            return self.page.get_operations()
-        return []
+            for tr in self._dedup_transactions(self.page.get_operations()):
+                yield tr
+
+    @staticmethod
+    def _dedup_transactions(transactions):
+        # Sometime the website returns the same list of transactions for each history page.
+        # So we process the transactions list, and stop if any transaction is newer than the previous one.
+        last_date = None
+        for i, tr in enumerate(transactions):
+            if last_date and tr.date > last_date:
+                break
+            last_date = tr.date
+            yield tr
 
     @need_login
     def get_profile(self):
