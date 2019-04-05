@@ -136,7 +136,7 @@ class CreditAgricoleModule(Module, CapBankWealth, CapBankTransferAddRecipient, C
 
     CONFIG = BackendConfig(
         Value('website', label='Caisse Régionale', choices=region_choices, aliases=region_aliases),
-        ValueBackendPassword('login', label='Identifiant à 11 chiffres', masked=False, regexp=r'\d+'),
+        ValueBackendPassword('login', label='Identifiant à 11 chiffres', masked=False, regexp=r'\d{11}'),
         ValueBackendPassword('password', label='Code personnel à 6 chiffres', regexp=r'\d{6}')
     )
 
