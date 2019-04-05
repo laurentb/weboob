@@ -103,6 +103,9 @@ class BoursoramaModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapPr
         # Else: inside '<>' chars are deleted
         old = re.sub(r'<[^>]*>', '', old).strip()
         old = old.split('<')[0]
+
+        # replace � by ?, like the bank does
+        old = old.replace('\ufffd', '?')
         return super(BoursoramaModule, self).transfer_check_label(old, new)
 
     def iter_currencies(self):
