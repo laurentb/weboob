@@ -83,24 +83,47 @@ class BuildQt(Command):
 
 
 def install_weboob(qt, xdg):
-    scripts = set(os.listdir('scripts'))
     packages = set(find_packages(exclude=['modules', 'modules.*']))
 
-    qt_scripts = set(('qboobmsg',
-                      'qhavedate',
-                      'qgalleroob',
-                      'qboobtracker',
-                      'qvideoob',
-                      'weboob-config-qt',
-                      'qwebcontentedit',
-                      'qflatboob',
-                      'qcineoob',
-                      'qcookboob',
-                      'qbooblyrics',
-                      'qhandjoob'))
-
-    if not qt:
-        scripts = scripts - qt_scripts
+    entry_points = {
+        'console_scripts': [
+            'boobank = weboob.applications.boobank:Boobank.run',
+            'boobathon = weboob.applications.boobathon:Boobathon.run',
+            'boobcoming = weboob.applications.boobill:Boobcoming.run',
+            'boobill = weboob.applications.boobank:Boobill.run',
+            'booblyrics = weboob.applications.booblyrics:Booblyrics.run',
+            'boobmsg = weboob.applications.boobmsg:Boobmsg.run',
+            'boobooks = weboob.applications.boobooks:Boobooks.run',
+            'boobsize = weboob.applications.boobsize:Boobsize.run',
+            'boobtracker = weboob.applications.boobtracker:BoobTracker.run',
+            'boomoney = weboob.applications.boomoney:Boomoney.run',
+            'cineoob = weboob.applications.cineoob:Cineoob.run',
+            'comparoob = weboob.applications.comparoob:Comparoob.run',
+            'cookboob = weboob.applications.cookboob:Cookboob.run',
+            'flatboob = weboob.applications.flatboob:Flatboob.run',
+            'galleroob = weboob.applications.galleroob:Galleroob.run',
+            'geolooc = weboob.applications.geolooc:Geolooc.run',
+            'handjoob = weboob.applications.handjoob:Handjoob.run',
+            'havedate = weboob.applications.havedate:HaveDate.run',
+            'monboob = weboob.applications.monboob:Monboob.run',
+            'parceloob = weboob.applications.parceloob:Parceloob.run',
+            'pastoob = weboob.applications.pastoob:Pastoob.run',
+            'radioob = weboob.applications.radioob:Radioob.run',
+            'shopoob = weboob.applications.shopoob:Shopoob.run',
+            'suboob = weboob.applications.suboob:Suboob.run',
+            'translaboob = weboob.applications.translaboob:Translaboob.run',
+            'traveloob = weboob.applications.traveloob:Traveloob.run',
+            'videoob = weboob.applications.videoob:Videoob.run',
+            'webcontentedit = weboob.applications.webcontentedit:WebContentEdit.run',
+            'weboob-cli = weboob.applications.weboobcli:WeboobCli.run',
+            'weboob-config = weboob.applications.weboobcfg:WeboobCfg.run',
+            'weboob-debug = weboob.applications.weboobdebug:WeboobDebug.run',
+            'weboob-repos = weboob.applications.weboobrepos:WeboobRepos.run',
+            'weboorrents = weboob.applications.weboorrents:Weboorrents.run',
+            'wetboobs = weboob.applications.wetboobs:WetBoobs.run',
+            'weboob = weboob.applications.weboobmain:WeboobMain.run',
+        ],
+    }
 
     qt_packages = set((
         'weboob.applications.qboobmsg',
@@ -129,7 +152,22 @@ def install_weboob(qt, xdg):
         'weboob.applications.qgalleroob.ui',
     ))
 
-    if not qt:
+    if qt:
+        entry_points['gui_scripts'] = [
+            'qbooblyrics = weboob.applications.qbooblyrics:QBooblyrics.run',
+            'qboobmsg = weboob.applications.qboobmsg:QBoobMsg.run',
+            'qboobtracker = weboob.applications.qboobtracker:QBoobTracker.run',
+            'qcineoob = weboob.applications.qcineoob:QCineoob.run',
+            'qcookboob = weboob.applications.qcookboob:QCookboob.run',
+            'qflatboob = weboob.applications.qflatboob:QFlatBoob.run',
+            'qgalleroob = weboob.applications.qgalleroob:QGalleroob.run',
+            'qhandjoob = weboob.applications.qhandjoob:QHandJoob.run',
+            'qhavedate = weboob.applications.qhavedate:QHaveDate.run',
+            'qvideoob = weboob.applications.qvideoob:QVideoob.run',
+            'qwebcontentedit = weboob.applications.qwebcontentedit:QWebContentEdit.run',
+            'weboob-config-qt = weboob.applications.qweboobcfg:QWeboobCfg.run',
+        ]
+    else:
         packages = packages - qt_packages
 
     data_files = [
@@ -193,7 +231,7 @@ def install_weboob(qt, xdg):
         ],
 
         packages=packages,
-        scripts=[os.path.join('scripts', script) for script in scripts],
+        entry_points=entry_points,
         data_files=data_files,
 
         install_requires=requirements,
