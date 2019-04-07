@@ -41,10 +41,10 @@ except ImportError:
         pass
 
 
-__all__ = ['Weboob']
+__all__ = ['WeboobMain']
 
 
-class Weboob(ConsoleApplication):
+class WeboobMain(ConsoleApplication):
     APPNAME = 'weboob'
     VERSION = '1.6'
     COPYRIGHT = 'Copyright(C) 2010-YEAR The Weboob Team'
@@ -186,9 +186,9 @@ class Weboob(ConsoleApplication):
         if _application:
             return getattr(_module, _application[0])
 
-
-if __name__ == '__main__':
-    try:
-        Weboob().main()
-    except KeyboardInterrupt:
-        print('')
+    @classmethod
+    def run(cls):
+        try:
+            cls().main()
+        except KeyboardInterrupt:
+            print('')
