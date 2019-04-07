@@ -43,6 +43,7 @@ def create_compat_dir(name):
 
 
 MANUAL_PORTS = [
+    'weboob.tools.captcha.virtkeyboard',
 ]
 
 MANUAL_PORT_DIR = path.join(path.dirname(__file__), 'stable_backport_data')
