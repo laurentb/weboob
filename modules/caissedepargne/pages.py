@@ -591,9 +591,12 @@ class IndexPage(LoggedPage, HTMLPage):
 
     def is_history_of(self, account_id):
         """
-        Check whether the displayed history is for the correct account
+        Check whether the displayed history is for the correct account.
+        If we do not find the select box we consider we are on the expected account (like it was before this check)
         """
-        return bool(self.doc.xpath('//option[@value="%s" and @selected]' % account_id))
+        if self.doc.xpath('//select[@id="MM_HISTORIQUE_COMPTE_m_ExDropDownList"]'):
+            return bool(self.doc.xpath('//option[@value="%s" and @selected]' % account_id))
+        return True
 
     def go_history(self, info, is_cbtab=False):
         form = self.get_form(id='main')
