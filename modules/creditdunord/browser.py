@@ -36,6 +36,7 @@ class CreditDuNordBrowser(LoginBrowser):
 
     login = URL('$',
                 '/.*\?.*_pageLabel=page_erreur_connexion',
+                '/.*\?.*_pageLabel=reinitialisation_mot_de_passe',
                 LoginPage)
     redirect = URL('/swm/redirectCDN.html', RedirectPage)
     entrypage = URL('/icd/zco/#zco', EntryPage)
@@ -64,36 +65,24 @@ class CreditDuNordBrowser(LoginBrowser):
 
     def do_login(self):
         self.login.go().login(self.username, self.password)
-        if self.redirect.is_here():
-            self.page.check_error()
         if self.accounts.is_here():
             expired_error = self.page.get_password_expired()
             if expired_error:
                 raise BrowserPasswordExpired(expired_error)
 
-        if self.login.is_here():
+        # Force redirection to entry page if the redirect page does not contain an url
+        if self.redirect.is_here():
+            self.entrypage.go()
+
+        if self.entrypage.is_here() or self.login.is_here():
             error = self.page.get_error()
             if error:
+                if 'code confidentiel à la première connexion' in error:
+                    raise BrowserPasswordExpired(error)
                 raise BrowserIncorrectPassword(error)
-            else:
-                # in case we are still on login without error message
-                # we'll check what's happening.
-                assert False, "Still on login page."
 
         if not self.logged:
             raise BrowserIncorrectPassword()
-
-        # The redirection page may contain a message
-        if self.page.doc.xpath('//head[title="Authentification"]/script[contains(text(), "_pageLabel=reinitialisation_mot_de_passe")]'):
-            raise BrowserPasswordExpired()
-
-        if not self.entrypage.is_here():
-            self.entrypage.go()
-
-        # The main page may contain a message as well
-        msg = 'vous devez modifier votre code confidentiel à la première connexion puis tous les 12 mois'
-        if self.page.doc.xpath('//b[contains(text(), "%s")]' % msg):
-            raise BrowserPasswordExpired(msg.capitalize())
 
     def _iter_accounts(self):
         self.loans.go(account_type=self.account_type, loans_page_label=self.loans_page_label)

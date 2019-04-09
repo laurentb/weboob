@@ -97,23 +97,26 @@ class CDNVirtKeyboard(GridVirtKeyboard):
         return ','.join(res)
 
 
+class HTMLErrorPage(HTMLPage):
+    def get_error(self):
+        # No Coalesce here as both can be empty
+        return CleanText('//b[has-class("x-attentionErreurLigneHaut")]')(self.doc) or \
+               CleanText('//div[has-class("x-attentionErreur")]/b')(self.doc)
+
+
+
 class RedirectPage(HTMLPage):
-    def check_error(self):
-        error = CleanText(self.doc.xpath('//script[contains(text(), "erreur")]'))(self)
-        if error:
-            error_link = re.search(r'href="(.*)"', error).group(1)
-            error_page = self.browser.location(error_link)
-            err_message = CleanText(error_page.page.doc.xpath('//div/b[contains(@class, "attentionErreur")]'))(self)
-            if err_message == "Nous n'avons pas pu vous authentifier.":
-                raise BrowserIncorrectPassword("Nous n'avons pas pu vous authentifier.")
-            assert False, 'Never seen this error message before: %s' % err_message
+    def on_load(self):
+        link = Regexp(CleanText('//script'), 'href="(.*)"', default='')(self.doc)
+        if link:
+            self.browser.location(link)
 
 
-class EntryPage(LoggedPage, HTMLPage):
+class EntryPage(LoggedPage, HTMLErrorPage):
     pass
 
 
-class LoginPage(HTMLPage):
+class LoginPage(HTMLErrorPage):
     VIRTUALKEYBOARD = CDNVirtKeyboard
 
     def login(self, username, password):
@@ -154,9 +157,6 @@ class LoginPage(HTMLPage):
                 'username':     username.encode(self.browser.ENCODING),
                }
         self.browser.location('/saga/authentification', data=data)
-
-    def get_error(self):
-        return CleanText('//b[has-class("x-attentionErreurLigneHaut")]', default="")(self.doc)
 
 
 class AccountTypePage(LoggedPage, JsonPage):
