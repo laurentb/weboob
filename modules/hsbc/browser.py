@@ -20,7 +20,6 @@
 from __future__ import unicode_literals
 
 import re
-import ssl
 from datetime import timedelta, date
 from lxml.etree import XMLSyntaxError
 from collections import OrderedDict
@@ -131,14 +130,6 @@ class HSBC(LoginBrowser):
 
     def load_state(self, state):
         return
-
-    def prepare_request(self, req):
-        preq = super(HSBC, self).prepare_request(req)
-
-        conn = self.session.adapters['https://'].get_connection(preq.url)
-        conn.ssl_version = ssl.PROTOCOL_TLSv1
-
-        return preq
 
     def do_login(self):
         self.session.cookies.clear()
