@@ -22,10 +22,16 @@ from collections import OrderedDict
 import math
 from os import urandom
 
-from Cryptodome.Cipher import AES
-from Cryptodome.Protocol.KDF import PBKDF2
-from Cryptodome.Hash import SHA256
-from Cryptodome.Hash import HMAC
+try:
+    from Cryptodome.Cipher import AES
+    from Cryptodome.Protocol.KDF import PBKDF2
+    from Cryptodome.Hash import SHA256
+    from Cryptodome.Hash import HMAC
+except ImportError:
+    from Crypto.Cipher import AES
+    from Crypto.Protocol.KDF import PBKDF2
+    from Crypto.Hash import SHA256
+    from Crypto.Hash import HMAC
 
 
 def log2(n):
