@@ -214,26 +214,27 @@ class AccountsPage(LoggedPage, HTMLPage):
         # This id appears when there are no accounts (pro and pp)
         return not self.doc.xpath('//div[contains(@id, "alert-random")]')
 
-    ACCOUNT_TYPES = {u'comptes courants':      Account.TYPE_CHECKING,
-                     u'cav':                   Account.TYPE_CHECKING,
-                     'livret':                 Account.TYPE_SAVINGS,
-                     'pel':                    Account.TYPE_SAVINGS,
-                     'cel':                    Account.TYPE_SAVINGS,
-                     u'comptes épargne':       Account.TYPE_SAVINGS,
-                     u'mon épargne':           Account.TYPE_SAVINGS,
-                     'csljeune':               Account.TYPE_SAVINGS, # in url
-                     u'ord':                   Account.TYPE_MARKET,
-                     u'comptes bourse':        Account.TYPE_MARKET,
-                     u'mes placements financiers': Account.TYPE_MARKET,
-                     u'av':                    Account.TYPE_LIFE_INSURANCE,
-                     u'assurances vie':        Account.TYPE_LIFE_INSURANCE,
-                     u'assurance-vie':         Account.TYPE_LIFE_INSURANCE,
-                     u'mes crédits':           Account.TYPE_LOAN,
-                     u'crédit':                Account.TYPE_LOAN,
-                     u'prêt':                  Account.TYPE_LOAN,
-                     u'pea':                   Account.TYPE_PEA,
-                     'carte':                  Account.TYPE_CARD,
-                    }
+    ACCOUNT_TYPES = {
+        'comptes courants': Account.TYPE_CHECKING,
+        'cav': Account.TYPE_CHECKING,
+        'livret': Account.TYPE_SAVINGS,
+        'pel': Account.TYPE_SAVINGS,
+        'cel': Account.TYPE_SAVINGS,
+        'comptes épargne': Account.TYPE_SAVINGS,
+        'mon épargne': Account.TYPE_SAVINGS,
+        'csljeune': Account.TYPE_SAVINGS,  # in url
+        'ord': Account.TYPE_MARKET,
+        'comptes bourse': Account.TYPE_MARKET,
+        'mes placements financiers': Account.TYPE_MARKET,
+        'av': Account.TYPE_LIFE_INSURANCE,
+        'assurances vie': Account.TYPE_LIFE_INSURANCE,
+        'assurance-vie': Account.TYPE_LIFE_INSURANCE,
+        'mes crédits': Account.TYPE_LOAN,
+        'crédit': Account.TYPE_LOAN,
+        'prêt': Account.TYPE_LOAN,
+        'pea': Account.TYPE_PEA,
+        'carte': Account.TYPE_CARD,
+    }
 
     @method
     class iter_accounts(ListElement):
