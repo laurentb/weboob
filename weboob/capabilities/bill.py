@@ -77,6 +77,7 @@ class Document(BaseObject):
     label =         StringField('label of document')
     type =          StringField('type of document')
     transactions =  Field('List of transaction ID related to the document', list, default=[])
+    has_file =      BoolField('Boolean to set if file is available', default=True)
 
 
 class Bill(Document, Currency):
