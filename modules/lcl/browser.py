@@ -49,7 +49,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
     BASEURL = 'https://particuliers.secure.lcl.fr'
     STATE_DURATION = 15
 
-    login = URL('/outil/UAUT/Authentication/authenticate',
+    login = URL('/outil/UAUT\?from=/outil/UWHO/Accueil/',
                 '/outil/UAUT\?from=.*',
                 '/outil/UWER/Accueil/majicER',
                 '/outil/UWER/Enregistrement/forwardAcc',
@@ -153,7 +153,8 @@ class LCLBrowser(LoginBrowser, StatesMixin):
 
         # we force the browser to go to login page so it's work even
         # if the session expire
-        self.login.go()
+        # Must set the referer to avoid redirection to the home page
+        self.login.go(headers={"Referer": "https://www.lcl.fr/"})
 
         if not self.page.login(self.username, self.password) or \
            (self.login.is_here() and self.page.is_error()):
