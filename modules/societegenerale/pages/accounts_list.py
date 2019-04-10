@@ -432,6 +432,7 @@ class HistoryPage(JsonBasePage):
 
                     obj_raw = Dict('libOpe')
                     obj_type = Transaction.TYPE_DEFERRED_CARD
+                    obj_bdate = Eval(lambda t: datetime.date.fromtimestamp(int(t) / 1000), Dict('dateOpe'))
 
     @pagination
     @method
@@ -474,7 +475,7 @@ class HistoryPage(JsonBasePage):
                     klass = Transaction
 
                     obj_amount = CleanDecimal(Dict('montant/value'))
-                    obj_date = obj_vdate = Date(Dict('dateEcheance'))
+                    obj_date = obj_vdate = obj_bdate = Date(Dict('dateEcheance'))
                     obj_raw = Transaction.Raw(Dict('libelleOrigine'))
 
 
