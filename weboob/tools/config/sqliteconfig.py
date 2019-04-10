@@ -24,7 +24,6 @@ import tempfile
 from collections import Mapping, MutableMapping
 
 import yaml
-from six import PY2
 
 from weboob.tools.compat import unicode
 
@@ -76,14 +75,8 @@ class VirtualDict(MutableMapping):
         for key in self.config.keys(self.base):
             yield key
 
-    def iteritems(self):
-        return self.config.items(self.base)
-
     def items(self):
-        if PY2:
-            return list(self.iteritems())
-        else:
-            return self.iteritems()
+        return self.config.items(self.base)
 
     def __len__(self):
         return self.config.count(self.base)
