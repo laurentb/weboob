@@ -514,6 +514,7 @@ class CardHistoryPage(LoggedPage, CsvPage):
 
             obj_raw = Transaction.Raw(Dict('label'))
             obj_date = Date(Dict('dateVal'), dayfirst=True)
+            obj_bdate = Date(Dict('dateOp'), dayfirst=True)
             obj__account_label = Dict('accountLabel')
             obj__is_coming = False
 
