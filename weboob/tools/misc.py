@@ -29,7 +29,7 @@ from .compat import unicode
 
 
 __all__ = ['get_backtrace', 'get_bytes_size', 'iter_fields',
-            'to_unicode', 'input', 'limit', 'find_exe']
+           'to_unicode', 'input', 'limit', 'find_exe']
 
 
 def get_backtrace(empty="Empty backtrace."):
@@ -87,6 +87,9 @@ def to_unicode(text):
     """
     if isinstance(text, unicode):
         return text
+
+    if isinstance(text, memoryview):
+        text = text.tobytes()
 
     if not isinstance(text, bytes):
         if sys.version_info.major >= 3:
@@ -197,4 +200,3 @@ def find_exe(basename):
             fpath = os.path.join(path, ex)
             if os.path.exists(fpath) and os.access(fpath, os.X_OK):
                 return fpath
-
