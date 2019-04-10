@@ -175,7 +175,7 @@ class AmazonBrowser(LoginBrowser, StatesMixin):
                 self.handle_captcha(captcha)
             else:
                 msg = self.page.get_error_message()
-                assert self.WRONGPASS_MESSAGE in msg, msg
+                assert any(wrongpass_message in msg for wrongpass_message in self.WRONGPASS_MESSAGES), msg
                 raise BrowserIncorrectPassword(msg)
 
     def is_login(self):
