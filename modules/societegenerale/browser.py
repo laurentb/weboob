@@ -25,7 +25,7 @@ from dateutil.relativedelta import relativedelta
 
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded, BrowserUnavailable
-from weboob.capabilities.bank import Account, TransferBankError, AddRecipientStep
+from weboob.capabilities.bank import Account, TransferBankError, AddRecipientStep, TransactionType
 from weboob.capabilities.base import find_object, NotAvailable
 from weboob.browser.exceptions import BrowserHTTPNotFound, ClientError
 from weboob.capabilities.profile import ProfileMissing
@@ -251,6 +251,9 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
 
                 for card_tr in summary_card_tr._card_transactions:
                     card_tr.date = summary_card_tr.date
+                    # We use the Raw pattern to set the rdate automatically, but that make
+                    # the transaction type to "CARD", so we have to correct it in the browser.
+                    card_tr.type = TransactionType.DEFERRED_CARD
                     yield card_tr
             return
 
@@ -284,6 +287,9 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
                 if transaction._card_coming:
                     for card_coming in transaction._card_coming:
                         card_coming.date = transaction.date
+                        # We use the Raw pattern to set the rdate automatically, but that make
+                        # the transaction type to "CARD", so we have to correct it in the browser.
+                        card_coming.type = TransactionType.DEFERRED_CARD
                         yield card_coming
             return
 

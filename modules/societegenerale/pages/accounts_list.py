@@ -430,8 +430,7 @@ class HistoryPage(JsonBasePage):
                     def condition(self):
                         return Dict('statutOperation')(self) == 'COMPTABILISE'
 
-                    obj_raw = Dict('libOpe')
-                    obj_type = Transaction.TYPE_DEFERRED_CARD
+                    obj_raw = Transaction.Raw(Dict('libOpe'))
                     obj_bdate = Eval(lambda t: datetime.date.fromtimestamp(int(t) / 1000), Dict('dateOpe'))
 
     @pagination
