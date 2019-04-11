@@ -725,7 +725,7 @@ class CardsOpePage(OperationsPage):
             obj_original_amount = CleanDecimal(TableCell('original_amount'), default=NotAvailable, replace_dots=True)
             obj_original_currency = FrenchTransaction.Currency(TableCell('original_amount'))
             obj_type = Transaction.TYPE_DEFERRED_CARD
-            obj_rdate = Transaction.Date(TableCell('date'))
+            obj_rdate = obj_bdate = Transaction.Date(TableCell('date'))
             obj_date = obj_vdate = Env('date')
             obj__is_coming = Env('_is_coming')
 
@@ -905,7 +905,7 @@ class CardPage2(CardPage, HTMLPage, XMLPage):
                     return len(self.el.xpath('./td')) >= 4 and not CleanText(TableCell('commerce'))(self).startswith('RETRAIT CB')
 
                 obj_raw = Transaction.Raw(Format("%s %s", CleanText(TableCell('commerce')), CleanText(TableCell('ville'))))
-                obj_rdate = Field('vdate')
+                obj_rdate = obj_bdate = Field('vdate')
                 obj_date = Env('date')
 
                 def obj_type(self):
@@ -933,6 +933,8 @@ class CardPage2(CardPage, HTMLPage, XMLPage):
                         return True
                     return False
 
+                # Some payment made on the same organization are regrouped,
+                # we have to get the detail for each one later
                 def obj__regroup(self):
                     if "Regroupement" in CleanText('./td')(self):
                         return Link('./td/span/a')(self)
@@ -958,6 +960,10 @@ class CardPage2(CardPage, HTMLPage, XMLPage):
                     if not 'RELEVE' in Field('raw')(self):
                         return Transaction.TYPE_DEFERRED_CARD
                     return Transaction.TYPE_CARD_SUMMARY
+
+                def obj_bdate(self):
+                    if Field('type')(self) == Transaction.TYPE_DEFERRED_CARD:
+                        return Transaction.Date(TableCell('date'))(self)
 
     def has_more_operations(self):
         xp = CleanText(self.doc.xpath('//div[@class="ei_blocpaginb"]/a'))(self)
@@ -985,7 +991,7 @@ class CardPage2(CardPage, HTMLPage, XMLPage):
                     return not CleanText(TableCell('commerce'))(self).startswith('RETRAIT CB')
 
                 obj_raw = Transaction.Raw(Format("%s %s", CleanText(TableCell('commerce')), CleanText(TableCell('ville'))))
-                obj_rdate = Field('vdate')
+                obj_rdate = obj_bdate = Field('vdate')
                 obj_date = Env('date')
 
                 def obj_type(self):

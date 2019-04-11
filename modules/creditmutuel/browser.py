@@ -421,6 +421,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                         history = self.page.get_history(date=self.tr_date)
 
                     for tr in history:
+                        # For regrouped transaction, we have to go through each one to get details
                         if tr._regroup:
                             self.location(tr._regroup)
                             for tr2 in self.page.get_tr_merged():
