@@ -296,7 +296,7 @@ class Transaction(FrenchTransaction):
 
 class HistoryPage(LoggedPage, JsonPage):
     def has_deferred_cards(self):
-        return Dict('pendingDeferredDebitCardList/currentMonthCardList', default=None)
+        return Dict('pendingDeferredDebitCardList/currentMonthCardList', default=None)(self.doc)
 
     def get_keys(self):
         if 'exception' in self.doc:
