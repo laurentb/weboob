@@ -862,10 +862,10 @@ class TransferRecipients(LoggedPage, HTMLPage):
                 return label.rstrip('-').rstrip()
 
             def obj_category(self):
-                text = CleanText('./ancestor::div[has-class("deploy--item")]//a[has-class("deploy__title")]')(self)
-                if 'Mes comptes Boursorama Banque' in text:
+                text = CleanText('./ancestor::div[has-class("deploy--item")]//a[has-class("deploy__title")]')(self).lower()
+                if 'mes comptes boursorama banque' in text:
                     return 'Interne'
-                elif any(exp in text for exp in ('Comptes externes', 'Comptes de tiers', 'Mes bénéficiaires')):
+                elif any(exp in text for exp in ('comptes externes', 'comptes de tiers', 'mes bénéficiaires')):
                     return 'Externe'
 
             def obj_iban(self):
