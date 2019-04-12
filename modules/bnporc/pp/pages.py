@@ -610,10 +610,15 @@ class LifeInsurancesPage(BNPPage):
 
 
 class LifeInsurancesHistoryPage(BNPPage):
+    IGNORED_STATUSES = (
+        'En cours',
+        'Sans suite',
+    )
+
     def iter_history(self, coming):
         for op in self.get('data.listerMouvements.listeMouvements') or []:
             #We have not date for this statut so we just skit it
-            if op.get('statut') == u'En cours':
+            if op.get('statut') in self.IGNORED_STATUSES:
                 continue
 
             tr = Transaction.from_dict({
@@ -622,13 +627,15 @@ class LifeInsurancesHistoryPage(BNPPage):
                 'amount': op.get('montantNet'),
                 })
 
-            if op.get('statut') == 'Sans suite':
-                continue
-
             tr.parse(date=parse_french_date(op.get('dateSaisie')),
                      vdate = parse_french_date(op.get('dateEffet')) if op.get('dateEffet') else None,
                      raw='%s %s' % (op.get('libelleMouvement'), op.get('canalSaisie') or ''))
             tr._op = op
+
+            if not tr.amount:
+                if op.get('rib', {}).get('codeBanque') == 'null':
+                    self.logger.info('ignoring non-transaction with label %r', tr.raw)
+                    continue
 
             if (op.get('statut') == u'Traité') ^ coming:
                 yield tr
