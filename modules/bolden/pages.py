@@ -20,14 +20,15 @@
 from __future__ import unicode_literals
 
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement
-from weboob.browser.filters.html import TableCell, Link, Attr
+from weboob.browser.filters.html import TableCell, Link, Attr, AbsoluteLink
 from weboob.browser.filters.standard import (
-    CleanText, CleanDecimal, Slugify, Date, Field, Format,
+    CleanText, CleanDecimal, Slugify, Date, Field, Format, Regexp,
 )
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Account, Transaction, Investment
 from weboob.capabilities.profile import Profile
+from weboob.capabilities.bill import Document, DocumentTypes
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.tools.compat import urljoin
 
@@ -143,3 +144,17 @@ class ProfilePage(LoggedPage, HTMLPage):
             Attr('//input[@id="SubModel_Address_City"]', 'value'),
             CleanText('//select[@id="SubModel_Address_Country"]/option[@selected]'),
         )
+
+    @method
+    class iter_documents(ListElement):
+        item_xpath = '//a[starts-with(@href, "/Upload/Show")]'
+
+        class item(ItemElement):
+            klass = Document
+
+            obj_label = 'Imprimé fiscal unique'
+            obj_type = DocumentTypes.REPORT
+            obj_format = 'pdf'
+
+            obj_url = AbsoluteLink('.')
+            obj_id = Regexp(Field('url'), r'fileId=(\d+)')

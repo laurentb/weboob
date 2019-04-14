@@ -97,6 +97,10 @@ class BoldenBrowser(LoginBrowser):
             doc.id = inv.id
             doc.url = inv._docurl
             doc.label = 'Contrat %s' % inv.label
-            doc.type = DocumentTypes.OTHER
+            doc.type = DocumentTypes.CONTRACT
             doc.format = 'pdf'
+            yield doc
+
+        self.profile.go()
+        for doc in self.page.iter_documents():
             yield doc
