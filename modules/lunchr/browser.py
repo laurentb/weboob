@@ -86,23 +86,37 @@ class LunchrBrowser(APIBrowser):
             json = response.json()
             if len(Dict('payments_history')(json)) == 0:
                 break
+
             for payment in Dict('payments_history')(json):
-                transaction = Transaction()
-                transaction_id = Dict('transaction_number', default=None)(payment)
-                # Check if transaction_id is None which indicates failed transaction
-                if transaction_id is None:
-                    continue
-                transaction.id = transaction_id
-                transaction.date = DateTime(Dict('executed_at'))(payment)
-                transaction.rdate = DateTime(Dict('created_at'))(payment)
-                types = {
-                    'LUNCHR_CARD_PAYMENT': Transaction.TYPE_CARD,
-                    'MEAL_VOUCHER_CREDIT': Transaction.TYPE_DEPOSIT,
-                }
-                transaction.type = types.get(Dict('type')(payment), Transaction.TYPE_UNKNOWN)
-                transaction.label = Dict('name')(payment)
-                transaction.amount = CleanDecimal(Dict('amount/value'))(payment)
-                yield transaction
+                if 'refunding_transaction' in payment:
+                    refund = self._parse_transaction(payment['refunding_transaction'])
+                    refund.type = Transaction.TYPE_CARD
+                    yield refund
+
+                transaction = self._parse_transaction(payment)
+                if transaction:
+                    yield transaction
+
             page += 1
             if page >= Dict('pagination/pages_count')(json):
                 break
+
+    def _parse_transaction(self, payment):
+        transaction = Transaction()
+        transaction_id = Dict('transaction_number', default=None)(payment)
+        # Check if transaction_id is None which indicates failed transaction
+        if transaction_id is None:
+            return
+        transaction.id = transaction_id
+        transaction.date = DateTime(Dict('executed_at'))(payment)
+        transaction.rdate = DateTime(Dict('created_at'))(payment)
+
+        types = {
+            'LUNCHR_CARD_PAYMENT': Transaction.TYPE_CARD,
+            'MEAL_VOUCHER_CREDIT': Transaction.TYPE_DEPOSIT,
+            # type can be null for refunds
+        }
+        transaction.type = types.get(Dict('type')(payment), Transaction.TYPE_UNKNOWN)
+        transaction.label = Dict('name')(payment)
+        transaction.amount = CleanDecimal(Dict('amount/value'))(payment)
+        return transaction
