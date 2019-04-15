@@ -41,7 +41,7 @@ __all__ = ['FilterError', 'ColumnNotFound', 'RegexpError', 'FormatError',
            'Field', 'Regexp', 'Map', 'DateTime', 'Date', 'Time', 'DateGuesser',
            'Duration', 'MultiFilter', 'CombineDate', 'Format', 'Join', 'Type',
            'Eval', 'BrowserURL', 'Async', 'AsyncLoad',
-           'QueryValue', 'Coalesce']
+           'QueryValue', 'Coalesce', 'MapIn']
 
 
 class ColumnNotFound(FilterError):
@@ -692,6 +692,30 @@ class Map(Filter):
             return self.map_dict[txt]
         except KeyError:
             return self.default_or_raise(ItemNotFound('Unable to handle %r on %r' % (txt, self.map_dict)))
+
+
+class MapIn(Filter):
+    """
+    Map the pattern of a selected value to another value using a dict.
+    """
+
+    def __init__(self, selector, map_dict, default=_NO_DEFAULT):
+        """
+        :param selector: key from `map_dict` to use
+        """
+        super(MapIn, self).__init__(selector, default=default)
+        self.map_dict = map_dict
+
+    @debug()
+    def filter(self, txt):
+        """
+        :raises: :class:`ItemNotFound` if key pattern does not exist in dict
+        """
+        for key in self.map_dict:
+            if key in txt:
+                return self.map_dict[key]
+
+        return self.default_or_raise(ItemNotFound('Unable to handle %r on %r' % (txt, self.map_dict)))
 
 
 class DateTime(Filter):
