@@ -31,8 +31,9 @@ from weboob.browser.exceptions import LoggedOut, ClientError
 from weboob.capabilities.bank import (
     Account, AccountNotFound, TransferError, TransferInvalidAmount,
     TransferInvalidEmitter, TransferInvalidLabel, TransferInvalidRecipient,
-    AddRecipientStep, Recipient, Rate, TransferBankError,
+    AddRecipientStep, Recipient, Rate, TransferBankError, AccountOwnership,
 )
+from weboob.capabilities.base import empty
 from weboob.capabilities.contact import Advisor
 from weboob.tools.captcha.virtkeyboard import VirtKeyboardError
 from weboob.tools.value import Value
@@ -116,6 +117,7 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
     authentication = URL('/securisation', AuthenticationPage)
     iban = URL('/compte/(?P<webid>.*)/rib', IbanPage)
     profile = URL('/mon-profil/', ProfilePage)
+    profile_children = URL('/mon-profil/coordonnees/enfants', ProfilePage)
 
     expert = URL('/compte/derive/', ExpertPage)
 
@@ -186,6 +188,39 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
 
         if self.authentication.is_here():
             raise BrowserIncorrectAuthenticationCode('Invalid PIN code')
+
+    def ownership_guesser(self):
+        ownerless_accounts = [account for account in self.accounts_list if empty(account.ownership)]
+
+        # On Boursorama website, all mandatory accounts have the real owner name in their label, and
+        # children names are findable in the PSU profile.
+        self.profile_children.go()
+        children_names = self.page.get_children_firstnames()
+
+        for ownerless_account in ownerless_accounts:
+            for child_name in children_names:
+                if child_name in ownerless_account.label:
+                    ownerless_account.ownership = AccountOwnership.ATTORNEY
+                    break
+
+        # If there are two deferred card for with the same parent account, we assume that's the parent checking
+        # account is a 'CO_OWNER' account
+        parent_accounts = []
+        for account in self.accounts_list:
+            if account.type == Account.TYPE_CARD and empty(account.parent.ownership):
+                if account.parent in parent_accounts:
+                    account.parent.ownership = AccountOwnership.CO_OWNER
+                parent_accounts.append(account.parent)
+
+        # We set all accounts without ownership as if they belong to the credential owner
+        for account in self.accounts_list:
+            if empty(account.ownership) and account.type != Account.TYPE_CARD:
+                account.ownership = AccountOwnership.OWNER
+
+        # Account cards should be set with the same ownership of their parents accounts
+        for account in self.accounts_list:
+            if account.type == Account.TYPE_CARD:
+                account.ownership = account.parent.ownership
 
     def go_cards_number(self, link):
         self.location(link)
@@ -268,6 +303,7 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
         if exc:
             raise exc
 
+        self.ownership_guesser()
         return self.accounts_list
 
     def get_account(self, id):

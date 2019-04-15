@@ -32,12 +32,13 @@ from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Field, Format,
     Regexp, Date, AsyncLoad, Async, Eval, Env,
     Currency as CleanCurrency, Map, Coalesce,
+    MapIn, Lower,
 )
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import Attr, Link, TableCell
 from weboob.capabilities.bank import (
     Account, Investment, Recipient, Transfer, AccountNotFound,
-    AddRecipientBankError, TransferInvalidAmount, Loan,
+    AddRecipientBankError, TransferInvalidAmount, Loan, AccountOwnership,
 )
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
 from weboob.capabilities.base import NotAvailable, Currency
@@ -237,6 +238,12 @@ class AccountsPage(LoggedPage, HTMLPage):
         'carte': Account.TYPE_CARD,
     }
 
+    ACCOUNTS_OWNERSHIP = {
+        'Comptes de mes enfants': AccountOwnership.ATTORNEY,
+        'joint': AccountOwnership.CO_OWNER,
+        'commun': AccountOwnership.CO_OWNER,
+    }
+
     @method
     class iter_accounts(ListElement):
         item_xpath = '//table[@class="table table--accounts"]/tr[has-class("table__line--account") and count(descendant::td) > 1 and @data-line-account-href]'
@@ -313,6 +320,23 @@ class AccountsPage(LoggedPage, HTMLPage):
                     return Account.TYPE_LOAN
 
                 return Account.TYPE_UNKNOWN
+
+            def obj_ownership(self):
+                ownership = Coalesce(
+                    MapIn(
+                        CleanText('../tr[contains(@class, "list--accounts--master")]//h4/text()'),
+                        self.page.ACCOUNTS_OWNERSHIP,
+                        default=NotAvailable
+                    ),
+                    MapIn(
+                        Lower(Field('label')),
+                        self.page.ACCOUNTS_OWNERSHIP,
+                        default=NotAvailable
+                    ),
+                    default=NotAvailable
+                )(self)
+
+                return ownership
 
             def obj_url(self):
                 link = Attr('.//a[has-class("account--name")] | .//a[2] | .//div/a', 'href', default=NotAvailable)(self)
@@ -778,6 +802,17 @@ def MySelect(*args, **kwargs):
 
 
 class ProfilePage(LoggedPage, HTMLPage):
+
+    def get_children_firstnames(self):
+        names = []
+
+        for child in self.doc.xpath('//span[@class="transfer__account-name"]'):
+            name = child.text.split('\n')
+            assert len(name) > 1, "There is a child without firstname or the html code has changed !"
+            names.append(child.text.split('\n')[0])
+
+        return names
+
     @method
     class get_profile(ItemElement):
         klass = Person
