@@ -22,7 +22,7 @@ from weboob.exceptions import  BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
 
 from .pages import (
-    LoginPage, AccountsPage, FCPEInvestmentPage,
+    LoginPage, NewWebsitePage, AccountsPage, FCPEInvestmentPage,
     CCBInvestmentPage, HistoryPage, CustomPage,
     )
 
@@ -32,6 +32,7 @@ class CmesBrowser(LoginBrowser):
 
     login = URL('/espace-client/fr/identification/authentification.html', LoginPage)
     accounts = URL('(?P<subsite>.*)fr/espace/devbavoirs.aspx\?mode=net&menu=cpte$', AccountsPage)
+    new_website = URL('(?P<subsite>.*)espace-client/fr/epargnants/tableau-de-bord/index.html', NewWebsitePage)
     fcpe_investment = URL(r'/fr/.*GoPositionsParFond.*',
                           r'/fr/espace/devbavoirs.aspx\?.*SituationParFonds.*GoOpenDetailFond.*',
                           r'(?P<subsite>.*)fr/espace/devbavoirs.aspx\?_tabi=(C|I1)&a_mode=net&a_menu=cpte&_pid=Situation(Globale|ParPlan)&_fid=GoPositionsParFond',
@@ -48,6 +49,10 @@ class CmesBrowser(LoginBrowser):
         self.username = username
         self.password = password
         self.subsite = subsite
+
+    @property
+    def logged(self):
+        return 'IdSes' in self.session.cookies
 
     def do_login(self):
         self.login.go()

@@ -23,7 +23,7 @@ from weboob.tools.value import ValueBackendPassword
 from weboob.capabilities.bank import CapBankPockets, AccountNotFound
 from weboob.capabilities.base import find_object
 
-from .browser import CmesBrowser
+from .proxy_browser import ProxyBrowser
 
 
 __all__ = ['CmesModule']
@@ -40,7 +40,7 @@ class CmesModule(Module, CapBankPockets):
             ValueBackendPassword('login',    label='Identifiant', masked=False),
             ValueBackendPassword('password', label='Mot de passe'))
 
-    BROWSER = CmesBrowser
+    BROWSER = ProxyBrowser
 
     def create_default_browser(self):
         return self.create_browser(

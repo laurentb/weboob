@@ -28,6 +28,7 @@ from weboob.browser.filters.standard import (
     CleanDecimal, Env, Async, AsyncLoad, Currency,
     )
 from weboob.browser.filters.html import Link, TableCell, Attr
+from weboob.browser.switch import SiteSwitch
 from weboob.capabilities.bank import Account, Investment, Pocket
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -45,6 +46,11 @@ class LoginPage(HTMLPage):
         form['_cm_user'] = login
         form['_cm_pwd'] = password
         form.submit()
+
+
+class NewWebsitePage(HTMLPage, LoggedPage):
+    def on_load(self):
+        raise SiteSwitch('cmes_new')
 
 
 class AccountsPage(LoggedPage, HTMLPage):
@@ -181,9 +187,9 @@ class CCBInvestmentPage(LoggedPage, HTMLPage):
 
 
 class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile(u'^(?P<text>Versement.*)'),  FrenchTransaction.TYPE_DEPOSIT),
+    PATTERNS = [(re.compile(u'^(?P<text>.*Versement.*)'),  FrenchTransaction.TYPE_DEPOSIT),
                 (re.compile(u'^(?P<text>(Arbitrage|Prélèvements.*))'), FrenchTransaction.TYPE_ORDER),
-                (re.compile(u'^(?P<text>Retrait.*)'), FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile(u'^(?P<text>(Retrait|Paiement.*))'), FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile(u'^(?P<text>.*)'), FrenchTransaction.TYPE_BANK),
                ]
 
