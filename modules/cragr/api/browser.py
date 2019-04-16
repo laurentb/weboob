@@ -27,7 +27,7 @@ from weboob.capabilities.bank import Account, Loan, Transaction, AccountNotFound
 from weboob.capabilities.base import empty, NotAvailable, strict_find_object
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.switch import SiteSwitch
-from weboob.browser.exceptions import ServerError, ClientError, BrowserHTTPNotFound
+from weboob.browser.exceptions import ServerError, ClientError, BrowserHTTPNotFound, HTTPNotFound
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, ActionNeeded
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
@@ -299,12 +299,12 @@ class CragrAPI(LoginBrowser):
             # Once again, this request tends to crash often.
             try:
                 self.cards.go(space=self.space)
-            except (ServerError, ClientError):
+            except (ServerError, ClientError, HTTPNotFound):
                 self.logger.warning('Request to cards failed, we try again')
                 try:
                     self.check_space_connection(contract)
                     self.cards.go(space=self.space)
-                except (ServerError, ClientError):
+                except (ServerError, ClientError, HTTPNotFound):
                     self.logger.warning('Request to cards failed twice, cards of this space will be skipped.')
 
             if self.cards.is_here():
