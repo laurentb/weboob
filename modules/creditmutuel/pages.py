@@ -1547,10 +1547,7 @@ class ExternalTransferPage(InternalTransferPage):
                 self.env['origin_account']._external_recipients.add(Field('id')(self))
 
     def get_transfer_form(self):
-        # internal and external transfer form are differents
-        if self.IS_PRO_PAGE:
-            return self.get_form(id='P2:F', submit='//input[@type="submit" and contains(@value, "Valider")]')
-        return self.get_form(id='P1:F', submit='//input[@type="submit" and contains(@value, "Valider")]')
+        return self.get_form(xpath='//form[@id="P1:F"] | //form[@id="P2:F"]', submit='//input[@type="submit" and contains(@value, "Valider")]')
 
 class VerifCodePage(LoggedPage, HTMLPage):
     HASHES = {
