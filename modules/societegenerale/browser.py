@@ -201,6 +201,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
         for account in self.page.iter_accounts():
             for card in self.iter_cards(account):
                 card.parent = account
+                card.ownership = account.ownership
                 yield card
 
             if account._prestation_id in account_ibans:

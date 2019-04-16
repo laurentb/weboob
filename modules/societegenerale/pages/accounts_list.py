@@ -24,7 +24,7 @@ import datetime
 import re
 
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.bank import Account, Investment, Loan
+from weboob.capabilities.bank import Account, Investment, Loan, AccountOwnership
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Person, ProfileMissing
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -32,7 +32,7 @@ from weboob.tools.capabilities.bank.investments import is_isin_valid, create_fre
 from weboob.browser.elements import DictElement, ItemElement, TableElement, method, ListElement
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import (
-    CleanText, CleanDecimal, Regexp, Currency, Eval, Field, Format, Date, Env,
+    CleanText, CleanDecimal, Regexp, Currency, Eval, Field, Format, Date, Env, Map
 )
 from weboob.browser.filters.html import Link, TableCell
 from weboob.browser.pages import HTMLPage, XMLPage, JsonPage, LoggedPage, pagination
@@ -167,6 +167,13 @@ class AccountsPage(JsonBasePage):
                 'PERP_EPICEA': Account.TYPE_PERP,
             }
 
+            ACCOUNTS_OWNERSHIP = {
+                'COTITULAIRE': AccountOwnership.CO_OWNER,
+                'MANDATAIRE': AccountOwnership.ATTORNEY,
+                'REPRESENTATION': AccountOwnership.ATTORNEY,  # Credentials owner children
+                'TITULAIRE': AccountOwnership.OWNER,
+            }
+
             obj_id = obj_number = CleanText(Dict('numeroCompteFormate'), replace=[(' ', '')])
             obj_label = Dict('labelToDisplay')
             obj_balance = CleanDecimal(Dict('soldes/soldeActuel'))
@@ -176,6 +183,15 @@ class AccountsPage(JsonBasePage):
 
             def obj_type(self):
                 return self.TYPES.get(Dict('produit')(self), Account.TYPE_UNKNOWN)
+
+            def obj_ownership(self):
+                # 'groupeRoleDTO' can contains 'TITULAIRE', 'MANDATAIRE' or 'REPRESENTATION'
+                # 'role' contains 'groupeRoleDTO' sub-categories. If the groupeRoleDTO is
+                # 'TUTULAIRE', we have to check the role to know if it's 'TITULAIRE' or 'COTITULAIRE'
+                ownership = Map(Dict('groupeRoleDTO'), self.ACCOUNTS_OWNERSHIP, NotAvailable)(self)
+                if ownership == AccountOwnership.OWNER:
+                    ownership = Map(Dict('role'), self.ACCOUNTS_OWNERSHIP, NotAvailable)(self)
+                return ownership
 
             # Useful for navigation
             obj__internal_id = Dict('idTechnique')
@@ -226,6 +242,7 @@ class LoansPage(JsonBasePage):
                 loan.id = loan.number = account.id
                 loan.label = account.label
                 loan.type = account.type
+                loan.ownership = account.ownership
 
                 loan.currency = Currency(Dict('capitalRestantDu/devise'))(acc)
                 loan.balance = Eval(lambda x: x / 100, CleanDecimal(Dict('capitalRestantDu/valeur')))(acc)
@@ -247,6 +264,7 @@ class LoansPage(JsonBasePage):
         loan.id = loan.number = account.id
         loan.label = account.label
         loan.type = account.type
+        loan.ownership = account.ownership
 
         loan.currency = account.currency
         loan.balance = account.balance
