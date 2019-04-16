@@ -838,6 +838,7 @@ class AddRecipPage(BNPPage):
             raise AddRecipientBankError(message=self.get('message'))
 
     def get_recipient(self, recipient):
+        # handle polling response
         r = Recipient()
         r.iban = recipient.iban
         r.id = self.get('data.gestionBeneficiaire.identifiantBeneficiaire')
@@ -847,6 +848,7 @@ class AddRecipPage(BNPPage):
         r.currency = u'EUR'
         r.bank_name = NotAvailable
         r._id_transaction = self.get('data.gestionBeneficiaire.idTransactionAF') or NotAvailable
+        r._transfer_id = self.get('data.gestionBeneficiaire.identifiantBeneficiaire') or NotAvailable
         return r
 
 
