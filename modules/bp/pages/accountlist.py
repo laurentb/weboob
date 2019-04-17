@@ -455,7 +455,7 @@ class MarketLoginPage(LoggedPage, PartialHTMLPage):
         self.get_form(id='autoSubmit').submit()
 
 
-class UselessPage(LoggedPage, HTMLPage):
+class UselessPage(LoggedPage, RawPage):
     pass
 
 

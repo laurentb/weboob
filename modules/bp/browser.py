@@ -54,6 +54,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
     # FIXME beware that '.*' in start of URL() won't match all domains but only under BASEURL
 
+    login_image = URL(r'.*wsost/OstBrokerWeb/loginform\?imgid=', UselessPage)
     login_page = URL(r'.*wsost/OstBrokerWeb/loginform.*', LoginPage)
     repositionner_chemin_courant = URL(r'.*authentification/repositionnerCheminCourant-identif.ea', repositionnerCheminCourant)
     init_ident = URL(r'.*authentification/initialiser-identif.ea', Initident)
