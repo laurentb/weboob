@@ -41,6 +41,7 @@ from weboob.browser.filters.html import Attr
 from weboob.browser.filters.json import Dict
 from weboob.tools.capabilities.bank.investments import is_isin_valid
 
+from weboob.exceptions import BrowserPasswordExpired
 
 def float_to_decimal(f):
     return Decimal(str(f))
@@ -85,6 +86,13 @@ class SecurityPage(JsonPage):
 class TokenPage(LoggedPage, JsonPage):
     def get_token(self):
         return Dict('token')(self.doc)
+
+
+class ChangePasswordPage(HTMLPage):
+    def on_load(self):
+        msg = CleanText('//p[@class="h1" and contains(text(), "Modifier mon code personnel")]')(self.doc)
+        if msg:
+            raise BrowserPasswordExpired(msg)
 
 
 class ContractsPage(LoggedPage, HTMLPage):

@@ -34,7 +34,7 @@ from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages import (
     LoginPage, LoggedOutPage, KeypadPage, SecurityPage, ContractsPage, FirstConnectionPage, AccountsPage, AccountDetailsPage,
-    TokenPage, IbanPage, HistoryPage, CardsPage, CardHistoryPage, NetfincaRedirectionPage, PredicaRedirectionPage,
+    TokenPage, ChangePasswordPage, IbanPage, HistoryPage, CardsPage, CardHistoryPage, NetfincaRedirectionPage, PredicaRedirectionPage,
     PredicaInvestmentsPage, ProfilePage, ProfileDetailsPage, ProProfileDetailsPage, LifeInsuranceInvestmentsPage, OldWebsitePage,
 )
 from .transfer_pages import (
@@ -56,6 +56,7 @@ class CragrAPI(LoginBrowser):
     first_connection = URL(r'.*/operations/interstitielles/premiere-connexion.html', FirstConnectionPage)
     logged_out = URL(r'.*', LoggedOutPage)
     token_page = URL(r'libs/granite/csrf/token.json', TokenPage)
+    change_password = URL(r'(?P<space>[\w-]+)/operations/interstitielles/code-personnel.html', ChangePasswordPage)
 
     contracts_page = URL(r'(?P<space>[\w-]+)/operations/.rechargement.contexte.html\?idBamIndex=(?P<id_contract>)', ContractsPage)
 
