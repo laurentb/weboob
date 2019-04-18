@@ -45,6 +45,20 @@ class BrowserQuestion(BrowserInteraction):
         self.fields = fields
 
 
+class DecoupledValidation(BrowserInteraction):
+    def __init__(self, message='', resource=None, *values):
+        super(DecoupledValidation, self).__init__(*values)
+        self.message = message
+        self.resource = resource
+
+    def __str__(self):
+        return self.message
+
+
+class AppValidation(DecoupledValidation):
+    pass
+
+
 class BrowserRedirect(BrowserInteraction):
     def __init__(self, url):
         self.url = url
