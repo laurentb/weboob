@@ -20,6 +20,7 @@
 from __future__ import unicode_literals
 
 
+from weboob.capabilities.bank import CapBank
 from weboob.tools.backend import Module
 
 from .browser import NetfincaBrowser
@@ -27,7 +28,7 @@ from .browser import NetfincaBrowser
 __all__ = ['NetfincaModule']
 
 
-class NetfincaModule(Module):
+class NetfincaModule(Module, CapBank):
     NAME = 'netfinca'
     DESCRIPTION = 'netfinca website'
     MAINTAINER = 'Martin Sicot'
