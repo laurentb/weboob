@@ -592,7 +592,9 @@ class CragrAPI(LoginBrowser):
         assert self.recipients.is_here()
         for index, debit_accounts in enumerate(self.page.iter_debit_accounts()):
             debit_accounts._index = index
-            yield debit_accounts
+            if self.page.is_sender_account(debit_accounts.id):
+                # only yield able to do transfer accounts
+                yield debit_accounts
 
     @need_login
     def iter_transfer_recipients(self, account, transfer_space_info=None):

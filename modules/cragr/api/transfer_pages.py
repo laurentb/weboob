@@ -40,6 +40,11 @@ class RecipientsPage(LoggedPage, JsonPage):
 
     @method
     class iter_debit_accounts(DictElement):
+        def store(self, obj):
+            # can have accounts with same ID
+            # filter it on `browser.py` to have 'index' (needed to do transfer)
+            return obj
+
         class item(ItemElement):
             def condition(self):
                 return Dict('accountNumber', default=None)(self)
