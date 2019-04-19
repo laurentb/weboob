@@ -55,10 +55,10 @@ class SearchPage(HTMLPage):
 
             obj_id = CleanText(Format('%s#%s#%s',
                                       Regexp(Attr('.', 'id'), '^..(.*)'),
-                                      Attr('h2/a', 'title'),
+                                      Attr('div[@class="title"]/a', 'title'),
                                       CleanText('span[@class="company"]')),
                                replace=[(" ", "-"), ("/", "-")])
-            obj_title = Attr('h2/a', 'title')
+            obj_title = Attr('/a', 'title')
             obj_society_name = CleanText('span[@class="company"]')
             obj_place = CleanText('span/span[@class="location"]')
             obj_publication_date = IndeedDate(CleanText('table/tr/td/span[@class="date"]'))
