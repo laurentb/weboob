@@ -24,6 +24,8 @@ import datetime
 from decimal import Decimal
 import re
 import sys
+from io import BytesIO
+from PIL import Image, ImageFilter
 
 from weboob.browser.elements import method, DictElement, ItemElement
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Eval, Date, Field
@@ -38,6 +40,7 @@ from weboob.capabilities.profile import Person
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.captcha.virtkeyboard import SplitKeyboard
 from weboob.tools.decorators import retry
 from weboob.tools.compat import urlsplit, parse_qsl
 from weboob.tools.json import json
@@ -305,6 +308,34 @@ class LoginPage(MyHTMLPage):
         form.submit()
 
 
+class MyVirtKeyboard(SplitKeyboard):
+    char_to_hash = {
+        '0': '6a2cb38bcfc27781faaec727ad304ce2',
+        '1': '296140f37a22b5e2b4871272aed22444',
+        '2': 'c1318fd381665a97e1052f85213867a7',
+        '3': 'fe19d2cc8f8d09b818b05c2a10218233',
+        '4': 'd5a03e69857bf01fc373cedbe2530ca9',
+        '5': '289ae90e4adfa58ef4767d9151c96348',
+        '6': '88938bbbb6b81ee2a32568f7081be488',
+        '7': '96499777fb95974ee651f19181de6c01',
+        '8': '6e2e052c9301d1f381155912ad4d3874',
+        '9': '5958d54d88bfaa172305575164b39a8d',
+    }
+    codesep = ' '
+
+    def convert(self, buffer):
+        im = Image.open(BytesIO(buffer))
+        im = im.resize((5, 8), Image.BILINEAR)
+        im = im.filter(ImageFilter.UnsharpMask(radius=2,
+                                               percent=110,
+                                               threshold=3))
+        im = im.convert("P", dither=Image.NONE)
+        im = Image.eval(im, lambda x: 0 if x < 160 else 255)
+        s = BytesIO()
+        im.save(s, 'png')
+        return s.getvalue()
+
+
 class Login2Page(LoginPage):
     @property
     def request_url(self):
@@ -320,6 +351,18 @@ class Login2Page(LoginPage):
         doc = r.json()
 
         self.form_id, = [(k, v[0]['id'], v[0]['type']) for k, v in doc['step']['validationUnits'][0].items() if v[0]['type'] in ('PASSWORD_LOOKUP', 'IDENTIFIER')]
+
+    def virtualkeyboard(self, vk_obj, password):
+        imgs = {}
+        lst_img = self.browser.location(vk_obj['externalRestMediaApiUrl']).json()
+        for img_info in lst_img:
+            value = img_info['value']
+            url = img_info['uri']
+
+            resp = self.browser.location(url)
+            imgs[value] = resp.content
+
+        return MyVirtKeyboard(imgs).get_string_code(password)
 
     def login(self, login, password):
         payload = {
@@ -337,7 +380,15 @@ class Login2Page(LoginPage):
             del payload['validate'][self.form_id[0]][0]['password']
             payload['validate'][self.form_id[0]][0]['type'] = 'IDENTIFIER'
             doc = self.browser.open(url, json=payload).json()
-            form_id, = [(k, v[0]['id'], v[0]['type']) for k, v in doc['validationUnits'][0].items() if v[0]['type'] in ('PASSWORD',)]
+
+            for k, v in doc['validationUnits'][0].items():
+                if v[0]['type'] in ('PASSWORD',):
+                    form_id = (k, v[0]['id'], v[0]['type'])
+
+                if v[0].get('virtualKeyboard'):
+                    password = self.virtualkeyboard(vk_obj=v[0]['virtualKeyboard'],
+                                                password=password)
+
             payload = {
                 'validate': {
                     form_id[0]: [{
@@ -348,6 +399,7 @@ class Login2Page(LoginPage):
                 }
             }
         r = self.browser.open(url, json=payload)
+
 
         doc = r.json()
         self.logger.debug('doc = %s', doc)
