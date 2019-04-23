@@ -32,8 +32,12 @@ from weboob.tools.capabilities.bank.investments import is_isin_valid, create_fre
 
 
 ACCOUNT_TYPES = {
+    'D.A.T.': Account.TYPE_DEPOSIT,
     'COMPTE PEA': Account.TYPE_PEA,
     'COMPTE TITRES': Account.TYPE_MARKET,
+    'CTO VENDOME PRIVILEGE': Account.TYPE_MARKET,
+    'PARTS SOCIALES': Account.TYPE_MARKET,
+    'PEA VENDOME PATRIMOINE': Account.TYPE_PEA,
 }
 
 class AccountsPage(LoggedPage, HTMLPage):
