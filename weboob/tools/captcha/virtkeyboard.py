@@ -284,7 +284,7 @@ class SplitKeyboard(object):
                 raise VirtKeyboardError("Symbol '%s' not found; all symbol hashes are available in %s" % (char, path))
 
     def checksum(self, buffer):
-        return hashlib.md5(buffer).hexdigest()
+        return hashlib.md5(self.convert(buffer)).hexdigest()
 
     def dump(self, files, path):
         for dat in files:
@@ -297,6 +297,9 @@ class SplitKeyboard(object):
         for c in password:
             symbols.append(self.char_to_code[c])
         return self.codesep.join(symbols)
+
+    def convert(self, buffer):
+        return buffer
 
     @classmethod
     def create_from_url(cls, browser, code_to_url):
