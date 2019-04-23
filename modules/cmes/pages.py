@@ -187,9 +187,9 @@ class CCBInvestmentPage(LoggedPage, HTMLPage):
 
 
 class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile(u'^(?P<text>.*Versement.*)'),  FrenchTransaction.TYPE_DEPOSIT),
-                (re.compile(u'^(?P<text>(Arbitrage|Prélèvements.*))'), FrenchTransaction.TYPE_ORDER),
-                (re.compile(u'^(?P<text>(Retrait|Paiement.*))'), FrenchTransaction.TYPE_WITHDRAWAL),
+    PATTERNS = [(re.compile(u'^(?P<text>.*[Vv]ersement.*)'),  FrenchTransaction.TYPE_DEPOSIT),
+                (re.compile(u'^(?P<text>([Aa]rbitrage|[Pp]rélèvements.*))'), FrenchTransaction.TYPE_ORDER),
+                (re.compile(u'^(?P<text>([Rr]etrait|[Pp]aiement.*))'), FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile(u'^(?P<text>.*)'), FrenchTransaction.TYPE_BANK),
                ]
 
