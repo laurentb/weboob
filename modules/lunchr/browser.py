@@ -82,7 +82,7 @@ class LunchrBrowser(APIBrowser):
     def iter_history(self, account):
         page = 0
         while True:
-            response = self.open('/api/v0/payments_history?page={:d}'.format(page))
+            response = self.open('/api/v0/payments_history?page={:d}&per=20'.format(page))
             json = response.json()
             if len(Dict('payments_history')(json)) == 0:
                 break
