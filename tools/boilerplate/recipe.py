@@ -56,7 +56,7 @@ class Recipe(object):
     def configure_subparser(cls, subparsers):
         subparser = subparsers.add_parser(cls.NAME)
         subparser.add_argument('name', help='Module name')
-        subparser.set_defaults(recipe=cls)
+        subparser.set_defaults(recipe_class=cls)
         return subparser
 
     def __init__(self, args):

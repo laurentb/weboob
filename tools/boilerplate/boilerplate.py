@@ -54,7 +54,8 @@ def main():
     parser.add_argument(
         '-e', '--email',
         default=gitconfig('user.email'), type=u8)
-    subparsers = parser.add_subparsers()
+    subparsers = parser.add_subparsers(dest='recipe')
+    subparsers.required = True
 
     recipes_module = import_module('recipes', package='boilerplate_data')
 
@@ -69,7 +70,7 @@ def main():
 
     args = parser.parse_args()
 
-    recipe = args.recipe(args)
+    recipe = args.recipe_class(args)
     recipe.generate()
 
 
