@@ -56,12 +56,11 @@ class EdfBrowser(LoginBrowser, StatesMixin):
                         r'&di=(?P<di>.*)&bn=(?P<bn>.*)&an=(?P<an>.*)', BillDownload)
     profile = URL('/services/rest/context/getCustomerContext', ProfilePage)
 
-    __states__ = ['id_token1']
+    __states__ = ['id_token1', 'otp_data']
 
     def __init__(self, config, *args, **kwargs):
         self.config = config
         self.otp_data = None
-        self.otp_url = None
         self.id_token1 = None
         kwargs['username'] = self.config['login'].get()
         kwargs['password'] = self.config['password'].get()
@@ -90,7 +89,6 @@ class EdfBrowser(LoginBrowser, StatesMixin):
                 self.logger.info('already logged')
                 return
 
-            self.otp_url = self.url
             self.authenticate.go(method='POST', params=auth_params)
             data = self.page.get_data()
             data['callbacks'][0]['input'][0]['value'] = self.username
