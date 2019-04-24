@@ -280,7 +280,8 @@ class AccountsPage(LoggedPage, JsonPage):
                 # Ignore insurances (plus they all have identical IDs)
                 # Ignore some credits not displayed on the website
                 return CleanText(Dict('familleProduit/libelle', default=''))(self) not in self.IGNORED_ACCOUNT_FAMILIES \
-                    and 'non affiche' not in CleanText(Dict('sousFamilleProduit/libelle', default=''))(self)
+                    and 'non affiche' not in CleanText(Dict('sousFamilleProduit/libelle', default=''))(self) \
+                    and 'Inactif' not in CleanText(Dict('libelleSituationContrat', default=''))(self)
 
 
 class AccountDetailsPage(LoggedPage, JsonPage):
