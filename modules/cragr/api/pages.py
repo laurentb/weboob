@@ -147,6 +147,8 @@ ACCOUNT_TYPES = {
     'ESC COM.': Account.TYPE_LOAN,
     'LIM TRESO': Account.TYPE_LOAN,
     'P.ETUDIANT': Account.TYPE_LOAN,
+    'P. ACC.SOC': Account.TYPE_LOAN,
+    'PACA': Account.TYPE_LOAN,
     'épargne disponible': Account.TYPE_SAVINGS,
     'épargne à terme': Account.TYPE_DEPOSIT,
     'épargne boursière': Account.TYPE_MARKET,
@@ -165,6 +167,7 @@ ACCOUNT_TYPES = {
     'ASS OPPORT': Account.TYPE_LIFE_INSURANCE,  # Assurance fonds opportunité
     'ATOUT LIB': Account.TYPE_REVOLVING_CREDIT,
     'PACP': Account.TYPE_CONSUMER_CREDIT,
+    'SUPPLETIS': Account.TYPE_CONSUMER_CREDIT,
     'PAGR': Account.TYPE_MADELIN,
 }
 
