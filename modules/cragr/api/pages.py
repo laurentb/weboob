@@ -227,8 +227,8 @@ class AccountsPage(LoggedPage, JsonPage):
             klass = Account
 
             def obj_id(self):
-                # Loan ids may be duplicated so we use the contract number for now:
-                if Field('type')(self) == Account.TYPE_LOAN:
+                # Loan/credit ids may be duplicated so we use the contract number for now:
+                if Field('type')(self) in (Account.TYPE_LOAN, Account.TYPE_CONSUMER_CREDIT):
                     return CleanText(Dict('idElementContrat'))(self)
                 return CleanText(Dict('numeroCompte'))(self)
 
