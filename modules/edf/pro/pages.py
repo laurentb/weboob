@@ -73,6 +73,9 @@ class SubscriptionsPage(LoggedPage, JsonPage):
             klass = Subscription
 
             obj_id = CleanText(Dict('idPFLabel'))
+            # this label will be override if we find a good contract with _get_similarity_among_id,
+            # but it's not always the case, so take it here for now
+            obj_label = CleanText(Dict('idPFLabel'))
             obj__account_id = CleanText(Dict('idCompteDeFacturation'))
 
 
