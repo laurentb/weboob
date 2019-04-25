@@ -31,7 +31,7 @@ from weboob.browser.elements import method, DictElement, ItemElement
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Eval, Date, Field
 from weboob.browser.filters.html import Attr, Link, AttributeNotFound
 from weboob.browser.filters.json import Dict
-from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, ActionNeeded
+from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, ActionNeeded, BrowserPasswordExpired
 
 from weboob.browser.pages import HTMLPage, LoggedPage, FormNotFound, JsonPage, RawPage, XMLPage
 
@@ -386,8 +386,12 @@ class Login2Page(LoginPage):
                     form_id = (k, v[0]['id'], v[0]['type'])
 
                 if v[0].get('virtualKeyboard'):
+                    if not password.isdigit():
+                        # Users who get virtualkeyboard must change their passwords
+                        # If there are letters in the password it means they did not do it.
+                        raise BrowserPasswordExpired()
                     password = self.virtualkeyboard(vk_obj=v[0]['virtualKeyboard'],
-                                                password=password)
+                                                    password=password)
 
             payload = {
                 'validate': {
