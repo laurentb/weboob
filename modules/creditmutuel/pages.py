@@ -845,6 +845,10 @@ class CardPage(OperationsPage, LoggedPage):
                 obj_original_currency = Env('original_currency')
                 obj__differed_date = Env('differed_date')
 
+                def obj_bdate(self):
+                    if Field('type')(self) == Transaction.TYPE_DEFERRED_CARD:
+                        return Field('rdate')(self)
+
                 def obj__to_delete(self):
                     return bool(CleanText('.//a[contains(text(), "Regroupement")]')(self))
 
