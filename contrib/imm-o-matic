@@ -58,7 +58,6 @@ import glob
 import tempfile
 import shutil
 import argparse
-import sys
 import yaml
 
 fields = [ u'id', u'title', u'area', u'cost', u'currency', u'date', u'location', u'station', u'text', u'phone', u'photos', u'details', u'url' ]
@@ -268,7 +267,8 @@ if __name__ == '__main__':
     parser.add_argument("--configfile", help="Config file", default=os.getenv('HOME')+'/.config/imm-o-matic.yaml', required=False)
     args = parser.parse_args()
 
-    configs = yaml.load(open(args.configfile))
+    with open(args.configfile) as f:
+        configs = yaml.load(f, loader=yaml.SafeLoader)
     for i in configs:
         config = configs[i]
         destdir = config['destdir']
