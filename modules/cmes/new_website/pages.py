@@ -49,7 +49,7 @@ class NewAccountsPage(LoggedPage, HTMLPage):
             obj_label = CleanText('./tbody/tr/th//div')
             obj_balance = MyDecimal(balance_xpath)
             obj_currency = Currency(balance_xpath)
-            obj_type = MapIn(Field('label'), ACCOUNTS_TYPES, default=Account.TYPE_UNKNOWN)
+            obj_type = MapIn(Field('label'), ACCOUNTS_TYPES, Account.TYPE_UNKNOWN)
 
             def obj_id(self):
                 # Use customer number + label to build account id
