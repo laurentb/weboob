@@ -695,7 +695,7 @@ class AVPage(LoggedPage, HTMLPage):
             klass = Account
 
             def condition(self):
-                if self.obj_balance(self) == 0 and not self.el.xpath('.//td/a'):
+                if self.obj_balance(self) == 0 and not self.el.xpath('.//td[has-class("nomContrat")]//a'):
                     self.logger.warning("ignoring an AV account because there's no link for it")
                     return False
                 return True
@@ -713,10 +713,10 @@ class AVPage(LoggedPage, HTMLPage):
 
             def obj_id(self):
                 try:
-                    _id = CleanText('.//td/a/@id')(self)
+                    _id = CleanText('.//td/@id')(self)
                     if not _id:
                         self.page.browser.assurancevie.go()
-                        ac_details_page = self.page.browser.open(Link('.//td/a')(self)).page
+                        ac_details_page = self.page.browser.open(Link('.//td[has-class("nomContrat")]//a')(self)).page
                     else:
                         if '-' in _id:
                             split = _id.split('-')
@@ -737,8 +737,7 @@ class AVPage(LoggedPage, HTMLPage):
                     return account_id
 
             def obj__form(self):
-                form_id = Attr('.//td/a', 'id', default=None)(self)
-                form_class = Attr('.//td/a', 'class', default=None)(self)
+                form_id = Attr('.//td[has-class("nomContrat")]//a', 'id', default=None)(self)
                 if form_id:
                     if '-' in form_id:
                         id_contrat = re.search(r'^(.*?)-', form_id).group(1)
@@ -747,7 +746,7 @@ class AVPage(LoggedPage, HTMLPage):
                         id_contrat = form_id
                         producteur = None
                 else:
-                    if len(self.xpath('.//td/a[has-class("clickPopupDetail")]')):
+                    if len(self.xpath('.//td[has-class("nomContrat")]/a[has-class("clickPopupDetail")]')):
                         # making a form of this link sometimes makes the site return an empty response...
                         # the link is a link to some info, not full AV website
                         # it's probably an indication the account is restricted anyway, so avoid it
@@ -755,14 +754,14 @@ class AVPage(LoggedPage, HTMLPage):
                         return None
 
                     # sometimes information are not in id but in href
-                    url = Attr('.//td/a', 'href', default=None)(self)
+                    url = Attr('.//td[has-class("nomContrat")]//a', 'href', default=None)(self)
                     parsed_url = urlparse(url)
                     params = parse_qs(parsed_url.query)
 
                     id_contrat = params['ID_CONTRAT'][0]
                     producteur = params['PRODUCTEUR'][0]
 
-                if 'redirect' in form_class:
+                if self.xpath('//form[@id="formRedirectPart"]'):
                     form = self.page.get_form('//form[@id="formRedirectPart"]')
                 else:
                     form = self.page.get_form('//form[@id="formRoutage"]')
