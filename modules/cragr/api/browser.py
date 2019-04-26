@@ -66,7 +66,7 @@ class CragrAPI(LoginBrowser):
 
     account_iban = URL(r'(?P<space>[\w-]+)/operations/operations-courantes/editer-rib/jcr:content.ibaninformation.json', IbanPage)
 
-    cards = URL(r'(?P<space>[\w-]+)/operations/moyens-paiement/mes-cartes/jcr:content.listeCartesParCompte.json', CardsPage)
+    cards = URL(r'(?P<space>[\w-]+)/operations/(?P<op>.*)/mes-cartes/jcr:content.listeCartesParCompte.json', CardsPage)
 
     history = URL(r'(?P<space>[\w-]+)/operations/synthese/detail-comptes/jcr:content.n3.operations.json', HistoryPage)
 
@@ -241,8 +241,18 @@ class CragrAPI(LoginBrowser):
                 if main_account.balance == NotAvailable:
                     self.logger.warning('Could not fetch the balance for main account %s.' % main_account.id)
 
+            # Get cards for the main account
+            for card in self.page.iter_main_cards():
+                card.parent = main_account
+                card.currency = card.parent.currency
+                card.owner_type = card.parent.owner_type
+                card._category = card.parent._category
+                card._contract = contract
+                deferred_cards[card.id] = card
+
             main_account.owner_type = self.page.get_owner_type()
             main_account._contract = contract
+            space_type = self.page.get_space_type()
 
             accounts_list = list(self.page.iter_accounts())
             for account in accounts_list:
@@ -295,27 +305,48 @@ class CragrAPI(LoginBrowser):
                     all_accounts[account.id] = account
                     yield account
 
-            # Fetch all deferred credit cards for this space
-            # Once again, this request tends to crash often.
-            try:
-                self.cards.go(space=self.space)
-            except (ServerError, ClientError, HTTPNotFound):
-                self.logger.warning('Request to cards failed, we try again')
+            ''' Fetch all deferred credit cards for this space: from the space type
+            we must determine the required URL parameters to build the cards URL.
+            If there is no card on the space, the server will return a 500 error
+            (it is the same on the website) so we must handle it with try/except. '''
+            cards_parameters = {
+                'PARTICULIER':          ('particulier',   'moyens-paiement'),
+                'PROFESSIONNEL':        ('professionnel', 'paiements-encaissements'),
+                'AGRICULTEUR':          ('agriculteur',   'paiements-encaissements'),
+                'ASSOC_CA_MODERE':      ('association',   'paiements-encaissements'),
+                'ENTREPRISE':           ('entreprise',    'paiements-encaissements'),
+                'PROFESSION_LIBERALE':  ('professionnel', 'paiements-encaissements'),
+            }
+            assert space_type in cards_parameters, 'Space type %s has never been encountered before.' % space_type
+
+            space, op = cards_parameters[space_type]
+            if 'banque-privee' in self.url:
+                # The first parameter will always be 'banque-privee'.
+                space = 'banque-privee'
+
+            # The card request often fails, even on the website,
+            # so we try twice just in case we fail to get there:
+            for trial in range(2):
                 try:
                     self.check_space_connection(contract)
-                    self.cards.go(space=self.space)
+                    self.cards.go(space=space, op=op)
                 except (ServerError, ClientError, HTTPNotFound):
-                    self.logger.warning('Request to cards failed twice, cards of this space will be skipped.')
+                    if trial == 0:
+                        self.logger.warning('Request to cards failed, we try again.')
+                    else:
+                        self.logger.warning('Request to cards failed twice, the cards of this space will be skipped.')
+                else:
+                    break
 
             if self.cards.is_here():
                 for card in self.page.iter_card_parents():
-                    card.number = card.id
-                    card.parent = all_accounts.get(card._parent_id, NotAvailable)
-                    card.currency = card.parent.currency
-                    card.owner_type = card.parent.owner_type
-                    card._category = card.parent._category
-                    card._contract = contract
                     if card.id not in deferred_cards:
+                        card.number = card.id
+                        card.parent = all_accounts.get(card._parent_id, NotAvailable)
+                        card.currency = card.parent.currency
+                        card.owner_type = card.parent.owner_type
+                        card._category = card.parent._category
+                        card._contract = contract
                         deferred_cards[card.id] = card
 
         # We must check if cards are unique on their parent account;
@@ -370,8 +401,7 @@ class CragrAPI(LoginBrowser):
                 'carteIdx': int(account._index),
                 'rechercheEncoursDebite': value
             }
-            self.card_history.go(space=self.space,
-                                 params=params)
+            self.card_history.go(space=self.space, params=params)
             for tr in self.page.iter_card_history():
                 card_transactions.append(tr)
 

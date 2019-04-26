@@ -184,7 +184,7 @@ class AccountsPage(LoggedPage, JsonPage):
         self.html_doc = HTMLPage(self.browser, self.response).doc
 
         # Transform the HTML tag containing the accounts list into a JSON
-        raw = re.search("syntheseController\.init\((.*)\)'>", content).group(1)
+        raw = re.search(r"syntheseController\.init\((.*)\)'>", content).group(1)
         d = json.JSONDecoder()
         # De-comment this line to debug the JSON accounts:
         # print json.dumps(d.raw_decode(raw)[0])
@@ -198,6 +198,8 @@ class AccountsPage(LoggedPage, JsonPage):
         "HubAccounts-link--cael" otherwise there might be space duplicates.'''
         return len(self.html_doc.xpath('//a[contains(@class, "HubAccounts-link--cael") and contains(@href, "idBamIndex=")]')) + 1
 
+    def get_space_type(self):
+        return Dict('marche')(self.doc)
 
     def get_owner_type(self):
         OWNER_TYPES = {
@@ -241,6 +243,27 @@ class AccountsPage(LoggedPage, JsonPage):
             if _type == Account.TYPE_UNKNOWN:
                 self.logger.warning('We got an untyped account: please add "%s" to ACCOUNT_TYPES.' % CleanText(Dict('comptePrincipal/libelleUsuelProduit'))(self))
             return _type
+
+    @method
+    class iter_main_cards(DictElement):
+        item_xpath = 'comptePrincipal/cartesDD'
+
+        class item(ItemElement):
+            # Main account cards are all deferred and their
+            # coming is already displayed with a '-' sign.
+
+            klass = Account
+
+            def obj_id(self):
+                return CleanText(Dict('idCarte'))(self).replace(' ', '')
+
+            obj_number = Field('id')
+            obj_label = Format('Carte %s %s', Field('id'), CleanText(Dict('titulaire')))
+            obj_type = Account.TYPE_CARD
+            obj_coming = Eval(float_to_decimal, Dict('encoursCarteM'))
+            obj_balance = Decimal(0)
+            obj__index = Dict('index')
+            obj__id_element_contrat = None
 
     @method
     class iter_accounts(DictElement):
