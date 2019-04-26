@@ -90,7 +90,9 @@ class TokenPage(LoggedPage, JsonPage):
 
 class ChangePasswordPage(HTMLPage):
     def on_load(self):
-        msg = CleanText('//p[@class="h1" and contains(text(), "Modifier mon code personnel")]')(self.doc)
+        # Handle <p class="h1">Modifier mon code personnel&nbsp;</p>
+        # Handle <h1><span class="h1">Modifier&nbsp;votre code personnel</span></h1>
+        msg = CleanText('//*[@class="h1" and contains(text(), "code personnel")]')(self.doc)
         if msg:
             raise BrowserPasswordExpired(msg)
 
