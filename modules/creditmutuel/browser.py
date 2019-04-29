@@ -127,7 +127,8 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
     cards_ope = URL(r'/(?P<subbank>.*)fr/banque/pro/ENC_liste_oper', CardsOpePage)
     cards_ope2 = URL('/(?P<subbank>.*)fr/banque/CRP8_SCIM_DEPCAR.aspx', CardPage2)
 
-    cards_hist_available = URL('/(?P<subbank>.*)fr/banque/SCIM_default.aspx\?_tabi=C&_stack=SCIM_ListeActivityStep%3a%3a&_pid=ListeCartes&_fid=ChangeList&Data_ServiceListDatas_CurrentType=MyCards', NewCardsListPage)
+    cards_hist_available = URL('/(?P<subbank>.*)fr/banque/SCIM_default.aspx\?_tabi=C&_stack=SCIM_ListeActivityStep%3a%3a&_pid=ListeCartes&_fid=ChangeList&Data_ServiceListDatas_CurrentType=MyCards',
+                               '/(?P<subbank>.*)fr/banque/PCS1_CARDFUNCTIONS.aspx', NewCardsListPage)
     cards_hist_available2 = URL('/(?P<subbank>.*)fr/banque/SCIM_default.aspx', NewCardsListPage)
 
     internal_transfer = URL(r'/(?P<subbank>.*)fr/banque/virements/vplw_vi.html', InternalTransferPage)

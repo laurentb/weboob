@@ -1952,9 +1952,9 @@ class NewCardsListPage(LoggedPage, HTMLPage):
                 card_type_page = Link('//div/ul/li/a[contains(text(), "Fonctions")]', default=NotAvailable)(history_page.doc)
                 if card_type_page:
                     doc = self.page.browser.open(card_type_page).page.doc
-                    card_type_line = doc.xpath('//tbody/tr[th[contains(text(), "Débit des paiements")]]')
+                    card_type_line = doc.xpath('//tbody/tr[th[contains(text(), "Débit des paiements")]]') or doc.xpath(u'//div[div/div/p[contains(text(), "Débit des paiements")]]')
                     if card_type_line:
-                        if CleanText('./td')(card_type_line[0]) != 'Différé':
+                        if 'Différé' not in CleanText('.//td')(card_type_line[0]):
                             raise SkipItem()
                     elif doc.xpath('//div/p[contains(text(), "Vous n\'avez pas l\'autorisation")]'):
                         self.logger.warning("The user can't reach this page")
