@@ -164,6 +164,7 @@ class AccountsPage(JsonBasePage):
                 'AVANCE_PATRIMOINE': Account.TYPE_REVOLVING_CREDIT,
                 'PRET_EXPRESSO': Account.TYPE_CONSUMER_CREDIT,
                 'PRET_EVOLUTIF': Account.TYPE_CONSUMER_CREDIT,
+                'PR_IMMO': Account.TYPE_MORTGAGE,
                 'PERP_EPICEA': Account.TYPE_PERP,
             }
 
@@ -182,7 +183,10 @@ class AccountsPage(JsonBasePage):
             obj__cards = Dict('cartes', default=[])
 
             def obj_type(self):
-                return self.TYPES.get(Dict('produit')(self), Account.TYPE_UNKNOWN)
+                account_type = self.TYPES.get(Dict('produit')(self), Account.TYPE_UNKNOWN)
+                if account_type == Account.TYPE_LOAN:
+                    account_type = self.TYPES.get(Dict('codeFamille')(self), Account.TYPE_LOAN)
+                return account_type
 
             def obj_ownership(self):
                 # 'groupeRoleDTO' can contains 'TITULAIRE', 'MANDATAIRE' or 'REPRESENTATION'
@@ -199,7 +203,7 @@ class AccountsPage(JsonBasePage):
 
             def obj__loan_type(self):
                 if Field('type')(self) in (Account.TYPE_LOAN, Account.TYPE_CONSUMER_CREDIT,
-                                           Account.TYPE_REVOLVING_CREDIT, ):
+                                           Account.TYPE_REVOLVING_CREDIT, Account.TYPE_MORTGAGE,):
                     return Dict('codeFamille')(self)
                 return None
 
