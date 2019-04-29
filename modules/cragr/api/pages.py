@@ -125,6 +125,7 @@ ACCOUNT_TYPES = {
     'DAV TIGERE': Account.TYPE_SAVINGS,
     'CPTEXCPRO': Account.TYPE_SAVINGS,
     'CPTEXCENT': Account.TYPE_SAVINGS,
+    'CPTDAV': Account.TYPE_SAVINGS,
     'DAT': Account.TYPE_SAVINGS,
     'CB': Account.TYPE_SAVINGS,  # Carré bleu / PEL
     'PRET PERSO': Account.TYPE_LOAN,
@@ -139,6 +140,7 @@ ACCOUNT_TYPES = {
     'PEA': Account.TYPE_PEA,
     'PEAP': Account.TYPE_PEA,
     'DAV PEA': Account.TYPE_PEA,
+    'ACCOR MULT': Account.TYPE_PERCO,
     'CPS': Account.TYPE_MARKET,
     'TITR': Account.TYPE_MARKET,
     'TITR CTD': Account.TYPE_MARKET,
@@ -167,7 +169,9 @@ ACCOUNT_TYPES = {
     'ESPACELIB3': Account.TYPE_LIFE_INSURANCE,  # Espace Liberté 3
     'ESPACE LIB': Account.TYPE_LIFE_INSURANCE,  # Espace Liberté
     'ASS OPPORT': Account.TYPE_LIFE_INSURANCE,  # Assurance fonds opportunité
+    'FLORIPRO': Account.TYPE_LIFE_INSURANCE,
     'ATOUT LIB': Account.TYPE_REVOLVING_CREDIT,
+    'PACC': Account.TYPE_CONSUMER_CREDIT,
     'PACP': Account.TYPE_CONSUMER_CREDIT,
     'SUPPLETIS': Account.TYPE_CONSUMER_CREDIT,
     'PAGR': Account.TYPE_MADELIN,
