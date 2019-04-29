@@ -36,7 +36,7 @@ from .pages.accounts_list import (
     CardHistoryPage, PeaLiquidityPage, AccountsSynthesesPage,
     AdvisorPage, HTMLProfilePage, CreditPage, CreditHistoryPage, OldHistoryPage,
     MarketPage, LifeInsurance, LifeInsuranceHistory, LifeInsuranceInvest, LifeInsuranceInvest2,
-    UnavailableServicePage,
+    UnavailableServicePage, LoanDetailsPage,
 )
 from .pages.transfer import AddRecipientPage, SignRecipientPage, TransferJson, SignTransferPage
 from .pages.login import MainPage, LoginPage, BadLoginPage, ReinitPasswordPage, ActionNeededPage, ErrorPage
@@ -58,6 +58,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     accounts_syntheses = URL(r'/icd/cbo/data/liste-prestations-authsec.json\?n10_avecMontant=1', AccountsSynthesesPage)
     history = URL(r'/icd/cbo/data/liste-operations-authsec.json', HistoryPage)
     loans = URL(r'/abm/restit/listeRestitutionPretsNET.json\?a100_isPretConso=(?P<conso>\w+)', LoansPage)
+    loan_details_page = URL(r'icd/cbo/data/recapitulatif-prestation-authsec.json', LoanDetailsPage)
 
     card_history = URL(r'/restitution/cns_listeReleveCarteDd.xml', CardHistoryPage)
     credit = URL(r'/restitution/cns_detailAVPAT.html', CreditPage)
@@ -221,6 +222,8 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
             if account.type == account.TYPE_REVOLVING_CREDIT:
                 self.loans.stay_or_go(conso=(account._loan_type == 'PR_CONSO'))
                 account = self.page.get_revolving_account(account)
+                self.loan_details_page.go(params={'b64e200_prestationIdTechnique': account._internal_id})
+                self.page.set_loan_details(account)
 
             yield account
 

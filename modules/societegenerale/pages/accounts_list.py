@@ -231,6 +231,15 @@ class AccountsSynthesesPage(JsonBasePage):
         return account_comings
 
 
+class LoanDetailsPage(JsonPage):
+    def set_loan_details(self, account):
+        # If there are no available details for the loan, the statut will be "NOK"
+        if Dict('commun/statut')(self.doc) == 'NOK':
+            return
+        else:
+            account.rate = CleanDecimal(Dict('donnees/caracteristiquesReservea/tauxHorsAssurance'))(self.doc)
+
+
 class LoansPage(JsonBasePage):
     def get_loan_account(self, account):
         assert account._prestation_id in Dict('donnees/tabIdAllPrestations')(self.doc), \
