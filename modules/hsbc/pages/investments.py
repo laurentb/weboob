@@ -45,7 +45,7 @@ class LogonInvestmentPage(LoggedPage, HTMLPage):
 
 
 class ProductViewHelper():
-    URL = 'https://investissements.clients.hsbc.fr/group-wd-gateway-war/gateway/wd/RetrieveProductView'
+    URL = 'https://investissements.clients.hsbc.fr/cwd/group-wd-gateway-war/gateway/wd/RetrieveCustomerPortfolio'
 
     def __init__(self, browser):
         self.browser = browser

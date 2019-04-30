@@ -99,21 +99,23 @@ class HSBC(LoginBrowser):
         r'https://www.hsbc.fr/1/[0-9]/authentication/sso-cwd\?customerFullName=.*',
         InvestmentFormPage
     )
-    logon_investment_page = URL(r'https://investissements.clients.hsbc.fr/group-wd-gateway-war/gateway/LogonAuthentication', LogonInvestmentPage)
+    logon_investment_page = URL(r'https://investissements.clients.hsbc.fr/group-wd-gateway-war/gateway/LogonAuthentication',
+                                r'https://investissements.clients.hsbc.fr/cwd/group-wd-gateway-war/gateway/LogonAuthentication',
+                                LogonInvestmentPage)
     retrieve_accounts_view = URL(
-        r'https://investissements.clients.hsbc.fr/group-wd-gateway-war/gateway/wd/RetrieveProductView',
+        r'https://investissements.clients.hsbc.fr/cwd/group-wd-gateway-war/gateway/wd/RetrieveCustomerPortfolio',
         RetrieveAccountsPage
     )
     retrieve_investments_page = URL(
-        r'https://investissements.clients.hsbc.fr/group-wd-gateway-war/gateway/wd/RetrieveProductView',
+        r'https://investissements.clients.hsbc.fr/cwd/group-wd-gateway-war/gateway/wd/RetrieveCustomerPortfolio',
         RetrieveInvestmentsPage
     )
     retrieve_liquidity_page = URL(
-        r'https://investissements.clients.hsbc.fr/group-wd-gateway-war/gateway/wd/RetrieveProductView',
+        r'https://investissements.clients.hsbc.fr/cwd/group-wd-gateway-war/gateway/wd/RetrieveCustomerPortfolio',
         RetrieveLiquidityPage
     )
     retrieve_useless_page = URL(
-        r'https://investissements.clients.hsbc.fr/group-wd-gateway-war/gateway/wd/RetrieveProductView',
+        r'https://investissements.clients.hsbc.fr/cwd/group-wd-gateway-war/gateway/wd/RetrieveCustomerPortfolio',
         RetrieveUselessPage
     )
 
