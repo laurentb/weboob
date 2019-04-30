@@ -33,7 +33,8 @@ from weboob.tools.capabilities.bank.investments import is_isin_valid, create_fre
 from weboob.browser.elements import DictElement, ItemElement, TableElement, method, ListElement
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import (
-    CleanText, CleanDecimal, Regexp, Currency, Eval, Field, Format, Date, Env, Map
+    CleanText, CleanDecimal, Regexp, Currency, Eval, Field, Format, Date, Env, Map, Coalesce,
+    empty,
 )
 from weboob.browser.filters.html import Link, TableCell
 from weboob.browser.pages import HTMLPage, XMLPage, JsonPage, LoggedPage, pagination
@@ -246,6 +247,18 @@ class LoanDetailsPage(JsonPage):
 
 
 class LoansPage(JsonBasePage):
+
+    def set_parent_account_id(self, loan, acc):
+        account_parent = Coalesce(
+            Dict('prestationCAV', default=NotAvailable),
+            Dict('comptePrelevement1', default=NotAvailable),
+            default=NotAvailable
+        )(acc)
+
+        loan._parent_id = None
+        if not empty(account_parent):
+            loan._parent_id = account_parent.replace(' ', '')
+
     def get_loan_account(self, account):
         assert account._prestation_id in Dict('donnees/tabIdAllPrestations')(self.doc), \
             'Loan with prestation id %s should be on this page ...' % account._prestation_id
@@ -275,10 +288,12 @@ class LoansPage(JsonBasePage):
                     now = datetime.datetime.now().date()
                     next_payment_date = now.replace(day=repayment_day)
                     if repayment_day < now.day:
-                        next_payment_date += relativedelta(months=+1)
+                        next_payment_date += relativedelta(months=1)
                     loan.next_payment_date = next_payment_date
                 else:
-                    self.logger.warning('Not handled periodicity: %s' % CleanText(Dict('periodicite'))(acc))
+                    self.logger.warning('Not handled periodicity: %s', CleanText(Dict('periodicite'))(acc))
+
+                self.set_parent_account_id(loan, acc)
 
                 loan._internal_id = account._internal_id
                 loan._prestation_id = account._prestation_id
@@ -340,6 +355,9 @@ class LoansPage(JsonBasePage):
 
                     if Dict('dateMensualite', default=NotAvailable)(acc):
                         loan.next_payment_date = datetime.datetime.strptime(Dict('dateMensualite')(acc), '%Y%m%d')
+
+                    self.set_parent_account_id(loan, acc)
+
                     return loan
         return loan
 

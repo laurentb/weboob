@@ -199,8 +199,11 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
         # get accounts coming
         account_comings = self.page.get_account_comings()
 
+        accounts = {}
+
         self.accounts.go()
         for account in self.page.iter_accounts():
+            account._parent_id = None
             for card in self.iter_cards(account):
                 card.parent = account
                 card.ownership = account.ownership
@@ -224,6 +227,13 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
                 account = self.page.get_revolving_account(account)
                 self.loan_details_page.go(params={'b64e200_prestationIdTechnique': account._internal_id})
                 self.page.set_loan_details(account)
+
+            accounts[account.id] = account
+
+        # Adding parent account to LOAN account
+        for account_id, account in accounts.items():
+            if account._parent_id:
+                account.parent = accounts.get(account._parent_id, NotAvailable)
 
             yield account
 
