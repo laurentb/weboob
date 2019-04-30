@@ -26,7 +26,7 @@ from weboob.browser.elements import ListElement, ItemElement, method, TableEleme
 from weboob.browser.filters.standard import (
     CleanText, Upper, Date, Regexp, Field,
     CleanDecimal, Env, Async, AsyncLoad, Currency,
-    )
+)
 from weboob.browser.filters.html import Link, TableCell, Attr
 from weboob.browser.switch import SiteSwitch
 from weboob.capabilities.bank import Account, Investment, Pocket
@@ -51,6 +51,23 @@ class LoginPage(HTMLPage):
 class NewWebsitePage(HTMLPage, LoggedPage):
     def on_load(self):
         raise SiteSwitch('cmes_new')
+
+
+class ActionNeededPage(HTMLPage, LoggedPage):
+    def on_load(self):
+        # Need to update mail. Try to skip
+        msg = "Merci de renseigner votre adresse e-mail"
+        if CleanText('//p[@role="heading" and contains(text(), "%s")]' % msg)(self.doc):
+            url = Link('//a[contains(., "PASSER CETTE ETAPE")]')(self.doc)
+            if url:
+                self.browser.location(url)
+            else:
+                raise ActionNeeded(msg)
+
+        # Mobile phone update can not be skipped
+        msg = "Merci de renseigner votre numéro de téléphone mobile"
+        if CleanText('//p[@role="heading" and contains(text(), "%s")]' % msg)(self.doc):
+            raise ActionNeeded(msg)
 
 
 class AccountsPage(LoggedPage, HTMLPage):

@@ -21,7 +21,7 @@
 from weboob.browser import URL, need_login
 from ..browser import CmesBrowser
 from .pages import (
-    NewAccountsPage, OperationsListPage, OperationPage
+    NewAccountsPage, OperationsListPage, OperationPage,
 )
 
 

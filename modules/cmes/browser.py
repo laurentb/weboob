@@ -18,19 +18,20 @@
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.exceptions import  BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
 
 from .pages import (
     LoginPage, NewWebsitePage, AccountsPage, FCPEInvestmentPage,
-    CCBInvestmentPage, HistoryPage, CustomPage,
-    )
+    CCBInvestmentPage, HistoryPage, CustomPage, ActionNeededPage,
+)
 
 
 class CmesBrowser(LoginBrowser):
     BASEURL = 'https://www.cic-epargnesalariale.fr'
 
     login = URL('/espace-client/fr/identification/authentification.html', LoginPage)
+    action_needed = URL('/espace-client/fr/epargnants/premiers-pas/saisir-vos-coordonnees/saisir-adresse-e-mail.html', ActionNeededPage)
     accounts = URL('(?P<subsite>.*)fr/espace/devbavoirs.aspx\?mode=net&menu=cpte$', AccountsPage)
     new_website = URL('(?P<subsite>.*)espace-client/fr/epargnants/tableau-de-bord/index.html', NewWebsitePage)
     fcpe_investment = URL(r'/fr/.*GoPositionsParFond.*',

@@ -24,7 +24,7 @@ import re
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import (
-    CleanText, Date, Regexp, Field, Currency, Upper, MapIn, Eval
+    CleanText, Date, Regexp, Field, Currency, Upper, MapIn, Eval,
 )
 from weboob.capabilities.bank import Account, Investment, Pocket
 
