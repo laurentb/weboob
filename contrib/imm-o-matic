@@ -268,7 +268,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     with open(args.configfile) as f:
-        configs = yaml.load(f, loader=yaml.SafeLoader)
+        configs = yaml.load(f, Loader=yaml.SafeLoader)
     for i in configs:
         config = configs[i]
         destdir = config['destdir']
