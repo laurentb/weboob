@@ -573,6 +573,7 @@ class CragrAPI(LoginBrowser):
             'association': 'paiements-encaissements',
             'entreprise': 'paiements-encaissements',
             'banque-privee': 'moyens-paiement',
+            'agriculteur': 'paiements-encaissements',
         }
 
         referer = self.absurl('/%s/operations/%s/virement.html.html' % (self.space, operations[self.space]))
