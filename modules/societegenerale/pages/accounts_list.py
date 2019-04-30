@@ -23,6 +23,7 @@ import requests
 import datetime
 import re
 
+from dateutil.relativedelta import relativedelta
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Account, Investment, Loan, AccountOwnership
 from weboob.capabilities.contact import Advisor
@@ -267,6 +268,18 @@ class LoansPage(JsonBasePage):
                 loan.duration = Dict('dureeNbMois')(acc)
                 loan.maturity_date = datetime.datetime.strptime(Dict('dateFin')(acc), '%Y%m%d')
 
+                # We only know the next payment day (without the month or the year). But since we know that's
+                # a monthly repayment, we can guess it.
+                if CleanText(Dict('periodicite'))(acc) == 'MENSUELLE':
+                    repayment_day = CleanDecimal(Dict('jourEcheanceMensuelle'))(acc)
+                    now = datetime.datetime.now().date()
+                    next_payment_date = now.replace(day=repayment_day)
+                    if repayment_day < now.day:
+                        next_payment_date += relativedelta(months=+1)
+                    loan.next_payment_date = next_payment_date
+                else:
+                    self.logger.warning('Not handled periodicity: %s' % CleanText(Dict('periodicite'))(acc))
+
                 loan._internal_id = account._internal_id
                 loan._prestation_id = account._prestation_id
                 loan._loan_type = account._loan_type
@@ -324,6 +337,9 @@ class LoansPage(JsonBasePage):
                         loan.last_payment_amount = loan.next_payment_amount
 
                     loan.duration = Dict('dureeNbMois')(acc)
+
+                    if Dict('dateMensualite', default=NotAvailable)(acc):
+                        loan.next_payment_date = datetime.datetime.strptime(Dict('dateMensualite')(acc), '%Y%m%d')
                     return loan
         return loan
 
