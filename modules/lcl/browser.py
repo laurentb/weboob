@@ -415,19 +415,12 @@ class LCLBrowser(LoginBrowser, StatesMixin):
     @need_login
     def get_investment(self, account):
         if account.type == Account.TYPE_LIFE_INSURANCE:
-            if not account._form:
+            if not account._external_website:
                 self.logger.warning('This account is limited, there is no available investment.')
                 return
 
             self.assurancevie.stay_or_go()
-            # The website often returns an error so we try again:
-            # "L’accès au service est momentanément indisponible."
-            try:
-                account._form.submit()
-            except BrowserUnavailable:
-                self.logger.warning("Service unavailable, we submit the form again.")
-                self.assurancevie.stay_or_go()
-                account._form.submit()
+            self.go_life_insurance_website()
 
             if self.calie.is_here():
                 for inv in self.page.iter_investment():
@@ -436,19 +429,11 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                 self.assurancevie.go()
                 return
 
-            # Some users will get a message : "Ne détenant pas de compte dépôt
-            # chez LCL, l'accès à ce service vous est indisponible."
-            if self.form2.is_here() and self.page.assurancevie_hist_not_available():
-                return
-
-            self.avdetail.go()
-            self.av_investments.go()
-
+            assert self.av_list.is_here(), 'Something went wrong during iter life insurance investments'
+            self.av_investments.go(life_insurance_id=account.id)
             for inv in self.page.iter_investment():
                 yield inv
-
-            self.avdetail.go()
-            self.page.come_back()
+            self.go_back_from_life_insurance_website()
 
         elif hasattr(account, '_market_link') and account._market_link:
             self.connexion_bourse()
