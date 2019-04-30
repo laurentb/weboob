@@ -430,7 +430,18 @@ class CragrAPI(LoginBrowser):
             'idDevise': str(account.currency),
             'idElementContrat': str(account._id_element_contrat),
         }
-        self.history.go(space=self.space, params=params)
+        # This request might lead to occasional 500 errors
+        for trial in range(2):
+            try:
+                self.history.go(space=self.space, params=params)
+            except ServerError:
+                self.logger.warning('Request to get account history failed.')
+            else:
+                break
+
+        if not self.history.is_here():
+            raise BrowserUnavailable()
+
         for tr in self.page.iter_history():
             # For "Livret A", value dates of transactions are always
             # 1st or 15th of the month so we specify a valuation date.
