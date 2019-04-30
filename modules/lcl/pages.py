@@ -41,7 +41,8 @@ from weboob.browser.exceptions import ServerError
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage, FormNotFound, pagination
 from weboob.browser.filters.html import Attr, Link, TableCell, AttributeNotFound
 from weboob.browser.filters.standard import (
-    CleanText, Field, Regexp, Format, Date, CleanDecimal, Map, AsyncLoad, Async, Env, Slugify, BrowserURL, Eval,
+    CleanText, Field, Regexp, Format, Date, CleanDecimal, Map, AsyncLoad, Async, Env,
+    Slugify, BrowserURL, Eval, Lower,
 )
 from weboob.browser.filters.json import Dict
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
@@ -687,8 +688,18 @@ class NoPermissionPage(LoggedPage, HTMLPage):
 
 
 class AVPage(LoggedPage, HTMLPage):
+    def get_routage_url(self):
+        for account in self.doc.xpath('//table[@class]/tbody/tr'):
+            if account.xpath('.//td[has-class("nomContrat")]//a[has-class("routageCAR")]'):
+                return Link('.//td[has-class("nomContrat")]//a[has-class("routageCAR")]')(account)
+
+    def is_website_life_insurance(self):
+        # no need specific account to go on life insurance external website
+        # because we just need to go on life insurance external website
+        return bool(self.get_routage_url())
+
     @method
-    class get_list(ListElement):
+    class get_popup_life_insurance(ListElement):
         item_xpath = '//table[@class]/tbody/tr'
 
         class item(ItemElement):
@@ -698,7 +709,8 @@ class AVPage(LoggedPage, HTMLPage):
                 if self.obj_balance(self) == 0 and not self.el.xpath('.//td[has-class("nomContrat")]//a'):
                     self.logger.warning("ignoring an AV account because there's no link for it")
                     return False
-                return True
+                # there is life insurance detail page link but check if it's a popup
+                return self.el.xpath('.//td[has-class("nomContrat")]//a[has-class("clickPopupDetail")]')
 
             obj__owner = CleanText('.//td[2]')
             obj_label = Format(u'%s %s', CleanText('.//td/text()[following-sibling::br]'), obj__owner)
@@ -710,19 +722,17 @@ class AVPage(LoggedPage, HTMLPage):
             obj__coming_links = []
             obj__transfer_id = None
             obj_number = Field('id')
+            obj__external_website = False
 
             def obj_id(self):
+                _id = CleanText('.//td/@id')(self)
+                # in old code, we use _id, it seems that is not used anymore
+                # but check if it's the case for all users
+                assert not _id, '_id is still used to retrieve life insurance'
+
                 try:
-                    _id = CleanText('.//td/@id')(self)
-                    if not _id:
-                        self.page.browser.assurancevie.go()
-                        ac_details_page = self.page.browser.open(Link('.//td[has-class("nomContrat")]//a')(self)).page
-                    else:
-                        if '-' in _id:
-                            split = _id.split('-')
-                            ac_details_page = self.page.browser.open('/outil/UWVI/AssuranceVie/accesDetail?ID_CONTRAT=%s&PRODUCTEUR=%s' % (split[0], split[1])).page
-                        else:
-                            ac_details_page = self.page.browser.open('/outil/UWVI/AssuranceVie/accesDetail?ID_CONTRAT=%s' % (_id)).page
+                    self.page.browser.assurancevie.go()
+                    ac_details_page = self.page.browser.open(Link('.//td[has-class("nomContrat")]//a')(self)).page
                     return CleanText('(//tr[3])/td[2]')(ac_details_page.doc)
                 except ServerError:
                     self.logger.debug("link didn't work, trying with the form instead")
@@ -737,6 +747,7 @@ class AVPage(LoggedPage, HTMLPage):
                     return account_id
 
             def obj__form(self):
+                # maybe deprecated
                 form_id = Attr('.//td[has-class("nomContrat")]//a', 'id', default=None)(self)
                 if form_id:
                     if '-' in form_id:
@@ -851,6 +862,34 @@ class AVDetailPage(LoggedPage, LCLBasePage):
         return self.browser.location('https://assurance-vie-et-prevoyance.secure.lcl.fr/filiale/entreeBam', params=params)
 
 
+class AVListPage(LoggedPage, JsonPage):
+    @method
+    class iter_life_insurance(DictElement):
+        item_xpath = 'syntheseContrats'
+
+        class item(ItemElement):
+            def condition(self):
+                return (
+                    Lower(Dict('lcstacntgen'))(self) == 'actif'
+                    and Lower(Dict('lcgampdt'))(self) == 'epargne'
+                )
+
+            klass = Account
+
+            obj_id = obj_number = Dict('idcntcar')
+            obj_balance = CleanDecimal(Dict('mtvalcnt'))
+            obj_label = Dict('lnpdt')
+            obj_type = Account.TYPE_LIFE_INSURANCE
+            obj_currency = 'EUR'
+
+            obj__external_website = True
+            obj__form = None
+            obj__link_id = None
+            obj__market_link = None
+            obj__coming_links = []
+            obj__transfer_id = None
+
+
 class AVHistoryPage(LoggedPage, JsonPage):
     @method
     class iter_history(DictElement):
@@ -885,6 +924,14 @@ class AVHistoryPage(LoggedPage, JsonPage):
 
 
 class AVInvestmentsPage(LoggedPage, JsonPage):
+    def update_life_insurance_account(self, life_insurance):
+        life_insurance._owner = Format('%s %s',
+                            Dict('situationAdministrativeEpargne/lppeoscp'),
+                            Dict('situationAdministrativeEpargne/lnpeoscp'))(self.doc)
+        life_insurance.label = '%s %s' % (Dict('situationAdministrativeEpargne/lcofc')(self.doc), life_insurance._owner)
+        life_insurance.valuation_diff = CleanDecimal(Dict('situationFinanciereEpargne/mtpmvcnt'), default=NotAvailable)(self.doc)
+        return life_insurance
+
     @method
     class iter_investment(DictElement):
         item_xpath = 'listeSupports/support'

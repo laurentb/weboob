@@ -34,7 +34,7 @@ from weboob.tools.value import Value
 
 from .pages import LoginPage, AccountsPage, AccountHistoryPage, \
                    CBListPage, CBHistoryPage, ContractsPage, ContractsChoicePage, BoursePage, \
-                   AVPage, AVDetailPage, DiscPage, NoPermissionPage, RibPage, \
+                   AVListPage, AVPage, AVDetailPage, DiscPage, NoPermissionPage, RibPage, \
                    HomePage, LoansPage, TransferPage, AddRecipientPage, \
                    RecipientPage, RecipConfirmPage, SmsPage, RecipRecapPage, \
                    LoansProPage, Form2Page, DocumentsPage, ClientPage, SendTokenPage, \
@@ -84,7 +84,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                r'https://assurance-vie-et-prevoyance.secure.lcl.fr/filiale/ServletReroutageCookie',
                '/outil/UAUT/RetourPartenaire/retourCar', DiscPage)
 
-    form2 = URL(r'/outil/UWVI/Routage/', Form2Page)
+    form2 = URL(r'/outil/UWVI/Routage', Form2Page)
     send_token = URL('/outil/UWVI/AssuranceVie/envoyerJeton', SendTokenPage)
     calie = URL('https://www.my-calie.fr/FO.HoldersWebSite/Disclaimer/Disclaimer.aspx.*',
                 'https://www.my-calie.fr/FO.HoldersWebSite/Contract/ContractDetails.aspx.*',
@@ -94,9 +94,10 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                         '/outil/UWVI/AssuranceVie/accesDetail.*',
                         AVPage)
 
+    av_list = URL('https://assurance-vie-et-prevoyance.secure.lcl.fr/rest/assurance/synthesePartenaire', AVListPage)
     avdetail = URL('https://assurance-vie-et-prevoyance.secure.lcl.fr/consultation/epargne', AVDetailPage)
     av_history = URL('https://assurance-vie-et-prevoyance.secure.lcl.fr/rest/assurance/historique', AVHistoryPage)
-    av_investments = URL('https://assurance-vie-et-prevoyance.secure.lcl.fr/rest/detailEpargne/contrat', AVInvestmentsPage)
+    av_investments = URL('https://assurance-vie-et-prevoyance.secure.lcl.fr/rest/detailEpargne/contrat/(?P<life_insurance_id>\w+)', AVInvestmentsPage)
 
     loans = URL('/outil/UWCR/SynthesePar/', LoansPage)
     loans_pro = URL('/outil/UWCR/SynthesePro/', LoansProPage)
@@ -179,6 +180,24 @@ class LCLBrowser(LoginBrowser, StatesMixin):
     def deconnexion_bourse(self):
         self.disc.stay_or_go()
 
+    @need_login
+    def go_life_insurance_website(self):
+        self.assurancevie.stay_or_go()
+        life_insurance_routage_url = self.page.get_routage_url()
+        if life_insurance_routage_url:
+            self.location(life_insurance_routage_url)
+            self.av_list.go()
+
+    @need_login
+    def update_life_insurance_account(self, life_insurance):
+        self.av_investments.go(life_insurance_id=life_insurance.id)
+        return self.page.update_life_insurance_account(life_insurance)
+
+    @need_login
+    def go_back_from_life_insurance_website(self):
+        self.avdetail.stay_or_go()
+        self.page.come_back()
+
     def select_contract(self, id_contract):
         if self.current_contract and id_contract != self.current_contract:
             # when we go on bourse page, we can't change contract anymore... we have to logout.
@@ -215,20 +234,27 @@ class LCLBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def get_accounts(self):
-        self.assurancevie.stay_or_go()
         # This is required in case the browser is left in the middle of add_recipient and the session expires.
         if self.login.is_here():
             return self.get_accounts_list()
 
-        if self.accounts_list is None:
-            self.accounts_list = []
+        # retrieve life insurance accounts
+        self.assurancevie.stay_or_go()
         if self.no_perm.is_here():
             self.logger.warning('Life insurances are unavailable.')
         else:
-            for a in self.page.get_list():
+            for a in self.page.get_popup_life_insurance():
                 self.update_accounts(a)
+        # retrieve life insurance on special lcl life insurance website
+        if self.page.is_website_life_insurance():
+            self.go_life_insurance_website()
+            for life_insurance in self.page.iter_life_insurance():
+                life_insurance = self.update_life_insurance_account(life_insurance)
+                self.update_accounts(life_insurance)
+            self.go_back_from_life_insurance_website()
 
-        self.accounts.stay_or_go()
+        # retrieve accounts on main page
+        self.accounts.go()
         for a in self.page.get_list():
             if not self.check_accounts(a):
                 continue
@@ -246,6 +272,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                 a.iban = iban if iban is not None else NotAvailable
             self.update_accounts(a)
 
+        # retrieve loans accounts
         self.loans.stay_or_go()
         if self.no_perm.is_here():
             self.logger.warning('Loans are unavailable.')
@@ -253,6 +280,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
             for a in self.page.get_list():
                 self.update_accounts(a)
 
+        # retrieve pro loans accounts
         self.loans_pro.stay_or_go()
         if self.no_perm.is_here():
             self.logger.warning('Loans are unavailable.')
@@ -267,6 +295,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
             # Disconnecting from bourse portal before returning account list
             # to be sure that we are on the banque portal
 
+        # retrieve deposit accounts
         self.deposit.stay_or_go()
         if self.no_perm.is_here():
             self.logger.warning('Deposits are unavailable.')
@@ -280,6 +309,8 @@ class LCLBrowser(LoginBrowser, StatesMixin):
     @need_login
     def get_accounts_list(self):
         if self.accounts_list is None:
+            self.accounts_list = []
+
             if self.contracts and self.current_contract:
                 for id_contract in self.contracts:
                     self.select_contract(id_contract)
