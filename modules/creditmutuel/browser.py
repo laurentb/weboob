@@ -33,7 +33,7 @@ from weboob.browser.url import URL
 from weboob.browser.pages import FormNotFound
 from weboob.browser.exceptions import ClientError, ServerError
 from weboob.exceptions import BrowserIncorrectPassword, AuthMethodNotImplemented, BrowserUnavailable, NoAccountsException
-from weboob.capabilities.bank import Account, AddRecipientStep, Recipient
+from weboob.capabilities.bank import Account, AddRecipientStep, Recipient, AccountOwnership
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
 from weboob.capabilities import NotAvailable
 from weboob.tools.compat import urlparse
@@ -180,6 +180,26 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
 
         self.getCurrentSubBank()
 
+    def ownership_guesser(self):
+        profile = self.get_profile()
+        psu_names = profile.name.lower().split()
+
+        for account in self.accounts_list:
+            label = account.label.lower()
+            # We try to find "M ou Mme" or "Mlle XXX ou M XXXX" for example (non-exhaustive exemple list)
+            if re.search(r'.* ((m) ([\w].*|ou )?(m[ml]e)|(m[ml]e) ([\w].*|ou )(m) ).*', label):
+                account.ownership = AccountOwnership.CO_OWNER
+
+            # We check if the PSU firstname and lastname is in the account label
+            elif all(name in label.split() for name in psu_names):
+                account.ownership = AccountOwnership.OWNER
+
+        # Card Accounts should be set with the same ownership of their parents
+        for account in self.accounts_list:
+            if account.type == Account.TYPE_CARD:
+                account.ownership = account.parent.ownership
+
+
     @need_login
     def get_accounts_list(self):
         if not self.accounts_list:
@@ -266,6 +286,8 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
             self.accounts_list = [acc for acc in self.accounts_list if not any(w in acc.label.lower() for w in excluded_label)]
             if has_no_account and not self.accounts_list:
                 raise NoAccountsException(has_no_account)
+
+        self.ownership_guesser()
 
         return self.accounts_list
 
