@@ -339,12 +339,13 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
         params['movementSearch[fromDate]'] = (date.today() - relativedelta(years=3)).strftime('%d/%m/%Y')
         params['movementSearch[selectedAccounts][]'] = account._webid
         self.location('%s/mouvements' % account.url.rstrip('/'), params=params)
-        for t in self.page.iter_history():
-                yield t
+        for transaction in self.page.iter_history():
+            yield transaction
+
         if coming and account.type == Account.TYPE_CHECKING:
             self.location('%s/mouvements-a-venir' % account.url.rstrip('/'), params=params)
-            for t in self.page.iter_history(coming=True):
-                yield t
+            for transaction in self.page.iter_history(coming=True):
+                yield transaction
 
     def get_card_transactions(self, account, coming):
         # All card transactions can be found in the CSV (history and coming),

@@ -48,7 +48,7 @@ from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.value import Value
 from weboob.tools.date import parse_french_date
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard, VirtKeyboardError
-from weboob.tools.compat import urljoin
+from weboob.tools.compat import urljoin, urlencode, urlparse
 from weboob.exceptions import BrowserQuestion, BrowserIncorrectPassword, BrowserHTTPNotFound, BrowserUnavailable, ActionNeeded
 
 
@@ -435,12 +435,25 @@ class CalendarPage(LoggedPage, HTMLPage):
 
 
 class HistoryPage(LoggedPage, HTMLPage):
+    @pagination
     @method
     class iter_history(ListElement):
         item_xpath = '//ul[has-class("list__movement")]/li[div and not(contains(@class, "summary")) \
                                                                and not(contains(@class, "graph")) \
                                                                and not(contains(@class, "separator")) \
                                                                and not(contains(@class, "list__movement__line--deffered"))]'
+
+        def next_page(self):
+            next_page = self.el.xpath('//li[a[contains(text(), "Mouvements")]]')
+            if next_page:
+                next_page_token = Attr('.', 'data-operations-next-pagination')(next_page[0])
+                params = {
+                    'rumroute': 'accounts.bank.movements',
+                    'continuationToken': next_page_token
+                }
+                parsed = urlparse(self.page.url)
+                return '%s://%s%s?%s' %(parsed.scheme, parsed.netloc, parsed.path, urlencode(params))
+
 
         class item(ItemElement):
             klass = Transaction
