@@ -295,7 +295,7 @@ class CragrAPI(LoginBrowser):
 
                 # Loans have a specific ID that we need to fetch
                 # so the backend can match loans properly.
-                if account.type == Account.TYPE_LOAN:
+                if account.type in (Account.TYPE_LOAN, Account.TYPE_CONSUMER_CREDIT):
                     account.id = account.number = loan_ids.get(account._id_element_contrat, account.id)
                     account = self.switch_account_to_loan(account)
                 elif account.type == Account.TYPE_REVOLVING_CREDIT:
@@ -450,7 +450,7 @@ class CragrAPI(LoginBrowser):
             return
 
         # These three parameters are required to get the transactions for non_card accounts
-        if empty(account._index) or empty(account._category) or empty(account._id_element_contrat):
+        if empty(account._index) or empty(account._category) or empty(account._id_element_contrat) or account.type == Account.TYPE_CONSUMER_CREDIT:
             return
 
         self.go_to_account_space(account._contract)
