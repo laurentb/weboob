@@ -19,17 +19,25 @@
 
 from __future__ import unicode_literals
 
-import re
-
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import (
-    CleanText, Date, Regexp, Field, Currency, Upper, MapIn, Eval,
+    CleanText, CleanDecimal, Date, Regexp, Field, Currency, Upper, MapIn, Eval
 )
-from weboob.capabilities.bank import Account, Investment, Pocket
+from weboob.capabilities.bank import Account, Investment, Pocket, Transaction, NotAvailable
 
-from ..pages import MyDecimal, Transaction
 
+def MyDecimal(*args, **kwargs):
+    kwargs.update(replace_dots=True, default=NotAvailable)
+    return CleanDecimal(*args, **kwargs)
+
+
+class LoginPage(HTMLPage):
+    def login(self, login, password):
+        form = self.get_form(name="bloc_ident")
+        form['_cm_user'] = login
+        form['_cm_pwd'] = password
+        form.submit()
 
 ACCOUNTS_TYPES = {
     "pargne entreprise": Account.TYPE_PEE,

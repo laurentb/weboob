@@ -18,14 +18,17 @@
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.browser import URL, need_login
-from ..browser import CmesBrowser
+from weboob.browser import LoginBrowser, URL, need_login
+from weboob.exceptions import  BrowserIncorrectPassword
 from .pages import (
-    NewAccountsPage, OperationsListPage, OperationPage,
+    LoginPage, NewAccountsPage, OperationsListPage, OperationPage,
 )
 
 
-class CmesBrowserNew(CmesBrowser):
+class CmesBrowserNew(LoginBrowser):
+    BASEURL = 'https://www.cic-epargnesalariale.fr'
+
+    login = URL('r(?P<client_space>.*)fr/identification/authentification.html', LoginPage)
 
     accounts = URL(r'(?P<subsite>.*)espace-client/fr/epargnants/mon-epargne/situation-financiere-detaillee/index.html',
                    r'(?P<subsite>.*)espace-client/fr/epargnants/tableau-de-bord/index.html',
@@ -37,9 +40,33 @@ class CmesBrowserNew(CmesBrowser):
     operation = URL(r'(?P<subsite>.*)espace-client/fr/epargnants/operations/consulter-une-operation/index.html\?param_=(?P<idx>\d+)',
                     OperationPage)
 
+    def __init__(self, username, password, website, subsite="", *args, **kwargs):
+        super(LoginBrowser, self).__init__(*args, **kwargs)
+        self.BASEURL = website
+        self.username = username
+        self.password = password
+        self.subsite = subsite
+
+    @property
+    def logged(self):
+        return 'IdSes' in self.session.cookies
+
+    def do_login(self):
+        self.login.go()
+        self.page.login(self.username, self.password)
+
+        if self.login.is_here():
+            raise BrowserIncorrectPassword
+
+    @need_login
+    def iter_accounts(self):
+        self.accounts.go(subsite=self.subsite)
+        return self.page.iter_accounts()
+
     @need_login
     def iter_investment(self, account):
-        return self.accounts.stay_or_go(subsite=self.subsite).iter_investment(account=account)
+        self.accounts.stay_or_go(subsite=self.subsite, client_space=self.client_space)
+        return self.page.iter_investment(account=account)
 
     @need_login
     def iter_history(self, account):
