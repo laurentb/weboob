@@ -30,15 +30,17 @@ class CmesBrowserNew(LoginBrowser):
 
     login = URL('r(?P<client_space>.*)fr/identification/authentification.html', LoginPage)
 
-    accounts = URL(r'(?P<subsite>.*)espace-client/fr/epargnants/mon-epargne/situation-financiere-detaillee/index.html',
-                   r'(?P<subsite>.*)espace-client/fr/epargnants/tableau-de-bord/index.html',
+    accounts = URL(r'(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/mon-epargne/situation-financiere-detaillee/index.html',
+                   r'(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/tableau-de-bord/index.html',
                    NewAccountsPage)
 
-    operations_list = URL(r'(?P<subsite>.*)espace-client/fr/epargnants/operations/index.html',
+    operations_list = URL(r'(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/operations/index.html',
                           OperationsListPage)
 
-    operation = URL(r'(?P<subsite>.*)espace-client/fr/epargnants/operations/consulter-une-operation/index.html\?param_=(?P<idx>\d+)',
+    operation = URL(r'(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/operations/consulter-une-operation/index.html\?param_=(?P<idx>\d+)',
                     OperationPage)
+
+    client_space = 'espace-client/'
 
     def __init__(self, username, password, website, subsite="", *args, **kwargs):
         super(LoginBrowser, self).__init__(*args, **kwargs)
@@ -52,7 +54,7 @@ class CmesBrowserNew(LoginBrowser):
         return 'IdSes' in self.session.cookies
 
     def do_login(self):
-        self.login.go()
+        self.login.go(client_space=self.client_space)
         self.page.login(self.username, self.password)
 
         if self.login.is_here():
@@ -60,7 +62,7 @@ class CmesBrowserNew(LoginBrowser):
 
     @need_login
     def iter_accounts(self):
-        self.accounts.go(subsite=self.subsite)
+        self.accounts.go(subsite=self.subsite, client_space=self.client_space)
         return self.page.iter_accounts()
 
     @need_login
@@ -70,9 +72,9 @@ class CmesBrowserNew(LoginBrowser):
 
     @need_login
     def iter_history(self, account):
-        self.operations_list.stay_or_go(subsite=self.subsite)
+        self.operations_list.stay_or_go(subsite=self.subsite, client_space=self.client_space)
         for idx in self.page.get_operations_idx():
-            tr = self.operation.go(subsite=self.subsite, idx=idx).get_transaction()
+            tr = self.operation.go(subsite=self.subsite, client_space=self.client_space, idx=idx).get_transaction()
             if account.label == tr._account_label:
                 yield tr
 

@@ -95,7 +95,6 @@ class NewAccountsPage(LoggedPage, HTMLPage):
                 row.xpath('//div[contains(@id, "dv::s::%s")]' % id_diff[0].rsplit(':', 1)[0])[0] if id_diff else None,
             )
 
-
     def iter_investment(self, account):
         for row, elem_repartition, elem_pocket, elem_diff in self.iter_invest_rows(account=account):
             inv = Investment()
@@ -109,12 +108,12 @@ class NewAccountsPage(LoggedPage, HTMLPage):
             is_mirrored = '%' in row.text_content()
 
             if not is_mirrored:
-                inv.diff = MyDecimal('.//td[3]', default=NotAvailable)(row)
+                inv.diff = MyDecimal('.//td[3]')(row)
                 if elem_diff is not None:
                     inv.diff_ratio = Eval(lambda x: x / 100,
                                           MyDecimal(Regexp(CleanText('.'), r'([+-]?[\d\s]+[\d,]+)\s*%')))(elem_diff)
             else:
-                inv.diff = MyDecimal('.', defaut=NotAvailable)(elem_diff)
+                inv.diff = MyDecimal('.')(elem_diff)
                 if elem_diff is not None:
                     inv.diff_ratio = Eval(lambda x: x / 100,
                                           MyDecimal(Regexp(CleanText('.//td[3]'), r'([+-]?[\d\s]+[\d,]+)\s*%')))(row)
