@@ -19,7 +19,7 @@
 
 
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
-from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
+from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded, NoAccountsException
 
 from .pages import (
     LoginPage, AccountsPage, AMFHSBCPage, AMFAmundiPage, AMFSGPage, HistoryPage,
@@ -82,6 +82,7 @@ class S2eBrowser(LoginBrowser, StatesMixin):
     @need_login
     def iter_accounts(self):
         if 'accs' not in self.cache.keys():
+            no_accounts_message = None
             self.accounts.stay_or_go(slug=self.SLUG, lang=self.LANG)
             # weird wrongpass
             if not self.accounts.is_here():
@@ -92,11 +93,19 @@ class S2eBrowser(LoginBrowser, StatesMixin):
                 accs = []
                 for id in multi:
                     self.page.go_multi(id)
-                    for a in self.accounts.go(slug=self.SLUG).iter_accounts():
+                    self.accounts.go(slug=self.SLUG)
+                    if not no_accounts_message:
+                        no_accounts_message = self.page.get_no_accounts_message()
+                    for a in self.page.iter_accounts():
                         a._multi = id
                         accs.append(a)
             else:
+                no_accounts_message = self.page.get_no_accounts_message()
                 accs = [a for a in self.page.iter_accounts()]
+            if not len(accs) and no_accounts_message:
+                # Accounts list is empty and we found the
+                # message on at least one of the spaces:
+                raise NoAccountsException(no_accounts_message)
             self.cache['accs'] = accs
         return self.cache['accs']
 

@@ -31,7 +31,7 @@ from weboob.browser.filters.html import Attr, TableCell
 from weboob.capabilities.bank import Account, Investment, Pocket, Transaction
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard
-from weboob.exceptions import NoAccountsException, BrowserUnavailable, ActionNeeded, BrowserQuestion, BrowserIncorrectPassword
+from weboob.exceptions import BrowserUnavailable, ActionNeeded, BrowserQuestion, BrowserIncorrectPassword
 from weboob.tools.value import Value
 from weboob.tools.compat import urljoin
 
@@ -329,13 +329,6 @@ class MultiPage(HTMLPage):
 
 class AccountsPage(LoggedPage, MultiPage):
     def on_load(self):
-        no_accounts_message = CleanText('//span[contains(text(), "On this date, you still have no employee savings in this company.")] | '
-                        '//span[contains(text(), "On this date, you do not yet have any employee savings in this company.")] | '
-                        '//span[contains(text(), "On this date, you no longer have any employee savings in this company.")] | '
-                        '//p[contains(text(), "You no longer have any employee savings.")]')(self.doc)
-        if no_accounts_message:
-            raise NoAccountsException(no_accounts_message)
-
         if CleanText('//a//span[contains(text(), "J\'ACCEPTE LES CONDITIONS GENERALES D\'UTILISATION") or'
                      '          contains(text(), "I ACCEPT THE GENERAL CONDITIONS OF USE")]')(self.doc):
             raise ActionNeeded("Veuillez valider les conditions générales d'utilisation")
@@ -360,6 +353,16 @@ class AccountsPage(LoggedPage, MultiPage):
         u'withdrawal': Pocket.CONDITION_RETIREMENT,
         u'retraite': Pocket.CONDITION_RETIREMENT,
     }
+
+    def get_no_accounts_message(self):
+        no_accounts_message = CleanText(
+            '//span[contains(text(), "A ce jour, vous ne disposez plus d\'épargne salariale dans cette entreprise.")] | '
+            '//span[contains(text(), "On this date, you still have no employee savings in this company.")] | '
+            '//span[contains(text(), "On this date, you do not yet have any employee savings in this company.")] | '
+            '//span[contains(text(), "On this date, you no longer have any employee savings in this company.")] | '
+            '//p[contains(text(), "You no longer have any employee savings.")]'
+        )(self.doc)
+        return no_accounts_message
 
     @method
     class iter_accounts(TableElement):
