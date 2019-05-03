@@ -19,12 +19,22 @@
 
 from __future__ import unicode_literals
 
+import re
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Date, Regexp, Field, Currency, Upper, MapIn, Eval
 )
-from weboob.capabilities.bank import Account, Investment, Pocket, Transaction, NotAvailable
+from weboob.capabilities.bank import Account, Investment, Pocket, NotAvailable
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+
+
+class Transaction(FrenchTransaction):
+    PATTERNS = [(re.compile(u'^(?P<text>.*[Vv]ersement.*)'),  FrenchTransaction.TYPE_DEPOSIT),
+                (re.compile(u'^(?P<text>([Aa]rbitrage|[Pp]rélèvements.*))'), FrenchTransaction.TYPE_ORDER),
+                (re.compile(u'^(?P<text>([Rr]etrait|[Pp]aiement.*))'), FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile(u'^(?P<text>.*)'), FrenchTransaction.TYPE_BANK),
+               ]
 
 
 def MyDecimal(*args, **kwargs):
@@ -38,6 +48,7 @@ class LoginPage(HTMLPage):
         form['_cm_user'] = login
         form['_cm_pwd'] = password
         form.submit()
+
 
 ACCOUNTS_TYPES = {
     "pargne entreprise": Account.TYPE_PEE,
@@ -66,33 +77,57 @@ class NewAccountsPage(LoggedPage, HTMLPage):
                 return Field('label')(self) + number
 
     def iter_invest_rows(self, account):
+        """
+        Process each invest row, extract elements needed to get
+        pocket and valuation diff information.
+        There are even PERCO rows where invests are located into a 'repartition' element.
+        Returns (row, el_repartition, el_pocket, el_diff)
+        """
         for row in self.doc.xpath('//th/div[contains(., "%s")]/ancestor::table//table/tbody/tr' % account.label):
-            idx = re.search(r'_(\d+)\.', row.xpath('.//a[contains(@href, "GoFund")]/@id')[0]).group(1)
-            yield idx, row
+            id_repartition = row.xpath('.//td[1]//span[contains(@id, "rootSpan")]/@id')
+            id_pocket = row.xpath('.//td[2]//span[contains(@id, "rootSpan")]/@id')
+            id_diff = row.xpath('.//td[3]//span[contains(@id, "rootSpan")]/@id')
+
+            yield (
+                row,
+                row.xpath('//div[contains(@id, "dv::s::%s")]' % id_repartition[0].rsplit(':', 1)[0])[0] if id_repartition else None,
+                row.xpath('//div[contains(@id, "dv::s::%s")]' % id_pocket[0].rsplit(':', 1)[0])[0] if id_pocket else None,
+                row.xpath('//div[contains(@id, "dv::s::%s")]' % id_diff[0].rsplit(':', 1)[0])[0] if id_diff else None,
+            )
+
 
     def iter_investment(self, account):
-        for idx, row in self.iter_invest_rows(account=account):
+        for row, elem_repartition, elem_pocket, elem_diff in self.iter_invest_rows(account=account):
             inv = Investment()
             inv._account = account
-            inv._idx = idx
-            inv.label = CleanText('.//a[contains(@href, "GoFund")]/text()')(row)
+            inv._el_pocket = elem_pocket
+            inv.label = CleanText('.//td[1]')(row)
             inv.valuation = MyDecimal('.//td[2]')(row)
-            inv.diff_ratio = Eval(lambda x: x / 100, MyDecimal('.//td[3]'))(row)
 
-            # Get data from a popup not reachable from the current row
-            inv.diff = MyDecimal('//div[@id="I0:F1_%s.R20:D"]//span' % idx)(self.doc)
+            # On all Cmes children the row shows percentages and the popup shows absolute values in currency.
+            # On Cmes it is mirrored, the popup contains the percentage.
+            is_mirrored = '%' in row.text_content()
+
+            if not is_mirrored:
+                inv.diff = MyDecimal('.//td[3]', default=NotAvailable)(row)
+                if elem_diff is not None:
+                    inv.diff_ratio = Eval(lambda x: x / 100,
+                                          MyDecimal(Regexp(CleanText('.'), r'([+-]?[\d\s]+[\d,]+)\s*%')))(elem_diff)
+            else:
+                inv.diff = MyDecimal('.', defaut=NotAvailable)(elem_diff)
+                if elem_diff is not None:
+                    inv.diff_ratio = Eval(lambda x: x / 100,
+                                          MyDecimal(Regexp(CleanText('.//td[3]'), r'([+-]?[\d\s]+[\d,]+)\s*%')))(row)
 
             if account.balance != 0:
                 inv.portfolio_share = inv.valuation / account.balance
             yield inv
 
     def iter_pocket(self, inv):
-        for idx, _ in self.iter_invest_rows(account=inv._account):
-            if idx != inv._idx:
-                continue
-
-            for row in self.doc.xpath('//div[@id="I0:F1_%s.R16:D"]//tr[position()>1]' % idx):
+        if inv._el_pocket:
+            for i, row in enumerate(inv._el_pocket.xpath('.//tr[position()>1]')):
                 pocket = Pocket()
+                pocket.id = "%s%s%s" % (inv._account.label, inv.label, i)
                 pocket.label = inv.label
                 pocket.investment = inv
                 pocket.amount = MyDecimal('./td[2]')(row)
