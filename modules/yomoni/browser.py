@@ -113,6 +113,7 @@ class YomoniBrowser(APIBrowser):
 
             a = Account()
             a.id = "".join(me['numeroContrat'].split())
+            a.number = me['numeroContrat']
             a.label = " ".join(me['supportEpargne'].split("_"))
             a.type = Account.TYPE_LIFE_INSURANCE if "assurance vie" in a.label.lower() else \
                      Account.TYPE_MARKET if "compte titre" in a.label.lower() else \
@@ -121,7 +122,7 @@ class YomoniBrowser(APIBrowser):
             a.balance = CleanDecimal().filter(me['solde'])
             a.currency = u'EUR' # performanceEuro, montantEuro everywhere in Yomoni JSON
             a.iban = me['ibancompteTitre'] or NotAvailable
-            a.number = project['projectId']
+            a._project_id = project['projectId']
             a.valuation_diff = CleanDecimal().filter(me['performanceEuro'])
             a._startbalance = me['montantDepart']
 
@@ -168,8 +169,8 @@ class YomoniBrowser(APIBrowser):
     def iter_history(self, account):
         if account.id not in self.histories:
             histories = []
-            self.open('/user/%s/project/%s/activity' % (self.users['userId'], account.number), method="OPTIONS")
-            for activity in [acc for acc in self.request('/user/%s/project/%s/activity' % (self.users['userId'], account.number), headers=self.request_headers)['activities'] \
+            self.open('/user/%s/project/%s/activity' % (self.users['userId'], account._project_id), method="OPTIONS")
+            for activity in [acc for acc in self.request('/user/%s/project/%s/activity' % (self.users['userId'], account._project_id), headers=self.request_headers)['activities'] \
                              if acc['details'] is not None]:
                 m = re.search(u'([\d\,]+)(?=[\s]+€|[\s]+euro)', activity['details'])
                 if "Souscription" not in activity['title'] and not m:
