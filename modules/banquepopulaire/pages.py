@@ -396,14 +396,13 @@ class Login2Page(LoginPage):
             payload = {
                 'validate': {
                     form_id[0]: [{
-                        'id': self.form_id[1],
+                        'id': form_id[1],
                         'password': password,
                         'type': 'PASSWORD',
                     }]
                 }
             }
         r = self.browser.open(url, json=payload)
-
 
         doc = r.json()
         self.logger.debug('doc = %s', doc)
