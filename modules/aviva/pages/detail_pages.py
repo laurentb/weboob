@@ -26,6 +26,7 @@ from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import (
     CleanText, Capitalize, Format, Date, Regexp, CleanDecimal, Env, Currency, Field, Eval,
+    Coalesce,
 )
 from weboob.capabilities.bank import Investment, Transaction
 from weboob.capabilities.base import NotAvailable
@@ -76,13 +77,13 @@ class InvestmentPage(LoggedPage, HTMLPage):
 
     @method
     class iter_investment(ListElement):
-        item_xpath = '//div[has-class("m-table")]/table/tbody/tr[not(has-class("total"))]'
+        item_xpath = '//div[contains(@class, "m-table")]/table/tbody/tr[not(has-class("total"))]'
 
         class item(ItemElement):
             klass = Investment
 
             def condition(self):
-                return self.obj_label() not in ('Total', '')
+                return self.obj_label not in ('Total', '')
 
             obj_quantity = MyDecimal('./td[@data-label="Nombre de parts"]', default=NotAvailable)
             obj_unitvalue = MyDecimal('./td[@data-label="Valeur de la part"]')
@@ -91,11 +92,11 @@ class InvestmentPage(LoggedPage, HTMLPage):
                 CleanText('./td[@data-label="Date de valeur"]'), dayfirst=True, default=NotAvailable
             )
 
-            def obj_label(self):
-                label = CleanText('./th[@data-label="Nom du support"]/a')(self)
-                if not label:
-                    return CleanText('./td[@data-label="Nom du support"]')(self)
-                return label
+            obj_label = Coalesce(
+                CleanText('./th[@data-label="Nom du support"]/a'),
+                CleanText('./th[@data-label="Nom du support"]'),
+                CleanText('./td[@data-label="Nom du support"]'),
+            )
 
             def obj_code(self):
                 code = re.search(r'"(.*)"', CleanText('./th[@data-label="Nom du support"]/a/@onclick')(self))
