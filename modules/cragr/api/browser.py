@@ -317,6 +317,7 @@ class CragrAPI(LoginBrowser):
                 'ASSOC_CA_MODERE':      ('association',   'paiements-encaissements'),
                 'ENTREPRISE':           ('entreprise',    'paiements-encaissements'),
                 'PROFESSION_LIBERALE':  ('professionnel', 'paiements-encaissements'),
+                'PROMOTEURS':           ('professionnel', 'paiements-encaissements'),
             }
             assert space_type in cards_parameters, 'Space type %s has never been encountered before.' % space_type
 
@@ -616,6 +617,7 @@ class CragrAPI(LoginBrowser):
             'entreprise': 'paiements-encaissements',
             'banque-privee': 'moyens-paiement',
             'agriculteur': 'paiements-encaissements',
+            'promoteurs': 'paiements-encaissements',
         }
 
         referer = self.absurl('/%s/operations/%s/virement.html.html' % (self.space, operations[self.space]))
