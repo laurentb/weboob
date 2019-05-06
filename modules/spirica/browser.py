@@ -21,7 +21,7 @@ from __future__ import unicode_literals
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
-from weboob.browser.exceptions import ClientError
+from weboob.browser.exceptions import ClientError, ServerError
 
 from .pages import LoginPage, AccountsPage, DetailsPage, MaintenancePage
 
@@ -84,7 +84,7 @@ class SpiricaBrowser(LoginBrowser):
             if index < max_count:
                 try:
                     self.transaction_page.go_investments_form(transaction._index)
-                except ClientError as e:
+                except (ClientError, ServerError) as e:
                     self.logger.warning(e)
                 # Check if we are logged out
                 if self.login.is_here():
