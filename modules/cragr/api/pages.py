@@ -244,6 +244,9 @@ class AccountsPage(LoggedPage, JsonPage):
                 self.logger.warning('We got an untyped account: please add "%s" to ACCOUNT_TYPES.' % CleanText(Dict('comptePrincipal/libelleUsuelProduit'))(self))
             return _type
 
+    def has_main_cards(self):
+        return Dict('comptePrincipal/cartesDD', default=None)(self.doc)
+
     @method
     class iter_main_cards(DictElement):
         item_xpath = 'comptePrincipal/cartesDD'

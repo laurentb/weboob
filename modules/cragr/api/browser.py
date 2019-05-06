@@ -242,13 +242,14 @@ class CragrAPI(LoginBrowser):
                     self.logger.warning('Could not fetch the balance for main account %s.' % main_account.id)
 
             # Get cards for the main account
-            for card in self.page.iter_main_cards():
-                card.parent = main_account
-                card.currency = card.parent.currency
-                card.owner_type = card.parent.owner_type
-                card._category = card.parent._category
-                card._contract = contract
-                deferred_cards[card.id] = card
+            if self.page.has_main_cards():
+                for card in self.page.iter_main_cards():
+                    card.parent = main_account
+                    card.currency = card.parent.currency
+                    card.owner_type = card.parent.owner_type
+                    card._category = card.parent._category
+                    card._contract = contract
+                    deferred_cards[card.id] = card
 
             main_account.owner_type = self.page.get_owner_type()
             main_account._contract = contract
