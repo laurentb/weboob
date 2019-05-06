@@ -245,13 +245,14 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         else:
             for a in self.page.get_popup_life_insurance():
                 self.update_accounts(a)
-        # retrieve life insurance on special lcl life insurance website
-        if self.page.is_website_life_insurance():
-            self.go_life_insurance_website()
-            for life_insurance in self.page.iter_life_insurance():
-                life_insurance = self.update_life_insurance_account(life_insurance)
-                self.update_accounts(life_insurance)
-            self.go_back_from_life_insurance_website()
+
+            # retrieve life insurance on special lcl life insurance website
+            if self.page.is_website_life_insurance():
+                self.go_life_insurance_website()
+                for life_insurance in self.page.iter_life_insurance():
+                    life_insurance = self.update_life_insurance_account(life_insurance)
+                    self.update_accounts(life_insurance)
+                self.go_back_from_life_insurance_website()
 
         # retrieve accounts on main page
         self.accounts.go()
