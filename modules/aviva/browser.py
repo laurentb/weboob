@@ -59,6 +59,10 @@ class AvivaBrowser(LoginBrowser):
             # Request to account details sometimes returns a 500
             try:
                 self.location(account.url)
+                if not self.investment.is_here() or self.page.unavailable_details():
+                    # We don't scrape insurances, guarantees, health contracts
+                    # and accounts with unavailable balances
+                    continue
                 self.page.fill_account(obj=account)
                 yield account
             except BrowserHTTPError:

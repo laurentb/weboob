@@ -71,6 +71,9 @@ class InvestmentPage(LoggedPage, HTMLPage):
         history_link = self.doc.xpath('//li/a[contains(text(), "Historique")]/@href')
         return urljoin(self.browser.BASEURL, history_link[0]) if history_link else ''
 
+    def unavailable_details(self):
+        return CleanText('//p[contains(text(), "est pas disponible")]')(self.doc)
+
     @method
     class iter_investment(ListElement):
         item_xpath = '//div[has-class("m-table")]/table/tbody/tr[not(has-class("total"))]'
