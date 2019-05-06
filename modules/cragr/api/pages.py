@@ -170,6 +170,7 @@ ACCOUNT_TYPES = {
     'ESPACE LIB': Account.TYPE_LIFE_INSURANCE,  # Espace Liberté
     'ASS OPPORT': Account.TYPE_LIFE_INSURANCE,  # Assurance fonds opportunité
     'FLORIPRO': Account.TYPE_LIFE_INSURANCE,
+    'FLORIANE 2': Account.TYPE_LIFE_INSURANCE,
     'ATOUT LIB': Account.TYPE_REVOLVING_CREDIT,
     'PACC': Account.TYPE_CONSUMER_CREDIT,
     'PACP': Account.TYPE_CONSUMER_CREDIT,
