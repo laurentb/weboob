@@ -312,6 +312,7 @@ class CragrAPI(LoginBrowser):
             (it is the same on the website) so we must handle it with try/except. '''
             cards_parameters = {
                 'PARTICULIER':          ('particulier',   'moyens-paiement'),
+                'HORS_MARCHE':          ('particulier',   'moyens-paiement'),
                 'PROFESSIONNEL':        ('professionnel', 'paiements-encaissements'),
                 'AGRICULTEUR':          ('agriculteur',   'paiements-encaissements'),
                 'ASSOC_CA_MODERE':      ('association',   'paiements-encaissements'),
