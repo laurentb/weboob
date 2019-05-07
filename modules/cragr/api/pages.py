@@ -204,9 +204,13 @@ class AccountsPage(LoggedPage, JsonPage):
 
     def get_owner_type(self):
         OWNER_TYPES = {
-            'PARTICULIER':   AccountOwnerType.PRIVATE,
+            'PARTICULIER': AccountOwnerType.PRIVATE,
+            'HORS_MARCHE': AccountOwnerType.PRIVATE,
             'PROFESSIONNEL': AccountOwnerType.ORGANIZATION,
             'AGRICULTEUR': AccountOwnerType.ORGANIZATION,
+            'PROMOTEURS': AccountOwnerType.ORGANIZATION,
+            'ENTREPRISE': AccountOwnerType.ORGANIZATION,
+            'PROFESSION_LIBERALE': AccountOwnerType.ORGANIZATION,
             'ASSOC_CA_MODERE': AccountOwnerType.ASSOCIATION,
         }
         return OWNER_TYPES.get(Dict('marche')(self.doc), NotAvailable)
