@@ -23,7 +23,7 @@ from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 
 from .pages import (
-    LoginPage, AccountsPage, TransactionsInvestmentsPage, AllTransactionsPage,
+    LoginPage, HomePage, AccountsPage, TransactionsInvestmentsPage, AllTransactionsPage,
     DocumentsSignaturePage, RedirectToUserAgreementPage, UserAgreementPage,
 )
 
@@ -32,6 +32,7 @@ class GmfBrowser(LoginBrowser):
     BASEURL = 'https://espace-assure.gmf.fr'
 
     login = URL(r'/public/pages/securite/IC2.faces', LoginPage)
+    home = URL(r'/auth_soc_jwt', HomePage)
     redirect_to_user_agreement = URL('^$', RedirectToUserAgreementPage)
     user_agreement = URL(r'restreint/pages/securite/IC9.faces', UserAgreementPage)
     accounts = URL(r'/pointentree/client/homepage', AccountsPage)

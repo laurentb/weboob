@@ -20,6 +20,9 @@
 from __future__ import unicode_literals
 
 import re
+import string
+from io import BytesIO
+from PIL import ImageOps
 
 from weboob.browser.pages import FormNotFound, HTMLPage, LoggedPage, XMLPage
 from weboob.browser.elements import ItemElement, method, ListElement, TableElement
@@ -29,6 +32,7 @@ from weboob.browser.filters.standard import (
 )
 from weboob.browser.filters.html import Attr, TableCell
 from weboob.capabilities.base import NotAvailable
+from weboob.tools.captcha.virtkeyboard import SimpleVirtualKeyboard
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.exceptions import ActionNeeded
 
@@ -40,15 +44,63 @@ class Transaction(FrenchTransaction):
     ]
 
 
+class GMFVirtKeyboard(SimpleVirtualKeyboard):
+    symbols = {
+        '0': ('8926111c633bcb9095c9e16f08d5f2d6', 'b33872502b24a22963914e16e34e316c'),
+        '1': ('00ab2ee44993c8473c4ac102b81e0a0c', 'c08194001275e1210c22e41e03213b36'),
+        '2': ('5dcd16b8df5b320dbaa553fd462d50d1', '7db944b56030919af515ebc400c718f4'),
+        '3': ('5d4200f641e875393f94a2659dc064c0', '7e413c45e1a23f8ed6e27e97724643d3', '9f9fcbb1567b4545800d1c3ef8b64107'),
+        '4': ('0ab49e6c7f7f335e7f372cd650e172bf', '72b3bc4bd1c7f8f3ca952921eeeaac89'),
+        '5': ('bfb7fc8b7c6e32827bf225ff6622f823', 'e5ad397c3e2b6f62708b21feb247c722'),
+        '6': ('33da87aa31641ccba95021dd3f6a9934', 'b6ed461acff4f0f390a3305fce960deb'),
+        '7': ('1504a24af0e55059c005cb14b47867c4', 'eb0db140e0389d00a1424ff0591babff'),
+        '8': ('a3a1eb1209f7d411a74cdcc1033b3a08', 'cf7c8f2786cf5ea63eba0e44e2711e33'),
+        '9': ('4bbca204ddfe9145e0d1a976237d7bd0', '718a9890b2e197113cf8e1b0a38ee973')
+    }
+    nrow = 4
+    ncol = 4
+    tile_margin = 17
+    convert = 'RGBA'
+
+    def __init__(self, browser, img_url):
+        f = BytesIO(browser.open(img_url).content)
+        # Symbols are the 16 letters 'abcdefghijklmnop'
+        matching_symbols = string.ascii_lowercase[:16]
+        super(GMFVirtKeyboard, self).__init__(f, self.ncol, self.nrow, matching_symbols=matching_symbols)
+
+    def alter_image(self):
+        # We must add a margin all around the image
+        self.image = ImageOps.expand(self.image, border=(3, 4, 4, 3), fill='white')
+
+
 class LoginPage(HTMLPage):
+    VK_CLASS = GMFVirtKeyboard
+
+    def get_vk_url(self):
+        return Attr('//p[@class="keypad js-keypad"]//img', 'src')(self.doc)
+
     def login(self, login, password):
-        form = self.get_form('//form[@action="/j_security_check"]')
-        form['j_username'] = login
-        form['j_password'] = password
-        form.submit()
+        vk_url = self.get_vk_url()
+        # Note: there are only 20 different possible virtual keyboards.
+        # We need to pass the vk_id when posting the credentials.
+        vk_id = re.search(r'keypad-(\d+)\.png', vk_url).group(1)
+
+        vk = self.VK_CLASS(self.browser, vk_url)
+        password_positions = vk.get_string_code(password)
+
+        data = {
+            'username': login,
+            'password': password_positions,
+            'xzyz': vk_id
+        }
+        self.browser.home.go(data=data)
 
     def get_error(self):
         return CleanText('//div[contains(text(), "Erreur")]')(self.doc)
+
+
+class HomePage(LoggedPage, HTMLPage):
+    pass
 
 
 class AccountsPage(LoggedPage, HTMLPage):
