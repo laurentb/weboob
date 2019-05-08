@@ -153,6 +153,7 @@ def install_weboob(qt, xdg):
         'unidecode',
         'Pillow',
         'futures; python_version < "3.2"',
+        'Babel',
     ]
 
     try:
