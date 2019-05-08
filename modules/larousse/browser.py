@@ -25,13 +25,10 @@ from .pages import LangList, WordPage
 
 
 class LarousseBrowser(PagesBrowser):
-    BASEURL = 'http://www.larousse.fr'
+    BASEURL = 'https://www.larousse.fr'
 
     langlist = URL('/dictionnaires/bilingues$', LangList)
-    # warning: the order of params is important...
-    word = URL(r'/dictionnaires/rechercher\?q=(?P<word>.*)&l=(?P<src>\w+)-(?P<dst>\w+)&culture=',
-               r'/dictionnaires/(?P<src>\w+)-(?P<dst>\w+)/(?P<word>[^/]+)(?:/(?P<id>\d+))?',
-               WordPage)
+    word = URL(r'/dictionnaires/(?P<src>\w+)-(?P<dst>\w+)/(?P<word>.*)', WordPage)
 
     LANGS = None
 
