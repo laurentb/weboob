@@ -27,13 +27,13 @@ from weboob.browser.filters.standard import Env, CleanText
 from weboob.browser.pages import HTMLPage
 
 CODES = {
-    'allemand': 'German',
-    'anglais': 'English',
-    'arabe': 'Arabic',
-    'chinois': 'Chinese',
-    'espagnol': 'Spanish',
-    'francais': 'French',
-    'italien': 'Italian',
+    'allemand': 'de',
+    'anglais': 'en',
+    'arabe': 'ar',
+    'chinois': 'zh',
+    'espagnol': 'es',
+    'francais': 'fr',
+    'italien': 'it',
 }
 
 RCODES = {v: k for k, v in CODES.items()}

@@ -36,20 +36,31 @@ class WordReferenceModule(Module, CapTranslate):
     NAME = 'wordreference'
     DESCRIPTION = u'Free online translator'
     BROWSER = WordReferenceBrowser
-    WRLANGUAGE = {
-        'Arabic': 'ar', 'Chinese': 'zh', 'Czech': 'cz', 'English': 'en', 'French': 'fr', 'Greek': 'gr',
-        'Italian': 'it', 'Japanese': 'ja', 'Korean': 'ko', 'Polish': 'pl', 'Portuguese': 'pt',
-        'Romanian': 'ro', 'Spanish': 'es', 'Turkish': 'tr',
-        }
+    WRLANGUAGE = [
+        'ar',
+        'zh',
+        'cz',
+        'en',
+        'fr',
+        'gr',
+        'it',
+        'ja',
+        'ko',
+        'pl',
+        'pt',
+        'ro',
+        'es',
+        'tr',
+    ]
 
     def translate(self, lan_from, lan_to, text):
-        if lan_from not in self.WRLANGUAGE.keys():
+        if lan_from not in self.WRLANGUAGE:
             raise LanguageNotSupported()
 
-        if lan_to not in self.WRLANGUAGE.keys():
+        if lan_to not in self.WRLANGUAGE:
             raise LanguageNotSupported()
 
-        translations = self.browser.translate(self.WRLANGUAGE[lan_from], self.WRLANGUAGE[lan_to], text)
+        translations = self.browser.translate(lan_from, lan_to, text)
         has_translation = False
 
         for translation in translations:
