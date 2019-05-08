@@ -19,10 +19,13 @@
 
 from __future__ import print_function
 
+import re
+
 from weboob.capabilities.translate import CapTranslate, TranslationFail, LanguageNotSupported
 from weboob.tools.application.repl import ReplApplication
 from weboob.tools.application.formatters.iformatter import IFormatter
-
+from babel.core import Locale, UnknownLocaleError
+from babel.localedata import locale_identifiers
 
 __all__ = ['Translaboob']
 
@@ -57,18 +60,19 @@ class Translaboob(ReplApplication):
         }
     COMMANDS_FORMATTERS = {'translate': 'translation',
         }
-    LANGUAGE = {
-        'ar': 'Arabic', 'af': 'Afrikaans', 'sq': 'Albanian', 'hy': 'Armenian', 'az': 'Azerbaijani', 'eu': 'Basque', 'be': 'Belarusian',
-        'bn': 'Bengali', 'bg': 'Bulgarian', 'ca': 'Catalan', 'zh': 'Chinese', 'hr': 'Croatian', 'cz': 'Czech', 'da': 'Danish',
-        'nl': 'Dutch', 'en': 'English', 'eo': 'Esperanto', 'et': 'Estonian', 'tl': 'Filipino', 'fi': 'Finnish', 'fr': 'French',
-        'gl': 'Galician', 'ka': 'Georgian', 'de': 'German', 'gr': 'Greek', 'gu': 'Gujarati', 'ht': 'Haitian', 'iw': 'Hebrew',
-        'hi': 'Hindi', 'hu': 'Hungaric', 'is': 'Icelandic', 'id': 'Indonesian', 'ga': 'Irish', 'it': 'Italian', 'ja': 'Japanese',
-        'kn': 'Kannada', 'ko': 'Korean', 'la': 'Latin', 'lv': 'Latvian', 'lt': 'Lithuanian', 'mk': 'Macedonian', 'ms': 'Malay',
-        'mt': 'Maltese', 'no': 'Norwegian', 'fa': 'Persian', 'pl': 'Polish', 'pt': 'Portuguese', 'ro': 'Romanian', 'ru': 'Russian',
-        'sr': 'Serbian', 'sk': 'Slovak', 'sl': 'Slovenian', 'es': 'Spanish', 'sw': 'Swahili', 'sv': 'Swedish', 'ta': 'Tamil',
-        'te': 'Telugu', 'th': 'Thai', 'tr': 'Turkish', 'uk': 'Ukrainian', 'ur': 'Urdu', 'vi': 'Vietnamese', 'cy': 'Welsh', 'yi': 'Yiddish',
-        'nigger': 'Nigger!',
-        }
+
+    def parse_lang(self, s):
+        try:
+            locale = Locale.parse(s)
+        except UnknownLocaleError:
+            pattern = re.compile(r'\b%s\b' % re.escape(s), re.I)
+            for locale_id in locale_identifiers():
+                locale = Locale.parse(locale_id)
+                if pattern.search(locale.english_name):
+                    return locale.language
+            return s
+        else:
+            return locale.language
 
     def do_translate(self, line):
         """
@@ -103,16 +107,14 @@ class Translaboob(ReplApplication):
         lan_from, lan_to, text = self.parse_command_args(line, 3, 2)
 
         try:
-            if lan_from not in self.LANGUAGE.keys():
-                raise LanguageNotSupported()
-            if lan_to not in self.LANGUAGE.keys():
-                raise LanguageNotSupported()
+            lan_from = self.parse_lang(lan_from)
+            lan_to = self.parse_lang(lan_to)
 
             if not text or text == '-':
                 text = self.acquire_input()
 
             self.start_format(source=text)
-            for translation in self.do('translate', self.LANGUAGE[lan_from], self.LANGUAGE[lan_to], text):
+            for translation in self.do('translate', lan_from, lan_to, text):
                 self.format(translation)
         except (TranslationFail, LanguageNotSupported) as error:
             print(error, file=self.stderr)
