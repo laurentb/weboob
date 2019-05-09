@@ -41,7 +41,7 @@ from weboob.capabilities.bank import (
     AddRecipientBankError, TransferInvalidAmount, Loan, AccountOwnership,
 )
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
-from weboob.capabilities.base import NotAvailable, Currency
+from weboob.capabilities.base import NotAvailable, Currency, find_object
 from weboob.capabilities.profile import Person
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_iban_valid
@@ -845,19 +845,28 @@ class ProfilePage(LoggedPage, HTMLPage):
 
 class CardsNumberPage(LoggedPage, HTMLPage):
     def populate_cards_number(self, cards):
-        for card in cards:
-            # The second hash of the card's url is used to get
-            # the card's hash on the HTML page:
-            card_url_hash = re.search('carte\/(.*)', card.url).group(1)
-            card_hash = CleanText('//nav[ul[li[a[contains(@href, "%s")]]]]/@data-card-key' % card_url_hash)(self.doc)
-            # With the card hash we can get the card number.
-            # Non activated cards have no card_hash and therefore no
-            # card number so we can easily eliminate them afterwards.
-            card_details = CleanText('//div[@data-card-key="%s"]' % card_hash)(self.doc).replace(' ', '')
-            # We are looking for "4978********1234" in card_details:
-            number_search = re.search(r'\d{4}\*{8}\d{4}', card_details)
-            if number_search:
-                card.number = number_search.group(0)
+        """
+        Cards seems to be related to 2 hashs. The first one is already set in the account`id` (card.id)
+        the second one is only findable in this page (which gives us the card number).
+        We need to find the link between both hash to set the card number to the good account.
+        """
+
+        # We get all related card hashs in the page associate each one with the correct card account
+        for _hash in self.doc.xpath('//div[contains(@class, "credit-card-carousel")]/@data-card-key'):
+            # We get the card number associate to the cards_hash
+            card_number = CleanText(
+                '//div[@data-card-key="%s" and contains(@class, "credit-card-carousel")]'
+                '//*[local-name()="svg"]//*[local-name()="tspan"]' % _hash,
+                replace=[(' ', '')]
+            )(self.doc)
+
+            # There is only one place in the code where we can associate both hash to each other. The second hash
+            # that we found with the first one match with a card account id.
+            url = Link('//nav[@data-card-key="%s"]//a[contains(@href, "calendrier")]' % _hash)(self.doc)
+            card_id = re.search(r'\/carte\/(.*)\/calendrier', url).group(1)
+
+            card = find_object(cards, id=card_id, error=AccountNotFound)
+            card.number = card_number
 
 
 class HomePage(LoggedPage, HTMLPage):
