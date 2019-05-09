@@ -226,7 +226,7 @@ class RedirectPage(LoggedPage, MyHTMLPage):
                 redirect_url = m.group(1)
 
             for line in script.text.split('\r\n'):
-                m = re.match("^var (\w+) = [^']*'([^']*)'.*", line)
+                m = re.match("^var (\w+) ?= ?[^']*'([^']*)'.*", line)
                 if m:
                     args[m.group(1)] = m.group(2)
 
