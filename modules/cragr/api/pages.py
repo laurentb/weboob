@@ -35,7 +35,7 @@ from weboob.capabilities.profile import Person, Company
 from weboob.capabilities.contact import Advisor
 from weboob.browser.elements import DictElement, ItemElement, method
 from weboob.browser.filters.standard import (
-    CleanText, CleanDecimal, Currency as CleanCurrency, Format, Field, Map, Eval, Env, Regexp, Date,
+    CleanText, CleanDecimal, Currency as CleanCurrency, Format, Field, Map, Eval, Env, Regexp, Date, Coalesce,
 )
 from weboob.browser.filters.html import Attr
 from weboob.browser.filters.json import Dict
@@ -175,7 +175,7 @@ ACCOUNT_TYPES = {
     'ATOUT LIB': Account.TYPE_REVOLVING_CREDIT,
     'PACC': Account.TYPE_CONSUMER_CREDIT,
     'PACP': Account.TYPE_CONSUMER_CREDIT,
-    'SUPPLETIS': Account.TYPE_CONSUMER_CREDIT,
+    'SUPPLETIS': Account.TYPE_REVOLVING_CREDIT,
     'PAGR': Account.TYPE_MADELIN,
 }
 
@@ -285,7 +285,7 @@ class AccountsPage(LoggedPage, JsonPage):
 
             def obj_id(self):
                 # Loan/credit ids may be duplicated so we use the contract number for now:
-                if Field('type')(self) in (Account.TYPE_LOAN, Account.TYPE_CONSUMER_CREDIT):
+                if Field('type')(self) in (Account.TYPE_LOAN, Account.TYPE_CONSUMER_CREDIT, Account.TYPE_REVOLVING_CREDIT):
                     return CleanText(Dict('idElementContrat'))(self)
                 return CleanText(Dict('numeroCompte'))(self)
 
@@ -293,7 +293,10 @@ class AccountsPage(LoggedPage, JsonPage):
             obj_label = CleanText(Dict('libelleProduit'))
             obj_currency = CleanCurrency(Dict('idDevise'))
             obj__index = Dict('index')
-            obj__category = Dict('grandeFamilleProduitCode', default=None)
+            obj__category = Coalesce(
+                Dict('grandeFamilleProduitCode', default=None),
+                Dict('sousFamilleProduit/niveau', default=None),
+                default=None)
             obj__id_element_contrat = CleanText(Dict('idElementContrat'))
             obj__fam_product_code = CleanText(Dict('codeFamilleProduitBam'))
             obj__fam_contract_code = CleanText(Dict('codeFamilleContratBam'))
