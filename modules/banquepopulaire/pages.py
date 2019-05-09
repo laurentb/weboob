@@ -682,6 +682,11 @@ class CardsPage(LoggedPage, MyHTMLPage):
                 self.logger.debug('there are no cards on this page')
                 continue
 
+            # We are processing another card, so reset account
+            if CleanText('.')(cols[0]) and account is not None:
+                yield account
+                account = None
+
             id = CleanText(None).filter(cols[self.COL_ID])
             if len(id) > 0:
                 if account is not None:
@@ -700,7 +705,15 @@ class CardsPage(LoggedPage, MyHTMLPage):
                 account._coming_params = params.copy()
                 account._coming_params['dialogActionPerformed'] = 'SELECTION_ENCOURS_CARTE'
                 account._coming_params['attribute($SEL_$%s)' % tr.attrib['id'].split('_')[0]] = tr.attrib['id'].split('_', 1)[1]
-                account._coming_count = len(self.doc.xpath('//table[@id="tbl1"]/tbody/tr/td[5]/span[not(contains(text(), "(1)"))]'))
+
+                # select current row and next rows till parent name is empty
+                account._coming_start = int(tr.attrib['id'].split('_', 1)[1])
+                account._coming_count = 1
+                for row in tr.xpath('./following-sibling::tr[./td[5]/span[not(contains(text(), "(1)"))]]'):
+                    if CleanText('./td[2]')(row):
+                        break
+                    account._coming_count += 1
+
             elif account is None:
                 raise BrokenPageError('Unable to find accounts on cards page')
             else:

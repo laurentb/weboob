@@ -368,7 +368,8 @@ class BanquePopulaire(LoginBrowser):
                     self.location('/cyber/internet/Page.do', params=next_params)
 
         if coming and account._coming_count:
-            for i in range(account._coming_count):
+            for i in range(account._coming_start,
+                           account._coming_start + account._coming_count):
                 for tr in get_history_by_receipt(account, coming, sel_tbl1=i):
                     yield tr
         else:
