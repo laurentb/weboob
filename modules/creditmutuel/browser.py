@@ -37,7 +37,7 @@ from weboob.capabilities.bank import Account, AddRecipientStep, Recipient, Accou
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
 from weboob.capabilities import NotAvailable
 from weboob.tools.compat import urlparse
-from weboob.capabilities.base import find_object
+from weboob.capabilities.base import find_object, empty
 
 from .pages import (
     LoginPage, LoginErrorPage, AccountsPage, UserSpacePage,
@@ -196,7 +196,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
 
         # Card Accounts should be set with the same ownership of their parents
         for account in self.accounts_list:
-            if account.type == Account.TYPE_CARD:
+            if account.type == Account.TYPE_CARD and not empty(account.parent):
                 account.ownership = account.parent.ownership
 
 
