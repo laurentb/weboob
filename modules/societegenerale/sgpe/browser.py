@@ -29,7 +29,7 @@ from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded, NoAccounts
 from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import (
     AccountNotFound, RecipientNotFound, AddRecipientStep, AddRecipientBankError,
-    Recipient, TransferBankError,
+    Recipient, TransferBankError, AccountOwnerType,
 )
 from weboob.tools.value import Value
 
@@ -174,6 +174,7 @@ class SGEnterpriseBrowser(SGPEBrowser):
             self.intraday_balances.go()
 
         for acc in self.page.populate_balances(accounts):
+            acc.owner_type = AccountOwnerType.ORGANIZATION
             yield acc
 
     @need_login

@@ -25,7 +25,7 @@ from dateutil.relativedelta import relativedelta
 
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded, BrowserUnavailable
-from weboob.capabilities.bank import Account, TransferBankError, AddRecipientStep, TransactionType
+from weboob.capabilities.bank import Account, TransferBankError, AddRecipientStep, TransactionType, AccountOwnerType
 from weboob.capabilities.base import find_object, NotAvailable
 from weboob.browser.exceptions import BrowserHTTPNotFound, ClientError
 from weboob.capabilities.profile import ProfileMissing
@@ -164,6 +164,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
                 card.currency = account.currency
                 card._internal_id = el['idTechnique']
                 card._prestation_id = el['id']
+                card.owner_type = AccountOwnerType.PRIVATE
                 yield card
 
     @need_login
@@ -202,7 +203,10 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
             for card in self.iter_cards(account):
                 card.parent = account
                 card.ownership = account.ownership
+                card.owner_type = AccountOwnerType.PRIVATE
                 yield card
+
+            account.owner_type = AccountOwnerType.PRIVATE
 
             if account._prestation_id in account_ibans:
                 account.iban = account_ibans[account._prestation_id]
