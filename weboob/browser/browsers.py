@@ -1060,9 +1060,12 @@ class OAuth2Mixin(StatesMixin):
     def use_refresh_token(self):
         self.logger.info('refreshing token')
 
-        data = {'grant_type':       'refresh_token',
-                'refresh_token':    self.refresh_token,
-               }
+        data = {
+            'grant_type': 'refresh_token',
+            'refresh_token': self.refresh_token,
+            'client_id': self.client_id,
+            'client_secret': self.client_secret,
+        }
         try:
             auth_response = self.do_token_request(data).json()
         except ClientError:
