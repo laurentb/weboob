@@ -298,6 +298,9 @@ class CragrAPI(LoginBrowser):
                 # so the backend can match loans properly.
                 if account.type in (Account.TYPE_LOAN, Account.TYPE_CONSUMER_CREDIT):
                     account.id = account.number = loan_ids.get(account._id_element_contrat, account.id)
+                    if empty(account.balance):
+                        self.logger.warning('Loan skip: no balance is available for %s, %s account' % (account.id, account.label))
+                        continue
                     account = self.switch_account_to_loan(account)
                 elif account.type == Account.TYPE_REVOLVING_CREDIT:
                     account.id = account.number = loan_ids.get(account._id_element_contrat, account.id)
