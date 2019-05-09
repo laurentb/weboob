@@ -32,7 +32,7 @@ from weboob.browser.url import URL
 from weboob.capabilities.bank import Account, AddRecipientStep, Recipient, TransferBankError, Transaction, TransferStep
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.profile import Profile
-from weboob.browser.exceptions import BrowserHTTPNotFound, ClientError
+from weboob.browser.exceptions import BrowserHTTPNotFound, ClientError, ServerError
 from weboob.exceptions import (
     BrowserIncorrectPassword, BrowserUnavailable, BrowserHTTPError, BrowserPasswordExpired, ActionNeeded
 )
@@ -445,15 +445,26 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                 if self.page.check_no_accounts() or self.page.check_no_loans():
                     return []
 
-            for _ in range(3):
-                self.home_tache.go(tache='CRESYNT0')
+            access_to_loans = False
+            max_count = 0
+            while not access_to_loans and max_count < 5:
+                for _ in range(3):
+                    self.home_tache.go(tache='CRESYNT0')
+                    if self.home.is_here():
+                        break
                 if self.home.is_here():
-                    break
-
-            if self.home.is_here():
-                if not self.page.is_access_error():
-                    self.loans = list(self.page.get_real_estate_loans())
-                    self.loans.extend(self.page.get_loan_list())
+                    if not self.page.is_access_error():
+                        # The server often returns a 520 error (Undefined):
+                        try:
+                            self.loans = list(self.page.get_real_estate_loans())
+                            self.loans.extend(self.page.get_loan_list())
+                        except ServerError:
+                            self.logger.warning('Access to loans failed, we try again')
+                            max_count += 1
+                        else:
+                            access_to_loans = True
+            if not access_to_loans:
+                raise BrowserUnavailable()
 
             for _ in range(3):
                 try:
