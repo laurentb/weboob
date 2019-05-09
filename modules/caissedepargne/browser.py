@@ -69,7 +69,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                 'https://.*/login.aspx', LoginPage)
     account_login = URL('/authentification/manage\?step=account&identifiant=(?P<login>.*)&account=(?P<accountType>.*)', LoginPage)
     loading = URL('https://.*/CreditConso/ReroutageCreditConso.aspx', LoadingPage)
-    cons_loan = URL('https://www.credit-conso-cr.caisse-epargne.fr/websavcr-web/rest/contrat/getContrat\?datePourIe(?P<datepourie>)', ConsLoanPage)
+    cons_loan = URL('https://www.credit-conso-cr.caisse-epargne.fr/websavcr-web/rest/contrat/getContrat\?datePourIe=(?P<datepourie>)', ConsLoanPage)
     transaction_detail = URL('https://.*/Portail.aspx.*', TransactionsDetailsPage)
     recipient = URL('https://.*/Portail.aspx.*', RecipientPage)
     transfer = URL('https://.*/Portail.aspx.*', TransferPage)
@@ -333,7 +333,10 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         days = ('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun')
         month = ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
         now = datetime.datetime.today()
-        d = '%s %s %s %s %s:%s:%s GMT+0100 (heure normale d’Europe centrale)' % (days[now.weekday()], now.day, month[now.month - 1], now.year, now.hour, format(now.minute, "02"), now.second)
+        # for non-DST
+        # d = '%s %s %s %s %s:%s:%s GMT+0100 (heure normale d’Europe centrale)' % (days[now.weekday()], now.day, month[now.month - 1], now.year, now.hour, format(now.minute, "02"), now.second)
+        # TODO use babel library to simplify this code
+        d = '%s %s %s %s %s:%s:%s GMT+0200 (heure d’été d’Europe centrale)' % (days[now.weekday()], now.day, month[now.month - 1], now.year, now.hour, format(now.minute, "02"), now.second)
         if self.home.is_here():
             msg = self.page.loan_unavailable_msg()
             if msg:
