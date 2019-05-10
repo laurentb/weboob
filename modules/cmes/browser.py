@@ -25,13 +25,13 @@ from .pages import (
 )
 
 
-class CmesBrowserNew(LoginBrowser):
+class CmesBrowser(LoginBrowser):
     BASEURL = 'https://www.cic-epargnesalariale.fr'
 
-    login = URL('r(?P<client_space>.*)fr/identification/authentification.html', LoginPage)
+    login = URL(r'(?P<client_space>.*)fr/identification/authentification.html', LoginPage)
 
-    action_needed = URL('(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/premiers-pas/saisir-vos-coordonnees.*',
-                        '(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/conditions-generales-d-utilisation/index.html',
+    action_needed = URL(r'(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/premiers-pas/saisir-vos-coordonnees.*',
+                        r'(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/conditions-generales-d-utilisation/index.html',
                         ActionNeededPage)
 
     accounts = URL(r'(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/mon-epargne/situation-financiere-detaillee/index.html',
