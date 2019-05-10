@@ -21,7 +21,7 @@
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import  BrowserIncorrectPassword
 from .pages import (
-    LoginPage, NewAccountsPage, OperationsListPage, OperationPage,
+    LoginPage, NewAccountsPage, OperationsListPage, OperationPage, ActionNeededPage,
 )
 
 
@@ -29,6 +29,10 @@ class CmesBrowserNew(LoginBrowser):
     BASEURL = 'https://www.cic-epargnesalariale.fr'
 
     login = URL('r(?P<client_space>.*)fr/identification/authentification.html', LoginPage)
+
+    action_needed = URL('(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/premiers-pas/saisir-vos-coordonnees.*',
+                        '(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/conditions-generales-d-utilisation/index.html',
+                        ActionNeededPage)
 
     accounts = URL(r'(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/mon-epargne/situation-financiere-detaillee/index.html',
                    r'(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/tableau-de-bord/index.html',

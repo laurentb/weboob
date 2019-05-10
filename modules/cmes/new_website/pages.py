@@ -25,8 +25,10 @@ from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Date, Regexp, Field, Currency, Upper, MapIn, Eval
 )
+from weboob.browser.filters.html import Link
 from weboob.capabilities.bank import Account, Investment, Pocket, NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.exceptions import ActionNeeded
 
 
 class Transaction(FrenchTransaction):
@@ -48,6 +50,28 @@ class LoginPage(HTMLPage):
         form['_cm_user'] = login
         form['_cm_pwd'] = password
         form.submit()
+
+
+class ActionNeededPage(HTMLPage, LoggedPage):
+    def on_load(self):
+        # Need to update mail. Try to skip
+        msg = "Merci de renseigner votre adresse e-mail"
+        if CleanText('//p[@role="heading" and contains(text(), "%s")]' % msg)(self.doc):
+            url = Link('//a[contains(., "PASSER CETTE ETAPE")]')(self.doc)
+            if url:
+                self.browser.location(url)
+            else:
+                raise ActionNeeded(msg)
+
+        # Mobile phone update can not be skipped
+        msg = "Merci de renseigner votre numéro de téléphone mobile"
+        if CleanText('//p[@role="heading" and contains(text(), "%s")]' % msg)(self.doc):
+            raise ActionNeeded(msg)
+
+        # CGU, can not bypass
+        msg = "Veuillez accepter les conditions générales d'utilisation"
+        if CleanText('//p[@role="heading" and contains(text(), "%s")]' % msg)(self.doc):
+            raise ActionNeeded(msg)
 
 
 ACCOUNTS_TYPES = {
