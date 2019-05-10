@@ -28,7 +28,7 @@ __all__ = ['GroupamaesBrowser']
 class GroupamaesBrowser(AbstractBrowser):
     PARENT = 'cmes'
 
-    login = URL('/groupama-es/espace-client/fr/identification/authentification.html', LoginPage)
+    login = URL('/groupama-es/(?P<client_space>.*)fr/identification/authentification.html', LoginPage)
 
     def __init__(self, login, password, baseurl, subsite, *args, **kwargs):
         self.weboob = kwargs['weboob']
