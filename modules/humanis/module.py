@@ -46,7 +46,7 @@ class HumanisModule(Module, CapBankPockets):
             self.config['login'].get(),
             self.config['password'].get(),
             'https://www.gestion-epargne-salariale.fr',
-            'humanis/',
+            'epsens/',
             weboob=self.weboob
         )
 
