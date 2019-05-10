@@ -41,7 +41,7 @@ from weboob.capabilities.bank import (
     AddRecipientBankError, TransferInvalidAmount, Loan, AccountOwnership,
 )
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
-from weboob.capabilities.base import NotAvailable, Currency, find_object
+from weboob.capabilities.base import NotAvailable, Currency, find_object, empty
 from weboob.capabilities.profile import Person
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_iban_valid
@@ -862,11 +862,13 @@ class CardsNumberPage(LoggedPage, HTMLPage):
 
             # There is only one place in the code where we can associate both hash to each other. The second hash
             # that we found with the first one match with a card account id.
-            url = Link('//nav[@data-card-key="%s"]//a[contains(@href, "calendrier")]' % _hash)(self.doc)
-            card_id = re.search(r'\/carte\/(.*)\/calendrier', url).group(1)
+            url = Link('//nav[@data-card-key="%s"]//a[contains(@href, "calendrier")]' % _hash, NotAvailable)(self.doc)
 
-            card = find_object(cards, id=card_id, error=AccountNotFound)
-            card.number = card_number
+            # If there is no coming, that's not a deferred card
+            if not empty(url):
+                card_id = re.search(r'\/carte\/(.*)\/calendrier', url).group(1)
+                card = find_object(cards, id=card_id, error=AccountNotFound)
+                card.number = card_number
 
 
 class HomePage(LoggedPage, HTMLPage):
