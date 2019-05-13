@@ -185,7 +185,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
     # need to post to valid otp when adding recipient.
     def locate_browser(self, state):
-        if 'is_send_sms' in state and state['is_send_sms'] is not None:
+        if 'is_send_sms' in state and state['is_send_sms']:
             super(CaisseEpargne, self).locate_browser(state)
 
     def do_login(self):
