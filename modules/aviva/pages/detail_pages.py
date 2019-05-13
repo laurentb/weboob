@@ -83,7 +83,7 @@ class InvestmentPage(LoggedPage, HTMLPage):
             klass = Investment
 
             def condition(self):
-                return self.obj_label not in ('Total', '')
+                return Field('label')(self) not in ('Total', '')
 
             obj_quantity = MyDecimal('./td[@data-label="Nombre de parts"]', default=NotAvailable)
             obj_unitvalue = MyDecimal('./td[@data-label="Valeur de la part"]')
