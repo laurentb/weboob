@@ -26,7 +26,7 @@ from weboob.browser.browsers import LoginBrowser, need_login, StatesMixin
 from weboob.browser.url import URL
 from weboob.browser.exceptions import ClientError
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded, NoAccountsException
-from weboob.capabilities.base import find_object
+from weboob.capabilities.base import find_object, NotAvailable
 from weboob.capabilities.bank import (
     AccountNotFound, RecipientNotFound, AddRecipientStep, AddRecipientBankError,
     Recipient, TransferBankError, AccountOwnerType,
@@ -36,7 +36,7 @@ from weboob.tools.value import Value
 from .pages import (
     LoginPage, CardsPage, CardHistoryPage, IncorrectLoginPage,
     ProfileProPage, ProfileEntPage, ChangePassPage, SubscriptionPage, InscriptionPage,
-    ErrorPage, UselessPage,
+    ErrorPage, UselessPage, MainPage, MarketAccountPage, MarketInvestmentPage,
 )
 from .json_pages import (
     AccountsJsonPage, BalancesJsonPage, HistoryJsonPage, BankStatementPage,
@@ -107,6 +107,10 @@ class SGPEBrowser(LoginBrowser):
 
     @need_login
     def get_cb_operations(self, account):
+        if account.type in (account.TYPE_MARKET, ):
+            # market account transactions are in checking account
+            return
+
         self.location('/Pgn/NavigationServlet?PageID=Cartes&MenuID=%sOPF&Classeur=1&NumeroPage=1&Rib=%s&Devise=%s' % (self.MENUID, account.id, account.currency))
 
         if self.inscription_page.is_here():
@@ -132,6 +136,8 @@ class SGEnterpriseBrowser(SGPEBrowser):
     MENUID = 'BANREL'
     CERTHASH = '2231d5ddb97d2950d5e6fc4d986c23be4cd231c31ad530942343a8fdcc44bb99'
 
+    main_page = URL('/icd-web/syd-front/index-comptes.html', MainPage)
+
     accounts = URL('/icd/syd-front/data/syd-comptes-accederDepuisMenu.json', AccountsJsonPage)
     intraday_accounts = URL('/icd/syd-front/data/syd-intraday-accederDepuisMenu.json', AccountsJsonPage)
 
@@ -141,6 +147,13 @@ class SGEnterpriseBrowser(SGPEBrowser):
     history = URL('/icd/syd-front/data/syd-comptes-chargerReleve.json',
                   '/icd/syd-front/data/syd-intraday-chargerDetail.json', HistoryJsonPage)
     history_next = URL('/icd/syd-front/data/syd-comptes-chargerProchainLotEcriture.json', HistoryJsonPage)
+
+    market_investment = URL(r'/Pgn/NavigationServlet\?.*PageID=CompteTitreDetailFrame',
+                            r'/Pgn/NavigationServlet\?.*PageID=CompteTitreDetail',
+                            MarketInvestmentPage)
+    market_accounts = URL(r'/Pgn/NavigationServlet\?.*PageID=CompteTitreFrame',
+                          r'/Pgn/NavigationServlet\?.*PageID=CompteTitre',
+                          MarketAccountPage)
 
     profile = URL('/gae/afficherModificationMesDonnees.html', ProfileEntPage)
 
@@ -177,13 +190,36 @@ class SGEnterpriseBrowser(SGPEBrowser):
             acc.owner_type = AccountOwnerType.ORGANIZATION
             yield acc
 
+        # retrieve market accounts if exist
+        for market_account in self.iter_market_accounts():
+            yield market_account
+
     @need_login
     def iter_history(self, account):
+        if account.type in (account.TYPE_MARKET, ):
+            # market account transactions are in checking account
+            return
+
         value = self.history.go(data={'cl500_compte': account._id, 'cl200_typeReleve': 'valeur'}).get_value()
         for tr in self.history.go(data={'cl500_compte': account._id, 'cl200_typeReleve': value}).iter_history(value=value):
             yield tr
         for tr in self.location('/icd/syd-front/data/syd-intraday-chargerDetail.json', data={'cl500_compte': account._id}).page.iter_history():
             yield tr
+
+    @need_login
+    def iter_market_accounts(self):
+        self.main_page.go()
+        # retrieve market accounts if exist
+        market_accounts_link = self.page.get_market_accounts_link()
+
+        # there are no examples of entreprise space with market accounts yet
+        assert not market_accounts_link, 'There are market accounts, retrieve them.'
+        return []
+
+    @need_login
+    def iter_investment(self, account):
+        # there are no examples of entreprise space with market accounts yet
+        return []
 
     @need_login
     def iter_subscription(self):
@@ -256,6 +292,39 @@ class SGProfessionalBrowser(SGEnterpriseBrowser, StatesMixin):
             state.pop('url', None)
             self.need_reload_state = None
             super(SGProfessionalBrowser, self).load_state(state)
+
+    @need_login
+    def iter_market_accounts(self):
+        self.main_page.go()
+        # retrieve market accounts if exist
+        market_accounts_link = self.page.get_market_accounts_link()
+        if market_accounts_link is NotAvailable:
+            return []
+        assert market_accounts_link, 'Market accounts link xpath may have changed'
+
+        # need to be on market accounts page to get the accounts iframe
+        self.location(market_accounts_link)
+        market_accounts_list_link = self.page.get_table_iframe_link()
+        if market_accounts_list_link is NotAvailable:
+            return []
+        assert market_accounts_link, 'Market accounts iframe link xpath may have changed'
+
+        self.location(market_accounts_list_link)
+        return self.page.iter_market_accounts()
+
+    @need_login
+    def iter_investment(self, account):
+        if account.type not in (account.TYPE_MARKET, ):
+            return []
+
+        assert account._url_data, 'This account has no url to retrieve investments'
+        # need to be on market accounts investment page to get the invetment iframe
+        self.location('/Pgn/NavigationServlet?%s' % account._url_data)
+
+        invests_list_link = self.page.get_table_iframe_link()
+        assert invests_list_link, 'It seems that this market account has no investment'
+        self.location(invests_list_link)
+        return self.page.iter_investment()
 
     def copy_recipient_obj(self, recipient):
         rcpt = Recipient()
