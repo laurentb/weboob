@@ -125,10 +125,10 @@ class BNPEnterprise(LoginBrowser):
         return self._iter_history_base(account)
 
     def _iter_history_base(self, account):
-        history = []
         dformat = "%Y%m%d"
 
-        for date in rrule(MONTHLY, dtstart=(datetime.now() - relativedelta(months=3)), until=datetime.now()):
+        for date in rrule(MONTHLY, dtstart=(datetime.now() - relativedelta(months=12)), until=datetime.now())[::-1]:
+            history = []
             self.account_history_view.go(
                 identifiant=account.iban, type_solde='C', type_releve='Previsionnel',
                 type_date='O', date_min=(date + relativedelta(days=1)).strftime(dformat),
@@ -146,7 +146,8 @@ class BNPEnterprise(LoginBrowser):
                     self.logger.debug('skipping coming %r', transaction.to_dict())
                     continue
                 history.append(transaction)
-        return sorted_transactions(history)
+            for transaction in sorted_transactions(history):
+                yield transaction
 
     @need_login
     def iter_coming_operations(self, account):
