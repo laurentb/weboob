@@ -58,11 +58,15 @@ class ViewPage(LoggedPage, HTMLPage):
 class HomePage(LoggedPage, HTMLPage):
     # We directly go from the home page to the accounts page
     def on_load(self):
-        ''' Remove the old_website_connection part when old website is obsolete '''
         if self.browser.old_website_connection:
-            self.browser.location('https://web.binck.fr/AccountsOverview/Index')
-        else:
-            self.browser.location('https://web.binck.fr/PersonAccountOverview/Index')
+            accounts_url = 'https://web.binck.fr/AccountsOverview/Index'
+        elif self.doc.xpath('//a[text()="Mes comptes Binck"]'):
+            accounts_url = 'https://web.binck.fr/PersonAccountOverview/Index'
+        elif self.doc.xpath('//a[span[text()="Portefeuille"]][@role="button"]'):
+            self.browser.unique_account = True
+            accounts_url = 'https://web.binck.fr/PortfolioOverview/Index'
+        assert accounts_url, 'The accounts URL of this connection is not handled yet!'
+        self.browser.location(accounts_url)
 
 
 class ChangePassPage(LoggedPage, HTMLPage):

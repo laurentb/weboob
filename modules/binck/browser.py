@@ -36,13 +36,14 @@ from .pages import (
 class BinckBrowser(LoginBrowser):
     BASEURL = 'https://web.binck.fr'
 
-    ''' Delete this attribute when old website is obsolete '''
     old_website_connection = False
+    unique_account = False
 
     login = URL(r'/Logon', LoginPage)
     view = URL('/PersonIntroduction/Index', ViewPage)
     logon_flow = URL(r'/AmlQuestionnairesOverview/LogonFlow$', LogonFlowPage)
 
+    account = URL(r'/PortfolioOverview/Index', AccountsPage)
     accounts = URL(r'/PersonAccountOverview/Index', AccountsPage)
     old_accounts = URL(r'/AccountsOverview/Index', OldAccountsPage)
 
@@ -63,7 +64,7 @@ class BinckBrowser(LoginBrowser):
 
     def deinit(self):
         if self.page and self.page.logged:
-            self.location('/Account/Logoff')
+            self.location('https://www.binck.fr/deconnexion-site-client')
         super(BinckBrowser, self).deinit()
 
     def do_login(self):
@@ -93,10 +94,13 @@ class BinckBrowser(LoginBrowser):
 
     @need_login
     def iter_accounts(self):
-        self.accounts.stay_or_go()
+        if self.unique_account:
+            self.account.stay_or_go()
+        else:
+            self.accounts.stay_or_go()
+
         if self.page.has_accounts_table():
             for a in self.page.iter_accounts():
-                ''' Delete these attributes when old website is obsolete '''
                 a._invpage = None
                 a._histpages = None
 
@@ -116,7 +120,6 @@ class BinckBrowser(LoginBrowser):
         # Some Binck connections don't have any accounts on the new AccountsPage,
         # so we need to fetch them on the OldAccountsPage for now:
         else:
-            ''' Delete this part when old website is obsolete '''
             self.old_website_connection = True
             self.old_accounts.go()
             for a in self.page.iter_accounts():
@@ -162,7 +165,6 @@ class BinckBrowser(LoginBrowser):
         if account._liquidity:
             yield create_french_liquidity(account._liquidity)
 
-        ''' Delete this part when old website is obsolete '''
         if self.old_website_connection:
             self.old_accounts.stay_or_go().go_to_account(account.id)
             if account._invpage:
@@ -189,7 +191,6 @@ class BinckBrowser(LoginBrowser):
 
     @need_login
     def iter_history(self, account):
-        ''' Delete this part when old website is obsolete '''
         if self.old_website_connection:
             if account._histpages:
                 for page in account._histpages:
