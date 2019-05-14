@@ -146,9 +146,9 @@ class S2eBrowser(LoginBrowser, StatesMixin):
             self.page.go_multi(account._multi)
             self.history.go(slug=self.SLUG)
         # Get more transactions on each page
-        self.page.show_more("50")
-        for tr in self.page.iter_history(accid=account.id):
-            yield tr
+        if self.page.show_more("50"):
+            for tr in self.page.iter_history(accid=account.id):
+                yield tr
         # Go back to first page
         self.page.go_start()
 

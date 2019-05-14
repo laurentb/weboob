@@ -504,7 +504,10 @@ class HistoryPage(LoggedPage, MultiPage):
         return form
 
     def show_more(self, nb):
-        form = self.get_form(self.XPATH_FORM)
+        try:
+            form = self.get_form(self.XPATH_FORM)
+        except FormNotFound:
+            return False
         for select in self.doc.xpath('//select'):
             if Attr('./option[@selected]', 'value')(select) == nb:
                 return
@@ -513,6 +516,7 @@ class HistoryPage(LoggedPage, MultiPage):
             if 'javax.faces.source' not in form:
                 form['javax.faces.source'] = idt
         form.submit()
+        return True
 
     def go_start(self):
         idt = Attr('//a[@title="debut" or @title="precedent"]', 'id', default=None)(self.doc)
