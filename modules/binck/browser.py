@@ -156,6 +156,8 @@ class BinckBrowser(LoginBrowser):
 
     @need_login
     def iter_investment(self, account):
+        if account.balance == 0:
+            return
         # Start with liquidities:
         if account._liquidity:
             yield create_french_liquidity(account._liquidity)
