@@ -423,6 +423,9 @@ class Transaction(BaseObject):
     original_currency = StringField('Currency of the original amount')
     country =           StringField('Country of transaction')
 
+    original_commission =          DecimalField('Original commission (in another currency)')
+    original_commission_currency = StringField('Currency of the original commission')
+
     # Financial arbitrations
     investments =       Field('List of investments related to the transaction', list, default=[])
 
