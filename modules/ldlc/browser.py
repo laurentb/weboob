@@ -17,11 +17,29 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
-
-from weboob.browser import LoginBrowser, URL, need_login
+from weboob.browser import LoginBrowser, AbstractBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 
-from .pages import LoginPage, HomePage, ParBillsPage, ProBillsPage
+from .pages import HomePage, LoginPage, ProBillsPage, DocumentsPage
+
+
+class LdlcParBrowser(AbstractBrowser):
+    PARENT = 'materielnet'
+    BASEURL = 'https://secure2.ldlc.com'
+
+    documents = URL(r'/fr-fr/Orders/PartialCompletedOrdersHeader', DocumentsPage)
+
+    def __init__(self, *args, **kwargs):
+        super(LdlcParBrowser, self).__init__(*args, **kwargs)
+        self.lang = 'fr-fr/'
+
+    @need_login
+    def iter_documents(self, subscription):
+        json_response = self.location('/fr-fr/Orders/CompletedOrdersPeriodSelection').json()
+
+        for data in json_response:
+            for doc in self.location('/fr-fr/Orders/PartialCompletedOrdersHeader', data=data).page.get_documents(subid=subscription.id):
+                yield doc
 
 
 class LdlcBrowser(LoginBrowser):
@@ -38,22 +56,7 @@ class LdlcBrowser(LoginBrowser):
 
     @need_login
     def get_subscription_list(self):
-        return self.home.stay_or_go().get_list()
-
-
-class LdlcParBrowser(LdlcBrowser):
-    BASEURL = 'https://secure.ldlc.com'
-
-    bills = URL(r'/Account/CommandListingPage.aspx', ParBillsPage)
-
-    @need_login
-    def iter_documents(self, subscription):
-        self.bills.stay_or_go()
-        for value in self.page.get_range():
-            self.bills.go(data={'ctl00$ctl00$cphMainContent$cphMainContent$ddlDate': value, '__EVENTTARGET': 'ctl00$cphMainContent$ddlDate'})
-
-            for bill in self.page.iter_documents(subid=subscription.id):
-                yield bill
+        return self.home.stay_or_go().get_subscriptions()
 
 
 class LdlcProBrowser(LdlcBrowser):

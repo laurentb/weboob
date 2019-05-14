@@ -17,10 +17,11 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
-from weboob.capabilities.bill import CapDocument, Subscription, Bill, SubscriptionNotFound, DocumentNotFound
-from weboob.capabilities.base import find_object
-from weboob.tools.backend import Module, BackendConfig
+from weboob.capabilities.bill import CapDocument, Bill
+from weboob.capabilities.base import empty
+from weboob.tools.backend import AbstractModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import LdlcParBrowser, LdlcProBrowser
@@ -29,10 +30,10 @@ from .browser import LdlcParBrowser, LdlcProBrowser
 __all__ = ['LdlcModule']
 
 
-class LdlcModule(Module, CapDocument):
+class LdlcModule(AbstractModule, CapDocument):
     NAME = 'ldlc'
-    DESCRIPTION = u'ldlc website'
-    MAINTAINER = u'Vincent Paredes'
+    DESCRIPTION = 'ldlc website'
+    MAINTAINER = 'Vincent Paredes'
     EMAIL = 'vparedes@budget-insight.com'
     LICENSE = 'LGPLv3+'
     VERSION = '1.6'
@@ -41,34 +42,21 @@ class LdlcModule(Module, CapDocument):
                            Value('website', label='Site web', default='part',
                                  choices={'pro': 'Professionnels', 'part': 'Particuliers'}))
 
+    PARENT = 'materielnet'
+
     def create_default_browser(self):
         if self.config['website'].get() == 'part':
             self.BROWSER = LdlcParBrowser
+            return self.create_browser(self.config['login'].get(), self.config['password'].get(), weboob=self.weboob)
         else:
             self.BROWSER = LdlcProBrowser
-
-        return self.create_browser(self.config['login'].get(), self.config['password'].get())
-
-    def iter_subscription(self):
-        return self.browser.get_subscription_list()
-
-    def get_subscription(self, _id):
-        return find_object(self.iter_subscription(), id=_id, error=SubscriptionNotFound)
-
-    def get_document(self, _id):
-        subid = _id.rsplit('_', 1)[0]
-        subscription = self.get_subscription(subid)
-
-        return find_object(self.iter_documents(subscription), id=_id, error=DocumentNotFound)
-
-    def iter_documents(self, subscription):
-        if not isinstance(subscription, Subscription):
-            subscription = self.get_subscription(subscription)
-        return self.browser.iter_documents(subscription)
+            return self.create_browser(self.config['login'].get(), self.config['password'].get())
 
     def download_document(self, bill):
         if not isinstance(bill, Bill):
             bill = self.get_document(bill)
+        if empty(bill.url):
+            return
         if self.config['website'].get() == 'part':
             return self.browser.open(bill.url).content
         else:

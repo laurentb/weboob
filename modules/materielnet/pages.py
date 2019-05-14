@@ -58,18 +58,22 @@ class CaptchaPage(HTMLPage):
         return CleanText('//div[@class="captcha-block"]/p[1]/text()')(self.doc)
 
 
-class ProfilPage(LoggedPage, HTMLPage):
+class ProfilePage(LoggedPage, HTMLPage):
     @method
-    class get_list(ListElement):
+    class get_subscriptions(ListElement):
         class item(ItemElement):
             klass = Subscription
 
             obj_subscriber = Format('%s %s', Attr('//input[@id="FirstName"]', 'value'), Attr('//input[@id="LastName"]', 'value'))
-            obj_id = Env('subid')
-            obj_label = obj_id
 
-            def parse(self, el):
-                self.env['subid'] = self.page.browser.username
+            def obj_id(self):
+                if 'Materielnet' in self.page.browser.__class__.__name__:
+                    filter_id = CleanText('//p[@class="NumCustomer"]/span')
+                else:  # ldlc
+                    filter_id = Regexp(CleanText('//span[@class="nclient"]'), r'Nº client : (.*)')
+
+                return filter_id(self)
+            obj_label = obj_id
 
 
 class MyAsyncLoad(Filter):
