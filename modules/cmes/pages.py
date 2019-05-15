@@ -76,6 +76,7 @@ class ActionNeededPage(HTMLPage, LoggedPage):
 
 ACCOUNTS_TYPES = {
     "pargne entreprise": Account.TYPE_PEE,
+    "pargne groupe": Account.TYPE_PEE,
     "pargne retraite": Account.TYPE_PERCO
 }
 
