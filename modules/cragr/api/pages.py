@@ -153,6 +153,7 @@ ACCOUNT_TYPES = {
     'P.ETUDIANT': Account.TYPE_LOAN,
     'P. ACC.SOC': Account.TYPE_LOAN,
     'PACA': Account.TYPE_LOAN,
+    'CAU. BANC.': Account.TYPE_LOAN,
     'épargne disponible': Account.TYPE_SAVINGS,
     'épargne à terme': Account.TYPE_DEPOSIT,
     'épargne boursière': Account.TYPE_MARKET,
