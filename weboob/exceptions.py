@@ -125,7 +125,7 @@ class FuncaptchaQuestion(CaptchaQuestion):
             self.type, website_key=website_key, website_url=website_url, sub_domain=sub_domain)
 
 
-class BrowserHTTPNotFound(BrowserUnavailable):
+class BrowserHTTPNotFound(Exception):
     pass
 
 
