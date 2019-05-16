@@ -111,7 +111,7 @@ class BforbankBrowser(LoginBrowser):
                     cards = self.page.get_cards(account.id)
                     account._cards = cards
                     if cards:
-                        self.location(account.url.replace('tableauDeBord', 'encoursCarte') + '/0')
+                        self.location(account.url.replace('operations', 'encoursCarte') + '/0')
                         indexes = dict(self.page.get_card_indexes())
 
                     for card in cards:
@@ -122,9 +122,9 @@ class BforbankBrowser(LoginBrowser):
                         card._checking_account = account
                         card._index = indexes[card.number]
 
-                        self.location(account.url.replace('tableauDeBord', 'encoursCarte') + '/%s' % card._index)
+                        self.location(account.url.replace('operations', 'encoursCarte') + '/%s' % card._index)
                         if self.page.get_debit_date().month == (datetime.date.today() + relativedelta(months=1)).month:
-                            self.location(account.url.replace('tableauDeBord', 'encoursCarte') + '/%s?month=1' % card._index)
+                            self.location(account.url.replace('operations', 'encoursCarte') + '/%s?month=1' % card._index)
                         card.balance = 0
                         card.coming = self.page.get_balance()
                         assert not empty(card.coming)
@@ -133,11 +133,6 @@ class BforbankBrowser(LoginBrowser):
                         self.accounts.append(card)
 
         return iter(self.accounts)
-
-    def _get_card_transactions(self, account):
-        self.location(account.url.replace('tableauDeBord', 'encoursCarte') + '/%s?month=1' % account._index)
-        assert self.card_history.is_here()
-        return self.page.get_operations()
 
     @need_login
     def get_history(self, account):
@@ -161,7 +156,7 @@ class BforbankBrowser(LoginBrowser):
             return self.spirica.iter_history(account)
 
         if account.type != Account.TYPE_CARD:
-            self.location(account.url.replace('tableauDeBord', 'operations'))
+            self.location(account.url)
             assert self.history.is_here() or self.loan_history.is_here()
             transactions_list = []
             if account.type == Account.TYPE_CHECKING:
@@ -177,7 +172,7 @@ class BforbankBrowser(LoginBrowser):
             # for summary transactions, the transactions must be on both accounts:
             # negative amount on checking account, positive on card account
             transactions = []
-            self.location(account.url.replace('tableauDeBord', 'encoursCarte') + '/%s?month=1' % account._index)
+            self.location(account.url.replace('operations', 'encoursCarte') + '/%s?month=1' % account._index)
             if self.page.get_debit_date().month == (datetime.date.today() - relativedelta(months=1)).month:
                 transactions = list(self.page.get_operations())
                 summary = self.page.create_summary()
@@ -191,10 +186,10 @@ class BforbankBrowser(LoginBrowser):
             self.coming.go(account=account.id)
             return self.page.get_operations()
         elif account.type == Account.TYPE_CARD:
-            self.location(account.url.replace('tableauDeBord', 'encoursCarte') + '/%s' % account._index)
+            self.location(account.url.replace('operations', 'encoursCarte') + '/%s' % account._index)
             transactions = list(self.page.get_operations())
             if self.page.get_debit_date().month == (datetime.date.today() + relativedelta(months=1)).month:
-                self.location(account.url.replace('tableauDeBord', 'encoursCarte') + '/%s?month=1' % account._index)
+                self.location(account.url.replace('operations', 'encoursCarte') + '/%s?month=1' % account._index)
                 transactions += list(self.page.get_operations())
             return sorted_transactions(transactions)
         else:
