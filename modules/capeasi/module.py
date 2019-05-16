@@ -37,7 +37,7 @@ class CapeasiModule(AbstractModule, CapBank):
     VERSION = '1.6'
     CONFIG = BackendConfig(
              ValueBackendPassword('login',    label='Identifiant', masked=False),
-             ValueBackendPassword('password', label='Code secret', regexp='^(\d{6})$'),
+             ValueBackendPassword('password', label='Mot de passe', regexp='^(\d{6})$'),
              Value('otp', label='Code unique temporaire', default=''),
     )
 
