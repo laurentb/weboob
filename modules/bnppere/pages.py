@@ -116,11 +116,6 @@ class HistoryPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Transaction
 
-            def obj_id(self):
-                label = CleanText(Attr('./a[contains(@class, "accordion_collapse")]', "id"))(self)
-                label = ''.join(i for i in label if i.isdigit())
-                return label
-
             obj_date = Date(CleanText('./div[contains(@class, "accordion_header")]/div[1]/p'))
             obj_category = CleanText('./div[contains(@class, "accordion_header")]/div[2]/p[1]')
             obj_label = CleanText('./div[contains(@class, "accordion_header")]/div[3]/p[1]')
