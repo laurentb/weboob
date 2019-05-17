@@ -331,9 +331,13 @@ class ErrorCodePage(HTMLPage):
     def on_load(self):
         code = re.search(r'\/\?errorCode=(\d+)', self.url).group(1)
         page = self.browser.open('/particuliers/compte-bancaire/comptes-en-ligne/bredconnect-compte-ligne?errorCode=%s' % code).page
-        # invalid login/password
-        if code == '20100':
-            msg = CleanText('//label[contains(@class, "error")]')(page.doc)
+        msg = CleanText('//label[contains(@class, "error")]', default=None)(page.doc)
+        # 20100: invalid login/password
+        # 139: dispobank user trying to connect to Bred
+        if code in ('20100', '139'):
             raise BrowserIncorrectPassword(msg)
+        # 20104 & 1000: unknown error during login
+        elif code in ('20104', '1000'):
+            raise BrowserUnavailable(msg)
 
-        assert False, 'The % error is not handled.' % code
+        assert False, 'Error %s is not handled yet.' % code
