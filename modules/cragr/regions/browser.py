@@ -21,7 +21,7 @@
 from __future__ import unicode_literals
 
 import re
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import ServerError, BrowserHTTPNotFound
@@ -29,10 +29,15 @@ from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.tools.compat import urlparse
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
+from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.date import LinearDateGuesser
+from weboob.tools.value import Value
 
 from weboob.capabilities.base import empty, find_object
-from weboob.capabilities.bank import Account, AccountNotFound
+from weboob.capabilities.bank import (
+    Account, AccountNotFound, RecipientInvalidLabel, AddRecipientStep, Recipient,
+    AddRecipientBankError,
+)
 
 from .pages import (
     HomePage, LoginPage, LoggedOutPage, PerimeterDetailsPage, PerimeterPage, RibPage, AccountsPage,
@@ -40,6 +45,9 @@ from .pages import (
     SavingsHistoryPage, OtherSavingsHistoryPage, FailedHistoryPage, PredicaRedirectionPage,
     PredicaInvestmentsPage, NetfincaRedirectionPage, NetfincaLanding, NetfincaDetailsPage, NetfincaReturnPage,
     NetfincaToCragr, BGPIRedirectionPage, BGPISpace, BGPIInvestmentPage, ProfilePage,
+)
+from .transfer_pages import (
+    TransferInit, TransferPage, RecipientPage, RecipientListPage, SendSMSPage, RecipientMiscPage,
 )
 
 from .netfinca_browser import NetfincaBrowser
@@ -101,6 +109,17 @@ class CragrRegion(LoginBrowser):
     )
     bgpi_space = URL(r'https://bgpi-gestionprivee.credit-agricole.fr/bgpi/Logon.do.*', BGPISpace)
     bgpi_investments = URL(r'https://bgpi-gestionprivee.credit-agricole.fr/bgpi/CompteDetail.do.*', BGPIInvestmentPage)
+
+    # Transfer & Recipient
+    transfer_init_page = URL(r'/stb/entreeBam\?sessionSAG=(?P<session_value>[^&]+)&stbpg=pagePU&act=Virementssepa&stbzn=bnt&actCrt=Virementssepa', TransferInit)
+    transfer_page = URL(r'/stb/collecteNI\?fwkaid=.*&fwkpid=.*$', TransferPage)
+
+    recipient_list = URL(r'/stb/collecteNI\?.*&act=Vilistedestinataires.*', RecipientListPage)
+    recipient_page = URL(r'/stb/collecteNI\?.*fwkaction=Ajouter.*',
+                         r'/stb/collecteNI.*&IDENT=LI_VIR_RIB1&VIR_VIR1_FR3_LE=0&T3SEF_MTT_EURO=&T3SEF_MTT_CENT=&VICrt_REFERENCE=$',
+                         RecipientPage)
+    recipient_misc = URL(r'/stb/collecteNI\?fwkaid=.*&fwkpid=.*$', RecipientMiscPage)
+    send_sms_page = URL(r'/stb/collecteNI\?fwkaid=.*&fwkpid=.*', SendSMSPage)
 
     # Accounts
     accounts = URL(r'/stb/entreeBam\?sessionSAG=(?P<session_value>[^&]+)&stbpg=pagePU&act=Synthcomptes.*',
@@ -640,6 +659,155 @@ class CragrRegion(LoginBrowser):
         # that have no available history or investments.
         self.logger.warning('This method is not handled for account %s.', account_id)
         raise NotImplementedError()
+
+    @need_login
+    def iter_transfer_recipients(self, account):
+        # perimeters have their own recipients
+        self.go_to_perimeter(account._perimeter)
+        self.transfer_init_page.go(session_value=self.session_value)
+
+        if self.page.get_error() == 'Fonctionnalité Indisponible':
+            self.accounts.go(session_value=self.session_value)
+            return
+
+        for emitter_acc in self.page.iter_emitters():
+            if emitter_acc.id == account.id:
+                break
+        else:
+            # couldn't find the account as emitter
+            return
+
+        # set of recipient id to not return or already returned
+        seen = set([account.id])
+        for rcpt in self.page.iter_recipients():
+            if (rcpt.id in seen) or (rcpt.iban and not is_iban_valid(rcpt.iban)):
+                # skip seen recipients and recipients with invalid iban
+                continue
+            seen.add(rcpt.id)
+            yield rcpt
+
+    @need_login
+    def init_transfer(self, transfer, **params):
+        accounts = list(self.iter_accounts())
+
+        assert transfer.recipient_id
+        assert transfer.account_id
+
+        account = find_object(accounts, id=transfer.account_id, error=AccountNotFound)
+
+        self.go_to_perimeter(account._perimeter)
+        self.transfer_init_page.go(session_value=self.session_value)
+        assert self.transfer_init_page.is_here()
+
+        currency = transfer.currency or 'EUR'
+        self.page.submit_accounts(transfer.account_id, transfer.recipient_id, transfer.amount, currency)
+
+        assert self.page.is_reason()
+        self.page.submit_more(transfer.label, transfer.exec_date)
+
+        assert self.page.is_confirm()
+        res = self.page.get_transfer()
+
+        if not res.account_iban:
+            for acc in accounts:
+                self.logger.warning('%r %r', res.account_id, acc.id)
+                if res.account_id == acc.id:
+                    res.account_iban = acc.iban
+                    break
+
+        if not res.recipient_iban:
+            for acc in accounts:
+                if res.recipient_id == acc.id:
+                    res.recipient_iban = acc.iban
+                    break
+        return res
+
+    @need_login
+    def execute_transfer(self, transfer, **params):
+        assert self.transfer_page.is_here()
+        assert self.page.is_confirm()
+
+        self.page.submit_confirm()
+        self.page.check_error()
+
+        assert self.page.is_sent()
+        return self.page.get_transfer()
+
+    def build_recipient(self, recipient):
+        r = Recipient()
+        r.iban = recipient.iban
+        r.id = recipient.iban
+        r.label = recipient.label
+        r.category = recipient.category
+        r.enabled_at = datetime.now().replace(microsecond=0)
+        r.currency = u'EUR'
+        r.bank_name = recipient.bank_name
+        return r
+
+    @need_login
+    def new_recipient(self, recipient, **params):
+        if not re.match(u"^[-+.,:/?() éèêëïîñàâäãöôòõùûüÿ0-9a-z']+$", recipient.label, re.I):
+            raise RecipientInvalidLabel('Recipient label contains invalid characters')
+
+        if 'sms_code' in params and not re.match(r'^[a-z0-9]{6}$', params['sms_code'], re.I):
+            # check before send sms code because it can crash website if code is invalid
+            raise AddRecipientBankError("SMS code %s is invalid" % params['sms_code'])
+
+        # avoid `iter_accounts` if there is only one perimeter
+        if len(self.perimeters) > 1:
+            accounts = list(self.iter_accounts())
+            assert recipient.origin_account_id, 'Origin account id is mandatory for multispace'
+            account = find_object(accounts, id=recipient.origin_account_id, error=AccountNotFound)
+            self.go_to_perimeter(account._perimeter)
+
+        self.transfer_init_page.go(session_value=self.session_value)
+        assert self.transfer_init_page.is_here()
+
+        if not self.page.add_recipient_is_allowed():
+            if not [rec for rec in self.page.iter_recipients() if rec.category == 'Externe']:
+                raise AddRecipientBankError('Vous ne pouvez pas ajouter de bénéficiaires, veuillez contacter votre banque.')
+            assert False, 'Xpath for a recipient add is not catched'
+
+        self.location(self.page.url_list_recipients())
+        # there are 2 pages from where we can add a new recipient:
+        # - RecipientListPage, but the link is sometimes missing
+        # - TransferPage, start making a transfer with a new recipient but don't complete the transfer
+        #   but it seems dangerous since we have to set an amount, etc.
+        # so we implement it in 2 ways with a preference for RecipientListPage
+        if self.page.url_add_recipient():
+            self.logger.debug('good, we can add a recipient from the recipient list')
+        else:
+            # in this case, the link was missing
+            self.logger.warning('cannot add a recipient from the recipient list page, pretending to make a transfer in order to add it')
+            self.transfer_init_page.go(session_value=self.session_value)
+            assert self.transfer_init_page.is_here()
+
+        self.location(self.page.url_add_recipient())
+
+        if not ('sms_code' in params and self.page.can_send_code()):
+            self.page.send_sms()
+            # go to a GET page, so StatesMixin can reload it
+            self.accounts.go(session_value=self.session_value)
+            raise AddRecipientStep(self.build_recipient(recipient), Value('sms_code', label='Veuillez saisir le code SMS'))
+        else:
+            self.page.submit_code(params['sms_code'])
+
+            err = hasattr(self.page, 'get_sms_error') and self.page.get_sms_error()
+            if err:
+                raise AddRecipientBankError(message=err)
+
+            self.page.submit_recipient(recipient.label, recipient.iban)
+            self.page.confirm_recipient()
+            self.page.check_recipient_error()
+            if self.transfer_page.is_here():
+                # in this case, we were pretending to make a transfer, just to add the recipient
+                # go back to transfer page to abort the transfer and see the new recipient
+                self.transfer_init_page.go(session_value=self.session_value)
+                assert self.transfer_init_page.is_here()
+
+            res = self.page.find_recipient(recipient.iban)
+            assert res, 'Recipient with iban %s could not be found' % recipient.iban
+            return res
 
     @need_login
     def get_profile(self):
