@@ -75,6 +75,20 @@ class ChangePassPage(LoggedPage, HTMLPage):
         raise BrowserPasswordExpired(message)
 
 
+class HandlePasswordsPage(LoggedPage, HTMLPage):
+    def on_load(self):
+        token = self.get_token()
+        self.browser.postpone_passwords.go(headers=token, method='POST')
+        self.browser.home_page.go()
+
+    def get_token(self):
+        return [{Attr('.', 'name')(input): Attr('.', 'value')(input)}
+            for input in self.doc.xpath('//input[contains(@name, "Token")]')][0]
+
+
+class PostponePasswords(LoggedPage, HTMLPage):
+    pass
+
 class LogonFlowPage(HTMLPage):
     def on_load(self):
         raise ActionNeeded(CleanText('//article//h1 | //article//h3')(self.doc))
@@ -104,7 +118,7 @@ class AccountsPage(LoggedPage, HTMLPage):
         return self.doc.xpath('//table[contains(@class, "accountoverview-table")]')
 
     def get_token(self):
-        return [{Attr('.', 'name')(input): Attr('.', 'value')(input)} \
+        return [{Attr('.', 'name')(input): Attr('.', 'value')(input)}
             for input in self.doc.xpath('//input[contains(@name, "Token")]')][0]
 
     @method
@@ -155,7 +169,7 @@ class OldAccountsPage(LoggedPage, HTMLPage):
         return CleanText('//div[@class="iban"]/text()', replace=[(' ', '')], default=NotAvailable)(self.doc)
 
     def get_token(self):
-        return [{Attr('.', 'name')(input): Attr('.', 'value')(input)} \
+        return [{Attr('.', 'name')(input): Attr('.', 'value')(input)}
             for input in self.doc.xpath('//input[contains(@name, "Token")]')][0]
 
     def is_investment(self):

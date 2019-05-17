@@ -30,6 +30,7 @@ from weboob.tools.capabilities.bank.investments import create_french_liquidity
 from .pages import (
     LoginPage, HomePage, AccountsPage, OldAccountsPage, HistoryPage, InvestmentPage, InvestDetailPage,
     InvestmentListPage, QuestionPage, ChangePassPage, LogonFlowPage, ViewPage, SwitchPage,
+    HandlePasswordsPage, PostponePasswords,
 )
 
 
@@ -61,6 +62,8 @@ class BinckBrowser(LoginBrowser):
                     r'FsmaMandatoryQuestionnairesOverview', QuestionPage)
     change_pass = URL(r'/ChangePassword/Index',
                       r'/EditSetting/GetSetting\?code=MutationPassword', ChangePassPage)
+    handle_passwords = URL(r'/PersonalCredentials/Index', HandlePasswordsPage)
+    postpone_passwords = URL(r'/PersonalCredentials/PostPone', PostponePasswords)
 
     def deinit(self):
         if self.page and self.page.logged:
@@ -94,6 +97,13 @@ class BinckBrowser(LoginBrowser):
 
     @need_login
     def iter_accounts(self):
+        # If we already know that it is an old website connection,
+        # we can call old_website_connection() right away.
+        if self.old_website_connection:
+            for account in self.iter_old_accounts():
+                yield account
+            return
+
         if self.unique_account:
             self.account.stay_or_go()
         else:
@@ -121,41 +131,46 @@ class BinckBrowser(LoginBrowser):
         # so we need to fetch them on the OldAccountsPage for now:
         else:
             self.old_website_connection = True
-            self.old_accounts.go()
-            for a in self.page.iter_accounts():
-                try:
-                    self.old_accounts.stay_or_go().go_to_account(a.id)
-                except ServerError as exception:
-                    # get html error to parse
-                    parser = etree.HTMLParser()
-                    html_error = etree.parse(StringIO(exception.response.text), parser)
-                    account_error = html_error.xpath('//p[contains(text(), "Votre compte est")]/text()')
-                    if account_error:
-                        raise ActionNeeded(account_error[0])
-                    else:
-                        raise
+            for account in self.iter_old_accounts():
+                yield account
 
-                a.iban = self.page.get_iban()
-                # Get token
-                token = self.page.get_token()
-                # Get investment page
-                data = {'grouping': "SecurityCategory"}
-                try:
-                    a._invpage = self.investment.go(data=data, headers=token) \
-                        if self.page.is_investment() else None
-                except HTTPNotFound:
-                    # if it's not an invest account, the portfolio link may be present but hidden and return a 404
-                    a._invpage = None
+    @need_login
+    def iter_old_accounts(self):
+        self.old_accounts.go()
+        for a in self.page.iter_accounts():
+            try:
+                self.old_accounts.stay_or_go().go_to_account(a.id)
+            except ServerError as exception:
+                # get html error to parse
+                parser = etree.HTMLParser()
+                html_error = etree.parse(StringIO(exception.response.text), parser)
+                account_error = html_error.xpath('//p[contains(text(), "Votre compte est")]/text()')
+                if account_error:
+                    raise ActionNeeded(account_error[0])
+                else:
+                    raise
 
-                if a._invpage:
-                    a.valuation_diff = a._invpage.get_valuation_diff()
-                # Get history page
-                data = [('currencyCode', a.currency), ('startDate', ""), ('endDate', "")]
-                a._histpages = [self.history.go(data=data, headers=token)]
-                while self.page.doc['EndOfData'] is False:
-                    a._histpages.append(self.history.go(data=self.page.get_nextpage_data(data[:]), headers=token))
+            a.iban = self.page.get_iban()
+            # Get token
+            token = self.page.get_token()
+            # Get investment page
+            data = {'grouping': "SecurityCategory"}
+            try:
+                a._invpage = self.investment.go(data=data, headers=token) \
+                    if self.page.is_investment() else None
+            except HTTPNotFound:
+                # if it's not an invest account, the portfolio link may be present but hidden and return a 404
+                a._invpage = None
 
-                yield a
+            if a._invpage:
+                a.valuation_diff = a._invpage.get_valuation_diff()
+            # Get history page
+            data = [('currencyCode', a.currency), ('startDate', ""), ('endDate', "")]
+            a._histpages = [self.history.go(data=data, headers=token)]
+            while self.page.doc['EndOfData'] is False:
+                a._histpages.append(self.history.go(data=self.page.get_nextpage_data(data[:]), headers=token))
+
+            yield a
 
     @need_login
     def iter_investment(self, account):
