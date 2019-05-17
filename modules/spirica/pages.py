@@ -191,7 +191,6 @@ class DetailsPage(LoggedPage, HTMLPage):
 
                     profile_share = MyDecimal(path)(self)
                     assert profile_share
-                    #raise Exception('dtc')
                     profile_share = Eval(lambda x: x / 100, profile_share)(self)
                     return inv_share * profile_share
                 else:
