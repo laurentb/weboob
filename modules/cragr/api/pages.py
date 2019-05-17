@@ -263,6 +263,14 @@ class AccountsPage(LoggedPage, JsonPage):
 
             klass = Account
 
+            def condition(self):
+                card_situation = Dict('codeSituationCarte')(self)
+                if card_situation not in (5, 7):
+                    # Cards with codeSituationCarte equal to 7 are active and present on the website
+                    # Cards with codeSituationCarte equal to 5 are absent on the website, we skip them
+                    self.logger.warning('codeSituationCarte unknown, Check if the %s card is present on the website', Field('id')(self))
+                return card_situation != 5
+
             def obj_id(self):
                 return CleanText(Dict('idCarte'))(self).replace(' ', '')
 
