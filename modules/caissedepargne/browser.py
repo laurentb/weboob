@@ -445,7 +445,6 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                 if self.page.check_no_accounts() or self.page.check_no_loans():
                     return []
 
-            access_to_loans = False
             for trial in range(5):
                 for _ in range(3):
                     self.home_tache.go(tache='CRESYNT0')
@@ -461,11 +460,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                             self.logger.warning('Access to loans failed, we try again')
                         else:
                             # We managed to reach the Loans JSON
-                            access_to_loans = True
                             break
-
-            if not access_to_loans:
-                raise BrowserUnavailable()
 
             for _ in range(3):
                 try:
