@@ -218,7 +218,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
             if account._prestation_id in account_comings:
                 account.coming = account_comings[account._prestation_id]
 
-            if account.type in (account.TYPE_LOAN, account.TYPE_CONSUMER_CREDIT, account.TYPE_MORTGAGE):
+            if account.type in (account.TYPE_LOAN, account.TYPE_CONSUMER_CREDIT, ):
                 self.loans.stay_or_go(conso=(account._loan_type == 'PR_CONSO'))
                 account = self.page.get_loan_account(account)
 
