@@ -44,6 +44,11 @@ class MaintenancePage(HTMLPage):
 
 
 class LoginPage(HTMLPage):
+    def on_load(self):
+        error_msg = CleanText('//li[@class="globalErreurMessage"]')(self.doc)
+        if error_msg:
+            raise BrowserUnavailable(error_msg)
+
     def login(self, login, password):
         form = self.get_form('//form[@id="loginForm"]')
         form['loginForm:name'] = login
