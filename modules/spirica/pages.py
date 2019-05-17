@@ -244,20 +244,6 @@ class DetailsPage(LoggedPage, HTMLPage):
         form.submit()
         return True
 
-    def go_investments_form(self, index):
-        form = self.get_form(xpath='//form[contains(@id, "ongletHistoOperations:ongletHistoriqueOperations")]')
-        form['javax.faces.behavior.event'] = 'rowToggle'
-        form['javax.faces.partial.event'] = 'rowToggle'
-        id_ = Attr('//div[contains(@id, "ongletHistoOperations:ongletHistoriqueOperations")][has-class("listeAvecDetail")]', 'id')(self.doc)
-        form['javax.faces.source'] = id_
-        form['javax.faces.partial.execute'] = id_
-        form['javax.faces.partial.render'] = id_ + ':detail ' + id_
-        form[id_ + '_rowExpansion'] = 'true'
-        form[id_ + '_encodeFeature'] = 'true'
-        form[id_ + '_expandedRowIndex'] = index
-        form.submit()
-
-
     @method
     class iter_history(ListElement):
         item_xpath = '//tr[@role="row"]'
@@ -287,31 +273,3 @@ class DetailsPage(LoggedPage, HTMLPage):
                     and "Arrêté annuel" not in Field('label')(self)
                     and "Fusion-absorption" not in Field('label')(self)
                 )
-
-    @method
-    class iter_transactions_investments(TableInvestment):
-        item_xpath = '//table[thead[.//span[text()="ISIN"]]]/tbody/tr'
-        head_xpath = '//thead[.//span[text()="ISIN"]]//th'
-
-        col_isin = 'ISIN'
-        col_valuation = 'Montant net'
-        col_portfolio_share = '%'
-
-        class item(ItemElement):
-            klass = Investment
-
-            # Columns do not always appear depending on transactions so we need
-            # to precise "default=NotAvailable" for all TableCell filters.
-            obj_label = CleanText(TableCell('label', default=NotAvailable), default=NotAvailable)
-            obj_vdate = Date(CleanText(TableCell('vdate', default="")), dayfirst=True, default=NotAvailable)
-            obj_unitvalue = MyDecimal(TableCell('unitvalue', default=NotAvailable), default=NotAvailable)
-            obj_quantity = MyDecimal(TableCell('quantity', default=NotAvailable), default=NotAvailable)
-            obj_valuation = MyDecimal(TableCell('valuation', default=NotAvailable), default=NotAvailable)
-            obj_portfolio_share = MyDecimal(TableCell('portfolio_share', default=NotAvailable), default=NotAvailable)
-
-            def obj_code(self):
-                code = CleanText(TableCell('isin', default=NotAvailable), default=NotAvailable)(self)
-                return code if code != '-' else NotAvailable
-
-            def obj_code_type(self):
-                return Investment.CODE_TYPE_ISIN if Field('code')(self) else NotAvailable
