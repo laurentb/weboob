@@ -33,7 +33,6 @@ from weboob.capabilities.bank import (
 )
 
 from .proxy_browser import ProxyBrowser
-from .regions.browser import CragrRegion
 
 
 __all__ = ['CreditAgricoleModule']
@@ -190,23 +189,14 @@ class CreditAgricoleModule(Module, CapBankWealth, CapBankTransferAddRecipient, C
 
     # Recipient & Transfer methods
     def iter_transfer_recipients(self, account):
-        if isinstance(self.browser._browser, CragrRegion):
-            raise NotImplementedError()
-
         if not isinstance(account, Account):
             account = self.get_account(account)
         return self.browser.iter_transfer_recipients(account)
 
     def new_recipient(self, recipient, **params):
-        if isinstance(self.browser._browser, CragrRegion):
-            raise NotImplementedError()
-
         return self.browser.new_recipient(recipient, **params)
 
     def init_transfer(self, transfer, **params):
-        if isinstance(self.browser._browser, CragrRegion):
-            raise NotImplementedError()
-
         def to_ascii(s):
             return s.encode('ascii', errors='ignore').decode('ascii')
         if transfer.label:
@@ -214,9 +204,6 @@ class CreditAgricoleModule(Module, CapBankWealth, CapBankTransferAddRecipient, C
         return self.browser.init_transfer(transfer, **params)
 
     def execute_transfer(self, transfer, **params):
-        if isinstance(self.browser._browser, CragrRegion):
-            raise NotImplementedError()
-
         return self.browser.execute_transfer(transfer, **params)
 
     # Profile method
