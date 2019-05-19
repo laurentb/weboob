@@ -38,8 +38,8 @@ def log(message, success='done'):
 def create_compat_dir(name):
     if not path.exists(name):
         makedirs(name)
-        with open(path.join(name, '__init__.py'), 'w'):
-            pass
+    with open(path.join(name, '__init__.py'), 'w'):
+        pass
 
 
 MANUAL_PORTS = [
