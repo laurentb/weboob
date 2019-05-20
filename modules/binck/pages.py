@@ -47,6 +47,13 @@ class QuestionPage(HTMLPage):
         form.submit()
 
 
+class BinckPage(LoggedPage, HTMLPage):
+    # Used to factorize the get_token() method
+    def get_token(self):
+        return [{Attr('.', 'name')(input): Attr('.', 'value')(input)}
+            for input in self.doc.xpath('//input[contains(@name, "Token")]')][0]
+
+
 class ViewPage(LoggedPage, HTMLPage):
     # We automatically skip the new website tutorial
     def on_load(self):
@@ -75,15 +82,11 @@ class ChangePassPage(LoggedPage, HTMLPage):
         raise BrowserPasswordExpired(message)
 
 
-class HandlePasswordsPage(LoggedPage, HTMLPage):
+class HandlePasswordsPage(BinckPage):
     def on_load(self):
         token = self.get_token()
         self.browser.postpone_passwords.go(headers=token, method='POST')
         self.browser.home_page.go()
-
-    def get_token(self):
-        return [{Attr('.', 'name')(input): Attr('.', 'value')(input)}
-            for input in self.doc.xpath('//input[contains(@name, "Token")]')][0]
 
 
 class PostponePasswords(LoggedPage, HTMLPage):
@@ -105,7 +108,7 @@ class LoginPage(HTMLPage):
         return CleanText('//div[contains(@class, "errors")]')(self.doc)
 
 
-class AccountsPage(LoggedPage, HTMLPage):
+class AccountsPage(BinckPage):
     TYPES = {'L': Account.TYPE_SAVINGS,
              'CT': Account.TYPE_MARKET,
              'PEA': Account.TYPE_PEA,
@@ -116,10 +119,6 @@ class AccountsPage(LoggedPage, HTMLPage):
     ''' Delete this method when the old website is obsolete '''
     def has_accounts_table(self):
         return self.doc.xpath('//table[contains(@class, "accountoverview-table")]')
-
-    def get_token(self):
-        return [{Attr('.', 'name')(input): Attr('.', 'value')(input)}
-            for input in self.doc.xpath('//input[contains(@name, "Token")]')][0]
 
     @method
     class iter_accounts(ListElement):
@@ -149,7 +148,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                 return Account.get_currency(CleanText('.//div[contains(text(), "Total des avoirs")]/following::strong[1]')(self))
 
 
-class OldAccountsPage(LoggedPage, HTMLPage):
+class OldAccountsPage(BinckPage):
     '''
     Old website accounts page. We can get rid of this
     class when all users have access to the new website.
@@ -167,10 +166,6 @@ class OldAccountsPage(LoggedPage, HTMLPage):
 
     def get_iban(self):
         return CleanText('//div[@class="iban"]/text()', replace=[(' ', '')], default=NotAvailable)(self.doc)
-
-    def get_token(self):
-        return [{Attr('.', 'name')(input): Attr('.', 'value')(input)}
-            for input in self.doc.xpath('//input[contains(@name, "Token")]')][0]
 
     def is_investment(self):
         # warning: the link can be present even in case of non-investement account
