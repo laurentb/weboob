@@ -68,9 +68,10 @@ class JsonBasePage(LoggedPage, JsonPage):
 
             conditions = (
                 'pas encore géré' in reason, # this page is not handled by SG api website
-                'le service est momentanement indisponible' in reason, # can't access new website
+                'le service est momentanement indisponible' in reason,  # can't access new website
             )
             assert any(conditions), 'Error %s is not handled yet' % reason
+            self.logger.warning('Handled Error "%s"', reason)
 
 
 class AccountsMainPage(LoggedPage, HTMLPage):
@@ -465,6 +466,11 @@ class HistoryPage(JsonBasePage):
     @pagination
     @method
     class iter_history(DictElement):
+        def condition(self):
+            # If we reach this point and it's "NOK", that's mean it's a known error handled
+            # in JsonBasePage and we can't have history for now.
+            return Dict('commun/statut')(self.el).upper() != 'NOK'
+
         def next_page(self):
             return self.page.hist_pagination('history')
 
@@ -512,6 +518,11 @@ class HistoryPage(JsonBasePage):
     @pagination
     @method
     class iter_intraday_comings(DictElement):
+        def condition(self):
+            # If we reach this point and it's "NOK", that mean it's a known error handled
+            # in JsonBasePage and we can't have history for now.
+            return Dict('commun/statut')(self.el).upper() != 'NOK'
+
         def next_page(self):
             return self.page.hist_pagination('intraday')
 
