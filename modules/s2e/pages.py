@@ -385,6 +385,8 @@ class AccountsPage(LoggedPage, MultiPage):
             obj_label = Env('label')
 
             def obj_type(self):
+                if Field('label')(self).startswith('ETOILE'):
+                    return self.page.TYPES.get(Field('label')(self).split()[1].upper(), Account.TYPE_UNKNOWN)
                 return self.page.TYPES.get(Field('label')(self).split()[0].upper(), Account.TYPE_UNKNOWN)
 
             def obj_balance(self):
