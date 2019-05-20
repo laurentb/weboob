@@ -55,15 +55,6 @@ class LogoutPage(RawPage):
     pass
 
 
-class InfosPage(LoggedPage, HTMLPage):
-    def get_typelist(self):
-        url = Attr(None, 'src').filter(self.doc.xpath('//script[contains(@src, "comptes/scripts")]'))
-        m = re.findall(r'synthesecomptes[^\w]+([^:]+)[^\w]+([^"]+)', self.browser.open(url).text)
-        for data in m:
-            if data[0] != 'method':
-                return {data[0]: data[1]}
-
-
 class AccountsPage(LoggedPage, JsonPage):
     TYPES = OrderedDict([('courant',             Account.TYPE_CHECKING),
                          ('pee',                 Account.TYPE_PEE),

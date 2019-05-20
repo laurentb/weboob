@@ -33,7 +33,7 @@ from weboob.capabilities.base import find_object
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages import (
-    LogoutPage, InfosPage, AccountsPage, HistoryPage, LifeinsurancePage, MarketPage,
+    LogoutPage, AccountsPage, HistoryPage, LifeinsurancePage, MarketPage,
     AdvisorPage, LoginPage, ProfilePage,
 )
 from .transfer_pages import TransferInfoPage, RecipientsListPage, TransferPage
@@ -84,7 +84,6 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
     logout = URL('/securityapi/revoke',
                  '/auth/errorauthn',
                  '/\/auth/errorauthn', LogoutPage)
-    infos = URL('/comptes/', InfosPage)
     accounts = URL('/domiapi/oauth/json/accounts/synthese(?P<type>.*)', AccountsPage)
     history = URL('/domiapi/oauth/json/accounts/(?P<page>.*)', HistoryPage)
     loans = URL('/creditapi/rest/oauth/v1/synthese', AccountsPage)
@@ -171,8 +170,7 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
         accounts_eligibilite_debit = self.page.get_eligibilite_debit()
 
         # First get all checking accounts...
-        data = dict(self.infos.stay_or_go().get_typelist())
-        self.accounts.go(data=json.dumps(data), type='comptes', headers=self.json_headers)
+        self.accounts.go(json={'typeListeCompte': 'COMPTE_SOLDE_COMPTES_CHEQUES'}, type='comptes')
         self.page.check_response()
         for key in self.page.get_keys():
             for a in self.page.iter_accounts(key=key):
