@@ -191,7 +191,8 @@ class AMFAmundiPage(HTMLPage):
     CODE_TYPE = Investment.CODE_TYPE_AMF
 
     def get_code(self):
-        return Regexp(CleanText('//td[@class="bannerColumn"]//li[contains(., "(C)")]', default=NotAvailable), r'(\d+)')(self.doc)
+        return Regexp(CleanText('//td[@class="bannerColumn"]//li[contains(., "(C)")]', default=NotAvailable),
+               r'(\d+)', default=NotAvailable)(self.doc)
 
 
 class AMFSGPage(HTMLPage):
