@@ -315,7 +315,7 @@ class MyVirtKeyboard(SplitKeyboard):
         '2': 'c1318fd381665a97e1052f85213867a7',
         '3': 'fe19d2cc8f8d09b818b05c2a10218233',
         '4': 'd5a03e69857bf01fc373cedbe2530ca9',
-        '5': '289ae90e4adfa58ef4767d9151c96348',
+        '5': ('289ae90e4adfa58ef4767d9151c96348', 'a13c597da3b0af5882efb075d3dec467'),
         '6': '88938bbbb6b81ee2a32568f7081be488',
         '7': '96499777fb95974ee651f19181de6c01',
         '8': '6e2e052c9301d1f381155912ad4d3874',
