@@ -57,7 +57,7 @@ class ActionNeededPage(HTMLPage, LoggedPage):
         # Need to update mail. Try to skip
         msg = "Merci de renseigner votre adresse e-mail"
         if CleanText('//p[@role="heading" and contains(text(), "%s")]' % msg)(self.doc):
-            url = Link('//a[contains(., "PASSER CETTE ETAPE")]')(self.doc)
+            url = Link('//a[contains(., "PASSER CETTE ETAPE")]', default=None)(self.doc)
             if url:
                 self.browser.location(url)
             else:
