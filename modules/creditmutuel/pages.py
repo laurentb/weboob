@@ -139,6 +139,7 @@ class item_account_generic(ItemElement):
         ('C/C',                     Account.TYPE_CHECKING),
         ('Start',                   Account.TYPE_CHECKING),
         ('Comptes courants',        Account.TYPE_CHECKING),
+        ('Service Accueil',         Account.TYPE_CHECKING),
         ('Catip',                   Account.TYPE_DEPOSIT),
         ('Cic Immo',                Account.TYPE_LOAN),
         ('Credit',                  Account.TYPE_LOAN),
