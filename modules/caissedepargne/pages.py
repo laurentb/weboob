@@ -208,7 +208,7 @@ class IndexPage(LoggedPage, HTMLPage):
         if 'OIC_QCF' in self.browser.url:
             # QCF is a mandatory test to make sure you know the basics about financials products
             # however, you can still choose to postpone it. hence the continue link
-            link = Link('//span[@id="lea-prdvel-lien"]/p/b/a[contains(text(), "Continuer")]')(self.doc)
+            link = Link('//span[@id="lea-prdvel-lien"]//b/a[contains(text(), "Continuer")]')(self.doc)
             if link:
                 self.logger.warning("By-passing QCF")
                 self.browser.location(link)
