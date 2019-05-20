@@ -85,10 +85,7 @@ class CragrAPI(LoginBrowser):
 
     profile_details = URL(r'(?P<space>[\w-]+)/operations/profil/infos-personnelles/gerer-coordonnees.html', ProfileDetailsPage)
 
-    pro_profile_details = URL(r'association/operations/profil/infos-personnelles/controler-coordonnees.html',
-                              r'professionnel/operations/profil/infos-personnelles/controler-coordonnees.html',
-                              r'agriculteur/operations/profil/infos-personnelles/controler-coordonnees.html',
-                              r'entreprise/operations/profil/infos-personnelles/controler-coordonnees.html', ProProfileDetailsPage)
+    pro_profile_details = URL(r'(?P<space>[\w-]+)/operations/profil/infos-personnelles/controler-coordonnees.html', ProProfileDetailsPage)
 
     recipients = URL('(?P<space>.*)/operations/(?P<op>.*)/virement/jcr:content.accounts.json',
                      RecipientsPage)
