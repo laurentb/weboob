@@ -13,3 +13,4 @@ modules/modules.list
 *.idea/
 *.DS_Store
 *.coverage*
+.vscode/
