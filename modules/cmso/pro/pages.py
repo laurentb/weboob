@@ -29,7 +29,7 @@ from weboob.browser.filters.html import Link, Attr, TableCell
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.tools.compat import urljoin
+from weboob.tools.compat import urljoin, parse_qsl
 from weboob.tools.capabilities.bank.investments import is_isin_valid
 
 
@@ -284,9 +284,13 @@ class SSODomiPage(JsonPage, UpdateTokenMixin):
 
 class TokenPage(CMSOPage, UpdateTokenMixin):
     def on_load(self):
-        d = re.search(r'id_token=(?P<id_token>[^&]+)&access_token=(?P<access_token>[^&]+)', self.text).groupdict()
-        self.browser.token = d['id_token']
-        self.browser.csrf = d['access_token']
+        auth_query_params = re.search(r'parent\.location = ".*#(.*)";', self.text)
+        assert auth_query_params, 'Url query parameter with token for authentication was not found'
+        auth_query_params = auth_query_params.group(1)
+
+        params = dict(parse_qsl(auth_query_params))
+        self.browser.token = params['id_token']
+        self.browser.csrf = params['access_token']
 
 
 class AuthCheckUser(HTMLPage):
