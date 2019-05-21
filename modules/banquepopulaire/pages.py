@@ -310,26 +310,27 @@ class LoginPage(MyHTMLPage):
 
 class MyVirtKeyboard(SplitKeyboard):
     char_to_hash = {
-        '0': '6a2cb38bcfc27781faaec727ad304ce2',
-        '1': '296140f37a22b5e2b4871272aed22444',
-        '2': 'c1318fd381665a97e1052f85213867a7',
-        '3': 'fe19d2cc8f8d09b818b05c2a10218233',
-        '4': 'd5a03e69857bf01fc373cedbe2530ca9',
-        '5': ('289ae90e4adfa58ef4767d9151c96348', 'a13c597da3b0af5882efb075d3dec467'),
-        '6': '88938bbbb6b81ee2a32568f7081be488',
-        '7': '96499777fb95974ee651f19181de6c01',
-        '8': '6e2e052c9301d1f381155912ad4d3874',
-        '9': '5958d54d88bfaa172305575164b39a8d',
+        '0': 'cce0f72c47c74a3dde57c4fdbcda1db4',
+        '1': 'f5d22afb3ece4dec73bd8a2a4c2844da',
+        '2': '6d3e5db2ccac3f2c13c1f0ba22571857',
+        '3': ('c8e4f6addac4d322f0f9668d472a146c', '34d0566ea3f2330c675365da3178f6ab'),
+        '4': '8a8c769418ec829c208ed442fbf5fe77',
+        '5': '2c3ae480bc91f73b431b048b584026c7',
+        '6': 'a80d639443818e838b434c36dd518df5',
+        '7': '8e59048702e4c5f89bbbc1a598d06d1e',
+        '8': '46bc59a5b288c63477ff52811a3961c5',
+        '9': 'a7bf34568154ef91e990aa5bade3e946',
     }
+
     codesep = ' '
 
     def convert(self, buffer):
         im = Image.open(BytesIO(buffer))
-        im = im.resize((5, 8), Image.BILINEAR)
+        im = im.resize((5, 8), Image.BICUBIC)
         im = im.filter(ImageFilter.UnsharpMask(radius=2,
                                                percent=110,
                                                threshold=3))
-        im = im.convert("P", dither=Image.NONE)
+        im = im.convert("L", dither=Image.NONE)
         im = Image.eval(im, lambda x: 0 if x < 160 else 255)
         s = BytesIO()
         im.save(s, 'png')
