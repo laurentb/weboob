@@ -296,9 +296,10 @@ class IngBrowser(LoginBrowser):
             self.return_from_loan_site()
 
     def return_from_loan_site(self):
-        data = {'context': '{"originatingApplication":"SECUREUI"}',
-                    'targetSystem': 'INTERNET'}
-        self.location('https://subscribe.ing.fr/consumerloan/consumerloan-v1/sso/exit', data=data)
+        params = {'context': '{"originatingApplication":"SECUREUI"}',
+                  'targetSystem': 'INTERNET'}
+        data = {'targetSystemName': 'INTERNET'}
+        self.location('https://subscribe.ing.fr/consumerloan/consumerloan-v1/sso/exit', params=params,json=data)
         self.location('https://secure.ing.fr/', data={'token': self.response.text})
 
     def get_account(self, _id, space=None):
