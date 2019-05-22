@@ -146,8 +146,8 @@ class BNPEnterprise(LoginBrowser):
                     self.logger.debug('skipping coming %r', transaction.to_dict())
                     continue
                 history.append(transaction)
-            for transaction in sorted_transactions(history):
-                yield transaction
+        for transaction in sorted_transactions(history):
+            yield transaction
 
     @need_login
     def iter_coming_operations(self, account):
