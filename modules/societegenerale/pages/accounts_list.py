@@ -239,7 +239,14 @@ class LoanDetailsPage(JsonPage):
         if Dict('commun/statut')(self.doc) == 'NOK':
             return
         else:
-            account.rate = CleanDecimal(Dict('donnees/caracteristiquesReservea/tauxHorsAssurance'))(self.doc)
+            # There is no default value in the Coalesce because we want it to crash in case of
+            # unknown value to be able to add it
+            rate = Coalesce(
+                Dict('donnees/caracteristiquesReservea/tauxHorsAssurance', NotAvailable),
+                Dict('donnees/caracteristiquesCreditConfiance/taux', NotAvailable),
+            )(self.doc)
+
+            account.rate = CleanDecimal().filter(rate)
 
 
 class LoansPage(JsonBasePage):
