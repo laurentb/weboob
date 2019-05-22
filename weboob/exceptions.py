@@ -133,7 +133,7 @@ class BrowserHTTPError(BrowserUnavailable):
     pass
 
 
-class BrowserHTTPSDowngrade(BrowserUnavailable):
+class BrowserHTTPSDowngrade(Exception):
     pass
 
 
