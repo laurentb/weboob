@@ -70,7 +70,7 @@ def need_to_be_on_website(website):
                 if 'https://bourse.ing.fr/' in self.old_browser.url:
                     self.old_browser.return_from_titre_page.go()
                 elif 'https://ingdirectvie.ing.fr/' in self.old_browser.url:
-                    self.old_browser.lifeback.go()
+                    self.old_browser.return_from_life_insurance()
                 elif 'https://subscribe.ing.fr/' in self.old_browser.url:
                     self.old_browser.return_from_loan_site()
 

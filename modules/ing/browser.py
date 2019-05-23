@@ -27,7 +27,7 @@ from decimal import Decimal
 from requests.exceptions import SSLError
 
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import BrowserUnavailable
+from weboob.exceptions import BrowserUnavailable, BrowserHTTPNotFound
 from weboob.browser.exceptions import ServerError
 from weboob.capabilities.bank import Account, AccountNotFound
 from weboob.capabilities.base import find_object, NotAvailable
@@ -57,7 +57,7 @@ def start_with_main_site(f):
                     break
             browser.where = 'start'
         elif browser.url and browser.url.startswith('https://ingdirectvie.ing.fr/'):
-            browser.lifeback.go()
+            browser.return_from_life_insurance()
             browser.where = 'start'
 
         elif browser.url and browser.url.startswith('https://subscribe.ing.fr/'):
@@ -138,6 +138,15 @@ class IngBrowser(LoginBrowser):
         # get form to be redirected on transfer page
         self.api_redirection_url.go()
         self.page.go_new_website()
+
+    def return_from_life_insurance(self):
+        try:
+            self.lifeback.go()
+        except BrowserHTTPNotFound:
+            self.logger.warning('Cannot leave from life insurance space, re login on api space')
+            # we can't do login from this browser
+            # go on accounts page and redo login from api space
+            self.accountspage.go()
 
     @need_login
     def set_multispace(self):
@@ -474,7 +483,7 @@ class IngBrowser(LoginBrowser):
 
                 # return on old ing website
                 assert self.asv_invest.is_here(), "Should be on ING generali website"
-                self.lifeback.go()
+                self.return_from_life_insurance()
 
     def get_history_titre(self, account):
         self.go_investments(account)
@@ -516,7 +525,7 @@ class IngBrowser(LoginBrowser):
                                 inv.code = None
                         investment_list.append(inv)
                     tr.investments = investment_list
-            self.lifeback.go()
+            self.return_from_life_insurance()
         return iter(transactions)
 
     ############# CapDocument #############
