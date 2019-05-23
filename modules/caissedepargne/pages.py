@@ -867,6 +867,23 @@ class CardsPage(IndexPage):
                     raise SkipItem('immediate debit card?')
                 return CleanDecimal.French(TableCell('coming'), sign=lambda x: -1)(self)
 
+            def condition(self):
+                immediate_str = ''
+                # There are some card without any information. To exclude them, we keep only account
+                # with extra "option" (ex: coming transaction link, block bank card...)
+                if 'Faire opposition' in CleanText("./td[5]")(self):
+                    # Only deferred card have this option to see coming transaction, even when
+                    # there is 0 coming (Table element have no thead for the 5th column).
+                    if 'Consulter mon encours carte' in CleanText("./td[5]")(self):
+                        return True
+
+                    # Card without 'Consulter mon encours carte' are immediate card. There are logged
+                    # for now to make the debug easier
+                    immediate_str = '[Immediate card]'
+
+                self.logger.warning('Skip card %s (no history/coming information) %s', Field('number')(self), immediate_str)
+                return False
+
 
 class CardsComingPage(IndexPage):
     def is_here(self):
