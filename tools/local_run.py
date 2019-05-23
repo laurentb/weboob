@@ -5,6 +5,7 @@ from __future__ import print_function
 import os
 import subprocess
 import sys
+import tempfile
 
 if len(sys.argv) < 2:
     print("Usage: %s SCRIPTNAME [args]" % sys.argv[0])
@@ -38,8 +39,10 @@ env['WEBOOB_BACKENDS'] = os.getenv('WEBOOB_LOCAL_BACKENDS',
                                              os.path.join(os.environ.get('XDG_CONFIG_HOME', os.path.join(os.path.expanduser('~'), '.config')), 'weboob', 'backends')))
 
 modpath = os.getenv('WEBOOB_MODULES', os.path.join(project, 'modules'))
-with open(os.path.join(wd, 'sources.list'), 'w') as f:
+
+with tempfile.NamedTemporaryFile(mode='w', dir=wd, delete=False) as f:
     f.write("file://%s\n" % modpath)
+os.rename(f.name, os.path.join(wd, 'sources.list'))
 
 # Hide output unless there is an error
 p = subprocess.Popen(
