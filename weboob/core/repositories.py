@@ -27,10 +27,11 @@ import sys
 import os
 import subprocess
 import hashlib
-from datetime import datetime
-from contextlib import closing
 from compileall import compile_dir
+from contextlib import closing, contextmanager
+from datetime import datetime
 from io import BytesIO, StringIO
+from tempfile import NamedTemporaryFile
 
 from weboob.exceptions import BrowserHTTPError, BrowserHTTPNotFound, ModuleInstallError
 from .modules import LoadedModule
@@ -43,11 +44,18 @@ except ImportError:
     from configparser import RawConfigParser, DEFAULTSECT
 
 
+@contextmanager
 def open_for_config(filename):
     if sys.version_info.major == 2:
-        return open(filename, 'wb')
+        f = NamedTemporaryFile(mode='wb',
+                               dir=os.path.dirname(filename),
+                               delete=False)
     else:
-        return open(filename, 'w', encoding='utf-8')
+        f = NamedTemporaryFile(mode='w', encoding='utf-8',
+                               dir=os.path.dirname(filename),
+                               delete=False)
+    yield f
+    os.rename(f.name, filename)
 
 
 class ModuleInfo(object):
