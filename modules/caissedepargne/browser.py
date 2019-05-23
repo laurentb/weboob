@@ -450,9 +450,13 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                 if self.cards.is_here():
                     for card in cards:
                         info = card.parent._card_links
-                        self.page.go_list()
-                        self.page.go_history(info)
-                        card._coming_info = self.page.get_card_coming_info(card.number, info.copy())
+
+                        # If info is filled, that mean there are comings transaction
+                        card._coming_info = None
+                        if info:
+                            self.page.go_list()
+                            self.page.go_history(info)
+                            card._coming_info = self.page.get_card_coming_info(card.number, info.copy())
 
                 self.accounts.extend(cards)
 
@@ -528,7 +532,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
         # In this case, we want the coming transaction for the new website
         # (old website return coming directly in `get_coming()` )
-        if account_card and info['type'] == 'HISTORIQUE_CB':
+        if account_card and info and info['type'] == 'HISTORIQUE_CB':
             self.page.go_coming(account_card._coming_info['link'])
 
         info['link'] = [info['link']]
@@ -688,9 +692,11 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
         # We are on the new website.
         info = account.parent._card_links
-        for tr in self._get_history(info.copy(), account):
-            tr.type = tr.TYPE_DEFERRED_CARD
-            trs.append(tr)
+        # if info is empty, that mean there are no coming yet
+        if info:
+            for tr in self._get_history(info.copy(), account):
+                tr.type = tr.TYPE_DEFERRED_CARD
+                trs.append(tr)
 
         return sorted_transactions(trs)
 
