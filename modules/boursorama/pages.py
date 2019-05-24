@@ -65,7 +65,7 @@ class IbanPage(LoggedPage, HTMLPage):
         if self.doc.xpath('//div[has-class("alert")]/p[contains(text(), "Une erreur est survenue")]') or \
            self.doc.xpath('//div[has-class("alert")]/p[contains(text(), "Le compte est introuvable")]'):
             return NotAvailable
-        return CleanText('//table[thead[tr[th[contains(text(), "Code I.B.A.N")]]]]/tbody/tr/td[2]', replace=[(' ', '')])(self.doc)
+        return CleanText('//div[strong[contains(text(),"IBAN")]]/div[contains(@class, "definition")]', replace=[(' ', '')])(self.doc)
 
 
 class AuthenticationPage(HTMLPage):
