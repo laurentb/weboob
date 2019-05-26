@@ -52,6 +52,7 @@ from weboob.tools.log import getLogger
 from weboob.tools.compat import basestring, unicode, urlparse, urljoin, urlencode, parse_qsl
 from weboob.tools.json import json
 
+from .adapters import HTTPAdapter
 from .cookies import WeboobCookieJar
 from .exceptions import HTTPNotFound, ClientError, ServerError
 from .sessions import FuturesSession
@@ -87,9 +88,10 @@ class Browser(object):
     Check SSL certificates.
     """
 
-    PROXIES = None
-
     MAX_RETRIES = 2
+    """
+    Maximum retries on failed requests.
+    """
 
     MAX_WORKERS = 10
     """
@@ -116,7 +118,7 @@ class Browser(object):
             return localfile
         return os.path.join(os.path.dirname(inspect.getfile(cls)), localfile)
 
-    def __init__(self, logger=None, proxy=None, responses_dirname=None, weboob=None):
+    def __init__(self, logger=None, proxy=None, responses_dirname=None, weboob=None, proxy_headers=None):
         self.logger = getLogger('browser', logger)
         self.responses_dirname = responses_dirname
         self.responses_count = 1
@@ -126,6 +128,7 @@ class Browser(object):
             self.VERIFY = self.asset(self.VERIFY)
 
         self.PROXIES = proxy
+        self.proxy_headers = proxy_headers or {}
         self._setup_session(self.PROFILE)
         self.url = None
         self.response = None
@@ -215,13 +218,14 @@ class Browser(object):
 
         # defines a max_retries. It's mandatory in case a server is not
         # handling keep alive correctly, like the proxy burp
-        adapter_kwargs = dict(max_retries=self.MAX_RETRIES)
+        adapter_kwargs = dict(max_retries=self.MAX_RETRIES,
+                              proxy_headers=self.proxy_headers)
         # set connection pool size equal to MAX_WORKERS if needed
         if self.MAX_WORKERS > requests.adapters.DEFAULT_POOLSIZE:
             adapter_kwargs.update(pool_connections=self.MAX_WORKERS,
                                   pool_maxsize=self.MAX_WORKERS)
-        session.mount('https://', requests.adapters.HTTPAdapter(**adapter_kwargs))
-        session.mount('http://', requests.adapters.HTTPAdapter(**adapter_kwargs))
+        session.mount('https://', HTTPAdapter(**adapter_kwargs))
+        session.mount('http://', HTTPAdapter(**adapter_kwargs))
 
         if self.TIMEOUT:
             session.timeout = self.TIMEOUT

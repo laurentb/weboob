@@ -26,13 +26,15 @@ except ImportError:
     ThreadPoolExecutor = None
 
 from requests import Session
-from requests.adapters import DEFAULT_POOLSIZE, HTTPAdapter
+from requests.adapters import DEFAULT_POOLSIZE
 from requests.compat import OrderedDict, cookielib
 from requests.cookies import RequestsCookieJar, cookiejar_from_dict
 from requests.models import PreparedRequest
 from requests.sessions import merge_setting
 from requests.structures import CaseInsensitiveDict
 from requests.utils import get_netrc_auth
+
+from .adapters import HTTPAdapter
 
 
 def merge_hooks(request_hooks, session_hooks, dict_class=OrderedDict):
