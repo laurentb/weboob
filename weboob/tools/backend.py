@@ -25,6 +25,7 @@ from weboob.capabilities.base import BaseObject, Capability, FieldNotFound, NotA
 from weboob.exceptions import ModuleInstallError
 from weboob.tools.compat import basestring, getproxies
 from weboob.tools.log import getLogger
+from weboob.tools.json import json
 from weboob.tools.misc import iter_fields
 from weboob.tools.value import ValuesDict
 
@@ -353,6 +354,11 @@ class Module(object):
             return None
 
         kwargs['proxy'] = self.get_proxy()
+        if '_proxy_headers' in self._private_config:
+            kwargs['proxy_headers'] = self._private_config['_proxy_headers']
+            if isinstance(kwargs['proxy_headers'], basestring):
+                kwargs['proxy_headers'] = json.loads(kwargs['proxy_headers'])
+
         kwargs['logger'] = self.logger
 
         if self.logger.settings['responses_dirname']:
