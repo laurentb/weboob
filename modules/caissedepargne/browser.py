@@ -143,6 +143,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             self.BASEURL = 'https://%s' % self.BASEURL
 
         self.is_cenet_website = False
+        self.new_website = True
         self.multi_type = False
         self.accounts = None
         self.loans = None
@@ -436,29 +437,69 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                     else:
                         assert False, "new domain that hasn't been seen so far ?"
 
+            """
+            Card cases are really tricky on the new website.
+            There are 2 kinds of page where we can find cards information
+                - CardsPage: List some of the PSU cards
+                - CardsComingPage: On the coming transaction page (for a specific checking account),
+                  we can find all cards related to this checking account. Information to reach this
+                  CC is in the home page
+
+            We have to go through this both kind of page for those reasons:
+                 - If there is no coming yet, the card will not be found in the home page and we will not
+                   be able to reach the CardsComingPage. But we can find it on CardsPage
+                 - Some cards are only on the CardsComingPage and not the CardsPage
+                 - In CardsPage, there are cards (with "Business" in the label) without checking account on the
+                   website (neither history nor coming), so we skip them.
+                 - Some card on the CardsPage that have a checking account parent, but if we follow the link to
+                   reach it with CardsComingPage, we find an other card that not in CardsPage.
+            """
+            if self.new_website:
+                for account in self.accounts:
+                    # Adding card's account that we find in CardsComingPage of each Checking account
+                    if account._card_links:
+                        self.home.go()
+                        self.page.go_history(account._card_links)
+                        for card in self.page.iter_cards():
+                            card.parent = account
+                            card._coming_info = self.page.get_card_coming_info(card.number, card.parent._card_links.copy())
+                            self.accounts.append(card)
+
             self.home.go()
             self.page.go_list()
             self.page.go_cards()
 
-            if self.cards.is_here() or self.cards_old.is_here():
-                cards = list(self.page.iter_cards())
-                for card in cards:
+            # We are on the new website. We already added some card, but we can find more of them on the CardsPage
+            if self.cards.is_here():
+                for card in self.page.iter_cards():
                     card.parent = find_object(self.accounts, number=card._parent_id)
-                    assert card.parent, 'card account %r parent was not found' % card
+                    assert card.parent, 'card account parent %s was not found' % card
 
-                # If we are in the new site, we have to get each card coming transaction link.
-                if self.cards.is_here():
-                    for card in cards:
-                        info = card.parent._card_links
+                    # If we already added this card, we don't have to add it a second time
+                    if find_object(self.accounts, number=card.number):
+                        continue
 
-                        # If info is filled, that mean there are comings transaction
-                        card._coming_info = None
-                        if info:
-                            self.page.go_list()
-                            self.page.go_history(info)
-                            card._coming_info = self.page.get_card_coming_info(card.number, info.copy())
+                    info = card.parent._card_links
 
-                self.accounts.extend(cards)
+                    # If card.parent._card_links is not filled, it mean this checking account
+                    # has no coming transactions.
+                    card._coming_info = None
+                    if info:
+                        self.page.go_list()
+                        self.page.go_history(info)
+                        card._coming_info = self.page.get_card_coming_info(card.number, info.copy())
+
+                        if not card._coming_info:
+                            self.logger.warning('Skip card %s (not found on checking account)', card.number)
+                            continue
+                    self.accounts.append(card)
+
+            # We are on the old website. We add all card that we can find on the CardsPage
+            elif self.cards_old.is_here():
+                for card in self.page.iter_cards():
+                    card.parent = find_object(self.accounts, number=card._parent_id)
+                    assert card.parent, 'card account parent %s was not found' % card.number
+                    self.accounts.append(card)
 
         # Some accounts have no available balance or label and cause issues
         # in the backend so we must exclude them from the accounts list:

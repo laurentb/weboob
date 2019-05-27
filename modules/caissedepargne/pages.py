@@ -291,6 +291,7 @@ class IndexPage(LoggedPage, HTMLPage):
             return
 
         account = Account()
+        account._card_links = None
         account.id = info['id']
         if is_rib_valid(info['id']):
             account.iban = rib2iban(info['id'])
@@ -446,6 +447,7 @@ class IndexPage(LoggedPage, HTMLPage):
             tds = tr.findall('td')
 
             account = Account()
+            account._card_links = None
             account.id = CleanText('./a')(tds[2]).split('-')[0].strip()
             account.label = CleanText('./a')(tds[2]).split('-')[-1].strip()
             account.type = Account.TYPE_LOAN
@@ -864,6 +866,7 @@ class CardsPage(IndexPage):
             obj__parent_id = CleanText(TableCell('parent'))
             obj_balance = 0
             obj_currency = Currency(TableCell('coming'))
+            obj__card_links = None
 
             def obj_coming(self):
                 if CleanText(TableCell('coming'))(self) == '-':
@@ -892,10 +895,25 @@ class CardsComingPage(IndexPage):
     def is_here(self):
         return CleanText('//h2[text()="Encours de carte à débit différé"]')(self.doc)
 
-    def get_card_coming_info(self, number, info):
+    @method
+    class iter_cards(ListElement):
+        item_xpath = '//table[contains(@class, "compte") and position() = 1]//tr[contains(@id, "MM_HISTORIQUE_CB") and position() < last()]'
 
+        class item(ItemElement):
+            klass = Account
+
+            obj_id = Regexp(CleanText(Field('label'), replace=[('*', 'X')]), r'(\d{6}\X{6}\d{4})')
+            obj_type = Account.TYPE_CARD
+            obj_label = CleanText('./td[1]')
+            obj_balance = Decimal(0)
+            obj_coming = CleanDecimal.French('./td[2]')
+            obj_currency = Currency('./td[2]')
+            obj_number = Regexp(CleanText(Field('label')), r'(\d{6}\*{6}\d{4})')
+            obj__card_links = None
+
+    def get_card_coming_info(self, number, info):
         # If the xpath match, that mean there are only one card
-        # We have enought information in `info` to get its coming transaction
+        # We have enough information in `info` to get its coming transaction
         if CleanText('//tr[@id="MM_HISTORIQUE_CB_rptMois0_ctl01_trItem"]')(self.doc):
             return info
 
@@ -907,12 +925,16 @@ class CardsComingPage(IndexPage):
         if Regexp(CleanText(xpath), r'(\d{6}\*{6}\d{4})')(self.doc) == number:
             return info
 
-        # For all card except the first one for the same check account, we have to get info through their href info
-        link = CleanText(Attr('//a[contains(text(),"%s")]' % number, 'href'))(self.doc)
-        infos = re.match(r'.*(DETAIL_OP_M0&[^\"]+).*', link)
-        info['link'] = infos.group(1)
+        # Some cards redirect to a checking account where we cannot found them. Since we have no details or history,
+        # we return None and skip them in the browser.
+        if CleanText('//a[contains(text(),"%s")]' % number)(self.doc):
+            # For all cards except the first one for the same check account, we have to get info through their href info
+            link = CleanText(Link('//a[contains(text(),"%s")]' % number))(self.doc)
+            infos = re.match(r'.*(DETAIL_OP_M0&[^\"]+).*', link)
+            info['link'] = infos.group(1)
 
-        return info
+            return info
+        return None
 
 
 class CardsOldWebsitePage(IndexPage):
@@ -945,6 +967,7 @@ class CardsOldWebsitePage(IndexPage):
             obj_balance = 0
             obj_coming = CleanDecimal.French(TableCell('coming'))
             obj_currency = Currency(TableCell('coming'))
+            obj__card_links = None
 
             def obj__parent_id(self):
                 return self.page.get_account()
