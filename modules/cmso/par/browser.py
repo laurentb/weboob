@@ -227,7 +227,7 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
     def iter_history(self, account):
         account = self.get_account(account.id)
 
-        if account.type is Account.TYPE_LOAN:
+        if account.type in (Account.TYPE_LOAN, Account.TYPE_PEE):
             return iter([])
 
         if account.type == Account.TYPE_LIFE_INSURANCE:
