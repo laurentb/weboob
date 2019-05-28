@@ -127,27 +127,29 @@ class BNPEnterprise(LoginBrowser):
     def _iter_history_base(self, account):
         dformat = "%Y%m%d"
 
-        for date in rrule(MONTHLY, dtstart=(datetime.now() - relativedelta(months=12)), until=datetime.now())[::-1]:
-            history = []
-            self.account_history_view.go(
-                identifiant=account.iban, type_solde='C', type_releve='Previsionnel',
-                type_date='O', date_min=(date + relativedelta(days=1)).strftime(dformat),
-                date_max=(date + relativedelta(months=1)).strftime(dformat)
+        # We ask for more 12 months by default, but it may not be supported for somme account types.
+        # To avoid duplicated transactions we exit as soon a transaction is not within the expected timeframe
+        for date in rrule(MONTHLY, dtstart=(datetime.now() - relativedelta(months=11)), until=datetime.now())[::-1]:
+
+            params = dict(identifiant=account.iban, type_solde='C', type_releve='Previsionnel', type_date='O',
+                date_min=(date + relativedelta(days=1) - relativedelta(months=1)).strftime(dformat),
+                date_max=date.strftime(dformat)
             )
 
-            self.account_history.go(
-                identifiant=account.iban, type_solde='C', type_releve='Previsionnel',
-                type_date='O', date_min=(date + relativedelta(days=1)).strftime(dformat),
-                date_max=(date + relativedelta(months=1)).strftime(dformat)
-            )
+            self.account_history_view.go(**params)
+            self.account_history.go(**params)
 
-            for transaction in self.page.iter_history():
+            for transaction in sorted_transactions(self.page.iter_history()):
                 if transaction._coming:
                     self.logger.debug('skipping coming %r', transaction.to_dict())
                     continue
-                history.append(transaction)
-        for transaction in sorted_transactions(history):
-            yield transaction
+
+                if transaction.date > date:
+                    self.logger.debug('transaction not within expected timeframe, stop iterating history: %r',
+                                      transaction.to_dict())
+                    return
+
+                yield transaction
 
     @need_login
     def iter_coming_operations(self, account):
