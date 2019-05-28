@@ -1031,6 +1031,11 @@ class OAuth2Mixin(StatesMixin):
         self.logger.info('request authorization')
         raise BrowserRedirect(self.build_authorization_uri())
 
+    def handle_callback_error(self, values):
+        # Here we try to catch callback errors occurring during enrollment
+        # Ideally overload this method in each module to catch specific error
+        assert values.get('code'), "No 'code' was found into the callback url, please raise the right error: %s" % values
+
     def build_access_token_parameters(self, values):
         return {'code':             values['code'],
                 'grant_type':       'authorization_code',
@@ -1049,6 +1054,7 @@ class OAuth2Mixin(StatesMixin):
             values = auth_uri
         else:
             values = dict(parse_qsl(urlparse(auth_uri).query))
+        self.handle_callback_error(values)
         data = self.build_access_token_parameters(values)
         try:
             auth_response = self.do_token_request(data).json()
