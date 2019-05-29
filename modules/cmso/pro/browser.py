@@ -41,22 +41,22 @@ from ..par.browser import CmsoParBrowser
 
 
 class CmsoProBrowser(LoginBrowser):
-    login = URL('/banque/assurance/credit-mutuel/pro/accueil\?espace=professionnels', LoginPage)
-    choice_link = URL('/domiweb/accueil.jsp', ChoiceLinkPage)
-    subscription = URL('/domiweb/prive/espacesegment/selectionnerAbonnement/0-selectionnerAbonnement.act', SubscriptionPage)
-    accounts = URL('/domiweb/prive/professionnel/situationGlobaleProfessionnel/0-situationGlobaleProfessionnel.act', AccountsPage)
-    history = URL('/domiweb/prive/professionnel/situationGlobaleProfessionnel/1-situationGlobaleProfessionnel.act', HistoryPage)
-    password_creation = URL('/domiweb/prive/particulier/modificationMotDePasse/0-creationMotDePasse.act', PasswordCreationPage)
-    useless = URL('/domiweb/prive/particulier/modificationMotDePasse/0-expirationMotDePasse.act', UselessPage)
+    login = URL(r'/banque/assurance/credit-mutuel/pro/accueil\?espace=professionnels', LoginPage)
+    choice_link = URL(r'/domiweb/accueil.jsp', ChoiceLinkPage)
+    subscription = URL(r'/domiweb/prive/espacesegment/selectionnerAbonnement/0-selectionnerAbonnement.act', SubscriptionPage)
+    accounts = URL(r'/domiweb/prive/professionnel/situationGlobaleProfessionnel/0-situationGlobaleProfessionnel.act', AccountsPage)
+    history = URL(r'/domiweb/prive/professionnel/situationGlobaleProfessionnel/1-situationGlobaleProfessionnel.act', HistoryPage)
+    password_creation = URL(r'/domiweb/prive/particulier/modificationMotDePasse/0-creationMotDePasse.act', PasswordCreationPage)
+    useless = URL(r'/domiweb/prive/particulier/modificationMotDePasse/0-expirationMotDePasse.act', UselessPage)
 
-    investment = URL('/domiweb/prive/particulier/portefeuilleSituation/0-situationPortefeuille.act', InvestmentPage)
+    investment = URL(r'/domiweb/prive/particulier/portefeuilleSituation/0-situationPortefeuille.act', InvestmentPage)
     invest_account = URL(r'/domiweb/prive/particulier/portefeuilleSituation/2-situationPortefeuille.act\?(?:csrf=[^&]*&)?indiceCompte=(?P<idx>\d+)&idRacine=(?P<idroot>\d+)', InvestmentAccountPage)
 
-    profile = URL('https://pro.(?P<website>[\w.]+)/domiapi/oauth/json/edr/infosPerson', ProfilePage)
+    profile = URL(r'https://(?P<webtype>[\w.]+).(?P<website>[\w.]+)/domiapi/oauth/json/edr/infosPerson', ProfilePage)
 
-    tokens = URL('/domiweb/prive/espacesegment/selectionnerAbonnement/3-selectionnerAbonnement.act', TokenPage)
-    ssoDomiweb = URL('https://pro.(?P<website>[\w.]+)/domiapi/oauth/json/ssoDomiwebEmbedded', SSODomiPage)
-    auth_checkuser = URL('https://pro.(?P<website>[\w.]+)/auth/checkuser', AuthCheckUser)
+    tokens = URL(r'/domiweb/prive/espacesegment/selectionnerAbonnement/3-selectionnerAbonnement.act', TokenPage)
+    ssoDomiweb = URL(r'https://(?P<webtype>[\w.]+).(?P<website>[\w.]+)/domiapi/oauth/json/ssoDomiwebEmbedded', SSODomiPage)
+    auth_checkuser = URL(r'https://pro.(?P<website>[\w.]+)/auth/checkuser', AuthCheckUser)
 
     def __init__(self, website, *args, **kwargs):
         super(CmsoProBrowser, self).__init__(*args, **kwargs)
@@ -69,6 +69,7 @@ class CmsoProBrowser(LoginBrowser):
 
         self.BASEURL = "https://www.%s" % website
         self.website = website
+        self.webtype = None
         self.areas = None
         self.arkea = CmsoParBrowser.ARKEA[website]
         self.csrf = None
@@ -108,23 +109,28 @@ class CmsoProBrowser(LoginBrowser):
         if path.startswith('/domiweb'):
             path = path[len('/domiweb'):]
 
-        headers = {
-                  'Authentication': 'Bearer %s' % self.token,
-                  'Authorization': 'Bearer %s' % self.csrf,
-                  'X-Csrf-Token': self.csrf,
-                  'Accept': 'application/json',
-                  'X-REFERER-TOKEN': 'RWDPRO',
-                  'X-ARKEA-EFS': self.arkea,
-                  'ADRIM': 'isAjax:true',
-        }
-
         json = {
-               'rwdStyle': 'true',
-               'service': path,
+            'rwdStyle': 'true',
+            'service': path,
         }
 
+        headers = {
+            'Authorization': 'Bearer %s' % self.csrf,
+            'X-Csrf-Token': self.csrf,
+            'X-ARKEA-EFS' : self.arkea,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'ADRIM': 'isAjax:true',
+        }
+        if self.token:
+            self.webtype = 'pro'
+            headers['Authentication'] = 'Bearer %s' % self.token
+            headers['X-REFERER-TOKEN'] = 'RWDPRO'
+        else:
+            self.webtype = 'api'
         try:
-            url = self.ssoDomiweb.go(website=self.website,
+            url = self.ssoDomiweb.go(webtype=self.webtype,
+                                     website=self.website,
                                      headers=headers,
                                      json=json).get_sso_url()
         except BrowserHTTPError as e:
@@ -138,11 +144,10 @@ class CmsoProBrowser(LoginBrowser):
         return page
 
     def go_on_area(self, area):
-        #self.subscription.stay_or_go()
         if not self.subscription.is_here():
             self.go_with_ssodomi(self.subscription)
-
         area = re.sub(r'csrf=(\w+)', 'csrf=' + self.page.get_csrf(), area)
+
         self.logger.info('Go on area %s', area)
         self.location(area)
         self.location('/domiweb/accueil.jsp')
@@ -162,7 +167,6 @@ class CmsoProBrowser(LoginBrowser):
             try:
                 account_page = self.go_with_ssodomi(self.accounts)
                 for a in account_page.iter_accounts():
-
                     if a.type == Account.TYPE_MARKET:
                         # for legacy reason we have to get id on investment page for market account
                         account_page = self.go_with_ssodomi(self.investment)
@@ -275,15 +279,27 @@ class CmsoProBrowser(LoginBrowser):
         self.go_on_area(self.areas[0])
         # this code is copied from CmsoParBrowser
         if self.token is None:
-            self.tokens.go()
+            try:
+                self.tokens.go()
+            except ServerError:
+                self.logger.warning('Tokens are unavailable for this area.')
+
         headers = {
-            'Authentication': 'Bearer %s' % self.token,
             'Authorization': 'Bearer %s' % self.csrf,
-            'X-ARKEA-EFS': self.arkea,
             'X-Csrf-Token': self.csrf,
+            'X-ARKEA-EFS' : self.arkea,
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'X-REFERER-TOKEN': 'RWDPRO',
+            'ADRIM': 'isAjax:true',
         }
+        if self.token:
+            self.webtype = 'pro'
+            headers['Authentication'] = 'Bearer %s' % self.token
+            headers['X-REFERER-TOKEN'] = 'RWDPRO'
+        else:
+            self.webtype = 'api'
 
-        return self.profile.go(website=self.website, data='{}', headers=headers).get_profile()
+        return self.profile.go(webtype=self.webtype,
+                               website=self.website,
+                               data='{}',
+                               headers=headers).get_profile()

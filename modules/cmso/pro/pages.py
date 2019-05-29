@@ -289,7 +289,7 @@ class TokenPage(CMSOPage, UpdateTokenMixin):
         auth_query_params = auth_query_params.group(1)
 
         params = dict(parse_qsl(auth_query_params))
-        self.browser.token = params['id_token']
+        self.browser.token = params.get('id_token', None)
         self.browser.csrf = params['access_token']
 
 
