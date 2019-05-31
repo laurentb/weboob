@@ -460,7 +460,7 @@ def create_cert_db(path):
             elif nb_certs > 1:
                 for cert in content.split(separator)[:-1]:
                     cert += separator
-                    with NamedTemporaryFile() as fd:
+                    with NamedTemporaryFile('w') as fd:
                         fd.write(cert)
                         fd.flush()
                         add_nss_cert(path, fd.name)
