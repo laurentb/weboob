@@ -1262,6 +1262,7 @@ class PorPage(LoggedPage, HTMLPage):
             obj_unitprice = CleanDecimal(TableCell('unitprice'), default=Decimal(0), replace_dots=True)
             obj_valuation = CleanDecimal(TableCell('valuation'), default=Decimal(0), replace_dots=True)
             obj_diff = CleanDecimal(TableCell('diff'), default=Decimal(0), replace_dots=True)
+            obj_original_currency = Currency(TableCell('unitvalue'))
 
             def obj_code(self):
                 code = Regexp(CleanText('.//td[1]/a/@title'), r'^([^ ]+)')(self)
@@ -1270,11 +1271,23 @@ class PorPage(LoggedPage, HTMLPage):
                 return code
 
             def obj_unitvalue(self):
+                if Field('original_currency')(self):
+                    return NotAvailable
+
                 r = CleanText(TableCell('unitvalue'))(self)
                 if r[-1] == '%':
                     return None
+                elif r == 'ND':
+                    return NotAvailable
                 else:
-                    return CleanDecimal(TableCell('unitvalue'), default=Decimal(0), replace_dots=True)(self)
+                    return CleanDecimal.French(TableCell('unitvalue'))(self)
+
+            def obj_original_unitvalue(self):
+                if Field('original_currency')(self):
+                    r = CleanText(TableCell('unitvalue'))(self)
+                    if 'ND' in r:
+                        return NotAvailable
+                    return CleanDecimal.French(TableCell('unitvalue'))(self)
 
             def obj_vdate(self):
                 td = TableCell('unitvalue')(self)[0]
