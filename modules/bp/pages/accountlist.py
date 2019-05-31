@@ -50,7 +50,8 @@ class item_account_generic(ItemElement):
     klass = Account
 
     def condition(self):
-        return len(self.el.xpath('.//span[@class="number"]')) > 0
+        # For some loans the following xpath is absent and we don't want to skip them
+        return len(self.el.xpath('.//span[@class="number"]')) > 0 or Field('type')(self) == Account.TYPE_LOAN
 
     obj_id = CleanText('.//abbr/following-sibling::text()')
     obj_currency = Currency('.//span[@class="number"]')
@@ -70,7 +71,10 @@ class item_account_generic(ItemElement):
 
     def obj_balance(self):
         if Field('type')(self) == Account.TYPE_LOAN:
-            return -abs(CleanDecimal('.//span[@class="number"]', replace_dots=True)(self))
+            balance = CleanDecimal('.//span[@class="number"]', replace_dots=True, default=NotAvailable)(self)
+            if balance:
+                balance = -abs(balance)
+            return balance
         return CleanDecimal('.//span[@class="number"]', replace_dots=True, default=NotAvailable)(self)
 
     def obj_coming(self):
@@ -102,7 +106,7 @@ class item_account_generic(ItemElement):
         return NotAvailable
 
     def obj_iban(self):
-        if not Field('url')(self):
+        if not Field('url')(self) or Field('type')(self) == Account.TYPE_LOAN:
             return NotAvailable
 
         details_page = self.page.browser.open(Field('url')(self)).page
@@ -192,9 +196,9 @@ class AccountList(LoggedPage, MyHTMLPage):
         loan.currency = account.currency
         loan.url = account.url
 
-        loan.available_amount = CleanDecimal('//tr[td[contains(text(), "Montant Maximum Autorisé") or contains(text(), "Montant autorisé")]]/td[2]')(self.doc)
-        loan.used_amount = loan.used_amount =  CleanDecimal('//tr[td[contains(text(), "Montant Utilisé") or contains(text(), "Montant utilisé")]]/td[2]')(self.doc)
-        loan.available_amount = CleanDecimal(Regexp(CleanText('//tr[td[contains(text(), "Montant Disponible") or contains(text(), "Montant disponible")]]/td[2]'), r'(.*) au'))(self.doc)
+        loan.used_amount =  CleanDecimal.US('//tr[td[contains(text(), "Montant Utilisé") or contains(text(), "Montant utilisé")]]/td[2]')(self.doc)
+        loan.available_amount = CleanDecimal.US(Regexp(CleanText('//tr[td[contains(text(), "Montant Disponible") or contains(text(), "Montant disponible")]]/td[2]'), r'(.*) au'))(self.doc)
+        loan.balance  = -loan.used_amount
         loan._has_cards = False
         loan.type = Account.TYPE_REVOLVING_CREDIT
         return loan
