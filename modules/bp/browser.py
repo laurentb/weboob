@@ -418,7 +418,10 @@ class BPBrowser(LoginBrowser, StatesMixin):
         if account.type in (account.TYPE_PEA, account.TYPE_MARKET):
             self.go_linebourse(account)
             investments = list(self.linebourse.iter_investment(account.id))
-            investments.append(self.linebourse.get_liquidity(account.id))
+            liquidity = self.linebourse.get_liquidity(account.id)
+            if liquidity:
+                # avoid to append None
+                investments.append(liquidity)
             return investments
 
         if account.type != Account.TYPE_LIFE_INSURANCE:
