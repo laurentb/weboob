@@ -318,6 +318,7 @@ class LoansPage(JsonBasePage):
         loan._prestation_id = account._prestation_id
         loan._loan_type = account._loan_type
         loan._is_json_histo = account._is_json_histo
+        loan._parent_id = None
 
         if Dict('donnees/tabIdAllPrestations')(self.doc):
             for acc in Dict('donnees/tabPrestations')(self.doc):
