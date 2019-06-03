@@ -370,7 +370,7 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
                 if coming and tr.date > date.today():
                     tr._is_coming = True
                     yield tr
-                elif not coming and tr.date < date.today():
+                elif not coming and tr.date <= date.today():
                     yield tr
 
     def get_invest_transactions(self, account, coming):
