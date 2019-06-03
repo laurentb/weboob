@@ -25,7 +25,7 @@ from datetime import timedelta, datetime
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import ServerError, BrowserHTTPNotFound
-from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
+from weboob.exceptions import BrowserIncorrectPassword
 from weboob.tools.compat import urlparse
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
@@ -170,8 +170,7 @@ class CragrRegion(LoginBrowser):
 
         # From the home page, fetch the login url to go to login page
         login_url = self.home.go().get_login_url()
-        if not login_url:
-            raise BrowserUnavailable("L'adresse URL %s n'est pas gérée actuellement." % self.ORIGIN_URL)
+        assert login_url, "L'adresse URL %s n'est pas gérée actuellement." % self.ORIGIN_URL
 
         parsed_url = urlparse(login_url)
         self.BASEURL = '%s://%s' % (parsed_url.scheme, parsed_url.netloc)
