@@ -1210,14 +1210,25 @@ class PorPage(LoggedPage, HTMLPage):
                 acc.type = self.get_type(acc.label)
                 acc._is_inv = True
                 self.fill(acc)
-                accounts.append(acc)
+                # Some market account haven't any valorisation, neither history. We skip them.
+                if not empty(acc.balance):
+                    accounts.append(acc)
 
     def fill(self, acc):
         self.send_form(acc)
         ele = self.browser.page.doc.xpath('.//table[has-class("fiche bourse")]')[0]
-        balance = CleanDecimal(ele.xpath('.//td[contains(@id, "Valorisation")]'),
-                               default=Decimal(0), replace_dots=True)(ele)
-        acc.balance = balance + acc.balance if acc.balance else balance
+
+        balance = CleanText('.//td[contains(@id, "Valorisation")]')(ele)
+
+        # Valorisation will be filled with "NS" string if there isn't information
+        if balance == 'NS' and not acc.balance:
+            acc.balance = NotAvailable
+        else:
+            balance = CleanDecimal.French(default=0).filter(balance)
+            if acc.balance:
+                acc.balance += balance
+            else:
+                acc.balance = balance
         acc.valuation_diff = CleanDecimal(ele.xpath('.//td[contains(@id, "Variation")]'),
                                           default=Decimal(0), replace_dots=True)(ele)
         if balance:
