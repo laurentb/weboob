@@ -691,7 +691,7 @@ class MarketPage(LoggedPage, HTMLPage):
         # Xpath can be h3/h4 or div/span; in both cases
         # the first node contains "Solde Espèces":
         valuation = CleanDecimal('//li/*[contains(text(), "Solde Espèces")]/following-sibling::*', replace_dots=True, default=None)(self.doc)
-        if valuation:
+        if not empty(valuation):
             yield create_french_liquidity(valuation)
 
         for inv in self.get_investment():
