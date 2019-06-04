@@ -1213,9 +1213,9 @@ class TransferPage(LoggedPage, HTMLPage):
                     self.env['iban'] = self.obj_id(self)
                     self.env['bank_name'] = NotAvailable
 
-    def fill_transfer_id(self, transfer):
-        transfer.id = Regexp(CleanText(u'//div[@class="alertConfirmationVirement"]//p[contains(text(), "référence")]'), u'référence (\d+)')(self.doc)
-        return transfer
+    def check_error(self):
+        transfer_confirmation_msg = CleanText('//div[@class="alertConfirmationVirement"]')(self.doc)
+        assert transfer_confirmation_msg, 'Transfer confirmation message is not found.'
 
 
 class AddRecipientPage(LoggedPage, HTMLPage):

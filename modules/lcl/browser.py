@@ -556,7 +556,8 @@ class LCLBrowser(LoginBrowser, StatesMixin):
     @need_login
     def execute_transfer(self, transfer):
         self.page.confirm()
-        return self.page.fill_transfer_id(transfer)
+        self.page.check_error()
+        return transfer
 
     @need_login
     def get_advisor(self):
