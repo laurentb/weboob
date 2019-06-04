@@ -75,7 +75,7 @@ class LCLEnterpriseBrowser(LoginBrowser):
     def get_profile(self):
         return self.profile.go().get_profile()
 
-    def get_cb_operations(self, account):
+    def get_coming(self, account):
         raise NotImplementedError()
 
     def get_investment(self, account):
