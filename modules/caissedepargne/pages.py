@@ -980,7 +980,7 @@ class CardsOldWebsitePage(IndexPage):
 
             obj_type = Transaction.TYPE_DEFERRED_CARD
             obj_label = CleanText(TableCell('label'))
-            obj_amount = CleanDecimal.French(TableCell('coming'))
+            obj_amount = CleanDecimal.French(TableCell('coming'), sign=lambda x: -1)
             obj_rdate = Date(CleanText(TableCell('date')), dayfirst=True)
 
             def obj_date(self):
