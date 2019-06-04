@@ -108,7 +108,7 @@ class YomoniBrowser(APIBrowser):
             waiting = (me['status'] in self.waiting_statuses)
 
             # Check project in progress
-            if not me['numeroContrat'] or not me['dateAdhesion']:
+            if not me['numeroContrat'] or not me['dateAdhesion'] or not me['solde']:
                 continue
 
             a = Account()
