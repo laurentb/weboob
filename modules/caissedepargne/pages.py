@@ -825,6 +825,9 @@ class IndexPage(LoggedPage, HTMLPage):
         form['__EVENTARGUMENT'] = re.search(r'Ajax", "(.*)", true', link).group(1)
         form.submit()
 
+    def is_subscription_unauthorized(self):
+        return 'non autorisée' in CleanText('//div[@id="MM_ContentMain"]')(self.doc)
+
     def go_pro_transfer_availability(self):
         form = self.get_form(id='main')
         form['__EVENTTARGET'] = 'Menu_AJAX'

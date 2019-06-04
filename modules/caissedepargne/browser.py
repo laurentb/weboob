@@ -973,7 +973,10 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             # some users don't have checking account
             self.home_tache.go(tache='EPASYNT0')
         self.page.go_subscription()
-        assert self.subscription.is_here()
+        if not self.subscription.is_here():
+            # if user is not allowed to have subscription we are redirected to IndexPage
+            assert self.home.is_here() and self.page.is_subscription_unauthorized()
+            return []
 
         if self.page.has_subscriptions():
             return self.page.iter_subscription()
