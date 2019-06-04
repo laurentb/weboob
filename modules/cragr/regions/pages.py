@@ -278,7 +278,9 @@ class AccountsPage(LoggedPage, CragrPage):
     @method
     class iter_accounts(TableElement):
         head_xpath = '//table[@class="ca-table"]//tr[@class="tr-thead"]/th'
-        item_xpath = '//table[@class="ca-table"]//tr[contains(@class, "autre-devise") or contains(@class, "colcelligne")]'
+        item_xpath = '''//table[@class="ca-table"]//tr[contains(@class, "autre-devise")
+                                                    or contains(@class, "colcelligne")
+                                                    or contains(@class, "ligne-connexe")]'''
         next_page = Link('//a[@class="btnsuiteliste"]', default=None)
 
         col_id = 'N° de compte'
@@ -344,6 +346,9 @@ class AccountsPage(LoggedPage, CragrPage):
                 form_search = re.search(r"\('Cartes','(.*)'\)", raw_link)
                 if form_search:
                     card_link = form_search.group(1)
+                else:
+                    # This link does not correspond to a card
+                    continue
             else:
                 assert False, 'WE DO NOT HANDLE CARDS WITH URL YET!!!'
 
