@@ -61,7 +61,11 @@ class HomePage(LoggedPage, HTMLPage):
                 self.env['subid'] = username
 
 
-class ConsolePage(RawPage):
+class ConsolePage(LoggedPage, RawPage):
+    pass
+
+
+class SuiviPage(LoggedPage, RawPage):
     pass
 
 
