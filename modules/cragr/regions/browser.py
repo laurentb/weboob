@@ -40,8 +40,8 @@ from weboob.capabilities.bank import (
 )
 
 from .pages import (
-    HomePage, LoginPage, LoggedOutPage, PerimeterDetailsPage, PerimeterPage, RibPage, AccountsPage,
-    WealthPage, LoansPage, CardsPage, MultipleCardsPage, HistoryPage, OtherHistoryPage,
+    HomePage, LoginPage, LoggedOutPage, PasswordExpiredPage, PerimeterDetailsPage, PerimeterPage, RibPage,
+    AccountsPage, WealthPage, LoansPage, CardsPage, MultipleCardsPage, HistoryPage, OtherHistoryPage,
     SavingsHistoryPage, OtherSavingsHistoryPage, FailedHistoryPage, PredicaRedirectionPage,
     PredicaInvestmentsPage, NetfincaRedirectionPage, NetfincaLanding, NetfincaDetailsPage, NetfincaReturnPage,
     NetfincaToCragr, BGPIRedirectionPage, BGPISpace, BGPIInvestmentPage, ProfilePage,
@@ -61,6 +61,7 @@ class CragrRegion(LoginBrowser):
     home = URL(r'/$', r'/particuliers.html', HomePage)
     login = URL(r'/stb/entreeBam$', LoginPage)
     logged_out = URL(r'.*', LoggedOutPage)
+    password_expired = URL(r'/stb/entreeBam\?sessionSAG=(?P<session_value>[^&]+)&stbpg=pagePU&act=Interstitielle', PasswordExpiredPage)
 
     # Perimeters
     perimeter_details_page = URL(r'/stb/.*act=Perimetre&stbpg=pagePU', PerimeterDetailsPage)

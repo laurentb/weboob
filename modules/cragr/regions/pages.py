@@ -24,7 +24,7 @@ from __future__ import unicode_literals
 from decimal import Decimal
 import re
 
-from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
+from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded, BrowserPasswordExpired
 from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage, FormNotFound, pagination
 from weboob.browser.elements import ListElement, TableElement, DictElement, ItemElement, method
 
@@ -149,6 +149,14 @@ class LoggedOutPage(CragrPage):
     def on_load(self):
         self.logger.warning('We were logged out!')
         self.browser.do_login()
+
+
+class PasswordExpiredPage(CragrPage):
+    def on_load(self):
+        error_msg = CleanText('//fieldset//font[1]/text()', default='')(self.doc)
+        if 'Le code personnel que vous allez choisir' in error_msg:
+            raise BrowserPasswordExpired()
+        assert False, 'Unhandled error on PasswordExpiredPage: %s' % error_msg
 
 
 class PerimeterDetailsPage(LoggedPage, CragrPage):
