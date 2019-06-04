@@ -288,11 +288,14 @@ class LoansPage(JsonBasePage):
                 # a monthly repayment, we can guess it.
                 if CleanText(Dict('periodicite'))(acc) == 'MENSUELLE':
                     repayment_day = CleanDecimal(Dict('jourEcheanceMensuelle'))(acc)
-                    now = datetime.datetime.now().date()
-                    next_payment_date = now.replace(day=repayment_day)
-                    if repayment_day < now.day:
-                        next_payment_date += relativedelta(months=1)
-                    loan.next_payment_date = next_payment_date
+                    if not repayment_day:
+                        loan.next_payment_date = NotAvailable
+                    else:
+                        now = datetime.datetime.now().date()
+                        next_payment_date = now.replace(day=repayment_day)
+                        if repayment_day < now.day:
+                            next_payment_date += relativedelta(months=1)
+                        loan.next_payment_date = next_payment_date
                 else:
                     self.logger.warning('Not handled periodicity: %s', CleanText(Dict('periodicite'))(acc))
 
