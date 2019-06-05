@@ -19,8 +19,6 @@
 
 from __future__ import unicode_literals
 
-from datetime import date
-
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 
@@ -32,7 +30,7 @@ class InfomaniakBrowser(LoginBrowser):
 
     login = URL(r'https://login.infomaniak.com/api/login', LoginPage)
     profile = URL(r'/v3/api/profile/me', SubscriptionsPage)
-    documents = URL(r'/admin/facturation/operations/satable_load.php', DocumentsPage)
+    documents = URL(r'/v3/api/invoicing/(?P<subid>.*)/invoices', DocumentsPage)
 
     def do_login(self):
         self.login.go(data={'login': self.username, 'password': self.password})
@@ -47,29 +45,12 @@ class InfomaniakBrowser(LoginBrowser):
 
     @need_login
     def iter_documents(self, subscription):
-        for offset in range(0, 400, 20):
-            data = {
-                'iOffset': offset,
-                'iCount': 20,
-                'sSort': 'none',
-                'iCodeService': '0',
-                'dStart_toolbar_select': 'allOperations',
-                'dStart': '2000-01-01',
-                'dEnd': date.today().strftime('%Y-%m-%d'),
-                'cb_collections_card': '1',
-                'cb_collections_post': '1',
-                'cb_collections_paypal': '1',
-                'cb_collections_iban': '1',
-                'cb_collections_bvr': '1',
-                'cb_collections_prepaid': '1',
-                'cb_collections_cash': '1',
-            }
-            self.documents.go(data=data)
-            some = False
-            for doc in self.page.iter_documents(subid=subscription.id):
-                some = True
-                yield doc
-            if not some:
-                break
-        else:
-            assert False, 'are there that many bills?'
+        params = {
+            'ajax': 'true',
+            'order_by': 'name',
+            'order_for[name]': 'asc',
+            'page': '1',
+            'per_page': '100'
+        }
+        self.documents.go(subid=subscription.id, params=params)
+        return self.page.iter_documents(subid=subscription.id)

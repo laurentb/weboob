@@ -21,14 +21,13 @@ from __future__ import unicode_literals
 
 from datetime import datetime
 
-from weboob.browser.pages import LoggedPage, JsonPage
+from weboob.browser.pages import LoggedPage, JsonPage, pagination
 from weboob.browser.elements import ItemElement, method, DictElement
 from weboob.browser.filters.standard import (
-    CleanDecimal, Env, Regexp, Format, Currency, Field, Eval,
+    CleanDecimal, Env, Format, Currency, Field, Eval,
 )
 from weboob.browser.filters.json import Dict
-from weboob.capabilities.bill import DocumentTypes, Bill, Subscription
-from weboob.tools.compat import urljoin
+from weboob.capabilities.bill import Bill, Subscription
 
 
 class LoginPage(JsonPage):
@@ -48,22 +47,35 @@ class SubscriptionsPage(LoggedPage, JsonPage):
 
 
 class DocumentsPage(LoggedPage, JsonPage):
+    @pagination
     @method
     class iter_documents(DictElement):
-        item_xpath = 'aLines'
+        item_xpath = 'data'
+
+        def next_page(self):
+            doc = self.page.doc
+            current_page = int(doc['page'])
+            if current_page >= doc['pages']:
+                return
+
+            params = {
+                'ajax': 'true',
+                'order_by': 'name',
+                'order_for[name]': 'asc',
+                'page': current_page + 1,
+                'per_page': '100'
+            }
+            return self.page.browser.documents.build(subid=self.env['subid'], params=params)
 
         class item(ItemElement):
             klass = Bill
 
-            def obj_url(self):
-                return urljoin(self.page.url, Regexp(Dict('sOperation'), r'&quot;(/.*\.pdf)')(self))
-
-            _num = Regexp(Field('url'), r'facture_(\d+).pdf')
+            _num = Dict('document/id')
 
             obj_id = Format('%s_%s', Env('subid'), _num)
-            obj_date = Eval(datetime.fromtimestamp, Dict('sTimestamp'))
-            obj_label = Format('Facture %s', _num)
-            obj_price = CleanDecimal(Dict('fMontant'))
-            obj_currency = Currency(Dict('sMontant'))
-            obj_type = DocumentTypes.BILL
+            obj_date = Eval(datetime.fromtimestamp, Dict('created_at'))
+            obj_label = Format('Facture %s', Field('id'))
+            obj_url = Dict('document/href')
+            obj_price = CleanDecimal(Dict('amount/amount'))
+            obj_currency = Currency(Dict('amount/currency'))
             obj_format = 'pdf'
