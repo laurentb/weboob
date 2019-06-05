@@ -304,11 +304,11 @@ class AccountsPage(LoggedPage, CragrPage):
             obj_currency = Currency(TableCell('currency', colspan=True))
             obj_url = None
 
-            def obj_balance(self):
-                # Accounts may have an 'Operations' balance or a 'Value' balance
-                if TableCell('value_balance', default=None, colspan=True)(self):
-                    return CleanDecimal.French(TableCell('value_balance', colspan=True))(self)
-                return CleanDecimal.French(TableCell('operation_balance', colspan=True))(self)
+            # Accounts may have an 'Operations' balance or a 'Value' balance
+            obj_balance = CleanDecimal.French(Coalesce(
+                CleanText(TableCell('value_balance', default='', colspan=True)),
+                CleanText(TableCell('operation_balance', default='', colspan=True))
+            ))
 
             def obj__form(self):
                 # Account forms look like 'javascript:fwkPUAvancerForm('Releves','frm1')'
