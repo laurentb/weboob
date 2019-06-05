@@ -41,7 +41,7 @@ from weboob.capabilities.bank import (
 
 from .pages import (
     HomePage, LoginPage, LoggedOutPage, PasswordExpiredPage, PerimeterDetailsPage, PerimeterPage, RibPage,
-    AccountsPage, WealthPage, LoansPage, CardsPage, MultipleCardsPage, HistoryPage, OtherHistoryPage,
+    AccountsPage, WealthPage, LoansPage, CardsPage, MultipleCardsPage, CheckingHistoryPage,
     SavingsHistoryPage, OtherSavingsHistoryPage, FailedHistoryPage, PredicaRedirectionPage,
     PredicaInvestmentsPage, NetfincaRedirectionPage, NetfincaLanding, NetfincaDetailsPage, NetfincaReturnPage,
     NetfincaToCragr, BGPIRedirectionPage, BGPISpace, BGPIInvestmentPage, ProfilePage,
@@ -73,8 +73,7 @@ class CragrRegion(LoginBrowser):
 
     # History & account details
     rib_page = URL(r'.*action=Rib.*', RibPage)
-    history = URL(r'/stb/.*fwkaid=.*fwkpid=.*', HistoryPage)
-    other_history = URL(r'/stb/.*fwkaid=.*fwkpid=.*', OtherHistoryPage)
+    checking_history = URL(r'/stb/.*fwkaid=.*fwkpid=.*', CheckingHistoryPage)
     savings_history = URL(r'/stb/.*fwkaid=.*fwkpid=.*', SavingsHistoryPage)
     other_savings_history = URL(r'/stb/.*fwkaid=.*fwkpid=.*', OtherSavingsHistoryPage)
     failed_history = URL(r'/stb/.*fwkaid=.*fwkpid=.*', FailedHistoryPage)
@@ -563,11 +562,12 @@ class CragrRegion(LoginBrowser):
                     continue
                 break
 
-        # 4 types of history pages were identified so far
-        if not (self.history.is_here()
-                or self.other_history.is_here()
-                or self.savings_history.is_here()
-                or self.other_savings_history.is_here()):
+        # 3 types of history pages were identified so far
+        if not (
+            self.checking_history.is_here()
+            or self.savings_history.is_here()
+            or self.other_savings_history.is_here()
+            ):
             self.unhandled_method(account.id)
 
         date_guesser = LinearDateGuesser(date_max_bump=timedelta(30))

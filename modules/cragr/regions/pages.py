@@ -545,11 +545,9 @@ class LoansPage(LoggedPage, CragrPage):
                 return -abs(balance)
 
 
-class HistoryPage(LoggedPage, CragrPage):
-    ''' This history page is used for accounts with 5 columns. '''
-
+class CheckingHistoryPage(LoggedPage, CragrPage):
     def is_here(self):
-        return CleanText('//table[@class="ca-table"][caption[span[b[text()="Historique des opérations"]]]]//tr[count(td) = 5]')(self.doc)
+        return CleanText('//table[@class="ca-table"][caption[span[b[text()="Historique des opérations"]]]]')(self.doc)
 
     @pagination
     @method
@@ -560,36 +558,33 @@ class HistoryPage(LoggedPage, CragrPage):
         class item(ItemElement):
             klass = Transaction
 
-            obj_date = DateGuesser(CleanText('./td[1]//text()'), Env('date_guesser'))
-            obj_raw = Transaction.Raw(CleanText('./td[3]//text()'))
-            obj_amount = CleanDecimal.French('./td[5]//text()')
+            obj_date = Env('date')
+            obj_vdate = Env('vdate')
+            obj_raw = Transaction.Raw(Env('raw'))
+            obj_amount = Env('amount')
 
+            def parse(self, obj):
+                self.env['date'] = DateGuesser(CleanText('./td[1]'), Env('date_guesser'))(self)
+                self.env['vdate'] = NotAvailable
+                if CleanText('//table[@class="ca-table"][caption[span[b[text()="Historique des opérations"]]]]//tr[count(td) = 5]')(self):
+                    # History table with 5 columns
+                    self.env['raw'] = CleanText('./td[3]', children=False)(self)
+                    self.env['amount'] = CleanDecimal.French('./td[5]')(self)
 
-class OtherHistoryPage(LoggedPage, CragrPage):
-    '''
-    This history page is used for Checking accounts with 7 columns.
-    This kind of table includes a 'Valeur' date (vdate).
-    '''
-    def is_here(self):
-        return CleanText('//table[@class="ca-table"][caption[span[b[text()="Historique des opérations"]]]]//tr[count(td) = 7]')(self.doc)
-
-    @pagination
-    @method
-    class iter_history(ListElement):
-        item_xpath = '//table[@class="ca-table"][caption[span[b[text()="Historique des opérations"]]]]//tr[contains(@class, "ligne-")]'
-        next_page = Link('//a[@class="liennavigationcorpspage"][img[@alt="Page suivante"]]', default=None)
-
-        class item(ItemElement):
-            klass = Transaction
-
-            obj_date = DateGuesser(CleanText('./td[1]//text()'), Env('date_guesser'))
-            obj_vdate = DateGuesser(CleanText('./td[2]//text()'), Env('date_guesser'))
-            obj_raw = Transaction.Raw(CleanText('./td[4]//text()'))
-
-            obj_amount = Coalesce(
-                CleanDecimal.French('./td[6]//text()', default=None),
-                CleanDecimal.French('./td[7]//text()', default=None)
-            )
+                elif CleanText('//table[@class="ca-table"][caption[span[b[text()="Historique des opérations"]]]]//tr[count(td) = 7]')(self):
+                    self.env['amount'] = Coalesce(
+                        CleanDecimal.French('./td[6]', default=None),
+                        CleanDecimal.French('./td[7]', default=None)
+                    )(self)
+                    if CleanText('//table[@class="ca-table"][caption[span[b[text()="Historique des opérations"]]]]//th[a[contains(text(), "Valeur")]]')(self):
+                        # History table with 7 columns and vdate column ('Valeur')
+                        self.env['raw'] = CleanText('./td[4]', children=False)(self)
+                        self.env['vdate'] = DateGuesser(CleanText('./td[2]'), Env('date_guesser'))(self)
+                    else:
+                        # History table with 7 columns and no available vdate
+                        self.env['raw'] = CleanText('./td[3]', children=False)(self)
+                else:
+                    assert False, 'This type of history table is not handled yet!'
 
 
 class SavingsHistoryPage(LoggedPage, CragrPage):
