@@ -28,11 +28,10 @@ class LogicimmoTest(BackendTest, HousingTest):
     FIELDS_ALL_HOUSINGS_LIST = [
         "id", "type", "advert_type", "house_type", "url", "title", "area",
         "cost", "currency", "utilities", "date", "location", "text",
-        "details"
+        "details", "rooms"
     ]
     FIELDS_ANY_HOUSINGS_LIST = [
         "photos",
-        "rooms"
     ]
     FIELDS_ALL_SINGLE_HOUSING = [
         "id", "url", "type", "advert_type", "house_type", "title", "area",
@@ -47,6 +46,7 @@ class LogicimmoTest(BackendTest, HousingTest):
         "DPE",
         "GES"
     ]
+    DO_NOT_DISTINGUISH_FURNISHED_RENT = True
 
     def test_logicimmo_rent(self):
         query = Query()

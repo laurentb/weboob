@@ -68,10 +68,10 @@ class HousingPage(HTMLPage):
             elif 'location' in url:
                 isFurnished = False
                 for li in XPath('//ul[@itemprop="description"]/li')(self):
-                    label = CleanText('./div[has-class("criteria-label")]')(li)
+                    label = CleanText('./span[has-class("criteria-label")]')(li)
                     if label.lower() == "meublé":
                         isFurnished = (
-                            CleanText('./div[has-class("criteria-value")]')(li).lower() == 'oui'
+                            CleanText('./span[has-class("criteria-value")]')(li).lower() == 'oui'
                         )
                 if isFurnished:
                     return POSTS_TYPES.FURNISHED_RENT
@@ -186,8 +186,8 @@ class HousingPage(HTMLPage):
                 )
 
             for li in XPath('//ul[@itemprop="description"]/li')(self):
-                label = CleanText('./div[has-class("criteria-label")]')(li)
-                value = CleanText('./div[has-class("criteria-value")]')(li)
+                label = CleanText('./span[has-class("criteria-label")]')(li)
+                value = CleanText('./span[has-class("criteria-value")]')(li)
                 details[label] = value
 
             return details
@@ -252,7 +252,7 @@ class SearchPage(HTMLPage):
 
         class item(ItemElement):
             offer_details_wrapper = (
-                './div/div/div[has-class("offer-details-wrapper")]'
+                './/div[has-class("offer-details-wrapper")]'
             )
             klass = Housing
 
@@ -265,7 +265,7 @@ class SearchPage(HTMLPage):
             obj_advert_type = ADVERT_TYPES.PROFESSIONAL
 
             def obj_house_type(self):
-                house_type = CleanText('.//p[has-class("offer-type")]')(self).lower()
+                house_type = CleanText('.//div[has-class("offer-details-type")]/a')(self).split(' ')[0].lower()
                 if house_type == "appartement":
                     return HOUSE_TYPES.APART
                 elif house_type == "maison":
@@ -277,14 +277,11 @@ class SearchPage(HTMLPage):
                 else:
                     return HOUSE_TYPES.OTHER
 
-            obj_title = Attr(
-                offer_details_wrapper + '/div/div/p[@class="offer-type"]/a',
-                'title'
-            )
+            obj_title = CleanText('.//div[has-class("offer-details-type")]/a/@title')
 
             obj_url = Format(u'%s%s',
-                             CleanText('./div/div/div/div/div/p/a[@class="offer-link"]/@href'),
-                             CleanText('./div/div/div/div/div/p/a[@class="offer-link"]/\
+                             CleanText('.//div/a[@class="offer-link"]/@href'),
+                             CleanText('.//div/a[@class="offer-link"]/\
 @data-orpi', default=""))
 
             obj_area = CleanDecimal(
@@ -304,15 +301,14 @@ class SearchPage(HTMLPage):
                     '/span[has-class("offer-rooms")]' +
                     '/span[has-class("offer-rooms-number")]'
                 ),
-                default=NotLoaded
+                default=NotAvailable
             )
-            obj_price_per_meter = PricePerMeterFilter()
             obj_cost = CleanDecimal(
                 Regexp(
                     CleanText(
                         (
                             offer_details_wrapper +
-                            '/div/div/p[@class="offer-price"]/span'
+                            '/div/p[@class="offer-price"]/span'
                         ),
                         default=NotLoaded
                     ),
@@ -322,22 +318,16 @@ class SearchPage(HTMLPage):
                 default=NotLoaded
             )
             obj_currency = Currency(
-                offer_details_wrapper + '/div/div/p[has-class("offer-price")]/span'
+                offer_details_wrapper + '/div/p[has-class("offer-price")]/span'
             )
+            obj_price_per_meter = PricePerMeterFilter()
             obj_utilities = UTILITIES.UNKNOWN
-            obj_date = Date(
-                Regexp(
-                    CleanText(
-                        './div/div/div[has-class("offer-picture-more")]/div/p[has-class("offer-update")]'
-                    ),
-                    ".*(\d{2}/\d{2}/\d{4}).*")
-            )
             obj_text = CleanText(
                 offer_details_wrapper + '/div/div/div/p[has-class("offer-description")]/span'
             )
             obj_location = CleanText(
-                offer_details_wrapper +
-                '//div[has-class("offer-places-block")]'
+                offer_details_wrapper + '/div[@class="offer-details-location"]',
+                replace=[('Voir sur la carte','')]
             )
 
             def obj_photos(self):
