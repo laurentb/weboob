@@ -42,7 +42,7 @@ from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage, FormNotFound, p
 from weboob.browser.filters.html import Attr, Link, TableCell, AttributeNotFound
 from weboob.browser.filters.standard import (
     CleanText, Field, Regexp, Format, Date, CleanDecimal, Map, AsyncLoad, Async, Env, Slugify,
-    BrowserURL, Eval, Lower, Currency,
+    BrowserURL, Eval, Currency,
 )
 from weboob.browser.filters.json import Dict
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
@@ -963,9 +963,14 @@ class AVListPage(LoggedPage, JsonPage):
 
         class item(ItemElement):
             def condition(self):
-                return (
-                    Lower(Dict('lcstacntgen'))(self) == 'actif'
-                    and Lower(Dict('lcgampdt'))(self) == 'epargne'
+                activity = Dict('lcstacntgen')(self)
+                account_type = Dict('lcgampdt')(self)
+                # We ignore accounts without activities or when the activity is 'Closed',
+                # they are inactive and closed and they don't appear on the website.
+                return bool(
+                    activity and account_type
+                    and activity.lower() == 'actif'
+                    and account_type.lower() == 'epargne'
                 )
 
             klass = Account
