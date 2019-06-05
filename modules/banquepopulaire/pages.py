@@ -1002,7 +1002,12 @@ class IbanPage(LoggedPage, MyHTMLPage):
 
     def go_iban(self, account):
         for tr in self.doc.xpath('//table[@id]/tbody/tr'):
-            if account.type not in (Account.TYPE_LOAN, Account.TYPE_MARKET) and CleanText().filter(tr.xpath('./td[1]')) in account.id:
+            conditions = (
+                account.type not in (Account.TYPE_LOAN, Account.TYPE_MARKET),
+                CleanText().filter(tr.xpath('./td[1]')) in account.id,
+                self.doc.xpath('//div[contains(text(), "Impression IBAN/RIB")]'),
+            )
+            if all(conditions):
                 form = self.get_form(id='myForm')
                 form['token'] = self.build_token(form['token'])
                 form['dialogActionPerformed'] = "DETAIL_IBAN_RIB"
