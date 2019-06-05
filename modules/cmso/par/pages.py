@@ -60,6 +60,7 @@ class AccountsPage(LoggedPage, JsonPage):
                          ('pee',                 Account.TYPE_PEE),
                          ('epargne en actions',  Account.TYPE_PEA),
                          ('pea',                 Account.TYPE_PEA),
+                         ('p.e.a.',              Account.TYPE_PEA),
                          ('preference',          Account.TYPE_LOAN),
                          ('livret',              Account.TYPE_SAVINGS),
                          ('vie',                 Account.TYPE_LIFE_INSURANCE),
