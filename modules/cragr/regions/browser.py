@@ -442,6 +442,7 @@ class CragrRegion(LoginBrowser):
                 card.parent = find_object(perimeter_accounts, id=parent_account)
                 card._card_link = card_link
                 cards_list.append(card)
+            self.accounts.stay_or_go(session_value=self.session_value)
 
         return cards_list
 
