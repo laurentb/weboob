@@ -233,7 +233,7 @@ class AccountsSynthesesPage(JsonBasePage):
         return account_comings
 
 
-class LoanDetailsPage(JsonPage):
+class LoanDetailsPage(LoggedPage, JsonPage):
     def set_loan_details(self, account):
         # If there are no available details for the loan, the statut will be "NOK"
         if Dict('commun/statut')(self.doc) == 'NOK':
