@@ -180,3 +180,5 @@ class BankStandardTest(object):
     def check_recipient(self, account, rcpt):
         self.assertTrue(rcpt.id, 'recipient %r has no id' % rcpt)
         self.assertTrue(rcpt.label, 'recipient %r has no label' % rcpt)
+        self.assertTrue(rcpt.category, 'recipient %r has no category' % rcpt)
+        self.assertTrue(rcpt.enabled_at, 'recipient %r has no enabled_at' % rcpt)
