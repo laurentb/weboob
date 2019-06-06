@@ -293,6 +293,10 @@ class AccountsPage(LoggedPage, CragrPage):
         class item(ItemElement):
             klass = Account
 
+            def condition(self):
+                # Skip card coming lines
+                return 'Encours carte' not in CleanText(TableCell('label', colspan=True))(self)
+
             obj_id = CleanText(TableCell('id', colspan=True))
             obj_number = Field('id')
             obj_label = CleanText(TableCell('label', colspan=True))
