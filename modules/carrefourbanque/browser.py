@@ -73,6 +73,16 @@ class CarrefourBanqueBrowser(LoginBrowser, StatesMixin):
             self.incapsula_ressource.go(params={'SWCGHOEL': 'v2'}, data=data)
 
         self.login.go()
+        # this cookie contains an ugly \x01 and make next request fail with a 400 if not removed
+        ___utmvafIuFLPmB = self.session.cookies.pop('___utmvafIuFLPmB', None)
+        if ___utmvafIuFLPmB:
+            self.session.cookies['___utmvafIuFLPmB'] = ___utmvafIuFLPmB.replace('\x01', '')
+
+        # this cookie contains an ugly \n and make next request fail with a 400 if not removed
+        ___utmvbfIuFLPmB = self.session.cookies.pop('___utmvbfIuFLPmB', None)
+        if ___utmvbfIuFLPmB:
+            self.session.cookies['___utmvbfIuFLPmB'] = ___utmvbfIuFLPmB.replace('\n', '')
+
         if self.incapsula_ressource.is_here():
             if self.page.is_javascript:
                 # wait several seconds and we'll get a recaptcha instead of obfuscated javascript code,
