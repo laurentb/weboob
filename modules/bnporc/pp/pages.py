@@ -672,6 +672,8 @@ class CapitalisationPage(LoggedPage, HTMLPage):
     # To be completed with other account labels and types seen on the "Assurance Vie" space:
     ACCOUNT_TYPES = {
         'BNP Paribas Multiplacements':                  Account.TYPE_LIFE_INSURANCE,
+        'BNP Paribas Multihorizons':                    Account.TYPE_LIFE_INSURANCE,
+        'BNP Paribas Libertéa Privilège':               Account.TYPE_LIFE_INSURANCE,
         'BNP Paribas Multiciel Privilège':              Account.TYPE_CAPITALISATION,
         'Plan Epargne Retraite Particulier':            Account.TYPE_PERP,
         "Plan d'Épargne Retraite des Particuliers":     Account.TYPE_PERP,
