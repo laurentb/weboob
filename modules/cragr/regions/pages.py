@@ -579,19 +579,26 @@ class CheckingHistoryPage(LoggedPage, CragrPage):
                 if CleanText('//table[@class="ca-table"][caption[span[b[text()="Historique des opérations"]]]]//tr[count(td) = 5]')(self):
                     # History table with 5 columns
                     self.env['raw'] = CleanText('./td[3]', children=False)(self)
-                    self.env['amount'] = CleanDecimal.French('./td[5]')(self)
+                    self.env['amount'] = CleanDecimal.French('./td[last()]')(self)
+
+                elif CleanText('//table[@class="ca-table"][caption[span[b[text()="Historique des opérations"]]]]//tr[count(td) = 6]')(self):
+                    # History table with 6 columns (contains vdate)
+                    self.env['raw'] = CleanText('./td[4]', children=False)(self)
+                    self.env['vdate'] = DateGuesser(CleanText('./td[2]'), Env('date_guesser'))(self)
+                    self.env['amount'] = CleanDecimal.French('./td[last()]')(self)
 
                 elif CleanText('//table[@class="ca-table"][caption[span[b[text()="Historique des opérations"]]]]//tr[count(td) = 7]')(self):
+                    # History table with 7 columns
                     self.env['amount'] = Coalesce(
                         CleanDecimal.French('./td[6]', default=None),
                         CleanDecimal.French('./td[7]', default=None)
                     )(self)
                     if CleanText('//table[@class="ca-table"][caption[span[b[text()="Historique des opérations"]]]]//th[a[contains(text(), "Valeur")]]')(self):
-                        # History table with 7 columns and vdate column ('Valeur')
+                        # With vdate column ('Valeur')
                         self.env['raw'] = CleanText('./td[4]', children=False)(self)
                         self.env['vdate'] = DateGuesser(CleanText('./td[2]'), Env('date_guesser'))(self)
                     else:
-                        # History table with 7 columns and no available vdate
+                        # Without any vdate column
                         self.env['raw'] = CleanText('./td[3]', children=False)(self)
                 else:
                     assert False, 'This type of history table is not handled yet!'
