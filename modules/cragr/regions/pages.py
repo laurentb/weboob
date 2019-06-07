@@ -590,7 +590,7 @@ class CheckingHistoryPage(LoggedPage, CragrPage):
                 elif CleanText('//table[@class="ca-table"][caption[span[b[text()="Historique des opérations"]]]]//tr[count(td) = 7]')(self):
                     # History table with 7 columns
                     self.env['amount'] = Coalesce(
-                        CleanDecimal.French('./td[6]', default=None),
+                        CleanDecimal.French('./td[6]', sign=lambda x: -1, default=None),
                         CleanDecimal.French('./td[7]', default=None)
                     )(self)
                     if CleanText('//table[@class="ca-table"][caption[span[b[text()="Historique des opérations"]]]]//th[a[contains(text(), "Valeur")]]')(self):
