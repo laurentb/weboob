@@ -165,6 +165,9 @@ class CragrRegion(LoginBrowser):
         self.netfinca.deinit()
 
     def do_login(self):
+        if not self.username or not self.password:
+            raise BrowserIncorrectPassword()
+
         # Re-set the BASEURL to the origin URL in case of logout
         self.BASEURL = self.ORIGIN_URL
 
