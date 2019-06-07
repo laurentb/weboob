@@ -23,8 +23,7 @@ import re
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement
 from weboob.browser.filters.standard import (
-    CleanText, Date, Regexp, CleanDecimal, Eval, Field, Async, AsyncLoad,
-    QueryValue, Currency,
+    Async, AsyncLoad, CleanDecimal, CleanText, Currency, Date, Eval, Field, Lower, MapIn, QueryValue, Regexp,
 )
 from weboob.browser.filters.html import Attr, Link, TableCell
 from weboob.capabilities.bank import Account, Investment
@@ -39,11 +38,6 @@ def MyDecimal(*args, **kwargs):
 
 
 class AccountsPage(LoggedPage, HTMLPage):
-    TYPES = {u'assurance vie': Account.TYPE_LIFE_INSURANCE,
-             u'perp': Account.TYPE_PERP,
-             u'novial avenir': Account.TYPE_MADELIN,
-             u'epargne retraite novial': Account.TYPE_LIFE_INSURANCE,
-            }
 
     @method
     class iter_accounts(ListElement):
@@ -51,6 +45,13 @@ class AccountsPage(LoggedPage, HTMLPage):
 
         class item(ItemElement):
             klass = Account
+
+            TYPES = {u'assurance vie': Account.TYPE_LIFE_INSURANCE,
+                     u'perp': Account.TYPE_PERP,
+                     u'epargne retraite agipi pair': Account.TYPE_PERP,
+                     u'novial avenir': Account.TYPE_MADELIN,
+                     u'epargne retraite novial': Account.TYPE_LIFE_INSURANCE,
+                    }
 
             condition = lambda self: Field('balance')(self) is not NotAvailable
 
@@ -69,9 +70,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_currency = Currency('.//p[has-class("amount-card")]')
             obj__acctype = "investment"
 
-            def obj_type(self):
-                types = [v for k, v in self.page.TYPES.items() if k in Field('label')(self).lower()]
-                return types[0] if len(types) else Account.TYPE_UNKNOWN
+            obj_type = MapIn(Lower(Field('label')), TYPES, Account.TYPE_UNKNOWN)
 
 
 class InvestmentPage(LoggedPage, HTMLPage):
