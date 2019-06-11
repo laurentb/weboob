@@ -413,7 +413,12 @@ class CardsPage(LoggedPage, CragrPage):
         return Link('//a[@class="liennavigationcorpspage" and text()="[>]"]', default=None)(self.doc)
 
     def get_ongoing_coming(self):
-        raw_date = Regexp(CleanText('//table[@class="ca-table"]//tr[1]//b[contains(text(), "Opérations débitées")]'), r'le (.*) :')(self.doc)
+        # The title of the coming is usually 'Opérations débitées' but if
+        # the coming is positive, it will become 'Opérations créditées'
+        raw_date = Regexp(
+            CleanText('//table[@class="ca-table"]//tr[1]//b[contains(text(), "Opérations débitées") or contains(text(), "Opérations créditées")]'),
+            r'le (.*) :'
+        )(self.doc)
         return parse_french_date(raw_date).date()
 
     def get_card_transactions(self, latest_date, ongoing_coming):
