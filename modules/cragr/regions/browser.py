@@ -350,8 +350,8 @@ class CragrRegion(LoginBrowser):
             # Sometimes the balance is not displayed here, so when possible,
             # we go to the account details to fetch it
             if all_accounts and empty(account.balance) and account.url and 'fwkaid' in account.url:
-                    self.location(account.url)
-                    account.balance = self.page.get_account_balance()
+                self.location(account.url)
+                account.balance = self.page.get_account_balance()
 
             cragr_accounts.append(account)
 
