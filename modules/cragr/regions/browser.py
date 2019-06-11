@@ -274,10 +274,12 @@ class CragrRegion(LoginBrowser):
                 accounts_list.append(account)
         else:
             for perimeter in self.perimeters:
-                self.go_to_perimeter(perimeter)
-                for account in self.iter_perimeter_accounts(iban=True, all_accounts=True):
-                    account._perimeter = perimeter
-                    accounts_list.append(account)
+                # Ignore perimeters with empty labels, they are unaccessible even on the website
+                if perimeter:
+                    self.go_to_perimeter(perimeter)
+                    for account in self.iter_perimeter_accounts(iban=True, all_accounts=True):
+                        account._perimeter = perimeter
+                        accounts_list.append(account)
 
         # Do not return accounts with empty balances or invalid IDs
         valid_accounts = []
