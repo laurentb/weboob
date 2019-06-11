@@ -305,10 +305,12 @@ class AccountsPage(LoggedPage, CragrPage):
             obj_url = None
 
             # Accounts may have an 'Operations' balance or a 'Value' balance
-            obj_balance = CleanDecimal.French(Coalesce(
-                CleanText(TableCell('value_balance', default='', colspan=True)),
-                CleanText(TableCell('operation_balance', default='', colspan=True))
-            ))
+            def obj_balance(self):
+                value_balance = CleanText(TableCell('value_balance', default='', colspan=True))(self)
+                # Skip invalid balance values in the 'Value' column (for example for Revolving credits)
+                if value_balance not in ('', 'Montant disponible'):
+                    return CleanDecimal.French().filter(value_balance)
+                return CleanDecimal.French(CleanText(TableCell('operation_balance', default='', colspan=True)))(self)
 
             def obj__form(self):
                 # Account forms look like 'javascript:fwkPUAvancerForm('Releves','frm1')'
