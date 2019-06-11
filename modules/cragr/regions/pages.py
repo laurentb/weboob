@@ -576,7 +576,12 @@ class CheckingHistoryPage(LoggedPage, CragrPage):
             def parse(self, obj):
                 self.env['date'] = DateGuesser(CleanText('./td[1]'), Env('date_guesser'))(self)
                 self.env['vdate'] = NotAvailable
-                if CleanText('//table[@class="ca-table"][caption[span[b[text()="Historique des opérations"]]]]//tr[count(td) = 5]')(self):
+                if CleanText('//table[@class="ca-table"][caption[span[b[text()="Historique des opérations"]]]]//tr[count(td) = 4]')(self):
+                    # History table with 4 columns
+                    self.env['raw'] = CleanText('./td[2]', children=False)(self)
+                    self.env['amount'] = CleanDecimal.French('./td[last()]')(self)
+
+                elif CleanText('//table[@class="ca-table"][caption[span[b[text()="Historique des opérations"]]]]//tr[count(td) = 5]')(self):
                     # History table with 5 columns
                     self.env['raw'] = CleanText('./td[3]', children=False)(self)
                     self.env['amount'] = CleanDecimal.French('./td[last()]')(self)
