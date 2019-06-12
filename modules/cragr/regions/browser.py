@@ -314,7 +314,12 @@ class CragrRegion(LoginBrowser):
         # Wealth accounts (PEA, Market, Life Insurances, PERP...)
         self.wealth.go(session_value=self.session_value)
         wealth_accounts = []
-        assert self.wealth.is_here()
+        if not self.wealth.is_here():
+            # Sometimes we land on an error page so we try again:
+            self.logger.warning('Failed to access wealth page, trying a second time')
+            self.wealth.go(session_value=self.session_value)
+            assert self.wealth.is_here(), 'We failed to go to the wealth accounts page twice.'
+
 
         # We first store the wealth accounts in a list because we
         # must avoid requests to BGPI during account pagination
@@ -357,7 +362,12 @@ class CragrRegion(LoginBrowser):
 
         # Loans & revolving credits
         self.loans.go(session_value=self.session_value)
-        assert self.loans.is_here()
+        if not self.loans.is_here():
+            # Sometimes we land on an error page so we try again:
+            self.logger.warning('Failed to access loans page, trying a second time')
+            self.loans.go(session_value=self.session_value)
+            assert self.loans.is_here(), 'We failed to go to the loans accounts page twice.'
+
         for loan in self.page.iter_loans():
             if loan.id not in [a.id for a in cragr_accounts]:
                 cragr_accounts.append(loan)
