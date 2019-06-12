@@ -1846,7 +1846,7 @@ class SubscriptionPage(LoggedPage, HTMLPage):
         options = self.doc.xpath('//select[@id="SelTiers"]/option')
         if options:
             for opt in options:
-                subscriber = self.doc.xpath('//select[@id="SelTiers"]/option[contains(text(), "%s")]' % CleanText('.')(opt))[0]
+                subscriber = self.doc.xpath('//select[@id="SelTiers"]/option[contains(text(), $subscriber)]', subscriber=CleanText('.')(opt))[0]
                 self.submit_form(Attr('.', 'value')(subscriber))
                 for sub in self.get_subscriptions(subscription_list, subscriber):
                     yield sub
