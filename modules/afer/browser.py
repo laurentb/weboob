@@ -53,8 +53,12 @@ class AferBrowser(LoginBrowser):
 
         if self.bad_login.is_here():
             error = self.page.get_error()
-            assert "La saisie de l’identifiant ou du code confidentiel est incorrecte" in error, error
-            raise BrowserIncorrectPassword(error)
+            if "La saisie de l’identifiant ou du code confidentiel est incorrecte" in error or \
+               "Veuillez-vous identifier" in error:
+                raise BrowserIncorrectPassword(error)
+            else:
+                assert False, "Message d'erreur inconnu: %s" % error
+
 
     @need_login
     def iter_accounts(self):
