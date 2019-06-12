@@ -17,6 +17,9 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
+
 from collections import OrderedDict
 
 from weboob.capabilities.bank import CapBank
@@ -31,19 +34,21 @@ __all__ = ['GanAssurancesModule']
 
 class GanAssurancesModule(AbstractModule, CapBank):
     NAME = 'ganassurances'
-    MAINTAINER = u'Romain Bignon'
+    MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '1.6'
-    DESCRIPTION = u'Gan Assurances'
+    DESCRIPTION = 'Gan Assurances'
     LICENSE = 'LGPLv3+'
-    website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
-        'espaceclient.groupama.fr':             u'Groupama Banque',
-        'espaceclient.ganassurances.fr':        u'Gan Assurances',
-        'espaceclient.ganpatrimoine.fr':        U'Gan Patrimoine',
-        }.items(), key=lambda k_v: (k_v[1], k_v[0]))])
-    CONFIG = BackendConfig(Value('website',  label='Banque', choices=website_choices, default='espaceclient.ganassurances.fr'),
-                           ValueBackendPassword('login',    label=u'Numéro client', masked=False),
-                           ValueBackendPassword('password', label=u"Code d'accès"))
+    website_choices = OrderedDict([(k, '%s (%s)' % (v, k)) for k, v in sorted({
+        'espaceclient.groupama.fr': 'Groupama Banque',
+        'espaceclient.ganassurances.fr': 'Gan Assurances',
+        'espaceclient.ganpatrimoine.fr': 'Gan Patrimoine',
+    }.items(), key=lambda k_v: (k_v[1], k_v[0]))])
+    CONFIG = BackendConfig(
+        Value('website', label='Banque', choices=website_choices, default='espaceclient.ganassurances.fr'),
+        ValueBackendPassword('login', label='Identifiant / N° Client ou Email ou Mobile', masked=False),
+        ValueBackendPassword('password', label='Mon mot de passe', regexp=r'^\d+$')
+    )
     BROWSER = GanAssurances
     PARENT = 'groupama'
 
