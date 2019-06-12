@@ -409,10 +409,13 @@ class HistoryPage(LoggedPage, JsonPage):
 
             klass = Transaction
 
-            obj_raw = Format('%s %s %s', CleanText(Dict('libelleTypeOperation')), CleanText(Dict('libelleOperation')), CleanText(Dict('libelleComplementaire')))
-            obj_label = Format('%s %s', CleanText(Dict('libelleTypeOperation')), CleanText(Dict('libelleOperation')))
+            # Transactions in foreign currencies have no 'libelleTypeOperation'
+            # and 'libelleComplementaire' keys, hence the default values.
+            # The CleanText() gets rid of additional spaces.
+            obj_raw = CleanText(Format('%s %s %s', CleanText(Dict('libelleTypeOperation', default='')), CleanText(Dict('libelleOperation')), CleanText(Dict('libelleComplementaire', default=''))))
+            obj_label = CleanText(Format('%s %s', CleanText(Dict('libelleTypeOperation', default='')), CleanText(Dict('libelleOperation'))))
             obj_amount = Eval(float_to_decimal, Dict('montant'))
-            obj_type = Map(CleanText(Dict('libelleTypeOperation')), TRANSACTION_TYPES, Transaction.TYPE_UNKNOWN)
+            obj_type = Map(CleanText(Dict('libelleTypeOperation', default='')), TRANSACTION_TYPES, Transaction.TYPE_UNKNOWN)
 
             def obj_date(self):
                 return dateutil.parser.parse(Dict('dateValeur')(self))
