@@ -116,7 +116,10 @@ class AccountHistoryPage(LoggedPage, JsonPage):
             if ('nomDispositif' in ins and 'montantNet' in ins and 'codeDispositif' in ins
                 and '%s%s' % (ins['nomDispositif'], ins['codeDispositif'])
                     == '%s%s' % (account.label, account.id)):
-                amount += ins['montantNet']
+                if ins['type'] == 'RACH_TIT':
+                    amount -= ins['montantNet']
+                else:
+                    amount += ins['montantNet']
 
         return CleanDecimal().filter(amount)
 
