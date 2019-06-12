@@ -51,6 +51,9 @@ class LoginPage(HTMLPage):
         form['password'] = pass_string
         form.submit()
 
+    def get_error(self):
+        return CleanText('//div[@id="msg"]')(self.doc)
+
 
 class AccountsPage(LoggedPage, HTMLPage):
     ACCOUNT_TYPES = {u'Solde des comptes bancaires - Groupama Banque':  Account.TYPE_CHECKING,

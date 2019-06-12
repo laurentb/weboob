@@ -55,7 +55,11 @@ class GroupamaBrowser(LoginBrowser):
         self.page.login(self.username, self.password)
 
         if self.login.is_here():
-            raise BrowserIncorrectPassword()
+            error_msg = self.page.get_error()
+            if error_msg and "LOGIN_ERREUR_MOT_PASSE_INVALIDE" in error_msg:
+                raise BrowserIncorrectPassword()
+            assert False, 'Unhandled error at login: %s' % error_msg
+
 
     # For life asssurance accounts, to get balance we use the link from the account.
     # And to get history (or other) we need to use the link again but the link works only once.
