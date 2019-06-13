@@ -540,22 +540,36 @@ class LoansPage(LoggedPage, CragrPage):
         class item(ItemElement):
             klass = Loan
 
-            obj_id = CleanText('./td[2]/a')
+            def condition(self):
+                return 'Billet financier' not in CleanText('./td[1]')(self)
+
+            obj_id = CleanText('./td[2]')
             obj_number = Field('id')
-            obj_label = CleanText('./td[1]/a')
+            obj_label = CleanText('./td[1]')
             obj_type = Map(Field('label'), ACCOUNT_TYPES, Account.TYPE_LOAN)
-            obj_next_payment_amount = CleanDecimal.French('./td[3]//*[@class="montant3"]', default=NotAvailable)
-            obj_total_amount = CleanDecimal.French('./td[4]//*[@class="montant3"]', default=NotAvailable)
+            obj_next_payment_amount = Env('next_payment_amount')
+            obj_total_amount = Env('total_amount')
             obj_currency = Currency('./td[@class="cel-devise"]')
             obj_url = Link('./td[2]/a', default=None)
             obj_iban = None
             obj__form = None
 
             def obj_balance(self):
-                balance = CleanDecimal.French('./td[5]//*[@class="montant3"]', default=NotAvailable)(self)
-                if balance == NotAvailable:
-                    return NotAvailable
+                balance = Env('balance')(self)
                 return -abs(balance)
+
+            def parse(self, obj):
+                # We must handle Loan tables with 5 or 6 columns
+                if CleanText('//tr[contains(@class, "colcelligne")][count(td) = 5]')(self):
+                    # History table with 4 columns (no loan details)
+                    self.env['next_payment_amount'] = NotAvailable
+                    self.env['total_amount'] = NotAvailable
+                    self.env['balance'] = CleanDecimal.French('./td[4]//*[@class="montant3"]', default=NotAvailable)(self)
+                elif CleanText('//tr[contains(@class, "colcelligne")][count(td) = 6]')(self):
+                    # History table with 5 columns (contains next_payment_amount & total_amount)
+                    self.env['next_payment_amount'] = CleanDecimal.French('./td[3]//*[@class="montant3"]', default=NotAvailable)(self)
+                    self.env['total_amount'] = CleanDecimal.French('./td[4]//*[@class="montant3"]', default=NotAvailable)(self)
+                    self.env['balance'] = CleanDecimal.French('./td[5]//*[@class="montant3"]', default=NotAvailable)(self)
 
 
 class CheckingHistoryPage(LoggedPage, CragrPage):
