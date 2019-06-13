@@ -195,6 +195,12 @@ class CragrRegion(LoginBrowser):
         self.page.submit_password(self.username, self.password)
         url_after_login = self.page.get_accounts_url()
 
+        # For some connections, the first session_value is contained in the URL
+        # after login, so we must set it before going to the accounts page.
+        m = re.search(r'sessionSAG=([^&]+)', url_after_login)
+        if m:
+            self.session_value = m.group(1)
+
         # In case of wrongpass, instead of a URL, the node will contain a message such as
         # 'Votre identification est incorrecte, veuillez ressaisir votre numéro de compte et votre code d'accès'
         if not url_after_login.startswith('https'):
@@ -319,7 +325,6 @@ class CragrRegion(LoginBrowser):
             self.logger.warning('Failed to access wealth page, trying a second time')
             self.wealth.go(session_value=self.session_value)
             assert self.wealth.is_here(), 'We failed to go to the wealth accounts page twice.'
-
 
         # We first store the wealth accounts in a list because we
         # must avoid requests to BGPI during account pagination
