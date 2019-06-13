@@ -58,6 +58,7 @@ class AccountDetailsPage(LoggedPage, PartialHTMLPage):
         obj_label = obj_id
         obj_currency = u'EUR'
         obj_balance = MyDecimal('//p[@class="num"]/a')
+        obj_cardlimit = MyDecimal('//div[has-class("solde_actu")]')
 
         # Every subscription a product token and a type ex: card = 240
         obj__product_token = Regexp(CleanText('//div[contains(@id, "product")]/@id'), r'productLine_(\d*)')
