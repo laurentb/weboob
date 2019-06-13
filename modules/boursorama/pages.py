@@ -529,6 +529,16 @@ class HistoryPage(LoggedPage, HTMLPage):
                         return False
                 return True
 
+            def condition(self):
+                # Users can split their transactions if they want. We don't want this kind
+                # of custom transaction because:
+                #  - The sum of this transactions can be different than the original transaction
+                #     ex: The real transaction as an amount of 100€, the user is free to split it on 50€ and 60€
+                #  - The original transaction is scraped anyway and we don't want duplicates
+                if self.xpath('./div[has-class("list__movement__line--block__split")]'):
+                    return False
+                return True
+
     def get_cards_number_link(self):
         return Link('//a[small[span[contains(text(), "carte bancaire")]]]', default=NotAvailable)(self.doc)
 
