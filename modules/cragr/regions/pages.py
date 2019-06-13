@@ -402,7 +402,7 @@ class CardsPage(LoggedPage, CragrPage):
                            CleanText('//table[@class="ca-table"][@summary]//caption[@class="caption"]//b'))
 
         obj_balance = CleanDecimal(0)
-        obj_coming = CleanDecimal.French('//table[@class="ca-table"][@summary]//tr[@class="ligne-paire"]//td[@class="cel-num"]')
+        obj_coming = CleanDecimal.French('//table[@class="ca-table"][@summary]//tr[@class="ligne-paire"]//td[@class="cel-num"]', default=0)
         obj_currency = Currency(Regexp(CleanText('//th[contains(text(), "Montant en")]'), r'^Montant en (.*)'))
         obj_type = Account.TYPE_CARD
         obj__form = None
@@ -483,7 +483,7 @@ class MultipleCardsPage(CardsPage):
 
             obj_type = Account.TYPE_CARD
             obj_balance = CleanDecimal(0)
-            obj_coming = CleanDecimal.French('.//tr[1]/td[position() = last()]')
+            obj_coming = CleanDecimal.French('.//tr[1]/td[position() = last()]', default=0)
             obj_currency = Currency(Regexp(CleanText('//span[contains(text(), "Montants en")]'), r'^Montants en (.*)'))
             obj__form = None
 
