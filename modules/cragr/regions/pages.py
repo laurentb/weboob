@@ -146,10 +146,6 @@ class LoggedOutPage(CragrPage):
     def is_here(self):
         return CleanText('//form[@class="ca-forms"]//h1[text()="Fin de connexion"]')(self.doc)
 
-    def on_load(self):
-        self.logger.warning('We were logged out!')
-        self.browser.do_login()
-
 
 class PasswordExpiredPage(CragrPage):
     def on_load(self):
