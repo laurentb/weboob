@@ -56,12 +56,15 @@ class LoginPage(HTMLPage):
 
 
 class AccountsPage(LoggedPage, HTMLPage):
-    ACCOUNT_TYPES = {u'Solde des comptes bancaires - Groupama Banque':  Account.TYPE_CHECKING,
-                     u'Solde des comptes bancaires':                    Account.TYPE_CHECKING,
-                     u'Epargne bancaire constituée - Groupama Banque':  Account.TYPE_SAVINGS,
-                     u'Epargne bancaire constituée':                    Account.TYPE_SAVINGS,
-                     u'Mes crédits':                                    Account.TYPE_LOAN,
-                     u'Assurance Vie':                                  Account.TYPE_LIFE_INSURANCE}
+    ACCOUNT_TYPES = {
+        u'Solde des comptes bancaires - Groupama Banque':  Account.TYPE_CHECKING,
+        u'Solde des comptes bancaires':                    Account.TYPE_CHECKING,
+        u'Epargne bancaire constituée - Groupama Banque':  Account.TYPE_SAVINGS,
+        u'Epargne bancaire constituée':                    Account.TYPE_SAVINGS,
+        u'Mes crédits':                                    Account.TYPE_LOAN,
+        u'Assurance Vie':                                  Account.TYPE_LIFE_INSURANCE,
+        u'Certificats Mutualistes':                        Account.TYPE_SAVINGS,
+    }
 
     ACCOUNT_TYPES2 = {
         'plan epargne actions': Account.TYPE_PEA,
