@@ -434,6 +434,9 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                         assert self.linebourse.portfolio.is_here()
                         # We must declare "page" because this URL also matches MarketPage
                         account.valuation_diff = page.get_valuation_diff()
+
+                        # We need to go back to the synthesis, else we can not go home later
+                        self.home_tache.go(tache='CPTSYNT0')
                     else:
                         assert False, "new domain that hasn't been seen so far ?"
 
@@ -771,6 +774,9 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                 self.update_linebourse_token()
                 for investment in self.linebourse.iter_investments(account.id):
                     yield investment
+
+                # We need to go back to the synthesis, else we can not go home later
+                self.home_tache.go(tache='CPTSYNT0')
                 return
 
         elif account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_CAPITALISATION):
