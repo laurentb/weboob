@@ -46,7 +46,7 @@ __all__ = [
     'CapBankTransferAddRecipient',
     'RecipientNotFound', 'AddRecipientError', 'AddRecipientBankError', 'AddRecipientTimeout',
     'AddRecipientStep', 'RecipientInvalidIban', 'RecipientInvalidLabel', 'RecipientInvalidOTP',
-    'Rate', 'CapCurrencyRate',
+    'Rate', 'CapCurrencyRate', 'BeneficiaryType',
 ]
 
 
@@ -566,28 +566,38 @@ class AddRecipientStep(BrowserQuestion):
         self.recipient = recipient
 
 
+class BeneficiaryType(object):
+    RECIPIENT =          'recipient'
+    IBAN =               'iban'
+    PHONE_NUMBER =       'phone_number'
+
+
 class Transfer(BaseObject, Currency):
     """
     Transfer from an account to a recipient.
     """
-
     amount =          DecimalField('Amount to transfer')
     currency =        StringField('Currency', default=None)
     fees =            DecimalField('Fees', default=None)
 
     exec_date =       Field('Date of transfer', date, datetime)
+    label =           StringField('Reason')
 
     account_id =      StringField('ID of origin account')
     account_iban =    StringField('International Bank Account Number')
     account_label =   StringField('Label of origin account')
     account_balance = DecimalField('Balance of origin account before transfer')
 
-    recipient_id =    StringField('ID of recipient account')
-    recipient_iban =  StringField('International Bank Account Number')
-    recipient_label = StringField('Label of recipient account')
+    # Information for beneficiary in recipient list
+    recipient_id =      StringField('ID of recipient account')
+    recipient_iban =    StringField('International Bank Account Number')
+    recipient_label =   StringField('Label of recipient account')
 
-    label =           StringField('Reason')
-
+    # Information for beneficiary not only in recipient list
+    # Like transfer to iban beneficiary
+    beneficiary_type =    StringField('Transfer creditor number type', default=BeneficiaryType.RECIPIENT)
+    beneficiary_number =  StringField('Transfer creditor number', default=None)
+    beneficiary_label =  StringField('Transfer creditor number', default='Unknown')
 
 class CapBank(CapCollection):
     """
@@ -695,6 +705,8 @@ class CapBankPockets(CapBankWealth):
 
 
 class CapBankTransfer(CapBank):
+    accepted_beneficiary_types = (BeneficiaryType.RECIPIENT, )
+
     def iter_transfer_recipients(self, account):
         """
         Iter recipients availables for a transfer from a specific account.
@@ -735,12 +747,18 @@ class CapBankTransfer(CapBank):
         :raises: :class:`TransferError`
         """
 
+        transfer_not_check_fields = {
+            BeneficiaryType.RECIPIENT: ('id', 'beneficiary_number', 'beneficiary_label',),
+            BeneficiaryType.IBAN: ('id', 'recipient_id', 'recipient_iban', 'recipient_label',),
+            BeneficiaryType.PHONE_NUMBER: ('id', 'recipient_id', 'recipient_iban', 'recipient_label',),
+        }
+
         if not transfer.amount or transfer.amount <= 0:
             raise TransferInvalidAmount('amount must be strictly positive')
 
         t = self.init_transfer(transfer, **params)
         for key, value in t.iter_fields():
-            if hasattr(transfer, key) and key != 'id':
+            if hasattr(transfer, key) and (key not in transfer_not_check_fields[transfer.beneficiary_type]):
                 transfer_val = getattr(transfer, key)
                 try:
                     if hasattr(self, 'transfer_check_%s' % key):

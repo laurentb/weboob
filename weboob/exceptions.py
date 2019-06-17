@@ -60,8 +60,11 @@ class AppValidation(DecoupledValidation):
 
 
 class BrowserRedirect(BrowserInteraction):
-    def __init__(self, url):
+    def __init__(self, url, resource=None):
         self.url = url
+
+        # Needed for transfer redirection
+        self.resource = resource
 
     def __str__(self):
         return 'Redirecting to %s' % self.url
