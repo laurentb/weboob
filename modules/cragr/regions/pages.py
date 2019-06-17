@@ -490,8 +490,11 @@ class MultipleCardsPage(CardsPage):
 
     def get_transactions_link(self, raw_number):
         # We cannot use Link() because the @href attribute contains line breaks and spaces.
-        # Always take the <tr> before the last to include the latest transactions
-        # (the last <td> is just card information).
+        # Always take the <tr> before the last to include the latest transactions,
+        # except if there is only one line of coming (then take the last).
+        if len(self.doc.xpath('//table[@class="ca-table"][caption[span[text()="%s"]]]//tr' % raw_number)) == 1:
+            return CleanText('//table[@class="ca-table"][caption[span[text()="%s"]]]//tr[position()=last()]/th/a/@href'
+                             % raw_number, replace=[(' ', '')])(self.doc)
         return CleanText('//table[@class="ca-table"][caption[span[text()="%s"]]]//tr[position()=last()-1]/th/a/@href'
                          % raw_number, replace=[(' ', '')])(self.doc)
 
