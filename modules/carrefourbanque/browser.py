@@ -73,15 +73,18 @@ class CarrefourBanqueBrowser(LoginBrowser, StatesMixin):
             self.incapsula_ressource.go(params={'SWCGHOEL': 'v2'}, data=data)
 
         self.login.go()
-        # this cookie contains an ugly \x01 and make next request fail with a 400 if not removed
-        ___utmvafIuFLPmB = self.session.cookies.pop('___utmvafIuFLPmB', None)
-        if ___utmvafIuFLPmB:
-            self.session.cookies['___utmvafIuFLPmB'] = ___utmvafIuFLPmB.replace('\x01', '')
-
-        # this cookie contains an ugly \n and make next request fail with a 400 if not removed
-        ___utmvbfIuFLPmB = self.session.cookies.pop('___utmvbfIuFLPmB', None)
-        if ___utmvbfIuFLPmB:
-            self.session.cookies['___utmvbfIuFLPmB'] = ___utmvbfIuFLPmB.replace('\n', '')
+        # remove 2 cookies that make next request fail with a 400 if not removed
+        # cookie name can change depend on ip, but seems to be constant on same ip
+        # example:
+        #     1st cookie        2nd cookie
+        # ___utmvafIuFLPmB, ___utmvbfIuFLPmB
+        # ___utmvaYauFLPmB, ___utmvbYauFLPmB
+        # it may have other names...
+        for cookie in self.session.cookies:
+            if '___utmva' in cookie.name or '___utmvb' in cookie.name:
+                # ___utmva... contains an ugly \x01
+                # ___utmvb... contains an ugly \n
+                self.session.cookies.pop(cookie.name)
 
         if self.incapsula_ressource.is_here():
             if self.page.is_javascript:
