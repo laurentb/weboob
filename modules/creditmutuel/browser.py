@@ -279,12 +279,23 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
             self.li.go(subbank=self.currentSubBank)
             self.accounts_list.extend(self.page.iter_li_accounts())
 
-            for acc in self.cards_list:
-                if hasattr(acc, '_parent_id'):
-                    acc.parent = find_object(self.accounts_list, id=acc._parent_id)
-
+            # This type of account is like a loan, for splitting payments in smaller amounts.
+            # Its history is irrelevant because money is debited from a checking account and
+            # the balance is not even correct, so ignore it.
             excluded_label = ['etalis', 'valorisation totale']
-            self.accounts_list = [acc for acc in self.accounts_list if not any(w in acc.label.lower() for w in excluded_label)]
+
+            accounts_by_id = {}
+            for acc in self.accounts_list:
+                if acc.label.lower() not in excluded_label:
+                    accounts_by_id[acc.id] = acc
+
+            # Set the parent to loans and cards accounts
+            for acc in self.accounts_list:
+                if acc.type == Account.TYPE_CARD and not empty(getattr(acc, '_parent_id', None)):
+                    acc.parent = accounts_by_id[acc._parent_id]
+
+            self.accounts_list = accounts_by_id.values()
+
             if has_no_account and not self.accounts_list:
                 raise NoAccountsException(has_no_account)
 
