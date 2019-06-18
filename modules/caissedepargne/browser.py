@@ -650,8 +650,17 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             if self.page.is_account_inactive(account.id):
                 self.logger.warning('Account %s %s is inactive.' % (account.label, account.id))
                 return []
+
+            # There is (currently ?) no history for MILLEVIE PREMIUM accounts
             if "MILLEVIE" in account.label:
-                self.page.go_life_insurance(account)
+                try:
+                    self.page.go_life_insurance(account)
+                except ServerError as ex:
+                    if ex.response.status_code == 500 and 'MILLEVIE PREMIUM' in account.label:
+                        self.logger.info("Can not reach history page for MILLEVIE PREMIUM account")
+                        return []
+                    raise
+
                 label = account.label.split()[-1]
                 try:
                     self.natixis_life_ins_his.go(id1=label[:3], id2=label[3:5], id3=account.id)
@@ -784,7 +793,14 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                 self.logger.warning('Account %s %s is inactive.' % (account.label, account.id))
                 return
             if "MILLEVIE" in account.label:
-                self.page.go_life_insurance(account)
+                try:
+                    self.page.go_life_insurance(account)
+                except ServerError as ex:
+                    if ex.response.status_code == 500 and 'MILLEVIE PREMIUM' in account.label:
+                        self.logger.info("Can not reach investment page for MILLEVIE PREMIUM account")
+                        return
+                    raise
+
                 label = account.label.split()[-1]
                 self.natixis_life_ins_inv.go(id1=label[:3], id2=label[3:5], id3=account.id)
                 for tr in self.page.get_investments():
