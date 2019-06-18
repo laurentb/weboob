@@ -217,6 +217,7 @@ class AXABanque(AXABrowser, StatesMixin):
                 self.transactions.go()
 
             self.cache['accs'] = accounts
+            self.bank_accounts.go()
         return self.cache['accs']
 
     @need_login
