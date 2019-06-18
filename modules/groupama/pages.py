@@ -57,13 +57,13 @@ class LoginPage(HTMLPage):
 
 class AccountsPage(LoggedPage, HTMLPage):
     ACCOUNT_TYPES = {
-        u'Solde des comptes bancaires - Groupama Banque':  Account.TYPE_CHECKING,
-        u'Solde des comptes bancaires':                    Account.TYPE_CHECKING,
-        u'Epargne bancaire constituée - Groupama Banque':  Account.TYPE_SAVINGS,
-        u'Epargne bancaire constituée':                    Account.TYPE_SAVINGS,
-        u'Mes crédits':                                    Account.TYPE_LOAN,
-        u'Assurance Vie':                                  Account.TYPE_LIFE_INSURANCE,
-        u'Certificats Mutualistes':                        Account.TYPE_SAVINGS,
+        'Solde des comptes bancaires - Groupama Banque': Account.TYPE_CHECKING,
+        'Solde des comptes bancaires': Account.TYPE_CHECKING,
+        'Epargne bancaire constituée - Groupama Banque': Account.TYPE_SAVINGS,
+        'Epargne bancaire constituée': Account.TYPE_SAVINGS,
+        'Mes crédits': Account.TYPE_LOAN,
+        'Assurance Vie': Account.TYPE_LIFE_INSURANCE,
+        'Certificats Mutualistes': Account.TYPE_SAVINGS,
     }
 
     ACCOUNT_TYPES2 = {
@@ -89,8 +89,8 @@ class AccountsPage(LoggedPage, HTMLPage):
             balance = tds[-1].text.strip()
 
             account = Account()
-            account.label = u' '.join([txt.strip() for txt in tds[0].itertext()])
-            account.label = re.sub(u'[ \xa0\u2022\r\n\t]+', u' ', account.label).strip()
+            account.label = ' '.join([txt.strip() for txt in tds[0].itertext()])
+            account.label = re.sub(r'[\s\xa0\u2022]+', ' ', account.label).strip()
 
             # take "N° (FOO123 456)" but "N° (FOO123) MR. BAR"
             account.id = re.search(r'N° (\w+( \d+)*)', account.label).group(1).replace(' ', '')
@@ -106,9 +106,9 @@ class AccountsPage(LoggedPage, HTMLPage):
                 account.currency = account.get_currency(balance)
 
             if 'onclick' in a.attrib:
-                m = re.search(r"javascript:submitForm\(([\w_]+),'([^']+)'\);", a.attrib['onclick'])
+                m = re.search(r"javascript:submitForm\(([\w]+),'([^']+)'\);", a.attrib['onclick'])
                 if not m:
-                    self.logger.warning('Unable to find link for %r' % account.label)
+                    self.logger.warning('Unable to find link for %r', account.label)
                     account._link = None
                 else:
                     account._link = m.group(2)
@@ -123,17 +123,14 @@ class AccountsPage(LoggedPage, HTMLPage):
 
 
 class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile('^Facture (?P<dd>\d{2})/(?P<mm>\d{2})-(?P<text>.*) carte .*'),
-                                                                FrenchTransaction.TYPE_CARD),
-                (re.compile(u'^(Prlv( de)?|Ech(éance|\.)) (?P<text>.*)'),
-                                                                FrenchTransaction.TYPE_ORDER),
-                (re.compile('^(Vir|VIR)( de)? (?P<text>.*)'),
-                                                                FrenchTransaction.TYPE_TRANSFER),
-                (re.compile(u'^CHEQUE.*? (N° \w+)?$'),          FrenchTransaction.TYPE_CHECK),
-                (re.compile('^Cotis(ation)? (?P<text>.*)'),
-                                                                FrenchTransaction.TYPE_BANK),
-                (re.compile('(?P<text>Int .*)'),                FrenchTransaction.TYPE_BANK),
-               ]
+    PATTERNS = [
+        (re.compile(r'^Facture (?P<dd>\d{2})/(?P<mm>\d{2})-(?P<text>.*) carte .*'), FrenchTransaction.TYPE_CARD),
+        (re.compile(r'^(Prlv( de)?|Ech(éance|\.)) (?P<text>.*)'), FrenchTransaction.TYPE_ORDER),
+        (re.compile(r'^(Vir|VIR)( de)? (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
+        (re.compile(r'^CHEQUE.*? (N° \w+)?$'), FrenchTransaction.TYPE_CHECK),
+        (re.compile(r'^Cotis(ation)? (?P<text>.*)'), FrenchTransaction.TYPE_BANK),
+        (re.compile(r'(?P<text>Int .*)'), FrenchTransaction.TYPE_BANK),
+    ]
 
 
 class TransactionsPage(HTMLPage):
@@ -145,18 +142,24 @@ class TransactionsPage(HTMLPage):
         head_xpath = '//table[@id="releve_operation"]//tr/th'
         item_xpath = '//table[@id="releve_operation"]//tr'
 
-        col_date =       [u'Date opé', 'Date', u'Date d\'opé', u'Date opération']
-        col_vdate =      [u'Date valeur']
-        col_credit =     [u'Crédit', u'Montant', u'Valeur']
-        col_debit =      [u'Débit']
+        col_date = ['Date opé', 'Date', 'Date d\'opé', 'Date opération']
+        col_vdate = ['Date valeur']
+        col_credit = ['Crédit', 'Montant', 'Valeur']
+        col_debit = ['Débit']
 
         def next_page(self):
             url = Attr('//a[contains(text(), "Page suivante")]', 'onclick', default=None)(self)
             if url:
-                m = re.search('\'([^\']+).*([\d]+)', url)
-                return requests.Request("POST", m.group(1), data={'numCompte': Env('accid')(self), \
-                                        'vue': "ReleveOperations", 'tri': "DateOperation", 'sens': \
-                                        "DESC", 'page': m.group(2), 'nb_element': "25"})
+                m = re.search(r'\'([^\']+).*([\d]+)', url)
+                return requests.Request("POST", m.group(1),
+                                        data={
+                                            'numCompte': Env('accid')(self),
+                                            'vue': "ReleveOperations",
+                                            'tri': "DateOperation",
+                                            'sens': "DESC",
+                                            'page': m.group(2),
+                                            'nb_element': "25"}
+                                        )
 
         class item(Transaction.TransactionElement):
             def condition(self):
@@ -167,17 +170,16 @@ class TransactionsPage(HTMLPage):
             a = self.doc.getroot().cssselect('div#sous_nav ul li a.bt_sans_off')[0]
         except IndexError:
             return None
-        return re.sub('[ \t\r\n]+', '', a.attrib['href'])
+        return re.sub(r'[\s]+', '', a.attrib['href'])
 
     def has_iban(self):
         return self.doc.xpath('//a[@class="rib"]')
 
     def go_iban(self):
         js_event = Attr("//a[@class='rib']", 'onclick')(self.doc)
-        m = re.search("envoyer(.*);", js_event)
+        m = re.search(r'envoyer(.*);', js_event)
         iban_params = ast.literal_eval(m.group(1))
-        link = iban_params[1]
-        self.browser.location(link+"?paramNumCpt={}".format(iban_params[0]))
+        self.browser.location("{}?paramNumCpt={}".format(iban_params[1], iban_params[0]))
 
 
 class IbanPage(LoggedPage, HTMLPage):
@@ -194,7 +196,7 @@ class AVAccountPage(LoggedPage, HTMLPage):
     :rtype: tuple
     """
     def get_av_balance(self):
-        balance_xpath = u'//p[contains(text(), "Épargne constituée")]/span'
+        balance_xpath = '//p[contains(text(), "Épargne constituée")]/span'
         balance = CleanDecimal(balance_xpath)(self.doc)
         currency = Account.get_currency(CleanText(balance_xpath)(self.doc))
         return balance, currency
@@ -204,10 +206,10 @@ class AVAccountPage(LoggedPage, HTMLPage):
         item_xpath = '//table[@id="repartition_epargne3"]/tr[position() > 1]'
         head_xpath = '//table[@id="repartition_epargne3"]/tr/th[position() > 1]'
 
-        col_quantity = u'Nombre d’unités de compte'
-        col_unitvalue = u"Valeur de l’unité de compte"
-        col_valuation = u'Épargne constituée en euros'
-        col_portfolio_share = u'Répartition %'
+        col_quantity = 'Nombre d’unités de compte'
+        col_unitvalue = "Valeur de l’unité de compte"
+        col_valuation = 'Épargne constituée en euros'
+        col_portfolio_share = 'Répartition %'
 
         class item(ItemElement):
             klass = Investment
@@ -244,10 +246,10 @@ class AVHistoryPage(LoggedPage, HTMLPage):
 
         col_date = 'Date'
         col_label = 'Type de mouvement'
-        col_debit = u'Montant Désinvesti'
-        col_credit = ['Montant investi', u'Montant Net Perçu']
+        col_debit = 'Montant Désinvesti'
+        col_credit = ['Montant investi', 'Montant Net Perçu']
         # There is several types of life insurances, so multiple columns
-        col_credit2 = [u'Montant Brut Versé']
+        col_credit2 = ['Montant Brut Versé']
 
         class item(ItemElement):
             klass = Transaction
@@ -262,7 +264,7 @@ class AVHistoryPage(LoggedPage, HTMLPage):
 
             def obj_amount(self):
                 credit = CleanDecimal(TableCell('credit'), default=Decimal(0))(self)
-                # Different types of life insurances, use different columns.
+                # Different types of life insurances, use different columns.
                 if TableCell('debit', default=None)(self):
                     debit = CleanDecimal(TableCell('debit'), default=Decimal(0))(self)
                     # In case of financial arbitration, both columns are equal
@@ -280,7 +282,7 @@ class AVHistoryPage(LoggedPage, HTMLPage):
 
 class FormPage(LoggedPage, HTMLPage):
     def get_av_balance(self):
-        balance_xpath = u'//p[contains(text(), "montant de votre épargne")]'
+        balance_xpath = '//p[contains(text(), "montant de votre épargne")]'
         balance = CleanDecimal(Regexp(CleanText(balance_xpath), r'est de ([\s\d,]+)', default=NotAvailable),
                                replace_dots=True, default=NotAvailable)(self.doc)
         currency = Account.get_currency(CleanText(balance_xpath)(self.doc))
