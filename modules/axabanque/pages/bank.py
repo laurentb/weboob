@@ -199,14 +199,15 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                     # get accounts id
                     try:
                         account.id = args['paramNumCompte'] + args['paramNumContrat']
-                        if 'Visa' in account.label:
-                            card_id = re.search('(\d+)', box.xpath('./td[2]')[0].text.strip())
-                            if card_id:
-                                account.id += card_id.group(1)
-                        if u'Valorisation' in account.label or u'Liquidités' in account.label:
-                            account.id += args[next(k for k in args.keys() if "_idcl" in k)].split('Jsp')[-1]
                     except KeyError:
                         account.id = args['paramNumCompte']
+
+                    if 'Visa' in account.label:
+                        card_id = re.search('(\d+)', box.xpath('./td[2]')[0].text.strip())
+                        if card_id:
+                            account.id += card_id.group(1)
+                    if u'Valorisation' in account.label or u'Liquidités' in account.label:
+                        account.id += args[next(k for k in args.keys() if "_idcl" in k)].split('Jsp')[-1]
 
                     # get accounts balance
                     try:
