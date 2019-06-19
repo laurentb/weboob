@@ -197,12 +197,12 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                             break
 
                     # get accounts id
-                    account.id = args['paramNumContrat'] + args.get('paramNumContrat', '')
+                    account.id = args['paramNumCompte'] + args.get('paramNumContrat', '')
 
                     if 'Visa' in account.label:
-                        card_id = re.search('(\d+)', box.xpath('./td[2]')[0].text.strip())
-                        if card_id:
-                            account.id += card_id.group(1)
+                        account.number = Regexp(CleanText('./td[contains(@class,"libelle")]', replace=[(' ', ''), ('x', 'X')]), r'(X{12}\d{4})')(box)
+                        account.id += Regexp(CleanText('./td[contains(@class,"libelle")]'), r'(\d+)')(box)
+
                     if u'Valorisation' in account.label or u'Liquidités' in account.label:
                         account.id += args[next(k for k in args.keys() if "_idcl" in k)].split('Jsp')[-1]
 
