@@ -197,10 +197,7 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                             break
 
                     # get accounts id
-                    try:
-                        account.id = args['paramNumCompte'] + args['paramNumContrat']
-                    except KeyError:
-                        account.id = args['paramNumCompte']
+                    account.id = args['paramNumContrat'] + args.get('paramNumContrat', '')
 
                     if 'Visa' in account.label:
                         card_id = re.search('(\d+)', box.xpath('./td[2]')[0].text.strip())
