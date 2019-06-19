@@ -27,7 +27,7 @@ from weboob.capabilities.bank import (
     Account, Recipient, Transfer, TransferBankError,
 )
 from weboob.browser.filters.standard import (
-    CleanDecimal, Date, CleanText, Coalesce,
+    CleanDecimal, Date, CleanText, Coalesce, Format,
 )
 from weboob.browser.filters.json import Dict
 
@@ -77,7 +77,9 @@ class RecipientsPage(LoggedPage, JsonPage):
             klass = Recipient
 
             obj_id = Dict('accountNumber')
-            obj_label = Dict('accountNatureLongLabel', default='')
+            obj_label = CleanText(Format('%s %s',
+                                         Dict('accountHolderLongDesignation'),
+                                         Dict('accountNatureShortLabel', default='')))
             obj_iban = Dict('ibanCode')
             obj_category = 'Interne'
             obj_enabled_at = date.today()
