@@ -72,6 +72,10 @@ class OrangeModule(Module, CapAccount, CapDocument, CapProfile):
             document = self.get_document(document)
         if document.url is NotAvailable:
             return
+
+        if document._is_v2:
+            # get 404 without this header
+            return self.browser.open(document.url, headers={'x-orange-caller-id': 'ECQ'}).content
         return self.browser.open(document.url).content
 
     def get_profile(self):

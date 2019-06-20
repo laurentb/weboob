@@ -28,7 +28,9 @@ except ImportError:
 from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage
 from weboob.capabilities.bill import Subscription
 from weboob.browser.elements import DictElement, ListElement, ItemElement, method, TableElement
-from weboob.browser.filters.standard import CleanDecimal, CleanText, Env, Field, Regexp, Date, Currency, BrowserURL, Format
+from weboob.browser.filters.standard import (
+    CleanDecimal, CleanText, Env, Field, Regexp, Date, Currency, BrowserURL, Format, Eval
+)
 from weboob.browser.filters.html import Link, TableCell
 from weboob.browser.filters.javascript import JSValue
 from weboob.browser.filters.json import Dict
@@ -38,7 +40,7 @@ from weboob.tools.date import parse_french_date
 from weboob.tools.compat import urlencode
 
 
-class BillsApiPage(LoggedPage, JsonPage):
+class BillsApiProPage(LoggedPage, JsonPage):
     @method
     class get_bills(DictElement):
         item_xpath = 'bills'
@@ -64,9 +66,33 @@ class BillsApiPage(LoggedPage, JsonPage):
                 params = {'billid': Dict('id')(self), 'billDate': Dict('dueDate')(self)}
                 return urlencode(params)
 
-            obj_url = BrowserURL('doc_api', subid=Env('subid'), dir=Dict('documents/0/mainDir'), fact_type=Dict('documents/0/subDir'), billparams=get_params)
+            obj_url = BrowserURL('doc_api_pro', subid=Env('subid'), dir=Dict('documents/0/mainDir'), fact_type=Dict('documents/0/subDir'), billparams=get_params)
+            obj__is_v2 = False
 
 
+class BillsApiParPage(LoggedPage, JsonPage):
+    @method
+    class get_bills(DictElement):
+        item_xpath = 'billsHistory/billList'
+
+        class item(ItemElement):
+            klass = Bill
+
+            obj_date = Date(Dict('date'),  default=NotAvailable)
+            obj_price = Eval(lambda x: x / 100, CleanDecimal(Dict('amount')))
+            obj_format = 'pdf'
+
+            def obj_label(self):
+                return 'Facture du %s' % Field('date')(self)
+
+            def obj_id(self):
+                return '%s_%s' % (Env('subid')(self), Field('date')(self).strftime('%d%m%Y'))
+
+            obj_url = Format('%s%s', BrowserURL('doc_api_par'), Dict('hrefPdf'))
+            obj__is_v2 = True
+
+
+# is BillsPage deprecated ?
 class BillsPage(LoggedPage, HTMLPage):
     @method
     class get_bills(TableElement):
