@@ -124,11 +124,12 @@ class HSBC(LoginBrowser):
 
     def __init__(self, username, password, secret, *args, **kwargs):
         super(HSBC, self).__init__(username, password, *args, **kwargs)
-        self.accounts_list = OrderedDict()
-        self.unique_accounts_list = dict()
+        self.accounts_dict = OrderedDict()
+        self.unique_accounts_dict = dict()
         self.secret = secret
         self.PEA_LISTING = {}
         self.owners = []
+        self.web_space = None
 
     def load_state(self, state):
         return
@@ -184,6 +185,10 @@ class HSBC(LoginBrowser):
         "Pas de TIERS", so we must always go to the owners list before
         going to the owner's account page.
         """
+        # In case of only one owner, do nothing and exit
+        if len(self.owners) == 1:
+            return
+
         if not self.owners_list.is_here():
             self.go_post(self.js_url, data={'debr': 'OPTIONS_TIE'})
 
@@ -204,71 +209,85 @@ class HSBC(LoginBrowser):
         people each having their own accounts. We must fetch the account
         for each person and store the owner of each account.
         """
-        if self.unique_accounts_list:
-            for account in self.unique_accounts_list.values():
+        self.web_space = self.page.get_web_space()
+        if not self.unique_accounts_dict and self.web_space == 'new_space':
+            """
+            With the new space the "Mes comptes de tiers" service is not activated by default, so this page is empty.
+            We must declare here the only owner in 'self.owners'
+            This could change in the future with more people migrating.
+            """
+            self.owners = [0]
+            self.accounts_dict[self.owners[0]] = {}
+            self.update_accounts_dict(self.owners[0])
+            for a in self.accounts_dict[self.owners[0]].values():
+                a._owner = self.owners[0]
+            self.unique_accounts_dict = self.accounts_dict[self.owners[0]]
+            self.go_post(self.js_url, data={'debr': 'OPTIONS_TIE'})
+
+        if self.unique_accounts_dict:
+            for account in self.unique_accounts_dict.values():
                 yield account
         else:
             self.go_post(self.js_url, data={'debr': 'OPTIONS_TIE'})
-            if self.owners_list.is_here():
-                self.owners = self.page.get_owners_urls()
+            self.owners = self.page.get_owners_urls()
 
-                # self.accounts_list will be a dictionary of owners each
-                # containing a dictionary of the owner's accounts.
-                for owner in range(len(self.owners)):
-                    self.accounts_list[owner] = {}
-                    self.update_accounts_list(owner, True)
+            # self.accounts_dict will be a dictionary of owners each
+            # containing a dictionary of the owner's accounts.
+            for owner in range(len(self.owners)):
+                self.accounts_dict[owner] = {}
+                self.update_accounts_dict(owner)
 
-                    # We must set an "_owner" attribute to each account.
-                    for a in self.accounts_list[owner].values():
-                        a._owner = owner
+                # We must set an "_owner" attribute to each account.
+                for a in self.accounts_dict[owner].values():
+                    a._owner = owner
 
-                    # go on cards page if there are cards accounts
-                    for a in self.accounts_list[owner].values():
-                        if a.type == Account.TYPE_CARD:
-                            self.location(a.url)
-                            break
+                # go on cards page if there are cards accounts
+                for a in self.accounts_dict[owner].values():
+                    if a.type == Account.TYPE_CARD:
+                        self.location(a.url)
+                        break
 
-                    # get all couples (card, parent) on cards page
-                    all_card_and_parent = []
-                    if self.cbPage.is_here():
-                        all_card_and_parent = self.page.get_all_parent_id()
-                        self.go_post(self.js_url, data={'debr': 'COMPTES_PAN'})
+                # get all couples (card, parent) on cards page
+                all_card_and_parent = []
+                if self.cbPage.is_here():
+                    all_card_and_parent = self.page.get_all_parent_id()
+                    self.go_post(self.js_url, data={'debr': 'COMPTES_PAN'})
 
-                    # update cards parent and currency
-                    for a in self.accounts_list[owner].values():
-                        if a.type == Account.TYPE_CARD:
-                            for card in all_card_and_parent:
-                                if a.id in card[0].replace(' ', ''):
-                                    a.parent = find_object(self.accounts_list[owner].values(), id=card[1])
-                                if a.parent and not a.currency:
-                                    a.currency = a.parent.currency
+                # update cards parent and currency
+                for a in self.accounts_dict[owner].values():
+                    if a.type == Account.TYPE_CARD:
+                        for card in all_card_and_parent:
+                            if a.id in card[0].replace(' ', ''):
+                                a.parent = find_object(self.accounts_dict[owner].values(), id=card[1])
+                            if a.parent and not a.currency:
+                                a.currency = a.parent.currency
 
-                    # We must get back to the owners list before moving to the next owner:
-                    self.go_post(self.js_url, data={'debr': 'OPTIONS_TIE'})
+                # We must get back to the owners list before moving to the next owner:
+                self.go_post(self.js_url, data={'debr': 'OPTIONS_TIE'})
 
-                # Fill a dictionary will all accounts without duplicating common accounts:
-                for owner in self.accounts_list.values():
-                    for account in owner.values():
-                        if account.id not in self.unique_accounts_list.keys():
-                            self.unique_accounts_list[account.id] = account
-
-                for account in self.unique_accounts_list.values():
-                    yield account
+            # Fill a dictionary will all accounts without duplicating common accounts:
+            for owner in self.accounts_dict.values():
+                for account in owner.values():
+                    if account.id not in self.unique_accounts_dict.keys():
+                        self.unique_accounts_dict[account.id] = account
+            for account in self.unique_accounts_dict.values():
+                yield account
 
     @need_login
-    def update_accounts_list(self, owner, iban=True):
+    def update_accounts_dict(self, owner, iban=True):
         # Go to the owner's account page in case we are not there already:
         self.go_to_owner_accounts(owner)
-        for a in self.page.iter_spaces_account():
+
+        for a in self.page.iter_spaces_account(self.web_space):
             try:
-                self.accounts_list[owner][a.id].url = a.url
+                self.accounts_dict[owner][a.id].url = a.url
             except KeyError:
-                self.accounts_list[owner][a.id] = a
+                self.accounts_dict[owner][a.id] = a
 
         if iban:
             self.location(self.js_url, params={'debr': 'COMPTES_RIB'})
             if self.rib.is_here():
-                self.page.get_rib(self.accounts_list[owner])
+                self.page.get_rib(self.accounts_dict[owner])
 
     @need_login
     def _quit_li_space(self):
@@ -310,8 +329,10 @@ class HSBC(LoginBrowser):
     @need_login
     def get_history(self, account, coming=False, retry_li=True):
         self._quit_li_space()
-        self.update_accounts_list(account._owner, False)
-        account = self.accounts_list[account._owner][account.id]
+        #  Update accounts list only in case of several owners
+        if len(self.owners) > 1:
+            self.update_accounts_dict(account._owner, iban=False)
+        account = self.accounts_dict[account._owner][account.id]
 
         if account.url is None:
             return []
@@ -367,23 +388,22 @@ class HSBC(LoginBrowser):
             return history
 
         try:
-            self.go_post(self.accounts_list[account._owner][account.id].url)
+            self.go_post(account.url)
         # sometime go to hsbc life insurance space do logout
         except HTTPNotFound:
             self.app_gone = True
             self.do_logout()
             self.do_login()
-
         # If we relogin on hsbc, all links have changed
         if self.app_gone:
             self.app_gone = False
-            self.update_accounts_list(account._owner, False)
-            self.location(self.accounts_list[account._owner][account.id].url)
+            self.update_accounts_dict(account._owner, iban=False)
+            self.location(self.accounts_dict[account._owner][account.id].url)
 
         if self.page is None:
             return []
 
-        # for 'fusion' space
+        # for 'fusion' and 'new' space there is a form to submit on the page to go the account's history
         if hasattr(account, '_is_form') and account._is_form:
             # go on accounts page to get account form
             self.go_to_owner_accounts(account._owner)
@@ -492,8 +512,8 @@ class HSBC(LoginBrowser):
 
     def get_life_investments(self, account, retry_li=True):
         self._quit_li_space()
-        self.update_accounts_list(account._owner, False)
-        account = self.accounts_list[account._owner][account.id]
+        self.update_accounts_dict(account._owner, False)
+        account = self.accounts_dict[account._owner][account.id]
         try:
             if not self._go_to_life_insurance(account):
                 self._quit_li_space()
@@ -523,7 +543,7 @@ class HSBC(LoginBrowser):
         if not hasattr(self.page, 'get_middle_frame_url'):
             # if we can catch the URL, we go directly, else we need to browse
             # the website
-            self.update_accounts_list(account._owner, False)
+            self.update_accounts_dict(account._owner, False)
 
         self.location(self.page.get_middle_frame_url())
 
@@ -534,7 +554,7 @@ class HSBC(LoginBrowser):
             if self.login.is_here():
                 self.logger.warning('Connection to the Logon page failed, we must try again.')
                 self.do_login()
-                self.update_accounts_list(account._owner, False)
+                self.update_accounts_dict(account._owner, False)
                 self.investment_form_page.go()
                 # If reloggin did not help accessing the wealth space,
                 # there is nothing more we can do to get there.
