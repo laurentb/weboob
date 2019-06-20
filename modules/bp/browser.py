@@ -75,7 +75,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
                             '/voscomptes/canalXHTML/pret/encours/detaillerOffrePretConsoListe-encoursPrets.ea',
                             '/voscomptes/canalXHTML/pret/creditRenouvelable/init-consulterCreditRenouvelable.ea',
                             '/voscomptes/canalXHTML/pret/encours/rechercherPret-encoursPrets.ea',
-                            '/voscomptes/canalXHTML/sso/commun/init-integration.ea\?partenaire',
+                            '/voscomptes/canalXHTML/sso/commun/init-integration.ea\?partenaire=cristalCEC',
                             '/voscomptes/canalXHTML/sso/lbpf/souscriptionCristalFormAutoPost.jsp',
                             AccountList)
     par_accounts_revolving = URL('https://espaceclientcreditconso.labanquepostale.fr/sav/accueil.do', AccountList)
