@@ -219,6 +219,7 @@ class AccountsPage(LoggedPage, HTMLPage):
         'comptes courants': Account.TYPE_CHECKING,
         'cav': Account.TYPE_CHECKING,
         'livret': Account.TYPE_SAVINGS,
+        'livret-a': Account.TYPE_SAVINGS,
         'pel': Account.TYPE_SAVINGS,
         'cel': Account.TYPE_SAVINGS,
         'ldd': Account.TYPE_SAVINGS,
