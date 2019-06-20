@@ -117,10 +117,12 @@ class AccountsPage(MyJsonPage):
         '025': Account.TYPE_SAVINGS,    # Livret Fidélis
         '027': Account.TYPE_SAVINGS,    # Livret A
         '037': Account.TYPE_SAVINGS,
+        '070': Account.TYPE_SAVINGS,    # Compte Epargne Logement
         '077': Account.TYPE_SAVINGS,    # Livret Bambino
         '078': Account.TYPE_SAVINGS,    # Livret jeunes
         '080': Account.TYPE_SAVINGS,    # Plan épargne logement
         '081': Account.TYPE_SAVINGS,
+        '086': Account.TYPE_SAVINGS,    # Compte épargne Moisson
         '097': Account.TYPE_CHECKING,   # Solde en devises
         '730': Account.TYPE_DEPOSIT,    # Compte à terme Optiplus
         '999': Account.TYPE_MARKET,     # no label, we use 'Portefeuille Titres' if needed
