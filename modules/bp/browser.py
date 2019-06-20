@@ -200,9 +200,9 @@ class BPBrowser(LoginBrowser, StatesMixin):
         super(BPBrowser, self).deinit()
         self.linebourse.deinit()
 
-    def location(self, url, **kwargs):
+    def open(self, *args, **kwargs):
         try:
-            return super(BPBrowser, self).location(url, **kwargs)
+            return super(BPBrowser, self).open(*args, **kwargs)
         except ServerError as err:
             if "/../" not in err.response.url:
                 raise
@@ -211,7 +211,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
             self.logger.debug('site has "/../" in their url, fixing url manually')
             parts = list(urlsplit(err.response.url))
             parts[2] = os.path.abspath(parts[2])
-            return self.location(urlunsplit(parts))
+            return self.open(urlunsplit(parts))
 
     def do_login(self):
         self.location(self.login_url)
