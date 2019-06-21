@@ -559,7 +559,13 @@ class IndexPage(LoggedPage, HTMLPage):
         self.submit_form(form, eventargument, eventtarget, scriptmanager)
 
     def go_cards(self):
+        # Do not try to go the card summary if we have no card, it breaks the session
+        if not CleanText('//form[@id="main"]//a/span[text()="Mes cartes bancaires"]')(self.doc):
+            self.logger.info("Do not try to go the CardsPage, there is not link on the main page")
+            return
+
         form = self.get_form(id='main')
+
         eventargument = ""
 
         if "MM$m_CH$IsMsgInit" in form:
