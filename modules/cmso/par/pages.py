@@ -56,25 +56,27 @@ class LogoutPage(RawPage):
 
 
 class AccountsPage(LoggedPage, JsonPage):
-    TYPES = OrderedDict([('courant',             Account.TYPE_CHECKING),
-                         ('pee',                 Account.TYPE_PEE),
-                         ('epargne en actions',  Account.TYPE_PEA),
-                         ('pea',                 Account.TYPE_PEA),
-                         ('p.e.a.',              Account.TYPE_PEA),
-                         ('preference',          Account.TYPE_LOAN),
-                         ('livret',              Account.TYPE_SAVINGS),
-                         ('vie',                 Account.TYPE_LIFE_INSURANCE),
-                         ('previ_option',        Account.TYPE_LIFE_INSURANCE),
-                         ('actions',             Account.TYPE_MARKET),
-                         ('titres',              Account.TYPE_MARKET),
-                         ('ldd cm',              Account.TYPE_SAVINGS),
-                         ('librissime',          Account.TYPE_SAVINGS),
-                         ('epargne logement',    Account.TYPE_SAVINGS),
-                         ('plan bleu',           Account.TYPE_SAVINGS),
-                         ('capital plus',        Account.TYPE_SAVINGS),
-                         ('capital expansion',   Account.TYPE_DEPOSIT),
-                         ('carte',               Account.TYPE_CARD),
-                       ])
+    TYPES = OrderedDict([
+        ('courant', Account.TYPE_CHECKING),
+        ('pee', Account.TYPE_PEE),
+        ('epargne en actions', Account.TYPE_PEA),
+        ('pea', Account.TYPE_PEA),
+        ('p.e.a.', Account.TYPE_PEA),
+        ('preference', Account.TYPE_LOAN),
+        ('livret', Account.TYPE_SAVINGS),
+        ('vie', Account.TYPE_LIFE_INSURANCE),
+        ('previ_option', Account.TYPE_LIFE_INSURANCE),
+        ('avantage capitalisation', Account.TYPE_LIFE_INSURANCE),
+        ('actions', Account.TYPE_MARKET),
+        ('titres', Account.TYPE_MARKET),
+        ('ldd cm', Account.TYPE_SAVINGS),
+        ('librissime', Account.TYPE_SAVINGS),
+        ('epargne logement', Account.TYPE_SAVINGS),
+        ('plan bleu', Account.TYPE_SAVINGS),
+        ('capital plus', Account.TYPE_SAVINGS),
+        ('capital expansion', Account.TYPE_DEPOSIT),
+        ('carte', Account.TYPE_CARD),
+    ])
 
     def get_keys(self):
         """Returns the keys for which the value is a list or dict"""
