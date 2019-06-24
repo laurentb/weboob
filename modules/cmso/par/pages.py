@@ -72,6 +72,7 @@ class AccountsPage(LoggedPage, JsonPage):
                          ('epargne logement',    Account.TYPE_SAVINGS),
                          ('plan bleu',           Account.TYPE_SAVINGS),
                          ('capital plus',        Account.TYPE_SAVINGS),
+                         ('capital expansion',   Account.TYPE_DEPOSIT),
                          ('carte',               Account.TYPE_CARD),
                        ])
 
