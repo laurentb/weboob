@@ -357,7 +357,7 @@ class HistoryPage(LoggedPage, JsonPage):
 
 class LifeinsurancePage(LoggedPage, HTMLPage):
     def get_account_id(self):
-        account_id = Regexp(CleanText('//h1[@class="portlet-title"]'), r'n° ([\d\s]+)', default=NotAvailable)(self.doc)
+        account_id = Regexp(CleanText('//h1[@class="portlet-title"]'), r'n° ([\s\w]+)', default=NotAvailable)(self.doc)
         if account_id:
             return re.sub(r'\s', '', account_id)
 
