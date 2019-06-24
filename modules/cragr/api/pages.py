@@ -113,6 +113,7 @@ ACCOUNT_TYPES = {
     'LDD': Account.TYPE_SAVINGS,
     'PEL': Account.TYPE_SAVINGS,
     'CEL': Account.TYPE_SAVINGS,
+    'CEA': Account.TYPE_DEPOSIT,  # Dépôt à terme
     'CODEBIS': Account.TYPE_SAVINGS,
     'LJMO': Account.TYPE_SAVINGS,
     'CSL': Account.TYPE_SAVINGS,
@@ -126,6 +127,7 @@ ACCOUNT_TYPES = {
     'CPTEXCPRO': Account.TYPE_SAVINGS,
     'CPTEXCENT': Account.TYPE_SAVINGS,
     'CPTDAV': Account.TYPE_SAVINGS,
+    'ORCH': Account.TYPE_SAVINGS,  # Orchestra / PEP
     'DAT': Account.TYPE_SAVINGS,
     'CB': Account.TYPE_SAVINGS,  # Carré bleu / PEL
     'PRET PERSO': Account.TYPE_LOAN,
@@ -155,6 +157,8 @@ ACCOUNT_TYPES = {
     'P. ACC.SOC': Account.TYPE_LOAN,
     'PACA': Account.TYPE_LOAN,
     'CAU. BANC.': Account.TYPE_LOAN,
+    'CSAN': Account.TYPE_LOAN,
+    'P SPE MOD': Account.TYPE_LOAN,
     'épargne disponible': Account.TYPE_SAVINGS,
     'épargne à terme': Account.TYPE_DEPOSIT,
     'épargne boursière': Account.TYPE_MARKET,
@@ -174,9 +178,12 @@ ACCOUNT_TYPES = {
     'FLORIPRO': Account.TYPE_LIFE_INSURANCE,
     'FLORIANE 2': Account.TYPE_LIFE_INSURANCE,
     'ATOUT LIB': Account.TYPE_REVOLVING_CREDIT,
-    'PACC': Account.TYPE_CONSUMER_CREDIT,
+    'PACC': Account.TYPE_CONSUMER_CREDIT,  # 'PAC' = 'Prêt à consommer'
     'PACP': Account.TYPE_CONSUMER_CREDIT,
+    'PACR': Account.TYPE_CONSUMER_CREDIT,
+    'PACV': Account.TYPE_CONSUMER_CREDIT,
     'SUPPLETIS': Account.TYPE_REVOLVING_CREDIT,
+    'OPEN': Account.TYPE_REVOLVING_CREDIT,
     'PAGR': Account.TYPE_MADELIN,
 }
 
