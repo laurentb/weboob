@@ -567,7 +567,7 @@ class LoansPage(LoggedPage, CragrPage):
                     # History table with 4 columns (no loan details)
                     self.env['next_payment_amount'] = NotAvailable
                     self.env['total_amount'] = NotAvailable
-                    self.env['balance'] = CleanDecimal.French('./td[4]//*[@class="montant3"]', default=NotAvailable)(self)
+                    self.env['balance'] = CleanDecimal.French('./td[4]//*[@class="montant3" or @class="montant4"]', default=NotAvailable)(self)
                 elif CleanText('//tr[contains(@class, "colcelligne")][count(td) = 6]')(self):
                     # History table with 5 columns (contains next_payment_amount & total_amount)
                     self.env['next_payment_amount'] = CleanDecimal.French('./td[3]//*[@class="montant3"]', default=NotAvailable)(self)
