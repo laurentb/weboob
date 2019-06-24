@@ -114,6 +114,7 @@ ACCOUNT_TYPES = {
     'PEL': Account.TYPE_SAVINGS,
     'CEL': Account.TYPE_SAVINGS,
     'CEA': Account.TYPE_DEPOSIT,  # Dépôt à terme
+    'CEL2': Account.TYPE_SAVINGS,
     'CODEBIS': Account.TYPE_SAVINGS,
     'LJMO': Account.TYPE_SAVINGS,
     'CSL': Account.TYPE_SAVINGS,

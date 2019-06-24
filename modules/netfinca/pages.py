@@ -34,6 +34,8 @@ from weboob.tools.capabilities.bank.investments import is_isin_valid, create_fre
 ACCOUNT_TYPES = {
     'D.A.T.': Account.TYPE_DEPOSIT,
     'COMPTE PEA': Account.TYPE_PEA,
+    'INTEGRAL PEA': Account.TYPE_PEA,
+    'COMPTE PEA-PME': Account.TYPE_PEA,
     'COMPTE TITRES': Account.TYPE_MARKET,
     'CTO VENDOME PRIVILEGE': Account.TYPE_MARKET,
     'PARTS SOCIALES': Account.TYPE_MARKET,
