@@ -23,7 +23,7 @@ import datetime as dt
 
 from weboob.browser.pages import JsonPage, LoggedPage
 from weboob.browser.elements import DictElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Currency
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Currency, Coalesce
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.bank import Recipient, Transfer, TransferBankError
 from weboob.capabilities.base import NotAvailable
@@ -128,7 +128,7 @@ class TransferInfoPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Recipient
 
-            obj_id = obj_iban = Dict('iban')
+            obj_id = obj_iban = Coalesce(Dict('iban'), Dict('index'))
             obj_label = Dict('nom')
             obj_category = 'Externe'
             obj_enabled_at = dt.date.today()
