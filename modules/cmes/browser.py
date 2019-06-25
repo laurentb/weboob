@@ -78,9 +78,10 @@ class CmesBrowser(LoginBrowser):
     def iter_history(self, account):
         self.operations_list.stay_or_go(subsite=self.subsite, client_space=self.client_space)
         for idx in self.page.get_operations_idx():
-            tr = self.operation.go(subsite=self.subsite, client_space=self.client_space, idx=idx).get_transaction()
-            if account.label == tr._account_label:
-                yield tr
+            self.operation.go(subsite=self.subsite, client_space=self.client_space, idx=idx)
+            for tr in self.page.get_transactions():
+                if account.label == tr._account_label:
+                    yield tr
 
     @need_login
     def iter_pocket(self, account):

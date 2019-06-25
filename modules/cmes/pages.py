@@ -77,14 +77,15 @@ class ActionNeededPage(HTMLPage, LoggedPage):
 ACCOUNTS_TYPES = {
     "pargne entreprise": Account.TYPE_PEE,
     "pargne groupe": Account.TYPE_PEE,
-    "pargne retraite": Account.TYPE_PERCO
+    "pargne retraite": Account.TYPE_PERCO,
+    "courant bloqué": Account.TYPE_DEPOSIT,
 }
 
 
 class NewAccountsPage(LoggedPage, HTMLPage):
     @method
     class iter_accounts(ListElement):
-        item_xpath = '//th[text()= "Nom du support" or text()="Nom du profil"]/ancestor::table/ancestor::table'
+        item_xpath = '//th[text()= "Nom du support" or text()="Nom du profil" or text()="Nom du compte"]/ancestor::table/ancestor::table'
 
         class item(ItemElement):
             klass = Account
@@ -166,15 +167,27 @@ class NewAccountsPage(LoggedPage, HTMLPage):
 
 
 class OperationPage(LoggedPage, HTMLPage):
-    @method
-    class get_transaction(ItemElement):
-        klass = Transaction
 
-        obj_amount = MyDecimal('//td[contains(text(), "Montant total")]/following-sibling::td')
-        obj_label = CleanText('(//p[contains(@id, "smltitle")])[2]')
-        obj_raw = Transaction.Raw(Field('label'))
-        obj_date = Date(Regexp(CleanText('(//p[contains(@id, "smltitle")])[1]'), r'(\d{1,2}/\d{1,2}/\d+)'), dayfirst=True)
-        obj__account_label = CleanText('//td[contains(text(), "Montant total")]/../following-sibling::tr/th[1]')
+    # Most '_account_label' correspond 'account.label', but there are exceptions
+    ACCOUNTS_SPE_LABELS = {
+        'CCB': 'Compte courant bloqué',
+    }
+
+    @method
+    class get_transactions(ListElement):
+        item_xpath = '//tr[@id]'
+
+        class item(ItemElement):
+            klass = Transaction
+
+            obj_amount = MyDecimal('./th[@scope="rowgroup"][2]')
+            obj_label = CleanText('(//p[contains(@id, "smltitle")])[2]')
+            obj_raw = Transaction.Raw(Field('label'))
+            obj_date = Date(Regexp(CleanText('(//p[contains(@id, "smltitle")])[1]'), r'(\d{1,2}/\d{1,2}/\d+)'), dayfirst=True)
+
+            def obj__account_label(self):
+                account_label = CleanText('./th[@scope="rowgroup"][1]')(self)
+                return self.page.ACCOUNTS_SPE_LABELS.get(account_label, account_label)
 
 
 class OperationsListPage(LoggedPage, HTMLPage):
