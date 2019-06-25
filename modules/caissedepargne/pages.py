@@ -30,7 +30,10 @@ from datetime import datetime
 
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage, pagination, FormNotFound
 from weboob.browser.elements import ItemElement, method, ListElement, TableElement, SkipItem, DictElement
-from weboob.browser.filters.standard import Date, CleanDecimal, Regexp, CleanText, Env, Upper, Field, Eval, Format, Currency
+from weboob.browser.filters.standard import (
+    Date, CleanDecimal, Regexp, CleanText, Env, Upper,
+    Field, Eval, Format, Currency, Coalesce,
+)
 from weboob.browser.filters.html import Link, Attr, TableCell
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import (
@@ -908,13 +911,25 @@ class CardsComingPage(IndexPage):
         class item(ItemElement):
             klass = Account
 
-            obj_id = Regexp(CleanText(Field('label'), replace=[('*', 'X')]), r'(\d{6}\X{6}\d{4})')
+            def obj_id(self):
+                # We must handle two kinds of Regexp because the 'X' are not
+                # located at the same level for sub-modules such as palatine
+                return Coalesce(
+                    Regexp(CleanText(Field('label'), replace=[('*', 'X')]), r'(\d{6}\X{6}\d{4})', default=NotAvailable),
+                    Regexp(CleanText(Field('label'), replace=[('*', 'X')]), r'(\d{4}\X{6}\d{6})', default=NotAvailable),
+                )(self)
+
+            def obj_number(self):
+                return Coalesce(
+                    Regexp(CleanText(Field('label')), r'(\d{6}\*{6}\d{4})', default=NotAvailable),
+                    Regexp(CleanText(Field('label')), r'(\d{4}\*{6}\d{6})', default=NotAvailable),
+                )(self)
+
             obj_type = Account.TYPE_CARD
             obj_label = CleanText('./td[1]')
             obj_balance = Decimal(0)
             obj_coming = CleanDecimal.French('./td[2]')
             obj_currency = Currency('./td[2]')
-            obj_number = Regexp(CleanText(Field('label')), r'(\d{6}\*{6}\d{4})')
             obj__card_links = None
 
     def get_card_coming_info(self, number, info):
