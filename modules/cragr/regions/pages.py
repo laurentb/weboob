@@ -490,13 +490,18 @@ class MultipleCardsPage(CardsPage):
 
     def get_transactions_link(self, raw_number):
         # We cannot use Link() because the @href attribute contains line breaks and spaces.
-        # Always take the <tr> before the last to include the latest transactions,
-        # except if there is only one line of coming (then take the last).
         if len(self.doc.xpath('//table[@class="ca-table"][caption[span[text()="%s"]]]//tr' % raw_number)) == 1:
+            # There is only one coming line (no card information link)
             return CleanText('//table[@class="ca-table"][caption[span[text()="%s"]]]//tr[position()=last()]/th/a/@href'
                              % raw_number, replace=[(' ', '')])(self.doc)
-        return CleanText('//table[@class="ca-table"][caption[span[text()="%s"]]]//tr[position()=last()-1]/th/a/@href'
-                         % raw_number, replace=[(' ', '')])(self.doc)
+        elif self.doc.xpath('//table[@class="ca-table"][caption[span[text()="%s"]]]//tr//a[contains(text(), "Infos carte")]' % raw_number):
+            # There is a card information line, select the <tr> before the last
+            return CleanText('//table[@class="ca-table"][caption[span[text()="%s"]]]//tr[position()=last()-1]/th/a/@href'
+                             % raw_number, replace=[(' ', '')])(self.doc)
+        else:
+            # There is no information line, return the last <tr>
+            return CleanText('//table[@class="ca-table"][caption[span[text()="%s"]]]//tr[position()=last()]/th/a/@href'
+                             % raw_number, replace=[(' ', '')])(self.doc)
 
 
 class WealthPage(LoggedPage, CragrPage):
