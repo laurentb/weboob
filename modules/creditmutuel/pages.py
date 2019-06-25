@@ -1259,7 +1259,20 @@ class PorPage(LoggedPage, HTMLPage):
                 return not any(not x.isdigit() for x in Attr('.', 'id')(self))
 
             obj_label = CleanText(TableCell('label'), default=NotAvailable)
-            obj_quantity = CleanDecimal(TableCell('quantity'), default=Decimal(0), replace_dots=True)
+
+            def obj_quantity(self):
+                """
+                In case of SRD actions, regular actions and SRD quantities are displayed in the same cell,
+                we must then add the values in text such as '4 444 + 10000 SRD'
+                """
+
+                quantity = CleanText(TableCell('quantity'))(self)
+                if '+' in quantity:
+                    quantity_list = quantity.split('+')
+                    return CleanDecimal.French().filter(quantity_list[0]) + CleanDecimal.French().filter(quantity_list[1])
+                else:
+                    return CleanDecimal.French().filter(quantity)
+
             obj_unitprice = CleanDecimal(TableCell('unitprice'), default=Decimal(0), replace_dots=True)
             obj_valuation = CleanDecimal(TableCell('valuation'), default=Decimal(0), replace_dots=True)
             obj_diff = CleanDecimal(TableCell('diff'), default=Decimal(0), replace_dots=True)
