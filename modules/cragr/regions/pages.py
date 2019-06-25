@@ -477,8 +477,8 @@ class MultipleCardsPage(CardsPage):
             # Card label is formatted as 'Carte VISA Premier - Mr M Lastname'
             obj_label = Format(
                 '%s - %s',
-                CleanText('.//caption/span[@class="tdb-cartes-carte"]'),
-                CleanText('.//caption/span[@class="tdb-cartes-prop"]')
+                CleanText('.//caption/span[has-class("tdb-cartes-carte")]'),
+                CleanText('.//caption/span[has-class("tdb-cartes-prop")]')
             )
 
             obj_type = Account.TYPE_CARD
