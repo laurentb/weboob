@@ -113,6 +113,18 @@ class RecaptchaQuestion(CaptchaQuestion):
         super(RecaptchaQuestion, self).__init__(self.type, website_key=website_key, website_url=website_url)
 
 
+class RecaptchaV3Question(CaptchaQuestion):
+    type = 'g_recaptcha'
+
+    website_key = None
+    website_url = None
+    action = None
+
+    def __init__(self, website_key, website_url, action=None):
+        super(RecaptchaV3Question, self).__init__(self.type, website_key=website_key, website_url=website_url)
+        self.action = action
+
+
 class FuncaptchaQuestion(CaptchaQuestion):
     type = 'funcaptcha'
 
