@@ -628,6 +628,7 @@ class TransactionsPage(LoggedPage, CDNBasePage):
 
             if account.type is Account.TYPE_CARD and MyStrip(line[self.COL_DEBIT_DATE]):
                 date = vdate = Date(dayfirst=True).filter(MyStrip(line[self.COL_DEBIT_DATE]))
+                t.bdate = Date(dayfirst=True, default=NotAvailable).filter(MyStrip(line[self.COL_DATE]))
             else:
                 date = Date(dayfirst=True, default=NotAvailable).filter(MyStrip(line[self.COL_DATE]))
                 if not date:
@@ -788,6 +789,7 @@ class ProTransactionsPage(TransactionsPage):
 
             if account.type is Account.TYPE_CARD:
                 date = vdate = Date(dayfirst=True, default=None).filter(tr['dateval'])
+                t.bdate = Date(dayfirst=True, default=NotAvailable).filter(tr['date'])
             else:
                 date = Date(dayfirst=True, default=None).filter(tr['date'])
                 vdate = Date(dayfirst=True, default=None).filter(tr['dateval']) or date
