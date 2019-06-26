@@ -842,6 +842,7 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
             debit = cleaner(tds[self.COL_DEBIT])
             credit = cleaner(tds[self.COL_CREDIT])
 
+            t.bdate = Date(dayfirst=True).filter(cleaner(tds[self.COL_COMPTA_DATE]))
             t.parse(date, re.sub(r'[ ]+', ' ', raw), vdate)
             t.set_amount(credit, debit)
             t._amount_type = 'debit' if t.amount == debit else 'credit'
@@ -900,7 +901,7 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
 
             t.parse(debit_date, re.sub(r'[ ]+', ' ', label))
             t.set_amount(amount)
-            t.rdate = t.parse_date(date)
+            t.rdate = t.bdate = t.parse_date(date)
             t.original_currency = currency
             if not t.type:
                 t.type = Transaction.TYPE_DEFERRED_CARD
