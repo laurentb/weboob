@@ -130,6 +130,7 @@ class Transaction(FrenchTransaction):
         (re.compile(r'^CHEQUE.*? (N° \w+)?$'), FrenchTransaction.TYPE_CHECK),
         (re.compile(r'^Cotis(ation)? (?P<text>.*)'), FrenchTransaction.TYPE_BANK),
         (re.compile(r'(?P<text>Int .*)'), FrenchTransaction.TYPE_BANK),
+        (re.compile(r'^SOUSCRIPTION|REINVESTISSEMENT'), FrenchTransaction.TYPE_DEPOSIT),
     ]
 
 
