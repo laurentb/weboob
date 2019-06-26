@@ -630,6 +630,7 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                 if len(tds) >= 5 and len(tds[self.COL_COMING].xpath('.//a')) > 0:
                     _params = account._params.copy()
                     _params['dialogActionPerformed'] = 'ENCOURS_COMPTE'
+                    _params['attribute($SEL_$%s)' % tr.attrib['id'].split('_')[0]] = tr.attrib['id'].split('_', 1)[1]
 
                     # If there is an action needed before going to the cards page, save it.
                     m = re.search('dialogActionPerformed=([\w_]+)', self.url)

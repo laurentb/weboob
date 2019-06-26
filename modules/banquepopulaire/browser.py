@@ -231,6 +231,15 @@ class BanquePopulaire(LoginBrowser):
             form['token'] = self.page.build_token(form['token'])
             form.submit()
 
+        # In case of prevAction maybe we have reached an expanded accounts list page, need to go back
+        btn = self.page.doc.xpath('.//button[span[text()="Retour"]]')
+        if len(btn):
+            _data = self.page.get_params()
+            actions = self.page.get_button_actions()
+            _data.update(actions[btn[0].attrib['id']])
+            _data['token'] = self.page.build_token(_data['token'])
+            self.location('/cyber/internet/ContinueTask.do', data=_data)
+
     @retry(LoggedOut)
     @need_login
     def get_accounts_list(self, get_iban=True):
