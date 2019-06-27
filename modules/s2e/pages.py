@@ -340,6 +340,7 @@ class AccountsPage(LoggedPage, MultiPage):
         'PEEG': Account.TYPE_PEE,
         'PEG': Account.TYPE_PEE,
         'PLAN': Account.TYPE_PEE,
+        'PAGA': Account.TYPE_PEE,
         'PERCO': Account.TYPE_PERCO,
         'PERCOI': Account.TYPE_PERCO,
         'SWISS': Account.TYPE_MARKET,
