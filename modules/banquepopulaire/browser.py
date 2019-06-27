@@ -193,6 +193,20 @@ class BanquePopulaire(LoginBrowser):
 
     no_login = 0
 
+    def follow_back_button_if_any(self, params=None, actions=None):
+        """
+        Look for a Retour button and follow it using a POST
+        :param params: Optional form params to use (default: call self.page.get_params())
+        :param actions: Optional actions to use (default: call self.page.get_button_actions())
+        :return: None
+        """
+        if not self.page:
+            return
+
+        data = self.page.get_back_button_params(params=params, actions=actions)
+        if data:
+            self.location('/cyber/internet/ContinueTask.do', data=data)
+
     @no_need_login
     def do_login(self):
         self.location(self.BASEURL)
@@ -232,13 +246,7 @@ class BanquePopulaire(LoginBrowser):
             form.submit()
 
         # In case of prevAction maybe we have reached an expanded accounts list page, need to go back
-        btn = self.page.doc.xpath('.//button[span[text()="Retour"]]')
-        if len(btn):
-            _data = self.page.get_params()
-            actions = self.page.get_button_actions()
-            _data.update(actions[btn[0].attrib['id']])
-            _data['token'] = self.page.build_token(_data['token'])
-            self.location('/cyber/internet/ContinueTask.do', data=_data)
+        self.follow_back_button_if_any()
 
     @retry(LoggedOut)
     @need_login
@@ -310,13 +318,7 @@ class BanquePopulaire(LoginBrowser):
         transaction.raw = '%s %s' % (transaction.raw, ref)
 
         # Needed to preserve navigation.
-        btn = self.page.doc.xpath('.//button[span[text()="Retour"]]')
-        if len(btn):
-            _data = self.page.get_params()
-            actions = self.page.get_button_actions()
-            _data.update(actions[btn[0].attrib['id']])
-            _data['token'] = self.page.build_token(_data['token'])
-            self.location('/cyber/internet/ContinueTask.do', data=_data)
+        self.follow_back_button_if_any()
 
     @retry(LoggedOut)
     @need_login

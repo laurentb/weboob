@@ -164,6 +164,19 @@ class BasePage(object):
                               }
         return actions
 
+    def get_back_button_params(self, params=None, actions=None):
+        btn = self.doc.xpath('.//button[span[text()="Retour"]]')
+        if not btn:
+            return
+
+        params = params or self.get_params()
+        actions = actions or self.get_button_actions()
+        key = btn[0].attrib['id']
+        assert actions.get(key), "Key %s not found in actions %s" % (key, actions)  # Currently it never happens
+        params.update(actions[key])
+        params['token'] = self.build_token(params['token'])
+        return params
+
 
 class MyHTMLPage(BasePage, HTMLPage):
     def build_doc(self, data, *args, **kwargs):
@@ -649,11 +662,7 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                 yield account
 
         # Needed to preserve navigation.
-        btn = self.doc.xpath('.//button[span[text()="Retour"]]')
-        if len(btn) > 0:
-            _params = params.copy()
-            _params.update(actions[btn[0].attrib['id']])
-            self.browser.open('/cyber/internet/ContinueTask.do', data=_params)
+        self.browser.follow_back_button_if_any(params=params.copy(), actions=actions)
 
 
 class AccountsFullPage(AccountsPage):
@@ -750,12 +759,7 @@ class CardsPage(LoggedPage, MyHTMLPage):
             yield account
 
         # Needed to preserve navigation.
-        btn = self.doc.xpath('.//button[span[text()="Retour"]]')
-        if len(btn) > 0:
-            actions = self.get_button_actions()
-            _params = params.copy()
-            _params.update(actions[btn[0].attrib['id']])
-            self.browser.open('/cyber/internet/ContinueTask.do', data=_params)
+        self.browser.follow_back_button_if_any(params=params.copy())
 
 
 class Transaction(FrenchTransaction):
