@@ -38,6 +38,7 @@ from weboob.browser.exceptions import ServerError
 from weboob.browser.elements import DataError
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.tools.value import Value, ValueBool
+from weboob.tools.capabilities.bank.investments import create_french_liquidity
 
 from .pages import (
     LoginPage, AccountsPage, AccountsIBANPage, HistoryPage, TransferInitPage,
@@ -286,8 +287,8 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
 
     @need_login
     def iter_investment(self, account):
-        if account.type == Account.TYPE_PEA and account.label.endswith('Espèces'):
-            return []
+        if account.type == Account.TYPE_PEA and 'espèces' in account.label.lower():
+            return [create_french_liquidity(account.balance)]
 
         # Life insurances and PERP may be scraped from the API or from the "Assurance Vie" space,
         # so we need to discriminate between both using account._details:
