@@ -385,12 +385,21 @@ class CragrAPI(LoginBrowser):
 
     @need_login
     def go_to_account_space(self, contract):
-        self.contracts_page.go(space=self.space, id_contract=contract)
+        # This request often returns a 500 error on this quality website
+        try:
+            self.contracts_page.go(space=self.space, id_contract=contract)
+        except ServerError:
+            self.logger.warning('Space switch returned a 500 error, try again.')
+            self.contracts_page.go(space=self.space, id_contract=contract)
         if not self.accounts_page.is_here():
             # We have been logged out.
             self.do_login()
-            self.contracts_page.go(space=self.space, id_contract=contract)
-            assert self.accounts_page.is_here()
+            try:
+                self.contracts_page.go(space=self.space, id_contract=contract)
+            except ServerError:
+                self.logger.warning('Space switch returned a 500 error, try again.')
+                self.contracts_page.go(space=self.space, id_contract=contract)
+        assert self.accounts_page.is_here()
 
     @need_login
     def iter_history(self, account, coming=False):
@@ -648,6 +657,7 @@ class CragrAPI(LoginBrowser):
         else:
             space, operation, referer, _ = self.get_account_transfer_space_info(account)
 
+        self.go_to_account_space(account._contract)
         self.recipients.go(space=space, op=operation, headers={'Referer': referer})
 
         if not self.page.is_sender_account(account.id):
