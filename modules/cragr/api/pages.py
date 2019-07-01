@@ -232,6 +232,9 @@ class AccountsPage(LoggedPage, JsonPage):
         )(self.html_doc)
         return connection_id
 
+    def has_main_account(self):
+        return Dict('comptePrincipal', default=None)(self.doc)
+
     @method
     class get_main_account(ItemElement):
         klass = Account

@@ -228,30 +228,32 @@ class CragrAPI(LoginBrowser):
 
         for contract in range(total_spaces):
             if not self.check_space_connection(contract):
-                self.logger.warning('Server returned error 500 twice when trying to access space %s, this space will be skipped' % contract)
+                self.logger.warning('Server returned error 500 twice when trying to access space %s, this space will be skipped', contract)
                 continue
-            # The main account is not located at the same place in the JSON.
-            main_account = self.page.get_main_account()
-            if main_account.balance == NotAvailable:
-                self.check_space_connection(contract)
+
+            # Some spaces have no main account
+            if self.page.has_main_account():
+                # The main account is not located at the same place in the JSON.
                 main_account = self.page.get_main_account()
                 if main_account.balance == NotAvailable:
-                    self.logger.warning('Could not fetch the balance for main account %s.' % main_account.id)
+                    self.check_space_connection(contract)
+                    main_account = self.page.get_main_account()
+                    if main_account.balance == NotAvailable:
+                        self.logger.warning('Could not fetch the balance for main account %s.', main_account.id)
+                # Get cards for the main account
+                if self.page.has_main_cards():
+                    for card in self.page.iter_main_cards():
+                        card.parent = main_account
+                        card.currency = card.parent.currency
+                        card.owner_type = card.parent.owner_type
+                        card._category = card.parent._category
+                        card._contract = contract
+                        deferred_cards[card.id] = card
 
-            # Get cards for the main account
-            if self.page.has_main_cards():
-                for card in self.page.iter_main_cards():
-                    card.parent = main_account
-                    card.currency = card.parent.currency
-                    card.owner_type = card.parent.owner_type
-                    card._category = card.parent._category
-                    card._contract = contract
-                    deferred_cards[card.id] = card
+                main_account.owner_type = self.page.get_owner_type()
+                main_account._contract = contract
 
-            main_account.owner_type = self.page.get_owner_type()
-            main_account._contract = contract
             space_type = self.page.get_space_type()
-
             accounts_list = list(self.page.iter_accounts())
             for account in accounts_list:
                 account._contract = contract
