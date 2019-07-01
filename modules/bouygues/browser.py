@@ -59,7 +59,7 @@ class BouyguesBrowser(LoginBrowser):
 
     def do_login(self):
         self.login_page.go()
-        self.page.login(self.username, self.password)
+        self.page.login(self.username, self.password, self.lastname)
 
         # q is timestamp millisecond
         self.app_config.go(params={'q': int(time()*1000)})

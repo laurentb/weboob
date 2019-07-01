@@ -28,13 +28,20 @@ from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage, RawPage
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bill import Subscription, Bill
 from weboob.browser.filters.standard import Date, CleanDecimal, Env, Format
+from weboob.exceptions import BrowserIncorrectPassword
 
 
 class LoginPage(HTMLPage):
-    def login(self, username, password):
+    def login(self, username, password, lastname):
         form = self.get_form()
         form['username'] = username
         form['password'] = password
+
+        if 'lastname' in form:
+            if not lastname:
+                raise BrowserIncorrectPassword('Veuillez renseigner votre nom de famille.')
+            form['lastname'] = lastname
+
         form.submit()
 
 
