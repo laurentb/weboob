@@ -28,7 +28,7 @@ from weboob.browser.filters.html import Attr, Link, TableCell
 from weboob.browser.filters.json import Dict
 from weboob.exceptions import BrowserPasswordExpired, ActionNeeded
 from weboob.capabilities.bank import Account, Investment
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable, empty
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.investments import is_isin_valid
 
@@ -212,7 +212,7 @@ class InvestmentPage(LoggedPage, JsonPage):
 
             obj_label = Dict('SecurityName')
             obj_quantity = MyDecimal(Dict('Quantity'))
-            obj_vdate = Env('vdate')
+            obj_vdate = Date(CleanText(Dict('Time')), dayfirst=True)
             obj_unitvalue = Env('unitvalue', default=NotAvailable)
             obj_unitprice = Env('unitprice', default=NotAvailable)
             obj_valuation = MyDecimal(Dict('ValueInEuro'))
@@ -233,9 +233,9 @@ class InvestmentPage(LoggedPage, JsonPage):
                 return NotAvailable
 
             def obj_code_type(self):
-                if is_isin_valid(Field('code')(self)):
-                    return Investment.CODE_TYPE_ISIN
-                return NotAvailable
+                if empty(Field('code')(self)):
+                    return NotAvailable
+                return Investment.CODE_TYPE_ISIN
 
             def parse(self, el):
                 if self.env['currency'] != CleanText(Dict('CurrencyCode'))(self):
@@ -247,7 +247,6 @@ class InvestmentPage(LoggedPage, JsonPage):
                 else:
                     self.env['unitvalue'] = MyDecimal(Dict('Quote'))(self)
                     self.env['unitprice'] = MyDecimal(Dict('HistoricQuote'))(self)
-                self.env['vdate'] = Date(dayfirst=True).filter(Dict('PortfolioSummary/UpdatedAt')(self.page.doc))
 
 
 class InvestmentListPage(LoggedPage, HTMLPage):
