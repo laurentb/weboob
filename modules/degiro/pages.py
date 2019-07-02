@@ -105,6 +105,9 @@ class AccountsPage(LoggedPage, JsonPage):
             def obj_quantity(self):
                 return Decimal(str(list_to_dict(self.el['value'])['size']))
 
+            def obj_unitprice(self):
+                return Decimal(str(list_to_dict(self.el['value'])['breakEvenPrice']))
+
             def obj_label(self):
                 return self._product()['name']
 
