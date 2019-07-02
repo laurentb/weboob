@@ -56,7 +56,7 @@ class AccountsPage(LoggedPage, HTMLPage):
 
             condition = lambda self: Field('balance')(self) is not NotAvailable
 
-            obj_id = Regexp(CleanText('.//span[has-class("small-title")]'), '(\d+)')
+            obj_id = Regexp(CleanText('.//span[has-class("small-title")]'), r'([\d/]+)')
             obj_label = CleanText('.//h3[has-class("card-title")]')
             obj_balance = CleanDecimal.French('.//p[has-class("amount-card")]')
             obj_valuation_diff = CleanDecimal.French('.//p[@class="performance"]', default=NotAvailable)
