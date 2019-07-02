@@ -111,18 +111,26 @@ class AccountsPage(LoggedPage, JsonPage):
             def obj_label(self):
                 return self._product()['name']
 
+            def obj_vdate(self):
+                vdate = self._product().get('closePriceDate')  # .get() because certain invest don't have that key in the json
+                if vdate:
+                    return Date().filter(vdate)
+                return NotAvailable
+
             def obj_code(self):
                 code = self._product()['isin']
-                # Prefix CFD (Contrats for difference) ISIN codes with "XX-"
-                # to avoid id_security duplicates in the database
-                if "- CFD" in Field('label')(self):
-                    return "XX-" + code
-                return code
+                if is_isin_valid(code):
+                    # Prefix CFD (Contrats for difference) ISIN codes with "XX-"
+                    # to avoid id_security duplicates in the database
+                    if "- CFD" in Field('label')(self):
+                        return "XX-" + code
+                    return code
+                return NotAvailable
 
             def obj_code_type(self):
-                if is_isin_valid(Field('code')(self)):
-                    return Investment.CODE_TYPE_ISIN
-                return NotAvailable
+                if Field('code') == NotAvailable:
+                    return NotAvailable
+                return Investment.CODE_TYPE_ISIN
 
             def _product(self):
                 return self.page.browser.get_product(str(Field('_product_id')(self)))
@@ -163,7 +171,7 @@ class HistoryPage(LoggedPage, JsonPage):
 
             obj_raw = Transaction.Raw(CleanText(Dict('description')))
             obj_date = Date(CleanText(Dict('date')))
-            obj_currency = Currency(Dict('currency'))
+            obj__currency = Currency(Dict('currency'))
             obj__isin = Regexp(Dict('description'), r'\((.{12}?)\)', nth=-1, default=None)
             obj__number = Regexp(Dict('description'), r'^([Aa]chat|[Vv]ente|[Bb]uy|[Ss]ell) (\d+[,.]?\d*)', template='\\2', default=None)
             obj__datetime = Dict('date')
@@ -252,7 +260,6 @@ class HistoryPage(LoggedPage, JsonPage):
             obj_unitvalue = CleanDecimal(Dict('price'))
             obj_vdate = Date(CleanText(Dict('date')))
             obj__action = Dict('buysell')
-
             obj__datetime = Dict('date')
 
             def _product(self):
@@ -263,16 +270,18 @@ class HistoryPage(LoggedPage, JsonPage):
 
             def obj_code(self):
                 code = self._product()['isin']
-                # Prefix CFD (Contrats for difference) ISIN codes with "XX-"
-                # to avoid id_security duplicates in the database
-                if "- CFD" in Field('label')(self):
-                    return "XX-" + code
-                return code
+                if is_isin_valid(code):
+                    # Prefix CFD (Contrats for difference) ISIN codes with "XX-"
+                    # to avoid id_security duplicates in the database
+                    if "- CFD" in Field('label')(self):
+                        return "XX-" + code
+                    return code
+                return NotAvailable
 
             def obj_code_type(self):
-                if is_isin_valid(Field('code')(self)):
-                    return Investment.CODE_TYPE_ISIN
-                return NotAvailable
+                if Field('code') == NotAvailable:
+                    return NotAvailable
+                return Investment.CODE_TYPE_ISIN
 
     def get_products(self):
         return set(d['productId'] for d in self.doc['data'])
