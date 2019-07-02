@@ -82,6 +82,7 @@ class AccountsPage(LoggedPage, MyHTMLPage):
         ('livret',             Account.TYPE_SAVINGS),
         ('ldd',                Account.TYPE_SAVINGS),
         ('pel',                Account.TYPE_SAVINGS),
+        ('cel',                Account.TYPE_SAVINGS),
         ('pea',                Account.TYPE_PEA),
         ('titres',             Account.TYPE_MARKET),
         ('valorisation',       Account.TYPE_MARKET),
