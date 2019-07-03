@@ -187,7 +187,7 @@ class FormValue(Filter):
                     return self.default_or_raise(AttributeNotFound('Element %s does not have attribute value' % el))
             # TODO handle html5 number, datetime, etc.
             else:
-                raise UnrecognizedElement('Element %s is recognized' % el)
+                raise UnrecognizedElement('Element %s is not recognized' % el)
         elif el.tag == 'textarea':
             return unicode(el.text)
         elif el.tag == 'select':
@@ -197,7 +197,7 @@ class FormValue(Filter):
                 options = el.xpath('.//option[1]')
             return u'\n'.join([unicode(o.text) for o in options])
         else:
-            raise UnrecognizedElement('Element %s is recognized' % el)
+            raise UnrecognizedElement('Element %s is not recognized' % el)
 
 
 class HasElement(Filter):
