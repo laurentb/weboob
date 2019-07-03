@@ -119,6 +119,9 @@ class CragrAPI(LoginBrowser):
         self.netfinca.deinit()
 
     def do_login(self):
+        if not self.username or not self.password:
+            raise BrowserIncorrectPassword()
+
         # First we try to connect to the new website: if the connection
         # is on the old website, we will automatically redirected.
         website = self.website.replace('.fr', '')
