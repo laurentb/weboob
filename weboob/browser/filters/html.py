@@ -180,7 +180,7 @@ class FormValue(Filter):
             if el.attrib.get('type') in ('radio', 'checkbox'):
                 return 'checked' in el.attrib
             # regular text input
-            elif el.attrib.get('type', '') in ('', 'text', 'email', 'search', 'tel', 'url'):
+            elif el.attrib.get('type', '') in ('', 'text', 'email', 'search', 'tel', 'url', 'password', 'hidden'):
                 try:
                     return unicode(el.attrib['value'])
                 except KeyError:
