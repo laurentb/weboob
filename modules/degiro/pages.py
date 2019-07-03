@@ -171,7 +171,7 @@ class HistoryPage(LoggedPage, JsonPage):
 
             obj_raw = Transaction.Raw(CleanText(Dict('description')))
             obj_date = Date(CleanText(Dict('date')))
-            obj__currency = Currency(Dict('currency'))
+            obj_original_currency = Currency(Dict('currency'))
             obj__isin = Regexp(Dict('description'), r'\((.{12}?)\)', nth=-1, default=None)
             obj__number = Regexp(Dict('description'), r'^([Aa]chat|[Vv]ente|[Bb]uy|[Ss]ell) (\d+[,.]?\d*)', template='\\2', default=None)
             obj__datetime = Dict('date')
@@ -227,7 +227,13 @@ class HistoryPage(LoggedPage, JsonPage):
                 # 'change' key. But quantity and unit value can be found
                 # in the label
                 try:
-                    return CleanDecimal(Dict('change'))(self)
+                    # I case of transactions in another currency than Euro the website doesn't provide conversion
+                    # and 'exchangeRate' key identify those, hence NotAvailable amount but original_amount instead
+                    try:
+                        CleanDecimal(Dict('exchangeRate'))(self)
+                        return NotAvailable
+                    except ParseError:
+                        return CleanDecimal(Dict('change'))(self)
                 except ParseError:
                     pattern = r"[\s\d,]+@[\s\d,]+"
                     select_raw = Field('raw')
@@ -246,7 +252,14 @@ class HistoryPage(LoggedPage, JsonPage):
                     if any(i for i in ('vente', 'venta', 'venda', 'sell') if i in raw):
                         return amount
                     if any(i for i in ('achat', 'compra', 'buy') if i in raw):
-                        return -amount
+                        return - amount
+
+            def obj_original_amount(self):
+                try:
+                    if Dict('change')(self) and Dict('exchangeRate')(self):
+                        return CleanDecimal(Dict('change'))(self)
+                except ParseError:
+                    return NotAvailable
 
     @method
     class iter_transaction_investments(DictElement):
