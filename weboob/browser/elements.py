@@ -155,6 +155,7 @@ class AbstractElement(object):
 
 class ListElement(AbstractElement):
     item_xpath = None
+    empty_xpath = None
     flush_at_end = False
     ignore_duplicate = False
 
@@ -176,8 +177,13 @@ class ListElement(AbstractElement):
         sufficient.
         """
         if self.item_xpath is not None:
-            for el in self.el.xpath(self.item_xpath):
-                yield el
+            element_list = self.el.xpath(self.item_xpath)
+            if element_list:
+                for el in element_list:
+                    yield el
+            elif self.empty_xpath is not None and not self.el.xpath(self.empty_xpath):
+                # Send a warning if no item_xpath node was found and an empty_xpath is defined
+                self.logger.warning('No element matched the item_xpath and the defined empty_xpath was not found!')
         else:
             yield self.el
 
