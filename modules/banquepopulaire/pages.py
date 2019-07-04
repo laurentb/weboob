@@ -379,12 +379,6 @@ class Login2Page(LoginPage):
         return MyVirtKeyboard(imgs).get_string_code(password)
 
     def login(self, login, password):
-
-        # All users must have a password with digits only, else the website is broken.
-        # It accepts the login but fails miserably, raising a real BrowserUnavailable (like in Firefox)
-        if not password.isdigit():
-           raise BrowserIncorrectPassword()
-
         payload = {
             'validate': {
                 self.form_id[0]: [ {
@@ -406,6 +400,9 @@ class Login2Page(LoginPage):
                     form_id = (k, v[0]['id'], v[0]['type'])
 
                 if v[0].get('virtualKeyboard'):
+                    if not password.isdigit():
+                        # Users who get the virtual keyboard needs a password with digits only
+                        raise BrowserIncorrectPassword()
                     password = self.virtualkeyboard(vk_obj=v[0]['virtualKeyboard'],
                                                     password=password)
 
