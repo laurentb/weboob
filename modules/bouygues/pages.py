@@ -27,7 +27,7 @@ from weboob.browser.filters.json import Dict
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage, RawPage
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bill import Subscription, Bill
-from weboob.browser.filters.standard import Date, CleanDecimal, Env, Format
+from weboob.browser.filters.standard import Date, CleanDecimal, Env, Format, Coalesce
 from weboob.exceptions import BrowserIncorrectPassword
 
 
@@ -110,7 +110,7 @@ class DocumentPage(LoggedPage, JsonPage):
 
             obj_id = Format('%s_%s', Env('subid'), Dict('idFacture'))
             obj_price = CleanDecimal(Dict('mntTotFacture'))
-            obj_url = Dict('_links/facturePDF/href')
+            obj_url = Coalesce(Dict('_links/facturePDF/href', default=NotAvailable), Dict('_links/facturePDFDF/href', default=NotAvailable))
             obj_date = MyDate(Dict('dateFacturation'))
             obj_duedate = MyDate(Dict('dateLimitePaieFacture', default=NotAvailable), default=NotAvailable)
             obj_label = Format('Facture %s', Dict('idFacture'))
