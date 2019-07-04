@@ -24,11 +24,12 @@ from jose import jwt
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import HTTPNotFound
+from weboob.exceptions import BrowserIncorrectPassword
 from weboob.tools.compat import urlparse, parse_qsl
 
 from .pages import (
-    LoginPage, AppConfigPage, SubscriberPage, SubscriptionPage, SubscriptionDetail, DocumentPage, DocumentDownloadPage,
-    DocumentFilePage,
+    LoginPage, ForgottenPasswordPage, AppConfigPage, SubscriberPage, SubscriptionPage, SubscriptionDetail, DocumentPage,
+    DocumentDownloadPage, DocumentFilePage,
 )
 
 
@@ -43,6 +44,7 @@ class BouyguesBrowser(LoginBrowser):
     BASEURL = 'https://api.bouyguestelecom.fr'
 
     login_page = URL(r'https://www.mon-compte.bouyguestelecom.fr/cas/login', LoginPage)
+    forgotten_password_page = URL(r'https://www.mon-compte.bouyguestelecom.fr/mon-compte/mot-de-passe-oublie', ForgottenPasswordPage)
     app_config = URL(r'https://www.bouyguestelecom.fr/mon-compte/data/app-config.json', AppConfigPage)
     subscriber_page = MyURL(r'/personnes/(?P<id_personne>\d+)$', SubscriberPage)
     subscriptions_page = MyURL(r'/personnes/(?P<id_personne>\d+)/comptes-facturation', SubscriptionPage)
@@ -60,6 +62,15 @@ class BouyguesBrowser(LoginBrowser):
     def do_login(self):
         self.login_page.go()
         self.page.login(self.username, self.password, self.lastname)
+
+        if self.login_page.is_here():
+            msg = self.page.get_error_message()
+            raise BrowserIncorrectPassword(msg)
+
+        if self.forgotten_password_page.is_here():
+            # when too much attempt has been done in a short time, bouygues redirect us here,
+            # but no message is available on this page
+            raise BrowserIncorrectPassword()
 
         # q is timestamp millisecond
         self.app_config.go(params={'q': int(time()*1000)})

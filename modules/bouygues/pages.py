@@ -27,7 +27,7 @@ from weboob.browser.filters.json import Dict
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage, RawPage
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bill import Subscription, Bill
-from weboob.browser.filters.standard import Date, CleanDecimal, Env, Format, Coalesce
+from weboob.browser.filters.standard import Date, CleanDecimal, Env, Format, Coalesce, CleanText
 from weboob.exceptions import BrowserIncorrectPassword
 
 
@@ -43,6 +43,13 @@ class LoginPage(HTMLPage):
             form['lastname'] = lastname
 
         form.submit()
+
+    def get_error_message(self):
+        return CleanText('//div[@id="alert_msg"]')(self.doc)
+
+
+class ForgottenPasswordPage(HTMLPage):
+    pass
 
 
 class AppConfigPage(JsonPage):
