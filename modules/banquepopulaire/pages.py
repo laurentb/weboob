@@ -271,6 +271,10 @@ class RedirectPage(LoggedPage, MyHTMLPage):
 
 class ErrorPage(LoggedPage, MyHTMLPage):
     def on_load(self):
+        # HACK: some accounts with legacy password fails, people needs to update it
+        if not self.browser.is_password_only_digits:
+            raise BrowserIncorrectPassword()
+
         if CleanText('//script[contains(text(), "momentanément indisponible")]')(self.doc):
             raise BrowserUnavailable(u"Le service est momentanément indisponible")
         elif CleanText('//h1[contains(text(), "Cette page est indisponible")]')(self.doc):
