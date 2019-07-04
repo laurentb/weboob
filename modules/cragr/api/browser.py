@@ -255,6 +255,8 @@ class CragrAPI(LoginBrowser):
 
                 main_account.owner_type = self.page.get_owner_type()
                 main_account._contract = contract
+            else:
+                main_account = None
 
             space_type = self.page.get_space_type()
             accounts_list = list(self.page.iter_accounts())
@@ -283,12 +285,13 @@ class CragrAPI(LoginBrowser):
                 account_balances.update(self.page.get_account_balances())
                 loan_ids.update(self.page.get_loan_ids())
 
-            if main_account.type == Account.TYPE_CHECKING:
-                main_account.iban = self.get_account_iban(main_account._index, 1, main_account.id)
+            if main_account:
+                if main_account.type == Account.TYPE_CHECKING:
+                    main_account.iban = self.get_account_iban(main_account._index, 1, main_account.id)
 
-            if main_account.id not in all_accounts:
-                all_accounts[main_account.id] = main_account
-                yield main_account
+                if main_account.id not in all_accounts:
+                    all_accounts[main_account.id] = main_account
+                    yield main_account
 
             for account in accounts_list:
                 if empty(account.balance):
