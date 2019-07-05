@@ -27,7 +27,7 @@ from weboob.browser.pages import JsonPage, LoggedPage
 from weboob.browser.elements import ItemElement, DictElement, method
 from weboob.browser.filters.standard import CleanText, Date, Regexp, CleanDecimal, Env, Field, RegexpError, Currency
 from weboob.browser.filters.json import Dict
-from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities.bank import Account, empty, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.exceptions import AuthMethodNotImplemented, ParseError
@@ -128,7 +128,7 @@ class AccountsPage(LoggedPage, JsonPage):
                 return NotAvailable
 
             def obj_code_type(self):
-                if Field('code') == NotAvailable:
+                if empty(Field('code')(self)):
                     return NotAvailable
                 return Investment.CODE_TYPE_ISIN
 
@@ -292,7 +292,7 @@ class HistoryPage(LoggedPage, JsonPage):
                 return NotAvailable
 
             def obj_code_type(self):
-                if Field('code') == NotAvailable:
+                if empty(Field('code')(self)):
                     return NotAvailable
                 return Investment.CODE_TYPE_ISIN
 
