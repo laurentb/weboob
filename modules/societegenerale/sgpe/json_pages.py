@@ -30,7 +30,7 @@ from weboob.browser.filters.json import Dict
 from weboob.capabilities.base import Currency
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account
-from weboob.capabilities.bill import Document, Subscription
+from weboob.capabilities.bill import Document, Subscription, DocumentTypes
 from weboob.exceptions import (
     BrowserUnavailable, NoAccountsException, BrowserIncorrectPassword, BrowserPasswordExpired,
     AuthMethodNotImplemented,
@@ -237,7 +237,7 @@ class BankStatementPage(LoggedPage, JsonPage):
             d = Document()
             d.date = datetime.strptime(document['dateEdition'], '%d/%m/%Y')
             d.label = '%s %s' % (account['libelle'], document['dateEdition'])
-            d.type = 'document'
+            d.type = DocumentTypes.STATEMENT
             d.format = 'pdf'
             d.id = '%s_%s' % (account['id'], document['dateEdition'].replace('/', ''))
             d.url = '/icd/syd-front/data/syd-rce-telechargerReleve.html?b64e4000_sceau=%s' % quote_plus(document['sceau'])

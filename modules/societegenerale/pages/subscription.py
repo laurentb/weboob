@@ -22,7 +22,7 @@ from __future__ import unicode_literals
 import re
 from dateutil.relativedelta import relativedelta
 
-from weboob.capabilities.bill import Document, Subscription
+from weboob.capabilities.bill import Document, Subscription, DocumentTypes
 from weboob.browser.elements import TableElement, ItemElement, method
 from weboob.browser.filters.standard import CleanText, Regexp, Env, Date, Format, Field
 from weboob.browser.filters.html import Link, TableCell, Attr
@@ -111,7 +111,7 @@ class BankStatementPage(LoggedPage, BasePage):
 
             d.url = Regexp(Link('.'), r"= '(.*)';")(a)
             d.id = '%s_%s' % (subscription.id, date_filter(a).replace('/', ''))
-            d.type = 'document'
+            d.type = DocumentTypes.STATEMENT
 
             yield d
 

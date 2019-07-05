@@ -33,7 +33,7 @@ from weboob.browser.filters.html import Attr, Link
 from weboob.tools.capabilities.bank.investments import is_isin_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.capabilities.profile import Profile, Person
-from weboob.capabilities.bill import Document, Subscription
+from weboob.capabilities.bill import Document, Subscription, DocumentTypes
 from weboob.capabilities.bank import Account, Investment
 from weboob.exceptions import ActionNeeded, BrowserIncorrectPassword, BrowserUnavailable
 from weboob.tools.json import json
@@ -243,7 +243,7 @@ class SubscriptionPage(LoggedPage, SGPEPage):
             obj_date = Date(Regexp(Field('label'), r'au (\d{4}\-\d{2}\-\d{2})'))
             obj_id = Format('%s_%s', Env('sub_id'), CleanText(Regexp(Field('label'), r'au (\d{4}\-\d{2}\-\d{2})'), replace=[('-', '')]))
             obj_format = 'pdf'
-            obj_type = 'document'
+            obj_type = DocumentTypes.STATEMENT
             obj_url = Format(
                     '/Pgn/PrintServlet?PageID=ReleveRIE&MenuID=BANRELRIE&urlTypeTransfert=ipdf&REPORTNAME=ReleveInteretElectronique.sgi&numeroRie=%s',
                     Regexp(Attr('./td[2]/a', 'onclick'), r"impression\('(.*)'\);")

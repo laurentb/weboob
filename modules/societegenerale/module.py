@@ -28,7 +28,7 @@ from weboob.capabilities.bank import (
 )
 from weboob.capabilities.bill import (
     CapDocument, Subscription, SubscriptionNotFound,
-    Document, DocumentNotFound,
+    Document, DocumentNotFound, DocumentTypes,
 )
 from weboob.capabilities.contact import CapContact
 from weboob.capabilities.profile import CapProfile
@@ -56,6 +56,8 @@ class SocieteGeneraleModule(Module, CapBankWealth, CapBankTransferAddRecipient, 
         ValueBackendPassword('password',   label='Code secret'),
         Value('website', label='Type de compte', default='par',
               choices={'par': 'Particuliers', 'pro': 'Professionnels', 'ent': 'Entreprises'}))
+
+    accepted_document_types = (DocumentTypes.STATEMENT,)
 
     def create_default_browser(self):
         b = {'par': SocieteGenerale, 'pro': SGProfessionalBrowser, 'ent': SGEnterpriseBrowser}
