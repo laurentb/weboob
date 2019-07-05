@@ -128,8 +128,9 @@ class HSBC(LoginBrowser):
         self.unique_accounts_dict = dict()
         self.secret = secret
         self.PEA_LISTING = {}
-        self.owners = []
+        self.owners_url_list = []
         self.web_space = None
+        self.home_url = None
 
     def load_state(self, state):
         return
@@ -157,15 +158,14 @@ class HSBC(LoginBrowser):
         if new_base_url in self.url:
             self.BASEURL = new_base_url
 
-        home_url = None
         if self.frame_page.is_here():
-            home_url = self.page.get_frame()
+            self.home_url = self.page.get_frame()
             self.js_url = self.page.get_js_url()
 
-        if not home_url or not self.page.logged:
+        if not self.home_url or not self.page.logged:
             raise BrowserIncorrectPassword()
 
-        self.location(home_url)
+        self.location(self.home_url)
 
     def go_post(self, url, data=None):
         # most of HSBC accounts links are actually handled by js code
@@ -185,9 +185,6 @@ class HSBC(LoginBrowser):
         "Pas de TIERS", so we must always go to the owners list before
         going to the owner's account page.
         """
-        # In case of only one owner, do nothing and exit
-        if len(self.owners) == 1:
-            return
 
         if not self.owners_list.is_here():
             self.go_post(self.js_url, data={'debr': 'OPTIONS_TIE'})
@@ -199,8 +196,8 @@ class HSBC(LoginBrowser):
             self.go_post(self.js_url, data={'debr': 'OPTIONS_TIE'})
 
         # Refresh owners URLs in case they changed:
-        self.owners = self.page.get_owners_urls()
-        self.go_post(self.owners[owner])
+        self.owners_url_list = self.page.get_owners_urls()
+        self.go_post(self.owners_url_list[owner])
 
     @need_login
     def iter_account_owners(self):
@@ -209,31 +206,66 @@ class HSBC(LoginBrowser):
         people each having their own accounts. We must fetch the account
         for each person and store the owner of each account.
         """
-        self.web_space = self.page.get_web_space()
+        if not self.web_space:
+            if not self.accounts.is_here():
+                self.location(self.home_url)
+            self.web_space = self.page.get_web_space()
+
         if not self.unique_accounts_dict and self.web_space == 'new_space':
-            """
-            With the new space the "Mes comptes de tiers" service is not activated by default, so this page is empty.
-            We must declare here the only owner in 'self.owners'
-            This could change in the future with more people migrating.
-            """
-            self.owners = [0]
-            self.accounts_dict[self.owners[0]] = {}
-            self.update_accounts_dict(self.owners[0])
-            for a in self.accounts_dict[self.owners[0]].values():
-                a._owner = self.owners[0]
-            self.unique_accounts_dict = self.accounts_dict[self.owners[0]]
-            self.go_post(self.js_url, data={'debr': 'OPTIONS_TIE'})
+            self.go_post(self.js_url, data={'debr': 'OPTIONS_TIE'})  # Go to the owners list to find the list of other owners
+            self.owners_url_list = self.page.get_owners_urls()
+
+            for owner in range(len(self.owners_url_list)):
+                self.accounts_dict[owner] = {}
+                self.update_accounts_dict(owner)
+
+                # We must set an "_owner" attribute to each account.
+                for a in self.accounts_dict[owner].values():
+                    a._owner = owner
+
+                # go on cards page if there are cards accounts
+                for a in self.accounts_dict[owner].values():
+                    if a.type == Account.TYPE_CARD:
+                        self.location(a.url)
+                        break
+
+                # get all couples (card, parent) on card page
+                all_card_and_parent = []
+                if self.cbPage.is_here():
+                    all_card_and_parent = self.page.get_all_parent_id()
+                    self.go_post(self.js_url, data={'debr': 'COMPTES_PAN'})
+
+                # update cards parent and currency
+                for a in self.accounts_dict[owner].values():
+                    if a.type == Account.TYPE_CARD:
+                        for card in all_card_and_parent:  # card[0] and card[1] are labels containing the id for the card and its parents account, respectively
+                            if a.id in card[0].replace(' ', ''):  # cut spaces in labels such as 'CARTE PREMIER N° 1234 00XX XXXX 5678'
+                                parent_id = re.match(r'^(\d*)?(\d{11}EUR)$', card[1]).group(2)  # ids in the HTML have 5 numbers added at the beginning, catch only the end
+                                a.parent = find_object(self.accounts_dict[owner].values(), id=parent_id)
+                            if a.parent and not a.currency:
+                                a.currency = a.parent.currency
+
+                # We must get back to the owners list before moving to the next owner:
+                self.go_post(self.js_url, data={'debr': 'OPTIONS_TIE'})
+
+            # Fill a dictionary will all accounts without duplicating common accounts:
+            for owner in self.accounts_dict.values():
+                for account in owner.values():
+                    if account.id not in self.unique_accounts_dict.keys():
+                        self.unique_accounts_dict[account.id] = account
 
         if self.unique_accounts_dict:
             for account in self.unique_accounts_dict.values():
                 yield account
         else:
+            # TODO ckeck GrayLog and get rid of old space code if clients are no longer using it
+            self.logger.warning('Passed through the old HSBC webspace')
             self.go_post(self.js_url, data={'debr': 'OPTIONS_TIE'})
-            self.owners = self.page.get_owners_urls()
+            self.owners_url_list = self.page.get_owners_urls()
 
             # self.accounts_dict will be a dictionary of owners each
             # containing a dictionary of the owner's accounts.
-            for owner in range(len(self.owners)):
+            for owner in range(len(self.owners_url_list)):
                 self.accounts_dict[owner] = {}
                 self.update_accounts_dict(owner)
 
@@ -330,7 +362,7 @@ class HSBC(LoginBrowser):
     def get_history(self, account, coming=False, retry_li=True):
         self._quit_li_space()
         #  Update accounts list only in case of several owners
-        if len(self.owners) > 1:
+        if len(self.owners_url_list) > 1:
             self.update_accounts_dict(account._owner, iban=False)
         account = self.accounts_dict[account._owner][account.id]
 
@@ -411,8 +443,16 @@ class HSBC(LoginBrowser):
             self.page.go_history_page(account)
 
         if self.cbPage.is_here():
+            history_tabs_urls = self.page.history_tabs_urls()
             guesser = LinearDateGuesser(date_max_bump=timedelta(45))
-            history = list(self.page.get_history(date_guesser=guesser))
+            history = []
+            if coming:
+                self.location(history_tabs_urls[0])  # fetch only first tab coming transactions
+                history += list(self.page.get_history(date_guesser=guesser))
+            else:
+                for tab in history_tabs_urls[1:]:
+                    self.location(tab)  # fetch all tab but first of past transactions
+                    history += list(self.page.get_history(date_guesser=guesser))
 
             for tr in history:
                 if tr.type == tr.TYPE_UNKNOWN:
@@ -572,10 +612,10 @@ class HSBC(LoginBrowser):
 
     @need_login
     def get_profile(self):
-        if not self.owners:
+        if not self.owners_url_list:
             self.go_post(self.js_url, data={'debr': 'OPTIONS_TIE'})
             if self.owners_list.is_here():
-                self.owners = self.page.get_owners_urls()
+                self.owners_url_list = self.page.get_owners_urls()
 
         # The main owner of the connection is always the first of the list:
         self.go_to_owner_accounts(0)
