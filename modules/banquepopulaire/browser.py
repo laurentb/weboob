@@ -187,10 +187,6 @@ class BanquePopulaire(LoginBrowser):
 
         self.investments = {}
 
-        # HACK, the website may crash with legacy passwords (legacy means not only digits)
-        # If the website crashes and if we have a legacy password, we raise WrongPass instead of BrowserUnavailable
-        self.is_password_only_digits = None
-
     def deinit(self):
         super(BanquePopulaire, self).deinit()
         self.linebourse.deinit()
@@ -218,9 +214,17 @@ class BanquePopulaire(LoginBrowser):
         if self.home_page.is_here():
             return
 
-        self.is_password_only_digits = self.password.isdigit()
+        try:
+            self.page.login(self.username, self.password)
+        except BrowserUnavailable as ex:
+            # HACK: some accounts with legacy password fails (legacy means not only digits).
+            # The website crashes, even on a web browser.
+            # So, if we get a specific exception AND if we have a legacy password,
+            # we raise WrongPass instead of BrowserUnavailable.
+            if 'Cette page est indisponible' in ex.message and not self.password.isdigit():
+                raise BrowserIncorrectPassword()
+            raise
 
-        self.page.login(self.username, self.password)
         if self.login_page.is_here():
             raise BrowserIncorrectPassword()
         if 'internetRescuePortal' in self.url:
