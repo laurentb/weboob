@@ -17,11 +17,13 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import  BrowserIncorrectPassword
 from .pages import (
-    LoginPage, NewAccountsPage, OperationsListPage, OperationPage, ActionNeededPage,
+    LoginPage, AccountsPage, OperationsListPage, OperationPage, ActionNeededPage,
 )
 
 
@@ -30,19 +32,21 @@ class CmesBrowser(LoginBrowser):
 
     login = URL(r'(?P<client_space>.*)fr/identification/authentification.html', LoginPage)
 
-    action_needed = URL(r'(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/premiers-pas/saisir-vos-coordonnees.*',
-                        r'(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/conditions-generales-d-utilisation/index.html',
-                        ActionNeededPage)
+    action_needed = URL(
+        r'(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/premiers-pas/saisir-vos-coordonnees.*',
+        r'(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/conditions-generales-d-utilisation/index.html',
+        ActionNeededPage
+    )
 
-    accounts = URL(r'(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/mon-epargne/situation-financiere-detaillee/index.html',
-                   r'(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/tableau-de-bord/index.html',
-                   NewAccountsPage)
+    accounts = URL(
+        r'(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/mon-epargne/situation-financiere-detaillee/index.html',
+        r'(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/tableau-de-bord/index.html',
+        AccountsPage
+    )
 
-    operations_list = URL(r'(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/operations/index.html',
-                          OperationsListPage)
+    operations_list = URL(r'(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/operations/index.html', OperationsListPage)
 
-    operation = URL(r'(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/operations/consulter-une-operation/index.html\?param_=(?P<idx>\d+)',
-                    OperationPage)
+    operation = URL(r'(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/operations/consulter-une-operation/index.html\?param_=(?P<idx>\d+)', OperationPage)
 
     client_space = 'espace-client/'
 
@@ -71,8 +75,11 @@ class CmesBrowser(LoginBrowser):
 
     @need_login
     def iter_investment(self, account):
+        if 'compte courant bloqué' in account.label.lower():
+            # CCB accounts have Pockets but no Investments
+            return []
         self.accounts.stay_or_go(subsite=self.subsite, client_space=self.client_space)
-        return self.page.iter_investment(account=account)
+        return self.page.iter_investments(account=account)
 
     @need_login
     def iter_history(self, account):
@@ -85,6 +92,12 @@ class CmesBrowser(LoginBrowser):
 
     @need_login
     def iter_pocket(self, account):
-        for inv in self.iter_investment(account=account):
-            for pocket in self.page.iter_pocket(inv=inv):
+        self.accounts.stay_or_go(subsite=self.subsite, client_space=self.client_space)
+        if 'compte courant bloqué' in account.label.lower():
+            # CCB accounts have a specific table containing only Pockets
+            for pocket in self.page.iter_ccb_pockets(account=account):
                 yield pocket
+        else:
+            for inv in self.iter_investment(account=account):
+                for pocket in self.page.iter_pocket(inv=inv):
+                    yield pocket

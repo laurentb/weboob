@@ -23,7 +23,8 @@ import re
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import (
-    CleanText, CleanDecimal, Date, Regexp, Field, Currency, Upper, MapIn, Eval
+    CleanText, CleanDecimal, Date, Regexp, Field, Currency,
+    Upper, MapIn, Eval,
 )
 from weboob.browser.filters.html import Link
 from weboob.capabilities.bank import Account, Investment, Pocket, NotAvailable
@@ -82,7 +83,7 @@ ACCOUNTS_TYPES = {
 }
 
 
-class NewAccountsPage(LoggedPage, HTMLPage):
+class AccountsPage(LoggedPage, HTMLPage):
     @method
     class iter_accounts(ListElement):
         item_xpath = '//th[text()= "Nom du support" or text()="Nom du profil" or text()="Nom du compte"]/ancestor::table/ancestor::table'
@@ -121,7 +122,7 @@ class NewAccountsPage(LoggedPage, HTMLPage):
                 row.xpath('//div[contains(@id, "dv::s::%s")]' % id_diff[0].rsplit(':', 1)[0])[0] if id_diff else None,
             )
 
-    def iter_investment(self, account):
+    def iter_investments(self, account):
         for row, elem_repartition, elem_pocket, elem_diff in self.iter_invest_rows(account=account):
             inv = Investment()
             inv._account = account
@@ -164,6 +165,22 @@ class NewAccountsPage(LoggedPage, HTMLPage):
                     pocket.availability_date = Date(Regexp(Upper(CleanText('./td[1]')), 'AU[\s]+(.*)'), dayfirst=True)(row)
 
                 yield pocket
+
+    def iter_ccb_pockets(self, account):
+        # CCB accounts have a specific table with more columns and specific attributes
+        for row in self.doc.xpath('//th/div[contains(., "%s")]/ancestor::table//table/tbody/tr' % account.label):
+            pocket = Pocket()
+            pocket._account = account
+            pocket.investment = None
+            pocket.label = CleanText('.//td[1]')(row)
+            pocket.amount = CleanDecimal.French('.//td[last()]')(row)
+            if 'DISPONIBLE' in CleanText('.//td[2]')(row):
+                pocket.condition = Pocket.CONDITION_AVAILABLE
+                pocket.availability_date = NotAvailable
+            else:
+                pocket.condition = Pocket.CONDITION_DATE
+                pocket.availability_date = Date(CleanText('.//td[2]'), dayfirst=True)(row)
+            yield pocket
 
 
 class OperationPage(LoggedPage, HTMLPage):
