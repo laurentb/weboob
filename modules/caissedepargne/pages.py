@@ -563,7 +563,7 @@ class IndexPage(LoggedPage, HTMLPage):
 
     def go_cards(self):
         # Do not try to go the card summary if we have no card, it breaks the session
-        if not CleanText('//form[@id="main"]//a/span[text()="Mes cartes bancaires"]')(self.doc):
+        if self.browser.new_website and not CleanText('//form[@id="main"]//a/span[text()="Mes cartes bancaires"]')(self.doc):
             self.logger.info("Do not try to go the CardsPage, there is not link on the main page")
             return
 
