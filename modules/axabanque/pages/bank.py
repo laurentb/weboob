@@ -274,7 +274,7 @@ class IbanPage(PDFPage):
 class BankTransaction(FrenchTransaction):
     PATTERNS = [(re.compile('^RET(RAIT) DAB (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'),
                                                               FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('^(CARTE|CB ETRANGER) (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'),
+                (re.compile('^(CARTE|CB ETRANGER|CB) (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'),
                                                               FrenchTransaction.TYPE_CARD),
                 (re.compile('^(?P<category>VIR(EMEN)?T? (SEPA)?(RECU|FAVEUR)?)( /FRM)?(?P<text>.*)'),
                                                               FrenchTransaction.TYPE_TRANSFER),
