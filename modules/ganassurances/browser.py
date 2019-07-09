@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2012 Romain Bignon
+# Copyright(C) 2012-2019  Budget Insight
 #
 # This file is part of a weboob module.
 #
@@ -23,12 +23,12 @@ import re
 from weboob.browser import AbstractBrowser
 
 
-class GanAssurances(AbstractBrowser):
+class GanAssurancesBrowser(AbstractBrowser):
     PARENT = 'groupama'
     PARENT_ATTR = 'package.browser.GroupamaBrowser'
 
     def __init__(self, website, *args, **kwargs):
-        super(GanAssurances, self).__init__(*args, **kwargs)
+        super(GanAssurancesBrowser, self).__init__(*args, **kwargs)
         self.BASEURL = 'https://%s' % website
         self.website = re.findall('espaceclient.(.*?).fr', self.BASEURL)[0]
 

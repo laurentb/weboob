@@ -26,7 +26,7 @@ from weboob.capabilities.bank import CapBank
 from weboob.tools.backend import AbstractModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
-from .browser import GanAssurances
+from .browser import GanAssurancesBrowser
 
 
 __all__ = ['GanAssurancesModule']
@@ -49,11 +49,14 @@ class GanAssurancesModule(AbstractModule, CapBank):
         ValueBackendPassword('login', label='Identifiant / N° Client ou Email ou Mobile', masked=False),
         ValueBackendPassword('password', label='Mon mot de passe', regexp=r'^\d+$')
     )
-    BROWSER = GanAssurances
+
     PARENT = 'groupama'
+    BROWSER = GanAssurancesBrowser
 
     def create_default_browser(self):
-        return self.create_browser(self.config['website'].get(),
-                                   self.config['login'].get(),
-                                   self.config['password'].get(),
-                                   weboob=self.weboob)
+        return self.create_browser(
+            self.config['website'].get(),
+            self.config['login'].get(),
+            self.config['password'].get(),
+            weboob=self.weboob
+        )
