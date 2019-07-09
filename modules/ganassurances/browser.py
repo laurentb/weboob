@@ -31,4 +31,5 @@ class GanAssurancesBrowser(AbstractBrowser):
         super(GanAssurancesBrowser, self).__init__(*args, **kwargs)
         self.BASEURL = 'https://%s' % website
         self.website = re.findall('espaceclient.(.*?).fr', self.BASEURL)[0]
+        self.domain = 'ganass'
 
