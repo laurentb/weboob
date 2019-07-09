@@ -472,7 +472,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
         try:
             profile = self.get_profile()
             subscriber = profile.name
-        except ProfileMissing:
+        except (ProfileMissing, BrowserUnavailable):
             subscriber = NotAvailable
 
         # subscriptions which have statements are present on the last statement page
