@@ -247,6 +247,8 @@ class AccountsPage(LoggedPage, MyHTMLPage):
     def get_form_action(self, form_name):
         return self.get_form(id=form_name).url
 
+    def get_profile_name(self):
+        return Regexp(CleanText('//div[@id="bloc_identite"]/h5'), r'Bonjour (.*)')(self.doc)
 
 class IbanPage(PDFPage):
     def get_iban(self):
