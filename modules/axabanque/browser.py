@@ -362,6 +362,7 @@ class AXABanque(AXABrowser, StatesMixin):
                         # search if summary date is already given for the next month
                         tr.date = self.get_transaction_summary_date(tr)
                     else:
+                        tr.bdate = tr.date
                         tr.date = summary_date
 
                 if tr.date is not NotAvailable:
