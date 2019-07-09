@@ -223,6 +223,7 @@ class AccountsPage(LoggedPage, HTMLPage):
         'pel': Account.TYPE_SAVINGS,
         'cel': Account.TYPE_SAVINGS,
         'ldd': Account.TYPE_SAVINGS,
+        'csl': Account.TYPE_SAVINGS,
         'comptes épargne': Account.TYPE_SAVINGS,
         'mon épargne': Account.TYPE_SAVINGS,
         'csljeune': Account.TYPE_SAVINGS,  # in url
