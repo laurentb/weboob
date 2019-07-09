@@ -50,6 +50,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             TYPES = {u'assurance vie': Account.TYPE_LIFE_INSURANCE,
                      u'perp': Account.TYPE_PERP,
                      u'epargne retraite agipi pair': Account.TYPE_PERP,
+                     u'epargne retraite agipi far': Account.TYPE_MADELIN,
                      u'novial avenir': Account.TYPE_MADELIN,
                      u'epargne retraite novial': Account.TYPE_LIFE_INSURANCE,
                     }
