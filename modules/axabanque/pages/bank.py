@@ -288,7 +288,8 @@ class BankTransaction(FrenchTransaction):
                                                               FrenchTransaction.TYPE_ORDER),
                 (re.compile('^.* LE (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})$'),
                                                               FrenchTransaction.TYPE_UNKNOWN),
-                (re.compile('^ACHATS (CARTE|CB)'),                  FrenchTransaction.TYPE_CARD_SUMMARY),
+                (re.compile('^ACHATS (CARTE|CB)'),            FrenchTransaction.TYPE_CARD_SUMMARY),
+                (re.compile('^F-(.+)'),                       FrenchTransaction.TYPE_BANK)
                ]
 
 
