@@ -33,25 +33,24 @@ __all__ = ['GroupamaBrowser']
 class GroupamaBrowser(LoginBrowser):
     BASEURL = 'https://espaceclient.groupama.fr'
 
-    login = URL('/wps/portal/login',
-                'https://authentification.(ganassurances|ganpatrimoine|groupama).fr/cas/login',
-                '/wps/portal/inscription', LoginPage)
-    iban = URL('/wps/myportal/!ut/(.*)/\?paramNumCpt=(.*)', IbanPage)
-    accounts = URL('/wps/myportal/TableauDeBord', AccountsPage)
-    transactions = URL('/wps/myportal/!ut', TransactionsPage)
-    av_account_form = URL('/wps/myportal/assurancevie/', FormPage)
-    av_account = URL('https://secure-rivage.(ganassurances|ganpatrimoine|groupama).fr/contratVie.rivage.syntheseContratEparUc.gsi',
-                     '/front/vie/epargne/contrat/(.*)', AVAccountPage)
-    av_history = URL('https://secure-rivage.(?P<website>.*).fr/contratVie.rivage.mesOperations.gsi', AVHistoryPage)
-    av_secondary = URL('/api/ecli/vie/contrats/(?P<id_contrat>.*)', AvJPage)
+    login = URL(r'https://authentification.(?P<website>.*).fr/cas/login', LoginPage)
+    iban = URL(r'/wps/myportal/!ut/(.*)/\?paramNumCpt=(.*)', IbanPage)
+    accounts = URL(r'/wps/myportal/TableauDeBord', AccountsPage)
+    transactions = URL(r'/wps/myportal/!ut', TransactionsPage)
+    av_account_form = URL(r'/wps/myportal/assurancevie/', FormPage)
+    av_account = URL(r'https://secure-rivage.(ganassurances|ganpatrimoine|groupama).fr/contratVie.rivage.syntheseContratEparUc.gsi',
+                     r'/front/vie/epargne/contrat/(.*)', AVAccountPage)
+    av_history = URL(r'https://secure-rivage.(?P<website>.*).fr/contratVie.rivage.mesOperations.gsi', AVHistoryPage)
+    av_secondary = URL(r'/api/ecli/vie/contrats/(?P<id_contrat>.*)', AvJPage)
 
     def __init__(self, *args, **kwargs):
         super(GroupamaBrowser, self).__init__(*args, **kwargs)
         self.website = 'groupama'
+        self.domain = 'groupama'
 
     def do_login(self):
-        self.login.stay_or_go()
-
+        login_url = 'https://espaceclient.%s.fr/login-%s' % (self.website, self.domain)
+        self.login.go(website=self.website, params={'service': login_url})
         self.page.login(self.username, self.password)
 
         if self.login.is_here():
