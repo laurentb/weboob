@@ -283,13 +283,14 @@ class BankTransaction(FrenchTransaction):
                 (re.compile('^(AGIOS /|FRAIS) (?P<text>.*)'), FrenchTransaction.TYPE_BANK),
                 (re.compile('^(CONVENTION \d+ |F )?COTIS(ATION)? (?P<text>.*)'),
                                                               FrenchTransaction.TYPE_BANK),
+                (re.compile('^(F|R)-(?P<text>.*)'),           FrenchTransaction.TYPE_BANK),
                 (re.compile('^REMISE (?P<text>.*)'),          FrenchTransaction.TYPE_DEPOSIT),
                 (re.compile('^(?P<text>.*)( \d+)? QUITTANCE .*'),
                                                               FrenchTransaction.TYPE_ORDER),
                 (re.compile('^.* LE (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})$'),
                                                               FrenchTransaction.TYPE_UNKNOWN),
                 (re.compile('^ACHATS (CARTE|CB)'),            FrenchTransaction.TYPE_CARD_SUMMARY),
-                (re.compile('^F-(.+)'),                       FrenchTransaction.TYPE_BANK)
+                (re.compile('^ANNUL (?P<text>.*)'),           FrenchTransaction.TYPE_PAYBACK)
                ]
 
 
