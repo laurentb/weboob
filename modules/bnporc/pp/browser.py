@@ -180,7 +180,7 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
             except (TransferAssertionError, AttributeError):
                 pass
 
-            accounts = list(self.accounts.go().iter_accounts(ibans))
+            accounts = list(self.accounts.go().iter_accounts(ibans=ibans))
             self.market_syn.go(data=JSON({}))  # do a post on the given URL
             market_accounts = self.page.get_list()  # get the list of 'Comptes Titres'
             checked_accounts = set()

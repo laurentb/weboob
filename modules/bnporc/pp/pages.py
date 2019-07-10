@@ -29,7 +29,9 @@ import lxml.html as html
 
 from weboob.browser.elements import DictElement, ListElement, TableElement, ItemElement, method
 from weboob.browser.filters.json import Dict
-from weboob.browser.filters.standard import Format, Eval, Regexp, CleanText, Date, CleanDecimal, Field
+from weboob.browser.filters.standard import (
+    Format, Eval, Regexp, CleanText, Date, CleanDecimal, Field, Coalesce, Map, Env, Currency,
+)
 from weboob.browser.filters.html import TableCell
 from weboob.browser.pages import JsonPage, LoggedPage, HTMLPage
 from weboob.capabilities import NotAvailable
@@ -37,6 +39,7 @@ from weboob.capabilities.bank import (
     Account, Investment, Recipient, Transfer, TransferBankError,
     AddRecipientBankError, AddRecipientTimeout,
 )
+from weboob.capabilities.base import empty
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Person, ProfileMissing
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, BrowserPasswordExpired, ActionNeeded
@@ -303,46 +306,66 @@ class ProfilePage(LoggedPage, JsonPage):
 
 
 class AccountsPage(BNPPage):
-    FAMILY_TO_TYPE = {
-        1: Account.TYPE_CHECKING,
-        2: Account.TYPE_SAVINGS,
-        3: Account.TYPE_DEPOSIT,
-        4: Account.TYPE_MARKET,
-        5: Account.TYPE_LIFE_INSURANCE,
-        6: Account.TYPE_LIFE_INSURANCE,
-        8: Account.TYPE_LOAN,
-        9: Account.TYPE_LOAN,
-    }
 
-    LABEL_TO_TYPE = {
-        u'PEA Espèces':                       Account.TYPE_PEA,
-        u'PEA Titres':                        Account.TYPE_PEA,
-        u'PEL':                               Account.TYPE_SAVINGS,
-        u'Plan Epargne Retraite Particulier': Account.TYPE_PERP,
-    }
+    @method
+    class iter_accounts(DictElement):
+        item_xpath = 'data/infoUdc/familleCompte'
 
-    def iter_accounts(self, ibans):
-        for f in self.path('data.infoUdc.familleCompte.*'):
-            for a in f.get('compte'):
-                iban = ibans.get(a.get('key'))
-                if iban is not None and not is_iban_valid(iban):
-                    iban = rib2iban(rebuild_rib(iban))
+        class iter_accounts_details(DictElement):
+            item_xpath = 'compte'
 
-                acc = Account.from_dict({
-                    'id': a.get('key'),
-                    'label': a.get('libellePersoProduit') or a.get('libelleProduit'),
-                    'currency': a.get('devise'),
-                    'type': self.LABEL_TO_TYPE.get(' '.join(a.get('libelleProduit').split())) or \
-                            self.FAMILY_TO_TYPE.get(f.get('idFamilleCompte')) or Account.TYPE_UNKNOWN,
-                    'balance': a.get('soldeDispo'),
-                    'coming': a.get('soldeAVenir'),
-                    'iban': iban,
-                    'number': a.get('value')
-                })
+            class item(ItemElement):
+                FAMILY_TO_TYPE = {
+                    1: Account.TYPE_CHECKING,
+                    2: Account.TYPE_SAVINGS,
+                    3: Account.TYPE_DEPOSIT,
+                    4: Account.TYPE_MARKET,
+                    5: Account.TYPE_LIFE_INSURANCE,
+                    6: Account.TYPE_LIFE_INSURANCE,
+                    8: Account.TYPE_LOAN,
+                    9: Account.TYPE_LOAN,
+                }
+
+                LABEL_TO_TYPE = {
+                    'PEA Espèces': Account.TYPE_PEA,
+                    'PEA Titres': Account.TYPE_PEA,
+                    'PEL': Account.TYPE_SAVINGS,
+                    'Plan Epargne Retraite Particulier': Account.TYPE_PERP,
+                }
+
+                klass = Account
+
+                obj_id = Dict('key')
+                obj_label = Coalesce(
+                    Dict('libellePersoProduit', default=NotAvailable),
+                    Dict('libelleProduit', default=NotAvailable),
+                    default=NotAvailable
+                )
+                obj_currency = Currency(Dict('devise'))
+                obj_type = Coalesce(
+                    Map(Dict('libelleProduit'), LABEL_TO_TYPE, default=NotAvailable),
+                    Map(Env('account_type'), FAMILY_TO_TYPE, default=NotAvailable),
+                    default=Account.TYPE_UNKNOWN
+                )
+                obj_balance = Dict('soldeDispo')
+                obj_coming = Dict('soldeAVenir')
+                obj_number = Dict('value')
+
+                def obj_iban(self):
+                    iban = Map(Dict('key'), Env('ibans')(self), default=NotAvailable)(self)
+
+                    if not empty(iban):
+                        if not is_iban_valid(iban):
+                            iban = rib2iban(rebuild_rib(iban))
+                        return iban
+                    return None
+
                 # softcap not used TODO don't pass this key when backend is ready
                 # deferred cb can disappear the day after the appear, so 0 as day_for_softcap
-                acc._bisoftcap = {'deferred_cb': {'softcap_day': 1000, 'day_for_softcap': 0, 'date_field': 'rdate'}}
-                yield acc
+                obj__bisoftcap = {'deferred_cb': {'softcap_day': 1000, 'day_for_softcap': 1}}
+
+            def parse(self, el):
+                self.env['account_type'] = Dict('idFamilleCompte')(el)
 
 
 class AccountsIBANPage(BNPPage):
