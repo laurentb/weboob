@@ -28,7 +28,7 @@ from weboob.browser.browsers import LoginBrowser, URL, need_login
 from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import (
     AccountNotFound, Account, AddRecipientStep, AddRecipientTimeout,
-    TransferInvalidRecipient,
+    TransferInvalidRecipient, Loan,
 )
 from weboob.capabilities.profile import ProfileMissing
 from weboob.tools.decorators import retry
@@ -47,7 +47,7 @@ from .pages import (
     MarketListPage, MarketPage, MarketHistoryPage, MarketSynPage, BNPKeyboard,
     RecipientsPage, ValidateTransferPage, RegisterTransferPage, AdvisorPage,
     AddRecipPage, ActivateRecipPage, ProfilePage, ListDetailCardPage, ListErrorPage,
-    UselessPage, TransferAssertionError,
+    UselessPage, TransferAssertionError, LoanDetailsPage,
 )
 
 
@@ -95,6 +95,7 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
                         '/fr/client/100-connexion',
                         '/fr/systeme/page-indisponible', ConnectionThresholdPage)
     accounts = URL('udc-wspl/rest/getlstcpt', AccountsPage)
+    loan_details = URL('caraccomptes-wspl/rpc/(?P<loan_type>.*)', LoanDetailsPage)
     ibans = URL('rib-wspl/rpc/comptes', AccountsIBANPage)
     history = URL('rop-wspl/rest/releveOp', HistoryPage)
     transfer_init = URL('virement-wspl/rest/initialisationVirement', TransferInitPage)
@@ -185,6 +186,11 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
             market_accounts = self.page.get_list()  # get the list of 'Comptes Titres'
             checked_accounts = set()
             for account in accounts:
+                if account.type == Account.TYPE_MORTGAGE:
+                    account = Loan.from_dict(account.to_dict())
+                    self.loan_details.go(data={'iban': account.id}, loan_type='creditPret')
+                    self.page.fill_loan_details(obj=account)
+
                 for market_acc in market_accounts:
                     if all((
                         market_acc['securityAccountNumber'].endswith(account.number[-4:]),

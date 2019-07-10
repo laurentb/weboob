@@ -331,6 +331,7 @@ class AccountsPage(BNPPage):
                     'PEA Titres': Account.TYPE_PEA,
                     'PEL': Account.TYPE_SAVINGS,
                     'Plan Epargne Retraite Particulier': Account.TYPE_PERP,
+                    'Crédit immobilier': Account.TYPE_MORTGAGE,
                 }
 
                 klass = Account
@@ -366,6 +367,17 @@ class AccountsPage(BNPPage):
 
             def parse(self, el):
                 self.env['account_type'] = Dict('idFamilleCompte')(el)
+
+
+class LoanDetailsPage(BNPPage):
+    @method
+    class fill_loan_details(ItemElement):
+        obj_total_amount = Dict('data/montantPret')
+        obj_maturity_date = Date(Dict('data/dateEcheanceRemboursement'), dayfirst=True)
+        obj_duration = Dict('data/dureeRemboursement')
+        obj_rate = Dict('data/tauxRemboursement')
+        obj_nb_payments_left = Dict('data/nbRemboursementRestant')
+        obj_next_payment_date = Date(Dict('data/dateProchainAmortissement'), dayfirst=True)
 
 
 class AccountsIBANPage(BNPPage):
