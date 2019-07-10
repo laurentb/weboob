@@ -30,6 +30,7 @@ from weboob.exceptions import ActionNeeded
 from weboob.browser.pages import LoggedPage, HTMLPage, pagination, AbstractPage
 from weboob.browser.elements import method, ListElement, ItemElement, TableElement
 from weboob.capabilities.bank import Account
+from weboob.capabilities.profile import Person
 from weboob.browser.filters.html import Link, Attr, TableCell
 from weboob.browser.filters.standard import (
     CleanText, Regexp, Field, Map, CleanDecimal, Date, Format,
@@ -386,3 +387,24 @@ class BourseDisconnectPage(LoggedPage, HTMLPage):
         if link:
             m = link.group(1)
             return m
+
+
+class ProfilePage(LoggedPage, HTMLPage):
+    @method
+    class get_profile(ItemElement):
+        klass = Person
+
+        obj_birth_date = Date(CleanText('//td[text()="Date de naissance"]/following::td[1]'))
+        obj_name = CleanText('//div[contains(@class,"tab-pane")]/table/thead/tr/th')
+        obj_nationality = CleanText('//td[text()="Nationalité(s)"]/following::td[1]')
+        obj_family_situation = CleanText('//td[text()="Situation Familiale"]/following::td[1]')
+        obj_email = CleanText('//td[text()="Adresse e-mail"]/following::td[1]')
+        obj_phone = CleanText('//td[text()="Téléphone portable"]/following::td[1]//td[1]')
+        obj_country = CleanText('//td[text()="Pays"]/following::td[1]')
+        obj_socioprofessional_category = CleanText('//td[text()="Situation professionnelle"]/following::td[1]')
+        obj_address = Format(
+            '%s %s %s',
+            CleanText('//td[text()="Adresse"]/following::td[1]'),
+            CleanText('//td[text()="Code postal"]/following::td[1]'),
+            CleanText('//td[text()="Ville"]/following::td[1]')
+        )

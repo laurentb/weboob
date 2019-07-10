@@ -21,6 +21,7 @@
 from weboob.tools.backend import Module, BackendConfig
 from weboob.capabilities.bank import CapBankWealth, AccountNotFound
 from weboob.capabilities.base import find_object
+from weboob.capabilities.profile import CapProfile
 from weboob.tools.value import ValueBackendPassword, ValueDate
 from .browser import BforbankBrowser
 
@@ -28,7 +29,7 @@ from .browser import BforbankBrowser
 __all__ = ['BforbankModule']
 
 
-class BforbankModule(Module, CapBankWealth):
+class BforbankModule(Module, CapBankWealth, CapProfile):
     NAME = 'bforbank'
     DESCRIPTION = u'BforBank'
     MAINTAINER = u'Baptiste Delpey'
@@ -62,3 +63,6 @@ class BforbankModule(Module, CapBankWealth):
 
     def iter_investment(self, account):
         return self.browser.iter_investment(account)
+
+    def get_profile(self):
+        return self.browser.get_profile()
