@@ -332,6 +332,8 @@ class AccountsPage(BNPPage):
                     'PEL': Account.TYPE_SAVINGS,
                     'Plan Epargne Retraite Particulier': Account.TYPE_PERP,
                     'Crédit immobilier': Account.TYPE_MORTGAGE,
+                    'Réserve Provisio': Account.TYPE_REVOLVING_CREDIT,
+                    'Prêt personnel': Account.TYPE_CONSUMER_CREDIT,
                 }
 
                 klass = Account
@@ -378,6 +380,11 @@ class LoanDetailsPage(BNPPage):
         obj_rate = Dict('data/tauxRemboursement')
         obj_nb_payments_left = Dict('data/nbRemboursementRestant')
         obj_next_payment_date = Date(Dict('data/dateProchainAmortissement'), dayfirst=True)
+
+    @method
+    class fill_revolving_details(ItemElement):
+        obj_total_amount = Dict('data/montantDisponible')
+        obj_rate = Dict('data/tauxInterets')
 
 
 class AccountsIBANPage(BNPPage):

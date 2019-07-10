@@ -168,6 +168,15 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
             return profile
         raise ProfileMissing(self.page.get_error_message())
 
+    def is_loan(self, account):
+        return account.type in (
+            Account.TYPE_LOAN,
+            Account.TYPE_MORTGAGE,
+            Account.TYPE_CONSUMER_CREDIT,
+            Account.TYPE_REVOLVING_CREDIT
+        )
+
+
     @need_login
     def iter_accounts(self):
         if self.accounts_list is None:
@@ -186,10 +195,19 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
             market_accounts = self.page.get_list()  # get the list of 'Comptes Titres'
             checked_accounts = set()
             for account in accounts:
-                if account.type == Account.TYPE_MORTGAGE:
+                if self.is_loan(account):
                     account = Loan.from_dict(account.to_dict())
-                    self.loan_details.go(data={'iban': account.id}, loan_type='creditPret')
-                    self.page.fill_loan_details(obj=account)
+                    if account.type in (Account.TYPE_MORTGAGE, Account.TYPE_CONSUMER_CREDIT):
+                        self.loan_details.go(data={'iban': account.id}, loan_type='creditPret')
+                        self.page.fill_loan_details(obj=account)
+
+                    elif account.type == Account.TYPE_REVOLVING_CREDIT:
+                        self.loan_details.go(data={'iban': account.id}, loan_type='creditConsoProvisio')
+                        self.page.fill_revolving_details(obj=account)
+
+                    elif account.type == Account.TYPE_LOAN:
+                        self.loan_details.go(data={'iban': account.id}, loan_type='creditPretPersoPro')
+                        self.page.fill_loan_details(obj=account)
 
                 for market_acc in market_accounts:
                     if all((
