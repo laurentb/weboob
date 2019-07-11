@@ -129,7 +129,7 @@ class TransferPage(LoggedPage, JsonPage):
 
         t.account_id = Dict('currentDebitAccountNumber')(self.doc)
         t.account_iban = Dict('currentDebitIbanCode')(self.doc)
-        t.account_label = Dict('typeCompte')(self.doc)
+        t.account_label = Dict('currentDebitTypeCompte')(self.doc)
 
         t.recipient_label = CleanText(Dict('currentCreditAccountName'))(self.doc)
         t.recipient_id = t.recipient_iban = Dict('currentCreditIbanCode')(self.doc)
