@@ -19,7 +19,7 @@
 
 from __future__ import unicode_literals
 
-from weboob.browser.pages import HTMLPage
+from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.filters.standard import CleanDecimal, CleanText, Date, Env, Format
 from weboob.browser.filters.html import Attr, Link, XPathNotFound
 from weboob.browser.elements import ItemElement, ListElement, method
@@ -32,13 +32,13 @@ class LoginPage(HTMLPage):
     def do_login(self, username, password):
         form = self.get_form('//form[@class="Form"]')
 
-        form["_username"] = username
+        form["username"] = username
         form["_password"] = password
 
         form.submit()
 
 
-class MonBienPage(HTMLPage):
+class MonBienPage(LoggedPage, HTMLPage):
     @method
     class get_subscriptions(ListElement):
         item_xpath = '//li[has-class("MyPropertiesSelector-item") and not(has-class("MyPropertiesSelector-item--add"))]'
@@ -63,7 +63,7 @@ class MonBienPage(HTMLPage):
                 return subscriber
 
 
-class MesChargesPage(HTMLPage):
+class MesChargesPage(LoggedPage, HTMLPage):
     @method
     class get_documents(ListElement):
         item_xpath = '//article[@data-taffy="utility_record"]'
