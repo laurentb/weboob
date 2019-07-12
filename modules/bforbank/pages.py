@@ -290,7 +290,7 @@ class CardHistoryPage(LoggedPage, HTMLPage):
 
             obj_type = Transaction.TYPE_DEFERRED_CARD
             obj_raw = CleanText(TableCell('raw'))
-            obj_vdate = obj_rdate = Date(CleanText(TableCell('vdate')), dayfirst=True)
+            obj_vdate = obj_rdate = obj_bdate = Date(CleanText(TableCell('vdate')), dayfirst=True)
             obj_amount = MyDecimal(TableCell('amount'), replace_dots=True)
 
             def obj_date(self):
