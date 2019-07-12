@@ -145,14 +145,6 @@ class AccountsPage(MyJsonPage):
                 a._univers = current_univers
                 a.id = '%s.%s' % (a._number, a._nature)
 
-                if a.id in seen:
-                    # some accounts like "compte à terme fidélis" have the same _number and _nature
-                    # but in fact are kind of closed, so worthless...
-                    self.logger.warning('ignored account id %r (%r) because it is already used', a.id, poste.get('numeroDossier'))
-                    continue
-
-                seen.add(a.id)
-
                 a.type = self.ACCOUNT_TYPES.get(poste['codeNature'], Account.TYPE_UNKNOWN)
                 if a.type == Account.TYPE_UNKNOWN:
                     self.logger.warning("unknown type %s" % poste['codeNature'])
@@ -176,11 +168,22 @@ class AccountsPage(MyJsonPage):
                     continue
 
                 a.label = ' '.join([content['intitule'].strip(), poste['libelle'].strip()])
+                if poste['numeroDossier']:
+                    a.label = '{} {}{}'.format(a.label, 'n°', poste['numeroDossier'])
+
                 a.balance = Decimal(str(poste['solde']['valeur']))
                 a.currency = poste['solde']['monnaie']['code'].strip()
                 # Some accounts may have balance currency
                 if 'Solde en devises' in a.label and a.currency != u'EUR':
                     a.id += str(poste['monnaie']['codeSwift'])
+
+                if a.id in seen:
+                    # some accounts like "compte à terme fidélis" have the same _number and _nature
+                    # but in fact are kind of closed, so worthless...
+                    self.logger.warning('ignored account id %r (%r) because it is already used', a.id, poste.get('numeroDossier'))
+                    continue
+
+                seen.add(a.id)
                 accounts_list.append(a)
 
         return accounts_list
