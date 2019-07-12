@@ -56,6 +56,8 @@ class Transaction(FrenchTransaction):
                                                             FrenchTransaction.TYPE_CARD_SUMMARY),
                 (re.compile(r'^(?P<category>CARTE) \w+ (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_CARD),
+                (re.compile(r'^(?P<yy>\d{4})\/(?P<mm>\d{2})(?P<dd>\d{2})\d{4}?$'),
+                                                            FrenchTransaction.TYPE_CARD),
                 (re.compile(r'^(?P<dd>\d{2})(?P<mm>\d{2})/(?P<text>.*?)/?(-[\d,]+)?$'),
                                                             FrenchTransaction.TYPE_CARD),
                 (re.compile(r'^REMISE CB /(?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*?)/?(-[\d,]+)?$'),
@@ -156,8 +158,10 @@ class CardHistoryPage(LoggedPage, SGPEPage):
             obj_rdate = Date(CleanText('./td[1]'), dayfirst=True)
             obj_date = Date(Env('date'), dayfirst=True, default=NotAvailable)
             obj_raw = Transaction.Raw(CleanText('./td[2]'))
-            obj_type = Transaction.TYPE_DEFERRED_CARD
             obj__coming = True
+
+            def obj_type(self):
+                return Transaction.TYPE_DEFERRED_CARD
 
             def obj_amount(self):
                 return CleanDecimal('./td[3]', replace_dots=True, default=NotAvailable)(self)  \
