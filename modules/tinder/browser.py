@@ -56,9 +56,9 @@ class FacebookBrowser(DomainBrowser):
             raise BrowserIncorrectPassword(CleanText('//td/div[has-class("s")]')(page.doc))
 
         form = page.get_form(nr=0, submit='//input[@name="__CONFIRM__"]')
-        form.submit()
+        form.submit(allow_redirects=False)
 
-        m = re.search('access_token=([^&]+)&', self.response.text)
+        m = re.search('access_token=([^&]+)&', self.response.headers['Location'])
         if m:
             self.access_token = m.group(1)
         else:
@@ -82,12 +82,14 @@ class TinderBrowser(APIBrowser):
         super(TinderBrowser, self).__init__(*args, **kwargs)
         self.facebook = facebook
 
-        me = self.request('/auth', data={'facebook_id': facebook.info['id'], 'facebook_token': facebook.access_token})
-        self.session.headers['Authorization'] = 'Token token="%s"' % me['token']
-        self.session.headers['X-Auth-Token'] = me['token']
+        data = self.request('/v2/auth/login/facebook', data={'token': facebook.access_token})['data']
+        self.session.headers['Authorization'] = 'Token token="%s"' % data['api_token']
+        self.session.headers['X-Auth-Token'] = data['api_token']
 
-        self.my_id = me['user']['_id']
-        self.my_name = me['user']['name']
+        me = self.request('/v2/profile',
+                          params={'include': 'account,boost,email_settings,instagram,likes,notifications,plus_control,products,purchase,spotify,super_likes,tinder_u,travel,tutorials,user'})
+        self.my_id = me['data']['user']['_id']
+        self.my_name = me['data']['user']['name']
 
         if location:
             lat, lon = location.split(',')
@@ -95,7 +97,8 @@ class TinderBrowser(APIBrowser):
 
     def get_threads(self):
         resp = self.request('/updates', data={'last_activity_date': '2014-05-01T06:13:16.971Z'})
-        return sorted(resp['matches'], key=lambda m: m['last_activity_date'], reverse=True)
+        matches = [m for m in resp['matches'] if 'last_activity_date' in m]
+        return sorted(matches, key=lambda m: m['last_activity_date'], reverse=True)
 
     def post_message(self, match_id, content):
         self.request('/user/matches/%s' % match_id, data={'message': content})

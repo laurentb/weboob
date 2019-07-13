@@ -79,12 +79,10 @@ class ProfilesWalker(Optimization):
                     continue
 
                 self._browser.accept(user['notifier']['id'])
-                fb = self._browser.get_facebook(user['notifier']['fb_id'])
-                self._logger.info('Liked %s (%s at %s): %s',
-                                  fb['name'],
+                self._logger.info('Liked %s (%s at %s)',
+                                  user['notifier']['first_name'],
                                   user['notifier']['job'],
-                                  user['notifier']['workplace'],
-                                  fb['link'])
+                                  user['notifier']['workplace'])
                 n += 1
                 if n > 10:
                     break
@@ -107,7 +105,7 @@ class ProfilesWalker(Optimization):
                 other_name = ''
                 for user in thread['participants']:
                     if user['user']['id'] != self._browser.my_id:
-                        other_name = user['user']['display_name']
+                        other_name = user['user']['first_name']
 
                 if len(thread['messages']) == 0 and parse_date(thread['creation_date']) < (datetime.datetime.now(tzlocal()) - relativedelta(hours=1)):
                     self._browser.post_message(thread['id'], u'Coucou %s :)' % other_name)
@@ -137,7 +135,7 @@ class HappnContact(Contact):
         if last_seen >= datetime.datetime.now(tzlocal()) - datetime.timedelta(minutes=30):
             status = Contact.STATUS_ONLINE
 
-        super(HappnContact, self).__init__(info['id'], info['display_name'], status)
+        super(HappnContact, self).__init__(info['id'], info['first_name'], status)
 
         self.summary = info['about']
         for photo in info['profiles']:
@@ -157,12 +155,11 @@ class HappnContact(Contact):
             self.set_profile('facebook', 'likes', 'interests', ', '.join(info['fb']['likes']))
             for name, content in info['fb']['infos'].iteritems():
                 self.set_profile('facebook', 'infos', name, content)
-        if info['twitter_id'] is not None:
+        if info.get('twitter_id') is not None:
             self.set_profile('info', 'twitter', info['twitter_id'])
         self.set_profile('stats', 'accepted', info['is_accepted'])
         self.set_profile('stats', 'charmed', info['is_charmed'])
         self.set_profile('stats', 'unread_conversations', info['unread_conversations'])
-        self.set_profile('stats', 'credits', info['credits'])
         if info['last_meet_position'] is not None:
             self.set_profile('geoloc', 'last_meet',
                              'https://www.google.com/maps/place//@%s,%s,17z' % (info['last_meet_position']['lat'],
@@ -223,7 +220,7 @@ class HappnModule(Module, CapMessages, CapMessagesPost, CapDating, CapContact):
             t.flags = Thread.IS_DISCUSSION
             for user in thread['participants']:
                 if user['user']['id'] != self.browser.my_id:
-                    t.title = u'Discussion with %s' % user['user']['display_name']
+                    t.title = u'Discussion with %s' % user['user']['first_name']
             t.date = parse_date(thread['modification_date'])
             yield t
 
@@ -234,8 +231,6 @@ class HappnModule(Module, CapMessages, CapMessagesPost, CapDating, CapContact):
 
         info = self.browser.get_thread(thread.id)
         for user in info['participants']:
-            if user['user']['fb_id'] is not None:
-                user['user']['fb'] = self.browser.get_facebook(user['user']['fb_id'])
             if user['user']['id'] == self.browser.my_id:
                 me = HappnContact(user['user'])
             else:

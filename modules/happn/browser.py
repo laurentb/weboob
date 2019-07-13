@@ -56,9 +56,9 @@ class FacebookBrowser(DomainBrowser):
             raise BrowserIncorrectPassword(CleanText('//td/div[has-class("s")]')(page.doc))
 
         form = page.get_form(nr=0, submit='//input[@name="__CONFIRM__"]')
-        form.submit()
+        form.submit(allow_redirects=False)
 
-        m = re.search('access_token=([^&]+)&', self.response.text)
+        m = re.search('access_token=([^&]+)&', self.response.headers['Location'])
         if m:
             self.access_token = m.group(1)
         else:
@@ -114,7 +114,7 @@ class HappnBrowser(DomainBrowser):
         self.device_id = r['data']['id']
 
         me = self.request('/api/users/me')
-        self.my_name = me['data']['name']
+        self.my_name = me['data']['nickname']
 
     def request(self, *args, **kwargs):
         r = self.location(*args, **kwargs)
@@ -131,16 +131,14 @@ class HappnBrowser(DomainBrowser):
         return data
 
     def get_contact(self, contact_id):
-        data = self.request('/api/users/%s?fields=birth_date,first_name,fb_id,last_name,display_name,login,credits,referal,matching_preferences,notification_settings,unread_conversations,about,is_accepted,age,job,workplace,school,modification_date,profiles.mode(0).width(1000).height(1000).fields(url,width,height,mode),last_meet_position,my_relation,is_charmed,distance,gender' % contact_id)['data']
-        if data['fb_id'] is not None:
-            data['fb'] = self.get_facebook(data['fb_id'])
+        data = self.request('/api/users/%s?fields=birth_date,first_name,last_name,nickname,login,credits,referal,matching_preferences,notification_settings,unread_conversations,about,is_accepted,age,job,workplace,school,modification_date,profiles.mode(0).width(1000).height(1000).fields(url,width,height,mode),last_meet_position,my_relation,is_charmed,distance,gender' % contact_id)['data']
         return data
 
     def get_threads(self):
         return self.request('/api/users/me/conversations')['data']
 
     def get_thread(self, id):
-        r = self.request('/api/users/%s/conversations/%s?fields=id,messages.limit(100).fields(id,message,creation_date,sender.fields(id)),participants.fields(user.fields(birth_date,first_name,last_name,display_name,credits,referal,matching_preferences,notification_settings,unread_conversations,about,is_accepted,age,job,workplace,school,modification_date,profiles.mode(0).width(1000).height(1000).fields(url,width,height,mode),last_meet_position,my_relation,is_charmed,distance,gender))' % (self.my_id, id))['data']
+        r = self.request('/api/users/%s/conversations/%s?fields=id,messages.limit(100).fields(id,message,creation_date,sender.fields(id)),participants.fields(user.fields(birth_date,first_name,last_name,nickname,credits,referal,matching_preferences,notification_settings,unread_conversations,about,is_accepted,age,job,workplace,school,modification_date,profiles.mode(0).width(1000).height(1000).fields(url,width,height,mode),last_meet_position,my_relation,is_charmed,distance,gender))' % (self.my_id, id))['data']
         return r
 
     def post_message(self, thread_id, content):
