@@ -346,7 +346,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
             if hasattr(self.page, 'iter_transactions') and self.page.has_transactions():
                 return self.page.iter_transactions()
 
-            elif account.type == Account.TYPE_PERP and self.retirement_hist.is_here():
+            elif account.type in (Account.TYPE_PERP, Account.TYPE_LIFE_INSURANCE) and self.retirement_hist.is_here():
                 return self.page.get_history()
 
             return []
