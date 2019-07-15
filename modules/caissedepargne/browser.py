@@ -46,8 +46,7 @@ from weboob.tools.value import Value
 from weboob.tools.decorators import retry
 
 from .pages import (
-    IndexPage, ErrorPage, MarketPage, LifeInsurance, GarbagePage,
-    MessagePage, LoginPage,
+    IndexPage, ErrorPage, MarketPage, LifeInsurance, LifeInsuranceHistory, LifeInsuranceInvestments, GarbagePage, MessagePage, LoginPage,
     TransferPage, ProTransferPage, TransferConfirmPage, TransferSummaryPage, ProTransferConfirmPage,
     ProTransferSummaryPage, ProAddRecipientOtpPage, ProAddRecipientPage,
     SmsPage, SmsPageOption, SmsRequest, AuthentPage, RecipientPage, CanceledAuth, CaissedepargneKeyboard,
@@ -103,18 +102,21 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     natixis_redirect = URL(r'/NaAssuranceRedirect/NaAssuranceRedirect.aspx',
                            r'https://www.espace-assurances.caisse-epargne.fr/espaceinternet-ce/views/common/routage-itce.xhtml\?windowId=automatedEntryPoint',
                            NatixisRedirectPage)
-    life_insurance = URL('https://.*/Assurance/Pages/Assurance.aspx',
-                         'https://www.extranet2.caisse-epargne.fr.*', LifeInsurance)
-    natixis_life_ins_his = URL('https://www.espace-assurances.caisse-epargne.fr/espaceinternet-ce/rest/v2/contratVie/load-operation/(?P<id1>\w+)/(?P<id2>\w+)/(?P<id3>)', NatixisLIHis)
-    natixis_life_ins_inv = URL('https://www.espace-assurances.caisse-epargne.fr/espaceinternet-ce/rest/v2/contratVie/load/(?P<id1>\w+)/(?P<id2>\w+)/(?P<id3>)', NatixisLIInv)
-    message = URL('https://www.caisse-epargne.offrebourse.com/DetailMessage\?refresh=O', MessagePage)
-    garbage = URL('https://www.caisse-epargne.offrebourse.com/Portefeuille',
-                  'https://www.caisse-epargne.fr/particuliers/.*/emprunter.aspx',
-                  'https://.*/particuliers/emprunter.*',
-                  'https://.*/particuliers/epargner.*', GarbagePage)
-    sms = URL('https://www.icgauth.caisse-epargne.fr/dacswebssoissuer/AuthnRequestServlet', SmsPage)
-    sms_option = URL('https://www.icgauth.caisse-epargne.fr/dacstemplate-SOL/index.html\?transactionID=.*', SmsPageOption)
-    request_sms = URL('https://www.icgauth.caisse-epargne.fr/dacsrest/api/v1u0/transaction/(?P<param>)', SmsRequest)
+    life_insurance_history = URL(r'https://www.extranet2.caisse-epargne.fr/cin-front/contrats/evenements', LifeInsuranceHistory)
+    life_insurance_investments = URL(r'https://www.extranet2.caisse-epargne.fr/cin-front/contrats/details', LifeInsuranceInvestments)
+    life_insurance = URL(r'https://.*/Assurance/Pages/Assurance.aspx',
+                         r'https://www.extranet2.caisse-epargne.fr.*', LifeInsurance)
+    natixis_life_ins_his = URL(r'https://www.espace-assurances.caisse-epargne.fr/espaceinternet-ce/rest/v2/contratVie/load-operation/(?P<id1>\w+)/(?P<id2>\w+)/(?P<id3>)', NatixisLIHis)
+    natixis_life_ins_inv = URL(r'https://www.espace-assurances.caisse-epargne.fr/espaceinternet-ce/rest/v2/contratVie/load/(?P<id1>\w+)/(?P<id2>\w+)/(?P<id3>)', NatixisLIInv)
+    message = URL(r'https://www.caisse-epargne.offrebourse.com/DetailMessage\?refresh=O', MessagePage)
+    garbage = URL(r'https://www.caisse-epargne.offrebourse.com/Portefeuille',
+                  r'https://www.caisse-epargne.fr/particuliers/.*/emprunter.aspx',
+                  r'https://.*/particuliers/emprunter.*',
+                  r'https://.*/particuliers/epargner.*', GarbagePage)
+    sms = URL(r'https://www.icgauth.caisse-epargne.fr/dacswebssoissuer/AuthnRequestServlet', SmsPage)
+    sms_option = URL(r'https://www.icgauth.caisse-epargne.fr/dacstemplate-SOL/index.html\?transactionID=.*', SmsPageOption)
+    request_sms = URL(r'https://www.icgauth.caisse-epargne.fr/dacsrest/api/v1u0/transaction/(?P<param>)', SmsRequest)
+
     __states__ = ('BASEURL', 'multi_type', 'typeAccount', 'is_cenet_website', 'recipient_form', 'is_send_sms')
 
     # Accounts managed in life insurance space (not in linebourse)
@@ -647,7 +649,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             self.home.go()
 
         self.page.go_history(account._info)
-        if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_PERP):
+        if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_CAPITALISATION, Account.TYPE_PERP):
             if self.page.is_account_inactive(account.id):
                 self.logger.warning('Account %s %s is inactive.' % (account.label, account.id))
                 return []
@@ -683,8 +685,9 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                     # life insurance website is not always available
                     raise BrowserUnavailable()
                 self.page.submit()
-                self.location('https://www.extranet2.caisse-epargne.fr%s' % self.page.get_cons_histo())
-
+                self.life_insurance_history.go()
+                # Life insurance transactions are not sorted by date in the JSON
+                return sorted_transactions(self.page.iter_history())
             except (IndexError, AttributeError) as e:
                 self.logger.error(e)
                 return []
@@ -705,7 +708,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
         if not hasattr(account, '_info'):
             raise NotImplementedError
-        if account.type is Account.TYPE_LIFE_INSURANCE and 'measure_id' not in account._info:
+        if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_CAPITALISATION) and 'measure_id' not in account._info:
             return self._get_history_invests(account)
         if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
             self.page.go_history(account._info)
@@ -810,16 +813,15 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
             try:
                 self.page.go_life_insurance(account)
-
                 if not self.market.is_here() and not self.message.is_here():
                     # life insurance website is not always available
                     raise BrowserUnavailable()
-
                 self.page.submit()
-                self.location('https://www.extranet2.caisse-epargne.fr%s' % self.page.get_cons_repart())
+                self.life_insurance_investments.go()
             except (IndexError, AttributeError) as e:
                 self.logger.error(e)
                 return
+
         if self.garbage.is_here():
             self.page.come_back()
             return

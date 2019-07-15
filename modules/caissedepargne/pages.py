@@ -161,7 +161,6 @@ class Transaction(FrenchTransaction):
         (re.compile(r'^RACHAT PARTIEL', re.IGNORECASE), FrenchTransaction.TYPE_BANK),
     ]
 
-
 class IndexPage(LoggedPage, HTMLPage):
     ACCOUNT_TYPES = {u'Epargne liquide':            Account.TYPE_SAVINGS,
                      u'Compte Courant':             Account.TYPE_CHECKING,
@@ -1098,42 +1097,89 @@ class MarketPage(LoggedPage, HTMLPage):
 
 
 class LifeInsurance(MarketPage):
-    def get_cons_repart(self):
-        return self.doc.xpath('//tr[@id="sousMenuConsultation3"]/td/div/a')[0].attrib['href']
+    pass
 
-    def get_cons_histo(self):
-        return self.doc.xpath('//tr[@id="sousMenuConsultation4"]/td/div/a')[0].attrib['href']
 
-    def iter_history(self):
-        for tr in self.doc.xpath(u'//table[@class="boursedetail"]/tbody/tr[td]'):
-            t = Transaction()
+class LifeInsuranceHistory(LoggedPage, JsonPage):
+    @method
+    class iter_history(DictElement):
 
-            t.label = CleanText('.')(tr.xpath('./td[2]')[0])
-            t.date = Date(dayfirst=True).filter(CleanText('.')(tr.xpath('./td[1]')[0]))
-            t.amount = self.parse_decimal(tr.xpath('./td[3]')[0])
+        def find_elements(self):
+            return self.el or []  # JSON contains 'null' if no transaction
 
-            yield t
+        class item(ItemElement):
+            klass = Transaction
 
-    def iter_investment(self):
-        for tr in self.doc.xpath(u'//table[@class="boursedetail"]/tr[@class and not(@class="total")]'):
+            obj_raw = Transaction.Raw(Dict('type/libelleLong'))
+            obj_amount = Eval(float_to_decimal, Dict('montantBrut/valeur'))
 
-            inv = Investment()
-            libelle = CleanText('.')(tr.xpath('./td[1]')[0]).split(' ')
-            inv.label, inv.code = self.split_label_code(libelle)
-            inv.code_type = Investment.CODE_TYPE_ISIN if is_isin_valid(inv.code) else NotAvailable
-            inv.quantity = self.parse_decimal(tr.xpath('./td[2]')[0])
-            inv.unitvalue = self.parse_decimal(tr.xpath('./td[3]')[0])
-            date = CleanText('.')(tr.xpath('./td[4]')[0])
-            inv.vdate = Date(dayfirst=True).filter(date) if date and date != '-' else NotAvailable
-            inv.valuation = self.parse_decimal(tr.xpath('./td[5]')[0])
-            inv.diff_percent = self.parse_decimal(tr.xpath('./td[6]')[0], percentage=True)
+            def obj_date(self):
+                date = Dict('dateTraitement')(self)
+                if date:
+                    return datetime.fromtimestamp(date/1000)
+                return NotAvailable
 
-            yield inv
+            obj_rdate = obj_date
 
-    def split_label_code(self, libelle):
-        if is_isin_valid(libelle[-1]):
-            return ' '.join(libelle[:-1]), libelle[-1]
-        return ' '.join(libelle), NotAvailable
+            def obj_vdate(self):
+                vdate = Dict('dateEffet')(self)
+                if vdate:
+                    return datetime.fromtimestamp(vdate/1000)
+                return NotAvailable
+
+
+class LifeInsuranceInvestments(LoggedPage, JsonPage):
+    @method
+    class iter_investment(DictElement):
+
+        def find_elements(self):
+            return self.el['repartition']['supports'] or []  # JSON contains 'null' if no investment
+
+        class item(ItemElement):
+            klass = Investment
+
+            # For whatever reason some labels start with a '.' (for example '.INVESTMENT')
+            obj_label = CleanText(Dict('libelleSupport'), replace=[('.', '')])
+            obj_valuation = Eval(float_to_decimal, Dict('montantBrutInvesti/valeur'))
+            obj_portfolio_share = Eval(lambda x: float_to_decimal(x)/100, Dict('pourcentageInvesti'))
+
+            # Note: the following attributes are not available for euro funds
+            def obj_vdate(self):
+                vdate = Dict('cotation/date')(self)
+                if vdate:
+                    return datetime.fromtimestamp(vdate/1000)
+                return NotAvailable
+
+            def obj_quantity(self):
+                if Dict('nombreParts')(self):
+                    return Eval(float_to_decimal, Dict('nombreParts'))(self)
+                return NotAvailable
+
+            def obj_diff(self):
+                if Dict('tauxPlusValue')(self):
+                    return Eval(float_to_decimal, Dict('tauxPlusValue'))(self)
+                return NotAvailable
+
+            def obj_diff_percent(self):
+                if Dict('tauxPlusValue')(self):
+                    return Eval(lambda x: float_to_decimal(x)/100, Dict('tauxPlusValue'))(self)
+                return NotAvailable
+
+            def obj_unitvalue(self):
+                if Dict('cotation/montant')(self):
+                    return Eval(float_to_decimal, Dict('cotation/montant/valeur'))(self)
+                return NotAvailable
+
+            def obj_code(self):
+                code = Dict('codeISIN')(self)
+                if is_isin_valid(code):
+                    return code
+                return NotAvailable
+
+            def obj_code_type(self):
+                if Field('code')(self) == NotAvailable:
+                    return NotAvailable
+                return Investment.CODE_TYPE_ISIN
 
 
 class NatixisLIHis(LoggedPage, JsonPage):
