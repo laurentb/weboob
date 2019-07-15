@@ -889,8 +889,21 @@ class BrowserURL(MultiFilter):
 
 
 class Join(Filter):
-    def __init__(self, pattern, selector=None, textCleaner=CleanText, newline=False, addBefore='', addAfter=''):
-        super(Join, self).__init__(selector)
+    """
+    Join multiple results from a selector.
+    >>> Join(' - ', '//div/p')  # doctest: +SKIP
+
+    >>> Join(pattern=', ').filter([u"Oui", u"bonjour", ""]) == u"Oui, bonjour"
+    True
+    >>> Join(pattern='-').filter([u"Au", u"revoir", ""]) == u"Au-revoir"
+    True
+    >>> Join(pattern='-').filter([]) == u""
+    True
+    >>> Join(pattern='-', default=u'empty').filter([]) == u'empty'
+    True
+    """
+    def __init__(self, pattern, selector=None, textCleaner=CleanText, newline=False, addBefore='', addAfter='', default=_NO_DEFAULT):
+        super(Join, self).__init__(selector, default=default)
         self.pattern = pattern
         self.textCleaner = textCleaner
         self.newline = newline
