@@ -926,6 +926,8 @@ class Join(Filter):
         if self.addAfter:
             result = '%s%s' % (result, self.addAfter)
 
+        if not result and self.default is not _NO_DEFAULT:
+            return self.default
         return result
 
 
