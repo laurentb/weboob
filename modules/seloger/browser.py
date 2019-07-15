@@ -33,8 +33,8 @@ class SeLogerBrowser(PagesBrowser):
     BASEURL = 'http://www.seloger.com'
     PROFILE = Android()
     cities = URL('https://autocomplete.svc.groupe-seloger.com/auto/complete/0/Ville/6\?text=(?P<pattern>.*)', CitiesPage)
-    search = URL('http://ws.seloger.com/search.xml\?(?P<request>.*)', SearchResultsPage)
-    housing = URL('http://ws.seloger.com/annonceDetail.xml\?idAnnonce=(?P<_id>\d+)&noAudiotel=(?P<noAudiotel>\d)',
+    search = URL('https://ws-seloger.svc.groupe-seloger.com/search.xml\?(?P<request>.*)', SearchResultsPage)
+    housing = URL('https://ws-seloger.svc.groupe-seloger.com/annonceDetail.xml\?idAnnonce=(?P<_id>\d+)&noAudiotel=(?P<noAudiotel>\d)',
                   HousingPage)
 
     def search_geo(self, pattern):
