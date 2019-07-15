@@ -28,7 +28,7 @@ from weboob.browser.filters.html import Attr, TableCell, ReplaceEntities
 from weboob.capabilities.bank import Account, Investment, Loan, NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_iban_valid
-from weboob.exceptions import ActionNeeded
+from weboob.exceptions import ActionNeeded, BrowserUnavailable
 
 
 def MyDecimal(*args, **kwargs):
@@ -77,6 +77,13 @@ class StatefulPage(LoggedPage, HTMLPage):
 class LoginPage(HTMLPage):
     def is_here(self):
         return bool(CleanText('//div[@class="zone-authent"]')(self.doc))
+
+    def on_load(self):
+        message = CleanText("//div[contains(@class, 'bloc-message error')]//h3")(self.doc)
+        text = "Suite à une erreur technique, cette page ne peut pas s'afficher actuellement."
+        if text in message:
+            # For now, the message is too related to the bank website, we don't return it.
+            raise BrowserUnavailable()
 
     def login(self, login, passwd):
         form = self.get_form(id='form1')
