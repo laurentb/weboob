@@ -52,6 +52,7 @@ from .pages import (
     SmsPage, SmsPageOption, SmsRequest, AuthentPage, RecipientPage, CanceledAuth, CaissedepargneKeyboard,
     TransactionsDetailsPage, LoadingPage, ConsLoanPage, MeasurePage, NatixisLIHis, NatixisLIInv, NatixisRedirectPage,
     SubscriptionPage, CreditCooperatifMarketPage, UnavailablePage, CardsPage, CardsComingPage, CardsOldWebsitePage, TransactionPopupPage,
+    OldLeviesPage, NewLeviesPage,
 )
 
 from .linebourse_browser import LinebourseAPIBrowser
@@ -86,6 +87,8 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     cards_old = URL('https://.*/Portail.aspx.*', CardsOldWebsitePage)
     cards = URL('https://.*/Portail.aspx.*', CardsPage)
     cards_coming = URL('https://.*/Portail.aspx.*', CardsComingPage)
+    old_checkings_levies = URL(r'https://.*/Portail.aspx.*', OldLeviesPage)
+    new_checkings_levies = URL(r'https://.*/Portail.aspx.*', NewLeviesPage)
     authent = URL('https://.*/Portail.aspx.*', AuthentPage)
     subscription = URL('https://.*/Portail.aspx\?tache=(?P<tache>).*', SubscriptionPage)
     transaction_popup = URL(r'https://.*/Portail.aspx.*', TransactionPopupPage)
@@ -458,7 +461,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                  - In CardsPage, there are cards (with "Business" in the label) without checking account on the
                    website (neither history nor coming), so we skip them.
                  - Some card on the CardsPage that have a checking account parent, but if we follow the link to
-                   reach it with CardsComingPage, we find an other card that not in CardsPage.
+                   reach it with CardsComingPage, we find an other card that is not in CardsPage.
             """
             if self.new_website:
                 for account in self.accounts:
@@ -736,33 +739,51 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
     @need_login
     def get_coming(self, account):
-        if account.type != account.TYPE_CARD:
-            return []
+        if account.type == account.TYPE_CHECKING:
+            return self.get_coming_checking(account)
+        elif account.type == account.TYPE_CARD:
+            return self.get_coming_card(account)
+        return []
 
+    def get_coming_checking(self, account):
+        # The accounts list or account history page does not contain comings for checking accounts
+        # We need to go to a specific levies page where we can find past and coming levies (such as recurring ones)
         trs = []
+        self.home.go()
+        self.page.go_cards()  # need to go to cards page to have access to the nav bar where we can choose LeviesPage from
+        if not self.page.levies_page_enabled():
+            return trs
+        self.page.go_levies()  # need to go to a general page where we find levies for all accounts before requesting a specific account
+        if not self.page.comings_enabled(account.id):
+            return trs
+        self.page.go_levies(account.id)
+        if self.new_checkings_levies.is_here() or self.old_checkings_levies.is_here():
+            today = datetime.datetime.today().date()
+            # Today transactions are in this page but also in history page, we need to ignore it as a coming
+            for tr in self.page.iter_coming():
+                if tr.date > today:
+                    trs.append(tr)
+        return trs
 
+    def get_coming_card(self, account):
+        trs = []
         if not hasattr(account.parent, '_info'):
             raise NotImplementedError()
-
         # We are on the old website
         if hasattr(account, '_coming_eventargument'):
-
             if not self.cards_old.is_here():
                 self.home.go()
                 self.page.go_list()
                 self.page.go_cards()
             self.page.go_card_coming(account._coming_eventargument)
-
             return sorted_transactions(self.page.iter_coming())
-
         # We are on the new website.
         info = account.parent._card_links
-        # if info is empty, that mean there are no coming yet
+        # if info is empty, that means there are no comings yet
         if info:
             for tr in self._get_history(info.copy(), account):
                 tr.type = tr.TYPE_DEFERRED_CARD
                 trs.append(tr)
-
         return sorted_transactions(trs)
 
     @need_login

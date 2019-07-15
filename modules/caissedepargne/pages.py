@@ -538,6 +538,36 @@ class IndexPage(LoggedPage, HTMLPage):
         fix_form(form)
         form.submit()
 
+    def go_levies(self, account_id=None):
+        form = self.get_form(id='main')
+        if account_id:
+            # Go to an account specific levies page
+            eventargument = ""
+            if "MM$m_CH$IsMsgInit" in form:
+                # Old website
+                form['MM$SYNTHESE_SDD_RECUS$m_ExDropDownList'] = account_id
+                eventtarget = "MM$SYNTHESE_SDD_RECUS$m_ExDropDownList"
+                scriptmanager = "MM$m_UpdatePanel|MM$SYNTHESE_SDD_RECUS$m_ExDropDownList"
+            else:
+                # New website
+                form['MM$SYNTHESE_SDD_RECUS$ddlCompte'] = account_id
+                eventtarget = "MM$SYNTHESE_SDD_RECUS$ddlCompte"
+                scriptmanager = "MM$m_UpdatePanel|MM$SYNTHESE_SDD_RECUS$ddlCompte"
+            self.submit_form(form, eventargument, eventtarget, scriptmanager,)
+        else:
+            # Go to an general levies page page where all levies are found
+            if "MM$m_CH$IsMsgInit" in form:
+                # Old website
+                eventargument = "SDDRSYN0"
+                eventtarget = "Menu_AJAX"
+                scriptmanager = "m_ScriptManager|Menu_AJAX"
+            else:
+                # New website
+                eventargument = "SDDRSYN0&codeMenu=WPS1"
+                eventtarget = "MM$Menu_Ajax"
+                scriptmanager = "MM$m_UpdatePanel|MM$Menu_Ajax"
+            self.submit_form(form, eventargument, eventtarget, scriptmanager,)
+
     def go_list(self):
 
         form = self.get_form(id='main')
@@ -842,6 +872,13 @@ class IndexPage(LoggedPage, HTMLPage):
     def is_transfer_allowed(self):
         return not self.doc.xpath('//ul/li[contains(text(), "Aucun compte tiers n\'est disponible")]')
 
+    def levies_page_enabled(self):
+        """ Levies page does not exist in the nav bar for every connections """
+        return (
+            CleanText('//a/span[contains(text(), "Suivre mes prélèvements reçus")]')(self.doc) or  # new website
+            CleanText('//a[contains(text(), "Suivre les prélèvements reçus")]')(self.doc)  # old website
+        )
+
 
 class TransactionPopupPage(LoggedPage, HTMLPage):
     def is_here(self):
@@ -849,6 +886,74 @@ class TransactionPopupPage(LoggedPage, HTMLPage):
 
     def complete_label(self):
         return CleanText('''//div[@class="scrollPane"]/table[//caption[contains(text(), "Détail de l'opération")]]//tr[2]''')(self.doc)
+
+
+class NewLeviesPage(IndexPage):
+    """ Scrape new website 'Prélèvements' page for comings for checking accounts """
+
+    def is_here(self):
+        return CleanText('//h2[contains(text(), "Suivez vos prélèvements reçus")]')(self.doc)
+
+    def comings_enabled(self, account_id):
+        """ Check if a specific account can be selected on the general levies page """
+        return account_id in CleanText('//span[@id="MM_SYNTHESE_SDD_RECUS"]//select/option/@value')(self.doc)
+
+    @method
+    class iter_coming(TableElement):
+        head_xpath = '//div[contains(@id, "ListePrelevement_0")]/table[contains(@summary, "Liste des prélèvements en attente")]//tr/th'
+        item_xpath = '//div[contains(@id, "ListePrelevement_0")]/table[contains(@summary, "Liste des prélèvements en attente")]//tr[contains(@id, "trRowDetail")]'
+
+        col_label = 'Libellé/Référence'
+        col_coming = 'Montant'
+        col_date = 'Date'
+
+        class item(ItemElement):
+            klass = Transaction
+
+            # Transaction typing will mostly not work since transaction as comings will only display the debiting organism in the label
+            # Labels will bear recognizable patterns only when they move from future to past, where they will be typed by iter_history
+            # when transactions change state from coming to history 'Prlv' is append to their label, this will help the backend for the matching
+            obj_raw = Transaction.Raw(Format('Prlv %s', Field('label')))
+            obj_label = CleanText(TableCell('label'))
+            obj_amount = CleanDecimal.French(TableCell('coming'), sign=lambda x: -1)
+            obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
+
+            def condition(self):
+                return not CleanText('''//p[contains(text(), "Vous n'avez pas de prélèvement en attente d'exécution.")]''')(self)
+
+
+class OldLeviesPage(IndexPage):
+    """ Scrape old website 'Prélèvements' page for comings for checking accounts """
+
+    def is_here(self):
+        return CleanText('//span[contains(text(), "Suivez vos prélèvements reçus")]')(self.doc)
+
+    def comings_enabled(self, account_id):
+        """ Check if a specific account can be selected on the general levies page """
+        return account_id in CleanText('//span[@id="MM_SYNTHESE_SDD_RECUS"]//select/option/@value')(self.doc)
+
+    @method
+    class iter_coming(TableElement):
+        head_xpath = '''//span[contains(text(), "Prélèvements en attente d'exécution")]/ancestor::table[1]/following-sibling::table[1]//tr[contains(@class, "DataGridHeader")]//td'''
+        item_xpath = '''//span[contains(text(), "Prélèvements en attente d'exécution")]/ancestor::table[1]/following-sibling::table[1]//tr[contains(@class, "DataGridHeader")]//following-sibling::tr'''
+
+        col_label = 'Libellé/Référence'
+        col_coming = 'Montant'
+        col_date = 'Date'
+
+        class item(ItemElement):
+            klass = Transaction
+
+            # Transaction typing will mostly not work since transaction as comings will only display the debiting organism in the label
+            # Labels will bear recognizable patterns only when they move from future to past, where they will be typed by iter_history
+            # when transactions change state from coming to history 'Prlv' is append to their label, this will help the backend for the matching
+            obj_raw = Transaction.Raw(Format('Prlv %s', Field('label')))
+            obj_label = CleanText(TableCell('label'))
+            obj_amount = CleanDecimal.French(TableCell('coming'), sign=lambda x: -1)
+            obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
+
+            def condition(self):
+                return not CleanText('''//table[@id="MM_SYNTHESE_SDD_RECUS_rpt_dgList_0"]//td[contains(text(), "Vous n'avez pas de prélèvements")]''')(self)
 
 
 class CardsPage(IndexPage):
