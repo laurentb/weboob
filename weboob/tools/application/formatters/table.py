@@ -20,7 +20,6 @@
 from prettytable import PrettyTable
 
 from weboob.capabilities.base import empty
-from weboob.tools.compat import range
 
 from .iformatter import IFormatter
 
@@ -47,27 +46,15 @@ class TableFormatter(IFormatter):
             return
 
         if self.interactive:
-            # Insert indices at the beginning of each line
             self.keys.insert(0, '#')
-            for i in range(len(self.queue)):
-                self.queue[i].insert(0, i+1)
 
-        queue = [() for i in range(len(self.queue))]
         column_headers = []
+        keys = []
         # Do not display columns when all values are NotLoaded or NotAvailable
-        maxrow = 0
-        for i in range(len(self.keys)):
-            available = False
-            for line in self.queue:
-                if len(line)> i and not empty(line[i]):
-                    maxrow += 1
-                    available = True
-                    break
-            if available:
-                column_headers.append(self.keys[i].capitalize().replace('_', ' '))
-                for j in range(len(self.queue)):
-                    if len(self.queue[j]) > i:
-                        queue[j] += (self.queue[j][i],)
+        for key in self.keys:
+            if key == '#' or any(not empty(line.get(key)) for line in self.queue):
+                column_headers.append(key.capitalize().replace('_', ' '))
+                keys.append(key)
 
         s = ''
         if self.display_header and self.header:
@@ -85,10 +72,12 @@ class TableFormatter(IFormatter):
                 table.set_field_align(column_header, 'l')
             except:
                 table.align[column_header] = 'l'
-        for line in queue:
-            for _ in range(maxrow - len(line)):
-                line += ('',)
-            table.add_row([self.format_cell(cell) for cell in line])
+
+        for n, line in enumerate(self.queue, 1):
+            table.add_row([
+                self.format_cell(line.get(key)) if key != '#' else n
+                for key in keys
+            ])
 
         if self.HTML:
             s += table.get_html_string()
@@ -108,7 +97,7 @@ class TableFormatter(IFormatter):
     def format_dict(self, item):
         if self.keys is None:
             self.keys = list(item.keys())
-        self.queue.append(list(item.values()))
+        self.queue.append(item)
 
     def set_header(self, string):
         self.header = string
