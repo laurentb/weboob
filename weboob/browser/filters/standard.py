@@ -931,6 +931,32 @@ class Join(Filter):
         return result
 
 
+class MultiJoin(MultiFilter):
+    """
+    Join multiple filters.
+    >>> MultiJoin(Field('field1'), Field('field2'))  # doctest: +SKIP
+
+    >>> MultiJoin(pattern=', ').filter([u"Oui", u"bonjour", ""]) == u"Oui, bonjour"
+    True
+    >>> MultiJoin(pattern='-').filter([u"Au", u"revoir", ""]) == u"Au-revoir"
+    True
+    >>> MultiJoin(pattern='-').filter([]) == u""
+    True
+    >>> MultiJoin(pattern='-', default=u'empty').filter([]) == u'empty'
+    True
+    """
+    def __init__(self, *args, **kwargs):
+        self.pattern = kwargs.pop('pattern', ', ')
+        super(MultiJoin, self).__init__(*args, **kwargs)
+
+    @debug()
+    def filter(self, values):
+        values = [v for v in values if v]
+        if not values and self.default is not _NO_DEFAULT:
+            return self.default
+        return self.pattern.join(values)
+
+
 class Eval(MultiFilter):
     """
     Evaluate a function with given 'deferred' arguments.
