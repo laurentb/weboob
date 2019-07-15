@@ -68,7 +68,7 @@ class INGVirtKeyboard(SimpleVirtualKeyboard):
         '3': ('203bfd122f474eb9c5c278eeda01bed4', 'c1daa556a1eff1fd18817dbef39792f8',),
         '4': ('c09b323e5a80a195d9cb0c3000f3d7ec', 'f020eaf7cdffefec065d3b2801ed73e2', '5e194b0aae3b8f02ebbf9cdec5c37239',),
         '5': ('1749dc3f2e302cd3562a0558755ab030', 'b64163e3f5f7d83ff1baad8c4d1bc37b',),
-        '6': ('0888a7dc9085fcf09d56363ac253a54a', 'e269686d10f95678caf995de6834f74b',),
+        '6': ('0888a7dc9085fcf09d56363ac253a54a', 'e269686d10f95678caf995de6834f74b', '8c505dad47cf6029921fca5fb4b0bc8d',),
         '7': ('75aaa903b8277b82c458c3540208a009', 'e97b0c0e01d77dd480b8a5f5c138a268',),
         '8': ('f5fa36d16f55b72ba988eb87fa1ed753', '118a52a6a480b5db5eabb0ea26196db3',),
         '9': ('62f91d10650583cb6146d25bb9ac161d', 'fd81675aa1c26cbf5bb6c9f1bcdbbdf9',),
