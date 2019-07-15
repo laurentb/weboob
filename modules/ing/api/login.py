@@ -28,54 +28,86 @@ from weboob.browser.filters.json import Dict
 
 class INGVirtKeyboard(SimpleVirtualKeyboard):
     # from parent
-    tile_margin = 3
-    margin = (0, 4, 0, 0)
+    tile_margin = 10
     convert = 'RGB'
 
     # for children
     safe_tile_margin = 10
-    small_img_size = (100, 40)
+    small_img_size = (15, 14)
     alter_img_params = {
         'radius': 2,
-        'percent': 135,
+        'percent': 95,
         'threshold': 3,
-        'limit_pixel': 160
+        'limit_pixel': 200
+    }
+
+    # for matching_symbols_coords, indexes are cases place like this
+    #  ---  ---  ---  ---  ---
+    #  |0|  |1|  |2|  |3|  |4|
+    #  ---  ---  ---  ---  ---
+    #  ---  ---  ---  ---  ---
+    #  |5|  |6|  |7|  |8|  |9|
+    #  ---  ---  ---  ---  ---
+    matching_symbols_coords = {
+        '0': (3, 3, 93, 91),
+        '1': (99, 3, 189, 91),
+        '2': (196, 3, 286, 91),
+        '3': (293, 3, 383, 91),
+        '4': (390, 3, 480, 91),
+        '5': (3, 98, 93, 186),
+        '6': (99, 98, 189, 186),
+        '7': (196, 98, 286, 186),
+        '8': (293, 98, 383, 186),
+        '9': (390, 98, 480, 186),
     }
 
     symbols = {
-        '0': ('117b18365105224c7207d3ec0ce7516f',),
-        '1': ('112a72c31ebdf0cdafb84e67c6e1f8f2',),
-        '2': ('df8534cb28a19e600976d39af2c4f6fe',),
-        '3': ('911dbe595604da336fbdd360f89bada1',),
-        '4': ('8a22058801980e4afb25c414e388bfa8',),
-        '5': ('c7d430083b55fbe2834c912c7cded124', 'a85d836c231f9e2ee30adbfb8e3f8d96'),
-        '6': ('64f8b9f3a93bc534443646f0b54e26ad',),
-        '7': ('6c14303e9bffdcd1880ce415b6f0efb2',),
-        '8': ('a62e9e25b047160090de1634c8d3b0f6',),
-        '9': ('2b9bc97ce4ccc67d4ae0c3ca54957b33', 'afc9d2840290b7da08bf1d0b27b6c302'),
+        '0': ('7b4989b431e631ec79df5d71aecb1a47','e2522e1f7476ad6430219a73b10799b0', 'f7db285c5c742c3a348e332c0e9f7f3e',),
+        '1': ('9f1b03aa9a6f9789714c38eb90a43a11', '86bc0e7e1173472928e746db874b38c3',),
+        '2': ('3a7d1ba32f4326a02f717f71262ba02b', 'afc2a00289ba9e362c4e9333c14a574a',),
+        '3': ('203bfd122f474eb9c5c278eeda01bed4', 'c1daa556a1eff1fd18817dbef39792f8',),
+        '4': ('c09b323e5a80a195d9cb0c3000f3d7ec', 'f020eaf7cdffefec065d3b2801ed73e2', '5e194b0aae3b8f02ebbf9cdec5c37239',),
+        '5': ('1749dc3f2e302cd3562a0558755ab030', 'b64163e3f5f7d83ff1baad8c4d1bc37b',),
+        '6': ('0888a7dc9085fcf09d56363ac253a54a', 'e269686d10f95678caf995de6834f74b',),
+        '7': ('75aaa903b8277b82c458c3540208a009', 'e97b0c0e01d77dd480b8a5f5c138a268',),
+        '8': ('f5fa36d16f55b72ba988eb87fa1ed753', '118a52a6a480b5db5eabb0ea26196db3',),
+        '9': ('62f91d10650583cb6146d25bb9ac161d', 'fd81675aa1c26cbf5bb6c9f1bcdbbdf9',),
     }
 
-    # Clean image
-    def alter_image(self):
-        # original image size is (484, 190), save the original image
-        self.original_image = self.image
+    def __init__(self, file, cols, rows, browser):
+        # use matching_symbols_coords because margins between tiles are not equals
+        super(INGVirtKeyboard, self).__init__(file=file, cols=cols, rows=rows, matching_symbols_coords=self.matching_symbols_coords, browser=browser)
 
-        # create miniature of image to get more reliable hash
-        self.image = self.image.resize(self.small_img_size, resample=Image.BILINEAR)
-        # See ImageFilter.UnsharpMask from Pillow
-        self.image = self.image.filter(ImageFilter.UnsharpMask(
-            radius=self.alter_img_params['radius'],
-            percent=self.alter_img_params['percent'],
-            threshold=self.alter_img_params['threshold'])
-        )
-        self.image = Image.eval(self.image, lambda px: 0 if px <= self.alter_img_params['limit_pixel'] else 255)
+    def process_tiles(self):
+        for tile in self.tiles:
+            # format tile object like:
+            # `tile.original_img`: original tile image size
+            # `tile.coords`: original tile image coords
+            # `tile.image`: resized and altered image tile
+            # `tile.md5`: image tile resized hash
+            tile.original_img = tile.image
+            tile.image = tile.image.resize(self.small_img_size, resample=Image.BILINEAR)
+
+            # convert to monochrome image
+            tile.image = tile.image.convert('L')
+            # See ImageFilter.UnsharpMask from Pillow
+            tile.image = tile.image.filter(ImageFilter.UnsharpMask(
+                radius=self.alter_img_params['radius'],
+                percent=self.alter_img_params['percent'],
+                threshold=self.alter_img_params['threshold'])
+            )
+            tile.image = Image.eval(tile.image, lambda px: 0 if px <= self.alter_img_params['limit_pixel'] else 255)
+
+    def cut_tiles(self, tile_margin=None):
+        assert self.tiles, 'There are no tiles to process'
+        super(INGVirtKeyboard, self).cut_tiles(tile_margin)
+
+        # alter tile
+        self.process_tiles()
 
     def password_tiles_coord(self, password):
-        # get image original size to get password coord
-        image_width, image_height = self.original_image.size
-        tile_width, tile_height = image_width // self.cols, image_height // self.rows
-
         password_tiles = []
+
         for digit in password:
             for tile in self.tiles:
                 if tile.md5 in self.symbols[digit]:
@@ -88,18 +120,10 @@ class INGVirtKeyboard(SimpleVirtualKeyboard):
                                 % (digit, self.path))
 
         formatted_password = []
-        safe_margin = self.safe_tile_margin
         for tile in password_tiles:
-            # default matching_symbol is str(range(cols*rows))
-            x0 = (int(tile.matching_symbol) % self.cols) * tile_width
-            y0 = (int(tile.matching_symbol) // self.cols) * tile_height
-            tile_original_coords = (
-                x0 + safe_margin, y0 + safe_margin,
-                x0 + tile_width - safe_margin, y0 + tile_height - safe_margin,
-            )
             formatted_password.append([
-                random.uniform(tile_original_coords[0], tile_original_coords[2]),
-                random.uniform(tile_original_coords[1], tile_original_coords[3]),
+                random.uniform(tile.coords[0], tile.coords[2]),
+                random.uniform(tile.coords[1], tile.coords[3]),
             ])
         return formatted_password
 
