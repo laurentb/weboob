@@ -19,8 +19,12 @@
 
 from __future__ import unicode_literals
 
+import random
 from datetime import datetime
 from io import BytesIO
+from PIL import Image, ImageFilter
+
+from weboob.tools.captcha.virtkeyboard import SimpleVirtualKeyboard
 
 from weboob.browser.pages import LoggedPage, JsonPage
 from weboob.browser.elements import method, DictElement, ItemElement
@@ -28,16 +32,11 @@ from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import Env, Field, Date
 from weboob.capabilities.bank import Recipient
 
-from .login import INGVirtKeyboard
 
-
-class TransferINGVirtKeyboard(INGVirtKeyboard):
-    # from grand parent
+class TransferINGVirtKeyboard(SimpleVirtualKeyboard):
     tile_margin = 5
-    margin = None
     convert = 'RGB'
 
-    # from parent
     safe_tile_margin = 50
     small_img_size = (125, 50) # original image size is (2420, 950)
     alter_img_params = {
@@ -60,6 +59,53 @@ class TransferINGVirtKeyboard(INGVirtKeyboard):
         '9': 'ca55399a5b36da3fedcd1dbb73d72a2f'
     }
 
+    # Clean image
+    def alter_image(self):
+        # original image size is (484, 190), save the original image
+        self.original_image = self.image
+
+        # create miniature of image to get more reliable hash
+        self.image = self.image.resize(self.small_img_size, resample=Image.BILINEAR)
+        # See ImageFilter.UnsharpMask from Pillow
+        self.image = self.image.filter(ImageFilter.UnsharpMask(
+            radius=self.alter_img_params['radius'],
+            percent=self.alter_img_params['percent'],
+            threshold=self.alter_img_params['threshold'])
+        )
+        self.image = Image.eval(self.image, lambda px: 0 if px <= self.alter_img_params['limit_pixel'] else 255)
+
+    def password_tiles_coord(self, password):
+        # get image original size to get password coord
+        image_width, image_height = self.original_image.size
+        tile_width, tile_height = image_width // self.cols, image_height // self.rows
+
+        password_tiles = []
+        for digit in password:
+            for tile in self.tiles:
+                if tile.md5 in self.symbols[digit]:
+                    password_tiles.append(tile)
+                    break
+            else:
+                # Dump file only when the symbol is not found
+                self.dump_tiles(self.path)
+                raise Exception("Symbol '%s' not found; all symbol hashes are available in %s"
+                                % (digit, self.path))
+
+        formatted_password = []
+        safe_margin = self.safe_tile_margin
+        for tile in password_tiles:
+            # default matching_symbol is str(range(cols*rows))
+            x0 = (int(tile.matching_symbol) % self.cols) * tile_width
+            y0 = (int(tile.matching_symbol) // self.cols) * tile_height
+            tile_original_coords = (
+                x0 + safe_margin, y0 + safe_margin,
+                x0 + tile_width - safe_margin, y0 + tile_height - safe_margin,
+            )
+            formatted_password.append([
+                random.uniform(tile_original_coords[0], tile_original_coords[2]),
+                random.uniform(tile_original_coords[1], tile_original_coords[3]),
+            ])
+        return formatted_password
 
 class DebitAccountsPage(LoggedPage, JsonPage):
     def get_debit_accounts_uid(self):
