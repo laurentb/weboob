@@ -294,6 +294,9 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                 if acc.type == Account.TYPE_CARD and not empty(getattr(acc, '_parent_id', None)):
                     acc.parent = accounts_by_id[acc._parent_id]
 
+                elif acc.type in (Account.TYPE_MORTGAGE, Account.TYPE_LOAN) and acc._parent_id:
+                    acc.parent = accounts_by_id.get(acc._parent_id, NotAvailable)
+
             self.accounts_list = accounts_by_id.values()
 
             if has_no_account and not self.accounts_list:

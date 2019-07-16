@@ -370,7 +370,7 @@ class AccountsPage(LoggedPage, HTMLPage):
         class item_account(item_account_generic):
             def condition(self):
                 _type = Field('type')(self)
-                return item_account_generic.condition(self) and _type != Account.TYPE_LOAN
+                return item_account_generic.condition(self) and _type not in (Account.TYPE_LOAN, Account.TYPE_MORTGAGE)
 
         class item_loan(item_account_generic):
             klass = Loan
@@ -379,7 +379,6 @@ class AccountsPage(LoggedPage, HTMLPage):
 
             obj_total_amount = Async('details') & MyDecimal('//div[@id="F4:expContent"]/table/tbody/tr[1]/td[1]/text()')
             obj_rate = Async('details') & MyDecimal('//div[@id="F4:expContent"]/table/tbody/tr[2]/td[1]')
-            obj_account_label = Async('details') & CleanText('//div[@id="F4:expContent"]/table/tbody/tr[1]/td[2]')
             obj_nb_payments_left = Async('details') & Type(CleanText(
                 '//div[@id="F4:expContent"]/table/tbody/tr[2]/td[2]/text()'), type=int, default=NotAvailable)
             obj_subscription_date = Async('details') & MyDate(Regexp(CleanText(
@@ -395,6 +394,17 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_last_payment_date = (Async('details') &
                 MyDate(CleanText('//div[@id="F8:expContent"]/table/tbody/tr[1]/td[1]')))
 
+            def obj__parent_id(self):
+                # There are 5 numbers that we don't want before the real id
+                # "12345 01200 000123456798" => "01200000123456798"
+                parent_id = Async('details',
+                                  Regexp(CleanText('//div[@id="F4:expContent"]/table/tbody/tr[1]/td[2]',
+                                                   default=None), r'\d{5} (\d+\s\d+)')
+                                  )(self)
+                if parent_id:
+                    return parent_id.replace(' ', '')
+                return NotAvailable
+
             def condition(self):
                 _type = Field('type')(self)
                 label = Field('label')(self)
@@ -405,7 +415,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                 if re.search(r'Le\sMobile\s+([0-9]{2}\s?){5}', label):
                     return False
 
-                if (details_link and item_account_generic.condition and _type == Account.TYPE_LOAN
+                if (details_link and item_account_generic.condition and _type in (Account.TYPE_LOAN, Account.TYPE_MORTGAGE)
                                  and not self.is_revolving(label)):
                     details = self.page.browser.open(details_link)
                     if details.page and not 'cloturé' in CleanText('//form[@id="P:F"]//div[@class="blocmsg info"]//p')(details.page.doc):
