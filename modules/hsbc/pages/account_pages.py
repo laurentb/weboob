@@ -138,6 +138,8 @@ class AccountsPage(GenericLandingPage):
     def get_web_space(self):
         """ Several spaces on HSBC, need to get which one we are on to adapt parsing to owners"""
         if self.doc.xpath('//p[text()="HSBC Fusion"]'):
+            # TODO ckeck GrayLog and get rid of fusion space code if clients are no longer using it
+            self.logger.warning('Passed through the HSBC Fusion webspace')
             return 'fusion'
         elif self.doc.xpath('//a/img[@alt="HSBC"]'):
             return 'new_space'
@@ -160,7 +162,7 @@ class AccountsPage(GenericLandingPage):
             for form in self.doc.xpath('//form[@id]'):
                 value = Attr('.//input[@name="CPT_IdPrestation" or @name="CB_IdPrestation"]', 'value')(form)
                 # * if needed, all the card numbers could be fetched at that point to replace 'XXXX' as they appear in 'value'
-                match = (re.match(r'^(.*)?(\d{11}EUR)(.*)?$', account.id) or re.match(r'^(.*)?(\d{6})(X{6})(\d{4})(.*)?$', account.id))
+                match = (re.match(r'^(.*)?(\d{11}(\w{3}))$', account.id) or re.match(r'^(.*)?(\d{6})(X{6})(\d{4})(.*)?$', account.id))
                 if (match.group(2) or (match.group(4) and match.group(2))) in value:
                     # certain forms have the same id atribute, we must submit the one with the same input 'value' attribute
                     self.get_form(xpath='//form[@id][input[@value="%s"]]' % value).submit()
@@ -199,11 +201,10 @@ class AccountsPage(GenericLandingPage):
                 'Mes crédits personnels': AccountOwnerType.PRIVATE,
             }
 
-            # MapIn because, in case of private accoun, we actually catch "Mes avoirs personnels Mes crédits personnels" with CleanText which both can be use to recognize the owner_type as PRIVATE
-            obj_owner_type = MapIn(CleanText('.//form[@id]/ancestor::div/h2/text()'), OWNER_TYPE, NotAvailable)
+            # MapIn because, in case of private account, we actually catch "Mes avoirs personnels Mes crédits personnels" with CleanText which both can be use to recognize the owner_type as PRIVATE
+            obj_owner_type = MapIn(CleanText('.//form[@id]/ancestor::div/h2'), OWNER_TYPE, NotAvailable)
 
-            # obj_label = Label(CleanText('.//form[@id]/preceding-sibling::*[1]/span[1]'))
-            obj_label = Label(CleanText('.//form[@id]/preceding-sibling::p/span[@class="hsbc-pib-text hsbc-pib-bloc-account-name" or @class="hsbc-pib-text--small"]/text()'))
+            obj_label = Label(CleanText('.//form[@id]/preceding-sibling::p/span[@class="hsbc-pib-text hsbc-pib-bloc-account-name" or @class="hsbc-pib-text--small"]'))
             obj_type = AccountsType(Field('label'))
             obj_url = CleanText('.//form/@action')
             obj_currency = Currency('.//form[@id]/following-sibling::*[1]')
