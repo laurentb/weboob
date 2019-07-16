@@ -600,7 +600,8 @@ class Regexp(Filter):
 
     def __init__(self, selector=None, pattern=None, template=None, nth=0, flags=0, default=_NO_DEFAULT):
         super(Regexp, self).__init__(selector, default=default)
-        assert pattern is not None
+        if pattern is None:
+            raise FilterError('Missing pattern parameter')
         self.pattern = pattern
         self._regex = re.compile(pattern, flags)
         self.template = template
