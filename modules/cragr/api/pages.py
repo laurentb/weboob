@@ -477,6 +477,7 @@ class CardHistoryPage(LoggedPage, JsonPage):
             obj_label = CleanText(Dict('libelleOperation'))
             obj_amount = Eval(float_to_decimal, Dict('montant'))
             obj_type = Transaction.TYPE_DEFERRED_CARD
+            obj_bdate = Field('rdate')
 
             def obj_date(self):
                 return dateutil.parser.parse(Dict('datePrelevement')(self))

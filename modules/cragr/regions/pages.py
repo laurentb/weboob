@@ -444,7 +444,7 @@ class CardsPage(LoggedPage, CragrPage):
                 tr = FrenchTransaction()
                 tr.date = latest_date
                 date_guesser = LinearDateGuesser(latest_date)
-                tr.rdate = DateGuesser(CleanText('./td[1]//text()'), date_guesser=date_guesser)(item)
+                tr.rdate = tr.bdate = DateGuesser(CleanText('./td[1]//text()'), date_guesser=date_guesser)(item)
                 tr.label = tr.raw = CleanText('./td[2]')(item)
                 tr.amount = CleanDecimal.French('./td[last()]')(item)
                 tr.type = FrenchTransaction.TYPE_DEFERRED_CARD
