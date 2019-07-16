@@ -728,7 +728,7 @@ class IndexPage(LoggedPage, HTMLPage):
 
             card_debit_date = self.doc.xpath(u'//span[@id="MM_HISTORIQUE_CB_m_TableTitle3_lblTitle"] | //label[contains(text(), "débiter le")]')
             if card_debit_date:
-                t.rdate = Date(dayfirst=True).filter(date)
+                t.rdate = t.bdate = Date(dayfirst=True).filter(date)
                 m = re.search(r'\b(\d{2}/\d{2}/\d{4})\b', card_debit_date[0].text)
                 assert m
                 t.date = Date(dayfirst=True).filter(m.group(1))
@@ -1025,7 +1025,7 @@ class CardsOldWebsitePage(IndexPage):
             obj_type = Transaction.TYPE_DEFERRED_CARD
             obj_label = CleanText(TableCell('label'))
             obj_amount = CleanDecimal.French(TableCell('coming'), sign=lambda x: -1)
-            obj_rdate = Date(CleanText(TableCell('date')), dayfirst=True)
+            obj_rdate = obj_bdate = Date(CleanText(TableCell('date')), dayfirst=True)
 
             def obj_date(self):
                 return self.page.get_date()

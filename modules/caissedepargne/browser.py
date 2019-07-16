@@ -615,6 +615,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                     tr.type = Transaction.TYPE_DEFERRED_CARD
                     if account_card:
                         tr.card = card
+                        tr.bdate = tr.rdate
                     transactions_list.append(tr)
                 if self.new_website:
                     self.page.go_newsite_back_to_summary()
