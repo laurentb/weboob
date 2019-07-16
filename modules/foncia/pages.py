@@ -311,7 +311,8 @@ class SearchResultsPage(HTMLPage):
                 default=NotAvailable
             )
             obj_cost = CleanDecimal(
-                './/strong[has-class("TeaserOffer-price-num")]'
+                './/strong[has-class("TeaserOffer-price-num")]',
+                default=NotAvailable
             )
             obj_price_per_meter = PricePerMeterFilter()
             obj_currency = Currency(
