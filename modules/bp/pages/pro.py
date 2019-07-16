@@ -17,17 +17,15 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
-import re
-from decimal import Decimal
+from __future__ import unicode_literals
 
 from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Date
-from weboob.browser.filters.html import Link
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Coalesce, Currency, Date, Map, Field, Regexp
+from weboob.browser.filters.html import AbsoluteLink, Link
 from weboob.browser.pages import LoggedPage, pagination
 from weboob.capabilities.bank import Account
 from weboob.capabilities.profile import Company
 from weboob.capabilities.base import NotAvailable
-from weboob.tools.compat import urljoin, unicode
 from weboob.exceptions import BrowserUnavailable
 
 from .accounthistory import Transaction
@@ -36,55 +34,55 @@ from .base import MyHTMLPage
 
 class RedirectPage(LoggedPage, MyHTMLPage):
     def check_for_perso(self):
-        return self.doc.xpath(u'//p[contains(text(), "L\'identifiant utilisé est celui d\'un compte de Particuliers")]')
+        return self.doc.xpath('''//p[contains(text(), "L'identifiant utilisé est celui d'un compte de Particuliers")]''')
+
+
+ACCOUNT_TYPES = {
+    'Comptes titres': Account.TYPE_MARKET,
+    'Comptes épargne': Account.TYPE_SAVINGS,
+    'Comptes courants': Account.TYPE_CHECKING,
+}
 
 
 class ProAccountsList(LoggedPage, MyHTMLPage):
+
+    # TODO Be careful about connections with personnalized account groups
+    # According to their presentation video (https://www.labanquepostale.fr/pmo/nouvel-espace-client-business.html),
+    # on the new website people are able to make personnalized groups of account instead of the usual drop-down categories on which to parse to find a match in ACCOUNT_TYPES
+    # If clients use the functionnality we might need to add entries new in ACCOUNT_TYPES
+
     def on_load(self):
         if self.doc.xpath('//div[@id="erreur_generale"]'):
-            raise BrowserUnavailable(CleanText(u'//div[@id="erreur_generale"]//p[contains(text(), "Le service est momentanément indisponible")]')(self.doc))
+            raise BrowserUnavailable(CleanText('//div[@id="erreur_generale"]//p[contains(text(), "Le service est momentanément indisponible")]')(self.doc))
 
-    ACCOUNT_TYPES = {u'comptes titres': Account.TYPE_MARKET,
-                     u'comptes Ã©pargne':    Account.TYPE_SAVINGS,
-                     # wtf? ^
-                     u'comptes épargne':     Account.TYPE_SAVINGS,
-                     u'comptes courants':    Account.TYPE_CHECKING,
-                    }
-    def get_accounts_list(self):
-        for table in self.doc.xpath('//div[@class="comptestabl"]/table'):
-            try:
-                account_type = self.ACCOUNT_TYPES[table.get('summary').lower()]
-                if not account_type:
-                    account_type = self.ACCOUNT_TYPES[table.xpath('./caption/text()')[0].strip().lower()]
-            except (IndexError,KeyError):
-                account_type = Account.TYPE_UNKNOWN
-            for tr in table.xpath('./tbody/tr'):
-                cols = tr.findall('td')
+    def is_here(self):
+        return CleanText('//h1[contains(text(), "Synthèse des comptes")]')(self.doc)
 
-                link = cols[0].find('a')
-                if link is None:
-                    continue
+    @method
+    class iter_accounts(ListElement):
+        item_xpath = '//div[@id="mainContent"]//div[h3/a]'
 
-                a = Account()
-                a.type = account_type
-                a.id = unicode(re.search('([A-Z\d]{4}[A-Z\d\*]{3}[A-Z\d]{4})', link.attrib['title']).group(1))
-                a.label = unicode(link.attrib['title'].replace('%s ' % a.id, ''))
-                # We use '.text_content()' to avoid HTML comments like '<!-- ... -->'
-                tmp_balance = CleanText(None).filter(cols[1].text_content())
-                a.currency = a.get_currency(tmp_balance)
-                if not a.currency:
-                    a.currency = u'EUR'
-                a.balance = Decimal(Transaction.clean_amount(tmp_balance))
-                a._has_cards = False
-                a.url = urljoin(self.url, link.attrib['href'])
-                yield a
+        class item(ItemElement):
+            klass = Account
+
+            obj_id = Regexp(CleanText('./h3/a/@title'), r'([A-Z\d]{4}[A-Z\d\*]{3}[A-Z\d]{4})')
+            obj_balance = CleanDecimal.French('./span/text()[1]')  # This website has the good taste of leaving hard coded HTML comments. This is the way to pin point to the righ text item.
+            obj_currency = Currency('./span')
+            obj_url = AbsoluteLink('./h3/a')
+
+            # account are grouped in /div based on their type, we must fetch the closest one relative to item_xpath
+            obj_type = Map(CleanText('./ancestor::div[1]/preceding-sibling::h2[1]/button/div[@class="title-accordion"]'), ACCOUNT_TYPES, Account.TYPE_UNKNOWN)
+
+            def obj_label(self):
+                """ Need to get rid of the id wherever we find it in account labels like "LIV A 0123456789N MR MOMO" (livret A) as well as "0123456789N MR MOMO" (checking account) """
+                return CleanText('./h3/a/@title')(self).replace('%s ' % Field('id')(self), '')
 
 
 class ProAccountHistory(LoggedPage, MyHTMLPage):
     @pagination
     @method
     class iter_history(ListElement):
-        item_xpath = u'//div[@id="tabReleve"]//tbody/tr'
+        item_xpath = '//div[@id="tabReleve"]//tbody/tr'
 
         def next_page(self):
             # The next page on the website can return pages already visited without logical mechanism
@@ -96,12 +94,12 @@ class ProAccountHistory(LoggedPage, MyHTMLPage):
             next_page_link = Link(next_page_xpath)(self.el)
             next_page = self.page.browser.location(next_page_link)
             first_transaction = CleanText(tr_xpath)(next_page.page.doc)
-            count = 0 # avoid an infinite loop
+            count = 0  # avoid an infinite loop
 
             while first_transaction in self.page.browser.first_transactions and count < 30:
                 next_page = self.page.browser.location(next_page_link)
                 next_page_link = Link(next_page_xpath)(next_page.page.doc)
-                first_transaction =  CleanText(tr_xpath)(next_page.page.doc)
+                first_transaction = CleanText(tr_xpath)(next_page.page.doc)
                 count += 1
 
             if count < 30:
@@ -112,13 +110,15 @@ class ProAccountHistory(LoggedPage, MyHTMLPage):
 
             obj_date = Date(CleanText('.//td[@headers="date"]'), dayfirst=True)
             obj_raw = Transaction.Raw('.//td[@headers="libelle"]')
-            obj_amount = CleanDecimal('.//td[@headers="debit" or @headers="credit"]',
-                                      replace_dots=True, default=NotAvailable)
+            obj_amount = Coalesce(
+                CleanDecimal.French('.//td[@headers="debit"]', default=NotAvailable),
+                CleanDecimal.French('.//td[@headers="credit"]', default=NotAvailable),
+            )
 
 
 class DownloadRib(LoggedPage, MyHTMLPage):
     def get_rib_value(self, acc_id):
-        opt = self.doc.xpath('//div[@class="rechform"]//option')
+        opt = self.doc.xpath('//select[@id="idxSelection"]/optgroup//option')
         for o in opt:
             if acc_id in o.text:
                 return o.xpath('./@value')[0]

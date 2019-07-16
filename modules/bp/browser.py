@@ -617,7 +617,7 @@ class BProBrowser(BPBrowser):
             self.location(self.accounts_url)
             assert self.pro_accounts_list.is_here()
 
-            for account in self.page.get_accounts_list():
+            for account in self.page.iter_accounts():
                 ids.add(account.id)
                 accounts.append(account)
 
@@ -625,7 +625,7 @@ class BProBrowser(BPBrowser):
                 self.location(self.accounts_and_loans_url)
                 assert self.pro_accounts_list.is_here()
 
-            for account in self.page.get_accounts_list():
+            for account in self.page.iter_accounts():
                 if account.id not in ids:
                     ids.add(account.id)
                     accounts.append(account)
