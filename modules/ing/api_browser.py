@@ -27,6 +27,7 @@ from weboob.browser import LoginBrowser, URL
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded
 from weboob.browser.exceptions import ClientError
 from weboob.capabilities.bank import TransferBankError, TransferInvalidAmount
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 from .api import (
     LoginPage, AccountsPage, HistoryPage, ComingPage,
@@ -259,6 +260,8 @@ class IngAPIBrowser(LoginBrowser):
             for tr in self.page.iter_history():
                 # transaction id is decreasing
                 first_transaction_id = int(tr._web_id)
+                if tr.type == FrenchTransaction.TYPE_CARD:
+                    tr.bdate = tr.rdate
                 yield tr
 
             # like website, add 1 to the last transaction id of the list to get next transactions page
@@ -282,7 +285,10 @@ class IngAPIBrowser(LoginBrowser):
     def get_api_coming(self, account):
         """iter coming on new website"""
         self.coming.go(account_uid=account._uid)
-        return self.page.iter_coming()
+        for tr in self.page.iter_coming():
+            if tr.type == FrenchTransaction.TYPE_CARD:
+                tr.bdate = tr.rdate
+            yield tr
 
     @need_login
     def iter_coming(self, account):
