@@ -157,7 +157,7 @@ class AccountsPage(MyJsonPage):
                     a.id += '.%s' % a._file_number
 
                 if poste['postePortefeuille']:
-                    a.label = u'Portefeuille Titres'
+                    a.label = '{} Portefeuille Titres'.format(content['intitule'].strip())
                     a.balance = Decimal(str(poste['montantTitres']['valeur']))
                     a.currency = poste['montantTitres']['monnaie']['code'].strip()
                     if not a.balance and not a.currency and 'dateTitres' not in poste:
@@ -169,7 +169,7 @@ class AccountsPage(MyJsonPage):
 
                 a.label = ' '.join([content['intitule'].strip(), poste['libelle'].strip()])
                 if poste['numeroDossier']:
-                    a.label = '{} {}{}'.format(a.label, 'n°', poste['numeroDossier'])
+                    a.label = '{} n°{}'.format(a.label, poste['numeroDossier'])
 
                 a.balance = Decimal(str(poste['solde']['valeur']))
                 a.currency = poste['solde']['monnaie']['code'].strip()
