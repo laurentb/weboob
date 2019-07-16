@@ -1840,6 +1840,10 @@ class RevolvingLoansList(LoggedPage, HTMLPage):
                 if not self.async_load:
                     return MyDecimal(Regexp(CleanText('.//td[4]'), r'([\s\d-]+,\d+)'))(self)
 
+            def obj_rate(self):
+                if not self.async_load:
+                    return MyDecimal(Regexp(CleanText('.//td[2]'), r'.* (\d*,\d*)%'))(self)
+
 
 class ErrorPage(HTMLPage):
     def on_load(self):
