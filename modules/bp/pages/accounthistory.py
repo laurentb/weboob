@@ -139,7 +139,7 @@ class AccountHistory(LoggedPage, MyHTMLPage):
             if deferred:
                 op._cardid = 'CARTE %s' % card_no
                 op.type = Transaction.TYPE_DEFERRED_CARD
-                op.rdate = op.date
+                op.rdate = op.bdate = op.date
                 op.date = debit_date
                 # on card page, amounts are without sign
                 if op.amount > 0:
