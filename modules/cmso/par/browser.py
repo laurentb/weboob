@@ -264,6 +264,7 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
         for tr in self.page.iter_history(index=account._index, nbs=nbs):
             if has_deferred_cards and tr.type == Transaction.TYPE_CARD:
                 tr.type = Transaction.TYPE_DEFERRED_CARD
+                tr.bdate = tr.rdate
 
             trs.append(tr)
 
@@ -285,6 +286,7 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
             self.trs = {'lastdate': None, 'list': []}
             for c in self.page.iter_history(key=key):
                 if hasattr(c, '_deferred_date'):
+                    c.bdate = c.rdate
                     c.date = c._deferred_date
                     c.type = Transaction.TYPE_DEFERRED_CARD # force deferred card type for comings inside cards
 
