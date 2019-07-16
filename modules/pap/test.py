@@ -81,7 +81,7 @@ class PapTest(BackendTest, HousingTest):
         query = Query()
         query.type = POSTS_TYPES.VIAGER
         query.cities = []
-        for city in self.backend.search_city('85'):
+        for city in self.backend.search_city('paris'):
             city.backend = self.backend.name
             query.cities.append(city)
         # Remove rooms from the tested fields as viager never have them
