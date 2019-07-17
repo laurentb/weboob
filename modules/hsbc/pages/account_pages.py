@@ -415,8 +415,8 @@ class CBOperationPage(GenericLandingPage):
 
     def get_all_parent_id(self):
         all_parent_id = []
-        for card in self.doc.xpath('//ul//li[@data-num-compte]//span[contains(text(), "CARTE")]'):
-            card_id = CleanText('.')(card)
+        for card in self.doc.xpath('//div/img[contains(@src, "produits/cartes")]'):  # deferred cards are displayed with an image contrary to other accounts
+            card_id = CleanText('./following-sibling::span[1]')(card)
             # fetch the closest /li sibling (with 'COMPTE'), it is the one that corresponds the parent acount
             parent_id = CleanText('./ancestor::li/preceding-sibling::li[.//span[contains(text(), "COMPTE")]][1]/@data-num-compte')(card)
             all_parent_id.append((card_id, parent_id))
