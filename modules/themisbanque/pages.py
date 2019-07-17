@@ -173,7 +173,7 @@ class Transaction(FrenchTransaction):
                 (re.compile(r'^CHEQUE( (?P<text>.*))?$'),                               FrenchTransaction.TYPE_CHECK),
                 (re.compile(r'^(F )?COTIS\.? (?P<text>.*)'),                            FrenchTransaction.TYPE_BANK),
                 (re.compile(r'^(REMISE|REM.CHQ) (?P<text>.*)'),                         FrenchTransaction.TYPE_DEPOSIT),
-                (re.compile(r'^(?P<text>.*) CARTE BLEUE'),                              FrenchTransaction.TYPE_CARD),
+                (re.compile(r'^(?P<text>.*)(?P<dd>\d{2})(?P<mm>\d{2}) CARTE BLEUE'),    FrenchTransaction.TYPE_CARD),
                 (re.compile(r'^PRVL SEPA (?P<text>.*)'),                                FrenchTransaction.TYPE_ORDER),
                 (re.compile(r'^(?P<text>(INT. DEBITEURS).*)'),                          FrenchTransaction.TYPE_BANK),
                 (re.compile(r'^(?P<text>.*(VIR EMIS).*)'),                              FrenchTransaction.TYPE_TRANSFER),
