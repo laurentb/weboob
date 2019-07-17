@@ -697,7 +697,7 @@ class DateTime(Filter):
     """Parse date and time."""
 
     def __init__(self, selector=None, default=_NO_DEFAULT, dayfirst=False, translations=None,
-                 parse_func=parse_date, fuzzy=False):
+                 parse_func=parse_date, fuzzy=False, strict=False):
         """
         :param dayfirst: if True, the day is be the first element in the string to parse
         :type dayfirst: bool
@@ -711,6 +711,10 @@ class DateTime(Filter):
         self.translations = translations
         self.parse_func = parse_func
         self.fuzzy = fuzzy
+        self.strict = strict
+
+    _default_date_1 = datetime.datetime(2100, 10, 10, 1, 1, 1)
+    _default_date_2 = datetime.datetime(2120, 12, 12, 2, 2, 2)
 
     @debug()
     def filter(self, txt):
@@ -720,7 +724,14 @@ class DateTime(Filter):
             if self.translations:
                 for search, repl in self.translations:
                     txt = search.sub(repl, txt)
-            return self.parse_func(txt, dayfirst=self.dayfirst, fuzzy=self.fuzzy)
+            if self.strict:
+                parse1 = self.parse_func(txt, default=self._default_date_1, dayfirst=self.dayfirst, fuzzy=self.fuzzy)
+                parse2 = self.parse_func(txt, default=self._default_date_2, dayfirst=self.dayfirst, fuzzy=self.fuzzy)
+                if parse1 != parse2:
+                    raise FilterError('Date is not complete')
+                return parse1
+            else:
+                return self.parse_func(txt, dayfirst=self.dayfirst, fuzzy=self.fuzzy)
         except (ValueError, TypeError) as e:
             return self.default_or_raise(FormatError('Unable to parse %r: %s' % (txt, e)))
 
@@ -753,9 +764,12 @@ class Date(DateTime):
     """Parse date."""
 
     def __init__(self, selector=None, default=_NO_DEFAULT, dayfirst=False, translations=None,
-                 parse_func=parse_date, fuzzy=False):
+                 parse_func=parse_date, fuzzy=False, strict=False):
         super(Date, self).__init__(selector, default=default, dayfirst=dayfirst, translations=translations,
-                                   parse_func=parse_func, fuzzy=fuzzy)
+                                   parse_func=parse_func, fuzzy=fuzzy, strict=strict)
+
+    _default_date_1 = datetime.datetime(2100, 10, 10, 1, 1, 1)
+    _default_date_2 = datetime.datetime(2120, 12, 12, 1, 1, 1)
 
     @debug()
     def filter(self, txt):
@@ -1090,3 +1104,16 @@ def test_CleanDecimal_strict():
     assert_raises(NumberFormatError, CleanDecimal.SI().filter, 'foo 123,456,789')
     assert_raises(NumberFormatError, CleanDecimal.SI().filter, 'foo 12 3456 bar')
     assert_raises(NumberFormatError, CleanDecimal.SI().filter, 'foo 123-456 bar')
+
+
+def test_DateTime():
+    today = datetime.datetime.now()
+    assert_raises(FilterError, Date(strict=True).filter, '2019')
+    assert_raises(FilterError, Date(strict=True).filter, '1788-7')
+    assert_raises(FilterError, Date(strict=True).filter, 'June 1st')
+
+    assert Date(strict=False).filter('1788-7-15') == datetime.date(1788, 7, 15)
+    assert Date(strict=True).filter('1788-7-15') == datetime.date(1788, 7, 15)
+    assert DateTime(strict=False).filter('1788-7') == datetime.datetime(1788, 7, today.day)
+    assert Date(strict=False).filter('1945-7') == datetime.date(1945, 7, today.day)
+    assert Date(strict=False).filter('June 1st') == datetime.date(today.year, 6, 1)
