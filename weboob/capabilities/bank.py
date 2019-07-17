@@ -317,9 +317,13 @@ class Account(BaseAccount):
     cardlimit = DecimalField('For credit cards. Credit limit.')
 
     number =    StringField('Shown by the bank to identify your account ie XXXXX7489')
-    # market and lifeinssurance accounts
+
+    # Wealth accounts (market, life insurance...)
     valuation_diff = DecimalField('+/- values total')
     valuation_diff_ratio = DecimalField('+/- values ratio')
+
+    # Employee savings (PERP, PERCO, Article 83...)
+    company_name = StringField('Name of the company of the stock - only for employee savings')
 
     # parent account
     #  - A checking account parent of a card account
@@ -487,6 +491,7 @@ class Investment(BaseObject):
     diff =               DecimalField('Difference between the buy cost and the current valuation')
     diff_ratio =         DecimalField('Difference in ratio (1 meaning 100%) between the buy cost and the current valuation')
     portfolio_share =    DecimalField('Ratio (1 meaning 100%) of the current amount relative to the total')
+    performance_history = Field('History of the performances of the stock (key=years, value=diff_ratio)', dict, default={})
 
     # International
     original_currency = StringField('Currency of the original amount')
