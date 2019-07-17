@@ -488,7 +488,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
                 yield sub
 
     @need_login
-    def iter_documents(self, subscribtion):
+    def iter_documents(self, subscription):
         end_date = datetime.today()
 
         # 5 years since it goes with a 2 months step
@@ -496,13 +496,13 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
         i = 0
         while i < security_limit:
             self.bank_statement_search.go()
-            self.page.post_form(subscribtion, end_date)
+            self.page.post_form(subscription, end_date)
 
             # No more documents
             if self.page.has_error_msg():
                 break
 
-            for d in self.page.iter_documents(subscribtion):
+            for d in self.page.iter_documents(subscription):
                 yield d
 
             # 3 months step because the documents list is inclusive
