@@ -57,7 +57,7 @@ class SocieteGeneraleModule(Module, CapBankWealth, CapBankTransferAddRecipient, 
         Value('website', label='Type de compte', default='par',
               choices={'par': 'Particuliers', 'pro': 'Professionnels', 'ent': 'Entreprises'}))
 
-    accepted_document_types = (DocumentTypes.STATEMENT,)
+    accepted_document_types = (DocumentTypes.STATEMENT, DocumentTypes.RIB)
 
     def create_default_browser(self):
         b = {'par': SocieteGenerale, 'pro': SGProfessionalBrowser, 'ent': SGEnterpriseBrowser}
@@ -156,6 +156,9 @@ class SocieteGeneraleModule(Module, CapBankWealth, CapBankTransferAddRecipient, 
             subscription = self.get_subscription(subscription)
 
         return self.browser.iter_documents(subscription)
+
+    def iter_documents_by_types(self, subscription, accepted_types):
+        return self.browser.iter_documents_by_types(subscription, accepted_types)
 
     def download_document(self, document):
         if not isinstance(document, Document):

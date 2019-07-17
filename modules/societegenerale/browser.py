@@ -24,6 +24,7 @@ from decimal import Decimal
 from dateutil.relativedelta import relativedelta
 
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
+from weboob.capabilities.bill import Document, DocumentTypes
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded, BrowserUnavailable
 from weboob.capabilities.bank import Account, TransferBankError, AddRecipientStep, TransactionType, AccountOwnerType
 from weboob.capabilities.base import find_object, NotAvailable
@@ -40,7 +41,7 @@ from .pages.accounts_list import (
 )
 from .pages.transfer import AddRecipientPage, SignRecipientPage, TransferJson, SignTransferPage
 from .pages.login import MainPage, LoginPage, BadLoginPage, ReinitPasswordPage, ActionNeededPage, ErrorPage
-from .pages.subscription import BankStatementPage
+from .pages.subscription import BankStatementPage, RibPdfPage
 
 
 __all__ = ['SocieteGenerale']
@@ -100,6 +101,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     bank_statement = URL(r'/restitution/rce_derniers_releves.html', BankStatementPage)
     bank_statement_search = URL(r'/restitution/rce_recherche.html\?noRedirect=1',
                                 r'/restitution/rce_recherche_resultat.html', BankStatementPage)
+    rib_pdf_page = URL(r'/com/icd-web/cbo/pdf/rib-authsec.pdf', RibPdfPage)
 
     bad_login = URL(r'/acces/authlgn.html', r'/error403.html', BadLoginPage)
     reinit = URL(r'/acces/changecodeobligatoire.html',
@@ -475,24 +477,39 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
         except (ProfileMissing, BrowserUnavailable):
             subscriber = NotAvailable
 
-        # subscriptions which have statements are present on the last statement page
-        self.bank_statement.go()
-        subscriptions_list = list(self.page.iter_subscription())
+        self.accounts.go()
+        subscriptions_list = list(self.page.iter_subscription(subscriber=subscriber))
 
-        # this way the no statement accounts are excluded
-        # and the one keeped have all the data and parameters needed
         self.bank_statement_search.go()
-        for sub in self.page.iter_searchable_subscription(subscriber=subscriber):
-            found_sub = find_object(subscriptions_list, id=sub.id)
+        searchable_subscription_list = list(self.page.iter_searchable_subscription())
+        for sub in subscriptions_list:
+            found_sub = find_object(searchable_subscription_list, id=sub.id)
             if found_sub:
-                yield sub
+                # we need it to get bank statement, but not all subscription have it
+                sub._rad_button_id = found_sub._rad_button_id
+            else:
+                # even without bank statement we still can get RIB document, so we yield subscription anyway
+                sub._rad_button_id = NotAvailable
+            yield sub
 
-    @need_login
-    def iter_documents(self, subscription):
-        end_date = datetime.today()
+    def _fetch_rib_document(self, subscription):
+        d = Document()
+        d.id = subscription.id + '_RIB'
+        d.url = self.rib_pdf_page.build(params={'b64e200_prestationIdTechnique': subscription._internal_id})
+        d.type = DocumentTypes.RIB
+        d.format = 'pdf'
+        d.label = 'RIB'
+        return d
+
+    def _iter_statements(self, subscription):
+        # we need _rad_button_id for post_form function
+        # if not present it means this subscription doesn't have any bank statement
+        if subscription._rad_button_id is NotAvailable:
+            return
 
         # 5 years since it goes with a 2 months step
         security_limit = 30
+        end_date = datetime.today()
         i = 0
         while i < security_limit:
             self.bank_statement_search.go()
@@ -509,3 +526,20 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
             # from the 08 to the 06, the 06 statement is included
             end_date = end_date - relativedelta(months=+3)
             i += 1
+
+    @need_login
+    def iter_documents(self, subscription):
+        yield self._fetch_rib_document(subscription)
+        for doc in self._iter_statements(subscription):
+            yield doc
+
+    @need_login
+    def iter_documents_by_types(self, subscription, accepted_types):
+        if DocumentTypes.RIB in accepted_types:
+            yield self._fetch_rib_document(subscription)
+
+        if DocumentTypes.STATEMENT not in accepted_types:
+            return
+
+        for doc in self._iter_statements(subscription):
+            yield doc

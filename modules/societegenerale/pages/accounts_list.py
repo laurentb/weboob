@@ -26,6 +26,7 @@ import re
 from dateutil.relativedelta import relativedelta
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Account, Investment, Loan, AccountOwnership
+from weboob.capabilities.bill import Subscription
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Person, ProfileMissing
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -214,6 +215,19 @@ class AccountsPage(JsonBasePage):
                 if Field('type')(self) == Account.TYPE_SAVINGS and \
                 not Dict('produit')(self) in ('PLAN_EPARGNE_POPULAIRE', ):
                     return True
+
+    @method
+    class iter_subscription(DictElement):
+        item_xpath = 'donnees'
+
+        class item(ItemElement):
+            klass = Subscription
+
+            obj_id = CleanText(Dict('numeroCompteFormate'), replace=[(' ', '')])
+            obj_subscriber = Env('subscriber')
+            obj_label = Format('%s %s', Dict('labelToDisplay'), Field('id'))
+            obj__internal_id = Dict('idTechnique')
+
 
 class AccountsSynthesesPage(JsonBasePage):
     def is_new_website_available(self):
