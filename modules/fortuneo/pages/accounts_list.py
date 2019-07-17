@@ -291,6 +291,12 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
             amount          = tables[i].xpath("./td[5]/text() | ./td[6]/text()")
 
             operation.parse(date=date_oper, raw=label, vdate=date_val)
+
+            # There is no difference between card transaction and deferred card transaction
+            # on the history.
+            if operation.type == FrenchTransaction.TYPE_CARD:
+                operation.bdate = operation.rdate
+
             # Needed because operation.parse overwrite operation.label
             # Theses lines must run after operation.parse.
             if tables[i].xpath("./td[4]/div/text()"):
@@ -327,7 +333,7 @@ class CardHistoryPage(LoggedPage, HTMLPage):
 
             tr = Transaction()
             tr.parse(date=date, raw=raw)
-            tr.rdate = tr.parse_date(rdate)
+            tr.rdate = tr.bdate = tr.parse_date(rdate)
             tr.type = tr.TYPE_DEFERRED_CARD
             if credit:
                 tr.amount = CleanDecimal(None, replace_dots=True).filter(credit)
