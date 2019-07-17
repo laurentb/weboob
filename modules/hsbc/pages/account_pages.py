@@ -214,6 +214,8 @@ class AccountsPage(GenericLandingPage):
             def obj_balance(self):
                 if Field('type')(self) == Account.TYPE_CARD:
                     return Decimal(0)
+                elif 'Mes crédits' in CleanText('.//ancestor::div[1]/preceding-sibling::*')(self):
+                    return - abs(Field('_amount')(self))
                 return Field('_amount')(self)
 
             def obj_coming(self):
