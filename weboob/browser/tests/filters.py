@@ -18,6 +18,7 @@
 from unittest import TestCase
 from lxml.html import fromstring
 
+from weboob.browser.filters.html import Link
 from weboob.browser.filters.standard import RawText
 
 
@@ -48,3 +49,10 @@ class RawTextTest(TestCase):
     def test_first_node_is_element_recursive(self):
         e = fromstring('<html><body><p><span>229,90</span> EUR</p></body></html>')
         self.assertEqual("229,90 EUR", RawText('//p', default="foo", children=True)(e))
+
+
+class LinkTest(TestCase):
+    def test_link(self):
+        e = fromstring('<a href="https://www.google.com/">Google</a>')
+
+        self.assertEqual('https://www.google.com/', Link('//a')(e))
