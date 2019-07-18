@@ -18,7 +18,7 @@
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bank import CapBankWealth, AccountNotFound
+from weboob.capabilities.bank import CapBankWealth, AccountNotFound, Account
 from weboob.capabilities.base import find_object
 from weboob.capabilities.profile import CapProfile
 from weboob.tools.backend import Module, BackendConfig
@@ -73,3 +73,13 @@ class BredModule(Module, CapBankWealth, CapProfile):
 
     def get_profile(self):
         return self.browser.get_profile()
+
+    def fill_account(self, account, fields):
+        if self.config['website'].get() != 'bred':
+            return
+
+        self.browser.fill_account(account, fields)
+
+    OBJECTS = {
+        Account: fill_account,
+    }

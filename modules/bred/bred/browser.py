@@ -135,9 +135,6 @@ class BredBrowser(LoginBrowser):
     def get_list(self):
         self.accounts.go()
         for acc in self.page.iter_accounts(accnum=self.accnum, current_univers=self.current_univers):
-            if acc.type == Account.TYPE_CHECKING:
-                self.iban.go(number=acc._number)
-                self.page.set_iban(account=acc)
             yield acc
 
     @need_login
@@ -227,3 +224,9 @@ class BredBrowser(LoginBrowser):
         self.page.set_email(profile=profile)
 
         return profile
+
+    @need_login
+    def fill_account(self, account, fields):
+        if account.type == Account.TYPE_CHECKING and 'iban' in fields:
+            self.iban.go(number=account._number)
+            self.page.set_iban(account=account)
