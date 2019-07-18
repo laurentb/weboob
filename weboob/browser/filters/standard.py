@@ -696,10 +696,10 @@ class MapIn(Filter):
 class DateTime(Filter):
     """Parse date and time."""
 
-    def __init__(self, selector=None, default=_NO_DEFAULT, dayfirst=False, translations=None,
-                 parse_func=parse_date, fuzzy=False, strict=True):
+    def __init__(self, selector=None, default=_NO_DEFAULT, translations=None,
+                 parse_func=parse_date, strict=True, **kwargs):
         """
-        :param dayfirst: if True, the day is be the first element in the string to parse
+        :param dayfirst: if True, the day is the first element in the string to parse
         :type dayfirst: bool
         :param parse_func: the function to use for parsing the datetime
         :param translations: string replacements from site locale to English
@@ -707,10 +707,9 @@ class DateTime(Filter):
         """
 
         super(DateTime, self).__init__(selector, default=default)
-        self.dayfirst = dayfirst
+        self.kwargs = kwargs
         self.translations = translations
         self.parse_func = parse_func
-        self.fuzzy = fuzzy
         self.strict = strict
 
     _default_date_1 = datetime.datetime(2100, 10, 10, 1, 1, 1)
@@ -725,13 +724,13 @@ class DateTime(Filter):
                 for search, repl in self.translations:
                     txt = search.sub(repl, txt)
             if self.strict:
-                parse1 = self.parse_func(txt, default=self._default_date_1, dayfirst=self.dayfirst, fuzzy=self.fuzzy)
-                parse2 = self.parse_func(txt, default=self._default_date_2, dayfirst=self.dayfirst, fuzzy=self.fuzzy)
+                parse1 = self.parse_func(txt, default=self._default_date_1, **self.kwargs)
+                parse2 = self.parse_func(txt, default=self._default_date_2, **self.kwargs)
                 if parse1 != parse2:
                     raise FilterError('Date is not complete')
                 return parse1
             else:
-                return self.parse_func(txt, dayfirst=self.dayfirst, fuzzy=self.fuzzy)
+                return self.parse_func(txt, **self.kwargs)
         except (ValueError, TypeError) as e:
             return self.default_or_raise(FormatError('Unable to parse %r: %s' % (txt, e)))
 
@@ -763,10 +762,8 @@ class FromTimestamp(Filter):
 class Date(DateTime):
     """Parse date."""
 
-    def __init__(self, selector=None, default=_NO_DEFAULT, dayfirst=False, translations=None,
-                 parse_func=parse_date, fuzzy=False, strict=True):
-        super(Date, self).__init__(selector, default=default, dayfirst=dayfirst, translations=translations,
-                                   parse_func=parse_func, fuzzy=fuzzy, strict=strict)
+    def __init__(self, selector=None, default=_NO_DEFAULT, translations=None, parse_func=parse_date, strict=True, **kwargs):
+        super(Date, self).__init__(selector, default=default, translations=translations, parse_func=parse_func, strict=strict, **kwargs)
 
     _default_date_1 = datetime.datetime(2100, 10, 10, 1, 1, 1)
     _default_date_2 = datetime.datetime(2120, 12, 12, 1, 1, 1)
@@ -1112,8 +1109,17 @@ def test_DateTime():
     assert_raises(FilterError, Date(strict=True).filter, '1788-7')
     assert_raises(FilterError, Date(strict=True).filter, 'June 1st')
 
-    assert Date(strict=False).filter('1788-7-15') == datetime.date(1788, 7, 15)
     assert Date(strict=True).filter('1788-7-15') == datetime.date(1788, 7, 15)
-    assert DateTime(strict=False).filter('1788-7') == datetime.datetime(1788, 7, today.day)
+
+    assert Date(strict=False).filter('1788-7-15') == datetime.date(1788, 7, 15)
     assert Date(strict=False).filter('1945-7') == datetime.date(1945, 7, today.day)
     assert Date(strict=False).filter('June 1st') == datetime.date(today.year, 6, 1)
+
+    assert DateTime(strict=False).filter('1788-7') == datetime.datetime(1788, 7, today.day)
+    assert DateTime(strict=False).filter('1788') == datetime.datetime(1788, today.month, today.day)
+    assert DateTime(strict=False).filter('5-1') == datetime.datetime(today.year, 5, 1)
+
+    assert Date(yearfirst=True).filter('88-7-15') == datetime.date(1988, 7, 15)
+    assert Date(yearfirst=False).filter('20-7-15') == datetime.date(2015, 7, 20)
+    assert Date(yearfirst=True).filter('1789-7-15') == datetime.date(1789, 7, 15)
+    assert Date(yearfirst=True, strict=False).filter('7-15') == datetime.date(today.year, 7, 15)
