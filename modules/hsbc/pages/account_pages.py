@@ -46,7 +46,8 @@ class Transaction(FrenchTransaction):
         (re.compile(r'^DAB (?P<dd>\d{2})/(?P<mm>\d{2}) ((?P<HH>\d{2})H(?P<MM>\d{2}) )?(?P<text>.*?)( CB N°.*)?$'), FrenchTransaction.TYPE_WITHDRAWAL),
         (re.compile(r'^(IMPAYE REMISE )?CHEQUE( \d+)?'), FrenchTransaction.TYPE_CHECK),
         (re.compile(r'^IMPAYE REMISE CHEQUE'), FrenchTransaction.TYPE_CHECK),
-        (re.compile(r'^(COTIS\.?|FRAIS) (?P<text>.*)'), FrenchTransaction.TYPE_BANK),
+        (re.compile(r'^(COM\.?|COTIS\.?|FRAIS) (?P<text>.*)'), FrenchTransaction.TYPE_BANK),
+        (re.compile(r'^ARRETE DE COMPTE.*'), FrenchTransaction.TYPE_BANK),
         (re.compile(r'^REMISE (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
         (re.compile(r'^FACTURES CB (?P<text>.*)'), FrenchTransaction.TYPE_CARD_SUMMARY),
     ]
