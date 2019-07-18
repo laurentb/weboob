@@ -697,7 +697,7 @@ class DateTime(Filter):
     """Parse date and time."""
 
     def __init__(self, selector=None, default=_NO_DEFAULT, dayfirst=False, translations=None,
-                 parse_func=parse_date, fuzzy=False, strict=False):
+                 parse_func=parse_date, fuzzy=False, strict=True):
         """
         :param dayfirst: if True, the day is be the first element in the string to parse
         :type dayfirst: bool
@@ -764,7 +764,7 @@ class Date(DateTime):
     """Parse date."""
 
     def __init__(self, selector=None, default=_NO_DEFAULT, dayfirst=False, translations=None,
-                 parse_func=parse_date, fuzzy=False, strict=False):
+                 parse_func=parse_date, fuzzy=False, strict=True):
         super(Date, self).__init__(selector, default=default, dayfirst=dayfirst, translations=translations,
                                    parse_func=parse_func, fuzzy=fuzzy, strict=strict)
 
