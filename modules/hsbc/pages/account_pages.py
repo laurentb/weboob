@@ -478,6 +478,7 @@ class LoginPage(HTMLPage):
         for message in self.doc.xpath('//div[has-class("csPanelErrors")]'):
             error_msg = CleanText('.')(message)
             if any(msg in error_msg for msg in ['Please enter valid credentials for memorable answer and password.',
+                                                'Please enter a valid Username.',
                                                 'mot de passe invalide']):
                 raise BrowserIncorrectPassword(error_msg)
             else:
