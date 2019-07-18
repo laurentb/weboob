@@ -15,10 +15,12 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
+
+from decimal import Decimal
 from unittest import TestCase
 from lxml.html import fromstring
 
-from weboob.browser.filters.html import Link
+from weboob.browser.filters.html import FormValue, Link
 from weboob.browser.filters.standard import RawText
 
 
@@ -49,6 +51,29 @@ class RawTextTest(TestCase):
     def test_first_node_is_element_recursive(self):
         e = fromstring('<html><body><p><span>229,90</span> EUR</p></body></html>')
         self.assertEqual("229,90 EUR", RawText('//p', default="foo", children=True)(e))
+
+
+class FormValueTest(TestCase):
+    def setUp(self):
+        self.e = fromstring('''
+        <form>
+            <input value="bonjour" name="test_text">
+            <input type="number" value="5" name="test_number1">
+            <input type="number" step="0.01" value="0.05" name="test_number2">
+            <input type="checkbox" checked="on" name="test_checkbox1">
+            <input type="checkbox" name="test_checkbox2">
+            <input type="date" value="2012-12-12" name="test_date">
+            <input type="range" value="20" name="test_range">
+        </form>
+        ''')
+
+    def test_value(self):
+        self.assertEqual('bonjour', FormValue('//form//input[@name="test_text"]')(self.e))
+        self.assertEqual(5, FormValue('//form//input[@name="test_number1"]')(self.e))
+        self.assertEqual(Decimal('0.05'), FormValue('//form//input[@name="test_number2"]')(self.e))
+        self.assertEqual(True, FormValue('//form//input[@name="test_checkbox1"]')(self.e))
+        self.assertEqual(False, FormValue('//form//input[@name="test_checkbox2"]')(self.e))
+        self.assertEqual(20, FormValue('//form//input[@name="test_range"]')(self.e))
 
 
 class LinkTest(TestCase):

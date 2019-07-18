@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from decimal import Decimal
 
 import lxml.html as html
 from six.moves.html_parser import HTMLParser
@@ -185,7 +186,16 @@ class FormValue(Filter):
                     return unicode(el.attrib['value'])
                 except KeyError:
                     return self.default_or_raise(AttributeNotFound('Element %s does not have attribute value' % el))
-            # TODO handle html5 number, datetime, etc.
+            # numeric input
+            elif el.attrib.get('type', '') in ('number', 'range'):
+                try:
+                    if '.' in el.attrib.get('step', ''):
+
+                        return Decimal(el.attrib['value'])
+                    else:
+                        return int(el.attrib['value'])
+                except KeyError:
+                    return self.default_or_raise(AttributeNotFound('Element %s does not have attribute value' % el))
             else:
                 raise UnrecognizedElement('Element %s is not recognized' % el)
         elif el.tag == 'textarea':
