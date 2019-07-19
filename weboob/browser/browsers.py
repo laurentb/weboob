@@ -710,7 +710,7 @@ class PagesBrowser(DomainBrowser):
                 regexp = r'^(?P<proto>\w+)://.*'
 
                 proto_response = re.match(regexp, response.url)
-                if proto_response:
+                if proto_response and self.BASEURL:
                     proto_response = proto_response.group('proto')
                     proto_base = re.match(regexp, self.BASEURL).group('proto')
 
