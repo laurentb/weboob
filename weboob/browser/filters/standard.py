@@ -39,6 +39,7 @@ __all__ = ['FilterError', 'ColumnNotFound', 'RegexpError', 'FormatError',
            'Filter', 'Base', 'Env', 'TableCell', 'RawText',
            'CleanText', 'Lower', 'Upper', 'Capitalize', 'CleanDecimal',
            'Field', 'Regexp', 'Map', 'DateTime', 'Date', 'Time', 'DateGuesser',
+           'FromTimestamp',
            'Duration', 'MultiFilter', 'CombineDate', 'Format', 'Join', 'Type',
            'Eval', 'BrowserURL', 'Async', 'AsyncLoad',
            'QueryValue', 'Coalesce', 'MapIn']
@@ -748,6 +749,30 @@ class DateTime(Filter):
             return self.parse_func(txt, dayfirst=self.dayfirst, fuzzy=self.fuzzy)
         except (ValueError, TypeError) as e:
             return self.default_or_raise(FormatError('Unable to parse %r: %s' % (txt, e)))
+
+
+class FromTimestamp(Filter):
+    """Parse a timestamp into a datetime."""
+
+    def __init__(self, selector, millis=False, tz=None, default=_NO_DEFAULT):
+        super(FromTimestamp, self).__init__(selector, default=default)
+        self.millis = millis
+        self.tz = tz
+
+    @debug()
+    def filter(self, txt):
+        try:
+            ts = float(txt)
+        except (TypeError, ValueError) as exc:
+            return self.default_or_raise(FormatError('Unable to parse %r: %s' % (txt, exc)))
+
+        if self.millis:
+            ts /= 1000
+
+        try:
+            return datetime.datetime.fromtimestamp(ts, tz=self.tz)
+        except TypeError as exc:
+            return self.default_or_raise(FormatError('Unable to parse %r: %s' % (txt, exc)))
 
 
 class Date(DateTime):
