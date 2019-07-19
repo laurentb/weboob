@@ -64,6 +64,7 @@ class FormValueTest(TestCase):
             <input type="checkbox" name="test_checkbox2">
             <input type="date" value="2012-12-12" name="test_date">
             <input type="range" value="20" name="test_range">
+            <input type="color" value="#fff666" name="test_color">
         </form>
         ''')
 
@@ -74,6 +75,7 @@ class FormValueTest(TestCase):
         self.assertEqual(True, FormValue('//form//input[@name="test_checkbox1"]')(self.e))
         self.assertEqual(False, FormValue('//form//input[@name="test_checkbox2"]')(self.e))
         self.assertEqual(20, FormValue('//form//input[@name="test_range"]')(self.e))
+        self.assertEqual('#fff666', FormValue('//form//input[@name="test_color"]')(self.e))
 
 
 class LinkTest(TestCase):
