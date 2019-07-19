@@ -26,7 +26,7 @@ from lxml import objectify
 
 from weboob.browser.pages import HTMLPage, XMLPage, RawPage, LoggedPage, pagination, FormNotFound, PartialHTMLPage
 from weboob.browser.elements import ItemElement, TableElement, SkipItem, method
-from weboob.browser.filters.standard import CleanText, Date, Regexp, Eval, CleanDecimal, Env, Field
+from weboob.browser.filters.standard import CleanText, Date, Regexp, Eval, CleanDecimal, Env, Field, MapIn, Upper
 from weboob.browser.filters.html import Attr, TableCell
 from weboob.capabilities.bank import Account, Investment, Pocket, Transaction
 from weboob.capabilities.base import NotAvailable
@@ -346,6 +346,7 @@ class AccountsPage(LoggedPage, MultiPage):
         'SWISS': Account.TYPE_MARKET,
         'RSP': Account.TYPE_RSP,
         'CCB': Account.TYPE_DEPOSIT,
+        'PERF': Account.TYPE_PERP,
     }
 
     CONDITIONS = {
@@ -386,9 +387,7 @@ class AccountsPage(LoggedPage, MultiPage):
             obj_label = Env('label')
 
             def obj_type(self):
-                if Field('label')(self).startswith('ETOILE'):
-                    return self.page.TYPES.get(Field('label')(self).split()[1].upper(), Account.TYPE_UNKNOWN)
-                return self.page.TYPES.get(Field('label')(self).split()[0].upper(), Account.TYPE_UNKNOWN)
+                return MapIn(Upper(Field('label')), self.page.TYPES, Account.TYPE_UNKNOWN)(self)
 
             def obj_balance(self):
                 return MyDecimal(TableCell('balance')(self)[0].xpath('.//div[has-class("nowrap")]'))(self)
