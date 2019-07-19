@@ -778,7 +778,7 @@ class NetfincaToCragr(LoggedPage, CragrPage):
         if new_session_value:
             self.browser.session_value = new_session_value
         # Automatically go back to the accounts page
-        self.browser.accounts.go(session_value=self.browser.session_value)
+        self.browser.accounts.go()
 
 
 class BGPIRedirectionPage(LoggedPage, HTMLPage):

@@ -24,6 +24,7 @@ import re
 from datetime import timedelta, datetime
 
 from weboob.browser import LoginBrowser, URL, need_login
+from weboob.browser.url import BrowserParamURL
 from weboob.browser.exceptions import ServerError, BrowserHTTPNotFound
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.tools.compat import urlparse
@@ -61,7 +62,7 @@ class CragrRegion(LoginBrowser):
     home = URL(r'/$', r'/particuliers.html', HomePage)
     login = URL(r'/stb/entreeBam$', LoginPage)
     logged_out = URL(r'.*', LoggedOutPage)
-    password_expired = URL(r'/stb/entreeBam\?sessionSAG=(?P<session_value>[^&]+)&stbpg=pagePU&act=Interstitielle', PasswordExpiredPage)
+    password_expired = URL(r'/stb/entreeBam\?sessionSAG=(?P<browser_session_value>[^&]+)&stbpg=pagePU&act=Interstitielle', PasswordExpiredPage)
 
     # Perimeters
     perimeter_details_page = URL(r'/stb/.*act=Perimetre.*', PerimeterDetailsPage)
@@ -79,14 +80,14 @@ class CragrRegion(LoginBrowser):
     failed_history = URL(r'/stb/.*fwkaid=.*fwkpid=.*', FailedHistoryPage)
 
     # Various investment spaces (Predica, Netfinca, BGPI)
-    predica_redirection = URL(
-        r'/stb/entreeBam\?sessionSAG=(?P<session_value>[^&]+)&stbpg=pagePU&site=(?P<website>[^&]+)&typeaction=reroutage_aller&sdt=(?P<sdt>[^&]+)&parampartenaire=(?P<partenaire>[^&]+)',
+    predica_redirection = BrowserParamURL(
+        r'/stb/entreeBam\?sessionSAG=(?P<browser_session_value>[^&]+)&stbpg=pagePU&site=(?P<website>[^&]+)&typeaction=reroutage_aller&sdt=(?P<sdt>[^&]+)&parampartenaire=(?P<partenaire>[^&]+)',
         PredicaRedirectionPage
     )
     predica_investments = URL(r'https://npcprediweb.predica.credit-agricole.fr/rest/detailEpargne/contrat/', PredicaInvestmentsPage)
 
-    netfinca_redirection = URL(
-        r'/stb/entreeBam\?sessionSAG=(?P<session_value>[^&]+)&stbpg=pagePU&site=CATITRES&typeaction=reroutage_aller',
+    netfinca_redirection = BrowserParamURL(
+        r'/stb/entreeBam\?sessionSAG=(?P<browser_session_value>[^&]+)&stbpg=pagePU&site=CATITRES&typeaction=reroutage_aller',
         NetfincaRedirectionPage
     )
     netfinca_details = URL(
@@ -103,15 +104,15 @@ class CragrRegion(LoginBrowser):
     )
     netfinca_to_cragr = URL(r'/stb/entreeBam\?identifiantBAM=.*', NetfincaToCragr)
 
-    bgpi_redirection = URL(
-        r'/stb/entreeBam\?sessionSAG=(?P<session_value>[^&]+)&stbpg=pagePU&site=BGPI&typeaction=reroutage_aller&sdt=BGPI&parampartenaire=',
+    bgpi_redirection = BrowserParamURL(
+        r'/stb/entreeBam\?sessionSAG=(?P<browser_session_value>[^&]+)&stbpg=pagePU&site=BGPI&typeaction=reroutage_aller&sdt=BGPI&parampartenaire=',
         BGPIRedirectionPage
     )
     bgpi_space = URL(r'https://bgpi-gestionprivee.credit-agricole.fr/bgpi/Logon.do.*', BGPISpace)
     bgpi_investments = URL(r'https://bgpi-gestionprivee.credit-agricole.fr/bgpi/CompteDetail.do.*', BGPIInvestmentPage)
 
     # Transfer & Recipient
-    transfer_init_page = URL(r'/stb/entreeBam\?sessionSAG=(?P<session_value>[^&]+)&stbpg=pagePU&act=Virementssepa&stbzn=bnt&actCrt=Virementssepa', TransferInit)
+    transfer_init_page = BrowserParamURL(r'/stb/entreeBam\?sessionSAG=(?P<browser_session_value>[^&]+)&stbpg=pagePU&act=Virementssepa&stbzn=bnt&actCrt=Virementssepa', TransferInit)
     transfer_page = URL(r'/stb/collecteNI\?fwkaid=.*&fwkpid=.*$', TransferPage)
 
     recipient_list = URL(r'/stb/collecteNI\?.*&act=Vilistedestinataires.*', RecipientListPage)
@@ -122,19 +123,28 @@ class CragrRegion(LoginBrowser):
     send_sms_page = URL(r'/stb/collecteNI\?fwkaid=.*&fwkpid=.*', SendSMSPage)
 
     # Accounts
-    accounts = URL(r'/stb/entreeBam\?sessionSAG=(?P<session_value>[^&]+)&stbpg=pagePU&act=Synthcomptes.*',
-                   r'/stb/entreeBam\?sessionSAG=(?P<session_value>[^&]+)&stbpg=pagePU&act=Releves.*',
-                   r'/stb/(collecteNI|entreeBam)\?fwkaid=.*&fwkpid=.*Synthcomptes.*',
-                   r'/stb/.*fwkaid=.*fwkpid=.*', AccountsPage)
+    accounts = BrowserParamURL(
+        r'/stb/entreeBam\?sessionSAG=(?P<browser_session_value>[^&]+)&stbpg=pagePU&act=Synthcomptes.*',
+        r'/stb/entreeBam\?sessionSAG=(?P<browser_session_value>[^&]+)&stbpg=pagePU&act=Releves.*',
+        r'/stb/(collecteNI|entreeBam)\?fwkaid=.*&fwkpid=.*Synthcomptes.*',
+        r'/stb/.*fwkaid=.*fwkpid=.*',
+        AccountsPage
+    )
 
-    wealth = URL(r'/stb/entreeBam\?sessionSAG=(?P<session_value>[^&]+)&stbpg=pagePU&act=Synthepargnes',
-                 r'/stb/(collecteNI|entreeBam)\?fwkaid=.*&fwkpid=.*Synthepargnes.*', WealthPage)
+    wealth = BrowserParamURL(
+        r'/stb/entreeBam\?sessionSAG=(?P<browser_session_value>[^&]+)&stbpg=pagePU&act=Synthepargnes',
+        r'/stb/(collecteNI|entreeBam)\?fwkaid=.*&fwkpid=.*Synthepargnes.*',
+        WealthPage
+    )
 
-    loans = URL(r'/stb/entreeBam\?sessionSAG=(?P<session_value>[^&]+)&stbpg=pagePU&act=Synthcredits',
-                r'/stb/(collecteNI|entreeBam)\?fwkaid=.*&fwkpid=.*Synthcredits.*', LoansPage)
+    loans = BrowserParamURL(
+        r'/stb/entreeBam\?sessionSAG=(?P<browser_session_value>[^&]+)&stbpg=pagePU&act=Synthcredits',
+        r'/stb/(collecteNI|entreeBam)\?fwkaid=.*&fwkpid=.*Synthcredits.*',
+        LoansPage
+    )
 
     # Profile
-    profile = URL(r'/stb/entreeBam\?sessionSAG=(?P<session_value>[^&]+)&stbpg=pagePU&act=Coordonnees', ProfilePage)
+    profile = BrowserParamURL(r'/stb/entreeBam\?sessionSAG=(?P<browser_session_value>[^&]+)&stbpg=pagePU&act=Coordonnees', ProfilePage)
 
 
     def __init__(self, website, *args, **kwargs):
@@ -209,7 +219,7 @@ class CragrRegion(LoginBrowser):
         # The session value is necessary for correct navigation.
         self.location(url_after_login)
 
-        self.accounts.go(session_value=self.session_value)
+        self.accounts.go()
         assert self.accounts.is_here()
 
         # No need to get perimeters in case of re-login
@@ -245,7 +255,7 @@ class CragrRegion(LoginBrowser):
         if self.page.has_two_perimeters():
             self.logger.warning('This connection has 2 perimeters.')
             self.perimeters.append(self.page.get_perimeter_name())
-            self.accounts.stay_or_go(session_value=self.session_value)
+            self.accounts.stay_or_go()
             self.access_perimeter_details()
             self.switch_perimeter()
             self.perimeters.append(self.page.get_perimeter_name())
@@ -253,7 +263,7 @@ class CragrRegion(LoginBrowser):
             self.logger.warning('This connection has multiple perimeters.')
             self.perimeters.append(self.page.get_perimeter_name())
             for perimeter in self.page.get_multiple_perimeters():
-                self.accounts.stay_or_go(session_value=self.session_value)
+                self.accounts.stay_or_go()
                 self.access_perimeter_details()
                 perimeter_url = self.page.get_perimeter_url(perimeter)
                 if perimeter_url:
@@ -282,7 +292,7 @@ class CragrRegion(LoginBrowser):
                 self.session_value = m.group(1)
 
         if len(self.perimeters) == 1:
-            self.accounts.stay_or_go(session_value=self.session_value)
+            self.accounts.stay_or_go()
             for account in self.iter_perimeter_accounts(iban=True, all_accounts=True):
                 account._perimeter = 'main'
                 accounts_list.append(account)
@@ -317,7 +327,7 @@ class CragrRegion(LoginBrowser):
         cragr_accounts = []
 
         # Regular accounts (Checking and Savings)
-        self.accounts.stay_or_go(session_value=self.session_value)
+        self.accounts.stay_or_go()
         self.page.set_cragr_code()
         for account in self.page.iter_accounts():
             if iban and account._form:
@@ -326,12 +336,12 @@ class CragrRegion(LoginBrowser):
                 cragr_accounts.append(account)
 
         # Wealth accounts (PEA, Market, Life Insurances, PERP...)
-        self.wealth.go(session_value=self.session_value)
+        self.wealth.go()
         wealth_accounts = []
         if not self.wealth.is_here():
             # Sometimes we land on an error page so we try again:
             self.logger.warning('Failed to access wealth page, trying a second time')
-            self.wealth.go(session_value=self.session_value)
+            self.wealth.go()
             assert self.wealth.is_here(), 'We failed to go to the wealth accounts page twice.'
 
         # We first store the wealth accounts in a list because we
@@ -344,7 +354,7 @@ class CragrRegion(LoginBrowser):
             if all_accounts and account.url == 'BGPI':
                 # Accounts from the BGPI space require going
                 # to the BGPI space to get account details
-                self.bgpi_redirection.go(session_value=self.session_value)
+                self.bgpi_redirection.go()
                 bgpi_url = self.page.get_bgpi_url()
                 if bgpi_url:
                     self.location(bgpi_url)
@@ -363,7 +373,7 @@ class CragrRegion(LoginBrowser):
                             account.label
                         )
                 # Go back to the main Cragr website afterwards
-                self.wealth.go(session_value=self.session_value)
+                self.wealth.go()
 
             # Sometimes the balance is not displayed here, so when possible,
             # we go to the account details to fetch it
@@ -374,11 +384,11 @@ class CragrRegion(LoginBrowser):
             cragr_accounts.append(account)
 
         # Loans & revolving credits
-        self.loans.go(session_value=self.session_value)
+        self.loans.go()
         if not self.loans.is_here():
             # Sometimes we land on an error page so we try again:
             self.logger.warning('Failed to access loans page, trying a second time')
-            self.loans.go(session_value=self.session_value)
+            self.loans.go()
             assert self.loans.is_here(), 'We failed to go to the loans accounts page twice.'
 
         for loan in self.page.iter_loans():
@@ -386,7 +396,7 @@ class CragrRegion(LoginBrowser):
                 cragr_accounts.append(loan)
 
         # Deferred cards
-        self.accounts.stay_or_go(session_value=self.session_value)
+        self.accounts.stay_or_go()
         for card in self.iter_deferred_cards(cragr_accounts):
             if card.id not in [a.id for a in cragr_accounts]:
                 cragr_accounts.append(card)
@@ -428,7 +438,7 @@ class CragrRegion(LoginBrowser):
     @need_login
     def get_netfinca_accounts(self):
         try:
-            self.netfinca_redirection.go(session_value=self.session_value)
+            self.netfinca_redirection.go()
         except BrowserHTTPNotFound:
             pass
         else:
@@ -470,7 +480,7 @@ class CragrRegion(LoginBrowser):
                 card.parent = find_object(perimeter_accounts, id=parent_account)
                 card._card_link = card_link
                 cards_list.append(card)
-            self.accounts.stay_or_go(session_value=self.session_value)
+            self.accounts.stay_or_go()
 
         return cards_list
 
@@ -485,7 +495,7 @@ class CragrRegion(LoginBrowser):
             # There is only one perimeter, no need to switch.
             return
         elif len(self.perimeters) == 2:
-            self.accounts.stay_or_go(session_value=self.session_value)
+            self.accounts.stay_or_go()
             if perimeter == self.page.get_perimeter_name():
                 # We are already on the correct perimeter.
                 return
@@ -495,7 +505,7 @@ class CragrRegion(LoginBrowser):
                 self.switch_perimeter()
         else:
             # This connection has multiple perimeters.
-            self.accounts.stay_or_go(session_value=self.session_value)
+            self.accounts.stay_or_go()
             if perimeter == self.page.get_perimeter_name():
                 # We are already on the correct perimeter.
                 return
@@ -523,7 +533,7 @@ class CragrRegion(LoginBrowser):
 
         if account.type == Account.TYPE_CARD:
             self.go_to_perimeter(account._perimeter)
-            self.accounts.stay_or_go(session_value=self.session_value)
+            self.accounts.stay_or_go()
             self.page.go_to_card(account._card_link)
 
             assert (self.cards_page.is_here() or self.multiple_cards_page.is_here()), \
@@ -583,7 +593,7 @@ class CragrRegion(LoginBrowser):
             # The form submission sometimes fails so we try several
             # times until we get to the account history page.
             for form in range(3):
-                self.accounts.stay_or_go(session_value=self.session_value)
+                self.accounts.stay_or_go()
                 self.go_to_perimeter(account._perimeter)
 
                 # No need to fetch IBANs and Netfinca accounts just to fetch an account form
@@ -643,7 +653,7 @@ class CragrRegion(LoginBrowser):
                         yield inv
 
             # Go back to the main Cragr website afterwards
-            self.accounts.stay_or_go(session_value=self.session_value)
+            self.accounts.stay_or_go()
 
     def get_predica_investments(self, account):
         # We need to extract the account values from a string that has the format
@@ -653,7 +663,7 @@ class CragrRegion(LoginBrowser):
             self.go_to_perimeter(account._perimeter)
             values = m.group(1).replace("'", "").split(',')
             try:
-                self.predica_redirection.go(session_value=self.session_value, website=values[0], sdt=values[1], partenaire=values[2])
+                self.predica_redirection.go(website=values[0], sdt=values[1], partenaire=values[2])
             except ServerError:
                 self.logger.warning('Server returned error when fetching investments for account id %s', account.id)
             else:
@@ -665,7 +675,7 @@ class CragrRegion(LoginBrowser):
     def get_netfinca_investments(self, account):
         self.go_to_perimeter(account._perimeter)
         try:
-            self.netfinca_redirection.go(session_value=self.session_value)
+            self.netfinca_redirection.go()
         except BrowserHTTPNotFound:
             pass
         else:
@@ -696,10 +706,10 @@ class CragrRegion(LoginBrowser):
     def iter_transfer_recipients(self, account):
         # perimeters have their own recipients
         self.go_to_perimeter(account._perimeter)
-        self.transfer_init_page.go(session_value=self.session_value)
+        self.transfer_init_page.go()
 
         if self.page.get_error() == 'Fonctionnalité Indisponible':
-            self.accounts.go(session_value=self.session_value)
+            self.accounts.go()
             return
 
         for emitter_acc in self.page.iter_emitters():
@@ -728,7 +738,7 @@ class CragrRegion(LoginBrowser):
         account = find_object(accounts, id=transfer.account_id, error=AccountNotFound)
 
         self.go_to_perimeter(account._perimeter)
-        self.transfer_init_page.go(session_value=self.session_value)
+        self.transfer_init_page.go()
         assert self.transfer_init_page.is_here()
 
         currency = transfer.currency or 'EUR'
@@ -792,7 +802,7 @@ class CragrRegion(LoginBrowser):
             account = find_object(accounts, id=recipient.origin_account_id, error=AccountNotFound)
             self.go_to_perimeter(account._perimeter)
 
-        self.transfer_init_page.go(session_value=self.session_value)
+        self.transfer_init_page.go()
         assert self.transfer_init_page.is_here()
 
         if not self.page.add_recipient_is_allowed():
@@ -811,7 +821,7 @@ class CragrRegion(LoginBrowser):
         else:
             # in this case, the link was missing
             self.logger.warning('cannot add a recipient from the recipient list page, pretending to make a transfer in order to add it')
-            self.transfer_init_page.go(session_value=self.session_value)
+            self.transfer_init_page.go()
             assert self.transfer_init_page.is_here()
 
         self.location(self.page.url_add_recipient())
@@ -819,7 +829,7 @@ class CragrRegion(LoginBrowser):
         if not ('sms_code' in params and self.page.can_send_code()):
             self.page.send_sms()
             # go to a GET page, so StatesMixin can reload it
-            self.accounts.go(session_value=self.session_value)
+            self.accounts.go()
             raise AddRecipientStep(self.build_recipient(recipient), Value('sms_code', label='Veuillez saisir le code SMS'))
         else:
             self.page.submit_code(params['sms_code'])
@@ -834,7 +844,7 @@ class CragrRegion(LoginBrowser):
             if self.transfer_page.is_here():
                 # in this case, we were pretending to make a transfer, just to add the recipient
                 # go back to transfer page to abort the transfer and see the new recipient
-                self.transfer_init_page.go(session_value=self.session_value)
+                self.transfer_init_page.go()
                 assert self.transfer_init_page.is_here()
 
             res = self.page.find_recipient(recipient.iban)
@@ -843,6 +853,6 @@ class CragrRegion(LoginBrowser):
 
     @need_login
     def get_profile(self):
-        self.profile.go(session_value=self.session_value)
+        self.profile.go()
         if self.profile.is_here():
             return self.page.get_profile()
