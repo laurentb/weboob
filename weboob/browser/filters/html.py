@@ -16,7 +16,7 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
-
+import datetime
 from decimal import Decimal
 
 import lxml.html as html
@@ -196,6 +196,16 @@ class FormValue(Filter):
                         return int(el.attrib['value'])
                 except KeyError:
                     return self.default_or_raise(AttributeNotFound('Element %s does not have attribute value' % el))
+            # datetime input
+            try:
+                if el.attrib.get('type', '') == 'date':
+                    return datetime.datetime.strptime(el.attrib['value'], '%Y-%m-%d').date()
+                elif el.attrib.get('type', '') == 'time':
+                    return datetime.datetime.strptime(el.attrib['value'], '%H:%M').time()
+                elif el.attrib.get('type', '') == 'datetime-local':
+                    return datetime.datetime.strptime(el.attrib['value'], '%Y-%m-%dT%H:%M')
+            except KeyError:
+                return self.default_or_raise(AttributeNotFound('Element %s does not have attribute value' % el))
             else:
                 raise UnrecognizedElement('Element %s is not recognized' % el)
         elif el.tag == 'textarea':
