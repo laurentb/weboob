@@ -603,7 +603,14 @@ class Regexp(Filter):
         if pattern is None:
             raise FilterError('Missing pattern parameter')
         self.pattern = pattern
-        self._regex = re.compile(pattern, flags)
+
+        # 8192 = regex.VERSION0 / 256 = regex.VERSION1
+        if '(?V0)' in pattern or '(?V1)' in pattern or flags & 8192 or flags & 256:
+            import regex
+            self._regex = regex.compile(pattern, flags)
+        else:
+            self._regex = re.compile(pattern, flags)
+        self._regex = self._regex
         self.template = template
         self.nth = nth
 
@@ -1123,3 +1130,12 @@ def test_DateTime():
     assert Date(yearfirst=False).filter('20-7-15') == datetime.date(2015, 7, 20)
     assert Date(yearfirst=True).filter('1789-7-15') == datetime.date(1789, 7, 15)
     assert Date(yearfirst=True, strict=False).filter('7-15') == datetime.date(today.year, 7, 15)
+
+
+def test_regex():
+    try:
+        assert Regexp(pattern=r'([[a-z]--[aeiou]]+)(?V1)').filter(u'abcde') == u'bcd'
+        assert not Regexp(pattern=r'([[a-z]--[aeiou]]+)(?V0)', default=False).filter(u'abcde')
+    except ImportError:
+        pass
+    assert not Regexp(pattern=r'([[a-z]--[aeiou]]+)', default=False).filter(u'abcde')
