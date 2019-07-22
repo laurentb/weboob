@@ -19,17 +19,14 @@
 
 from __future__ import unicode_literals
 
-
 from weboob.browser.pages import HTMLPage, PartialHTMLPage, LoggedPage
 from weboob.browser.elements import ItemElement, method, ListElement
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal,
-    Regexp, DateGuesser, Field
+    Regexp, DateGuesser, Field, Env
 )
 from weboob.capabilities.bank import Account, Transaction
 from weboob.capabilities.base import NotAvailable
-from weboob.tools.date import LinearDateGuesser
-from datetime import timedelta
 
 
 def MyDecimal(*args, **kwargs):
@@ -74,7 +71,10 @@ class TransactionsPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Transaction
 
-            obj_date = DateGuesser(CleanText('.//span[contains(., "/")]'), LinearDateGuesser(date_max_bump=timedelta(45)))
+            def condition(self):
+                return CleanText('./td[@class="al-c"]/span')(self) not in ('transaction refusée', 'transaction en cours de traitement')
+
+            obj_date = DateGuesser(CleanText('.//span[contains(., "/")]'), Env('date_guesser'))
             obj_label = CleanText('.//h3/strong')
             obj_raw = Field('label')
             obj_amount = MyDecimal('./td[@class="al-r"]/div/span[has-class("badge")]')

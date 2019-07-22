@@ -19,11 +19,13 @@
 
 from __future__ import unicode_literals
 
+from datetime import timedelta
+
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
-from weboob.tools.capabilities.bank.transactions import merge_iterators
-from .pages import LoginPage, AccountsPage, AccountDetailsPage, TransactionsPage
+from weboob.tools.date import LinearDateGuesser
 
+from .pages import LoginPage, AccountsPage, AccountDetailsPage, TransactionsPage
 
 class MyedenredBrowser(LoginBrowser):
     BASEURL = 'https://www.myedenred.fr'
@@ -55,21 +57,17 @@ class MyedenredBrowser(LoginBrowser):
 
     @need_login
     def iter_history(self, account):
-        def iter_transactions_by_type(type):
-            history = self.transactions.go(data={'command': 'Charger les 10 transactions suivantes',
-                                                'ErfBenId': account._product_token,
-                                                'ProductCode': account._product_type,
-                                                'SortBy': 'DateOperation',
-                                                'StartDate': '',
-                                                'EndDate': '',
-                                                'PageNum': 10,
-                                                'OperationType': type,
-                                                'failed': 'false',
-                                                'X-Requested-With': 'XMLHttpRequest'
-                                                })
-            return history.iter_transactions(subid=account.id)
-
-        if account.id not in self.docs:
-            iterator = merge_iterators(iter_transactions_by_type(type='Debit'), iter_transactions_by_type(type='Credit'))
-            self.docs[account.id] = list(iterator)
-        return self.docs[account.id]
+        self.transactions.go(data={
+            'command': 'Charger les 10 transactions suivantes',
+            'ErfBenId': account._product_token,
+            'ProductCode': account._product_type,
+            'SortBy': 'DateOperation',
+            'StartDate': '',
+            'EndDate': '',
+            'PageNum': 10,
+            'OperationType': 'Default',
+            'failed': 'false',
+            'X-Requested-With': 'XMLHttpRequest'
+        })
+        for tr in self.page.iter_transactions(subid=account.id, date_guesser=LinearDateGuesser(date_max_bump=timedelta(45))):
+            yield tr
