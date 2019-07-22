@@ -117,7 +117,7 @@ class DegiroBrowser(LoginBrowser):
             # avoid doing O(n*n) operation
             trinv_dict = {(inv.code, inv._action, inv._datetime): inv for inv in transaction_investments}
 
-            trs = list(self.page.iter_history(transaction_investments=NoCopy(trinv_dict)))
+            trs = list(self.page.iter_history(transaction_investments=NoCopy(trinv_dict), account_currency=account.currency))
             self.trs[account.id] = trs
         return self.trs[account.id]
 

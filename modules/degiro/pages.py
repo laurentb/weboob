@@ -21,22 +21,22 @@ from __future__ import unicode_literals
 
 from decimal import Decimal
 import re
-import datetime
 
 from weboob.browser.pages import JsonPage, LoggedPage
 from weboob.browser.elements import ItemElement, DictElement, method
-from weboob.browser.filters.standard import CleanText, Date, Regexp, CleanDecimal, Env, Field, RegexpError, Currency
+from weboob.browser.filters.standard import (
+    CleanText, Date, Regexp, CleanDecimal, Env, Field, Currency,
+)
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.bank import Account, empty, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.exceptions import AuthMethodNotImplemented, ParseError
+from weboob.exceptions import AuthMethodNotImplemented
 from weboob.tools.capabilities.bank.investments import is_isin_valid
 
 
-def MyDecimal(*args, **kwargs):
-    kwargs.update(replace_dots=True, default=NotAvailable)
-    return CleanDecimal(*args, **kwargs)
+def float_to_decimal(f):
+    return Decimal(str(f))
 
 
 class LoginPage(JsonPage):
@@ -92,7 +92,7 @@ class AccountsPage(LoggedPage, JsonPage):
             klass = Investment
 
             def condition(self):
-                return Decimal(str(list_to_dict(self.el['value'])['size']))
+                return float_to_decimal(list_to_dict(self.el['value'])['size'])
 
             obj_unitvalue = Env('unitvalue', default=NotAvailable)
             obj_original_currency = Env('original_currency', default=NotAvailable)
@@ -103,10 +103,10 @@ class AccountsPage(LoggedPage, JsonPage):
                 return str(list_to_dict(self.el['value'])['id'])
 
             def obj_quantity(self):
-                return Decimal(str(list_to_dict(self.el['value'])['size']))
+                return float_to_decimal(list_to_dict(self.el['value'])['size'])
 
             def obj_unitprice(self):
-                return Decimal(str(list_to_dict(self.el['value'])['breakEvenPrice']))
+                return float_to_decimal(list_to_dict(self.el['value'])['breakEvenPrice'])
 
             def obj_label(self):
                 return self._product()['name']
@@ -137,8 +137,8 @@ class AccountsPage(LoggedPage, JsonPage):
 
             def parse(self, el):
                 currency = self._product()['currency']
-                unitvalue = Decimal(str(list_to_dict(self.el['value'])['price']))
-                valuation = Decimal(str(list_to_dict(self.el['value'])['value']))
+                unitvalue = float_to_decimal(list_to_dict(self.el['value'])['price'])
+                valuation = float_to_decimal(list_to_dict(self.el['value'])['value'])
                 self.env['valuation'] = valuation / SPECIFIC_CURRENCIES.get(currency, 1)
 
                 if currency == self.env['currency']:
@@ -169,24 +169,15 @@ class HistoryPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Transaction
 
+            def condition(self):
+                # Transactions without amount are ignored even on the website
+                return Dict('change', default=None)(self)
+
             obj_raw = Transaction.Raw(CleanText(Dict('description')))
             obj_date = Date(CleanText(Dict('date')))
-            obj_original_currency = Currency(Dict('currency'))
             obj__isin = Regexp(Dict('description'), r'\((.{12}?)\)', nth=-1, default=None)
             obj__number = Regexp(Dict('description'), r'^([Aa]chat|[Vv]ente|[Bb]uy|[Ss]ell) (\d+[,.]?\d*)', template='\\2', default=None)
             obj__datetime = Dict('date')
-
-            def obj_id(self):
-                date = CleanText(Dict('date'))(self).split('+')[0]
-                date = datetime.datetime.strptime(date, '%Y-%m-%dT%H:%M:%S')
-                _id = '%s_%s' % (CleanDecimal(Dict('id'))(self), date)
-
-                # It is possible to have duplicated ID for 'Variation Fonds Monetaires (<currency>)', as
-                # they have id=0. So we append the currency to the id to avoid that.
-                if CleanDecimal(Dict('id'))(self) == 0 and CleanText(Dict('currency'))(self) != 'EUR':
-                    _id += "_%s" % CleanText(Dict('currency'))(self)
-
-                return _id
 
             def obj__action(self):
                 if not Field('_isin')(self):
@@ -210,6 +201,22 @@ class HistoryPage(LoggedPage, JsonPage):
                     # make sure we don't miss transactions labels specifying an ISIN
                 }[label]
 
+            def obj_amount(self):
+                if Env('account_currency')(self) == Dict('currency')(self):
+                    return float_to_decimal(Dict('change')(self))
+                # The amount is not displayed so we only retrieve the original_amount
+                return NotAvailable
+
+            def obj_original_amount(self):
+                if Env('account_currency')(self) == Dict('currency')(self):
+                    return NotAvailable
+                return float_to_decimal(Dict('change')(self))
+
+            def obj_original_currency(self):
+                if Env('account_currency')(self) == Dict('currency')(self):
+                    return NotAvailable
+                return Currency(Dict('currency'))(self)
+
             def obj_investments(self):
                 tr_investment_list = Env('transaction_investments')(self).v
                 isin = Field('_isin')(self)
@@ -222,44 +229,10 @@ class HistoryPage(LoggedPage, JsonPage):
                         pass
                 return []
 
-            def obj_amount(self):
-                # The investment "Conversion Cash Fund" doesn't have any
-                # 'change' key. But quantity and unit value can be found
-                # in the label
-                try:
-                    # I case of transactions in another currency than Euro the website doesn't provide conversion
-                    # and 'exchangeRate' key identify those, hence NotAvailable amount but original_amount instead
-                    try:
-                        CleanDecimal(Dict('exchangeRate'))(self)
-                        return NotAvailable
-                    except ParseError:
-                        return CleanDecimal(Dict('change'))(self)
-                except ParseError:
-                    pattern = r"[\s\d,]+@[\s\d,]+"
-                    select_raw = Field('raw')
-                    try:
-                        match = Regexp(select_raw, pattern)(self)
-                    # some operations don't seem to have any amount
-                    # ex: "Variation Cash Fund"
-                    except RegexpError:
-                        return NotAvailable
-                    quantity, unitprice = [
-                        CleanDecimal(replace_dots=True).filter(part)
-                        for part in match.split('@')
-                    ]
-                    amount = quantity * unitprice
-                    raw = select_raw(self).lower()
-                    if any(i for i in ('vente', 'venta', 'venda', 'sell') if i in raw):
-                        return amount
-                    if any(i for i in ('achat', 'compra', 'buy') if i in raw):
-                        return - amount
+            def validate(self, obj):
+                assert not empty(obj.amount) or not empty(obj.original_amount), 'This transaction has no amount and no original_amount!'
+                return True
 
-            def obj_original_amount(self):
-                try:
-                    if Dict('change')(self) and Dict('exchangeRate')(self):
-                        return CleanDecimal(Dict('change'))(self)
-                except ParseError:
-                    return NotAvailable
 
     @method
     class iter_transaction_investments(DictElement):
