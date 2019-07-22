@@ -540,18 +540,20 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                      u'Synthèse':                          None,    # ignore this title
                     }
 
-    PATTERN = [(re.compile('.*Titres Pea.*'), Account.TYPE_PEA),
-               (re.compile(".*Plan D'epargne En Actions.*"), Account.TYPE_PEA),
-               (re.compile(".*Compte Especes Pea.*"), Account.TYPE_PEA),
-               (re.compile('.*Plan Epargne Retraite.*'), Account.TYPE_PERP),
-               (re.compile('.*Titres.*'), Account.TYPE_MARKET),
-               (re.compile('.*Selection Vie.*'),Account.TYPE_LIFE_INSURANCE),
-               (re.compile('^Fructi Pulse.*'), Account.TYPE_MARKET),
-               (re.compile('^(Quintessa|Solevia).*'), Account.TYPE_MARKET),
-               (re.compile('^Plan Epargne Enfant Mul.*'), Account.TYPE_MARKET),
-               (re.compile('^Alc Premium'), Account.TYPE_MARKET),
-               (re.compile('^Plan Epargne Enfant Msu.*'), Account.TYPE_LIFE_INSURANCE),
-               ]
+    PATTERN = [
+        (re.compile(r'.*Titres Pea.*'), Account.TYPE_PEA),
+        (re.compile(r".*Plan D'epargne En Actions.*"), Account.TYPE_PEA),
+        (re.compile(r".*Compte Especes Pea.*"), Account.TYPE_PEA),
+        (re.compile(r'.*Plan Epargne Retraite.*'), Account.TYPE_PERP),
+        (re.compile(r'.*Titres.*'), Account.TYPE_MARKET),
+        (re.compile(r'.*Selection Vie.*'), Account.TYPE_LIFE_INSURANCE),
+        (re.compile(r'^Fructi Pulse.*'), Account.TYPE_MARKET),
+        (re.compile(r'^(Quintessa|Solevia).*'), Account.TYPE_MARKET),
+        (re.compile(r'^Plan Epargne Enfant Mul.*'), Account.TYPE_MARKET),
+        (re.compile(r'^Alc Premium'), Account.TYPE_MARKET),
+        (re.compile(r'^Plan Epargne Enfant Msu.*'), Account.TYPE_LIFE_INSURANCE),
+        (re.compile(r'^Parts Sociales.*'), Account.TYPE_MARKET),
+    ]
 
     def pop_up(self):
         if self.doc.xpath('//span[contains(text(), "du navigateur Internet.")]'):
