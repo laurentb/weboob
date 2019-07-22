@@ -45,9 +45,10 @@ class HomePage(LoggedPage, HTMLPage):
     pass
 
 class AccountsPage(LoggedPage, PartialHTMLPage):
-    ACCOUNT_TYPES = {re.compile('livret'):           Account.TYPE_SAVINGS,
-                     re.compile('parts sociales'):   Account.TYPE_SAVINGS,
-                    }
+    ACCOUNT_TYPES = {
+        re.compile(r'livret'): Account.TYPE_SAVINGS,
+        re.compile(r'parts sociales'): Account.TYPE_MARKET,
+    }
 
     @method
     class get_items(ListElement):
