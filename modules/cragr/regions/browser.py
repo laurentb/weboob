@@ -530,6 +530,9 @@ class CragrRegion(LoginBrowser):
             # we must skip the ongoing one but fetch the other ones
             # even if they are in the future.
             ongoing_coming = self.page.get_ongoing_coming()
+            if not ongoing_coming:
+                # This card has no available history or coming.
+                return
 
             card_transactions = []
             latest_date = None

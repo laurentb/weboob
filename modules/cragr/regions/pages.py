@@ -418,8 +418,10 @@ class CardsPage(LoggedPage, CragrPage):
         # the coming is positive, it will become 'Opérations créditées'
         raw_date = Regexp(
             CleanText('//table[@class="ca-table"]//tr[1]//b[contains(text(), "Opérations débitées") or contains(text(), "Opérations créditées")]'),
-            r'le (.*) :'
+            r'le (.*) :', default=None
         )(self.doc)
+        if not raw_date:
+            return None
         return parse_french_date(raw_date).date()
 
     def get_card_transactions(self, latest_date, ongoing_coming):
