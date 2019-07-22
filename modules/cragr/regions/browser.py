@@ -273,6 +273,14 @@ class CragrRegion(LoginBrowser):
         - Multiple perimeters: visit all perimeters one by one and return all accounts.
         '''
         accounts_list = []
+
+        # Sometimes the URL of the page after login has a session_value=None,
+        # so we must set it correctly otherwise the next requests will crash.
+        if not self.session_value:
+            m = re.search(r'sessionSAG=([^&]+)', self.url)
+            if m:
+                self.session_value = m.group(1)
+
         if len(self.perimeters) == 1:
             self.accounts.stay_or_go(session_value=self.session_value)
             for account in self.iter_perimeter_accounts(iban=True, all_accounts=True):
