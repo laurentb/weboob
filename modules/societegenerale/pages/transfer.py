@@ -30,7 +30,7 @@ from weboob.capabilities.base import NotAvailable
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Env, Date, Field, Format,
 )
-from weboob.browser.filters.html import Link
+from weboob.browser.filters.html import Link, ReplaceEntities
 from weboob.browser.filters.json import Dict
 from weboob.tools.json import json
 from weboob.exceptions import BrowserUnavailable, ActionNeeded
@@ -43,7 +43,7 @@ class TransferJson(LoggedPage, JsonPage):
     def on_load(self):
         if Dict('commun/statut')(self.doc).upper() == 'NOK':
             if self.doc['commun'].get('action'):
-                raise TransferBankError(message=Dict('commun/action')(self.doc))
+                raise TransferBankError(message=ReplaceEntities(Dict('commun/action'))(self.doc))
             elif self.doc['commun'].get('raison') in ('err_tech', 'err_is'):
                 # on SG website, there is unavalaible message 'Le service est momentanément indisponible.'
                 raise BrowserUnavailable()
