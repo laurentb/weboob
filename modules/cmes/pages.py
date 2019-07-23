@@ -96,6 +96,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_balance = MyDecimal(balance_xpath)
             obj_currency = Currency(balance_xpath)
             obj_type = MapIn(Field('label'), ACCOUNTS_TYPES, Account.TYPE_UNKNOWN)
+            obj_company_name = CleanText('(//p[contains(@class, "profil_entrep")]/text())[1]')
 
             def obj_id(self):
                 # Use customer number + label to build account id
@@ -128,6 +129,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             inv._account = account
             inv._el_pocket = elem_pocket
             inv.label = CleanText('.//td[1]')(row)
+            inv._url = Link('.//td[1]/a', default=None)(row)
             inv.valuation = MyDecimal('.//td[2]')(row)
 
             # On all Cmes children the row shows percentages and the popup shows absolute values in currency.
@@ -180,8 +182,20 @@ class AccountsPage(LoggedPage, HTMLPage):
             yield pocket
 
 
-class OperationPage(LoggedPage, HTMLPage):
+class InvestmentPage(LoggedPage, HTMLPage):
+    def get_form_url(self):
+        form = self.get_form(id='C:P:F')
+        return form.url
 
+    def get_performance(self):
+        return Eval(lambda x: x/100, CleanDecimal.French('//p[contains(@class, "plusvalue--value")]'))(self.doc)
+
+    def go_back(self):
+        go_back_url = Link('//a[@id="C:A"]')(self.doc)
+        self.browser.location(go_back_url)
+
+
+class OperationPage(LoggedPage, HTMLPage):
     # Most '_account_label' correspond 'account.label', but there are exceptions
     ACCOUNTS_SPE_LABELS = {
         'CCB': 'Compte courant bloqué',

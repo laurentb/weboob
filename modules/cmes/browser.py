@@ -19,11 +19,13 @@
 
 from __future__ import unicode_literals
 
+from datetime import datetime
 
+from dateutil.relativedelta import relativedelta
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import  BrowserIncorrectPassword
 from .pages import (
-    LoginPage, AccountsPage, OperationsListPage, OperationPage, ActionNeededPage,
+    LoginPage, AccountsPage, OperationsListPage, OperationPage, ActionNeededPage, InvestmentPage,
 )
 
 
@@ -43,6 +45,8 @@ class CmesBrowser(LoginBrowser):
         r'(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/tableau-de-bord/index.html',
         AccountsPage
     )
+
+    investments = URL(r'(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/supports/fiche-du-support.html', InvestmentPage)
 
     operations_list = URL(r'(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/operations/index.html', OperationsListPage)
 
@@ -77,9 +81,38 @@ class CmesBrowser(LoginBrowser):
     def iter_investment(self, account):
         if 'compte courant bloqué' in account.label.lower():
             # CCB accounts have Pockets but no Investments
-            return []
+            return
         self.accounts.stay_or_go(subsite=self.subsite, client_space=self.client_space)
-        return self.page.iter_investments(account=account)
+        for inv in self.page.iter_investments(account=account):
+            if inv._url:
+                # Go to the investment details to get performances
+                self.location(inv._url)
+                performances = {}
+
+                # Get 1-year performance
+                url = self.page.get_form_url()
+                self.location(url, data={'_FID_DoFilterChart_timePeriod:1Year': ''})
+                performances[1] = self.page.get_performance()
+
+                # Get 5-years performance
+                url = self.page.get_form_url()
+                self.location(url, data={'_FID_DoFilterChart_timePeriod:5Years': ''})
+                performances[5] = self.page.get_performance()
+
+                # There is no available form for 3-year history, we must build the request
+                url = self.page.get_form_url()
+                data = {
+                    '[t:dbt%3adate;]Data_StartDate': (datetime.today() - relativedelta(years=3)).strftime('%d/%m/%Y'),
+                    '[t:dbt%3adate;]Data_EndDate': datetime.today().strftime('%d/%m/%Y'),
+                    '_FID_DoDateFilterChart': '',
+                }
+                self.location(url, data=data)
+                performances[3] = self.page.get_performance()
+                inv.performance_history = performances
+                self.page.go_back()
+            else:
+                self.logger.info('No available details for investment %s.', inv.label)
+            yield inv
 
     @need_login
     def iter_history(self, account):
