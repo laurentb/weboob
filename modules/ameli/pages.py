@@ -26,6 +26,7 @@ from weboob.browser.filters.html import Attr, Link
 from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, Currency, Field, Format, Env
 from weboob.browser.pages import LoggedPage, HTMLPage, PartialHTMLPage
 from weboob.capabilities.bill import Subscription, Bill
+from weboob.exceptions import BrowserUnavailable
 from weboob.tools.date import parse_french_date
 
 
@@ -35,6 +36,12 @@ class LoginPage(HTMLPage):
         form['connexioncompte_2numSecuriteSociale'] = username
         form['connexioncompte_2codeConfidentiel'] = password
         form.submit()
+
+
+class ErrorPage(HTMLPage):
+    def on_load(self):
+        msg = CleanText('//div[@id="backgroundId"]//p')(self.doc)
+        raise BrowserUnavailable(msg)
 
 
 class SubscriptionPage(LoggedPage, HTMLPage):

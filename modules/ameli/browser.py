@@ -24,12 +24,13 @@ from time import time
 from dateutil.relativedelta import relativedelta
 
 from weboob.browser import LoginBrowser, URL, need_login
-from .pages import LoginPage, SubscriptionPage, DocumentsPage
+from .pages import ErrorPage, LoginPage, SubscriptionPage, DocumentsPage
 
 
 class AmeliBrowser(LoginBrowser):
     BASEURL = 'https://assure.ameli.fr'
 
+    error_page = URL(r'/vu/INDISPO_COMPTE_ASSURES.html', ErrorPage)
     login_page = URL(r'/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&connexioncompte_2actionEvt=afficher.*', LoginPage)
     subscription_page = URL(r'/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_info_perso_page.*', SubscriptionPage)
     documents_page = URL(r'/PortailAS/paiements.do', DocumentsPage)
