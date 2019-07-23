@@ -54,9 +54,13 @@ class ExpandablePage(LoggedPage, HTMLPage):
         if rib is not None:
             form['ribSaisi'] = rib
         if account is not None:
-            form['numCarteSaisi'] = account._nav_num
+            form['nomCarteSaisi'] = account.label  # some forms use 'nomCarteSaisi' some use 'titulaireSaisie'
+            form['titulaireSaisie'] = account.label
         if company is not None:
-            form['entrepriseSaisie'] = company
+            if 'entrepriseSaisie' in form.keys():  # some forms use 'entrepriseSaisie' some use 'entrepriseSaisi'
+                form['entrepriseSaisie'] = company
+            else:
+                form['entrepriseSaisi'] = company
         # needed if coporate titulaire
         form.url = form.url.replace('Appliquer', 'Afficher')
         form.submit()
@@ -85,12 +89,13 @@ class PeriodsPage(LoggedPage, HTMLPage):
     def expand(self, period, account=None, rib=None, company=None):
         form = self.get_form(submit='//input[@value="Display"]')
         if account is not None:
-            form['numCarteSaisi'] = account._nav_num
+            form['nomCarteSaisi'] = account.label
+            form['titulaireSaisi'] = account.label
         form['periodeSaisie'] = period
         if rib is not None:
             form['ribSaisi'] = rib
         if company is not None:
-            form['entrepriseSaisie'] = company
+            form['entrepriseSaisi'] = company
         # needed if coporate titulaire
         form.url = form.url.replace('Appliquer', 'Afficher')
         form.submit()

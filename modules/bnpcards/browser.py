@@ -138,34 +138,34 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
         if account.id not in self.transactions_dict:
             self.transactions_dict[account.id] = []
             self.ti_histo_go()
-            self.page.expand(self.page.get_periods()[0], account=account)
+            self.page.expand(self.page.get_periods()[0], account=account, company=account._company)
             for tr in sorted_transactions(self.page.get_history()):
                 self.transactions_dict[account.id].append(tr)
         return self.transactions_dict[account.id]
 
     def get_ti_transactions(self, account):
         self.ti_card_go()
-        self.page.expand(account=account)
+        self.page.expand(account=account, company=account._company)
         for tr in sorted_transactions(self.page.get_history()):
             yield tr
         self.ti_histo_go()
-        self.page.expand(self.page.get_periods()[0], account=account)
+        self.page.expand(self.page.get_periods()[0], account=account, company=account._company)
         for period in self.page.get_periods():
-            self.page.expand(period, account=account)
+            self.page.expand(period, account=account, company=account._company)
             for tr in sorted_transactions(self.page.get_history()):
                 yield tr
 
     def get_ge_transactions(self, account):
         transactions = []
         self.coming.go()
-        self.page.expand(rib=account._rib)
+        self.page.expand(account=account, rib=account._rib, company=account._company)
         link = self.page.get_link(account)
         if link:
             self.location(link)
             transactions += self.page.get_history()
         self.history.go()
         for period in self.page.get_periods():
-            self.page.expand(period, rib=account._rib)
+            self.page.expand(period, rib=account._rib, company=account._company, account=account)
             link = self.page.get_link(account)
             if link:
                 self.location(link)
