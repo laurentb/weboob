@@ -158,7 +158,16 @@ class SocieteGeneraleModule(Module, CapBankWealth, CapBankTransferAddRecipient, 
         return self.browser.iter_documents(subscription)
 
     def iter_documents_by_types(self, subscription, accepted_types):
-        return self.browser.iter_documents_by_types(subscription, accepted_types)
+        if not isinstance(subscription, Subscription):
+            subscription = self.get_subscription(subscription)
+
+        if self.config['website'].get() not in ('ent', 'pro'):
+            for doc in self.browser.iter_documents_by_types(subscription, accepted_types):
+                yield doc
+        else:
+            for doc in self.browser.iter_documents(subscription):
+                if doc.type in accepted_types:
+                    yield doc
 
     def download_document(self, document):
         if not isinstance(document, Document):
