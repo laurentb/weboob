@@ -19,9 +19,9 @@
 
 from .pages import LoginPage, AccountsPage, AccountHistoryPage
 from weboob.browser import URL, LoginBrowser, need_login
-from weboob.tools.json import json
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.exceptions import ClientError
+from weboob.capabilities.base import empty
 
 
 class AmundiBrowser(LoginBrowser):
@@ -33,35 +33,45 @@ class AmundiBrowser(LoginBrowser):
     account_history = URL(r'api/individu/operations\?valeurExterne=false&filtreStatutModeExclusion=false&statut=CPTA', AccountHistoryPage)
 
     def do_login(self):
-        """
-        Attempt to log in.
-        Note: this method does nothing if we are already logged in.
-        """
+        data = {
+            'username': self.username,
+            'password': self.password,
+        }
         try:
-            self.login.go(data=json.dumps({'username': self.username, 'password': self.password}),
-                          headers={'Content-Type': 'application/json;charset=UTF-8'})
+            self.login.go(json=data)
             self.token = self.authorize.go().get_token()
         except ClientError:
             raise BrowserIncorrectPassword()
 
     @need_login
     def iter_accounts(self):
-        return (self.accounts.go(headers={'X-noee-authorization': ('noeprd %s' % self.token)})
-                             .iter_accounts())
+        headers = {'X-noee-authorization': 'noeprd %s' % self.token}
+        self.accounts.go(headers=headers)
+        company_name = self.page.get_company_name()
+        if empty(company_name):
+            self.logger.warning('Could not find the company name for these accounts.')
+        for account in self.page.iter_accounts():
+            account.company_name = company_name
+            yield account
 
     @need_login
     def iter_investment(self, account):
-        return (self.accounts.go(headers={'X-noee-authorization': ('noeprd %s' % self.token)})
-                             .iter_investments(account_id=account.id))
+        headers = {'X-noee-authorization': 'noeprd %s' % self.token}
+        self.accounts.go(headers=headers)
+        for inv in self.page.iter_investments(account_id=account.id):
+            yield inv
 
     @need_login
     def iter_history(self, account):
-        return (self.account_history.go(headers={'X-noee-authorization': ('noeprd %s' % self.token)})
-                                    .iter_history(account=account))
+        headers = {'X-noee-authorization': 'noeprd %s' % self.token}
+        self.account_history.go(headers=headers)
+        for tr in self.page.iter_history(account=account):
+            yield tr
 
 
 class EEAmundi(AmundiBrowser):
     BASEURL = 'https://www.amundi-ee.com/psf/'
+
 
 class TCAmundi(AmundiBrowser):
     BASEURL = 'https://epargnants.amundi-tc.com/psf/'

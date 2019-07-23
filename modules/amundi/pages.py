@@ -22,7 +22,9 @@ from __future__ import unicode_literals
 from datetime import datetime
 
 from weboob.browser.elements import ItemElement, method, DictElement
-from weboob.browser.filters.standard import CleanDecimal, Date, Field, CleanText, Env
+from weboob.browser.filters.standard import (
+    CleanDecimal, Date, Field, CleanText, Env, Eval,
+)
 from weboob.browser.filters.json import Dict
 from weboob.browser.pages import LoggedPage, JsonPage
 from weboob.capabilities.bank import Account, Investment, Transaction
@@ -37,12 +39,19 @@ class LoginPage(JsonPage):
 
 
 class AccountsPage(LoggedPage, JsonPage):
-    ACCOUNT_TYPES = {'PEE': Account.TYPE_PEE,
-                     'PEG': Account.TYPE_PEE,
-                     'PEI': Account.TYPE_PEE,
-                     'PERCO': Account.TYPE_PERCO,
-                     'RSP': Account.TYPE_RSP,
-                    }
+    def get_company_name(self):
+        json_list = Dict('listPositionsSalarieFondsDto')(self.doc)
+        if json_list:
+            return json_list[0].get('nomEntreprise', NotAvailable)
+        return NotAvailable
+
+    ACCOUNT_TYPES = {
+        'PEE': Account.TYPE_PEE,
+        'PEG': Account.TYPE_PEE,
+        'PEI': Account.TYPE_PEE,
+        'PERCO': Account.TYPE_PERCO,
+        'RSP': Account.TYPE_RSP,
+    }
 
     @method
     class iter_accounts(DictElement):
@@ -99,6 +108,16 @@ class AccountsPage(LoggedPage, JsonPage):
                 if is_isin_valid(Field('code')(self)):
                     return Investment.CODE_TYPE_ISIN
                 return NotAvailable
+
+            def obj_performance_history(self):
+                # The Amundi JSON only contains 1 year and 5 years performances.
+                # It seems that when a value is unavailable, they display '0.0' instead...
+                perfs = {}
+                if Dict('performanceUnAn', default=None)(self) not in (0.0, None):
+                    perfs[1] = Eval(lambda x: x/100, CleanDecimal(Dict('performanceUnAn')))(self)
+                if Dict('performanceCinqAns', default=None)(self) not in (0.0, None):
+                    perfs[5] = Eval(lambda x: x/100, CleanDecimal(Dict('performanceCinqAns')))(self)
+                return perfs
 
 
 class AccountHistoryPage(LoggedPage, JsonPage):
