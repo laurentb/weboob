@@ -109,26 +109,28 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
                 account.coming = self.page.get_balance()
                 yield account
         if self.type == '2':
-            for rib in self.page.get_rib_list():
+            for company in self.page.get_companies():
                 self.accounts.stay_or_go()
-                self.page.expand(rib=rib)
+                self.page.expand(company=company)
+                for rib in self.page.get_rib_list():
+                    self.page.expand(rib=rib, company=company)
 
-                accounts = list(self.page.iter_accounts(rib=rib))
-                ids = {}
-                prev_rib = None
-                for account in accounts:
-                    if account.id in ids:
-                        self.logger.warning('duplicate account %r', account.id)
-                        account.id += '_%s' % ''.join(account.label.split())
+                    accounts = list(self.page.iter_accounts(rib=rib, company=company))
+                    ids = {}
+                    prev_rib = None
+                    for account in accounts:
+                        if account.id in ids:
+                            self.logger.warning('duplicate account %r', account.id)
+                            account.id += '_%s' % ''.join(account.label.split())
 
-                    if prev_rib != account._rib:
-                        self.coming.go()
-                        self.page.expand(rib=account._rib)
-                    account.coming = self.page.get_balance(account)
-                    prev_rib = account._rib
+                        if prev_rib != account._rib:
+                            self.coming.go()
+                            self.page.expand(rib=account._rib, company=account._company)
+                        account.coming = self.page.get_balance(account)
+                        prev_rib = account._rib
 
-                    ids[account.id] = account
-                    yield account
+                        ids[account.id] = account
+                        yield account
 
     # Could be the very same as non corporate but this shitty website seems
     # completely bugged

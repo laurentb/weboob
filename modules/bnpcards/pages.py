@@ -49,12 +49,14 @@ class LoginPage(HTMLPage):
 
 
 class ExpandablePage(LoggedPage, HTMLPage):
-    def expand(self, account=None, rib=None):
+    def expand(self, account=None, rib=None, company=None):
         form = self.get_form()
         if rib is not None:
             form['ribSaisi'] = rib
         if account is not None:
             form['numCarteSaisi'] = account._nav_num
+        if company is not None:
+            form['entrepriseSaisie'] = company
         # needed if coporate titulaire
         form.url = form.url.replace('Appliquer', 'Afficher')
         form.submit()
@@ -80,13 +82,15 @@ class PeriodsPage(LoggedPage, HTMLPage):
             periods.append(period)
         return periods
 
-    def expand(self, period, account=None, rib=None):
+    def expand(self, period, account=None, rib=None, company=None):
         form = self.get_form(submit='//input[@value="Display"]')
         if account is not None:
             form['numCarteSaisi'] = account._nav_num
         form['periodeSaisie'] = period
         if rib is not None:
             form['ribSaisi'] = rib
+        if company is not None:
+            form['entrepriseSaisie'] = company
         # needed if coporate titulaire
         form.url = form.url.replace('Appliquer', 'Afficher')
         form.submit()
@@ -109,6 +113,7 @@ class AccountsPage(ExpandablePage, GetableLinksPage):
             obj_label = CleanText('./td[1]')
             obj_type = Account.TYPE_CARD
             obj__rib = Env('rib')
+            obj__company = Env('company')
             obj_currency = u'EUR'
             obj_number = CleanText('./td[2]', replace=[(' ', '')])
             obj_url = AbsoluteLink('./td[2]/a')
@@ -117,6 +122,9 @@ class AccountsPage(ExpandablePage, GetableLinksPage):
 
         def store(self, obj):
             return obj
+
+    def get_companies(self):
+        return self.doc.xpath('//select[@name="entrepriseSaisie"]/option/@value')
 
 
 class ComingPage(ExpandablePage):
