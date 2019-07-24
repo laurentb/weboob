@@ -955,13 +955,15 @@ class MultiJoin(MultiFilter):
     Join multiple filters.
     >>> MultiJoin(Field('field1'), Field('field2'))  # doctest: +SKIP
 
-    >>> MultiJoin(pattern=', ').filter([u"Oui", u"bonjour", ""]) == u"Oui, bonjour"
+    >>> MultiJoin(pattern=u', ').filter([u"Oui", u"bonjour", ""]) == u"Oui, bonjour"
     True
-    >>> MultiJoin(pattern='-').filter([u"Au", u"revoir", ""]) == u"Au-revoir"
+    >>> MultiJoin(pattern=u'-').filter([u"Au", u"revoir", ""]) == u"Au-revoir"
     True
-    >>> MultiJoin(pattern='-').filter([]) == u""
+    >>> MultiJoin(pattern=u'-').filter([]) == u""
     True
-    >>> MultiJoin(pattern='-', default=u'empty').filter([]) == u'empty'
+    >>> MultiJoin(pattern=u'-', default=u'empty').filter([]) == u'empty'
+    True
+    >>> MultiJoin(pattern=u'-').filter([1, 2, 3]) == u'1-2-3'
     True
     """
     def __init__(self, *args, **kwargs):
@@ -970,7 +972,7 @@ class MultiJoin(MultiFilter):
 
     @debug()
     def filter(self, values):
-        values = [v for v in values if v]
+        values = [unicode(v) for v in values if v]
         if not values and self.default is not _NO_DEFAULT:
             return self.default
         return self.pattern.join(values)
