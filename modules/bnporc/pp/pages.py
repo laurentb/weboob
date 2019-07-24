@@ -334,6 +334,7 @@ class AccountsPage(BNPPage):
                     'Crédit immobilier': Account.TYPE_MORTGAGE,
                     'Réserve Provisio': Account.TYPE_REVOLVING_CREDIT,
                     'Prêt personnel': Account.TYPE_CONSUMER_CREDIT,
+                    'Crédit Silo': Account.TYPE_REVOLVING_CREDIT,
                 }
 
                 klass = Account
