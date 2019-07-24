@@ -457,6 +457,7 @@ class HSBC(LoginBrowser):
             for tr in history:
                 if tr.type == tr.TYPE_UNKNOWN:
                     tr.type = tr.TYPE_DEFERRED_CARD
+                    tr.bdate = tr.rdate
 
             if account.parent:
                 # Fetching the card summaries from the parent account using the card id in the transaction labels:
