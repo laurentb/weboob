@@ -34,7 +34,7 @@ from weboob.tools.value import Value, ValueBool
 
 from .pages.accounts_list import (
     AccountsMainPage, AccountDetailsPage, AccountsPage, LoansPage, HistoryPage,
-    CardHistoryPage, PeaLiquidityPage, AccountsSynthesesPage,
+    CardHistoryPage, PeaLiquidityPage,
     AdvisorPage, HTMLProfilePage, CreditPage, CreditHistoryPage, OldHistoryPage,
     MarketPage, LifeInsurance, LifeInsuranceHistory, LifeInsuranceInvest, LifeInsuranceInvest2,
     UnavailableServicePage, LoanDetailsPage,
@@ -55,8 +55,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
     accounts_main_page = URL(r'/restitution/cns_listeprestation.html',
                              r'/com/icd-web/cbo/index.html', AccountsMainPage)
     account_details_page = URL(r'/restitution/cns_detailPrestation.html', AccountDetailsPage)
-    accounts = URL(r'/icd/cbo/data/liste-prestations-navigation-authsec.json', AccountsPage)
-    accounts_syntheses = URL(r'/icd/cbo/data/liste-prestations-authsec.json\?n10_avecMontant=1', AccountsSynthesesPage)
+    accounts = URL(r'/icd/cbo/data/liste-prestations-authsec.json\?n10_avecMontant=1', AccountsPage)
     history = URL(r'/icd/cbo/data/liste-operations-authsec.json', HistoryPage)
     loans = URL(r'/abm/restit/listeRestitutionPretsNET.json\?a100_isPretConso=(?P<conso>\w+)', LoansPage)
     loan_details_page = URL(r'icd/cbo/data/recapitulatif-prestation-authsec.json', LoanDetailsPage)
@@ -189,7 +188,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
         else:
             account_ibans = self.page.get_account_ibans_dict()
 
-        self.accounts_syntheses.go()
+        self.accounts.go()
 
         if not self.page.is_new_website_available():
             # return in old pages to get accounts
@@ -198,12 +197,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
                 yield acc
             return
 
-        # get accounts coming
-        account_comings = self.page.get_account_comings()
-
         accounts = {}
-
-        self.accounts.go()
         for account in self.page.iter_accounts():
             account._parent_id = None
             for card in self.iter_cards(account):
@@ -216,9 +210,6 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
 
             if account._prestation_id in account_ibans:
                 account.iban = account_ibans[account._prestation_id]
-
-            if account._prestation_id in account_comings:
-                account.coming = account_comings[account._prestation_id]
 
             if account.type in (account.TYPE_LOAN, account.TYPE_CONSUMER_CREDIT, ):
                 self.loans.stay_or_go(conso=(account._loan_type == 'PR_CONSO'))

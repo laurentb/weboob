@@ -118,9 +118,17 @@ class AccountDetailsPage(LoggedPage, HTMLPage):
 
 
 class AccountsPage(JsonBasePage):
+    def is_new_website_available(self):
+        if not Dict('commun/raison')(self.doc):
+            return True
+        elif 'le service est momentanement indisponible' not in Dict('commun/raison')(self.doc):
+            return True
+        self.logger.warning("SG new website is not available yet for this user")
+        return False
+
     @method
     class iter_accounts(DictElement):
-        item_xpath = 'donnees'
+        item_xpath = 'donnees/syntheseParGroupeProduit/*/prestations'
 
         class item(ItemElement):
             def condition(self):
@@ -227,24 +235,6 @@ class AccountsPage(JsonBasePage):
             obj_subscriber = Env('subscriber')
             obj_label = Format('%s %s', Dict('labelToDisplay'), Field('id'))
             obj__internal_id = Dict('idTechnique')
-
-
-class AccountsSynthesesPage(JsonBasePage):
-    def is_new_website_available(self):
-        if not Dict('commun/raison')(self.doc):
-            return True
-        elif not 'le service est momentanement indisponible' in Dict('commun/raison')(self.doc):
-            return True
-        self.logger.warning("SG new website is not available yet for this user")
-        return False
-
-    def get_account_comings(self):
-        account_comings = {}
-
-        for product in Dict('donnees/syntheseParGroupeProduit')(self.doc):
-            for prestation in Dict('prestations')(product):
-                account_comings[Dict('id')(prestation)] = CleanDecimal(Dict('soldes/soldeEnCours'))(prestation)
-        return account_comings
 
 
 class LoanDetailsPage(LoggedPage, JsonPage):
