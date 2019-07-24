@@ -144,9 +144,6 @@ class AccountsPage(LoggedPage, HTMLPage):
                 if elem_diff is not None:
                     inv.diff_ratio = Eval(lambda x: x / 100,
                                           MyDecimal(Regexp(CleanText('.//td[3]'), r'([+-]?[\d\s]+[\d,]+)\s*%')))(row)
-
-            if account.balance != 0:
-                inv.portfolio_share = inv.valuation / account.balance
             yield inv
 
     def iter_pocket(self, inv):
