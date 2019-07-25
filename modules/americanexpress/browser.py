@@ -17,17 +17,20 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 import datetime
 
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.browsers import LoginBrowser, need_login
 from weboob.browser.exceptions import HTTPNotFound, ServerError
 from weboob.browser.url import URL
+from dateutil.parser import parse as parse_date
 
 from .pages import (
     AccountsPage, JsonBalances, JsonPeriods, JsonHistory,
     JsonBalances2, CurrencyPage, LoginPage, WrongLoginPage, AccountSuspendedPage,
-   NoCardPage, NotFoundPage
+    NoCardPage, NotFoundPage,
 )
 
 
@@ -51,14 +54,14 @@ class AmericanExpressBrowser(LoginBrowser):
     js_periods = URL(r'/account-data/v1/financials/statement_periods', JsonPeriods)
     currency_page = URL(r'https://www.aexp-static.com/cdaas/axp-app/modules/axp-offers/1.11.1/fr-fr/axp-offers.json', CurrencyPage)
 
-    no_card = URL('https://www.americanexpress.com/us/content/no-card/',
-                  'https://www.americanexpress.com/us/no-card/', NoCardPage)
+    no_card = URL(r'https://www.americanexpress.com/us/content/no-card/',
+                  r'https://www.americanexpress.com/us/no-card/', NoCardPage)
 
     not_found = URL(r'/accounts/error', NotFoundPage)
 
     SUMMARY_CARD_LABEL = [
-        u'PAYMENT RECEIVED - THANK YOU',
-        u'PRELEVEMENT AUTOMATIQUE ENREGISTRE-MERCI'
+        'PAYMENT RECEIVED - THANK YOU',
+        'PRELEVEMENT AUTOMATIQUE ENREGISTRE-MERCI',
     ]
 
     def __init__(self, *args, **kwargs):
@@ -72,7 +75,6 @@ class AmericanExpressBrowser(LoginBrowser):
         self.page.login(self.username, self.password)
         if self.wrong_login.is_here() or self.login.is_here() or self.account_suspended.is_here():
             raise BrowserIncorrectPassword()
-
 
     @need_login
     def get_accounts(self):
@@ -120,29 +122,30 @@ class AmericanExpressBrowser(LoginBrowser):
 
     @need_login
     def iter_coming(self, account):
-        """
-        Coming transactions can be found in a'pending' JSON if it exists (corresponding a 'Transactions en attente' tab on the website),
-        as well as in a 'posted' JSON (corresponding a 'Transactions enregistrées' tab on the website for futur transactions)
-        """
+        # Coming transactions can be found in a 'pending' JSON if it exists
+        # ('En attente' tab on the website), as well as in a 'posted' JSON
+        # ('Enregistrées' tab on the website)
+
         # "pending" have no vdate and debit date is in future
         self.js_periods.go(headers={'account_token': account._token})
-        date = datetime.datetime.strptime(self.page.get_periods()[0], '%Y-%m-%d').date()
         periods = self.page.get_periods()
+        date = parse_date(periods[0]).date()
         today = datetime.date.today()
-        try:
-            self.js_pending.go(offset=0, headers={'account_token': account._token})
-            # when the latest period ends today we can't know the coming debit date
-            if date != today:
+        # when the latest period ends today we can't know the coming debit date
+        if date != today:
+            try:
+                self.js_pending.go(offset=0, headers={'account_token': account._token})
+            except ServerError as exc:
+                # At certain times of the month a connection might not have pendings;
+                # in that case, `js_pending.go` would throw a 502 error Bad Gateway
+                error_code = exc.response.json().get('code')
+                error_message = exc.response.json().get('message')
+                self.logger.warning('No pendings page to access to, got error %s and message "%s" instead.', error_code, error_message)
+            else:
                 for tr in self.page.iter_history(periods=periods):
                     if tr._owner == account._idforJSON:
                         tr.date = date
                         yield tr
-        except ServerError as exc:
-            # At certain time of the month a connection might not have pendings;
-            # in that case, `js_pending.go` would throw a 502 error Bad Gateway
-            error_code = exc.response.json().get('code')
-            error_message = exc.response.json().get('message')
-            self.logger.warning('No pendings page to access to, got error %s and message "%s" instead.' % (error_code, error_message))
 
         # "posted" have a vdate but debit date can be future or past
         for p in periods:

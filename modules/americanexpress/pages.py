@@ -22,7 +22,6 @@ from __future__ import unicode_literals
 from ast import literal_eval
 from decimal import Decimal
 import re
-from dateutil.parser import parse as parse_date
 
 from weboob.browser.pages import LoggedPage, JsonPage, HTMLPage
 from weboob.browser.elements import ItemElement, DictElement, method
@@ -33,10 +32,12 @@ from weboob.capabilities.base import NotAvailable
 from weboob.tools.json import json
 from weboob.tools.compat import basestring
 from weboob.exceptions import ActionNeeded, BrowserUnavailable
+from dateutil.parser import parse as parse_date
 
 
 def float_to_decimal(f):
     return Decimal(str(f))
+
 
 def parse_decimal(s):
     # we might get 1,399,680 in rupie indonésienne
@@ -93,7 +94,7 @@ class AccountsPage(LoggedPage, HTMLPage):
         # search for products to get products list
         for index, el in enumerate(data[14][2]):
             if 'products' in el:
-                accounts_data = data[14][2][index+1]
+                accounts_data = data[14][2][index + 1]
 
         assert len(accounts_data) == 2
         assert accounts_data[1][4] == 'productsList'
@@ -105,14 +106,14 @@ class AccountsPage(LoggedPage, HTMLPage):
             if isinstance(account_data, basestring):
                 balances_token = account_data
 
-            elif isinstance(account_data, list) and not account_data[4][2][0]=="Canceled":
+            elif isinstance(account_data, list) and not account_data[4][2][0] == "Canceled":
                 acc = Account()
                 if len(account_data) > 15:
                     token.append(account_data[-11])
-                    acc._idforJSON =  account_data[10][-1]
+                    acc._idforJSON = account_data[10][-1]
                 else:
                     acc._idforJSON = account_data[-5][-1]
-                acc._idforJSON = re.sub('\s+', ' ', acc._idforJSON)
+                acc._idforJSON = re.sub(r'\s+', ' ', acc._idforJSON)
                 acc.number = '-%s' % account_data[2][2]
                 acc.label = '%s %s' % (account_data[6][4], account_data[10][-1])
                 acc._balances_token = acc.id = balances_token
@@ -172,7 +173,8 @@ class JsonHistory(LoggedPage, JsonPage):
             obj_raw = CleanText(Dict('description', default=''))
 
             def obj_date(self):
-                """ 'statement_end_date' might be absent from this json, we must match the rdate with the right date period """
+                # 'statement_end_date' might be absent from this json,
+                # we must match the rdate with the right date period
                 _date = Date(Dict('statement_end_date', default=None), default=NotAvailable)(self)
                 if not _date:
                     periods = Env('periods')(self)
@@ -207,6 +209,4 @@ class JsonHistory(LoggedPage, JsonPage):
                 else:
                     return original_amount
 
-            # obj__ref = Dict('reference_id')
             obj__ref = Dict('identifier')
-
