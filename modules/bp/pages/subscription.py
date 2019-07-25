@@ -109,7 +109,7 @@ class DownloadPage(LoggedPage, HTMLPage):
 class ProSubscriptionPage(LoggedPage, HTMLPage):
     @method
     class iter_subscriptions(ListElement):
-        item_xpath = '//select[@id="numeroCompteRechercher"]/option'
+        item_xpath = '//select[@id="numeroCompteRechercher"]/option[not(@disabled)]'
 
         class item(ItemElement):
             klass = Subscription
