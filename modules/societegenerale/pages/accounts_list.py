@@ -226,7 +226,7 @@ class AccountsPage(JsonBasePage):
 
     @method
     class iter_subscription(DictElement):
-        item_xpath = 'donnees'
+        item_xpath = 'donnees/syntheseParGroupeProduit/*/prestations'
 
         class item(ItemElement):
             klass = Subscription
