@@ -21,7 +21,7 @@ import datetime
 
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser.browsers import LoginBrowser, need_login
-from weboob.browser.exceptions import HTTPNotFound
+from weboob.browser.exceptions import HTTPNotFound, ServerError
 from weboob.browser.url import URL
 
 from .pages import (
@@ -111,7 +111,7 @@ class AmericanExpressBrowser(LoginBrowser):
         # TODO handle pagination
         for p in periods:
             self.js_posted.go(offset=0, end=p, headers={'account_token': account._token})
-            for tr in self.page.iter_history():
+            for tr in self.page.iter_history(periods=periods):
                 # As the website is very handy, passing account_token is not enough:
                 # it will return every transactions of each account, so we
                 # have to match them manually
@@ -120,23 +120,34 @@ class AmericanExpressBrowser(LoginBrowser):
 
     @need_login
     def iter_coming(self, account):
+        """
+        Coming transactions can be found in a'pending' JSON if it exists (corresponding a 'Transactions en attente' tab on the website),
+        as well as in a 'posted' JSON (corresponding a 'Transactions enregistrées' tab on the website for futur transactions)
+        """
         # "pending" have no vdate and debit date is in future
         self.js_periods.go(headers={'account_token': account._token})
         date = datetime.datetime.strptime(self.page.get_periods()[0], '%Y-%m-%d').date()
         periods = self.page.get_periods()
-        self.js_pending.go(offset=0, headers={'account_token': account._token})
-        # when the latest period ends today we can't know the coming debit date
         today = datetime.date.today()
-        if date != datetime.date.today():
-            for tr in self.page.iter_history(account):
-                if tr._owner == account._idforJSON:
-                    tr.date = date
-                    yield tr
+        try:
+            self.js_pending.go(offset=0, headers={'account_token': account._token})
+            # when the latest period ends today we can't know the coming debit date
+            if date != today:
+                for tr in self.page.iter_history(periods=periods):
+                    if tr._owner == account._idforJSON:
+                        tr.date = date
+                        yield tr
+        except ServerError as exc:
+            # At certain time of the month a connection might not have pendings;
+            # in that case, `js_pending.go` would throw a 502 error Bad Gateway
+            error_code = exc.response.json().get('code')
+            error_message = exc.response.json().get('message')
+            self.logger.warning('No pendings page to access to, got error %s and message "%s" instead.' % (error_code, error_message))
 
         # "posted" have a vdate but debit date can be future or past
         for p in periods:
             self.js_posted.go(offset=0, end=p, headers={'account_token': account._token})
-            for tr in self.page.iter_history(account):
+            for tr in self.page.iter_history(periods=periods):
                 if tr.date > today or not tr.date:
                     if tr._owner == account._idforJSON:
                         yield tr

@@ -22,10 +22,11 @@ from __future__ import unicode_literals
 from ast import literal_eval
 from decimal import Decimal
 import re
+from dateutil.parser import parse as parse_date
 
 from weboob.browser.pages import LoggedPage, JsonPage, HTMLPage
 from weboob.browser.elements import ItemElement, DictElement, method
-from weboob.browser.filters.standard import Date, Eval, CleanText, Field, CleanDecimal
+from weboob.browser.filters.standard import Date, Eval, Env, CleanText, Field, CleanDecimal
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.bank import Account, Transaction
 from weboob.capabilities.base import NotAvailable
@@ -169,7 +170,19 @@ class JsonHistory(LoggedPage, JsonPage):
                     return Transaction.TYPE_DEFERRED_CARD
 
             obj_raw = CleanText(Dict('description', default=''))
-            obj_date = Date(Dict('statement_end_date', default=None), default=None)
+
+            def obj_date(self):
+                """ 'statement_end_date' might be absent from this json, we must match the rdate with the right date period """
+                _date = Date(Dict('statement_end_date', default=None), default=NotAvailable)(self)
+                if not _date:
+                    periods = Env('periods')(self)
+                    for period in periods:
+                        period_end_date = parse_date(period).date()
+                        if Field('vdate')(self) and Field('vdate')(self) <= period_end_date:
+                            _date = period_end_date
+                            continue
+                return _date
+
             obj_rdate = Date(Dict('charge_date'))
             obj_vdate = obj_bdate = Date(Dict('post_date', default=None), default=NotAvailable)
             obj_amount = Eval(lambda x: -float_to_decimal(x), Dict('amount'))
