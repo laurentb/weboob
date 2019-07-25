@@ -333,20 +333,18 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
         return self.get_regular_transactions(account, coming)
 
     def get_regular_transactions(self, account, coming):
-        # We look for 3 years of history.
-        params = {}
-        params['movementSearch[toDate]'] = (date.today() + relativedelta(days=40)).strftime('%d/%m/%Y')
-        params['movementSearch[fromDate]'] = (date.today() - relativedelta(years=3)).strftime('%d/%m/%Y')
-        params['movementSearch[selectedAccounts][]'] = account._webid
         if not coming:
+            # We look for 3 years of history.
+            params = {}
+            params['movementSearch[toDate]'] = (date.today() + relativedelta(days=40)).strftime('%d/%m/%Y')
+            params['movementSearch[fromDate]'] = (date.today() - relativedelta(years=3)).strftime('%d/%m/%Y')
+            params['movementSearch[selectedAccounts][]'] = account._webid
             self.location('%s/mouvements' % account.url.rstrip('/'), params=params)
             for transaction in self.page.iter_history():
                 yield transaction
 
-        elif account.type == Account.TYPE_CHECKING:
-            self.location('%s/mouvements-a-venir' % account.url.rstrip('/'), params=params)
-            for transaction in self.page.iter_history(coming=True):
-                yield transaction
+        # Note: Checking accounts have a 'Mes prélèvements à venir' tab,
+        # but these transactions have no date anymore so we ignore them.
 
     def get_card_transactions(self, account, coming):
         # All card transactions can be found in the CSV (history and coming),

@@ -460,7 +460,6 @@ class HistoryPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Transaction
 
-            obj_date = Date(Attr('.//time', 'datetime'))
             obj_amount = CleanDecimal('.//div[has-class("list__movement__line--amount")]', replace_dots=True)
             obj_category = CleanText('.//span[has-class("category")]')
             obj__account_name = CleanText('.//span[contains(@class, "account__name-xs")]', default=None)
