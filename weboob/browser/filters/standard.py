@@ -192,7 +192,7 @@ class TableCell(_Filter):
     ...         obj_label = CleanText(TableCell('label'))
     ...
 
-    The 'colspan' variable enables the handling of table tags that have
+    TableCell handles table tags that have
     a "colspan" attribute that modify the width of the column:
     for example <td colspan="2"> will occupy two columns instead of one,
     creating a column shift for all the next columns that must be taken
@@ -201,7 +201,7 @@ class TableCell(_Filter):
 
     def __init__(self, *names, **kwargs):
         support_th = kwargs.pop('support_th', False)
-        self.colspan = kwargs.pop('colspan', False)
+        kwargs.pop('colspan', True)
         super(TableCell, self).__init__(**kwargs)
         self.names = names
 
@@ -210,25 +210,7 @@ class TableCell(_Filter):
         else:
             self.td = './td[%s]'
 
-    """
-    The two methods below are used to verify that modifying TableCell
-    to handle colspans does not modify the class behavior in weboob modules.
-    The "assert" should crash if a module does not return the same results
-    with and without handling colspans.
-    """
-
-    def call_without_colspan(self, item):
-        # Former behavior without handling colspans > 1
-        for name in self.names:
-            idx = item.parent.get_colnum(name)
-            if idx is not None:
-                ret = item.xpath(self.td % (idx + 1))
-                for el in ret:
-                    self.highlight_el(el, item)
-                return ret
-        return self.default_or_raise(ColumnNotFound('Unable to find column %s' % ' or '.join(self.names)))
-
-    def call_with_colspan(self, item):
+    def __call__(self, item):
         # New behavior, handling colspans > 1
         for name in self.names:
             col_idx = item.parent.get_colnum(name)
@@ -250,15 +232,6 @@ class TableCell(_Filter):
                     current_col += int(ret[0].attrib.get('colspan', 1))
 
         return self.default_or_raise(ColumnNotFound('Unable to find column %s' % ' or '.join(self.names)))
-
-    def __call__(self, item):
-        if self.colspan:
-            return self.call_with_colspan(item)
-
-        ret_without_colspan = self.call_without_colspan(item)
-        ret_with_colspan = self.call_with_colspan(item)
-        assert ret_without_colspan == ret_with_colspan, 'Different behavior with and without colspan in TableCell'
-        return ret_with_colspan
 
 
 class RawText(Filter):
