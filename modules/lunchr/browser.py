@@ -112,7 +112,8 @@ class LunchrBrowser(APIBrowser):
         transaction.rdate = DateTime(Dict('created_at'))(payment)
 
         types = {
-            'LUNCHR_CARD_PAYMENT': Transaction.TYPE_CARD,
+            'ORDER': Transaction.TYPE_CARD,  # order on lunchr website
+            'LUNCHR_CARD_PAYMENT': Transaction.TYPE_CARD,  # pay in shop
             'MEAL_VOUCHER_CREDIT': Transaction.TYPE_DEPOSIT,
             # type can be null for refunds
         }
