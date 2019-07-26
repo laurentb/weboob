@@ -28,9 +28,8 @@ from weboob.browser.filters.standard import CleanText, Date, Regexp, CleanDecima
 from weboob.browser.filters.html import Attr, Link, TableCell
 from weboob.capabilities.bank import Account, Investment, Transaction
 from weboob.capabilities.base import NotAvailable, empty
-from weboob.exceptions import BrowserUnavailable
+from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.tools.compat import urljoin
-
 
 
 def MyDecimal(*args, **kwargs):
@@ -47,6 +46,9 @@ class LoginPage(HTMLPage):
     def on_load(self):
         error_msg = CleanText('//li[@class="globalErreurMessage"]')(self.doc)
         if error_msg:
+            # Catch wrongpass accordingly
+            if 'mot de passe incorrect' in error_msg.lower():
+                raise BrowserIncorrectPassword(error_msg)
             raise BrowserUnavailable(error_msg)
 
     def login(self, login, password):
