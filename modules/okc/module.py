@@ -26,9 +26,9 @@ from weboob.capabilities.dating import CapDating
 from weboob.capabilities.messages import CapMessages, CapMessagesPost, Message, Thread
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.misc import to_unicode
-from weboob.tools.value import Value, ValueBackendPassword
+from weboob.tools.value import Value, ValueBackendPassword, ValueBool
 
-from .browser import OkCBrowser
+from .browser import OkCBrowser, FacebookBrowser
 from .optim.profiles_walker import ProfilesWalker
 
 
@@ -49,41 +49,43 @@ class OkcContact(Contact):
         section[key] = ProfileNode(key, key.capitalize().replace('_', ' '), value)
 
     def __init__(self, profile):
-        super(OkcContact, self).__init__(profile['userid'],
-                                         profile['username'],
-                                         self.STATUS_ONLINE if profile['is_online'] == '1' else self.STATUS_OFFLINE)
+        super(OkcContact, self).__init__(profile['user']['userid'],
+                                         profile['user']['userinfo']['displayname'],
+                                         self.STATUS_ONLINE if profile['user']['online'] else self.STATUS_OFFLINE)
 
-        self.url = 'https://www.okcupid.com/profile/%s' % self.name
-        self.summary = profile.get('summary', '')
-        self.status_msg = 'Last connection at %s' % profile['skinny']['last_online']
+        self.url = 'https://www.okcupid.com/profile/%s' % self.id
+        self.summary = u''
+        self.status_msg = profile['extras']['lastOnlineString']
 
-        for no, photo in enumerate(profile['photos']):
-            self.set_photo(u'image_%i' % no, url=photo['image_url'], thumbnail_url=photo['image_url'])
+        for no, photo in enumerate(profile['user']['photos']):
+            self.set_photo(u'image_%i' % no, url=photo['full'], thumbnail_url=photo['full_small'])
 
         self.profile = OrderedDict()
 
-        self.set_profile('info', 'status', profile['status_str'])
-        self.set_profile('info', 'orientation', profile['orientation_str'])
-        self.set_profile('info', 'age', '%s yo' % profile['age'])
-        self.set_profile('info', 'birthday', '%04d-%02d-%02d' % (profile['birthday']['year'], profile['birthday']['month'], profile['birthday']['day']))
-        self.set_profile('info', 'sex', profile['gender_str'])
-        self.set_profile('info', 'location', profile['location'])
-        self.set_profile('info', 'join_date', profile['skinny']['join_date'])
-        self.set_profile('stats', 'match_percent', '%s%%' % profile['matchpercentage'])
-        self.set_profile('stats', 'friend_percent', '%s%%' % profile['friendpercentage'])
-        self.set_profile('stats', 'enemy_percent', '%s%%' % profile['enemypercentage'])
-        for key, value in sorted(profile['skinny'].items()):
-            self.set_profile('details', key, value or '-')
+        if isinstance(profile['user']['details'], dict):
+            for key, label in profile['user']['details']['_labels'].items():
+                self.set_profile('info', label, profile['user']['details']['values'][key])
+        else:
+            for section in profile['user']['details']:
+                self.set_profile('info', section['info']['name'], section['text']['text'])
 
-        for essay in profile['essays']:
-            if len(essay['essay']) == 0:
+        self.set_profile('info', 'orientation', profile['user']['userinfo']['orientation'])
+        self.set_profile('info', 'age', '%s yo' % profile['user']['userinfo']['age'])
+        self.set_profile('info', 'sex', profile['user']['userinfo']['gender'])
+        self.set_profile('info', 'location', profile['user']['userinfo']['location'])
+        self.set_profile('stats', 'match_percent', '%s%%' % profile['user']['percentages']['match'])
+        self.set_profile('stats', 'enemy_percent', '%s%%' % profile['user']['percentages']['enemy'])
+        if 'friend' in profile['user']['percentages']:
+            self.set_profile('stats', 'friend_percent', '%s%%' % profile['user']['percentages']['friend'])
+
+        for essay in profile['user']['essays']:
+            if not essay['content']:
                 continue
 
             self.summary += '%s:\n' % essay['title']
             self.summary += '-' * (len(essay['title']) + 1)
             self.summary += '\n'
-            for text in essay['essay']:
-                self.summary += text['rawtext']
+            self.summary += essay['rawtext']
             self.summary += '\n\n'
 
         self.profile['info'].flags |= ProfileNode.HEAD
@@ -99,14 +101,22 @@ class OkCModule(Module, CapMessages, CapContact, CapMessagesPost, CapDating):
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'OkCupid'
     CONFIG = BackendConfig(Value('username',                label='Username'),
-                           ValueBackendPassword('password', label='Password'))
+                           ValueBackendPassword('password', label='Password'),
+                           ValueBool('facebook', label='Do you login with Facebook?', default=False))
     STORAGE = {'profiles_walker': {'viewed': []},
                'sluts': {},
               }
     BROWSER = OkCBrowser
 
     def create_default_browser(self):
-        return self.create_browser(self.config['username'].get(), self.config['password'].get())
+        if int(self.config['facebook'].get()):
+            facebook = self.create_browser(klass=FacebookBrowser)
+            facebook.login(self.config['username'].get(), self.config['password'].get())
+        else:
+            facebook = None
+        return self.create_browser(self.config['username'].get(),
+                                   self.config['password'].get(),
+                                   facebook)
 
     # ---- CapDating methods ---------------------
     def init_optimizations(self):
@@ -120,10 +130,10 @@ class OkCModule(Module, CapMessages, CapContact, CapMessagesPost, CapDating):
         threads = self.browser.get_threads_list()
 
         for thread in threads:
-            t = Thread(thread['userid'])
+            t = Thread(thread['user']['userid'])
             t.flags = Thread.IS_DISCUSSION
-            t.title = u'Discussion with %s' % thread['user']['username']
-            t.date = datetime.fromtimestamp(thread['timestamp'])
+            t.title = u'Discussion with %s' % thread['user']['userinfo']['displayname']
+            t.date = datetime.fromtimestamp(thread['time'])
             yield t
 
     def get_thread(self, thread):
@@ -140,7 +150,7 @@ class OkCModule(Module, CapMessages, CapContact, CapMessagesPost, CapDating):
         other = OkcContact(self.browser.get_profile(thread.id))
 
         parent = None
-        for message in messages['messages']['messages']:
+        for message in messages['messages']:
             date = datetime.fromtimestamp(message['timestamp'])
 
             flags = 0
@@ -153,6 +163,19 @@ class OkCModule(Module, CapMessages, CapContact, CapMessagesPost, CapDating):
             else:
                 receiver = other
                 sender = me
+                if message.get('read', False):
+                    flags |= Message.IS_RECEIVED
+                    # Apply that flag on all previous messages as the 'read'
+                    # attribute is only set on the last read message.
+                    pmsg = parent
+                    while pmsg:
+                        if pmsg.flags & Message.IS_NOT_RECEIVED:
+                            pmsg.flags |= Message.IS_RECEIVED
+                            pmsg.flags &= ~Message.IS_NOT_RECEIVED
+                        pmsg = pmsg.parent
+                else:
+                    flags |= Message.IS_NOT_RECEIVED
+
 
             msg = Message(thread=thread,
                           id=message['id'],
