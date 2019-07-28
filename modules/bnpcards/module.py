@@ -38,7 +38,7 @@ class BnpcartesentrepriseModule(Module, CapBank):
     VERSION = '1.6'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
                            ValueBackendPassword('password', label='Code personnel'),
-                           Value('type', label='Profil de connexion', default='ges',
+                           Value('type', label='Profil de connexion', default='1',
                                  choices={'1': 'Titulaire',
                                           '2': 'Gestionnaire'}))
 
