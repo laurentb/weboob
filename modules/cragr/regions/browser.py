@@ -64,8 +64,8 @@ class CragrRegion(LoginBrowser):
     password_expired = URL(r'/stb/entreeBam\?sessionSAG=(?P<session_value>[^&]+)&stbpg=pagePU&act=Interstitielle', PasswordExpiredPage)
 
     # Perimeters
-    perimeter_details_page = URL(r'/stb/.*act=Perimetre&stbpg=pagePU', PerimeterDetailsPage)
-    perimeter_page = URL(r'/stb/.*act=ChgPerim.*stbpg=pagePU', PerimeterPage)
+    perimeter_details_page = URL(r'/stb/.*act=Perimetre.*', PerimeterDetailsPage)
+    perimeter_page = URL(r'/stb/.*act=ChgPerim.*', PerimeterPage)
 
     # Credit cards
     cards_page = URL(r'/stb/.*fwkaid=.*fwkpid=.*', r'/stb.*(fwkaction|sessionAPP)=Cartes.*', CardsPage)
