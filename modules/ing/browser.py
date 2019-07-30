@@ -143,10 +143,10 @@ class IngBrowser(LoginBrowser):
         try:
             self.lifeback.go()
         except BrowserHTTPNotFound:
-            self.logger.warning('Cannot leave from life insurance space, re login on api space')
             # we can't do login from this browser
             # go on accounts page and redo login from api space
-            self.accountspage.go()
+            self.logger.warning('Cannot leave from life insurance space, re login on api space')
+        self.accountspage.stay_or_go()
 
     @need_login
     def set_multispace(self):
@@ -471,14 +471,9 @@ class IngBrowser(LoginBrowser):
                 yield inv
             self.return_from_titre_page.go()
         elif self.page.asv_has_detail or account._jid:
-            self.accountspage.stay_or_go()
-            shares = {}
-            for asv_investments in self.page.iter_asv_investments():
-                shares[asv_investments.label] = asv_investments.portfolio_share
             if self.go_on_asv_detail(account, '/b2b2c/epargne/CoeDetCon') is not False:
                 self.where = 'asv'
                 for inv in self.page.iter_investments():
-                    inv.portfolio_share = shares[inv.label]
                     yield inv
 
                 # return on old ing website
