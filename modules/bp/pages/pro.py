@@ -87,8 +87,7 @@ class ProAccountHistory(LoggedPage, MyHTMLPage):
         def next_page(self):
             # The next page on the website can return pages already visited without logical mechanism
             # Nevertheless we can skip these pages with the comparaison of the first transaction of the page
-
-            next_page_xpath = '//div[@class="pagination"]//li[@class="pagin-on-right"]/a'
+            next_page_xpath = '//div[@class="pagination"]/a[@title="Aller à la page suivante"]'
             tr_xpath = '//tbody/tr[1]'
             self.page.browser.first_transactions.append(CleanText(tr_xpath)(self.el))
             next_page_link = Link(next_page_xpath)(self.el)
