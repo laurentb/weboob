@@ -289,7 +289,7 @@ class BanquePopulaire(LoginBrowser):
             next_page['token'] = self.page.build_token(self.token)
             self.location('/cyber/internet/ContinueTask.do', data=next_page)
 
-            for a in self.page.iter_accounts(next_pages):
+            for a in self.page.iter_accounts(next_pages, accounts_parsed=accounts):
                 accounts.append(a)
                 if not get_iban:
                     yield a

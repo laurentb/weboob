@@ -569,7 +569,7 @@ class AccountsPage(LoggedPage, MyHTMLPage):
     COL_BALANCE = 3
     COL_COMING = 4
 
-    def iter_accounts(self, next_pages):
+    def iter_accounts(self, next_pages, accounts_parsed=None):
         account_type = Account.TYPE_UNKNOWN
 
         params = self.get_params()
@@ -675,7 +675,7 @@ class CardsPage(LoggedPage, MyHTMLPage):
     COL_DATE = 4
     COL_AMOUNT = 5
 
-    def iter_accounts(self, next_pages):
+    def iter_accounts(self, next_pages, accounts_parsed=None):
         params = self.get_params()
 
         account = None
@@ -713,6 +713,13 @@ class CardsPage(LoggedPage, MyHTMLPage):
                 account.label = u' '.join([CleanText(None).filter(cols[self.COL_TYPE]),
                                            CleanText(None).filter(cols[self.COL_LABEL])])
                 account.currency = currency
+
+                if accounts_parsed is not None:
+                    for account_parsed in accounts_parsed:
+                        if (account_parsed.type == Account.TYPE_CHECKING and
+                            account_parsed.id.replace('CPT', '') == Regexp(CleanText('//div[@class="btit"]'), r'(\d+)$')(self.doc)):
+                                account.parent = account_parsed
+
                 account._params = None
                 account._invest_params = None
                 account._coming_params = params.copy()
