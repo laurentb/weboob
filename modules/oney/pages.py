@@ -19,27 +19,31 @@
 
 from __future__ import unicode_literals
 
-from decimal import Decimal
 import re
 from io import BytesIO
+from decimal import Decimal
 
 import requests
 
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction, sorted_transactions
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
-from weboob.tools.date import parse_french_date
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination, XLSPage, PartialHTMLPage
-from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import Env, CleanDecimal, CleanText, Field, Format, Currency
+from weboob.browser.elements import ListElement, ItemElement, method, DictElement
+from weboob.browser.filters.standard import Env, CleanDecimal, CleanText, Field, Format, Currency, Date
 from weboob.browser.filters.html import Attr
+from weboob.browser.filters.json import Dict
 from weboob.exceptions import BrowserIncorrectPassword
 
 
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile(r'^(?P<text>Retrait .*?) - traité le \d+/\d+$'), FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile(r'^(?P<text>Prélèvement .*?) - traité le \d+/\d+$'), FrenchTransaction.TYPE_ORDER),
-                (re.compile(r'^(?P<text>.*?) - traité le \d+/\d+$'), FrenchTransaction.TYPE_CARD)]
+                (re.compile(r"^(?P<text>Frais sur achat à l'étranger)"), FrenchTransaction.TYPE_BANK),
+                (re.compile(r'^Intérêts mensuels'), FrenchTransaction.TYPE_BANK),
+                (re.compile(r'^Avoir comptant'), FrenchTransaction.TYPE_PAYBACK),
+                (re.compile(r'^(?P<text>RETRAIT DAB .*?) - traité le \d+/\d+$'), FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile(r'^(?P<text>.*?)(, taux de change de(.*|)|) - traité le( (\d+|/\d+)*$|$)'), FrenchTransaction.TYPE_CARD)]  # some labels are really badly formed so the regex needs to be this nasty to catch all edge cases
 
 
 class VirtKeyboard(MappedVirtKeyboard):
@@ -263,19 +267,26 @@ class CreditAccountPage(LoggedPage, HTMLPage):
 
 class CreditHistory(LoggedPage, XLSPage):
     # this history doesn't contain the monthly recharges, so the balance isn't consistent with the transactions?
-    def iter_history(self):
-        header, lines = self.doc[0], self.doc[1:][::-1]
-        assert header == ['Date', "Libellé de l'opération ", ' Débit', 'Credit'], "wrong columns"
+    def build_doc(self, content):
+        lines = super(CreditHistory, self).build_doc(content)
+        dict_list = list()
+        header = [element.strip() for element in lines[0]]
+        for line in lines[1:][::-1]:
+            dict_list.append(dict(zip(header, line)))
+        return dict_list
 
-        for line in lines:
-            tr = Transaction()
-            tr.raw = line[1]
+    @method
+    class iter_history(DictElement):
+        class item(ItemElement):
+            klass = Transaction
 
-            assert not (line[2] and line[3]), "cannot have both debit and credit"
-            amount = float(line[3] or 0) - abs(float(line[2] or 0))
-            tr.amount = Decimal(str(amount))
-            tr.date = parse_french_date(line[0])
-            yield tr
+            obj_raw = Transaction.Raw(CleanText(Dict("Libellé de l'opération")))
+
+            def obj_amount(self):
+                assert not (Dict('Débit')(self) and Dict('Credit')(self)), "cannot have both debit and credit"
+                return Decimal(Dict('Credit')(self) or 0) - abs(Decimal(Dict('Débit')(self) or 0))
+
+            obj_date = Date(Dict('Date'), dayfirst=True)
 
 
 class LastHistoryPage(LoggedPage, PartialHTMLPage):
