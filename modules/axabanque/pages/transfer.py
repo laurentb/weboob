@@ -169,7 +169,7 @@ class AddRecipientPage(LoggedPage, HTMLPage):
         form = self.get_form(id='saisieBeneficiaireSepa')
         form = remove_useless_form_params(form)
 
-        form[bank_field_disabled_id] = 'find_object,'
+        form[bank_field_disabled_id] = ''
         form['ibanContenuZone2'] = form['ibanContenuZone2Hidden'] = rcpt_iban[2:4]
 
         # fill iban part
@@ -181,7 +181,17 @@ class AddRecipientPage(LoggedPage, HTMLPage):
                 form['ibanContenuZone{}'.format(i)] = form[form_key]
             _iban_rcpt_part += 4
 
-        form.pop('ibanContenuZone1')
+        remove_form_keys = (
+            'ibanContenuZone1',
+            'bicContenuZone',
+            'saisieBeneficiaireSepa:idBeneficiaireSepaGestion:boutonValiderInactifIban',
+            'nomTitulaire',
+            'intituleCompte',
+        )
+        for form_key in remove_form_keys:
+            if form_key in form:
+                form.pop(form_key)
+
         form['saisieBeneficiaireSepa:idBeneficiaireSepaGestion:paysIbanSelectionne'] = rcpt_iban[0:2]
         form.submit()
 
