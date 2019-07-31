@@ -417,10 +417,11 @@ class Transaction(BaseObject):
     raw =       StringField('Raw label of the transaction')
     category =  StringField('Category of the transaction')
     label =     StringField('Pretty label')
-    amount =    DecimalField('Amount of the transaction')
+    amount = DecimalField('Net amount of the transaction, used to compute account balance')
 
     card =              StringField('Card number (if any)')
     commission =        DecimalField('Commission part on the transaction (in account currency)')
+    gross_amount = DecimalField('Amount of the transaction without the commission')
 
     # International
     original_amount =   DecimalField('Original amount (in another currency)')
