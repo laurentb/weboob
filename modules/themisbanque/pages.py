@@ -157,7 +157,7 @@ class RibPage(LoggedPage, HTMLPage):
 
 class RibPDFPage(LoggedPage, PDFPage):
     def get_iban(self):
-        text = extract_text(self.doc)
+        text = extract_text(self.content)
         iban = re.search(r'IBAN([A-Z]{2}\d+)', text).group(1)
         assert is_iban_valid(iban), 'did not parse IBAN properly'
         return iban
