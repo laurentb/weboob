@@ -26,7 +26,7 @@ from datetime import timedelta, datetime
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.url import BrowserParamURL
 from weboob.browser.exceptions import ServerError, BrowserHTTPNotFound
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from weboob.tools.compat import urlparse
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
@@ -263,12 +263,20 @@ class CragrRegion(LoginBrowser):
             self.logger.warning('This connection has multiple perimeters.')
             self.perimeters.append(self.page.get_perimeter_name())
             for perimeter in self.page.get_multiple_perimeters():
-                self.accounts.stay_or_go()
+                self.accounts.go()
                 self.access_perimeter_details()
                 perimeter_url = self.page.get_perimeter_url(perimeter)
                 if perimeter_url:
                     self.location(perimeter_url)
                     self.switch_perimeter()
+                    if self.page.broken_perimeter():
+                        # Broken perimeters cause logouts, there is no way
+                        # to predict that a perimeter will be broken before
+                        # accessing it so we raise ActionNeeded to warn the user.
+                        raise ActionNeeded(
+                            '''Le périmètre "%s" n'est pas accessible et provoque l'expiration de la session.
+                            Merci de contacter votre agence Crédit Agricole pour résoudre ce problème.''' % perimeter
+                        )
                     self.perimeters.append(self.page.get_perimeter_name())
                 else:
                     self.logger.warning('Perimeter %s has no URL, this perimeter will be skipped.', perimeter)

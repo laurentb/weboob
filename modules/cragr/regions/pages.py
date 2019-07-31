@@ -181,6 +181,11 @@ class PerimeterPage(LoggedPage, CragrPage):
                                 Merci de parcourir tous les périmètres disponibles sur le site \
                                 Crédit Agricole et de réaliser les réglages requis pour chaque périmètre.")
 
+    def broken_perimeter(self):
+        error_msg = CleanText('//h1[@class="h1-erreur"]')(self.doc)
+        if error_msg:
+            return 'Connexion Indisponible' in error_msg
+
 
 class RibPage(LoggedPage, CragrPage):
     def is_here(self):
