@@ -30,7 +30,7 @@ from weboob.browser.elements import ListElement, ItemElement, method, TableEleme
 
 class SubscriptionPage(LoggedPage, HTMLPage):
     # because of freaking JS from hell
-    STATEMENT_TYPES = ('RCE', 'RPT', 'RCO')
+    STATEMENT_TYPES = ('RCE', 'RPT', 'CRO')
 
     @method
     class iter_subscriptions(ListElement):

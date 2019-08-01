@@ -22,7 +22,7 @@ from datetime import datetime, timedelta
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.browsers import StatesMixin
-from weboob.browser.exceptions import ServerError, HTTPNotFound
+from weboob.browser.exceptions import ServerError
 from weboob.capabilities.base import NotAvailable
 from weboob.exceptions import BrowserIncorrectPassword, BrowserBanned, NoAccountsException, BrowserUnavailable
 from weboob.tools.compat import urlsplit, urlunsplit, parse_qsl
@@ -530,7 +530,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
         for year in self.page.get_years():
             params['formulaire.anneeRecherche'] = year
 
-            if 'PEA' in subscription.label:
+            if any(l in subscription.label for l in ('PEA', 'TIT')):
                 for statement_type in self.page.STATEMENT_TYPES:
                     params['formulaire.typeReleve'] = statement_type
                     self.subscription_search.go(params=params)
