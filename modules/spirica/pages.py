@@ -47,7 +47,8 @@ class LoginPage(HTMLPage):
         error_msg = CleanText('//li[@class="globalErreurMessage"]')(self.doc)
         if error_msg:
             # Catch wrongpass accordingly
-            if 'mot de passe incorrect' in error_msg.lower():
+            wrongpass_messages = ("mot de passe incorrect", "votre compte n'est plus utilisable")
+            if any(message in error_msg.lower() for message in wrongpass_messages):
                 raise BrowserIncorrectPassword(error_msg)
             raise BrowserUnavailable(error_msg)
 
