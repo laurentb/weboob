@@ -38,12 +38,12 @@ from weboob.exceptions import BrowserIncorrectPassword
 
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile(r'^(?P<text>Retrait .*?) - traité le \d+/\d+$'), FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile(r'^(?P<text>Prélèvement .*?) - traité le \d+/\d+$'), FrenchTransaction.TYPE_ORDER),
-                (re.compile(r"^(?P<text>Frais sur achat à l'étranger)"), FrenchTransaction.TYPE_BANK),
+                (re.compile(r'^(?P<text>(Prélèvement|Cotisation|C R C A M) .*?) - traité le \d+/\d+$'), FrenchTransaction.TYPE_ORDER),  # C R C A M is a bank it is hardcoded here because some client want it typed and it would be a mess to scrap it
+                (re.compile(r"^(?P<text>(Frais sur achat à l'étranger|Facturation).*?) - traité le \d+/\d+$"), FrenchTransaction.TYPE_BANK),
                 (re.compile(r'^Intérêts mensuels'), FrenchTransaction.TYPE_BANK),
-                (re.compile(r'^Avoir comptant'), FrenchTransaction.TYPE_PAYBACK),
-                (re.compile(r'^(?P<text>RETRAIT DAB .*?) - traité le \d+/\d+$'), FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile(r'^(?P<text>.*?)(, taux de change de(.*|)|) - traité le( (\d+|/\d+)*$|$)'), FrenchTransaction.TYPE_CARD)]  # some labels are really badly formed so the regex needs to be this nasty to catch all edge cases
+                (re.compile(r'^(?P<text>(Avoir comptant|ANNULATION|Annulation) .*?) - traité le \d+/\d+$'), FrenchTransaction.TYPE_PAYBACK),
+                (re.compile(r'^(?P<text>(RETRAIT )?DAB .*?) - traité le \d+/\d+$'), FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile(r'^(?P<text>.*?)(, taux de change de(.*)?)? - traité le( (\d+|/\d+)*$|$)'), FrenchTransaction.TYPE_CARD)]  # some labels are really badly formed so the regex needs to be this nasty to catch all edge cases
 
 
 class VirtKeyboard(MappedVirtKeyboard):
