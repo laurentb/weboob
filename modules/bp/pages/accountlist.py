@@ -463,6 +463,11 @@ class MarketLoginPage(LoggedPage, PartialHTMLPage):
         self.get_form(id='autoSubmit').submit()
 
 
+class MarketCheckPage(LoggedPage, HTMLPage):
+    def on_load(self):
+        self.browser.market_login.go()
+
+
 class UselessPage(LoggedPage, RawPage):
     pass
 

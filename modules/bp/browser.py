@@ -22,7 +22,7 @@ from datetime import datetime, timedelta
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.browsers import StatesMixin
-from weboob.browser.exceptions import ServerError
+from weboob.browser.exceptions import ServerError, HTTPNotFound
 from weboob.capabilities.base import NotAvailable
 from weboob.exceptions import BrowserIncorrectPassword, BrowserBanned, NoAccountsException, BrowserUnavailable
 from weboob.tools.compat import urlsplit, urlunsplit, parse_qsl
@@ -37,7 +37,7 @@ from .pages.accounthistory import (
     LifeInsuranceInvest, LifeInsuranceHistory, LifeInsuranceHistoryInv, RetirementHistory,
     SavingAccountSummary, CachemireCatalogPage,
 )
-from .pages.accountlist import MarketLoginPage, UselessPage, ProfilePage
+from .pages.accountlist import MarketLoginPage, UselessPage, ProfilePage, MarketCheckPage
 from .pages.pro import RedirectPage, ProAccountsList, ProAccountHistory, DownloadRib, RibPage
 from .pages.mandate import MandateAccountsList, PreMandate, PreMandateBis, MandateLife, MandateMarket
 from .linebourse_browser import LinebourseBrowser
@@ -98,6 +98,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
     lifeinsurance_cachemire_catalog = URL(r'https://www.labanquepostale.fr/particuliers/bel_particuliers/assurance/accueil_cachemire.html', CachemireCatalogPage)
 
     market_login = URL(r'/voscomptes/canalXHTML/bourse/aiguillage/oicFormAutoPost.jsp', MarketLoginPage)
+    market_check = URL(r'/voscomptes/canalXHTML/bourse/aiguillage/lancerBourseEnLigne-connexionBourseEnLigne.ea', MarketCheckPage)
     useless = URL(r'https://labanquepostale.offrebourse.com/ReroutageSJR', UselessPage)
 
     retirement_hist = URL(r'/voscomptes/canalXHTML/assurance/retraitePoints/historiqueRetraitePoint-assuranceRetraitePoints.ea(\?numContrat=(?P<id>\w+))?',
