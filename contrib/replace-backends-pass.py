@@ -15,7 +15,7 @@ with:
 _module = bnporc
 website = pp
 login = 123456
-password = `pass show weboob/bnporc21`
+password = `pass show weboob/bnporc21/password`
 """
 
 from __future__ import print_function
@@ -26,6 +26,8 @@ import shutil
 import subprocess
 import sys
 import tempfile
+
+SECRET_KEYWORDS = ('password', 'secret')
 
 FILE = os.getenv('WEBOOB_BACKENDS') or os.path.expanduser('~/.config/weboob/backends')
 
@@ -41,20 +43,23 @@ errors = 0
 seen = set()
 
 backend = None
+
+# building regex (^.*?keyword_1.*?|^.*?keyword_2.*?)\s*=\s*(\S.*)$
+regex = r'(%s)\s*=\s*(\S.*)$' % '|'.join(['^.*?' + keyword + '.*?' for keyword in SECRET_KEYWORDS])
+
 with open(FILE) as inp:
     with tempfile.NamedTemporaryFile('w', delete=False, dir=os.path.dirname(FILE)) as outp:
         for line in inp:
             line = line.strip()
 
-            mtc = re.match(r'password\s*=\s*(\S.*)$', line)
-            if mtc and not mtc.group(1).startswith('`'):
-                cmd = ['pass', 'insert', 'weboob/%s' % backend]
-                stdin = 2 * ('%s\n' % mtc.group(1))
-
+            mtc = re.match(regex, line)
+            if mtc and not mtc.group(2).startswith('`'):
+                cmd = ['pass', 'insert', 'weboob/%s/%s' % (backend, mtc.group(1))]
+                stdin = 2 * ('%s\n' % mtc.group(2))
                 proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
                 proc.communicate(stdin.encode('utf-8'))
                 if proc.returncode == 0:
-                    print('password = `pass show weboob/%s`' % backend, file=outp)
+                    print('%s = `pass show weboob/%s/%s`' % (mtc.group(1), backend, mtc.group(1)), file=outp)
                     continue
                 else:
                     errors += 1
