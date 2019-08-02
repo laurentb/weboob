@@ -491,7 +491,7 @@ class Investment(BaseObject):
     diff =               DecimalField('Difference between the buy cost and the current valuation')
     diff_ratio =         DecimalField('Difference in ratio (1 meaning 100%) between the buy cost and the current valuation')
     portfolio_share =    DecimalField('Ratio (1 meaning 100%) of the current amount relative to the total')
-    performance_history = Field('History of the performances of the stock (key=years, value=diff_ratio)', dict, default={})
+    performance_history = Field('History of the performances of the stock (key=years, value=diff_ratio)', dict)
 
     # International
     original_currency = StringField('Currency of the original amount')
