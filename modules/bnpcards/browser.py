@@ -73,6 +73,8 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
     def do_login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
+        if self.type == '1':
+            raise SiteSwitch('phenix')
         self.login.stay_or_go()
         assert self.login.is_here()
         self.page.login(self.type, self.username, self.password)

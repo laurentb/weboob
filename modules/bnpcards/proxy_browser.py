@@ -22,10 +22,12 @@ from weboob.browser.switch import SwitchingBrowser
 
 from .browser import BnpcartesentrepriseBrowser
 from .corporate.browser import BnpcartesentrepriseCorporateBrowser
+from .phenix.browser import BnpcartesentreprisePhenixBrowser
 
 
 class ProxyBrowser(SwitchingBrowser):
     BROWSERS = {
         'main': BnpcartesentrepriseBrowser,
         'corporate': BnpcartesentrepriseCorporateBrowser,
+        'phenix': BnpcartesentreprisePhenixBrowser,
     }
