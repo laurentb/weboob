@@ -135,7 +135,7 @@ class DocumentsPage(LoggedPage, JsonPage):
             doc.label = 'Facture %s' % document['numFactureLabel']
             doc.type = DocumentTypes.BILL
             doc.price = CleanDecimal().filter(document['montantTTC'])
-            doc.currency = '€'
+            doc.currency = 'EUR'
             doc._account_billing = document['compteFacturation']
             doc._bill_number = document['numFacture']
 
