@@ -1123,7 +1123,7 @@ class OAuth2PKCEMixin(OAuth2Mixin):
         return base64.urlsafe_b64encode(os.urandom(bytes_number)).rstrip(b'=').decode('ascii')
 
     def code_challenge(self, verifier):
-        digest = sha256(verifier).digest()
+        digest = sha256(verifier.encode('utf8')).digest()
         return base64.urlsafe_b64encode(digest).rstrip(b'=').decode('ascii')
 
     def build_authorization_parameters(self):
