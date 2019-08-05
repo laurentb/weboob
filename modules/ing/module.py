@@ -20,6 +20,7 @@ from __future__ import unicode_literals
 
 
 from decimal import Decimal
+from datetime import timedelta
 
 from weboob.capabilities.bank import CapBankWealth, CapBankTransfer, Account, AccountNotFound, RecipientNotFound
 from weboob.capabilities.bill import (
@@ -113,6 +114,10 @@ class INGModule(Module, CapBankWealth, CapBankTransfer, CapDocument, CapProfile)
 
     def execute_transfer(self, transfer, **params):
         return self.browser.execute_transfer(transfer)
+
+    def transfer_check_exec_date(self, old_exec_date, new_exec_date):
+        # week-end + 1 holiday
+        return old_exec_date <= new_exec_date <= old_exec_date + timedelta(days=3)
 
     ############# CapDocument #############
     def iter_subscription(self):

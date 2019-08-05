@@ -355,7 +355,11 @@ class IngAPIBrowser(LoginBrowser):
         except ClientError as e:
             self.handle_transfer_errors(e)
 
-        assert self.page.suggested_date == transfer.exec_date, "Transfer date is not valid"
+        suggested_date = self.page.suggested_date
+        if transfer.exec_date and transfer.exec_date < suggested_date:
+            transfer.exec_date = suggested_date
+        assert suggested_date == transfer.exec_date, "Transfer date is not valid"
+
         self.transfer_data = data
         self.transfer_data.pop('keyPadSize')
         self.transfer_data['clickPositions'] = self.page.get_password_coord(self.password)
