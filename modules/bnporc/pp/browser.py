@@ -77,49 +77,49 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
     TIMEOUT = 30.0
 
     login = URL(r'identification-wspl-pres/identification\?acceptRedirection=true&timestamp=(?P<timestamp>\d+)',
-                'SEEA-pa01/devServer/seeaserver',
-                'https://mabanqueprivee.bnpparibas.net/fr/espace-prive/comptes-et-contrats\?u=%2FSEEA-pa01%2FdevServer%2Fseeaserver',
+                r'SEEA-pa01/devServer/seeaserver',
+                r'https://mabanqueprivee.bnpparibas.net/fr/espace-prive/comptes-et-contrats\?u=%2FSEEA-pa01%2FdevServer%2Fseeaserver',
                 LoginPage)
 
-    list_error_page = URL('https://mabanque.bnpparibas/rsc/contrib/document/properties/identification-fr-part-V1.json', ListErrorPage)
+    list_error_page = URL(r'https://mabanque.bnpparibas/rsc/contrib/document/properties/identification-fr-part-V1.json', ListErrorPage)
 
-    useless_page = URL('/fr/connexion/comptes-et-contrats', UselessPage)
+    useless_page = URL(r'/fr/connexion/comptes-et-contrats', UselessPage)
 
-    con_threshold = URL('/fr/connexion/100-connexions',
-                        '/fr/connexion/mot-de-passe-expire',
-                        '/fr/espace-prive/100-connexions.*',
-                        '/fr/espace-pro/100-connexions-pro.*',
-                        '/fr/espace-pro/changer-son-mot-de-passe',
-                        '/fr/espace-client/100-connexions',
-                        '/fr/espace-prive/mot-de-passe-expire',
-                        '/fr/client/100-connexion',
-                        '/fr/systeme/page-indisponible', ConnectionThresholdPage)
-    accounts = URL('udc-wspl/rest/getlstcpt', AccountsPage)
-    loan_details = URL('caraccomptes-wspl/rpc/(?P<loan_type>.*)', LoanDetailsPage)
-    ibans = URL('rib-wspl/rpc/comptes', AccountsIBANPage)
-    history = URL('rop-wspl/rest/releveOp', HistoryPage)
-    transfer_init = URL('virement-wspl/rest/initialisationVirement', TransferInitPage)
+    con_threshold = URL(r'/fr/connexion/100-connexions',
+                        r'/fr/connexion/mot-de-passe-expire',
+                        r'/fr/espace-prive/100-connexions.*',
+                        r'/fr/espace-pro/100-connexions-pro.*',
+                        r'/fr/espace-pro/changer-son-mot-de-passe',
+                        r'/fr/espace-client/100-connexions',
+                        r'/fr/espace-prive/mot-de-passe-expire',
+                        r'/fr/client/100-connexion',
+                        r'/fr/systeme/page-indisponible', ConnectionThresholdPage)
+    accounts = URL(r'udc-wspl/rest/getlstcpt', AccountsPage)
+    loan_details = URL(r'caraccomptes-wspl/rpc/(?P<loan_type>.*)', LoanDetailsPage)
+    ibans = URL(r'rib-wspl/rpc/comptes', AccountsIBANPage)
+    history = URL(r'rop2-wspl/rest/releveOp', HistoryPage)
+    transfer_init = URL(r'virement-wspl/rest/initialisationVirement', TransferInitPage)
 
-    lifeinsurances = URL('mefav-wspl/rest/infosContrat', LifeInsurancesPage)
-    lifeinsurances_history = URL('mefav-wspl/rest/listMouvements', LifeInsurancesHistoryPage)
-    lifeinsurances_detail = URL('mefav-wspl/rest/detailMouvement', LifeInsurancesDetailPage)
+    lifeinsurances = URL(r'mefav-wspl/rest/infosContrat', LifeInsurancesPage)
+    lifeinsurances_history = URL(r'mefav-wspl/rest/listMouvements', LifeInsurancesHistoryPage)
+    lifeinsurances_detail = URL(r'mefav-wspl/rest/detailMouvement', LifeInsurancesDetailPage)
 
-    natio_vie_pro = URL('/mefav-wspl/rest/natioViePro', NatioVieProPage)
-    capitalisation_page = URL('https://www.clients.assurance-vie.fr/servlets/helios.cinrj.htmlnav.runtime.FrontServlet', CapitalisationPage)
+    natio_vie_pro = URL(r'/mefav-wspl/rest/natioViePro', NatioVieProPage)
+    capitalisation_page = URL(r'https://www.clients.assurance-vie.fr/servlets/helios.cinrj.htmlnav.runtime.FrontServlet', CapitalisationPage)
 
-    market_list = URL('pe-war/rpc/SAVaccountDetails/get', MarketListPage)
-    market_syn = URL('pe-war/rpc/synthesis/get', MarketSynPage)
-    market = URL('pe-war/rpc/portfolioDetails/get', MarketPage)
-    market_history = URL('/pe-war/rpc/turnOverHistory/get', MarketHistoryPage)
+    market_list = URL(r'pe-war/rpc/SAVaccountDetails/get', MarketListPage)
+    market_syn = URL(r'pe-war/rpc/synthesis/get', MarketSynPage)
+    market = URL(r'pe-war/rpc/portfolioDetails/get', MarketPage)
+    market_history = URL(r'/pe-war/rpc/turnOverHistory/get', MarketHistoryPage)
 
-    recipients = URL('/virement-wspl/rest/listerBeneficiaire', RecipientsPage)
-    add_recip = URL('/virement-wspl/rest/ajouterBeneficiaire', AddRecipPage)
-    activate_recip_sms = URL('/virement-wspl/rest/activerBeneficiaire', ActivateRecipPage)
-    activate_recip_digital_key = URL('/virement-wspl/rest/verifierAuthentForte', ActivateRecipPage)
-    validate_transfer = URL('/virement-wspl/rest/validationVirement', ValidateTransferPage)
-    register_transfer = URL('/virement-wspl/rest/enregistrerVirement', RegisterTransferPage)
+    recipients = URL(r'/virement-wspl/rest/listerBeneficiaire', RecipientsPage)
+    add_recip = URL(r'/virement-wspl/rest/ajouterBeneficiaire', AddRecipPage)
+    activate_recip_sms = URL(r'/virement-wspl/rest/activerBeneficiaire', ActivateRecipPage)
+    activate_recip_digital_key = URL(r'/virement-wspl/rest/verifierAuthentForte', ActivateRecipPage)
+    validate_transfer = URL(r'/virement-wspl/rest/validationVirement', ValidateTransferPage)
+    register_transfer = URL(r'/virement-wspl/rest/enregistrerVirement', RegisterTransferPage)
 
-    advisor = URL('/conseiller-wspl/rest/monConseiller', AdvisorPage)
+    advisor = URL(r'/conseiller-wspl/rest/monConseiller', AdvisorPage)
 
     profile = URL(r'/kyc-wspl/rest/informationsClient', ProfilePage)
     list_detail_card = URL(r'/udcarte-wspl/rest/listeDetailCartes', ListDetailCardPage)
@@ -280,7 +280,7 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
                 "ibanCrypte": account.id,
                 "pastOrPending": 1,
                 "triAV": 0,
-                "startDate": (datetime.now() - relativedelta(years=2)).strftime('%d%m%Y'),
+                "startDate": (datetime.now() - relativedelta(years=1)).strftime('%d%m%Y'),
                 "endDate": datetime.now().strftime('%d%m%Y')
             }))
 

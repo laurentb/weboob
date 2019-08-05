@@ -595,7 +595,7 @@ class HistoryPage(BNPPage):
                 'category': op.get('categorie'),
                 'amount': self.one('montant.montant', op),
             })
-            tr.parse(raw=op.get('libelleOperation'),
+            tr.parse(raw=CleanText().filter(op.get('libelleOperation')),
                      date=parse_french_date(op.get('dateOperation')),
                      vdate=parse_french_date(self.one('montant.valueDate', op)))
 
@@ -616,7 +616,8 @@ class HistoryPage(BNPPage):
             })
             tr.parse(date=parse_french_date(op.get('dateOperation')),
                      vdate=parse_french_date(op.get('valueDate')),
-                     raw=op.get('libelle'))
+                     raw=CleanText().filter(op.get('libelle')))
+
             if tr.type == Transaction.TYPE_CARD:
                 tr.type = self.browser.card_to_transaction_type.get(op.get('keyCarte'),
                                                                     Transaction.TYPE_DEFERRED_CARD)
