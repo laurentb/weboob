@@ -190,12 +190,14 @@ class RegisterTransferPage(LoggedPage, HTMLPage):
 class ValidateTransferPage(LoggedPage, HTMLPage):
     def on_load(self):
         errors_msg = (
-            CleanText('//form[@id="SaisieVirementForm"]/p[has-class("error")]/label')(self.doc),
+            CleanText('//form[@id="SaisieVirementForm"]/p[has-class("error")]/label')(self.doc),  # may be deprecated
             CleanText('//div[@id="error" and @class="erreur_texte"]/p[contains(text(), "n\'est pas autorisé")]')(self.doc),
+            CleanText('//form[@id="SaisieVirementForm"]//label[has-class("error")]')(self.doc),
         )
+
         for error in errors_msg:
             if error:
-                raise TransferBankError(error)
+                raise TransferBankError(message=error)
 
         other_error_msg = self.doc.xpath('//div[@id="error" and @class="erreur_texte"]')
         assert not other_error_msg, 'Error "other_error_msg" is not handled yet'
