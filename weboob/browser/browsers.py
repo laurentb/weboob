@@ -987,6 +987,7 @@ class OAuth2Mixin(StatesMixin):
     auth_uri = None
     token_type = None
     refresh_token = None
+    oauth_state = None
 
     def __init__(self, *args, **kwargs):
         super(OAuth2Mixin, self).__init__(*args, **kwargs)
@@ -1025,11 +1026,15 @@ class OAuth2Mixin(StatesMixin):
             self.request_authorization()
 
     def build_authorization_parameters(self):
-        return {'redirect_uri':    self.redirect_uri,
-                'scope':           self.SCOPE,
-                'client_id':       self.client_id,
-                'response_type':   'code',
-               }
+        params = {
+            'redirect_uri':    self.redirect_uri,
+            'scope':           self.SCOPE,
+            'client_id':       self.client_id,
+            'response_type':   'code',
+        }
+        if self.oauth_state:
+            params['state'] = self.oauth_state
+        return params
 
     def build_authorization_uri(self):
         p = urlparse(self.AUTHORIZATION_URI)
@@ -1114,11 +1119,15 @@ class OAuth2PKCEMixin(OAuth2Mixin):
         return base64.urlsafe_b64encode(digest).rstrip(b'=').decode('ascii')
 
     def build_authorization_parameters(self):
-        return {'redirect_uri':    self.redirect_uri,
-                'code_challenge_method': 'S256',
-                'code_challenge':  self.pkce_challenge,
-                'client_id':       self.client_id
-               }
+        params = {
+            'redirect_uri':    self.redirect_uri,
+            'code_challenge_method': 'S256',
+            'code_challenge':  self.pkce_challenge,
+            'client_id':       self.client_id,
+        }
+        if self.oauth_state:
+            params['state'] = self.oauth_state
+        return params
 
     def build_access_token_parameters(self, values):
         return {'code':             values['code'],
