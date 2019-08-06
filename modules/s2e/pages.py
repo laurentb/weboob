@@ -284,6 +284,8 @@ class ItemInvestment(ItemElement):
                     'http://docfinder.is.bnpparibas-ip.com/',
                     # Redirection to a useless page with url like "https://epargne-salariale.axa-im.fr/fr/"
                     'https://epargne-salariale.axa-im.fr/fr/',
+                    # Redirection to the Rothschild Gestion website, which doesn't exist anymore...
+                    'https://www.rothschildgestion.com',
                 )
 
                 for useless_url in useless_urls:
