@@ -20,7 +20,7 @@
 from __future__ import unicode_literals
 
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import BrowserIncorrectPassword, BrowserPasswordExpired, ActionNeeded
+from weboob.exceptions import BrowserIncorrectPassword, BrowserPasswordExpired, ActionNeeded, BrowserUnavailable
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import find_object
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
@@ -94,6 +94,8 @@ class CreditDuNordBrowser(LoginBrowser):
             for a in self.page.get_av_accounts():
                 self.location(a._link, data=a._args)
                 self.location(a._link.replace("_attente", "_detail_contrat_rep"), data=a._args)
+                if self.page.get_error():
+                    raise BrowserUnavailable(self.page.get_error())
                 self.page.fill_diff_currency(a)
                 yield a
         self.accounts.go(account_type=self.account_type, accounts_page_label=self.accounts_page_label)

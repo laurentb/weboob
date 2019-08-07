@@ -743,6 +743,9 @@ class TransactionsPage(LoggedPage, CDNBasePage):
 class ProTransactionsPage(TransactionsPage):
     TRANSACTION = Transaction
 
+    def get_error(self):
+        return CleanText('//b[contains(text(), "momentanément indisponible")]')(self.doc)
+
     def get_next_args(self, args):
         if len(self.doc.xpath('//a[contains(text(), "Suivant")]')) > 0:
             args['PageDemandee'] = int(args.get('PageDemandee', 1)) + 1
