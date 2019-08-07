@@ -794,6 +794,8 @@ class Transaction(FrenchTransaction):
                 (re.compile('^.* LE (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})$'),
                                                             FrenchTransaction.TYPE_UNKNOWN),
                 (re.compile(r'^RELEVE CARTE'), FrenchTransaction.TYPE_CARD_SUMMARY),
+                (re.compile(r'^RET GAB .*'), FrenchTransaction.TYPE_WITHDRAWAL),
+                (re.compile(r'^RETRAIT CARTE AGENCE \d+$'), FrenchTransaction.TYPE_WITHDRAWAL),
                ]
 
 
