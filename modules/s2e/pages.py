@@ -385,7 +385,7 @@ class AccountsPage(LoggedPage, MultiPage):
             def condition(self):
                 return self.xpath('.//div[contains(@class, "mesavoirs-carre-couleur") and contains(@style, "background-color:#")]')
 
-            obj_id = Env('id')
+            obj_id = obj_number = Env('id')
             obj_label = Env('label')
 
             def obj_type(self):
@@ -436,9 +436,6 @@ class AccountsPage(LoggedPage, MultiPage):
         col_diff = [u'+ or - potential value', u'+ ou - value potentielle']
 
         class item(ItemInvestment):
-            def obj_id(self):
-                return
-
             def obj_diff(self):
                 td = TableCell('diff', default=None)(self)
                 return MyDecimal('.//div[not(.//div)]')(td[0]) if td else NotAvailable
@@ -641,3 +638,8 @@ class EtoileGestionCharacteristicsPage(PartialHTMLPage):
     def get_code_amf(self):
         code = CleanText('//td[contains(text(), "Code AMF")]/following-sibling::td', default=None)(self.doc)
         return code
+
+
+class ProfilePage(LoggedPage, MultiPage):
+    def get_company_name(self):
+        return CleanText('//div[contains(@class, "operation-bloc")]//span[contains(text(), "Entreprise")]/following-sibling::span[1]')(self.doc)

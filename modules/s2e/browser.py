@@ -24,29 +24,30 @@ from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded, NoAccounts
 from .pages import (
     LoginPage, AccountsPage, AMFHSBCPage, AMFAmundiPage, AMFSGPage, HistoryPage,
     ErrorPage, LyxorfcpePage, EcofiPage, EcofiDummyPage, LandingPage, SwissLifePage, LoginErrorPage,
-    EtoileGestionPage, EtoileGestionCharacteristicsPage,
+    EtoileGestionPage, EtoileGestionCharacteristicsPage, ProfilePage,
 )
 
 
 class S2eBrowser(LoginBrowser, StatesMixin):
-    login = URL('/portal/salarie-(?P<slug>\w+)/authentification',
-                '(.*)portal/salarie-(?P<slug>\w+)/authentification',
-                '/portal/j_security_check', LoginPage)
-    login_error = URL('/portal/login', LoginErrorPage)
-    landing = URL('(.*)portal/salarie-bnp/accueil', LandingPage)
-    accounts = URL('/portal/salarie-(?P<slug>\w+)/monepargne/mesavoirs\?language=(?P<lang>)',
-                   '/portal/salarie-(?P<slug>\w+)/monepargne/mesavoirs', AccountsPage)
-    amfcode_hsbc = URL('https://www.assetmanagement.hsbc.com/feedRequest', AMFHSBCPage)
-    amfcode_amundi = URL('https://www.amundi-ee.com/entr/product', AMFAmundiPage)
-    amfcode_sg = URL('http://sggestion-ede.com/product', AMFSGPage)
+    login = URL(r'/portal/salarie-(?P<slug>\w+)/authentification',
+                r'(.*)portal/salarie-(?P<slug>\w+)/authentification',
+                r'/portal/j_security_check', LoginPage)
+    login_error = URL(r'/portal/login', LoginErrorPage)
+    landing = URL(r'(.*)portal/salarie-bnp/accueil', LandingPage)
+    accounts = URL(r'/portal/salarie-(?P<slug>\w+)/monepargne/mesavoirs\?language=(?P<lang>)',
+                   r'/portal/salarie-(?P<slug>\w+)/monepargne/mesavoirs', AccountsPage)
+    amfcode_hsbc = URL(r'https://www.assetmanagement.hsbc.com/feedRequest', AMFHSBCPage)
+    amfcode_amundi = URL(r'https://www.amundi-ee.com/entr/product', AMFAmundiPage)
+    amfcode_sg = URL(r'http://sggestion-ede.com/product', AMFSGPage)
     isincode_ecofi = URL(r'http://www.ecofi.fr/fr/fonds/.*#yes\?bypass=clientprive', EcofiPage)
     pdf_file_ecofi = URL(r'http://www.ecofi.fr/sites/.*', EcofiDummyPage)
-    lyxorfcpe = URL('http://www.lyxorfcpe.com/part', LyxorfcpePage)
-    history = URL('/portal/salarie-(?P<slug>\w+)/operations/consulteroperations', HistoryPage)
-    error = URL('/maintenance/.+/', ErrorPage)
-    swisslife = URL('http://fr.swisslife-am.com/fr/produits/.*', SwissLifePage)
-    etoile_gestion = URL('http://www.etoile-gestion.com/index.php/etg_fr_fr/productsheet/view/.*', EtoileGestionPage)
-    etoile_gestion_characteristics = URL('http://www.etoile-gestion.com/etg_fr_fr/ezjscore/.*', EtoileGestionCharacteristicsPage)
+    lyxorfcpe = URL(r'http://www.lyxorfcpe.com/part', LyxorfcpePage)
+    history = URL(r'/portal/salarie-(?P<slug>\w+)/operations/consulteroperations', HistoryPage)
+    error = URL(r'/maintenance/.+/', ErrorPage)
+    swisslife = URL(r'http://fr.swisslife-am.com/fr/produits/.*', SwissLifePage)
+    etoile_gestion = URL(r'http://www.etoile-gestion.com/index.php/etg_fr_fr/productsheet/view/.*', EtoileGestionPage)
+    etoile_gestion_characteristics = URL(r'http://www.etoile-gestion.com/etg_fr_fr/ezjscore/.*', EtoileGestionCharacteristicsPage)
+    profile = URL(r'/portal/salarie-(?P<slug>\w+)/mesdonnees/coordperso\?scenario=ConsulterCP', ProfilePage)
 
     STATE_DURATION = 10
 
@@ -87,21 +88,29 @@ class S2eBrowser(LoginBrowser, StatesMixin):
             # weird wrongpass
             if not self.accounts.is_here():
                 raise BrowserIncorrectPassword()
-            multi = self.page.get_multi()
-            if len(multi):
+            multi_space = self.page.get_multi()
+            if len(multi_space):
                 # Handle multi entreprise accounts
                 accs = []
-                for id in multi:
-                    self.page.go_multi(id)
+                for space in multi_space:
+                    space_accs = []
+                    self.page.go_multi(space)
                     self.accounts.go(slug=self.SLUG)
                     if not no_accounts_message:
                         no_accounts_message = self.page.get_no_accounts_message()
-                    for a in self.page.iter_accounts():
-                        a._multi = id
-                        accs.append(a)
+                    for acc in self.page.iter_accounts():
+                        acc._space = space
+                        space_accs.append(acc)
+                    company_name = self.profile.go(slug=self.SLUG).get_company_name()
+                    for acc in space_accs:
+                        acc.company_name = company_name
+                    accs.extend(space_accs)
             else:
                 no_accounts_message = self.page.get_no_accounts_message()
                 accs = [a for a in self.page.iter_accounts()]
+                company_name = self.profile.go(slug=self.SLUG).get_company_name()
+                for acc in accs:
+                    acc.company_name = company_name
             if not len(accs) and no_accounts_message:
                 # Accounts list is empty and we found the
                 # message on at least one of the spaces:
@@ -114,8 +123,8 @@ class S2eBrowser(LoginBrowser, StatesMixin):
         if account.id not in self.cache['invs']:
             self.accounts.stay_or_go(slug=self.SLUG)
             # Handle multi entreprise accounts
-            if hasattr(account, '_multi'):
-                self.page.go_multi(account._multi)
+            if hasattr(account, '_space'):
+                self.page.go_multi(account._space)
                 self.accounts.go(slug=self.SLUG)
             # Select account
             self.page.get_investment_pages(account.id)
@@ -142,8 +151,8 @@ class S2eBrowser(LoginBrowser, StatesMixin):
     def iter_history(self, account):
         self.history.stay_or_go(slug=self.SLUG)
         # Handle multi entreprise accounts
-        if hasattr(account, '_multi'):
-            self.page.go_multi(account._multi)
+        if hasattr(account, '_space'):
+            self.page.go_multi(account._space)
             self.history.go(slug=self.SLUG)
         # Get more transactions on each page
         if self.page.show_more("50"):
