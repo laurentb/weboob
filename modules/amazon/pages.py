@@ -165,7 +165,7 @@ class DocumentsPage(LoggedPage, HTMLPage):
                 async_page = Async('details').loaded_page(self)
                 url = Link('//a[contains(@href, "download")]|//a[contains(@href, "generated_invoices")]', default=NotAvailable)(async_page.doc)
                 if not url:
-                    url = Link('//a[contains(text(), "Imprimer un récapitulatif de commande")]')(async_page.doc)
+                    url = Link('//a[contains(text(), "Récapitulatif de commande")]')(async_page.doc)
                 return url
 
             def obj_format(self):
