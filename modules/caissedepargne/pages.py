@@ -727,7 +727,7 @@ class IndexPage(LoggedPage, HTMLPage):
                 t.date = Date(dayfirst=True).filter(m.group(1))
             if t.date is NotAvailable:
                 continue
-            if 'tot dif' in t.raw.lower():
+            if any(l in t.raw.lower() for l in ('tot dif', 'fac cb')):
                 t._link = Link(tr.xpath('./td/a'))(self.doc)
 
             # "Cb" for new site, "CB" for old one
@@ -841,6 +841,14 @@ class IndexPage(LoggedPage, HTMLPage):
 
     def is_transfer_allowed(self):
         return not self.doc.xpath('//ul/li[contains(text(), "Aucun compte tiers n\'est disponible")]')
+
+
+class TransactionPopupPage(LoggedPage, HTMLPage):
+    def is_here(self):
+        return CleanText('''//div[@class="scrollPane"]/table[//caption[contains(text(), "Détail de l'opération")]]''')(self.doc)
+
+    def complete_label(self):
+        return CleanText('''//div[@class="scrollPane"]/table[//caption[contains(text(), "Détail de l'opération")]]//tr[2]''')(self.doc)
 
 
 class CardsPage(IndexPage):

@@ -51,7 +51,7 @@ from .pages import (
     ProTransferSummaryPage, ProAddRecipientOtpPage, ProAddRecipientPage,
     SmsPage, SmsPageOption, SmsRequest, AuthentPage, RecipientPage, CanceledAuth, CaissedepargneKeyboard,
     TransactionsDetailsPage, LoadingPage, ConsLoanPage, MeasurePage, NatixisLIHis, NatixisLIInv, NatixisRedirectPage,
-    SubscriptionPage, CreditCooperatifMarketPage, UnavailablePage, CardsPage, CardsComingPage, CardsOldWebsitePage,
+    SubscriptionPage, CreditCooperatifMarketPage, UnavailablePage, CardsPage, CardsComingPage, CardsOldWebsitePage, TransactionPopupPage,
 )
 
 from .linebourse_browser import LinebourseAPIBrowser
@@ -88,6 +88,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     cards_coming = URL('https://.*/Portail.aspx.*', CardsComingPage)
     authent = URL('https://.*/Portail.aspx.*', AuthentPage)
     subscription = URL('https://.*/Portail.aspx\?tache=(?P<tache>).*', SubscriptionPage)
+    transaction_popup = URL(r'https://.*/Portail.aspx.*', TransactionPopupPage)
     home = URL('https://.*/Portail.aspx.*', IndexPage)
     home_tache = URL('https://.*/Portail.aspx\?tache=(?P<tache>).*', IndexPage)
     error = URL('https://.*/login.aspx',
@@ -598,6 +599,13 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                             card_and_forms.append((tr.card, self.page.get_form_to_detail(tr)))
                         else:
                             self.logger.debug('will skip summary detail (%r) for different card %r', tr, account_card.number)
+                elif tr.type == FrenchTransaction.TYPE_CARD and 'fac cb' in tr.raw.lower() and not account_card:
+                    # for immediate debits made with a def card the label is way too empty for certain clients
+                    # we therefore open a popup and find the rest of the label
+                    # can't do that for every type of transactions because it makes a lot a additional requests
+                    form = self.page.get_form_to_detail(tr)
+                    transaction_popup_page = self.open(form.url, data=form)
+                    tr.raw += ' ' + transaction_popup_page.page.complete_label()
 
             # For deferred card history only :
             #
