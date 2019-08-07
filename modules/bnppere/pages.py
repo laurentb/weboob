@@ -21,7 +21,7 @@ from __future__ import unicode_literals
 
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import method, ItemElement, ListElement
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Format, Currency, Date, NumberFormatError
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Currency, Date, NumberFormatError
 from weboob.capabilities.bank import Account, Transaction
 from weboob.browser.filters.html import Attr
 from weboob.capabilities.profile import Profile
@@ -89,14 +89,10 @@ class AccountPage(LoggedPage, HTMLPage):
                 _id = ''.join(i for i in _id if i.isdigit())
                 return _id
 
-            def obj_label(self):
-                label = Format('%s', CleanText('./td[2]'))(self)
-                label = label.replace(" o ", " ")
-                return label
-
+            obj_label = CleanText('./td[2]', replace=[(' o ', ' ')])
             obj__login = CleanDecimal('./td[1]')
             obj_currency = Currency('./td[6]')
-            obj__company = CleanText('./td[3]')
+            obj_company_name = CleanText('./td[3]')
             obj_type = Account.TYPE_PERP
 
             def obj_balance(self):
