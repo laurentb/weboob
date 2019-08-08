@@ -23,7 +23,7 @@ from dateutil.relativedelta import relativedelta
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination, NextPage
 from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Field, Format
+from weboob.browser.filters.standard import CleanText, CleanDecimal, Field, Format, Env
 from weboob.browser.filters.html import Link, Attr
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -62,6 +62,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj__status = CleanText('./td[5]')
             obj_currency = u'EUR'
             obj_url = Link('./td[2]/a')
+            obj__company = Env('company', default=None)  # this field is something used to make the module work, not something meant to be displayed to end users
 
     @pagination
     def get_link(self, account_id, owner):

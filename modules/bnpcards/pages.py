@@ -118,7 +118,7 @@ class AccountsPage(ExpandablePage, GetableLinksPage):
             obj_label = CleanText('./td[1]')
             obj_type = Account.TYPE_CARD
             obj__rib = Env('rib')
-            obj__company = Env('company')
+            obj__company = Env('company', default=None)  # this field is something used to make the module work, not something meant to be displayed to end users
             obj_currency = u'EUR'
             obj_number = CleanText('./td[2]', replace=[(' ', '')])
             obj_url = AbsoluteLink('./td[2]/a')
@@ -204,6 +204,7 @@ class TiCardPage(ExpandablePage, TransactionsPage):
             obj_type = Account.TYPE_CARD
             obj__nav_num = Attr('.', 'value')
             obj_currency = u'EUR'
+            obj__company = Env('company', default=None)  # this field is something used to make the module work, not something meant to be displayed to end users
 
     def get_balance(self):
         if self.doc.xpath('//div[@class="messageaucunedonnee"]'):
