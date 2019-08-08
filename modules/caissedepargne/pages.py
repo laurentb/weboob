@@ -1725,62 +1725,39 @@ class SubscriptionPage(LoggedPage, HTMLPage):
 
     @method
     class iter_subscription(ListElement):
-        item_xpath = '//select[contains(@id, "ClientsBancaires")]/option'
+        item_xpath = '//span[@id="MM_CONSULTATION_MULTI_UNIVERS_EDOCUMENTS_ucUniversComptes"]//h3'
 
         class item(ItemElement):
             klass = Subscription
 
-            obj_id = Attr('.', 'value')
-            obj_label = CleanText('.')
-            obj_subscriber = CleanText('.')
+            obj_id = CleanDecimal('.')
+            obj_label = Regexp(CleanText('.'), r'([^\d]*) ')
+            obj_subscriber = Field('label')
 
             def condition(self):
-                return 'Clos' not in Field('label')(self)
-
-    def go_document_list(self, sub_id):
-        target = Attr('//select[contains(@id, "ClientsBancaires")]', 'id')(self.doc)
-        form = self.get_form(id='main')
-        form['m_ScriptManager'] = target
-        if 'palatine' in self.browser.BASEURL:
-            form['MM$CONSULTATION_NUMERISATION_PALATINE$cboClientsBancaires'] = sub_id
-        else:
-            form['MM$COMPTE_EDOCUMENTS$ctrlEDocumentsConsultationDocument$cboClientsBancaires'] = sub_id
-
-        form['__EVENTTARGET'] = target
-        form.submit()
-
-    def get_years(self):
-        return self.doc.xpath('//select[contains(@id, "Annee")]/option')
+                return bool(CleanDecimal('.', default=NotAvailable)(self))
 
     @method
     class iter_documents(ListElement):
-        item_xpath = '//ul[@class="telecharger"]/li/a'
+        # sometimes there is several documents with same label at same date and with same content
+        ignore_duplicate = True
+        @property
+        def item_xpath(self):
+            return '//h3[contains(text(), "%s")]//following-sibling::div[@class="panel"][1]/table/tbody/tr' % Env('sub_id')(self)
 
         class item(ItemElement):
             klass = Document
 
             obj_type = DocumentTypes.OTHER
             obj_format = 'pdf'
-            obj_url = Regexp(Link('.'), r'WebForm_PostBackOptions\("(\S*)"')
-            obj_id = Format('%s_%s_%s', Env('sub_id'), CleanText('./span', symbols='/',  replace=[(' ', '_')]), Regexp(Field('url'), r'ctl(.*)'))
-            obj__event_id = Regexp(Attr('.', 'onclick'), r"val\('(.*)'\);", default=None)
-
-            def obj_label(self):
-                if 'Récapitulatif de frais bancaires' in CleanText('./span')(self.el):
-                    return CleanText('./span')(self.el)
-                return Format('%s %s', CleanText('./preceding::h3[1]'), CleanText('./span'))(self.el)
-
-            def obj_date(self):
-                if 'Récapitulatif de frais bancaires' in CleanText('./span')(self.el):
-                    year = Regexp(CleanText('./span'), r'(\d{4})')(self.el)
-                    return Date(dayfirst=True).filter('31/12/%s' %year)
-                return Date(CleanText('./span'), dayfirst=True)(self.el)
+            obj_url = Regexp(Link('.//td[@class="telecharger"]/a'), r'WebForm_PostBackOptions\("(\S*)"')
+            obj_id = Format('%s_%s_%s', Env('sub_id'), CleanText('./td[2]', symbols='/',  replace=[(' ', '_')]), Regexp(CleanText('./td[3]'), r'([\wé]*)'))
+            obj_label = Format('%s %s', CleanText('./td[3]'), CleanText('./td[2]'))
+            obj_date = Date(CleanText('./td[2]'), dayfirst=True)
 
     def download_document(self, document):
         form = self.get_form(id='main')
-        form['m_ScriptManager'] = document.url
         form['__EVENTTARGET'] = document.url
-        form['MM$COMPTE_EDOCUMENTS$ctrlEDocumentsConsultationDocument$eventId'] = document._event_id
         return form.submit()
 
 

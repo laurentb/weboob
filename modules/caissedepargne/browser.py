@@ -1066,11 +1066,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         self.page.go_subscription()
         assert self.subscription.is_here()
 
-        sub_id = subscription.id
-        self.page.go_document_list(sub_id=sub_id)
-
-        for doc in self.page.iter_documents(sub_id=sub_id):
-            yield doc
+        return self.page.iter_documents(sub_id=subscription.id)
 
     @need_login
     def download_document(self, document):
@@ -1081,9 +1077,6 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             self.home_tache.go(tache='EPASYNT0')
         self.page.go_subscription()
         assert self.subscription.is_here()
-
-        sub_id = document.id.split('_')[0]
-        self.page.go_document_list(sub_id=sub_id)
 
         return self.page.download_document(document).content
 
