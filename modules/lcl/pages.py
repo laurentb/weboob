@@ -455,9 +455,9 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
                     # Empty transaction label
                     obj.raw = obj.label = Async('details', CleanText(u'//td[contains(text(), "Nature de l\'opération")]/following-sibling::*[1]'))(self)
                 if not obj.date:
-                    obj.date = Async('details', Date(CleanText(u'//td[contains(text(), "Date de l\'opération")]/following-sibling::*[1]', default=u''), default=NotAvailable))(self)
+                    obj.date = Async('details', Date(CleanText(u'//td[contains(text(), "Date de l\'opération")]/following-sibling::*[1]', default=u''), dayfirst=True, default=NotAvailable))(self)
                     obj.rdate = obj.date
-                    obj.vdate = Async('details', Date(CleanText(u'//td[contains(text(), "Date de valeur")]/following-sibling::*[1]', default=u''), default=NotAvailable))(self)
+                    obj.vdate = Async('details', Date(CleanText(u'//td[contains(text(), "Date de valeur")]/following-sibling::*[1]', default=u''), dayfirst=True, default=NotAvailable))(self)
                     obj.amount = Async('details', CleanDecimal(u'//td[contains(text(), "Montant")]/following-sibling::*[1]', replace_dots=True, default=NotAvailable))(self)
                 # ugly hack to fix broken html
                 # sometimes transactions have really an amount of 0...
@@ -931,7 +931,7 @@ class CaliePage(LoggedPage, HTMLPage):
             obj_label = CleanText(TableCell('label'))
             obj_original_valuation = CleanDecimal(TableCell('original_valuation'), replace_dots=True)
             obj_valuation = CleanDecimal(TableCell('valuation'), replace_dots=True)
-            obj_vdate = Date(CleanText(TableCell('vdate')))
+            obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True)
             obj_unitvalue = CleanDecimal(TableCell('unitvalue'), replace_dots=True)
             obj_quantity = CleanDecimal(TableCell('quantity'), replace_dots=True)
             obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal(TableCell('portfolio_share')))
