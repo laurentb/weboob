@@ -424,12 +424,13 @@ class Transaction(BaseObject):
     gross_amount = DecimalField('Amount of the transaction without the commission')
 
     # International
-    original_amount =   DecimalField('Original amount (in another currency)')
+    original_amount = DecimalField('Original net amount (in another currency)')
     original_currency = StringField('Currency of the original amount')
     country =           StringField('Country of transaction')
 
     original_commission =          DecimalField('Original commission (in another currency)')
     original_commission_currency = StringField('Currency of the original commission')
+    original_gross_amount = DecimalField('Original gross amount (in another currency)')
 
     # Financial arbitrations
     investments =       Field('List of investments related to the transaction', list, default=[])
