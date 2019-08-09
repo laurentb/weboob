@@ -1483,8 +1483,12 @@ class InternalTransferPage(LoggedPage, HTMLPage):
                                 replace_dots=True)(self.doc)
         assert r_amount == Decimal(amount)
         currency = FrenchTransaction.Currency('//table[@summary]/tbody/tr[th[contains(text(), "Montant")]]/td')(self.doc)
+
         if reason is not None:
-            assert reason.upper()[:22].strip() in CleanText('//table[@summary]/tbody/tr[th[contains(text(), "Intitulé pour le compte à débiter")]]/td')(self.doc)
+            creditor_label = CleanText('.').filter(reason.upper()[:22])
+            debitor_label = CleanText('//table[@summary]/tbody/tr[th[contains(text(), "Intitulé pour le compte à débiter")]]/td')(self.doc)
+            assert creditor_label in debitor_label, 'Difference in label between the debitor and the creditor'
+
         return exec_date, r_amount, currency
 
     def handle_response(self, account, recipient, amount, reason, exec_date):
