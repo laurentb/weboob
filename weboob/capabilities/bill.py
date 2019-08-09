@@ -52,6 +52,7 @@ class DocumentTypes(object):
     REPORT = u'report'
     BILL = u'bill'
     OTHER = u'other'
+    INCOME_TAX = u'income_tax'
 
 
 class Detail(BaseObject, Currency):
