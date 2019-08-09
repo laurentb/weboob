@@ -110,7 +110,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
                         r'/com/icd-web/forms/kyc-index.html',
                         ActionNeededPage)
     unavailable_service_page = URL(r'/com/service-indisponible.html',
-                                   r'.*/Technical-pages/503-error-page/unavailable.html'
+                                   r'.*/Technical-pages/503-error-page/unavailable.html',
                                    r'.*/Technical-pages/service-indisponible/service-indisponible.html',
                                    UnavailableServicePage)
     error = URL(r'https://static.societegenerale.fr/pri/erreur.html', ErrorPage)
