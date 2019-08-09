@@ -18,13 +18,20 @@
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
 
+from __future__ import unicode_literals
+
+import re
+
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded, NoAccountsException
+from weboob.capabilities.bank import Investment
+from weboob.tools.capabilities.bank.investments import is_isin_valid
 
 from .pages import (
     LoginPage, AccountsPage, AMFHSBCPage, AMFAmundiPage, AMFSGPage, HistoryPage,
     ErrorPage, LyxorfcpePage, EcofiPage, EcofiDummyPage, LandingPage, SwissLifePage, LoginErrorPage,
-    EtoileGestionPage, EtoileGestionCharacteristicsPage, ProfilePage,
+    EtoileGestionPage, EtoileGestionCharacteristicsPage, ProfilePage, APIInvestmentDetailsPage,
+    LyxorFundsPage,
 )
 
 
@@ -42,12 +49,15 @@ class S2eBrowser(LoginBrowser, StatesMixin):
     isincode_ecofi = URL(r'http://www.ecofi.fr/fr/fonds/.*#yes\?bypass=clientprive', EcofiPage)
     pdf_file_ecofi = URL(r'http://www.ecofi.fr/sites/.*', EcofiDummyPage)
     lyxorfcpe = URL(r'http://www.lyxorfcpe.com/part', LyxorfcpePage)
+    lyxorfunds = URL(r'https://www.lyxorfunds.com', LyxorFundsPage)
     history = URL(r'/portal/salarie-(?P<slug>\w+)/operations/consulteroperations', HistoryPage)
     error = URL(r'/maintenance/.+/', ErrorPage)
     swisslife = URL(r'http://fr.swisslife-am.com/fr/produits/.*', SwissLifePage)
     etoile_gestion = URL(r'http://www.etoile-gestion.com/index.php/etg_fr_fr/productsheet/view/.*', EtoileGestionPage)
     etoile_gestion_characteristics = URL(r'http://www.etoile-gestion.com/etg_fr_fr/ezjscore/.*', EtoileGestionCharacteristicsPage)
     profile = URL(r'/portal/salarie-(?P<slug>\w+)/mesdonnees/coordperso\?scenario=ConsulterCP', ProfilePage)
+    bnp_investments = URL(r'https://optimisermon.epargne-retraite-entreprises.bnpparibas.com')
+    api_investment_details = URL(r'https://funds-api.bnpparibas.com/api/performances/FromIsinCode/', APIInvestmentDetailsPage)
 
     STATE_DURATION = 10
 
@@ -128,11 +138,36 @@ class S2eBrowser(LoginBrowser, StatesMixin):
                 self.accounts.go(slug=self.SLUG)
             # Select account
             self.page.get_investment_pages(account.id)
-            invs = [i for i in self.page.iter_investment()]
+            investments_without_quantity = [i for i in self.page.iter_investment()]
             # Get page with quantity
             self.page.get_investment_pages(account.id, valuation=False)
-            self.cache['invs'][account.id] = self.page.update_invs_quantity(invs)
+            investments_without_performances = self.page.update_invs_quantity(investments_without_quantity)
+            investments = self.update_investments(investments_without_performances)
+            self.cache['invs'][account.id] = investments
         return self.cache['invs'][account.id]
+
+    @need_login
+    def update_investments(self, investments):
+        for inv in investments:
+            if inv._link:
+                if self.bnp_investments.match(inv._link):
+                    # From the current URL, which has the format:
+                    # https://optimisermon.epargne-retraite-entreprises.bnpparibas.com/Mes-Supports/11111/QS0002222T5
+                    # We can extract the investment ISIN code and use it to call routes of the BNP Wealth API
+                    self.location(inv._link)
+                    m = re.search(r'Mes-Supports/(.*)/(.*)', self.url)
+                    if m:
+                        if is_isin_valid(m.group(2)):
+                            inv.code = m.group(2)
+                            inv.code_type = Investment.CODE_TYPE_ISIN
+                        self.location('https://funds-api.bnpparibas.com/api/performances/FromIsinCode/' + inv.code)
+                        inv.performance_history = self.page.get_investment_performances()
+                elif self.amfcode_sg.match(inv._link) or self.lyxorfunds.match(inv._link):
+                    # Esalia (Société Générale Épargne Salariale) or Lyxor investments
+                    # Not all sggestion-ede.com or lyxorfunds.com have available performances.
+                    self.location(inv._link)
+                    inv.performance_history = self.page.get_investment_performances()
+        return investments
 
     @need_login
     def iter_pocket(self, account):

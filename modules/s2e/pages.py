@@ -19,26 +19,37 @@
 
 from __future__ import unicode_literals
 
-import re, requests
+import re
+
+import requests
 from io import BytesIO
 from decimal import Decimal
 from lxml import objectify
 
-from weboob.browser.pages import HTMLPage, XMLPage, RawPage, LoggedPage, pagination, FormNotFound, PartialHTMLPage
+from weboob.browser.pages import HTMLPage, XMLPage, RawPage, LoggedPage, pagination, FormNotFound, PartialHTMLPage, JsonPage
 from weboob.browser.elements import ItemElement, TableElement, SkipItem, method
 from weboob.browser.filters.standard import CleanText, Date, Regexp, Eval, CleanDecimal, Env, Field, MapIn, Upper
 from weboob.browser.filters.html import Attr, TableCell
+from weboob.browser.filters.json import Dict
+from weboob.browser.exceptions import HTTPNotFound
 from weboob.capabilities.bank import Account, Investment, Pocket, Transaction
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable, empty
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard
 from weboob.exceptions import BrowserUnavailable, ActionNeeded, BrowserQuestion, BrowserIncorrectPassword
 from weboob.tools.value import Value
 from weboob.tools.compat import urljoin
+from weboob.tools.capabilities.bank.investments import is_isin_valid
 
 
 def MyDecimal(*args, **kwargs):
     kwargs.update(replace_dots=True, default=NotAvailable)
     return CleanDecimal(*args, **kwargs)
+
+
+def percent_to_ratio(value):
+    if empty(value):
+        return NotAvailable
+    return value / 100
 
 
 class ErrorPage(HTMLPage):
@@ -129,7 +140,6 @@ class LoginPage(HTMLPage):
                 del form[k]
                 break
 
-
         input_otp = Attr('//input[contains(@id, "otp")]', 'id')(self.doc)
         input_id = Attr('//input[@type="checkbox"]', 'id')(self.doc)
         form[input_otp] = otp
@@ -166,8 +176,16 @@ class LandingPage(LoggedPage, HTMLPage):
     pass
 
 
+class CodePage(object):
+    '''
+    This class is used as a parent class to include
+    all classes that contain a get_code() method.
+    '''
+    pass
+
+
 # AMF codes
-class AMFHSBCPage(XMLPage):
+class AMFHSBCPage(XMLPage, CodePage):
     ENCODING = "UTF-8"
     CODE_TYPE = Investment.CODE_TYPE_AMF
 
@@ -187,7 +205,7 @@ class AMFHSBCPage(XMLPage):
         return CleanText('//AMF_Code', default=NotAvailable)(self.doc)
 
 
-class AMFAmundiPage(HTMLPage):
+class AMFAmundiPage(HTMLPage, CodePage):
     CODE_TYPE = Investment.CODE_TYPE_AMF
 
     def get_code(self):
@@ -195,11 +213,8 @@ class AMFAmundiPage(HTMLPage):
                r'(\d+)', default=NotAvailable)(self.doc)
 
 
-class AMFSGPage(HTMLPage):
+class AMFSGPage(LoggedPage, HTMLPage, CodePage):
     CODE_TYPE = Investment.CODE_TYPE_AMF
-
-    def get_code(self):
-        return Regexp(CleanText('//div[@id="header_code"]'), r'(\d+)', default=NotAvailable)(self.doc)
 
     def build_doc(self, data):
         if not data.strip():
@@ -207,15 +222,50 @@ class AMFSGPage(HTMLPage):
             data = b'<html></html>'
         return super(AMFSGPage, self).build_doc(data)
 
+    def get_code(self):
+        return Regexp(CleanText('//div[@id="header_code"]'), r'(\d+)', default=NotAvailable)(self.doc)
 
-class LyxorfcpePage(LoggedPage, HTMLPage):
+    def get_investment_performances(self):
+        # Fetching the performance history (1 year, 3 years & 5 years)
+        perfs = {}
+        if not self.doc.xpath('//table[tr[th[contains(text(), "Performances glissantes")]]]'):
+            return
+        # Available performance durations are: 1 week, 1 month, 1 year, 3 years & 5 years.
+        # We need to match the durations with their respective values.
+        durations = [CleanText('.')(el) for el in self.doc.xpath('//table[tr[th[contains(text(), "Performances glissantes")]]]//tr[2]//th')]
+        values = [CleanText('.')(el) for el in self.doc.xpath('//table[tr[th[contains(text(), "Performances glissantes")]]]//td')]
+        matches = dict(zip(durations, values))
+        perfs[1] = percent_to_ratio(CleanDecimal.French(default=NotAvailable).filter(matches['1 an *']))
+        perfs[3] = percent_to_ratio(CleanDecimal.French(default=NotAvailable).filter(matches['3 ans *']))
+        perfs[5] = percent_to_ratio(CleanDecimal.French(default=NotAvailable).filter(matches['5 ans *']))
+        return perfs
+
+
+class LyxorfcpePage(LoggedPage, HTMLPage, CodePage):
     CODE_TYPE = Investment.CODE_TYPE_ISIN
 
     def get_code(self):
         return Regexp(CleanText('//span[@class="isin"]'), 'Code ISIN : (.*)')(self.doc)
 
 
-class EcofiPage(LoggedPage, HTMLPage):
+class LyxorFundsPage(LoggedPage, HTMLPage):
+    def get_investment_performances(self):
+        # Fetching the performance history (1 year, 3 years & 5 years)
+        perfs = {}
+        if not self.doc.xpath('//table[tr[td[text()="Performance"]]]'):
+            return
+        # Available performance history: 1 month, 3 months, 6 months, 1 year, 2 years, 3 years, 4years & 5 years.
+        # We need to match the durations with their respective values.
+        durations = [CleanText('.')(el) for el in self.doc.xpath('//table[tr[td[text()="Performance"]]]//tr//th')]
+        values = [CleanText('.')(el) for el in self.doc.xpath('//table[tr[td[text()="Performance"]]]//tr//td')]
+        matches = dict(zip(durations, values))
+        perfs[1] = percent_to_ratio(CleanDecimal.French(default=NotAvailable).filter(matches['1A']))
+        perfs[3] = percent_to_ratio(CleanDecimal.French(default=NotAvailable).filter(matches['3A']))
+        perfs[5] = percent_to_ratio(CleanDecimal.French(default=NotAvailable).filter(matches['5A']))
+        return perfs
+
+
+class EcofiPage(LoggedPage, HTMLPage, CodePage):
     CODE_TYPE = Investment.CODE_TYPE_ISIN
 
     def get_code(self):
@@ -233,6 +283,7 @@ class ItemInvestment(ItemElement):
     obj_vdate = Env('vdate')
     obj_code = Env('code')
     obj_code_type = Env('code_type')
+    obj__link = Env('_link')
 
     def obj_label(self):
         return CleanText(TableCell('label')(self)[0].xpath('.//div[contains(@style, \
@@ -252,6 +303,7 @@ class ItemInvestment(ItemElement):
                         Regexp(CleanText('.'), '^([\d\/]+)$', default=None)(span)
         self.env['unitvalue'] = MyDecimal().filter(unitvalue) if unitvalue else NotAvailable
         self.env['vdate'] = Date(dayfirst=True).filter(vdate) if vdate else NotAvailable
+        self.env['_link'] = None
 
         page = None
         link_id = Attr(u'.//a[contains(@title, "détail du fonds")]', 'id', default=None)(self)
@@ -263,55 +315,85 @@ class ItemInvestment(ItemElement):
             form['org.richfaces.ajax.component'] = form[link_id] = link_id
             page = self.page.browser.open(form['javax.faces.encodedURL'], data=dict(form)).page
 
-            if "hsbc.fr" in self.page.browser.BASEURL: # special space for HSBC
-                m = re.search('fundid=(\w+).+SH=(\w+)', CleanText('//complete', default="")(page.doc))
-
+            if 'hsbc.fr' in self.page.browser.BASEURL:
+                # Special space for HSBC, does not contain any information related to performances.
+                m = re.search(r'fundid=(\w+).+SH=(\w+)', CleanText('//complete', default='')(page.doc))
                 if m: # had to put full url to skip redirections.
                     page = page.browser.open('https://www.assetmanagement.hsbc.com/feedRequest?feed_data=gfcFundData&cod=FR&client=FCPE&fId=%s&SH=%s&lId=fr' % m.groups()).page
-            elif "consulteroperations" not in self.page.browser.url: # not on history
-                url = Regexp(CleanText('//complete'), r"openUrlFichesFonds\('(.*?)',true|false\).*", default=NotAvailable)(page.doc)
 
-                if url is NotAvailable:
-                    # redirection to a useless graphplot page with url like /portal/salarie-sg/fichefonds?idFonds=XXX&source=/portal/salarie-sg/monepargne/mesavoirs
-                    # or on bnp, look for plot display function in a script
-                    assert CleanText('//redirect/@url')(page.doc) or CleanText('//script[contains(text(), "afficherGraphique")]')(page.doc)
+            elif not self.page.browser.history.is_here():
+                url = page.get_invest_url()
+
+                if empty(url):
                     self.env['code'] = NotAvailable
                     self.env['code_type'] = NotAvailable
+                    return
+
+                # URLs used in browser.py to access investments performance history:
+                if url.startswith('https://optimisermon.epargne-retraite-entreprises'):
+                    # This URL can be used to access the BNP Wealth API to fetch investment performance and ISIN code
+                    self.env['_link'] = url
+                    self.env['code'] = NotAvailable
+                    self.env['code_type'] = NotAvailable
+                    return
+                elif url.startswith('http://sggestion-ede.com/product') or url.startswith('https://www.lyxorfunds.com/part'):
+                    self.env['_link'] = url
+
+                # Try to fetch ISIN code from URL with re.match
+                match = re.match(r'http://www.cpr-am.fr/fr/fonds_detail.php\?isin=([A-Z0-9]+)', url)
+                match = match or re.match(r'http://www.cpr-am.fr/particuliers/product/view/([A-Z0-9]+)', url)
+                if match:
+                    self.env['code'] = m.group(1)
+                    if is_isin_valid(match.group(1)):
+                        self.env['code_type'] = Investment.CODE_TYPE_ISIN
+                    else:
+                        self.env['code_type'] = Investment.CODE_TYPE_AMF
+                    return
+
+                # Try to fetch ISIN code from URL with re.search
+                m = re.search(r'&ISIN=([^&]+)', url)
+                m = m or re.search(r'&isin=([^&]+)', url)
+                m = m or re.search(r'&codeIsin=([^&]+)', url)
+                m = m or re.search(r'lyxorfunds\.com/part/([^/]+)', url)
+                if m:
+                    self.env['code'] = m.group(1)
+                    if is_isin_valid(m.group(1)):
+                        self.env['code_type'] = Investment.CODE_TYPE_ISIN
+                    else:
+                        self.env['code_type'] = Investment.CODE_TYPE_AMF
                     return
 
                 useless_urls = (
                     # pdf... http://docfinder.is.bnpparibas-ip.com/api/files/040d05b3-1776-4991-aa49-f0cd8717dab8/1536
                     'http://docfinder.is.bnpparibas-ip.com/',
-                    # Redirection to a useless page with url like "https://epargne-salariale.axa-im.fr/fr/"
+                    # The AXA website displays performance graphs but everything is calculated using JS scripts.
+                    # There is an API but it only contains risk data and performances per year, not 1-3-5 years.
                     'https://epargne-salariale.axa-im.fr/fr/',
                     # Redirection to the Rothschild Gestion website, which doesn't exist anymore...
                     'https://www.rothschildgestion.com',
+                    # URL to the Morningstar website does not contain any useful information
+                    'http://doc.morningstar.com',
                 )
-
                 for useless_url in useless_urls:
                     if url.startswith(useless_url):
                         self.env['code'] = NotAvailable
                         self.env['code_type'] = NotAvailable
                         return
 
-                match = re.match(r'http://www.cpr-am.fr/fr/fonds_detail.php\?isin=([A-Z0-9]+)', url)
-                match = match or re.match(r'http://www.cpr-am.fr/particuliers/product/view/([A-Z0-9]+)', url)
-                if match:
-                    self.env['code'] = match.group(1)
-                    self.env['code_type'] = Investment.CODE_TYPE_ISIN
-                    return
-
                 if url.startswith('http://fr.swisslife-am.com/fr/'):
                     self.page.browser.session.cookies.set('location', 'fr')
                     self.page.browser.session.cookies.set('prof', 'undefined')
+                try:
+                    page = self.page.browser.open(url).page
+                except HTTPNotFound:
+                    # Some pages lead to a 404 so we must avoid unnecessary crash
+                    self.logger.warning('URL %s was not found, investment details will be skipped.', url)
 
-                page = self.page.browser.open(url).page
-
-        try:
+        if isinstance(page, CodePage):
             self.env['code'] = page.get_code()
             self.env['code_type'] = page.CODE_TYPE
-        # Handle page is None and page has not get_code method
-        except AttributeError:
+        else:
+            # The page is not handled and does not have a get_code method.
             self.env['code'] = NotAvailable
             self.env['code_type'] = NotAvailable
 
@@ -449,6 +531,9 @@ class AccountsPage(LoggedPage, MultiPage):
             inv.quantity = MyDecimal().filter(CleanText('//div[contains(@id, "ongletDetailParSupport")] \
                        //tr[.//div[contains(replace(text(), "\xa0", " "), "%s")]]/td[last()]//div/text()' % inv.label)(self.doc))
         return invs
+
+    def get_invest_url(self):
+        return Regexp(CleanText('//complete'), r"openUrlFichesFonds\('([^']+)", default=NotAvailable)(self.doc)
 
     @method
     class iter_pocket(TableElement):
@@ -595,7 +680,7 @@ class HistoryPage(LoggedPage, MultiPage):
                 self.env['amount'] = sum([i.valuation or Decimal('0') for i in self.env['investments']])
 
 
-class SwissLifePage(HTMLPage):
+class SwissLifePage(HTMLPage, CodePage):
     CODE_TYPE = Investment.CODE_TYPE_ISIN
 
     def get_code(self):
@@ -605,7 +690,7 @@ class SwissLifePage(HTMLPage):
         return code
 
 
-class EtoileGestionPage(HTMLPage):
+class EtoileGestionPage(HTMLPage, CodePage):
     CODE_TYPE = NotAvailable
 
     def get_code(self):
@@ -630,7 +715,6 @@ class EtoileGestionPage(HTMLPage):
 
 
 class EtoileGestionCharacteristicsPage(PartialHTMLPage):
-
     def get_code_isin(self):
         code = CleanText('//td[contains(text(), "Code Isin")]/following-sibling::td', default=None)(self.doc)
         return code
@@ -643,3 +727,15 @@ class EtoileGestionCharacteristicsPage(PartialHTMLPage):
 class ProfilePage(LoggedPage, MultiPage):
     def get_company_name(self):
         return CleanText('//div[contains(@class, "operation-bloc")]//span[contains(text(), "Entreprise")]/following-sibling::span[1]')(self.doc)
+
+
+class APIInvestmentDetailsPage(LoggedPage, JsonPage):
+    def get_investment_performances(self):
+        # Fetching the performance history (1 year, 3 years & 5 years)
+        perfs = {}
+        for item in Dict('sharePerf')(self.doc):
+            if item['name'] in ('1Y', '3Y', '5Y'):
+                duration = int(item['name'][0])
+                value = item['value']
+                perfs[duration] = Eval(lambda x: x / 100, CleanDecimal.US(value))(self.doc)
+        return perfs
