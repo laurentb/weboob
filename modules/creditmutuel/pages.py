@@ -142,7 +142,7 @@ class item_account_generic(ItemElement):
         ('Service Accueil', Account.TYPE_CHECKING),
         ('Eurocompte Serenite', Account.TYPE_CHECKING),
         ('Catip', Account.TYPE_DEPOSIT),
-        ('Cic Immo', Account.TYPE_LOAN),
+        ('Cic Immo', Account.TYPE_MORTGAGE),
         ('Credit', Account.TYPE_LOAN),
         ('Crédits', Account.TYPE_LOAN),
         ('Eco-Prêt', Account.TYPE_LOAN),
