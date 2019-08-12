@@ -67,6 +67,7 @@ class AccountsPage(LoggedPage, HTMLPage):
     TYPES = {
         'Assurance Vie': Account.TYPE_LIFE_INSURANCE,
         'Capitalisation': Account.TYPE_MARKET,
+        'Epargne Handicap': Account.TYPE_LIFE_INSURANCE,
         'Unknown': Account.TYPE_UNKNOWN,
     }
 
