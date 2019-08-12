@@ -42,9 +42,7 @@ from .pages.bank import (
     AccountsPage as BankAccountsPage, CBTransactionsPage, TransactionsPage,
     UnavailablePage, IbanPage, LifeInsuranceIframe, BoursePage, BankProfilePage,
 )
-from .pages.wealth import (
-    AccountsPage as WealthAccountsPage, InvestmentPage, HistoryPage, ProfilePage, AccountDetailsPage,
-)
+from .pages.wealth import AccountsPage as WealthAccountsPage, InvestmentPage, HistoryPage, ProfilePage
 from .pages.transfer import (
     RecipientsPage, AddRecipientPage, ValidateTransferPage, RegisterTransferPage,
     ConfirmTransferPage, RecipientConfirmationPage,
@@ -511,14 +509,13 @@ class AXABanque(AXABrowser, StatesMixin):
 class AXAAssurance(AXABrowser):
     BASEURL = 'https://espaceclient.axa.fr'
 
-    accounts = URL(r'/accueil.html', WealthAccountsPage)
-    account_details = URL('.*accueil/savings/(\w+)/contract',
-                          r'https://espaceclient.axa.fr/#', AccountDetailsPage)
-    investment = URL(r'/content/ecc-popin-cards/savings/[^/]+/repartition', InvestmentPage)
-    history = URL(r'/content/ecc-popin-cards/savings/savings/postsales.mawGetPostSalesOperations.json', HistoryPage)
-    documents = URL(r'https://espaceclient.axa.fr/content/espace-client/accueil/mes-documents/attestations-d-assurances.content-inner.din_CERTIFICATE.html', DocumentsPage)
-    download = URL(r'/content/ecc-popin-cards/technical/detailed/document.downloadPdf.html',
-                   r'/content/ecc-popin-cards/technical/detailed/document/_jcr_content/',
+    accounts = URL('/accueil.html', WealthAccountsPage)
+    investment = URL('/content/ecc-popin-cards/savings/[^/]+/repartition', InvestmentPage)
+    history = URL('.*accueil/savings/(\w+)/contract',
+                  'https://espaceclient.axa.fr/#', HistoryPage)
+    documents = URL('https://espaceclient.axa.fr/content/espace-client/accueil/mes-documents/attestations-d-assurances.content-inner.din_CERTIFICATE.html', DocumentsPage)
+    download = URL('/content/ecc-popin-cards/technical/detailed/document.downloadPdf.html',
+                   '/content/ecc-popin-cards/technical/detailed/document/_jcr_content/',
                    DownloadPage)
     profile = URL(r'/content/ecc-popin-cards/transverse/userprofile.content-inner.html\?_=\d+', ProfilePage)
 
@@ -567,21 +564,18 @@ class AXAAssurance(AXABrowser):
 
     @need_login
     def iter_history(self, account):
-        ''' There is now an API for the accounts history, however transactions are not
-        sorted by date in the JSON. The website fetches 5 years of history maximum.
-        For some accounts, the access to the transactions JSON is not available yet. '''
-        params = {
-            'startDate': (date.today() - relativedelta(years=2)).year,
-            'endDate': date.today().year,
-            'pid': account.id,
-        }
-        self.history.go(params=params)
-        error_code = self.page.get_error_code()
-        if error_code:
-            self.logger.warning('Error when trying to access the history JSON, history will be skipped for this account.')
+        self.go_wealth_pages(account)
+        pagination_url = self.page.get_pagination_url()
+        try:
+            self.location(pagination_url, params={'skip': 0})
+        except ClientError as e:
+            assert e.response.status_code == 406
+            self.logger.info('not doing pagination for account %r, site seems broken', account)
+            for tr in self.page.iter_history(no_pagination=True):
+                yield tr
             return
 
-        for tr in sorted_transactions(self.page.iter_history()):
+        for tr in self.page.iter_history():
             yield tr
 
     def iter_coming(self, account):

@@ -17,29 +17,28 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
 
 import re
 
-from decimal import Decimal
-from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage
-from weboob.browser.elements import ListElement, DictElement, ItemElement, method, TableElement
+from weboob.browser.pages import HTMLPage, LoggedPage, pagination
+from weboob.browser.elements import ListElement, ItemElement, method, TableElement
 from weboob.browser.filters.standard import (
-    CleanDecimal, CleanText, Currency, Date, Eval, Field, Lower, MapIn, QueryValue, Regexp,
+    Async, AsyncLoad, CleanDecimal, CleanText, Currency, Date, Eval, Field, Lower, MapIn, QueryValue, Regexp,
 )
 from weboob.browser.filters.html import Attr, Link, TableCell
-from weboob.browser.filters.json import Dict
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.profile import Person
 from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-def float_to_decimal(f):
-    return Decimal(str(f))
+def MyDecimal(*args, **kwargs):
+    kwargs.update(replace_dots=True, default=NotAvailable)
+    return CleanDecimal(*args, **kwargs)
 
 
 class AccountsPage(LoggedPage, HTMLPage):
+
     @method
     class iter_accounts(ListElement):
         item_xpath = '//div[contains(@data-route, "/savings/")]'
@@ -59,8 +58,8 @@ class AccountsPage(LoggedPage, HTMLPage):
 
             obj_id = Regexp(CleanText('.//span[has-class("small-title")]'), r'([\d/]+)')
             obj_label = CleanText('.//h3[has-class("card-title")]')
-            obj_balance = CleanDecimal.French('.//p[has-class("amount-card")]')
-            obj_valuation_diff = CleanDecimal.French('.//p[@class="performance"]', default=NotAvailable)
+            obj_balance = MyDecimal('.//p[has-class("amount-card")]')
+            obj_valuation_diff = MyDecimal('.//p[@class="performance"]')
 
             def obj_url(self):
                 url = Attr('.', 'data-route')(self)
@@ -156,40 +155,66 @@ class InvestmentPage(LoggedPage, HTMLPage):
         return bool(self.doc.xpath(u'//th[contains(text(), "Valeur de la part")]'))
 
 
-class AccountDetailsPage(LoggedPage, HTMLPage):
+class Transaction(FrenchTransaction):
+    PATTERNS = [(re.compile(u'^(?P<text>souscription.*)'), FrenchTransaction.TYPE_DEPOSIT),
+                (re.compile(u'^(?P<text>.*)'), FrenchTransaction.TYPE_BANK),
+               ]
+
+
+class HistoryPage(LoggedPage, HTMLPage):
+    def build_doc(self, content):
+        # we got empty pages at end of pagination
+        if not content.strip():
+            content = b"<html></html>"
+        return super(HistoryPage, self).build_doc(content)
+
     def get_account_url(self, url):
-        return Attr('//a[@href="%s"]' % url, 'data-target')(self.doc)
+        return Attr(u'//a[@href="%s"]' % url, 'data-target')(self.doc)
 
     def get_investment_url(self):
         return Attr('//div[has-class("card-distribution")]', 'data-url', default=None)(self.doc)
 
+    def get_pagination_url(self):
+        return Attr('//div[contains(@class, "default")][@data-module-card-list--current-page]', 'data-module-card-list--url')(self.doc)
 
-class Transaction(FrenchTransaction):
-    PATTERNS = [
-        (re.compile('^(?P<text>souscription.*)'), FrenchTransaction.TYPE_DEPOSIT),
-        (re.compile('^(?P<text>.*)'), FrenchTransaction.TYPE_BANK),
-    ]
-
-
-class HistoryPage(LoggedPage, JsonPage):
     @method
-    class iter_history(DictElement):
+    class get_investments(ListElement):
+        item_xpath = '//div[@class="white-bg"][.//strong[contains(text(), "support")]]/following-sibling::div'
+
+        class item(ItemElement):
+            klass = Investment
+
+            obj_label = CleanText('.//div[has-class("t-data__label")]')
+            obj_valuation = MyDecimal('.//div[has-class("t-data__amount") and has-class("desktop")]')
+            obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal('.//div[has-class("t-data__amount_label")]'))
+
+    @pagination
+    @method
+    class iter_history(ListElement):
+        item_xpath = '//div[contains(@data-url, "savingsdetailledcard")]'
+
+        def next_page(self):
+            if not CleanText(self.item_xpath, default=None)(self):
+                return
+            elif self.env.get('no_pagination'):
+                return
+
+            return re.sub(r'(?<=\bskip=)(\d+)', lambda m: str(int(m.group(1)) + 10), self.page.url)
 
         class item(ItemElement):
             klass = Transaction
 
-            obj_raw = Transaction.Raw(Dict('label'))
-            obj_date = Date(Dict('date'))
-            obj_amount = Eval(float_to_decimal, Dict('gross_amount/value'))
+            load_details = Attr('.', 'data-url') & AsyncLoad
 
-            def validate(self, obj):
-                return CleanText(Dict('status'))(self) == 'DONE'
+            obj_raw = Transaction.Raw('.//div[has-class("desktop")]//em')
+            obj_date = Date(CleanText('.//div[has-class("t-data__date") and has-class("desktop")]'), dayfirst=True)
+            obj_amount = MyDecimal('.//div[has-class("t-data__amount") and has-class("desktop")]')
 
-    def get_error_code(self):
-        # The server returns a list if it worked and a dict in case of error
-        if isinstance(self.doc, dict) and 'return' in self.doc:
-            return self.doc['return']['error']['code']
-        return None
+            def obj_investments(self):
+                investments = list(Async('details').loaded_page(self).get_investments())
+                for inv in investments:
+                    inv.vdate = Field('date')(self)
+                return investments
 
 
 class ProfilePage(LoggedPage, HTMLPage):
