@@ -505,16 +505,17 @@ class AXABanque(AXABrowser, StatesMixin):
         profile.name = self.page.get_profile_name()
         return profile
 
+
 class AXAAssurance(AXABrowser):
     BASEURL = 'https://espaceclient.axa.fr'
 
-    accounts = URL('/accueil.html', WealthAccountsPage)
-    investment = URL('/content/ecc-popin-cards/savings/[^/]+/repartition', InvestmentPage)
-    history = URL('.*accueil/savings/(\w+)/contract',
-                  'https://espaceclient.axa.fr/#', HistoryPage)
-    documents = URL('https://espaceclient.axa.fr/content/espace-client/accueil/mes-documents/attestations-d-assurances.content-inner.din_CERTIFICATE.html', DocumentsPage)
-    download = URL('/content/ecc-popin-cards/technical/detailed/document.downloadPdf.html',
-                   '/content/ecc-popin-cards/technical/detailed/document/_jcr_content/',
+    accounts = URL(r'/accueil.html', WealthAccountsPage)
+    investment = URL(r'/content/ecc-popin-cards/savings/[^/]+/repartition', InvestmentPage)
+    history = URL(r'.*accueil/savings/(\w+)/contract',
+                  r'/#', HistoryPage)
+    documents = URL(r'/content/espace-client/accueil/mes-documents/attestations-d-assurances.content-inner.din_CERTIFICATE.html', DocumentsPage)
+    download = URL(r'/content/ecc-popin-cards/technical/detailed/document.downloadPdf.html',
+                   r'/content/ecc-popin-cards/technical/detailed/document/_jcr_content/',
                    DownloadPage)
     profile = URL(r'/content/ecc-popin-cards/transverse/userprofile.content-inner.html\?_=\d+', ProfilePage)
 
@@ -570,12 +571,9 @@ class AXAAssurance(AXABrowser):
         except ClientError as e:
             assert e.response.status_code == 406
             self.logger.info('not doing pagination for account %r, site seems broken', account)
-            for tr in self.page.iter_history(no_pagination=True):
-                yield tr
-            return
+            return self.page.iter_history(no_pagination=True)
 
-        for tr in self.page.iter_history():
-            yield tr
+        return self.page.iter_history()
 
     def iter_coming(self, account):
         raise NotImplementedError()

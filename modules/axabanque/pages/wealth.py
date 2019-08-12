@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 import re
 
@@ -32,13 +33,7 @@ from weboob.capabilities.base import NotAvailable, NotLoaded
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
-def MyDecimal(*args, **kwargs):
-    kwargs.update(replace_dots=True, default=NotAvailable)
-    return CleanDecimal(*args, **kwargs)
-
-
 class AccountsPage(LoggedPage, HTMLPage):
-
     @method
     class iter_accounts(ListElement):
         item_xpath = '//div[contains(@data-route, "/savings/")]'
@@ -46,20 +41,21 @@ class AccountsPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Account
 
-            TYPES = {u'assurance vie': Account.TYPE_LIFE_INSURANCE,
-                     u'perp': Account.TYPE_PERP,
-                     u'epargne retraite agipi pair': Account.TYPE_PERP,
-                     u'epargne retraite agipi far': Account.TYPE_MADELIN,
-                     u'novial avenir': Account.TYPE_MADELIN,
-                     u'epargne retraite novial': Account.TYPE_LIFE_INSURANCE,
-                    }
+            TYPES = {
+                'assurance vie': Account.TYPE_LIFE_INSURANCE,
+                'perp': Account.TYPE_PERP,
+                'epargne retraite agipi pair': Account.TYPE_PERP,
+                'epargne retraite agipi far': Account.TYPE_MADELIN,
+                'novial avenir': Account.TYPE_MADELIN,
+                'epargne retraite novial': Account.TYPE_LIFE_INSURANCE,
+            }
 
             condition = lambda self: Field('balance')(self) is not NotAvailable
 
             obj_id = Regexp(CleanText('.//span[has-class("small-title")]'), r'([\d/]+)')
             obj_label = CleanText('.//h3[has-class("card-title")]')
-            obj_balance = MyDecimal('.//p[has-class("amount-card")]')
-            obj_valuation_diff = MyDecimal('.//p[@class="performance"]')
+            obj_balance = CleanDecimal.French('.//p[has-class("amount-card")]')
+            obj_valuation_diff = CleanDecimal.French('.//p[@class="performance"]', default=NotAvailable)
 
             def obj_url(self):
                 url = Attr('.', 'data-route')(self)
@@ -83,7 +79,7 @@ class InvestmentPage(LoggedPage, HTMLPage):
         col_label = 'Nom des supports'
         col_valuation = re.compile('.*Montant')
         col_vdate = 'Date de valorisation'
-        col_portfolio_share = u'Répartition'
+        col_portfolio_share = 'Répartition'
         col_quantity = re.compile('Nombre de parts')
         col_unitvalue = re.compile('Valeur de la part')
 
@@ -149,16 +145,17 @@ class InvestmentPage(LoggedPage, HTMLPage):
                 return cur if self.env['currency'] != cur else NotLoaded
 
     def detailed_view(self):
-        return Attr(u'//button[contains(text(), "Vision détaillée")]', 'data-url', default=None)(self.doc)
+        return Attr('//button[contains(text(), "Vision détaillée")]', 'data-url', default=None)(self.doc)
 
     def is_detail(self):
-        return bool(self.doc.xpath(u'//th[contains(text(), "Valeur de la part")]'))
+        return bool(self.doc.xpath('//th[contains(text(), "Valeur de la part")]'))
 
 
 class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile(u'^(?P<text>souscription.*)'), FrenchTransaction.TYPE_DEPOSIT),
-                (re.compile(u'^(?P<text>.*)'), FrenchTransaction.TYPE_BANK),
-               ]
+    PATTERNS = [
+        (re.compile(r'^(?P<text>souscription.*)'), FrenchTransaction.TYPE_DEPOSIT),
+        (re.compile(r'^(?P<text>.*)'), FrenchTransaction.TYPE_BANK),
+    ]
 
 
 class HistoryPage(LoggedPage, HTMLPage):
@@ -169,7 +166,7 @@ class HistoryPage(LoggedPage, HTMLPage):
         return super(HistoryPage, self).build_doc(content)
 
     def get_account_url(self, url):
-        return Attr(u'//a[@href="%s"]' % url, 'data-target')(self.doc)
+        return Attr('//a[@href="%s"]' % url, 'data-target')(self.doc)
 
     def get_investment_url(self):
         return Attr('//div[has-class("card-distribution")]', 'data-url', default=None)(self.doc)
@@ -179,14 +176,14 @@ class HistoryPage(LoggedPage, HTMLPage):
 
     @method
     class get_investments(ListElement):
-        item_xpath = '//div[@class="white-bg"][.//strong[contains(text(), "support")]]/following-sibling::div'
+        item_xpath = '//div[contains(@class, "card-support")]'
 
         class item(ItemElement):
             klass = Investment
 
-            obj_label = CleanText('.//div[has-class("t-data__label")]')
-            obj_valuation = MyDecimal('.//div[has-class("t-data__amount") and has-class("desktop")]')
-            obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal('.//div[has-class("t-data__amount_label")]'))
+            obj_label = CleanText('./div[contains(@class, "label")]')
+            obj_valuation = CleanDecimal.French(Regexp(CleanText('./div[contains(@class, "amount")]/span', replace=[(' ,', ',')]), r'(.*)€'))
+            obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal(Regexp(CleanText('./div[contains(@class, "amount")]/span'), r'.*€ (.*) %')))
 
     @pagination
     @method
@@ -206,9 +203,12 @@ class HistoryPage(LoggedPage, HTMLPage):
 
             load_details = Attr('.', 'data-url') & AsyncLoad
 
-            obj_raw = Transaction.Raw('.//div[has-class("desktop")]//em')
-            obj_date = Date(CleanText('.//div[has-class("t-data__date") and has-class("desktop")]'), dayfirst=True)
-            obj_amount = MyDecimal('.//div[has-class("t-data__amount") and has-class("desktop")]')
+            obj_raw = Transaction.Raw('.//div[@class="operations-movements-item-label"]')
+            obj_date = Date(CleanText('.//div[@class="operations-movements-item-date"]'), dayfirst=True)
+
+            # sometimes this div contains a second span with text like "Vos bonus +0.15 %",
+            # we must avoid it and only take the first span
+            obj_amount = CleanDecimal.French(CleanText('.//div[@class="operations-movements-item-amount"]/span[1]', replace=[(' ,', ',')]))
 
             def obj_investments(self):
                 investments = list(Async('details').loaded_page(self).get_investments())
