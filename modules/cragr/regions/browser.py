@@ -123,14 +123,6 @@ class CragrRegion(LoginBrowser):
     send_sms_page = URL(r'/stb/collecteNI\?fwkaid=.*&fwkpid=.*', SendSMSPage)
 
     # Accounts
-    accounts = BrowserParamURL(
-        r'/stb/entreeBam\?sessionSAG=(?P<browser_session_value>[^&]+)&stbpg=pagePU&act=Synthcomptes.*',
-        r'/stb/entreeBam\?sessionSAG=(?P<browser_session_value>[^&]+)&stbpg=pagePU&act=Releves.*',
-        r'/stb/(collecteNI|entreeBam)\?fwkaid=.*&fwkpid=.*Synthcomptes.*',
-        r'/stb/.*fwkaid=.*fwkpid=.*',
-        AccountsPage
-    )
-
     wealth = BrowserParamURL(
         r'/stb/entreeBam\?sessionSAG=(?P<browser_session_value>[^&]+)&stbpg=pagePU&act=Synthepargnes',
         r'/stb/(collecteNI|entreeBam)\?fwkaid=.*&fwkpid=.*Synthepargnes.*',
@@ -141,6 +133,14 @@ class CragrRegion(LoginBrowser):
         r'/stb/entreeBam\?sessionSAG=(?P<browser_session_value>[^&]+)&stbpg=pagePU&act=Synthcredits',
         r'/stb/(collecteNI|entreeBam)\?fwkaid=.*&fwkpid=.*Synthcredits.*',
         LoansPage
+    )
+
+    accounts = BrowserParamURL(
+        r'/stb/entreeBam\?sessionSAG=(?P<browser_session_value>[^&]+)&stbpg=pagePU&act=Synthcomptes.*',
+        r'/stb/entreeBam\?sessionSAG=(?P<browser_session_value>[^&]+)&stbpg=pagePU&act=Releves.*',
+        r'/stb/(collecteNI|entreeBam)\?fwkaid=.*&fwkpid=.*Synthcomptes.*',
+        r'/stb/.*fwkaid=.*fwkpid=.*',
+        AccountsPage
     )
 
     # Profile
@@ -404,7 +404,7 @@ class CragrRegion(LoginBrowser):
                 cragr_accounts.append(loan)
 
         # Deferred cards
-        self.accounts.stay_or_go()
+        self.accounts.go()
         for card in self.iter_deferred_cards(cragr_accounts):
             if card.id not in [a.id for a in cragr_accounts]:
                 cragr_accounts.append(card)
@@ -532,7 +532,6 @@ class CragrRegion(LoginBrowser):
             Account.TYPE_CHECKING,
             Account.TYPE_CARD,
             Account.TYPE_SAVINGS,
-            Account.TYPE_LOAN,
             Account.TYPE_PEA,
         )
         if account.type not in handled_history_types:
@@ -541,7 +540,7 @@ class CragrRegion(LoginBrowser):
 
         if account.type == Account.TYPE_CARD:
             self.go_to_perimeter(account._perimeter)
-            self.accounts.stay_or_go()
+            self.accounts.go()
             self.page.go_to_card(account._card_link)
 
             assert (self.cards_page.is_here() or self.multiple_cards_page.is_here()), \
