@@ -929,6 +929,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         if self.transfer.is_here():
             self.page.continue_transfer(transfer.account_label, transfer.recipient_label, transfer.label)
             return self.page.update_transfer(transfer)
+        assert False, 'Blank page instead of the TransferPage'
 
     @need_login
     def execute_transfer(self, transfer):
