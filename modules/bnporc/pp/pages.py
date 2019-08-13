@@ -30,7 +30,8 @@ import lxml.html as html
 from weboob.browser.elements import DictElement, ListElement, TableElement, ItemElement, method
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import (
-    Format, Eval, Regexp, CleanText, Date, CleanDecimal, Field, Coalesce, Map, Env, Currency,
+    Format, Eval, Regexp, CleanText, Date, CleanDecimal, Field, Coalesce, Map, Env,
+    Currency,
 )
 from weboob.browser.filters.html import TableCell
 from weboob.browser.pages import JsonPage, LoggedPage, HTMLPage
@@ -306,7 +307,6 @@ class ProfilePage(LoggedPage, JsonPage):
 
 
 class AccountsPage(BNPPage):
-
     @method
     class iter_accounts(DictElement):
         item_xpath = 'data/infoUdc/familleCompte'
@@ -354,6 +354,8 @@ class AccountsPage(BNPPage):
                 obj_balance = Dict('soldeDispo')
                 obj_coming = Dict('soldeAVenir')
                 obj_number = Dict('value')
+                obj__subscriber = Format('%s %s', Dict('titulaire/nom'), Dict('titulaire/prenom'))
+                obj__iduser = Dict('titulaire/ikpi')
 
                 def obj_iban(self):
                     iban = Map(Dict('key'), Env('ibans')(self), default=NotAvailable)(self)
@@ -381,6 +383,8 @@ class LoanDetailsPage(BNPPage):
         obj_rate = Dict('data/tauxRemboursement')
         obj_nb_payments_left = Dict('data/nbRemboursementRestant')
         obj_next_payment_date = Date(Dict('data/dateProchainAmortissement'), dayfirst=True)
+        obj__subscriber = Format('%s %s', Dict('data/titulaire/nom'), Dict('data/titulaire/prenom'))
+        obj__iduser = None
 
     @method
     class fill_revolving_details(ItemElement):
@@ -745,6 +749,8 @@ class CapitalisationPage(LoggedPage, HTMLPage):
             obj_balance = CleanDecimal(TableCell('balance'), replace_dots=True)
             obj_coming = None
             obj_iban = None
+            obj__subscriber = None
+            obj__iduser = None
 
             def obj_type(self):
                 for k, v in self.page.ACCOUNT_TYPES.items():

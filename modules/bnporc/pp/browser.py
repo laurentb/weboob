@@ -30,6 +30,7 @@ from weboob.capabilities.bank import (
     AccountNotFound, Account, AddRecipientStep, AddRecipientTimeout,
     TransferInvalidRecipient, Loan,
 )
+from weboob.capabilities.bill import Subscription
 from weboob.capabilities.profile import ProfileMissing
 from weboob.tools.decorators import retry
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
@@ -50,6 +51,7 @@ from .pages import (
     UselessPage, TransferAssertionError, LoanDetailsPage,
 )
 
+from .document_pages import DocumentsPage, TitulairePage
 
 __all__ = ['BNPPartPro', 'HelloBank']
 
@@ -120,6 +122,9 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
     register_transfer = URL(r'/virement-wspl/rest/enregistrerVirement', RegisterTransferPage)
 
     advisor = URL(r'/conseiller-wspl/rest/monConseiller', AdvisorPage)
+
+    titulaire = URL(r'/demat-wspl/rest/listerTitulairesDemat', TitulairePage)
+    document = URL(r'/demat-wspl/rest/rechercheCriteresDemat', DocumentsPage)
 
     profile = URL(r'/kyc-wspl/rest/informationsClient', ProfilePage)
     list_detail_card = URL(r'/udcarte-wspl/rest/listeDetailCartes', ListDetailCardPage)
@@ -510,6 +515,40 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
     def get_thread(self, thread):
         raise NotImplementedError()
 
+    @need_login
+    def iter_documents(self, subscription):
+        titulaires = self.titulaire.go().get_titulaires()
+        # Calling '/demat-wspl/rest/listerDocuments' before the request on 'document'
+        # is necessary when you specify an ikpi, otherwise no documents are returned
+        self.location('/demat-wspl/rest/listerDocuments')
+        # When we only have one titulaire, no need to use the ikpi parameter in the request,
+        # all document are provided with this simple request
+        data = {
+            'dateDebut': (datetime.now() - relativedelta(years=3)).strftime('%d/%m/%Y'),
+            'dateFin': datetime.now().strftime('%d/%m/%Y'),
+        }
+        # Ikpi is necessary for multi titulaires accounts to get each document of each titulaires
+        if len(titulaires) > 1:
+            data['ikpiPersonne'] = subscription._iduser
+        self.document.go(json=data)
+        return self.page.iter_documents(sub_id=subscription.id, sub_number=subscription._number, baseurl=self.BASEURL)
+
+    @need_login
+    def iter_subscription(self):
+        acc_list = self.iter_accounts()
+
+        for acc in acc_list:
+            sub = Subscription()
+            sub.label = acc.label
+            sub.subscriber = acc._subscriber
+            sub.id = acc.id
+            # number is the hidden number of an account like "****1234"
+            # and it's used in the parsing of the docs in iter_documents
+            sub._number = acc.number
+            # iduser is the ikpi affiliate to the account,
+            # usefull for multi titulaires connexions
+            sub._iduser = acc._iduser
+            yield sub
 
 class BNPPartPro(BNPParibasBrowser):
     BASEURL_TEMPLATE = r'https://%s.bnpparibas/'

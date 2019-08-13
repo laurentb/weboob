@@ -80,6 +80,14 @@ class BNPCompany(LoginBrowser):
                                 date.today().strftime('%Y%m%d'))
 
     @need_login
+    def iter_documents(self, subscription):
+        raise NotImplementedError()
+
+    @need_login
+    def iter_subscription(self):
+        raise NotImplementedError()
+
+    @need_login
     def iter_coming_operations(self, account):
         return self.get_transactions(account.id,
                                 'Previsionnel',

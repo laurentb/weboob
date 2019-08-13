@@ -33,7 +33,7 @@ from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages import (
     LoginPage, AuthPage, AccountsPage, AccountHistoryViewPage, AccountHistoryPage,
-    ActionNeededPage, TransactionPage, MarketPage, InvestPage
+    ActionNeededPage, TransactionPage, MarketPage, InvestPage,
 )
 
 
@@ -123,6 +123,14 @@ class BNPEnterprise(LoginBrowser):
         if account.type == Account.TYPE_MARKET:
             return []
         return self._iter_history_base(account)
+
+    @need_login
+    def iter_documents(self, subscription):
+        raise NotImplementedError()
+
+    @need_login
+    def iter_subscription(self):
+        raise NotImplementedError()
 
     def _iter_history_base(self, account):
         dformat = "%Y%m%d"

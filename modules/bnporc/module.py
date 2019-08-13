@@ -33,6 +33,10 @@ from weboob.capabilities.profile import CapProfile
 from weboob.capabilities.base import find_object, strict_find_object
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value, ValueBool
+from weboob.capabilities.bill import (
+    Subscription, CapDocument, SubscriptionNotFound, DocumentNotFound, Document,
+    DocumentTypes,
+)
 
 from .enterprise.browser import BNPEnterprise
 from .company.browser import BNPCompany
@@ -42,7 +46,7 @@ from .pp.browser import BNPPartPro, HelloBank
 __all__ = ['BNPorcModule']
 
 
-class BNPorcModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapMessages, CapContact, CapProfile):
+class BNPorcModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapMessages, CapContact, CapProfile, CapDocument):
     NAME = 'bnporc'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -61,6 +65,13 @@ class BNPorcModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapMessag
                        'ent2': 'Entreprises et PME (nouveau site)'}))
     STORAGE = {'seen': []}
 
+    accepted_document_types = (
+        DocumentTypes.STATEMENT,
+        DocumentTypes.REPORT,
+        DocumentTypes.BILL,
+        DocumentTypes.OTHER,
+    )
+
     # Store the messages *list* for this duration
     CACHE_THREADS = timedelta(seconds=3 * 60 * 60)
 
@@ -73,6 +84,14 @@ class BNPorcModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapMessag
         b = {'ent': BNPEnterprise, 'ent2': BNPCompany, 'pp': BNPPartPro, 'hbank': HelloBank}
         self.BROWSER = b[self.config['website'].get()]
         return self.create_browser(self.config)
+
+    def iter_resources(self, objs, split_path):
+        if Account in objs:
+            self._restrict_level(split_path)
+            return self.iter_accounts()
+        if Subscription in objs:
+            self._restrict_level(split_path)
+            return self.iter_subscription()
 
     def iter_accounts(self):
         return self.browser.iter_accounts()
@@ -204,5 +223,28 @@ class BNPorcModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapMessag
     def set_message_read(self, message):
         self.storage.get('seen', default=[]).append(message.thread.id)
         self.storage.save()
+
+    def get_subscription(self, _id):
+        return find_object(self.iter_subscription(), id=_id, error=SubscriptionNotFound)
+
+    def iter_documents(self, subscription):
+        if not isinstance(subscription, Subscription):
+            subscription = self.get_subscription(subscription)
+
+        return self.browser.iter_documents(subscription)
+
+    def iter_subscription(self):
+        return self.browser.iter_subscription()
+
+    def get_document(self, _id):
+        subscription_id = _id.split('_')[0]
+        subscription = self.get_subscription(subscription_id)
+        return find_object(self.iter_documents(subscription), id=_id, error=DocumentNotFound)
+
+    def download_document(self, document):
+        if not isinstance(document, Document):
+            document = self.get_document(document)
+
+        return self.browser.open(document.url).content
 
     OBJECTS = {Thread: fill_thread}
