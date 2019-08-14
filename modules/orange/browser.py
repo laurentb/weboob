@@ -22,9 +22,9 @@ from __future__ import unicode_literals
 from requests.exceptions import ConnectTimeout
 
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded, BrowserPasswordExpired
 from .pages import LoginPage, BillsPage
-from .pages.login import ManageCGI, HomePage
+from .pages.login import ManageCGI, HomePage, PasswordPage
 from .pages.bills import SubscriptionsPage, BillsApiProPage, BillsApiParPage, ContractsPage
 from .pages.profile import ProfilePage
 from weboob.browser.exceptions import ClientError, ServerError
@@ -41,6 +41,7 @@ class OrangeBillBrowser(LoginBrowser):
     home_page = URL('https://businesslounge.orange.fr/$', HomePage)
     loginpage = URL('https://login.orange.fr/\?service=sosh&return_url=https://www.sosh.fr/',
                     'https://login.orange.fr/front/login', LoginPage)
+    password_page = URL(r'https://login.orange.fr/front/password', PasswordPage)
 
     contracts = URL('https://espaceclientpro.orange.fr/api/contracts\?page=1&nbcontractsbypage=15', ContractsPage)
 
@@ -79,6 +80,11 @@ class OrangeBillBrowser(LoginBrowser):
                 # occur when user try several times with a bad password, orange block his account for a short time
                 raise BrowserIncorrectPassword(error.response.json())
             raise
+
+        if self.password_page.is_here():
+            error_message = self.page.get_change_password_message()
+            if error_message:
+                raise BrowserPasswordExpired(error_message)
 
     def get_nb_remaining_free_sms(self):
         raise NotImplementedError()

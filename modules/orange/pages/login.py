@@ -17,8 +17,13 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
-from weboob.browser.pages import HTMLPage, LoggedPage
+import lxml.html as html
+
+from StringIO import StringIO
+
+from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage
 from weboob.tools.json import json
 from weboob.browser.filters.standard import CleanText, Format
 
@@ -37,6 +42,31 @@ class LoginPage(HTMLPage):
             'loginEncrypt': json.loads(response.json()['options'])['loginEncrypt']
         }
         self.browser.location('https://login.orange.fr/front/password', json=json_data)
+
+
+class PasswordPage(JsonPage):
+    def get_change_password_message(self):
+        if self.doc.get('stage') != 'changePassword':
+            # when stage is not present everything is okay, and if it's not changePassword we prefer do nothing here
+            return
+
+        if 'mandatory' not in self.doc['options']:
+            # maybe there are some cases where it's optional
+            return
+
+        encoding = self.encoding
+        if encoding == 'latin-1':
+            encoding = 'latin1'
+        if encoding:
+            encoding = encoding.replace('ISO8859_', 'ISO8859-')
+
+        parser = html.HTMLParser(encoding=encoding)
+        html_doc = html.parse(StringIO(self.doc['view']), parser)
+
+        # message should be:
+        # Votre mot de passe actuel n’est pas suffisamment sécurisé et doit être renforcé.
+        # Veuillez le modifier pour accéder à vos services Orange.
+        return CleanText('//p[@id="cnMsg"]')(html_doc)
 
 
 class ManageCGI(HTMLPage):
