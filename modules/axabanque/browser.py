@@ -20,7 +20,6 @@
 from __future__ import unicode_literals
 
 from datetime import date
-from calendar import day_name
 from dateutil.relativedelta import relativedelta
 import re
 
@@ -390,9 +389,9 @@ class AXABanque(AXABrowser, StatesMixin):
         else:
             last_day_month = tr.vdate + relativedelta(day=1, months=1) - relativedelta(days=1)
 
-        if day_name[last_day_month.weekday()].upper() == 'SATURDAY':
+        if last_day_month.weekday() == 5:
             return last_day_month - relativedelta(days=1)
-        elif day_name[last_day_month.weekday()].upper() == 'SUNDAY':
+        elif last_day_month.weekday() == 6:
             return last_day_month - relativedelta(days=2)
         else:
             return last_day_month
