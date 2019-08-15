@@ -25,7 +25,7 @@ from lxml.etree import XMLSyntaxError
 from collections import OrderedDict
 
 from weboob.tools.date import LinearDateGuesser
-from weboob.capabilities.bank import Account, AccountNotFound
+from weboob.capabilities.bank import Account, AccountNotFound, AccountOwnership
 from weboob.tools.capabilities.bank.transactions import sorted_transactions, keep_only_card_transactions
 from weboob.tools.compat import parse_qsl, urlparse
 from weboob.exceptions import BrowserIncorrectPassword
@@ -223,6 +223,12 @@ class HSBC(LoginBrowser):
                 for a in self.accounts_dict[owner].values():
                     a._owner = owner
 
+                    # The first space is the PSU owner space
+                    if owner == 0:
+                        a.ownership = AccountOwnership.OWNER
+                    else:
+                        a.ownership = AccountOwnership.ATTORNEY
+
                 # go on cards page if there are cards accounts
                 for a in self.accounts_dict[owner].values():
                     if a.type == Account.TYPE_CARD:
@@ -253,6 +259,9 @@ class HSBC(LoginBrowser):
                 for account in owner.values():
                     if account.id not in self.unique_accounts_dict.keys():
                         self.unique_accounts_dict[account.id] = account
+                    else:
+                        # If an account is in multiple space, that's mean it is shared between this owners.
+                        self.unique_accounts_dict[account.id].ownership = AccountOwnership.CO_OWNER
 
         if self.unique_accounts_dict:
             for account in self.unique_accounts_dict.values():
