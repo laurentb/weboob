@@ -943,7 +943,7 @@ class AbstractBrowser(Browser):
 
     PARENT is a mandatory attribute, it's the name of the module providing the parent Browser
 
-    PARENT_ATTR is an optionnal attribute used when the parent module does not have only one
+    PARENT_ATTR is an optional attribute used when the parent module does not have only one
     browser defined as BROWSER class attribute: you can customized the path of the object to load.
 
     Note that you must pass a valid weboob instance as first argument of the constructor.
@@ -951,9 +951,8 @@ class AbstractBrowser(Browser):
     PARENT = None
     PARENT_ATTR = None
 
-    def __new__(cls, *args, **kwargs):
-        weboob = kwargs['weboob']
-
+    @classmethod
+    def _resolve_abstract(cls, weboob):
         if cls.PARENT is None:
             raise AbstractBrowserMissingParentError("PARENT is not defined for browser %s" % cls)
 
@@ -970,7 +969,15 @@ class AbstractBrowser(Browser):
         if parent is None:
             raise AbstractBrowserMissingParentError("Failed to load parent class")
 
+        # Parent may be an AbstractBrowser as well
+        if hasattr(parent, '_resolve_abstract'):
+            parent._resolve_abstract(weboob)
+
         cls.__bases__ = (parent,)
+
+    def __new__(cls, *args, **kwargs):
+        weboob = kwargs['weboob']
+        cls._resolve_abstract(weboob)
         return object.__new__(cls)
 
 
