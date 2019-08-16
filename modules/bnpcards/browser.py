@@ -22,6 +22,7 @@ from weboob.exceptions import BrowserIncorrectPassword, BrowserPasswordExpired
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.switch import SiteSwitch
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
+from weboob.tools.compat import basestring
 
 from .pages import LoginPage, ErrorPage, AccountsPage, TransactionsPage, \
                    TiCardPage, TiHistoPage, ComingPage, HistoPage, HomePage
@@ -30,35 +31,35 @@ from .pages import LoginPage, ErrorPage, AccountsPage, TransactionsPage, \
 class BnpcartesentrepriseBrowser(LoginBrowser):
     BASEURL = 'https://www.cartesentreprise.bnpparibas.com'
 
-    login = URL('/ce_internet_public/seConnecter.builder.do', LoginPage)
-    error = URL('.*.seConnecter.event.do',
-                '.*.compteGestChgPWD.builder.do',
-                '/ce_internet_prive_ti/compteTituChgPWD.builder.do',
+    login = URL(r'/ce_internet_public/seConnecter.builder.do', LoginPage)
+    error = URL(r'.*.seConnecter.event.do',
+                r'.*.compteGestChgPWD.builder.do',
+                r'/ce_internet_prive_ti/compteTituChgPWD.builder.do',
                 r'/ce_internet_corporate_ti/compteTituChgPWDCorporate.builder.do',
                 ErrorPage)
-    home = URL('/ce_internet_prive_ge/accueilInternetGe.builder.do',
-               '/ce_internet_(prive|corporate)_ti/accueilInternetTi(Corporate)?.builder.do', HomePage)
-    accounts = URL('/ce_internet_prive_ge/carteAffaireParc.builder.do',
-                   '/ce_internet_prive_ge/carteAffaireParcChange.event.do',
-                   '/ce_internet_prive_ge/pageParcCarteAffaire.event.do', AccountsPage)
-    coming = URL('/ce_internet_prive_ge/operationEnCours.builder.do',
-                 '/ce_internet_prive_ge/operationEnCours.event.do', ComingPage)
-    history = URL('/ce_internet_prive_ge/operationHisto.builder.do',
-                   '/ce_internet_prive_ge/operationHisto.event.do', HistoPage)
-    transactions = URL('ce_internet_prive_ge/operationEnCoursDetail.builder.do.*',
-                       'ce_internet_prive_ge/pageOperationEnCoursDetail.event.do.*',
-                       'ce_internet_prive_ge/operationHistoDetail.builder.do.*',
-                       'ce_internet_prive_ge/pageOperationHistoDetail.event.do.*',
+    home = URL(r'/ce_internet_prive_ge/accueilInternetGe.builder.do',
+               r'/ce_internet_(prive|corporate)_ti/accueilInternetTi(Corporate)?.builder.do', HomePage)
+    accounts = URL(r'/ce_internet_prive_ge/carteAffaireParc.builder.do',
+                   r'/ce_internet_prive_ge/carteAffaireParcChange.event.do',
+                   r'/ce_internet_prive_ge/pageParcCarteAffaire.event.do', AccountsPage)
+    coming = URL(r'/ce_internet_prive_ge/operationEnCours.builder.do',
+                 r'/ce_internet_prive_ge/operationEnCours.event.do', ComingPage)
+    history = URL(r'/ce_internet_prive_ge/operationHisto.builder.do',
+                  r'/ce_internet_prive_ge/operationHisto.event.do', HistoPage)
+    transactions = URL(r'ce_internet_prive_ge/operationEnCoursDetail.builder.do.*',
+                       r'ce_internet_prive_ge/pageOperationEnCoursDetail.event.do.*',
+                       r'ce_internet_prive_ge/operationHistoDetail.builder.do.*',
+                       r'ce_internet_prive_ge/pageOperationHistoDetail.event.do.*',
                        TransactionsPage)
 
-    ti_card = URL('/ce_internet_prive_ti/operationEnCoursDetail.builder.do',
-                  '/ce_internet_(prive|corporate)_ti/operation(Corporate)?EnCoursDetail(Afficher|Appliquer)?.event.do.*',
-                  '/ce_internet_prive_ti/pageOperationEnCoursDetail.event.do.*', TiCardPage)
-    ti_corporate_card = URL('/ce_internet_corporate_ti/operationCorporateEnCoursDetail.builder.do', TiCardPage)
-    ti_histo = URL('/ce_internet_prive_ti/operationHistoDetail.builder.do',
-                   '/ce_internet_(prive|corporate)_ti/operation(Corporate)?HistoDetail(Afficher|Appliquer)?.event.do.*',
-                   '/ce_internet_prive_ti/pageOperationHistoDetail.event.do.*', TiHistoPage)
-    ti_corporate_histo = URL('/ce_internet_corporate_ti/operationCorporateHistoDetail.builder.do', TiHistoPage)
+    ti_card = URL(r'/ce_internet_prive_ti/operationEnCoursDetail.builder.do',
+                  r'/ce_internet_(prive|corporate)_ti/operation(Corporate)?EnCoursDetail(Afficher|Appliquer)?.event.do.*',
+                  r'/ce_internet_prive_ti/pageOperationEnCoursDetail.event.do.*', TiCardPage)
+    ti_corporate_card = URL(r'/ce_internet_corporate_ti/operationCorporateEnCoursDetail.builder.do', TiCardPage)
+    ti_histo = URL(r'/ce_internet_prive_ti/operationHistoDetail.builder.do',
+                   r'/ce_internet_(prive|corporate)_ti/operation(Corporate)?HistoDetail(Afficher|Appliquer)?.event.do.*',
+                   r'/ce_internet_prive_ti/pageOperationHistoDetail.event.do.*', TiHistoPage)
+    ti_corporate_histo = URL(r'/ce_internet_corporate_ti/operationCorporateHistoDetail.builder.do', TiHistoPage)
     TIMEOUT = 60.0
 
     def __init__(self, type, *args, **kwargs):

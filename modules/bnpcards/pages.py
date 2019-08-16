@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 import re
 from datetime import date
 from decimal import Decimal
@@ -119,7 +121,7 @@ class AccountsPage(ExpandablePage, GetableLinksPage):
             obj_type = Account.TYPE_CARD
             obj__rib = Env('rib')
             obj__company = Env('company', default=None)  # this field is something used to make the module work, not something meant to be displayed to end users
-            obj_currency = u'EUR'
+            obj_currency = 'EUR'
             obj_number = CleanText('./td[2]', replace=[(' ', '')])
             obj_url = AbsoluteLink('./td[2]/a')
 
@@ -203,7 +205,7 @@ class TiCardPage(ExpandablePage, TransactionsPage):
             obj_label = Format('%s %s', CleanText('//table[@class="params"]/tr/td[1]/b[2]'), Field('id'))
             obj_type = Account.TYPE_CARD
             obj__nav_num = Attr('.', 'value')
-            obj_currency = u'EUR'
+            obj_currency = 'EUR'
             obj__company = Env('company', default=None)  # this field is something used to make the module work, not something meant to be displayed to end users
 
     def get_balance(self):

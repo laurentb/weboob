@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from weboob.tools.backend import Module, BackendConfig
 from weboob.capabilities.bank import CapBank, AccountNotFound
@@ -31,16 +32,24 @@ __all__ = ['BnpcartesentrepriseModule']
 
 class BnpcartesentrepriseModule(Module, CapBank):
     NAME = 'bnpcards'
-    DESCRIPTION = u'BNP Cartes Entreprises'
-    MAINTAINER = u'Baptiste Delpey'
+    DESCRIPTION = 'BNP Cartes Entreprises'
+    MAINTAINER = 'Baptiste Delpey'
     EMAIL = 'bdelpey@budget-insight.fr'
     LICENSE = 'LGPLv3+'
     VERSION = '1.6'
-    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
-                           ValueBackendPassword('password', label='Code personnel'),
-                           Value('type', label='Profil de connexion', default='1',
-                                 choices={'1': 'Titulaire',
-                                          '2': 'Gestionnaire'}))
+    CONFIG = BackendConfig(
+        ValueBackendPassword('login', label='Identifiant', masked=False),
+        ValueBackendPassword('password', label='Code personnel'),
+        Value(
+            'type',
+            label='Profil de connexion',
+            default='1',
+            choices={
+                '1': 'Titulaire',
+                '2': 'Gestionnaire',
+            }
+        )
+    )
 
     BROWSER = ProxyBrowser
 

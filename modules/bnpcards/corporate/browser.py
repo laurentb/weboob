@@ -21,6 +21,7 @@
 from weboob.exceptions import BrowserIncorrectPassword, BrowserPasswordExpired
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
+from weboob.tools.compat import basestring
 
 from .pages import LoginPage, ErrorPage, AccountsPage, TransactionsPage
 

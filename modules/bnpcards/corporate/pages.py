@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 import re
 from datetime import date
 from dateutil.relativedelta import relativedelta
@@ -60,7 +62,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_label = CleanText('./td[1]')
             obj_type = Account.TYPE_CARD
             obj__status = CleanText('./td[5]')
-            obj_currency = u'EUR'
+            obj_currency = 'EUR'
             obj_url = Link('./td[2]/a')
             obj__company = Env('company', default=None)  # this field is something used to make the module work, not something meant to be displayed to end users
 
@@ -145,7 +147,7 @@ class TransactionsPage(LoggedPage, HTMLPage):
             url = Attr('//table[@id="tgDecorationFoot"]//a[contains(text(), "1")]', 'href', default=None)(self.doc)
             if url is None:
                 # at page=4, there is "<Première page> ... <2> <3> 4"
-                url = Attr(u'//table[@id="tgDecorationFoot"]//a[contains(text(), "Première page")]', 'href')(self.doc)
+                url = Attr('//table[@id="tgDecorationFoot"]//a[contains(text(), "Première page")]', 'href')(self.doc)
             self.browser.location(url)
 
 
