@@ -490,7 +490,11 @@ class AbstractModule(Module):
     allow to simplify code with a fake inheritance: weboob will install (if needed) and
     load a PARENT module and build our AbstractModule on top of this class.
 
-    PARENT is a mandatory attribute of any AbstractModule
+    PARENT is a mandatory attribute of any AbstractModule.
+
+    By default an AbstractModule inherits its parent backends CONFIG.
+    To add backend values, use ADDITIONAL_CONFIG.
+    To remove backend values, you must override CONFIG definition.
 
     Note that you must pass a valid weboob instance as first argument of the constructor.
     """
@@ -506,4 +510,10 @@ class AbstractModule(Module):
             raise ModuleInstallError('The module %s depends on %s module but %s\'s installation failed with: %s' % (name, cls.PARENT, cls.PARENT, err))
 
         cls.__bases__ = tuple([parent] + list(cls.iter_caps()))
+
+        # fake backend config inheritance, override existing Values
+        # do not use CONFIG to allow the children to overwrite completely the parent CONFIG.
+        if getattr(cls, 'ADDITIONAL_CONFIG', None):
+            cls.CONFIG = BackendConfig(*(list(parent.CONFIG.values()) + list(cls.ADDITIONAL_CONFIG.values())))
+
         return object.__new__(cls)
