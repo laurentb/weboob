@@ -24,10 +24,10 @@ from weboob.browser.pages import LoggedPage, JsonPage, pagination
 from weboob.browser.elements import ItemElement, method, DictElement
 from weboob.browser.filters.standard import (
     CleanDecimal, CleanText, Date, Format, BrowserURL, Env,
-    Field,
+    Field, Regexp,
 )
 from weboob.browser.filters.json import Dict
-from weboob.capabilities.base import Currency
+from weboob.capabilities.base import Currency, empty
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account
 from weboob.capabilities.bill import Document, Subscription, DocumentTypes
@@ -202,6 +202,18 @@ class HistoryJsonPage(LoggedPage, JsonPage):
                 Dict('l2'),
                 Dict('l3'),
             ))
+
+            def obj_commission(self):
+                if Regexp(Field('label'), r' ([\d{1,3}\s?]*\d{1,3},\d{2}E COM [\d{1,3}\s?]*\d{1,3},\d{2}E)', default='')(self):
+                    # commission can be scraped from labels like 'REMISE CB /14/08 XXXXXX YYYYYYYYYYY ZZ 105,00E COM 0,84E'
+                    return CleanDecimal.French(Regexp(Field('label'), r'COM ([\d{1,3}\s?]*\d{1,3},\d{2})E', default=''), sign=lambda x: -1, default=NotAvailable)(self)
+                return NotAvailable
+
+            def obj_gross_amount(self):
+                if not empty(Field('commission')(self)):
+                    # gross_amount can be scraped from labels like 'REMISE CB /14/08 XXXXXX YYYYYYYYYYY ZZ 105,00E COM 0,84E'
+                    return CleanDecimal.French(Regexp(Field('label'), r' ([\d{1,3}\s?]*\d{1,3},\d{2})E COM', default=''), default=NotAvailable)(self)
+                return NotAvailable
 
             def obj_amount(self):
                 return CleanDecimal(Dict('c', default=None), replace_dots=True, default=None)(self) or \
