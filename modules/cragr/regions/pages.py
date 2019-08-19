@@ -613,17 +613,17 @@ class CheckingHistoryPage(LoggedPage, CragrPage):
                 self.env['vdate'] = NotAvailable
                 if CleanText('//table[@class="ca-table"][caption[span[b[text()="Historique des opérations"]]]]//tr[count(td) = 4]')(self):
                     # History table with 4 columns
-                    self.env['raw'] = CleanText('./td[2]', children=False)(self)
+                    self.env['raw'] = CleanText('./td[2]')(self)
                     self.env['amount'] = CleanDecimal.French('./td[last()]')(self)
 
                 elif CleanText('//table[@class="ca-table"][caption[span[b[text()="Historique des opérations"]]]]//tr[count(td) = 5]')(self):
                     # History table with 5 columns
-                    self.env['raw'] = CleanText('./td[3]', children=False)(self)
+                    self.env['raw'] = CleanText('./td[3]')(self)
                     self.env['amount'] = CleanDecimal.French('./td[last()]')(self)
 
                 elif CleanText('//table[@class="ca-table"][caption[span[b[text()="Historique des opérations"]]]]//tr[count(td) = 6]')(self):
                     # History table with 6 columns (contains vdate)
-                    self.env['raw'] = CleanText('./td[4]', children=False)(self)
+                    self.env['raw'] = CleanText('./td[4]')(self)
                     self.env['vdate'] = DateGuesser(CleanText('./td[2]'), Env('date_guesser'))(self)
                     self.env['amount'] = CleanDecimal.French('./td[last()]')(self)
 
@@ -635,11 +635,11 @@ class CheckingHistoryPage(LoggedPage, CragrPage):
                     )(self)
                     if CleanText('//table[@class="ca-table"][caption[span[b[text()="Historique des opérations"]]]]//th[a[contains(text(), "Valeur")]]')(self):
                         # With vdate column ('Valeur')
-                        self.env['raw'] = CleanText('./td[4]', children=False)(self)
+                        self.env['raw'] = CleanText('./td[4]')(self)
                         self.env['vdate'] = DateGuesser(CleanText('./td[2]'), Env('date_guesser'))(self)
                     else:
                         # Without any vdate column
-                        self.env['raw'] = CleanText('./td[3]', children=False)(self)
+                        self.env['raw'] = CleanText('./td[3]')(self)
                 else:
                     assert False, 'This type of history table is not handled yet!'
 
