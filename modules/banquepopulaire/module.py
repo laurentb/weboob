@@ -23,6 +23,10 @@ from collections import OrderedDict
 from functools import reduce
 
 from weboob.capabilities.bank import CapBankWealth, AccountNotFound
+from weboob.capabilities.base import find_object
+from weboob.capabilities.bill import (
+    CapDocument, SubscriptionNotFound, DocumentNotFound, Document, Subscription, DocumentTypes,
+)
 from weboob.capabilities.contact import CapContact
 from weboob.capabilities.profile import CapProfile
 from weboob.tools.backend import Module, BackendConfig
@@ -34,7 +38,7 @@ from .browser import BanquePopulaire
 __all__ = ['BanquePopulaireModule']
 
 
-class BanquePopulaireModule(Module, CapBankWealth, CapContact, CapProfile):
+class BanquePopulaireModule(Module, CapBankWealth, CapContact, CapProfile, CapDocument):
     NAME = 'banquepopulaire'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -69,6 +73,8 @@ class BanquePopulaireModule(Module, CapBankWealth, CapContact, CapProfile):
                            ValueBackendPassword('login',    label='Identifiant', masked=False),
                            ValueBackendPassword('password', label='Mot de passe'))
     BROWSER = BanquePopulaire
+
+    accepted_document_types = (DocumentTypes.STATEMENT,)
 
     def create_default_browser(self):
         repls = [
@@ -112,3 +118,26 @@ class BanquePopulaireModule(Module, CapBankWealth, CapContact, CapProfile):
 
     def get_profile(self):
         return self.browser.get_profile()
+
+    def iter_subscription(self):
+        return self.browser.iter_subscriptions()
+
+    def iter_documents(self, subscription):
+        if not isinstance(subscription, Subscription):
+            subscription = self.get_subscription(subscription)
+        return self.browser.iter_documents(subscription)
+
+    def get_subscription(self, _id):
+        return find_object(self.iter_subscription(), id=_id, error=SubscriptionNotFound)
+
+    def get_document(self, _id):
+        subid = _id.rsplit('_', 1)[0]
+        subscription = self.get_subscription(subid)
+
+        return find_object(self.iter_documents(subscription), id=_id, error=DocumentNotFound)
+
+    def download_document(self, document):
+        if not isinstance(document, Document):
+            document = self.get_document(document)
+
+        return self.browser.download_document(document)

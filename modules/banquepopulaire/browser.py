@@ -21,9 +21,11 @@ from __future__ import unicode_literals
 
 import re
 
+from datetime import datetime
 from collections import OrderedDict
 from functools import wraps
 
+from dateutil.relativedelta import relativedelta
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.browser.exceptions import HTTPNotFound, ServerError
 from weboob.browser import LoginBrowser, URL, need_login
@@ -40,6 +42,8 @@ from .pages import (
     NatixisDetailsPage, NatixisChoicePage, NatixisRedirect,
     LineboursePage, AlreadyLoginPage,
 )
+
+from .document_pages import BasicTokenPage, SubscriberPage, SubscriptionsPage, DocumentsPage
 
 from .linebourse_browser import LinebourseBrowser
 
@@ -169,6 +173,11 @@ class BanquePopulaire(LoginBrowser):
     advisor = URL(r'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=accueil.*',
                   r'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=contacter.*', AdvisorPage)
 
+    basic_token_page = URL(r'/SRVATE/context/mde/1.1.5', BasicTokenPage)
+    subscriber_page = URL(r'https://[^/]+/api-bp/wapi/2.0/abonnes/current/mes-documents-electroniques', SubscriberPage)
+    subscription_page = URL(r'https://[^/]+/api-bp/wapi/2.0/abonnes/current/contrats', SubscriptionsPage)
+    documents_page = URL(r'/api-bp/wapi/2.0/abonnes/current/documents/recherche-avancee', DocumentsPage)
+
     def __init__(self, website, *args, **kwargs):
         self.BASEURL = 'https://%s' % website
         # this url is required because the creditmaritime abstract uses an other url
@@ -186,6 +195,7 @@ class BanquePopulaire(LoginBrowser):
         self.linebourse = LinebourseBrowser('https://www.linebourse.fr', logger=self.logger, responses_dirname=dirname, weboob=self.weboob, proxy=self.PROXIES)
 
         self.investments = {}
+        self.documents_headers = None
 
     def deinit(self):
         super(BanquePopulaire, self).deinit()
@@ -562,6 +572,45 @@ class BanquePopulaire(LoginBrowser):
             else:
                 self.page.update_agency(advisor)
         return iter([advisor])
+
+    @need_login
+    def iter_subscriptions(self):
+        self.location('/SRVATE/context/mde/1.1.5')
+        headers = {'Authorization': 'Basic %s' % self.page.get_basic_token()}
+        response = self.location('/as-bp/as/2.0/tokens', method='POST', headers=headers)
+        self.documents_headers = {'Authorization': 'Bearer %s' % response.json()['access_token']}
+
+        self.location('/api-bp/wapi/2.0/abonnes/current/mes-documents-electroniques', headers=self.documents_headers)
+        subscriber = self.page.get_subscriber()
+
+        params = {'type': 'dematerialisationEffective'}
+        self.location('/api-bp/wapi/2.0/abonnes/current/contrats', params=params, headers=self.documents_headers)
+        return self.page.get_subscriptions(subscriber=subscriber)
+
+    @need_login
+    def iter_documents(self, subscription):
+        now = datetime.now()
+        # website says we can't get documents more than one year range at once but it seems it's just a javascript check
+        # no problem here so far
+        first_date = now - relativedelta(years=5)
+        start_date = first_date.strftime('%Y-%m-%dT00:00:00.000+00:00')
+        end_date = now.strftime('%Y-%m-%dT%H:%M:%S.000+00:00')
+        body = {
+            'inTypeRecherche': {'type': 'typeRechercheDocument', 'code': 'DEMAT'},
+            'inDateDebut': start_date,
+            'inDateFin': end_date,
+            'inListeIdentifiantsContrats': [
+                {'identifiantContrat': {'identifiant': subscription.id, 'codeBanque': subscription._bank_code}}
+            ],
+            'inListeTypesDocuments': [
+                {'typeDocument': {'code': 'EXTRAIT', 'label': 'Extrait de compte', 'type': 'referenceLogiqueDocument'}}
+            ]
+        }
+        self.location('/api-bp/wapi/2.0/abonnes/current/documents/recherche-avancee', json=body, headers=self.documents_headers)
+        return self.page.iter_documents(subid=subscription.id)
+
+    def download_document(self, document):
+        return self.open(document.url, headers=self.documents_headers).content
 
 
 class iter_retry(object):
