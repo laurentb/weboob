@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 from collections import OrderedDict
 from functools import reduce
 
@@ -34,38 +36,38 @@ __all__ = ['BanquePopulaireModule']
 
 class BanquePopulaireModule(Module, CapBankWealth, CapContact, CapProfile):
     NAME = 'banquepopulaire'
-    MAINTAINER = u'Romain Bignon'
+    MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '1.6'
-    DESCRIPTION = u'Banque Populaire'
+    DESCRIPTION = 'Banque Populaire'
     LICENSE = 'LGPLv3+'
-    website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
-        'www.ibps.alpes.banquepopulaire.fr': u'Alpes',
-        'www.ibps.alsace.banquepopulaire.fr': u'Alsace Lorraine Champagne',
-        'www.ibps.bpalc.banquepopulaire.fr' : u'Alsace Lorraine Champagne',
-        'www.ibps.bpaca.banquepopulaire.fr': u'Aquitaine Centre atlantique',
-        'www.ibps.atlantique.banquepopulaire.fr': u'Atlantique',
-        'www.ibps.bpgo.banquepopulaire.fr': u'Grand Ouest',
-        'www.ibps.loirelyonnais.banquepopulaire.fr': u'Auvergne Rhône Alpes',
-        'www.ibps.bpaura.banquepopulaire.fr': u'Auvergne Rhône Alpes',
-        'www.ibps.banquedesavoie.banquepopulaire.fr': u'Banque de Savoie',
-        'www.ibps.bpbfc.banquepopulaire.fr': u'Bourgogne Franche-Comté',
-        'www.ibps.bretagnenormandie.cmm.groupe.banquepopulaire.fr': u'Crédit Maritime Bretagne Normandie',
-        'www.ibps.atlantique.creditmaritime.groupe.banquepopulaire.fr': u'Crédit Maritime Atlantique',
-        'www.ibps.sudouest.creditmaritime.groupe.banquepopulaire.fr': u'Crédit Maritime du Littoral du Sud-Ouest',
-        'www.ibps.lorrainechampagne.banquepopulaire.fr': u'Lorraine Champagne',
-        'www.ibps.massifcentral.banquepopulaire.fr': u'Massif central',
-        'www.ibps.mediterranee.banquepopulaire.fr': u'Méditerranée',
-        'www.ibps.nord.banquepopulaire.fr': u'Nord',
-        'www.ibps.occitane.banquepopulaire.fr': u'Occitane',
-        'www.ibps.ouest.banquepopulaire.fr': u'Ouest',
-        'www.ibps.rivesparis.banquepopulaire.fr': u'Rives de Paris',
-        'www.ibps.sud.banquepopulaire.fr': u'Sud',
-        'www.ibps.valdefrance.banquepopulaire.fr': u'Val de France',
+    website_choices = OrderedDict([(k, '%s (%s)' % (v, k)) for k, v in sorted({
+        'www.ibps.alpes.banquepopulaire.fr': 'Alpes',
+        'www.ibps.alsace.banquepopulaire.fr': 'Alsace Lorraine Champagne',
+        'www.ibps.bpalc.banquepopulaire.fr' : 'Alsace Lorraine Champagne',
+        'www.ibps.bpaca.banquepopulaire.fr': 'Aquitaine Centre atlantique',
+        'www.ibps.atlantique.banquepopulaire.fr': 'Atlantique',
+        'www.ibps.bpgo.banquepopulaire.fr': 'Grand Ouest',
+        'www.ibps.loirelyonnais.banquepopulaire.fr': 'Auvergne Rhône Alpes',
+        'www.ibps.bpaura.banquepopulaire.fr': 'Auvergne Rhône Alpes',
+        'www.ibps.banquedesavoie.banquepopulaire.fr': 'Banque de Savoie',
+        'www.ibps.bpbfc.banquepopulaire.fr': 'Bourgogne Franche-Comté',
+        'www.ibps.bretagnenormandie.cmm.groupe.banquepopulaire.fr': 'Crédit Maritime Bretagne Normandie',
+        'www.ibps.atlantique.creditmaritime.groupe.banquepopulaire.fr': 'Crédit Maritime Atlantique',
+        'www.ibps.sudouest.creditmaritime.groupe.banquepopulaire.fr': 'Crédit Maritime du Littoral du Sud-Ouest',
+        'www.ibps.lorrainechampagne.banquepopulaire.fr': 'Lorraine Champagne',
+        'www.ibps.massifcentral.banquepopulaire.fr': 'Massif central',
+        'www.ibps.mediterranee.banquepopulaire.fr': 'Méditerranée',
+        'www.ibps.nord.banquepopulaire.fr': 'Nord',
+        'www.ibps.occitane.banquepopulaire.fr': 'Occitane',
+        'www.ibps.ouest.banquepopulaire.fr': 'Ouest',
+        'www.ibps.rivesparis.banquepopulaire.fr': 'Rives de Paris',
+        'www.ibps.sud.banquepopulaire.fr': 'Sud',
+        'www.ibps.valdefrance.banquepopulaire.fr': 'Val de France',
         }.items(), key=lambda k_v: (k_v[1], k_v[0]))])
-    CONFIG = BackendConfig(Value('website',  label=u'Région', choices=website_choices),
+    CONFIG = BackendConfig(Value('website',  label='Région', choices=website_choices),
                            ValueBackendPassword('login',    label='Identifiant', masked=False),
-                           ValueBackendPassword('password', label='Mot de passee'))
+                           ValueBackendPassword('password', label='Mot de passe'))
     BROWSER = BanquePopulaire
 
     def create_default_browser(self):
