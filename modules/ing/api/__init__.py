@@ -19,11 +19,15 @@
 
 from .login import LoginPage
 from .accounts_page import AccountsPage, HistoryPage, ComingPage
-from .transfer_page import DebitAccountsPage, CreditAccountsPage, TransferPage
+from .transfer_page import (
+    DebitAccountsPage, CreditAccountsPage, TransferPage, AddRecipientPage,
+    OtpChannelsPage, ConfirmOtpPage,
+)
 from .profile_page import ProfilePage
 
 
 __all__ = ['LoginPage', 'AccountsPage',
            'HistoryPage', 'ComingPage',
            'DebitAccountsPage', 'CreditAccountsPage', 'TransferPage',
+           'AddRecipientPage', 'OtpChannelsPage', 'ConfirmOtpPage',
            'ProfilePage']

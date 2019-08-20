@@ -22,17 +22,24 @@ from __future__ import unicode_literals
 import json
 from collections import OrderedDict
 from functools import wraps
+import re
 
-from weboob.browser import LoginBrowser, URL
+from weboob.browser import LoginBrowser, URL, StatesMixin
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded
 from weboob.browser.exceptions import ClientError
-from weboob.capabilities.bank import TransferBankError, TransferInvalidAmount
+from weboob.capabilities.bank import (
+    TransferBankError, TransferInvalidAmount,
+    AddRecipientStep, RecipientInvalidOTP,
+    AddRecipientTimeout, AddRecipientBankError,
+)
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.value import Value
 
 from .api import (
     LoginPage, AccountsPage, HistoryPage, ComingPage,
     DebitAccountsPage, CreditAccountsPage, TransferPage,
     ProfilePage,
+    AddRecipientPage, OtpChannelsPage, ConfirmOtpPage,
 )
 from .web import StopPage, ActionNeededPage
 
@@ -84,8 +91,9 @@ def need_to_be_on_website(website):
     return decorator
 
 
-class IngAPIBrowser(LoginBrowser):
+class IngAPIBrowser(LoginBrowser, StatesMixin):
     BASEURL = 'https://m.ing.fr'
+    STATE_DURATION = 10
 
     # Login
     context = URL(r'/secure/api-v1/session/context')
@@ -109,8 +117,16 @@ class IngAPIBrowser(LoginBrowser):
     init_transfer_page = URL(r'/secure/api-v1/transfers/v2/new/validate', TransferPage)
     exec_transfer_page = URL(r'/secure/api-v1/transfers/v2/new/execute/pin', TransferPage)
 
+    # recipient
+    add_recipient = URL(r'secure/api-v1/externalAccounts/add/validateRequest', AddRecipientPage)
+    otp_channels = URL(r'secure/api-v1/sensitiveoperation/ADD_TRANSFER_BENEFICIARY/otpChannels', OtpChannelsPage)
+    confirm_otp = URL(r'secure/api-v1/sca/confirmOtp', ConfirmOtpPage)
+
     # profile
     informations = URL(r'/secure/api-v1/customer/info', ProfilePage)
+
+
+    __states__ = ('need_reload_state', 'add_recipient_info')
 
     def __init__(self, *args, **kwargs):
         self.birthday = kwargs.pop('birthday')
@@ -118,6 +134,15 @@ class IngAPIBrowser(LoginBrowser):
 
         self.old_browser = IngBrowser(*args, **kwargs)
         self.transfer_data = None
+        self.need_reload_state = None
+        self.add_recipient_info = None
+
+    def load_state(self, state):
+        # reload state only for new recipient
+        if state.get('need_reload_state'):
+            state.pop('url', None)
+            self.need_reload_state = None
+            super(IngAPIBrowser, self).load_state(state)
 
     def handle_login_error(self, r):
         error_page = r.response.json()
@@ -315,7 +340,7 @@ class IngAPIBrowser(LoginBrowser):
             self.redirect_to_old_browser()
         return self.old_browser.get_investments(account)
 
-    ############# CapTransfer #############
+    ############# CapTransferAddRecipient #############
     @need_login
     @need_to_be_on_website('api')
     def iter_recipients(self, account):
@@ -380,6 +405,99 @@ class IngAPIBrowser(LoginBrowser):
 
         assert self.page.transfer_is_validated, "Transfer is not validated"
         return transfer
+
+    @need_login
+    def send_sms_to_user(self, recipient, sms_info):
+        """Add recipient with OTP SMS authentication"""
+        data = {
+            'channelType': sms_info['type'],
+            'externalAccountsRequest': self.add_recipient_info,
+            'sensitiveOperationAction': 'ADD_TRANSFER_BENEFICIARY',
+        }
+
+        phone_id = sms_info['phone']
+        data['channelValue'] = phone_id
+        self.add_recipient_info['phoneUid'] = phone_id
+
+        self.location(self.absurl('/secure/api-v1/sca/sendOtp', base=True), json=data)
+        self.need_reload_state = True
+        raise AddRecipientStep(recipient, Value('code', label='Veuillez saisir le code temporaire envoyé par SMS'))
+
+    def handle_recipient_error(self, r):
+        error_page = r.response.json()
+        if 'error' in error_page:
+            error = error_page['error']
+
+            # the error message may seem generic
+            # but after testing multiple cases
+            # it is the only time that it appears
+            if error['code'] == 'SENSITIVE_OPERATION.SENSITIVE_OPERATION_NOT_FOUND':
+                raise AddRecipientTimeout()
+            elif error['code'] == 'EXTERNAL_ACCOUNT.EXTERNAL_ACCOUNT_ALREADY_EXISTS':
+                raise AddRecipientBankError(message=error['message'])
+
+            assert False, 'Recipient error not handled'
+
+    @need_login
+    def end_sms_recipient(self, recipient, code):
+        # create a variable to empty the add_recipient_info
+        # so that if there is a problem it will not be caught
+        # in the StatesMixin
+        rcpt_info = self.add_recipient_info
+        self.add_recipient_info = None
+
+        if not re.match(r'^\d{6}$', code):
+            raise RecipientInvalidOTP()
+
+        data = {
+            'externalAccountsRequest': rcpt_info,
+            'otp': code,
+            'sensitiveOperationAction': 'ADD_TRANSFER_BENEFICIARY',
+        }
+
+        try:
+            self.confirm_otp.go(json=data)
+        except ClientError as e:
+            self.handle_recipient_error(e)
+            raise
+
+        self.page.handle_error()
+
+    @need_login
+    @need_to_be_on_website('api')
+    def new_recipient(self, recipient, **params):
+        # sms only, we don't handle the call
+        if 'code' in params:
+            # part 2 - finalization
+            self.end_sms_recipient(recipient, params['code'])
+
+            # WARNING: On the recipient list, the IBAN is masked
+            # so I cannot match it
+            # The label is not checked by the website
+            # so I cannot match it
+            return recipient
+
+        # part 1 - initialization
+        # Set sign method
+        self.otp_channels.go()
+        sms_info = self.page.get_sms_info()
+
+        try:
+            self.add_recipient.go(json={
+                'accountHolderName': recipient.label,
+                'iban': recipient.iban
+            })
+        except ClientError as e:
+            self.handle_recipient_error(e)
+            raise
+
+        self.page.handle_error()
+
+        assert self.page.check_recipient(recipient), "The recipients don't match."
+        self.add_recipient_info = self.page.doc
+
+        # WARNING: this send validation request to user
+        self.send_sms_to_user(recipient, sms_info)
 
     ############# CapDocument #############
     @need_login

@@ -30,7 +30,9 @@ from weboob.browser.pages import LoggedPage, JsonPage
 from weboob.browser.elements import method, DictElement, ItemElement
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import Env, Field, Date
-from weboob.capabilities.bank import Recipient
+from weboob.capabilities.bank import (
+    Recipient, RecipientInvalidIban, RecipientInvalidOTP,
+)
 
 
 class TransferINGVirtKeyboard(SimpleVirtualKeyboard):
@@ -159,3 +161,35 @@ class TransferPage(LoggedPage, JsonPage):
     @property
     def transfer_is_validated(self):
         return Dict('acknowledged')(self.doc)
+
+
+class AddRecipientPage(LoggedPage, JsonPage):
+    def check_recipient(self, recipient):
+        rcpt = self.doc
+        return rcpt['accountHolderName'] == recipient.label and rcpt['iban'] == recipient.iban
+
+    def handle_error(self):
+        if 'error' in self.doc:
+            if self.doc['error']['code'] == 'EXTERNAL_ACCOUNT.IBAN_NOT_FRENCH':
+                # not using the bank message because it is too generic
+                raise RecipientInvalidIban(message="L'IBAN doit correpondre à celui d'une banque domiciliée en France.")
+            assert False, 'Recipient error not handled'
+
+
+class OtpChannelsPage(LoggedPage, JsonPage):
+    def get_sms_info(self):
+        # receive a list of dict
+        for element in self.doc:
+            if element['type'] == 'SMS_MOBILE':
+                return element
+        assert False, 'No sms info found'
+
+
+class ConfirmOtpPage(LoggedPage, JsonPage):
+    def handle_error(self):
+        if 'error' in self.doc:
+            error_code = self.doc['error']['code']
+            if error_code == 'SCA.WRONG_OTP_ATTEMPT':
+                raise RecipientInvalidOTP(message=self.doc['error']['message'])
+
+            assert False, 'Recipient OTP error not handled'
