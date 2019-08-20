@@ -151,8 +151,9 @@ class item_account_generic(ItemElement):
         ('Pret', Account.TYPE_LOAN),
         ('Regroupement De Credits', Account.TYPE_LOAN),
         ('Nouveau Pret 0%', Account.TYPE_LOAN),
+        ('Global Auto', Account.TYPE_LOAN),
         ('Passeport Credit', Account.TYPE_REVOLVING_CREDIT),
-        ('Allure Libre', Account.TYPE_REVOLVING_CREDIT),
+        ('Allure', Account.TYPE_REVOLVING_CREDIT),  # 'Allure Libre' or 'credit Allure'
         ('Preference', Account.TYPE_REVOLVING_CREDIT),
         ('Plan 4', Account.TYPE_REVOLVING_CREDIT),
         ('P.E.A', Account.TYPE_PEA),
@@ -172,7 +173,7 @@ class item_account_generic(ItemElement):
 
     REVOLVING_LOAN_LABELS = [
         'Passeport Credit',
-        'Allure Libre',
+        'Allure',
         'Preference',
         'Plan 4',
         'Credit En Reserve',
@@ -429,15 +430,18 @@ class AccountsPage(LoggedPage, HTMLPage):
             load_details = Link('.//a') & AsyncLoad
 
             obj_total_amount = Async('details') & MyDecimal('//main[@id="ei_tpl_content"]/div/div[2]/table/tbody/tr/td[3]')
+            obj_type = Account.TYPE_REVOLVING_CREDIT
 
             def obj_used_amount(self):
                 return -Field('balance')(self)
 
             def condition(self):
-                _type = Field('type')(self)
                 label = Field('label')(self)
-                return (item_account_generic.condition(self) and _type == Account.TYPE_LOAN
-                        and self.is_revolving(label))
+                return (
+                    item_account_generic.condition(self)
+                    and Field('type')(self) == Account.TYPE_REVOLVING_CREDIT
+                    and self.is_revolving(label)
+                )
 
     def get_advisor_link(self):
         return Link('//div[@id="e_conseiller"]/a', default=None)(self.doc)
