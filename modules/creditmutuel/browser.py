@@ -292,7 +292,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
             # Set the parent to loans and cards accounts
             for acc in self.accounts_list:
                 if acc.type == Account.TYPE_CARD and not empty(getattr(acc, '_parent_id', None)):
-                    acc.parent = accounts_by_id[acc._parent_id]
+                    acc.parent = accounts_by_id.get(acc._parent_id, NotAvailable)
 
                 elif acc.type in (Account.TYPE_MORTGAGE, Account.TYPE_LOAN) and acc._parent_id:
                     acc.parent = accounts_by_id.get(acc._parent_id, NotAvailable)
