@@ -88,6 +88,8 @@ def method(klass):
 
     def inner(self, *args, **kwargs):
         return klass(self)(*args, **kwargs)
+
+    inner.klass = klass
     return inner
 
 
