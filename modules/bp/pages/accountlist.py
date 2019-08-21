@@ -130,6 +130,7 @@ class item_account_generic(ItemElement):
 
     def obj_type(self):
         types = {'comptes? bancaires?': Account.TYPE_CHECKING,
+                 "plan d'epargne populaire": Account.TYPE_SAVINGS,
                  'livrets?': Account.TYPE_SAVINGS,
                  'epargnes? logement': Account.TYPE_SAVINGS,
                  "autres produits d'epargne": Account.TYPE_SAVINGS,
