@@ -110,7 +110,9 @@ class item_account_generic(ItemElement):
         return NotAvailable
 
     def obj_iban(self):
-        if not Field('url')(self) or Field('type')(self) == Account.TYPE_LOAN:
+        if not Field('url')(self):
+            return NotAvailable
+        if Field('type')(self) not in (Account.TYPE_CHECKING, Account.TYPE_SAVINGS):
             return NotAvailable
 
         details_page = self.page.browser.open(Field('url')(self)).page
