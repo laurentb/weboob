@@ -262,6 +262,16 @@ class item_account_generic(ItemElement):
         for td in el.xpath('./td[2] | ./td[3]'):
             try:
                 balance = CleanDecimal('.', replace_dots=True)(td)
+                has_child_def_card = CleanText('.//following-sibling::tr[1]//span[contains(text(), "Dépenses cartes prélevées")]')(el)
+                if Field('type')(self) == Account.TYPE_CHECKING and not has_child_def_card:
+                    # the present day, real balance (without comings) is displayed in the operations page of the account
+                    # need to limit requests to checking accounts with no def cards
+                    details_page_link = Link('.//a', default=None)(self)
+                    if details_page_link:
+                        coming_page = self.page.browser.open(details_page_link).page
+                        balance_without_comings = coming_page.get_balance()
+                        if not empty(balance_without_comings):
+                            balance = balance_without_comings
             except InvalidOperation:
                 continue
             else:
@@ -730,6 +740,9 @@ class OperationsPage(LoggedPage, HTMLPage):
 
     def has_more_operations(self):
         return bool(self.doc.xpath('//a/span[contains(text(), "Plus d\'opérations")]'))
+
+    def get_balance(self):
+        return CleanDecimal.French('//span[contains(text(), "Dont opérations enregistrées")]', default=NotAvailable)(self.doc)
 
 
 class CardsOpePage(OperationsPage):
