@@ -571,6 +571,9 @@ class SGProfessionalBrowser(SGEnterpriseBrowser, StatesMixin):
                 search_date_min = self.date_min
                 is_end = True
 
+            if search_date_max <= self.date_min:
+                break
+
             data = {
                 'dt10_dateDebut' : search_date_min.strftime('%d/%m/%Y'),
                 'dt10_dateFin': search_date_max.strftime('%d/%m/%Y'),
