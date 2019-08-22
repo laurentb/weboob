@@ -29,6 +29,7 @@ from weboob.browser.filters.standard import (
 )
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.capabilities.base import NotAvailable
 
 
 class Transaction(FrenchTransaction):
@@ -110,3 +111,9 @@ class ComingPage(LoggedPage, JsonPage):
 
             def obj_raw(self):
                 return Transaction.Raw(Lower(Dict('label')))(self) or Format('%s %s', Field('date'), Field('amount'))(self)
+
+    @method
+    class get_account_coming(ItemElement):
+        klass = Account
+
+        obj_coming = CleanDecimal(Dict('totalAmount', default=NotAvailable), default=NotAvailable)

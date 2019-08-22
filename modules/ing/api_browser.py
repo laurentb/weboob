@@ -211,7 +211,9 @@ class IngAPIBrowser(LoginBrowser):
     def get_api_accounts(self):
         """iter accounts on new website"""
         self.accounts.stay_or_go()
-        return self.page.iter_accounts()
+        for account in self.page.iter_accounts():
+            self.coming.go(account_uid=account.id)
+            yield self.page.get_account_coming(obj=account)
 
     @need_login
     def iter_matching_accounts(self):
@@ -224,6 +226,7 @@ class IngAPIBrowser(LoginBrowser):
             for api_acc in api_accounts:
                 if web_acc.id[-4:] == api_acc.number[-4:]:
                     web_acc._uid = api_acc.id
+                    web_acc.coming = api_acc.coming
                     yield web_acc
                     break
             else:
