@@ -42,7 +42,8 @@ class Transaction(FrenchTransaction):
     PATTERNS = [
         (re.compile(r'^(?P<category>CHEQUE)( N)? (?P<text>.*)'), FrenchTransaction.TYPE_CHECK),
         (re.compile(r'^(?P<category>ACHAT CB) (?P<text>.*) (?P<dd>\d{2})\.(?P<mm>\d{2}).(?P<yy>\d{2,4}).*'), FrenchTransaction.TYPE_CARD),
-        (re.compile(r'^(?P<category>(PRELEVEMENT DE|TELEREGLEMENT|TIP)) (?P<text>.*)'), FrenchTransaction.TYPE_ORDER),
+        (re.compile(r'^(?P<category>ACHAT CB) EN COURS.*'), FrenchTransaction.TYPE_CARD),
+        (re.compile(r'^(?P<category>(PRELEVEMENT|TELEREGLEMENT|TIP)) (DE )?(?P<text>.*)'), FrenchTransaction.TYPE_ORDER),
         (re.compile(r'^(?P<category>ECHEANCEPRET)(?P<text>.*)'), FrenchTransaction.TYPE_LOAN_PAYMENT),
         (re.compile(r'^CARTE \w+ (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2,4}) A \d+H\d+ (?P<category>RETRAIT DAB) (?P<text>.*)'), FrenchTransaction.TYPE_WITHDRAWAL),
         (re.compile(r'^(?P<category>RETRAIT DAB) (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2,4}) \d+H\d+ (?P<text>.*)'), FrenchTransaction.TYPE_WITHDRAWAL),
@@ -54,10 +55,12 @@ class Transaction(FrenchTransaction):
         (re.compile(r'^(?P<text>(?P<category>REMUNERATION).*)'), FrenchTransaction.TYPE_BANK),
         (re.compile(r'^(?P<category>REMISE DE CHEQUES?) (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
         (re.compile(r'^(?P<text>DEBIT CARTE BANCAIRE DIFFERE.*)'), FrenchTransaction.TYPE_CARD_SUMMARY),
-        (re.compile(r'^COTISATION TRIMESTRIELLE.*'), FrenchTransaction.TYPE_BANK),
+        (re.compile(r'^(?P<category>COTISATION TRIMESTRIELLE).*'), FrenchTransaction.TYPE_BANK),
         (re.compile(r'^REMISE COMMERCIALE.*'), FrenchTransaction.TYPE_BANK),
-        (re.compile(r'^.*UTILISATION DU DECOUVERT$'), FrenchTransaction.TYPE_BANK),
-        (re.compile(r'^(?P<category>FRAIS (TRIMESTRIELS) DE TENUE DE COMPTE.*)'), FrenchTransaction.TYPE_BANK)
+        (re.compile(r'^(?P<category>.*UTILISATION DU DECOUVERT$)'), FrenchTransaction.TYPE_BANK),
+        (re.compile(r'^(?P<category>FRAIS (TRIMESTRIELS) DE TENUE DE COMPTE.*)'), FrenchTransaction.TYPE_BANK),
+        (re.compile(r'^(?P<category>FRAIS IRREGULARITES ET INCIDENTS).*'), FrenchTransaction.TYPE_BANK),
+
     ]
 
 
