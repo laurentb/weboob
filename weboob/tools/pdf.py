@@ -457,6 +457,47 @@ def html_to_pdf(browser, url=None, data=None, extra_options=None):
     return callback(url or data, False, options=options)
 
 
+def blinkpdf(browser, url, extra_options=None, filter_cookie=None):
+    xvfb_exists = False
+    blinkpdf_exists = False
+    paths = os.getenv('PATH', os.defpath).split(os.pathsep)
+    for path in paths:
+        fpath = os.path.join(path, 'xvfb-run')
+        if os.path.exists(fpath) and os.access(fpath, os.X_OK):
+            xvfb_exists = True
+        fpath = os.path.join(path, 'blinkpdf')
+        if os.path.exists(fpath) and os.access(fpath, os.X_OK):
+            blinkpdf_exists = True
+
+    if not xvfb_exists or not blinkpdf_exists:
+        raise NotImplementedError()
+
+    args = []
+    for c in browser.session.cookies:
+        if c.value:
+            if not filter_cookie or filter_cookie(c):
+                args.append('--cookie')
+                args.append('%s=%s' % (c.name, c.value))
+
+    for key, value in browser.session.headers.items():
+        args.append('--header')
+        args.append('%s=%s' % (key, value))
+
+    if extra_options and 'run-script' in extra_options:
+        args.append('--run-script')
+        args.append(extra_options['run-script'][0])
+
+    args.append(url)
+    args.append('-')  # - : don't write it on disk, simply return value
+
+    # put a very small resolution to reduce used memory, because we don't really need it, it doesn't influence pdf size
+    # -screen 0 width*height*bit depth
+    prepend = ['xvfb-run', '-a', '-s', '-screen 0 2x2x8', 'blinkpdf']
+
+    cmd = list(prepend) + list(args)
+    return subprocess.check_output(cmd)
+
+
 # extract all text from PDF
 def extract_text(data):
     try:
