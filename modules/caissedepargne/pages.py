@@ -1165,13 +1165,13 @@ class LifeInsuranceInvestments(LoggedPage, JsonPage):
                 return NotAvailable
 
             def obj_diff(self):
-                if Dict('tauxPlusValue')(self):
-                    return Eval(float_to_decimal, Dict('tauxPlusValue'))(self)
+                if Dict('montantPlusValue/valeur', default=None)(self):
+                    return Eval(float_to_decimal, Dict('montantPlusValue/valeur'))(self)
                 return NotAvailable
 
             def obj_diff_percent(self):
                 if Dict('tauxPlusValue')(self):
-                    return Eval(lambda x: float_to_decimal(x)/100, Dict('tauxPlusValue'))(self)
+                    return Eval(lambda x: float_to_decimal(x) / 100, Dict('tauxPlusValue'))(self)
                 return NotAvailable
 
             def obj_unitvalue(self):
