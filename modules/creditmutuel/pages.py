@@ -181,6 +181,7 @@ class item_account_generic(ItemElement):
         ('Livret', Account.TYPE_SAVINGS),
         ("Plan D'Epargne", Account.TYPE_SAVINGS),
         ('Tonic Croissance', Account.TYPE_SAVINGS),
+        ('Tonic Societaire', Account.TYPE_SAVINGS),
         ('Capital Expansion', Account.TYPE_SAVINGS),
         ('Épargne', Account.TYPE_SAVINGS),
         ('Capital Plus', Account.TYPE_SAVINGS),
