@@ -54,6 +54,7 @@ class Transaction(FrenchTransaction):
         (re.compile(r'^(?P<category>FRAIS POUR)(?P<text>.*)'), FrenchTransaction.TYPE_BANK),
         (re.compile(r'^(?P<text>(?P<category>REMUNERATION).*)'), FrenchTransaction.TYPE_BANK),
         (re.compile(r'^(?P<category>REMISE DE CHEQUES?) (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
+        (re.compile(r'^(?P<category>VERSEMENT DAB) (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
         (re.compile(r'^(?P<text>DEBIT CARTE BANCAIRE DIFFERE.*)'), FrenchTransaction.TYPE_CARD_SUMMARY),
         (re.compile(r'^(?P<category>COTISATION TRIMESTRIELLE).*'), FrenchTransaction.TYPE_BANK),
         (re.compile(r'^REMISE COMMERCIALE.*'), FrenchTransaction.TYPE_BANK),
