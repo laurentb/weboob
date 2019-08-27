@@ -136,6 +136,7 @@ class item_account_generic(ItemElement):
                  'livrets?': Account.TYPE_SAVINGS,
                  'epargnes? logement': Account.TYPE_SAVINGS,
                  "autres produits d'epargne": Account.TYPE_SAVINGS,
+                 'compte relais': Account.TYPE_SAVINGS,
                  'comptes? titres? et pea': Account.TYPE_MARKET,
                  'compte-titres': Account.TYPE_MARKET,
                  'assurances? vie': Account.TYPE_LIFE_INSURANCE,
