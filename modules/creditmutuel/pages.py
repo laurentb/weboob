@@ -105,6 +105,18 @@ class FiscalityConfirmationPage(LoggedPage, HTMLPage):
     pass
 
 
+class MobileConfirmationPage(LoggedPage, HTMLPage):
+    # We land on this page for some connections, but can still bypass this verification for now
+    def on_load(self):
+        link = Attr('//a[contains(text(), "Accéder à mon Espace Client sans Confirmation Mobile")]', 'href', default=None)(self.doc)
+        if link:
+            self.logger.warning('This connexion is bypassing mobile confirmation')
+            self.browser.location(link)
+        else:
+            self.logger.warning('This connexion cannot bypass mobile confirmation')
+            assert False, 'This connexion cannot bypass mobile confirmation'
+
+
 class EmptyPage(LoggedPage, HTMLPage):
     REFRESH_MAX = 10.0
 

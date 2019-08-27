@@ -48,7 +48,7 @@ from .pages import (
     CardsOpePage, NewAccountsPage, InternalTransferPage,
     ExternalTransferPage, RevolvingLoanDetails, RevolvingLoansList,
     ErrorPage, SubscriptionPage, NewCardsListPage, CardPage2, FiscalityConfirmationPage,
-    ConditionsPage,
+    ConditionsPage, MobileConfirmationPage,
 )
 
 
@@ -71,6 +71,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
     accounts =    URL(r'/(?P<subbank>.*)fr/banque/situation_financiere.cgi',
                       r'/(?P<subbank>.*)fr/banque/situation_financiere.html',
                       AccountsPage)
+    mobile_confirmation = URL(r'/(?P<subbank>.*)fr/banque/validation.aspx', MobileConfirmationPage)
     revolving_loan_list = URL(r'/(?P<subbank>.*)fr/banque/CR/arrivee.asp\?fam=CR.*', RevolvingLoansList)
     revolving_loan_details = URL(r'/(?P<subbank>.*)fr/banque/CR/cam9_vis_lstcpt.asp.*', RevolvingLoanDetails)
     user_space =  URL(r'/(?P<subbank>.*)fr/banque/espace_personnel.aspx',
