@@ -184,6 +184,7 @@ class item_account_generic(ItemElement):
         ('Capital Expansion', Account.TYPE_SAVINGS),
         ('Épargne', Account.TYPE_SAVINGS),
         ('Capital Plus', Account.TYPE_SAVINGS),
+        ('Pep', Account.TYPE_SAVINGS),
         ('Compte Garantie Titres', Account.TYPE_MARKET),
     ])
 
