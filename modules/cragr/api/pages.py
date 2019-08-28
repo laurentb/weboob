@@ -130,7 +130,9 @@ ACCOUNT_TYPES = {
     'CPTDAV': Account.TYPE_SAVINGS,
     'ORCH': Account.TYPE_SAVINGS,  # Orchestra / PEP
     'DAT': Account.TYPE_SAVINGS,
+    'DATG': Account.TYPE_DEPOSIT,
     'CB': Account.TYPE_SAVINGS,  # Carré bleu / PEL
+    'LIS': Account.TYPE_SAVINGS,
     'PRET PERSO': Account.TYPE_LOAN,
     'P. ENTREPR': Account.TYPE_LOAN,
     'P. HABITAT': Account.TYPE_LOAN,
@@ -144,7 +146,6 @@ ACCOUNT_TYPES = {
     'PEA': Account.TYPE_PEA,
     'PEAP': Account.TYPE_PEA,
     'DAV PEA': Account.TYPE_PEA,
-    'ACCOR MULT': Account.TYPE_PERCO,
     'CPS': Account.TYPE_MARKET,
     'TITR': Account.TYPE_MARKET,
     'TITR CTD': Account.TYPE_MARKET,
@@ -178,6 +179,9 @@ ACCOUNT_TYPES = {
     'ASS OPPORT': Account.TYPE_LIFE_INSURANCE,  # Assurance fonds opportunité
     'FLORIPRO': Account.TYPE_LIFE_INSURANCE,
     'FLORIANE 2': Account.TYPE_LIFE_INSURANCE,
+    'AST SELEC': Account.TYPE_LIFE_INSURANCE,
+    'PRGE': Account.TYPE_LIFE_INSURANCE,
+    'CONF': Account.TYPE_LIFE_INSURANCE,
     'ATOUT LIB': Account.TYPE_REVOLVING_CREDIT,
     'PACC': Account.TYPE_CONSUMER_CREDIT,  # 'PAC' = 'Prêt à consommer'
     'PACP': Account.TYPE_CONSUMER_CREDIT,
@@ -186,6 +190,7 @@ ACCOUNT_TYPES = {
     'SUPPLETIS': Account.TYPE_REVOLVING_CREDIT,
     'OPEN': Account.TYPE_REVOLVING_CREDIT,
     'PAGR': Account.TYPE_MADELIN,
+    'ACCOR MULT': Account.TYPE_MADELIN,
 }
 
 
