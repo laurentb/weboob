@@ -101,6 +101,10 @@ class LoginErrorPage(HTMLPage):
         raise BrowserIncorrectPassword(CleanText('//div[has-class("blocmsg")]')(self.doc))
 
 
+class FiscalityConfirmationPage(LoggedPage, HTMLPage):
+    pass
+
+
 class EmptyPage(LoggedPage, HTMLPage):
     REFRESH_MAX = 10.0
 

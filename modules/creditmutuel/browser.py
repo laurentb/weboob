@@ -47,7 +47,7 @@ from .pages import (
     LIAccountsPage, CardsActivityPage, CardsListPage,
     CardsOpePage, NewAccountsPage, InternalTransferPage,
     ExternalTransferPage, RevolvingLoanDetails, RevolvingLoansList,
-    ErrorPage, SubscriptionPage, NewCardsListPage, CardPage2,
+    ErrorPage, SubscriptionPage, NewCardsListPage, CardPage2, FiscalityConfirmationPage,
     ConditionsPage,
 )
 
@@ -67,6 +67,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                       r'/(?P<subbank>.*)fr/banques/particuliers/index.html',
                       LoginPage)
     login_error = URL(r'/(?P<subbank>.*)fr/identification/default.cgi',      LoginErrorPage)
+    fiscality = URL(r'/(?P<subbank>.*)fr/banque/residencefiscale.aspx', FiscalityConfirmationPage)
     accounts =    URL(r'/(?P<subbank>.*)fr/banque/situation_financiere.cgi',
                       r'/(?P<subbank>.*)fr/banque/situation_financiere.html',
                       AccountsPage)
