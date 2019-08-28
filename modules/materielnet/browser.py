@@ -17,9 +17,11 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, NocaptchaQuestion
 
 from .pages import LoginPage, CaptchaPage, ProfilePage, DocumentsPage, DocumentsDetailsPage
 
@@ -34,7 +36,7 @@ class MaterielnetBrowser(LoginBrowser):
     BASEURL = 'https://secure.materiel.net'
 
     login = MyURL(r'/(?P<lang>.*)Login/Login', LoginPage)
-    captcha = URL('/pm/client/captcha.html', CaptchaPage)
+    captcha = URL(r'/pm/client/captcha.html', CaptchaPage)
     profile = MyURL(r'/(?P<lang>.*)Account/InformationsSection',
                     r'/pro/Account/InformationsSection', ProfilePage)
     documents = MyURL(r'/(?P<lang>.*)Orders/PartialCompletedOrdersHeader',
@@ -42,8 +44,9 @@ class MaterielnetBrowser(LoginBrowser):
     document_details = MyURL(r'/(?P<lang>.*)Orders/PartialCompletedOrderContent',
                              r'/pro/Orders/PartialCompletedOrderContent', DocumentsDetailsPage)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, config, *args, **kwargs):
         super(MaterielnetBrowser, self).__init__(*args, **kwargs)
+        self.config = config
         self.is_pro = None
         self.lang = ''
 
@@ -53,11 +56,17 @@ class MaterielnetBrowser(LoginBrowser):
         elif self.lang:
             url = '/' + self.lang[:-1] + url
 
-        return super(MaterielnetBrowser, self).location(url, *args, **kwargs)
+        return self.location(url, *args, **kwargs)
 
     def do_login(self):
         self.login.go()
-        self.page.login(self.username, self.password)
+        sitekey = self.page.get_recaptcha_sitekey()
+        # captcha is not always present
+        if sitekey:
+            if not self.config['captcha_response'].get():
+                raise NocaptchaQuestion(website_key=sitekey, website_url=self.login.build(lang=self.lang))
+
+        self.page.login(self.username, self.password, self.config['captcha_response'].get())
 
         if self.captcha.is_here():
             BrowserIncorrectPassword()

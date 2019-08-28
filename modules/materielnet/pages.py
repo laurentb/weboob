@@ -31,7 +31,10 @@ from weboob.exceptions import BrowserIncorrectPassword
 
 
 class LoginPage(PartialHTMLPage):
-    def login(self, login, password):
+    def get_recaptcha_sitekey(self):
+        return Attr('//div[@class="g-recaptcha"]', 'data-sitekey', default=NotAvailable)(self.doc)
+
+    def login(self, login, password, captcha_response=None):
         maxlength = Attr('//input[@id="Email"]', 'data-val-maxlength-max')(self.doc)
         regex = Attr('//input[@id="Email"]', 'data-val-regex-pattern')(self.doc)
         # their regex is: ^([\w\-+\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,15}|[0-9]{1,3})(\]?)$
@@ -47,6 +50,10 @@ class LoginPage(PartialHTMLPage):
         form = self.get_form(xpath='//form[contains(@action, "/Login/Login")]')
         form['Email'] = login
         form['Password'] = password
+
+        if captcha_response:
+            form['g-recaptcha-response'] = captcha_response
+
         form.submit()
 
     def get_error(self):

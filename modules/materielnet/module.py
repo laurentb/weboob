@@ -17,11 +17,12 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from weboob.capabilities.bill import DocumentTypes, CapDocument, Subscription, Document, SubscriptionNotFound, DocumentNotFound
 from weboob.capabilities.base import find_object, NotAvailable
 from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.value import ValueBackendPassword
+from weboob.tools.value import ValueBackendPassword, Value
 
 from .browser import MaterielnetBrowser
 
@@ -31,20 +32,21 @@ __all__ = ['MaterielnetModule']
 
 class MaterielnetModule(Module, CapDocument):
     NAME = 'materielnet'
-    DESCRIPTION = u'Materiel.net'
-    MAINTAINER = u'Edouard Lambert'
+    DESCRIPTION = 'Materiel.net'
+    MAINTAINER = 'Edouard Lambert'
     EMAIL = 'elambert@budget-insight.com'
     LICENSE = 'LGPLv3+'
     VERSION = '1.6'
-    CONFIG = BackendConfig(ValueBackendPassword('login', label='Email', regexp=r'.+@.+'),
-                           ValueBackendPassword('password', label='Mot de passe'))
+    CONFIG = BackendConfig(ValueBackendPassword('login', label='Email'),
+                           ValueBackendPassword('password', label='Mot de passe'),
+                           Value('captcha_response', label='Réponse captcha', default='', required=False))
 
     BROWSER = MaterielnetBrowser
 
     accepted_document_types = (DocumentTypes.BILL,)
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(), self.config['password'].get())
+        return self.create_browser(self.config, self.config['login'].get(), self.config['password'].get())
 
     def iter_subscription(self):
         return self.browser.get_subscription_list()
