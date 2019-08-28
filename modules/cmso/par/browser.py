@@ -300,7 +300,7 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
     def iter_investment(self, account):
         account = self.get_account(account.id)
 
-        if account.type == Account.TYPE_LIFE_INSURANCE:
+        if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_PERP):
             url = json.loads(self.lifeinsurance.go(accid=account._index).content)['url']
             url = self.location(url).page.get_link("supports")
             if not url:

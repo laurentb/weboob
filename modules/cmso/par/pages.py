@@ -76,6 +76,7 @@ class AccountsPage(LoggedPage, JsonPage):
         ('capital plus', Account.TYPE_SAVINGS),
         ('capital expansion', Account.TYPE_DEPOSIT),
         ('carte', Account.TYPE_CARD),
+        ('previ-retraite', Account.TYPE_PERP),
     ])
 
     def get_keys(self):
