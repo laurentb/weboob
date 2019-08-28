@@ -425,11 +425,13 @@ class AccountsPage(LoggedPage, MultiPage):
         'PEG': Account.TYPE_PEE,
         'PLAN': Account.TYPE_PEE,
         'PAGA': Account.TYPE_PEE,
+        'ABONDEMENT EXCEPTIONNEL': Account.TYPE_PEE,
         'PERCO': Account.TYPE_PERCO,
         'PERCOI': Account.TYPE_PERCO,
         'SWISS': Account.TYPE_MARKET,
         'RSP': Account.TYPE_RSP,
         'CCB': Account.TYPE_DEPOSIT,
+        'PARTICIPATION': Account.TYPE_DEPOSIT,
         'PERF': Account.TYPE_PERP,
     }
 
