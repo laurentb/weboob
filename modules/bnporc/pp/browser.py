@@ -37,7 +37,7 @@ from weboob.tools.capabilities.bank.transactions import sorted_transactions
 from weboob.tools.json import json
 from weboob.browser.exceptions import ServerError
 from weboob.browser.elements import DataError
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.tools.value import Value, ValueBool
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
 
@@ -100,6 +100,7 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
     loan_details = URL(r'caraccomptes-wspl/rpc/(?P<loan_type>.*)', LoanDetailsPage)
     ibans = URL(r'rib-wspl/rpc/comptes', AccountsIBANPage)
     history = URL(r'rop2-wspl/rest/releveOp', HistoryPage)
+    history_old = URL(r'rop-wspl/rest/releveOp', HistoryPage)
     transfer_init = URL(r'virement-wspl/rest/initialisationVirement', TransferInitPage)
 
     lifeinsurances = URL(r'mefav-wspl/rest/infosContrat', LifeInsurancesPage)
@@ -280,14 +281,21 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
             if not self.card_to_transaction_type:
                 self.list_detail_card.go()
                 self.card_to_transaction_type = self.page.get_card_to_transaction_type()
-
-            self.history.go(data=JSON({
+            data = JSON({
                 "ibanCrypte": account.id,
                 "pastOrPending": 1,
                 "triAV": 0,
                 "startDate": (datetime.now() - relativedelta(years=1)).strftime('%d%m%Y'),
                 "endDate": datetime.now().strftime('%d%m%Y')
-            }))
+            })
+            try:
+                self.history.go(data=data)
+            except BrowserUnavailable:
+                # old url is still used for certain connections bu we don't know which one is,
+                # so the same HistoryPage is attained by the old url in another URL object
+                data[1]['startDate'] = (datetime.now() - relativedelta(years=3)).strftime('%d%m%Y')
+                # old url authorizes up to 3 years of history
+                self.history_old.go(data=data)
 
             if coming:
                 return sorted_transactions(self.page.iter_coming())
