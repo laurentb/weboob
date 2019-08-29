@@ -76,10 +76,14 @@ class BnpcartesentrepriseBrowser(LoginBrowser):
         if self.error.is_here() or self.page.is_error():
             raise BrowserIncorrectPassword()
         if self.type == '2' and self.page.is_corporate():
+            self.logger.info('Manager corporate connection')
             raise SiteSwitch('corporate')
         # ti corporate and ge corporate are not detected the same way ..
         if 'corporate' in self.page.url:
+            self.logger.info('Carholder corporate connection')
             self.is_corporate = True
+        else:
+            self.logger.info('Cardholder connection')
 
     def ti_card_go(self):
         if self.is_corporate:
