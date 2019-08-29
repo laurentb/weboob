@@ -56,6 +56,9 @@ class AmundiBrowser(LoginBrowser):
 
     @need_login
     def iter_investment(self, account):
+        if account.balance == 0:
+            self.logger.info('Account %s has a null balance, no investment available.', account.label)
+            return
         headers = {'X-noee-authorization': 'noeprd %s' % self.token}
         self.accounts.go(headers=headers)
         for inv in self.page.iter_investments(account_id=account.id):
