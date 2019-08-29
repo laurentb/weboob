@@ -94,6 +94,7 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
                         r'/fr/espace-pro/changer-son-mot-de-passe',
                         r'/fr/espace-client/100-connexions',
                         r'/fr/espace-prive/mot-de-passe-expire',
+                        r'/fr/client/mdp-expire',
                         r'/fr/client/100-connexion',
                         r'/fr/systeme/page-indisponible', ConnectionThresholdPage)
     accounts = URL(r'udc-wspl/rest/getlstcpt', AccountsPage)

@@ -108,7 +108,10 @@ class ConnectionThresholdPage(HTMLPage):
         return True
 
     def on_load(self):
-        msg = CleanText('//div[@class="confirmation"]//span[span]')(self.doc)
+        msg = (
+            CleanText('//div[@class="confirmation"]//span[span]')(self.doc) or
+            CleanText('//p[contains(text(), "Vous avez atteint la date de fin de vie de votre code secret")]')(self.doc)
+        )
 
         self.logger.warning('Password expired.')
         if not self.browser.rotating_password:
