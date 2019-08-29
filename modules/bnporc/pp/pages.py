@@ -315,6 +315,12 @@ class AccountsPage(BNPPage):
             item_xpath = 'compte'
 
             class item(ItemElement):
+                def validate(self, obj):
+                    # We skip loans with a balance of 0 because the JSON returned gives
+                    # us no info (only `null` values on all fields), so there is nothing
+                    # useful to display
+                    return obj.type != Account.TYPE_LOAN or obj.balance != 0
+
                 FAMILY_TO_TYPE = {
                     1: Account.TYPE_CHECKING,
                     2: Account.TYPE_SAVINGS,
