@@ -23,7 +23,7 @@ from __future__ import unicode_literals
 from requests.exceptions import ConnectionError
 
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.decorators import retry
@@ -111,8 +111,10 @@ class Barclays(LoginBrowser):
 
         error_message = self.page.get_error_message()
         if error_message:
-            assert 'Saisie incorrecte' in error_message, error_message
-            raise BrowserIncorrectPassword(error_message)
+            if 'Saisie incorrecte' in error_message:
+                raise BrowserIncorrectPassword(error_message)
+            elif 'Votre accès est suspendu' in error_message:
+                raise ActionNeeded(error_message)
 
         # can't login if there is ' ' in the 2 characters asked
         if not self.page.login_secret(self.secret):
