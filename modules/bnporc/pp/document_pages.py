@@ -26,6 +26,7 @@ from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import Format, Date, Env
 from weboob.browser.pages import JsonPage, LoggedPage
 from weboob.capabilities.bill import Document, DocumentTypes
+from weboob.tools.compat import urlencode
 
 patterns = {
     r'Relevé': DocumentTypes.STATEMENT,
@@ -63,6 +64,9 @@ class DocumentsPage(LoggedPage, JsonPage):
             klass = Document
 
             def condition(self):
+                # There is two type of json, the one with the ibancrypte in it
+                # and the one with the idcontrat in it, here we check if
+                # the document belong to the subscritpion.
                 if 'ibanCrypte' in self.el:
                     return Env('sub_id')(self) in Dict('ibanCrypte')(self)
                 else:
@@ -79,37 +83,38 @@ class DocumentsPage(LoggedPage, JsonPage):
                     return '%s %s N° %s' % (Dict('dateDoc')(self), Dict('libelleSousFamille')(self), Dict('idContrat')(self))
 
             def obj_url(self):
-                # For most of the cases on the json
+                keys_to_copy = {
+                    'idDocument' :'idDoc',
+                    'dateDocument': 'dateDoc',
+                    'idLocalisation': 'idLocalisation',
+                    'viDocDocument': 'viDocDocument',
+                }
+                # Here we parse the json with ibancrypte in it, for most cases
                 if 'ibanCrypte' in self.el:
-                    ibanCrypte = Dict('ibanCrypte')(self)
-                    idDoc = Dict('idDoc')(self)
-                    typeCompte = Dict('typeCompte')(self)
-                    typeDoc = Dict('typeDoc')(self)
-                    typeFamille = 'R001' # add typeFamille correctly for professional and private pages
-                    idLocalisation = Dict('idLocalisation')(self)
-                    viDocDocument = Dict('viDocDocument')(self)
-                    famDoc = Dict('famDoc')(self)
-                    consulted = Dict('consulted')(self)
-                    dateDoc = Dict('dateDoc')(self)
-
-                    return '%sdemat-wspl/rest/consultationDocumentDemat?'\
-                    'ibanCrypte=%s&idDocument=%s&typeCpt=%s&typeDoc=%s&typeFamille=%s&idLocalisation=%s'\
-                    '&viDocDocument=%s&familleDoc=%s&consulted=%s&dateDocument=%s&ikpiPersonne=' % (Env('baseurl')(self), ibanCrypte, idDoc, typeCompte,
-                    typeDoc, typeFamille, idLocalisation, viDocDocument, famDoc, consulted, dateDoc)
-                # For the cases present on privee.mabanque where sometimes the doc url is the different
+                    url = 'demat-wspl/rest/consultationDocumentDemat?'
+                    keys_to_copy.update({
+                        'typeCpt': 'typeCompte',
+                        'familleDoc': 'famDoc',
+                        'ibanCrypte': 'ibanCrypte',
+                        'typeDoc': 'typeDoc',
+                        'consulted': 'consulted',
+                    })
+                    request_params = {'typeFamille': 'R001', 'ikpiPersonne': ''}
+                # Here we parse the json with idcontrat in it. For the cases present
+                # on privee.mabanque where sometimes the doc url is different
                 else:
-                    idDoc = Dict('idDoc')(self)
-                    numClient = Dict('numClient')(self)
-                    heureDoc = Dict('heureDoc')(self)
-                    idLocalisation = Dict('idLocalisation')(self)
-                    viDocDocument = Dict('viDocDocument')(self)
-                    typeReport = Dict('typeReport')(self)
-                    dateDoc = Dict('dateDoc')(self)
+                    url = 'demat-wspl/rest/consultationDocumentSpecialBpfDemat?'
+                    keys_to_copy.update({
+                        'heureDocument': 'heureDoc',
+                        'numClient': 'numClient',
+                        'typeReport': 'typeReport',
+                    })
+                    request_params = {'ibanCrypte': ''}
 
-                    return '%sdemat-wspl/rest/consultationDocumentSpecialBpfDemat?'\
-                    'ibanCrypte=&idDocument=%s&numClient=%s&heureDocument=%s'\
-                    '&idLocalisation=%s&typeReport=%s&viDocDocument=%s&dateDocument=%s' % (Env('baseurl')(self), idDoc, numClient,
-                    heureDoc, idLocalisation, typeReport, viDocDocument, dateDoc)
+                for k, v in keys_to_copy.items():
+                    request_params[k] = Dict(v)(self)
+
+                return Env('baseurl')(self) + url + urlencode(request_params)
 
             def obj_type(self):
                 return get_document_type(Dict('libelleSousFamille')(self))
