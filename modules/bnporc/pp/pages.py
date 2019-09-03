@@ -735,6 +735,7 @@ class CapitalisationPage(LoggedPage, HTMLPage):
         'BNP Paribas Multiplacements':                  Account.TYPE_LIFE_INSURANCE,
         'BNP Paribas Multihorizons':                    Account.TYPE_LIFE_INSURANCE,
         'BNP Paribas Libertéa Privilège':               Account.TYPE_LIFE_INSURANCE,
+        'BNP Paribas Avenir Retraite':                  Account.TYPE_LIFE_INSURANCE,
         'BNP Paribas Multiciel Privilège':              Account.TYPE_CAPITALISATION,
         'Plan Epargne Retraite Particulier':            Account.TYPE_PERP,
         "Plan d'Épargne Retraite des Particuliers":     Account.TYPE_PERP,
