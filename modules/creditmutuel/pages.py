@@ -186,6 +186,7 @@ class item_account_generic(ItemElement):
         ('Épargne', Account.TYPE_SAVINGS),
         ('Capital Plus', Account.TYPE_SAVINGS),
         ('Pep', Account.TYPE_SAVINGS),
+        ('Compte Duo', Account.TYPE_SAVINGS),
         ('Compte Garantie Titres', Account.TYPE_MARKET),
     ])
 
