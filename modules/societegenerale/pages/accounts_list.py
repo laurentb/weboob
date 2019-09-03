@@ -31,13 +31,14 @@ from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Person, ProfileMissing
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.investments import is_isin_valid, create_french_liquidity
+from weboob.tools.compat import urlsplit, urlunsplit, urlencode
 from weboob.browser.elements import DictElement, ItemElement, TableElement, method, ListElement
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Regexp, Currency, Eval, Field, Format, Date, Env, Map, Coalesce,
     empty,
 )
-from weboob.browser.filters.html import Link, TableCell
+from weboob.browser.filters.html import Link, TableCell, Attr
 from weboob.browser.pages import HTMLPage, XMLPage, JsonPage, LoggedPage, pagination
 from weboob.exceptions import BrowserUnavailable, ActionNeeded, NoAccountsException
 
@@ -805,8 +806,40 @@ class LifeInsuranceHistory(LifeInsurance):
 
 
 class MarketPage(LoggedPage, HTMLPage):
+    def get_dropdown_menu(self, account_id):
+        # Get the 'idCptSelect' in a drop-down menu that corresponds the current account
+        for cpt in self.doc.xpath('//select[@id="idCptSelect"]//option[@value]'):
+            if account_id in CleanText('.', replace=[(' ', '')])(cpt):
+                return Attr('.', 'value')(cpt)
+
+    def get_pages(self):
+        several_pages = CleanText('//tr[td[contains(@class,"TabTit1l")]][count(td)=3]')(self.doc)
+        if several_pages:
+            # "several_pages" value is "1/5" for example
+            return re.search(r'(\d+)/(\d+)', several_pages).group(1, 2)
+
+    def market_pagination(self, account_id):
+        # Next page is handled by js. Need to build the right url by changing params in current url
+        several_pages = self.get_pages()
+        if several_pages:
+            current_page, total_pages = map(int, several_pages)
+            if current_page < total_pages:
+                params = {
+                    'action': 11,
+                    'idCptSelect': self.get_dropdown_menu(account_id),
+                    'numPage': current_page + 1,
+                }
+                url_to_keep = urlsplit(self.browser.url)[:3]
+                url_to_complete = (urlencode(params), '')  # '' is the urlsplit().fragment needed for urlunsplit
+                next_page_url = urlunsplit(url_to_keep + url_to_complete)
+                return next_page_url
+
+    @pagination
     @method
     class iter_investments(TableElement):
+        def next_page(self):
+            return self.page.market_pagination(Env('account')(self).id)
+
         table_xpath = '//tr[td[contains(@class,"TabTit1l")]]/following-sibling::tr//table'
         head_xpath = table_xpath + '//tr[1]/td'
         item_xpath = table_xpath + '//tr[position()>1]'
