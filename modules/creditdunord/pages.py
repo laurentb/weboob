@@ -486,6 +486,16 @@ class ProAccountsPage(AccountsPage):
             a._acc_nb = cols[self.COL_ID].xpath('.//span[@class="right-underline"] | .//span[@class="right"]')[0].text.replace(' ', '').strip()
 
             a.id = a._acc_nb
+
+            # If available we add 'IndiceCompte' and 'IndiceClassement' to the id due to the lack of information
+            # on the website. This method is not enough because on some connections, if there are multiple account with the
+            # same id and the same label, but with different currencies, we will add an index at the end of the id relative to the
+            # order the accounts appear on the website. This will cause the accounts to be shifted when the user will add a new account
+            # with same label/id, if this happens the new account will appear first on the website and it will take the index of '1'
+            # previously used by the first account. the already gathered transactions of the previously first account will appear on
+            # the new first account, the already gathered transactions of the previously second account will appear on the new
+            # second account (the previous one), etc.
+
             if hasattr(a, '_args') and a._args:
                 if a._args['IndiceCompte'].isdigit():
                     a.id = '%s%s' % (a.id, a._args['IndiceCompte'])
