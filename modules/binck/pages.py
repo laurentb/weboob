@@ -43,7 +43,7 @@ class QuestionPage(HTMLPage):
         if self.doc.xpath(u'//h1[contains(text(), "Questionnaires connaissance et expérience")]'):
             form = self.get_form('//form[@action="/FsmaMandatoryQuestionnairesOverview/PostponeQuestionnaires"]')
         else:
-            form = self.get_form('//form[@action="/FDL_Complex_FR_Compte/Introduction/SkipQuestionnaire"]')
+            form = self.get_form('//form[contains(@action, "Complex_FR_Compte/Introduction/SkipQuestionnaire")]')
         form.submit()
 
 

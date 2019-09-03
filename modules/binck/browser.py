@@ -59,6 +59,7 @@ class BinckBrowser(LoginBrowser):
     history = URL(r'/TransactionsOverview/GetTransactions',
                   r'/TransactionsOverview/FilteredOverview', HistoryPage)
     questions = URL(r'/FDL_Complex_FR_Compte',
+                    r'/FDL_NonComplex_FR_Compte',
                     r'FsmaMandatoryQuestionnairesOverview', QuestionPage)
     change_pass = URL(r'/ChangePassword/Index',
                       r'/EditSetting/GetSetting\?code=MutationPassword', ChangePassPage)
