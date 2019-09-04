@@ -399,6 +399,8 @@ class LoanDetailsPage(BNPPage):
     class fill_revolving_details(ItemElement):
         obj_total_amount = Dict('data/montantDisponible')
         obj_rate = Dict('data/tauxInterets')
+        obj__subscriber = Format('%s %s', Dict('data/titulaire/nom'), Dict('data/titulaire/prenom'))
+        obj__iduser = None
 
 
 class AccountsIBANPage(BNPPage):
