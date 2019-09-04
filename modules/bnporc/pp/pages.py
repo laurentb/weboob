@@ -454,6 +454,8 @@ class RecipientsPage(BNPPage):
     @method
     class iter_recipients(DictElement):
         item_xpath = 'data/infoBeneficiaire/listeBeneficiaire'
+        # We ignore duplicate because BNP allows differents recipients with the same iban
+        ignore_duplicate = True
 
         class item(MyRecipient):
             # For the moment, only yield ready to transfer on recipients.
