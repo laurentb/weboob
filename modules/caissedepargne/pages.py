@@ -1224,6 +1224,10 @@ class LifeInsuranceHistory(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Transaction
 
+            def condition(self):
+                # Eliminate transactions without amount
+                return Dict('montantBrut')(self)
+
             obj_raw = Transaction.Raw(Dict('type/libelleLong'))
             obj_amount = Eval(float_to_decimal, Dict('montantBrut/valeur'))
 
