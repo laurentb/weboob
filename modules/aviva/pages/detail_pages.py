@@ -228,5 +228,5 @@ class InvestDetailPage(LoggedPage, HTMLPage):
     @method
     class fill_investment(ItemElement):
         obj_unitprice = CleanDecimal('//td[@class="donnees"]/span[@id="VL_achat"]', default=NotAvailable)
-        obj_diff_percent = Eval(lambda x: x / 100, CleanDecimal('//td[@class="donnees"]/span[@id="Performance"]', default=NotAvailable))
+        obj_diff_ratio = Eval(lambda x: x / 100, CleanDecimal('//td[@class="donnees"]/span[@id="Performance"]', default=NotAvailable))
         obj_description = CleanText('//td[@class="donnees"]/span[@id="Nature"]', default=NotAvailable)

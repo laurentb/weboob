@@ -83,7 +83,7 @@ class AvivaBrowser(LoginBrowser):
                 self.invest_detail.go(params=params)
                 self.page.fill_investment(obj=inv)
             else:
-                inv.unitprice = inv.diff_percent = inv.description = NotAvailable
+                inv.unitprice = inv.diff_ratio = inv.description = NotAvailable
             yield inv
 
     @need_login
