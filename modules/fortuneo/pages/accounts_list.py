@@ -365,6 +365,14 @@ class AccountsList(LoggedPage, HTMLPage):
             if warning:
                 raise ActionNeeded(warning[0].text)
 
+    @method
+    class fill_person_name(ItemElement):
+        klass = Account
+
+        # Contains the title (M., Mme., etc) + last name.
+        # The first name isn't available in the person's details.
+        obj_name = CleanText('//span[has-class("mon_espace_nom")]')
+
     def get_iframe_url(self):
         iframe = self.doc.xpath('//iframe[@id="iframe_centrale"]')
         if iframe:

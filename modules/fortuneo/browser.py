@@ -290,4 +290,11 @@ class Fortuneo(LoginBrowser, StatesMixin):
         csv_link = self.page.get_csv_link()
         if csv_link:
             self.location(csv_link)
-        return self.page.get_profile()
+            return self.page.get_profile()
+        # The persons name is in a menu not returned in the ProfilePage, so
+        # we have to go back to the AccountsPage (which is the main page for the website)
+        # to get the info
+        person = self.page.get_profile()
+        self.accounts_page.go()
+        self.page.fill_person_name(obj=person)
+        return person
