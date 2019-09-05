@@ -180,7 +180,7 @@ class InvestmentHistoryPage(LoggedPage, HTMLPage):
             inv.valuation = self.parse_decimal(cols[self.COL_VALUATION])
             inv.diff = self.parse_decimal(cols[self.COL_PERF])
             diff_percent =  self.parse_decimal(cols[self.COL_PERF_PERCENT])
-            inv.diff_percent = diff_percent / 100 if diff_percent else NotAvailable
+            inv.diff_ratio = diff_percent / 100 if diff_percent else NotAvailable
             if is_isin_valid(inv.code):
                 inv.code_type = Investment.CODE_TYPE_ISIN
 

@@ -217,7 +217,7 @@ class InvestmentPage(LoggedPage, JsonPage):
             obj_unitprice = Env('unitprice', default=NotAvailable)
             obj_valuation = MyDecimal(Dict('ValueInEuro'))
             obj_diff = MyDecimal(Dict('ResultValueInEuro'))
-            obj_diff_percent = Eval(lambda x: x / 100, MyDecimal(Dict('ResultPercentageInEuro')))
+            obj_diff_ratio = Eval(lambda x: x / 100, MyDecimal(Dict('ResultPercentageInEuro')))
             obj_original_currency = Env('o_currency', default=NotAvailable)
             obj_original_unitvalue = Env('o_unitvalue', default=NotAvailable)
             obj_original_unitprice = Env('o_unitprice', default=NotAvailable)

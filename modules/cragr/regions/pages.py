@@ -833,7 +833,7 @@ class BGPIInvestmentPage(LoggedPage, HTMLPage):
                 CleanDecimal.French('.//span[@class="box"][span[span[text()="Répartition"]]]/span[2]/span')
             )
 
-            def obj_diff_percent(self):
+            def obj_diff_ratio(self):
                 # Euro funds have '-' instead of a diff_percent value
                 if CleanText('.//span[@class="box"][span[span[text()="+/- value latente (%)"]]]/span[2]/span')(self) == '-':
                     return NotAvailable

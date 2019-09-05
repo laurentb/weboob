@@ -400,7 +400,7 @@ class ASVInvest(LoggedPage, HTMLPage):
                 else:
                     return NotAvailable
 
-            def obj_diff_percent(self):
+            def obj_diff_ratio(self):
                 diff = CleanDecimal(TableCell('diff_percent'), replace_dots=True, default=NotAvailable)(self)
                 if not diff:
                     return diff

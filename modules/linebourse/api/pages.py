@@ -84,10 +84,10 @@ class PortfolioPage(LoggedPage, JsonPage):
                     return CleanDecimal(Dict('pam'))(self)
                 return NotAvailable
 
-            def obj_diff_percent(self):
+            def obj_diff_ratio(self):
                 if not Env('sign')(self):
                     return NotAvailable
-                # obj_diff_percent key can have several names:
+                # obj_diff_ratio key can have several names:
                 if Dict('plvPourcentage', default=None)(self):
                     return CleanDecimal(Dict('plvPourcentage'), sign=lambda x: Env('sign')(self))(self)
                 elif Dict('pourcentagePlv', default=None)(self):

@@ -515,7 +515,7 @@ class LifeInsuranceIframe(LoggedPage, HTMLPage):
             obj_code = Regexp(CleanText(TableCell('code')), r'(.{12})', default=NotAvailable)
             obj_code_type = lambda self: Investment.CODE_TYPE_ISIN if Field('code')(self) is not NotAvailable else NotAvailable
 
-            def obj_diff_percent(self):
+            def obj_diff_ratio(self):
                 diff_percent = MyDecimal(TableCell('diff')(self)[0])(self)
                 return diff_percent/100 if diff_percent != NotAvailable else diff_percent
 

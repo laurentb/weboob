@@ -385,7 +385,7 @@ class RetrieveInvestmentsPage(LoggedPage, JsonPage):
             obj_valuation = CleanDecimal(Dict(
                 'holdingDetailInformation/0/holdingDetailMultipleCurrencyInformation/0/productHoldingMarketValueAmount'
             ), default=NotAvailable)
-            obj_diff_percent = CleanDecimal(Dict(
+            obj_diff_ratio = CleanDecimal(Dict(
                 'holdingDetailInformation/0/holdingDetailMultipleCurrencyInformation/0'
                 '/profitLossUnrealizedPercent'
             ), default=NotAvailable)
@@ -443,7 +443,7 @@ class RetrieveInvestmentsPage(LoggedPage, JsonPage):
             obj_unitprice = CleanDecimal(Dict(
                 'holdingSummaryMultipleCurrencyInformation/0/productHoldingUnitCostAverageAmount'
             ),default=NotAvailable)
-            obj_diff_percent = CleanDecimal(Dict(
+            obj_diff_ratio = CleanDecimal(Dict(
                 'holdingSummaryMultipleCurrencyInformation/0/profitLossUnrealizedPercent'
             ), default=NotAvailable)
             obj_diff = CleanDecimal(Dict(
@@ -546,7 +546,7 @@ class ScpiInvestmentPage(LoggedPage, HTMLPage):
             obj_unitprice = CleanDecimal(TableCell('unitprice'), replace_dots=True)
             obj_unitvalue = CleanDecimal(TableCell('unitvalue'), replace_dots=True)
 
-            def obj_diff_percent(self):
+            def obj_diff_ratio(self):
                 diff_percent = CleanDecimal(
                     Regexp(CleanText(TableCell('diff_percent')), r'\d+,\d+'),
                     replace_dots=True
