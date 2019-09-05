@@ -77,15 +77,15 @@ class MyHTMLPage(HTMLPage):
 class AccountsPage(LoggedPage, MyHTMLPage):
     ACCOUNT_TYPES = OrderedDict((
         ('visa',               Account.TYPE_CARD),
+        ('pea',                Account.TYPE_PEA),
+        ('valorisation',       Account.TYPE_MARKET),
         ('courant-titre',      Account.TYPE_CHECKING),
         ('courant',            Account.TYPE_CHECKING),
         ('livret',             Account.TYPE_SAVINGS),
         ('ldd',                Account.TYPE_SAVINGS),
         ('pel',                Account.TYPE_SAVINGS),
         ('cel',                Account.TYPE_SAVINGS),
-        ('pea',                Account.TYPE_PEA),
         ('titres',             Account.TYPE_MARKET),
-        ('valorisation',       Account.TYPE_MARKET),
     ))
 
     def get_tabs(self):
@@ -155,7 +155,11 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                     account.label =  u'{0} {1}'.format(unicode(table.xpath('./caption')[0].text.strip()), unicode(box.xpath('.//a')[0].text.strip()))
                 elif len(foot[0].xpath('.//a')) != 0 and 'onclick' in foot[0].xpath('.//a')[0].attrib:
                     args = self.js2args(foot[0].xpath('.//a')[0].attrib['onclick'])
-                    account.label =  unicode(table.xpath('./caption')[0].text.strip())
+                    account.label = table.xpath('./caption')[0].text.strip()
+                    # Adding 'Valorisation' to the account label in order to differentiate it
+                    # from the card and checking account associate to the './caption'
+                    if 'Valorisation' not in account.label and len(box.xpath('./td[contains(text(), "Valorisation")]')):
+                        account.label = '%s Valorisation Titres' % CleanText('./caption')(table)
                 else:
                     continue
 
