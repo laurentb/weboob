@@ -20,12 +20,9 @@
 
 import re
 import time
-import subprocess
-
 from collections import OrderedDict
-from subprocess import check_output
 
-from weboob.tools.compat import basestring, unicode
+from weboob.tools.compat import unicode
 
 from .misc import to_unicode
 
@@ -147,13 +144,6 @@ class Value(object):
         """
         return self._value
 
-    def is_command(self, v):
-        """
-        Test if a value begin with ` and end with `
-        (`command` is used to call external programms)
-        """
-        return isinstance(v, basestring) and v.startswith(u'`') and v.endswith(u'`')
-
 
 class ValueBackendPassword(Value):
     _domain = None
@@ -167,15 +157,6 @@ class ValueBackendPassword(Value):
         self.default = kwargs.get('default', '')
 
     def load(self, domain, password, requests):
-        if self.is_command(password):
-            cmd = password[1:-1]
-            try:
-                password = check_output(cmd, shell=True)
-            except subprocess.CalledProcessError as e:
-                raise ValueError(u'The call to the external tool failed: %s' % e)
-            else:
-                password = password.decode('utf-8')
-                password = password.partition('\n')[0].strip('\r\n\t')
         self.check_valid(password)
         self._domain = domain
         self._value = to_unicode(password)
@@ -188,10 +169,6 @@ class ValueBackendPassword(Value):
         return super(ValueBackendPassword, self).check_valid(passwd)
 
     def set(self, passwd):
-        if self.is_command(passwd):
-            self._value = passwd
-            return
-
         self.check_valid(passwd)
         if passwd is None:
             # no change
@@ -203,14 +180,7 @@ class ValueBackendPassword(Value):
             self._value = to_unicode(passwd)
             return
 
-        try:
-            raise ImportError('Keyrings are disabled (see #706)')
-            import keyring
-            keyring.set_password(self._domain, self.id, passwd)
-        except Exception:
-            self._value = to_unicode(passwd)
-        else:
-            self._value = ''
+        self._value = to_unicode(passwd)
 
     def dump(self):
         if self._stored:
@@ -222,13 +192,7 @@ class ValueBackendPassword(Value):
         if self._value != '' or self._domain is None:
             return self._value
 
-        try:
-            raise ImportError('Keyrings are disabled (see #706)')
-            import keyring
-        except ImportError:
-            passwd = None
-        else:
-            passwd = keyring.get_password(self._domain, self.id)
+        passwd = None
 
         if passwd is not None:
             # Password has been read in the keyring.

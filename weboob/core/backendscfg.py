@@ -25,7 +25,9 @@ try:
     from ConfigParser import RawConfigParser, DuplicateSectionError
 except ImportError:
     from configparser import RawConfigParser, DuplicateSectionError
+from collections import MutableMapping
 from logging import warning
+from subprocess import check_output, CalledProcessError
 
 from weboob.tools.compat import unicode
 
@@ -35,6 +37,36 @@ __all__ = ['BackendsConfig', 'BackendAlreadyExists']
 
 class BackendAlreadyExists(Exception):
     pass
+
+
+class DictWithCommands(MutableMapping):
+    def __init__(self, *args, **kwargs):
+        super(DictWithCommands, self).__init__()
+        self._raw = dict(*args, **kwargs)
+
+    def __getitem__(self, key):
+        value = self._raw[key]
+        if value.startswith('`') and value.endswith('`'):
+            try:
+                value = check_output(value[1:-1], shell=True)
+            except CalledProcessError as e:
+                raise ValueError(u'The call to the external tool failed: %s' % e)
+            else:
+                value = value.decode('utf-8').partition('\n')[0].strip('\r\n\t')
+
+        return value
+
+    def __setitem__(self, key, value):
+        self._raw[key] = value
+
+    def __delitem__(self, key):
+        del self._raw[key]
+
+    def __len__(self):
+        return len(self._raw)
+
+    def __iter__(self):
+        return iter(self._raw)
 
 
 class BackendsConfig(object):
@@ -104,7 +136,7 @@ class BackendsConfig(object):
         config = self._read_config()
         changed = False
         for backend_name in config.sections():
-            params = dict(config.items(backend_name))
+            params = DictWithCommands(config.items(backend_name))
             try:
                 module_name = params.pop('_module')
             except KeyError:
