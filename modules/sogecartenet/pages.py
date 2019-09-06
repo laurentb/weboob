@@ -95,6 +95,10 @@ class TransactionsPage(SogeLoggedPage, CsvPage):
     ENCODING = 'iso_8859_1'
     HEADER = 1
     FMTPARAMS = {'delimiter':';'}
+
+    def has_data(self):
+        return not Dict('processing date')(self.doc[0]) == u'No data found'
+
     @method
     class get_history(DictElement):
         class item(ItemElement):
