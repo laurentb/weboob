@@ -133,6 +133,10 @@ class TransferInvalidDate(TransferError):
     code = 'invalidDate'
 
 
+class TransferInvalidOTP(TransferError):
+    code = 'invalidOTP'
+
+
 class AddRecipientError(UserError):
     """
     Failed trying to add a recipient.
