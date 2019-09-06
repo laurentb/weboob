@@ -494,6 +494,9 @@ class Investment(BaseObject):
     diff_ratio =         DecimalField('Difference in ratio (1 meaning 100%) between the buy cost and the current valuation')
     portfolio_share =    DecimalField('Ratio (1 meaning 100%) of the current amount relative to the total')
     performance_history = Field('History of the performances of the stock (key=years, value=diff_ratio)', dict)
+    srri = IntField('Synthetic Risk and Reward Indicator of the stock (from 1 to 7)')
+    asset_category = StringField('Category of the stock')
+    recommended_period = StringField('Recommended investment period of the stock')
 
     # International
     original_currency = StringField('Currency of the original amount')
