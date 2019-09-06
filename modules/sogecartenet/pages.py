@@ -100,8 +100,8 @@ class TransactionsPage(SogeLoggedPage, CsvPage):
         class item(ItemElement):
             klass = FrenchTransaction
 
-            obj_rdate = Date(CleanText(Dict('Processing date')))
-            obj_date = Date(CleanText(Dict('Transaction date')))
+            obj_date = Date(CleanText(Dict('Processing date')))
+            obj_rdate = Date(CleanText(Dict('Transaction date')))
             obj_raw = FrenchTransaction.Raw(CleanText(Dict('corporate name')))
             obj_amount = FrenchTransaction.Amount(CleanText(Dict('charged amt')), replace_dots=False)
             obj_original_amount = FrenchTransaction.Amount(CleanText(Dict('orig. currency gross amt')), replace_dots=False)
