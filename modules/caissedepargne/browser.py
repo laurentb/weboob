@@ -30,7 +30,10 @@ from dateutil import parser
 from weboob.browser import LoginBrowser, need_login, StatesMixin
 from weboob.browser.switch import SiteSwitch
 from weboob.browser.url import URL
-from weboob.capabilities.bank import Account, AddRecipientStep, Recipient, TransferBankError, Transaction, TransferStep
+from weboob.capabilities.bank import (
+    Account, AddRecipientStep, Recipient, TransferBankError, Transaction, TransferStep,
+    TransferInvalidOTP, RecipientInvalidOTP,
+)
 from weboob.capabilities.base import NotAvailable, find_object
 from weboob.capabilities.bill import Subscription
 from weboob.capabilities.profile import Profile
@@ -959,7 +962,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         self.is_send_sms = False
         assert 'otp_sms' in params, 'OTP SMS is missing'
 
-        self.otp_sms_validation(params['otp_sms'])
+        self.otp_sms_validation(params['otp_sms'], TransferInvalidOTP)
         if self.transfer.is_here():
             self.page.continue_transfer(transfer.account_label, transfer.recipient_label, transfer.label)
             return self.page.update_transfer(transfer)
@@ -1003,7 +1006,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         self.location(self.otp_url, json={'fallback': {}})
         self.otp_validation = self.page.validation_unit()
 
-    def otp_sms_validation(self, otp_sms):
+    def otp_sms_validation(self, otp_sms, otp_exception):
         key = next(iter(self.otp_validation))
         data = {
             'validate': {
@@ -1016,7 +1019,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         }
         self.location(self.otp_url, json=data)
 
-        saml = self.page.get_saml()
+        saml = self.page.get_saml(otp_exception)
         action = self.page.get_action()
         self.location(action, data={'SAMLResponse': saml})
 
@@ -1051,7 +1054,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             return self.end_sms_recipient(recipient, **params)
 
         if 'otp_sms' in params:
-            self.otp_sms_validation(params['otp_sms'])
+            self.otp_sms_validation(params['otp_sms'], RecipientInvalidOTP)
 
             if self.authent.is_here():
                 self.page.go_on()
