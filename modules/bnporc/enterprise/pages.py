@@ -230,6 +230,7 @@ class AccountHistoryPage(LoggedPage, JsonPage):
         u'0083': Transaction.TYPE_DEFERRED_CARD,
         u'0813': Transaction.TYPE_LOAN_PAYMENT,
         u'0568': Transaction.TYPE_TRANSFER,
+        u'1194': Transaction.TYPE_DEFERRED_CARD,  # PAYBACK typed as DEFERRED_CARD
     }
 
     @method
