@@ -21,9 +21,13 @@
 import time
 import datetime
 from base64 import b64decode
-from html2text import unescape
 from dateutil import tz
 from dateutil.parser import parse as _parse_dt
+
+try:
+    from HTMLParser import HTMLParser
+except ImportError:
+    from html.parser import HTMLParser
 
 from weboob.capabilities.base import NotLoaded
 from weboob.capabilities.chat import CapChat
@@ -220,7 +224,7 @@ class AuMModule(Module, CapMessages, CapMessagesPost, CapDating, CapChat, CapCon
                           sender=to_unicode(my_name if int(mail['from']) == self.browser.my_id else mails['who']['pseudo']),
                           receivers=[to_unicode(my_name if int(mail['from']) != self.browser.my_id else mails['who']['pseudo'])],
                           date=parse_dt(mail['date']),
-                          content=to_unicode(unescape(mail['message'] or '').strip()),
+                          content=to_unicode(HTMLParser().unescape(mail['message'] or '').strip()),
                           signature=signature,
                           children=[],
                           flags=flags)
