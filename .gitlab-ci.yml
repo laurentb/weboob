@@ -7,33 +7,33 @@ build:2.7:
   image: "python:2.7"
   stage: "build"
   script:
-    - "./tools/local_install.sh ~/bin"
+    - "./tools/local_install.sh -2 ~/bin"
 
 pyflakes:2.7:
   image: "python:2.7"
   stage: "test"
   script:
-    - "./tools/pyflakes.sh"
+    - "./tools/pyflakes.sh -2"
 
 lint:2.7:
   image: "python:2.7"
   stage: "test"
   allow_failure: true
   script:
-    - "./tools/weboob_lint.sh"
+    - "./tools/weboob_lint.sh -2"
 
 unittests:2.7:
   image: "python:2.7"
   stage: "test"
   script:
-    - "./tools/run_tests.sh --no-modules"
+    - "./tools/run_tests.sh -2 --no-modules"
 
 unittests-modules:2.7:
   image: "python:2.7"
   stage: "test"
   allow_failure: true
   script:
-    - "./tools/run_tests.sh --no-core"
+    - "./tools/run_tests.sh -2 --no-core"
 
 doc:2.7:
   image: "python:2.7"
@@ -45,33 +45,33 @@ build:3:
   image: "python:3"
   stage: "build"
   script:
-    - "./tools/local_install.sh -3 ~/bin"
+    - "./tools/local_install.sh ~/bin"
 
 pyflakes:3:
   image: "python:3"
   stage: "test"
   script:
-      - "./tools/pyflakes.sh -3"
+      - "./tools/pyflakes.sh"
 
 lint:3:
   image: "python:3"
   stage: "test"
   allow_failure: true
   script:
-    - "./tools/weboob_lint.sh -3"
+    - "./tools/weboob_lint.sh"
 
 unittests:3:
   image: "python:3"
   stage: "test"
   script:
-    - "./tools/run_tests.sh -3 --no-modules"
+    - "./tools/run_tests.sh --no-modules"
 
 unittests-modules:3:
   image: "python:3"
   stage: "test"
   allow_failure: true
   script:
-    - "./tools/run_tests.sh -3 --no-core"
+    - "./tools/run_tests.sh --no-core"
 
 doc:3:
   image: "python:3"

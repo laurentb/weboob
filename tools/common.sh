@@ -1,6 +1,6 @@
-VER=2
-if [ "${1-}" = "-3" ]; then
-    VER=3
+VER=3
+if [ "${1-}" = "-2" ]; then
+    VER=2
     shift
 fi
 
