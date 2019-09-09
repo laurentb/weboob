@@ -152,7 +152,6 @@ def install_weboob(qt, xdg):
         'six',
         'unidecode',
         'Pillow',
-        'futures; python_version < "3.2"',
         'Babel',
     ]
 
@@ -179,12 +178,11 @@ def install_weboob(qt, xdg):
             'Environment :: X11 Applications :: Qt',
             'License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)',
             'Programming Language :: Python',
-            'Programming Language :: Python :: 2',
-            'Programming Language :: Python :: 2.7',
             'Programming Language :: Python :: 3',
             'Programming Language :: Python :: 3.5',
             'Programming Language :: Python :: 3.6',
             'Programming Language :: Python :: 3.7',
+            'Programming Language :: Python :: 3.8',
             'Programming Language :: Python',
             'Topic :: Communications :: Email',
             'Topic :: Internet :: WWW/HTTP',
@@ -199,7 +197,7 @@ def install_weboob(qt, xdg):
         data_files=data_files,
 
         install_requires=requirements,
-        python_requires='>=2.7',
+        python_requires='>=3.5',
         tests_require=[
             'flake8',
             'nose',
