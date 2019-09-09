@@ -21,6 +21,7 @@
 from dateutil.parser import parse as parse_date
 from dateutil.relativedelta import relativedelta
 
+from weboob.tools.compat import basestring
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.tools.compat import urlparse, parse_qs, urlencode, urlunparse
 

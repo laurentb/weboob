@@ -18,6 +18,7 @@
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
 
+from weboob.tools.compat import unicode
 from weboob.capabilities.image import CapImage, BaseImage, Thumbnail
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import Value, ValueBackendPassword

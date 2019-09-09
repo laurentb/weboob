@@ -22,6 +22,7 @@ from decimal import Decimal, ROUND_DOWN
 import json
 import re
 
+from weboob.tools.compat import unicode
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable, Currency
 from weboob.exceptions import BrowserUnavailable, ActionNeeded

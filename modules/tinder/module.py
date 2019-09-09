@@ -23,6 +23,7 @@ from dateutil.parser import parse as parse_date
 from dateutil.relativedelta import relativedelta
 from dateutil.tz import tzlocal
 
+from weboob.tools.compat import unicode
 from weboob.capabilities.messages import CapMessages, CapMessagesPost, Thread, Message
 from weboob.capabilities.dating import CapDating, Optimization
 from weboob.tools.backend import Module, BackendConfig

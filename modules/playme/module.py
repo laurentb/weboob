@@ -20,6 +20,7 @@
 
 import datetime
 
+from weboob.tools.compat import unicode
 from weboob.capabilities.messages import CapMessages, CapMessagesPost, Thread, Message
 from weboob.capabilities.dating import CapDating, Optimization
 from weboob.capabilities.account import CapAccount, StatusField

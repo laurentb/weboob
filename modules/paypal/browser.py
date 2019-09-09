@@ -21,6 +21,7 @@
 import datetime
 from dateutil.relativedelta import relativedelta
 
+from weboob.tools.compat import basestring
 from weboob.exceptions import BrowserHTTPError, BrowserIncorrectPassword, BrowserUnavailable
 from weboob.browser.browsers import LoginBrowser, need_login
 from weboob.browser.url import URL

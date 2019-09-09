@@ -21,6 +21,7 @@
 import datetime
 import re
 from decimal import Decimal
+from weboob.tools.compat import unicode
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import AmericanTransaction as EnglishTransaction

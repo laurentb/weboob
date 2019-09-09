@@ -19,6 +19,7 @@
 
 from dateutil.parser import parse as parse_date
 
+from weboob.tools.compat import unicode
 from weboob.browser.pages import JsonPage, HTMLPage
 from weboob.capabilities.parcel import Parcel, Event, ParcelNotFound
 

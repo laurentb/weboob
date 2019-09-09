@@ -19,6 +19,7 @@
 
 from __future__ import unicode_literals
 
+from weboob.tools.compat import basestring
 from weboob.tools.backend import Module, BackendConfig
 from weboob.capabilities.base import find_object
 from weboob.capabilities.bill import CapDocument, SubscriptionNotFound,\
