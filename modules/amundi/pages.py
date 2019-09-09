@@ -103,6 +103,7 @@ class AccountsPage(LoggedPage, JsonPage):
             obj_valuation = Dict('mtBrut') & CleanDecimal
             obj_code = Dict('codeIsin', default=NotAvailable)
             obj_vdate = Date(Dict('dtVl'))
+            obj_srri = Eval(int, Dict('SRRI'))
 
             def obj_code_type(self):
                 if is_isin_valid(Field('code')(self)):
