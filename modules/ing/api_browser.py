@@ -433,7 +433,11 @@ class IngAPIBrowser(LoginBrowser, StatesMixin):
             # it is the only time that it appears
             if error['code'] == 'SENSITIVE_OPERATION.SENSITIVE_OPERATION_NOT_FOUND':
                 raise AddRecipientTimeout()
-            elif error['code'] == 'EXTERNAL_ACCOUNT.EXTERNAL_ACCOUNT_ALREADY_EXISTS':
+            elif error['code'] in (
+                'EXTERNAL_ACCOUNT.EXTERNAL_ACCOUNT_ALREADY_EXISTS',
+                # not allowed to add a recipient
+                'EXTERNAL_ACCOUNT.ACCOUNT_RESTRICTION',
+            ):
                 raise AddRecipientBankError(message=error['message'])
 
             assert False, 'Recipient error not handled'
