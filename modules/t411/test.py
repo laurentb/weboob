@@ -20,7 +20,6 @@
 from weboob.tools.test import BackendTest
 from weboob.capabilities.base import NotLoaded
 
-import urllib
 from random import choice
 
 
@@ -30,7 +29,7 @@ class T411Test(BackendTest):
     def test_torrent(self):
         torrents = list(self.backend.iter_torrents('spiderman'))[:10]
         for torrent in torrents:
-            path, qs = urllib.splitquery(torrent.url)
+            path, _, qs = torrent.url.partition('?')
             assert torrent.id
             assert path.endswith(torrent.name)
             assert torrent.name
