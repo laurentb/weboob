@@ -283,6 +283,16 @@ class Module(object):
     def __repr__(self):
         return "<Backend %r>" % self.name
 
+    def __new__(cls, *args, **kwargs):
+        """ Accept any arguments, necessary for AbstractModule __new__ override.
+
+        AbstractModule, in its overridden __new__, removes itself from class hierarchy
+        so its __new__ is called only once. In python 3, default (object) __new__ is
+        then used for next instantiations but it's a slot/"fixed" version supporting
+        only one argument (type to instanciate).
+        """
+        return object.__new__(cls)
+
     def __init__(self, weboob, name, config=None, storage=None, logger=None, nofail=False):
         self.logger = getLogger(name, parent=logger)
         self.weboob = weboob
@@ -516,4 +526,4 @@ class AbstractModule(Module):
         if getattr(cls, 'ADDITIONAL_CONFIG', None):
             cls.CONFIG = BackendConfig(*(list(parent.CONFIG.values()) + list(cls.ADDITIONAL_CONFIG.values())))
 
-        return object.__new__(cls)
+        return Module.__new__(cls, weboob, name, config, storage, logger, nofail)

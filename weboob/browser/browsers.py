@@ -118,6 +118,16 @@ class Browser(object):
             return localfile
         return os.path.join(os.path.dirname(inspect.getfile(cls)), localfile)
 
+    def __new__(cls, *args, **kwargs):
+        """ Accept any arguments, necessary for AbstractBrowser __new__ override.
+
+        AbstractBrowser, in its overridden __new__, removes itself from class hierarchy
+        so its __new__ is called only once. In python 3, default (object) __new__ is
+        then used for next instantiations but it's a slot/"fixed" version supporting
+        only one argument (type to instanciate).
+        """
+        return object.__new__(cls)
+
     def __init__(self, logger=None, proxy=None, responses_dirname=None, weboob=None, proxy_headers=None):
         self.logger = getLogger('browser', logger)
         self.responses_dirname = responses_dirname
@@ -978,7 +988,7 @@ class AbstractBrowser(Browser):
     def __new__(cls, *args, **kwargs):
         weboob = kwargs['weboob']
         cls._resolve_abstract(weboob)
-        return object.__new__(cls)
+        return Browser.__new__(cls, *args, **kwargs)
 
 
 class OAuth2Mixin(StatesMixin):

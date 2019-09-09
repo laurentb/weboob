@@ -133,6 +133,16 @@ class Page(object):
     :class:`LoginBrowser` and the :func:`need_login` decorator.
     """
 
+    def __new__(cls, *args, **kwargs):
+        """ Accept any arguments, necessary for AbstractPage __new__ override.
+
+        AbstractPage, in its overridden __new__, removes itself from class hierarchy
+        so its __new__ is called only once. In python 3, default (object) __new__ is
+        then used for next instantiations but it's a slot/"fixed" version supporting
+        only one argument (type to instanciate).
+        """
+        return object.__new__(cls)
+
     def __init__(self, browser, response, params=None, encoding=None):
         self.browser = browser
         self.logger = getLogger(self.__class__.__name__.lower(), browser.logger)
