@@ -229,7 +229,7 @@ class OkCModule(Module, CapMessages, CapContact, CapMessagesPost, CapDating):
         if 'profile' in fields:
             contact = self.get_contact(contact)
         if contact and 'photos' in fields:
-            for name, photo in contact.photos.iteritems():
+            for name, photo in contact.photos.items():
                 if photo.url and not photo.data:
                     data = self.browser.open(photo.url).content
                     contact.set_photo(name, data=data)

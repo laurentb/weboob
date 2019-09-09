@@ -36,7 +36,7 @@ class Author(object):
     (UNKNOWN,
      MALE,
      FEMALE,
-     TRANSEXUAL) = xrange(4)
+     TRANSEXUAL) = range(4)
 
     def __init__(self, name=None):
         self.name = name

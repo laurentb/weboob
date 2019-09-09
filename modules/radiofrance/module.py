@@ -251,7 +251,7 @@ class RadioFranceModule(Module, CapRadio, CapCollection, CapAudio):
                 yield Collection([split_path[0], u'podcasts'], u'Podcast')
 
         elif len(split_path) == 2 and split_path[1] == 'selection':
-            for _id, item in sorted(self._RADIOS.iteritems()):
+            for _id, item in sorted(self._RADIOS.items()):
                 if _id == split_path[0]:
                     if 'selection' in self._RADIOS[_id]:
                         selection_url = self._RADIOS[_id]['selection']
@@ -376,7 +376,7 @@ class RadioFranceModule(Module, CapRadio, CapCollection, CapAudio):
                         return item
 
     def iter_radios_search(self, pattern):
-        for key, radio in self._RADIOS.iteritems():
+        for key, radio in self._RADIOS.items():
             if pattern.lower() in radio['title'].lower() or pattern.lower() in key.lower():
                 yield self.get_radio(key)
 

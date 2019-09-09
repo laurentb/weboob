@@ -142,7 +142,7 @@ class Paypal(LoginBrowser):
                 'endDate':          e,
                }
         # The response is sometimes not the one we expect.
-        for i in xrange(3):
+        for i in range(3):
             try:
                 self.location(
                     'https://www.paypal.com/myaccount/activity/filter?%s',

@@ -61,7 +61,7 @@ class RadioFranceTest(BackendTest):
                     self.assertTrue(len(l_sel[0].url) > 0)
 
     def test_podcasts(self):
-        for key, item in self.backend._RADIOS.iteritems():
+        for key, item in self.backend._RADIOS.items():
             if 'podcast' in item:
                 emissions = list(self.backend.iter_resources(objs=[BaseAudio], split_path=[key, 'podcasts']))
                 self.assertTrue(len(emissions) > 0)

@@ -45,7 +45,7 @@ class DailymotionModule(Module, CapVideo, CapCollection):
         u'380': u'380p',
         u'720': u'720p',
         u'1080': u'1080p'
-    }.iteritems())])
+    }.items())])
 
     format_choice = [u'm3u8', u'mp4']
 
