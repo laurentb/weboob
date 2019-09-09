@@ -143,6 +143,7 @@ class Paypal(LoginBrowser):
                 'endDate':          e,
                }
         # The response is sometimes not the one we expect.
+        exc = None
         for i in range(3):
             try:
                 self.location(
@@ -155,7 +156,8 @@ class Paypal(LoginBrowser):
                 return iter([])
             except KeyError as e:
                 self.logger.warning("retrying to get activity ...")
-        raise e
+                exc = e
+        raise exc
 
     @need_login
     def get_download_history(self, account, step_min=None, step_max=None):
