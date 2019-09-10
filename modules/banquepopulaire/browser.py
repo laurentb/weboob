@@ -29,7 +29,7 @@ from dateutil.relativedelta import relativedelta
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.browser.exceptions import HTTPNotFound, ServerError
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, AccountOwnership
 from weboob.capabilities.base import NotAvailable, find_object
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
 
@@ -274,12 +274,14 @@ class BanquePopulaire(LoginBrowser):
     def get_accounts_list(self, get_iban=True):
         # We have to parse account list in 2 different way depending if we want the iban number or not
         # thanks to stateful website
-        self.go_on_accounts_list()
-
         next_pages = []
         accounts = []
+        owner_name = re.search(r' (.+)', self.get_profile().name).group(1).upper()
+
+        self.go_on_accounts_list()
 
         for a in self.page.iter_accounts(next_pages):
+            self.set_account_ownership(a, owner_name)
             accounts.append(a)
             if not get_iban:
                 yield a
@@ -300,6 +302,7 @@ class BanquePopulaire(LoginBrowser):
             self.location('/cyber/internet/ContinueTask.do', data=next_page)
 
             for a in self.page.iter_accounts(next_pages, accounts_parsed=accounts):
+                self.set_account_ownership(a, owner_name)
                 accounts.append(a)
                 if not get_iban:
                     yield a
@@ -310,6 +313,25 @@ class BanquePopulaire(LoginBrowser):
             for a in accounts:
                 self.get_investment(a)
                 yield a
+
+    # TODO: see if there's other type of account with a label without name which
+    # is not ATTORNEY (cf. 'COMMUN'). Didn't find one right now.
+    def set_account_ownership(self, account, owner_name):
+        if not account.ownership:
+            label = account.label.upper()
+            if account.parent:
+                if not account.parent.ownership:
+                    self.set_account_ownership(account.parent, owner_name)
+                account.ownership = account.parent.ownership
+            elif owner_name in label:
+                if re.search(r'(m|mr|me|mme|mlle|mle|ml)\.? (.*)\bou (m|mr|me|mme|mlle|mle|ml)\b(.*)', label, re.IGNORECASE):
+                    account.ownership = AccountOwnership.CO_OWNER
+                else:
+                    account.ownership = AccountOwnership.OWNER
+            elif 'COMMUN' in label:
+                account.ownership = AccountOwnership.CO_OWNER
+            else:
+                account.ownership = AccountOwnership.ATTORNEY
 
     @need_login
     def get_iban_number(self, account):
