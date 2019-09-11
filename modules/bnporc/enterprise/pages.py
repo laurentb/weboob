@@ -261,7 +261,10 @@ class AccountHistoryPage(LoggedPage, JsonPage):
 
             def obj_type(self):
                 type = self.page.TYPES.get(Dict('nature/codefamille')(self), Transaction.TYPE_UNKNOWN)
-                if type == Transaction.TYPE_CARD and re.search(r' RELEVE DU \d+\.', Field('raw')(self)):
+                if (
+                    (type == Transaction.TYPE_CARD and re.search(r' RELEVE DU \d+\.', Field('raw')(self))) or
+                    (type == Transaction.TYPE_UNKNOWN and re.search(r'FACTURE CARTE AFFAIRES \w{16} SUIVANT RELEVE DU \d{2}.\d{2}.\d{4}', Field('raw')(self)))
+                ):
                     return Transaction.TYPE_CARD_SUMMARY
                 return type
 
