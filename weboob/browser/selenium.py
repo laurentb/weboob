@@ -601,6 +601,9 @@ class SeleniumBrowser(object):
     def wait_xpath_visible(self, xpath, timeout=None):
         self.wait_until(EC.visibility_of_element_located(xpath_locator(xpath)), timeout)
 
+    def wait_xpath_invisible(self, xpath, timeout=None):
+        self.wait_until(EC.invisibility_of_element_located(xpath_locator(xpath)), timeout)
+
     def wait_xpath_clickable(self, xpath, timeout=None):
         self.wait_until(EC.element_to_be_clickable(xpath_locator(xpath)), timeout)
 
