@@ -1668,11 +1668,10 @@ class SmsRequestStep(LoggedPage, JsonPage):
 
 
 class SmsRequest(LoggedPage, JsonPage):
-    def validate_key(self):
-        return list(self.doc['step']['validationUnits'][0].keys())[0]
-
-    def validation_id(self, key):
-        return self.doc['step']['validationUnits'][0][key][0]['id']
+    def validation_unit(self):
+        if 'step' in self.doc:
+            return self.doc['step']['validationUnits'][0]
+        return self.doc['validationUnits'][0]
 
     def get_saml(self):
         if not 'response' in self.doc:

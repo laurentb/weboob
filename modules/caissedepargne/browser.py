@@ -119,9 +119,15 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                   r'https://.*/particuliers/epargner.*', GarbagePage)
     sms = URL(r'https://www.icgauth.caisse-epargne.fr/dacswebssoissuer/AuthnRequestServlet', SmsPage)
     sms_option = URL(r'https://www.icgauth.caisse-epargne.fr/dacstemplate-SOL/index.html\?transactionID=.*', SmsPageOption)
-    request_sms = URL(r'https://www.icgauth.caisse-epargne.fr/dacsrest/api/v1u0/transaction/(?P<param>)', SmsRequest)
+    request_sms = URL(
+        r'https://(?P<domain>www.icgauth.[^/]+)/dacsrest/api/v1u0/transaction/(?P<param>)',
+        SmsRequest,
+    )
 
-    __states__ = ('BASEURL', 'multi_type', 'typeAccount', 'is_cenet_website', 'recipient_form', 'is_send_sms')
+    __states__ = (
+        'BASEURL', 'multi_type', 'typeAccount', 'is_cenet_website', 'recipient_form',
+        'is_send_sms', 'otp_validation', 'otp_url',
+    )
 
     # Accounts managed in life insurance space (not in linebourse)
 
@@ -158,6 +164,8 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         self.nuser = nuser
         self.recipient_form = None
         self.is_send_sms = None
+        self.otp_validation = None
+        self.otp_url = None
         self.weboob = kwargs['weboob']
         self.market_url = kwargs.pop(
             'market_url',
@@ -187,8 +195,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         if state.get('expire') and parser.parse(state['expire']) < datetime.datetime.now():
             return self.logger.info('State expired, not reloading it from storage')
 
-        # Reload session only for add recipient step
-        transfer_states = ('recipient_form', 'is_send_sms')
+        transfer_states = ('recipient_form', 'is_send_sms', 'otp_validation', 'otp_url')
 
         for transfer_state in transfer_states:
             if transfer_state in state and state[transfer_state] is not None:
@@ -196,10 +203,10 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                 self.logged = True
                 break
 
-    # need to post to valid otp when adding recipient.
     def locate_browser(self, state):
-        if 'is_send_sms' in state and state['is_send_sms']:
-            super(CaisseEpargne, self).locate_browser(state)
+        # in case of transfer/add recipient, we shouldn't go back to previous page
+        # site will crash else
+        pass
 
     def do_login(self):
         """
@@ -927,6 +934,9 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
         if self.sms_option.is_here():
             self.is_send_sms = True
+            self.otp_update_state()
+            self.otp_choose_sms()
+
             raise TransferStep(
                 transfer,
                 Value(
@@ -968,27 +978,40 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         r.bank_name = NotAvailable
         return r
 
-    def otp_sms_validation(self, otp_sms):
-        tr_id = re.search(r'transactionID=(.*)', self.page.url)
-        if tr_id:
-            transaction_id = tr_id.group(1)
+    def otp_update_state(self):
+        transaction_id = re.search(r'transactionID=(.*)', self.page.url)
+        if transaction_id:
+            transaction_id = transaction_id.group(1)
         else:
             assert False, 'Transfer transaction id was not found in url'
 
-        self.request_sms.go(param=transaction_id)
+        self.request_sms.go(domain=urlparse(self.url).netloc, param=transaction_id)
+        self.otp_validation = self.page.validation_unit()
 
-        key = self.page.validate_key()
+        self.otp_url = self.url
+        if not self.url.endswith('/step'):
+            self.otp_url += '/step'
+
+    def otp_choose_sms(self):
+        key = next(iter(self.otp_validation))
+        if self.otp_validation[key][0]['type'] == 'SMS':
+            return
+
+        self.location(self.otp_url, json={'fallback': {}})
+        self.otp_validation = self.page.validation_unit()
+
+    def otp_sms_validation(self, otp_sms):
+        key = next(iter(self.otp_validation))
         data = {
             'validate': {
                 key: [{
-                    'id': self.page.validation_id(key),
+                    'id': self.otp_validation[key][0]['id'],
                     'otp_sms': otp_sms,
-                    'type': 'SMS'
-                }]
-            }
+                    'type': 'SMS',
+                }],
+            },
         }
-        headers = {'Content-Type': 'application/json'}
-        self.location(self.url + '/step', json=data, headers=headers)
+        self.location(self.otp_url, json=data)
 
         saml = self.page.get_saml()
         action = self.page.get_action()
@@ -1044,6 +1067,9 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
         if self.sms_option.is_here():
             self.is_send_sms = True
+            self.otp_update_state()
+            self.otp_choose_sms()
+
             raise AddRecipientStep(
                 self.get_recipient_obj(recipient),
                 Value(

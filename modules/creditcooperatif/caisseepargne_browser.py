@@ -17,8 +17,10 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.browser import AbstractBrowser
+from weboob.browser import AbstractBrowser, URL
+
 from .linebourse_browser import LinebourseAPIBrowser
+from .caisseepargne_pages import SmsPage, SmsPageOption
 
 
 __all__ = ['CaisseEpargneBrowser']
@@ -29,6 +31,15 @@ class CaisseEpargneBrowser(AbstractBrowser):
     PARENT_ATTR = 'package.browser.CaisseEpargne'
 
     LINEBOURSE_BROWSER = LinebourseAPIBrowser
+
+    sms = URL(
+        r'https://www.icgauth.credit-cooperatif.coop/dacswebssoissuer/AuthnRequestServlet',
+        SmsPage,
+    )
+    sms_option = URL(
+        r'https://www.icgauth.credit-cooperatif.coop/dacstemplate-SOL/_(?P<unknown>\d+)/index.html\?transactionID=.*',
+        SmsPageOption,
+    )
 
     def __init__(self, nuser, *args, **kwargs):
         kwargs['market_url'] = 'https://www.offrebourse.com'
