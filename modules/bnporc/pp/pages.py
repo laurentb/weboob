@@ -386,6 +386,11 @@ class AccountsPage(BNPPage):
 class LoanDetailsPage(BNPPage):
     @method
     class fill_loan_details(ItemElement):
+        def condition(self):
+            # If the loan doesn't have any info (that means the loan is already refund),
+            # the data/message is null whereas it is set to "OK" when everything is fine.
+            return Dict('data/message')(self) == 'OK'
+
         obj_total_amount = Dict('data/montantPret')
         obj_maturity_date = Date(Dict('data/dateEcheanceRemboursement'), dayfirst=True)
         obj_duration = Dict('data/dureeRemboursement')
