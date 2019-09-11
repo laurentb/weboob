@@ -398,7 +398,7 @@ class Module(object):
         :rtype: iter[:class:`weboob.capabilities.base.Capability`]
         """
         for base in klass.mro():
-            if issubclass(base, Capability) and base != Capability and base != klass:
+            if issubclass(base, Capability) and base != Capability and base != klass and not issubclass(base, Module):
                 yield base
 
     def has_caps(self, *caps):
