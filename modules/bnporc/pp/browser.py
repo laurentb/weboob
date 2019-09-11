@@ -24,7 +24,7 @@ from dateutil.relativedelta import relativedelta
 import time
 from requests.exceptions import ConnectionError
 
-from weboob.browser.browsers import LoginBrowser, URL, need_login
+from weboob.browser.browsers import LoginBrowser, URL, need_login, StatesMixin
 from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import (
     AccountNotFound, Account, AddRecipientStep, AddRecipientTimeout,
@@ -75,7 +75,7 @@ class JsonBrowserMixin(object):
         return super(JsonBrowserMixin, self).open(*args, **kwargs)
 
 
-class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
+class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser, StatesMixin):
     TIMEOUT = 30.0
 
     login = URL(r'identification-wspl-pres/identification\?acceptRedirection=true&timestamp=(?P<timestamp>\d+)',
@@ -131,12 +131,19 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
     profile = URL(r'/kyc-wspl/rest/informationsClient', ProfilePage)
     list_detail_card = URL(r'/udcarte-wspl/rest/listeDetailCartes', ListDetailCardPage)
 
+    STATE_DURATION = 10
+
+    need_reload_state = False
+
+    __states__ = ('need_reload_state', 'rcpt_transfer_id')
+
     def __init__(self, config, *args, **kwargs):
         super(BNPParibasBrowser, self).__init__(config['login'].get(), config['password'].get(), *args, **kwargs)
         self.accounts_list = None
         self.card_to_transaction_type = {}
         self.rotating_password = config['rotating_password'].get()
         self.digital_key = config['digital_key'].get()
+        self.rcpt_transfer_id = None
 
     @retry(ConnectionError, tries=3)
     def open(self, *args, **kwargs):
@@ -149,6 +156,13 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
         self.login.go(timestamp=timestamp())
         if self.login.is_here():
             self.page.login(self.username, self.password)
+
+    def load_state(self, state):
+        # reload state only for new recipient feature
+        if state.get('need_reload_state'):
+            state.pop('url', None)
+            self.need_reload_state = False
+            super(BNPParibasBrowser, self).load_state(state)
 
     def change_pass(self, oldpass, newpass):
         res = self.open('/identification-wspl-pres/grille?accessible=false')
@@ -428,6 +442,8 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
                 data=json.dumps(data),
                 headers={'Content-Type': 'application/json'}
             ).get_recipient(recipient)
+            self.rcpt_transfer_id = recipient._transfer_id
+            self.need_reload_state = True
             raise AddRecipientStep(recipient, Value('code', label='Saisissez le code reçu par SMS.'))
         elif type_activation == 'digital_key':
             # recipient validated with digital key are immediatly available
@@ -443,9 +459,10 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser):
         add recipient with sms otp authentication
         """
         data = {}
-        data['idBeneficiaire'] = recipient._transfer_id
+        data['idBeneficiaire'] = self.rcpt_transfer_id
         data['typeActivation'] = 1
         data['codeActivation'] = params['code']
+        self.rcpt_transfer_id = None
         return self.activate_recip_sms.go(data=json.dumps(data), headers={'Content-Type': 'application/json'}).get_recipient(recipient)
 
     @need_login
