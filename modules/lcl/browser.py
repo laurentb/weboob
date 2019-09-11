@@ -39,7 +39,7 @@ from .pages import (
     AVPage, AVDetailPage, DiscPage, NoPermissionPage, RibPage, HomePage, LoansPage, TransferPage,
     AddRecipientPage, RecipientPage, RecipConfirmPage, SmsPage, RecipRecapPage, LoansProPage,
     Form2Page, DocumentsPage, ClientPage, SendTokenPage, CaliePage, ProfilePage, DepositPage,
-    AVHistoryPage, AVInvestmentsPage, CardsPage, AVListPage,
+    AVHistoryPage, AVInvestmentsPage, CardsPage, AVListPage, CalieContractsPage,
 )
 
 
@@ -91,13 +91,19 @@ class LCLBrowser(LoginBrowser, StatesMixin):
 
     form2 = URL(r'/outil/UWVI/Routage', Form2Page)
     send_token = URL('/outil/UWVI/AssuranceVie/envoyerJeton', SendTokenPage)
-    calie = URL('https://www.my-calie.fr/FO.HoldersWebSite/Disclaimer/Disclaimer.aspx.*',
-                'https://www.my-calie.fr/FO.HoldersWebSite/Contract/ContractDetails.aspx.*',
-                'https://www.my-calie.fr/FO.HoldersWebSite/Contract/ContractOperations.aspx.*', CaliePage)
+    calie_detail = URL(
+        r'https://www.my-calie.fr/FO.HoldersWebSite/Disclaimer/Disclaimer.aspx.*',
+        r'https://www.my-calie.fr/FO.HoldersWebSite/Contract/ContractDetails.aspx.*',
+        r'https://www.my-calie.fr/FO.HoldersWebSite/Contract/ContractOperations.aspx.*',
+        CaliePage
+    )
+    calie_contracts = URL(r'https://www.my-calie.fr/FO.HoldersWebSite/Contract/SearchContract.aspx', CalieContractsPage)
 
-    assurancevie = URL('/outil/UWVI/AssuranceVie/accesSynthese',
-                        '/outil/UWVI/AssuranceVie/accesDetail.*',
-                        AVPage)
+    assurancevie = URL(
+        r'/outil/UWVI/AssuranceVie/accesSynthese',
+        r'/outil/UWVI/AssuranceVie/accesDetail.*',
+        AVPage
+    )
 
     av_list = URL('https://assurance-vie-et-prevoyance.secure.lcl.fr/rest/assurance/synthesePartenaire', AVListPage)
     avdetail = URL('https://assurance-vie-et-prevoyance.secure.lcl.fr/consultation/epargne', AVDetailPage)
@@ -248,10 +254,36 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         if self.no_perm.is_here():
             self.logger.warning('Life insurances are unavailable.')
         else:
+            # retrieve life insurances from popups
             for a in self.page.get_popup_life_insurance():
                 self.update_accounts(a)
 
-            # retrieve life insurance on special lcl life insurance website
+            # retrieve life insurances from calie website
+            calie_index = self.page.get_calie_life_insurances_first_index()
+            if calie_index:
+                form = self.page.get_form(id="formRedirectPart")
+                form['INDEX'] = calie_index
+                form.submit()
+                # if only one calie insurance, request directly leads to details on CaliePage
+                if self.calie_detail.is_here():
+                    self.page.check_error()
+                    a = Account()
+                    a.url = self.url
+                    self.page.fill_account(obj=a)
+                    self.update_accounts(a)
+                # if several calie insurances, request leads to CalieContractsPage
+                elif self.calie_contracts.is_here():
+                    for a in self.page.iter_calie_life_insurance():
+                        if a.url:
+                            self.location(a.url)
+                            self.page.fill_account(obj=a)
+                            self.update_accounts(a)
+                        else:
+                            self.logger.warning('%s has no url to parse detail to' % a)
+                # get back to life insurances list page
+                self.assurancevie.stay_or_go()
+
+            # retrieve life insurances on special lcl life insurance website
             if self.page.is_website_life_insurance():
                 self.go_life_insurance_website()
                 for life_insurance in self.page.iter_life_insurance():
@@ -381,21 +413,20 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                 self.logger.warning('This account is limited, there is no available history.')
                 return
 
-            self.assurancevie.stay_or_go()
-            self.go_life_insurance_website()
-
-            if self.calie.is_here():
-                # Get back to Synthèse
-                self.assurancevie.go()
-                return
-
-            assert self.av_list.is_here(), 'Something went wrong during iter life insurance history'
-            # Need to be on account details page to do history request
-            self.av_investments.go(life_insurance_id=account.id)
-            self.av_history.go()
-            for tr in self.page.iter_history():
-                yield tr
-            self.go_back_from_life_insurance_website()
+            if account._is_calie_account:
+                # TODO build parsing of history page, all-you-can-eat js in it
+                # follow 'account._history_url' for that
+                raise NotImplementedError()
+            else:
+                self.assurancevie.stay_or_go()
+                self.go_life_insurance_website()
+                assert self.av_list.is_here(), 'Something went wrong during iter life insurance history'
+                # Need to be on account details page to do history request
+                self.av_investments.go(life_insurance_id=account.id)
+                self.av_history.go()
+                for tr in self.page.iter_history():
+                    yield tr
+                self.go_back_from_life_insurance_website()
 
     @need_login
     def get_coming(self, account):
@@ -453,20 +484,17 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                 return
 
             self.assurancevie.stay_or_go()
-            self.go_life_insurance_website()
-
-            if self.calie.is_here():
+            if account._is_calie_account:
+                calie_details = self.open(account.url)
+                for inv in calie_details.page.iter_investment():
+                    yield inv
+            else:
+                self.go_life_insurance_website()
+                assert self.av_list.is_here(), 'Something went wrong during iter life insurance investments'
+                self.av_investments.go(life_insurance_id=account.id)
                 for inv in self.page.iter_investment():
                     yield inv
-                # Get back to Life Insurance space
-                self.assurancevie.go()
-                return
-
-            assert self.av_list.is_here(), 'Something went wrong during iter life insurance investments'
-            self.av_investments.go(life_insurance_id=account.id)
-            for inv in self.page.iter_investment():
-                yield inv
-            self.go_back_from_life_insurance_website()
+                self.go_back_from_life_insurance_website()
 
         elif hasattr(account, '_market_link') and account._market_link:
             self.connexion_bourse()

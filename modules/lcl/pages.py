@@ -27,8 +27,7 @@ from decimal import Decimal
 from io import BytesIO
 from datetime import datetime, timedelta
 
-from weboob.capabilities import NotAvailable
-from weboob.capabilities.base import find_object
+from weboob.capabilities.base import empty, find_object, NotAvailable
 from weboob.capabilities.bank import (
     Account, Investment, Recipient, TransferError, TransferBankError, Transfer,
 )
@@ -36,10 +35,10 @@ from weboob.capabilities.bill import Document, Subscription, DocumentTypes
 from weboob.capabilities.profile import Person, ProfileMissing
 from weboob.capabilities.contact import Advisor
 from weboob.browser.elements import method, ListElement, TableElement, ItemElement, DictElement
-from weboob.exceptions import ParseError
+from weboob.exceptions import ParseError, ActionNeeded
 from weboob.browser.exceptions import ServerError
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage, FormNotFound, pagination
-from weboob.browser.filters.html import Attr, Link, TableCell, AttributeNotFound
+from weboob.browser.filters.html import Attr, Link, TableCell, AttributeNotFound, AbsoluteLink
 from weboob.browser.filters.standard import (
     CleanText, Field, Regexp, Format, Date, CleanDecimal, Map, AsyncLoad, Async, Env, Slugify,
     BrowserURL, Eval, Currency,
@@ -48,8 +47,7 @@ from weboob.browser.filters.json import Dict
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
-from weboob.tools.compat import unicode
-from weboob.tools.compat import urlparse, parse_qs
+from weboob.tools.compat import unicode, urlparse, parse_qs, urljoin
 from weboob.tools.html import html2text
 from weboob.tools.date import parse_french_date
 from weboob.tools.capabilities.bank.investments import is_isin_valid
@@ -792,6 +790,16 @@ class AVPage(LoggedPage, HTMLPage):
         # because we just need to go on life insurance external website
         return bool(self.get_routage_url())
 
+    def get_calie_life_insurances_first_index(self):
+        # indices are associated to calie life insurances to make requests to them
+        # if only one life insurance, this request directly leads to details on CaliePage
+        # otherwise, any index will lead to CalieContractsPage,
+        # so we stop at the first index
+        for account in self.doc.xpath('//table[@class]/tbody/tr'):
+            if account.xpath('.//td[has-class("nomContrat")]//a[contains(@class, "redirect")][@href="#"]'):
+                index = Attr(account.xpath('.//td[has-class("nomContrat")]//a[contains(@class, "redirect")][@href="#"]'), 'id')(self)
+                return index
+
     @method
     class get_popup_life_insurance(ListElement):
         item_xpath = '//table[@class]/tbody/tr'
@@ -817,6 +825,7 @@ class AVPage(LoggedPage, HTMLPage):
             obj__transfer_id = None
             obj_number = Field('id')
             obj__external_website = False
+            obj__is_calie_account = False
 
             def obj_id(self):
                 _id = CleanText('.//td/@id')(self)
@@ -875,6 +884,24 @@ class AVPage(LoggedPage, HTMLPage):
                 return form
 
 
+class CalieContractsPage(LoggedPage, HTMLPage):
+    @method
+    class iter_calie_life_insurance(TableElement):
+        head_xpath = '//table[contains(@id, "MainTable")]//tr[contains(@id, "HeadersRow")]//td[text()]'
+        item_xpath = '//table[contains(@id, "MainTable")]//tr[contains(@id, "DataRow")]'
+
+        col_number = 'Numéro contrat'  # internal contrat number
+
+        class item(ItemElement):
+            klass = Account
+
+            # internal contrat number, to be replaced by external number in CaliePage.fill_account()
+            # obj_id is needed here though, to avoid dupicate account errors
+            obj_id = CleanText(TableCell('number'))
+
+            obj_url = AbsoluteLink('.//a')  # need AbsoluteLink since we moved out of basurl domain
+
+
 class SendTokenPage(LoggedPage, LCLBasePage):
     def on_load(self):
         form = self.get_form('//form')
@@ -904,17 +931,17 @@ class CalieTableElement(TableElement):
 
 
 class CaliePage(LoggedPage, HTMLPage):
-    def on_load(self):
-        # TODO raise the ActionNeeded when backend handles it.
-        if self.doc.xpath('//button[@id="acceptDisclaimerButton"]'):
-            self.logger.warning('Action Needed on website: %s', CleanText('//div[@class="data-header"]')(self.doc))
+    def check_error(self):
+        message = CleanText('//div[contains(@class, "disclaimer-div")]//text()[contains(., "utilisation vaut acceptation")]')(self.doc)
+        if self.doc.xpath('//button[@id="acceptDisclaimerButton"]') and message:
+            raise ActionNeeded(message)
 
     @method
     class iter_investment(CalieTableElement):
         # Careful, <table> contains many nested <table/tbody/tr/td>
         # Two first lines are titles, two last are investment sum-ups
-        item_xpath = '//table[@class="dxgvTable dxgvRBB"]//tr[position() > 2 and position() < last()-1]'
-        head_xpath = '//table[@class="dxgvTable dxgvRBB"]//tr[1]/td//tr/td[1]'
+        item_xpath = '//table[@class="dxgvTable dxgvRBB"]//tr[contains(@class, "DataRow")]'
+        head_xpath = '//table[contains(@id, "MainTable")]//tr[contains(@id, "HeadersRow")]//td[text()]'
 
         col_label = 'Support'
         col_vdate = 'Date de valeur'
@@ -922,7 +949,7 @@ class CaliePage(LoggedPage, HTMLPage):
         col_valuation = 'Valeur dans la devise du support (EUR)'
         col_unitvalue = 'Valeur unitaire'
         col_quantity = 'Parts'
-        col_diff = 'Performance'
+        col_diff_ratio = 'Performance'
         col_portfolio_share = 'Répartition (%)'
 
         class item(ItemElement):
@@ -932,15 +959,39 @@ class CaliePage(LoggedPage, HTMLPage):
             obj_original_valuation = CleanDecimal(TableCell('original_valuation'), replace_dots=True)
             obj_valuation = CleanDecimal(TableCell('valuation'), replace_dots=True)
             obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True)
-            obj_unitvalue = CleanDecimal(TableCell('unitvalue'), replace_dots=True)
-            obj_quantity = CleanDecimal(TableCell('quantity'), replace_dots=True)
+            obj_unitvalue = CleanDecimal(TableCell('unitvalue'), replace_dots=True, default=NotAvailable)  # displayed with format '123.456,78 EUR'
+            obj_quantity = CleanDecimal(TableCell('quantity'), replace_dots=True, default=NotAvailable)  # displayed with format '1.234,5678 u.'
             obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal(TableCell('portfolio_share')))
-            obj_diff = CleanDecimal(TableCell('diff'))
+
+            def obj_diff_ratio(self):
+                _diff_ratio = CleanDecimal(TableCell('diff_ratio'), default=NotAvailable)(self)
+                if not empty(_diff_ratio):
+                    return Eval(lambda x: x / 100, _diff_ratio)(self)
+                return NotAvailable
 
             # Unfortunately on the Calie space the links to the
             # invest details return Forbidden even on the website
             obj_code = NotAvailable
             obj_code_type = NotAvailable
+
+    @method
+    class fill_account(ItemElement):
+        obj_number = obj_id = Regexp(CleanText('.'), r'Numéro externe (.{10})')
+        obj_label = Format(
+            '%s %s',
+            Regexp(CleanText('.'), r'Produit (.*) Statut'),
+            Field('id')
+        )
+        obj_balance = CleanDecimal('//tr[contains(@id, "FooterRow")]', replace_dots=True)
+        obj_type = Account.TYPE_LIFE_INSURANCE
+        obj_currency = 'EUR'
+        obj__external_website = True
+        obj__is_calie_account = True
+        obj__transfer_id = None
+
+        def obj__history_url(self):
+            relative_url = Regexp(Attr('//a[contains(text(), "Opérations")]', 'onclick'), r'href=\'(.*)\'')(self)
+            return urljoin(self.page.url, relative_url)
 
 
 class AVDetailPage(LoggedPage, LCLBasePage):
@@ -987,6 +1038,7 @@ class AVListPage(LoggedPage, JsonPage):
             obj__market_link = None
             obj__coming_links = []
             obj__transfer_id = None
+            obj__is_calie_account = False
 
 
 class AVHistoryPage(LoggedPage, JsonPage):
