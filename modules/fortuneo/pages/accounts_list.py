@@ -31,7 +31,7 @@ from weboob.browser.elements import method, ItemElement
 from weboob.browser.filters.html import Link, Attr
 from weboob.browser.filters.standard import CleanText, CleanDecimal, RawText, Regexp, Date
 from weboob.capabilities import NotAvailable
-from weboob.capabilities.bank import Account, Investment, Loan
+from weboob.capabilities.bank import Account, Investment, Loan, AccountOwnership
 from weboob.capabilities.profile import Person
 from weboob.browser.pages import HTMLPage, LoggedPage, FormNotFound, CsvPage
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -470,6 +470,7 @@ class AccountsList(LoggedPage, HTMLPage):
                 account.account_label = account_history_page.get_account_label()
                 account.subscription_date = account_history_page.get_subscription_date()
                 account.maturity_date = account_history_page.get_maturity_date()
+                account.ownership = account_history_page.get_owner()
 
             if len(accounts) == 0:
                 global_error_message = page.doc.xpath('//div[@id="as_renouvellementMIFID.do_"]/div[contains(text(), "Bonjour")] '
@@ -527,6 +528,19 @@ class AccountsList(LoggedPage, HTMLPage):
                 # Need a token sent by SMS to customers
                 account.iban = NotAvailable
 
+            if account.type is not Account.TYPE_LOAN:
+                regexp = re.search(r'(m\. |mme\. )(.+)', CleanText('//span[has-class("mon_espace_nom")]')(self.doc), re.IGNORECASE)
+                if regexp and len(regexp.groups()) == 2:
+                    gender = regexp.group(1).replace('.', '').rstrip()
+                    name = regexp.group(2)
+                    label = account.label
+                    if re.search(r'(m|mr|me|mme|mlle|mle|ml)\.? (.*)\bou (m|mr|me|mme|mlle|mle|ml)\b(.*)', label, re.IGNORECASE):
+                        account.ownership = AccountOwnership.CO_OWNER
+                    elif re.search(r'{} {}'.format(gender, name), label, re.IGNORECASE):
+                        account.ownership = AccountOwnership.OWNER
+                    else:
+                        account.ownership = AccountOwnership.ATTORNEY
+
             if (account.label, account.id, account.balance) not in [(a.label, a.id, a.balance) for a in accounts]:
                 accounts.append(account)
         return accounts
@@ -556,6 +570,11 @@ class LoanPage(LoggedPage, HTMLPage):
 
     def get_maturity_date(self):
         return Date(CleanText(u'//p[@id="c_dateFin"]//strong'), dayfirst=True)(self.doc)
+
+    def get_owner(self):
+        if bool(CleanText('//p[@id="c_emprunteurSecondaire"]')(self.doc)):
+            return AccountOwnership.CO_OWNER
+        return AccountOwnership.OWNER
 
 
 class ProfilePage(LoggedPage, HTMLPage):
@@ -599,4 +618,3 @@ class ProfilePageCSV(LoggedPage, CsvPage):
 
 class SecurityPage(LoggedPage, HTMLPage):
     pass
-
