@@ -26,6 +26,7 @@ from .pages import LoginPage, HomePage, AccountPage, HistoryPage, BillsPage, Sea
 
 __all__ = ['AmeliProBrowser']
 
+
 class AmeliProBrowser(LoginBrowser):
     BASEURL = 'https://espacepro.ameli.fr'
 
@@ -63,7 +64,6 @@ class AmeliProBrowser(LoginBrowser):
 
     @need_login
     def get_subscription(self, id):
-        assert isinstance(id, basestring)
         return self.get_subscription_list()
 
     @need_login
@@ -101,7 +101,6 @@ class AmeliProBrowser(LoginBrowser):
 
     @need_login
     def get_document(self, id):
-        assert isinstance(id, basestring)
         for b in self.iter_documents():
             if id == b.id:
                 return b

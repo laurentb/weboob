@@ -21,8 +21,10 @@
 from datetime import datetime
 import re
 from decimal import Decimal
+
 from weboob.browser.pages import HTMLPage
 from weboob.capabilities.bill import DocumentTypes, Subscription, Detail, Bill
+from weboob.tools.compat import unicode
 
 
 # Ugly array to avoid the use of french locale
@@ -36,13 +38,16 @@ class LoginPage(HTMLPage):
         form['vp_connexion_portlet_1password'] = password.encode('utf8')
         form.submit()
 
+
 class HomePage(HTMLPage):
     def on_loaded(self):
         pass
 
+
 class SearchPage(HTMLPage):
     def on_loaded(self):
         pass
+
 
 class AccountPage(HTMLPage):
     def iter_subscription_list(self):
