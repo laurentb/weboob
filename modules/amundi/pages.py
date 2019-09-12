@@ -28,7 +28,7 @@ from weboob.browser.filters.standard import (
 from weboob.browser.filters.json import Dict
 from weboob.browser.pages import LoggedPage, JsonPage
 from weboob.capabilities.bank import Account, Investment, Transaction
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable, empty
 from weboob.exceptions import NoAccountsException
 from weboob.tools.capabilities.bank.investments import is_isin_valid
 
@@ -101,14 +101,25 @@ class AccountsPage(LoggedPage, JsonPage):
             obj_unitvalue = Dict('vl') & CleanDecimal
             obj_quantity = Dict('nbParts') & CleanDecimal
             obj_valuation = Dict('mtBrut') & CleanDecimal
-            obj_code = Dict('codeIsin', default=NotAvailable)
             obj_vdate = Date(Dict('dtVl'))
-            obj_srri = Eval(int, Dict('SRRI'))
+
+            def obj_srri(self):
+                srri = Dict('SRRI')(self)
+                # The website displays '0 - Non disponible' when not available
+                if srri.startswith('0'):
+                    return NotAvailable
+                return int(srri)
+
+            def obj_code(self):
+                code = Dict('codeIsin', default=NotAvailable)(self)
+                if is_isin_valid(code):
+                    return code
+                return NotAvailable
 
             def obj_code_type(self):
-                if is_isin_valid(Field('code')(self)):
-                    return Investment.CODE_TYPE_ISIN
-                return NotAvailable
+                if empty(Field('code')(self)):
+                    return NotAvailable
+                return Investment.CODE_TYPE_ISIN
 
             def obj_performance_history(self):
                 # The Amundi JSON only contains 1 year and 5 years performances.
