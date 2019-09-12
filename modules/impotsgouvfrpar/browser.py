@@ -18,14 +18,15 @@
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.browser import LoginBrowser, URL, need_login
+from weboob.browser import AbstractBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 
 from .pages import LoginAccessPage, LoginAELPage, ProfilePage, DocumentsPage, BillsPage
 
 
-class ImpotsParBrowser(LoginBrowser):
+class ImpotsParBrowser(AbstractBrowser):
     BASEURL = 'https://cfspart.impots.gouv.fr'
+    PARENT = 'franceconnect'
 
     login_access = URL(r'/LoginAccess', LoginAccessPage)
     login_ael = URL(r'/LoginAEL', LoginAELPage)
@@ -37,13 +38,30 @@ class ImpotsParBrowser(LoginBrowser):
                 r'.*/consultation/ConsultationDocument',
                 r'.*/contrat.html', BillsPage)
 
-    def do_login(self):
-        self.login_access.go()
+    def __init__(self, login_source, *args, **kwargs):
+        super(ImpotsParBrowser, self).__init__(*args, **kwargs)
+        self.login_source = login_source
+
+    def login_impots(self):
         self.page.login(self.username, self.password)
 
         msg = self.page.is_login_successful()
         if msg:
             raise BrowserIncorrectPassword(msg)
+
+    def france_connect_do_login(self):
+        self.location('https://cfsfc.impots.gouv.fr/', data={'lmAuth': 'FranceConnect'})
+        self.fc_call('dgfip', 'https://idp.impots.gouv.fr')
+        self.login_impots()
+        self.fc_redirect(self.page.get_redirect_url())
+
+    def do_login(self):
+        if self.login_source == 'fc':
+            self.france_connect_do_login()
+            return
+
+        self.login_access.go()
+        self.login_impots()
 
     @need_login
     def iter_subscription(self):

@@ -47,6 +47,8 @@ class LoginAELPage(HTMLPage):
         if state != 'ok':
             return 'wrong password'
 
+    def get_redirect_url(self):
+        return Regexp(CleanText('//body/script'), r"postMessage\('ok,(.*)',")(self.doc)
 
 class ProfilePage(LoggedPage, HTMLPage):
     def get_documents_link(self):

@@ -18,7 +18,7 @@
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 from __future__ import unicode_literals
 
-from weboob.tools.backend import Module, BackendConfig
+from weboob.tools.backend import AbstractModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 from weboob.capabilities.base import find_object, NotAvailable
 from weboob.capabilities.bill import DocumentTypes, CapDocument, Subscription, Document, SubscriptionNotFound, DocumentNotFound
@@ -30,7 +30,7 @@ from .browser import ImpotsParBrowser
 __all__ = ['ImpotsGouvFrParModule']
 
 
-class ImpotsGouvFrParModule(Module, CapDocument, CapProfile):
+class ImpotsGouvFrParModule(AbstractModule, CapDocument, CapProfile):
     NAME = 'impotsgouvfrpar'
     DESCRIPTION = 'impots.gouv.fr'
     MAINTAINER = 'Florian Duguet'
@@ -38,15 +38,22 @@ class ImpotsGouvFrParModule(Module, CapDocument, CapProfile):
     LICENSE = 'LGPLv3+'
     VERSION = '1.6'
     CONFIG = BackendConfig(Value('login', label='Adresse électronique ou Numéro fiscal', regexp='^.*@.*$|^\d+$'),
+                           Value('login_source', label="méthode d'authentification", default='direct',
+                                 choices={'direct': 'directe', 'fc': 'France Connect'}),
                            ValueBackendPassword('password', label='Mot de passe'),
     )
+    PARENT = "franceconnect"
 
     BROWSER = ImpotsParBrowser
 
     accepted_document_types = (DocumentTypes.OTHER,)
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(), self.config['password'].get())
+        return self.create_browser(
+            self.config['login_source'].get(),
+            self.config['login'].get(),
+            self.config['password'].get(),
+            weboob=self.weboob)
 
     def iter_subscription(self):
         return self.browser.iter_subscription()
