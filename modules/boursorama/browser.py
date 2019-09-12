@@ -356,6 +356,7 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
 
         if self.deferred_card_calendar is None:
             self.location(self.page.get_calendar_link())
+
         params = {}
         params['movementSearch[fromDate]'] = (date.today() - relativedelta(years=3)).strftime('%d/%m/%Y')
         params['fullSearch'] = 1

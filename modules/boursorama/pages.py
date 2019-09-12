@@ -266,7 +266,6 @@ class AccountsPage(LoggedPage, HTMLPage):
                 return not self.is_external() and not any(x in Field('url')(self) for x in ('automobile', 'assurance/protection', 'assurance/comptes', 'assurance/famille'))
 
             obj_label = CleanText('.//a[has-class("account--name")] | .//div[has-class("account--name")]')
-
             obj_currency = FrenchTransaction.Currency('.//a[has-class("account--balance")]')
             obj_valuation_diff = Async('details') & CleanDecimal('//li[h4[text()="Total des +/- values"]]/h3 |\
                         //li[span[text()="Total des +/- values latentes"]]/span[has-class("overview__value")]', replace_dots=True, default=NotAvailable)
@@ -305,6 +304,8 @@ class AccountsPage(LoggedPage, HTMLPage):
                 if not id:
                     raise SkipItem()
                 return id
+
+            obj_number = obj_id
 
             def obj_type(self):
                 # card url is /compte/cav/xxx/carte/yyy so reverse to match "carte" before "cav"
@@ -567,16 +568,19 @@ class CardHistoryPage(LoggedPage, CsvPage):
             klass = Transaction
 
             obj_raw = Transaction.Raw(Dict('label'))
-            obj_date = Date(Dict('dateVal'), dayfirst=True)
-            obj_bdate = Date(Dict('dateOp'), dayfirst=True)
+            obj_bdate = Date(Dict('dateOp'))
+
+            def obj_date(self):
+                return self.page.browser.get_debit_date(Field('bdate')(self))
+
             obj__account_label = Dict('accountLabel')
             obj__is_coming = False
 
             def obj_amount(self):
                 if Field('type')(self) == Transaction.TYPE_CARD_SUMMARY:
                     # '-' so the reimbursements appear positively in the card transactions:
-                    return -CleanDecimal(Dict('amount'), replace_dots=True)(self)
-                return CleanDecimal(Dict('amount'), replace_dots=True)(self)
+                    return -CleanDecimal.US(Dict('amount'))(self)
+                return CleanDecimal.US(Dict('amount'))(self)
 
             def obj_rdate(self):
                 if self.obj.rdate:
