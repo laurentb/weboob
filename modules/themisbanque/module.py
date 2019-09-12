@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from weboob.tools.backend import Module, BackendConfig
 from weboob.capabilities.bank import CapBank, AccountNotFound
@@ -31,14 +32,15 @@ __all__ = ['ThemisModule']
 
 class ThemisModule(Module, CapBank, CapProfile):
     NAME = 'themisbanque'
-    DESCRIPTION = u'Themis'
-    MAINTAINER = u'Romain Bignon'
+    DESCRIPTION = 'Themis'
+    MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     LICENSE = 'LGPLv3+'
     VERSION = '1.6'
-    CONFIG = BackendConfig(ValueBackendPassword('login',    label=u"Numéro d'abonné", masked=False),
-                           ValueBackendPassword('password', label='Code secret'),
-                          )
+    CONFIG = BackendConfig(
+        ValueBackendPassword('login', label="Numéro d'abonné", masked=False),
+        ValueBackendPassword('password', label='Code secret'),
+    )
 
     BROWSER = ThemisBrowser
 

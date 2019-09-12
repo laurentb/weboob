@@ -39,7 +39,7 @@ class MyCleanText(CleanText):
     @classmethod
     def clean(cls, txt, children=True, newlines=True, normalize='NFC'):
         if not isinstance(txt, basestring):
-            txt = u'\n'.join([t.strip() for t in txt.itertext()])
+            txt = '\n'.join([t.strip() for t in txt.itertext()])
 
         return txt
 
@@ -135,14 +135,14 @@ class RibPage(LoggedPage, HTMLPage):
         # profile is inside a <td> separated with a simple <br> without <span> or <div>
         profile_txt = MyCleanText('//div[@class="TableauAffichage"]/table/tr[3]/td[1]')(self.doc).split('\n')
         i_name = 0
-        profile.name = u''
+        profile.name = ''
         # name can be on one, two, (more ?) lines, so we stop when line start by a number, we suppose it's the address number
-        while not re.search('^\d', profile_txt[i_name]):
+        while not re.search(r'^\d', profile_txt[i_name]):
             profile.name += ' ' + profile_txt[i_name]
             i_name += 1
 
         profile.name = profile.name.strip()
-        profile.address = u''
+        profile.address = ''
         # address is not always on two lines, so we consider every lines from here to before last are address, (last one is country)
         for i in range(i_name, len(profile_txt)-1):
             profile.address += ' ' + profile_txt[i]
@@ -164,59 +164,58 @@ class RibPDFPage(LoggedPage, PDFPage):
 
 
 class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile(r'^VIR(EMENT)?( SEPA)? (?P<text>.*)'),                      FrenchTransaction.TYPE_TRANSFER),
-                (re.compile(r'^PRLV (?P<text>.*)'),                                     FrenchTransaction.TYPE_ORDER),
-                (re.compile(r'^(?P<text>.*) CARTE \d+ PAIEMENT CB\s+(?P<dd>\d{2})(?P<mm>\d{2}) ?(.*)$'),
-                                                                                       FrenchTransaction.TYPE_CARD),
-                (re.compile(r'^RETRAIT DAB (?P<dd>\d{2})(?P<mm>\d{2}) (?P<text>.*) CARTE [\*\d]+'),
-                                                                                       FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile(r'^CHEQUE( (?P<text>.*))?$'),                               FrenchTransaction.TYPE_CHECK),
-                (re.compile(r'^(F )?COTIS\.? (?P<text>.*)'),                            FrenchTransaction.TYPE_BANK),
-                (re.compile(r'^(REMISE|REM.CHQ) (?P<text>.*)'),                         FrenchTransaction.TYPE_DEPOSIT),
-                (re.compile(r'^(?P<text>.*)(?P<dd>\d{2})(?P<mm>\d{2}) CARTE BLEUE'),    FrenchTransaction.TYPE_CARD),
-                (re.compile(r'^PRVL SEPA (?P<text>.*)'),                                FrenchTransaction.TYPE_ORDER),
-                (re.compile(r'^(?P<text>(INT. DEBITEURS).*)'),                          FrenchTransaction.TYPE_BANK),
-                (re.compile(r'^(?P<text>.*(VIR EMIS).*)'),                              FrenchTransaction.TYPE_TRANSFER),
-                (re.compile(r'^(?P<text>.*(\bMOUVEMENT\b).*)'),                         FrenchTransaction.TYPE_TRANSFER),
-                (re.compile(r'^(?P<text>.*(ARRETE TRIM.).*)'),                          FrenchTransaction.TYPE_BANK),
-                (re.compile(r'^(?P<text>.*(TENUE DE DOSSIE).*)'),                       FrenchTransaction.TYPE_BANK),
-                (re.compile(r'^(?P<text>.*(RELEVE LCR ECH).*)'),                        FrenchTransaction.TYPE_ORDER),
-                (re.compile(r'^(?P<text>.*(\+ FORT DECOUVERT).*)'),                     FrenchTransaction.TYPE_BANK),
-                (re.compile(r'^(?P<text>.*(EXTRANET @THEMI).*)'),                       FrenchTransaction.TYPE_BANK),
-                (re.compile(r'^(?P<text>.*(REL CPT DEBITEU).*)'),                       FrenchTransaction.TYPE_ORDER),
-                (re.compile(r"^(?P<text>.*(\bAFFRANCHISSEMENT\b).*)"),                  FrenchTransaction.TYPE_BANK),
-                (re.compile(r"^(?P<text>.*(REMISE VIREMENTS MAGNE).*)"),                FrenchTransaction.TYPE_TRANSFER),
-                (re.compile(r"^(?P<text>.*(\bEFFET\b).*)"),                             FrenchTransaction.TYPE_BANK),
-                (re.compile(r"^(?P<text>.*(\bMANIP\.\b).*)"),                           FrenchTransaction.TYPE_BANK),
-                (re.compile(r"^(?P<text>.*(INTERETS SUR REMISE PTF).*)"),               FrenchTransaction.TYPE_BANK),
-                (re.compile(r"^(?P<text>.*(REMISE ESCOMPTE PTF).*)"),                   FrenchTransaction.TYPE_BANK),
-                (re.compile(r"^(?P<text>.*(RETENUE DE GARANTIE).*)"),                   FrenchTransaction.TYPE_BANK),
-                (re.compile(r"^(?P<text>.*(RESTITUTION RETENUE GARANTIE).*)"),          FrenchTransaction.TYPE_BANK),
-                (re.compile(r"^(?P<text>.*(\bAMENDES\b).*)"),                           FrenchTransaction.TYPE_TRANSFER),
-                (re.compile(r"^(?P<text>.*(\bOA\b).*)"),                                FrenchTransaction.TYPE_BANK),
-                (re.compile(r"^.* COTIS ANN (?P<text>.*)"),                             FrenchTransaction.TYPE_BANK),
-                (re.compile(r"^(?P<text>.*(FORFAIT CENT\.RE).*)"),                      FrenchTransaction.TYPE_BANK),
-                (re.compile(r"^(?P<text>.*(ENVOI CB).*)"),                              FrenchTransaction.TYPE_BANK),
-                (re.compile(r"^(?P<text>.*(RET\.SDD).*)"),                              FrenchTransaction.TYPE_BANK),
-                (re.compile(r"^(?P<text>.*(RETOUR PVL ACD EXPERTISE).*)"),              FrenchTransaction.TYPE_BANK),
-                (re.compile(r"^(?P<text>.*(Annulation PAR REJ\/CHQ).*)"),               FrenchTransaction.TYPE_BANK),
-                (re.compile(r"^(?P<text>.*(REJET CHEQUE).*)"),                          FrenchTransaction.TYPE_BANK),
-                (re.compile(r"^(?P<text>.*(CHQ PAYE INFRAC).*)"),                       FrenchTransaction.TYPE_BANK),
-                (re.compile(r"^(?P<text>^(CHQ IRREGULIER).*)"),                         FrenchTransaction.TYPE_BANK),
-                (re.compile(r"^(?P<text>.*(ERREUR REMISE C).*)"),                       FrenchTransaction.TYPE_BANK),
-                (re.compile(r"^(?P<text>^(\bREMCHQ\b).*)"),                             FrenchTransaction.TYPE_DEPOSIT),
-                (re.compile(r"^(?P<text>^(RETOUR PVL).*)"),                             FrenchTransaction.TYPE_TRANSFER),
-                (re.compile(r"^(?P<text>.*(\bTRANSFERT\b).*)"),                         FrenchTransaction.TYPE_BANK),
-                (re.compile(r"^(?P<text>.*(\bCONFIRMATION\b).*)"),                      FrenchTransaction.TYPE_BANK),
-                (re.compile(r"^(?P<text>.*(CAUTION AVEC GAGE).*)"),                     FrenchTransaction.TYPE_BANK),
-                (re.compile(r"^(?P<text>.*(\bRAPATRIEMENT\b).*)"),                      FrenchTransaction.TYPE_BANK),
-                (re.compile(r"^(?P<text>.*(CHANGE REF).*)"),                            FrenchTransaction.TYPE_BANK),
-                (re.compile(r'^CARTE DU'),                                              FrenchTransaction.TYPE_CARD),
-                (re.compile(r'^(VIR (SEPA)?|Vir|VIR.)(?P<text>.*)'),                    FrenchTransaction.TYPE_TRANSFER),
-                (re.compile(r'^VIREMENT DE (?P<text>.*)'),                              FrenchTransaction.TYPE_TRANSFER),
-                (re.compile(r'^(CHQ|CHEQUE) (?P<text>.*)'),                             FrenchTransaction.TYPE_CHECK),
-                (re.compile(r'^(PRLV SEPA|PRELEVEMENT) (?P<text>.*)'),                  FrenchTransaction.TYPE_ORDER),
-               ]
+    PATTERNS = [
+        (re.compile(r'^VIR(EMENT)?( SEPA)? (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
+        (re.compile(r'^PRLV (?P<text>.*)'), FrenchTransaction.TYPE_ORDER),
+        (re.compile(r'^(?P<text>.*) CARTE \d+ PAIEMENT CB\s+(?P<dd>\d{2})(?P<mm>\d{2}) ?(.*)$'), FrenchTransaction.TYPE_CARD),
+        (re.compile(r'^RETRAIT DAB (?P<dd>\d{2})(?P<mm>\d{2}) (?P<text>.*) CARTE [\*\d]+'), FrenchTransaction.TYPE_WITHDRAWAL),
+        (re.compile(r'^CHEQUE( (?P<text>.*))?$'), FrenchTransaction.TYPE_CHECK),
+        (re.compile(r'^(F )?COTIS\.? (?P<text>.*)'), FrenchTransaction.TYPE_BANK),
+        (re.compile(r'^(REMISE|REM.CHQ) (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
+        (re.compile(r'^(?P<text>.*)(?P<dd>\d{2})(?P<mm>\d{2}) CARTE BLEUE'), FrenchTransaction.TYPE_CARD),
+        (re.compile(r'^PRVL SEPA (?P<text>.*)'), FrenchTransaction.TYPE_ORDER),
+        (re.compile(r'^(?P<text>(INT. DEBITEURS).*)'), FrenchTransaction.TYPE_BANK),
+        (re.compile(r'^(?P<text>.*(VIR EMIS).*)'), FrenchTransaction.TYPE_TRANSFER),
+        (re.compile(r'^(?P<text>.*(\bMOUVEMENT\b).*)'), FrenchTransaction.TYPE_TRANSFER),
+        (re.compile(r'^(?P<text>.*(ARRETE TRIM.).*)'), FrenchTransaction.TYPE_BANK),
+        (re.compile(r'^(?P<text>.*(TENUE DE DOSSIE).*)'), FrenchTransaction.TYPE_BANK),
+        (re.compile(r'^(?P<text>.*(RELEVE LCR ECH).*)'), FrenchTransaction.TYPE_ORDER),
+        (re.compile(r'^(?P<text>.*(\+ FORT DECOUVERT).*)'), FrenchTransaction.TYPE_BANK),
+        (re.compile(r'^(?P<text>.*(EXTRANET @THEMI).*)'), FrenchTransaction.TYPE_BANK),
+        (re.compile(r'^(?P<text>.*(REL CPT DEBITEU).*)'), FrenchTransaction.TYPE_ORDER),
+        (re.compile(r"^(?P<text>.*(\bAFFRANCHISSEMENT\b).*)"), FrenchTransaction.TYPE_BANK),
+        (re.compile(r"^(?P<text>.*(REMISE VIREMENTS MAGNE).*)"), FrenchTransaction.TYPE_TRANSFER),
+        (re.compile(r"^(?P<text>.*(\bEFFET\b).*)"), FrenchTransaction.TYPE_BANK),
+        (re.compile(r"^(?P<text>.*(\bMANIP\.\b).*)"), FrenchTransaction.TYPE_BANK),
+        (re.compile(r"^(?P<text>.*(INTERETS SUR REMISE PTF).*)"), FrenchTransaction.TYPE_BANK),
+        (re.compile(r"^(?P<text>.*(REMISE ESCOMPTE PTF).*)"), FrenchTransaction.TYPE_BANK),
+        (re.compile(r"^(?P<text>.*(RETENUE DE GARANTIE).*)"), FrenchTransaction.TYPE_BANK),
+        (re.compile(r"^(?P<text>.*(RESTITUTION RETENUE GARANTIE).*)"), FrenchTransaction.TYPE_BANK),
+        (re.compile(r"^(?P<text>.*(\bAMENDES\b).*)"), FrenchTransaction.TYPE_TRANSFER),
+        (re.compile(r"^(?P<text>.*(\bOA\b).*)"), FrenchTransaction.TYPE_BANK),
+        (re.compile(r"^.* COTIS ANN (?P<text>.*)"), FrenchTransaction.TYPE_BANK),
+        (re.compile(r"^(?P<text>.*(FORFAIT CENT\.RE).*)"), FrenchTransaction.TYPE_BANK),
+        (re.compile(r"^(?P<text>.*(ENVOI CB).*)"), FrenchTransaction.TYPE_BANK),
+        (re.compile(r"^(?P<text>.*(RET\.SDD).*)"), FrenchTransaction.TYPE_BANK),
+        (re.compile(r"^(?P<text>.*(RETOUR PVL ACD EXPERTISE).*)"), FrenchTransaction.TYPE_BANK),
+        (re.compile(r"^(?P<text>.*(Annulation PAR REJ\/CHQ).*)"), FrenchTransaction.TYPE_BANK),
+        (re.compile(r"^(?P<text>.*(REJET CHEQUE).*)"), FrenchTransaction.TYPE_BANK),
+        (re.compile(r"^(?P<text>.*(CHQ PAYE INFRAC).*)"), FrenchTransaction.TYPE_BANK),
+        (re.compile(r"^(?P<text>^(CHQ IRREGULIER).*)"), FrenchTransaction.TYPE_BANK),
+        (re.compile(r"^(?P<text>.*(ERREUR REMISE C).*)"), FrenchTransaction.TYPE_BANK),
+        (re.compile(r"^(?P<text>^(\bREMCHQ\b).*)"), FrenchTransaction.TYPE_DEPOSIT),
+        (re.compile(r"^(?P<text>^(RETOUR PVL).*)"), FrenchTransaction.TYPE_TRANSFER),
+        (re.compile(r"^(?P<text>.*(\bTRANSFERT\b).*)"), FrenchTransaction.TYPE_BANK),
+        (re.compile(r"^(?P<text>.*(\bCONFIRMATION\b).*)"), FrenchTransaction.TYPE_BANK),
+        (re.compile(r"^(?P<text>.*(CAUTION AVEC GAGE).*)"), FrenchTransaction.TYPE_BANK),
+        (re.compile(r"^(?P<text>.*(\bRAPATRIEMENT\b).*)"), FrenchTransaction.TYPE_BANK),
+        (re.compile(r"^(?P<text>.*(CHANGE REF).*)"), FrenchTransaction.TYPE_BANK),
+        (re.compile(r'^CARTE DU'), FrenchTransaction.TYPE_CARD),
+        (re.compile(r'^(VIR (SEPA)?|Vir|VIR.)(?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
+        (re.compile(r'^VIREMENT DE (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
+        (re.compile(r'^(CHQ|CHEQUE) (?P<text>.*)'), FrenchTransaction.TYPE_CHECK),
+        (re.compile(r'^(PRLV SEPA|PRELEVEMENT) (?P<text>.*)'), FrenchTransaction.TYPE_ORDER),
+    ]
 
 
 class HistoryPage(LoggedPage, HTMLPage):
