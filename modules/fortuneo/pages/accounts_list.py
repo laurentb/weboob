@@ -171,26 +171,32 @@ class InvestmentHistoryPage(LoggedPage, HTMLPage):
 
             inv = Investment()
             inv.id = re.search('cdReferentiel=(.*)', cols[self.COL_LABEL].find('a').attrib['href']).group(1)
-            inv.code = re.match('^[A-Z]+[0-9]+(.*)$', inv.id).group(1)
-            inv.label = CleanText(None).filter(cols[self.COL_LABEL])
-            inv.quantity = self.parse_decimal(cols[self.COL_QUANTITY])
-            inv.unitprice = self.parse_decimal(cols[self.COL_UNITPRICE])
-            inv.unitvalue = self.parse_decimal(cols[self.COL_UNITVALUE])
-            inv.vdate = Date(CleanText(cols[self.COL_DATE], default=NotAvailable), dayfirst=True, default=NotAvailable)(self.doc)
-            inv.valuation = self.parse_decimal(cols[self.COL_VALUATION])
-            inv.diff = self.parse_decimal(cols[self.COL_PERF])
-            diff_percent =  self.parse_decimal(cols[self.COL_PERF_PERCENT])
-            inv.diff_ratio = diff_percent / 100 if diff_percent else NotAvailable
-            if is_isin_valid(inv.code):
-                inv.code_type = Investment.CODE_TYPE_ISIN
 
+            inv.label = CleanText(None).filter(cols[self.COL_LABEL])
+            inv.quantity = self.parse_decimal(cols[self.COL_QUANTITY], True)
+            inv.unitprice = self.parse_decimal(cols[self.COL_UNITPRICE], False)
+            inv.unitvalue = self.parse_decimal(cols[self.COL_UNITVALUE], False)
+            inv.vdate = Date(CleanText(cols[self.COL_DATE], default=NotAvailable), dayfirst=True, default=NotAvailable)(self.doc)
+            inv.valuation = self.parse_decimal(cols[self.COL_VALUATION], False)
+            inv.diff = self.parse_decimal(cols[self.COL_PERF], True)
+            diff_percent = self.parse_decimal(cols[self.COL_PERF_PERCENT], True)
+            inv.diff_ratio = diff_percent / 100 if diff_percent else NotAvailable
+            code = re.match('^[A-Z]+[0-9]+(.*)$', inv.id).group(1)
+            if is_isin_valid(code):
+                inv.code = CleanText().filter(code)
+                inv.code_type = Investment.CODE_TYPE_ISIN
+            else:
+                inv.code = inv.code_type = NotAvailable
             yield inv
 
-    def parse_decimal(self, string):
+    def parse_decimal(self, string, replace_dots):
         string = CleanText(None).filter(string)
-        if string == '-' or string == '*':
+        if string in ('-', '*'):
             return NotAvailable
-        return CleanDecimal(None, replace_dots=True).filter(string)
+        # Decimal separators can be ',' or '.' depending on the column
+        if replace_dots:
+            return CleanDecimal.French().filter(string)
+        return CleanDecimal.SI().filter(string)
 
     def select_period(self):
         assert isinstance(self.browser.page, type(self))
@@ -256,7 +262,6 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
         return iter([])
 
     def select_period(self):
-        # form = self.get_form(name='ConsultationHistoriqueOperationsForm')
         try:
             form = self.get_form(xpath='//form[@name="ConsultationHistoriqueOperationsForm" '
                                        ' or @name="form_historique_titres" '
@@ -512,7 +517,11 @@ class AccountsList(LoggedPage, HTMLPage):
                 account.currency = investment_page.get_currency()
             elif balance:
                 account.currency = account.get_currency(balance)
-            account.balance = CleanDecimal(None, replace_dots=True).filter(balance)
+            if account.type == Account.TYPE_LIFE_INSURANCE:
+                # Life Insurance balance uses '.' instead of ','
+                account.balance = CleanDecimal.SI().filter(balance)
+            else:
+                account.balance = CleanDecimal.French().filter(balance)
 
             if account.type in (Account.TYPE_CHECKING, Account.TYPE_SAVINGS):
                 # Need a token sent by SMS to customers
