@@ -48,8 +48,7 @@ class LdlcBrowser(LoginBrowser):
 
     def do_login(self):
         self.login.stay_or_go()
-        website = 'part' if type(self) == LdlcParBrowser else 'pro'
-        self.page.login(self.username, self.password, website)
+        self.page.login(self.username, self.password)
 
         if self.login.is_here():
             raise BrowserIncorrectPassword(self.page.get_error())
