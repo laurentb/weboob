@@ -35,14 +35,15 @@ from weboob.tools.compat import basestring, long, parse_qs, unicode, urlparse
 
 from .base import _NO_DEFAULT, Filter, FilterError, ItemNotFound, _Filter, debug
 
-__all__ = ['FilterError', 'ColumnNotFound', 'RegexpError', 'FormatError',
-           'Filter', 'Base', 'Env', 'TableCell', 'RawText',
-           'CleanText', 'Lower', 'Upper', 'Capitalize', 'CleanDecimal',
-           'Field', 'Regexp', 'Map', 'DateTime', 'Date', 'Time', 'DateGuesser',
-           'FromTimestamp',
-           'Duration', 'MultiFilter', 'CombineDate', 'Format', 'Join', 'Type',
-           'Eval', 'BrowserURL', 'Async', 'AsyncLoad',
-           'QueryValue', 'Coalesce', 'MapIn']
+__all__ = [
+    'Filter', 'FilterError', 'ColumnNotFound', 'RegexpError', 'FormatError',
+    'AsyncLoad', 'Async', 'Base', 'Decode', 'Env', 'TableCell', 'RawText',
+    'CleanText', 'Lower', 'Upper', 'Capitalize', 'Currency', 'NumberFormatError',
+    'CleanDecimal', 'Slugify', 'Type', 'Field', 'Regexp', 'Map', 'MapIn',
+    'DateTime', 'FromTimestamp', 'Date', 'DateGuesser', 'Time', 'Duration',
+    'MultiFilter', 'CombineDate', 'Format', 'BrowserURL', 'Join', 'MultiJoin',
+    'Eval', 'QueryValue', 'Coalesce',
+]
 
 
 class ColumnNotFound(FilterError):
