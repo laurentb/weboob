@@ -36,7 +36,7 @@ from weboob.browser.filters.standard import (
 from weboob.browser.filters.html import Link, Attr, TableCell, ColumnNotFound
 from weboob.exceptions import (
     BrowserIncorrectPassword, ParseError, ActionNeeded, BrowserUnavailable,
-    AuthMethodNotImplemented,
+    AuthMethodNotImplemented, AppValidation,
 )
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.base import empty, find_object
@@ -114,8 +114,11 @@ class MobileConfirmationPage(LoggedPage, HTMLPage):
             self.browser.location(link)
         else:
             self.logger.warning('This connexion cannot bypass mobile confirmation')
-            assert False, 'This connexion cannot bypass mobile confirmation'
-
+            msg = CleanText('//div[@id="inMobileAppMessage"]')(self.doc)
+            if msg:
+                display_msg = re.search(r'Confirmer votre connexion depuis votre appareil "[\w ]+"', msg).group()
+                raise AppValidation(display_msg)
+            assert False, "Mobile authentication method not handled"
 
 class EmptyPage(LoggedPage, HTMLPage):
     REFRESH_MAX = 10.0
