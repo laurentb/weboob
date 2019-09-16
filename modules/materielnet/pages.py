@@ -98,7 +98,7 @@ class DocumentsPage(LoggedPage, PartialHTMLPage):
         class item(ItemElement):
             klass = Bill
 
-            load_details = Link('.//a') & MyAsyncLoad
+            load_details = Link('.//div[has-class("historic-cell--details")]/a') & MyAsyncLoad
 
             obj_id = Format('%s_%s', Env('email'), Field('label'))
             obj_url = Async('details') & Link('//a', default=NotAvailable)
