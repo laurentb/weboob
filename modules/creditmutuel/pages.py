@@ -157,6 +157,7 @@ class item_account_generic(ItemElement):
         ('Comptes courants', Account.TYPE_CHECKING),
         ('Service Accueil', Account.TYPE_CHECKING),
         ('Eurocompte Serenite', Account.TYPE_CHECKING),
+        ('Eurocompte Confort', Account.TYPE_CHECKING),
         ('Catip', Account.TYPE_DEPOSIT),
         ('Cic Immo', Account.TYPE_MORTGAGE),
         ('Credit', Account.TYPE_LOAN),
@@ -400,6 +401,8 @@ class AccountsPage(LoggedPage, HTMLPage):
         class item_account(item_account_generic):
             def condition(self):
                 _type = Field('type')(self)
+                if 'Valorisation Totale De Vos Portefeuilles Titres' in Field('label')(self):
+                    return False
                 return item_account_generic.condition(self) and _type not in (Account.TYPE_LOAN, Account.TYPE_MORTGAGE)
 
         class item_loan(item_account_generic):
