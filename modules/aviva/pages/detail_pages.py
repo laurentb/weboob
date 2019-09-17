@@ -25,7 +25,7 @@ import re
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import (
-    CleanText, Capitalize, Format, Date, Regexp, CleanDecimal, Env, Currency, Field, Eval,
+    CleanText, Title, Format, Date, Regexp, CleanDecimal, Env, Currency, Field, Eval,
     Coalesce,
 )
 from weboob.capabilities.bank import Investment, Transaction
@@ -134,7 +134,7 @@ class TransactionElement(ItemElement):
     obj_amount = MyDecimal('./ancestor::div[@class="onerow" or starts-with(@id, "term") or has-class("grid")]/'
                            'preceding-sibling::h3[1]//div[has-class("montant-mobile")]', default=NotAvailable)
 
-    obj__labeltype = Regexp(Capitalize('./preceding::h2[@class="feature"][1]'),
+    obj__labeltype = Regexp(Title('./preceding::h2[@class="feature"][1]'),
                             r'Historique Des\s+(\w+)')
 
     def obj_investments(self):
