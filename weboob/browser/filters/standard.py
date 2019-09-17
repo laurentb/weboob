@@ -38,7 +38,7 @@ from .base import _NO_DEFAULT, Filter, FilterError, ItemNotFound, _Filter, debug
 __all__ = [
     'Filter', 'FilterError', 'ColumnNotFound', 'RegexpError', 'FormatError',
     'AsyncLoad', 'Async', 'Base', 'Decode', 'Env', 'TableCell', 'RawText',
-    'CleanText', 'Lower', 'Upper', 'Capitalize', 'Currency', 'NumberFormatError',
+    'CleanText', 'Lower', 'Upper', 'Title', 'Currency', 'NumberFormatError',
     'CleanDecimal', 'Slugify', 'Type', 'Field', 'Regexp', 'Map', 'MapIn',
     'DateTime', 'FromTimestamp', 'Date', 'DateGuesser', 'Time', 'Duration',
     'MultiFilter', 'CombineDate', 'Format', 'BrowserURL', 'Join', 'MultiJoin',
@@ -375,12 +375,12 @@ class Upper(CleanText):
         return txt.upper()
 
 
-class Capitalize(CleanText):
-    """Extract text with :class:`CleanText` and capitalize it."""
+class Title(CleanText):
+    """Extract text with :class:`CleanText` and apply title() to it."""
 
     @debug()
     def filter(self, txt):
-        txt = super(Capitalize, self).filter(txt)
+        txt = super(Title, self).filter(txt)
         return txt.title()
 
 
