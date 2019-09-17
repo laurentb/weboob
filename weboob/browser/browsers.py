@@ -1093,6 +1093,7 @@ class OAuth2Mixin(StatesMixin):
             'refresh_token': self.refresh_token,
             'client_id': self.client_id,
             'client_secret': self.client_secret,
+            'redirect_uri': self.redirect_uri,
         }
         try:
             auth_response = self.do_token_request(data).json()
