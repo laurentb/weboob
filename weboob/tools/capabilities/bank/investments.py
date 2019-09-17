@@ -24,6 +24,7 @@ import re
 from weboob.tools.compat import basestring
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Investment
+from weboob.browser.filters.base import Filter, FilterError, debug
 
 def is_isin_valid(isin):
     """
@@ -83,3 +84,33 @@ def create_french_liquidity(valuation):
     liquidity.code_type = NotAvailable
     liquidity.valuation = valuation
     return liquidity
+
+
+# These filters can be used to set Investment.code
+# and Investment.code_type without having to declare
+# obj_code() and obj_code_type() methods in each module
+
+class FormatError(FilterError):
+    pass
+
+
+class IsinCode(Filter):
+    """
+    Returns the input only if it is a valid ISIN code.
+    """
+    @debug()
+    def filter(self, code):
+        if is_isin_valid(code):
+            return code
+        return self.default_or_raise(FormatError('%r is not a valid ISIN code, no default value was set.' % code))
+
+
+class IsinType(Filter):
+    """
+    Returns Investment.CODE_TYPE_ISIN if the input is a valid ISIN code.
+    """
+    @debug()
+    def filter(self, code):
+        if is_isin_valid(code):
+            return Investment.CODE_TYPE_ISIN
+        return NotAvailable
