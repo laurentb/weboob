@@ -40,6 +40,7 @@ class SubscriptionPage(LoggedPage, HTMLPage):
             klass = Subscription
 
             obj_id = Regexp(Attr('.', 'value'), r'\w-(\w+)')
+            obj__full_id = CleanText('./@value')
             obj_label = CleanText('.')
             obj_subscriber = Env('subscriber')
 
@@ -79,9 +80,9 @@ class SubscriptionPage(LoggedPage, HTMLPage):
                         dayfirst=True
                     )(self)
 
-    def get_params(self, sub_label):
+    def get_params(self, sub_full_id):
         # the id is in the label
-        sub_value = Attr('//select[@id="compte"]/option[contains(text(), "%s")]' % sub_label, 'value')(self.doc)
+        sub_value = Attr('//select[@id="compte"]/option[contains(@value, "%s")]' % sub_full_id, 'value')(self.doc)
 
         form = self.get_form(name='formulaireHistorique')
         form['formulaire.numeroCompteRecherche'] = sub_value

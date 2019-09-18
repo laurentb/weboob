@@ -525,7 +525,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
     @need_login
     def iter_documents(self, subscription):
         self.subscription.go()
-        params = self.page.get_params(sub_label=subscription.label)
+        params = self.page.get_params(subscription._full_id)
 
         for year in self.page.get_years():
             params['formulaire.anneeRecherche'] = year
