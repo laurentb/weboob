@@ -117,7 +117,9 @@ class BPBrowser(LoginBrowser, StatesMixin):
                                       '/voscomptes/canalXHTML/CNE/releveCNE_encours/init-releve_cne_en_cours.ea\?compte.numero',
                                       '/voscomptes/canalXHTML/CNE/releveCNE_encours/init-releve_cne_en_cours.ea\?indexCompte=(?P<accountId>.*)&typeRecherche=1&typeMouvements=CNE', AccountHistory)
     par_account_savings_and_invests_history = URL('/voscomptes/canalXHTML/CNE/releveCNE/init-releve_cne.ea\?typeRecherche=10&compte.numero=(?P<accountId>.*)',
-                                                  '/voscomptes/canalXHTML/CNE/releveCNE/releveCNE-releve_cne.ea', AccountHistory)
+                                                  '/voscomptes/canalXHTML/CNE/releveCNE/releveCNE-releve_cne.ea',
+                                                  '/voscomptes/canalXHTML/CNE/releveCNE/frame-releve_cne.ea\?compte.numero=.*&typeRecherche=.*',
+                                                  AccountHistory)
 
     cards_list = URL('/voscomptes/canalXHTML/CB/releveCB/init-mouvementsCarteDD.ea\?compte.numero=(?P<account_id>\w+)$',
                      r'.*CB/releveCB/init-mouvementsCarteDD.ea.*',
