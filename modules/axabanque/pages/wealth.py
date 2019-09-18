@@ -20,23 +20,32 @@
 from __future__ import unicode_literals
 
 import re
+from decimal import Decimal
 
-from weboob.browser.pages import HTMLPage, LoggedPage, pagination
-from weboob.browser.elements import ListElement, ItemElement, method, TableElement
+from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
+from weboob.browser.elements import ListElement, ItemElement, TableElement, DictElement, method
 from weboob.browser.filters.standard import (
-    Async, AsyncLoad, CleanDecimal, CleanText, Currency, Date, Eval, Field, Lower, MapIn, QueryValue, Regexp,
+    CleanDecimal, CleanText, Currency, Date,
+    Eval, Field, Lower, MapIn, QueryValue, Regexp,
 )
+from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import Attr, Link, TableCell
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.profile import Person
-from weboob.capabilities.base import NotAvailable, NotLoaded
+from weboob.capabilities.base import NotAvailable, NotLoaded, empty
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+
+
+def float_to_decimal(f):
+    if empty(f):
+        return NotAvailable
+    return Decimal(str(f))
 
 
 class AccountsPage(LoggedPage, HTMLPage):
     @method
     class iter_accounts(ListElement):
-        item_xpath = '//div[contains(@data-route, "/savings/")]'
+        item_xpath = '//div[contains(@data-module-open-link--link, "/savings/")]'
 
         class item(ItemElement):
             klass = Account
@@ -50,24 +59,15 @@ class AccountsPage(LoggedPage, HTMLPage):
                 'epargne retraite novial': Account.TYPE_LIFE_INSURANCE,
             }
 
-            condition = lambda self: Field('balance')(self) is not NotAvailable
-
             obj_id = Regexp(CleanText('.//span[has-class("small-title")]'), r'([\d/]+)')
+            obj_number = obj_id
             obj_label = CleanText('.//h3[has-class("card-title")]')
             obj_balance = CleanDecimal.French('.//p[has-class("amount-card")]')
             obj_valuation_diff = CleanDecimal.French('.//p[@class="performance"]', default=NotAvailable)
-
-            def obj_url(self):
-                url = Attr('.', 'data-route')(self)
-                # The Assurance Vie xpath recently changed so we must verify that all
-                # the accounts now have "/savings/" instead of "/assurances-vie/".
-                assert "/savings/" in url
-                return url
-
             obj_currency = Currency('.//p[has-class("amount-card")]')
             obj__acctype = "investment"
-
             obj_type = MapIn(Lower(Field('label')), TYPES, Account.TYPE_UNKNOWN)
+            obj_url = Attr('.', 'data-module-open-link--link')
 
 
 class InvestmentPage(LoggedPage, HTMLPage):
@@ -145,7 +145,7 @@ class InvestmentPage(LoggedPage, HTMLPage):
                 return cur if self.env['currency'] != cur else NotLoaded
 
     def detailed_view(self):
-        return Attr('//button[contains(text(), "Vision détaillée")]', 'data-url', default=None)(self.doc)
+        return Attr('//button[contains(text(), "Vision détaillée")]', 'data-module-open-link--link', default=None)(self.doc)
 
     def is_detail(self):
         return bool(self.doc.xpath('//th[contains(text(), "Valeur de la part")]'))
@@ -158,63 +158,68 @@ class Transaction(FrenchTransaction):
     ]
 
 
-class HistoryPage(LoggedPage, HTMLPage):
-    def build_doc(self, content):
-        # we got empty pages at end of pagination
-        if not content.strip():
-            content = b"<html></html>"
-        return super(HistoryPage, self).build_doc(content)
-
+class AccountDetailsPage(LoggedPage, HTMLPage):
     def get_account_url(self, url):
-        return Attr('//a[@href="%s"]' % url, 'data-target')(self.doc)
+        return Attr('//a[@href="%s"]' % url, 'data-url')(self.doc)
 
     def get_investment_url(self):
-        return Attr('//div[has-class("card-distribution")]', 'data-url', default=None)(self.doc)
+        return Attr('//div[contains(@data-analytics-label, "repartition_par_fond")]', 'data-url', default=None)(self.doc)
 
-    def get_pagination_url(self):
-        return Attr('//div[contains(@class, "default")][@data-module-card-list--current-page]', 'data-module-card-list--url')(self.doc)
+    def get_pid(self):
+        return Attr('//div[@data-module="operations-movements"]', 'data-module-operations-movements--pid')(self.doc)
+
+
+class HistoryPage(LoggedPage, JsonPage):
+    def has_operations(self):
+        return Dict('response/operations')(self.doc)
 
     @method
-    class get_investments(ListElement):
-        item_xpath = '//div[contains(@class, "card-support")]'
-
-        class item(ItemElement):
-            klass = Investment
-
-            obj_label = CleanText('./div[contains(@class, "label")]')
-            obj_valuation = CleanDecimal.French(Regexp(CleanText('./div[contains(@class, "amount")]/span', replace=[(' ,', ',')]), r'(.*)€'))
-            obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal(Regexp(CleanText('./div[contains(@class, "amount")]/span'), r'.*€ (.*) %')))
-
-    @pagination
-    @method
-    class iter_history(ListElement):
-        item_xpath = '//div[contains(@data-url, "savingsdetailledcard")]'
-
-        def next_page(self):
-            if not CleanText(self.item_xpath, default=None)(self):
-                return
-            elif self.env.get('no_pagination'):
-                return
-
-            return re.sub(r'(?<=\bskip=)(\d+)', lambda m: str(int(m.group(1)) + 10), self.page.url)
+    class iter_history(DictElement):
+        item_xpath = 'response/operations'
 
         class item(ItemElement):
             klass = Transaction
 
-            load_details = Attr('.', 'data-url') & AsyncLoad
+            def condition(self):
+                # Only return validated transactions
+                return Dict('status')(self) == 'DONE'
 
-            obj_raw = Transaction.Raw('.//div[@class="operations-movements-item-label"]')
-            obj_date = Date(CleanText('.//div[@class="operations-movements-item-date"]'), dayfirst=True)
+            obj_raw = Transaction.Raw(Dict('label'))
+            obj_date = Date(Dict('date'))
+            obj_amount = Eval(float_to_decimal, Dict('net_amount/value'))
+            obj_gross_amount = Eval(float_to_decimal, Dict('gross_amount/value'))
+            obj_type = Transaction.TYPE_BANK
 
-            # sometimes this div contains a second span with text like "Vos bonus +0.15 %",
-            # we must avoid it and only take the first span
-            obj_amount = CleanDecimal.French(CleanText('.//div[@class="operations-movements-item-amount"]/span[1]', replace=[(' ,', ',')]))
+            # 'oid' is used to get the transaction's investments
+            obj__oid = Dict('id')
 
-            def obj_investments(self):
-                investments = list(Async('details').loaded_page(self).get_investments())
-                for inv in investments:
-                    inv.vdate = Field('date')(self)
-                return investments
+
+class HistoryInvestmentsPage(LoggedPage, JsonPage):
+    @method
+    class iter_transaction_investments(DictElement):
+        item_xpath = 'response/operationDetail/transaction_lines'
+
+        class item(ItemElement):
+            klass = Investment
+
+            def condition(self):
+                # Some lines don't even have a label, we skip them
+                return Dict('fund_label', default=None)(self)
+
+            obj_label = Dict('fund_label')
+            obj_valuation = Eval(float_to_decimal, Dict('amount/value'))
+            obj_unitvalue = Eval(float_to_decimal, Dict('fund_unit_value/value', default=None))
+            obj_quantity = Eval(float_to_decimal, Dict('fund_shares_count/value', default=None))
+            obj_vdate = Date(Dict('fund_unit_value/date', default=None), default=NotAvailable)
+
+            def obj_portfolio_share(self):
+                raw_value = Eval(float_to_decimal, Dict('percentage', default=None))(self)
+                if empty(raw_value):
+                    return NotAvailable
+                return raw_value / 100
+
+    def has_investments(self):
+        return Dict('response/operationDetail/transaction_lines', default=None)(self.doc)
 
 
 class ProfilePage(LoggedPage, HTMLPage):

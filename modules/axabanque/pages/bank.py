@@ -129,6 +129,7 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                     account._args = args
                     account.label = CleanText().filter(tds[0].xpath('./ancestor::table[has-class("tableaux-pret-personnel")]/caption'))
                     account.id = account.label.split()[-1] + args['paramNumContrat']
+                    account.number = account.id
                     loan_details = self.browser.open('/webapp/axabanque/jsp/panorama.faces', data=args).page
                     # Need to go back on home page after open
                     self.browser.bank_accounts.open()
@@ -175,6 +176,7 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                         iframe_url = re.search("src:(.*),", script).group()[6:-2]
                         account_details_iframe = self.browser.open(iframe_url, data=args)
                         account.id = CleanText('//span[contains(@id,"NumeroContrat")]/text()')(account_details_iframe.page.doc)
+                        account.number = account.id
                         account._url = iframe_url
                         account.type = account.TYPE_LIFE_INSURANCE
                         account.balance = MyDecimal('//span[contains(@id,"MontantEpargne")]/text()')(account_details_iframe.page.doc)
@@ -211,6 +213,7 @@ class AccountsPage(LoggedPage, MyHTMLPage):
 
                     if 'Valorisation' in account.label or 'Liquidités' in account.label:
                         account.id += args[next(k for k in args.keys() if '_idcl' in k)].split('Jsp')[-1]
+                        account.number = account.id
 
                     # get accounts balance
                     try:
