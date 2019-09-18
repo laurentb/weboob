@@ -649,9 +649,9 @@ class BoursePage(LoggedPage, HTMLPage):
         item_xpath = '//table[has-class("tableau_comptes_details")]//tr[td and not(parent::tfoot)]'
         head_xpath = '//table[has-class("tableau_comptes_details")]/thead/tr/th'
 
-        col_label = u'Comptes'
+        col_label = 'Comptes'
         col_titres = re.compile('Valorisation')
-        col_especes = ['Solde espèces', 'Solde espèces veille']
+        col_especes = re.compile('Solde espèces')
 
         class item(ItemElement):
             klass = Account
