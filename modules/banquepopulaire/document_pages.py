@@ -39,6 +39,8 @@ class SubscriberPage(LoggedPage, JsonPage):
     def get_subscriber(self):
         return self.doc['nomRaisonSociale']
 
+    def get_status_dematerialized(self):
+        return self.doc['roleUtilisateurCoffreNumerique']['code']
 
 class SubscriptionsPage(LoggedPage, JsonPage):
     @method

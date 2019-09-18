@@ -581,8 +581,13 @@ class BanquePopulaire(LoginBrowser):
         self.documents_headers = {'Authorization': 'Bearer %s' % response.json()['access_token']}
 
         self.location('/api-bp/wapi/2.0/abonnes/current/mes-documents-electroniques', headers=self.documents_headers)
-        subscriber = self.page.get_subscriber()
 
+        if self.page.get_status_dematerialized() == 'CGDN':
+            # A status different than 1 means either the demateralization isn't enabled
+            # or not available for this connection
+            return []
+
+        subscriber = self.page.get_subscriber()
         params = {'type': 'dematerialisationEffective'}
         self.location('/api-bp/wapi/2.0/abonnes/current/contrats', params=params, headers=self.documents_headers)
         return self.page.get_subscriptions(subscriber=subscriber)
