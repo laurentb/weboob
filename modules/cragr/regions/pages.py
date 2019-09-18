@@ -355,26 +355,27 @@ class AccountsPage(LoggedPage, CragrPage):
                 # Ignore coming lines without a link
                 continue
 
-            # Cards may be accessed via a url or a form:
-            if 'javascript' in raw_link:
-                # We extract the form name (e.g. 'frmc6') from a pattern
-                # such as "javascript:fwkPUAvancerForm('Cartes','frmc6')"
-                form_search = re.search(r"\('Cartes','(.*)'\)", raw_link)
-                if form_search:
-                    card_link = form_search.group(1)
-                else:
-                    # This link does not correspond to a card
-                    continue
+            assert 'javascript' in raw_link, 'No form associated'
+            # We extract the form name (e.g. 'frmc6') from a pattern
+            # such as "javascript:fwkPUAvancerForm('Cartes','frmc6')"
+            form_search = re.search(r"\('Cartes','(.*)'\)", raw_link)
+            if form_search:
+                card_link = form_search.group(1)
             else:
-                assert False, 'WE DO NOT HANDLE CARDS WITH URL YET!!!'
+                # This link does not correspond to a card
+                continue
 
             # The id of the card parent account is the closest
             # upper node containing an account id:
-            for el in coming.xpath('./preceding-sibling::tr')[::-1]:
-                m = re.search(r'> (\d+) ', CleanText(el)(self))
+            coming_info = coming.xpath('./preceding-sibling::tr')
+            assert coming_info, "Couldn't find card info"
+            parent_id = None
+            for regex in (r'> (\d+) ', r'\s(\d+)\s'):
+                m = re.search(regex, CleanText('.')(coming_info[-1]))
                 if m:
                     parent_id = m.group(1)
-                break
+                    break
+            assert parent_id is not None, "Couldn't find the id of current card's parent account"
             cards_parameters.add((card_link, parent_id))
         return cards_parameters
 
