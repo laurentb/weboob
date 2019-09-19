@@ -237,6 +237,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
             accounts = []
             to_check = []
 
+            owner_name = self.get_profile().name
             self.par_accounts_checking.go()
 
             pages = [self.par_accounts_checking, self.par_accounts_savings_and_invests, self.par_accounts_loan]
@@ -249,7 +250,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
                     no_accounts += 1
                     continue
 
-                for account in self.page.iter_accounts():
+                for account in self.page.iter_accounts(name=owner_name):
                     if account.type == Account.TYPE_LOAN:
                         self.location(account.url)
                         if 'initSSO' not in account.url:

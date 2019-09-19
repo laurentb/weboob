@@ -24,7 +24,7 @@ import re
 from decimal import Decimal
 
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.bank import Account, Loan
+from weboob.capabilities.bank import Account, Loan, AccountOwnership
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Person
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement
@@ -72,6 +72,15 @@ class item_account_generic(ItemElement):
 
     def obj_label(self):
         return CleanText('.//div[@class="title"]/h3')(self).upper()
+
+    def obj_ownership(self):
+        account_holder = CleanText('.//div[@class="title"]/span')(self)
+        if re.search(r'(m|mr|me|mme|mlle|mle|ml)\.? (.*)\bou ?(m|mr|me|mme|mlle|mle|ml)?\b(.*)', account_holder, re.IGNORECASE):
+            return AccountOwnership.CO_OWNER
+        elif all([n in account_holder for n in self.env['name'].split(' ')]):
+            return AccountOwnership.OWNER
+        else:
+            return AccountOwnership.ATTORNEY
 
     def obj_balance(self):
         if Field('type')(self) == Account.TYPE_LOAN:
