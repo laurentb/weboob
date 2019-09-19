@@ -26,7 +26,7 @@ from weboob.browser.browsers import LoginBrowser, need_login, StatesMixin
 from weboob.browser.url import URL
 from weboob.browser.exceptions import ClientError
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded, NoAccountsException
-from weboob.capabilities.base import find_object, NotAvailable
+from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import (
     AccountNotFound, RecipientNotFound, AddRecipientStep, AddRecipientBankError,
     Recipient, TransferBankError, AccountOwnerType,
@@ -36,10 +36,11 @@ from weboob.tools.value import Value
 from .pages import (
     LoginPage, CardsPage, CardHistoryPage, IncorrectLoginPage,
     ProfileProPage, ProfileEntPage, ChangePassPage, SubscriptionPage, InscriptionPage,
-    ErrorPage, UselessPage, MainPage, MarketAccountPage, MarketInvestmentPage,
+    ErrorPage, UselessPage, MainPage,
 )
 from .json_pages import (
     AccountsJsonPage, BalancesJsonPage, HistoryJsonPage, BankStatementPage,
+    MarketAccountPage, MarketInvestmentPage,
 )
 from .transfer_pages import (
     EasyTransferPage, RecipientsJsonPage, TransferPage, SignTransferPage, TransferDatesPage,
@@ -251,31 +252,34 @@ class SGProfessionalBrowser(SGEnterpriseBrowser, StatesMixin):
     CERTHASH = '9f5232c9b2283814976608bfd5bba9d8030247f44c8493d8d205e574ea75148e'
     STATE_DURATION = 5
 
-    incorrect_login = URL('/authent.html', IncorrectLoginPage)
-    profile = URL('/gao/modifier-donnees-perso-saisie.html', ProfileProPage)
+    incorrect_login = URL(r'/authent.html', IncorrectLoginPage)
+    profile = URL(r'/gao/modifier-donnees-perso-saisie.html', ProfileProPage)
 
-    transfer_dates = URL('/ord-web/ord//get-dates-execution.json', TransferDatesPage)
-    easy_transfer = URL('/ord-web/ord//ord-virement-simplifie-emetteur.html', EasyTransferPage)
-    internal_recipients = URL('/ord-web/ord//ord-virement-simplifie-beneficiaire.html', EasyTransferPage)
-    external_recipients = URL('/ord-web/ord//ord-liste-compte-beneficiaire-externes.json', RecipientsJsonPage)
+    transfer_dates = URL(r'/ord-web/ord//get-dates-execution.json', TransferDatesPage)
+    easy_transfer = URL(r'/ord-web/ord//ord-virement-simplifie-emetteur.html', EasyTransferPage)
+    internal_recipients = URL(r'/ord-web/ord//ord-virement-simplifie-beneficiaire.html', EasyTransferPage)
+    external_recipients = URL(r'/ord-web/ord//ord-liste-compte-beneficiaire-externes.json', RecipientsJsonPage)
 
-    init_transfer_page = URL('/ord-web/ord//ord-enregistrer-ordre-simplifie.json', TransferPage)
-    sign_transfer_page = URL('/ord-web/ord//ord-verifier-habilitation-signature-ordre.json', SignTransferPage)
-    confirm_transfer = URL('/ord-web/ord//ord-valider-signature-ordre.json', TransferPage)
+    init_transfer_page = URL(r'/ord-web/ord//ord-enregistrer-ordre-simplifie.json', TransferPage)
+    sign_transfer_page = URL(r'/ord-web/ord//ord-verifier-habilitation-signature-ordre.json', SignTransferPage)
+    confirm_transfer = URL(r'/ord-web/ord//ord-valider-signature-ordre.json', TransferPage)
 
-    recipients = URL('/ord-web/ord//ord-gestion-tiers-liste.json', RecipientsJsonPage)
-    add_recipient = URL('/ord-web/ord//ord-fragment-form-tiers.html\?cl_action=ajout&cl_idTiers=',
+    recipients = URL(r'/ord-web/ord//ord-gestion-tiers-liste.json', RecipientsJsonPage)
+    add_recipient = URL(r'/ord-web/ord//ord-fragment-form-tiers.html\?cl_action=ajout&cl_idTiers=',
                         AddRecipientPage)
-    add_recipient_step = URL('/ord-web/ord//ord-tiers-calcul-bic.json',
-                             '/ord-web/ord//ord-preparer-signature-destinataire.json',
+    add_recipient_step = URL(r'/ord-web/ord//ord-tiers-calcul-bic.json',
+                             r'/ord-web/ord//ord-preparer-signature-destinataire.json',
                              AddRecipientStepPage)
-    confirm_new_recipient = URL('/ord-web/ord//ord-creer-destinataire.json', ConfirmRecipientPage)
+    confirm_new_recipient = URL(r'/ord-web/ord//ord-creer-destinataire.json', ConfirmRecipientPage)
 
-    bank_statement_menu = URL('/icd/syd-front/data/syd-rce-accederDepuisMenu.json', BankStatementPage)
-    bank_statement_search = URL('/icd/syd-front/data/syd-rce-lancerRecherche.json', BankStatementPage)
+    bank_statement_menu = URL(r'/icd/syd-front/data/syd-rce-accederDepuisMenu.json', BankStatementPage)
+    bank_statement_search = URL(r'/icd/syd-front/data/syd-rce-lancerRecherche.json', BankStatementPage)
 
-    useless_page = URL('/icd-web/syd-front/index-comptes.html', UselessPage)
-    error_page = URL('https://static.societegenerale.fr/pro/erreur.html', ErrorPage)
+    useless_page = URL(r'/icd-web/syd-front/index-comptes.html', UselessPage)
+    error_page = URL(r'https://static.societegenerale.fr/pro/erreur.html', ErrorPage)
+
+    markets_page = URL(r'/icd/npe/data/comptes-titres/findComptesTitresClasseurs-authsec.json', MarketAccountPage)
+    investments_page = URL(r'/icd/npe/data/comptes-titres/findLignesCompteTitre-authsec.json', MarketInvestmentPage)
 
     date_max = None
     date_min = None
@@ -295,21 +299,7 @@ class SGProfessionalBrowser(SGEnterpriseBrowser, StatesMixin):
 
     @need_login
     def iter_market_accounts(self):
-        self.main_page.go()
-        # retrieve market accounts if exist
-        market_accounts_link = self.page.get_market_accounts_link()
-        if market_accounts_link is NotAvailable:
-            return []
-        assert market_accounts_link, 'Market accounts link xpath may have changed'
-
-        # need to be on market accounts page to get the accounts iframe
-        self.location(market_accounts_link)
-        market_accounts_list_link = self.page.get_table_iframe_link()
-        if market_accounts_list_link is NotAvailable:
-            return []
-        assert market_accounts_link, 'Market accounts iframe link xpath may have changed'
-
-        self.location(market_accounts_list_link)
+        self.markets_page.go()
         return self.page.iter_market_accounts()
 
     @need_login
@@ -317,13 +307,7 @@ class SGProfessionalBrowser(SGEnterpriseBrowser, StatesMixin):
         if account.type not in (account.TYPE_MARKET, ):
             return []
 
-        assert account._url_data, 'This account has no url to retrieve investments'
-        # need to be on market accounts investment page to get the invetment iframe
-        self.location('/Pgn/NavigationServlet?%s' % account._url_data)
-
-        invests_list_link = self.page.get_table_iframe_link()
-        assert invests_list_link, 'It seems that this market account has no investment'
-        self.location(invests_list_link)
+        self.investments_page.go(data={'cl2000_numeroPrestation': account._prestation_number})
         return self.page.iter_investment()
 
     def copy_recipient_obj(self, recipient):

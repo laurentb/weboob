@@ -24,12 +24,12 @@ from weboob.browser.pages import LoggedPage, JsonPage, pagination
 from weboob.browser.elements import ItemElement, method, DictElement
 from weboob.browser.filters.standard import (
     CleanDecimal, CleanText, Date, Format, BrowserURL, Env,
-    Field, Regexp,
+    Field, Regexp, Currency as CurrencyFilter,
 )
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.base import Currency, empty
 from weboob.capabilities import NotAvailable
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.bill import Document, Subscription, DocumentTypes
 from weboob.exceptions import (
     BrowserUnavailable, NoAccountsException, BrowserIncorrectPassword, BrowserPasswordExpired,
@@ -37,6 +37,7 @@ from weboob.exceptions import (
 )
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.capabilities.bank.investments import is_isin_valid
 from weboob.tools.compat import quote_plus
 
 from .pages import Transaction
@@ -255,3 +256,54 @@ class BankStatementPage(LoggedPage, JsonPage):
             d.url = '/icd/syd-front/data/syd-rce-telechargerReleve.html?b64e4000_sceau=%s' % quote_plus(document['sceau'])
 
             yield d
+
+
+class MarketAccountPage(LoggedPage, JsonPage):
+    @method
+    class iter_market_accounts(DictElement):
+        item_xpath = 'donnees/comptesTitresByClasseur'
+
+        def condition(self):
+            # Some 'comptesTitresByClasseur' do not have a 'list' key
+            # and therefore have no account list, we skip them
+            return Dict('list', default=None)(self)
+
+        class iter_accounts(DictElement):
+            item_xpath = 'list'
+
+            class item(ItemElement):
+                klass = Account
+
+                obj__prestation_number = Dict('numeroPrestation')
+
+                obj_id = Format('%s_TITRE', CleanText(Field('_prestation_number'), replace=[(' ', '')]))
+                obj_number = CleanText(Field('_prestation_number'), replace=[(' ', '')])
+                obj_label = Dict('intitule')
+                obj_balance = CleanDecimal.French(Dict('evaluation'))
+                obj_currency = CurrencyFilter(Dict('evaluation'))
+                obj_type = Account.TYPE_MARKET
+
+
+class MarketInvestmentPage(LoggedPage, JsonPage):
+    @method
+    class iter_investment(DictElement):
+        item_xpath = 'donnees'
+
+        class item(ItemElement):
+            klass = Investment
+
+            obj_label = Dict('libelle')
+            obj_valuation = CleanDecimal.French(Dict('valorisation'))
+            obj_quantity = CleanDecimal.French(Dict('quantite'))
+            obj_unitvalue = CleanDecimal.French(Dict('cours'))
+
+            def obj_code(self):
+                code = Dict('codeISIN')(self)
+                if is_isin_valid(code):
+                    return code
+                return NotAvailable
+
+            def obj_code_type(self):
+                if empty(Field('code')(self)):
+                    return NotAvailable
+                return Investment.CODE_TYPE_ISIN

@@ -24,17 +24,15 @@ import re
 from io import BytesIO
 
 from weboob.browser.pages import HTMLPage, LoggedPage
-from weboob.browser.elements import ListElement, ItemElement, method, TableElement
+from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Date,
-    Env, Regexp, Field, Format, TableCell,
+    Env, Regexp, Field, Format,
 )
 from weboob.browser.filters.html import Attr, Link
-from weboob.tools.capabilities.bank.investments import is_isin_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.capabilities.profile import Profile, Person
 from weboob.capabilities.bill import Document, Subscription, DocumentTypes
-from weboob.capabilities.bank import Account, Investment
 from weboob.exceptions import ActionNeeded, BrowserIncorrectPassword, BrowserUnavailable
 from weboob.tools.json import json
 
@@ -279,79 +277,12 @@ class UselessPage(LoggedPage, SGPEPage):
 
 class MainPage(LoggedPage, SGPEPage):
     def get_market_accounts_link(self):
-        market_accounts_link = Link('//li/a[@title="Comptes titres"]', default=None)(self.doc)
+        # this is for "ent" website, don't know if it works like "pro" website
+        market_accounts_link = Link('//li/a[@title="Comptes-titres"]', default=None)(self.doc)
 
         if market_accounts_link:
             return market_accounts_link
-        elif self.doc.xpath('//span[contains(text(), "Comptes titres") and contains(@title, "pas habilité à utiliser ce service")]'):
+        elif self.doc.xpath('//span[contains(text(), "Comptes-titres") and contains(@title, "pas habilité à utiliser ce service")]'):
             return NotAvailable
         # return None when we don't know if there are market accounts or not
         # it will be handled in `browser.py`
-
-
-class MarketAccountPage(LoggedPage, SGPEPage):
-    def get_table_iframe_link(self):
-        if self.doc.xpath('//div[contains(text(), "Aucun compte-titres")]'):
-            return NotAvailable
-        return Attr('//iframe[@id="frameTableau"]', 'src')(self.doc)
-
-    @method
-    class iter_market_accounts(TableElement):
-        item_xpath = '//table[@id="tab-corps"]//tr'
-        head_xpath = '//table[@id="tab-entete"]//td'
-
-        col_id = 'COMPTE'
-        col_label = 'INTITULE'
-        col_balance = 'EVALUATION'
-
-        class item(ItemElement):
-            def condition(self):
-                # table with empty row filled by empty `td`
-                return Field('number')(self)
-
-            klass = Account
-
-            obj_id = Format('%s_TITRE', CleanText(TableCell('id'), replace=[(' ', '')]))
-            obj_number = CleanText(TableCell('id'), replace=[(' ', '')])
-            obj_label = CleanText(TableCell('label'))
-            obj_balance = CleanDecimal.French(CleanText(TableCell('balance')))
-            obj_type = Account.TYPE_MARKET
-
-            # all `a` balises have same `href`
-            obj__url_data = Regexp(Link('(.//a)[1]'), r"lienParent\('(.*)'\)", default=NotAvailable)
-
-
-class MarketInvestmentPage(LoggedPage, SGPEPage):
-    def get_table_iframe_link(self):
-        return Attr('//iframe[@id="frameTableau"]', 'src')(self.doc)
-
-    @method
-    class iter_investment(TableElement):
-        item_xpath = '//table[@id="tab-corps"]//tr'
-        head_xpath = '//table[@id="tab-entete"]//td'
-
-        col_code = 'CODE'
-        col_label = 'VALEUR'
-        col_valuation = 'MONTANT'
-        col_quantity = 'QUANTITE'
-        col_unitvalue = 'COURS'
-
-        class item(ItemElement):
-            def condition(self):
-                # table with empty row filled by empty `td`
-                return Field('valuation')(self)
-
-            klass = Investment
-
-            obj_code_type = Investment.CODE_TYPE_ISIN
-            obj_label = CleanText(TableCell('label'))
-            obj_valuation = CleanDecimal.French(CleanText(TableCell('valuation')))
-            obj_quantity = CleanDecimal.French(CleanText(TableCell('quantity')))
-            obj_unitvalue = CleanDecimal.French(CleanText(TableCell('unitvalue')))
-
-            def obj_code(self):
-                code = CleanText(TableCell('code'))(self)
-                # there is no example of invests without valid ISIN code
-                # wait for it to retrieve them corretly
-                assert is_isin_valid(code), 'This code is not a valid ISIN, please check what invest is it.'
-                return code
