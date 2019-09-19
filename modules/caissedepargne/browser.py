@@ -22,6 +22,7 @@ from __future__ import unicode_literals
 import re
 import datetime
 import json
+from hashlib import sha256
 
 from decimal import Decimal
 from dateutil import parser
@@ -31,6 +32,7 @@ from weboob.browser.switch import SiteSwitch
 from weboob.browser.url import URL
 from weboob.capabilities.bank import Account, AddRecipientStep, Recipient, TransferBankError, Transaction, TransferStep
 from weboob.capabilities.base import NotAvailable, find_object
+from weboob.capabilities.bill import Subscription
 from weboob.capabilities.profile import Profile
 from weboob.browser.exceptions import BrowserHTTPNotFound, ClientError, ServerError
 from weboob.exceptions import (
@@ -171,6 +173,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             'market_url',
             'https://www.caisse-epargne.offrebourse.com',
         )
+        self.has_subscription = True
 
         super(CaisseEpargne, self).__init__(*args, **kwargs)
 
@@ -1088,6 +1091,10 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             self.page.set_browser_form()
             raise AddRecipientStep(self.get_recipient_obj(recipient), Value('sms_password', label=self.page.get_prompt_text()))
 
+    def go_documents_without_sub(self):
+        self.home_tache.go(tache='CPTSYNT0')
+        assert self.subscription.is_here(), "Couldn't go to documents page"
+
     @need_login
     def iter_subscription(self):
         self.home.go()
@@ -1098,6 +1105,20 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         if self.unavailable_page.is_here():
             # some users don't have checking account
             self.home_tache.go(tache='EPASYNT0')
+        if self.garbage.is_here():  # User has no subscription, checking if they have documents, if so creating fake subscription
+            self.has_subscription = False
+            self.home_tache.go(tache='CPTSYNT0')
+            if not self.subscription.is_here():  # Looks like there is nothing to return
+                return []
+            self.logger.warning("Couldn't find subscription, creating a fake one to return documents available")
+
+            profile = self.get_profile()
+
+            sub = Subscription()
+            sub.label = sub.subscriber = profile.name
+            sub.id = sha256(profile.name.lower().encode('utf-8')).hexdigest()
+
+            return [sub]
         self.page.go_subscription()
         if not self.subscription.is_here():
             # if user is not allowed to have subscription we are redirected to IndexPage
@@ -1111,6 +1132,9 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     @need_login
     def iter_documents(self, subscription):
         self.home.go()
+        if not self.has_subscription:
+            self.go_documents_without_sub()
+            return self.page.iter_documents(sub_id=subscription.id, has_subscription=self.has_subscription)
         self.home_tache.go(tache='CPTSYNT1')
         if self.unavailable_page.is_here():
             # some users don't have checking account
@@ -1118,11 +1142,14 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         self.page.go_subscription()
         assert self.subscription.is_here()
 
-        return self.page.iter_documents(sub_id=subscription.id)
+        return self.page.iter_documents(sub_id=subscription.id, has_subscription=self.has_subscription)
 
     @need_login
     def download_document(self, document):
         self.home.go()
+        if not self.has_subscription:
+            self.go_documents_without_sub()
+            return self.page.download_document(document).content
         self.home_tache.go(tache='CPTSYNT1')
         if self.unavailable_page.is_here():
             # some users don't have checking account

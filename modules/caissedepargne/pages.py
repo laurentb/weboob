@@ -1857,14 +1857,16 @@ class SubscriptionPage(LoggedPage, HTMLPage):
         ignore_duplicate = True
         @property
         def item_xpath(self):
-            return '//h3[contains(text(), "%s")]//following-sibling::div[@class="panel"][1]/table/tbody/tr' % Env('sub_id')(self)
+            if Env('has_subscription')(self):
+                return '//h3[contains(text(), "%s")]//following-sibling::div[@class="panel"][1]/table/tbody/tr' % Env('sub_id')(self)
+            return '//div[@id="MM_CONSULTATION_RELEVES_COURRIERS_EDOCUMENTS_divRelevesCourriers"]/table/tbody/tr'
 
         class item(ItemElement):
             klass = Document
 
             obj_type = DocumentTypes.OTHER
             obj_format = 'pdf'
-            obj_url = Regexp(Link('.//td[@class="telecharger"]/a'), r'WebForm_PostBackOptions\("(\S*)"')
+            obj_url = Regexp(Link('.//td[@class="telecharger"]//a'), r'WebForm_PostBackOptions\("(\S*)"')
             obj_id = Format('%s_%s_%s', Env('sub_id'), CleanText('./td[2]', symbols='/',  replace=[(' ', '_')]), Regexp(CleanText('./td[3]'), r'([\wé]*)'))
             obj_label = Format('%s %s', CleanText('./td[3]'), CleanText('./td[2]'))
             obj_date = Date(CleanText('./td[2]'), dayfirst=True)
