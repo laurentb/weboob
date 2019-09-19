@@ -28,6 +28,7 @@ from weboob.browser.pages import LoggedPage, HTMLPage, PartialHTMLPage
 from weboob.capabilities.bill import Subscription, Bill
 from weboob.exceptions import BrowserUnavailable
 from weboob.tools.date import parse_french_date
+from weboob.tools.json import json
 
 
 class LoginPage(HTMLPage):
@@ -71,6 +72,12 @@ class SubscriptionPage(LoggedPage, HTMLPage):
 
 
 class DocumentsPage(LoggedPage, PartialHTMLPage):
+    ENCODING = 'utf-8'
+
+    def build_doc(self, content):
+        res = json.loads(content)
+        return super(DocumentsPage, self).build_doc(res['tableauPaiement'].encode('utf-8'))
+
     @method
     class iter_documents(ListElement):
         item_xpath = '//ul[@id="unordered_list"]//li[has-class("rowitem")]'
@@ -82,7 +89,7 @@ class DocumentsPage(LoggedPage, PartialHTMLPage):
             obj_label = CleanText('.//div[has-class("col-label")]')
             obj_price = CleanDecimal.French('.//div[has-class("col-montant")]/span')
             obj_currency = Currency('.//div[has-class("col-montant")]/span')
-            obj_url = Link('.//a[@class="downdetail"]')
+            obj_url = Link('.//div[@class="col-download"]/a')
             obj_format = 'pdf'
 
             def obj_date(self):
