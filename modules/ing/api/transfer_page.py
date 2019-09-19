@@ -143,7 +143,7 @@ class CreditAccountsPage(LoggedPage, JsonPage):
 class TransferPage(LoggedPage, JsonPage):
     @property
     def suggested_date(self):
-        return Date(Dict('pinValidateResponse/executionSuggestedDate'), dayfirst=True)(self.doc)
+        return Date(Dict('executionSuggestedDate'), dayfirst=True)(self.doc)
 
     def get_password_coord(self, password):
         assert Dict('pinValidateResponse', default=None)(self.doc), "Transfer virtualkeyboard position has failed"
