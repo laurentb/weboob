@@ -651,7 +651,7 @@ class BoursePage(LoggedPage, HTMLPage):
 
         col_label = u'Comptes'
         col_titres = re.compile('Valorisation')
-        col_especes = u'Solde espèces'
+        col_especes = ['Solde espèces', 'Solde espèces veille']
 
         class item(ItemElement):
             klass = Account
