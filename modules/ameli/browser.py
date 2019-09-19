@@ -42,7 +42,7 @@ class AmeliBrowser(LoginBrowser):
     @need_login
     def iter_subscription(self):
         self.subscription_page.go()
-        return self.page.iter_subscriptions()
+        yield self.page.get_subscription()
 
     @need_login
     def iter_documents(self, subscription):
@@ -75,6 +75,6 @@ class AmeliBrowser(LoginBrowser):
         # then we set Rechercher to actionEvt to filter for this subscription, within last 6 months
         # without first request we would have filter for this subscription but within last 2 months
         params['actionEvt'] = 'Rechercher'
-        params['Beneficiaire'] = subscription._param
+        params['Beneficiaire'] = 'tout_selectionner'
         self.documents_page.go(params=params)
         return self.page.iter_documents(subid=subscription.id)

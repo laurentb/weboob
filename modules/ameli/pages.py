@@ -19,10 +19,9 @@
 
 from __future__ import unicode_literals
 
-import re
 
 from weboob.browser.elements import method, ListElement, ItemElement
-from weboob.browser.filters.html import Attr, Link
+from weboob.browser.filters.html import Link
 from weboob.browser.filters.standard import CleanText, Regexp, CleanDecimal, Currency, Field, Format, Env
 from weboob.browser.pages import LoggedPage, HTMLPage, PartialHTMLPage
 from weboob.capabilities.bill import Subscription, Bill
@@ -46,29 +45,13 @@ class ErrorPage(HTMLPage):
 
 
 class SubscriptionPage(LoggedPage, HTMLPage):
-    @method
-    class iter_subscriptions(ListElement):
-        item_xpath = '//div[@id="corps-de-la-page"]//div[@class="tableau"]/div'
+    def get_subscription(self):
+        sub = Subscription()
+        # DON'T TAKE social security number for id because it's a very confidential data, take birth date instead
+        sub.id = CleanText('//button[@id="idAssure"]//td[@class="dateNaissance"]')(self.doc).replace('/', '')
+        sub.label = sub.subscriber = CleanText('//div[@id="pageAssure"]//span[@class="NomEtPrenomLabel"]')(self.doc)
 
-        class item(ItemElement):
-            klass = Subscription
-
-            obj__labelid = Attr('.', 'aria-labelledby')
-
-            def obj__birthdate(self):
-                return CleanText('//button[@id="%s"]//td[@class="dateNaissance"]' % Field('_labelid')(self))(self)
-
-            def obj_id(self):
-                # DON'T TAKE social security number for id because it's a very confidential data, take birth date instead
-                return ''.join(re.findall(r'\d+', Field('_birthdate')(self)))
-
-            def obj__param(self):
-                reversed_date = ''.join(reversed(re.findall(r'\d+', Field('_birthdate')(self))))
-                name = CleanText('//button[@id="%s"]//td[@class="nom"]' % Field('_labelid')(self))(self)
-                return '%s!-!%s!-!1' % (reversed_date, name)
-
-            obj_subscriber = CleanText('.//span[@class="NomEtPrenomLabel"]')
-            obj_label = obj_subscriber
+        return sub
 
 
 class DocumentsPage(LoggedPage, PartialHTMLPage):
