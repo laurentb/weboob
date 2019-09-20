@@ -164,7 +164,9 @@ class Transaction(FrenchTransaction):
 class HistoryPage(LoggedPage, JsonPage):
     @method
     class iter_history(DictElement):
-        item_xpath = 'data/cashMovements'
+        def find_elements(self):
+            return self.el.get('data', {}).get('cashMovements', [])
+
 
         class item(ItemElement):
             klass = Transaction
