@@ -61,9 +61,9 @@ class item_account_generic(ItemElement):
     obj_currency = Currency('.//span[@class="number"]')
 
     def obj_url(self):
-        url = Link(u'./a', default=NotAvailable)(self)
+        url = Link('./a', default=NotAvailable)(self)
         if not url:
-            url = Regexp(Attr(u'.//span', 'onclick', default=''), r'\'(https.*)\'', default=NotAvailable)(self)
+            url = Regexp(Attr('.//span', 'onclick', default=''), r'\'(https.*)\'', default=NotAvailable)(self)
         if url:
             if 'CreditRenouvelable' in url:
                 url = Link(u'.//a[contains(text(), "espace de gestion crédit renouvelable")]')(self.el)
@@ -101,9 +101,9 @@ class item_account_generic(ItemElement):
                 has_coming = True
                 coming += CleanDecimal('//span[@id="amount_total"]', replace_dots=True)(coming_operations.page.doc)
 
-            if CleanText(u'.//dt[contains(., "Débit différé à débiter")]')(self):
+            if CleanText('.//dt[contains(., "Débit différé à débiter")]')(self):
                 has_coming = True
-                coming += CleanDecimal(u'.//dt[contains(., "Débit différé à débiter")]/following-sibling::dd[1]',
+                coming += CleanDecimal('.//dt[contains(., "Débit différé à débiter")]/following-sibling::dd[1]',
                                        replace_dots=True)(self)
 
             return coming if has_coming else NotAvailable
@@ -161,14 +161,14 @@ class item_account_generic(ItemElement):
         return Account.TYPE_UNKNOWN
 
     def obj__has_cards(self):
-        return Link(u'.//a[contains(., "Débit différé")]', default=None)(self)
+        return Link('.//a[contains(., "Débit différé")]', default=None)(self)
 
 
 class AccountList(LoggedPage, MyHTMLPage):
     def on_load(self):
         MyHTMLPage.on_load(self)
 
-        if self.doc.xpath(u'//h2[text()="ERREUR"]'): # website sometime crash
+        if self.doc.xpath('//h2[text()="ERREUR"]'): # website sometime crash
             self.browser.location('https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/securite/authentification/initialiser-identif.ea')
 
             raise BrowserUnavailable()
@@ -184,14 +184,14 @@ class AccountList(LoggedPage, MyHTMLPage):
 
     @property
     def has_mandate_management_space(self):
-        return len(self.doc.xpath(u'//a[@title="Accéder aux Comptes Gérés Sous Mandat"]')) > 0
+        return len(self.doc.xpath('//a[@title="Accéder aux Comptes Gérés Sous Mandat"]')) > 0
 
     def mandate_management_space_link(self):
-        return Link(u'//a[@title="Accéder aux Comptes Gérés Sous Mandat"]')(self.doc)
+        return Link('//a[@title="Accéder aux Comptes Gérés Sous Mandat"]')(self.doc)
 
     @method
     class iter_accounts(ListElement):
-        item_xpath = u'//ul/li//div[contains(@class, "account-resume")]'
+        item_xpath = '//ul/li//div[contains(@class, "account-resume")]'
         class item_account(item_account_generic):
             def condition(self):
                 return item_account_generic.condition(self)
@@ -236,11 +236,11 @@ class AccountList(LoggedPage, MyHTMLPage):
         head_xpath = '//table[@id="pret" or @class="dataNum"]/thead//th'
         item_xpath = '//table[@id="pret"]/tbody/tr'
 
-        col_label = (u'Numéro du prêt', "Numéro de l'offre")
-        col_total_amount = u'Montant initial emprunté'
-        col_subscription_date = u'MONTANT INITIAL EMPRUNTÉ'
-        col_next_payment_amount = u'Montant prochaine échéance'
-        col_next_payment_date = u'Date prochaine échéance'
+        col_label = ('Numéro du prêt', "Numéro de l'offre")
+        col_total_amount = 'Montant initial emprunté'
+        col_subscription_date = 'MONTANT INITIAL EMPRUNTÉ'
+        col_next_payment_amount = 'Montant prochaine échéance'
+        col_next_payment_date = 'Date prochaine échéance'
         col_balance = re.compile('Capital')
         col_maturity_date = re.compile(u'Date dernière')
 
@@ -253,9 +253,9 @@ class AccountList(LoggedPage, MyHTMLPage):
             klass = Loan
 
             def condition(self):
-                if CleanText(TableCell('balance'))(self) != u'Prêt non débloqué':
+                if CleanText(TableCell('balance'))(self) != 'Prêt non débloqué':
                     return bool(not self.xpath('//caption[contains(text(), "Période de franchise du")]'))
-                return CleanText(TableCell('balance'))(self) != u'Prêt non débloqué'
+                return CleanText(TableCell('balance'))(self) != 'Prêt non débloqué'
 
             def load_details(self):
                 url = Link('.//a', default=NotAvailable)(self)
@@ -311,7 +311,7 @@ class AccountList(LoggedPage, MyHTMLPage):
             obj_next_payment_date = MyDate(CleanText(TableCell('next_payment_date')), default=NotAvailable)
 
             def obj_url(self):
-                url = Link(u'.//a', default=None)(self)
+                url = Link('.//a', default=None)(self)
                 if url:
                     return urljoin(self.page.url, url)
                 return self.page.url
