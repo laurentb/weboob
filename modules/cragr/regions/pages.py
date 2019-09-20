@@ -840,7 +840,7 @@ class BGPIInvestmentPage(LoggedPage, HTMLPage):
             )
 
             def obj_diff_ratio(self):
-                # Euro funds have '-' instead of a diff_percent value
+                # Euro funds have '-' instead of a diff_ratio value
                 if CleanText('.//span[@class="box"][span[span[text()="+/- value latente (%)"]]]/span[2]/span')(self) == '-':
                     return NotAvailable
                 return Eval(
@@ -849,7 +849,7 @@ class BGPIInvestmentPage(LoggedPage, HTMLPage):
                 )(self)
 
             def obj_diff(self):
-                if Field('diff_percent')(self) == NotAvailable:
+                if Field('diff_ratio')(self) == NotAvailable:
                     return NotAvailable
                 return CleanDecimal.French('.//span[@class="box"][span[span[text()="+/- value latente"]]]/span[2]/span')(self)
 
