@@ -22,6 +22,7 @@ from .base import Capability, BaseObject, Field, IntField, DecimalField, \
                   StringField, BytesField, Enum, EnumField, UserError
 from .date import DateField
 from .address import compat_field, PostalAddress
+from .image import BaseImage
 
 __all__ = [
     'CapHousing', 'Housing', 'Query', 'City', 'UTILITIES', 'ENERGY_CLASS',
@@ -40,7 +41,7 @@ class TypeNotSupported(UserError):
         super(TypeNotSupported, self).__init__(msg)
 
 
-class HousingPhoto(BaseObject):
+class HousingPhoto(BaseImage):
     """
     Photo of a housing.
     """
@@ -48,9 +49,6 @@ class HousingPhoto(BaseObject):
 
     def __init__(self, url):
         super(HousingPhoto, self).__init__(url.split('/')[-1], url)
-
-    def __iscomplete__(self):
-        return self.data
 
     def __unicode__(self):
         return self.url
