@@ -20,6 +20,7 @@
 
 from .base import Capability, BaseObject, StringField, DecimalField, Field, UserError, empty
 from .date import DateField
+from .address import compat_field, GeoCoordinates, PostalAddress
 
 __all__ = ['Gauge', 'GaugeSensor', 'GaugeMeasure', 'CapGauge', 'SensorNotFound']
 
@@ -62,9 +63,13 @@ class GaugeSensor(BaseObject):
     name =      StringField('Name of the sensor')
     unit =      StringField('Unit of values')
     forecast =  StringField('Forecast')
-    address =   StringField('Address')
-    latitude =  DecimalField('Latitude')
-    longitude = DecimalField('Longitude')
+    location = Field('Address of the sensor', PostalAddress)
+    geo = Field('Geo address of the sensor', GeoCoordinates)
+
+    address = compat_field('location', 'full_address')
+    latitude = compat_field('geo', 'latitude')
+    longitude = compat_field('geo', 'longitude')
+
     lastvalue = Field('Last value', GaugeMeasure)
     history =   Field('Value history', list)  # lastvalue not included
     gaugeid =   StringField('Id of the gauge')

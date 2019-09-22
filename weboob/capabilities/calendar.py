@@ -23,6 +23,7 @@ from .base import (
 )
 from .collection import CapCollection, CollectionNotFound, Collection
 from .date import DateField
+from .address import compat_field, PostalAddress
 
 from datetime import time, datetime
 from weboob.tools.date import parse_date
@@ -71,14 +72,16 @@ class BaseCalendarEvent(BaseObject):
     end_date = DateField('End date of the event')
     timezone = StringField('Timezone of the event in order to convert to utc time', default='Etc/UCT')
     summary = StringField('Title of the event')
-    city = StringField('Name of the city in witch event will take place')
-    location = StringField('Location of the event')
+    address = Field('Address where event will take place', PostalAddress)
     category = EnumField('Category of the event', CATEGORIES)
     description = StringField('Description of the event')
     price = FloatField('Price of the event')
     booked_entries = IntField('Entry number')
     max_entries = IntField('Max entry number')
     event_planner = StringField('Name of the event planner')
+
+    city = compat_field('address', 'city')
+    location = compat_field('address', 'street')
 
     #the following elements deal with ICalendar stantdards
     #see http://fr.wikipedia.org/wiki/ICalendar#Ev.C3.A9nements_.28VEVENT.29

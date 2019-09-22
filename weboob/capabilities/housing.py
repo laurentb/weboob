@@ -21,6 +21,7 @@
 from .base import Capability, BaseObject, Field, IntField, DecimalField, \
                   StringField, BytesField, Enum, EnumField, UserError
 from .date import DateField
+from .address import compat_field, PostalAddress
 
 __all__ = [
     'CapHousing', 'Housing', 'Query', 'City', 'UTILITIES', 'ENERGY_CLASS',
@@ -113,7 +114,7 @@ class Housing(BaseObject):
     currency = StringField('Currency of cost')
     utilities = EnumField('Utilities included or not', UTILITIES)
     date = DateField('Date when the housing has been published')
-    location = StringField('Location of housing')
+    address = Field('Location of housing', PostalAddress)
     station = StringField('What metro/bus station next to housing')
     text = StringField('Text of the housing')
     phone = StringField('Phone number to contact')
@@ -123,6 +124,8 @@ class Housing(BaseObject):
     details = Field('Key/values of details', dict)
     DPE = EnumField('DPE (Energy Performance Certificate)', ENERGY_CLASS)
     GES = EnumField('GES (Greenhouse Gas Emissions)', ENERGY_CLASS)
+
+    location = compat_field('address', 'full_address')
 
 
 class Query(BaseObject):

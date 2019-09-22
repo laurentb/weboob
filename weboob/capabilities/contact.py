@@ -25,6 +25,7 @@ from dateutil import rrule
 
 from .base import Capability, BaseObject, Field, StringField, BytesField, IntField, \
                   BoolField, UserError
+from .address import PostalAddress, compat_field
 
 
 __all__ = [
@@ -261,11 +262,13 @@ class PhysicalEntity(BaseContact):
     """
     Contact which has a physical address.
     """
-    country = StringField('Country')
-    postcode = StringField('Post code')
-    city = StringField('City')
-    address = StringField('Address of the contact')
+    postal_address = Field('Postal address', PostalAddress)
     address_notes = StringField('Extra address info')
+
+    country = compat_field('postal_address', 'country')
+    postcode = compat_field('postal_address', 'postal_code')
+    city = compat_field('postal_address', 'city')
+    address = compat_field('postal_address', 'street')
 
 
 class Person(PhysicalEntity):
@@ -344,8 +347,10 @@ class SearchQuery(BaseObject):
     Parameters to search for contacts.
     """
     name = StringField('Name to search for')
-    address = StringField('Address where to look') # optional fields
-    city = StringField('City where to look')
+    location = Field('Address where to look', PostalAddress)
+
+    address = compat_field('location', 'street')
+    city = compat_field('location', 'city')
 
 
 class CapDirectory(Capability):

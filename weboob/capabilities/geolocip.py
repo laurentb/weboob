@@ -18,7 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import Capability, BaseObject, StringField, FloatField
+from .base import Capability, BaseObject, StringField, Field
+from .address import GeoCoordinates, PostalAddress, compat_field
 
 
 __all__ = ['IpLocation', 'CapGeolocIp']
@@ -28,16 +29,22 @@ class IpLocation(BaseObject):
     """
     Represents the location of an IP address.
     """
-    city =      StringField('City')
-    region =    StringField('Region')
-    zipcode =   StringField('Zip code')
-    country =   StringField('Country')
-    lt =        FloatField('Latitude')
-    lg =        FloatField('Longitude')
+
+    address = Field('Address', PostalAddress)
+    geo = Field('Geolocation', GeoCoordinates)
+
     osmlink =   StringField('Link to OpenStreetMap location page')
     host =      StringField('Hostname')
     tld =       StringField('Top Level Domain')
     isp =       StringField('Internet Service Provider')
+
+    lt = compat_field('geo', 'latitude')
+    lg = compat_field('geo', 'longitude')
+
+    city = compat_field('address', 'city')
+    region = compat_field('address', 'region')
+    zipcode = compat_field('address', 'postal_code')
+    country = compat_field('address', 'country')
 
 
 class CapGeolocIp(Capability):
