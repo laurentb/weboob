@@ -193,6 +193,7 @@ class ValidateTransferPage(LoggedPage, HTMLPage):
             CleanText('//form[@id="SaisieVirementForm"]/p[has-class("error")]/label')(self.doc),  # may be deprecated
             CleanText('//div[@id="error" and @class="erreur_texte"]/p[contains(text(), "n\'est pas autorisé")]')(self.doc),
             CleanText('//form[@id="SaisieVirementForm"]//label[has-class("error")]')(self.doc),
+            CleanText('//div[@id="error"]/p[@class="erreur_texte1"]')(self.doc),
         )
 
         for error in errors_msg:
