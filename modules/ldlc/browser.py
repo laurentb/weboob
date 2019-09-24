@@ -18,7 +18,7 @@
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
 from weboob.browser import LoginBrowser, AbstractBrowser, URL, need_login
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, NocaptchaQuestion
 
 from .pages import HomePage, LoginPage, ProBillsPage, DocumentsPage
 
@@ -46,9 +46,17 @@ class LdlcBrowser(LoginBrowser):
     login = URL(r'/Account/LoginPage.aspx', LoginPage)
     home = URL(r'/$', HomePage)
 
+    def __init__(self, config, *args, **kwargs):
+        super(LdlcBrowser, self).__init__(*args, **kwargs)
+        self.config = config
+
     def do_login(self):
         self.login.stay_or_go()
-        self.page.login(self.username, self.password)
+        sitekey = self.page.get_recaptcha_sitekey()
+        if sitekey and not self.config['captcha_response'].get():
+            raise NocaptchaQuestion(website_key=sitekey, website_url=self.login.build())
+
+        self.page.login(self.username, self.password, self.config['captcha_response'].get())
 
         if self.login.is_here():
             raise BrowserIncorrectPassword(self.page.get_error())

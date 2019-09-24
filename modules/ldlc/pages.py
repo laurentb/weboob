@@ -50,10 +50,20 @@ class HomePage(LoggedPage, HTMLPage):
 
 
 class LoginPage(HTMLPage):
-    def login(self, username, password):
-        form = self.get_form(xpath='//form[contains(@action, "/Login/Login")]')
-        form['Email'] = username
-        form['Password'] = password
+    def get_recaptcha_sitekey(self):
+        return Attr('//div[@class="g-recaptcha"]', 'data-sitekey', default=NotAvailable)(self.doc)
+
+    def login(self, username, password, captcha_response=None):
+        form = self.get_form(id='aspnetForm')
+        form['__EVENTTARGET'] = 'ctl00$cphMainContent$butConnexion'
+        form['ctl00$cphMainContent$txbMail'] = username
+        form['ctl00$cphMainContent$txbPassword'] = password
+
+        # remove this, else error message will be empty if there is a wrongpass
+        del form['ctl00$SaveCookiesChoices']
+        if captcha_response:
+            form['g-recaptcha-response'] = captcha_response
+
         form.submit()
 
     def get_error(self):

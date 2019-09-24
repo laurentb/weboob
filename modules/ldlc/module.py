@@ -40,7 +40,8 @@ class LdlcModule(AbstractModule, CapDocument):
     CONFIG = BackendConfig(Value('login', label='Email'),
                            ValueBackendPassword('password', label='Password'),
                            Value('website', label='Site web', default='part',
-                                 choices={'pro': 'Professionnels', 'part': 'Particuliers'}))
+                                 choices={'pro': 'Professionnels', 'part': 'Particuliers'}),
+                           Value('captcha_response', label='Réponse captcha', default='', required=False))
 
     PARENT = 'materielnet'
 
@@ -50,7 +51,7 @@ class LdlcModule(AbstractModule, CapDocument):
             return self.create_browser(self.config['login'].get(), self.config['password'].get(), weboob=self.weboob)
         else:
             self.BROWSER = LdlcProBrowser
-            return self.create_browser(self.config['login'].get(), self.config['password'].get())
+            return self.create_browser(self.config, self.config['login'].get(), self.config['password'].get())
 
     def download_document(self, bill):
         if not isinstance(bill, Bill):
