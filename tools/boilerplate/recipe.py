@@ -78,7 +78,7 @@ class Recipe(object):
                     # workaround, as it's also a mako directive
                     coding='# -*- coding: utf-8 -*-',
                     login=self.login,
-                    **kwargs)
+                    **kwargs).strip() + u'\n'
 
     def generate(self):
         raise NotImplementedError()
