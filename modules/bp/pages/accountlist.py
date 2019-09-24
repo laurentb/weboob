@@ -161,7 +161,7 @@ class item_account_generic(ItemElement):
         return Account.TYPE_UNKNOWN
 
     def obj__has_cards(self):
-        return Link('.//a[contains(., "Débit différé")]', default=None)(self)
+        return Link('.//a[contains(@href, "consultationCarte")]', default=None)(self)
 
 
 class AccountList(LoggedPage, MyHTMLPage):
