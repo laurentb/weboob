@@ -149,59 +149,59 @@ class item_account_generic(ItemElement):
     klass = Account
 
     TYPES = OrderedDict([
-        ('Credits Promoteurs', Account.TYPE_CHECKING),  # it doesn't fit loan's model
-        ('Compte Cheque', Account.TYPE_CHECKING),
-        ('Compte Courant', Account.TYPE_CHECKING),
-        ('Cpte Courant', Account.TYPE_CHECKING),
-        ('Contrat Personnel', Account.TYPE_CHECKING),
-        ('Cc Contrat Personnel', Account.TYPE_CHECKING),
-        ('C/C', Account.TYPE_CHECKING),
+        (re.compile(r'Credits Promoteurs'), Account.TYPE_CHECKING),  # it doesn't fit loan's model
+        (re.compile(r'Compte Cheque'), Account.TYPE_CHECKING),
+        (re.compile(r'Compte Courant'), Account.TYPE_CHECKING),
+        (re.compile(r'Cpte Courant'), Account.TYPE_CHECKING),
+        (re.compile(r'Contrat Personnel'), Account.TYPE_CHECKING),
+        (re.compile(r'Cc Contrat Personnel'), Account.TYPE_CHECKING),
+        (re.compile(r'C/C'), Account.TYPE_CHECKING),
         (re.compile(r'Start\b'), Account.TYPE_CHECKING),
-        ('Comptes courants', Account.TYPE_CHECKING),
-        ('Service Accueil', Account.TYPE_CHECKING),
-        ('Eurocompte Serenite', Account.TYPE_CHECKING),
-        ('Eurocompte Confort', Account.TYPE_CHECKING),
-        ('Compte Service Bancaire De Base', Account.TYPE_CHECKING),
+        (re.compile(r'Comptes courants'), Account.TYPE_CHECKING),
+        (re.compile(r'Service Accueil'), Account.TYPE_CHECKING),
+        (re.compile(r'Eurocompte Serenite'), Account.TYPE_CHECKING),
+        (re.compile(r'Eurocompte Confort'), Account.TYPE_CHECKING),
+        (re.compile(r'Compte Service Bancaire De Base'), Account.TYPE_CHECKING),
         (re.compile(r'Catip\b'), Account.TYPE_DEPOSIT),
-        ('Cic Immo', Account.TYPE_MORTGAGE),
-        ('Credit', Account.TYPE_LOAN),
-        ('Crédits', Account.TYPE_LOAN),
-        ('Eco-Prêt', Account.TYPE_LOAN),
-        ('Mcne', Account.TYPE_LOAN),
-        ('Nouveau Prêt', Account.TYPE_LOAN),
+        (re.compile(r'Cic Immo'), Account.TYPE_MORTGAGE),
+        (re.compile(r'Credit'), Account.TYPE_LOAN),
+        (re.compile(r'Crédits'), Account.TYPE_LOAN),
+        (re.compile(r'Eco-Prêt'), Account.TYPE_LOAN),
+        (re.compile(r'Mcne'), Account.TYPE_LOAN),
+        (re.compile(r'Nouveau Prêt'), Account.TYPE_LOAN),
         (re.compile(r'Pret\b'), Account.TYPE_LOAN),
-        ('Regroupement De Credits', Account.TYPE_LOAN),
-        ('Nouveau Pret 0%', Account.TYPE_LOAN),
-        ('Global Auto', Account.TYPE_LOAN),
-        ('Passeport Credit', Account.TYPE_REVOLVING_CREDIT),
+        (re.compile(r'Regroupement De Credits'), Account.TYPE_LOAN),
+        (re.compile(r'Nouveau Pret 0%'), Account.TYPE_LOAN),
+        (re.compile(r'Global Auto'), Account.TYPE_LOAN),
+        (re.compile(r'Passeport Credit'), Account.TYPE_REVOLVING_CREDIT),
         (re.compile(r'Allure\b'), Account.TYPE_REVOLVING_CREDIT),  # 'Allure Libre' or 'credit Allure'
-        ('Preference', Account.TYPE_REVOLVING_CREDIT),
-        ('Plan 4', Account.TYPE_REVOLVING_CREDIT),
-        ('P.E.A', Account.TYPE_PEA),
+        (re.compile(r'Preference'), Account.TYPE_REVOLVING_CREDIT),
+        (re.compile(r'Plan 4'), Account.TYPE_REVOLVING_CREDIT),
+        (re.compile(r'P.E.A'), Account.TYPE_PEA),
         (re.compile(r'Pea\b'), Account.TYPE_PEA),
-        ('Compte De Liquidite Pea', Account.TYPE_PEA),
-        ('Compte Epargne', Account.TYPE_SAVINGS),
-        ('Etalis', Account.TYPE_SAVINGS),
-        ('Ldd', Account.TYPE_SAVINGS),
-        ('Livret', Account.TYPE_SAVINGS),
-        ("Plan D'Epargne", Account.TYPE_SAVINGS),
-        ('Tonic Croissance', Account.TYPE_SAVINGS),
-        ('Tonic Societaire', Account.TYPE_SAVINGS),
-        ('Capital Expansion', Account.TYPE_SAVINGS),
-        ('Épargne', Account.TYPE_SAVINGS),
-        ('Capital Plus', Account.TYPE_SAVINGS),
+        (re.compile(r'Compte De Liquidite Pea'), Account.TYPE_PEA),
+        (re.compile(r'Compte Epargne'), Account.TYPE_SAVINGS),
+        (re.compile(r'Etalis'), Account.TYPE_SAVINGS),
+        (re.compile(r'Ldd'), Account.TYPE_SAVINGS),
+        (re.compile(r'Livret'), Account.TYPE_SAVINGS),
+        (re.compile(r"Plan D'Epargne"), Account.TYPE_SAVINGS),
+        (re.compile(r'Tonic Croissance'), Account.TYPE_SAVINGS),
+        (re.compile(r'Tonic Societaire'), Account.TYPE_SAVINGS),
+        (re.compile(r'Capital Expansion'), Account.TYPE_SAVINGS),
+        (re.compile(r'Épargne'), Account.TYPE_SAVINGS),
+        (re.compile(r'Capital Plus'), Account.TYPE_SAVINGS),
         (re.compile(r'Pep\b'), Account.TYPE_SAVINGS),
-        ('Compte Duo', Account.TYPE_SAVINGS),
-        ('Compte Garantie Titres', Account.TYPE_MARKET),
-        ('Ppe', Account.TYPE_LOAN),
+        (re.compile(r'Compte Duo'), Account.TYPE_SAVINGS),
+        (re.compile(r'Compte Garantie Titres'), Account.TYPE_MARKET),
+        (re.compile(r'Ppe'), Account.TYPE_LOAN),
     ])
 
-    REVOLVING_LOAN_LABELS = [
-        'Passeport Credit',
-        'Allure',
-        'Preference',
-        'Plan 4',
-        'Credit En Reserve',
+    REVOLVING_LOAN_REGEXES = [
+        re.compile(r'Passeport Credit'),
+        re.compile(r'Allure'),
+        re.compile(r'Preference'),
+        re.compile(r'Plan 4'),
+        re.compile(r'Credit En Reserve'),
     ]
 
     def condition(self):
@@ -214,17 +214,38 @@ class item_account_generic(ItemElement):
                 and (first_td.find('a') is not None or (first_td.find('.//span') is not None
                 and "cartes" in first_td.findtext('.//span') and first_td.find('./div/a') is not None)))
 
+    def loan_condition(self, check_no_details=False):
+        _type = Field('type')(self)
+        label = Field('label')(self)
+        details_link = Link('.//a', default=None)(self)
+
+        # mobile accounts are leading to a 404 error when parsing history
+        # furthermore this is not exactly a loan account
+        if re.search(r'Le Mobile +([0-9]{2} ?){5}', label):
+            return False
+
+        if (
+            details_link and
+            item_account_generic.condition and
+            _type in (Account.TYPE_LOAN, Account.TYPE_MORTGAGE) and
+            not self.is_revolving(label)
+        ):
+            details = self.page.browser.open(details_link).page
+            if details and 'cloturé' not in CleanText('//form[@id="P:F"]//div[@class="blocmsg info"]//p')(details.doc):
+                fiche_details = CleanText('//table[@class="fiche"]')(details.doc)
+                if check_no_details:  # check_no_details is used to determine if condition should check the absence of details, otherwise we still check the presence of details
+                    return not fiche_details
+                return fiche_details
+        return False
+
     class Label(Filter):
         def filter(self, text):
             return text.lstrip(' 0123456789').title()
 
     class Type(Filter):
         def filter(self, label):
-            for pattern, actype in item_account_generic.TYPES.items():
-                if isinstance(pattern, type(re.compile(''))):
-                    if pattern.search(label):
-                        return actype
-                elif pattern in label:
+            for regex, actype in item_account_generic.TYPES.items():
+                if regex.search(label):
                     return actype
             return Account.TYPE_UNKNOWN
 
@@ -392,8 +413,8 @@ class item_account_generic(ItemElement):
         self.env['coming'] = coming or NotAvailable
 
     def is_revolving(self, label):
-        return (any(revolving_loan_label in label
-                    for revolving_loan_label in item_account_generic.REVOLVING_LOAN_LABELS)
+        return (any(revolving_loan_regex.search(label)
+                    for revolving_loan_regex in item_account_generic.REVOLVING_LOAN_REGEXES)
                 or label.lower() in self.page.browser.revolving_accounts)
 
 
@@ -413,10 +434,21 @@ class AccountsPage(LoggedPage, HTMLPage):
                     return False
                 return item_account_generic.condition(self) and _type not in (Account.TYPE_LOAN, Account.TYPE_MORTGAGE)
 
+        class item_loan_low_details(item_account_generic):
+            klass = Loan
+
+            def condition(self):
+                return item_account_generic.loan_condition(self, check_no_details=True)
+
+            obj__parent_id = NotAvailable
+
         class item_loan(item_account_generic):
             klass = Loan
 
             load_details = Link('.//a') & AsyncLoad
+
+            def condition(self):
+                return item_account_generic.loan_condition(self)
 
             obj_total_amount = Async('details') & MyDecimal('//div[@id="F4:expContent"]/table/tbody/tr[1]/td[1]/text()')
             obj_rate = Async('details') & MyDecimal('//div[@id="F4:expContent"]/table/tbody/tr[2]/td[1]')
@@ -445,23 +477,6 @@ class AccountsPage(LoggedPage, HTMLPage):
                 if parent_id:
                     return parent_id.replace(' ', '')
                 return NotAvailable
-
-            def condition(self):
-                _type = Field('type')(self)
-                label = Field('label')(self)
-                details_link = Link('.//a', default=None)(self)
-
-                # mobile accounts are leading to a 404 error when parsing history
-                # furthermore this is not exactly a loan account
-                if re.search(r'Le\sMobile\s+([0-9]{2}\s?){5}', label):
-                    return False
-
-                if (details_link and item_account_generic.condition and _type in (Account.TYPE_LOAN, Account.TYPE_MORTGAGE)
-                                 and not self.is_revolving(label)):
-                    details = self.page.browser.open(details_link)
-                    if details.page and not 'cloturé' in CleanText('//form[@id="P:F"]//div[@class="blocmsg info"]//p')(details.page.doc):
-                        return True
-                return False
 
 
         class item_revolving_loan(item_account_generic):
