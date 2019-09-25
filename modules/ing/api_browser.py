@@ -25,7 +25,7 @@ from functools import wraps
 import re
 
 from weboob.browser import LoginBrowser, URL, StatesMixin
-from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded
+from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from weboob.browser.exceptions import ClientError
 from weboob.capabilities.bank import (
     TransferBankError, TransferInvalidAmount,
@@ -144,18 +144,30 @@ class IngAPIBrowser(LoginBrowser, StatesMixin):
             self.need_reload_state = None
             super(IngAPIBrowser, self).load_state(state)
 
+    WRONGPASS_CODES = (
+        'AUTHENTICATION.INVALID_PIN_CODE',
+        'AUTHENTICATION.INVALID_CIF_AND_BIRTHDATE_COMBINATION',
+        'AUTHENTICATION.FIRST_WRONG_PIN_ATTEMPT',
+        'AUTHENTICATION.SECOND_WRONG_PIN_ATTEMPT',
+    )
+
+    ACTIONNEEDED_CODES = (
+        'AUTHENTICATION.ACCOUNT_INACTIVE',
+        'AUTHENTICATION.ACCOUNT_LOCKED',
+        'AUTHENTICATION.NO_COMPLETE_ACCOUNT_FOUND',
+    )
+
     def handle_login_error(self, r):
         error_page = r.response.json()
         assert 'error' in error_page, "Something went wrong in login"
         error = error_page['error']
 
-        if error['code'] in ('AUTHENTICATION.INVALID_PIN_CODE', 'AUTHENTICATION.INVALID_CIF_AND_BIRTHDATE_COMBINATION'):
+        if error['code'] in self.WRONGPASS_CODES:
             raise BrowserIncorrectPassword(error['message'])
-        elif error['code'] in ('AUTHENTICATION.ACCOUNT_INACTIVE', 'AUTHENTICATION.ACCOUNT_LOCKED',
-                               'AUTHENTICATION.NO_COMPLETE_ACCOUNT_FOUND'):
+        elif error['code'] in self.ACTIONNEEDED_CODES:
             raise ActionNeeded(error['message'])
-        assert error['code'] != 'INPUT_INVALID', error['message']
-        raise BrowserUnavailable(error['message'])
+
+        raise Exception("%r code isn't handled yet: %s" % (error['code'], error['message']))
 
     def do_login(self):
         assert self.birthday.isdigit()
