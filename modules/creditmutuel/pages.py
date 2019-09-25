@@ -156,29 +156,29 @@ class item_account_generic(ItemElement):
         ('Contrat Personnel', Account.TYPE_CHECKING),
         ('Cc Contrat Personnel', Account.TYPE_CHECKING),
         ('C/C', Account.TYPE_CHECKING),
-        ('Start', Account.TYPE_CHECKING),
+        (re.compile(r'Start\b'), Account.TYPE_CHECKING),
         ('Comptes courants', Account.TYPE_CHECKING),
         ('Service Accueil', Account.TYPE_CHECKING),
         ('Eurocompte Serenite', Account.TYPE_CHECKING),
         ('Eurocompte Confort', Account.TYPE_CHECKING),
         ('Compte Service Bancaire De Base', Account.TYPE_CHECKING),
-        ('Catip', Account.TYPE_DEPOSIT),
+        (re.compile(r'Catip\b'), Account.TYPE_DEPOSIT),
         ('Cic Immo', Account.TYPE_MORTGAGE),
         ('Credit', Account.TYPE_LOAN),
         ('Crédits', Account.TYPE_LOAN),
         ('Eco-Prêt', Account.TYPE_LOAN),
         ('Mcne', Account.TYPE_LOAN),
         ('Nouveau Prêt', Account.TYPE_LOAN),
-        ('Pret', Account.TYPE_LOAN),
+        (re.compile(r'Pret\b'), Account.TYPE_LOAN),
         ('Regroupement De Credits', Account.TYPE_LOAN),
         ('Nouveau Pret 0%', Account.TYPE_LOAN),
         ('Global Auto', Account.TYPE_LOAN),
         ('Passeport Credit', Account.TYPE_REVOLVING_CREDIT),
-        ('Allure', Account.TYPE_REVOLVING_CREDIT),  # 'Allure Libre' or 'credit Allure'
+        (re.compile(r'Allure\b'), Account.TYPE_REVOLVING_CREDIT),  # 'Allure Libre' or 'credit Allure'
         ('Preference', Account.TYPE_REVOLVING_CREDIT),
         ('Plan 4', Account.TYPE_REVOLVING_CREDIT),
         ('P.E.A', Account.TYPE_PEA),
-        ('Pea', Account.TYPE_PEA),
+        (re.compile(r'Pea\b'), Account.TYPE_PEA),
         ('Compte De Liquidite Pea', Account.TYPE_PEA),
         ('Compte Epargne', Account.TYPE_SAVINGS),
         ('Etalis', Account.TYPE_SAVINGS),
@@ -190,9 +190,10 @@ class item_account_generic(ItemElement):
         ('Capital Expansion', Account.TYPE_SAVINGS),
         ('Épargne', Account.TYPE_SAVINGS),
         ('Capital Plus', Account.TYPE_SAVINGS),
-        ('Pep', Account.TYPE_SAVINGS),
+        (re.compile(r'Pep\b'), Account.TYPE_SAVINGS),
         ('Compte Duo', Account.TYPE_SAVINGS),
         ('Compte Garantie Titres', Account.TYPE_MARKET),
+        ('Ppe', Account.TYPE_LOAN),
     ])
 
     REVOLVING_LOAN_LABELS = [
@@ -220,7 +221,10 @@ class item_account_generic(ItemElement):
     class Type(Filter):
         def filter(self, label):
             for pattern, actype in item_account_generic.TYPES.items():
-                if pattern in label:
+                if isinstance(pattern, type(re.compile(''))):
+                    if pattern.search(label):
+                        return actype
+                elif pattern in label:
                     return actype
             return Account.TYPE_UNKNOWN
 
