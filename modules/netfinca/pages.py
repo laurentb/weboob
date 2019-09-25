@@ -71,6 +71,8 @@ class AccountsPage(LoggedPage, HTMLPage):
                 _id = tablecell.xpath('./div[position()=2]')
                 return CleanText(_id)(self)
 
+            obj_number = obj_id
+
             def obj_label(self):
                 tablecell = TableCell('label')(self)[0]
                 label = tablecell.xpath('./div[position()=1]')
