@@ -109,7 +109,9 @@ class AccountsPage(MyJsonPage):
     ACCOUNT_TYPES = {
         '000': Account.TYPE_CHECKING,   # Compte à vue
         '001': Account.TYPE_SAVINGS,    # Livret Ile de France
+        '004': Account.TYPE_SAVINGS,    # Livret Guadeloupe
         '011': Account.TYPE_CARD,       # Carte bancaire
+        '013': Account.TYPE_LOAN,       # LCR (Lettre de Change Relevé)
         '020': Account.TYPE_SAVINGS,    # Compte sur livret
         '021': Account.TYPE_SAVINGS,
         '022': Account.TYPE_SAVINGS,    # Livret d'épargne populaire
