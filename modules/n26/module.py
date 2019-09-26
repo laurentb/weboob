@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from weboob.capabilities.bank import CapBank
 from weboob.tools.backend import Module, BackendConfig
@@ -39,7 +40,9 @@ class Number26Module(Module, CapBank):
 
     CONFIG = BackendConfig(
                  Value('login', label='Email', regexp='.+'),
-                 ValueBackendPassword('password', label='Password')
+                 ValueBackendPassword('password', label='Password'),
+                 Value('otp', label='OTP', default='', noprompt=True),
+                 Value('request_information', label='request_information', default=None, required=False, noprompt=True)
              )
 
     STORAGE = {'categories': {}}
@@ -52,7 +55,7 @@ class Number26Module(Module, CapBank):
         return categories
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(), self.config['password'].get())
+        return self.create_browser(self.config)
 
     def iter_accounts(self):
         return self.browser.get_accounts()

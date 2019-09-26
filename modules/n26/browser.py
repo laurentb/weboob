@@ -17,76 +17,130 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
-from decimal import Decimal
-from datetime import datetime
-from functools import wraps
+from __future__ import unicode_literals
 
-from weboob.browser.browsers import DomainBrowser
+from decimal import Decimal
+from datetime import datetime, timedelta
+
+from weboob.browser import need_login
+from weboob.browser.browsers import DomainBrowser, StatesMixin
 from weboob.capabilities.base import find_object, NotAvailable
 from weboob.capabilities.bank import Account, Transaction, AccountNotFound
 from weboob.browser.filters.standard import CleanText
-from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
+from weboob.exceptions import (
+    BrowserIncorrectPassword, BrowserUnavailable, BrowserQuestion, NeedInteractiveFor2FA,
+)
 from weboob.browser.exceptions import ClientError
+from weboob.tools.value import Value
 
 # Do not use an APIBrowser since APIBrowser sends all its requests bodies as
 # JSON, although N26 only accepts urlencoded format.
 
-def need_login(func):
-    @wraps(func)
-    def wrapper(browser, *args, **kwargs):
-        if browser.auth_method.lower() == 'basic':
-            browser.do_login()
-
-        return func(browser, *args, **kwargs)
-
-    return wrapper
-
-
-class Number26Browser(DomainBrowser):
+class Number26Browser(DomainBrowser, StatesMixin):
     BASEURL = 'https://api.tech26.de'
 
     # Password encoded in base64 for the initial basic-auth scheme used to
     # get an access token.
     INITIAL_TOKEN = 'bXktdHJ1c3RlZC13ZHBDbGllbnQ6c2VjcmV0'
+    __states__ = ('bearer', 'auth_method', 'mfaToken', 'refresh_token', 'token_expire')
+
+    @property
+    def logged(self):
+        return self.token_expire and datetime.strptime(self.token_expire, '%Y-%m-%d %H:%M:%S') > datetime.now()
 
     def request(self, *args, **kwargs):
         """
         Makes it more convenient to add the bearer token and convert the result
         body back to JSON.
         """
-        kwargs.setdefault('headers', {})['Authorization'] = self.auth_method + ' ' + self.bearer
-        kwargs.setdefault('headers', {})['Accept'] = "application/json"
+        if not self.logged:
+            kwargs.setdefault('headers', {})['Authorization'] = 'Basic ' + self.INITIAL_TOKEN
+        else:
+            kwargs.setdefault('headers', {})['Authorization'] = self.auth_method + ' ' + self.bearer
+            kwargs.setdefault('headers', {})['Accept'] = "application/json"
         return self.open(*args, **kwargs).json()
 
-    def __init__(self, username, password, *args, **kwargs):
+    def __init__(self, config, *args, **kwargs):
         super(Number26Browser, self).__init__(*args, **kwargs)
-        self.username = username
-        self.password = password
+        self.config = config
+        self.username = self.config['login'].get()
+        self.password = self.config['password'].get()
         self.auth_method = 'Basic'
-        self.bearer = Number26Browser.INITIAL_TOKEN
+        self.refresh_token = None
+        self.token_expire = None
+        self.mfaToken = None
+        self.bearer = self.INITIAL_TOKEN
+
+    def do_otp(self, mfaToken):
+        data = {
+            'challengeType': 'otp',
+            'mfaToken': mfaToken
+        }
+        result = self.request('/api/mfa/challenge', json=data)
+        raise BrowserQuestion(Value('otp', label='Veuillez entrer le code reçu par sms au ' + result['obfuscatedPhoneNumber']))
+
+    def update_token(self, auth_method, bearer, refresh_token, expires_in):
+        self.auth_method = auth_method
+        self.bearer = bearer
+        self.refresh_token = refresh_token
+        if expires_in is not None:
+            self.token_expire = (datetime.now() + timedelta(seconds=expires_in)).strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            self.token_expire = None
+
+    def has_refreshed(self):
+        data = {
+            'refresh_token': self.refresh_token,
+            'grant_type': 'refresh_token'
+        }
+        try:
+            result = self.request('/oauth2/token', data=data)
+        except ClientError as e:
+            if e.response.status_code == 401:
+                self.update_token('Basic', self.INITIAL_TOKEN, None, None)
+                return False
+            else:
+                assert False, 'Unhandled error'
+        self.update_token(result['token_type'], result['access_token'], result['refresh_token'], result['expires_in'])
+        return True
 
     def do_login(self):
-        data = {
-            'username': self.username,
-            'password': self.password,
-            'grant_type': 'password'
-        }
+        # The refresh token last between one and two hours, be carefull, otp asked frequently
+        if self.refresh_token:
+            if self.has_refreshed():
+                return
+
+        if self.config['request_information'].get() is None:
+            raise NeedInteractiveFor2FA()
+
+        if self.config['otp'].get():
+            data = {
+                'mfaToken': self.mfaToken,
+                'grant_type': 'mfa_otp',
+                'otp': self.config['otp'].get()
+            }
+        else:
+            data = {
+                'username': self.username,
+                'password': self.password,
+                'grant_type': 'password'
+            }
 
         try:
-            result = self.request('/oauth/token', data=data, method="POST")
+            result = self.request('/oauth2/token', data=data)
         except ClientError as ex:
             response = ex.response.json()
-
-            if response.get('error') == 'invalid_grant':
+            if response.get('title') == 'A second authentication factor is required.':
+                self.mfaToken = response.get('mfaToken')
+                self.do_otp(self.mfaToken)
+            elif response.get('error') == 'invalid_grant':
                 raise BrowserIncorrectPassword(response['error_description'])
-
-            if response.get('title') == 'Error':
+            elif response.get('title') == 'Error':
                 raise BrowserUnavailable(response['message'])
+            else:
+                assert False, "Unhandled error on '/oauth2/token' request"
 
-            raise
-
-        self.auth_method = 'bearer'
-        self.bearer = result['access_token']
+        self.update_token(result['token_type'], result['access_token'], result['refresh_token'], result['expires_in'])
 
     @need_login
     def get_accounts(self):
@@ -107,6 +161,7 @@ class Number26Browser(DomainBrowser):
 
         return [a]
 
+    @need_login
     def get_account(self, _id):
         return find_object(self.get_accounts(), id=_id, error=AccountNotFound)
 
