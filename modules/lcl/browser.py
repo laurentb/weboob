@@ -28,7 +28,10 @@ from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.browser.exceptions import ServerError
 from weboob.capabilities.base import NotAvailable
-from weboob.capabilities.bank import Account, AddRecipientBankError, AddRecipientStep, Recipient, AccountOwnerType
+from weboob.capabilities.bank import (
+    Account, AddRecipientBankError, AddRecipientStep, Recipient, AccountOwnerType,
+    AccountOwnership,
+)
 from weboob.capabilities.base import find_object
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
 from weboob.tools.compat import basestring, urlsplit, unicode
@@ -268,13 +271,14 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         if self.login.is_here():
             return self.get_accounts_list()
 
+        owner_name = re.search(r' (.+)', self.get_profile().name).group(1).upper()
         # retrieve life insurance accounts
         self.assurancevie.stay_or_go()
         if self.no_perm.is_here():
             self.logger.warning('Life insurances are unavailable.')
         else:
             # retrieve life insurances from popups
-            for a in self.page.get_popup_life_insurance():
+            for a in self.page.get_popup_life_insurance(name=owner_name):
                 self.update_accounts(a)
 
             # retrieve life insurances from calie website
@@ -312,7 +316,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
 
         # retrieve accounts on main page
         self.accounts.go()
-        for a in self.page.get_list():
+        for a in self.page.get_accounts_list(name=owner_name):
             if not self.check_accounts(a):
                 continue
 
@@ -346,7 +350,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                 self.update_accounts(a)
 
         if self.connexion_bourse():
-            for a in self.page.get_list():
+            for a in self.page.get_list(name=owner_name):
                 self.update_accounts(a)
             self.deconnexion_bourse()
             # Disconnecting from bourse portal before returning account list
@@ -357,7 +361,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         if self.no_perm.is_here():
             self.logger.warning('Deposits are unavailable.')
         else:
-            for a in self.page.get_list():
+            for a in self.page.get_list(name=owner_name):
                 # There is no id on the page listing the 'Compte à terme'
                 # So a form must be submitted to access the id of the contract
                 self.set_deposit_account_id(a)
@@ -390,10 +394,23 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                 a._card_position = card_position
                 self.update_accounts(a)
 
+        owner_name = re.search(r' (.+)', self.get_profile().name).group(1).upper()
         for account in self.accounts_list:
             account.owner_type = self.owner_type
+            self.set_ownership(account, owner_name)
 
         return iter(self.accounts_list)
+
+    def set_ownership(self, account, owner_name):
+        if not account.ownership:
+            if account.parent and account.parent.ownership:
+                account.ownership = account.parent.ownership
+            elif re.search(r'(m|mr|me|mme|mlle|mle|ml)\.? (.*)\bou (m|mr|me|mme|mlle|mle|ml)\b(.*)', account.label, re.IGNORECASE):
+                account.ownership = AccountOwnership.CO_OWNER
+            elif all(n in account.label for n in owner_name.split()):
+                account.ownership = AccountOwnership.OWNER
+            else:
+                account.ownership = AccountOwnership.ATTORNEY
 
     def get_bourse_accounts_ids(self):
         bourse_accounts_ids = []

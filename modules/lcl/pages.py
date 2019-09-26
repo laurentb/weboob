@@ -30,6 +30,7 @@ from datetime import datetime, timedelta
 from weboob.capabilities.base import empty, find_object, NotAvailable
 from weboob.capabilities.bank import (
     Account, Investment, Recipient, TransferError, TransferBankError, Transfer,
+    AccountOwnership,
 )
 from weboob.capabilities.bill import Document, Subscription, DocumentTypes
 from weboob.capabilities.profile import Person, ProfileMissing
@@ -231,6 +232,15 @@ class ContractsChoicePage(ContractsPage):
             self.select_contract()
 
 
+class OwnedItemElement(ItemElement):
+    def get_ownership(self, owner):
+        if re.search(r'(m|mr|me|mme|mlle|mle|ml)\.? (.*)\bou (m|mr|me|mme|mlle|mle|ml)\b(.*)', owner, re.IGNORECASE):
+            return AccountOwnership.CO_OWNER
+        elif all(n in owner for n in self.env['name'].split()):
+            return AccountOwnership.OWNER
+        return AccountOwnership.ATTORNEY
+
+
 class AccountsPage(LoggedPage, HTMLPage):
     def on_load(self):
         warn = self.doc.xpath('//div[@id="attTxt"]')
@@ -241,7 +251,7 @@ class AccountsPage(LoggedPage, HTMLPage):
         return CleanText('//li[@id="nomClient"]/p')(self.doc)
 
     @method
-    class get_list(ListElement):
+    class get_accounts_list(ListElement):
 
         # XXX Ugly Hack to replace account by second occurrence.
         # LCL pro website sometimes display the same account twice and only second link is valid to fetch transactions.
@@ -255,11 +265,18 @@ class AccountsPage(LoggedPage, HTMLPage):
         item_xpath = '//tr[contains(@onclick, "redirect")]'
         flush_at_end = True
 
-        class account(ItemElement):
+        class account(OwnedItemElement):
             klass = Account
 
             def condition(self):
                 return '/outil/UWLM/ListeMouvement' in self.el.attrib['onclick']
+
+            def load_details(self):
+                link_id = Field('_link_id')(self)
+                if link_id:
+                    account_url = urljoin(self.page.browser.BASEURL, link_id)
+                    return self.page.browser.async_open(url=account_url)
+                return NotAvailable
 
             NATURE2TYPE = {
                 '001': Account.TYPE_SAVINGS,
@@ -289,6 +306,11 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj_type = Map(Regexp(Field('_link_id'), r'.*nature=(\w+)'), NATURE2TYPE, default=Account.TYPE_UNKNOWN)
             obj__market_link = None
             obj_number = Field('id')
+
+            def obj_ownership(self):
+                async_page = Async('details').loaded_page(self)
+                owner = CleanText('//h5[contains(text(), "Titulaire")]')(async_page.doc)
+                return self.get_ownership(owner)
 
     def get_deferred_cards(self):
         trs = self.doc.xpath('//tr[contains(@onclick, "EncoursCB")]')
@@ -339,6 +361,11 @@ class LoansPage(LoggedPage, HTMLPage):
             def obj_label(self):
                 has_type = CleanText('./ancestor::table[.//th[contains(text(), "Type")]]', default=None)(self)
                 return CleanText('./td[2]')(self) if has_type else CleanText('./ancestor::table/preceding-sibling::div[1]')(self).split(' - ')[0]
+
+            def obj_ownership(self):
+                if re.search(r'(m|mr|me|mme|mlle|mle|ml)\.? (.*)\b(ou)? (m|mr|me|mme|mlle|mle|ml)\b(.*)', CleanText(TableCell('id'))(self), re.IGNORECASE):
+                    return AccountOwnership.CO_OWNER
+                return AccountOwnership.OWNER
 
             def parse(self, el):
                 label = Field('label')(self)
@@ -668,10 +695,11 @@ class BoursePage(LoggedPage, HTMLPage):
         head_xpath = '//table[has-class("tableau_comptes_details")]/thead/tr/th'
 
         col_label = 'Comptes'
+        col_owner = re.compile('Titulaire')
         col_titres = re.compile('Valorisation')
         col_especes = re.compile('Solde espèces')
 
-        class item(ItemElement):
+        class item(OwnedItemElement):
             klass = Account
 
             load_details = Field('_market_link') & AsyncLoad
@@ -707,6 +735,10 @@ class BoursePage(LoggedPage, HTMLPage):
                     if key in _label:
                         return self.page.TYPES.get(key)
                 return Account.TYPE_MARKET
+
+            def obj_ownership(self):
+                owner = CleanText(TableCell('owner'))(self)
+                return self.get_ownership(owner)
 
     def get_logout_link(self):
         return Link('//a[@class="link-underline" and contains(text(), "espace client")]')(self.doc)
@@ -828,7 +860,7 @@ class AVPage(LoggedPage, HTMLPage):
     class get_popup_life_insurance(ListElement):
         item_xpath = '//table[@class]/tbody/tr'
 
-        class item(ItemElement):
+        class item(OwnedItemElement):
             klass = Account
 
             def condition(self):
@@ -850,6 +882,10 @@ class AVPage(LoggedPage, HTMLPage):
             obj_number = Field('id')
             obj__external_website = False
             obj__is_calie_account = False
+
+            def obj_ownership(self):
+                owner = CleanText(Field('_owner'))(self)
+                return self.get_ownership(owner)
 
             def obj_id(self):
                 _id = CleanText('.//td/@id')(self)
@@ -1418,7 +1454,7 @@ class DepositPage(LoggedPage, HTMLPage):
         col_name = 'Nom du contrat'
         col_balance = 'Capital investi'
 
-        class item(ItemElement):
+        class item(OwnedItemElement):
             klass = Account
 
             obj_type = Account.TYPE_DEPOSIT
@@ -1430,6 +1466,10 @@ class DepositPage(LoggedPage, HTMLPage):
             # So it can be modified later
             obj_id = None
             obj__transfer_id = None
+
+            def obj_ownership(self):
+                owner = CleanText(TableCell('owner'))(self)
+                return self.get_ownership(owner)
 
     def set_deposit_account_id(self, account):
         account.id = CleanText('//td[contains(text(), "N° contrat")]/following::td[1]//b')(self.doc)
