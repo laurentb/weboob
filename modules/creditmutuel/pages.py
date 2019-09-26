@@ -137,9 +137,6 @@ class UserSpacePage(LoggedPage, HTMLPage):
     def on_load(self):
         if self.doc.xpath('//form[@id="GoValider"]'):
             raise ActionNeeded("Le site du contrat Banque à Distance a besoin d'informations supplémentaires")
-        elif 'Afin de compléter vos informations personnelles, renseignez le formulaire ci-dessous' in self.doc.xpath('//form[@class="_devb_act ___Form"]//div[contains(@class, "bloctxt")]/p[1]/text()')[0]:
-            raise ActionNeeded("Le site nécessite la saisie des informations personnelles de l'utilisateur.")
-
         super(UserSpacePage, self).on_load()
 
 
