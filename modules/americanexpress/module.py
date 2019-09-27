@@ -18,8 +18,7 @@
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bank import CapBank, AccountNotFound
-from weboob.capabilities.base import find_object
+from weboob.capabilities.bank import CapBank
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -46,9 +45,6 @@ class AmericanExpressModule(Module, CapBank):
 
     def iter_accounts(self):
         return self.browser.get_accounts_list()
-
-    def get_account(self, _id):
-        return find_object(self.browser.get_accounts_list(), id=_id, error=AccountNotFound)
 
     def iter_history(self, account):
         return self.browser.iter_history(account)
