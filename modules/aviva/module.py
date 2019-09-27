@@ -21,8 +21,7 @@ from __future__ import unicode_literals
 
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
-from weboob.capabilities.bank import CapBankWealth, AccountNotFound
-from weboob.capabilities.base import find_object
+from weboob.capabilities.bank import CapBankWealth
 
 from .browser import AvivaBrowser
 
@@ -38,7 +37,7 @@ class AvivaModule(Module, CapBankWealth):
     LICENSE = 'LGPLv3+'
     VERSION = '1.2'
     CONFIG = BackendConfig(
-        ValueBackendPassword('login',    label='Identifiant', masked=False),
+        ValueBackendPassword('login', label='Identifiant', masked=False),
         ValueBackendPassword('password', label='Mot de passe')
     )
 
@@ -46,13 +45,8 @@ class AvivaModule(Module, CapBankWealth):
 
     def create_default_browser(self):
         return self.create_browser(
-            self.config['login'].get(), self.config['password'].get()
-        )
-
-    def get_account(self, _id):
-        return find_object(
-            self.browser.iter_accounts(),
-            id=_id, error=AccountNotFound
+            self.config['login'].get(),
+            self.config['password'].get()
         )
 
     def iter_accounts(self):
