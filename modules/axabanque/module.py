@@ -46,11 +46,11 @@ class AXABanqueModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapDoc
     def create_default_browser(self):
         login = self.config['login'].get()
         self.BROWSER = AXABanque if login.isdigit() else AXAAssurance
-        return self.create_browser(login, self.config['password'].get(),
-                                   weboob=self.weboob)
-
-    def get_account(self, _id):
-        return find_object(self.browser.iter_accounts(), id=_id, error=AccountNotFound)
+        return self.create_browser(
+            login,
+            self.config['password'].get(),
+            weboob=self.weboob
+        )
 
     def iter_accounts(self):
         return self.browser.iter_accounts()
