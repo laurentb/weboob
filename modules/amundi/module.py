@@ -18,8 +18,7 @@
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bank import CapBankWealth, AccountNotFound
-from weboob.capabilities.base import find_object
+from weboob.capabilities.bank import CapBankWealth
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
@@ -45,9 +44,6 @@ class AmundiModule(Module, CapBankWealth):
         b = {'ee': EEAmundi, 'tc': TCAmundi}
         self.BROWSER = b[self.config['website'].get()]
         return self.create_browser(self.config['login'].get(), self.config['password'].get())
-
-    def get_account(self, id):
-        return find_object(self.iter_accounts(), id=id, error=AccountNotFound)
 
     def iter_accounts(self):
         return self.browser.iter_accounts()
