@@ -19,8 +19,7 @@
 
 from __future__ import unicode_literals
 
-from weboob.capabilities.base import find_object
-from weboob.capabilities.bank import CapBankWealth, AccountNotFound
+from weboob.capabilities.bank import CapBankWealth
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -48,11 +47,6 @@ class AferModule(Module, CapBankWealth):
     def create_default_browser(self):
         return self.create_browser(self.config['login'].get(),
                                    self.config['password'].get())
-
-
-    def get_account(self, id):
-        return find_object(self.iter_accounts(), id=id, error=AccountNotFound)
-
 
     def iter_accounts(self):
         return self.browser.iter_accounts()
