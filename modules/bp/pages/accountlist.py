@@ -57,7 +57,7 @@ class item_account_generic(ItemElement):
                 (len(self.el.xpath('.//div//*[contains(text(),"pas la restitution de ces données.")]')) == 0 and
                 len(self.el.xpath('.//div[@class="amount"]/span[contains(text(), "Contrat résilié")]')) == 0)))
 
-    obj_id = CleanText('.//abbr/following-sibling::text()')
+    obj_id = obj_number = CleanText('.//abbr/following-sibling::text()')
     obj_currency = Currency('.//span[@class="number"]')
 
     def obj_url(self):
@@ -145,6 +145,7 @@ class item_account_generic(ItemElement):
                  'plan d\'epargne en actions': Account.TYPE_PEA,
                  'comptes? attente': Account.TYPE_CHECKING,
                  'perp': Account.TYPE_PERP,
+                 'assurances? retraite': Account.TYPE_PERP,
                  }
 
         # first trying to match with label
