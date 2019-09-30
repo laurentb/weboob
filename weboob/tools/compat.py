@@ -19,14 +19,14 @@
 
 import sys
 import pickle
-
+import re
 
 __all__ = ['unicode', 'long', 'basestring', 'range',
            'with_metaclass', 'unpickle',
            'quote', 'quote_plus', 'unquote', 'unquote_plus',
            'urlparse', 'urlunparse', 'urlsplit', 'urlunsplit',
            'urlencode', 'urljoin', 'parse_qs', 'parse_qsl',
-           'getproxies',
+           'getproxies', 'fullmatch',
            ]
 
 
@@ -162,3 +162,11 @@ def test_url():
 
     assert parse_qsl( 'foo=%C3%A9&bar=qux+%2C%2F%25') == [(u'foo', u'é'), (u'bar', u'qux ,/%')]
     assert parse_qsl(u'foo=%C3%A9&bar=qux+%2C%2F%25') == [(u'foo', u'é'), (u'bar', u'qux ,/%')]
+
+
+if sys.version >= '3.4':
+    def fullmatch(pattern, string_to_parse, flags=0):
+        return re.fullmatch(pattern, string_to_parse, flags)
+else:
+    def fullmatch(pattern, string_to_parse, flags=0):
+        return re.match(r'%s$' % pattern, string_to_parse, flags)
