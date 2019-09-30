@@ -21,7 +21,7 @@ import os
 import imp
 import logging
 
-from weboob.tools.backend import Module
+from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.compat import basestring
 from weboob.tools.log import getLogger
 from weboob.exceptions import ModuleLoadError
@@ -63,7 +63,10 @@ class LoadedModule(object):
 
     @property
     def config(self):
-        return self.klass.CONFIG
+        if getattr(self.klass, 'ADDITIONAL_CONFIG', None):
+            return BackendConfig(*(list(self.klass.CONFIG.values()) + list(self.klass.ADDITIONAL_CONFIG.values())))
+        else:
+            return self.klass.CONFIG
 
     @property
     def website(self):
