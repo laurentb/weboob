@@ -161,6 +161,7 @@ class item_account_generic(ItemElement):
         ('Service Accueil', Account.TYPE_CHECKING),
         ('Eurocompte Serenite', Account.TYPE_CHECKING),
         ('Eurocompte Confort', Account.TYPE_CHECKING),
+        ('Compte Service Bancaire De Base', Account.TYPE_CHECKING),
         ('Catip', Account.TYPE_DEPOSIT),
         ('Cic Immo', Account.TYPE_MORTGAGE),
         ('Credit', Account.TYPE_LOAN),
