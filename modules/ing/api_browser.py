@@ -30,7 +30,7 @@ from weboob.browser.exceptions import ClientError
 from weboob.capabilities.bank import (
     TransferBankError, TransferInvalidAmount,
     AddRecipientStep, RecipientInvalidOTP,
-    AddRecipientTimeout, AddRecipientBankError,
+    AddRecipientTimeout, AddRecipientBankError, RecipientInvalidIban,
 )
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.value import Value
@@ -436,23 +436,38 @@ class IngAPIBrowser(LoginBrowser, StatesMixin):
         raise AddRecipientStep(recipient, Value('code', label='Veuillez saisir le code temporaire envoyé par SMS'))
 
     def handle_recipient_error(self, r):
+        # The bank gives an error message when an error occures.
+        # But sometimes the message is not relevant.
+        # So I may replace it by nothing or by a custom message.
+        # The exception to raise can be coupled with:
+        # * Nothing: empty message
+        # * None: message of the bank
+        # * String: custom message
+        RECIPIENT_ERROR = {
+            'SENSITIVE_OPERATION.SENSITIVE_OPERATION_NOT_FOUND': (AddRecipientTimeout,),
+            'SENSITIVE_OPERATION.EXPIRED_TEMPORARY_CODE': (AddRecipientTimeout, None),
+            'EXTERNAL_ACCOUNT.EXTERNAL_ACCOUNT_ALREADY_EXISTS': (AddRecipientBankError, None),
+            'EXTERNAL_ACCOUNT.ACCOUNT_RESTRICTION': (AddRecipientBankError, None),
+            'EXTERNAL_ACCOUNT.EXTERNAL_ACCOUNT_IS_INTERNAL_ACCOUT': (AddRecipientBankError, None),  # nice spelling
+            'EXTERNAL_ACCOUNT.IBAN_NOT_FRENCH': (RecipientInvalidIban, "L'IBAN doit correpondre à celui d'une banque domiciliée en France."),
+            'SCA.WRONG_OTP_ATTEMPT': (RecipientInvalidOTP, None),
+            'INPUT_INVALID': (AssertionError, None),  # invalid request
+        }
+
         error_page = r.response.json()
         if 'error' in error_page:
             error = error_page['error']
 
-            # the error message may seem generic
-            # but after testing multiple cases
-            # it is the only time that it appears
-            if error['code'] == 'SENSITIVE_OPERATION.SENSITIVE_OPERATION_NOT_FOUND':
-                raise AddRecipientTimeout()
-            elif error['code'] in (
-                'EXTERNAL_ACCOUNT.EXTERNAL_ACCOUNT_ALREADY_EXISTS',
-                # not allowed to add a recipient
-                'EXTERNAL_ACCOUNT.ACCOUNT_RESTRICTION',
-            ):
-                raise AddRecipientBankError(message=error['message'])
+            error_exception = RECIPIENT_ERROR.get(error['code'])
+            if error_exception:
+                if len(error_exception) == 1:
+                    raise error_exception[0]()
+                elif error_exception[1] is None:
+                    raise error_exception[0](message=error['message'])
+                else:
+                    raise error_exception[0](message=error_exception[1])
 
-            assert False, 'Recipient error not handled'
+            assert False, 'Recipient error "%s" not handled' % error['code']
 
     @need_login
     def end_sms_recipient(self, recipient, code):
@@ -476,8 +491,6 @@ class IngAPIBrowser(LoginBrowser, StatesMixin):
         except ClientError as e:
             self.handle_recipient_error(e)
             raise
-
-        self.page.handle_error()
 
     @need_login
     @need_to_be_on_website('api')
@@ -506,8 +519,6 @@ class IngAPIBrowser(LoginBrowser, StatesMixin):
         except ClientError as e:
             self.handle_recipient_error(e)
             raise
-
-        self.page.handle_error()
 
         assert self.page.check_recipient(recipient), "The recipients don't match."
         self.add_recipient_info = self.page.doc
