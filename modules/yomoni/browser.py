@@ -29,6 +29,7 @@ import re
 from weboob.browser.browsers import APIBrowser
 from weboob.browser.exceptions import ClientError
 from weboob.browser.filters.standard import CleanDecimal, Date
+from weboob.browser.filters.html import ReplaceEntities
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from weboob.capabilities.bank import Account, Investment, Transaction
 from weboob.capabilities.base import NotAvailable
@@ -172,7 +173,7 @@ class YomoniBrowser(APIBrowser):
             self.open('/user/%s/project/%s/activity' % (self.users['userId'], account._project_id), method="OPTIONS")
             for activity in [acc for acc in self.request('/user/%s/project/%s/activity' % (self.users['userId'], account._project_id), headers=self.request_headers)['activities'] \
                              if acc['details'] is not None]:
-                m = re.search(u'([\d\,]+)(?=[\s]+€|[\s]+euro)', activity['details'])
+                m = re.search(r'([\d\,]+)(?=([\s])+€|[\s]+euro)', ReplaceEntities().filter(activity['details']))
                 if "Souscription" not in activity['title'] and not m:
                     continue
 
