@@ -90,6 +90,7 @@ class CreditDuNordBrowser(LoginBrowser):
             raise BrowserIncorrectPassword()
 
     def _iter_accounts(self):
+        owner_name = self.get_profile().name.upper()
         self.loans.go(account_type=self.account_type, loans_page_label=self.loans_page_label)
         for a in self.page.get_list():
             yield a
@@ -104,8 +105,12 @@ class CreditDuNordBrowser(LoginBrowser):
                 self.page.fill_diff_currency(a)
                 yield a
         self.accounts.go(account_type=self.account_type, accounts_page_label=self.accounts_page_label)
-        for a in self.page.get_list():
-            yield a
+        if self.accounts.is_here():
+            for a in self.page.get_list(name=owner_name):
+                yield a
+        else:
+            for a in self.page.get_list():
+                yield a
 
     @need_login
     def get_pages_labels(self):

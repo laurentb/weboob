@@ -21,6 +21,7 @@ from __future__ import unicode_literals
 
 import ast
 
+from collections import OrderedDict
 from decimal import Decimal
 from io import BytesIO
 from datetime import date as da
@@ -33,7 +34,7 @@ from weboob.browser.filters.standard import CleanText, Date, CleanDecimal, Regex
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import Attr, TableCell
 from weboob.exceptions import ActionNeeded, BrowserIncorrectPassword, BrowserUnavailable, BrowserPasswordExpired
-from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities.bank import Account, Investment, AccountOwnership
 from weboob.capabilities.profile import Profile
 from weboob.capabilities.base import Currency, find_object
 from weboob.capabilities import NotAvailable
@@ -230,144 +231,6 @@ class CDNBasePage(HTMLPage):
         return '%s%s' % ('/vos-comptes/IPT/cdnProxyResource', self.get_from_js('C_PROXY.StaticResourceClientTranslation( "', '"'))
 
 
-class AccountsPage(LoggedPage, CDNBasePage):
-    COL_HISTORY = 2
-    COL_FIRE_EVENT = 3
-    COL_ID = 4
-    COL_LABEL = 5
-    COL_BALANCE = -1
-
-    TYPES = {
-        u'CARTE':               Account.TYPE_CARD,
-        u'COMPTE COURANT':      Account.TYPE_CHECKING,
-        u'CPTE EXPLOITATION IMMOB': Account.TYPE_CHECKING,
-        u'CPT COURANT':         Account.TYPE_CHECKING,
-        u'CONSEILLE RESIDENT':  Account.TYPE_CHECKING,
-        u'PEA':                 Account.TYPE_PEA,
-        u'P.E.A':               Account.TYPE_PEA,
-        u'COMPTE ÉPARGNE':      Account.TYPE_SAVINGS,
-        u'COMPTE EPARGNE':      Account.TYPE_SAVINGS,
-        u'COMPTE SUR LIVRET':   Account.TYPE_SAVINGS,
-        u'LDDS':                Account.TYPE_SAVINGS,
-        u'LIVRET':              Account.TYPE_SAVINGS,
-        u"PLAN D'EPARGNE":      Account.TYPE_SAVINGS,
-        u'PLAN ÉPARGNE':        Account.TYPE_SAVINGS,
-        u'ASS.VIE':             Account.TYPE_LIFE_INSURANCE,
-        u'BONS CAPI':           Account.TYPE_CAPITALISATION,
-        u'ÉTOILE AVANCE':       Account.TYPE_LOAN,
-        u'ETOILE AVANCE':       Account.TYPE_LOAN,
-        u'PRÊT':                Account.TYPE_LOAN,
-        u'CREDIT':              Account.TYPE_LOAN,
-        u'FACILINVEST':         Account.TYPE_LOAN,
-        u'TITRES':              Account.TYPE_MARKET,
-        u'COMPTE TIT':          Account.TYPE_MARKET,
-        u'PRDTS BLOQ. TIT':     Account.TYPE_MARKET,
-        u'PRODUIT BLOQUE TIT':  Account.TYPE_MARKET,
-        u'COMPTE A TERME':      Account.TYPE_DEPOSIT,
-        }
-
-    def make__args_dict(self, line):
-        return {'_eventId': 'clicDetailCompte',
-                '_ipc_eventValue':  '',
-                '_ipc_fireEvent':   '',
-                'execution': self.get_execution(),
-                'idCompteClique':   line[self.COL_ID],
-               }
-
-    def get_password_expired(self):
-        error = CleanText('//div[@class="x-attentionErreur"]/b')(self.doc)
-        if "vous devez modifier votre code confidentiel à la première connexion" in error:
-            return error
-
-    def get_account_type(self, label):
-        for pattern, actype in sorted(self.TYPES.items()):
-            if label.startswith(pattern) or label.endswith(pattern):
-                return actype
-        return Account.TYPE_UNKNOWN
-
-    def get_history_link(self):
-        return CleanText().filter(self.get_from_js(",url: Ext.util.Format.htmlDecode('", "'")).replace('&amp;', '&')
-
-    def get_av_link(self):
-        return self.doc.xpath('//a[contains(text(), "Consultation")]')[0].attrib['href']
-
-    def get_list(self):
-        accounts = []
-        previous_account = None
-
-        noaccounts = self.get_from_js('_js_noMvts =', ';')
-        if noaccounts is not None:
-            assert 'avez aucun compte' in noaccounts
-            return []
-
-        txt = self.get_from_js('_data = new Array(', ');', is_list=True)
-
-        if txt is None:
-            raise BrowserUnavailable('Unable to find accounts list in scripts')
-
-        data = json.loads('[%s]' % txt.replace("'", '"'))
-
-        for line in data:
-            a = Account()
-            a.id = line[self.COL_ID].replace(' ', '')
-
-            if re.match(r'Classement=(.*?):::Banque=(.*?):::Agence=(.*?):::SScompte=(.*?):::Serie=(.*)', a.id):
-                a.id = str(CleanDecimal().filter(a.id))
-
-            a._acc_nb = a.id.split('_')[0] if len(a.id.split('_')) > 1 else None
-            a.label = MyStrip(line[self.COL_LABEL], xpath='.//div[@class="libelleCompteTDB"]')
-            # This account can be multiple life insurance accounts
-            if a.label == 'ASSURANCE VIE-BON CAPI-SCPI-DIVERS *':
-                continue
-
-            a.balance = Decimal(FrenchTransaction.clean_amount(line[self.COL_BALANCE]))
-            a.currency = a.get_currency(line[self.COL_BALANCE])
-            a.type = self.get_account_type(a.label)
-
-            # The parent account must be created right before
-            if a.type == Account.TYPE_CARD:
-                # duplicate
-                if find_object(accounts, id=a.id):
-                    self.logger.warning('Ignoring duplicate card %r', a.id)
-                    continue
-                a.parent = previous_account
-
-            if line[self.COL_HISTORY] == 'true':
-                a._inv = False
-                a._link = self.get_history_link()
-                a._args = self.make__args_dict(line)
-            else:
-                a._inv = True
-                a._args = {'_ipc_eventValue':  line[self.COL_ID],
-                           '_ipc_fireEvent':   line[self.COL_FIRE_EVENT],
-                          }
-                a._link = self.doc.xpath('//form[@name="changePageForm"]')[0].attrib['action']
-
-            if a.type is Account.TYPE_CARD:
-                a.coming = a.balance
-                a.balance = Decimal('0.0')
-
-            accounts.append(a)
-            previous_account = a
-
-        return accounts
-
-    def iban_page(self):
-        form = self.get_form(name="changePageForm")
-        form['_ipc_fireEvent'] = 'V1_rib'
-        form['_ipc_eventValue'] = 'bouchon=bouchon'
-        form.submit()
-
-    @method
-    class get_profile(ItemElement):
-        klass = Profile
-
-        obj_name = CleanText('//p[@class="nom"]')
-
-    def get_strid(self):
-        return re.search(r'(\d{4,})', Attr('//form[@name="changePageForm"]', 'action')(self.doc)).group(0)
-
-
 class ProIbanPage(CDNBasePage):
     pass
 
@@ -418,11 +281,164 @@ class PartAVPage(AVPage):
     pass
 
 
-class ProAccountsPage(AccountsPage):
+class AccountsPageMixin(LoggedPage, CDNBasePage):
+    COL_HISTORY = 2
+    COL_FIRE_EVENT = 3
+    COL_LABEL = 5
+
+    TYPES = {
+        'CARTE':                   Account.TYPE_CARD,
+        'COMPTE COURANT':          Account.TYPE_CHECKING,
+        'CPTE EXPLOITATION IMMOB': Account.TYPE_CHECKING,
+        'CPT COURANT':             Account.TYPE_CHECKING,
+        'CONSEILLE RESIDENT':      Account.TYPE_CHECKING,
+        'PEA':                     Account.TYPE_PEA,
+        'P.E.A':                   Account.TYPE_PEA,
+        'COMPTE ÉPARGNE':          Account.TYPE_SAVINGS,
+        'COMPTE EPARGNE':          Account.TYPE_SAVINGS,
+        'COMPTE SUR LIVRET':       Account.TYPE_SAVINGS,
+        'LDDS':                    Account.TYPE_SAVINGS,
+        'LIVRET':                  Account.TYPE_SAVINGS,
+        "PLAN D'EPARGNE":          Account.TYPE_SAVINGS,
+        'PLAN ÉPARGNE':            Account.TYPE_SAVINGS,
+        'ASS.VIE':                 Account.TYPE_LIFE_INSURANCE,
+        'BONS CAPI':               Account.TYPE_CAPITALISATION,
+        'ÉTOILE AVANCE':           Account.TYPE_LOAN,
+        'ETOILE AVANCE':           Account.TYPE_LOAN,
+        'PRÊT':                    Account.TYPE_LOAN,
+        'CREDIT':                  Account.TYPE_LOAN,
+        'FACILINVEST':             Account.TYPE_LOAN,
+        'TITRES':                  Account.TYPE_MARKET,
+        'COMPTE TIT':              Account.TYPE_MARKET,
+        'PRDTS BLOQ. TIT':         Account.TYPE_MARKET,
+        'PRODUIT BLOQUE TIT':      Account.TYPE_MARKET,
+        'COMPTE A TERME':          Account.TYPE_DEPOSIT,
+    }
+
+    def get_account_type(self, label):
+        for pattern, actype in sorted(self.TYPES.items()):
+            if label.startswith(pattern) or label.endswith(pattern):
+                return actype
+        return Account.TYPE_UNKNOWN
+
+
+class AccountsPage(AccountsPageMixin):
+    COL_ID = 4
+    COL_BALANCE = -1
+
+    def make__args_dict(self, line):
+        return {
+            '_eventId': 'clicDetailCompte',
+            '_ipc_eventValue': '',
+            '_ipc_fireEvent': '',
+            'execution': self.get_execution(),
+            'idCompteClique': line[self.COL_ID],
+        }
+
+    def get_password_expired(self):
+        error = CleanText('//div[@class="x-attentionErreur"]/b')(self.doc)
+        if "vous devez modifier votre code confidentiel à la première connexion" in error:
+            return error
+
+    def get_history_link(self):
+        return CleanText().filter(self.get_from_js(",url: Ext.util.Format.htmlDecode('", "'")).replace('&amp;', '&')
+
+    def get_account_ownership(self, owner_pos, acc_id, name):
+        acc_id_pos = self.text.find(acc_id)
+        reg = re.compile(r'(m|mr|me|mme|mlle|mle|ml)\.? (.*)\bet (m|mr|me|mme|mlle|mle|ml)\b(.*)', re.IGNORECASE)
+        for pos, owner in owner_pos.items():
+            if acc_id_pos < pos:
+                if reg.search(owner):
+                    return AccountOwnership.CO_OWNER
+                elif all(n in owner.upper() for n in name.split()):
+                    return AccountOwnership.OWNER
+                return AccountOwnership.ATTORNEY
+
+    def get_list(self, name):
+        accounts = []
+        previous_account = None
+
+        noaccounts = self.get_from_js('_js_noMvts =', ';')
+        if noaccounts is not None:
+            assert 'avez aucun compte' in noaccounts
+            return []
+
+        txt = self.get_from_js('_data = new Array(', ');', is_list=True)
+
+        if txt is None:
+            raise BrowserUnavailable('Unable to find accounts list in scripts')
+
+        owner_pos = OrderedDict()
+        for m in re.finditer(r'(M\. .*|Mme .*|Mlle .*)(?=\')', self.text):
+            owner_pos[m.start()] = m.group(1)
+
+        data = json.loads('[%s]' % txt.replace("'", '"'))
+
+        for line in data:
+            a = Account()
+            a.id = line[self.COL_ID].replace(' ', '')
+
+            if re.match(r'Classement=(.*?):::Banque=(.*?):::Agence=(.*?):::SScompte=(.*?):::Serie=(.*)', a.id):
+                a.id = str(CleanDecimal().filter(a.id))
+
+            a._acc_nb = a.id.split('_')[0] if len(a.id.split('_')) > 1 else None
+            a.label = MyStrip(line[self.COL_LABEL], xpath='.//div[@class="libelleCompteTDB"]')
+            # This account can be multiple life insurance accounts
+            if a.label == 'ASSURANCE VIE-BON CAPI-SCPI-DIVERS *':
+                continue
+
+            a.ownership = self.get_account_ownership(owner_pos, line[self.COL_ID], name)
+            a.balance = Decimal(FrenchTransaction.clean_amount(line[self.COL_BALANCE]))
+            a.currency = a.get_currency(line[self.COL_BALANCE])
+            a.type = self.get_account_type(a.label)
+
+            # The parent account must be created right before
+            if a.type == Account.TYPE_CARD:
+                # duplicate
+                if find_object(accounts, id=a.id):
+                    self.logger.warning('Ignoring duplicate card %r', a.id)
+                    continue
+                a.parent = previous_account
+
+            if line[self.COL_HISTORY] == 'true':
+                a._inv = False
+                a._link = self.get_history_link()
+                a._args = self.make__args_dict(line)
+            else:
+                a._inv = True
+                a._args = {'_ipc_eventValue':  line[self.COL_ID],
+                           '_ipc_fireEvent':   line[self.COL_FIRE_EVENT],
+                          }
+                a._link = self.doc.xpath('//form[@name="changePageForm"]')[0].attrib['action']
+
+            if a.type is Account.TYPE_CARD:
+                a.coming = a.balance
+                a.balance = Decimal('0.0')
+
+            accounts.append(a)
+            previous_account = a
+
+        return accounts
+
+    def iban_page(self):
+        form = self.get_form(name="changePageForm")
+        form['_ipc_fireEvent'] = 'V1_rib'
+        form['_ipc_eventValue'] = 'bouchon=bouchon'
+        form.submit()
+
+    def get_strid(self):
+        return re.search(r'(\d{4,})', Attr('//form[@name="changePageForm"]', 'action')(self.doc)).group(0)
+
+
+class ProAccountsPage(AccountsPageMixin):
     COL_ID = 0
     COL_BALANCE = 1
 
-    ARGS = ['Banque', 'Agence', 'Classement', 'Serie', 'SSCompte', 'Devise', 'CodeDeviseCCB', 'LibelleCompte', 'IntituleCompte', 'Indiceclassement', 'IndiceCompte', 'NomClassement']
+    ARGS = [
+        'Banque', 'Agence', 'Classement', 'Serie', 'SSCompte', 'Devise',
+        'CodeDeviseCCB', 'LibelleCompte', 'IntituleCompte', 'Indiceclassement',
+        'IndiceCompte', 'NomClassement',
+    ]
 
     def on_load(self):
         if self.doc.xpath('//h1[contains(text(), "Erreur")]'):
@@ -465,6 +481,7 @@ class ProAccountsPage(AccountsPage):
         deposit_count = 1
         for tr in self.doc.xpath('//table[has-class("datas")]//tr'):
             if tr.attrib.get('class', '') == 'entete':
+                owner = CleanText('.')(tr.findall('td')[0])
                 continue
 
             cols = tr.findall('td')
@@ -472,6 +489,7 @@ class ProAccountsPage(AccountsPage):
             a = Account()
             a.label = unicode(cols[self.COL_ID].xpath('.//span[@class="left-underline"] | .//span[@class="left"]/a')[0].text.strip())
             a.type = self.get_account_type(a.label)
+            a.ownership = self.get_account_ownership(owner)
             balance = CleanText('.')(cols[self.COL_BALANCE])
             if balance == '':
                 continue
@@ -533,17 +551,16 @@ class ProAccountsPage(AccountsPage):
 
             yield a
 
+    def get_account_ownership(self, owner):
+        if re.search(r'(m|mr|me|mme|mlle|mle|ml)\.? (m|mr|me|mme|mlle|mle|ml)\b', owner, re.IGNORECASE):
+            return AccountOwnership.CO_OWNER
+        return AccountOwnership.OWNER
+
     def iban_page(self):
         self.browser.location(self.doc.xpath('.//a[contains(text(), "Impression IBAN")]')[0].attrib['href'])
 
     def has_iban(self):
         return not bool(CleanText('//*[contains(., "pas de compte vous permettant l\'impression de RIB")]')(self.doc))
-
-    @method
-    class get_profile(ItemElement):
-        klass = Profile
-
-        obj_name = CleanText('//p[@class="nom"]')
 
 
 class IbanPage(LoggedPage, HTMLPage):
