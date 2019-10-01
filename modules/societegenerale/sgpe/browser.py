@@ -472,7 +472,7 @@ class SGProfessionalBrowser(SGEnterpriseBrowser, StatesMixin):
             raise TransferBankError(message="La date d'exécution du virement est invalide. Elle doit correspondre aux horaires et aux dates d'ouvertures d'agence.")
 
         # update account and recipient info
-        recipient = find_object(self.iter_recipients(account), iban=recipient.iban, error=RecipientNotFound)
+        recipient = find_object(self.iter_recipients(account), iban=recipient.iban, id=recipient.id, error=RecipientNotFound)
 
         data = [
             ('an_codeAction', 'C'),
