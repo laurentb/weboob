@@ -33,19 +33,20 @@ from weboob.exceptions import BrowserUnavailable, ActionNeeded
 
 class LoginPage(HTMLPage):
     def login(self, login, passwd):
-        form = self.get_form(name='_DominoForm')
-        form['Username'] = login
+        form = self.get_form(id='loginForm')
+        form['username'] = login
         form['password'] = passwd
         form.submit()
-
-    def is_here(self):
-        return bool(self.doc.xpath('//form[@name="_DominoForm"]'))
 
 
 class BadLogin(HTMLPage):
     def get_error(self):
         return CleanText('//div[@id="idDivErrorLogin"]')(self.doc)
 
+
+class MigrationPage(HTMLPage):
+    def get_error(self):
+        return CleanText('//h1[contains(text(), "Votre nouvel identifiant et mot de passe")]')(self.doc)
 
 class IndexPage(LoggedPage, HTMLPage):
     def on_load(self):

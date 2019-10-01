@@ -21,16 +21,20 @@ from __future__ import unicode_literals
 
 from random import randint
 from weboob.browser import URL, LoginBrowser, need_login
-from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, BrowserPasswordExpired
 from weboob.tools.compat import basestring
 
-from .pages import LoginPage, IndexPage, BadLogin, AccountDetailPage, AccountHistoryPage
+from .pages import (
+    LoginPage, IndexPage, BadLogin, AccountDetailPage, AccountHistoryPage, MigrationPage
+)
 
 
 class AferBrowser(LoginBrowser):
     BASEURL = 'https://adherent.gie-afer.fr'
 
-    login = URL('/web/ega.nsf/listeAdhesions\?OpenForm', LoginPage)
+    login = URL(r'/espaceadherent/MonCompte/Connexion', LoginPage)
+    migration = URL(r'/espaceadherent/MonCompte/Migration', MigrationPage)
+    # TODO check all following urls once users have migrated to new credentials
     bad_login = URL('/names.nsf\?Login', BadLogin)
     index = URL('/web/ega.nsf/listeAdhesions\?OpenForm', IndexPage)
     account_detail = URL('/web/ega.nsf/soldeEpargne\?openForm', AccountDetailPage)
@@ -50,6 +54,9 @@ class AferBrowser(LoginBrowser):
             self.page.login(self.username, self.password)
         except BrowserUnavailable:
             raise BrowserIncorrectPassword()
+
+        if self.migration.is_here():
+            raise BrowserPasswordExpired(self.page.get_error())
 
         if self.bad_login.is_here():
             error = self.page.get_error()
