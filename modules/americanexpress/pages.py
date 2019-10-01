@@ -143,7 +143,7 @@ class JsonBalances2(LoggedPage, JsonPage):
 
 class CurrencyPage(LoggedPage, JsonPage):
     def get_currency(self):
-        return self.doc['currency']
+        return self.doc['localeSettings']['currency_code']
 
 
 class JsonPeriods(LoggedPage, JsonPage):

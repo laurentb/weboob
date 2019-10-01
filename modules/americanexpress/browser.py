@@ -52,7 +52,7 @@ class AmericanExpressBrowser(LoginBrowser):
     js_posted = URL(r'/account-data/v1/financials/transactions\?limit=1000&offset=(?P<offset>\d+)&statement_end_date=(?P<end>[0-9-]+)&status=posted',
                     JsonHistory)
     js_periods = URL(r'/account-data/v1/financials/statement_periods', JsonPeriods)
-    currency_page = URL(r'https://www.aexp-static.com/cdaas/axp-app/modules/axp-offers/1.11.1/fr-fr/axp-offers.json', CurrencyPage)
+    currency_page = URL(r'https://www.aexp-static.com/cdaas/axp-app/modules/axp-balance-summary/4.7.0/(?P<locale>\w\w-\w\w)/axp-balance-summary.json', CurrencyPage)
 
     no_card = URL(r'https://www.americanexpress.com/us/content/no-card/',
                   r'https://www.americanexpress.com/us/no-card/', NoCardPage)
@@ -93,7 +93,8 @@ class AmericanExpressBrowser(LoginBrowser):
             self.page.set_balances(accounts)
 
         # get currency
-        self.currency_page.go()
+        loc = self.session.cookies.get_dict(domain=".americanexpress.com")['axplocale'].lower()
+        self.currency_page.go(locale=loc)
         currency = self.page.get_currency()
 
         for acc in accounts:
