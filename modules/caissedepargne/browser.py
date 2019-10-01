@@ -1038,6 +1038,10 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         # This send sms to user.
         self.page.go_add_recipient()
 
+        if self.transfer.is_here():
+            self.page.handle_error()
+            assert False, 'We should not be on this page.'
+
         if self.sms_option.is_here():
             self.is_send_sms = True
             raise AddRecipientStep(

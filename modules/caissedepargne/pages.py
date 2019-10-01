@@ -1506,6 +1506,12 @@ class TransferPage(TransferErrorPage, IndexPage):
         form['__EVENTARGUMENT'] = m.group(2)
         form.submit()
 
+    def handle_error(self):
+        # the website cannot add recipients from out of France
+        error_msg = CleanText('//div[@id="divPopinInfoAjout"]/p[not(a)]')(self.doc)
+        if error_msg:
+            raise AddRecipientBankError(message=error_msg)
+
 
 class TransferConfirmPage(TransferErrorPage, IndexPage):
     def build_doc(self, content):
