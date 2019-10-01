@@ -151,7 +151,7 @@ class Page(object):
         self.params = params
 
         # Setup encoding and build document
-        self.forced_encoding = encoding or self.ENCODING
+        self.forced_encoding = self.normalize_encoding(encoding or self.ENCODING)
         if self.forced_encoding:
             self.response.encoding = self.forced_encoding
         self.doc = self.build_doc(self.data)
@@ -169,7 +169,7 @@ class Page(object):
 
     @property
     def encoding(self):
-        return self.response.encoding
+        return self.normalize_encoding(self.response.encoding)
 
     @encoding.setter
     def encoding(self, value):
@@ -222,6 +222,14 @@ class Page(object):
         declaration, if any (eg. html5's <meta charset="some-charset">).
         """
         return None
+
+    def normalize_encoding(self, encoding):
+        """
+        Make sure we can easily compare encodings by formatting them the same way.
+        """
+        if isinstance(encoding, bytes):
+            encoding = encoding.decode('utf-8')
+        return encoding.lower() if encoding else encoding
 
     def absurl(self, url):
         """
@@ -518,7 +526,7 @@ class XMLPage(Page):
         import re
         m = re.search(b'<\?xml version="1.0" encoding="(.*)"\?>', self.data)
         if m:
-            return m.group(1)
+            return self.normalize_encoding(m.group(1))
 
     def build_doc(self, content):
         import lxml.etree as etree
@@ -664,10 +672,10 @@ class HTMLPage(Page):
         Method to build the lxml document from response and given encoding.
         """
         encoding = self.encoding
-        if encoding == 'latin-1':
-            encoding = 'latin1'
+        if encoding == u'latin-1':
+            encoding = u'latin1'
         if encoding:
-            encoding = encoding.replace('ISO8859_', 'ISO8859-')
+            encoding = encoding.replace(u'iso8859_', u'iso8859-')
         import lxml.html as html
         parser = html.HTMLParser(encoding=encoding)
         return html.parse(BytesIO(content), parser)
@@ -681,18 +689,18 @@ class HTMLPage(Page):
             # meta http-equiv=content-type content=...
             _, params = parse_header(content)
             if 'charset' in params:
-                encoding = params['charset'].strip("'\"")
+                encoding = self.normalize_encoding(params['charset'].strip("'\""))
 
         for charset in self.doc.xpath('//head/meta[@charset]/@charset'):
             # meta charset=...
-            encoding = charset.lower()
+            encoding = self.normalize_encoding(charset)
 
-        if encoding == 'iso-8859-1' or not encoding:
-            encoding = 'windows-1252'
+        if encoding == u'iso-8859-1' or not encoding:
+            encoding = u'windows-1252'
         try:
             codecs.lookup(encoding)
         except LookupError:
-            encoding = 'windows-1252'
+            encoding = u'windows-1252'
 
         return encoding
 
