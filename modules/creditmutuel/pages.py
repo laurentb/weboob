@@ -116,7 +116,7 @@ class MobileConfirmationPage(LoggedPage, HTMLPage):
             self.logger.warning('This connexion cannot bypass mobile confirmation')
             msg = CleanText('//div[@id="inMobileAppMessage"]')(self.doc)
             if msg:
-                display_msg = re.search(r'Confirmer votre connexion depuis votre appareil "[\w ]+"', msg).group()
+                display_msg = re.search(r'Confirmer votre connexion depuis votre appareil ".+"', msg).group()
                 raise AppValidation(display_msg)
             assert False, "Mobile authentication method not handled"
 
