@@ -606,8 +606,9 @@ class Transfer(BaseObject, Currency):
     # Information for beneficiary not only in recipient list
     # Like transfer to iban beneficiary
     beneficiary_type =    StringField('Transfer creditor number type', default=BeneficiaryType.RECIPIENT)
-    beneficiary_number =  StringField('Transfer creditor number', default=None)
-    beneficiary_label =  StringField('Transfer creditor number', default='Unknown')
+    beneficiary_number =  StringField('Transfer creditor number')
+    beneficiary_label =  StringField('Transfer creditor label')
+
 
 class CapBank(CapCollection):
     """
