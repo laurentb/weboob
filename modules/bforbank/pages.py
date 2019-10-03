@@ -301,11 +301,13 @@ class CardHistoryPage(LoggedPage, HTMLPage):
 class CardPage(LoggedPage, HTMLPage):
     def has_no_card(self):
         # Persistent message for cardless accounts
-        return CleanText('//div[@id="alert"]/p[contains(text(), "Aucune donnée n\'a été retournée par le service")]')(self.doc)
+        return (
+            CleanText('//div[@id="alert"]/p[contains(text(), "Aucune donnée n\'a été retournée par le service")]')(self.doc)
+            or not self.doc.xpath('//div[@class="content-boxed"]')
+        )
 
     def get_cards(self, account_id):
         divs = self.doc.xpath('//div[@class="content-boxed"]')
-        assert len(divs)
         msgs = re.compile(
             'Vous avez fait opposition sur cette carte bancaire.' +
             '|Votre carte bancaire a été envoyée.' +
