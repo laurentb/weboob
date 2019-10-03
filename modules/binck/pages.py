@@ -23,7 +23,7 @@ import re
 
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
 from weboob.browser.elements import ItemElement, ListElement, DictElement, TableElement, method
-from weboob.browser.filters.standard import CleanText, Date, Format, CleanDecimal, Eval, Env, Field
+from weboob.browser.filters.standard import CleanText, Date, DateTime, Format, CleanDecimal, Eval, Env, Field
 from weboob.browser.filters.html import Attr, Link, TableCell
 from weboob.browser.filters.json import Dict
 from weboob.exceptions import BrowserPasswordExpired, ActionNeeded
@@ -31,6 +31,7 @@ from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable, empty
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.investments import is_isin_valid
+from weboob.browser.filters.standard import FilterError
 
 
 def MyDecimal(*args, **kwargs):
@@ -212,7 +213,7 @@ class InvestmentPage(LoggedPage, JsonPage):
 
             obj_label = Dict('SecurityName')
             obj_quantity = MyDecimal(Dict('Quantity'))
-            obj_vdate = Date(CleanText(Dict('Time')), dayfirst=True)
+            obj_vdate = DateTime(CleanText(Dict('Time')), dayfirst=True, strict=False)
             obj_unitvalue = Env('unitvalue', default=NotAvailable)
             obj_unitprice = Env('unitprice', default=NotAvailable)
             obj_valuation = MyDecimal(Dict('ValueInEuro'))
@@ -224,6 +225,17 @@ class InvestmentPage(LoggedPage, JsonPage):
             obj_original_valuation = Env('o_valuation', default=NotAvailable)
             obj_original_diff = Env('o_diff', default=NotAvailable)
             obj__security_id = Dict('SecurityId')
+
+            def obj_vdate(self):
+                try:
+                    # during stocks closing hours only date (d/m/y) is given
+                    return Date(CleanText(Dict('Time')), dayfirst=True)(self)
+                except FilterError:
+                    # during stocks opening hours only time (h:m:s) is given,
+                    # can even be realtime, depending on user settings,
+                    # can be given in foreign markets time,
+                    # e.g. 10:00 is displayed at 9:00 for an action in NASADQ Helsinki market
+                    return DateTime(CleanText(Dict('Time')), dayfirst=True, strict=False)(self)
 
             def obj_code(self):
                 if is_isin_valid(Dict('IsinCode')(self)):
