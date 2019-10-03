@@ -1057,7 +1057,7 @@ class CardsComingPage(IndexPage):
         if CleanText('//a[contains(text(),"%s")]' % number)(self.doc):
             # For all cards except the first one for the same check account, we have to get info through their href info
             link = CleanText(Link('//a[contains(text(),"%s")]' % number))(self.doc)
-            infos = re.match(r'.*(DETAIL_OP_M0&[^\"]+).*', link)
+            infos = re.match(r'.*(DETAIL_OP_M\d&[^\"]+).*', link)
             info['link'] = infos.group(1)
 
             return info
