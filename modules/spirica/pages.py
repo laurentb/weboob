@@ -199,7 +199,7 @@ class DetailsPage(LoggedPage, HTMLPage):
                     path = 'ancestor::tr/preceding-sibling::tr[@data-ri][position() = 1][1]/td[%d]' % (share_idx + 1)
 
                     profile_share = MyDecimal(path)(self)
-                    assert profile_share
+                    assert not empty(profile_share), 'profile_share is %s' % profile_share
                     profile_share = Eval(lambda x: x / 100, profile_share)(self)
                     return inv_share * profile_share
                 else:
