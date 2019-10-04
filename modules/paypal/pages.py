@@ -93,7 +93,7 @@ class LoginPage(HTMLPage):
         cleaner_code = re.sub(r"%s\('([^']+)'\)" % re.escape(decoder_name), exec_decoder, cleaner_code)
 
         cookie = re.search(r'xppcts = (\w+);', cleaner_code).group(1)
-        sessionID = re.search(r"%s'([^']+)'" % re.escape("'&_sessionID='+encodeURIComponent("), cleaner_code).group(1)
+        sessionID = re.search(r"%s\w+\('([^']+)'" % re.escape("'&_sessionID='+encodeURIComponent("), cleaner_code).group(1)
         csrf = re.search(r"%s'([^']+)'" % re.escape("'&_csrf='+encodeURIComponent("), cleaner_code).group(1)
         key, value = re.findall(r"'(\w+)','(\w+)'", cleaner_code)[-1]
 
@@ -106,9 +106,12 @@ class LoginPage(HTMLPage):
         get_token_func_declaration = "var " + get_token_func_name + "="
         cleaner_code = cleaner_code.replace(get_token_func_declaration, get_token_func_declaration + "window.ADS_JS_TOKEN=")
 
-        # Remove the call to an infinite loop
-        loop_func_name = re.search(r"\(function\(\w+,\s?\w+,\s?\w+,\s?\w+\)\{var\s(\w+)=", cleaner_code).group(1)
-        cleaner_code = cleaner_code.replace(loop_func_name + "();", "")
+        # Paypal will try to create an infinite loop to make the parse fail, based on different
+        # weird things like a check of 'ind\\u0435xOf' vs 'indexOf'.
+        cleaner_code = cleaner_code.replace(r"'ind\\u0435xOf'", "'indexOf'")
+        # It also calls "data" which is undefined instead of a return (next call is an infinite
+        # recursive function). This should theorically not happen if window.domain is correctly set
+        # to "paypal.com" though.
         cleaner_code = cleaner_code.replace("data;", "return;")
 
         # Add a function that returns the token
