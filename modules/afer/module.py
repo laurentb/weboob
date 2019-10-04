@@ -39,8 +39,11 @@ class AferModule(Module, CapBankWealth):
     VERSION = '1.6'
 
     BROWSER = AferBrowser
-    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Username', regexp='[A-z]\d+', masked=False),
-                           ValueBackendPassword('password', label=u"mdp", regexp='\d{1,8}'))
+    CONFIG = BackendConfig(
+        ValueBackendPassword('login', label='Identifiant', regexp=r'.+', masked=False),
+        ValueBackendPassword('password', label="Mot de passe", regexp=r'\d{1,8}|[a-zA-Z0-9]{7,30}')
+        # TODO lose previous regex (and in backend) once users credentials migration is complete
+    )
 
     def create_default_browser(self):
         return self.create_browser(self.config['login'].get(),
