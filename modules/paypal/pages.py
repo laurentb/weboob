@@ -24,7 +24,7 @@ import re
 
 from weboob.tools.compat import unicode
 from weboob.capabilities.bank import Account
-from weboob.capabilities.base import NotAvailable, Currency
+from weboob.capabilities.base import NotAvailable
 from weboob.exceptions import BrowserUnavailable, ActionNeeded
 from weboob.browser.exceptions import ServerError
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
@@ -169,22 +169,18 @@ class AccountPage(HomePage):
 
     def get_accounts(self):
         accounts = {}
-        content = self.doc.xpath('//div[@id="moneyPage" or @id="MoneyPage"]')[0]
+        content = self.doc.xpath('//section[@id="contents"]')[0]
 
         # Multiple accounts
-        lines = content.xpath('(//div[@class="col-md-8 multi-currency"])[1]/ul/li')
+        lines = content.xpath('.//ul[@class="multiCurrency-container"][1]/li')
         for li in lines:
             account = Account()
             account.iban = NotAvailable
             account.type = Account.TYPE_CHECKING
-            currency_code = CleanText().filter((li.xpath('./span[@class="currencyUnit"]/span') or li.xpath('./span[1]'))[0])
-            currency = Currency.get_currency(currency_code)
-            if not currency:
-                self.logger.warning('Unable to find currency %r', currency_code)
-                continue
+            currency = CleanText().filter(li.xpath('.//span[contains(@class, "multiCurrency-label_alignMiddle")]')[0])
             account.id = currency
             account.currency = currency
-            account.balance = CleanDecimal(replace_dots=True).filter(li.xpath('./span[@class="amount"]/text()'))
+            account.balance = CleanDecimal(replace_dots=True).filter(li.xpath('.//span[contains(@class, "multiCurrency-label_right")]/text()')[0])
             account.label = u'%s %s*' % (self.browser.username, account.currency)
             accounts[account.id] = account
             self.browser.account_currencies.append(account.currency)

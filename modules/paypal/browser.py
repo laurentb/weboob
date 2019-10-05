@@ -65,6 +65,7 @@ class Paypal(LoginBrowser):
     promo = URL('https://www.paypal.com/fr/webapps/mpp/clickthru/paypal-app-promo-2.*',
                 '/fr/webapps/mpp/clickthru.*', PromoPage)
     account = URL('https://www.paypal.com/businessexp/money',
+                  'https://www.paypal.com/myaccount/money',
                   'https://www.paypal.com/webapps/business/money', AccountPage)
     pro_history = URL('https://\w+.paypal.com/businessexp/transactions/activity\?.*',
                       ProHistoryPage)
