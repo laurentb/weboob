@@ -179,9 +179,8 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         # Must set the referer to avoid redirection to the home page
         self.login.go(headers={"Referer": "https://www.lcl.fr/"})
 
-        if not self.page.login(self.username, self.password) or \
-           (self.login.is_here() and self.page.is_error()):
-            raise BrowserIncorrectPassword("invalid login/password.\nIf you did not change anything, be sure to check for password renewal request on the original web site.")
+        if not self.page.login(self.username, self.password) or self.login.is_here():
+            self.page.check_error()
 
         if not self.contracts and not self.parsed_contracts:
             # On the preRoutageLogin page we gather the list of available contracts for this account

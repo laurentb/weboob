@@ -35,7 +35,6 @@ from weboob.capabilities.bill import Document, Subscription, DocumentTypes
 from weboob.capabilities.profile import Person, ProfileMissing
 from weboob.capabilities.contact import Advisor
 from weboob.browser.elements import method, ListElement, TableElement, ItemElement, DictElement
-from weboob.exceptions import ParseError, ActionNeeded
 from weboob.browser.exceptions import ServerError
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage, FormNotFound, pagination
 from weboob.browser.filters.html import Attr, Link, TableCell, AttributeNotFound, AbsoluteLink
@@ -44,7 +43,7 @@ from weboob.browser.filters.standard import (
     BrowserURL, Eval, Currency,
 )
 from weboob.browser.filters.json import Dict
-from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword
+from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, ActionNeeded, ParseError
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 from weboob.tools.compat import unicode, urlparse, parse_qs, urljoin
@@ -183,15 +182,27 @@ class LoginPage(HTMLPage):
             return False
         return True
 
-    def is_error(self):
+    def check_error(self):
         errors = self.doc.xpath(u'//*[@class="erreur" or @class="messError"]')
-        return len(errors) > 0 and not self.doc.xpath('//a[@href="/outil/UWHO/Accueil/"]')
+        if not errors or self.doc.xpath('//a[@href="/outil/UWHO/Accueil/"]'):
+            return
+
+        for error in errors:
+            error_text = CleanText(error.xpath('./div/text()'))(self.doc)
+            if 'Suite à la saisie de plusieurs identifiant / code erronés' in error_text:
+                raise ActionNeeded(error_text)
+            if 'Votre identifiant ou votre code personnel est incorrect' in error_text:
+                raise BrowserIncorrectPassword(error_text)
+        raise BrowserIncorrectPassword()
 
 
 class ContractsPage(LoginPage):
     def on_load(self):
-        if self.is_error():
-            raise BrowserIncorrectPassword()
+        # after login we are redirect in ContractsPage even if there is an error at login
+        # I let the error check code here to simplify
+        # a better solution will be to put error check on browser.py and error parsing in pages.py
+        self.check_error()
+
         # To avoid skipping contract page the first time we see it,
         # and to be able to get the contracts list from it
         if self.browser.parsed_contracts:
@@ -215,8 +226,7 @@ class ContractsPage(LoginPage):
 
 class ContractsChoicePage(ContractsPage):
     def on_load(self):
-        if self.is_error():
-            raise BrowserIncorrectPassword()
+        self.check_error()
         if not self.logged and not self.browser.current_contract:
             self.select_contract()
 
