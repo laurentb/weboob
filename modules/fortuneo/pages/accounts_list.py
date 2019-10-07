@@ -71,6 +71,15 @@ class PeaHistoryPage(LoggedPage, HTMLPage):
     COL_PERF = 6
     COL_WEIGHT = 7
 
+    def on_load(self):
+        err_msgs = [
+            "vos informations personnelles n'ayant pas été modifiées récemment, nous vous remercions de bien vouloir les compléter",
+            "nous vous remercions de mettre à jour et/ou de compléter vos informations personnelles",
+        ]
+        text = CleanText('//div[@class="block_cadre"]//div/p')(self.doc)
+        if any(err_msg in text for err_msg in err_msgs):
+            raise ActionNeeded(text)
+
     def get_investments(self, account):
         if account is not None:
             # the balance is highly dynamic, fetch it along with the investments to grab a snapshot
@@ -503,18 +512,18 @@ class AccountsList(LoggedPage, HTMLPage):
                     break
 
             investment_page = None
-            if account.type in {Account.TYPE_PEA, Account.TYPE_MARKET, Account.TYPE_LIFE_INSURANCE}:
+            if account.type in (Account.TYPE_PEA, Account.TYPE_MARKET, Account.TYPE_LIFE_INSURANCE):
                 account._investment_link = Link('./ul/li/a[contains(@id, "portefeuille")]')(cpt)
-                investment_page = self.browser.open(account._investment_link).page
+                investment_page = self.browser.location(account._investment_link).page
                 balance = investment_page.get_balance(account.type)
-                if account.type in {Account.TYPE_PEA, Account.TYPE_MARKET}:
+                if account.type in (Account.TYPE_PEA, Account.TYPE_MARKET):
                     self.browser.investments[account.id] = list(self.browser.open(account._investment_link).page.get_investments(account))
             else:
                 balance = page.get_balance()
                 if account.type is not Account.TYPE_LOAN:
                     account.coming = page.get_coming()
 
-            if account.type in {Account.TYPE_PEA, Account.TYPE_MARKET}:
+            if account.type in (Account.TYPE_PEA, Account.TYPE_MARKET):
                 account.currency = investment_page.get_currency()
             elif balance:
                 account.currency = account.get_currency(balance)
