@@ -32,7 +32,7 @@ __all__ = ['ImpotsGouvFrParModule']
 
 class ImpotsGouvFrParModule(AbstractModule, CapDocument, CapProfile):
     NAME = 'impotsgouvfrpar'
-    DESCRIPTION = 'impots.gouv.fr'
+    DESCRIPTION = 'Impots - Avis et declarations - particulier'
     MAINTAINER = 'Florian Duguet'
     EMAIL = 'florian.duguet@budget-insight.com'
     LICENSE = 'LGPLv3+'
