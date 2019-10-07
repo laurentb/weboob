@@ -129,7 +129,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
     deposit = URL('/outil/UWPL/CompteATerme/accesSynthese',
                   '/outil/UWPL/DetailCompteATerme/accesDetail', DepositPage)
 
-    __states__ = ('contracts', 'current_contract',)
+    __states__ = ('contracts', 'current_contract','parsed_contracts')
 
     IDENTIFIANT_ROUTING = 'CLI'
 
@@ -137,7 +137,8 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         super(LCLBrowser, self).__init__(*args, **kwargs)
         self.accounts_list = None
         self.current_contract = None
-        self.contracts = None
+        self.contracts = []
+        self.parsed_contracts = False
         self.owner_type = AccountOwnerType.PRIVATE
 
     def load_state(self, state):
@@ -160,9 +161,6 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         # Since a while the virtual keyboard accepts only the first 6 digits of the password
         self.password = self.password[:6]
 
-        self.contracts = []
-        self.current_contract = None
-
         # we force the browser to go to login page so it's work even
         # if the session expire
         # Must set the referer to avoid redirection to the home page
@@ -171,6 +169,14 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         if not self.page.login(self.username, self.password) or \
            (self.login.is_here() and self.page.is_error()):
             raise BrowserIncorrectPassword("invalid login/password.\nIf you did not change anything, be sure to check for password renewal request on the original web site.")
+
+        if not self.contracts and not self.parsed_contracts:
+            # On the preRoutageLogin page we gather the list of available contracts for this account
+            self.contracts = self.page.get_contracts_list()
+            # If there is not multiple contracts then self.contracts will be empty
+            if not self.contracts:
+                self.page.select_contract()
+            self.parsed_contracts = True
 
         self.accounts_list = None
         self.accounts.stay_or_go()
@@ -211,6 +217,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
 
     def select_contract(self, id_contract):
         if self.current_contract and id_contract != self.current_contract:
+            self.logger.debug('Changing contract to %s', id_contract)
             # when we go on bourse page, we can't change contract anymore... we have to logout.
             self.location('/outil/UAUT/Login/logout')
             # we already passed all checks on do_login so we consider it's ok.

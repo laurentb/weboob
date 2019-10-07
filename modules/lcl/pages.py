@@ -189,7 +189,13 @@ class ContractsPage(LoginPage):
     def on_load(self):
         if self.is_error():
             raise BrowserIncorrectPassword()
-        self.select_contract()
+        # To avoid skipping contract page the first time we see it,
+        # and to be able to get the contracts list from it
+        if self.browser.parsed_contracts:
+            self.select_contract()
+
+    def get_contracts_list(self):
+        return self.doc.xpath('//input[@name="contratId"]/@value')
 
     def select_contract(self, id_contract=None):
         link = self.doc.xpath('//a[contains(text(), "Votre situation globale")]')
@@ -208,7 +214,6 @@ class ContractsChoicePage(ContractsPage):
     def on_load(self):
         if self.is_error():
             raise BrowserIncorrectPassword()
-        self.browser.contracts = [unicode(x) for x in self.doc.xpath('//input[@name="contratId"]/@value')]
         if not self.logged and not self.browser.current_contract:
             self.select_contract()
 
