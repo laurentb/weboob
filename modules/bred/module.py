@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from weboob.capabilities.bank import CapBankWealth, AccountNotFound, Account
 from weboob.capabilities.base import find_object
@@ -38,21 +39,23 @@ class BredModule(Module, CapBankWealth, CapProfile):
     VERSION = '1.6'
     DESCRIPTION = u'Bred'
     LICENSE = 'LGPLv3+'
-    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
-                           ValueBackendPassword('password', label='Mot de passe'),
-                           Value('website', label=u"Site d'accès", default='bred',
-                                 choices={'bred': 'BRED', 'dispobank': 'DispoBank'}),
-                           Value('accnum', label=u'Numéro du compte bancaire (optionnel)', default='', masked=False)
-                          )
+    CONFIG = BackendConfig(
+        ValueBackendPassword('login', label='Identifiant', masked=False),
+        ValueBackendPassword('password', label='Mot de passe'),
+        Value('website', label="Site d'accès", default='bred',
+              choices={'bred': 'BRED', 'dispobank': 'DispoBank'}),
+        Value('accnum', label='Numéro du compte bancaire (optionnel)', default='', masked=False),
+    )
 
-    BROWSERS = {'bred': BredBrowser,
-                'dispobank': DispoBankBrowser,
-               }
+    BROWSERS = {
+        'bred': BredBrowser,
+        'dispobank': DispoBankBrowser,
+    }
 
     def create_default_browser(self):
         self.BROWSER = self.BROWSERS[self.config['website'].get()]
 
-        return self.create_browser(self.config['accnum'].get().replace(' ','').zfill(11),
+        return self.create_browser(self.config['accnum'].get().replace(' ', '').zfill(11),
                                    self.config['login'].get(),
                                    self.config['password'].get())
 

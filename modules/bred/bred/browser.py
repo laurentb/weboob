@@ -43,24 +43,24 @@ __all__ = ['BredBrowser']
 class BredBrowser(LoginBrowser):
     BASEURL = 'https://www.bred.fr'
 
-    home =              URL('/$', HomePage)
-    login =             URL('/transactionnel/Authentication', LoginPage)
-    error =             URL('.*gestion-des-erreurs/erreur-pwd',
-                            '.*gestion-des-erreurs/opposition',
-                            '/pages-gestion-des-erreurs/erreur-technique',
-                            '/pages-gestion-des-erreurs/message-tiers-oppose', ErrorPage)
-    universe =          URL('/transactionnel/services/applications/menu/getMenuUnivers', UniversePage)
-    token =             URL(r'/transactionnel/services/rest/User/nonce\?random=(?P<timestamp>.*)', TokenPage)
-    move_universe =     URL('/transactionnel/services/applications/listes/(?P<key>.*)/default', MoveUniversePage)
-    switch =            URL('/transactionnel/services/rest/User/switch', SwitchPage)
-    loans =             URL('/transactionnel/services/applications/prets/liste', LoansPage)
-    accounts =          URL('/transactionnel/services/rest/Account/accounts', AccountsPage)
-    iban =              URL('/transactionnel/services/rest/Account/account/(?P<number>.*)/iban', IbanPage)
-    life_insurances =   URL('/transactionnel/services/applications/avoirsPrepar/getAvoirs', LifeInsurancesPage)
-    search =            URL('/transactionnel/services/applications/operations/getSearch/', SearchPage)
-    profile =           URL('/transactionnel/services/rest/User/user', ProfilePage)
-    emails =            URL('/transactionnel/services/applications/gestionEmail/getAdressesMails', EmailsPage)
-    error_code =        URL('/.*\?errorCode=.*', ErrorCodePage)
+    home = URL(r'/$', HomePage)
+    login = URL(r'/transactionnel/Authentication', LoginPage)
+    error = URL(r'.*gestion-des-erreurs/erreur-pwd',
+                r'.*gestion-des-erreurs/opposition',
+                r'/pages-gestion-des-erreurs/erreur-technique',
+                r'/pages-gestion-des-erreurs/message-tiers-oppose', ErrorPage)
+    universe = URL(r'/transactionnel/services/applications/menu/getMenuUnivers', UniversePage)
+    token = URL(r'/transactionnel/services/rest/User/nonce\?random=(?P<timestamp>.*)', TokenPage)
+    move_universe = URL(r'/transactionnel/services/applications/listes/(?P<key>.*)/default', MoveUniversePage)
+    switch = URL(r'/transactionnel/services/rest/User/switch', SwitchPage)
+    loans = URL(r'/transactionnel/services/applications/prets/liste', LoansPage)
+    accounts = URL(r'/transactionnel/services/rest/Account/accounts', AccountsPage)
+    iban = URL(r'/transactionnel/services/rest/Account/account/(?P<number>.*)/iban', IbanPage)
+    life_insurances = URL(r'/transactionnel/services/applications/avoirsPrepar/getAvoirs', LifeInsurancesPage)
+    search = URL(r'/transactionnel/services/applications/operations/getSearch/', SearchPage)
+    profile = URL(r'/transactionnel/services/rest/User/user', ProfilePage)
+    emails = URL(r'/transactionnel/services/applications/gestionEmail/getAdressesMails', EmailsPage)
+    error_code = URL(r'/.*\?errorCode=.*', ErrorCodePage)
 
     def __init__(self, accnum, login, password, *args, **kwargs):
         kwargs['username'] = login
