@@ -619,7 +619,13 @@ class CragrRegion(LoginBrowser):
             ):
             self.unhandled_method(account.id)
 
-        date_guesser = LinearDateGuesser(date_max_bump=timedelta(30))
+        class NoCopyLinearDateGuesser(LinearDateGuesser):
+            # params passed to a @method are deepcopied, in each iteration of ItemElement
+            # so we want to avoid repeatedly copying objects since we wan't to keep using the same object
+            def __deepcopy__(self, memo):
+                return self
+
+        date_guesser = NoCopyLinearDateGuesser(date_max_bump=timedelta(30))
         for tr in self.page.iter_history(date_guesser=date_guesser):
             yield tr
 
