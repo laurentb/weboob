@@ -165,7 +165,8 @@ class S2eBrowser(LoginBrowser, StatesMixin):
                 elif self.amfcode_sg.match(inv._link) or self.lyxorfunds.match(inv._link):
                     # Esalia (Société Générale Épargne Salariale) or Lyxor investments
                     # Not all sggestion-ede.com or lyxorfunds.com have available performances.
-                    self.location(inv._link)
+                    # For those requests to work in every case we need the headers from AccountsPage
+                    self.location(inv._link, headers={'Referer': self.accounts.build(slug=self.SLUG)})
                     inv.performance_history = self.page.get_investment_performances()
         return investments
 
