@@ -107,10 +107,7 @@ class AbstractElement(object):
         else:
             self.el = page.doc
 
-        if parent is not None:
-            self.env = deepcopy(parent.env)
-        else:
-            self.env = deepcopy(page.params)
+        self.fill_env(page, parent)
 
         # Used by debug
         self._random_id = AbstractElement._creation_counter
@@ -153,6 +150,12 @@ class AbstractElement(object):
                 continue
             loader = getattr(self, attrname)
             self.loaders[name] = self.use_selector(loader, key=attrname)
+
+    def fill_env(self, page, parent=None):
+        if parent is not None:
+            self.env = deepcopy(parent.env)
+        else:
+            self.env = deepcopy(page.params)
 
 
 class ListElement(AbstractElement):
