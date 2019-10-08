@@ -28,6 +28,7 @@ from weboob.exceptions import BrowserUnavailable, BrowserPasswordExpired, Action
 from weboob.browser.pages import HTMLPage, JsonPage
 from weboob.browser.filters.standard import CleanText
 from weboob.browser.filters.json import Dict
+from weboob.capabilities.bank import AddRecipientBankError
 
 from .base import BasePage
 from ..captcha import Captcha, TileError
@@ -104,6 +105,13 @@ class MainPage(BasePage, PasswordPage):
             'vkm_op': 'auth',
         }
         self.browser.location(self.browser.absurl('/sec/vk/authent.json'), data=data)
+
+    def handle_error(self):
+        error_msg = CleanText('//span[@class="error_msg"]')(self.doc)
+        if error_msg:
+            # WARNING: this error occured during a recipient adding
+            # I don't know if it can happen at another time
+            raise AddRecipientBankError(message=error_msg)
 
 
 class LoginPage(JsonPage):

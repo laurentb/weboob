@@ -433,6 +433,10 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
             return self.end_oob_recipient(recipient, **params)
 
         self.add_recipient.go()
+        if self.main_page.is_here():
+            self.page.handle_error()
+            assert False, 'Should not be on this page.'
+
         self.page.post_iban(recipient)
         self.page.post_label(recipient)
 
