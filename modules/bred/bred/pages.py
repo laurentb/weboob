@@ -24,7 +24,7 @@ from datetime import date
 from decimal import Decimal
 
 from weboob.tools.date import parse_french_date
-from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded, ParseError
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded
 from weboob.capabilities.base import find_object
 from weboob.browser.pages import JsonPage, LoggedPage, HTMLPage
 from weboob.capabilities import NotAvailable
@@ -264,7 +264,8 @@ class SearchPage(LoggedPage, JsonPage):
             t = Transaction()
             t.id = str(op['id'])
             if op['id'] in seen:
-                raise ParseError('There are several transactions with the same ID, probably an infinite loop')
+                self.logger.debug('Skipped transaction : "%s %s"' % (op['id'], op['libelle']))
+                continue
 
             seen.add(t.id)
             d = date.fromtimestamp(op.get('dateDebit', op.get('dateOperation')) / 1000)

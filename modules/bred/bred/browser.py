@@ -198,7 +198,7 @@ class BredBrowser(LoginBrowser):
                     self.logger.debug('stopping coming after %s', t)
                     return
 
-            next_page = len(transactions) == 50
+            next_page = len(transactions) > 0
             offset += 50
 
             # This assert supposedly prevents infinite loops,
