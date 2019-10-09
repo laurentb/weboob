@@ -203,25 +203,30 @@ class CardItemElement(ItemElement):
 
 class AccountHistoryPage(LoggedPage, JsonPage):
     TYPES = {
-        u'CARTE': Transaction.TYPE_DEFERRED_CARD,  # Cartes
-        u'CHEQU': Transaction.TYPE_CHECK,  # Chèques
-        u'REMCB': Transaction.TYPE_DEFERRED_CARD,  # Remises cartes
-        u'VIREM': Transaction.TYPE_TRANSFER,  # Virements
-        u'VIRIT': Transaction.TYPE_TRANSFER,  # Virements internationaux
-        u'VIRSP': Transaction.TYPE_TRANSFER,  # Virements européens
-        u'VIRTR': Transaction.TYPE_TRANSFER,  # Virements de trésorerie
-        u'VIRXX': Transaction.TYPE_TRANSFER,  # Autres virements
-        u'PRLVT': Transaction.TYPE_LOAN_PAYMENT,  # Prélèvements, TIP et télérèglements
-        u'AUTOP': Transaction.TYPE_UNKNOWN,  # Autres opérations
+        'CARTE': Transaction.TYPE_DEFERRED_CARD,  # Cartes
+        'CHEQU': Transaction.TYPE_CHECK,  # Chèques
+        'REMCB': Transaction.TYPE_DEFERRED_CARD,  # Remises cartes
+        'VIREM': Transaction.TYPE_TRANSFER,  # Virements
+        'VIRIT': Transaction.TYPE_TRANSFER,  # Virements internationaux
+        'VIRSP': Transaction.TYPE_TRANSFER,  # Virements européens
+        'VIRTR': Transaction.TYPE_TRANSFER,  # Virements de trésorerie
+        'VIRXX': Transaction.TYPE_TRANSFER,  # Autres virements
+        'PRLVT': Transaction.TYPE_ORDER,  # Prélèvements, TIP et télérèglements
+        'AUTOP': Transaction.TYPE_UNKNOWN,  # Autres opérations
 
         'FACCB': Transaction.TYPE_CARD,   # Cartes
     }
 
     COMING_TYPES = {
-        u'0083': Transaction.TYPE_DEFERRED_CARD,
-        u'0813': Transaction.TYPE_LOAN_PAYMENT,
-        u'0568': Transaction.TYPE_TRANSFER,
-        u'1194': Transaction.TYPE_DEFERRED_CARD,  # PAYBACK typed as DEFERRED_CARD
+        '0001': Transaction.TYPE_CHECK,  # CHEQUE
+        '0029': Transaction.TYPE_BANK,  # Interets et Commissions
+        '0083': Transaction.TYPE_DEFERRED_CARD,
+        '0099': Transaction.TYPE_PAYBACK,  # REM. CARTE OU EROCHQ.*
+        '0512': Transaction.TYPE_TRANSFER,  # VIREMENT FAVEUR TIERS
+        '0558': Transaction.TYPE_TRANSFER,  # VIREMENT RECU TIERS.*
+        '0568': Transaction.TYPE_TRANSFER,  # VIREMENT SEPA
+        '0813': Transaction.TYPE_ORDER,  # PRLV SEPA .*
+        '1194': Transaction.TYPE_DEFERRED_CARD,  # PAYBACK typed as DEFERRED_CARD
     }
 
     @method
