@@ -61,7 +61,7 @@ def MyDecimal(*args, **kwargs):
 def myXOR(value, seed):
     s = ''
     for i in range(len(value)):
-        s += chr(seed^ord(value[i]))
+        s += chr(seed ^ ord(value[i]))
     return s
 
 
@@ -85,12 +85,12 @@ class LCLBasePage(HTMLPage):
                     value = ''
                 else:
                     value += ','
-                value += txt[start+len(pattern):start+txt[start+len(pattern):].find(end)+len(pattern)]
+                value += txt[start + len(pattern):start + txt[start + len(pattern):].find(end) + len(pattern)]
 
                 if not is_list:
                     break
 
-                txt = txt[start+len(pattern)+txt[start+len(pattern):].find(end):]
+                txt = txt[start + len(pattern) + txt[start + len(pattern):].find(end):]
 
                 start = txt.find(pattern)
                 if start < 0:
@@ -99,35 +99,38 @@ class LCLBasePage(HTMLPage):
 
 
 class LCLVirtKeyboard(MappedVirtKeyboard):
-    symbols={'0': '9da2724133f2221482013151735f033c',
-             '1': '873ab0087447610841ae1332221be37b',
-             '2': '93ce6c330393ff5980949d7b6c800f77',
-             '3': 'b2d70c69693784e1bf1f0973d81223c0',
-             '4': '498c8f5d885611938f94f1c746c32978',
-             '5': '359bcd60a9b8565917a7bf34522052c3',
-             '6': 'aba912172f21f78cd6da437cfc4cdbd0',
-             '7': 'f710190d6b947869879ec02d8e851dfa',
-             '8': 'b42cc25e1539a15f767aa7a641f3bfec',
-             '9': 'cc60e5894a9d8e12ee0c2c104c1d5490'
-            }
+    symbols = {
+        '0': '9da2724133f2221482013151735f033c',
+        '1': '873ab0087447610841ae1332221be37b',
+        '2': '93ce6c330393ff5980949d7b6c800f77',
+        '3': 'b2d70c69693784e1bf1f0973d81223c0',
+        '4': '498c8f5d885611938f94f1c746c32978',
+        '5': '359bcd60a9b8565917a7bf34522052c3',
+        '6': 'aba912172f21f78cd6da437cfc4cdbd0',
+        '7': 'f710190d6b947869879ec02d8e851dfa',
+        '8': 'b42cc25e1539a15f767aa7a641f3bfec',
+        '9': 'cc60e5894a9d8e12ee0c2c104c1d5490'
+    }
 
-    url="/outil/UAUT/Clavier/creationClavier?random="
+    url = "/outil/UAUT/Clavier/creationClavier?random="
 
-    color=(255,255,255,255)
+    color = (255, 255, 255, 255)
 
     def __init__(self, basepage):
-        img=basepage.doc.find("//img[@id='idImageClavier']")
+        img = basepage.doc.find("//img[@id='idImageClavier']")
         random.seed()
-        self.url += "%s"%str(int(math.floor(int(random.random()*1000000000000000000000))))
-        super(LCLVirtKeyboard, self).__init__(BytesIO(basepage.browser.open(self.url).content), basepage.doc,img,self.color, "id")
-        self.check_symbols(self.symbols,basepage.browser.responses_dirname)
+        self.url += "%s" % str(int(math.floor(int(random.random() * 1000000000000000000000))))
+        super(LCLVirtKeyboard, self).__init__(
+            BytesIO(basepage.browser.open(self.url).content),
+            basepage.doc, img, self.color, "id")
+        self.check_symbols(self.symbols, basepage.browser.responses_dirname)
 
     def get_symbol_code(self, md5sum):
-        code=MappedVirtKeyboard.get_symbol_code(self, md5sum)
+        code = MappedVirtKeyboard.get_symbol_code(self, md5sum)
         return code[-2:]
 
     def get_string_code(self, string):
-        code=''
+        code = ''
         for c in string:
             code += self.get_symbol_code(self.symbols[c])
         return code
@@ -158,9 +161,9 @@ class LoginPage(HTMLPage):
                 continue
             offset = script.text.find(s)
             if offset != -1:
-                seed = int(script.text[offset+len(s)+1:offset+len(s)+2])
+                seed = int(script.text[offset + len(s) + 1:offset + len(s) + 2])
                 break
-        if seed==-1:
+        if seed == -1:
             raise ParseError("Variable 'aleatoire' not found")
 
         form = self.get_form('//form[@id="formAuthenticate"]')
@@ -248,21 +251,22 @@ class AccountsPage(LoggedPage, HTMLPage):
             def condition(self):
                 return '/outil/UWLM/ListeMouvement' in self.el.attrib['onclick']
 
-            NATURE2TYPE = {'001': Account.TYPE_SAVINGS,
-                           '004': Account.TYPE_CHECKING,
-                           '005': Account.TYPE_CHECKING,
-                           '006': Account.TYPE_CHECKING,
-                           '007': Account.TYPE_SAVINGS,
-                           '012': Account.TYPE_SAVINGS,
-                           '023': Account.TYPE_CHECKING,
-                           '036': Account.TYPE_SAVINGS,
-                           '046': Account.TYPE_SAVINGS,
-                           '047': Account.TYPE_SAVINGS,
-                           '049': Account.TYPE_SAVINGS,
-                           '058': Account.TYPE_CHECKING,
-                           '068': Account.TYPE_PEA,
-                           '069': Account.TYPE_SAVINGS,
-                          }
+            NATURE2TYPE = {
+                '001': Account.TYPE_SAVINGS,
+                '004': Account.TYPE_CHECKING,
+                '005': Account.TYPE_CHECKING,
+                '006': Account.TYPE_CHECKING,
+                '007': Account.TYPE_SAVINGS,
+                '012': Account.TYPE_SAVINGS,
+                '023': Account.TYPE_CHECKING,
+                '036': Account.TYPE_SAVINGS,
+                '046': Account.TYPE_SAVINGS,
+                '047': Account.TYPE_SAVINGS,
+                '049': Account.TYPE_SAVINGS,
+                '058': Account.TYPE_CHECKING,
+                '068': Account.TYPE_PEA,
+                '069': Account.TYPE_SAVINGS,
+            }
 
             obj__link_id = Format('%s&mode=190', Regexp(CleanText('./@onclick'), "'(.*)'"))
             obj__agence = Regexp(Field('_link_id'), r'.*agence=(\w+)')
@@ -320,7 +324,7 @@ class LoansPage(LoggedPage, HTMLPage):
             obj_type = Account.TYPE_LOAN
             obj_id = Env('id')
             obj__transfer_id = None
-            obj_number = Regexp(CleanText(TableCell('id'), replace=[(' ', ''),('-', '')]), r'(\d{11}[A-Z])')
+            obj_number = Regexp(CleanText(TableCell('id'), replace=[(' ', ''), ('-', '')]), r'(\d{11}[A-Z])')
 
             def obj_label(self):
                 has_type = CleanText('./ancestor::table[.//th[contains(text(), "Type")]]', default=None)(self)
@@ -353,7 +357,7 @@ class LoansProPage(LoggedPage, HTMLPage):
             obj_type = Account.TYPE_LOAN
             obj_id = Env('id')
             obj__transfer_id = None
-            obj_number = Regexp(CleanText(TableCell('id'), replace=[(' ', ''),('-', '')]), r'(\d{11}[A-Z])')
+            obj_number = Regexp(CleanText(TableCell('id'), replace=[(' ', ''), ('-', '')]), r'(\d{11}[A-Z])')
 
             def obj_label(self):
                 has_type = CleanText('./ancestor::table[.//th[contains(text(), "Nature libell")]]', default=None)(self)
@@ -369,36 +373,37 @@ class LoansProPage(LoggedPage, HTMLPage):
 
 
 class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile('^(?P<category>CB) (?P<text>RETRAIT) DU (?P<dd>\d+)/(?P<mm>\d+)'),
-                                                        FrenchTransaction.TYPE_WITHDRAWAL),
-            (re.compile('^(?P<category>(PRLV|PE)( SEPA)?) (?P<text>.*)'),
-                                                        FrenchTransaction.TYPE_ORDER),
-            (re.compile('^(?P<category>CHQ\.) (?P<text>.*)'),
-                                                        FrenchTransaction.TYPE_CHECK),
-            (re.compile('^(?P<category>RELEVE CB) AU (\d+)/(\d+)/(\d+)'),
-                                                        FrenchTransaction.TYPE_CARD),
-            (re.compile('^(?P<category>CB) (?P<text>.*) (?P<dd>\d+)/(?P<mm>\d+)/(?P<yy>\d+)'),
-                                                        FrenchTransaction.TYPE_CARD),
-            (re.compile('^(?P<category>(PRELEVEMENT|TELEREGLEMENT|TIP)) (?P<text>.*)'),
-                                                        FrenchTransaction.TYPE_ORDER),
-            (re.compile('^(?P<category>(ECHEANCE\s*)?PRET)(?P<text>.*)'),   FrenchTransaction.TYPE_LOAN_PAYMENT),
-            (re.compile('^(?P<category>(EVI|VIR(EM(EN)?)?T?)(.PERMANENT)? ((RECU|FAVEUR) TIERS|SEPA RECU)?)( /FRM)?(?P<text>.*)'),
-                                                        FrenchTransaction.TYPE_TRANSFER),
-            (re.compile('^(?P<category>REMBOURST)(?P<text>.*)'),     FrenchTransaction.TYPE_PAYBACK),
-            (re.compile('^(?P<category>COM(MISSIONS?)?)(?P<text>.*)'),   FrenchTransaction.TYPE_BANK),
-            (re.compile('^(?P<text>(?P<category>REMUNERATION).*)'),   FrenchTransaction.TYPE_BANK),
-            (re.compile('^(?P<text>(?P<category>ABON.*?)\s*.*)'),   FrenchTransaction.TYPE_BANK),
-            (re.compile('^(?P<text>(?P<category>RESULTAT .*?)\s*.*)'),   FrenchTransaction.TYPE_BANK),
-            (re.compile('^(?P<text>(?P<category>TRAIT\..*?)\s*.*)'),   FrenchTransaction.TYPE_BANK),
-            (re.compile('^(?P<category>REM CHQ) (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
-            (re.compile('^VIREMENT.*'),FrenchTransaction.TYPE_TRANSFER),
-            (re.compile('.*(PRELEVEMENTS|PRELVT|TIP).*'),FrenchTransaction.TYPE_ORDER),
-            (re.compile('.*CHEQUE.*'), FrenchTransaction.TYPE_CHECK),
-            (re.compile('.*ESPECES.*'), FrenchTransaction.TYPE_DEPOSIT),
-            (re.compile('.*(CARTE|CB).*'), FrenchTransaction.TYPE_CARD),
-            (re.compile('.*(AGIOS|ANNULATIONS|IMPAYES|CREDIT).*'), FrenchTransaction.TYPE_BANK),
-            (re.compile('.*(FRAIS DE TENUE DE COMPTE).*'), FrenchTransaction.TYPE_BANK),
-            (re.compile(r'.*\b(RETRAIT)\b.*'), FrenchTransaction.TYPE_WITHDRAWAL),
+    PATTERNS = [
+        (re.compile('^(?P<category>CB) (?P<text>RETRAIT) DU (?P<dd>\d+)/(?P<mm>\d+)'),
+         FrenchTransaction.TYPE_WITHDRAWAL),
+        (re.compile('^(?P<category>(PRLV|PE)( SEPA)?) (?P<text>.*)'),
+         FrenchTransaction.TYPE_ORDER),
+        (re.compile('^(?P<category>CHQ\.) (?P<text>.*)'),
+         FrenchTransaction.TYPE_CHECK),
+        (re.compile('^(?P<category>RELEVE CB) AU (\d+)/(\d+)/(\d+)'),
+         FrenchTransaction.TYPE_CARD),
+        (re.compile('^(?P<category>CB) (?P<text>.*) (?P<dd>\d+)/(?P<mm>\d+)/(?P<yy>\d+)'),
+         FrenchTransaction.TYPE_CARD),
+        (re.compile('^(?P<category>(PRELEVEMENT|TELEREGLEMENT|TIP)) (?P<text>.*)'),
+         FrenchTransaction.TYPE_ORDER),
+        (re.compile('^(?P<category>(ECHEANCE\s*)?PRET)(?P<text>.*)'), FrenchTransaction.TYPE_LOAN_PAYMENT),
+        (re.compile('^(?P<category>(EVI|VIR(EM(EN)?)?T?)(.PERMANENT)? ((RECU|FAVEUR) TIERS|SEPA RECU)?)( /FRM)?(?P<text>.*)'),
+         FrenchTransaction.TYPE_TRANSFER),
+        (re.compile('^(?P<category>REMBOURST)(?P<text>.*)'), FrenchTransaction.TYPE_PAYBACK),
+        (re.compile('^(?P<category>COM(MISSIONS?)?)(?P<text>.*)'), FrenchTransaction.TYPE_BANK),
+        (re.compile('^(?P<text>(?P<category>REMUNERATION).*)'), FrenchTransaction.TYPE_BANK),
+        (re.compile('^(?P<text>(?P<category>ABON.*?)\s*.*)'), FrenchTransaction.TYPE_BANK),
+        (re.compile('^(?P<text>(?P<category>RESULTAT .*?)\s*.*)'), FrenchTransaction.TYPE_BANK),
+        (re.compile('^(?P<text>(?P<category>TRAIT\..*?)\s*.*)'), FrenchTransaction.TYPE_BANK),
+        (re.compile('^(?P<category>REM CHQ) (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
+        (re.compile('^VIREMENT.*'), FrenchTransaction.TYPE_TRANSFER),
+        (re.compile('.*(PRELEVEMENTS|PRELVT|TIP).*'), FrenchTransaction.TYPE_ORDER),
+        (re.compile('.*CHEQUE.*'), FrenchTransaction.TYPE_CHECK),
+        (re.compile('.*ESPECES.*'), FrenchTransaction.TYPE_DEPOSIT),
+        (re.compile('.*(CARTE|CB).*'), FrenchTransaction.TYPE_CARD),
+        (re.compile('.*(AGIOS|ANNULATIONS|IMPAYES|CREDIT).*'), FrenchTransaction.TYPE_BANK),
+        (re.compile('.*(FRAIS DE TENUE DE COMPTE).*'), FrenchTransaction.TYPE_BANK),
+        (re.compile(r'.*\b(RETRAIT)\b.*'), FrenchTransaction.TYPE_WITHDRAWAL),
     ]
 
 
@@ -434,10 +439,10 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
                 return Transaction.TYPE_UNKNOWN
 
             def condition(self):
-                return self.parent.get_colnum('date') is not None and \
-                       len(self.el.findall('td')) >= 3 and \
-                       self.el.get('class') and \
-                       'tableTr' not in self.el.get('class')
+                return (self.parent.get_colnum('date') is not None
+                        and len(self.el.findall('td')) >= 3
+                        and self.el.get('class')
+                        and 'tableTr' not in self.el.get('class'))
 
             def validate(self, obj):
                 if obj.category == 'RELEVE CB':
@@ -601,7 +606,7 @@ class CardsPage(LoggedPage, HTMLPage):
 
 
 class BoursePage(LoggedPage, HTMLPage):
-    ENCODING='latin-1'
+    ENCODING = 'latin-1'
     REFRESH_MAX = 0
 
     TYPES = {
@@ -611,7 +616,7 @@ class BoursePage(LoggedPage, HTMLPage):
         "plan d'épargne en actions bourse": Account.TYPE_PEA,
         'pea pme bourse': Account.TYPE_PEA,
         'pea pme': Account.TYPE_PEA,
-            }
+    }
 
     def on_load(self):
         """
@@ -663,8 +668,10 @@ class BoursePage(LoggedPage, HTMLPage):
 
             obj__especes = CleanDecimal(TableCell('especes'), replace_dots=True, default=0)
             obj__titres = CleanDecimal(TableCell('titres'), replace_dots=True, default=0)
-            obj_valuation_diff = Async('details') &  CleanDecimal('//td[contains(text(), "value latente")]/ \
-                                                                  following-sibling::td[1]', replace_dots=True)
+            obj_valuation_diff = Async('details') & CleanDecimal(
+                '//td[contains(text(), "value latente")]/following-sibling::td[1]',
+                replace_dots=True,
+            )
             obj__market_link = Regexp(Attr(TableCell('label'), 'onclick'), "'(.*?)'")
             obj__link_id = Async('details') & Link(u'//a[text()="Historique"]')
             obj__transfer_id = None
@@ -697,6 +704,7 @@ class BoursePage(LoggedPage, HTMLPage):
     @method
     class iter_investment(ListElement):
         item_xpath = '//table[@id="tableValeurs"]/tbody/tr[@id and count(descendant::td) > 1]'
+
         class item(ItemElement):
             klass = Investment
 
@@ -738,7 +746,7 @@ class BoursePage(LoggedPage, HTMLPage):
             form = self.page.get_form(id="historyFilter")
             form['PAGE'] = int(form['PAGE']) + 1
             return requests.Request("POST", form.url, data=dict(form)) \
-                   if self.page.doc.xpath('//*[@data-page = $page]', page=form['PAGE']) else None
+                if self.page.doc.xpath('//*[@data-page = $page]', page=form['PAGE']) else None
 
         class item(ItemElement):
             klass = Transaction
@@ -770,7 +778,8 @@ class DiscPage(LoggedPage, HTMLPage):
             # and sometimes there's just no form
             form = self.get_form(xpath='//form[not(@id="formLogout")]')
             form.submit()
-        except FormNotFound: # Sometime no form is present, just a redirection
+        except FormNotFound:
+            # Sometime no form is present, just a redirection
             self.logger.debug('no form on this page')
 
         super(DiscPage, self).on_load()
@@ -1081,9 +1090,11 @@ class AVHistoryPage(LoggedPage, JsonPage):
 
 class AVInvestmentsPage(LoggedPage, JsonPage):
     def update_life_insurance_account(self, life_insurance):
-        life_insurance._owner = Format('%s %s',
-                            Dict('situationAdministrativeEpargne/lppeoscp'),
-                            Dict('situationAdministrativeEpargne/lnpeoscp'))(self.doc)
+        life_insurance._owner = Format(
+            '%s %s',
+            Dict('situationAdministrativeEpargne/lppeoscp'),
+            Dict('situationAdministrativeEpargne/lnpeoscp'),
+        )(self.doc)
         life_insurance.label = '%s %s' % (Dict('situationAdministrativeEpargne/lcofc')(self.doc), life_insurance._owner)
         life_insurance.valuation_diff = CleanDecimal(Dict('situationFinanciereEpargne/mtpmvcnt'), default=NotAvailable)(self.doc)
         return life_insurance
@@ -1117,7 +1128,7 @@ class AVInvestmentsPage(LoggedPage, JsonPage):
 class RibPage(LoggedPage, LCLBasePage):
     def get_iban(self):
         if (self.doc.xpath('//div[contains(@class, "rib_cadre")]//div[contains(@class, "rib_internat")]')):
-            return CleanText().filter(self.doc.xpath('//div[contains(@class, "rib_cadre")]//div[contains(@class, "rib_internat")]//p//strong')[0].text).replace(' ','')
+            return CleanText('//div[contains(@class, "rib_cadre") and not(contains(@class, "hidden"))]//div[contains(@class, "rib_internat")]//p//strong/text()[1]', replace=[(' ', '')])(self.doc)
 
     def check_iban_by_account(self, account_id):
         iban_account_id = CleanText().filter(self.doc.xpath('(//td[@class[contains(., "guichet-")]]/following-sibling::*)[1]/strong'))
@@ -1125,12 +1136,12 @@ class RibPage(LoggedPage, LCLBasePage):
         iban_account = "%s%s" % (iban_guichet_id, iban_account_id[4:])
 
         if account_id == iban_account:
-            return CleanText().filter(self.doc.xpath('//div[contains(@class, "rib_cadre")]//div[contains(@class, "rib_internat")]//p//strong')[0].text).replace(' ', '')
-        else:
-            return None
+            return CleanText('//div[contains(@class, "rib_cadre") and not(contains(@class, "hidden"))]//div[contains(@class, "rib_internat")]//p//strong/text()[1]', replace=[(' ', '')])(self.doc)
+        return None
 
     def has_iban_choice(self):
         return False if self.doc.xpath('(//strong[contains(., "RELEVE D\'IDENTITE BANCAIRE")])[1]') else True
+
 
 class HomePage(LoggedPage, HTMLPage):
     pass
@@ -1224,7 +1235,7 @@ class TransferPage(LoggedPage, HTMLPage):
         )(self.doc)
         # skip html comment with filtering on text() content
         transfer.label = CleanText('//div[@class="motif"]/text()[contains(., "Motif : ")]',
-                                   replace=[('Motif : ','')])(self.doc)
+                                   replace=[('Motif : ', '')])(self.doc)
 
         return transfer
 
@@ -1249,7 +1260,9 @@ class TransferPage(LoggedPage, HTMLPage):
 
         class Item(ItemElement):
             klass = Recipient
-            validate = lambda self, obj: self.obj_id(self) != self.env['account_transfer_id']
+
+            def condition(self):
+                return len(self.el.xpath('./div')) > 1
 
             obj_id = CleanText('./div[@class="infoCompte" and not(@title)]', replace=[(' 0000', '')])
             obj__transfer_id = CleanText('./div[@class="infoCompte" and not(@title)]', replace=[(' ', '')])
@@ -1261,8 +1274,8 @@ class TransferPage(LoggedPage, HTMLPage):
             def obj_enabled_at(self):
                 return datetime.now().replace(microsecond=0)
 
-            def condition(self):
-                return len(self.el.xpath('./div')) > 1
+            def validate(self, obj):
+                return Field('id')(self) != self.env['account_transfer_id']
 
             def parse(self, el):
                 if bool(CleanText('./div[@id="soldeEurosCompte"]')(self)):

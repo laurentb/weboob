@@ -51,85 +51,98 @@ class LCLBrowser(LoginBrowser, StatesMixin):
     BASEURL = 'https://particuliers.secure.lcl.fr'
     STATE_DURATION = 15
 
-    login = URL('/outil/UAUT\?from=/outil/UWHO/Accueil/',
-                '/outil/UAUT\?from=.*',
-                '/outil/UWER/Accueil/majicER',
-                '/outil/UWER/Enregistrement/forwardAcc',
-                LoginPage)
-    contracts_page = URL('/outil/UAUT/Contrat/choixContrat.*',
-                         '/outil/UAUT/Contract/getContract.*',
-                         '/outil/UAUT/Contract/selectContracts.*',
-                         '/outil/UAUT/Accueil/preRoutageLogin',
-                         ContractsPage)
-    contracts_choice = URL('.*outil/UAUT/Contract/routing', ContractsChoicePage)
-    home = URL('/outil/UWHO/Accueil/', HomePage)
-    accounts = URL('/outil/UWSP/Synthese', AccountsPage)
-    client = URL('/outil/uwho', ClientPage)
-    history = URL('/outil/UWLM/ListeMouvements.*/accesListeMouvements.*',
-                  '/outil/UWLM/DetailMouvement.*/accesDetailMouvement.*',
-                  '/outil/UWLM/Rebond',
-                  AccountHistoryPage)
-    rib = URL('/outil/UWRI/Accueil/detailRib',
-              '/outil/UWRI/Accueil/listeRib', RibPage)
-    finalrib = URL('/outil/UWRI/Accueil/', RibPage)
+    login = URL(
+        r'/outil/UAUT\?from=/outil/UWHO/Accueil/',
+        r'/outil/UAUT\?from=.*',
+        r'/outil/UWER/Accueil/majicER',
+        r'/outil/UWER/Enregistrement/forwardAcc',
+        LoginPage)
+    contracts_page = URL(
+        r'/outil/UAUT/Contrat/choixContrat.*',
+        r'/outil/UAUT/Contract/getContract.*',
+        r'/outil/UAUT/Contract/selectContracts.*',
+        r'/outil/UAUT/Accueil/preRoutageLogin',
+        ContractsPage)
+    contracts_choice = URL(r'.*outil/UAUT/Contract/routing', ContractsChoicePage)
+    home = URL(r'/outil/UWHO/Accueil/', HomePage)
+    accounts = URL(r'/outil/UWSP/Synthese', AccountsPage)
+    client = URL(r'/outil/uwho', ClientPage)
+    history = URL(
+        r'/outil/UWLM/ListeMouvements.*/accesListeMouvements.*',
+        r'/outil/UWLM/DetailMouvement.*/accesDetailMouvement.*',
+        r'/outil/UWLM/Rebond',
+        AccountHistoryPage)
+    rib = URL(
+        r'/outil/UWRI/Accueil/detailRib',
+        r'/outil/UWRI/Accueil/listeRib',
+        RibPage)
+    finalrib = URL(r'/outil/UWRI/Accueil/', RibPage)
 
-    cards = URL(r'/outil/UWCB/UWCBEncours.*/listeCBCompte.*',
-                r'/outil/UWCB/UWCBEncours.*/listeOperations.*',
-                CardsPage)
+    cards = URL(
+        r'/outil/UWCB/UWCBEncours.*/listeCBCompte.*',
+        r'/outil/UWCB/UWCBEncours.*/listeOperations.*',
+        CardsPage)
 
-    skip = URL('/outil/UAUT/Contrat/selectionnerContrat.*',
-               '/index.html')
-    no_perm = URL('/outil/UAUT/SansDroit/affichePageSansDroit.*', NoPermissionPage)
+    skip = URL(
+        r'/outil/UAUT/Contrat/selectionnerContrat.*',
+        r'/index.html')
 
-    bourse = URL('https://bourse.secure.lcl.fr/netfinca-titres/servlet/com.netfinca.frontcr.synthesis.HomeSynthesis',
-                 'https://bourse.secure.lcl.fr/netfinca-titres/servlet/com.netfinca.frontcr.account.*',
-                 '/outil/UWBO.*', BoursePage)
-    disc = URL('https://bourse.secure.lcl.fr/netfinca-titres/servlet/com.netfinca.frontcr.login.ContextTransferDisconnect',
-               r'https://assurance-vie-et-prevoyance.secure.lcl.fr/filiale/entreeBam\?.*\btypeaction=reroutage_retour\b',
-               r'https://assurance-vie-et-prevoyance.secure.lcl.fr/filiale/ServletReroutageCookie',
-               '/outil/UAUT/RetourPartenaire/retourCar', DiscPage)
+    no_perm = URL(r'/outil/UAUT/SansDroit/affichePageSansDroit.*', NoPermissionPage)
+
+    bourse = URL(
+        r'https://bourse.secure.lcl.fr/netfinca-titres/servlet/com.netfinca.frontcr.synthesis.HomeSynthesis',
+        r'https://bourse.secure.lcl.fr/netfinca-titres/servlet/com.netfinca.frontcr.account.*',
+        r'/outil/UWBO.*',
+        BoursePage)
+
+    disc = URL(
+        r'https://bourse.secure.lcl.fr/netfinca-titres/servlet/com.netfinca.frontcr.login.ContextTransferDisconnect',
+        r'https://assurance-vie-et-prevoyance.secure.lcl.fr/filiale/entreeBam\?.*\btypeaction=reroutage_retour\b',
+        r'https://assurance-vie-et-prevoyance.secure.lcl.fr/filiale/ServletReroutageCookie',
+        r'/outil/UAUT/RetourPartenaire/retourCar',
+        DiscPage)
 
     form2 = URL(r'/outil/UWVI/Routage', Form2Page)
-    send_token = URL('/outil/UWVI/AssuranceVie/envoyerJeton', SendTokenPage)
+    send_token = URL(r'/outil/UWVI/AssuranceVie/envoyerJeton', SendTokenPage)
     calie_detail = URL(
         r'https://www.my-calie.fr/FO.HoldersWebSite/Disclaimer/Disclaimer.aspx.*',
         r'https://www.my-calie.fr/FO.HoldersWebSite/Contract/ContractDetails.aspx.*',
         r'https://www.my-calie.fr/FO.HoldersWebSite/Contract/ContractOperations.aspx.*',
-        CaliePage
-    )
+        CaliePage)
     calie_contracts = URL(r'https://www.my-calie.fr/FO.HoldersWebSite/Contract/SearchContract.aspx', CalieContractsPage)
 
     assurancevie = URL(
         r'/outil/UWVI/AssuranceVie/accesSynthese',
         r'/outil/UWVI/AssuranceVie/accesDetail.*',
-        AVPage
-    )
+        AVPage)
 
-    av_list = URL('https://assurance-vie-et-prevoyance.secure.lcl.fr/rest/assurance/synthesePartenaire', AVListPage)
-    avdetail = URL('https://assurance-vie-et-prevoyance.secure.lcl.fr/consultation/epargne', AVDetailPage)
-    av_history = URL('https://assurance-vie-et-prevoyance.secure.lcl.fr/rest/assurance/historique', AVHistoryPage)
-    av_investments = URL('https://assurance-vie-et-prevoyance.secure.lcl.fr/rest/detailEpargne/contrat/(?P<life_insurance_id>\w+)', AVInvestmentsPage)
+    av_list = URL(r'https://assurance-vie-et-prevoyance.secure.lcl.fr/rest/assurance/synthesePartenaire', AVListPage)
+    avdetail = URL(r'https://assurance-vie-et-prevoyance.secure.lcl.fr/consultation/epargne', AVDetailPage)
+    av_history = URL(r'https://assurance-vie-et-prevoyance.secure.lcl.fr/rest/assurance/historique', AVHistoryPage)
+    av_investments = URL(r'https://assurance-vie-et-prevoyance.secure.lcl.fr/rest/detailEpargne/contrat/(?P<life_insurance_id>\w+)', AVInvestmentsPage)
 
-    loans = URL('/outil/UWCR/SynthesePar/', LoansPage)
-    loans_pro = URL('/outil/UWCR/SynthesePro/', LoansProPage)
+    loans = URL(r'/outil/UWCR/SynthesePar/', LoansPage)
+    loans_pro = URL(r'/outil/UWCR/SynthesePro/', LoansProPage)
 
-    transfer_page = URL('/outil/UWVS/', TransferPage)
-    confirm_transfer = URL('/outil/UWVS/Accueil/redirectView', TransferPage)
-    recipients = URL('/outil/UWBE/Consultation/list', RecipientPage)
-    add_recip = URL('/outil/UWBE/Creation/creationSaisie', AddRecipientPage)
-    recip_confirm = URL('/outil/UWBE/Creation/creationConfirmation', RecipConfirmPage)
-    send_sms = URL('/outil/UWBE/Otp/envoiCodeOtp\?telChoisi=MOBILE', '/outil/UWBE/Otp/getValidationCodeOtp\?codeOtp', SmsPage)
-    recip_recap = URL('/outil/UWBE/Creation/executeCreation', RecipRecapPage)
-    documents = URL('/outil/UWDM/ConsultationDocument/derniersReleves',
-                    '/outil/UWDM/Recherche/rechercherAll', DocumentsPage)
-    documents_plus = URL('/outil/UWDM/Recherche/afficherPlus', DocumentsPage)
+    transfer_page = URL(r'/outil/UWVS/', TransferPage)
+    confirm_transfer = URL(r'/outil/UWVS/Accueil/redirectView', TransferPage)
+    recipients = URL(r'/outil/UWBE/Consultation/list', RecipientPage)
+    add_recip = URL(r'/outil/UWBE/Creation/creationSaisie', AddRecipientPage)
+    recip_confirm = URL(r'/outil/UWBE/Creation/creationConfirmation', RecipConfirmPage)
+    send_sms = URL(r'/outil/UWBE/Otp/envoiCodeOtp\?telChoisi=MOBILE', '/outil/UWBE/Otp/getValidationCodeOtp\?codeOtp', SmsPage)
+    recip_recap = URL(r'/outil/UWBE/Creation/executeCreation', RecipRecapPage)
+    documents = URL(
+        r'/outil/UWDM/ConsultationDocument/derniersReleves',
+        r'/outil/UWDM/Recherche/rechercherAll',
+        DocumentsPage)
+    documents_plus = URL(r'/outil/UWDM/Recherche/afficherPlus', DocumentsPage)
 
-    profile = URL('/outil/UWIP/Accueil/rafraichir', ProfilePage)
+    profile = URL(r'/outil/UWIP/Accueil/rafraichir', ProfilePage)
 
-    deposit = URL('/outil/UWPL/CompteATerme/accesSynthese',
-                  '/outil/UWPL/DetailCompteATerme/accesDetail', DepositPage)
+    deposit = URL(r'/outil/UWPL/CompteATerme/accesSynthese',
+                  r'/outil/UWPL/DetailCompteATerme/accesDetail', DepositPage)
 
-    __states__ = ('contracts', 'current_contract','parsed_contracts')
+    __states__ = ('contracts', 'current_contract', 'parsed_contracts')
 
     IDENTIFIANT_ROUTING = 'CLI'
 
@@ -161,7 +174,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         # Since a while the virtual keyboard accepts only the first 6 digits of the password
         self.password = self.password[:6]
 
-        # we force the browser to go to login page so it's work even
+        # we force the browser to go to login page so it's work even
         # if the session expire
         # Must set the referer to avoid redirection to the home page
         self.login.go(headers={"Referer": "https://www.lcl.fr/"})
@@ -624,7 +637,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
 class LCLProBrowser(LCLBrowser):
     BASEURL = 'https://professionnels.secure.lcl.fr'
 
-    #We need to add this on the login form
+    # We need to add this on the login form
     IDENTIFIANT_ROUTING = 'CLA'
 
     def __init__(self, *args, **kwargs):
