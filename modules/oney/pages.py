@@ -20,21 +20,19 @@
 from __future__ import unicode_literals
 
 import re
-from io import BytesIO
 from decimal import Decimal
 
 import requests
 
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction, sorted_transactions
-from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
-from weboob.browser.pages import HTMLPage, LoggedPage, pagination, XLSPage, PartialHTMLPage
+from weboob.browser.pages import HTMLPage, LoggedPage, pagination, XLSPage, PartialHTMLPage, JsonPage
 from weboob.browser.elements import ListElement, ItemElement, method, DictElement
 from weboob.browser.filters.standard import Env, CleanDecimal, CleanText, Field, Format, Currency, Date
 from weboob.browser.filters.html import Attr
 from weboob.browser.filters.json import Dict
 from weboob.exceptions import BrowserIncorrectPassword
-
+from weboob.tools.compat import urlparse, parse_qsl
 
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile(r'^(?P<text>Retrait .*?) - traité le \d+/\d+$'), FrenchTransaction.TYPE_WITHDRAWAL),
@@ -46,109 +44,40 @@ class Transaction(FrenchTransaction):
                 (re.compile(r'^(?P<text>.*?)(, taux de change de(.*)?)? - traité le( (\d+|/\d+)*$|$)'), FrenchTransaction.TYPE_CARD)]  # some labels are really badly formed so the regex needs to be this nasty to catch all edge cases
 
 
-class VirtKeyboard(MappedVirtKeyboard):
-    symbols = {'0': ('8664b9cdfa66b4c3a1ec99c35a2bf64b',
-                     '9eb80c6e99410eaac32905b2c77e65e5',
-                     '37717277dc2471c8a7bf37e2068a8f01',
-                     '6e3a1ee9bae6f7fdcfc70784e4377b1a',
-                     ),
-               '1': ('1f36986f9d27dde54ce5b08e8e285476',
-                     '9d0aa7a0a2bbab4f2c01ef1e820cb3f1',
-                     'a4ef89b1c1741158cac0e20ccb0c06b8',
-                     ),
-               '2': ('b560b0cce2ca74d3d499d73775152ab7',
-                     'aa7dfbd005c98c0bd1ebc4135cc196be',
-                     'de01032b31aa17a9f251f554fe1f765b',
-                     ),
-               '3': ('d16e426e71fc29b1b55d0fbded99a473',
-                     'ce25f07ca5df54f6b7934512b65a4653',
-                     ),
-               '4': ('19c68066e414e08d17c86fc5c4acc949',
-                     'c43354a7f7739508f76c538d5b3bce26',
-                     '93e9066313113b7219f60fd9fd1c9ace',
-                     ),
-               '5': ('4b9abf98e30a1475997ec770cbe5e702',
-                     '2059b4aa95c7b3156b171255fa10bbdd',
-                     '1eb285164fae7666c274203f7f429d87',
-                     ),
-               '6': ('804be4171d61f9cc10e9978c43b1d2a0',
-                     'a41b091d4a11a318406a5a8bd3ed3837',
-                     'd51645d63e85c373cbd253b99634fe8c',
-                     'aa0e99bef5c3b7cc350b4b18b528f31b',
-                     ),
-               '7': ('8adf951f4eea5f446f714214e101d555',
-                     '7989c1f32113391d7855db195939be56',
-                     '0c4411e5e8ed8732eb1c7ad834b03c37',
-                     '2f8fb9d5aad4b2b17b5b5e5d056db159',
-                     ),
-               '8': ('568135f3844213c30f2c7880be867d3d',
-                     'b1a92ad131b163b3e380cf7ed8a7bf53',
-                     'b0f68949d5af30f4821891062d80ef39',
-                     'b842758c339e32f41d75df741787137e',
-                     ),
-               '9': ('a3750995c511ea1492ac244421109e77',
-                     'eeb3a8ba804f19380dfe94a91a37595b',
-                     '7ff11918f2cbc8ff6191f878b9b7d56c',
-                     'cb24fe526094ea0a4917bde5d2bf02a1',
-                     ),
-               }
+class ContextInitPage(JsonPage):
+    def get_client_id(self):
+        return self.doc['context']['client_id']
 
-    color=(0,0,0)
+    def get_success_url(self):
+        return self.doc['context']['success_url']
 
-    def __init__(self, page):
-        img = page.doc.find("//img[@usemap='#cv']")
-        res = page.browser.open(img.attrib['src'])
-        MappedVirtKeyboard.__init__(self, BytesIO(res.content), page.doc, img, self.color, 'href', convert='RGB')
+    def get_customer_session_id(self):
+        return self.doc['context']['customer_session_id']
 
-        self.check_symbols(self.symbols, page.browser.responses_dirname)
 
-    def check_color(self, pixel):
-        for p in pixel:
-            if p >= 0xd5:
-                return False
+class SendUsernamePage(JsonPage):
+    def get_flow_id(self):
+        return self.doc['authenticationFlowInit']['flow_id']
 
-        return True
 
-    def get_symbol_coords(self, coords):
-        # strip borders
-        x1, y1, x2, y2 = coords
-        return MappedVirtKeyboard.get_symbol_coords(self, (x1+10, y1+10, x2-10, y2-10))
+class SendPasswordPage(JsonPage):
+    def get_token(self):
+        return self.doc['completeAuthFlowStep']['token']
 
-    def get_symbol_code(self, md5sum_list):
-        for md5sum in md5sum_list:
-            try:
-                code = MappedVirtKeyboard.get_symbol_code(self,md5sum)
-            except VirtKeyboardError:
-                continue
-            else:
-                return ''.join(re.findall(r"'(\d+)'", code)[-2:])
-        raise VirtKeyboardError('Symbol not found')
+    def check_error(self):
+        errors = self.doc['completeAuthFlowStep']['errors']
+        if errors:
+            raise BrowserIncorrectPassword(errors[0]['label'])
 
-    def get_string_code(self, string):
-        code = ''
-        for c in string:
-            code += self.get_symbol_code(self.symbols[c])
-        return code
+
+class CheckTokenPage(JsonPage):
+    pass
 
 
 class LoginPage(HTMLPage):
-    def login(self, login, password):
-        if login.isdigit():
-            vk = VirtKeyboard(self)
-
-            form = self.get_form('//form[@id="formulaire-login"]')
-            code = vk.get_string_code(password)
-            try:
-                assert len(code)==10
-            except AssertionError:
-                raise BrowserIncorrectPassword("Wrong number of character")
-            form['accordirect.identifiant'] = login
-            form['accordirect.code'] = code
-        else:
-            form = self.get_form('//form[@id="formulaire-login-email"]')
-            form['email.identifiant'] = login
-            form['email.code'] = password
-        form.submit()
+    def get_context_token(self):
+        parameters = dict(parse_qsl(urlparse(self.url).query))
+        return parameters.get('context_token', None)
 
 
 class ChoicePage(LoggedPage, HTMLPage):
@@ -239,14 +168,40 @@ class OperationsPage(LoggedPage, HTMLPage):
         def next_page(self):
             options = self.page.doc.xpath('//select[@id="periode"]//option[@selected="selected"]/preceding-sibling::option[1]')
             if options:
-                data = {'numReleve':options[0].values(),'task':'Releve','process':'Releve','eventid':'select','taskid':'','hrefid':'','hrefext':''}
+                data = {
+                    'numReleve': options[0].values(),
+                    'task': 'Releve',
+                    'process': 'Releve',
+                    'eventid': 'select',
+                    'taskid': '',
+                    'hrefid': '',
+                    'hrefext': '',
+                }
                 return requests.Request("POST", self.page.url, data=data)
 
 
 class CreditHome(LoggedPage, HTMLPage):
-    def get_name(self):
-        # boulanger/auchan/etc.
+    def get_accounts_ids(self):
+        ids = []
+        for elem in self.doc.xpath('//li[@id="menu-n2-mesproduits"]//a/@onclick'):
+            acc_id = re.search(r'afficherDetailCompte\(\'(\d+)\'\)', elem).group(1)
+            if acc_id not in ids:
+                ids.append(acc_id)
+        return ids
+
+    def get_label(self):
+        # 'Ma carte Alinea', 'Mon Prêt Oney', ...
         return CleanText('//div[@class="conteneur"]/h1')(self.doc)
+
+    @method
+    class get_loan(ItemElement):
+        klass = Account
+
+        obj_type = Account.TYPE_LOAN
+        obj__site = 'other'
+        obj_label = CleanText('//div[@class="conteneur"]/h1')
+        obj_number = obj_id = CleanText('//td[contains(text(), "Mon numéro de compte")]/following-sibling::td', replace=[(' ', '')])
+        obj_coming = CleanDecimal.US('//td[strong[contains(text(), "Montant de la")]]/following-sibling::td/strong')
 
 
 class CreditAccountPage(LoggedPage, HTMLPage):
@@ -257,12 +212,9 @@ class CreditAccountPage(LoggedPage, HTMLPage):
         obj_type = Account.TYPE_CHECKING
         obj__site = 'other'
         obj_balance = 0
-        obj_id = CleanText('//tr[td[text()="Mon numéro de compte"]]/td[@class="droite"]', replace=[(' ', '')])
+        obj_number = obj_id = CleanText('//tr[td[text()="Mon numéro de compte"]]/td[@class="droite"]', replace=[(' ', '')])
         obj_coming = CleanDecimal('//div[@id="mod-paiementcomptant"]//tr[td[contains(text(),"débité le")]]/td[@class="droite"]', sign=lambda _: -1, default=0)
         obj_currency = Currency('//div[@id="mod-paiementcomptant"]//tr[td[starts-with(normalize-space(text()),"Montant disponible")]]/td[@class="droite"]')
-
-        def obj_label(self):
-            return self.page.browser.card_name
 
 
 class CreditHistory(LoggedPage, XLSPage):

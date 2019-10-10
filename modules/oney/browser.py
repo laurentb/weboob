@@ -17,10 +17,13 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 from datetime import date, timedelta
 from dateutil.relativedelta import relativedelta
 from itertools import chain
 
+from weboob.capabilities.bank import Account
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.tools.date import new_date
@@ -28,6 +31,7 @@ from weboob.tools.date import new_date
 from .pages import (
     LoginPage, ClientPage, OperationsPage, ChoicePage,
     CreditHome, CreditAccountPage, CreditHistory, LastHistoryPage,
+    ContextInitPage, SendUsernamePage, SendPasswordPage, CheckTokenPage,
 )
 
 __all__ = ['OneyBrowser']
@@ -36,19 +40,29 @@ __all__ = ['OneyBrowser']
 class OneyBrowser(LoginBrowser):
     BASEURL = 'https://www.oney.fr'
 
-    login =       URL(r'/site/s/login/login.html', LoginPage)
+    home_login = URL(r'/site/s/login/login.html',
+                     LoginPage)
+    login = URL(r'https://login.oney.fr/login',
+                r'https://login.oney.fr/context',
+                LoginPage)
 
-    choice =      URL(r'/site/s/multimarque/choixsite.html', ChoicePage)
+    send_username = URL(r'https://login.oney.fr/middle/authenticationflowinit', SendUsernamePage)
+    send_password = URL(r'https://login.oney.fr/middle/completeauthflowstep', SendPasswordPage)
+    context_init = URL(r'https://login.oney.fr/middle/context', ContextInitPage)
+
+    check_token = URL(r'https://login.oney.fr/middle/check_token', CheckTokenPage)
+
+    choice = URL(r'/site/s/multimarque/choixsite.html', ChoicePage)
     choice_portal = URL(r'/site/s/login/loginidentifiant.html')
 
-    client =      URL(r'/oney/client', ClientPage)
-    operations =  URL(r'/oney/client', OperationsPage)
-    card_page =   URL(r'/oney/client\?task=Synthese&process=SyntheseMultiCompte&indexSelectionne=(?P<acc_num>\d+)')
+    client = URL(r'/oney/client', ClientPage)
+    operations = URL(r'/oney/client', OperationsPage)
+    card_page = URL(r'/oney/client\?task=Synthese&process=SyntheseMultiCompte&indexSelectionne=(?P<acc_num>\d+)')
 
     credit_home = URL(r'/site/s/detailcompte/detailcompte.html', CreditHome)
     credit_info = URL(r'/site/s/detailcompte/ongletdetailcompte.html', CreditAccountPage)
     credit_hist = URL(r'/site/s/detailcompte/exportoperations.html', CreditHistory)
-    last_hist =   URL(r'/site/s/detailcompte/ongletdernieresoperations.html', LastHistoryPage)
+    last_hist = URL(r'/site/s/detailcompte/ongletdernieresoperations.html', LastHistoryPage)
 
     has_oney = False
     has_other = False
@@ -57,9 +71,42 @@ class OneyBrowser(LoginBrowser):
     def do_login(self):
         self.session.cookies.clear()
 
-        self.login.go()
+        self.home_login.go(method="POST")
+        context_token = self.page.get_context_token()
+        assert context_token is not None, "Should not have context_token=None"
 
-        self.page.login(self.username, self.password)
+        self.context_init.go(params={'contextToken': context_token})
+        success_url = self.page.get_success_url()
+        customer_session_id = self.page.get_customer_session_id()
+
+        self.session.headers.update({'Client-id': self.page.get_client_id()})
+
+        # There is a VK on the website but it does not encode the password
+        self.login.go()
+        self.send_username.go(json={
+            'authentication_type': 'LIGHT',
+            'authentication_factor': {
+                'public_value': self.username,
+                'type': 'IAD',
+            }
+        })
+
+        flow_id = self.page.get_flow_id()
+
+        self.send_password.go(json={
+            'flow_id': flow_id,
+            'step_type': 'IAD_ACCESS_CODE',
+            'value': self.password,
+        })
+
+        self.page.check_error()
+        token = self.page.get_token()
+
+        self.check_token.go(params={'token': token})
+        self.location(success_url, params={
+            'token': token,
+            'customer_session_id': customer_session_id,
+        })
 
         if self.choice.is_here():
             self.has_other = self.has_oney = True
@@ -97,10 +144,16 @@ class OneyBrowser(LoginBrowser):
 
         if self.has_other:
             self.go_site('other')
-            self.credit_home.stay_or_go()
-            self.card_name = self.page.get_name()
-            self.credit_info.go()
-            accounts.append(self.page.get_account())
+            for acc_id in self.page.get_accounts_ids():
+                self.credit_home.go(data={'numeroCompte': acc_id})
+                label = self.page.get_label()
+                if 'prêt' in label.lower():
+                    acc = self.page.get_loan()
+                else:
+                    self.credit_info.go()
+                    acc = self.page.get_account()
+                    acc.label = label
+                accounts.append(acc)
 
         if self.has_oney:
             self.go_site('oney')
@@ -133,7 +186,7 @@ class OneyBrowser(LoginBrowser):
             form['anneeFin'] = str(d.year)
 
         form['typeOpe'] = 'deux'
-        form['formatFichier'] = 'xls' # or pdf... great choice
+        form['formatFichier'] = 'xls'  # or pdf... great choice
         return form
 
     @need_login
@@ -148,8 +201,10 @@ class OneyBrowser(LoginBrowser):
             for tr in self.page.iter_transactions(seen=set()):
                 yield tr
 
-        elif account._site == 'other':
-            if self.last_hist.go().has_transactions():
+        elif account._site == 'other' and account.type != Account.TYPE_LOAN:
+            self.credit_home.go(data={'numeroCompte': account.id})
+            self.last_hist.go()
+            if self.page.has_transactions():
                 # transactions are missing from the xls from 2016 to today
                 # so two requests are needed
                 d = date.today()
@@ -176,10 +231,12 @@ class OneyBrowser(LoginBrowser):
             for tr in self.page.iter_transactions(seen=set()):
                 yield tr
 
-        elif account._site == 'other':
-            if self.last_hist.go().has_transactions():
+        elif account._site == 'other' and account.type != Account.TYPE_LOAN:
+            self.credit_home.go(data={'numeroCompte': account.id})
+            self.last_hist.go()
+            if self.page.has_transactions():
                 self.credit_hist.go(params=self._build_hist_form())
-                d = date.today().replace(day=1) # TODO is it the right date?
+                d = date.today().replace(day=1)  # TODO is it the right date?
                 for tr in self.page.iter_history():
                     if new_date(tr.date) >= d:
                         yield tr
