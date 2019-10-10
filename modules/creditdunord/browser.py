@@ -30,6 +30,7 @@ from .pages import (
     ProTransactionsPage, LabelsPage, RgpdPage,
 )
 
+
 class CreditDuNordBrowser(LoginBrowser):
     ENCODING = 'UTF-8'
     BASEURL = "https://www.credit-du-nord.fr/"
@@ -41,9 +42,13 @@ class CreditDuNordBrowser(LoginBrowser):
     redirect = URL('/swm/redirectCDN.html', RedirectPage)
     entrypage = URL('/icd/zco/#zco', EntryPage)
     multitype_av = URL('/vos-comptes/IPT/appmanager/transac/professionnels\?_nfpb=true&_eventName=onRestart&_pageLabel=synthese_contrats_assurance_vie', AVPage)
-    loans = URL('/vos-comptes/IPT/appmanager/transac/(?P<account_type>.*)\?_nfpb=true&_eventName=onRestart&_pageLabel=(?P<loans_page_label>(creditPersoImmobilier|credit__en_cours|credit_en_cours))', ProAccountsPage)
-    proaccounts = URL('/vos-comptes/IPT/appmanager/transac/(professionnels|entreprises)\?_nfpb=true&_eventName=onRestart&_pageLabel=(?P<accounts_page_label>(transac_tableau_de_bord|page__synthese_v1|page_synthese_v1))', ProAccountsPage)
-    accounts = URL('/vos-comptes/IPT/appmanager/transac/(?P<account_type>.*)\?_nfpb=true&_eventName=onRestart&_pageLabel=(?P<accounts_page_label>(transac_tableau_de_bord|page__synthese_v1|page_synthese_v1))', AccountsPage)
+    loans = URL(r'/vos-comptes/IPT/appmanager/transac/(?P<account_type>.*)\?_nfpb=true&_eventName=onRestart&_pageLabel=(?P<loans_page_label>(creditPersoImmobilier|credit_?_en_cours))', ProAccountsPage)
+    proaccounts = URL(r'/vos-comptes/IPT/appmanager/transac/(professionnels|entreprises)\?_nfpb=true&_eventName=onRestart&_pageLabel=(?P<accounts_page_label>(transac_tableau_de_bord|page_?_synthese_v1))',
+                      r'/vos-comptes/(professionnels|entreprises)/page_?_synthese',
+                      ProAccountsPage)
+    accounts = URL(r'/vos-comptes/IPT/appmanager/transac/(?P<account_type>.*)\?_nfpb=true&_eventName=onRestart&_pageLabel=(?P<accounts_page_label>(transac_tableau_de_bord|page_?_synthese_v1))',
+                   r'/vos-comptes/particuliers',
+                   AccountsPage)
     multitype_iban = URL('/vos-comptes/IPT/appmanager/transac/professionnels\?_nfpb=true&_eventName=onRestart&_pageLabel=impression_rib', ProIbanPage)
     transactions = URL('/vos-comptes/IPT/appmanager/transac/particuliers\?_nfpb=true(.*)', TransactionsPage)
     protransactions = URL('/vos-comptes/(.*)/transac/(professionnels|entreprises)', ProTransactionsPage)

@@ -143,7 +143,7 @@ class LoginPage(HTMLErrorPage):
         self.browser.location('/swm/redirectCDN.html', data=data)
 
     def classic_login(self, username, password):
-        m = re.match('www.([^\.]+).fr', self.browser.BASEURL)
+        m = re.match('https://www.([^\.]+).fr', self.browser.BASEURL)
         if not m:
             bank_name = 'credit-du-nord'
             self.logger.error('Unable to find bank name for %s' % self.browser.BASEURL)
