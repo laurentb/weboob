@@ -30,7 +30,7 @@ from weboob.browser.filters.html import TableCell, Attr
 from weboob.browser.elements import DictElement, ItemElement, method, TableElement
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Date, Regexp, Format, Eval, BrowserURL, Field,
-    Async, Currency,
+    Currency,
 )
 from weboob.capabilities.bank import Transaction, Account, Investment
 from weboob.capabilities.profile import Person
@@ -200,15 +200,6 @@ class CardItemElement(ItemElement):
             'numero_mvt': Field('_trid')(self),
         })
 
-    def obj__redacted_card(self):
-        raw = Field('raw')(self)
-
-        if not raw.startswith('FACTURE CARTE') or ' SUIVANT RELEVE DU ' in raw:
-            return
-
-        page = Async('details').loaded_page(self)
-        return page.get_redacted_card()
-
 
 class AccountHistoryPage(LoggedPage, JsonPage):
     TYPES = {
@@ -334,9 +325,7 @@ class AccountHistoryPage(LoggedPage, JsonPage):
 
 
 class TransactionPage(LoggedPage, JsonPage):
-    def get_redacted_card(self):
-        # warning: the account on which the transaction is returned depends on this data!
-        return self.doc['carteNum']
+    pass
 
 
 class MarketPage(LoggedPage, HTMLPage):
