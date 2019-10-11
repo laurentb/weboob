@@ -88,13 +88,13 @@ class AccountsPage(LoggedPage, HTMLPage):
         else:
             assert False, "data was not found"
 
-        assert data[13] == 'core'
-        assert len(data[14]) == 3
+        assert data[15] == 'core'
+        assert len(data[16]) == 3
 
         # search for products to get products list
-        for index, el in enumerate(data[14][2]):
+        for index, el in enumerate(data[16][2]):
             if 'products' in el:
-                accounts_data = data[14][2][index + 1]
+                accounts_data = data[16][2][index + 1]
 
         assert len(accounts_data) == 2
         assert accounts_data[1][4] == 'productsList'
