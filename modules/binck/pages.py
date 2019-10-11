@@ -31,7 +31,6 @@ from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable, empty
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.investments import is_isin_valid
-from weboob.browser.filters.standard import FilterError
 
 
 def MyDecimal(*args, **kwargs):
@@ -213,7 +212,6 @@ class InvestmentPage(LoggedPage, JsonPage):
 
             obj_label = Dict('SecurityName')
             obj_quantity = MyDecimal(Dict('Quantity'))
-            obj_vdate = DateTime(CleanText(Dict('Time')), dayfirst=True, strict=False)
             obj_unitvalue = Env('unitvalue', default=NotAvailable)
             obj_unitprice = Env('unitprice', default=NotAvailable)
             obj_valuation = MyDecimal(Dict('ValueInEuro'))
@@ -227,14 +225,17 @@ class InvestmentPage(LoggedPage, JsonPage):
             obj__security_id = Dict('SecurityId')
 
             def obj_vdate(self):
-                try:
-                    # during stocks closing hours only date (d/m/y) is given
+                raw_date = CleanText(Dict('Time'))(self)
+                if raw_date == '---':
+                    return NotAvailable
+                elif re.match(r'\d{2}\/\d{2}\/\d{4}', raw_date):
+                    # during stocks closing hours only date (dd/mm/yyyy) is given
                     return Date(CleanText(Dict('Time')), dayfirst=True)(self)
-                except FilterError:
-                    # during stocks opening hours only time (h:m:s) is given,
+                elif re.match(r'\d{2}:\d{2}:\d{2}', raw_date):
+                    # during stocks opening hours only time (hh:mm:ss) is given,
                     # can even be realtime, depending on user settings,
                     # can be given in foreign markets time,
-                    # e.g. 10:00 is displayed at 9:00 for an action in NASADQ Helsinki market
+                    # e.g. 10:00 is displayed at 9:00 for an action in NASDAQ Helsinki market
                     return DateTime(CleanText(Dict('Time')), dayfirst=True, strict=False)(self)
 
             def obj_code(self):
