@@ -108,9 +108,10 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
     par_account_checking_history = URL('/voscomptes/canalXHTML/CCP/releves_ccp/init-releve_ccp.ea\?typeRecherche=10&compte.numero=(?P<accountId>.*)',
                                        '/voscomptes/canalXHTML/CCP/releves_ccp/afficher-releve_ccp.ea', AccountHistory)
-    deferred_card_history = URL(r'/voscomptes/canalXHTML/CB/releveCB/init-mouvementsCarteDD.ea\?compte.numero=(?P<accountId>\w+)&indexCompte=(?P<cardIndex>\d+)&typeListe=(?P<type>\d+)', AccountHistory)
-    deferred_card_history_multi = URL(r'/voscomptes/canalXHTML/CB/releveCB/preparerRecherche-mouvementsCarteDD.ea\?indexCompte=(?P<accountId>\w+)&indexCarte=(?P<cardIndex>\d+)&typeListe=(?P<type>\d+)',
-                                      r'/voscomptes/canalXHTML/CB/releveCB/preparerRecherche-mouvementsCarteDD.ea\?compte.numero=(?P<accountId>\w+)&indexCarte=(?P<cardIndex>\d+)&typeListe=(?P<type>\d+)', AccountHistory)
+    single_card_history = URL(r'/voscomptes/canalXHTML/CB/releveCB/preparerRecherche-mouvementsCarteDD.ea\?typeListe=(?P<monthIndex>\d+)', AccountHistory)
+    deferred_card_history = URL(r'/voscomptes/canalXHTML/CB/releveCB/init-mouvementsCarteDD.ea\?compte.numero=(?P<accountId>\w+)&indexCompte=(?P<cardIndex>\d+)&typeListe=(?P<monthIndex>\d+)', AccountHistory)
+    deferred_card_history_multi = URL(r'/voscomptes/canalXHTML/CB/releveCB/preparerRecherche-mouvementsCarteDD.ea\?indexCompte=(?P<accountId>\w+)&indexCarte=(?P<cardIndex>\d+)&typeListe=(?P<monthIndex>\d+)',
+                                      r'/voscomptes/canalXHTML/CB/releveCB/preparerRecherche-mouvementsCarteDD.ea\?compte.numero=(?P<accountId>\w+)&indexCarte=(?P<cardIndex>\d+)&typeListe=(?P<monthIndex>\d+)', AccountHistory)
     par_account_checking_coming = URL('/voscomptes/canalXHTML/CCP/releves_ccp_encours/preparerRecherche-releve_ccp_encours.ea\?compte.numero=(?P<accountId>.*)&typeRecherche=1',
                                       '/voscomptes/canalXHTML/CB/releveCB/init-mouvementsCarteDD.ea\?compte.numero=(?P<accountId>.*)&typeListe=1&typeRecherche=10',
                                       '/voscomptes/canalXHTML/CCP/releves_ccp_encours/preparerRecherche-releve_ccp_encours.ea\?indexCompte',
@@ -303,13 +304,17 @@ class BPBrowser(LoginBrowser, StatesMixin):
         return self.accounts
 
     def iter_cards(self, account):
-        self.deferred_card_history.go(accountId=account.id, type=0, cardIndex=0)
+        self.deferred_card_history.go(accountId=account.id, monthIndex=0, cardIndex=0)
         if self.cards_list.is_here():
             self.logger.debug('multiple cards for account %r', account)
             for card in self.page.get_cards(parent_id=account.id):
                 card.parent = account
                 yield card
         else:
+            # The website does not shows the transactions if we do not
+            # redirect to a precedent month with weboob then come back
+            self.single_card_history.go(monthIndex=1)
+            self.single_card_history.go(monthIndex=0)
             self.logger.debug('single card for account %r', account)
             self.logger.debug('parsing %r', self.url)
             card = self.page.get_single_card(parent_id=account.id)
@@ -396,12 +401,13 @@ class BPBrowser(LoginBrowser, StatesMixin):
             self.cards_list.go(account_id=account.parent.id)
             self.location(link)
             assert urlobj.is_here()
-            ncard = self.page.params['cardIndex']
+            ncard = self.page.params.get('cardIndex', 0)
             self.logger.debug('handling card %s for account %r', ncard, account)
+            urlobj.go(accountId=account.parent.id, monthIndex=1, cardIndex=ncard)
 
             for t in range(6):
                 try:
-                    urlobj.go(accountId=account.parent.id, type=t, cardIndex=ncard)
+                    urlobj.go(accountId=account.parent.id, monthIndex=t, cardIndex=ncard)
                 except BrowserUnavailable:
                     self.logger.debug("deferred card history stop at %s", t)
                     break
