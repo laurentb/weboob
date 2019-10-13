@@ -442,22 +442,16 @@ class ConsoleApplication(Application):
                 choices['p'] = 'Prompt value when needed (do not store it)'
             choices['s'] = 'Store value in config'
 
-            if v.is_command(v.default):
-                d = 'c'
-            elif v.default == '' and not v.noprompt:
-                d = 'p'
+            if v.default == '' and not v.noprompt:
+                default = 'p'
             else:
-                d = 's'
+                default = 's'
 
-            r = self.ask('*** How do you want to store it?', choices=choices, tiny=True, default=d)
+            r = self.ask('*** How do you want to store it?', choices=choices, tiny=True, default=default)
             if r == 'p':
                 return ''
             if r == 'c':
                 print('Enter the shell command that will print the required value on the standard output')
-                if v.is_command(v.default):
-                    print(': %s' % v.default[1:-1])
-                else:
-                    d = None
                 while True:
                     cmd = self.ask('')
                     try:
