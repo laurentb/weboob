@@ -276,7 +276,11 @@ class BanquePopulaire(LoginBrowser):
         # thanks to stateful website
         next_pages = []
         accounts = []
-        owner_name = re.search(r' (.+)', self.get_profile().name).group(1).upper()
+        profile = self.get_profile()
+        if profile.name:
+            owner_name = re.search(r' (.+)', profile.name).group(1).upper()
+        else:
+            owner_name = re.search(r' (.+)', profile.company_name).group(1).upper()
 
         self.go_on_accounts_list()
 
