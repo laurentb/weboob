@@ -39,7 +39,10 @@ class PasswordPage(object):
     strange_map = None
 
     def decode_grid(self, infos):
-        grid = b64decode(infos['grid']).decode('ascii')
+        grid = infos['grid']
+        if isinstance(infos['grid'], list):
+            grid = infos['grid'][0]
+        grid = b64decode(grid).decode('ascii')
         grid = [int(x) for x in re.findall('[0-9]{3}', grid)]
         n = int(infos['nbrows']) * int(infos['nbcols'])
 
@@ -64,15 +67,28 @@ class PasswordPage(object):
 
 
 class MainPage(BasePage, PasswordPage):
-    def get_authentication_data(self):
-        url = self.browser.BASEURL + '//sec/vkm/gen_crypto?estSession=0'
+    """
+    be carefull : those differents methods and PREFIX_URL are used
+    in another page of an another module which is an abstract of this page
+    """
+    PREFIX_URL = '//sec'
+
+    def get_url(self, path):
+        return (self.browser.BASEURL + self.PREFIX_URL + path)
+
+    def get_authentication_infos(self):
+        url = self.get_url('/vkm/gen_crypto?estSession=0')
         infos_data = self.browser.open(url).text
         infos_data = re.match('^_vkCallback\((.*)\);$', infos_data).group(1)
         infos = json.loads(infos_data.replace("'", '"'))
+        return infos
+
+    def get_authentication_data(self):
+        infos = self.get_authentication_infos()
 
         infos['grid'] = self.decode_grid(infos)
 
-        url = self.browser.BASEURL + '//sec/vkm/gen_ui?modeClavier=0&cryptogramme=' + infos["crypto"]
+        url = self.get_url('/vkm/gen_ui?modeClavier=0&cryptogramme=' + infos['crypto'])
         img = Captcha(BytesIO(self.browser.open(url).content), infos)
 
         try:
@@ -104,7 +120,7 @@ class MainPage(BasePage, PasswordPage):
             'cryptocvcs': authentication_data['infos']['crypto'].encode('iso-8859-1'),
             'vkm_op': 'auth',
         }
-        self.browser.location(self.browser.absurl('/sec/vk/authent.json'), data=data)
+        self.browser.location(self.get_url('/vk/authent.json'), data=data)
 
     def handle_error(self):
         error_msg = CleanText('//span[@class="error_msg"]')(self.doc)

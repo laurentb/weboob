@@ -115,7 +115,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
                                    r'.*/Technical-pages/service-indisponible/service-indisponible.html',
                                    UnavailableServicePage)
     error = URL(r'https://static.societegenerale.fr/pri/erreur.html', ErrorPage)
-    login = URL(r'/sec/vk', LoginPage)
+    login = URL(r'https://particuliers.societegenerale.fr//sec/vk/', LoginPage)  # yes, it works only with double slash
     main_page = URL(r'https://particuliers.societegenerale.fr', MainPage)
 
     context = None
