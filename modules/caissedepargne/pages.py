@@ -1259,7 +1259,12 @@ class LifeInsuranceInvestments(LoggedPage, JsonPage):
             # For whatever reason some labels start with a '.' (for example '.INVESTMENT')
             obj_label = CleanText(Dict('libelleSupport'), replace=[('.', '')])
             obj_valuation = Eval(float_to_decimal, Dict('montantBrutInvesti/valeur'))
-            obj_portfolio_share = Eval(lambda x: float_to_decimal(x)/100, Dict('pourcentageInvesti'))
+
+            def obj_portfolio_share(self):
+                invested_percentage = Dict('pourcentageInvesti', default=None)(self)
+                if invested_percentage:
+                    return float_to_decimal(invested_percentage) / 100
+                return NotAvailable
 
             # Note: the following attributes are not available for euro funds
             def obj_vdate(self):
@@ -1339,7 +1344,12 @@ class NatixisLIInv(LoggedPage, JsonPage):
             obj_valuation = Eval(float_to_decimal, Dict('montant'))
             obj_quantity = Eval(float_to_decimal, Dict('nombreUnitesCompte'))
             obj_unitvalue = Eval(float_to_decimal, Dict('valeurUniteCompte'))
-            obj_portfolio_share = Eval(lambda x: float_to_decimal(x) / 100, Dict('repartition'))
+
+            def obj_portfolio_share(self):
+                repartition = Dict('repartition', default=None)(self)
+                if repartition:
+                    return float_to_decimal(repartition) / 100
+                return NotAvailable
 
 
 class MyRecipient(ItemElement):
