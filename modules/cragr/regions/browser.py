@@ -338,8 +338,11 @@ class CragrRegion(LoginBrowser):
         self.accounts.stay_or_go()
         self.page.set_cragr_code()
         for account in self.page.iter_accounts():
+            self.accounts.go()
             if iban and account._form:
-                account.iban = self.get_account_iban(account._form)
+                # Refresh account form in case it expired
+                refreshed_account = find_object(self.page.iter_accounts(), id=account.id)
+                account.iban = self.get_account_iban(refreshed_account._form)
             if account.id not in [a.id for a in cragr_accounts]:
                 cragr_accounts.append(account)
 
