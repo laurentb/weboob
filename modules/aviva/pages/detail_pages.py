@@ -20,8 +20,6 @@
 from __future__ import unicode_literals
 
 
-import re
-
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import (
@@ -32,7 +30,7 @@ from weboob.capabilities.bank import Investment, Transaction
 from weboob.capabilities.base import NotAvailable
 from weboob.exceptions import ActionNeeded, BrowserUnavailable
 from weboob.tools.compat import urljoin
-from weboob.tools.capabilities.bank.investments import is_isin_valid
+from weboob.tools.capabilities.bank.investments import IsinCode, IsinType
 
 
 def MyDecimal(*args, **kwargs):
@@ -77,7 +75,7 @@ class InvestmentPage(LoggedPage, HTMLPage):
 
     @method
     class iter_investment(ListElement):
-        item_xpath = '//div[contains(@class, "m-table")]/table/tbody/tr[not(has-class("total"))]'
+        item_xpath = '//div[contains(@class, "m-table")]/table/tbody/tr[not(contains(@class, "total"))]'
 
         class item(ItemElement):
             klass = Investment
@@ -98,16 +96,15 @@ class InvestmentPage(LoggedPage, HTMLPage):
                 CleanText('./td[@data-label="Nom du support"]'),
             )
 
-            def obj_code(self):
-                code = re.search(r'"(.*)"', CleanText('./th[@data-label="Nom du support"]/a/@onclick')(self))
-                if code and is_isin_valid(code.group(1)):
-                    return code.group(1)
-                return NotAvailable
-
-            def obj_code_type(self):
-                if Field('code')(self) != NotAvailable:
-                    return Investment.CODE_TYPE_ISIN
-                return NotAvailable
+            obj_code = IsinCode(
+                Regexp(
+                    CleanText('./td[@data-label="Nom du support"]/a/@onclick|./th[@data-label="Nom du support"]/a/@onclick'),
+                    r'"(.*)"',
+                    default=NotAvailable
+                ),
+                default=NotAvailable
+            )
+            obj_code_type = IsinType(Field('code'))
 
 
 class InvestmentElement(ItemElement):
@@ -225,8 +222,15 @@ class ValidationPage(LoggedPage, HTMLPage):
 
 
 class InvestDetailPage(LoggedPage, HTMLPage):
+    pass
+
+
+class InvestPerformancePage(LoggedPage, HTMLPage):
     @method
     class fill_investment(ItemElement):
-        obj_unitprice = CleanDecimal('//td[@class="donnees"]/span[@id="VL_achat"]', default=NotAvailable)
-        obj_diff_ratio = Eval(lambda x: x / 100, CleanDecimal('//td[@class="donnees"]/span[@id="Performance"]', default=NotAvailable))
-        obj_description = CleanText('//td[@class="donnees"]/span[@id="Nature"]', default=NotAvailable)
+        obj_unitprice = CleanDecimal.US('//span[contains(@data-module-target, "BuyValue")]')
+        obj_description = CleanText('//td[contains(text(), "Nature")]/following-sibling::td')
+        obj_diff_ratio = Eval(
+            lambda x: x / 100 if x else NotAvailable,
+            CleanDecimal.US('//span[contains(@data-module-target, "trhrthrth")]', default=NotAvailable)
+        )

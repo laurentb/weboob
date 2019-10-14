@@ -25,7 +25,7 @@ from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded, BrowserHTT
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages.detail_pages import (
-    LoginPage, InvestmentPage, HistoryPage, ActionNeededPage, InvestDetailPage, PrevoyancePage, ValidationPage,
+    LoginPage, InvestmentPage, HistoryPage, ActionNeededPage, InvestDetailPage, PrevoyancePage, ValidationPage, InvestPerformancePage,
 )
 
 from .pages.account_page import AccountsPage
@@ -42,7 +42,8 @@ class AvivaBrowser(LoginBrowser):
     prevoyance = URL(r'/espaceclient/contrat/prevoyance/-(?P<page_id>[0-9]{10})', PrevoyancePage)
     history = URL(r'/espaceclient/contrat/getOperations\?param1=(?P<history_token>.*)', HistoryPage)
     action_needed = URL(r'/espaceclient/coordonnees/detailspersonne\?majcontacts=true', ActionNeededPage)
-    invest_detail = URL(r'http://aviva.sixtelekurs.fr/opcvm.hts.*', InvestDetailPage)
+    invest_detail = URL(r'https://aviva-fonds.webfg.net/sheet/fund/(?P<isin>[A-Z0-9]+)', InvestDetailPage)
+    invest_performance = URL(r'https://aviva-fonds.webfg.net/sheet/fund-calculator', InvestPerformancePage)
 
     def do_login(self):
         self.login.go().login(self.username, self.password)
@@ -78,9 +79,10 @@ class AvivaBrowser(LoginBrowser):
             return
         for inv in self.page.iter_investment():
             if not empty(inv.code):
-                # Fill investments details with ISIN code
-                params = {'isin': inv.code}
-                self.invest_detail.go(params=params)
+                # Need to go first on InvestDetailPage...
+                self.invest_detail.go(isin=inv.code)
+                # ...to then request the InvestPerformancePage tab
+                self.invest_performance.go()
                 self.page.fill_investment(obj=inv)
             else:
                 inv.unitprice = inv.diff_ratio = inv.description = NotAvailable
