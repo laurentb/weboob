@@ -174,10 +174,10 @@ class InvestmentHistoryPage(LoggedPage, HTMLPage):
 
             inv.label = CleanText(None).filter(cols[self.COL_LABEL])
             inv.quantity = self.parse_decimal(cols[self.COL_QUANTITY], True)
-            inv.unitprice = self.parse_decimal(cols[self.COL_UNITPRICE], False)
-            inv.unitvalue = self.parse_decimal(cols[self.COL_UNITVALUE], False)
+            inv.unitprice = self.parse_decimal(cols[self.COL_UNITPRICE], True)
+            inv.unitvalue = self.parse_decimal(cols[self.COL_UNITVALUE], True)
             inv.vdate = Date(CleanText(cols[self.COL_DATE], default=NotAvailable), dayfirst=True, default=NotAvailable)(self.doc)
-            inv.valuation = self.parse_decimal(cols[self.COL_VALUATION], False)
+            inv.valuation = self.parse_decimal(cols[self.COL_VALUATION], True)
             inv.diff = self.parse_decimal(cols[self.COL_PERF], True)
             diff_percent = self.parse_decimal(cols[self.COL_PERF_PERCENT], True)
             inv.diff_ratio = diff_percent / 100 if diff_percent else NotAvailable
@@ -518,11 +518,8 @@ class AccountsList(LoggedPage, HTMLPage):
                 account.currency = investment_page.get_currency()
             elif balance:
                 account.currency = account.get_currency(balance)
-            if account.type == Account.TYPE_LIFE_INSURANCE:
-                # Life Insurance balance uses '.' instead of ','
-                account.balance = CleanDecimal.SI().filter(balance)
-            else:
-                account.balance = CleanDecimal.French().filter(balance)
+
+            account.balance = CleanDecimal.French().filter(balance)
 
             if account.type in (Account.TYPE_CHECKING, Account.TYPE_SAVINGS):
                 # Need a token sent by SMS to customers
