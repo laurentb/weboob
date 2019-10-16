@@ -39,14 +39,26 @@ class LoginPage(HTMLPage):
         form.submit()
 
 
-class BadLogin(HTMLPage):
+class WrongPasswordPage(HTMLPage):
     def get_error(self):
-        return CleanText('//div[@id="idDivErrorLogin"]')(self.doc)
+        return CleanText('//p[contains(text(), "Votre saisie est erronée")]')(self.doc)
+
+
+class WrongWebsitePage(HTMLPage):
+    # We land on this page when the website indicates that
+    # an account is already created on the 'Aviva et moi' space,
+    # So we check the message and raise ActionNeeded with it
+    def on_load(self):
+        message = CleanText('//p[contains(text(), "Vous êtes déjà inscrit")]')(self.doc)
+        if message:
+            raise ActionNeeded(message)
+        assert False, 'We landed on WrongWebsitePage but no message was fetched.'
 
 
 class MigrationPage(HTMLPage):
     def get_error(self):
         return CleanText('//h1[contains(text(), "Votre nouvel identifiant et mot de passe")]')(self.doc)
+
 
 class IndexPage(LoggedPage, HTMLPage):
     def on_load(self):

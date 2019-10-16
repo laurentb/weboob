@@ -25,27 +25,24 @@ from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, Brow
 from weboob.tools.compat import basestring
 
 from .pages import (
-    LoginPage, IndexPage, BadLogin, AccountDetailPage, AccountHistoryPage, MigrationPage
+    LoginPage, IndexPage, WrongPasswordPage, WrongWebsitePage,
+    AccountDetailPage, AccountHistoryPage, MigrationPage,
 )
 
 
 class AferBrowser(LoginBrowser):
     BASEURL = 'https://adherent.gie-afer.fr'
 
-    login = URL(r'/espaceadherent/MonCompte/Connexion', LoginPage)
+    login = URL(r'/espaceadherent/MonCompte/Connexion$', LoginPage)
+    wrong_password = URL(r'/espaceadherent/MonCompte/Connexion\?err=6001', WrongPasswordPage)
+    wrong_website = URL(r'/espaceadherent/MonCompte/Connexion\?err=6008', WrongWebsitePage)
     migration = URL(r'/espaceadherent/MonCompte/Migration', MigrationPage)
-    # TODO check all following urls once users have migrated to new credentials
-    bad_login = URL('/names.nsf\?Login', BadLogin)
     index = URL('/web/ega.nsf/listeAdhesions\?OpenForm', IndexPage)
     account_detail = URL('/web/ega.nsf/soldeEpargne\?openForm', AccountDetailPage)
     account_history = URL('/web/ega.nsf/generationSearchModule\?OpenAgent', AccountHistoryPage)
     history_detail = URL('/web/ega.nsf/WOpendetailOperation\?OpenAgent', AccountHistoryPage)
 
     def do_login(self):
-        """
-        Attempt to log in.
-        Note: this method does nothing if we are already logged in.
-        """
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
         self.login.go()
@@ -58,13 +55,11 @@ class AferBrowser(LoginBrowser):
         if self.migration.is_here():
             raise BrowserPasswordExpired(self.page.get_error())
 
-        if self.bad_login.is_here():
+        if self.wrong_password.is_here():
             error = self.page.get_error()
-            if "La saisie de l’identifiant ou du code confidentiel est incorrecte" in error or \
-               "Veuillez-vous identifier" in error:
+            if error:
                 raise BrowserIncorrectPassword(error)
-            else:
-                assert False, "Message d'erreur inconnu: %s" % error
+            assert False, 'We landed on WrongPasswordPage but no error message was fetched.'
 
 
     @need_login
