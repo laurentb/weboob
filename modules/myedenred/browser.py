@@ -19,55 +19,120 @@
 
 from __future__ import unicode_literals
 
-from datetime import timedelta
-
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
-from weboob.tools.date import LinearDateGuesser
 
-from .pages import LoginPage, AccountsPage, AccountDetailsPage, TransactionsPage
+from .pages import (
+    LoginPage, AccountsPage, TransactionsPage, InitLoginPage, TokenPage,
+    ConnectCodePage, JsParamsPage, JsUserPage, JsAppPage, HomePage,
+)
+
 
 class MyedenredBrowser(LoginBrowser):
-    BASEURL = 'https://www.myedenred.fr'
+    BASEURL = 'https://app-container.eu.edenred.io'
 
-    login = URL(r'/ctr\?Length=7',
-                r'/ExtendedAccount/Logon', LoginPage)
-    accounts = URL(r'/$', AccountsPage)
-    accounts_details = URL(r'/ExtendedHome/ProductLine\?benId=(?P<token>\d+)', AccountDetailsPage)
-    transactions = URL('/Card/TransactionSet', TransactionsPage)
+    home = URL(r'https://myedenred.fr/$', HomePage)
+    init_login = URL(r'https://sso.auth.api.edenred.com/idsrv/connect/authorize', InitLoginPage)
+    login = URL(r'https://sso.auth.api.edenred.com/idsrv/login', LoginPage)
+    connect_code = URL(r'https://www.myedenred.fr/connect', ConnectCodePage)
+    token = URL(r'https://sso.auth.api.edenred.com/idsrv/connect/token', TokenPage)
+    accounts = URL(r'/v1/users/(?P<username>.+)/cards', AccountsPage)
+    transactions = URL(r'/v1/users/(?P<username>.+)/accounts/(?P<card_class>.*)-(?P<account_ref>\d+)/operations', TransactionsPage)
+
+    params_js = URL(r'https://www.myedenred.fr/js/parameters.(?P<random_str>\w+).js', JsParamsPage)
+    user_js = URL(r'https://myedenred.fr/js/user.(?P<random_str>\w+).js', JsUserPage)
+    app_js = URL(r'https://myedenred.fr/js/app.(?P<random_str>\w+).js', JsAppPage)
 
     def __init__(self, *args, **kwargs):
         super(MyedenredBrowser, self).__init__(*args, **kwargs)
 
-        self.docs = {}
-
     def do_login(self):
-        self.login.go(data={'Email': self.username, 'Password': self.password, 'RememberMe': 'false',
-                            'X-Requested-With': 'XMLHttpRequest', 'ReturnUrl': '/'})
-        self.accounts.go()
+        self.home.go()
+        params_random_str = self.page.get_href_randomstring('parameters')
+        user_random_str = self.page.get_href_randomstring('user')
+        app_random_str = self.page.get_href_randomstring('app')
+
+        self.params_js.go(random_str=params_random_str)
+        js_parameters = self.page.get_json_content()
+
+        self.user_js.go(random_str=user_random_str)
+        user_js = self.page.get_json_content()
+
+        self.init_login.go(params={
+            'acr_values': js_parameters['acr_values'],
+            'client_id': js_parameters['EDCId'],
+            'code_challenge': user_js['code_challenge'],
+            'code_challenge_method': user_js['code_challenge_method'],
+            'nonce': user_js['nonce'],
+            'redirect_uri': 'https://www.myedenred.fr/connect',
+            'response_type': user_js['response_type'],
+            'scope': user_js['scope'],
+            'state': '',
+            'ui_locales': 'fr-fr',
+        })
+
+        json_model = self.page.get_json_model()
+        self.location(
+            'https://sso.auth.api.edenred.com' + json_model['loginUrl'],
+            data={
+                'idsrv.xsrf': json_model['antiForgery']['value'],
+                'password': self.password,
+                'username': self.username,
+            },
+        )
+
         if self.login.is_here():
-            raise BrowserIncorrectPassword
+            raise BrowserIncorrectPassword()
+
+        code = self.page.get_code()
+
+        self.app_js.go(random_str=app_random_str)
+        code_verifier = self.page.get_code_verifier()
+
+        self.token.go(
+            data={
+                'client_id': js_parameters['EDCId'],
+                'client_secret': js_parameters['EDCSecret'],
+                'code': code,
+                'code_verifier': code_verifier,
+                'grant_type': 'authorization_code',
+                'redirect_uri': self.connect_code.urls[0],
+            },
+            headers={'X-request-id': 'token'},
+        )
+
+        self.session.headers.update({
+            'Authorization': 'Bearer ' + self.page.get_access_token(),
+            'X-Client-Id': js_parameters['ClientId'],
+            'X-Client-Secret': js_parameters['ClientSecret'],
+            'X-request-id': 'edg_call',
+        })
 
     @need_login
     def iter_accounts(self):
-        for acc_id in self.accounts.stay_or_go().get_accounts_id():
-            yield self.accounts_details.go(headers={'X-Requested-With': 'XMLHttpRequest'},
-                                                 token=acc_id).get_account()
-
+        self.accounts.go(username=self.username)
+        return self.page.iter_accounts()
 
     @need_login
     def iter_history(self, account):
-        self.transactions.go(data={
-            'command': 'Charger les 10 transactions suivantes',
-            'ErfBenId': account._product_token,
-            'ProductCode': account._product_type,
-            'SortBy': 'DateOperation',
-            'StartDate': '',
-            'EndDate': '',
-            'PageNum': 10,
-            'OperationType': 'Default',
-            'failed': 'false',
-            'X-Requested-With': 'XMLHttpRequest'
-        })
-        for tr in self.page.iter_transactions(subid=account.id, date_guesser=LinearDateGuesser(date_max_bump=timedelta(45))):
-            yield tr
+        page_index = 0
+        # Max value, allowed by the webiste, for page_size is 50
+        page_size = 50
+        nb_transactions = page_size
+
+        while nb_transactions == page_size:
+            self.transactions.go(
+                username=self.username,
+                card_class=account._card_class,
+                account_ref=account._account_ref,
+                params={
+                    'page_index': page_index,
+                    'page_size': page_size,
+                }
+            )
+
+            nb_transactions = len(self.page.doc['data'])
+            for tr in self.page.iter_transactions():
+                yield tr
+
+            page_index += 1

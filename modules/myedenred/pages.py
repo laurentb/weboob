@@ -19,69 +19,128 @@
 
 from __future__ import unicode_literals
 
-from weboob.browser.pages import HTMLPage, PartialHTMLPage, LoggedPage
-from weboob.browser.elements import ItemElement, method, ListElement
+import re
+
+from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage, RawPage
+from weboob.browser.elements import ItemElement, method, DictElement
 from weboob.browser.filters.standard import (
-    CleanText, CleanDecimal,
-    Regexp, DateGuesser, Field, Env
+    CleanText, CleanDecimal, Currency, Field, Eval,
+    Date, Regexp,
 )
+from weboob.browser.filters.json import Dict
 from weboob.capabilities.bank import Account, Transaction
-from weboob.capabilities.base import NotAvailable
+from weboob.tools.json import json
+from weboob.tools.compat import urlparse, parse_qs
 
 
-def MyDecimal(*args, **kwargs):
-    kwargs.update(replace_dots=True, default=NotAvailable)
-    return CleanDecimal(*args, **kwargs)
+class HomePage(HTMLPage):
+    def get_href_randomstring(self, filename):
+        # The filename has a random string like `3eacdd2f` that changes often
+        # (at least once a week).
+        # We can get this string easily because file path is always like that:
+        # `/js/<filename>.<randomstring>.js`
+        #
+        # We can't use Regexp(Link(..)) because all the links are in the <head>
+        # tag on the page. That would require to do something like  `//link[25]`
+        # to get the correct link, and if they modify/add/remove one link then the
+        # regex is going to crash or give us the wrong result.
+        href = re.search(r'link href=/js/%s.(\w+).js' % filename, self.text)
+        return href.group(1)
+
+
+class JsParamsPage(RawPage):
+    def get_json_content(self):
+        json_data = re.search(r"JSON\.parse\('(.*)'\)", self.text)
+        return json.loads(json_data.group(1))
+
+
+class JsUserPage(RawPage):
+    def get_json_content(self):
+        # eg of the regex:
+        # beforeRouteEnter:function(e,t,n){var r=location.origin,i=e.params.pathMatch||"",s={<json here>}
+        json_data = re.search(r'beforeRouteEnter:function\([^\)]+\){var r=[^,]+,i=[^,]+,s=({.*?})', self.text).group(1)
+        # Delete values that are variables concatenation (like `r + "/connect"`),
+        # we do not need them.
+        json_data = re.sub(r':([^{\",]+\+)', ':', json_data)
+        # There are values without quotes in the json, so we add quotes for the
+        # json.loads to work.
+        json_data = re.sub(r':([^\",+]+)', r':"\1"', json_data)
+        # Keys do not have quotes, adding them for the json.loads to work
+        json_data = re.sub(r'([^{\",+]+):', r'"\1":', json_data)
+        return json.loads(json_data)
+
+
+class JsAppPage(RawPage):
+    def get_code_verifier(self):
+        return re.search(r'code_verifier:"([^"]+)', self.text).group(1)
+
+
+class InitLoginPage(HTMLPage):
+    pass
 
 
 class LoginPage(HTMLPage):
-    def get_error(self):
-        return CleanText('//li[@class="notification-summary-message-error"][1]')(self.doc)
+    def get_json_model(self):
+        return json.loads(CleanText('//script[@id="modelJson"]', replace=[('&quot;', '"')])(self.doc))
 
 
-class AccountsPage(LoggedPage, HTMLPage):
-    def get_accounts_id(self):
-        for e in self.doc.xpath('//ul[@id="navSideProducts"]//strong[contains(text(), "Restaurant")]/ancestor::li'):
-            yield e.attrib['id'].split('_')[-1]
+class ConnectCodePage(LoggedPage, HTMLPage):
+    def get_code(self):
+        return parse_qs(urlparse(self.url).query)['code'][0]
 
 
-class AccountDetailsPage(LoggedPage, PartialHTMLPage):
+class TokenPage(LoggedPage, JsonPage):
+    def get_access_token(self):
+        return CleanText(Dict('access_token'))(self.doc)
+
+
+class AccountsPage(LoggedPage, JsonPage):
     @method
-    class get_account(ItemElement):
-        klass = Account
+    class iter_accounts(DictElement):
+        item_xpath = 'data'
 
-        obj_type = Account.TYPE_CARD
-        obj_id = CleanText('//p[contains(text(), "Identifiant")]/a')
-        obj_label = obj_id
-        obj_currency = u'EUR'
-        obj_balance = MyDecimal('//p[@class="num"]/a')
-        obj_cardlimit = MyDecimal('//div[has-class("solde_actu")]')
+        class item(ItemElement):
+            klass = Account
 
-        # Every subscription a product token and a type ex: card = 240
-        obj__product_token = Regexp(CleanText('//div[contains(@id, "product")]/@id'), r'productLine_(\d*)')
-        obj__product_type = Regexp(CleanText('(//div[@class="logo"])[1]//img/@src'), "/img/product_(\d*).png")
+            def condition(self):
+                return CleanText(Dict('status'))(self) == 'active'
+
+            obj_type = Account.TYPE_CARD
+            obj_label = obj_id = obj_number = CleanText(Dict('card_ref'))
+            # The amount has no `.` or `,` in it. In order to get the amount we have
+            # to divide the amount we retrieve by 100 (like the website does).
+            obj_balance = Eval(lambda x: x / 100, CleanDecimal(Dict('balances/0/remaining_amount')))
+            obj_currency = Currency(Dict('balances/0/currency'))
+            obj_cardlimit = Eval(lambda x: x / 100, CleanDecimal(Dict('balances/0/daily_remaining_amount')))
+            obj__card_class = CleanText(Dict('class'))
+            obj__account_ref = CleanText(Dict('account_ref'))
 
 
-
-class TransactionsPage(LoggedPage, HTMLPage):
+class TransactionsPage(LoggedPage, JsonPage):
     @method
-    class iter_transactions(ListElement):
-        item_xpath = '(//table[contains(@class, "table-transaction")])[1]/tbody/tr'
+    class iter_transactions(DictElement):
+        item_xpath = 'data'
 
         class item(ItemElement):
             klass = Transaction
 
             def condition(self):
-                return CleanText('./td[@class="al-c"]/span')(self) not in ('transaction refusée', 'transaction en cours de traitement')
+                return CleanText(Dict('status'))(self) != 'failed'
 
-            obj_date = DateGuesser(CleanText('.//span[contains(., "/")]'), Env('date_guesser'))
-            obj_label = CleanText('.//h3/strong')
-            obj_raw = Field('label')
-            obj_amount = MyDecimal('./td[@class="al-r"]/div/span[has-class("badge")]')
+            obj_date = Date(Dict('date'))
+            obj_raw = CleanText(Dict('outlet/name'))
+            obj_amount = Eval(lambda x: x / 100, CleanDecimal(Dict('amount')))
+
+            def obj_label(self):
+                # Raw labels can be like this :
+                # PASTA ANGERS,FRA
+                # O SEIZE - 16 RUE D ALSACE, ANGERS,49100,FRA
+                # SFR DISTRIBUTION-23-9.20-0.00-2019
+                # The regexp is to get the part with only the name
+                # The .strip() is to remove any leading whitespaces due to the ` ?-`
+                return Regexp(CleanText(Dict('outlet/name')), r'([^,-]+)(?: ?-|,).*')(self).strip()
 
             def obj_type(self):
-                amount = Field('amount')(self)
-                if amount < 0:
+                if Field('amount')(self) < 0:
                     return Transaction.TYPE_CARD
-                else:
-                    return Transaction.TYPE_TRANSFER
+                return Transaction.TYPE_TRANSFER
