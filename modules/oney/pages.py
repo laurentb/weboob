@@ -184,7 +184,10 @@ class CreditHome(LoggedPage, HTMLPage):
     def get_accounts_ids(self):
         ids = []
         for elem in self.doc.xpath('//li[@id="menu-n2-mesproduits"]//a/@onclick'):
-            acc_id = re.search(r'afficherDetailCompte\(\'(\d+)\'\)', elem).group(1)
+            regex_result = re.search(r"afficherDetailCompte\('(\d+)'\)", elem)
+            if not regex_result:
+                continue
+            acc_id = regex_result.group(1)
             if acc_id not in ids:
                 ids.append(acc_id)
         return ids
