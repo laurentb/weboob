@@ -510,7 +510,9 @@ class AbstractModule(Module):
     """
     PARENT = None
 
-    def __new__(cls, weboob, name, config=None, storage=None, logger=None, nofail=False):
+    @classmethod
+    def _resolve_abstract(cls, weboob, name):
+        """ Replace AbstractModule parent with the real base class """
         if cls.PARENT is None:
             raise AbstractModuleMissingParentError("PARENT is not defined for module %s" % cls.__name__)
 
@@ -519,7 +521,19 @@ class AbstractModule(Module):
         except ModuleInstallError as err:
             raise ModuleInstallError('The module %s depends on %s module but %s\'s installation failed with: %s' % (name, cls.PARENT, cls.PARENT, err))
 
+        # Parent may have defined an ADDITIONAL_CONFIG
+        if getattr(parent, 'ADDITIONAL_CONFIG', None):
+            cls.ADDITIONAL_CONFIG = BackendConfig(*(list(parent.ADDITIONAL_CONFIG.values()) + list(cls.ADDITIONAL_CONFIG.values())))
+
+        # Parent may be an AbstractModule as well
+        if hasattr(parent, '_resolve_abstract'):
+            parent._resolve_abstract(weboob, name)
+
         cls.__bases__ = tuple([parent] + list(cls.iter_caps()))
+        return parent
+
+    def __new__(cls, weboob, name, config=None, storage=None, logger=None, nofail=False):
+        parent = cls._resolve_abstract(weboob=weboob, name=name)
 
         # fake backend config inheritance, override existing Values
         # do not use CONFIG to allow the children to overwrite completely the parent CONFIG.
