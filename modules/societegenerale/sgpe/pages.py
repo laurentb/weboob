@@ -97,16 +97,30 @@ class ChangePassPage(SGPEPage):
 
 
 class LoginPage(SGPEPage):
+    """
+    be carefull : those differents methods and PREFIX_URL are used
+    in another page of an another module which is an abstract of this page
+    """
+    PREFIX_URL = '/sec'
+
     @property
     def logged(self):
         return self.doc.xpath('//a[text()="Déconnexion" and @href="/logout"]')
 
-    def get_authentication_data(self):
-        infos_data = self.browser.open('/sec/vk/gen_crypto?estSession=0').text
+    def get_url(self, path):
+        return (self.browser.BASEURL + self.PREFIX_URL + path)
+
+    def get_authentication_infos(self):
+        url = self.get_url('/vk/gen_crypto?estSession=0')
+        infos_data = self.browser.open(url).text
         infos_data = re.match('^_vkCallback\((.*)\);$', infos_data).group(1)
         infos = json.loads(infos_data.replace("'", '"'))
+        return infos
 
-        url = '/sec/vk/gen_ui?modeClavier=0&cryptogramme=' + infos["crypto"]
+    def get_authentication_data(self):
+        infos = self.get_authentication_infos()
+
+        url = self.get_url('/vk/gen_ui?modeClavier=0&cryptogramme=' + infos['crypto'])
         img = Captcha(BytesIO(self.browser.open(url).content), infos)
 
         try:
@@ -121,6 +135,9 @@ class LoginPage(SGPEPage):
             'img': img,
         }
 
+    def get_authentication_url(self):
+        return self.browser.absurl('/authent.html')
+
     def login(self, login, password):
         authentication_data = self.get_authentication_data()
 
@@ -130,7 +147,7 @@ class LoginPage(SGPEPage):
             'cryptocvcs': authentication_data['infos']['crypto'],
             'vk_op': 'auth',
         }
-        self.browser.location(self.browser.absurl('/authent.html'), data=data)
+        self.browser.location(self.get_authentication_url(), data=data)
 
 
 class CardsPage(LoggedPage, SGPEPage):
