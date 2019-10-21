@@ -630,6 +630,9 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
     def continue_new_recipient(self, recipient, **params):
         if 'Clé' in params:
             self.page.post_code(params['Clé'])
+            if self.verify_pass.is_here():
+                self.page.handle_error()
+                assert False, 'An error occured while checking the card code'
         self.page.add_recipient(recipient)
         if self.page.bic_needed():
             self.page.ask_bic(self.get_recipient_object(recipient))

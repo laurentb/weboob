@@ -1772,6 +1772,12 @@ class VerifCodePage(LoggedPage, HTMLPage):
         form['valChx.y'] = '1'
         form.submit()
 
+    def handle_error(self):
+        error_msg = CleanText('//div[@class="blocmsg info"]/p')(self.doc)
+        # the card was not activated yet
+        if 'veuillez activer votre carte' in error_msg:
+            raise AddRecipientBankError(message=error_msg)
+
 
 class RecipientsListPage(LoggedPage, HTMLPage):
     def on_load(self):
