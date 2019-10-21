@@ -151,7 +151,7 @@ class item_account_generic(ItemElement):
     TYPES = OrderedDict([
         (re.compile(r'Credits Promoteurs'), Account.TYPE_CHECKING),  # it doesn't fit loan's model
         (re.compile(r'Compte Cheque'), Account.TYPE_CHECKING),
-        (re.compile(r'Compte Courant'), Account.TYPE_CHECKING),
+        (re.compile(r'Comptes? Courants?'), Account.TYPE_CHECKING),
         (re.compile(r'Cpte Courant'), Account.TYPE_CHECKING),
         (re.compile(r'Contrat Personnel'), Account.TYPE_CHECKING),
         (re.compile(r'Cc Contrat Personnel'), Account.TYPE_CHECKING),
@@ -169,7 +169,7 @@ class item_account_generic(ItemElement):
         (re.compile(r'Eco-Prêt'), Account.TYPE_LOAN),
         (re.compile(r'Mcne'), Account.TYPE_LOAN),
         (re.compile(r'Nouveau Prêt'), Account.TYPE_LOAN),
-        (re.compile(r'Pret\b'), Account.TYPE_LOAN),
+        (re.compile(r'Pr[eê]t\b'), Account.TYPE_LOAN),
         (re.compile(r'Regroupement De Credits'), Account.TYPE_LOAN),
         (re.compile(r'Nouveau Pret 0%'), Account.TYPE_LOAN),
         (re.compile(r'Global Auto'), Account.TYPE_LOAN),
@@ -194,6 +194,10 @@ class item_account_generic(ItemElement):
         (re.compile(r'Compte Duo'), Account.TYPE_SAVINGS),
         (re.compile(r'Compte Garantie Titres'), Account.TYPE_MARKET),
         (re.compile(r'Ppe'), Account.TYPE_LOAN),
+        (re.compile(r'P.(C.)?A.S.'), Account.TYPE_LOAN),
+        (re.compile(r'Demarrimo'), Account.TYPE_MORTGAGE),
+        (re.compile(r'Permis.*Jour'), Account.TYPE_LOAN),
+        (re.compile(r'Esp[èe]ce Gages?\b'), Account.TYPE_CHECKING),  # ex : Compte Gere Espece Gage M...
     ])
 
     REVOLVING_LOAN_REGEXES = [
