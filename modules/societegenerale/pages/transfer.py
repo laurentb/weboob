@@ -101,6 +101,9 @@ class TransferJson(LoggedPage, JsonPage):
             def condition(self):
                 return Field('id')(self) != Env('account_id')(self) and is_iban_valid(Field('iban')(self))
 
+            def validate(self, obj):
+                return obj.label  # some recipients have an empty label
+
     def init_transfer(self, account, recipient, transfer):
         assert self.is_able_to_transfer(account), 'Account %s seems to be not able to do transfer' % account.id
 
