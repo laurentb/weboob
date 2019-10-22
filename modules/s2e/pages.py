@@ -620,7 +620,7 @@ class HistoryPage(LoggedPage, MultiPage):
 
         col_scheme = ['Scheme', 'Dispositif']
         col_label = [re.compile('Investment'), re.compile('My investment'), 'fund', re.compile('Support')]
-        col_quantity = [re.compile('Quantity'), re.compile('Quantité'), re.compile('En parts')]
+        col_quantity = [re.compile('Quantity'), re.compile('Quantité'), re.compile('En parts'), re.compile('Nombre de parts')]
         col_valuation = ['Gross amount', 'Net amount', re.compile('.*Montant brut'), re.compile('.*Montant [Nn]et')]
 
         class item(ItemInvestment):
