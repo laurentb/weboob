@@ -109,7 +109,7 @@ class CaissedepargneKeyboard(GridVirtKeyboard):
 
 class GarbagePage(LoggedPage, HTMLPage):
     def on_load(self):
-        go_back_link = Link('//a[@class="btn"]', default=NotAvailable)(self.doc)
+        go_back_link = Link('//a[@class="btn" or @class="cta_stroke back"]', default=NotAvailable)(self.doc)
 
         if go_back_link is not NotAvailable:
             assert len(go_back_link) != 1
