@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+
 class BrowserIncorrectPassword(Exception):
     pass
 
@@ -189,4 +190,22 @@ class AuthMethodNotImplemented(ActionNeeded):
 
 
 class BrowserPasswordExpired(ActionNeeded):
+    pass
+
+
+class NeedInteractive(Exception):
+    pass
+
+
+class NeedInteractiveForRedirect(NeedInteractive):
+    """
+    An authentication is required to connect and credentials are not supplied
+    """
+    pass
+
+
+class NeedInteractiveFor2FA(NeedInteractive):
+    """
+    A 2FA is required to connect, credentials are supplied but not the second factor
+    """
     pass
