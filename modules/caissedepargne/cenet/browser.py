@@ -98,7 +98,8 @@ class CenetBrowser(LoginBrowser, StatesMixin):
         elif not self.nuser:
             raise BrowserIncorrectPassword("Erreur: Numéro d'utilisateur requis.")
 
-        assert "authMode" in data and data['authMode'] == 'redirect', 'should not be on the cenet website'
+        if "authMode" in data and data['authMode'] != 'redirect':
+            raise BrowserIncorrectPassword()
 
         payload = {'contexte': '', 'dataEntree': None, 'donneesEntree': "{}", 'filtreEntree': "\"false\""}
         res = self.cenet_vk.open(data=json.dumps(payload), headers={'Content-Type': "application/json"})
