@@ -92,7 +92,7 @@ class BankStandardTest(object):
         self.assertFalse(empty(account.balance) and empty(account.coming), 'account %r should have balance or coming' % account)
         self.assertTrue(account.type, 'account %r is untyped' % account)
         self.assertTrue(account.currency, 'account %r has no currency' % account)
-        self.assertIsNot(account.number, NotLoaded)
+        self.assertIsNot(account.number, NotLoaded, 'account %r number is not loaded' % account)
         if account.iban:
             self.assertTrue(is_iban_valid(account.iban), 'account %r IBAN is invalid: %r' % (account, account.iban))
 
