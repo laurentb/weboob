@@ -35,36 +35,23 @@ from weboob.exceptions import BrowserUnavailable
 
 
 class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile('^CB (?P<text>.*?) FACT (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2})', re.IGNORECASE),
-                                                            FrenchTransaction.TYPE_CARD),
-                (re.compile('^RET(RAIT)? DAB (?P<dd>\d+)-(?P<mm>\d+)-.*', re.IGNORECASE),
-                                                            FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('^RET(RAIT)? DAB (?P<text>.*?) (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (?P<HH>\d{2})H(?P<MM>\d{2})', re.IGNORECASE),
-                                                            FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('^VIR(EMENT)?(\.PERIODIQUE)? (?P<text>.*)', re.IGNORECASE),
-                                                            FrenchTransaction.TYPE_TRANSFER),
-                (re.compile('^PRLV (?P<text>.*)', re.IGNORECASE),
-                                                            FrenchTransaction.TYPE_ORDER),
-                (re.compile('^CHEQUE.*', re.IGNORECASE),    FrenchTransaction.TYPE_CHECK),
-                (re.compile('^(CONVENTION \d+ )?COTIS(ATION)? (?P<text>.*)', re.IGNORECASE),
-                                                            FrenchTransaction.TYPE_BANK),
-                (re.compile(r'^\* (?P<text>.*)', re.IGNORECASE),
-                                                            FrenchTransaction.TYPE_BANK),
-                (re.compile('^REMISE (?P<text>.*)', re.IGNORECASE),
-                                                            FrenchTransaction.TYPE_DEPOSIT),
-                (re.compile('^(?P<text>.*)( \d+)? QUITTANCE .*', re.IGNORECASE),
-                                                            FrenchTransaction.TYPE_ORDER),
-                (re.compile('^CB [\d\*]+ TOT DIF .*', re.IGNORECASE),
-                                                            FrenchTransaction.TYPE_CARD_SUMMARY),
-                (re.compile('^CB [\d\*]+ (?P<text>.*)', re.IGNORECASE),
-                                                            FrenchTransaction.TYPE_CARD),
-                (re.compile('^CB (?P<text>.*?) (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2})', re.IGNORECASE),
-                                                            FrenchTransaction.TYPE_CARD),
-                (re.compile('\*CB (?P<text>.*?) (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2})', re.IGNORECASE),
-                                                            FrenchTransaction.TYPE_CARD),
-                (re.compile('^FAC CB (?P<text>.*?) (?P<dd>\d{2})/(?P<mm>\d{2})', re.IGNORECASE),
-                                                            FrenchTransaction.TYPE_CARD),
-               ]
+    PATTERNS = [
+        (re.compile(r'^CB (?P<text>.*?) FACT (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2})', re.IGNORECASE), FrenchTransaction.TYPE_CARD),
+        (re.compile(r'^RET(RAIT)? DAB (?P<dd>\d+)-(?P<mm>\d+)-.*', re.IGNORECASE), FrenchTransaction.TYPE_WITHDRAWAL),
+        (re.compile(r'^RET(RAIT)? DAB (?P<text>.*?) (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (?P<HH>\d{2})H(?P<MM>\d{2})', re.IGNORECASE), FrenchTransaction.TYPE_WITHDRAWAL),
+        (re.compile(r'^VIR(EMENT)?(\.PERIODIQUE)? (?P<text>.*)', re.IGNORECASE), FrenchTransaction.TYPE_TRANSFER),
+        (re.compile(r'^PRLV (?P<text>.*)', re.IGNORECASE), FrenchTransaction.TYPE_ORDER),
+        (re.compile(r'^CHEQUE.*', re.IGNORECASE), FrenchTransaction.TYPE_CHECK),
+        (re.compile(r'^(CONVENTION \d+ )?COTIS(ATION)? (?P<text>.*)', re.IGNORECASE), FrenchTransaction.TYPE_BANK),
+        (re.compile(r'^\* (?P<text>.*)', re.IGNORECASE), FrenchTransaction.TYPE_BANK),
+        (re.compile(r'^REMISE (?P<text>.*)', re.IGNORECASE), FrenchTransaction.TYPE_DEPOSIT),
+        (re.compile(r'^(?P<text>.*)( \d+)? QUITTANCE .*', re.IGNORECASE), FrenchTransaction.TYPE_ORDER),
+        (re.compile(r'^CB [\d\*]+ TOT DIF .*', re.IGNORECASE), FrenchTransaction.TYPE_CARD_SUMMARY),
+        (re.compile(r'^CB [\d\*]+ (?P<text>.*)', re.IGNORECASE), FrenchTransaction.TYPE_CARD),
+        (re.compile(r'^CB (?P<text>.*?) (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2})', re.IGNORECASE), FrenchTransaction.TYPE_CARD),
+        (re.compile(r'\*CB (?P<text>.*?) (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2})', re.IGNORECASE), FrenchTransaction.TYPE_CARD),
+        (re.compile(r'^FAC CB (?P<text>.*?) (?P<dd>\d{2})/(?P<mm>\d{2})', re.IGNORECASE), FrenchTransaction.TYPE_CARD),
+    ]
 
 
 class LoginPage(JsonPage):
@@ -120,7 +107,7 @@ class CenetJsonPage(JsonPage):
 
 
 class CenetAccountsPage(LoggedPage, CenetJsonPage):
-    ACCOUNT_TYPES = {u'CCP': Account.TYPE_CHECKING}
+    ACCOUNT_TYPES = {'CCP': Account.TYPE_CHECKING}
 
     @method
     class get_accounts(DictElement):
@@ -138,7 +125,6 @@ class CenetAccountsPage(LoggedPage, CenetJsonPage):
                 if CleanText(Dict('Solde/CodeSens'))(self) == 'D':
                     return -absolut_amount
                 return absolut_amount
-
 
             def obj_currency(self):
                 return CleanText(Dict('Devise'))(self).upper()
@@ -214,6 +200,7 @@ class CenetCardsPage(LoggedPage, CenetJsonPage):
 
         return cards
 
+
 class CenetAccountHistoryPage(LoggedPage, CenetJsonPage):
     TR_TYPES_LABEL = {
         'VIR': Transaction.TYPE_TRANSFER,
@@ -224,10 +211,10 @@ class CenetAccountHistoryPage(LoggedPage, CenetJsonPage):
 
     TR_TYPES_API = {
         'VIR': Transaction.TYPE_TRANSFER,
-        'PE': Transaction.TYPE_ORDER, # PRLV
-        'CE': Transaction.TYPE_CHECK, # CHEQUE
-        'DE': Transaction.TYPE_CASH_DEPOSIT, # APPRO
-        'PI': Transaction.TYPE_CASH_DEPOSIT, # REMISE CHEQUE
+        'PE': Transaction.TYPE_ORDER,  # PRLV
+        'CE': Transaction.TYPE_CHECK,  # CHEQUE
+        'DE': Transaction.TYPE_CASH_DEPOSIT,  # APPRO
+        'PI': Transaction.TYPE_CASH_DEPOSIT,  # REMISE CHEQUE
     }
 
     @method

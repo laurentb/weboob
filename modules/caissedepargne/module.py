@@ -17,9 +17,11 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
-from collections import OrderedDict
+from __future__ import unicode_literals
+
 import re
 from decimal import Decimal
+from collections import OrderedDict
 
 from weboob.capabilities.bank import CapBankWealth, CapBankTransferAddRecipient, AccountNotFound, Account, RecipientNotFound
 from weboob.capabilities.bill import (
@@ -40,20 +42,22 @@ __all__ = ['CaisseEpargneModule']
 
 class CaisseEpargneModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapDocument, CapContact, CapProfile):
     NAME = 'caissedepargne'
-    MAINTAINER = u'Romain Bignon'
+    MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '1.6'
-    DESCRIPTION = u'Caisse d\'Épargne'
+    DESCRIPTION = 'Caisse d\'Épargne'
     LICENSE = 'LGPLv3+'
     BROWSER = ProxyBrowser
     website_choices = OrderedDict([(k, u'%s (%s)' % (v, k)) for k, v in sorted({
         'www.caisse-epargne.fr':     u'Caisse d\'Épargne',
         'www.banquebcp.fr':          u'Banque BCP',
         }.items(), key=lambda k_v: (k_v[1], k_v[0]))])
-    CONFIG = BackendConfig(Value('website',  label='Banque', choices=website_choices, default='www.caisse-epargne.fr'),
-                           ValueBackendPassword('login',    label='Identifiant client', masked=False),
-                           ValueBackendPassword('password', label='Code personnel', regexp='\d+'),
-                           Value('nuser',                   label='User ID (optional)', default='', regexp='[A-Z\d]{0,8}'))
+    CONFIG = BackendConfig(
+        Value('website',  label='Banque', choices=website_choices, default='www.caisse-epargne.fr'),
+        ValueBackendPassword('login', label='Identifiant client', masked=False),
+        ValueBackendPassword('password', label='Code personnel', regexp='\d+'),
+        Value('nuser', label='User ID (optional)', default='', regexp='[A-Z\d]{0,8}'),
+    )
 
     accepted_document_types = (DocumentTypes.OTHER,)
 
@@ -117,7 +121,7 @@ class CaisseEpargneModule(Module, CapBankWealth, CapBankTransferAddRecipient, Ca
         return self.browser.execute_transfer(transfer)
 
     def new_recipient(self, recipient, **params):
-        #recipient.label = ' '.join(w for w in re.sub('[^0-9a-zA-Z:\/\-\?\(\)\.,\'\+ ]+', '', recipient.label).split())
+        # recipient.label = ' '.join(w for w in re.sub('[^0-9a-zA-Z:\/\-\?\(\)\.,\'\+ ]+', '', recipient.label).split())
         return self.browser.new_recipient(recipient, **params)
 
     def iter_resources(self, objs, split_path):

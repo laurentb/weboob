@@ -73,60 +73,77 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
     LINEBOURSE_BROWSER = LinebourseAPIBrowser
 
-    login = URL('/authentification/manage\?step=identification&identifiant=(?P<login>.*)',
-                'https://.*/login.aspx', LoginPage)
-    account_login = URL('/authentification/manage\?step=account&identifiant=(?P<login>.*)&account=(?P<accountType>.*)', LoginPage)
-    loading = URL('https://.*/CreditConso/ReroutageCreditConso.aspx', LoadingPage)
-    cons_loan = URL('https://www.credit-conso-cr.caisse-epargne.fr/websavcr-web/rest/contrat/getContrat\?datePourIe=(?P<datepourie>)', ConsLoanPage)
-    transaction_detail = URL('https://.*/Portail.aspx.*', TransactionsDetailsPage)
-    recipient = URL('https://.*/Portail.aspx.*', RecipientPage)
-    transfer = URL('https://.*/Portail.aspx.*', TransferPage)
-    transfer_summary = URL('https://.*/Portail.aspx.*', TransferSummaryPage)
-    transfer_confirm = URL('https://.*/Portail.aspx.*', TransferConfirmPage)
-    pro_transfer = URL('https://.*/Portail.aspx.*', ProTransferPage)
-    pro_transfer_confirm = URL('https://.*/Portail.aspx.*', ProTransferConfirmPage)
-    pro_transfer_summary = URL('https://.*/Portail.aspx.*', ProTransferSummaryPage)
-    pro_add_recipient_otp = URL('https://.*/Portail.aspx.*', ProAddRecipientOtpPage)
-    pro_add_recipient = URL('https://.*/Portail.aspx.*', ProAddRecipientPage)
-    measure_page = URL('https://.*/Portail.aspx.*', MeasurePage)
-    cards_old = URL('https://.*/Portail.aspx.*', CardsOldWebsitePage)
-    cards = URL('https://.*/Portail.aspx.*', CardsPage)
-    cards_coming = URL('https://.*/Portail.aspx.*', CardsComingPage)
+    login = URL(
+        r'/authentification/manage\?step=identification&identifiant=(?P<login>.*)',
+        r'https://.*/login.aspx',
+        LoginPage
+    )
+    account_login = URL(r'/authentification/manage\?step=account&identifiant=(?P<login>.*)&account=(?P<accountType>.*)', LoginPage)
+    loading = URL(r'https://.*/CreditConso/ReroutageCreditConso.aspx', LoadingPage)
+    cons_loan = URL(r'https://www.credit-conso-cr.caisse-epargne.fr/websavcr-web/rest/contrat/getContrat\?datePourIe=(?P<datepourie>)', ConsLoanPage)
+    transaction_detail = URL(r'https://.*/Portail.aspx.*', TransactionsDetailsPage)
+    recipient = URL(r'https://.*/Portail.aspx.*', RecipientPage)
+    transfer = URL(r'https://.*/Portail.aspx.*', TransferPage)
+    transfer_summary = URL(r'https://.*/Portail.aspx.*', TransferSummaryPage)
+    transfer_confirm = URL(r'https://.*/Portail.aspx.*', TransferConfirmPage)
+    pro_transfer = URL(r'https://.*/Portail.aspx.*', ProTransferPage)
+    pro_transfer_confirm = URL(r'https://.*/Portail.aspx.*', ProTransferConfirmPage)
+    pro_transfer_summary = URL(r'https://.*/Portail.aspx.*', ProTransferSummaryPage)
+    pro_add_recipient_otp = URL(r'https://.*/Portail.aspx.*', ProAddRecipientOtpPage)
+    pro_add_recipient = URL(r'https://.*/Portail.aspx.*', ProAddRecipientPage)
+    measure_page = URL(r'https://.*/Portail.aspx.*', MeasurePage)
+    cards_old = URL(r'https://.*/Portail.aspx.*', CardsOldWebsitePage)
+    cards = URL(r'https://.*/Portail.aspx.*', CardsPage)
+    cards_coming = URL(r'https://.*/Portail.aspx.*', CardsComingPage)
     old_checkings_levies = URL(r'https://.*/Portail.aspx.*', OldLeviesPage)
     new_checkings_levies = URL(r'https://.*/Portail.aspx.*', NewLeviesPage)
-    authent = URL('https://.*/Portail.aspx.*', AuthentPage)
-    subscription = URL('https://.*/Portail.aspx\?tache=(?P<tache>).*', SubscriptionPage)
+    authent = URL(r'https://.*/Portail.aspx.*', AuthentPage)
+    subscription = URL(r'https://.*/Portail.aspx\?tache=(?P<tache>).*', SubscriptionPage)
     transaction_popup = URL(r'https://.*/Portail.aspx.*', TransactionPopupPage)
-    home = URL('https://.*/Portail.aspx.*', IndexPage)
-    home_tache = URL('https://.*/Portail.aspx\?tache=(?P<tache>).*', IndexPage)
-    error = URL('https://.*/login.aspx',
-                'https://.*/Pages/logout.aspx.*',
-                'https://.*/particuliers/Page_erreur_technique.aspx.*', ErrorPage)
-    market = URL('https://.*/Pages/Bourse.*',
-                 'https://www.caisse-epargne.offrebourse.com/ReroutageSJR',
-                 r'https://www.caisse-epargne.offrebourse.com/fr/6CE.*', MarketPage)
-    unavailable_page = URL('https://www.caisse-epargne.fr/.*/au-quotidien', UnavailablePage)
+    home = URL(r'https://.*/Portail.aspx.*', IndexPage)
+    home_tache = URL(r'https://.*/Portail.aspx\?tache=(?P<tache>).*', IndexPage)
+    error = URL(
+        r'https://.*/login.aspx',
+        r'https://.*/Pages/logout.aspx.*',
+        r'https://.*/particuliers/Page_erreur_technique.aspx.*',
+        ErrorPage
+    )
+    market = URL(
+        r'https://.*/Pages/Bourse.*',
+        r'https://www.caisse-epargne.offrebourse.com/ReroutageSJR',
+        r'https://www.caisse-epargne.offrebourse.com/fr/6CE.*',
+        MarketPage
+    )
+    unavailable_page = URL(r'https://www.caisse-epargne.fr/.*/au-quotidien', UnavailablePage)
 
-    creditcooperatif_market = URL('https://www.offrebourse.com/.*', CreditCooperatifMarketPage)  # just to catch the landing page of the Credit Cooperatif's Linebourse
-    natixis_redirect = URL(r'/NaAssuranceRedirect/NaAssuranceRedirect.aspx',
-                           r'https://www.espace-assurances.caisse-epargne.fr/espaceinternet-ce/views/common/routage-itce.xhtml\?windowId=automatedEntryPoint',
-                           NatixisRedirectPage)
+    creditcooperatif_market = URL(r'https://www.offrebourse.com/.*', CreditCooperatifMarketPage)  # just to catch the landing page of the Credit Cooperatif's Linebourse
+    natixis_redirect = URL(
+        r'/NaAssuranceRedirect/NaAssuranceRedirect.aspx',
+        r'https://www.espace-assurances.caisse-epargne.fr/espaceinternet-ce/views/common/routage-itce.xhtml\?windowId=automatedEntryPoint',
+        NatixisRedirectPage
+    )
     life_insurance_history = URL(r'https://www.extranet2.caisse-epargne.fr/cin-front/contrats/evenements', LifeInsuranceHistory)
     life_insurance_investments = URL(r'https://www.extranet2.caisse-epargne.fr/cin-front/contrats/details', LifeInsuranceInvestments)
-    life_insurance = URL(r'https://.*/Assurance/Pages/Assurance.aspx',
-                         r'https://www.extranet2.caisse-epargne.fr.*', LifeInsurance)
+    life_insurance = URL(
+        r'https://.*/Assurance/Pages/Assurance.aspx',
+        r'https://www.extranet2.caisse-epargne.fr.*',
+        LifeInsurance
+    )
     natixis_life_ins_his = URL(r'https://www.espace-assurances.caisse-epargne.fr/espaceinternet-ce/rest/v2/contratVie/load-operation/(?P<id1>\w+)/(?P<id2>\w+)/(?P<id3>)', NatixisLIHis)
     natixis_life_ins_inv = URL(r'https://www.espace-assurances.caisse-epargne.fr/espaceinternet-ce/rest/v2/contratVie/load/(?P<id1>\w+)/(?P<id2>\w+)/(?P<id3>)', NatixisLIInv)
     message = URL(r'https://www.caisse-epargne.offrebourse.com/DetailMessage\?refresh=O', MessagePage)
-    garbage = URL(r'https://www.caisse-epargne.offrebourse.com/Portefeuille',
-                  r'https://www.caisse-epargne.fr/particuliers/.*/emprunter.aspx',
-                  r'https://.*/particuliers/emprunter.*',
-                  r'https://.*/particuliers/epargner.*', GarbagePage)
+    garbage = URL(
+        r'https://www.caisse-epargne.offrebourse.com/Portefeuille',
+        r'https://www.caisse-epargne.fr/particuliers/.*/emprunter.aspx',
+        r'https://.*/particuliers/emprunter.*',
+        r'https://.*/particuliers/epargner.*',
+        GarbagePage
+    )
     sms = URL(r'https://www.icgauth.caisse-epargne.fr/dacswebssoissuer/AuthnRequestServlet', SmsPage)
     sms_option = URL(r'https://www.icgauth.caisse-epargne.fr/dacstemplate-SOL/index.html\?transactionID=.*', SmsPageOption)
     request_sms = URL(
         r'https://(?P<domain>www.icgauth.[^/]+)/dacsrest/api/v1u0/transaction/(?P<param>)',
-        SmsRequest,
+        SmsRequest
     )
 
     __states__ = (
