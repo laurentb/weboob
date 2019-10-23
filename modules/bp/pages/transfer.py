@@ -56,8 +56,7 @@ class TransferChooseAccounts(LoggedPage, MyHTMLPage):
         def condition(self):
             return any(self.env['account_id'] in CleanText('.')(option) for option in self.page.doc.xpath('//select[@id="donneesSaisie.idxCompteEmetteur"]/option'))
 
-        # You're not dreaming, this is real life
-        item_xpath = '//select[@id="caca"]/option'
+        item_xpath = '//select[@id="idxCompteReceveur"]/option'
 
         class Item(ItemElement):
             klass = Recipient
