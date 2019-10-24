@@ -17,7 +17,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-from io import BytesIO
+import sys
+from io import BytesIO, StringIO
 from collections import namedtuple
 import logging
 import os
@@ -484,7 +485,10 @@ def extract_text(data):
             return
 
         rsrcmgr = PDFResourceManager()
-        out = BytesIO()
+        if sys.version_info.major == 2:
+            out = BytesIO()
+        else:
+            out = StringIO()
         device = TextConverter(rsrcmgr, out)
         interpreter = PDFPageInterpreter(rsrcmgr, device)
         if newapi:
