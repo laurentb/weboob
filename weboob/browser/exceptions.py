@@ -47,9 +47,19 @@ class BrowserTooManyRequests(BrowserUnavailable):
     Client tries to perform too many requests within a certain timeframe.
     The module should set the next_try if possible, else it is set to 24h.
     """
+
+    # next day at 00h00
+    NEXT_DAY = datetime.date.today() + relativedelta(days=1)
+
+    # in exactly 24h
+    NEXT_24H = datetime.datetime.now() + relativedelta(days=1)
+
     def __init__(self, next_try=None):
         if next_try is None:
-            next_try = datetime.datetime.now() + relativedelta(days=1)
+            next_try = BrowserTooManyRequests.NEXT_24H
+
+        if isinstance(next_try, datetime.date):
+            next_try = datetime.datetime.combine(next_try, datetime.datetime.min.time())
 
         self.next_try = next_try
 
