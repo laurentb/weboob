@@ -19,6 +19,7 @@
 
 from __future__ import unicode_literals
 
+
 import re
 
 from weboob.browser.pages import HTMLPage, LoggedPage, PartialHTMLPage

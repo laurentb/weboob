@@ -19,6 +19,7 @@
 
 from __future__ import unicode_literals
 
+
 from weboob.capabilities.bill import DocumentTypes, CapDocument, Subscription, Document, SubscriptionNotFound, DocumentNotFound
 from weboob.capabilities.base import find_object, NotAvailable
 from weboob.tools.backend import Module, BackendConfig
@@ -37,9 +38,12 @@ class MaterielnetModule(Module, CapDocument):
     EMAIL = 'elambert@budget-insight.com'
     LICENSE = 'LGPLv3+'
     VERSION = '1.6'
-    CONFIG = BackendConfig(ValueBackendPassword('login', label='Email'),
-                           ValueBackendPassword('password', label='Mot de passe'),
-                           Value('captcha_response', label='Réponse captcha', default='', required=False))
+
+    CONFIG = BackendConfig(
+        ValueBackendPassword('login', label='Email'),
+        ValueBackendPassword('password', label='Mot de passe'),
+        Value('captcha_response', label='Réponse captcha', default='', required=False)
+    )
 
     BROWSER = MaterielnetBrowser
 
