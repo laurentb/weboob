@@ -30,7 +30,7 @@ do
 done
 shift $(($OPTIND - 1))
 
-PYTHON=${PYTHON-python}
+PYTHON=${PYTHON-python3}
 
 echo "Using weboob source $SRC"
 
