@@ -11,9 +11,10 @@ if [ -z "${PYTHON2-}" ]; then
 fi
 
 if [ -z "${PYTHON3-}" ]; then
-    which python3.4 >/dev/null 2>&1 && PYTHON3=$(which python3.4)
     which python3.5 >/dev/null 2>&1 && PYTHON3=$(which python3.5)
     which python3.6 >/dev/null 2>&1 && PYTHON3=$(which python3.6)
+    which python3.7 >/dev/null 2>&1 && PYTHON3=$(which python3.7)
+    which python3.8 >/dev/null 2>&1 && PYTHON3=$(which python3.8)
     which python3 >/dev/null 2>&1 && PYTHON3=$(which python3)
 fi
 
