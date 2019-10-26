@@ -41,7 +41,7 @@ __all__ = [
     'CapBankTransfer', 'Transfer', 'Recipient',
     'TransferError', 'TransferBankError', 'TransferInvalidAmount', 'TransferInsufficientFunds',
     'TransferInvalidCurrency', 'TransferInvalidLabel',
-    'TransferInvalidEmitter', 'TransferInvalidRecipient',
+    'TransferInvalidEmitter', 'TransferInvalidOTP', 'TransferInvalidRecipient',
     'TransferStep',
     'CapBankTransferAddRecipient',
     'RecipientNotFound', 'AddRecipientError', 'AddRecipientBankError', 'AddRecipientTimeout',
