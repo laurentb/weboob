@@ -43,7 +43,7 @@ try:
     import nss.error
     import nss.nss
 except ImportError:
-    raise ImportError('Please install python-nss')
+    raise ImportError('Please install python3-nss')
 from requests.packages.urllib3.util.ssl_ import ssl_wrap_socket as old_ssl_wrap_socket
 import requests  # for AIA
 from weboob.tools.log import getLogger

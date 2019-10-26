@@ -38,7 +38,7 @@ try:
     # so apiclient must be imported after
     from apiclient.discovery import build as ytbuild
 except ImportError:
-    raise ImportError("Please install python-googleapi")
+    raise ImportError("Please install python3-googleapi")
 
 __all__ = ['YoutubeModule']
 

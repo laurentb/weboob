@@ -24,7 +24,7 @@ import re
 try:
     from dateutil import tz
 except ImportError:
-    raise ImportError('Please install python-dateutil')
+    raise ImportError('Please install python3-dateutil')
 
 from .compat import range
 

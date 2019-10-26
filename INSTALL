@@ -10,7 +10,7 @@ you have to handle them by hand, according to your distribution.
 The requirements are provided in ``setup.py``, except for:
 
 * gpgv (for secure updates). If not packaged alone, it should be in ``gnupg`` or ``gpg``.
-* PyQt5 (python-pyqt5, pyqt5-dev-tools, python-pyqt5.qtmultimedia) for graphical applications.
+* PyQt5 (python3-pyqt5, pyqt5-dev-tools, python3-pyqt5.qtmultimedia) for graphical applications.
 * For more performance, ensure you have ``libyaml`` and ``simplejson`` installed.
 
 Some modules may have more dependencies.
@@ -36,8 +36,7 @@ System installation (discouraged)
 ---------------------------------
 
 The install mode copies files to the Python system-wide packages directory (for
-example ``/usr/lib/python2.5/site-packages`` for Python 2.5, or
-``/usr/local/lib/python2.6/dist-packages`` for Python 2.6). ::
+example ``/usr/lib/python3.7/dist-packages`` for Python 3.7. ::
 
     # ./setup.py install
 

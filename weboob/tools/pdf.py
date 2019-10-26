@@ -306,7 +306,7 @@ def get_pdf_rows(data, miner_layout=True):
     try:
         from pdfminer.pdfparser import PDFParser, PDFSyntaxError
     except ImportError:
-        raise ImportError('Please install python-pdfminer')
+        raise ImportError('Please install python3-pdfminer')
 
     try:
         from pdfminer.pdfdocument import PDFDocument
@@ -434,7 +434,7 @@ def html_to_pdf(browser, url=None, data=None, extra_options=None):
     try:
         import pdfkit # https://pypi.python.org/pypi/pdfkit
     except ImportError:
-        raise ImportError('Please install python-pdfkit')
+        raise ImportError('Please install python3-pdfkit')
 
     assert (url or data) and not (url and data), 'Please give only url or data parameter'
 
@@ -470,7 +470,7 @@ def extract_text(data):
         from pdfminer.converter import TextConverter
         from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
     except ImportError:
-        raise ImportError('Please install python-pdfminer to parse PDF')
+        raise ImportError('Please install python3-pdfminer to parse PDF')
     else:
         parser = PDFParser(BytesIO(data))
         try:

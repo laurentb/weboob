@@ -44,7 +44,7 @@ try:
     if int(requests.__version__.split('.')[0]) < 2:
         raise ImportError()
 except ImportError:
-    raise ImportError('Please install python-requests >= 2.0')
+    raise ImportError('Please install python3-requests >= 2.0')
 
 from weboob.exceptions import BrowserHTTPSDowngrade, ModuleInstallError, BrowserRedirect, BrowserIncorrectPassword
 
@@ -212,7 +212,7 @@ class Browser(object):
 
     def _setup_session(self, profile):
         """
-        Set up a python-requests session for our usage.
+        Set up a python3-requests session for our usage.
         """
         session = self._create_session()
 
@@ -366,7 +366,7 @@ class Browser(object):
             self.raise_for_status(response)
             return callback(response)
 
-        # call python-requests
+        # call python3-requests
         response = self.session.send(preq,
                                      allow_redirects=allow_redirects,
                                      stream=stream,

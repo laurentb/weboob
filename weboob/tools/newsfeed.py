@@ -22,7 +22,7 @@ import datetime
 try:
     import feedparser
 except ImportError:
-    raise ImportError('Please install python-feedparser')
+    raise ImportError('Please install python3-feedparser')
 
 
 __all__ = ['Entry', 'Newsfeed']

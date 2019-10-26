@@ -156,7 +156,7 @@ class FuturesSession(WeboobSession):
 
         if is_async:
             if not self.executor:
-                raise ImportError('Please install python-concurrent.futures')
+                raise ImportError('Please install python3-concurrent.futures')
             return self.executor.submit(func, *args, **kwargs)
 
         return func(*args, **kwargs)
