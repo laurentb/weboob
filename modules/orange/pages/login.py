@@ -21,7 +21,7 @@ from __future__ import unicode_literals
 
 import lxml.html as html
 
-from StringIO import StringIO
+from io import StringIO
 
 from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage
 from weboob.tools.json import json
