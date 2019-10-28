@@ -66,11 +66,14 @@ class AccountsJsonPage(LoggedPage, JsonPage):
                 raise NoAccountsException("Vous n'avez pas l'autorisation de consulter : {}".format(reason))
             elif reason == 'niv_auth_insuff':
                 raise BrowserIncorrectPassword('Vos identifiants sont incorrects')
-            elif reason == 'chgt_mdp_oblig':
-                raise BrowserPasswordExpired('Veuillez renouveler votre mot de passe')
+            elif reason in ('chgt_mdp_oblig', 'chgt_mdp_init'):
+                raise BrowserPasswordExpired('Veuillez vous rendre sur le site de la banque pour renouveler votre mot de passe')
             elif reason == 'oob_insc_oblig':
                 raise AuthMethodNotImplemented("L'authentification par Secure Access n'est pas prise en charge")
-            raise BrowserUnavailable(reason)
+            # the BrowserUnavailable was raised for every unknown error, and was masking the real error.
+            # So users and developers didn't know what kind of error it was.
+            assert False, 'Error %s is not handled yet.' % reason
+
 
     @method
     class iter_class_accounts(DictElement):
