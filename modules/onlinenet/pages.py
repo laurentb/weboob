@@ -43,7 +43,11 @@ class ProfilPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Subscription
 
-            obj_subscriber = Format('%s %s', CleanText('//label[@for="form_firstname"]/../following-sibling::div'), CleanText('//label[@for="form_firstname"]/../following-sibling::div'))
+            obj_subscriber = Format(
+                    '%s %s',
+                    CleanText('//label[@for="form_firstname"]/../following-sibling::div'),
+                    CleanText('//label[@for="form_firstname"]/../following-sibling::div')
+            )
             obj_id = Env('username')
             obj_label = obj_id
 
@@ -78,7 +82,6 @@ class DocumentsPage(LoggedPage, HTMLPage):
 
             def parse(self, el):
                 self.env['username'] = self.page.browser.username
-
 
     @method
     class get_documents(ListElement):
