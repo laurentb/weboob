@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from weboob.capabilities.bill import DocumentTypes, CapDocument, Subscription, Document, SubscriptionNotFound, DocumentNotFound
 from weboob.capabilities.base import find_object, NotAvailable
@@ -31,8 +32,8 @@ __all__ = ['OnlinenetModule']
 
 class OnlinenetModule(Module, CapDocument):
     NAME = 'onlinenet'
-    DESCRIPTION = u'Online.net'
-    MAINTAINER = u'Edouard Lambert'
+    DESCRIPTION = 'Online.net'
+    MAINTAINER = 'Edouard Lambert'
     EMAIL = 'elambert@budget-insight.com'
     LICENSE = 'LGPLv3+'
     VERSION = '1.6'
