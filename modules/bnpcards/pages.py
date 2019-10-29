@@ -26,7 +26,10 @@ from decimal import Decimal
 from weboob.exceptions import BrowserPasswordExpired
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Field, Env, Format
+from weboob.browser.filters.standard import (
+    CleanText, CleanDecimal, Field, Env, Format, RawText,
+    Eval,
+)
 from weboob.browser.filters.html import Link, Attr, AbsoluteLink
 from weboob.capabilities.bank import Account
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -117,7 +120,11 @@ class AccountsPage(ExpandablePage, GetableLinksPage):
             klass = Account
 
             obj_id = CleanText('./td[2]')
-            obj_label = CleanText('./td[1]')
+
+            # Some account names have spaces in the middle which cause
+            # the history search to fail if we remove them.
+            # eg: `NAME  SURNAME` = `NAME++SURNAME` in the history search.
+            obj_label = Eval(lambda x: x.strip(), RawText('./td[1]'))
             obj_type = Account.TYPE_CARD
             obj__rib = Env('rib')
             obj__company = Env('company', default=None)  # this field is something used to make the module work, not something meant to be displayed to end users
