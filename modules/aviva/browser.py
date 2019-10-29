@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2016      Edouard Lambert
+# Copyright(C) 2012-2019  Budget Insight
 #
 # This file is part of a weboob module.
 #
@@ -19,13 +19,16 @@
 
 from __future__ import unicode_literals
 
-from weboob.browser import LoginBrowser, URL, need_login
+
+from weboob.browser import LoginBrowser, need_login
+from weboob.browser.url import BrowserParamURL
 from weboob.capabilities.base import empty, NotAvailable
-from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded, BrowserHTTPError
+from weboob.exceptions import BrowserIncorrectPassword, BrowserPasswordExpired, ActionNeeded, BrowserHTTPError
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages.detail_pages import (
-    LoginPage, InvestmentPage, HistoryPage, ActionNeededPage, InvestDetailPage, PrevoyancePage, ValidationPage, InvestPerformancePage,
+    LoginPage, MigrationPage, InvestmentPage, HistoryPage, ActionNeededPage,
+    InvestDetailPage, PrevoyancePage, ValidationPage, InvestPerformancePage,
 )
 
 from .pages.account_page import AccountsPage
@@ -34,28 +37,41 @@ from .pages.account_page import AccountsPage
 class AvivaBrowser(LoginBrowser):
     BASEURL = 'https://www.aviva.fr'
 
-    validation = URL(r'/espaceclient/conventions/acceptation\?backurl=/espaceclient/Accueil', ValidationPage)
-    login = URL(r'/espaceclient/MonCompte/Connexion',
-                r'/espaceclient/conventions/acceptation', LoginPage)
-    accounts = URL(r'/espaceclient/Accueil/Synthese-Contrats', AccountsPage)
-    investment = URL(r'/espaceclient/contrat/epargne/-(?P<page_id>[0-9]{10})', InvestmentPage)
-    prevoyance = URL(r'/espaceclient/contrat/prevoyance/-(?P<page_id>[0-9]{10})', PrevoyancePage)
-    history = URL(r'/espaceclient/contrat/getOperations\?param1=(?P<history_token>.*)', HistoryPage)
-    action_needed = URL(r'/espaceclient/coordonnees/detailspersonne\?majcontacts=true', ActionNeededPage)
-    invest_detail = URL(r'https://aviva-fonds.webfg.net/sheet/fund/(?P<isin>[A-Z0-9]+)', InvestDetailPage)
-    invest_performance = URL(r'https://aviva-fonds.webfg.net/sheet/fund-calculator', InvestPerformancePage)
+    validation = BrowserParamURL(r'/conventions/acceptation\?backurl=/(?P<browser_subsite>[^/]+)/Accueil', ValidationPage)
+    login = BrowserParamURL(
+        r'/(?P<browser_subsite>[^/]+)/MonCompte/Connexion',
+        r'/(?P<browser_subsite>[^/]+)/conventions/acceptation',
+        LoginPage
+    )
+    migration = BrowserParamURL(r'/(?P<browser_subsite>[^/]+)/MonCompte/Migration', MigrationPage)
+    accounts = BrowserParamURL(r'/(?P<browser_subsite>[^/]+)/Accueil/Synthese-Contrats', AccountsPage)
+    investment = BrowserParamURL(r'/(?P<browser_subsite>[^/]+)/contrat/epargne/-(?P<page_id>[0-9]{10})', InvestmentPage)
+    prevoyance = BrowserParamURL(r'/(?P<browser_subsite>[^/]+)/contrat/prevoyance/-(?P<page_id>[0-9]{10})', PrevoyancePage)
+    history = BrowserParamURL(r'/(?P<browser_subsite>[^/]+)/contrat/getOperations\?param1=(?P<history_token>.*)', HistoryPage)
+    action_needed = BrowserParamURL(r'/(?P<browser_subsite>[^/]+)/coordonnees/detailspersonne\?majcontacts=true', ActionNeededPage)
+    invest_detail = BrowserParamURL(r'https://aviva-fonds.webfg.net/sheet/fund/(?P<isin>[A-Z0-9]+)', InvestDetailPage)
+    invest_performance = BrowserParamURL(r'https://aviva-fonds.webfg.net/sheet/fund-calculator', InvestPerformancePage)
+
+    def __init__(self, *args, **kwargs):
+        self.subsite = 'espaceclient'
+        super(AvivaBrowser, self).__init__(*args, **kwargs)
 
     def do_login(self):
-        self.login.go().login(self.username, self.password)
+        self.login.go()
+        self.page.login(self.username, self.password)
         if self.login.is_here():
-            if "acceptation" in self.url:
-                raise ActionNeeded('Veuillez accepter les conditions générales d\'utilisation sur le site.')
+            if 'acceptation' in self.url:
+                raise ActionNeeded("Veuillez accepter les conditions générales d'utilisation sur le site.")
             else:
-                raise BrowserIncorrectPassword('L\'identifiant ou le mot de passe est incorrect.')
+                raise BrowserIncorrectPassword("L'identifiant ou le mot de passe est incorrect.")
+        elif self.migration.is_here():
+            # Usually landing here when customers have to renew their credentials
+            message = self.page.get_error()
+            raise BrowserPasswordExpired(message)
 
     @need_login
     def iter_accounts(self):
-        self.accounts.stay_or_go()
+        self.accounts.go()
         for account in self.page.iter_accounts():
             # Request to account details sometimes returns a 500
             try:
