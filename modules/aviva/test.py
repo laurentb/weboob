@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2016      Edouard Lambert
+# Copyright(C) 2012-2019  Budget Insight
 #
 # This file is part of a weboob module.
 #

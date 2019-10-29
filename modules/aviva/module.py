@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2016      Edouard Lambert
+# Copyright(C) 2012-2019  Budget Insight
 #
 # This file is part of a weboob module.
 #
@@ -35,7 +35,7 @@ class AvivaModule(Module, CapBankWealth):
     MAINTAINER = 'Edouard Lambert'
     EMAIL = 'elambert@budget-insight.com'
     LICENSE = 'LGPLv3+'
-    VERSION = '1.2'
+    VERSION = '1.6'
     CONFIG = BackendConfig(
         ValueBackendPassword('login', label='Identifiant', masked=False),
         ValueBackendPassword('password', label='Mot de passe')
