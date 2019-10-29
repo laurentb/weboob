@@ -82,7 +82,7 @@ class OvhBrowser(LoginBrowser, StatesMixin):
             self.otp_form = self.page.get_security_form()
             self.otp_url = self.url
 
-            raise BrowserQuestion(Value('pin_code', label=self.page.get_otp_message()[0] or 'Please type the OTP you received'))
+            raise BrowserQuestion(Value('pin_code', label=self.page.get_otp_message() or 'Please type the OTP you received'))
 
         if not self.page.is_logged():
             raise BrowserIncorrectPassword(self.page.get_error_message())

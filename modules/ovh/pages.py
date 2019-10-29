@@ -63,7 +63,7 @@ class LoginPage(HTMLPage):
         return bool(double_auth)
 
     def get_otp_message(self):
-        return self.doc.xpath('//div[@class="control-group" and contains(., "email")]')
+        return CleanText('//div[@class="control-group" and contains(., "email")]')(self.doc)
 
     def get_security_form(self):
         return self.get_form()
