@@ -76,7 +76,14 @@ class Number26Browser(DomainBrowser, StatesMixin):
             'challengeType': 'otp',
             'mfaToken': mfaToken
         }
-        result = self.request('/api/mfa/challenge', json=data)
+        try:
+            result = self.request('/api/mfa/challenge', json=data)
+        except ClientError as e:
+            response = e.response.json()
+            # if we send more than 5 otp without success, the server will warn the user to
+            # wait 12h before retrying, but in fact it seems that we can resend otp 5 mins later
+            if e.response.status_code == 429:
+                raise BrowserUnavailable(response['detail'])
         raise BrowserQuestion(Value('otp', label='Veuillez entrer le code reçu par sms au ' + result['obfuscatedPhoneNumber']))
 
     def update_token(self, auth_method, bearer, refresh_token, expires_in):
@@ -100,7 +107,7 @@ class Number26Browser(DomainBrowser, StatesMixin):
                 self.update_token('Basic', self.INITIAL_TOKEN, None, None)
                 return False
             else:
-                assert False, 'Unhandled error'
+                assert False, 'Unhandled error: %s' % e.response.status_code
         self.update_token(result['token_type'], result['access_token'], result['refresh_token'], result['expires_in'])
         return True
 
@@ -137,6 +144,13 @@ class Number26Browser(DomainBrowser, StatesMixin):
                 raise BrowserIncorrectPassword(response['error_description'])
             elif response.get('title') == 'Error':
                 raise BrowserUnavailable(response['message'])
+            elif response.get('title') == 'invalid_otp':
+                raise BrowserIncorrectPassword(response['userMessage']['detail'])
+            # if we try too many requests, it will return a 429 and the user will have
+            # to wait 30 minutes before retrying, and if he retries at 29 min, he will have
+            # to wait 30 minutes more
+            elif ex.response.status_code == 429:
+                raise BrowserUnavailable(response['detail'])
             else:
                 assert False, "Unhandled error on '/oauth2/token' request"
 
