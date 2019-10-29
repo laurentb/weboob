@@ -20,12 +20,16 @@
 from __future__ import unicode_literals
 
 from weboob.browser.pages import HTMLPage, LoggedPage
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Env, Field, Regexp, Format, Date, Async, AsyncLoad
+from weboob.browser.filters.standard import (
+    CleanText, CleanDecimal, Env, Field, Regexp, Format, Date, Async,
+    AsyncLoad, Coalesce,
+)
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.html import Attr
 from weboob.capabilities.bill import DocumentTypes, Document, Bill, Subscription
-from weboob.capabilities.profile import Profile
+from weboob.capabilities.profile import Person
 from weboob.capabilities.base import NotAvailable
+from weboob.tools.date import parse_french_date
 
 
 class LoginAccessPage(HTMLPage):
@@ -50,6 +54,7 @@ class LoginAELPage(HTMLPage):
     def get_redirect_url(self):
         return Regexp(CleanText('//body/script'), r"postMessage\('ok,(.*)',")(self.doc)
 
+
 class ProfilePage(LoggedPage, HTMLPage):
     def get_documents_link(self):
         return self.doc.xpath('//a[contains(@title, "déclarations")]/@href')[0]
@@ -69,17 +74,24 @@ class ProfilePage(LoggedPage, HTMLPage):
             def parse(self, el):
                 self.env['id'] = self.page.browser.username
 
-    def get_profile(self):
-        p = Profile()
+    @method
+    class get_profile(ItemElement):
+        klass = Person
 
-        p.name = Regexp(CleanText('//span[contains(@class, "TitrePrincipal")]'), r'^\w+ (.*)')(self.doc)
-        # the space is important to know if there is something after
-        if "principale " in CleanText('//td[contains(text(), "Taxe d\'habitation principale")]')(self.doc):
-            p.address = Regexp(CleanText('//td[contains(text(), "Taxe d\'habitation principale")]'), r"Taxe d'habitation principale (.*)")(self.doc)
-        else:
-            p.address = CleanText('//td[contains(@class, "TextePrincipalNonJustifie") and text()]')(self.doc)
+        obj_name = Regexp(CleanText('//span[contains(@class, "TitrePrincipal")]'), r'^\w+ (.*)')
+        obj_address = Coalesce(
+            Regexp(CleanText('//td[contains(text(), "Taxe d\'habitation principale")]'), r"Taxe d'habitation principale (.*)", default=NotAvailable),
+            CleanText('//td[contains(@class, "TextePrincipalNonJustifie") and text()]'),
+        )
 
-        return p
+    @method
+    class fill_profile(ItemElement):
+        obj_email = CleanText('//div[span[contains(text(), "Adresse électronique")]]/following-sibling::div/span')
+        obj_mobile = CleanText('//div[span[text()="Téléphone portable"]]/following-sibling::div/span', default=NotAvailable)
+        obj_phone = CleanText('//div[span[text()="Téléphone fixe"]]/following-sibling::div/span', default=NotAvailable)
+
+        def obj_birth_date(self):
+            return parse_french_date(CleanText('//div[span[text()="Date de naissance"]]/following-sibling::div/span')(self)).date()
 
 
 class BillsPage(LoggedPage, HTMLPage):

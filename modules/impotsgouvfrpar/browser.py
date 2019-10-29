@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from weboob.browser import AbstractBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
@@ -30,13 +31,27 @@ class ImpotsParBrowser(AbstractBrowser):
 
     login_access = URL(r'/LoginAccess', LoginAccessPage)
     login_ael = URL(r'/LoginAEL', LoginAELPage)
-    profile = URL(r'/acces-usager/cfs',
-                  r'.*/accueilUsager.html', ProfilePage)
-    documents = URL(r'.*/documents.html',
-                    r'.*/consultation/ConsultationDocument', DocumentsPage)
-    bills = URL(r'.*/compteRedirection.html',
-                r'.*/consultation/ConsultationDocument',
-                r'.*/contrat.html', BillsPage)
+    profile = URL(
+        r'/acces-usager/cfs',
+        r'.*/accueilUsager.html',
+        ProfilePage
+    )
+    profile_details = URL(
+        r'/enp/ensu/chargementprofil.do',
+        r'/enp/?$',
+        ProfilePage
+    )
+    documents = URL(
+        r'.*/documents.html',
+        r'.*/consultation/ConsultationDocument',
+        DocumentsPage
+    )
+    bills = URL(
+        r'.*/compteRedirection.html',
+        r'.*/consultation/ConsultationDocument',
+        r'.*/contrat.html',
+        BillsPage
+    )
 
     def __init__(self, login_source, *args, **kwargs):
         super(ImpotsParBrowser, self).__init__(*args, **kwargs)
@@ -54,6 +69,9 @@ class ImpotsParBrowser(AbstractBrowser):
         self.fc_call('dgfip', 'https://idp.impots.gouv.fr')
         self.login_impots()
         self.fc_redirect(self.page.get_redirect_url())
+        # Needed to set cookies to be able to access profile_details page
+        # without being disconnected
+        self.location('https://cfsfc.impots.gouv.fr/enp/')
 
     def do_login(self):
         if self.login_source == 'fc':
@@ -62,6 +80,7 @@ class ImpotsParBrowser(AbstractBrowser):
 
         self.login_access.go()
         self.login_impots()
+        self.location(self.page.get_redirect_url())
 
     @need_login
     def iter_subscription(self):
@@ -84,7 +103,7 @@ class ImpotsParBrowser(AbstractBrowser):
         documents = list()
         for d in self.page.get_documents(subid=subscription.id):
             # Don't add if it's already a bill : no unique id so...
-            label =  d.label.rsplit(' -', 1)[0]
+            label = d.label.rsplit(' -', 1)[0]
             check = None
             if "-" in label:
                 check = len([False for b in bills if label in b.label])
@@ -95,4 +114,7 @@ class ImpotsParBrowser(AbstractBrowser):
     @need_login
     def get_profile(self):
         self.profile.go()
-        return self.page.get_profile()
+        profile = self.page.get_profile()
+        self.profile_details.go()
+        self.page.fill_profile(obj=profile)
+        return profile
