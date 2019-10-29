@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2016      Edouard Lambert
+# Copyright(C) 2012-2019  Budget Insight
 #
 # This file is part of a weboob module.
 #
@@ -23,19 +23,14 @@ from __future__ import unicode_literals
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import (
-    CleanText, Title, Format, Date, Regexp, CleanDecimal, Env, Currency, Field, Eval,
-    Coalesce,
+    CleanText, Title, Format, Date, Regexp, CleanDecimal, Env,
+    Currency, Field, Eval, Coalesce,
 )
 from weboob.capabilities.bank import Investment, Transaction
 from weboob.capabilities.base import NotAvailable
 from weboob.exceptions import ActionNeeded, BrowserUnavailable
 from weboob.tools.compat import urljoin
 from weboob.tools.capabilities.bank.investments import IsinCode, IsinType
-
-
-def MyDecimal(*args, **kwargs):
-    kwargs.update(replace_dots=True, default=NotAvailable)
-    return CleanDecimal(*args, **kwargs)
 
 
 class BasePage(HTMLPage):
@@ -51,7 +46,7 @@ class PrevoyancePage(LoggedPage, HTMLPage):
     pass
 
 
-class LoginPage(BasePage, HTMLPage):
+class LoginPage(BasePage):
     def login(self, login, password):
         form = self.get_form(id="loginForm")
         form['username'] = login
@@ -59,12 +54,17 @@ class LoginPage(BasePage, HTMLPage):
         form.submit()
 
 
+class MigrationPage(LoggedPage, HTMLPage):
+    def get_error(self):
+        return CleanText('//h1[contains(text(), "Votre nouvel identifiant et mot de passe")]')(self.doc)
+
+
 class InvestmentPage(LoggedPage, HTMLPage):
     @method
     class fill_account(ItemElement):
-        obj_balance = MyDecimal('//ul[has-class("m-data-group")]//strong')
+        obj_balance = CleanDecimal.French('//ul[has-class("m-data-group")]//strong')
         obj_currency = Currency('//ul[has-class("m-data-group")]//strong')
-        obj_valuation_diff = MyDecimal('//h3[contains(., "value latente")]/following-sibling::p[1]')
+        obj_valuation_diff = CleanDecimal.French('//h3[contains(., "value latente")]/following-sibling::p[1]', default=NotAvailable)
 
     def get_history_link(self):
         history_link = self.doc.xpath('//li/a[contains(text(), "Historique")]/@href')
@@ -75,7 +75,7 @@ class InvestmentPage(LoggedPage, HTMLPage):
 
     @method
     class iter_investment(ListElement):
-        item_xpath = '//div[contains(@class, "m-table")]/table/tbody/tr[not(contains(@class, "total"))]'
+        item_xpath = '(//div[contains(@class, "m-table")])[1]//table/tbody/tr[not(contains(@class, "total"))]'
 
         class item(ItemElement):
             klass = Investment
@@ -83,9 +83,15 @@ class InvestmentPage(LoggedPage, HTMLPage):
             def condition(self):
                 return Field('label')(self) not in ('Total', '')
 
-            obj_quantity = MyDecimal('./td[@data-label="Nombre de parts"]', default=NotAvailable)
-            obj_unitvalue = MyDecimal('./td[@data-label="Valeur de la part"]')
-            obj_valuation = MyDecimal('./td[@data-label="Valeur de rachat"]', default=NotAvailable)
+            obj_quantity = CleanDecimal.French('./td[contains(@data-label, "Nombre de parts")]', default=NotAvailable)
+            obj_unitvalue = CleanDecimal.French('./td[contains(@data-label, "Valeur de la part")]', default=NotAvailable)
+
+            def obj_valuation(self):
+                # Handle discrepancies between aviva & afer (Coalesce does not work here)
+                if CleanText('./td[contains(@data-label, "Valeur de rachat")]')(self):
+                    return CleanDecimal.French('./td[contains(@data-label, "Valeur de rachat")]')(self)
+                return CleanDecimal.French(CleanText('./td[contains(@data-label, "Montant")]', children=False))(self)
+
             obj_vdate = Date(
                 CleanText('./td[@data-label="Date de valeur"]'), dayfirst=True, default=NotAvailable
             )
@@ -107,32 +113,31 @@ class InvestmentPage(LoggedPage, HTMLPage):
             obj_code_type = IsinType(Field('code'))
 
 
-class InvestmentElement(ItemElement):
-    klass = Investment
-
-    obj_label = CleanText('./div[@data-label="Nom du support" or @data-label="Support cible"]/span[1]')
-    obj_quantity = MyDecimal('./div[contains(@data-label, "Nombre")]')
-    obj_unitvalue = MyDecimal('./div[contains(@data-label, "Valeur")]')
-    obj_valuation = MyDecimal('./div[contains(@data-label, "Montant")]')
-    obj_vdate = Env('date')
-
-
 class TransactionElement(ItemElement):
     klass = Transaction
 
     obj_label = Format('%s du %s', Field('_labeltype'), Field('date'))
     obj_date = Date(
-        Regexp(CleanText('./ancestor::div[@class="onerow" or starts-with(@id, "term") or has-class("grid")]/'
-                         'preceding-sibling::h3[1]//div[contains(text(), "Date")]'),
-               r'(\d{2}\/\d{2}\/\d{4})'),
-        dayfirst=True)
+        Regexp(
+            CleanText(
+                './ancestor::div[@class="onerow" or starts-with(@id, "term") or has-class("grid")]/'
+                'preceding-sibling::h3[1]//div[contains(text(), "Date")]'
+            ),
+            r'(\d{2}\/\d{2}\/\d{4})'),
+        dayfirst=True
+    )
     obj_type = Transaction.TYPE_BANK
 
-    obj_amount = MyDecimal('./ancestor::div[@class="onerow" or starts-with(@id, "term") or has-class("grid")]/'
-                           'preceding-sibling::h3[1]//div[has-class("montant-mobile")]', default=NotAvailable)
+    obj_amount = CleanDecimal.French(
+        './ancestor::div[@class="onerow" or starts-with(@id, "term") or has-class("grid")]/'
+        'preceding-sibling::h3[1]//div[has-class("montant-mobile")]',
+        default=NotAvailable
+    )
 
-    obj__labeltype = Regexp(Title('./preceding::h2[@class="feature"][1]'),
-                            r'Historique Des\s+(\w+)')
+    obj__labeltype = Regexp(
+        Title('./preceding::h2[@class="feature"][1]'),
+        r'Historique Des\s+(\w+)'
+    )
 
     def obj_investments(self):
         return list(self.iter_investments(self.page, parent=self))
@@ -141,8 +146,14 @@ class TransactionElement(ItemElement):
     class iter_investments(ListElement):
         item_xpath = './div[@class="line"]'
 
-        class item(InvestmentElement):
-            pass
+        class item(ItemElement):
+            klass = Investment
+
+            obj_label = CleanText('./div[@data-label="Nom du support" or @data-label="Support cible"]/span[1]')
+            obj_quantity = CleanDecimal.French('./div[contains(@data-label, "Nombre")]', default=NotAvailable)
+            obj_unitvalue = CleanDecimal.French('./div[contains(@data-label, "Valeur")]', default=NotAvailable)
+            obj_valuation = CleanDecimal.French('./div[contains(@data-label, "Montant")]', default=NotAvailable)
+            obj_vdate = Env('date')
 
     def parse(self, el):
         self.env['date'] = Field('date')(self)
@@ -202,8 +213,11 @@ class HistoryPage(LoggedPage, HTMLPage):
                 investments = []
                 for elem in self.xpath('./following-sibling::div[1]//tbody/tr'):
                     inv = Investment()
-                    inv.valuation = CleanDecimal('./td[2]/p', replace_dots=True)(elem)
                     inv.label = CleanText('./td[1]')(elem)
+                    inv.valuation = Coalesce(
+                        CleanDecimal.French('./td[2]/p', default=NotAvailable),
+                        CleanDecimal.French('./td[2]')
+                    )(elem)
                     investments.append(inv)
 
                 return investments

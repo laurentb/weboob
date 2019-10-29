@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright(C) 2017 Édouard Lambert, David Kremer
+# Copyright(C) 2012-2019  Budget Insight
 #
 # This file is part of a weboob module.
 #
@@ -19,7 +19,7 @@
 
 from __future__ import unicode_literals
 
-from weboob.browser.pages import HTMLPage, LoggedPage
+from weboob.browser.pages import LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import (
     CleanText, Field, Map, Regexp
@@ -37,7 +37,7 @@ ACCOUNT_TYPES = {
 }
 
 
-class AccountsPage(LoggedPage, BasePage, HTMLPage):
+class AccountsPage(LoggedPage, BasePage):
     @method
     class iter_accounts(ListElement):
         item_xpath = '//div[contains(@class, "o-product-roundels")]/div[@data-policy]'
