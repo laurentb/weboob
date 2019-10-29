@@ -21,8 +21,7 @@ from __future__ import unicode_literals
 
 
 from weboob.capabilities.bank import CapBank
-from weboob.tools.backend import AbstractModule, BackendConfig
-from weboob.tools.value import ValueBackendPassword
+from weboob.tools.backend import AbstractModule
 
 from .browser import AferBrowser
 
@@ -37,11 +36,6 @@ class AferModule(AbstractModule, CapBank):
     EMAIL = 'quentin.defenouillere@budget-insight.com'
     LICENSE = 'LGPLv3+'
     VERSION = '1.6'
-
-    CONFIG = BackendConfig(
-        ValueBackendPassword('login', label='Identifiant', masked=False),
-        ValueBackendPassword('password', label='Mot de passe')
-    )
 
     PARENT = 'aviva'
     BROWSER = AferBrowser
