@@ -586,12 +586,12 @@ class LoansPage(LoggedPage, CragrPage):
 
             def parse(self, obj):
                 # We must handle Loan tables with 5 or 6 columns
-                if CleanText('//tr[contains(@class, "colcelligne")][count(td) = 5]')(self):
+                if CleanText('self::node()[count(td)=5]')(self):
                     # History table with 4 columns (no loan details)
                     self.env['next_payment_amount'] = NotAvailable
                     self.env['total_amount'] = NotAvailable
                     self.env['balance'] = CleanDecimal.French('./td[4]//*[@class="montant3" or @class="montant4"]', default=NotAvailable)(self)
-                elif CleanText('//tr[contains(@class, "colcelligne")][count(td) = 6]')(self):
+                elif CleanText('self::node()[count(td)=6]')(self):
                     # History table with 5 columns (contains next_payment_amount & total_amount)
                     self.env['next_payment_amount'] = CleanDecimal.French('./td[3]//*[@class="montant3"]', default=NotAvailable)(self)
                     self.env['total_amount'] = CleanDecimal.French('./td[4]//*[@class="montant3"]', default=NotAvailable)(self)
