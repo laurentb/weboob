@@ -96,7 +96,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             form['periodeFin'] = (date.today() + relativedelta(months=4)).strftime("%d/%m/%Y")
             form['periodeSelectionMode'] = "input"
         onclick = self.doc.xpath(submit)[0].get("onclick")
-        url_parts = re.findall("'([^']*)'", onclick)
+        url_parts = re.findall(r"'([^']*)'", onclick)
         form.url = 'operation%s%sCorporate.event.do' % (url_parts[1], url_parts[0].title())
         form.submit()
 

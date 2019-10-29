@@ -24,8 +24,10 @@ from weboob.browser.switch import SiteSwitch
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 from weboob.tools.compat import basestring
 
-from .pages import LoginPage, ErrorPage, AccountsPage, TransactionsPage, \
-                   TiCardPage, TiHistoPage, ComingPage, HistoPage, HomePage
+from .pages import (
+    LoginPage, ErrorPage, AccountsPage, TransactionsPage,
+    TiCardPage, TiHistoPage, ComingPage, HistoPage, HomePage,
+)
 
 
 class BnpcartesentrepriseBrowser(LoginBrowser):
