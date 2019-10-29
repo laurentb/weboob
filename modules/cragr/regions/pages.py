@@ -51,20 +51,20 @@ def float_to_decimal(f):
 
 class Transaction(FrenchTransaction):
     PATTERNS = [
-        (re.compile('^Retrait Au Distributeur.*'), FrenchTransaction.TYPE_WITHDRAWAL),
-        (re.compile('^Virement.*((?P<dd>\d{2})/(?P<mm>\d{2})/(?P<y>\d+))?$'), FrenchTransaction.TYPE_TRANSFER),
-        (re.compile('^Cheque.*'), FrenchTransaction.TYPE_CHECK),
-        (re.compile('^Remise De Cheque.*'), FrenchTransaction.TYPE_DEPOSIT),
-        (re.compile('^Frais.*'), FrenchTransaction.TYPE_BANK),
-        (re.compile('^Interets Crediteurs.*'), FrenchTransaction.TYPE_BANK),
-        (re.compile('^Cotisation.*'), FrenchTransaction.TYPE_BANK),
-        (re.compile('^Prelevt.*'), FrenchTransaction.TYPE_ORDER),
-        (re.compile('^Prelevmnt.*'), FrenchTransaction.TYPE_ORDER),
-        (re.compile('^Prelevement.*'), FrenchTransaction.TYPE_ORDER),
-        (re.compile('^Prelevement Carte.*(?P<dd>\d{2})/(?P<mm>\d{2})$', re.IGNORECASE), FrenchTransaction.TYPE_CARD_SUMMARY),
-        (re.compile('^Remise Carte.*'), FrenchTransaction.TYPE_CARD),
-        (re.compile('^Paiement Par Carte.*(?P<dd>\d{2})/(?P<mm>\d{2})$'), FrenchTransaction.TYPE_CARD),
-        (re.compile('^Remboursement De Pret.*'), FrenchTransaction.TYPE_LOAN_PAYMENT),
+        (re.compile(r'^Retrait Au Distributeur.*'), FrenchTransaction.TYPE_WITHDRAWAL),
+        (re.compile(r'^Virement.*((?P<dd>\d{2})/(?P<mm>\d{2})/(?P<y>\d+))?$'), FrenchTransaction.TYPE_TRANSFER),
+        (re.compile(r'^Cheque.*'), FrenchTransaction.TYPE_CHECK),
+        (re.compile(r'^Remise De Cheque.*'), FrenchTransaction.TYPE_DEPOSIT),
+        (re.compile(r'^Frais.*'), FrenchTransaction.TYPE_BANK),
+        (re.compile(r'^Interets Crediteurs.*'), FrenchTransaction.TYPE_BANK),
+        (re.compile(r'^Cotisation.*'), FrenchTransaction.TYPE_BANK),
+        (re.compile(r'^Prelevt.*'), FrenchTransaction.TYPE_ORDER),
+        (re.compile(r'^Prelevmnt.*'), FrenchTransaction.TYPE_ORDER),
+        (re.compile(r'^Prelevement.*'), FrenchTransaction.TYPE_ORDER),
+        (re.compile(r'^Prelevement Carte.*(?P<dd>\d{2})/(?P<mm>\d{2})$', re.IGNORECASE), FrenchTransaction.TYPE_CARD_SUMMARY),
+        (re.compile(r'^Remise Carte.*'), FrenchTransaction.TYPE_CARD),
+        (re.compile(r'^Paiement Par Carte.*(?P<dd>\d{2})/(?P<mm>\d{2})$'), FrenchTransaction.TYPE_CARD),
+        (re.compile(r'^Remboursement De Pret.*'), FrenchTransaction.TYPE_LOAN_PAYMENT),
     ]
 
 class CragrPage(HTMLPage):
