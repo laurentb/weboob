@@ -97,15 +97,15 @@ class Paypal(LoginBrowser):
         data['_sessionID'] = sessionID
         data[key] = value
         res = self.open('/auth/verifychallenge', data=data)
-        if not 'OK' in res.content:
+        if not 'OK' in res.text:
             raise BrowserUnavailable('Challenge failed')
 
         res = self.page.login(self.username, self.password)
 
-        if 'LoginFailed' in res.content or 'Sorry, we can\'t log you in' in res.content or self.error.is_here():
+        if 'LoginFailed' in res.text or 'Sorry, we can\'t log you in' in res.text or self.error.is_here():
             raise BrowserIncorrectPassword()
 
-        if '/auth/validatecaptcha' in res.content:
+        if '/auth/validatecaptcha' in res.text:
             raise BrowserUnavailable('captcha')
 
         self.location('/')
