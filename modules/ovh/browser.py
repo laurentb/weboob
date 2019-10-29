@@ -85,7 +85,7 @@ class OvhBrowser(LoginBrowser, StatesMixin):
             raise BrowserQuestion(Value('pin_code', label=self.page.get_otp_message()[0] or 'Please type the OTP you received'))
 
         if not self.page.is_logged():
-            raise BrowserIncorrectPassword
+            raise BrowserIncorrectPassword(self.page.get_error_message())
 
     @need_login
     def get_subscription_list(self):

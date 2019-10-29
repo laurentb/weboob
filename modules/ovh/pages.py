@@ -44,6 +44,9 @@ class LoginPage(HTMLPage):
         form[pwd] = password
         form.submit()
 
+    def get_error_message(self):
+        return CleanText('//form[@class="pagination-centered"]/div[@class="error"]')(self.doc)
+
     # There is 2 double auth method
     # One activated by the user, that we don't handle,
     # The other, spawning sometimes at first login, that we can handle.
