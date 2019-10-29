@@ -43,6 +43,10 @@ class MyForm(Form):
 
 
 class BillsPage(LoggedPage, HTMLPage):
+    def build_doc(self, data):
+        self.encoding = self.response.encoding
+        return super(BillsPage, self).build_doc(data)
+
     @method
     class iter_subscriptions(ListElement):
         item_xpath = '//ul[@class="unstyled striped"]/li'
