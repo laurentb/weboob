@@ -19,8 +19,9 @@
 
 from __future__ import unicode_literals
 
-from weboob.capabilities.bank import CapBankWealth
-from weboob.tools.backend import Module, BackendConfig
+
+from weboob.capabilities.bank import CapBank
+from weboob.tools.backend import AbstractModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
 from .browser import AferBrowser
@@ -29,33 +30,25 @@ from .browser import AferBrowser
 __all__ = ['AferModule']
 
 
-class AferModule(Module, CapBankWealth):
+class AferModule(AbstractModule, CapBank):
     NAME = 'afer'
-    DESCRIPTION = u'Association française d\'épargne et de retraite'
-    MAINTAINER = u'James GALT'
-    EMAIL = 'jgalt@budget-insight.com'
+    DESCRIPTION = "Association française d'épargne et de retraite"
+    MAINTAINER = 'Quentin Defenouillère'
+    EMAIL = 'quentin.defenouillere@budget-insight.com'
     LICENSE = 'LGPLv3+'
     VERSION = '1.6'
 
-    BROWSER = AferBrowser
     CONFIG = BackendConfig(
-        ValueBackendPassword('login', label='Identifiant', regexp=r'.+', masked=False),
-        ValueBackendPassword('password', label="Mot de passe", regexp=r'\d{1,8}|[a-zA-Z0-9]{7,30}')
-        # TODO lose previous regex (and in backend) once users credentials migration is complete
+        ValueBackendPassword('login', label='Identifiant', masked=False),
+        ValueBackendPassword('password', label='Mot de passe')
     )
 
+    PARENT = 'aviva'
+    BROWSER = AferBrowser
+
     def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(),
-                                   self.config['password'].get())
-
-    def iter_accounts(self):
-        return self.browser.iter_accounts()
-
-    def iter_coming(self, account):
-        raise NotImplementedError()
-
-    def iter_history(self, account):
-        return self.browser.iter_history(account)
-
-    def iter_investment(self, account):
-        return self.browser.iter_investment(account)
+        return self.create_browser(
+            self.config['login'].get(),
+            self.config['password'].get(),
+            weboob=self.weboob
+        )
