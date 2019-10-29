@@ -18,7 +18,6 @@
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 from __future__ import unicode_literals
 
-
 from weboob.capabilities.bill import DocumentTypes, Bill, Subscription
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination, Form
 from weboob.browser.filters.standard import Filter, CleanText, Format, Field, Env, Date
@@ -117,8 +116,6 @@ class BillsPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Bill
 
-            condition = lambda self: not ('tous les relev' in CleanText('a[1]')(self.el)) and not ('annuel' in CleanText('a[1]')(self.el))
-
             obj_label = CleanText('a[1]', replace=[(' ', '-')])
             obj_id = Format('%s-%s', Env('subid'), Field('label'))
             # Force first day of month as label is in form "janvier 2016"
@@ -126,6 +123,9 @@ class BillsPage(LoggedPage, HTMLPage):
             obj_format = 'pdf'
             obj_type = DocumentTypes.STATEMENT
             obj__localid = Attr('a[2]', 'onclick')
+
+            def condition(self):
+                return not ('tous les relev' in CleanText('a[1]')(self.el)) and not ('annuel' in CleanText('a[1]')(self.el))
 
             def obj__year(self):
                 return int(CleanText('a[1]')(self).split(' ')[1])

@@ -18,7 +18,6 @@
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 from __future__ import unicode_literals
 
-
 import hashlib
 import time
 import json
@@ -99,7 +98,6 @@ class IngBrowser(LoginBrowser):
                       r'https://ingdirectvie.ing.fr/b2b2c/epargne/CoeDetMvt', ASVHistory)
     asv_invest = URL(r'https://ingdirectvie.ing.fr/b2b2c/epargne/CoeDetCon', ASVInvest)
     detailfonds = URL(r'https://ingdirectvie.ing.fr/b2b2c/fonds/PerDesFac\?codeFonds=(.*)', DetailFondsPage)
-
 
     # CapDocument
     billpage = URL(r'/protected/pages/common/estatement/eStatement.jsf', BillsPage)
@@ -244,7 +242,6 @@ class IngBrowser(LoginBrowser):
             accounts_list.append(loan)
             yield loan
 
-
     @need_login
     @start_with_main_site
     def get_accounts_list(self, space=None, fill_account=True):
@@ -308,7 +305,7 @@ class IngBrowser(LoginBrowser):
         params = {'context': '{"originatingApplication":"SECUREUI"}',
                   'targetSystem': 'INTERNET'}
         data = {'targetSystemName': 'INTERNET'}
-        self.location('https://subscribe.ing.fr/consumerloan/consumerloan-v1/sso/exit', params=params,json=data)
+        self.location('https://subscribe.ing.fr/consumerloan/consumerloan-v1/sso/exit', params=params, json=data)
         self.location('https://secure.ing.fr/', data={'token': self.response.text})
 
     def get_account(self, _id, space=None):

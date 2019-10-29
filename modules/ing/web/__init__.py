@@ -31,9 +31,9 @@ class AccountPrelevement(AccountsList):
     pass
 
 
-__all__ = ['AccountsList', 'NetissimaPage','TitreDetails',
-           'AccountPrelevement',
-           'BillsPage', 'StopPage', 'TitrePage', 'TitreHistory', 'IbanPage',
-           'TitreValuePage', 'ASVHistory', 'ASVInvest','DetailFondsPage',
+__all__ = ['AccountsList', 'NetissimaPage', 'TitreDetails',
+           'AccountPrelevement', 'BillsPage', 'StopPage',
+           'TitrePage', 'TitreHistory', 'IbanPage',
+           'TitreValuePage', 'ASVHistory', 'ASVInvest', 'DetailFondsPage',
            'ActionNeededPage', 'ReturnPage', 'ProfilePage', 'LoanTokenPage',
            'LoanDetailPage', 'ApiRedirectionPage']

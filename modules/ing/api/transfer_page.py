@@ -38,7 +38,7 @@ class TransferINGVirtKeyboard(SimpleVirtualKeyboard):
     convert = 'RGB'
 
     safe_tile_margin = 50
-    small_img_size = (125, 50) # original image size is (2420, 950)
+    small_img_size = (125, 50)  # original image size is (2420, 950)
     alter_img_params = {
         'radius': 2,
         'percent': 150,
@@ -107,6 +107,7 @@ class TransferINGVirtKeyboard(SimpleVirtualKeyboard):
             ])
         return formatted_password
 
+
 class DebitAccountsPage(LoggedPage, JsonPage):
     def get_debit_accounts_uid(self):
         return [Dict('uid')(recipient) for recipient in self.doc]
@@ -154,7 +155,7 @@ class TransferPage(LoggedPage, JsonPage):
         vk = TransferINGVirtKeyboard(image, cols=5, rows=2, browser=self.browser)
         password_random_coords = vk.password_tiles_coord(password)
         # pin positions (website side) start at 1, our positions start at 0
-        return [password_random_coords[index-1] for index in pin_position]
+        return [password_random_coords[index - 1] for index in pin_position]
 
     @property
     def transfer_is_validated(self):

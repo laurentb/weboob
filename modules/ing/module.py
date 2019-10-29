@@ -18,7 +18,6 @@
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 from __future__ import unicode_literals
 
-
 from decimal import Decimal
 from datetime import timedelta
 import re

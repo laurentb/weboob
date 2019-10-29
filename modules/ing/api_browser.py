@@ -125,7 +125,6 @@ class IngAPIBrowser(LoginBrowser, StatesMixin):
     # profile
     informations = URL(r'/secure/api-v1/customer/info', ProfilePage)
 
-
     __states__ = ('need_reload_state', 'add_recipient_info')
 
     def __init__(self, *args, **kwargs):
@@ -305,7 +304,7 @@ class IngAPIBrowser(LoginBrowser, StatesMixin):
                 yield tr
 
             # like website, add 1 to the last transaction id of the list to get next transactions page
-            first_transaction_id +=1
+            first_transaction_id += 1
 
     @need_login
     def iter_history(self, account):

@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 from io import BytesIO
 from PIL import Image, ImageFilter
 import random
@@ -62,7 +64,7 @@ class INGVirtKeyboard(SimpleVirtualKeyboard):
     }
 
     symbols = {
-        '0': ('7b4989b431e631ec79df5d71aecb1a47','e2522e1f7476ad6430219a73b10799b0', 'f7db285c5c742c3a348e332c0e9f7f3e',),
+        '0': ('7b4989b431e631ec79df5d71aecb1a47', 'e2522e1f7476ad6430219a73b10799b0', 'f7db285c5c742c3a348e332c0e9f7f3e',),
         '1': ('9f1b03aa9a6f9789714c38eb90a43a11', '86bc0e7e1173472928e746db874b38c3',),
         '2': ('3a7d1ba32f4326a02f717f71262ba02b', 'afc2a00289ba9e362c4e9333c14a574a',),
         '3': ('203bfd122f474eb9c5c278eeda01bed4', 'c1daa556a1eff1fd18817dbef39792f8',),
@@ -143,4 +145,4 @@ class LoginPage(JsonPage):
         vk = INGVirtKeyboard(image, cols=5, rows=2, browser=self.browser)
         password_random_coords = vk.password_tiles_coord(password)
         # pin positions (website side) start at 1, our positions start at 0
-        return [password_random_coords[index-1] for index in pin_position]
+        return [password_random_coords[index - 1] for index in pin_position]
