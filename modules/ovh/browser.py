@@ -30,10 +30,10 @@ from .pages import LoginPage, ProfilePage, BillsPage
 class OvhBrowser(LoginBrowser, StatesMixin):
     BASEURL = 'https://www.ovh.com'
 
-    login = URL('/auth/',
-                '/manager/web/', LoginPage)
-    profile = URL('/engine/api/me', ProfilePage)
-    documents = URL('/engine/2api/sws/billing/bills\?count=0&date=(?P<fromDate>.*)&dateTo=(?P<toDate>.*)&offset=0', BillsPage)
+    login = URL(r'/auth/',
+                r'/manager/web/', LoginPage)
+    profile = URL(r'/engine/api/me', ProfilePage)
+    documents = URL(r'/engine/2api/sws/billing/bills\?count=0&date=(?P<fromDate>.*)&dateTo=(?P<toDate>.*)&offset=0', BillsPage)
 
     __states__ = ('otp_form', 'otp_url')
     STATE_DURATION = 10
@@ -89,7 +89,7 @@ class OvhBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def get_subscription_list(self):
-        return self.profile.stay_or_go().get_list()
+        return self.profile.stay_or_go().get_subscriptions()
 
     @need_login
     def iter_documents(self, subscription):

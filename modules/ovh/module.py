@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from weboob.capabilities.bill import DocumentTypes, CapDocument, Subscription, Bill, SubscriptionNotFound, DocumentNotFound
 from weboob.capabilities.base import find_object
@@ -31,8 +32,8 @@ __all__ = ['OvhModule']
 
 class OvhModule(Module, CapDocument):
     NAME = 'ovh'
-    DESCRIPTION = u'Ovh'
-    MAINTAINER = u'Vincent Paredes'
+    DESCRIPTION = 'Ovh'
+    MAINTAINER = 'Vincent Paredes'
     EMAIL = 'vparedes@budget-insight.com'
     LICENSE = 'LGPLv3+'
     VERSION = '1.6'
