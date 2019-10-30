@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from datetime import datetime
 
@@ -36,11 +37,12 @@ from weboob.exceptions import BrowserUnavailable
 
 from .base import MyHTMLPage
 
+
 class CheckTransferError(MyHTMLPage):
     def on_load(self):
         MyHTMLPage.on_load(self)
-        error = CleanText(u'//span[@class="app_erreur"] | //p[@class="warning"] | //p[contains(text(), "Votre virement n\'a pas pu être enregistré")]')(self.doc)
-        if error and not u'Votre demande de virement a été enregistrée le' in error:
+        error = CleanText('//span[@class="app_erreur"] | //p[@class="warning"] | //p[contains(text(), "Votre virement n\'a pas pu être enregistré")]')(self.doc)
+        if error and 'Votre demande de virement a été enregistrée le' not in error:
             raise TransferBankError(message=error)
 
 
@@ -73,7 +75,7 @@ class TransferChooseAccounts(LoggedPage, MyHTMLPage):
             obj_category = Env('category')
             obj_label = Env('label')
             obj_id = Env('id')
-            obj_currency = u'EUR'
+            obj_currency = 'EUR'
             obj_iban = Env('iban')
             obj_bank_name = Env('bank_name')
             obj__value = Attr('.', 'value')
@@ -83,10 +85,10 @@ class TransferChooseAccounts(LoggedPage, MyHTMLPage):
 
             def parse(self, el):
                 if any(s in CleanText('.')(el) for s in ['Avoir disponible', 'Solde']) or self.page.is_inner(CleanText('.')(el)):
-                    self.env['category'] = u'Interne'
+                    self.env['category'] = 'Interne'
                 else:
-                    self.env['category'] = u'Externe'
-                if self.env['category'] == u'Interne':
+                    self.env['category'] = 'Externe'
+                if self.env['category'] == 'Interne':
                     _id = Regexp(CleanText('.'), '- (.*?) -')(el)
                     if _id == self.env['account_id']:
                         raise SkipItem()
@@ -101,15 +103,15 @@ class TransferChooseAccounts(LoggedPage, MyHTMLPage):
                         label = CleanText('.')(el).split('-')
                         holder = label[-1] if not any(string in label[-1] for string in ['Avoir disponible', 'Solde']) else label[-2]
                         self.env['label'] = '%s %s' % (label[0].strip(), holder.strip())
-                    self.env['bank_name'] = u'La Banque Postale'
+                    self.env['bank_name'] = 'La Banque Postale'
 
                 else:
                     self.env['id'] = self.env['iban'] = Regexp(CleanText('.'), '- (.*?) -')(el).replace(' ', '')
                     self.env['label'] = Regexp(CleanText('.'), '- (.*?) - (.*)', template='\\2')(el).strip()
                     first_part = CleanText('.')(el).split('-')[0].strip()
-                    self.env['bank_name'] = u'La Banque Postale' if first_part in ['CCP', 'PEL'] else NotAvailable
+                    self.env['bank_name'] = 'La Banque Postale' if first_part in ['CCP', 'PEL'] else NotAvailable
 
-                if self.env['id'] in self.parent.objects: # user add two recipients with same iban...
+                if self.env['id'] in self.parent.objects:  # user add two recipients with same iban...
                     raise SkipItem()
 
     def init_transfer(self, account_id, recipient_value):
@@ -139,7 +141,7 @@ class TransferConfirm(LoggedPage, CheckTransferError):
     def double_auth(self, transfer):
         code_needed = CleanText('//label[@for="code_securite"]')(self.doc)
         if code_needed:
-            raise TransferStep(transfer, Value('code', label= code_needed))
+            raise TransferStep(transfer, Value('code', label=code_needed))
 
     def confirm(self):
         form = self.get_form(id='formID')
@@ -152,7 +154,7 @@ class TransferConfirm(LoggedPage, CheckTransferError):
         assert account.id in account_txt or ''.join(account.label.split()) == account_txt, 'Something went wrong'
         assert recipient.id in recipient_txt or ''.join(recipient.label.split()) == recipient_txt, 'Something went wrong'
 
-        r_amount =  CleanDecimal('//form//dl/dt[span[contains(text(), "Montant")]]/following::dd[1]', replace_dots=True)(self.doc)
+        r_amount = CleanDecimal('//form//dl/dt[span[contains(text(), "Montant")]]/following::dd[1]', replace_dots=True)(self.doc)
         exec_date = Date(CleanText('//form//dl/dt[span[contains(text(), "Date")]]/following::dd[1]'), dayfirst=True)(self.doc)
         currency = FrenchTransaction.Currency('//form//dl/dt[span[contains(text(), "Montant")]]/following::dd[1]')(self.doc)
 
@@ -177,7 +179,7 @@ class TransferSummary(LoggedPage, CheckTransferError):
         transfer.id = Regexp(CleanText('//div[@class="bloc Tmargin"]'), 'virement N.+ (\d+) ', default=NotAvailable)(self.doc)
         if not transfer.id:
             # TODO handle transfer with sms code.
-            if u'veuillez saisir votre code de validation' in CleanText('//div[@class="bloc Tmargin"]')(self.doc):
+            if 'veuillez saisir votre code de validation' in CleanText('//div[@class="bloc Tmargin"]')(self.doc):
                 raise NotImplementedError()
 
             # there are several regexp for transfer date:
@@ -193,12 +195,12 @@ class TransferSummary(LoggedPage, CheckTransferError):
 
 class CreateRecipient(LoggedPage, MyHTMLPage):
     def on_load(self):
-        if self.doc.xpath(u'//h1[contains(text(), "Service Désactivé")]'):
+        if self.doc.xpath('//h1[contains(text(), "Service Désactivé")]'):
             raise BrowserUnavailable(CleanText('//p[img[@title="attention"]]/text()')(self.doc))
 
     def choose_country(self, recipient, is_bp_account):
         # if this is present, we can't add recipient currently
-        more_security_needed = self.doc.xpath(u'//iframe[@title="Gestion de compte par Internet"]')
+        more_security_needed = self.doc.xpath('//iframe[@title="Gestion de compte par Internet"]')
         if more_security_needed:
             raise AddRecipientBankError(message=u"Pour activer le service Certicode, nous vous invitons à vous rapprocher de votre Conseiller en Bureau de Poste.")
 
@@ -226,7 +228,7 @@ class ValidateCountry(LoggedPage, MyHTMLPage):
 class ValidateRecipient(LoggedPage, MyHTMLPage):
     def is_bp_account(self):
         msg = CleanText('//span[has-class("app_erreur")]')(self.doc)
-        return u'Le n° de compte que vous avez saisi appartient à La Banque Postale, veuillez vérifier votre saisie.' in msg
+        return 'Le n° de compte que vous avez saisi appartient à La Banque Postale, veuillez vérifier votre saisie.' in msg
 
     def get_confirm_link(self):
         return Link('//a[@title="confirmer la creation"]')(self.doc)
