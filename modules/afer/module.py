@@ -19,8 +19,7 @@
 
 from __future__ import unicode_literals
 
-
-from weboob.capabilities.bank import CapBank
+from weboob.capabilities.bank import CapBankWealth
 from weboob.tools.backend import AbstractModule
 
 from .browser import AferBrowser
@@ -29,7 +28,7 @@ from .browser import AferBrowser
 __all__ = ['AferModule']
 
 
-class AferModule(AbstractModule, CapBank):
+class AferModule(AbstractModule, CapBankWealth):
     NAME = 'afer'
     DESCRIPTION = "Association française d'épargne et de retraite"
     MAINTAINER = 'Quentin Defenouillère'
