@@ -637,6 +637,7 @@ class Currency(object):
         (u'EGP', (u'E£',)),
         (u'ISK', (u'Íkr', u'kr')),
         (u'XPF', (u'XPF',)),
+        (u'SAR', (u'SAR',)),
     ])
 
     EXTRACTOR = re.compile(r'[()\d\s,\.\-]', re.UNICODE)
