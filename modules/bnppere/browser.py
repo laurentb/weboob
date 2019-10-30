@@ -21,7 +21,10 @@ from __future__ import unicode_literals
 
 from weboob.browser import AbstractBrowser, LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded
-from .pages import LoginPage, ProfilePage, ErrorPage, AccountPage, TermPage, UnexpectedPage, HistoryPage
+from .pages import (
+    LoginPage, ProfilePage, ErrorPage, AccountPage, InvestmentPage,
+    TermPage, UnexpectedPage, HistoryPage,
+)
 
 
 class BnppereBrowser(AbstractBrowser):
@@ -34,16 +37,19 @@ class BnppereBrowser(AbstractBrowser):
 
 class VisiogoBrowser(LoginBrowser):
     BASEURL = 'https://visiogo.bnpparibas.com/'
+
     login_page = URL(r'https://authentication.bnpparibas.com/en/Account/Login\?ReturnUrl=https://visiogo.bnpparibas.com/fr-FR', LoginPage)
     error_page = URL(r'https://authentication.bnpparibas.com/en/account/login\?ReturnUrl=.+', ErrorPage)
     error_page2 = URL(r'https://authentication.bnpparibas.com/Error\?Code=500', UnexpectedPage)
     term_page = URL(r'/Home/TermsOfUseApproval', TermPage)
     account_page = URL(r'/GlobalView/Synthesis', AccountPage)
+    investment_page = URL(r'/Saving/Details', InvestmentPage)
     profile_page = URL(r'/en/Profile/EditContactDetails', ProfilePage)
-    history_page = URL(r'en/Operation/History', HistoryPage)
+    history_page = URL(r'/en/Operation/History', HistoryPage)
 
     def __init__(self, config=None, *args, **kwargs):
         self.config = config
+        self.multi_accounts = False
         kwargs['username'] = self.config['login'].get()
         kwargs['password'] = self.config['password'].get()
         super(VisiogoBrowser, self).__init__(*args, **kwargs)
@@ -67,10 +73,19 @@ class VisiogoBrowser(LoginBrowser):
     @need_login
     def iter_accounts(self):
         self.account_page.go()
-        return self.page.get_accounts()
+        accounts_list = list(self.page.iter_accounts())
+        # We need to know if there are several accounts
+        # in order to handle their investments properly
+        if len(accounts_list) > 1:
+            self.multi_accounts = True
+        return accounts_list
 
     def iter_investment(self, account):
-        raise NotImplementedError()
+        if self.multi_accounts:
+            # No connection with multi-accounts containing investments yet
+            raise NotImplementedError()
+        self.investment_page.go()
+        return self.page.iter_investments()
 
     def iter_pocket(self, account):
         raise NotImplementedError()

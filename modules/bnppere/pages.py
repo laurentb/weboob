@@ -21,14 +21,18 @@ from __future__ import unicode_literals
 
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import method, ItemElement, ListElement
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Currency, Date, NumberFormatError
-from weboob.capabilities.bank import Account, Transaction
+from weboob.browser.filters.standard import (
+    CleanText, CleanDecimal, Currency, Date, NumberFormatError,
+    Field, Env,
+)
+from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.bank import Account, Transaction, Investment
 from weboob.browser.filters.html import Attr
 from weboob.capabilities.profile import Profile
+from weboob.tools.capabilities.bank.investments import IsinCode, IsinType
 
 
 class LoginPage(HTMLPage):
-
     def login(self, login, password):
         form = self.get_form('//form[@class="form-horizontal"]')
         form['Login'] = login
@@ -66,7 +70,7 @@ class UnexpectedPage(HTMLPage):
 
 class AccountPage(LoggedPage, HTMLPage):
     @method
-    class get_accounts(ListElement):
+    class iter_accounts(ListElement):
         item_xpath = '//div[@id="desktop-data-tables"]/table//tr'
 
         def store(self, obj):
@@ -89,6 +93,7 @@ class AccountPage(LoggedPage, HTMLPage):
                 _id = ''.join(i for i in _id if i.isdigit())
                 return _id
 
+            obj_number = obj_id
             obj_label = CleanText('./td[2]', replace=[(' o ', ' ')])
             obj__login = CleanDecimal('./td[1]')
             obj_currency = Currency('./td[6]')
@@ -96,8 +101,8 @@ class AccountPage(LoggedPage, HTMLPage):
             obj_type = Account.TYPE_PERP
 
             def obj_balance(self):
-                # The page can be randomly in french or english and
-                # the valuations can be "€12,345.67" or "12 345,67 €"
+                # This wonderful website randomly displays separators as '.' or ','
+                # For example, numbers can look like "€12,345.67" or "12 345,67 €"
                 try:
                     return CleanDecimal.French('./td[6]')(self)
                 except NumberFormatError:
@@ -115,5 +120,41 @@ class HistoryPage(LoggedPage, HTMLPage):
             obj_date = Date(CleanText('./div[contains(@class, "accordion_header")]/div[1]/p'))
             obj_category = CleanText('./div[contains(@class, "accordion_header")]/div[2]/p[1]')
             obj_label = CleanText('./div[contains(@class, "accordion_header")]/div[3]/p[1]')
-            obj_amount = CleanDecimal('./div[contains(@class, "accordion_header")]/div[6]')
-            obj__currency = Currency('./div[contains(@class, "accordion_header")]/div[6]')
+
+            def obj_amount(self):
+                # This wonderful website randomly displays separators as '.' or ','
+                # For example, numbers can look like "€12,345.67" or "12 345,67 €"
+                try:
+                    return CleanDecimal.French('./div[contains(@class, "accordion_header")]/div[6]')(self)
+                except NumberFormatError:
+                    return CleanDecimal.US('./div[contains(@class, "accordion_header")]/div[6]')(self)
+
+
+class InvestmentPage(LoggedPage, HTMLPage):
+    @method
+    class iter_investments(ListElement):
+        item_xpath = '//div[contains(@class, "table-lg-container")]//tr'
+
+        class item(ItemElement):
+            klass = Investment
+
+            def parse(self, obj):
+                # This wonderful website randomly displays separators as '.' or ','
+                # For example, numbers can look like "€12,345.67" or "12 345,67 €"
+                if '.' in CleanText('./td[4]')(self):
+                    # American format
+                    self.env['quantity'] = CleanDecimal.US('./td[2]', default=NotAvailable)(self)
+                    self.env['unitvalue'] = CleanDecimal.US('./td[3]', default=NotAvailable)(self)
+                    self.env['valuation'] = CleanDecimal.US('./td[4]')(self)
+                else:
+                    # French format
+                    self.env['quantity'] = CleanDecimal.French('./td[2]', default=NotAvailable)(self)
+                    self.env['unitvalue'] = CleanDecimal.French('./td[3]', default=NotAvailable)(self)
+                    self.env['valuation'] = CleanDecimal.French('./td[4]')(self)
+
+            obj_label = CleanText('.//p[contains(@class, "support-label")]')
+            obj_code = IsinCode(CleanText('.//p[contains(@class, "code-isin")]'), default=NotAvailable)
+            obj_code_type = IsinType(Field('code'))
+            obj_quantity = Env('quantity')
+            obj_unitvalue = Env('unitvalue')
+            obj_valuation = Env('valuation')
