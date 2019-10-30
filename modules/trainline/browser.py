@@ -17,79 +17,77 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from time import sleep
 
-from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
-from weboob.browser.browsers import APIBrowser
+from weboob.browser import URL
+from weboob.browser.browsers import LoginBrowser, need_login
 from weboob.exceptions import BrowserIncorrectPassword
-from weboob.browser.filters.standard import CleanDecimal, Date
 from weboob.browser.exceptions import ClientError
-from weboob.capabilities.bill import DocumentTypes, Bill, Subscription
+
+from .pages import SigninPage, UserPage, DocumentsPage
 
 
-class TrainlineBrowser(APIBrowser):
-    BASEURL = 'https://www.trainline.fr/api/v5/'
+class TrainlineBrowser(LoginBrowser):
+    BASEURL = 'https://www.trainline.fr'
 
-    def __init__(self, email, password, *args, **kwargs):
-        super(TrainlineBrowser, self).__init__(*args, **kwargs)
+    signin = URL(r'/api/v5/account/signin', SigninPage)
+    user_page = URL(r'/api/v5/user', UserPage)
+    documents_page = URL(r'/api/v5/pnrs', DocumentsPage)
 
+    def __init__(self, login, password, *args, **kwargs):
+        super(TrainlineBrowser, self).__init__(login, password, *args, **kwargs)
         self.session.headers['X-Requested-With'] = 'XMLHttpRequest'
 
+    def do_login(self):
         try:
-            me = self.request('account/signin', data={'email': email, 'password': password})
-        except ClientError:
-            raise BrowserIncorrectPassword
+            self.signin.go(data={'email': self.username, 'password': self.password})
+        except ClientError as error:
+            json_response = error.response.json()
+            error_list = json_response.get('errors', {}).get('email', [])
+            error_message = error_list[0] if error_list else None
+            raise BrowserIncorrectPassword(error_message)
 
-        self.session.headers['Authorization'] = 'Token token="%s"' % me['meta']['token']
+        self.session.headers['Authorization'] = 'Token token="%s"' % self.page.get_token()
 
+    @need_login
     def get_subscription_list(self):
-        me = self.request('user')['user']
-        sub = Subscription()
-        sub.subscriber = '%s %s' % (me['first_name'], me['last_name'])
-        sub.id = me['id']
-        sub.label = me['email']
-        yield sub
+        yield self.user_page.go().get_subscription()
 
+    @need_login
     def iter_documents(self, subscription):
-        docs, docs_len, check, month_back, date = list(), -1, 0, 6, None
-        # First request is known
-        bills = self.request('pnrs')
-        while check < month_back:
-            # If not first
-            if docs_len > -1 and date:
-                if check > 0:
-                    # If nothing, we try 4 weeks back
-                    date = (datetime.strptime(date, '%Y-%m-%d') - relativedelta(weeks=4)).strftime('%Y-%m-%d')
-                else:
-                    # Add 8 weeks to last date to be sure to get all
-                    date = (datetime.combine(date, datetime.min.time()) + relativedelta(weeks=8)).strftime('%Y-%m-%d')
-                bills = self.request('pnrs?date=%s' % date)
+        min_date = None
+        docs = {}
 
-            docs_len = len(docs)
-            for proof, pnr, trip in zip(bills['proofs'], bills['pnrs'], bills['trips']):
-                # Check if not already in docs list
-                for doc in docs:
-                    if vars(doc)['id'].split('_', 1)[1] == pnr['id']:
-                        break
-                else:
-                    b = Bill()
-                    b.id = '%s_%s' % (subscription.id, pnr['id'])
-                    b._url = proof['url']
-                    b.date = Date().filter(proof['created_at'])
-                    b.format = u"pdf"
-                    b.label = u'Trajet du %s' % Date().filter(trip['departure_date'])
-                    b.type = DocumentTypes.BILL
-                    b.vat = CleanDecimal().filter('0')
-                    if pnr['cents']:
-                        b.price = CleanDecimal().filter(format(pnr['cents']/float(100), '.2f'))
-                    b.currency = pnr['currency']
-                    docs.append(b)
+        i = 0
+        while i < 10:
+            params = {'date': min_date.strftime('%Y-%m-01')} if min_date else None
+            # date params has a very silly behavior
+            # * day seems to be useless, (but we have to put it anyway)
+            # * server return last 3 months from date (including month we give)
+            #     ex: date = 2019-09-01 => return bills from 2019-07-01 to 2019-09-30
+            # * this date range behavior seems to not apply for old bills,
+            #     it can happens we get bill for 2017 even if we put date=2019-06-01
+            #     it is possible maybe because it's the last ones and server doesn't want to
+            new_doc = False
+            try:
+                self.documents_page.go(params=params)
+            except ClientError as error:
+                # CAUTION: if we perform too many request we can get a 429 response status code
+                if error.response.status_code != 429:
+                    raise
+                # wait 2 seconds and retry, it should work
+                sleep(2)
+            for doc in self.page.iter_documents(subid=subscription.id):
+                if doc.id not in docs.keys():
+                    new_doc = True
+                    docs[doc.id] = doc
 
-            check += 1
-            # If a new bill is found, we reset check
-            if docs_len < len(docs):
-                date = b.date
-                check = 0
+                if min_date is None or min_date > doc.date:
+                    min_date = doc.date
+            if not new_doc:
+                min_date -= relativedelta(months=3)
+            i += 1
 
-        return iter(docs)
+        return sorted(docs.values(), key=lambda doc: doc.date, reverse=True)

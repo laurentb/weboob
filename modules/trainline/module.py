@@ -18,10 +18,13 @@
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bill import DocumentTypes, CapDocument, Subscription, Document, SubscriptionNotFound, DocumentNotFound
+from weboob.capabilities.bill import (
+    DocumentTypes, CapDocument, Subscription, Document, SubscriptionNotFound,
+    DocumentNotFound,
+)
 from weboob.capabilities.base import find_object, NotAvailable
 from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.value import ValueBackendPassword, Value
+from weboob.tools.value import ValueBackendPassword
 
 from .browser import TrainlineBrowser
 
@@ -31,13 +34,15 @@ __all__ = ['TrainlineModule']
 
 class TrainlineModule(Module, CapDocument):
     NAME = 'trainline'
-    DESCRIPTION = u'trainline website'
-    MAINTAINER = u'Edouard Lambert'
+    DESCRIPTION = 'trainline'
+    MAINTAINER = 'Edouard Lambert'
     EMAIL = 'elambert@budget-insight.com'
     LICENSE = 'LGPLv3+'
     VERSION = '1.6'
-    CONFIG = BackendConfig(Value('login', label='Adresse email'),
-                       ValueBackendPassword('password', label='Mot de passe'))
+    CONFIG = BackendConfig(
+        ValueBackendPassword('login', label='Adresse email'),
+        ValueBackendPassword('password', label='Mot de passe')
+    )
 
     BROWSER = TrainlineBrowser
 
@@ -66,7 +71,7 @@ class TrainlineModule(Module, CapDocument):
     def download_document(self, document):
         if not isinstance(document, Document):
             document = self.get_document(document)
-        if document._url is NotAvailable:
+        if document.url is NotAvailable:
             return
 
-        return self.browser.open(document._url, headers={'Authorization': ''}).content
+        return self.browser.open(document.url, headers={'Authorization': ''}).content
