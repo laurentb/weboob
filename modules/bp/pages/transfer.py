@@ -89,7 +89,7 @@ class TransferChooseAccounts(LoggedPage, MyHTMLPage):
                 else:
                     self.env['category'] = 'Externe'
                 if self.env['category'] == 'Interne':
-                    _id = Regexp(CleanText('.'), '- (.*?) -')(el)
+                    _id = CleanText(Attr('.', 'value'))(el)
                     if _id == self.env['account_id']:
                         raise SkipItem()
                     try:
