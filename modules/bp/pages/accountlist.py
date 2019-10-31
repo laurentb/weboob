@@ -30,7 +30,10 @@ from weboob.capabilities.profile import Person
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement
 from weboob.browser.pages import LoggedPage, RawPage, PartialHTMLPage, HTMLPage
 from weboob.browser.filters.html import Link, TableCell, Attr
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Regexp, Env, Field, Currency, Async, Date, Format
+from weboob.browser.filters.standard import (
+    CleanText, CleanDecimal, Regexp, Env, Field, Currency,
+    Async, Date, Format, Coalesce,
+)
 from weboob.exceptions import BrowserUnavailable
 from weboob.tools.compat import urljoin, unicode
 
@@ -58,7 +61,7 @@ class item_account_generic(ItemElement):
                 len(self.el.xpath('.//div[@class="amount"]/span[contains(text(), "Contrat résilié")]')) == 0)))
 
     obj_id = obj_number = CleanText('.//abbr/following-sibling::text()')
-    obj_currency = Currency('.//span[@class="number"]')
+    obj_currency = Coalesce(Currency('.//span[@class="number"]'), Currency('.//span[@class="thick"]'))
 
     def obj_url(self):
         url = Link('./a', default=NotAvailable)(self)
