@@ -57,7 +57,7 @@ __all__ = ['CreditMutuelBrowser']
 
 class CreditMutuelBrowser(LoginBrowser, StatesMixin):
     PROFILE = Wget()
-    STATE_DURATION = 10
+    STATE_DURATION = 60 * 24 * 90
     TIMEOUT = 30
     BASEURL = 'https://www.creditmutuel.fr'
 
@@ -149,8 +149,9 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
     form = None
     logged = None
     need_clear_storage = None
+    otp_session = None
 
-    __states__ = ['currentSubBank', 'form', 'logged', 'is_new_website', 'need_clear_storage']
+    __states__ = ['currentSubBank', 'form', 'logged', 'is_new_website', 'need_clear_storage', 'otp_session']
 
     accounts_list = None
 
