@@ -21,6 +21,7 @@ from __future__ import unicode_literals
 
 import re
 import hashlib
+import time
 
 from decimal import Decimal, InvalidOperation
 from dateutil.relativedelta import relativedelta
@@ -106,6 +107,19 @@ class FiscalityConfirmationPage(LoggedPage, HTMLPage):
 
 
 class MobileConfirmationPage(LoggedPage, HTMLPage):
+    # OTP process:
+    # - first we get on this page, and the mobile app is pinged: scrap some JS
+    # object information from the HTML's page, to reuse later, including the
+    # page's URL to get a status update about OTP validation.
+    # - ping the status update page every second, as does the website. It
+    # returns a weird XML object, with a status field containing PENDING or
+    # VALIDATED.
+    # - once the status update page returns VALIDATED, do another POST request
+    # to finalize validation, using state recorded in the first step
+    # (otp_hidden).
+
+    MAX_WAIT = 120 # in seconds
+
     # We land on this page for some connections, but can still bypass this verification for now
     def on_load(self):
         link = Attr('//a[contains(text(), "Accéder à mon Espace Client sans Confirmation Mobile")]', 'href', default=None)(self.doc)
@@ -117,7 +131,50 @@ class MobileConfirmationPage(LoggedPage, HTMLPage):
             msg = CleanText('//div[@id="inMobileAppMessage"]')(self.doc)
             if msg:
                 display_msg = re.search(r'Confirmer votre connexion depuis votre appareil ".+"', msg).group()
+
+                script = CleanText('//script[contains(text(), "otpInMobileAppParameters")]')(self.doc)
+
+                transaction_id = re.search("transactionId: '(\w+)'", script)
+                if transaction_id is None:
+                    raise Exception('missing transaction_id in Credit Mutuel OTP')
+                transaction_id = transaction_id.group(1)
+
+                validation_status_url = re.search("getTransactionValidationStateUrl: '(.*)', pollingInterval:", script)
+                if validation_status_url is None:
+                    raise Exception('missing validation_status_url in Credit Mutuel OTP')
+                validation_status_url = validation_status_url.group(1)
+
+                otp_hidden = CleanText('//input[@name="otp_hidden"]/@value')(self.doc)
+                if otp_hidden is None:
+                    raise Exception('missing otp_hidden in Credit Mutuel OTP')
+
+                num_attempts = 0
+                while num_attempts < self.MAX_WAIT:
+                    time.sleep(1)
+                    num_attempts += 1
+
+                    response = self.browser.open(validation_status_url, method='POST', data={"transactionId":transaction_id})
+                    if response.status_code == 200:
+                        if 'PENDING' not in response.text:
+                            response = self.browser.open(
+                                '?_tabi+C&_pid=OtpValidationPage',
+                                method='POST',
+                                data={
+                                    "otp_hidden": otp_hidden,
+                                    "global_backup_hidden_key": "",
+                                    "_FID_DoValidate.x": "0",
+                                    "_FID_DoValidate.y": "0",
+                                    "_wxf2_cc":"fr-FR"
+                                }
+                            )
+                            if response.status_code != 200:
+                                break
+                            return
+                    else:
+                        break
+
                 raise AppValidation(display_msg)
+
             assert False, "Mobile authentication method not handled"
 
 class EmptyPage(LoggedPage, HTMLPage):
