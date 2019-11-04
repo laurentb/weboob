@@ -97,6 +97,12 @@ class AccountsPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Investment
 
+            def condition(self):
+                # Some additional invests are present in the JSON but are not
+                # displayed on the website, besides they have no valuation,
+                # so we check the 'valuation' key before parsing them
+                return Dict('mtBrut', default=None)(self)
+
             obj_label = Dict('libelleFonds')
             obj_unitvalue = Dict('vl') & CleanDecimal
             obj_quantity = Dict('nbParts') & CleanDecimal
