@@ -22,6 +22,8 @@ from __future__ import unicode_literals
 from datetime import timedelta
 
 from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage
+from weboob.browser.filters.standard import CleanText
+from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.calendar import BaseCalendarEvent, STATUS
 from weboob.capabilities.bill import (
     Subscription, Document, DocumentTypes,
@@ -31,7 +33,16 @@ from weboob.tools.compat import urljoin
 
 
 class LoginPage(HTMLPage):
-    pass
+    def do_login(self, username, password):
+        form = self.get_form(nr=0)
+        form['UserName'] = username
+        form['Password'] = password
+        form.submit()
+
+    def check_error(self):
+        msg = CleanText('//div[has-class("validation-summary-errors")]')(self.doc)
+        if msg:
+            raise BrowserIncorrectPassword(msg)
 
 
 class HomePage(LoggedPage, HTMLPage):

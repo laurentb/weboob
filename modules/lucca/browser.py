@@ -22,8 +22,6 @@ from __future__ import unicode_literals
 from datetime import timedelta
 
 from weboob.browser import LoginBrowser, need_login, URL
-from weboob.browser.exceptions import ClientError
-from weboob.exceptions import BrowserIncorrectPassword
 from weboob.tools.date import new_datetime
 
 from .pages import (
@@ -35,7 +33,7 @@ from .pages import (
 class LuccaBrowser(LoginBrowser):
     BASEURL = 'https://www.ilucca.net'
 
-    login = URL('/login', LoginPage)
+    login = URL('/identity/login', LoginPage)
     home = URL('/home', HomePage)
     calendar = URL('/api/leaveAMPMs', CalendarPage)
     users = URL(r'/api/departments\?fields=id%2Cname%2Ctype%2Clevel%2Cusers.id%2Cusers.displayName%2Cusers.dtContractStart%2Cusers.dtContractEnd%2Cusers.manager.id%2Cusers.manager2.id%2Cusers.legalEntityID%2Cusers.calendar.id&date=since%2C1970-01-01', UsersPage)
@@ -47,18 +45,12 @@ class LuccaBrowser(LoginBrowser):
         self.BASEURL = 'https://%s.ilucca.net' % subdomain
 
     def do_login(self):
-        try:
-            self.login.go(data={
-                'Login': self.username,
-                'Password': self.password,
-            })
-        except ClientError as exc:
-            if 'Incorrect credentials' in exc.response.text:
-                raise BrowserIncorrectPassword()
-            raise
+        self.login.go()
+        self.page.do_login(self.username, self.password)
 
         if not self.home.is_here():
-            raise BrowserIncorrectPassword()
+            self.page.check_error()
+            raise Exception('error is not handled')
 
     @need_login
     def all_events(self, start, end):
