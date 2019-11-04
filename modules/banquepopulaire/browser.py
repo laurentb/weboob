@@ -27,7 +27,7 @@ from functools import wraps
 
 from dateutil.relativedelta import relativedelta
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
-from weboob.browser.exceptions import HTTPNotFound, ServerError
+from weboob.browser.exceptions import HTTPNotFound, ClientError, ServerError
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.capabilities.bank import Account, AccountOwnership
 from weboob.capabilities.base import NotAvailable, find_object
@@ -219,7 +219,16 @@ class BanquePopulaire(LoginBrowser):
 
     @no_need_login
     def do_login(self):
-        self.location(self.BASEURL)
+        try:
+            self.location(self.BASEURL)
+        except (ClientError, HTTPNotFound) as e:
+            if e.response.status_code in (403, 404):
+                # Sometimes the website makes some redirections that leads
+                # to a 404 or a 403 when we try to access the BASEURL
+                # (website is not stable).
+                raise BrowserUnavailable(e.message)
+            raise
+
         # avoids trying to relog in while it's already on home page
         if self.home_page.is_here():
             return
