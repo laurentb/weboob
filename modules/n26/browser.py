@@ -30,7 +30,7 @@ from weboob.browser.filters.standard import CleanText
 from weboob.exceptions import (
     BrowserIncorrectPassword, BrowserUnavailable, BrowserQuestion, NeedInteractiveFor2FA,
 )
-from weboob.browser.exceptions import ClientError
+from weboob.browser.exceptions import ClientError, BrowserTooManyRequests
 from weboob.tools.value import Value
 
 # Do not use an APIBrowser since APIBrowser sends all its requests bodies as
@@ -79,11 +79,11 @@ class Number26Browser(DomainBrowser, StatesMixin):
         try:
             result = self.request('/api/mfa/challenge', json=data)
         except ClientError as e:
-            response = e.response.json()
+            json_response = e.response.json()
             # if we send more than 5 otp without success, the server will warn the user to
             # wait 12h before retrying, but in fact it seems that we can resend otp 5 mins later
             if e.response.status_code == 429:
-                raise BrowserUnavailable(response['detail'])
+                raise BrowserUnavailable(json_response['detail'])
         raise BrowserQuestion(Value('otp', label='Veuillez entrer le code reçu par sms au ' + result['obfuscatedPhoneNumber']))
 
     def update_token(self, auth_method, bearer, refresh_token, expires_in):
@@ -103,11 +103,13 @@ class Number26Browser(DomainBrowser, StatesMixin):
         try:
             result = self.request('/oauth2/token', data=data)
         except ClientError as e:
+            json_response = e.response.json()
             if e.response.status_code == 401:
                 self.update_token('Basic', self.INITIAL_TOKEN, None, None)
                 return False
-            else:
-                assert False, 'Unhandled error: %s' % e.response.status_code
+            if e.response.status_code == 429:
+                raise BrowserTooManyRequests(json_response['detail'])
+            raise
         self.update_token(result['token_type'], result['access_token'], result['refresh_token'], result['expires_in'])
         return True
 
@@ -136,23 +138,22 @@ class Number26Browser(DomainBrowser, StatesMixin):
         try:
             result = self.request('/oauth2/token', data=data)
         except ClientError as ex:
-            response = ex.response.json()
-            if response.get('title') == 'A second authentication factor is required.':
-                self.mfaToken = response.get('mfaToken')
+            json_response = ex.response.json()
+            if json_response.get('title') == 'A second authentication factor is required.':
+                self.mfaToken = json_response.get('mfaToken')
                 self.do_otp(self.mfaToken)
-            elif response.get('error') == 'invalid_grant':
-                raise BrowserIncorrectPassword(response['error_description'])
-            elif response.get('title') == 'Error':
-                raise BrowserUnavailable(response['message'])
-            elif response.get('title') == 'invalid_otp':
-                raise BrowserIncorrectPassword(response['userMessage']['detail'])
+            elif json_response.get('error') == 'invalid_grant':
+                raise BrowserIncorrectPassword(json_response['error_description'])
+            elif json_response.get('title') == 'Error':
+                raise BrowserUnavailable(json_response['message'])
+            elif json_response.get('title') == 'invalid_otp':
+                raise BrowserIncorrectPassword(json_response['userMessage']['detail'])
             # if we try too many requests, it will return a 429 and the user will have
             # to wait 30 minutes before retrying, and if he retries at 29 min, he will have
             # to wait 30 minutes more
             elif ex.response.status_code == 429:
-                raise BrowserUnavailable(response['detail'])
-            else:
-                assert False, "Unhandled error on '/oauth2/token' request"
+                raise BrowserTooManyRequests(json_response['detail'])
+            raise
 
         self.update_token(result['token_type'], result['access_token'], result['refresh_token'], result['expires_in'])
 
