@@ -504,7 +504,7 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
         assert self.transfer_sent.is_here()
         transfer_error = self.page.get_transfer_error()
         if transfer_error:
-            raise TransferBankError(transfer_error)
+            raise TransferBankError(message=transfer_error)
 
         # the last page contains no info, return the last transfer object from init_transfer
         return transfer
