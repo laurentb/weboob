@@ -175,6 +175,8 @@ class SignRecipientPage(LoggedPage, JsonPage):
             'Something went wrong on sign recipient page: %s' % Dict('commun/raison')(self.doc)
 
     def get_sign_method(self):
+        if Dict('donnees/unavailibility_reason', default='')(self.doc) == 'oob_non_enrole':
+            raise AddRecipientBankError(message="Pour réaliser cette opération il est nécessaire d'utiliser le PASS SECURITE")  # message from the website
         return Dict('donnees/sign_proc')(self.doc).upper()
 
     def check_recipient_status(self):
