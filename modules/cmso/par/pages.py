@@ -32,7 +32,7 @@ from weboob.browser.filters.standard import CleanText, Upper, Date, Regexp, Form
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import Attr, Link, TableCell
 from weboob.browser.exceptions import ServerError
-from weboob.capabilities.bank import Account, Investment, Loan
+from weboob.capabilities.bank import Account, Investment, Loan, AccountOwnership
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.profile import Profile
@@ -144,6 +144,13 @@ class AccountsPage(LoggedPage, JsonPage):
             def obj_type(self):
                 return self.page.TYPES.get(Dict('accountType', default=None)(self).lower(), Account.TYPE_UNKNOWN)
 
+            def obj_ownership(self):
+                if Dict('accountListType')(self) == 'COMPTE_MANDATAIRE':
+                    return AccountOwnership.ATTORNEY
+                elif Dict('nomCotitulaire', default=None)(self):
+                    return AccountOwnership.CO_OWNER
+                return AccountOwnership.OWNER
+
     @method
     class iter_savings(DictElement):
         @property
@@ -215,6 +222,16 @@ class AccountsPage(LoggedPage, JsonPage):
                             return self.page.TYPES[key]
                     return Account.TYPE_UNKNOWN
 
+                def obj_ownership(self):
+                    if Dict('nomCotitulaire', default=None)(self):
+                        return AccountOwnership.CO_OWNER
+
+                    owner = Dict('nomTitulaire', default=None)(self)
+
+                    if owner and all(n in owner.upper() for n in self.env['name'].split()):
+                        return AccountOwnership.OWNER
+                    return AccountOwnership.ATTORNEY
+
                 def get_market_number(self):
                     label = Field('label')(self)
                     page = self.page.browser._go_market_history()
@@ -276,6 +293,11 @@ class AccountsPage(LoggedPage, JsonPage):
 
             # only for revolving loans
             obj_available_amount = CleanDecimal(Dict('montantDisponible', default=None), default=NotAvailable)
+
+            def obj_ownership(self):
+                if Dict('nomCotitulaire', default=None)(self):
+                    return AccountOwnership.CO_OWNER
+                return AccountOwnership.OWNER
 
 
 class Transaction(FrenchTransaction):

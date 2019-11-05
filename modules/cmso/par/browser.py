@@ -163,6 +163,7 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
             return self.accounts_list
 
         seen = {}
+        owner_name = self.get_profile().name.upper()
 
         self.transfer_info.go(json={"beneficiaryType":"INTERNATIONAL"})
         numbers = self.page.get_numbers()
@@ -184,7 +185,7 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
         numbers.update(self.page.get_numbers())
         page = self.accounts.go(data=json.dumps({}), type='epargne', headers=self.json_headers)
         for key in page.get_keys():
-            for a in page.iter_savings(key=key, numbers=numbers):
+            for a in page.iter_savings(key=key, numbers=numbers, name=owner_name):
                 a._eligible_debit = accounts_eligibilite_debit.get(a.id, False)
                 if a._index in seen:
                     acc = seen[a._index]
