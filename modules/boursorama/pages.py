@@ -930,7 +930,7 @@ class TransferAccounts(LoggedPage, HTMLPage):
 class TransferRecipients(LoggedPage, HTMLPage):
     @method
     class iter_recipients(ListElement):
-        item_xpath = '//div[contains(@class, "deploy__wrapper")]//label[@class="account-choice__label"]'
+        item_xpath = '//div[contains(@class, "deploy__wrapper")]//label'
 
         class item(ItemElement):
             klass = Recipient
@@ -943,7 +943,7 @@ class TransferRecipients(LoggedPage, HTMLPage):
                 return label.rstrip('-').rstrip()
 
             def obj_category(self):
-                text = CleanText('./ancestor::div[has-class("deploy--item")]//span[@class="account-choice__title"]')(self).lower()
+                text = CleanText('./ancestor::div[has-class("deploy--item")]//span')(self).lower()
                 if 'mes comptes boursorama banque' in text:
                     return 'Interne'
                 elif any(exp in text for exp in ('comptes externes', 'comptes de tiers', 'mes bénéficiaires')):
