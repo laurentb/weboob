@@ -129,6 +129,11 @@ class BPBrowser(LoginBrowser, StatesMixin):
     transfer_choose = URL(r'/voscomptes/canalXHTML/virement/mpiaiguillage/init-saisieComptes.ea', TransferChooseAccounts)
     transfer_complete = URL(r'/voscomptes/canalXHTML/virement/mpiaiguillage/soumissionChoixComptes-saisieComptes.ea',
                             r'/voscomptes/canalXHTML/virement/virementSafran_national/init-creerVirementNational.ea',
+                            # The two following urls are obtained after a redirection made after a form
+                            # No parameters or data seem to change that the website go back to the evious folder, using ".."
+                            # We can't do much since it is finaly handled by the module requests
+                            r'/voscomptes/canalXHTML/virement/mpiaiguillage/\.\./virementSafran_national/init-creerVirementNational.ea',
+                            r'/voscomptes/canalXHTML/virement/mpiaiguillage/\.\./virementSafran_sepa/init-creerVirementSepa.ea',
                             r'/voscomptes/canalXHTML/virement/virementSafran_sepa/init-creerVirementSepa.ea',
                             CompleteTransfer)
     transfer_confirm = URL(r'/voscomptes/canalXHTML/virement/virementSafran_pea/validerVirementPea-virementPea.ea',
@@ -464,9 +469,11 @@ class BPBrowser(LoginBrowser, StatesMixin):
     @need_login
     def init_transfer(self, account, recipient, amount, transfer):
         self.transfer_choose.stay_or_go()
-        self.page.init_transfer(account.id, recipient._value)
-        assert self.transfer_complete.is_here()
-        self.page.complete_transfer(amount, transfer)
+        self.page.init_transfer(account.id, recipient._value, amount)
+
+        assert self.transfer_complete.is_here(), 'An error occured while validating the first part of the transfer.'
+        self.page.complete_transfer(transfer)
+
         return self.page.handle_response(account, recipient, amount, transfer.label)
 
     @need_login

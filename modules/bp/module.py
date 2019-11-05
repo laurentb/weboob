@@ -19,6 +19,7 @@
 
 
 from decimal import Decimal
+from datetime import timedelta
 from weboob.capabilities.bank import CapBankWealth, CapBankTransferAddRecipient, Account, AccountNotFound, RecipientNotFound
 from weboob.capabilities.contact import CapContact
 from weboob.capabilities.base import find_object, strict_find_object, NotAvailable
@@ -104,6 +105,9 @@ class BPModule(
     def transfer_check_label(self, old, new):
         old = old.encode('latin-1', errors="xmlcharrefreplace").decode('latin-1')
         return super(BPModule, self).transfer_check_label(old, new)
+
+    def transfer_check_date(self, old_exec_date, new_exec_date):
+        return old_exec_date <= new_exec_date <= old_exec_date + timedelta(days=2)
 
     def execute_transfer(self, transfer, **params):
         return self.browser.execute_transfer(transfer)

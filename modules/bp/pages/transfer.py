@@ -25,7 +25,7 @@ from weboob.capabilities.bank import (
     TransferBankError, Transfer, TransferStep, NotAvailable, Recipient,
     AccountNotFound, AddRecipientBankError
 )
-from weboob.capabilities.base import find_object
+from weboob.capabilities.base import find_object, empty
 from weboob.browser.pages import LoggedPage
 from weboob.browser.filters.standard import CleanText, Env, Regexp, Date, CleanDecimal
 from weboob.browser.filters.html import Attr, Link
@@ -114,21 +114,23 @@ class TransferChooseAccounts(LoggedPage, MyHTMLPage):
                 if self.env['id'] in self.parent.objects:  # user add two recipients with same iban...
                     raise SkipItem()
 
-    def init_transfer(self, account_id, recipient_value):
+    def init_transfer(self, account_id, recipient_value, amount):
         matched_values = [Attr('.', 'value')(option) for option in self.doc.xpath('//select[@id="donneesSaisie.idxCompteEmetteur"]/option') \
                           if account_id in CleanText('.')(option)]
         assert len(matched_values) == 1
-        form = self.get_form(xpath='//form[@class="formvirement"]')
+        form = self.get_form(xpath='//form[@class="choix-compte"]')
         form['donneesSaisie.idxCompteReceveur'] = recipient_value
         form['donneesSaisie.idxCompteEmetteur'] = matched_values[0]
+        form['donneesSaisie.montant'] = amount
         form.submit()
 
 
 class CompleteTransfer(LoggedPage, CheckTransferError):
-    def complete_transfer(self, amount, transfer):
+    def complete_transfer(self, transfer):
         form = self.get_form(xpath='//form[@method]')
-        form['montant'] = amount
         if 'commentaire' in form and transfer.label:
+            # for this bank the 'commentaire' is not a real label
+            # but a reason of transfer
             form['commentaire'] = transfer.label
         form['dateVirement'] = transfer.exec_date.strftime('%d/%m/%Y')
         form.submit()
@@ -136,7 +138,10 @@ class CompleteTransfer(LoggedPage, CheckTransferError):
 
 class TransferConfirm(LoggedPage, CheckTransferError):
     def is_here(self):
-        return not CleanText('//p[contains(text(), "Vous pouvez le consulter dans le menu")]')(self.doc)
+        return (
+            not CleanText('//p[contains(text(), "Vous pouvez le consulter dans le menu")]')(self.doc)
+            or self.doc.xpath('//input[@title="Confirmer la demande de virement"]')
+        )
 
     def double_auth(self, transfer):
         code_needed = CleanText('//label[@for="code_securite"]')(self.doc)
@@ -148,15 +153,21 @@ class TransferConfirm(LoggedPage, CheckTransferError):
         form.submit()
 
     def handle_response(self, account, recipient, amount, reason):
-        account_txt = CleanText('//form//dl/dt[span[contains(text(), "biter")]]/following::dd[1]', replace=[(' ', '')])(self.doc)
-        recipient_txt = CleanText('//form//dl/dt[span[contains(text(), "diter")]]/following::dd[1]', replace=[(' ', '')])(self.doc)
+        # handle error
+        error_msg = CleanText('//div[@id="blocErreur"]')(self.doc)
+        if error_msg:
+            raise TransferBankError(message=error_msg)
+
+        account_txt = CleanText('//form//h3[contains(text(), "débiter")]//following::span[1]', replace=[(' ', '')])(self.doc)
+        recipient_txt = CleanText('//form//h3[contains(text(), "créditer")]//following::span[1]', replace=[(' ', '')])(self.doc)
 
         assert account.id in account_txt or ''.join(account.label.split()) == account_txt, 'Something went wrong'
         assert recipient.id in recipient_txt or ''.join(recipient.label.split()) == recipient_txt, 'Something went wrong'
 
-        r_amount = CleanDecimal('//form//dl/dt[span[contains(text(), "Montant")]]/following::dd[1]', replace_dots=True)(self.doc)
-        exec_date = Date(CleanText('//form//dl/dt[span[contains(text(), "Date")]]/following::dd[1]'), dayfirst=True)(self.doc)
-        currency = FrenchTransaction.Currency('//form//dl/dt[span[contains(text(), "Montant")]]/following::dd[1]')(self.doc)
+        amount_element = self.doc.xpath('//h3[contains(text(), "Montant du virement")]//following::span[@class="price"]')[0]
+        r_amount = CleanDecimal.French('.')(amount_element)
+        exec_date = Date(CleanText('//h3[contains(text(), "virement")]//following::span[@class="date"]'), dayfirst=True)(self.doc)
+        currency = FrenchTransaction.Currency('.')(amount_element)
 
         transfer = Transfer()
         transfer.currency = currency
@@ -175,20 +186,53 @@ class TransferConfirm(LoggedPage, CheckTransferError):
 
 class TransferSummary(LoggedPage, CheckTransferError):
     def handle_response(self, transfer):
-        # NotAvailable in case of future exec_date not on a working day.
-        transfer.id = Regexp(CleanText('//div[@class="bloc Tmargin"]'), 'virement N.+ (\d+) ', default=NotAvailable)(self.doc)
-        if not transfer.id:
+        summary_filter = CleanText(
+            '//div[contains(@class, "bloc-recapitulatif")]//p'
+        )
+
+        # handle error
+        if "Votre virement n'a pas pu" in summary_filter(self.doc):
+            raise TransferBankError(message=summary_filter(self.doc))
+
+        transfer_id = Regexp(summary_filter, r'référence n° (\d+)', default=None)(self.doc)
+        # not always available
+        if transfer_id and not transfer.id:
+            transfer.id = transfer_id
+        else:
             # TODO handle transfer with sms code.
             if 'veuillez saisir votre code de validation' in CleanText('//div[@class="bloc Tmargin"]')(self.doc):
                 raise NotImplementedError()
 
+        # WARNING: At this point, the transfer was made.
+        # The following code is made to retrieve the transfer execution date,
+        # so there is no falsy data.
+        # But the bp website is unstable with changing layout and messages.
+        # One of the goals here is for the code not to crash to avoid the user thinking
+        # that the transfer was not made while it was.
+
+        old_date = transfer.exec_date
+        # the date was modified because on a weekend
+        if 'date correspondant à un week-end' in summary_filter(self.doc):
+            transfer.exec_date = Date(Regexp(
+                summary_filter,
+                r'jour ouvré suivant \((\d{2}/\d{2}/\d{4})\)',
+                default=''
+            ), dayfirst=True, default=NotAvailable)(self.doc)
+            self.logger.warning('The transfer execution date changed from %s to %s' % (old_date.strftime('%Y-%m-%d'), transfer.exec_date.strftime('%Y-%m-%d')))
+        # made today
+        elif 'date du jour de ce virement' in summary_filter(self.doc):
             # there are several regexp for transfer date:
             # Date ([\d\/]+)|le ([\d\/]+)|suivant \(([\d\/]+)\)
             # be more passive to avoid impulsive reaction from user
             transfer.exec_date = Date(Regexp(
-                CleanText('//div[@class="bloc Tmargin"]'),
-                r' (\d{2}/\d{2}/\d{4})'
-            ), dayfirst=True)(self.doc)
+                summary_filter,
+                r' (\d{2}/\d{2}/\d{4})',
+                default=''
+            ), dayfirst=True, default=NotAvailable)(self.doc)
+        # else: using the same date because the website does not give one
+
+        if empty(transfer.exec_date):
+            transfer.exec_date = old_date
 
         return transfer
 
