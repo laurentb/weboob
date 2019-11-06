@@ -37,9 +37,11 @@ class OvhModule(Module, CapDocument):
     EMAIL = 'vparedes@budget-insight.com'
     LICENSE = 'LGPLv3+'
     VERSION = '1.6'
-    CONFIG = BackendConfig(Value('login', label='Account ID'),
-                           ValueBackendPassword('password', label='Password'),
-                           Value('pin_code', label='Code PIN / Email', required=False, default=''))
+    CONFIG = BackendConfig(
+        ValueBackendPassword('login', label='Account ID'),
+        ValueBackendPassword('password', label='Password'),
+        Value('pin_code', label='Code PIN / Email', required=False, default=''),
+    )
 
     BROWSER = OvhBrowser
 

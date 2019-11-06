@@ -16,6 +16,9 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
+
+from __future__ import unicode_literals
+
 import time
 from requests.exceptions import HTTPError, TooManyRedirects
 from datetime import datetime, timedelta
@@ -30,8 +33,11 @@ from .pages import LoginPage, ProfilePage, BillsPage
 class OvhBrowser(LoginBrowser, StatesMixin):
     BASEURL = 'https://www.ovh.com'
 
-    login = URL(r'/auth/',
-                r'/manager/web/', LoginPage)
+    login = URL(
+        r'/auth/',
+        r'/manager/web/',
+        LoginPage,
+    )
     profile = URL(r'/engine/api/me', ProfilePage)
     documents = URL(r'/engine/2api/sws/billing/bills\?count=0&date=(?P<fromDate>.*)&dateTo=(?P<toDate>.*)&offset=0', BillsPage)
 
@@ -66,8 +72,7 @@ class OvhBrowser(LoginBrowser, StatesMixin):
 
             if not self.page.is_logged():
                 raise BrowserIncorrectPassword("Login / Password or authentication pin_code incorrect")
-            else:
-                return
+            return
 
         self.login.go()
 
@@ -89,9 +94,13 @@ class OvhBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def get_subscription_list(self):
-        return self.profile.stay_or_go().get_subscriptions()
+        self.profile.stay_or_go()
+        return self.page.get_subscriptions()
 
     @need_login
     def iter_documents(self, subscription):
-        return self.documents.stay_or_go(fromDate=(datetime.now() - timedelta(days=2*365)).strftime("%Y-%m-%dT00:00:00Z"),
-                                         toDate=time.strftime("%Y-%m-%dT%H:%M:%S.999Z")).get_documents(subid=subscription.id)
+        self.documents.stay_or_go(
+            fromDate=(datetime.now() - timedelta(days=2 * 365)).strftime("%Y-%m-%dT00:00:00Z"),
+            toDate=time.strftime("%Y-%m-%dT%H:%M:%S.999Z"),
+        )
+        return self.page.get_documents(subid=subscription.id)
