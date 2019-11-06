@@ -56,9 +56,10 @@ class JsParamsPage(RawPage):
 
 class JsUserPage(RawPage):
     def get_json_content(self):
-        # eg of the regex:
-        # beforeRouteEnter:function(e,t,n){var r=location.origin,i=e.params.pathMatch||"",s={<json here>}
-        json_data = re.search(r'beforeRouteEnter:function\([^\)]+\){var r=[^,]+,i=[^,]+,s=({.*?})', self.text).group(1)
+        # The regex below will match the JSON by searching for at least one
+        # key in it (code_challenge). This JSON is available only one time in the
+        # file, so there is no risk of duplicates.
+        json_data = re.search(r'({[^{}]+code_challenge:[^{}]+})', self.text).group(1)
         # Delete values that are variables concatenation (like `r + "/connect"`),
         # we do not need them.
         json_data = re.sub(r':([^{\",]+\+)', ':', json_data)
