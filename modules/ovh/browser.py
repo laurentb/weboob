@@ -20,12 +20,13 @@
 from __future__ import unicode_literals
 
 import time
-from requests.exceptions import HTTPError, TooManyRedirects
+from requests.exceptions import HTTPError, TooManyRedirects, ConnectionError
 from datetime import datetime, timedelta
 
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
-from weboob.exceptions import BrowserIncorrectPassword, BrowserQuestion
+from weboob.exceptions import BrowserIncorrectPassword, BrowserQuestion, BrowserUnavailable
 from weboob.tools.value import Value
+from weboob.tools.decorators import retry
 
 from .pages import LoginPage, ProfilePage, BillsPage
 
@@ -66,6 +67,7 @@ class OvhBrowser(LoginBrowser, StatesMixin):
 
         self.location(self.url, data=res_form)
 
+    @retry(BrowserUnavailable)
     def do_login(self):
         if self.config['pin_code'].get():
             self.validate_security_form()
@@ -74,7 +76,10 @@ class OvhBrowser(LoginBrowser, StatesMixin):
                 raise BrowserIncorrectPassword("Login / Password or authentication pin_code incorrect")
             return
 
-        self.login.go()
+        try:
+            self.login.go()
+        except ConnectionError as e:
+            raise BrowserUnavailable(e)
 
         if self.page.is_logged():
             return
