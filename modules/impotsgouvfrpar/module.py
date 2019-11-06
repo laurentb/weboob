@@ -38,10 +38,11 @@ class ImpotsGouvFrParModule(AbstractModule, CapDocument, CapProfile):
     EMAIL = 'florian.duguet@budget-insight.com'
     LICENSE = 'LGPLv3+'
     VERSION = '1.6'
-    CONFIG = BackendConfig(Value('login', label='Adresse électronique ou Numéro fiscal', regexp='^.*@.*$|^\d+$'),
-                           Value('login_source', label="méthode d'authentification", default='direct',
-                                 choices={'direct': 'directe', 'fc': 'France Connect'}),
-                           ValueBackendPassword('password', label='Mot de passe'),
+    CONFIG = BackendConfig(
+        ValueBackendPassword('login', label='Numéro fiscal', regexp='^\d+{13}$', masked=False),
+        Value('login_source', label="méthode d'authentification", default='direct',
+                             choices={'direct': 'directe', 'fc': 'France Connect'}),
+        ValueBackendPassword('password', label='Mot de passe'),
     )
     PARENT = "franceconnect"
 
