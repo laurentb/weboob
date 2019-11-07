@@ -20,16 +20,16 @@
 from __future__ import unicode_literals
 
 from weboob.browser.pages import HTMLPage, LoggedPage
-from weboob.browser.filters.standard import CleanText, Env, Regexp, Format
-from weboob.browser.elements import ListElement, ItemElement, method, SkipItem
+from weboob.browser.filters.standard import CleanText, Env, Regexp, Format, Date
+from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.capabilities.bill import Document
-from weboob.tools.compat import urljoin
+from weboob.tools.date import parse_french_date
 
 
 class DocumentsPage(LoggedPage, HTMLPage):
     @method
     class get_documents(ListElement):
-        item_xpath = '//article'
+        item_xpath = '//div[has-class("mawa-cards-item dashboard-item")]'
 
         class item(ItemElement):
             klass = Document
@@ -37,21 +37,25 @@ class DocumentsPage(LoggedPage, HTMLPage):
             obj_id = Format(
                 '%s_%s',
                 Env('subid'),
-                Regexp(CleanText('./@data-route'), '#/details/(.*)'),
+                Regexp(CleanText('./@data-module-open-link--link'), '#/details/(.*)'),
             )
             obj_format = 'pdf'
-            obj_label = CleanText('.//h2')
+            # eg when formatted (not complete list):
+            # - Situation de contrat suite à réajustement automatique Assurance Vie N° XXXXXXXXXX
+            # - Lettre d'information client Assurance Vie N° XXXXXXXXXX
+            # - Attestation de rachat partiel Assurance Vie N° XXXXXXXXXXXXXX
+            obj_label = Format(
+                '%s %s %s',
+                CleanText('.//h3[@class="card-title"]'),
+                CleanText('.//div[@class="sticker-content"]//strong'),
+                CleanText('.//p[@class="contract-info"]'),
+            )
+            obj_date = Date(CleanText('.//p[@class="card-date"]'), parse_func=parse_french_date)
             obj_type = 'document'
-
-            def obj_url(self):
-                url = urljoin(self.page.browser.BASEURL, CleanText('./@data-url')(self))
-                self.page.browser.location(url)
-                if self.page.doc.xpath('//form[contains(., "Afficher")]'):
-                    return url
-                raise SkipItem()
+            obj__download_id = Regexp(CleanText('./@data-url'), r'.did_(.*?)\.')
 
 
 class DownloadPage(LoggedPage, HTMLPage):
     def create_document(self):
-        form = self.get_form(xpath='//form[contains(., "Afficher")]')
+        form = self.get_form(xpath='//form[has-class("form-download-pdf")]')
         form.submit()

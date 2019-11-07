@@ -20,7 +20,7 @@
 from __future__ import unicode_literals
 
 from weboob.capabilities.bank import CapBankWealth, CapBankTransferAddRecipient, AccountNotFound, RecipientNotFound
-from weboob.capabilities.base import find_object, NotAvailable, empty
+from weboob.capabilities.base import find_object, empty
 from weboob.capabilities.bank import Account, TransferInvalidLabel
 from weboob.capabilities.profile import CapProfile
 from weboob.capabilities.bill import CapDocument, Subscription, Document, DocumentNotFound, SubscriptionNotFound
@@ -143,9 +143,7 @@ class AXABanqueModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapDoc
     def download_document(self, document):
         if not isinstance(document, Document):
             document = self.get_document(document)
-        if document.url is NotAvailable:
-            return
-        return self.browser.download_document(document.url)
+        return self.browser.download_document(document._download_id)
 
     def iter_resources(self, objs, split_path):
         if Account in objs:

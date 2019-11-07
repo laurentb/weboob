@@ -598,11 +598,27 @@ class AXAAssurance(AXABrowser):
         AccountDetailsPage
     )
     investment = URL(r'/content/ecc-popin-cards/savings/[^/]+/repartition', InvestmentPage)
-    documents = URL(r'/content/espace-client/accueil/mes-documents/attestations-d-assurances.content-inner.din_CERTIFICATE.html', DocumentsPage)
+
+    documents_life_insurance = URL(
+        r'/content/espace-client/accueil/mes-documents/situations-de-contrats-assurance-vie.content-inner.din_SAVINGS_STATEMENT.html',
+        DocumentsPage
+    )
+    documents_certificates = URL(
+        r'/content/espace-client/accueil/mes-documents/attestations-d-assurances.content-inner.din_CERTIFICATE.html',
+        DocumentsPage
+    )
+    documents_tax_area = URL(
+        r'https://espaceclient.axa.fr/content/espace-client/accueil/mes-documents/espace-fiscal.content-inner.din_TAX.html',
+        DocumentsPage
+    )
+    documents_membership_fee = URL(
+        r'/content/espace-client/accueil/mes-documents/avis-d-echeance.content-inner.din_PREMIUM_STATEMENT.html',
+        DocumentsPage
+    )
+
     download = URL(
-        r'/content/ecc-popin-cards/technical/detailed/document.downloadPdf.html',
-        r'/content/ecc-popin-cards/technical/detailed/document/_jcr_content/',
-        DownloadPage,
+        r'/content/ecc-popin-cards/technical/detailed/download-document.downloadPdf.html',
+        DownloadPage
     )
     profile = URL(r'/content/ecc-popin-cards/transverse/userprofile.content-inner.html\?_=\d+', ProfilePage)
 
@@ -705,12 +721,20 @@ class AXAAssurance(AXABrowser):
 
     @need_login
     def iter_documents(self, subscription):
-        return self.documents.go().get_documents(subid=subscription.id)
+        document_urls = [
+            self.documents_life_insurance,
+            self.documents_certificates,
+            self.documents_tax_area,
+            self.documents_membership_fee,
+        ]
+        for url in document_urls:
+            url.go()
+            for doc in self.page.get_documents(subid=subscription.id):
+                yield doc
 
     @need_login
-    def download_document(self, url):
-        self.location(url)
-        self.page.create_document()
+    def download_document(self, download_id):
+        self.download.go(data={'documentId': download_id})
         return self.page.content
 
     @need_login
