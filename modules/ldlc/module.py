@@ -37,11 +37,13 @@ class LdlcModule(AbstractModule, CapDocument):
     EMAIL = 'vparedes@budget-insight.com'
     LICENSE = 'LGPLv3+'
     VERSION = '1.6'
-    CONFIG = BackendConfig(Value('login', label='Email'),
-                           ValueBackendPassword('password', label='Password'),
-                           Value('website', label='Site web', default='part',
-                                 choices={'pro': 'Professionnels', 'part': 'Particuliers'}),
-                           Value('captcha_response', label='Réponse captcha', default='', required=False))
+    CONFIG = BackendConfig(
+        ValueBackendPassword('login', label='Email'),
+        ValueBackendPassword('password', label='Password'),
+        Value('website', label='Site web', default='part',
+              choices={'pro': 'Professionnels', 'part': 'Particuliers'}),
+        Value('captcha_response', label='Réponse captcha', default='', required=False),
+    )
 
     PARENT = 'materielnet'
 
@@ -60,5 +62,4 @@ class LdlcModule(AbstractModule, CapDocument):
             return
         if self.config['website'].get() == 'part':
             return self.browser.open(bill.url).content
-        else:
-            return self.browser.download_document(bill)
+        return self.browser.download_document(bill)

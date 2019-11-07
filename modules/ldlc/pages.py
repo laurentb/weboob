@@ -41,6 +41,7 @@ class HomePage(LoggedPage, HTMLPage):
     @method
     class get_subscriptions(ListElement):
         item_xpath = '//div[@id="divAccueilInformationClient"]//div[@id="divInformationClient"]'
+
         class item(ItemElement):
             klass = Subscription
 
