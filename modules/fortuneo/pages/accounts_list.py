@@ -342,8 +342,8 @@ class CardHistoryPage(LoggedPage, HTMLPage):
             rdate =  cleaner(op.xpath('./td[1]')[0])
             date =   cleaner(op.xpath('./td[2]')[0])
             raw =    cleaner(op.xpath('./td[3]')[0])
-            credit = cleaner(op.xpath('./td[4]')[0])
-            debit =  cleaner(op.xpath('./td[5]')[0])
+            debit =  cleaner(op.xpath('./td[4]')[0])
+            credit = cleaner(op.xpath('./td[5]')[0])
 
             tr = Transaction()
             tr.parse(date=date, raw=raw)
