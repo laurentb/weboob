@@ -44,11 +44,13 @@ class ProfilePage(LoggedPage, HTMLPage):
         # Nom
         # Prénom
         if CleanText('//p[contains(@class, "panelAccount-label")]/span[strong[contains(text(), "Civilité")]]')(self.doc):
-            pr.name = Format('%s %s %s',
-                             CleanText('//p[contains(@class, "panelAccount-label")]/span[strong[contains(text(), "Civilité")]]/following::span[1]'),
-                             CleanText('//p[contains(@class, "panelAccount-label")]/span[strong[contains(text(), "Nom :")]]/following::span[1]'),
-                             CleanText('//p[contains(@class, "panelAccount-label")]/span[strong[contains(text(), "Prénom :")]]/following::span[1]')
-                             )(self.doc)
+            pr.name = Format(
+                '%s %s %s',
+                CleanText('//p[contains(@class, "panelAccount-label")]/span[strong[contains(text(), "Civilité")]]/following::span[1]'),
+                CleanText('//p[contains(@class, "panelAccount-label")]/span[strong[contains(text(), "Nom :")]]/following::span[1]'),
+                CleanText('//p[contains(@class, "panelAccount-label")]/span[strong[contains(text(), "Prénom :")]]/following::span[1]')
+            )(self.doc)
+
         # Prénom / Nom
         elif CleanText('//p[contains(@class, "panelAccount-label")]/span[strong[contains(text(), "Prénom / Nom")]]')(self.doc):
             pr.name = CleanText('//p[contains(@class, "panelAccount-label")]/span[strong[contains(text(), "Prénom / Nom")]]/following::span[1]')(self.doc)

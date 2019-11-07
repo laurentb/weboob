@@ -38,34 +38,45 @@ __all__ = ['OrangeBillBrowser']
 class OrangeBillBrowser(LoginBrowser):
     BASEURL = 'https://espaceclientv3.orange.fr'
 
-    home_page = URL('https://businesslounge.orange.fr/$', HomePage)
-    loginpage = URL('https://login.orange.fr/\?service=sosh&return_url=https://www.sosh.fr/',
-                    'https://login.orange.fr/front/login', LoginPage)
+    home_page = URL(r'https://businesslounge.orange.fr/$', HomePage)
+    loginpage = URL(
+        r'https://login.orange.fr/\?service=sosh&return_url=https://www.sosh.fr/',
+        r'https://login.orange.fr/front/login',
+        LoginPage,
+    )
     password_page = URL(r'https://login.orange.fr/front/password', PasswordPage)
 
-    contracts = URL('https://espaceclientpro.orange.fr/api/contracts\?page=1&nbcontractsbypage=15', ContractsPage)
+    contracts = URL(r'https://espaceclientpro.orange.fr/api/contracts\?page=1&nbcontractsbypage=15', ContractsPage)
 
     subscriptions = URL(r'https://espaceclientv3.orange.fr/js/necfe.php\?zonetype=bandeau&idPage=gt-home-page', SubscriptionsPage)
-    manage_cgi = URL('https://eui.orange.fr/manage_eui/bin/manage.cgi', ManageCGI)
+    manage_cgi = URL(r'https://eui.orange.fr/manage_eui/bin/manage.cgi', ManageCGI)
 
     # is billspage deprecated ?
-    billspage = URL('https://m.espaceclientv3.orange.fr/\?page=factures-archives',
-                    'https://.*.espaceclientv3.orange.fr/\?page=factures-archives',
-                    'https://espaceclientv3.orange.fr/\?page=factures-archives',
-                    'https://espaceclientv3.orange.fr/\?page=facture-telecharger',
-                    'https://espaceclientv3.orange.fr/maf.php',
-                    'https://espaceclientv3.orange.fr/\?idContrat=(?P<subid>.*)&page=factures-historique',
-                    'https://espaceclientv3.orange.fr/\?page=factures-historique&idContrat=(?P<subid>.*)',
-                     BillsPage)
+    billspage = URL(
+        r'https://m.espaceclientv3.orange.fr/\?page=factures-archives',
+        r'https://.*.espaceclientv3.orange.fr/\?page=factures-archives',
+        r'https://espaceclientv3.orange.fr/\?page=factures-archives',
+        r'https://espaceclientv3.orange.fr/\?page=facture-telecharger',
+        r'https://espaceclientv3.orange.fr/maf.php',
+        r'https://espaceclientv3.orange.fr/\?idContrat=(?P<subid>.*)&page=factures-historique',
+        r'https://espaceclientv3.orange.fr/\?page=factures-historique&idContrat=(?P<subid>.*)',
+        BillsPage,
+    )
 
-    bills_api_pro = URL('https://espaceclientpro.orange.fr/api/contract/(?P<subid>\d+)/bills\?count=(?P<count>)',
-                    BillsApiProPage)
+    bills_api_pro = URL(
+        r'https://espaceclientpro.orange.fr/api/contract/(?P<subid>\d+)/bills\?count=(?P<count>)',
+        BillsApiProPage,
+    )
 
     bills_api_par = URL(r'https://sso-f.orange.fr/omoi_erb/facture/v2.0/billsAndPaymentInfos/users/current/contracts/(?P<subid>\d+)', BillsApiParPage)
     doc_api_par = URL(r'https://sso-f.orange.fr/omoi_erb/facture/v1.0/pdf')
 
     doc_api_pro = URL('https://espaceclientpro.orange.fr/api/contract/(?P<subid>\d+)/bill/(?P<dir>.*)/(?P<fact_type>.*)/\?(?P<billparams>)')
     profile = URL('/\?page=profil-infosPerso', ProfilePage)
+
+    def __init__(self, *args, **kwargs):
+        super(OrangeBillBrowser, self).__init__(*args, **kwargs)
+        self.is_new_website = False
 
     def do_login(self):
         assert isinstance(self.username, basestring)
@@ -85,6 +96,11 @@ class OrangeBillBrowser(LoginBrowser):
             error_message = self.page.get_change_password_message()
             if error_message:
                 raise BrowserPasswordExpired(error_message)
+
+        self.location(self.BASEURL)
+        print('location done / is_here : %s' % self.new_website.is_here())
+        if self.new_website.is_here():
+            self.is_new_website = True
 
     def get_nb_remaining_free_sms(self):
         raise NotImplementedError()

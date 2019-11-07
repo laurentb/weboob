@@ -17,13 +17,14 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from weboob.capabilities.bill import DocumentTypes, CapDocument, Subscription, Document, SubscriptionNotFound, DocumentNotFound
 from weboob.capabilities.base import find_object, NotAvailable
 from weboob.capabilities.account import CapAccount
 from weboob.capabilities.profile import CapProfile
 from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.value import ValueBackendPassword, Value
+from weboob.tools.value import ValueBackendPassword
 
 from .browser import OrangeBillBrowser
 
@@ -38,8 +39,10 @@ class OrangeModule(Module, CapAccount, CapDocument, CapProfile):
     VERSION = '1.6'
     DESCRIPTION = 'Orange French mobile phone provider'
     LICENSE = 'LGPLv3+'
-    CONFIG = BackendConfig(Value('login', label='Login'),
-                           ValueBackendPassword('password', label='Password'))
+    CONFIG = BackendConfig(
+        ValueBackendPassword('login', label='Login'),
+        ValueBackendPassword('password', label='Password'),
+    )
     BROWSER = OrangeBillBrowser
 
     def __init__(self, *args, **kwargs):
@@ -49,7 +52,10 @@ class OrangeModule(Module, CapAccount, CapDocument, CapProfile):
     accepted_document_types = (DocumentTypes.BILL,)
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(), self.config['password'].get())
+        return self.create_browser(
+            self.config['login'].get(),
+            self.config['password'].get(),
+        )
 
     def iter_subscription(self):
         return self.browser.get_subscription_list()

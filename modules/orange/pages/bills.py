@@ -52,7 +52,7 @@ class BillsApiProPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Bill
 
-            obj_date = Date(Dict('dueDate'), parse_func=parse_french_date,  default=NotAvailable)
+            obj_date = Date(Dict('dueDate'), parse_func=parse_french_date, default=NotAvailable)
             obj_price = CleanDecimal(Dict('amountIncludingTax'))
             obj_format = 'pdf'
 
@@ -78,7 +78,7 @@ class BillsApiParPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Bill
 
-            obj_date = Date(Dict('date'),  default=NotAvailable)
+            obj_date = Date(Dict('date'), default=NotAvailable)
             obj_price = Eval(lambda x: x / 100, CleanDecimal(Dict('amount')))
             obj_format = 'pdf'
 
@@ -109,7 +109,7 @@ class BillsPage(LoggedPage, HTMLPage):
             klass = Bill
 
             obj_type = DocumentTypes.BILL
-            obj_format = u"pdf"
+            obj_format = "pdf"
 
             # TableCell('date') can have other info like: 'duplicata'
             obj_date = Date(CleanText('./td[@headers="ec-dateCol"]/text()[not(preceding-sibling::br)]'), parse_func=parse_french_date, dayfirst=True)
@@ -134,12 +134,12 @@ class BillsPage(LoggedPage, HTMLPage):
 
             # Only when a list of documents is present
             obj__url_base = Regexp(CleanText('.//ul[@class="liste"]/script', default=None), '.*?contentList[\d]+ \+= \'<li><a href=".*\"(.*?idDocument=2)"', default=None)
+
             def obj_url(self):
                 if Field('_url_base')(self):
                     # URL won't work if HTML is not unescape
                     return HTMLParser().unescape(str(Field('_url_base')(self)))
-                else :
-                    return Link(TableCell(Field('_cell')(self))(self)[0].xpath('./a'), default=NotAvailable)(self)
+                return Link(TableCell(Field('_cell')(self))(self)[0].xpath('./a'), default=NotAvailable)(self)
 
             obj__label_base = Regexp(CleanText('.//ul[@class="liste"]/script', default=None), '.*</span>(.*?)</a.*', default=None)
 
@@ -150,6 +150,7 @@ class BillsPage(LoggedPage, HTMLPage):
                     return CleanText(TableCell(Field('_cell')(self))(self)[0].xpath('.//span[@class="ec_visually_hidden"]'))(self)
 
             obj__ht = CleanDecimal(TableCell('ht', default=NotAvailable), replace_dots=True, default=NotAvailable)
+
             def obj_vat(self):
                 if Field('_ht')(self) is NotAvailable or Field('price')(self) is NotAvailable:
                     return
