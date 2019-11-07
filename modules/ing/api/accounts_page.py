@@ -27,7 +27,7 @@ from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Date, Eval, Lower, Format, Field, Map, Upper,
 )
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, AccountOwnership
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.capabilities.base import NotAvailable
 
@@ -74,6 +74,18 @@ class AccountsPage(LoggedPage, JsonPage):
                 if not Dict('hasPositiveBalance')(self):
                     return -CleanDecimal(Dict('ledgerBalance'))(self)
                 return CleanDecimal(Dict('ledgerBalance'))(self)
+
+            def obj_ownership(self):
+                ownership = Dict('ownership/code', default=None)(self)
+                role = Dict('role/label', default=None)(self)
+
+                if ownership == 'JOINT':
+                    return AccountOwnership.CO_OWNER
+                elif ownership == 'SINGLE':
+                    if role == 'Titulaire':
+                        return AccountOwnership.OWNER
+                    elif role == 'Procuration':
+                        return AccountOwnership.ATTORNEY
 
 
 class HistoryPage(LoggedPage, JsonPage):

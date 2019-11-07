@@ -263,6 +263,7 @@ class IngAPIBrowser(LoginBrowser, StatesMixin):
                 if web_acc.id[-4:] == api_acc.number[-4:]:
                     web_acc._uid = api_acc.id
                     web_acc.coming = api_acc.coming
+                    web_acc.ownership = api_acc.ownership
                     yield web_acc
                     break
             else:
