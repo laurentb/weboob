@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.filters.standard import CleanText, Env, Regexp, Format
 from weboob.browser.elements import ListElement, ItemElement, method, SkipItem
@@ -32,10 +34,14 @@ class DocumentsPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Document
 
-            obj_id = Format('%s_%s', Env('subid'), Regexp(CleanText('./@data-route'), '#/details/(.*)'))
-            obj_format = u"pdf"
+            obj_id = Format(
+                '%s_%s',
+                Env('subid'),
+                Regexp(CleanText('./@data-route'), '#/details/(.*)'),
+            )
+            obj_format = 'pdf'
             obj_label = CleanText('.//h2')
-            obj_type = u"document"
+            obj_type = 'document'
 
             def obj_url(self):
                 url = urljoin(self.page.browser.BASEURL, CleanText('./@data-url')(self))

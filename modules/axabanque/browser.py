@@ -56,17 +56,22 @@ from .pages.document import DocumentsPage, DownloadPage
 
 class AXABrowser(LoginBrowser):
     # Login
-    keyboard = URL('https://connect.axa.fr/keyboard/password', KeyboardPage)
-    login = URL('https://connect.axa.fr/api/identity/auth', LoginPage)
-    password = URL('https://connect.axa.fr/#/changebankpassword', ChangepasswordPage)
-    predisconnected = URL('https://www.axa.fr/axa-predisconnect.html',
-                          'https://www.axa.fr/axa-postmaw-predisconnect.html', PredisconnectedPage)
+    keyboard = URL(r'https://connect.axa.fr/keyboard/password', KeyboardPage)
+    login = URL(r'https://connect.axa.fr/api/identity/auth', LoginPage)
+    password = URL(r'https://connect.axa.fr/#/changebankpassword', ChangepasswordPage)
+    predisconnected = URL(
+        r'https://www.axa.fr/axa-predisconnect.html',
+        r'https://www.axa.fr/axa-postmaw-predisconnect.html',
+        PredisconnectedPage
+    )
 
-    denied = URL('https://connect.axa.fr/Account/AccessDenied', DeniedPage)
-    account_space_login = URL('https://connect.axa.fr/api/accountspace', AccountSpaceLogin)
-    errors = URL('https://espaceclient.axa.fr/content/ecc-public/accueil-axa-connect/_jcr_content/par/text.html',
-                 'https://espaceclient.axa.fr/content/ecc-public/errors/500.html',
-                 ErrorPage)
+    denied = URL(r'https://connect.axa.fr/Account/AccessDenied', DeniedPage)
+    account_space_login = URL(r'https://connect.axa.fr/api/accountspace', AccountSpaceLogin)
+    errors = URL(
+        r'https://espaceclient.axa.fr/content/ecc-public/accueil-axa-connect/_jcr_content/par/text.html',
+        r'https://espaceclient.axa.fr/content/ecc-public/errors/500.html',
+        ErrorPage
+    )
 
     def do_login(self):
         # due to the website change, login changed too, this is for don't try to login with the wrong login
@@ -98,61 +103,74 @@ class AXABrowser(LoginBrowser):
 
 
 class AXABanque(AXABrowser, StatesMixin):
-    BASEURL = 'https://www.axabanque.fr/'
+    BASEURL = 'https://www.axabanque.fr'
     STATE_DURATION = 5
 
     # Bank
-    bank_accounts = URL(r'transactionnel/client/liste-comptes.html',
-                        r'transactionnel/client/liste-(?P<tab>.*).html',
-                        r'webapp/axabanque/jsp/visionpatrimoniale/liste_panorama_.*\.faces',
-                        r'/webapp/axabanque/page\?code=(?P<code>\d+)',
-                        r'webapp/axabanque/client/sso/connexion\?token=(?P<token>.*)', BankAccountsPage)
+    bank_accounts = URL(
+        r'/transactionnel/client/liste-comptes.html',
+        r'/transactionnel/client/liste-(?P<tab>.*).html',
+        r'/webapp/axabanque/jsp/visionpatrimoniale/liste_panorama_.*\.faces',
+        r'/webapp/axabanque/page\?code=(?P<code>\d+)',
+        r'/webapp/axabanque/client/sso/connexion\?token=(?P<token>.*)',
+        BankAccountsPage
+    )
     iban_pdf = URL(r'http://www.axabanque.fr/webapp/axabanque/formulaire_AXA_Banque/.*\.pdf.*', IbanPage)
-    cbttransactions = URL(r'webapp/axabanque/jsp/detailCarteBleu.*.faces', CBTransactionsPage)
-    transactions = URL(r'webapp/axabanque/jsp/panorama.faces',
-                       r'webapp/axabanque/jsp/visionpatrimoniale/panorama_.*\.faces',
-                       r'webapp/axabanque/jsp/detail.*.faces',
-                       r'webapp/axabanque/jsp/.*/detail.*.faces', TransactionsPage)
-    unavailable = URL(r'login_errors/indisponibilite.*',
-                      r'.*page-indisponible.html.*',
-                      r'.*erreur/erreurBanque.faces',
-                      r'http://www.axabanque.fr/message/maintenance.htm', UnavailablePage)
+    cbttransactions = URL(r'/webapp/axabanque/jsp/detailCarteBleu.*.faces', CBTransactionsPage)
+    transactions = URL(
+        r'/webapp/axabanque/jsp/panorama.faces',
+        r'/webapp/axabanque/jsp/visionpatrimoniale/panorama_.*\.faces',
+        r'/webapp/axabanque/jsp/detail.*.faces',
+        r'/webapp/axabanque/jsp/.*/detail.*.faces',
+        TransactionsPage
+    )
+    unavailable = URL(
+        r'/login_errors/indisponibilite.*',
+        r'.*page-indisponible.html.*',
+        r'.*erreur/erreurBanque.faces',
+        r'http://www.axabanque.fr/message/maintenance.htm',
+        UnavailablePage
+    )
 
     # Wealth
     wealth_accounts = URL(
-        'https://espaceclient.axa.fr/$',
-        'https://espaceclient.axa.fr/accueil.html',
-        'https://connexion.adis-assurances.com',
+        r'https://espaceclient.axa.fr/$',
+        r'https://espaceclient.axa.fr/accueil.html',
+        r'https://connexion.adis-assurances.com',
         WealthAccountsPage
     )
-    investment = URL('https://espaceclient.axa.fr/.*content/ecc-popin-cards/savings/(\w+)/repartition', InvestmentPage)
+    investment = URL(r'https://espaceclient.axa.fr/.*content/ecc-popin-cards/savings/(\w+)/repartition', InvestmentPage)
     history = URL(r'https://espaceclient.axa.fr/accueil/savings/savings/contract/_jcr_content.eccGetSavingsOperations.json', HistoryPage)
     history_investments = URL(r'https://espaceclient.axa.fr/accueil/savings/savings/contract/_jcr_content.eccGetSavingOperationDetail.json', HistoryInvestmentsPage)
     details = URL(
-        'https://espaceclient.axa.fr/.*accueil/savings/(\w+)/contract',
-        'https://espaceclient.axa.fr/#',
+        r'https://espaceclient.axa.fr/.*accueil/savings/(\w+)/contract',
+        r'https://espaceclient.axa.fr/#',
         AccountDetailsPage
     )
     lifeinsurance_iframe = URL(
-        'https://assurance-vie.axabanque.fr/Consultation/SituationContrat.aspx',
-        'https://assurance-vie.axabanque.fr/Consultation/HistoriqueOperations.aspx',
+        r'https://assurance-vie.axabanque.fr/Consultation/SituationContrat.aspx',
+        r'https://assurance-vie.axabanque.fr/Consultation/HistoriqueOperations.aspx',
         LifeInsuranceIframe
     )
 
     # netfinca bourse
-    bourse = URL(r'/transactionnel/client/homepage_bourseCAT.html',
-                 r'https://bourse.axabanque.fr/netfinca-titres/servlet/com.netfinca.*',
-                 BoursePage)
+    bourse = URL(
+        r'/transactionnel/client/homepage_bourseCAT.html',
+        r'https://bourse.axabanque.fr/netfinca-titres/servlet/com.netfinca.*',
+        BoursePage
+    )
     bourse_history = URL(r'https://bourse.axabanque.fr/netfinca-titres/servlet/com.netfinca.frontcr.account.AccountHistory', BoursePage)
 
     # Transfer
-    recipients = URL('/transactionnel/client/enregistrer-nouveau-beneficiaire.html', RecipientsPage)
-    add_recipient = URL('/webapp/axabanque/jsp/beneficiaireSepa/saisieBeneficiaireSepaOTP.faces', AddRecipientPage)
-    recipient_confirmation_page = URL('/webapp/axabanque/jsp/beneficiaireSepa/saisieBeneficiaireSepaOTP.faces', RecipientConfirmationPage)
-    validate_transfer = URL('/webapp/axabanque/jsp/virementSepa/saisieVirementSepa.faces', ValidateTransferPage)
-    register_transfer = URL('/transactionnel/client/virement.html',
-                            'webapp/axabanque/jsp/virementSepa/saisieVirementSepa.faces',
-                            RegisterTransferPage)
+    recipients = URL(r'/transactionnel/client/enregistrer-nouveau-beneficiaire.html', RecipientsPage)
+    add_recipient = URL(r'/webapp/axabanque/jsp/beneficiaireSepa/saisieBeneficiaireSepaOTP.faces', AddRecipientPage)
+    recipient_confirmation_page = URL(r'/webapp/axabanque/jsp/beneficiaireSepa/saisieBeneficiaireSepaOTP.faces', RecipientConfirmationPage)
+    validate_transfer = URL(r'/webapp/axabanque/jsp/virementSepa/saisieVirementSepa.faces', ValidateTransferPage)
+    register_transfer = URL(
+        r'/transactionnel/client/virement.html',
+        r'/webapp/axabanque/jsp/virementSepa/saisieVirementSepa.faces',
+        RegisterTransferPage
+    )
     confirm_transfer = URL('/webapp/axabanque/jsp/virementSepa/confirmationVirementSepa.faces', ConfirmTransferPage)
     profile_page = URL('/transactionnel/client/coordonnees.html', BankProfilePage)
 
@@ -581,9 +599,11 @@ class AXAAssurance(AXABrowser):
     )
     investment = URL(r'/content/ecc-popin-cards/savings/[^/]+/repartition', InvestmentPage)
     documents = URL(r'/content/espace-client/accueil/mes-documents/attestations-d-assurances.content-inner.din_CERTIFICATE.html', DocumentsPage)
-    download = URL(r'/content/ecc-popin-cards/technical/detailed/document.downloadPdf.html',
-                   r'/content/ecc-popin-cards/technical/detailed/document/_jcr_content/',
-                   DownloadPage)
+    download = URL(
+        r'/content/ecc-popin-cards/technical/detailed/document.downloadPdf.html',
+        r'/content/ecc-popin-cards/technical/detailed/document/_jcr_content/',
+        DownloadPage,
+    )
     profile = URL(r'/content/ecc-popin-cards/transverse/userprofile.content-inner.html\?_=\d+', ProfilePage)
 
     def __init__(self, *args, **kwargs):

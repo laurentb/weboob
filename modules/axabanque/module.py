@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from weboob.capabilities.bank import CapBankWealth, CapBankTransferAddRecipient, AccountNotFound, RecipientNotFound
 from weboob.capabilities.base import find_object, NotAvailable, empty
@@ -34,13 +35,15 @@ __all__ = ['AXABanqueModule']
 
 class AXABanqueModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapDocument, CapProfile):
     NAME = 'axabanque'
-    MAINTAINER = u'Romain Bignon'
+    MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '1.6'
-    DESCRIPTION = u'AXA Banque'
+    DESCRIPTION = 'AXA Banque'
     LICENSE = 'LGPLv3+'
-    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
-                           ValueBackendPassword('password', label='Code', regexp='\d+'))
+    CONFIG = BackendConfig(
+        ValueBackendPassword('login', label='Identifiant', masked=False),
+        ValueBackendPassword('password', label='Code', regexp='\d+'),
+    )
     BROWSER = AXABanque
 
     def create_default_browser(self):

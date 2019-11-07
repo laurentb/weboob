@@ -42,6 +42,7 @@ def MyDecimal(*args, **kwargs):
     kwargs.update(replace_dots=True, default=NotAvailable)
     return CleanDecimal(*args, **kwargs)
 
+
 class UnavailablePage(HTMLPage):
     def on_load(self):
         raise BrowserUnavailable()
@@ -71,23 +72,23 @@ class MyHTMLPage(HTMLPage):
         sub = re.search('oamSubmitForm.+?,\'([^:]+).([^\']+)', s)
         args['%s:_idcl' % sub.group(1)] = "%s:%s" % (sub.group(1), sub.group(2))
         args['%s_SUBMIT' % sub.group(1)] = 1
-        args['_form_name'] = sub.group(1) # for weboob only
+        args['_form_name'] = sub.group(1)  # for weboob only
 
         return args
 
 
 class AccountsPage(LoggedPage, MyHTMLPage):
     ACCOUNT_TYPES = OrderedDict((
-        ('visa',               Account.TYPE_CARD),
-        ('pea',                Account.TYPE_PEA),
-        ('valorisation',       Account.TYPE_MARKET),
-        ('courant-titre',      Account.TYPE_CHECKING),
-        ('courant',            Account.TYPE_CHECKING),
-        ('livret',             Account.TYPE_SAVINGS),
-        ('ldd',                Account.TYPE_SAVINGS),
-        ('pel',                Account.TYPE_SAVINGS),
-        ('cel',                Account.TYPE_SAVINGS),
-        ('titres',             Account.TYPE_MARKET),
+        ('visa', Account.TYPE_CARD),
+        ('pea', Account.TYPE_PEA),
+        ('valorisation', Account.TYPE_MARKET),
+        ('courant-titre', Account.TYPE_CHECKING),
+        ('courant', Account.TYPE_CHECKING),
+        ('livret', Account.TYPE_SAVINGS),
+        ('ldd', Account.TYPE_SAVINGS),
+        ('pel', Account.TYPE_SAVINGS),
+        ('cel', Account.TYPE_SAVINGS),
+        ('titres', Account.TYPE_MARKET),
     ))
 
     def get_tabs(self):
@@ -169,7 +170,7 @@ class AccountsPage(LoggedPage, MyHTMLPage):
 
                 self.logger.debug('Args: %r' % args)
                 if 'paramNumCompte' not in args:
-                    #The displaying of life insurances is very different from the other
+                    # The displaying of life insurances is very different from the other
                     if args.get('idPanorama:_idcl').split(":")[1] == 'tableaux-direct-solution-vie':
                         account_details = self.browser.open("#", data=args)
                         scripts = account_details.page.doc.xpath('//script[@type="text/javascript"]/text()')
@@ -233,7 +234,7 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                             account.balance = Decimal(0)
 
                     except InvalidOperation:
-                        #The account doesn't have a amount
+                        # The account doesn't have a amount
                         pass
 
                     account._url = self.doc.xpath('//form[contains(@action, "panorama")]/@action')[0]
@@ -259,6 +260,7 @@ class AccountsPage(LoggedPage, MyHTMLPage):
     def get_profile_name(self):
         return Regexp(CleanText('//div[@id="bloc_identite"]/h5'), r'Bonjour (.*)')(self.doc)
 
+
 class IbanPage(PDFPage):
     def get_iban(self):
         iban = ''
@@ -269,7 +271,7 @@ class IbanPage(PDFPage):
             # findall will find something like
             # ['FRXX', '1234', ... , '9012', 'FRXX', '1234', ... , '9012']
             iban += part
-        iban = iban[:len(iban)//2]
+        iban = iban[:len(iban) // 2]
 
         # we suppose that all iban are French iban
         iban_last_part = re.findall(r'([A-Z0-9]{3})\1\1Titulaire', extract_text(self.data), flags=re.MULTILINE)
@@ -283,26 +285,21 @@ class IbanPage(PDFPage):
 
 
 class BankTransaction(FrenchTransaction):
-    PATTERNS = [(re.compile('^RET(RAIT) DAB (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'),
-                                                              FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('^(CARTE|CB ETRANGER|CB) (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'),
-                                                              FrenchTransaction.TYPE_CARD),
-                (re.compile('^(?P<category>VIR(EMEN)?T? (SEPA)?(RECU|FAVEUR)?)( /FRM)?(?P<text>.*)'),
-                                                              FrenchTransaction.TYPE_TRANSFER),
-                (re.compile('^PRLV (?P<text>.*)( \d+)?$'),    FrenchTransaction.TYPE_ORDER),
-                (re.compile('^(CHQ|CHEQUE) .*$'),             FrenchTransaction.TYPE_CHECK),
-                (re.compile('^(AGIOS /|FRAIS) (?P<text>.*)'), FrenchTransaction.TYPE_BANK),
-                (re.compile('^(CONVENTION \d+ |F )?COTIS(ATION)? (?P<text>.*)'),
-                                                              FrenchTransaction.TYPE_BANK),
-                (re.compile('^(F|R)-(?P<text>.*)'),           FrenchTransaction.TYPE_BANK),
-                (re.compile('^REMISE (?P<text>.*)'),          FrenchTransaction.TYPE_DEPOSIT),
-                (re.compile('^(?P<text>.*)( \d+)? QUITTANCE .*'),
-                                                              FrenchTransaction.TYPE_ORDER),
-                (re.compile('^.* LE (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})$'),
-                                                              FrenchTransaction.TYPE_UNKNOWN),
-                (re.compile('^ACHATS (CARTE|CB)'),            FrenchTransaction.TYPE_CARD_SUMMARY),
-                (re.compile('^ANNUL (?P<text>.*)'),           FrenchTransaction.TYPE_PAYBACK)
-               ]
+    PATTERNS = [
+        (re.compile(r'^RET(RAIT) DAB (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'), FrenchTransaction.TYPE_WITHDRAWAL),
+        (re.compile(r'^(CARTE|CB ETRANGER|CB) (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'), FrenchTransaction.TYPE_CARD),
+        (re.compile(r'^(?P<category>VIR(EMEN)?T? (SEPA)?(RECU|FAVEUR)?)( /FRM)?(?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
+        (re.compile(r'^PRLV (?P<text>.*)( \d+)?$'), FrenchTransaction.TYPE_ORDER),
+        (re.compile(r'^(CHQ|CHEQUE) .*$'), FrenchTransaction.TYPE_CHECK),
+        (re.compile(r'^(AGIOS /|FRAIS) (?P<text>.*)'), FrenchTransaction.TYPE_BANK),
+        (re.compile(r'^(CONVENTION \d+ |F )?COTIS(ATION)? (?P<text>.*)'), FrenchTransaction.TYPE_BANK),
+        (re.compile(r'^(F|R)-(?P<text>.*)'), FrenchTransaction.TYPE_BANK),
+        (re.compile(r'^REMISE (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
+        (re.compile(r'^(?P<text>.*)( \d+)? QUITTANCE .*'), FrenchTransaction.TYPE_ORDER),
+        (re.compile(r'^.* LE (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})$'), FrenchTransaction.TYPE_UNKNOWN),
+        (re.compile(r'^ACHATS (CARTE|CB)'), FrenchTransaction.TYPE_CARD_SUMMARY),
+        (re.compile(r'^ANNUL (?P<text>.*)'), FrenchTransaction.TYPE_PAYBACK)
+    ]
 
 
 class TransactionsPage(LoggedPage, MyHTMLPage):
@@ -384,24 +381,26 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
 
         if link is None:
             # this is a check account
-            args = {'categorieMouvementSelectionnePagination': 'afficherTout',
-                    'nbLigneParPageSelectionneHautPagination': -1,
-                    'nbLigneParPageSelectionneBasPagination': -1,
-                    'nbLigneParPageSelectionneComponent': -1,
-                    'idDetail:btnRechercherParNbLigneParPage': '',
-                    'idDetail_SUBMIT': 1,
-                    'javax.faces.ViewState': self.get_view_state(),
-                   }
+            args = {
+                'categorieMouvementSelectionnePagination': 'afficherTout',
+                'nbLigneParPageSelectionneHautPagination': -1,
+                'nbLigneParPageSelectionneBasPagination': -1,
+                'nbLigneParPageSelectionneComponent': -1,
+                'idDetail:btnRechercherParNbLigneParPage': '',
+                'idDetail_SUBMIT': 1,
+                'javax.faces.ViewState': self.get_view_state(),
+            }
         else:
             # something like a PEA or so
             value = link.attrib['id']
             id = value.split(':')[0]
-            args = {'%s:_idcl' % id: value,
-                    '%s:_link_hidden_' % id: '',
-                    '%s_SUBMIT' % id: 1,
-                    'javax.faces.ViewState': self.get_view_state(),
-                    'paramNumCompte': '',
-                   }
+            args = {
+                '%s:_idcl' % id: value,
+                '%s:_link_hidden_' % id: '',
+                '%s_SUBMIT' % id: 1,
+                'javax.faces.ViewState': self.get_view_state(),
+                'paramNumCompte': '',
+            }
 
         self.browser.location(form.attrib['action'], data=args)
         return True
@@ -427,10 +426,10 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
         return True
 
     def get_history(self):
-        #DAT account can't have transaction
+        # DAT account can't have transaction
         if self.doc.xpath('//table[@id="table-dat"]'):
             return
-        #These accounts have investments, no transactions
+        # These accounts have investments, no transactions
         if self.doc.xpath('//table[@id="InfosPortefeuille"]'):
             return
         tables = self.doc.xpath('//table[@id="table-detail-operation"]')
@@ -534,7 +533,7 @@ class LifeInsuranceIframe(LoggedPage, HTMLPage):
 
             def obj_diff_ratio(self):
                 diff_percent = MyDecimal(TableCell('diff')(self)[0])(self)
-                return diff_percent/100 if diff_percent != NotAvailable else diff_percent
+                return diff_percent / 100 if diff_percent != NotAvailable else diff_percent
 
     @method
     class iter_history(TableElement):
