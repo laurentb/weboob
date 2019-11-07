@@ -50,7 +50,12 @@ class LdlcModule(AbstractModule, CapDocument):
     def create_default_browser(self):
         if self.config['website'].get() == 'part':
             self.BROWSER = LdlcParBrowser
-            return self.create_browser(self.config['login'].get(), self.config['password'].get(), weboob=self.weboob)
+            return self.create_browser(
+                self.config,
+                self.config['login'].get(),
+                self.config['password'].get(),
+                weboob=self.weboob,
+            )
         else:
             self.BROWSER = LdlcProBrowser
             return self.create_browser(self.config, self.config['login'].get(), self.config['password'].get())

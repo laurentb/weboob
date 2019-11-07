@@ -29,8 +29,9 @@ class LdlcParBrowser(AbstractBrowser):
 
     documents = URL(r'/fr-fr/Orders/PartialCompletedOrdersHeader', DocumentsPage)
 
-    def __init__(self, *args, **kwargs):
-        super(LdlcParBrowser, self).__init__(*args, **kwargs)
+    def __init__(self, config, *args, **kwargs):
+        super(LdlcParBrowser, self).__init__(config, *args, **kwargs)
+        self.config = config
         self.lang = 'fr-fr/'
 
     @need_login
