@@ -25,7 +25,10 @@ from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded, BrowserPasswordExpired
 from .pages import LoginPage, BillsPage
 from .pages.login import ManageCGI, HomePage, PasswordPage
-from .pages.bills import SubscriptionsPage, BillsApiProPage, BillsApiParPage, ContractsPage
+from .pages.bills import (
+    SubscriptionsPage, SubscriptionsApiPage, BillsApiProPage, BillsApiParPage,
+    ContractsPage,
+)
 from .pages.profile import ProfilePage
 from weboob.browser.exceptions import ClientError, ServerError
 from weboob.tools.compat import basestring
@@ -49,6 +52,8 @@ class OrangeBillBrowser(LoginBrowser):
     contracts = URL(r'https://espaceclientpro.orange.fr/api/contracts\?page=1&nbcontractsbypage=15', ContractsPage)
 
     subscriptions = URL(r'https://espaceclientv3.orange.fr/js/necfe.php\?zonetype=bandeau&idPage=gt-home-page', SubscriptionsPage)
+    subscriptions_api = URL(r'https://sso-f.orange.fr/omoi_erb/portfoliomanager/v2.0/contractSelector/users/current', SubscriptionsApiPage)
+
     manage_cgi = URL(r'https://eui.orange.fr/manage_eui/bin/manage.cgi', ManageCGI)
 
     # is billspage deprecated ?
@@ -74,10 +79,6 @@ class OrangeBillBrowser(LoginBrowser):
     doc_api_pro = URL('https://espaceclientpro.orange.fr/api/contract/(?P<subid>\d+)/bill/(?P<dir>.*)/(?P<fact_type>.*)/\?(?P<billparams>)')
     profile = URL('/\?page=profil-infosPerso', ProfilePage)
 
-    def __init__(self, *args, **kwargs):
-        super(OrangeBillBrowser, self).__init__(*args, **kwargs)
-        self.is_new_website = False
-
     def do_login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
@@ -96,11 +97,6 @@ class OrangeBillBrowser(LoginBrowser):
             error_message = self.page.get_change_password_message()
             if error_message:
                 raise BrowserPasswordExpired(error_message)
-
-        self.location(self.BASEURL)
-        print('location done / is_here : %s' % self.new_website.is_here())
-        if self.new_website.is_here():
-            self.is_new_website = True
 
     def get_nb_remaining_free_sms(self):
         raise NotImplementedError()
@@ -153,9 +149,21 @@ class OrangeBillBrowser(LoginBrowser):
         # if nb_sub is 0, we continue, because we can get them in next url
 
         for sub in self._iter_subscriptions_by_type(profile.name, 'sosh'):
+            nb_sub += 1
             yield sub
         for sub in self._iter_subscriptions_by_type(profile.name, 'orange'):
+            nb_sub += 1
             yield sub
+
+        if nb_sub == 0:
+            # No subscriptions found, trying with the API.
+            headers = {
+                'X-Orange-Caller-Id': 'ECQ',
+            }
+            self.subscriptions_api.go(headers=headers)
+            for sub in self.page.iter_subscription():
+                sub.subscriber = profile.name
+                yield sub
 
     @need_login
     def iter_documents(self, subscription):

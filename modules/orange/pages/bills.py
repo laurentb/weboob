@@ -190,6 +190,22 @@ class SubscriptionsPage(LoggedPage, HTMLPage):
                 return bool(obj.id) and obj._page != 'nec-tdb-ouvert'
 
 
+class SubscriptionsApiPage(LoggedPage, JsonPage):
+    @method
+    class iter_subscription(DictElement):
+        item_xpath = 'contracts'
+
+        class item(ItemElement):
+            klass = Subscription
+
+            def condition(self):
+                return Dict('contractStatus')(self) != 'CLOS'
+
+            obj_id = Dict('contractId')
+            obj_label = Dict('offerName')
+            obj__is_pro = False
+
+
 class ContractsPage(LoggedPage, JsonPage):
     @method
     class iter_subscriptions(DictElement):
