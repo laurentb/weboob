@@ -338,7 +338,7 @@ class CragrRegion(LoginBrowser):
         self.accounts.stay_or_go()
         self.page.set_cragr_code()
         for account in self.page.iter_accounts():
-            self.accounts.go()
+            self.accounts.stay_or_go()
             if iban and account._form:
                 # Refresh account form in case it expired
                 refreshed_account = find_object(self.page.iter_accounts(), id=account.id)
