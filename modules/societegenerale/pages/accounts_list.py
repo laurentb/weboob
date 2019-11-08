@@ -43,6 +43,12 @@ from weboob.browser.pages import HTMLPage, XMLPage, JsonPage, LoggedPage, pagina
 from weboob.exceptions import BrowserUnavailable, ActionNeeded, NoAccountsException
 
 
+class TemporaryBrowserUnavailable(BrowserUnavailable):
+    # To handle temporary errors (like 'err_tech') that are usually
+    # solved by just making a retry
+    pass
+
+
 def MyDecimal(*args, **kwargs):
     kwargs.update(replace_dots=True, default=NotAvailable)
     return CleanDecimal(*args, **kwargs)
@@ -62,6 +68,10 @@ class JsonBasePage(LoggedPage, JsonPage):
 
             if action and 'BLOCAGE' in action:
                 raise ActionNeeded()
+
+            if reason and 'err_tech' in reason:
+                # This error is temporary and usually do not happens on the next try
+                raise TemporaryBrowserUnavailable()
 
             if ('le service est momentanement indisponible' in reason and
             Dict('commun/origine')(self.doc) != 'cbo'):
@@ -475,9 +485,6 @@ class HistoryPage(JsonBasePage):
             # in JsonBasePage and we can't have history for now.
             return Dict('commun/statut')(self.el).upper() != 'NOK'
 
-        def next_page(self):
-            return self.page.hist_pagination('history')
-
         item_xpath = 'donnees/listeOperations'
 
         class item(TransactionItemElement):
@@ -487,9 +494,6 @@ class HistoryPage(JsonBasePage):
     @pagination
     @method
     class iter_card_transactions(DictElement):
-        def next_page(self):
-            return self.page.hist_pagination('history')
-
         item_xpath = 'donnees/listeOperations'
 
         class item(TransactionItemElement):
@@ -527,9 +531,6 @@ class HistoryPage(JsonBasePage):
             # in JsonBasePage and we can't have history for now.
             return Dict('commun/statut')(self.el).upper() != 'NOK'
 
-        def next_page(self):
-            return self.page.hist_pagination('intraday')
-
         item_xpath = 'donnees/listeOperations'
 
         class item(TransactionItemElement):
@@ -539,9 +540,6 @@ class HistoryPage(JsonBasePage):
     @pagination
     @method
     class iter_future_transactions(DictElement):
-        def next_page(self):
-            return self.page.hist_pagination('future')
-
         item_xpath = 'donnees/listeOperationsFutures'
 
         class item(ItemElement):

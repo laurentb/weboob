@@ -31,13 +31,14 @@ from weboob.capabilities.base import find_object, NotAvailable
 from weboob.browser.exceptions import BrowserHTTPNotFound, ClientError
 from weboob.capabilities.profile import ProfileMissing
 from weboob.tools.value import Value, ValueBool
+from weboob.tools.decorators import retry
 
 from .pages.accounts_list import (
     AccountsMainPage, AccountDetailsPage, AccountsPage, LoansPage, HistoryPage,
     CardHistoryPage, PeaLiquidityPage,
     AdvisorPage, HTMLProfilePage, CreditPage, CreditHistoryPage, OldHistoryPage,
     MarketPage, LifeInsurance, LifeInsuranceHistory, LifeInsuranceInvest, LifeInsuranceInvest2,
-    UnavailableServicePage, LoanDetailsPage,
+    UnavailableServicePage, LoanDetailsPage, TemporaryBrowserUnavailable,
 )
 from .pages.transfer import AddRecipientPage, SignRecipientPage, TransferJson, SignTransferPage
 from .pages.login import MainPage, LoginPage, BadLoginPage, ReinitPasswordPage, ActionNeededPage, ErrorPage
@@ -188,7 +189,8 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
         else:
             account_ibans = self.page.get_account_ibans_dict()
 
-        self.accounts.go()
+        go = retry(TemporaryBrowserUnavailable)(self.accounts.go)
+        go()
 
         if not self.page.is_new_website_available():
             # return in old pages to get accounts
@@ -230,6 +232,14 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
 
             yield account
 
+    def next_page_retry(self, condition):
+        next_page = self.page.hist_pagination(condition)
+        if next_page:
+            location = retry(TemporaryBrowserUnavailable)(self.location)
+            location(next_page)
+            return True
+        return False
+
     @need_login
     def iter_history(self, account):
         if account.type in (account.TYPE_LOAN, account.TYPE_MARKET, account.TYPE_CONSUMER_CREDIT, ):
@@ -248,7 +258,9 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
                 account.type == account.TYPE_REVOLVING_CREDIT and account._loan_type != 'PR_CONSO',
                 account.type in (account.TYPE_REVOLVING_CREDIT, account.TYPE_SAVINGS) and not account._is_json_histo
         )):
-            self.account_details_page.go(params={'idprest': account._prestation_id})
+            go = retry(TemporaryBrowserUnavailable)(self.accounts_details_page.go)
+            go(params={'idprest': account._prestation_id})
+
             history_url = self.page.get_history_url()
 
             # history_url return NotAvailable when history page doesn't exist
@@ -265,21 +277,31 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
             return
 
         if account.type == account.TYPE_CARD:
-            self.history.go(params={'b64e200_prestationIdTechnique': account.parent._internal_id})
-            for summary_card_tr in self.page.iter_card_transactions(card_number=account.number):
-                yield summary_card_tr
+            go = retry(TemporaryBrowserUnavailable)(self.history.go)
+            go(params={'b64e200_prestationIdTechnique': account.parent._internal_id})
 
-                for card_tr in summary_card_tr._card_transactions:
-                    card_tr.date = summary_card_tr.date
-                    # We use the Raw pattern to set the rdate automatically, but that make
-                    # the transaction type to "CARD", so we have to correct it in the browser.
-                    card_tr.type = TransactionType.DEFERRED_CARD
-                    yield card_tr
+            next_page = True
+            while next_page:
+                for summary_card_tr in self.page.iter_card_transactions(card_number=account.number):
+                    yield summary_card_tr
+
+                    for card_tr in summary_card_tr._card_transactions:
+                        card_tr.date = summary_card_tr.date
+                        # We use the Raw pattern to set the rdate automatically, but that make
+                        # the transaction type to "CARD", so we have to correct it in the browser.
+                        card_tr.type = TransactionType.DEFERRED_CARD
+                        yield card_tr
+                next_page = self.next_page_retry('history')
             return
 
-        self.history.go(params={'b64e200_prestationIdTechnique': account._internal_id})
-        for transaction in self.page.iter_history():
-            yield transaction
+        go = retry(TemporaryBrowserUnavailable)(self.history.go)
+        go(params={'b64e200_prestationIdTechnique': account._internal_id})
+
+        next_page = True
+        while next_page:
+            for transaction in self.page.iter_history():
+                yield transaction
+            next_page = self.next_page_retry('history')
 
     @need_login
     def iter_coming(self, account):
@@ -298,23 +320,31 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
         internal_id = account._internal_id
         if account.type == account.TYPE_CARD:
             internal_id = account.parent._internal_id
-        self.history.go(params={'b64e200_prestationIdTechnique': internal_id})
+
+        go = retry(TemporaryBrowserUnavailable)(self.history.go)
+        go(params={'b64e200_prestationIdTechnique': internal_id})
 
         if account.type == account.TYPE_CARD:
-            for transaction in self.page.iter_future_transactions(acc_prestation_id=account._prestation_id):
-                # coming transactions on this page are not include in coming balance
-                # use it only to retrive deferred card coming transactions
-                if transaction._card_coming:
-                    for card_coming in transaction._card_coming:
-                        card_coming.date = transaction.date
-                        # We use the Raw pattern to set the rdate automatically, but that make
-                        # the transaction type to "CARD", so we have to correct it in the browser.
-                        card_coming.type = TransactionType.DEFERRED_CARD
-                        yield card_coming
+            next_page = True
+            while next_page:
+                for transaction in self.page.iter_future_transactions(acc_prestation_id=account._prestation_id):
+                    # coming transactions on this page are not included in coming balance
+                    # use it only to retrive deferred card coming transactions
+                    if transaction._card_coming:
+                        for card_coming in transaction._card_coming:
+                            card_coming.date = transaction.date
+                            # We use the Raw pattern to set the rdate automatically, but that makes
+                            # the transaction type to "CARD", so we have to correct it in the browser.
+                            card_coming.type = TransactionType.DEFERRED_CARD
+                            yield card_coming
+                next_page = self.next_page_retry('future')
             return
 
-        for intraday_tr in self.page.iter_intraday_comings():
-            yield intraday_tr
+        next_page = True
+        while next_page:
+            for intraday_tr in self.page.iter_intraday_comings():
+                yield intraday_tr
+            next_page = self.next_page_retry('intraday')
 
     @need_login
     def iter_investment(self, account):
