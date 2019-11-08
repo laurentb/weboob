@@ -55,10 +55,18 @@ class item_account_generic(ItemElement):
     def condition(self):
         # For some loans the following xpath is absent and we don't want to skip them
         # Also a case of loan that is empty and has no information exists and will be ignored
-        return (len(self.el.xpath('.//span[@class="number"]')) > 0 or
-               (Field('type')(self) == Account.TYPE_LOAN and
-                (len(self.el.xpath('.//div//*[contains(text(),"pas la restitution de ces données.")]')) == 0 and
-                len(self.el.xpath('.//div[@class="amount"]/span[contains(text(), "Contrat résilié")]')) == 0)))
+        return (
+            len(self.el.xpath('.//span[@class="number"]')) > 0 or
+            (
+                Field('type')(self) == Account.TYPE_LOAN and
+                (
+                    not bool(self.el.xpath('.//div//*[contains(text(),"pas la restitution de ces données.")]'))
+                    and not bool(self.el.xpath('.//div[@class="amount"]/span[contains(text(), "Contrat résilié")]'))
+                    and not bool(self.el.xpath('.//div[@class="amount"]/span[contains(text(), "Remboursé intégralement")]'))
+                    and not bool(self.el.xpath('.//div[@class="amount"]/span[contains(text(), "Prêt non débloqué")]'))
+                )
+            )
+        )
 
     obj_id = obj_number = CleanText('.//abbr/following-sibling::text()')
     obj_currency = Coalesce(Currency('.//span[@class="number"]'), Currency('.//span[@class="thick"]'))
