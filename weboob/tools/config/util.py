@@ -20,8 +20,12 @@
 
 import os
 from datetime import datetime
+from weboob.tools.log import getLogger
 
-__all__ = ['replace', 'time_buffer']
+__all__ = ['LOGGER', 'replace', 'time_buffer']
+
+
+LOGGER = getLogger('weboob.config')
 
 
 try:

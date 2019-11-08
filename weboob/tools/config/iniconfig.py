@@ -25,7 +25,6 @@ except ImportError:
 
 from collections import OrderedDict
 from decimal import Decimal
-import logging
 import os
 import io
 import sys
@@ -33,6 +32,7 @@ import sys
 from weboob.tools.compat import basestring, unicode
 
 from .iconfig import IConfig
+from .util import LOGGER
 
 
 __all__ = ['INIConfig']
@@ -50,7 +50,7 @@ class INIConfig(IConfig):
         self.values = OrderedDict(default)
 
         if os.path.exists(self.path):
-            logging.debug(u'Loading application configuration file: %s.' % self.path)
+            LOGGER.debug(u'Loading application configuration file: %s.' % self.path)
             if sys.version_info.major < 3:
                 self.config.readfp(io.open(self.path, "r", encoding='utf-8'))
             else:
@@ -66,14 +66,14 @@ class INIConfig(IConfig):
                 first = True
                 for key, value in self.config.items(DEFAULTSECT):
                     if first:
-                        logging.warning('The configuration file "%s" uses an old-style' % self.path)
-                        logging.warning('Please rename the %s section to %s' % (DEFAULTSECT, self.ROOTSECT))
+                        LOGGER.warning('The configuration file "%s" uses an old-style' % self.path)
+                        LOGGER.warning('Please rename the %s section to %s' % (DEFAULTSECT, self.ROOTSECT))
                         first = False
                     self.set(key, value)
-            logging.debug(u'Application configuration file loaded: %s.' % self.path)
+            LOGGER.debug(u'Application configuration file loaded: %s.' % self.path)
         else:
             self.save()
-            logging.debug(u'Application configuration file created with default values: %s. '
+            LOGGER.debug(u'Application configuration file created with default values: %s. '
                           'Please customize it.' % self.path)
         return self.values
 
