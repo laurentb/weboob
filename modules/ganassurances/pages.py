@@ -40,7 +40,7 @@ from weboob.browser.filters.json import Dict
 
 class LoginPage(HTMLPage):
     def login(self, login, passwd):
-        tab = re.search(r'clavierAChristian = (\[[\d,\s]*\])', self.content).group(1)
+        tab = re.search(r'clavierAChristian = (\[[\d,\s]*\])', self.text).group(1)
         number_list = ast.literal_eval(tab)
         key_map = {}
         for i, number in enumerate(number_list):
