@@ -29,7 +29,7 @@ from PIL import Image
 from weboob.exceptions import ActionNeeded
 from weboob.browser.pages import LoggedPage, HTMLPage, pagination, AbstractPage
 from weboob.browser.elements import method, ListElement, ItemElement, TableElement
-from weboob.capabilities.bank import Account
+from weboob.capabilities.bank import Account, AccountOwnership
 from weboob.capabilities.profile import Person
 from weboob.browser.filters.html import Link, Attr, TableCell
 from weboob.browser.filters.standard import (
@@ -169,6 +169,16 @@ class AccountsPage(LoggedPage, HTMLPage):
 
             def condition(self):
                 return not len(self.el.xpath('./td[@class="chart"]'))
+
+            def obj_ownership(self):
+                owner = CleanText('./td//div[contains(@class, "-synthese-text") and not(starts-with(., "N°"))]', default=None)(self)
+
+                if owner:
+                    if re.search(r'(m|mr|me|mme|mlle|mle|ml)\.? (.*)\bou (m|mr|me|mme|mlle|mle|ml)\b(.*)', owner, re.IGNORECASE):
+                        return AccountOwnership.CO_OWNER
+                    elif all(n in owner.upper() for n in self.env['name'].split()):
+                        return AccountOwnership.OWNER
+                    return AccountOwnership.ATTORNEY
 
 
 class Transaction(FrenchTransaction):

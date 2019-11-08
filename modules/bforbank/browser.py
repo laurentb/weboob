@@ -96,8 +96,9 @@ class BforbankBrowser(LoginBrowser):
     @need_login
     def iter_accounts(self):
         if self.accounts is None:
-            self.home.stay_or_go()
-            accounts = list(self.page.iter_accounts())
+            owner_name = self.get_profile().name.upper().split(' ', 1)[1]
+            self.home.go()
+            accounts = list(self.page.iter_accounts(name=owner_name))
             if self.page.RIB_AVAILABLE:
                 self.rib.go().populate_rib(accounts)
 
