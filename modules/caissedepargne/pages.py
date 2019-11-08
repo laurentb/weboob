@@ -1874,12 +1874,16 @@ class SubscriptionPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Document
 
-            obj_type = DocumentTypes.OTHER
             obj_format = 'pdf'
             obj_url = Regexp(Link('.//td[@class="telecharger"]//a'), r'WebForm_PostBackOptions\("(\S*)"')
             obj_id = Format('%s_%s_%s', Env('sub_id'), CleanText('./td[2]', symbols='/',  replace=[(' ', '_')]), Regexp(CleanText('./td[3]'), r'([\wé]*)'))
             obj_label = Format('%s %s', CleanText('./td[3]'), CleanText('./td[2]'))
             obj_date = Date(CleanText('./td[2]'), dayfirst=True)
+
+            def obj_type(self):
+                if 'Relevé' in CleanText('./td[3]')(self):
+                    return DocumentTypes.STATEMENT
+                return DocumentTypes.OTHER
 
     def download_document(self, document):
         form = self.get_form(id='main')
