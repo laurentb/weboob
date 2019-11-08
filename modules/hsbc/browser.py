@@ -57,39 +57,48 @@ class HSBC(LoginBrowser):
     app_gone = False
 
     scpi_investment_page = URL(r'https://www.hsbc.fr/1/[0-9]/.*', ScpiInvestmentPage)
-    scpi_his_page =   URL(r'https://www.hsbc.fr/1/[0-9]/.*', ScpiHisPage)
-    connection =      URL(r'https://www.hsbc.fr/1/2/hsbc-france/particuliers/connexion', LoginPage)
-    login =           URL(r'https://www.hsbc.fr/1/*', LoginPage)
-    cptPage =         URL(r'/cgi-bin/emcgi.*\&Cpt=.*',
-                          r'/cgi-bin/emcgi.*\&Epa=.*',
-                          r'/cgi-bin/emcgi.*\&CPT_IdPrestation.*',
-                          r'/cgi-bin/emcgi.*\&Ass_IdPrestation.*',
-                          # FIXME are the previous patterns relevant in POST nav?
-                          r'/cgi-bin/emcgi',
-                          CPTOperationPage)
-    cbPage =          URL(r'/cgi-bin/emcgi.*[\&\?]Cb=.*',
-                          r'/cgi-bin/emcgi.*\&CB_IdPrestation.*',
-                          # FIXME are the previous patterns relevant in POST nav?
-                          r'/cgi-bin/emcgi',
-                          CBOperationPage)
-    appGone =     URL(r'/.*_absente.html',
-                      r'/pm_absent_inter.html',
-                      '/appli_absente_MBEL.html',
-                      '/pm_absent_inter_MBEL.html',
-                        AppGonePage)
-    rib =             URL(r'/cgi-bin/emcgi', RibPage)
-    accounts =        URL(r'/cgi-bin/emcgi', AccountsPage)
+    scpi_his_page = URL(r'https://www.hsbc.fr/1/[0-9]/.*', ScpiHisPage)
+    connection = URL(r'https://www.hsbc.fr/1/2/hsbc-france/particuliers/connexion', LoginPage)
+    login = URL(r'https://www.hsbc.fr/1/*', LoginPage)
+    cptPage = URL(
+        r'/cgi-bin/emcgi.*\&Cpt=.*',
+        r'/cgi-bin/emcgi.*\&Epa=.*',
+        r'/cgi-bin/emcgi.*\&CPT_IdPrestation.*',
+        r'/cgi-bin/emcgi.*\&Ass_IdPrestation.*',
+        # FIXME are the previous patterns relevant in POST nav?
+        r'/cgi-bin/emcgi',
+        CPTOperationPage,
+    )
+    cbPage = URL(
+        r'/cgi-bin/emcgi.*[\&\?]Cb=.*',
+        r'/cgi-bin/emcgi.*\&CB_IdPrestation.*',
+        # FIXME are the previous patterns relevant in POST nav?
+        r'/cgi-bin/emcgi',
+        CBOperationPage,
+    )
+    appGone = URL(
+        r'/.*_absente.html',
+        r'/pm_absent_inter.html',
+        r'/appli_absente_MBEL.html',
+        r'/pm_absent_inter_MBEL.html',
+        AppGonePage,
+    )
+    rib = URL(r'/cgi-bin/emcgi', RibPage)
+    accounts = URL(r'/cgi-bin/emcgi', AccountsPage)
     owners_list = URL(r'/cgi-bin/emcgi', OwnersListPage)
     life_insurance_useless = URL(r'/cgi-bin/emcgi', LifeInsuranceUseless)
     profile = URL(r'/cgi-bin/emcgi', ProfilePage)
     unavailable = URL(r'/cgi-bin/emcgi', UnavailablePage)
-    frame_page = URL(r'/cgi-bin/emcgi',
-                     r'https://clients.hsbc.fr/cgi-bin/emcgi', FrameContainer)
+    frame_page = URL(
+        r'/cgi-bin/emcgi',
+        r'https://clients.hsbc.fr/cgi-bin/emcgi',
+        FrameContainer,
+    )
 
     # other site
     life_insurance_portal = URL(r'/cgi-bin/emcgi', LifeInsurancePortal)
-    life_insurance_main = URL('https://assurances.hsbc.fr/fr/accueil/b2c/accueil.html\?pointEntree=PARTIEGENERIQUEB2C', LifeInsuranceMain)
-    life_insurances = URL('https://assurances.hsbc.fr/navigation', LifeInsurancesPage)
+    life_insurance_main = URL(r'https://assurances.hsbc.fr/fr/accueil/b2c/accueil.html\?pointEntree=PARTIEGENERIQUEB2C', LifeInsuranceMain)
+    life_insurances = URL(r'https://assurances.hsbc.fr/navigation', LifeInsurancesPage)
     life_not_found = URL(r'https://assurances.hsbc.fr/fr/404.html', LifeNotFound)
 
     # investment pages
@@ -99,9 +108,11 @@ class HSBC(LoginBrowser):
         r'https://www.hsbc.fr/1/[0-9]/authentication/sso-cwd\?customerFullName=.*',
         InvestmentFormPage
     )
-    logon_investment_page = URL(r'https://investissements.clients.hsbc.fr/group-wd-gateway-war/gateway/LogonAuthentication',
-                                r'https://investissements.clients.hsbc.fr/cwd/group-wd-gateway-war/gateway/LogonAuthentication',
-                                LogonInvestmentPage)
+    logon_investment_page = URL(
+        r'https://investissements.clients.hsbc.fr/group-wd-gateway-war/gateway/LogonAuthentication',
+        r'https://investissements.clients.hsbc.fr/cwd/group-wd-gateway-war/gateway/LogonAuthentication',
+        LogonInvestmentPage
+    )
     retrieve_accounts_view = URL(
         r'https://investissements.clients.hsbc.fr/cwd/group-wd-gateway-war/gateway/wd/RetrieveCustomerPortfolio',
         RetrieveAccountsPage
@@ -381,7 +392,7 @@ class HSBC(LoginBrowser):
         if account.url.startswith('javascript') or '&Crd=' in account.url or account.type == Account.TYPE_LOAN:
             raise NotImplementedError()
 
-        if account.type == Account.TYPE_MARKET and not 'BOURSE_INV' in account.url:
+        if account.type == Account.TYPE_MARKET and 'BOURSE_INV' not in account.url:
             # Clean account url
             m = re.search(r"'(.*)'", account.url)
             if m:

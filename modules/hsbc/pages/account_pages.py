@@ -275,7 +275,7 @@ class AccountsPage(GenericLandingPage):
             @property
             def obj_id(self):
                 # Investment account and main account can have the same id
-                # so we had account type in case of Investment to prevent conflict
+                # so we had account type in case of Investment to prevent conflict
                 # and also the same problem with scpi accounts.
                 if "Scpi" in Field('label')(self):
                     return CleanText(replace=[('.', ''), (' ', '')]).filter(self.el.xpath('./td[2]')) + ".SCPI"
@@ -314,7 +314,7 @@ class AccountsPage(GenericLandingPage):
                 def obj_id(self):
                     account_id = CleanText('.//p[@class="title"]/span', replace=[('.', ''), (' ', '')])(self)
                     # Investment account and main account can have the same id
-                    # so we had account type in case of Investment to prevent conflict
+                    # so we had account type in case of Investment to prevent conflict
                     # and also the same problem with scpi accounts.
                     if Field('type')(self) == Account.TYPE_MARKET:
                         return account_id + ".INVEST"
@@ -330,8 +330,8 @@ class OwnersListPage(AccountsPage):
 
     def is_here(self):
         return (
-            CleanText('//h1[text()="Comptes de tiers"]')(self.doc) or  # old space
-            CleanText('//h1[text()="Gérer les comptes de mes tiers"]')(self.doc)  # new space
+            CleanText('//h1[text()="Comptes de tiers"]')(self.doc)  # old space
+            or CleanText('//h1[text()="Gérer les comptes de mes tiers"]')(self.doc)  # new space
         )
 
     def get_owners_urls(self):
@@ -359,7 +359,7 @@ class RibPage(GenericLandingPage):
         self.link_rib(accounts)
         for nb in range(len(self.doc.xpath('//select/option')) - 1):
             form = self.get_form(name="FORM_RIB")
-            form['index_rib'] = str(nb+1)
+            form['index_rib'] = str(nb + 1)
             form.submit()
             if self.browser.rib.is_here():
                 self.browser.page.link_rib(accounts)
@@ -384,8 +384,8 @@ class Pagination(object):
 class CBOperationPage(GenericLandingPage):
     def is_here(self):
         return (
-            CleanText('//h1[text()="Historique des opérations"]')(self.doc) and
-            CleanText('//a[contains(text(), "Opérations débitées le")]')(self.doc)
+            CleanText('//h1[text()="Historique des opérations"]')(self.doc)
+            and CleanText('//a[contains(text(), "Opérations débitées le")]')(self.doc)
         )
 
     def history_tabs_urls(self):
@@ -427,8 +427,8 @@ class CPTOperationPage(GenericLandingPage):
     def is_here(self):
         return (
             CleanText('//h1[text()="Historique des opérations"]')(self.doc) and (
-                CleanText('''//h2[text()="Recherche d'opération"]''')(self.doc) or  # old space
-                CleanText('//label[text()="Rechercher"]')(self.doc)  # new space
+                CleanText('''//h2[text()="Recherche d'opération"]''')(self.doc)  # old space
+                or CleanText('//label[text()="Rechercher"]')(self.doc)  # new space
             ) and not
             CleanText('//a[contains(text(), "Opérations débitées le")]')(self.doc)  # to differ from CBOperationPage
         )

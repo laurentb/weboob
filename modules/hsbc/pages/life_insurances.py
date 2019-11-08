@@ -24,8 +24,8 @@ from .account_pages import Transaction
 class LITransaction(FrenchTransaction):
 
     PATTERNS = [
-        (re.compile(u'^(?P<text>Arbitrage.*)'), FrenchTransaction.TYPE_ORDER),
-        (re.compile(u'^(?P<text>Versement.*)'), FrenchTransaction.TYPE_DEPOSIT),
+        (re.compile(r'^(?P<text>Arbitrage.*)'), FrenchTransaction.TYPE_ORDER),
+        (re.compile(r'^(?P<text>Versement.*)'), FrenchTransaction.TYPE_DEPOSIT),
         (re.compile(r'^(?P<text>.*)'), FrenchTransaction.TYPE_BANK),
     ]
 

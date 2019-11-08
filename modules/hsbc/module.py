@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from weboob.capabilities.bank import CapBankWealth, AccountNotFound
 from weboob.capabilities.base import find_object
@@ -31,14 +32,16 @@ __all__ = ['HSBCModule']
 
 class HSBCModule(Module, CapBankWealth, CapProfile):
     NAME = 'hsbc'
-    MAINTAINER = u'Romain Bignon'
+    MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
     VERSION = '1.6'
     LICENSE = 'LGPLv3+'
     DESCRIPTION = 'HSBC France'
-    CONFIG = BackendConfig(ValueBackendPassword('login',      label='Identifiant', masked=False),
-                           ValueBackendPassword('password',   label='Mot de passe'),
-                           ValueBackendPassword('secret',     label=u'Réponse secrète'))
+    CONFIG = BackendConfig(
+        ValueBackendPassword('login', label='Identifiant', masked=False),
+        ValueBackendPassword('password', label='Mot de passe'),
+        ValueBackendPassword('secret', label=u'Réponse secrète'),
+    )
     BROWSER = HSBC
 
     def create_default_browser(self):
