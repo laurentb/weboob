@@ -58,7 +58,9 @@ class HSBC(LoginBrowser):
 
     scpi_investment_page = URL(r'https://www.hsbc.fr/1/[0-9]/.*', ScpiInvestmentPage)
     scpi_his_page = URL(r'https://www.hsbc.fr/1/[0-9]/.*', ScpiHisPage)
+
     connection = URL(r'https://www.hsbc.fr/1/2/hsbc-france/particuliers/connexion', LoginPage)
+    connection2 = URL(r'https://www.hsbc.fr/1/2//hsbc-france/particuliers/connexion', LoginPage)
     login = URL(r'https://www.hsbc.fr/1/*', LoginPage)
     cptPage = URL(
         r'/cgi-bin/emcgi.*\&Cpt=.*',
@@ -150,7 +152,14 @@ class HSBC(LoginBrowser):
         self.session.cookies.clear()
 
         self.app_gone = False
-        self.connection.go()
+        # The website seems to be using the connection2 URL now for login, it seems weird
+        # that there is randomly 2 `/` in the URL so i let the try on the first connection
+        # in case they revert the change.
+        try:
+            self.connection.go()
+        except HTTPNotFound:
+            self.connection2.go()
+
         self.page.login(self.username)
 
         no_secure_key_link = self.page.get_no_secure_key()
