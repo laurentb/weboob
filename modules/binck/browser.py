@@ -76,7 +76,13 @@ class BinckBrowser(LoginBrowser):
 
         if self.login.is_here():
             error = self.page.get_error()
-            if error and 'mot de passe' in error:
+            # The message for the second error is :
+            # Vous ne pouvez plus vous servir de cet identifiant pour vous connecter,
+            # Nous vous prions d'utiliser celui que vous avez récemment créé.
+            if error and any((
+                'mot de passe' in error,
+                'Vous ne pouvez plus vous servir de cet identifiant' in error,
+            )):
                 raise BrowserIncorrectPassword(error)
             elif error and any((
                 'Votre compte a été bloqué / clôturé' in error,
