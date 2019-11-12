@@ -19,14 +19,15 @@
 
 from __future__ import unicode_literals
 
-from weboob.browser.pages import HTMLPage, LoggedPage
+import hashlib
+
+from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.filters.standard import (
-    CleanText, CleanDecimal, Env, Field, Regexp, Format, Date, Async,
-    AsyncLoad, Coalesce,
+    CleanText, Env, Field, Regexp, Format, Date, Coalesce,
 )
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.html import Attr
-from weboob.capabilities.bill import DocumentTypes, Document, Bill, Subscription
+from weboob.capabilities.bill import DocumentTypes, Document, Subscription
 from weboob.capabilities.profile import Person
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.date import parse_french_date
@@ -94,87 +95,42 @@ class ProfilePage(LoggedPage, HTMLPage):
             return parse_french_date(CleanText('//div[span[text()="Date de naissance"]]/following-sibling::div/span')(self)).date()
 
 
-class BillsPage(LoggedPage, HTMLPage):
-    def submit_form(self):
-        form = self.get_form('//form[@name="compteForm"]')
-        form['date'] = 'gardeDate'
-        form['annee'] = 'all'
-        form['compte'] = 'compteDetaille'
-        form.submit()
-
-    @method
-    class get_bills(ListElement):
-        item_xpath = '//table[@class="cssTailleTable"]//a[contains(@onclick, "ConsultationDocument")]'
-
-        class item(ItemElement):
-            def condition(self):
-                return self.el.xpath('./ancestor::tr[1]/following-sibling::tr/td[contains(text(), "avant le")]')
-
-            klass = Bill
-
-            load_url = Field('_loadurl') & AsyncLoad
-
-            obj_id = Format('%s_%s', Env('subid'), Regexp(Attr('.', 'onclick'), 'onis=([\d]+).*Form=([^&]+)', '\\1\\2'))
-            obj__loadurl = Regexp(Attr('.', 'onclick'), '[^\']+.([^\']+)')
-            obj_date = Env('date')
-            obj_price = Env('price')
-            obj_currency = 'EUR'
-
-            def obj_label(self):
-                year = Regexp(Attr('.', 'onclick'), 'annee=([\d]+)', default=None)(self)
-                label = CleanText('./parent::td')(self)
-                name = CleanText('./ancestor::tr[1]//following-sibling::tr[1]/td[1]', default=None)(self)
-                label = '%s - %s' % (label, name) if name else label
-                return '%s - %s' % (year, label) if year else label
-
-            def obj_url(self):
-                return Async('url', Attr('//iframe', 'src', default=Field('_loadurl')(self)))(self)
-
-            def obj_format(self):
-                return 'pdf' if 'pdf' in Field('url')(self) else 'html'
-
-            def parse(self, el):
-                tr = el.xpath('./ancestor::tr[1]/following-sibling::tr/td[contains(text(), "avant le")]')[0]
-                self.env['date'] = Date(Regexp(CleanText('.'), '(\d{2}/\d{2}/\d{4})'))(tr)
-                self.env['price'] = CleanDecimal('./following-sibling::td[1]', replace_dots=True, default=NotAvailable)(tr)
-
-
 class DocumentsPage(LoggedPage, HTMLPage):
-    def submit_form(self):
-        form = self.get_form('//form[@name="documentsForm"]')
-        form['annee'] = 'all'
-        form.submit()
-
+    @pagination
     @method
-    class get_documents(ListElement):
-        item_xpath = '//table[@class="cssTailleTable"]//a[contains(@onclick, "ConsultationDocument")]'
+    class iter_documents(ListElement):
+        item_xpath = '//div[@class="documents"]/div[has-class("document")]'
+
+        def next_page(self):
+            previous_year = CleanText('//div[has-class("blocAnnee") and has-class("selected")]/following-sibling::div[1]/a')(self.page.doc)
+            # only if previous_year, else we return to page with current year and fall to an infinite loop
+            if previous_year:
+                return self.page.browser.documents.build(params={'n': previous_year})
 
         class item(ItemElement):
             klass = Document
 
-            load_url = Field('_loadurl') & AsyncLoad
+            obj__idEnsua = Attr('.//form/input[@name="idEnsua"]', 'value')  # can be 64 or 128 char length
 
-            obj_id = Format('%s_%s', Env('subid'), Regexp(Attr('.', 'onclick'), 'onis=([\d]+).*Form=([^&]+)', '\\1\\2'))
-            obj__loadurl = Regexp(Attr('.', 'onclick'), '[^\']+.([^\']+)')
+            def obj_id(self):
+                # hash _idEnsua to reduce his size at 32 char
+                hash = hashlib.sha1(Field('_idEnsua')(self).encode('utf-8')).hexdigest()
+                return '%s_%s' % (Env('subid')(self), hash)
+
             obj_date = Date(Env('date'))
             obj_label = Env('label')
-            obj_type = DocumentTypes.OTHER
-            obj_format = 'pdf'  # Force file format to pdf.
-
-            def obj_url(self):
-                default = Field('_loadurl')(self)
-                return Async('url', Attr('//iframe', 'src', default=default))(self)
+            obj_type = DocumentTypes.INCOME_TAX
+            obj_format = 'pdf'
+            obj_url = Format('/enp/ensu/Affichage_Document_PDF?idEnsua=%s', Field('_idEnsua'))
 
             def parse(self, el):
-                year = Regexp(Attr('.', 'onclick'), 'annee=([\d]+)', default=None)(self)
-                date = Regexp(CleanText('.'), 'le ([\w\/]+)', default=None)(self)
-                label = CleanText('.')(self)
-                name = CleanText('./parent::*/preceding-sibling::td[1]', default=None)(self)
-                label = '%s - %s' % (label, name) if name else label
-                self.env['label'] = '%s - %s' % (year, label) if year else label
+                label_ct = CleanText('./div[has-class("texte")]')
+                date = Regexp(label_ct, 'le ([\w\/]+)', default=None)(self)
+                self.env['label'] = label_ct(self)
 
                 if not date:
-                    if 'sur les revenus de' in label:
+                    year = Regexp(label_ct, '\s(\d{4})\s', default=None)(self)
+                    if 'sur les revenus de' in self.env['label']:
                         # this kind of document always appear un july, (but we don't know the day)
                         date = '%s-07-01' % year
                     else:

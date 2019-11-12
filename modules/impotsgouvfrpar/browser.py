@@ -22,7 +22,7 @@ from __future__ import unicode_literals
 from weboob.browser import AbstractBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 
-from .pages import LoginAccessPage, LoginAELPage, ProfilePage, DocumentsPage, BillsPage
+from .pages import LoginAccessPage, LoginAELPage, ProfilePage, DocumentsPage
 
 
 class ImpotsParBrowser(AbstractBrowser):
@@ -42,15 +42,8 @@ class ImpotsParBrowser(AbstractBrowser):
         ProfilePage
     )
     documents = URL(
-        r'.*/documents.html',
-        r'.*/consultation/ConsultationDocument',
+        r'/enp/ensu/documents.do',
         DocumentsPage
-    )
-    bills = URL(
-        r'.*/compteRedirection.html',
-        r'.*/consultation/ConsultationDocument',
-        r'.*/contrat.html',
-        BillsPage
     )
 
     def __init__(self, login_source, *args, **kwargs):
@@ -88,28 +81,9 @@ class ImpotsParBrowser(AbstractBrowser):
 
     @need_login
     def iter_documents(self, subscription):
-        self.profile.stay_or_go()
-        bills_link = self.page.get_bills_link()
-        docs_link = self.page.get_documents_link()
-
-        self.location(bills_link)
-        self.page.submit_form()
-        bills = list()
-        for b in self.page.get_bills(subid=subscription.id):
-            bills.append(b)
-
-        self.location(docs_link)
-        self.page.submit_form()
-        documents = list()
-        for d in self.page.get_documents(subid=subscription.id):
-            # Don't add if it's already a bill : no unique id so...
-            label = d.label.rsplit(' -', 1)[0]
-            check = None
-            if "-" in label:
-                check = len([False for b in bills if label in b.label])
-            if not check:
-                documents.append(d)
-        return iter(bills + documents)
+        # put ?n=0, else website return an error page
+        self.documents.go(params={'n': 0})
+        return self.page.iter_documents(subid=subscription.id)
 
     @need_login
     def get_profile(self):
