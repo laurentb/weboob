@@ -58,8 +58,8 @@ def pagination(func):
     >>> from .browsers import PagesBrowser
     >>> from .url import URL
     >>> class Browser(PagesBrowser):
-    ...     BASEURL = 'https://people.symlink.me'
-    ...     list = URL('/~rom1/projects/weboob/list-(?P<pagenum>\d+).html', Page)
+    ...     BASEURL = 'https://romain.bignon.me'
+    ...     list = URL('/projects/weboob/list-(?P<pagenum>\d+).html', Page)
     ...
     >>> b = Browser()
     >>> b.list.go(pagenum=1) # doctest: +ELLIPSIS
