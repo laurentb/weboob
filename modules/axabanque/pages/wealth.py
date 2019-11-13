@@ -30,7 +30,7 @@ from weboob.browser.filters.standard import (
 )
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import Attr, Link, TableCell
-from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities.bank import Account, Investment, AccountOwnership
 from weboob.capabilities.profile import Person
 from weboob.capabilities.base import NotAvailable, NotLoaded, empty
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
@@ -68,6 +68,7 @@ class AccountsPage(LoggedPage, HTMLPage):
             obj__acctype = "investment"
             obj_type = MapIn(Lower(Field('label')), TYPES, Account.TYPE_UNKNOWN)
             obj_url = Attr('.', 'data-module-open-link--link')
+            obj_ownership = AccountOwnership.OWNER
 
 
 class InvestmentPage(LoggedPage, HTMLPage):

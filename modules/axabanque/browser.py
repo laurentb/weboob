@@ -27,7 +27,9 @@ from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.browser.exceptions import ClientError, HTTPNotFound
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bill import Subscription
-from weboob.capabilities.bank import Account, Transaction, AddRecipientStep, Recipient
+from weboob.capabilities.bank import (
+    Account, Transaction, AddRecipientStep, Recipient, AccountOwnership,
+)
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from weboob.tools.value import Value
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
@@ -175,6 +177,7 @@ class AXABanque(AXABrowser, StatesMixin):
         if 'accs' not in self.cache.keys():
             accounts = []
             ids = set()
+            owner_name = self.get_profile().name.upper().split(' ', 1)[1]
             # Get accounts
             self.transactions.go()
             self.bank_accounts.go()
@@ -220,6 +223,7 @@ class AXABanque(AXABrowser, StatesMixin):
                                     break
                         # Need it to get accounts from tabs
                         a._tab, a._pargs, a._purl = tab, page_args, self.url
+                        self.set_ownership(a, owner_name)
                         accounts.append(a)
             # Get investment accounts if there has
             self.wealth_accounts.go()
@@ -232,6 +236,24 @@ class AXABanque(AXABrowser, StatesMixin):
             self.cache['accs'] = accounts
             self.bank_accounts.go()
         return self.cache['accs']
+
+    def set_ownership(self, account, owner_name):
+        # Some accounts _owner attribute says 'MLLE PRENOM NOM1' or other
+        # only 'NOM' while profile.name is 'MME PRENOM NOM1 NOM2' or 'MME PRENOM NOM'
+        # It makes it pretty hard to determine precisely wether the owernship
+        # should be OWNER or ATTORNEY. So we prefer set it to NotAvailable:
+        # better no information than an inaccurate one.
+        if not account.ownership:
+            if account.parent and account.parent.ownership:
+                account.ownership = account.parent.ownership
+            elif re.search(r'(m|mr|me|mme|mlle|mle|ml)\.? (.*)\bou (m|mr|me|mme|mlle|mle|ml)\b(.*)', account._owner, re.IGNORECASE):
+                account.ownership = AccountOwnership.CO_OWNER
+            elif all(n in account._owner for n in owner_name.split()):
+                account.ownership = AccountOwnership.OWNER
+            elif 'Mandat' in account.label:
+                account.ownership = AccountOwnership.ATTORNEY
+            else:
+                account.ownership = NotAvailable
 
     @need_login
     def go_account_pages(self, account, action):

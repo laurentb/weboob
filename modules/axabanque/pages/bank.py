@@ -29,7 +29,7 @@ from weboob.browser.pages import HTMLPage, PDFPage, LoggedPage, AbstractPage
 from weboob.browser.elements import ItemElement, TableElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Regexp, Field, Env, Currency
 from weboob.browser.filters.html import Attr, Link, TableCell
-from weboob.capabilities.bank import Account, Investment
+from weboob.capabilities.bank import Account, Investment, AccountOwnership
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.capabilities.base import NotAvailable, empty
 from weboob.capabilities.profile import Person
@@ -135,6 +135,7 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                     self.browser.bank_accounts.open()
                     account.balance = loan_details.get_loan_balance()
                     account.currency = loan_details.get_loan_currency()
+                    account.ownership = loan_details.get_loan_ownership()
                     # Skip loans without any balance (already fully reimbursed)
                     if empty(account.balance):
                         continue
@@ -237,6 +238,7 @@ class AccountsPage(LoggedPage, MyHTMLPage):
 
                     account._url = self.doc.xpath('//form[contains(@action, "panorama")]/@action')[0]
                     account._acctype = "bank"
+                    account._owner = CleanText('./td[has-class("libelle")]')(box)
 
                 # get accounts currency
                 currency_title = table.xpath('./thead//th[@class="montant"]')[0].text.strip()
@@ -318,6 +320,12 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
 
     def get_loan_currency(self):
         return Currency('//*[@id="table-detail"]/tbody/tr/td[@class="capital"]', default=NotAvailable)(self.doc)
+
+    def get_loan_ownership(self):
+        co_owner = CleanText('//td[@class="coEmprunteur"]')(self.doc)
+        if co_owner:
+            return AccountOwnership.CO_OWNER
+        return AccountOwnership.OWNER
 
     def open_market(self):
         # only for netfinca PEA
