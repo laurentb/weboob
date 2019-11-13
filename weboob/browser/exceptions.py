@@ -63,6 +63,9 @@ class BrowserTooManyRequests(BrowserUnavailable):
         if next_try is None:
             next_try = BrowserTooManyRequests.NEXT_24H
 
+        if not isinstance(next_try, datetime.datetime):
+            raise TypeError('next_try value should be a datetime.')
+
         self.next_try = next_try
 
     def __str__(self):
