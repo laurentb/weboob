@@ -54,7 +54,9 @@ class BrowserTooManyRequests(BrowserUnavailable):
     # in exactly 24h
     NEXT_24H = datetime.datetime.now() + relativedelta(days=1)
 
-    def __init__(self, next_try=None):
+    def __init__(self, message='', next_try=None):
+        super(BrowserTooManyRequests, self).__init__(message)
+
         if next_try is None:
             next_try = BrowserTooManyRequests.NEXT_24H
 
@@ -64,4 +66,4 @@ class BrowserTooManyRequests(BrowserUnavailable):
         self.next_try = next_try
 
     def __str__(self):
-        return 'Too many requests, next_try set %s' % self.next_try
+        return super(BrowserTooManyRequests, self).__str__() or 'Too many requests, next_try set %s' % self.next_try
