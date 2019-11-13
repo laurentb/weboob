@@ -6,8 +6,9 @@ from __future__ import unicode_literals
 
 from weboob.browser.pages import LoggedPage, JsonPage
 from weboob.browser.elements import DictElement, ItemElement, method
-from weboob.browser.filters.standard import Date, CleanDecimal, Format, Env, Currency, Eval
+from weboob.browser.filters.standard import Date, CleanDecimal, Format, Env, Currency, Field
 from weboob.browser.filters.json import Dict
+from weboob.capabilities import NotAvailable
 from weboob.capabilities.bill import Subscription, Bill
 
 
@@ -34,34 +35,45 @@ class UserPage(LoggedPage, JsonPage):
 class DocumentsPage(LoggedPage, JsonPage):
     def build_doc(self, text):
         """
-        this json contains several important lists
+        this json contains several lists
         - pnrs
         - proofs
         - folders
         - trips
+        - after_sales_logs_dict
+        and others
 
-        each bill has data inside theses lists
-        this function rebuild doc to put data within same list we call 'bills'
+        the most important is proofs, because it contains url with a pdf
+        => so one proof gives one bill (for purchase only)
         """
         doc = super(DocumentsPage, self).build_doc(text)
 
         pnrs_dict = {pnr['id']: pnr for pnr in doc['pnrs']}
-        proofs_dict = {proof['pnr_id']: proof for proof in doc['proofs']}
-        folders_dict = {folder['pnr_id']: folder for folder in doc['folders']}
-        trips_dict = {trip['folder_id']: trip for trip in doc['trips']}
+        after_sales_logs_dict = {asl['id']: asl for asl in doc['after_sales_logs']}
 
         bills = []
-        for key, pnr in pnrs_dict.items():
-            proof = proofs_dict[key]
-            folder = folders_dict[key]
-            trip = trips_dict[folder['id']]
+        for proof in doc['proofs']:
+            pnr = pnrs_dict[proof['pnr_id']]
+            bill = {
+                'id': proof['id'],  # hash of 32 char length
+                'url': proof['url'],
+                'date': proof['created_at'],
+                'type': proof['type'],  # can be 'purchase' or 'refund'
+                'currency': pnr['currency'] or '',  # because pnr['currency'] can be None
+            }
 
-            bills.append({
-                'pnr': pnr,
-                'proof': proof,
-                'folder': folder,
-                'trip': trip,
-            })
+            assert proof['type'] in ('purchase', 'refund'), proof['type']
+            if proof['type'] == 'purchase':
+                # pnr['cents'] is 0 if this purchase has a refund, but there is nowhere to take it
+                # except make an addition, but we don't do that
+                bill['price'] = pnr['cents']
+                bills.append(bill)
+            else:  # proof['type'] == 'refund'
+                after_sales_logs = [after_sales_logs_dict[asl_id] for asl_id in pnr['after_sales_log_ids']]
+                for asl in after_sales_logs:
+                    new_bill = dict(bill)
+                    new_bill['price'] = asl['refunded_cents']
+                    bills.append(new_bill)
 
         return {'bills': bills}
 
@@ -72,10 +84,26 @@ class DocumentsPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Bill
 
-            obj_id = Format('%s_%s', Env('subid'), Dict('pnr/id'))
-            obj_url = Dict('proof/url')
-            obj_date = Date(Dict('proof/created_at'))
+            obj_id = Format('%s_%s', Env('subid'), Dict('id'))
+            obj_url = Dict('url')
+            obj_date = Date(Dict('date'))
             obj_format = 'pdf'
-            obj_label = Format('Trajet du %s', Date(Dict('trip/departure_date')))
-            obj_price = Eval(lambda x: x / 100, CleanDecimal(Dict('pnr/cents')))
-            obj_currency = Currency(Dict('pnr/currency'))
+            obj_currency = Currency(Dict('currency'), default=NotAvailable)
+
+            def obj_price(self):
+                price = CleanDecimal(Dict('price'), default=NotAvailable)(self)
+                if price:
+                    return price / 100
+                return NotAvailable
+
+            def obj_income(self):
+                if Dict('type')(self) == 'purchase':
+                    return False
+                else:  # type is 'refund'
+                    return True
+
+            def obj_label(self):
+                if Field('income')(self):
+                    return Format('Remboursement du %s', Field('date'))(self)
+                else:
+                    return Format('Trajet du %s', Field('date'))(self)
