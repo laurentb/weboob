@@ -57,11 +57,11 @@ class BrowserTooManyRequests(BrowserUnavailable):
     def __init__(self, message='', next_try=None):
         super(BrowserTooManyRequests, self).__init__(message)
 
+        if isinstance(next_try, datetime.date) and not isinstance(next_try, datetime.datetime):
+            next_try = datetime.datetime.combine(next_try, datetime.datetime.min.time())
+
         if next_try is None:
             next_try = BrowserTooManyRequests.NEXT_24H
-
-        if isinstance(next_try, datetime.date):
-            next_try = datetime.datetime.combine(next_try, datetime.datetime.min.time())
 
         self.next_try = next_try
 
