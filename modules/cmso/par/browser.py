@@ -218,7 +218,7 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
         return self.accounts_list
 
     def _go_market_history(self):
-        content = self.market.go(data=json.dumps({'place': 'SITUATION_PORTEFEUILLE'}), headers=self.json_headers).content
+        content = self.market.go(data=json.dumps({'place': 'SITUATION_PORTEFEUILLE'}), headers=self.json_headers).text
         self.location(json.loads(content)['urlSSO'])
 
         return self.market.go(website=self.website, action='historique')
@@ -302,7 +302,7 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
         account = self.get_account(account.id)
 
         if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_PERP):
-            url = json.loads(self.lifeinsurance.go(accid=account._index).content)['url']
+            url = json.loads(self.lifeinsurance.go(accid=account._index).text)['url']
             url = self.location(url).page.get_link("supports")
             if not url:
                 return iter([])
@@ -310,7 +310,7 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
         elif account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
             data = {"place": "SITUATION_PORTEFEUILLE"}
             response = self.market.go(data=json.dumps(data), headers=self.json_headers)
-            self.location(json.loads(response.content)['urlSSO'])
+            self.location(json.loads(response.text)['urlSSO'])
             self.market.go(website=self.website, action="situation")
             if self.page.go_account(account.label, account._owner):
                 return self.page.iter_investment()
