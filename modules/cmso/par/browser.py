@@ -232,7 +232,7 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
             return iter([])
 
         if account.type == Account.TYPE_LIFE_INSURANCE:
-            url = json.loads(self.lifeinsurance.go(accid=account._index).content)['url']
+            url = json.loads(self.lifeinsurance.go(accid=account._index).text)['url']
             url = self.location(url).page.get_link("opérations")
 
             return self.location(url).page.iter_history()
