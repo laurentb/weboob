@@ -172,8 +172,8 @@ class Repository(object):
         Retrieve the index file of this repository. It can use network
         if this is a remote repository.
 
-        :param repo_path: path to save the downloaded index file.
-        :type repo_path: str
+        :param repo_path: path to save the downloaded index file (if any).
+        :type repo_path: str or None
         """
         built = False
         if self.local:
@@ -202,7 +202,8 @@ class Repository(object):
             self.build_index(self.localurl2path(), filename)
 
         # Save the repository index in ~/.weboob/repositories/
-        self.save(repo_path, private=True)
+        if repo_path:
+            self.save(repo_path, private=True)
 
     def retrieve_keyring(self, browser, keyring_path, progress):
         # ignore local
