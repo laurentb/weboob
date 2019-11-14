@@ -90,6 +90,7 @@ class LoginPage(HTMLPage):
         # format login/password like login/password sent by firefox or chromium browser
         form['_cm_user'] = login.encode('cp1252', errors='xmlcharrefreplace').decode('cp1252')
         form['_cm_pwd'] = passwd.encode('cp1252', errors='xmlcharrefreplace').decode('cp1252')
+        form['_charset_'] = 'cp1252'
         form.submit()
 
     @property
