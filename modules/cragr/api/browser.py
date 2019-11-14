@@ -252,11 +252,11 @@ class CragrAPI(LoginBrowser):
         # so we might have to retry several times.
         try:
             self.go_to_account_space(contract)
-        except ServerError:
+        except (ServerError, BrowserUnavailable):
             self.logger.warning('Server returned error 500 when trying to access space %s, we try again', contract)
             try:
                 self.go_to_account_space(contract)
-            except ServerError:
+            except (ServerError, BrowserUnavailable):
                 return False
         return True
 
@@ -460,21 +460,22 @@ class CragrAPI(LoginBrowser):
     @need_login
     def go_to_account_space(self, contract):
         # This request often returns a 500 error on this quality website
-        try:
-            self.contracts_page.go(space=self.space, id_contract=contract)
-        except ServerError:
-            self.logger.warning('Space switch returned a 500 error, try again.')
-            self.contracts_page.go(space=self.space, id_contract=contract)
-        if not self.accounts_page.is_here():
-            # We have been logged out.
-            self.do_login()
+        for tries in range(4):
             try:
                 self.contracts_page.go(space=self.space, id_contract=contract)
             except ServerError as e:
                 if e.response.status_code == 500:
-                    raise BrowserUnavailable()
-                raise
-        assert self.accounts_page.is_here()
+                    self.logger.warning('Space switch returned a 500 error, try again.')
+                    self.contracts_page.go(space=self.space, id_contract=contract)
+                else:
+                    raise
+            if not self.accounts_page.is_here():
+                self.logger.warning('We have been loggged out, relogin.')
+                self.do_login()
+            else:
+                return
+            if tries >= 3:
+                raise BrowserUnavailable()
 
     @need_login
     def iter_history(self, account, coming=False):
