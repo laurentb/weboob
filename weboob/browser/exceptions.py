@@ -48,12 +48,6 @@ class BrowserTooManyRequests(BrowserUnavailable):
     The module should set the next_try if possible, else it is set to 24h.
     """
 
-    # next day at 00h00
-    NEXT_DAY = datetime.date.today() + relativedelta(days=1)
-
-    # in exactly 24h
-    NEXT_24H = datetime.datetime.now() + relativedelta(days=1)
-
     def __init__(self, message='', next_try=None):
         super(BrowserTooManyRequests, self).__init__(message)
 
@@ -61,7 +55,7 @@ class BrowserTooManyRequests(BrowserUnavailable):
             next_try = datetime.datetime.combine(next_try, datetime.datetime.min.time())
 
         if next_try is None:
-            next_try = BrowserTooManyRequests.NEXT_24H
+            next_try = datetime.datetime.now() + relativedelta(days=1)
 
         if not isinstance(next_try, datetime.datetime):
             raise TypeError('next_try value should be a datetime.')
