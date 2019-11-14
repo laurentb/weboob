@@ -21,9 +21,8 @@ from ast import literal_eval
 from decimal import Decimal, ROUND_DOWN
 import json
 import re
-import urllib.parse
 
-from weboob.tools.compat import unicode
+from weboob.tools.compat import unicode, unquote
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
 from weboob.exceptions import BrowserUnavailable, ActionNeeded
@@ -86,7 +85,7 @@ class LoginPage(HTMLPage):
             for r in raw:
                 r = r.split("=")
                 k = r[0]
-                v = urllib.parse.unquote(r[1])
+                v = unquote(r[1])
 
                 if k not in ["ads_token_js", "_sessionID", "_csrf"]:
                     tokens["key"] = k
