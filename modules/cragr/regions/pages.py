@@ -681,7 +681,7 @@ class SavingsHistoryPage(LoggedPage, CragrPage):
 
 class OtherSavingsHistoryPage(LoggedPage, CragrPage):
     def is_here(self):
-        return CleanText('//span[@class="tdb-cartes-prop"]/b[contains(text(), "HISTORIQUE DES OPERATIONS")]')(self.doc)
+        return CleanText('//span[@class="tdb-cartes-prop"]/b[contains(text(), "HISTORIQUE DES OPERATIONS") or text()="OPERATIONS"]')(self.doc)
 
     @pagination
     @method
