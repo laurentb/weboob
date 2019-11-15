@@ -276,6 +276,11 @@ ACCOUNT_TYPES = {
 
 
 class AccountsPage(LoggedPage, CragrPage):
+    def on_load(self):
+        # Verify that all accounts page have the text 'Synthèse comptes'
+        if not CleanText('//h1[contains(text(), "Synthèse comptes")]')(self.doc):
+            self.logger.warning('We found an AccountsPage without the "Synthèse comptes" text.')
+
     def no_other_perimeter(self):
         return not CleanText('//a[@title="Espace Autres Comptes"]')(self.doc)
 
