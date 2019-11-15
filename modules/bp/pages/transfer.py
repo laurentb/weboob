@@ -33,7 +33,7 @@ from weboob.browser.elements import ListElement, ItemElement, method, SkipItem
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.value import Value
-from weboob.exceptions import BrowserUnavailable
+from weboob.exceptions import BrowserUnavailable, AuthMethodNotImplemented
 
 from .base import MyHTMLPage
 
@@ -140,8 +140,16 @@ class TransferConfirm(LoggedPage, CheckTransferError):
     def is_here(self):
         return (
             not CleanText('//p[contains(text(), "Vous pouvez le consulter dans le menu")]')(self.doc)
-            or self.doc.xpath('//input[@title="Confirmer la demande de virement"]')
+            or self.doc.xpath('//input[@title="Confirmer la demande de virement"]')  # appears when there is no need for otp/polling
+            or self.doc.xpath("//span[contains(text(), 'cliquant sur le bouton \"CONFIRMER\"')]")  # appears on the page when there is a 'Confirmer' button or not
         )
+
+    def choose_device(self):
+        # When there is no "Confirmer" button,
+        # it means that the device pop up appeared (it is called by js)
+        if not self.doc.xpath('//input[@value="Confirmer"]'):
+            raise AuthMethodNotImplemented()
+        assert False, 'Should not be on confirmation page after posting the form.'
 
     def double_auth(self, transfer):
         code_needed = CleanText('//label[@for="code_securite"]')(self.doc)
@@ -185,6 +193,8 @@ class TransferConfirm(LoggedPage, CheckTransferError):
 
 
 class TransferSummary(LoggedPage, CheckTransferError):
+    is_here = '//h3[contains(text(), "Récapitulatif")]'
+
     def handle_response(self, transfer):
         summary_filter = CleanText(
             '//div[contains(@class, "bloc-recapitulatif")]//p'

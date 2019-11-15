@@ -143,7 +143,11 @@ class BPBrowser(LoginBrowser, StatesMixin):
                            r'/voscomptes/canalXHTML/virement/virementSafran_sepa/valider-virementSepa.ea',
                            r'/voscomptes/canalXHTML/virement/virementSafran_sepa/confirmerInformations-virementSepa.ea',
                            r'/voscomptes/canalXHTML/virement/virementSafran_national/valider-creerVirementNational.ea',
-                           r'/voscomptes/canalXHTML/virement/virementSafran_national/validerVirementNational-virementNational.ea', TransferConfirm)
+                           r'/voscomptes/canalXHTML/virement/virementSafran_national/validerVirementNational-virementNational.ea',
+                           # the following url is already used in transfer_summary
+                           # but we need it to detect the case where the website displaies the list of devices
+                           # when a transfer is made with an otp or decoupled
+                           r'/voscomptes/canalXHTML/virement/virementSafran_sepa/confirmer-creerVirementSepa.ea', TransferConfirm)
     transfer_summary = URL(r'/voscomptes/canalXHTML/virement/virementSafran_national/confirmerVirementNational-virementNational.ea',
                            r'/voscomptes/canalXHTML/virement/virementSafran_pea/confirmerInformations-virementPea.ea',
                            r'/voscomptes/canalXHTML/virement/virementSafran_sepa/confirmer-creerVirementSepa.ea',
@@ -484,6 +488,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
         self.page.confirm()
         # Should only happen if double auth.
         if self.transfer_confirm.is_here():
+            self.page.choose_device()
             self.page.double_auth(transfer)
         return self.page.handle_response(transfer)
 
