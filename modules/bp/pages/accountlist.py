@@ -19,7 +19,6 @@
 
 from __future__ import unicode_literals
 
-from io import BytesIO
 import re
 from decimal import Decimal
 
@@ -36,6 +35,7 @@ from weboob.browser.filters.standard import (
 )
 from weboob.exceptions import BrowserUnavailable
 from weboob.tools.compat import urljoin, unicode
+from weboob.tools.pdf import extract_text
 
 from .base import MyHTMLPage
 
@@ -432,52 +432,8 @@ class Advisor(LoggedPage, MyHTMLPage):
 class AccountRIB(LoggedPage, RawPage):
     iban_regexp = r'[A-Z]{2}\d{12}[0-9A-Z]{11}\d{2}'
 
-    def __init__(self, *args, **kwargs):
-        super(AccountRIB, self).__init__(*args, **kwargs)
-
-        self.parsed_text = b''
-
-        try:
-            try:
-                from pdfminer.pdfdocument import PDFDocument
-                from pdfminer.pdfpage import PDFPage
-                newapi = True
-            except ImportError:
-                from pdfminer.pdfparser import PDFDocument
-                newapi = False
-            from pdfminer.pdfparser import PDFParser, PDFSyntaxError
-            from pdfminer.converter import TextConverter
-            from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
-        except ImportError:
-            self.logger.warning('Please install python-pdfminer to get IBANs')
-        else:
-            parser = PDFParser(BytesIO(self.doc))
-            try:
-                if newapi:
-                    doc = PDFDocument(parser)
-                else:
-                    doc = PDFDocument()
-                    parser.set_document(doc)
-                    doc.set_parser(parser)
-            except PDFSyntaxError:
-                return
-
-            rsrcmgr = PDFResourceManager()
-            out = BytesIO()
-            device = TextConverter(rsrcmgr, out)
-            interpreter = PDFPageInterpreter(rsrcmgr, device)
-            if newapi:
-                pages = PDFPage.create_pages(doc)
-            else:
-                doc.initialize()
-                pages = doc.get_pages()
-            for page in pages:
-                interpreter.process_page(page)
-
-            self.parsed_text = out.getvalue()
-
     def get_iban(self):
-        m = re.search(self.iban_regexp, self.parsed_text.decode('utf-8'))
+        m = re.search(self.iban_regexp, extract_text(self.data))
         if m:
             return unicode(m.group(0))
         return None
