@@ -269,7 +269,7 @@ class IbanPage(PDFPage):
             # findall will find something like
             # ['FRXX', '1234', ... , '9012', 'FRXX', '1234', ... , '9012']
             iban += part
-        iban = iban[:len(iban)/2]
+        iban = iban[:len(iban)//2]
 
         # we suppose that all iban are French iban
         iban_last_part = re.findall(r'([A-Z0-9]{3})\1\1Titulaire', extract_text(self.data), flags=re.MULTILINE)
