@@ -85,8 +85,12 @@ class CmesBrowser(LoginBrowser):
         self.accounts.stay_or_go(subsite=self.subsite, client_space=self.client_space)
         for inv in self.page.iter_investments(account=account):
             if inv._url:
-                # Go to the investment details to get performances
+                # Go to the investment details to get employee savings attributes
                 self.location(inv._url)
+
+                # Fetch SRRI, asset category & recommended period
+                self.page.fill_investment(obj=inv)
+
                 performances = {}
 
                 # Get 1-year performance

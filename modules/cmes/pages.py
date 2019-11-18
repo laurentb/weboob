@@ -24,7 +24,7 @@ from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Date, Regexp, Field, Currency,
-    Upper, MapIn, Eval,
+    Upper, MapIn, Eval, Title,
 )
 from weboob.browser.filters.html import Link
 from weboob.capabilities.bank import Account, Investment, Pocket, NotAvailable
@@ -187,6 +187,24 @@ class AccountsPage(LoggedPage, HTMLPage):
 
 
 class InvestmentPage(LoggedPage, HTMLPage):
+    @method
+    class fill_investment(ItemElement):
+        # Sometimes there is a 'LIBELLES EN EURO' string joined with the category so we remove it
+        obj_asset_category = Title(CleanText('//tr[th[text()="Classification AMF"]]/td', replace=[('LIBELLES EN EURO', '')]))
+
+        def obj_srri(self):
+            # Extract the value from '1/7' or '6/7' for instance
+            srri = Regexp(CleanText('//tr[th[text()="Niveau de risque"]]/td'), r'(\d+)/7', default=None)(self)
+            if srri:
+                return int(srri)
+            return NotAvailable
+
+        def obj_recommended_period(self):
+            period = CleanText('//tr[th[text()="Durée de placement recommandée"]]/td')(self)
+            if period != 'NC':
+                return period
+            return NotAvailable
+
     def get_form_url(self):
         form = self.get_form(id='C:P:F')
         return form.url
