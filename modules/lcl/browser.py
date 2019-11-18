@@ -271,7 +271,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         if self.login.is_here():
             return self.get_accounts_list()
 
-        owner_name = re.search(r' (.+)', self.get_profile().name).group(1).upper()
+        owner_name = re.search(r' (.+)', self.get_profile_name()).group(1).upper()
         # retrieve life insurance accounts
         self.assurancevie.stay_or_go()
         if self.no_perm.is_here():
@@ -394,7 +394,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                 a._card_position = card_position
                 self.update_accounts(a)
 
-        owner_name = re.search(r' (.+)', self.get_profile().name).group(1).upper()
+        owner_name = re.search(r' (.+)', self.get_profile_name()).group(1).upper()
         for account in self.accounts_list:
             account.owner_type = self.owner_type
             self.set_ownership(account, owner_name)
@@ -641,10 +641,15 @@ class LCLBrowser(LoginBrowser, StatesMixin):
             documents.append(document)
         return documents
 
+    def get_profile_name(self):
+        self.accounts.stay_or_go()
+        return self.page.get_name()
+
     @need_login
     def get_profile(self):
-        self.accounts.stay_or_go()
-        name = self.page.get_name()
+        name = self.get_profile_name()
+        # The self.get_profile_name() already does a
+        # self.accounts.stay_or_go()
         self.profile.go(method="POST")
         profile = self.page.get_profile(name=name)
         return profile
