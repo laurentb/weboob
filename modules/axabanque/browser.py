@@ -407,7 +407,7 @@ class AXABanque(AXABrowser, StatesMixin):
             self.go_account_pages(account, 'history')
 
             if self.page.more_history():
-                for tr in self.page.get_history():
+                for tr in sorted_transactions(self.page.get_history()):
                     yield tr
         # Get deferred card history
         elif account._acctype == 'bank' and account.type == Account.TYPE_CARD:
