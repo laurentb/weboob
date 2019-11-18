@@ -354,8 +354,11 @@ class LoansPage(JsonBasePage):
                     # used amount
                     if Dict('reserveUtilisee', default=NotAvailable)(acc):
                         loan.used_amount = eval_decimal_amount('reserveUtilisee/valeur', 'reserveUtilisee/posDecimale')(acc)
+                        # in some cases, the displayed balance is the available amount and must be overriden
+                        loan.balance = loan.used_amount
                     elif Dict('montantUtilise', default=NotAvailable)(acc):
-                        loan.available_amount = eval_decimal_amount('montantUtilise/valeur', 'montantUtilise/posDecimale')(acc)
+                        loan.used_amount = eval_decimal_amount('montantUtilise/valeur', 'montantUtilise/posDecimale')(acc)
+                        loan.balance = loan.used_amount
 
                     # next payment amount
                     if Dict('prochaineEcheance', default=NotAvailable)(acc):
