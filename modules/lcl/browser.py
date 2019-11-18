@@ -271,7 +271,12 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         if self.login.is_here():
             return self.get_accounts_list()
 
-        owner_name = re.search(r' (.+)', self.get_profile_name()).group(1).upper()
+        profile_name = self.get_profile_name()
+        if ' ' in profile_name:
+            owner_name = re.search(r' (.+)', profile_name).group(1).upper()
+        else:
+            owner_name = profile_name.upper()
+
         # retrieve life insurance accounts
         self.assurancevie.stay_or_go()
         if self.no_perm.is_here():
@@ -394,7 +399,12 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                 a._card_position = card_position
                 self.update_accounts(a)
 
-        owner_name = re.search(r' (.+)', self.get_profile_name()).group(1).upper()
+        profile_name = self.get_profile_name()
+        if ' ' in profile_name:
+            owner_name = re.search(r' (.+)', profile_name).group(1).upper()
+        else:
+            owner_name = profile_name.upper()
+
         for account in self.accounts_list:
             account.owner_type = self.owner_type
             self.set_ownership(account, owner_name)
