@@ -60,6 +60,18 @@ class AppValidation(DecoupledValidation):
     pass
 
 
+class AppValidationError(Exception):
+    pass
+
+
+class AppValidationCancelled(AppValidationError):
+    pass
+
+
+class AppValidationExpired(AppValidationError):
+    pass
+
+
 class BrowserRedirect(BrowserInteraction):
     def __init__(self, url, resource=None):
         self.url = url
