@@ -100,9 +100,13 @@ class AccountsPage(LoggedPage, HTMLPage):
 
             def obj_id(self):
                 # Use customer number + label to build account id
-                number = Regexp(CleanText('//div[@id="ei_tpl_fullSite"]//div[contains(@class, "ei_tpl_profil_content")]/p'),
-                                r'(\d+)$', '\\1')(self)
+                number = Regexp(
+                    CleanText('//div[@id="ei_tpl_fullSite"]//div[contains(@class, "ei_tpl_profil_content")]/p'),
+                    r'(\d+)$', '\\1'
+                )(self)
                 return Field('label')(self) + number
+
+            obj_number = obj_id
 
     def iter_invest_rows(self, account):
         """
