@@ -20,8 +20,6 @@
 from __future__ import unicode_literals
 
 import re
-from decimal import Decimal
-
 import requests
 
 from weboob.capabilities.bank import Account
@@ -240,7 +238,10 @@ class CreditHistory(LoggedPage, XLSPage):
 
             def obj_amount(self):
                 assert not (Dict('Débit')(self) and Dict('Credit')(self)), "cannot have both debit and credit"
-                return Decimal(Dict('Credit')(self) or 0) - abs(Decimal(Dict('Débit')(self) or 0))
+
+                if Dict('Credit')(self):
+                    return CleanDecimal.US(Dict('Credit'))(self)
+                return -CleanDecimal.US(Dict('Débit'))(self)
 
             obj_date = Date(Dict('Date'), dayfirst=True)
 
