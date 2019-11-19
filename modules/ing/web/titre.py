@@ -29,8 +29,7 @@ from weboob.browser.elements import ListElement, TableElement, ItemElement, meth
 from weboob.browser.filters.standard import CleanDecimal, CleanText, Date, Regexp, Env
 from weboob.browser.filters.html import Link, Attr, TableCell
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.tools.capabilities.bank.investments import create_french_liquidity
-from weboob.tools.compat import unicode
+from weboob.tools.capabilities.bank.investments import create_french_liquidity, IsinCode
 
 
 class NetissimaPage(HTMLPage):
@@ -43,8 +42,9 @@ class Transaction(FrenchTransaction):
 
 class TitreValuePage(LoggedPage, HTMLPage):
     def get_isin(self):
-        isin = self.doc.xpath('//div[@id="headFiche"]//span[@id="test3"]/text()')
-        return unicode(isin[0].split(' - ')[0].strip()) if isin else NotAvailable
+        # redirection page with a url which contains the ISIN
+        # example: https://bourse.ing.fr/fr/marche/euronext-paris/<label>-<ISIN>-UG-EUR-XPAR/seance?headerless=true
+        return IsinCode(Regexp(CleanText('//script'), r'-([A-Z]{2}[A-Z0-9]{9}\d)-'), default=NotAvailable)(self.doc)
 
 
 class TitrePage(LoggedPage, RawPage):
