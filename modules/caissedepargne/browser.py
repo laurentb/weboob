@@ -438,13 +438,14 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         if self.accounts is None:
             self.accounts = self.get_measure_accounts_list()
         if self.accounts is None:
+            owner_name = self.get_profile().name.upper().split(' ', 1)[1]
             if self.home.is_here():
                 self.page.check_no_accounts()
                 self.page.go_list()
             else:
                 self.home.go()
 
-            self.accounts = list(self.page.get_list())
+            self.accounts = list(self.page.get_list(owner_name))
             for account in self.accounts:
                 self.deleteCTX()
                 if account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
@@ -502,6 +503,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                         for card in self.page.iter_cards():
                             card.parent = account
                             card._coming_info = self.page.get_card_coming_info(card.number, card.parent._card_links.copy())
+                            card.ownership = account.ownership
                             self.accounts.append(card)
 
             self.home.go()
@@ -523,6 +525,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
                     # If card.parent._card_links is not filled, it mean this checking account
                     # has no coming transactions.
                     card._coming_info = None
+                    card.ownership = card.parent.ownership
                     if info:
                         self.page.go_list()
                         self.page.go_history(info)

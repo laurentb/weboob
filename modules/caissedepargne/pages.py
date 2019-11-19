@@ -39,7 +39,7 @@ from weboob.browser.filters.html import Link, Attr, TableCell
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import (
     Account, Investment, Recipient, TransferBankError, Transfer,
-    AddRecipientBankError, Loan,
+    AddRecipientBankError, Loan, AccountOwnership,
 )
 from weboob.capabilities.bill import DocumentTypes, Subscription, Document
 from weboob.tools.capabilities.bank.investments import is_isin_valid
@@ -287,7 +287,7 @@ class IndexPage(LoggedPage, HTMLPage):
     def is_account_inactive(self, account_id):
         return self.doc.xpath('//tr[td[contains(text(), $id)]][@class="Inactive"]', id=account_id)
 
-    def _add_account(self, accounts, link, label, account_type, balance, number=None):
+    def _add_account(self, accounts, link, label, account_type, balance, number=None, ownership=NotAvailable):
         info = self._get_account_info(link, accounts)
         if info is None:
             self.logger.warning('Unable to parse account %r: %r' % (label, link))
@@ -301,11 +301,14 @@ class IndexPage(LoggedPage, HTMLPage):
         account._info = info
         account.number = number
         account.label = label
+        account.ownership = ownership
         account.type = self.ACCOUNT_TYPES.get(label, info['acc_type'] if 'acc_type' in info else account_type)
         if 'PERP' in account.label:
             account.type = Account.TYPE_PERP
         if 'NUANCES CAPITALISATI' in account.label:
             account.type = Account.TYPE_CAPITALISATION
+        if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_PERP):
+            account.ownership = AccountOwnership.OWNER
 
         balance = balance or self.get_balance(account)
 
@@ -358,7 +361,7 @@ class IndexPage(LoggedPage, HTMLPage):
             accounts_id.append(re.search("(\d{6,})", Attr('.', 'href')(a)).group(1))
         return accounts_id
 
-    def get_list(self):
+    def get_list(self, owner_name):
         accounts = OrderedDict()
 
         # Old website
@@ -393,7 +396,7 @@ class IndexPage(LoggedPage, HTMLPage):
                             balance = CleanText('.')(tds[-1].xpath('./a')[i])
                             self._add_account(accounts, a, label, account_type, balance)
 
-        self.logger.debug('we are on the %s website', 'old' if accounts else 'new')
+        self.logger.warning('we are on the %s website', 'old' if accounts else 'new')
 
         if len(accounts) == 0:
             # New website
@@ -417,12 +420,24 @@ class IndexPage(LoggedPage, HTMLPage):
                     # (perhaps only on creditcooperatif)
                     label = CleanText('./strong')(tds[0])
                     balance = CleanText('.')(tds[-1])
+                    ownership = self.get_ownership(tds, owner_name)
 
-                    account = self._add_account(accounts, a, label, account_type, balance)
+                    account = self._add_account(accounts, a, label, account_type, balance, ownership=ownership)
                     if account:
                         account.number = CleanText('.')(tds[1])
 
         return list(accounts.values())
+
+    def get_ownership(self, tds, owner_name):
+        if len(tds) > 2:
+            account_owner = CleanText('.', default=None)(tds[2]).upper()
+            if account_owner and any(title in account_owner for title in ('M', 'MR', 'MLLE', 'MLE', 'MME')):
+                if re.search(r'(m|mr|me|mme|mlle|mle|ml)\.? ?(.*)\bou (m|mr|me|mme|mlle|mle|ml)\b(.*)', account_owner, re.IGNORECASE):
+                    return AccountOwnership.CO_OWNER
+                elif all(n in account_owner for n in owner_name.split()):
+                    return AccountOwnership.OWNER
+                return AccountOwnership.ATTORNEY
+        return NotAvailable
 
     def is_access_error(self):
         error_message = u"Vous n'êtes pas autorisé à accéder à cette fonction"
@@ -490,6 +505,9 @@ class IndexPage(LoggedPage, HTMLPage):
                         account.balance = -abs(balance)
                         account.currency = account.get_currency(CleanText('.')(tds[-1]))
                         account._card_links = []
+                        # The website doesn't show any information relative to the loan
+                        # owner, we can then assume they all belong to the credentials owner.
+                        account.ownership = AccountOwnership.OWNER
 
                         if "renouvelables" in CleanText('.')(title):
                             if 'JSESSIONID' in self.browser.session.cookies:
@@ -539,6 +557,9 @@ class IndexPage(LoggedPage, HTMLPage):
                 obj_next_payment_amount = MyDecimal(MyTableCell("next_payment_amount"))
                 obj_next_payment_date = Date(CleanText(MyTableCell("next_payment_date", default=''), default=NotAvailable), default=NotAvailable)
                 obj_rate = MyDecimal(MyTableCell("rate", default=NotAvailable), default=NotAvailable)
+                # The website doesn't show any information relative to the loan
+                # owner, we can then assume they all belong to the credentials owner.
+                obj_ownership = AccountOwnership.OWNER
 
     def submit_form(self, form, eventargument, eventtarget, scriptmanager):
         form['__EVENTARGUMENT'] = eventargument
