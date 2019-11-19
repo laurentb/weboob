@@ -40,11 +40,15 @@ __all__ = ['OneyBrowser']
 class OneyBrowser(LoginBrowser):
     BASEURL = 'https://www.oney.fr'
 
-    home_login = URL(r'/site/s/login/login.html',
-                     LoginPage)
-    login = URL(r'https://login.oney.fr/login',
-                r'https://login.oney.fr/context',
-                LoginPage)
+    home_login = URL(
+        r'/site/s/login/login.html',
+        LoginPage
+    )
+    login = URL(
+        r'https://login.oney.fr/login',
+        r'https://login.oney.fr/context',
+        LoginPage
+    )
 
     send_username = URL(r'https://login.oney.fr/middle/authenticationflowinit', SendUsernamePage)
     send_password = URL(r'https://login.oney.fr/middle/completeauthflowstep', SendPasswordPage)

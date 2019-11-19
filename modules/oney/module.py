@@ -18,6 +18,8 @@
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
 
+from __future__ import unicode_literals
+
 from weboob.capabilities.bank import CapBank, AccountNotFound
 from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
@@ -31,18 +33,22 @@ __all__ = ['OneyModule']
 
 class OneyModule(Module, CapBank):
     NAME = 'oney'
-    MAINTAINER = u'Vincent Paredes'
+    MAINTAINER = 'Vincent Paredes'
     EMAIL = 'vparedes@budget-insight.com'
     VERSION = '1.6'
     LICENSE = 'LGPLv3+'
     DESCRIPTION = 'Oney'
-    CONFIG = BackendConfig(ValueBackendPassword('login',      label='Identifiant', masked=False),
-                           ValueBackendPassword('password',   label='Mot de passe'))
+    CONFIG = BackendConfig(
+        ValueBackendPassword('login', label='Identifiant', masked=False),
+        ValueBackendPassword('password', label='Mot de passe'),
+    )
     BROWSER = OneyBrowser
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(),
-                                   self.config['password'].get())
+        return self.create_browser(
+            self.config['login'].get(),
+            self.config['password'].get(),
+        )
 
     def iter_accounts(self):
         for account in self.browser.get_accounts_list():

@@ -34,6 +34,7 @@ from weboob.browser.filters.json import Dict
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.tools.compat import urlparse, parse_qsl
 
+
 class Transaction(FrenchTransaction):
     PATTERNS = [(re.compile(r'^(?P<text>Retrait .*?) - traité le \d+/\d+$'), FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile(r'^(?P<text>(Prélèvement|Cotisation|C R C A M) .*?) - traité le \d+/\d+$'), FrenchTransaction.TYPE_ORDER),  # C R C A M is a bank it is hardcoded here because some client want it typed and it would be a mess to scrap it
@@ -103,7 +104,7 @@ class ClientPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Account
 
-            obj_currency = u'EUR'
+            obj_currency = 'EUR'
             obj_type = Account.TYPE_REVOLVING_CREDIT
             obj_label = Env('label')
             obj__num = Env('_num')
@@ -112,8 +113,8 @@ class ClientPage(LoggedPage, HTMLPage):
             obj__site = 'oney'
 
             def parse(self, el):
-                self.env['label'] = CleanText('./h3/a')(self) or u'Carte Oney'
-                self.env['_num'] = Attr('%s%s%s' % ('//option[contains(text(), "', Field('label')(self).replace('Ma ', ''), '")]'), 'value', default=u'')(self)
+                self.env['label'] = CleanText('./h3/a')(self) or 'Carte Oney'
+                self.env['_num'] = Attr('%s%s%s' % ('//option[contains(text(), "', Field('label')(self).replace('Ma ', ''), '")]'), 'value', default='')(self)
                 self.env['id'] = Format('%s%s' % (self.page.browser.username, Field('_num')(self)))(self)
 
                 # On the multiple accounts page, decimals are separated with dots, and separated with commas on single account page.
