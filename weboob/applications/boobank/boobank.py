@@ -467,8 +467,7 @@ class Boobank(CaptchaMixin, ReplApplication):
             params = {}
             for field in error.fields:
                 v = self.ask(field)
-                if v:
-                    params[field.id] = v
+                params[field.id] = v
             #backend.config['accept_transfer'].set(v)
             params['backends'] = backend
             self.start_format()
@@ -479,8 +478,7 @@ class Boobank(CaptchaMixin, ReplApplication):
             params['backends'] = backend
             for field in error.fields:
                 v = self.ask(field)
-                if v:
-                    params[field.id] = v
+                params[field.id] = v
             try:
                 next(iter(self.do('add_recipient', error.recipient, **params)))
             except CallErrors as e:
