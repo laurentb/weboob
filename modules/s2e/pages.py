@@ -494,8 +494,10 @@ class AccountsPage(LoggedPage, MultiPage):
         form[select_id] = Attr('//option[contains(text(), "%s")]' % accid, 'value')(self.doc)
         form[input_id] = "onglet4" if pocket else "onglet2"
         # Select display : amount or quantity
-        radio_txt = ("En montant" if valuation else [u"Quantité", "En parts"]) if self.browser.LANG == "fr" else \
-                    ("In amount" if valuation else ["Quantity", "In units"])
+        if self.browser.LANG == "fr":
+            radio_txt = "En montant" if valuation else ["Quantité", "En parts", "Nombre de parts"]
+        else:
+            radio_txt = "In amount" if valuation else ["Quantity", "In units", "Number of units"]
         if isinstance(radio_txt, list):
             radio_txt = '" or text()="'.join(radio_txt)
         input_id = Regexp(Attr('%s//span[text()="%s"]/preceding-sibling::a[1]' \
