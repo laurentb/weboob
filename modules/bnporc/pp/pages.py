@@ -38,7 +38,7 @@ from weboob.browser.pages import JsonPage, LoggedPage, HTMLPage
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import (
     Account, Investment, Recipient, Transfer, TransferBankError,
-    AddRecipientBankError, AddRecipientTimeout,
+    AddRecipientBankError, AddRecipientTimeout, AccountOwnership,
 )
 from weboob.capabilities.base import empty
 from weboob.capabilities.contact import Advisor
@@ -310,6 +310,9 @@ class ProfilePage(LoggedPage, JsonPage):
 
 
 class AccountsPage(BNPPage):
+    def get_user_ikpi(self):
+        return self.doc['data']['infoUdc']['titulaireConnecte']['ikpi']
+
     @method
     class iter_accounts(DictElement):
         item_xpath = 'data/infoUdc/familleCompte'
@@ -374,6 +377,17 @@ class AccountsPage(BNPPage):
                             iban = rib2iban(rebuild_rib(iban))
                         return iban
                     return None
+
+                def obj_ownership(self):
+                    indic = Dict('titulaire/indicTitulaireCollectif', default=None)(self)
+                    # The boolean is in the form of a string ('true' or 'false')
+                    if indic == 'true':
+                        return AccountOwnership.CO_OWNER
+                    elif indic == 'false':
+                        if self.page.get_user_ikpi() == Dict('titulaire/ikpi')(self):
+                            return AccountOwnership.OWNER
+                        return AccountOwnership.ATTORNEY
+                    return NotAvailable
 
                 # softcap not used TODO don't pass this key when backend is ready
                 # deferred cb can disappear the day after the appear, so 0 as day_for_softcap
