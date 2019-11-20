@@ -19,18 +19,14 @@
 
 from __future__ import unicode_literals
 
-from ast import literal_eval
 from decimal import Decimal
-import re
 
 from weboob.browser.pages import LoggedPage, JsonPage, HTMLPage
 from weboob.browser.elements import ItemElement, DictElement, method
-from weboob.browser.filters.standard import Date, Eval, Env, CleanText, Field, CleanDecimal
+from weboob.browser.filters.standard import Date, Eval, Env, CleanText, Field, CleanDecimal, Format, Currency
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.bank import Account, Transaction
 from weboob.capabilities.base import NotAvailable
-from weboob.tools.json import json
-from weboob.tools.compat import basestring
 from weboob.exceptions import ActionNeeded, BrowserUnavailable
 from dateutil.parser import parse as parse_date
 
@@ -48,14 +44,6 @@ def parse_decimal(s):
     return CleanDecimal(replace_dots=comma).filter(s)
 
 
-class WrongLoginPage(HTMLPage):
-    pass
-
-
-class AccountSuspendedPage(HTMLPage):
-    pass
-
-
 class NoCardPage(HTMLPage):
     def on_load(self):
         raise ActionNeeded()
@@ -68,77 +56,66 @@ class NotFoundPage(HTMLPage):
         raise BrowserUnavailable(alert_header, alert_content)
 
 
-class LoginPage(HTMLPage):
-    def login(self, username, password):
-        form = self.get_form(name='ssoform')
-        form['UserID'] = username
-        form['USERID'] = username
-        form['Password'] = password
-        form['PWD'] = password
-        form.submit()
+class LoginPage(JsonPage):
+    def get_status_code(self):
+        # - 0 = OK
+        # - 1 = Incorrect login/password
+        return CleanDecimal(Dict('statusCode'))(self.doc)
 
 
-class AccountsPage(LoggedPage, HTMLPage):
-    def iter_accounts(self):
-        for line in self.doc.xpath('//script[@id="initial-state"]')[0].text.split('\n'):
-            m = re.search('window.__INITIAL_STATE__ = (.*);', line)
-            if m:
-                data = json.loads(literal_eval(m.group(1)))
-                break
-        else:
-            assert False, "data was not found"
+class AccountsPage(LoggedPage, JsonPage):
+    @method
+    class iter_accounts(DictElement):
+        def find_elements(self):
+            for obj in self.page.doc.get('accounts', []):
+                obj['_history_token'] = obj['account_token']
+                yield obj
+                for secondary_acc in obj.get('supplementary_accounts', []):
+                    # Secondary accounts use the id of the parrent account
+                    # when searching history/coming. History/coming are filtered
+                    # on the owner name (_idforJSON).
+                    secondary_acc['_history_token'] = obj['account_token']
+                    yield secondary_acc
 
-        assert data[15] == 'core'
-        assert len(data[16]) == 3
+        class item(ItemElement):
+            klass = Account
 
-        # search for products to get products list
-        for index, el in enumerate(data[16][2]):
-            if 'products' in el:
-                accounts_data = data[16][2][index + 1]
+            def condition(self):
+                return any(status == 'Active' for status in Dict('status/account_status')(self))
 
-        assert len(accounts_data) == 2
-        assert accounts_data[1][4] == 'productsList'
+            obj_id = Dict('account_token')
+            obj__history_token = Dict('_history_token')
+            obj__account_type = Dict('account/relationship')
+            obj_number = Format('-%s', Dict('account/display_account_number'))
+            obj_type = Account.TYPE_CARD
+            obj_currency = Currency(Env('currency'))
+            obj__idforJSON = Dict('profile/embossed_name')
 
-        accounts_data = accounts_data[1][5]
-        token = []
-
-        for account_data in accounts_data:
-            if isinstance(account_data, basestring):
-                balances_token = account_data
-
-            elif isinstance(account_data, list) and not account_data[4][2][0] == "Canceled":
-                acc = Account()
-                if len(account_data) > 15:
-                    token.append(account_data[-11])
-                    acc._idforJSON = account_data[10][-1]
-                else:
-                    acc._idforJSON = account_data[-5][-1]
-                acc._idforJSON = re.sub(r'\s+', ' ', acc._idforJSON)
-                acc.number = '-%s' % account_data[2][2]
-                acc.label = '%s %s' % (account_data[6][4], account_data[10][-1])
-                acc._balances_token = acc.id = balances_token
-                acc._token = token[-1]
-                acc.type = Account.TYPE_CARD
-                yield acc
+            def obj_label(self):
+                if Dict('account/relationship')(self) == 'SUPP':
+                    return Format(
+                        '%s %s',
+                        Dict('platform/amex_region'),
+                        Dict('profile/embossed_name'),
+                    )(self)
+                return CleanText(Dict('product/description'))(self)
 
 
 class JsonBalances(LoggedPage, JsonPage):
-    def set_balances(self, accounts):
-        by_token = {a._balances_token: a for a in accounts}
-        for d in self.doc:
-            # coming is what should be refunded at a futur deadline
-            by_token[d['account_token']].coming = -float_to_decimal(d['total_debits_balance_amount'])
-            # balance is what is currently due
-            by_token[d['account_token']].balance = -float_to_decimal(d['remaining_statement_balance_amount'])
+    @method
+    class fill_balances(ItemElement):
+        # coming is what should be refunded at a future deadline
+        obj_coming = CleanDecimal.US(Dict('0/total_debits_balance_amount'), sign=lambda x: -1)
+        # balance is what is currently due
+        obj_balance = CleanDecimal.US(Dict('0/remaining_statement_balance_amount'), sign=lambda x: -1)
 
 
 class JsonBalances2(LoggedPage, JsonPage):
-    def set_balances(self, accounts):
-        by_token = {a._balances_token: a for a in accounts}
-        for d in self.doc:
-            by_token[d['account_token']].balance = -float_to_decimal(d['total']['payments_credits_total_amount'])
-            by_token[d['account_token']].coming = -float_to_decimal(d['total']['debits_total_amount'])
-            # warning: payments_credits_total_amount is not the coming value here
+    @method
+    class fill_balances(ItemElement):
+        obj_coming = CleanDecimal.US(Dict('0/total/debits_total_amount'), sign=lambda x: -1)
+        obj_balance = CleanDecimal.US(Dict('0/total/payments_credits_total_amount'), sign=lambda x: -1)
+        # warning: payments_credits_total_amount is not the coming value here
 
 
 class CurrencyPage(LoggedPage, JsonPage):

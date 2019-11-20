@@ -44,7 +44,7 @@ class AmericanExpressModule(Module, CapBank):
                                    self.config['password'].get())
 
     def iter_accounts(self):
-        return self.browser.get_accounts_list()
+        return self.browser.iter_accounts()
 
     def iter_history(self, account):
         return self.browser.iter_history(account)

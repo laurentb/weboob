@@ -29,8 +29,8 @@ from dateutil.parser import parse as parse_date
 
 from .pages import (
     AccountsPage, JsonBalances, JsonPeriods, JsonHistory,
-    JsonBalances2, CurrencyPage, LoginPage, WrongLoginPage, AccountSuspendedPage,
-    NoCardPage, NotFoundPage,
+    JsonBalances2, CurrencyPage, LoginPage, NoCardPage,
+    NotFoundPage,
 )
 
 
@@ -40,11 +40,9 @@ __all__ = ['AmericanExpressBrowser']
 class AmericanExpressBrowser(LoginBrowser):
     BASEURL = 'https://global.americanexpress.com'
 
-    login = URL('/myca/logon/.*', LoginPage)
-    wrong_login = URL('/myca/fuidfyp/emea/.*', WrongLoginPage)
-    account_suspended = URL('/myca/onlinepayments/', AccountSuspendedPage)
+    login = URL(r'/myca/logon/emea/action/login', LoginPage)
 
-    accounts = URL(r'/accounts', AccountsPage)
+    accounts = URL(r'/api/servicing/v1/member', AccountsPage)
     js_balances = URL(r'/account-data/v1/financials/balances', JsonBalances)
     js_balances2 = URL(r'/api/servicing/v1/financials/transaction_summary\?type=split_by_cardmember&statement_end_date=(?P<date>[\d-]+)', JsonBalances2)
     js_pending = URL(r'/account-data/v1/financials/transactions\?limit=1000&offset=(?P<offset>\d+)&status=pending',
@@ -69,51 +67,44 @@ class AmericanExpressBrowser(LoginBrowser):
         self.cache = {}
 
     def do_login(self):
-        if not self.login.is_here():
-            self.location('/myca/logon/emea/action?request_type=LogonHandler&DestPage=https%3A%2F%2Fglobal.americanexpress.com%2Fmyca%2Fintl%2Facctsumm%2Femea%2FaccountSummary.do%3Frequest_type%3D%26Face%3Dfr_FR%26intlink%3Dtopnavvotrecompteneligne-HPmyca&Face=fr_FR&Info=CUExpired')
+        self.login.go(data={
+            'request_type': 'login',
+            'UserID': self.username,
+            'Password': self.password,
+            'Logon': 'Logon',
+        })
 
-        self.page.login(self.username, self.password)
-        if self.wrong_login.is_here() or self.login.is_here() or self.account_suspended.is_here():
+        if self.page.get_status_code() != 0:
             raise BrowserIncorrectPassword()
 
     @need_login
-    def get_accounts(self):
-        self.accounts.go()
-        accounts = list(self.page.iter_accounts())
-
-        for account in accounts:
-            try:
-                # for the main account
-                self.js_balances.go(headers={'account_tokens': account._balances_token})
-            except HTTPNotFound:
-                # for secondary accounts
-                self.js_periods.go(headers={'account_token': account._balances_token})
-                periods = self.page.get_periods()
-                self.js_balances2.go(date=periods[1], headers={'account_tokens': account._balances_token})
-            self.page.set_balances(accounts)
-
-        # get currency
+    def iter_accounts(self):
         loc = self.session.cookies.get_dict(domain=".americanexpress.com")['axplocale'].lower()
         self.currency_page.go(locale=loc)
         currency = self.page.get_currency()
 
-        for acc in accounts:
-            acc.currency = currency
-            yield acc
-
-    @need_login
-    def get_accounts_list(self):
-        for account in self.get_accounts():
+        self.accounts.go()
+        account_list = list(self.page.iter_accounts(currency=currency))
+        for account in account_list:
+            try:
+                # for the main account
+                self.js_balances.go(headers={'account_tokens': account.id})
+            except HTTPNotFound:
+                # for secondary accounts
+                self.js_periods.go(headers={'account_token': account._history_token})
+                periods = self.page.get_periods()
+                self.js_balances2.go(date=periods[1], headers={'account_tokens': account.id})
+            self.page.fill_balances(obj=account)
             yield account
 
     @need_login
     def iter_history(self, account):
-        self.js_periods.go(headers={'account_token': account._token})
+        self.js_periods.go(headers={'account_token': account._history_token})
         periods = self.page.get_periods()
         today = datetime.date.today()
         # TODO handle pagination
         for p in periods:
-            self.js_posted.go(offset=0, end=p, headers={'account_token': account._token})
+            self.js_posted.go(offset=0, end=p, headers={'account_token': account._history_token})
             for tr in self.page.iter_history(periods=periods):
                 # As the website is very handy, passing account_token is not enough:
                 # it will return every transactions of each account, so we
@@ -128,14 +119,14 @@ class AmericanExpressBrowser(LoginBrowser):
         # ('Enregistrées' tab on the website)
 
         # "pending" have no vdate and debit date is in future
-        self.js_periods.go(headers={'account_token': account._token})
+        self.js_periods.go(headers={'account_token': account._history_token})
         periods = self.page.get_periods()
         date = parse_date(periods[0]).date()
         today = datetime.date.today()
         # when the latest period ends today we can't know the coming debit date
         if date != today:
             try:
-                self.js_pending.go(offset=0, headers={'account_token': account._token})
+                self.js_pending.go(offset=0, headers={'account_token': account._history_token})
             except ServerError as exc:
                 # At certain times of the month a connection might not have pendings;
                 # in that case, `js_pending.go` would throw a 502 error Bad Gateway
@@ -150,7 +141,7 @@ class AmericanExpressBrowser(LoginBrowser):
 
         # "posted" have a vdate but debit date can be future or past
         for p in periods:
-            self.js_posted.go(offset=0, end=p, headers={'account_token': account._token})
+            self.js_posted.go(offset=0, end=p, headers={'account_token': account._history_token})
             for tr in self.page.iter_history(periods=periods):
                 if tr.date > today or not tr.date:
                     if tr._owner == account._idforJSON:
