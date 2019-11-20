@@ -19,7 +19,6 @@
 
 from ast import literal_eval
 from decimal import Decimal, ROUND_DOWN
-import json
 import re
 
 from weboob.tools.compat import unicode, unquote
