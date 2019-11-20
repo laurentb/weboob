@@ -20,6 +20,7 @@
 from __future__ import unicode_literals
 
 import re
+
 from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import (
@@ -33,11 +34,12 @@ from weboob.exceptions import ActionNeeded
 
 
 class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile(u'^(?P<text>.*[Vv]ersement.*)'),  FrenchTransaction.TYPE_DEPOSIT),
-                (re.compile(u'^(?P<text>([Aa]rbitrage|[Pp]rélèvements.*))'), FrenchTransaction.TYPE_ORDER),
-                (re.compile(u'^(?P<text>([Rr]etrait|[Pp]aiement.*))'), FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile(u'^(?P<text>.*)'), FrenchTransaction.TYPE_BANK),
-               ]
+    PATTERNS = [
+        (re.compile(r'^(?P<text>.*[Vv]ersement.*)'), FrenchTransaction.TYPE_DEPOSIT),
+        (re.compile(r'^(?P<text>([Aa]rbitrage|[Pp]rélèvements.*))'), FrenchTransaction.TYPE_ORDER),
+        (re.compile(r'^(?P<text>([Rr]etrait|[Pp]aiement.*))'), FrenchTransaction.TYPE_WITHDRAWAL),
+        (re.compile(r'^(?P<text>.*)'), FrenchTransaction.TYPE_BANK),
+    ]
 
 
 def MyDecimal(*args, **kwargs):
@@ -47,7 +49,7 @@ def MyDecimal(*args, **kwargs):
 
 class LoginPage(HTMLPage):
     def login(self, login, password):
-        form = self.get_form(name="bloc_ident")
+        form = self.get_form(name='bloc_ident')
         form['_cm_user'] = login
         form['_cm_pwd'] = password
         form.submit()
@@ -165,7 +167,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                     pocket.condition = Pocket.CONDITION_AVAILABLE
                 else:
                     pocket.condition = Pocket.CONDITION_DATE
-                    pocket.availability_date = Date(Regexp(Upper(CleanText('./td[1]')), 'AU[\s]+(.*)'), dayfirst=True)(row)
+                    pocket.availability_date = Date(Regexp(Upper(CleanText('./td[1]')), r'AU[\s]+(.*)'), dayfirst=True)(row)
 
                 yield pocket
 
