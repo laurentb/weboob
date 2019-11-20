@@ -83,6 +83,7 @@ class LifeInsurancesPage(LoggedPage, HTMLPage):
         col_portfolio_share = "Répartition"
         col_unitvalue = ["Valeur liquidative", re.compile("Valeur de la part")]
         col_support_value = re.compile("Valeur support")
+        col_diff_ratio = "Plus/Moins"
 
         class item(ItemElement):
             klass = Investment
@@ -92,6 +93,12 @@ class LifeInsurancesPage(LoggedPage, HTMLPage):
             obj_portfolio_share = Eval(lambda x: x / 100, CleanDecimal(TableCell('portfolio_share')))
             obj_unitvalue = CleanDecimal(TableCell('unitvalue'), default=Decimal('1'))
             obj_valuation = CleanDecimal(TableCell('support_value'))
+
+            def obj_diff_ratio(self):
+                val = self.el.xpath('.//td')[4].text_content().strip().strip('%')
+                if val == '-':
+                    return NotAvailable
+                return Decimal(val) / 100
 
             def obj_code(self):
                 if "Fonds en euros" in Field('label')(self):
