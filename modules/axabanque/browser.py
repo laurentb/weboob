@@ -657,7 +657,7 @@ class AXAAssurance(AXABrowser):
             else:
                 self.cache['invs'][account.id] = []
             for inv in portfolio_page.iter_investment(currency=account.currency):
-                i = [i for i in self.cache['invs'][account.id] if (i.valuation == inv.valuation and i.label == inv.label)]
+                i = [i2 for i2 in self.cache['invs'][account.id] if (i2.valuation == inv.valuation and i2.label == inv.label)]
                 assert len(i) in (0, 1)
                 if i:
                     i[0].portfolio_share = inv.portfolio_share

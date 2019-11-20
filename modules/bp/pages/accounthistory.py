@@ -76,7 +76,7 @@ class AccountHistory(LoggedPage, MyHTMLPage):
 
     def get_next_link(self):
         for a in self.doc.xpath('//a[@class="btn_crt"]'):
-            txt = u''.join([txt.strip() for txt in a.itertext()])
+            txt = u''.join([txt2.strip() for txt2 in a.itertext()])
             if u'mois précédent' in txt:
                 return a.attrib['href']
 

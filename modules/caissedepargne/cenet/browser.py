@@ -192,7 +192,7 @@ class CenetBrowser(LoginBrowser, StatesMixin):
 
                     card_tr_list.append(tr)
                     tr.deleted = True
-                    tr_dict = [tr_dict for tr_dict in data_out if tr_dict['Libelle'] == tr.label]
+                    tr_dict = [tr_dict2 for tr_dict2 in data_out if tr_dict2['Libelle'] == tr.label]
                     donneesEntree = {}
                     donneesEntree['Compte'] = account._formated
                     donneesEntree['ListeOperations'] = [tr_dict[0]]
