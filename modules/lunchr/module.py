@@ -35,7 +35,7 @@ class LunchrModule(Module, CapBank):
     MAINTAINER = 'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'
     LICENSE = 'LGPLv3+'
-    VERSION = '1.4'
+    VERSION = '1.6'
 
     BROWSER = LunchrBrowser
 
