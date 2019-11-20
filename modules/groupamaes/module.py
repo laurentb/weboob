@@ -17,10 +17,11 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
-from weboob.capabilities.bank import CapBankPockets, AccountNotFound
+from __future__ import unicode_literals
+
+from weboob.capabilities.bank import CapBankPockets
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
-from weboob.capabilities.base import find_object
 
 from .browser import GroupamaesBrowser
 
@@ -30,16 +31,18 @@ __all__ = ['GroupamaesModule']
 
 class GroupamaesModule(Module, CapBankPockets):
     NAME = 'groupamaes'
-    DESCRIPTION = u"Groupama Épargne Salariale"
-    MAINTAINER = u'Bezleputh'
+    DESCRIPTION = 'Groupama Épargne Salariale'
+    MAINTAINER = 'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
     LICENSE = 'LGPLv3+'
     VERSION = '1.6'
 
     BROWSER = GroupamaesBrowser
 
-    CONFIG = BackendConfig(ValueBackendPassword('login', label='Identifiant', regexp='\d{8,}', masked=False),
-                           ValueBackendPassword('password', label='Mot de passe'))
+    CONFIG = BackendConfig(
+        ValueBackendPassword('login', label='Identifiant', regexp=r'\d{8,}', masked=False),
+        ValueBackendPassword('password', label='Mot de passe')
+    )
 
     def create_default_browser(self):
         return self.create_browser(
@@ -47,10 +50,8 @@ class GroupamaesModule(Module, CapBankPockets):
             self.config['password'].get(),
             'https://www.gestion-epargne-salariale.fr',
             'groupama-es/',
-            weboob=self.weboob)
-
-    def get_account(self, _id):
-        return find_object(self.browser.iter_accounts(), id=_id, error=AccountNotFound)
+            weboob=self.weboob
+        )
 
     def iter_accounts(self):
         return self.browser.iter_accounts()
