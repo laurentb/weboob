@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from weboob.tools.backend import AbstractModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword
@@ -28,13 +29,14 @@ __all__ = ['PradoepargneModule']
 
 class PradoepargneModule(AbstractModule, CapBankPockets):
     NAME = 'pradoepargne'
-    DESCRIPTION = u'Prado Épargne Salariale'
-    MAINTAINER = u'Edouard Lambert'
+    DESCRIPTION = 'Prado Épargne Salariale'
+    MAINTAINER = 'Edouard Lambert'
     EMAIL = 'elambert@budget-insight.com'
     LICENSE = 'LGPLv3+'
     VERSION = '1.6'
     CONFIG = BackendConfig(
-            ValueBackendPassword('login',    label='Identifiant', masked=False),
-            ValueBackendPassword('password', label='Mot de passe'))
+        ValueBackendPassword('login', label='Identifiant', masked=False),
+        ValueBackendPassword('password', label='Mot de passe')
+    )
 
     PARENT = 'humanis'
