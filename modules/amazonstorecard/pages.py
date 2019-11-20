@@ -31,13 +31,6 @@ import re
 import json
 
 
-try:
-    cmp = cmp
-except NameError:
-    def cmp(x, y):
-        return (x > y) - (x < y)
-
-
 class SomePage(HTMLPage):
     @property
     def logged(self):
@@ -86,7 +79,7 @@ class ActivityPage(SomePage):
         records = json.loads(self.doc.xpath(
             '//div[@id="completedActivityRecords"]//input[1]/@value')[0])
         recent = [x for x in records if x['PDF_LOC'] is None]
-        for rec in sorted(recent, ActivityPage.cmp_records, reverse=True):
+        for rec in sorted(recent, key=lambda rec: ActivityPage.parse_date(rec['TRANS_DATE']), reverse=True):
             desc = u' '.join(rec['TRANS_DESC'].split())
             trans = Transaction((rec['REF_NUM'] or u'').strip())
             trans.date = ActivityPage.parse_date(rec['TRANS_DATE'])
@@ -96,11 +89,6 @@ class ActivityPage(SomePage):
             trans.label = desc
             trans.amount = -AmTr.decimal_amount(rec['TRANS_AMOUNT'])
             yield trans
-
-    @staticmethod
-    def cmp_records(rec1, rec2):
-        return cmp(ActivityPage.parse_date(rec1['TRANS_DATE']),
-                   ActivityPage.parse_date(rec2['TRANS_DATE']))
 
     @staticmethod
     def parse_date(recdate):
@@ -141,10 +129,13 @@ class StatementPage(RawPage):
         self._tok = ReTokenizer(self._pdf, '\n', self.LEX)
 
     def iter_transactions(self):
-        return sorted(self.read_transactions(),
-            cmp=lambda t1, t2: cmp(t2.date, t1.date) or
-                               cmp(t1.label, t2.label) or
-                               cmp(t1.amount, t2.amount))
+        trs = self.read_transactions()
+        # since the sorts are not in the same direction, we can't do in one pass
+        # python sorting is stable, so sorting in 2 passes can achieve a multisort
+        # the official docs give this way
+        trs = sorted(trs, key=lambda tr: (tr.label, tr.amount))
+        trs = sorted(trs, key=lambda tr: tr.date, reverse=True)
+        return trs
 
     def read_transactions(self):
         # Statement typically cover one month.
