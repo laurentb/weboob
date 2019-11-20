@@ -245,6 +245,7 @@ class BforbankBrowser(LoginBrowser):
         return True
 
     def get_bourse_account(self, account):
+        owner_name = self.get_profile().name.upper().split(' ', 1)[1]
         self.bourse_login.go(id=account.id)  # "login" to bourse page
 
         self.bourse.go()
@@ -253,7 +254,7 @@ class BforbankBrowser(LoginBrowser):
         if self.page.password_required():
             return
         self.logger.debug('searching account matching %r', account)
-        for bourse_account in self.page.get_list():
+        for bourse_account in self.page.get_list(name=owner_name):
             self.logger.debug('iterating account %r', bourse_account)
             if bourse_account.id.startswith(account.id[3:]):
                 return bourse_account
