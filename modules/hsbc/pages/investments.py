@@ -385,10 +385,15 @@ class RetrieveInvestmentsPage(LoggedPage, JsonPage):
             obj_valuation = CleanDecimal(Dict(
                 'holdingDetailInformation/0/holdingDetailMultipleCurrencyInformation/0/productHoldingMarketValueAmount'
             ), default=NotAvailable)
-            obj_diff_ratio = CleanDecimal(Dict(
-                'holdingDetailInformation/0/holdingDetailMultipleCurrencyInformation/0'
-                '/profitLossUnrealizedPercent'
-            ), default=NotAvailable)
+
+            def obj_diff_ratio(self):
+                ratio = CleanDecimal(Dict(
+                    'holdingDetailInformation/0/holdingDetailMultipleCurrencyInformation/0/profitLossUnrealizedPercent'
+                ), default=NotAvailable)(self)
+                if ratio is not NotAvailable:
+                    ratio /= 100
+                return ratio
+
             obj_portfolio_share = NotAvailable  # must be computed from the sum of iter_investments
 
             def obj_original_currency(self):
@@ -443,9 +448,15 @@ class RetrieveInvestmentsPage(LoggedPage, JsonPage):
             obj_unitprice = CleanDecimal(Dict(
                 'holdingSummaryMultipleCurrencyInformation/0/productHoldingUnitCostAverageAmount'
             ), default=NotAvailable)
-            obj_diff_ratio = CleanDecimal(Dict(
-                'holdingSummaryMultipleCurrencyInformation/0/profitLossUnrealizedPercent'
-            ), default=NotAvailable)
+
+            def obj_diff_ratio(self):
+                ratio = CleanDecimal(Dict(
+                    'holdingSummaryMultipleCurrencyInformation/0/profitLossUnrealizedPercent'
+                ), default=NotAvailable)(self)
+                if ratio is not NotAvailable:
+                    ratio /= 100
+                return ratio
+
             obj_diff = CleanDecimal(Dict(
                 'holdingSummaryMultipleCurrencyInformation/0/profitLossUnrealizedAmount'
             ), default=NotAvailable)
