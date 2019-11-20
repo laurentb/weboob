@@ -19,7 +19,7 @@ class JSMiddleFramePage(LoggedPage, HTMLPage):
         return self.content.decode('iso-8859-1').startswith('var mc')
 
     def get_patrimoine_url(self):
-        return Link('//a[contains(., "Espace patrimoine")]', default=None)(self.doc)
+        return Link('//a[contains(., "Espace Patrimoine")]', default=None)(self.doc)
 
 
 class JSMiddleAuthPage(LoggedPage, HTMLPage):
