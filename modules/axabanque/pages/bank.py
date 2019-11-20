@@ -174,7 +174,7 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                     if args.get('idPanorama:_idcl').split(":")[1] == 'tableaux-direct-solution-vie':
                         account_details = self.browser.open("#", data=args)
                         scripts = account_details.page.doc.xpath('//script[@type="text/javascript"]/text()')
-                        script = filter(lambda x: "src" in x, scripts)[0]
+                        script = list(filter(lambda x: "src" in x, scripts))[0]
                         iframe_url = re.search("src:(.*),", script).group()[6:-2]
                         account_details_iframe = self.browser.open(iframe_url, data=args)
                         account.id = CleanText('//span[contains(@id,"NumeroContrat")]/text()')(account_details_iframe.page.doc)

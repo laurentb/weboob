@@ -413,7 +413,7 @@ class IndexPage(LoggedPage, HTMLPage):
                     if account:
                         account.number = CleanText('.')(tds[1])
 
-        return accounts.values()
+        return list(accounts.values())
 
     def is_access_error(self):
         error_message = u"Vous n'êtes pas autorisé à accéder à cette fonction"
@@ -493,7 +493,7 @@ class IndexPage(LoggedPage, HTMLPage):
                                 account.available_amount = float_to_decimal(d['situationCredit']['disponible'])
                                 account.next_payment_amount = float_to_decimal(d['situationCredit']['mensualiteEnCours'])
                         accounts[account.id] = account
-        return accounts.values()
+        return list(accounts.values())
 
     @method
     class get_real_estate_loans(ListElement):
