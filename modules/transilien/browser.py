@@ -39,8 +39,8 @@ class Transilien(PagesBrowser):
     roadmap_page = URL('itineraire/trajet', RoadMapPage)
 
     def get_roadmap(self, departure, arrival, filters):
-        dep = self.get_stations(departure, False).next()
-        arr = self.get_stations(arrival, False).next()
+        dep = next(self.get_stations(departure, False))
+        arr = next(self.get_stations(arrival, False))
         self.roadmap_page.go().request_roadmap(dep, arr, filters.departure_time, filters.arrival_time)
         if self.page.is_ambiguous():
             self.page.fix_ambiguity()

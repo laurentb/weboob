@@ -29,7 +29,7 @@ class OpensubtitlesTest(BackendTest):
         lsub = []
         subtitles = self.backend.iter_subtitles('fr', 'spiderman')
         for i in range(5):
-            subtitle = subtitles.next()
+            subtitle = next(subtitles)
             lsub.append(subtitle)
             assert subtitle.url.startswith('https')
         assert (len(lsub) > 0)

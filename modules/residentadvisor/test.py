@@ -33,7 +33,7 @@ class ResidentadvisorTest(BackendTest):
 
         self.assertTrue(len(list(self.backend.search_events(query))) > 0)
 
-        event = self.backend.search_events(query).next()
+        event = next(self.backend.search_events(query))
         self.assertTrue(self.backend.get_event(event.id))
 
     def test_datefrom(self):
@@ -41,7 +41,7 @@ class ResidentadvisorTest(BackendTest):
         later = (datetime.now() + timedelta(days=31))
         query.start_date = later
 
-        event = self.backend.search_events(query).next()
+        event = next(self.backend.search_events(query))
         self.assertTrue(later.date() <= event.start_date.date())
 
         event = self.backend.get_event(event.id)

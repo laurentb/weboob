@@ -26,13 +26,13 @@ class PixabayTest(BackendTest):
 
     def test_search(self):
         it = self.backend.search_image('flower')
-        img = it.next()
+        img = next(it)
         assert img
         assert img.title
         assert self.backend.fillobj(img, ['data'])
         assert len(img.data)
 
-        img = it.next()
+        img = next(it)
         assert img
         assert img.title
 

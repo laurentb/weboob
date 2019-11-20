@@ -566,7 +566,7 @@ class AllocineBrowser(APIBrowser):
                   ]
 
         if query.summary:
-            movie = self.iter_movies(query.summary).next()
+            movie = next(self.iter_movies(query.summary))
             params.append(('movie', movie.id))
 
         result = self.__do_request('showtimelist', params)

@@ -47,7 +47,7 @@ class SenscritiqueBrowser(PagesBrowser):
     def get_event(self, _id, event=None):
         if not event:
             try:
-                event = self.films_page.go().iter_films(_id=_id).next()
+                event = next(self.films_page.go().iter_films(_id=_id))
             except StopIteration:
                 raise UserError('This event (%s) does not exists' % _id)
 
