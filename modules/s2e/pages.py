@@ -117,7 +117,7 @@ class LoginPage(HTMLPage):
     def get_error(self):
         cgu = CleanText('//h1[contains(text(), "Conditions")]', default=None)(self.doc)
         if cgu:
-            cgu = u"Veuillez accepter les conditions générales d'utilisation." if self.browser.LANG == "fr" \
+            cgu = "Veuillez accepter les conditions générales d'utilisation." if self.browser.LANG == "fr" \
                else "Please accept the general conditions of use." if self.browser.LANG == 'en' \
                else cgu
         return cgu or CleanText('//div[contains(text(), "Erreur")]', default='')(self.doc)
@@ -299,7 +299,7 @@ class ItemInvestment(ItemElement):
             if unitvalue is None:
                 unitvalue = Regexp(CleanText('.'), '^([\d,]+)$', default=None)(span)
             if vdate is None:
-                vdate = None if any(x in CleanText('./parent::div')(span) for x in [u"échéance", "Maturity"]) else \
+                vdate = None if any(x in CleanText('./parent::div')(span) for x in ["échéance", "Maturity"]) else \
                         Regexp(CleanText('.'), '^([\d\/]+)$', default=None)(span)
         self.env['unitvalue'] = MyDecimal().filter(unitvalue) if unitvalue else NotAvailable
         self.env['vdate'] = Date(dayfirst=True).filter(vdate) if vdate else NotAvailable
