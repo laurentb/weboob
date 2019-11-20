@@ -70,6 +70,8 @@ class Number26Browser(DomainBrowser, StatesMixin):
         self.token_expire = None
         self.mfaToken = None
         self.bearer = self.INITIAL_TOKEN
+        # do not delete, useful for a child connector
+        self.direct_access = True
 
     def do_otp(self, mfaToken):
         data = {
@@ -220,8 +222,9 @@ class Number26Browser(DomainBrowser, StatesMixin):
 
         for t in transactions:
 
-            if not filter_func(t) or t["amount"] == 0:
-                continue
+            if self.direct_access:
+                if not filter_func(t) or t["amount"] == 0:
+                    continue
 
             new = Transaction()
 
@@ -246,7 +249,8 @@ class Number26Browser(DomainBrowser, StatesMixin):
 
             new.type = TYPES.get(t["type"], Transaction.TYPE_UNKNOWN)
 
-            if t["category"] in categories:
-                new.category = categories[t["category"]]
+            if self.direct_access:
+                if t["category"] in categories:
+                    new.category = categories[t["category"]]
 
             yield new
