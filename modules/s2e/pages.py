@@ -734,12 +734,18 @@ class ProfilePage(LoggedPage, MultiPage):
 
 
 class APIInvestmentDetailsPage(LoggedPage, JsonPage):
-    def get_investment_performances(self):
-        # Fetching the performance history (1 year, 3 years & 5 years)
-        perfs = {}
-        for item in Dict('sharePerf')(self.doc):
-            if item['name'] in ('1Y', '3Y', '5Y'):
-                duration = int(item['name'][0])
-                value = item['value']
-                perfs[duration] = Eval(lambda x: x / 100, CleanDecimal.US(value))(self.doc)
-        return perfs
+    @method
+    class fill_investment(ItemElement):
+        obj_srri = Eval(int, Dict('risque'))
+        obj_asset_category = CleanText(Dict('classification'))
+        obj_recommended_period = CleanText(Dict('dureePlacement'))
+
+        def obj_performance_history(self):
+            # Fetching the performance history (1 year, 3 years & 5 years)
+            perfs = {}
+            for item in Dict('sharePerf')(self):
+                if item['name'] in ('1Y', '3Y', '5Y'):
+                    duration = int(item['name'][0])
+                    value = item['value']
+                    perfs[duration] = Eval(lambda x: x / 100, CleanDecimal.US(value))(self)
+            return perfs

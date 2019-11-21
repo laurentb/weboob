@@ -161,7 +161,7 @@ class S2eBrowser(LoginBrowser, StatesMixin):
                             inv.code = m.group(2)
                             inv.code_type = Investment.CODE_TYPE_ISIN
                         self.location('https://funds-api.bnpparibas.com/api/performances/FromIsinCode/' + inv.code)
-                        inv.performance_history = self.page.get_investment_performances()
+                        self.page.fill_investment(obj=inv)
                 elif self.amfcode_sg.match(inv._link) or self.lyxorfunds.match(inv._link):
                     # Esalia (Société Générale Épargne Salariale) or Lyxor investments
                     # Not all sggestion-ede.com or lyxorfunds.com have available performances.
