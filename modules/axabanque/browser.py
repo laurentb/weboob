@@ -300,11 +300,12 @@ class AXABanque(AXABrowser, StatesMixin):
 
     def get_netfinca_account(self, account):
         # Important: this part is controlled by modules/lcl/pages.py
+        owner_name = self.get_profile().name.upper().split(' ', 1)[1]
         self.go_account_pages(account, None)
         self.page.open_market()
         self.page.open_market_next()
         self.page.open_iframe()
-        for bourse_account in self.page.get_list():
+        for bourse_account in self.page.get_list(name=owner_name):
             self.logger.debug('iterating account %r', bourse_account)
             bourse_id = bourse_account.id.replace('bourse', '')
             if account.id.startswith(bourse_id):
