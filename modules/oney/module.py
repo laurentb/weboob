@@ -39,7 +39,7 @@ class OneyModule(Module, CapBank):
     LICENSE = 'LGPLv3+'
     DESCRIPTION = 'Oney'
     CONFIG = BackendConfig(
-        ValueBackendPassword('login', label='Identifiant', masked=False),
+        ValueBackendPassword('login', label='Identifiant', masked=False, regexp=r'([0-9]{9}|.+@.+\..+)'),
         ValueBackendPassword('password', label='Mot de passe'),
     )
     BROWSER = OneyBrowser

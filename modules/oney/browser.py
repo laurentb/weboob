@@ -87,11 +87,18 @@ class OneyBrowser(LoginBrowser):
 
         # There is a VK on the website but it does not encode the password
         self.login.go()
+        if '@' in self.username:
+            auth_type = 'EML'
+            step_type = 'EMAIL_PASSWORD'
+        else:
+            auth_type = 'IAD'
+            step_type = 'IAD_ACCESS_CODE'
+
         self.send_username.go(json={
             'authentication_type': 'LIGHT',
             'authentication_factor': {
                 'public_value': self.username,
-                'type': 'IAD',
+                'type': auth_type,
             }
         })
 
@@ -99,11 +106,14 @@ class OneyBrowser(LoginBrowser):
 
         self.send_password.go(json={
             'flow_id': flow_id,
-            'step_type': 'IAD_ACCESS_CODE',
+            'step_type': step_type,
             'value': self.password,
         })
 
-        self.page.check_error()
+        error = self.page.get_error()
+        if error:
+            raise BrowserIncorrectPassword(error)
+
         token = self.page.get_token()
 
         self.check_token.go(params={'token': token})

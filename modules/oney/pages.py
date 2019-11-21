@@ -29,7 +29,6 @@ from weboob.browser.elements import ListElement, ItemElement, method, DictElemen
 from weboob.browser.filters.standard import Env, CleanDecimal, CleanText, Field, Format, Currency, Date
 from weboob.browser.filters.html import Attr
 from weboob.browser.filters.json import Dict
-from weboob.exceptions import BrowserIncorrectPassword
 from weboob.tools.compat import urlparse, parse_qsl
 
 
@@ -63,10 +62,10 @@ class SendPasswordPage(JsonPage):
     def get_token(self):
         return self.doc['completeAuthFlowStep']['token']
 
-    def check_error(self):
+    def get_error(self):
         errors = self.doc['completeAuthFlowStep']['errors']
         if errors:
-            raise BrowserIncorrectPassword(errors[0]['label'])
+            return errors[0]['label']
 
 
 class CheckTokenPage(JsonPage):
