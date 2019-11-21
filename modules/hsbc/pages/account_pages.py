@@ -106,7 +106,7 @@ class AccountsType(Filter):
         (r'essentiel', Account.TYPE_LIFE_INSURANCE),
         (r'elysee', Account.TYPE_LIFE_INSURANCE),
         (r'abondance', Account.TYPE_LIFE_INSURANCE),
-        (r'ely\. retraite', Account.TYPE_LIFE_INSURANCE),
+        (r'ely\. retraite', Account.TYPE_PERP),
         (r'lae option assurance', Account.TYPE_LIFE_INSURANCE),
         (r'carte ', Account.TYPE_CARD),
         (r'business ', Account.TYPE_CARD),
