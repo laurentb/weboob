@@ -984,6 +984,7 @@ class AbstractBrowser(Browser):
             parent._resolve_abstract(weboob)
 
         cls.__bases__ = (parent,)
+        cls.weboob = weboob
 
     def __new__(cls, *args, **kwargs):
         weboob = kwargs['weboob']
