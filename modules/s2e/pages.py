@@ -181,7 +181,9 @@ class CodePage(object):
     This class is used as a parent class to include
     all classes that contain a get_code() method.
     '''
-    pass
+    def get_asset_category(self):
+        # Overriden for pages containing the asset category.
+        return NotAvailable
 
 
 # AMF codes
@@ -203,6 +205,9 @@ class AMFHSBCPage(XMLPage, CodePage):
 
     def get_code(self):
         return CleanText('//AMF_Code', default=NotAvailable)(self.doc)
+
+    def get_asset_category(self):
+        return CleanText('//Asset_Class')(self.doc)
 
 
 class AMFAmundiPage(HTMLPage, CodePage):
@@ -226,6 +231,9 @@ class AMFSGPage(LoggedPage, HTMLPage, CodePage):
         return Regexp(CleanText('//div[@id="header_code"]'), r'(\d+)', default=NotAvailable)(self.doc)
 
     def get_investment_performances(self):
+        # TODO: Handle supplementary attributes for AMFSGPage
+        self.logger.warning('This investment leads to AMFSGPage, please handle SRRI, asset_category and recommended_period.')
+
         # Fetching the performance history (1 year, 3 years & 5 years)
         perfs = {}
         if not self.doc.xpath('//table[tr[th[contains(text(), "Performances glissantes")]]]'):
@@ -249,20 +257,24 @@ class LyxorfcpePage(LoggedPage, HTMLPage, CodePage):
 
 
 class LyxorFundsPage(LoggedPage, HTMLPage):
-    def get_investment_performances(self):
-        # Fetching the performance history (1 year, 3 years & 5 years)
-        perfs = {}
-        if not self.doc.xpath('//table[tr[td[text()="Performance"]]]'):
-            return
-        # Available performance history: 1 month, 3 months, 6 months, 1 year, 2 years, 3 years, 4years & 5 years.
-        # We need to match the durations with their respective values.
-        durations = [CleanText('.')(el) for el in self.doc.xpath('//table[tr[td[text()="Performance"]]]//tr//th')]
-        values = [CleanText('.')(el) for el in self.doc.xpath('//table[tr[td[text()="Performance"]]]//tr//td')]
-        matches = dict(zip(durations, values))
-        perfs[1] = percent_to_ratio(CleanDecimal.French(default=NotAvailable).filter(matches['1A']))
-        perfs[3] = percent_to_ratio(CleanDecimal.French(default=NotAvailable).filter(matches['3A']))
-        perfs[5] = percent_to_ratio(CleanDecimal.French(default=NotAvailable).filter(matches['5A']))
-        return perfs
+    @method
+    class fill_investment(ItemElement):
+        obj_asset_category = CleanText('//div[contains(@class, "asset-class-list")]//div[contains(@class, "assetClass")][2]/span')
+
+        def obj_performance_history(self):
+            # Fetching the performance history (1 year, 3 years & 5 years)
+            perfs = {}
+            if not self.xpath('//table[tr[td[text()="Performance"]]]'):
+                return
+            # Available performance history: 1 month, 3 months, 6 months, 1 year, 2 years, 3 years, 4 years & 5 years.
+            # We need to match the durations with their respective values.
+            durations = [CleanText('.')(el) for el in self.xpath('//table[tr[td[text()="Performance"]]]//tr//th')]
+            values = [CleanText('.')(el) for el in self.xpath('//table[tr[td[text()="Performance"]]]//tr//td')]
+            matches = dict(zip(durations, values))
+            perfs[1] = percent_to_ratio(CleanDecimal.French(default=NotAvailable).filter(matches['1A']))
+            perfs[3] = percent_to_ratio(CleanDecimal.French(default=NotAvailable).filter(matches['3A']))
+            perfs[5] = percent_to_ratio(CleanDecimal.French(default=NotAvailable).filter(matches['5A']))
+            return perfs
 
 
 class EcofiPage(LoggedPage, HTMLPage, CodePage):
@@ -284,13 +296,29 @@ class ItemInvestment(ItemElement):
     obj_code = Env('code')
     obj_code_type = Env('code_type')
     obj__link = Env('_link')
+    obj_asset_category = Env('asset_category')
 
     def obj_label(self):
-        return CleanText(TableCell('label')(self)[0].xpath('.//div[contains(@style, \
-            "text-align")][1]'))(self)
+        return CleanText(
+            TableCell('label')(self)[0].xpath('.//div[contains(@style, "text-align")][1]')
+        )(self)
 
     def obj_valuation(self):
         return MyDecimal(TableCell('valuation')(self)[0].xpath('.//div[not(.//div)]'))(self)
+
+    def obj_srri(self):
+        # We search "isque" because it can be "Risque" or "Echelle de risque"
+        srri = CleanText(
+            TableCell('label')(self)[0].xpath('.//div[contains(text(), "isque")]//span[1]'),
+        )(self)
+        if srri:
+            return int(srri)
+        return NotAvailable
+
+    def obj_recommended_period(self):
+        return CleanText(
+            TableCell('label')(self)[0].xpath('.//div[contains(text(), "isque")]//span[2]'),
+        )(self)
 
     def parse(self, el):
         # Trying to find vdate and unitvalue
@@ -304,6 +332,7 @@ class ItemInvestment(ItemElement):
         self.env['unitvalue'] = MyDecimal().filter(unitvalue) if unitvalue else NotAvailable
         self.env['vdate'] = Date(dayfirst=True).filter(vdate) if vdate else NotAvailable
         self.env['_link'] = None
+        self.env['asset_category'] = NotAvailable
 
         page = None
         link_id = Attr(u'.//a[contains(@title, "détail du fonds")]', 'id', default=None)(self)
@@ -318,7 +347,7 @@ class ItemInvestment(ItemElement):
             if 'hsbc.fr' in self.page.browser.BASEURL:
                 # Special space for HSBC, does not contain any information related to performances.
                 m = re.search(r'fundid=(\w+).+SH=(\w+)', CleanText('//complete', default='')(page.doc))
-                if m: # had to put full url to skip redirections.
+                if m:  # had to put full url to skip redirections.
                     page = page.browser.open('https://www.assetmanagement.hsbc.com/feedRequest?feed_data=gfcFundData&cod=FR&client=FCPE&fId=%s&SH=%s&lId=fr' % m.groups()).page
 
             elif not self.page.browser.history.is_here():
@@ -336,7 +365,9 @@ class ItemInvestment(ItemElement):
                     self.env['code'] = NotAvailable
                     self.env['code_type'] = NotAvailable
                     return
-                elif url.startswith('http://sggestion-ede.com/product') or url.startswith('https://www.lyxorfunds.com/part'):
+                elif (url.startswith('http://sggestion-ede.com/product') or
+                    url.startswith('https://www.lyxorfunds.com/part') or
+                    url.startswith('https://www.societegeneralegestion.fr')):
                     self.env['_link'] = url
 
                 # Try to fetch ISIN code from URL with re.match
@@ -392,10 +423,12 @@ class ItemInvestment(ItemElement):
         if isinstance(page, CodePage):
             self.env['code'] = page.get_code()
             self.env['code_type'] = page.CODE_TYPE
+            self.env['asset_category'] = page.get_asset_category()
         else:
             # The page is not handled and does not have a get_code method.
             self.env['code'] = NotAvailable
             self.env['code_type'] = NotAvailable
+            self.env['asset_category'] = NotAvailable
 
 
 class MultiPage(HTMLPage):
@@ -703,8 +736,11 @@ class EtoileGestionPage(HTMLPage, CodePage):
         if characteristics_url is not None:
             detail_page = self.browser.open(characteristics_url).page
 
+            if not isinstance(detail_page, EtoileGestionCharacteristicsPage):
+                return NotAvailable
+
             # We prefer to return an ISIN code by default
-            code_isin = detail_page.get_code_isin()
+            code_isin = detail_page.get_isin_code()
             if code_isin is not None:
                 self.CODE_TYPE = Investment.CODE_TYPE_ISIN
                 return code_isin
@@ -717,15 +753,23 @@ class EtoileGestionPage(HTMLPage, CodePage):
 
         return NotAvailable
 
+    def get_asset_category(self):
+        return CleanText('//label[contains(text(), "Classe d\'actifs")]/following-sibling::span')(self.doc)
+
 
 class EtoileGestionCharacteristicsPage(PartialHTMLPage):
-    def get_code_isin(self):
+    def get_isin_code(self):
         code = CleanText('//td[contains(text(), "Code Isin")]/following-sibling::td', default=None)(self.doc)
         return code
 
     def get_code_amf(self):
         code = CleanText('//td[contains(text(), "Code AMF")]/following-sibling::td', default=None)(self.doc)
         return code
+
+
+class EsaliaDetailsPage(LoggedPage, HTMLPage):
+    def get_asset_category(self):
+        return CleanText('//label[text()="Classe d\'actifs:"]/following-sibling::span')(self.doc)
 
 
 class ProfilePage(LoggedPage, MultiPage):

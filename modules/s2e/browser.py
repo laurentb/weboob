@@ -31,7 +31,7 @@ from .pages import (
     LoginPage, AccountsPage, AMFHSBCPage, AMFAmundiPage, AMFSGPage, HistoryPage,
     ErrorPage, LyxorfcpePage, EcofiPage, EcofiDummyPage, LandingPage, SwissLifePage, LoginErrorPage,
     EtoileGestionPage, EtoileGestionCharacteristicsPage, ProfilePage, APIInvestmentDetailsPage,
-    LyxorFundsPage,
+    LyxorFundsPage, EsaliaDetailsPage,
 )
 
 
@@ -58,6 +58,7 @@ class S2eBrowser(LoginBrowser, StatesMixin):
     profile = URL(r'/portal/salarie-(?P<slug>\w+)/mesdonnees/coordperso\?scenario=ConsulterCP', ProfilePage)
     bnp_investments = URL(r'https://optimisermon.epargne-retraite-entreprises.bnpparibas.com')
     api_investment_details = URL(r'https://funds-api.bnpparibas.com/api/performances/FromIsinCode/', APIInvestmentDetailsPage)
+    esalia_details = URL(r'https://www.societegeneralegestion.fr/psSGGestionEntr/productsheet/view', EsaliaDetailsPage)
 
     STATE_DURATION = 10
 
@@ -163,11 +164,20 @@ class S2eBrowser(LoginBrowser, StatesMixin):
                         self.location('https://funds-api.bnpparibas.com/api/performances/FromIsinCode/' + inv.code)
                         self.page.fill_investment(obj=inv)
                 elif self.amfcode_sg.match(inv._link) or self.lyxorfunds.match(inv._link):
-                    # Esalia (Société Générale Épargne Salariale) or Lyxor investments
-                    # Not all sggestion-ede.com or lyxorfunds.com have available performances.
+                    # SGgestion-ede or Lyxor investments: not all of them have available attributes.
                     # For those requests to work in every case we need the headers from AccountsPage
                     self.location(inv._link, headers={'Referer': self.accounts.build(slug=self.SLUG)})
-                    inv.performance_history = self.page.get_investment_performances()
+                    self.page.fill_investment(obj=inv)
+                elif self.esalia_details.match(inv._link):
+                    # Esalia (Société Générale Épargne Salariale) details page:
+                    # Fetch code, code_type & asset_category here
+                    m = re.search(r'idvm\/(.*)\/lg', inv._link)
+                    if m:
+                        if is_isin_valid(m.group(1)):
+                            inv.code = m.group(1)
+                            inv.code_type = Investment.CODE_TYPE_ISIN
+                    self.location(inv._link)
+                    inv.asset_category = self.page.get_asset_category()
         return investments
 
     @need_login
