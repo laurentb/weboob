@@ -286,10 +286,17 @@ class BanquePopulaire(LoginBrowser):
         next_pages = []
         accounts = []
         profile = self.get_profile()
+
         if profile.name:
-            owner_name = re.search(r' (.+)', profile.name).group(1).upper()
+            name = profile.name
         else:
-            owner_name = re.search(r' (.+)', profile.company_name).group(1).upper()
+            name = profile.company_name
+
+        # Handle names/company names without spaces
+        if ' ' in name:
+            owner_name = re.search(r' (.+)', name).group(1).upper()
+        else:
+            owner_name = name.upper()
 
         self.go_on_accounts_list()
 

@@ -1203,9 +1203,10 @@ class AdvisorPage(LoggedPage, MyHTMLPage):
     def get_profile(self):
         profile = Person()
 
-        # the name is only available in a welcome message. Sometimes, the message will look like that :
-        # "Bienvenue M <first> <lastname> - <company name>" and sometimes just "Bienvenue M <firstname> <lastname>"
-        # Or even "Bienvenue <company name>"
+        # the name is only available in a welcome message. The messages can look like :
+        # - Bienvenue M <first> <lastname> - <company name>
+        # - Bienvenue M <firstname> <lastname>
+        # - Bienvenue <company name>
         # We need to detect wether the company name is there, and where it begins.
         # relying on the dash only is dangerous as people may have dashes in their name and so may companies.
         # but we can detect company name from a dash between space
