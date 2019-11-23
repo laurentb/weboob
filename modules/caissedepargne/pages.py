@@ -1051,8 +1051,8 @@ class CardsComingPage(IndexPage):
                 # We must handle two kinds of Regexp because the 'X' are not
                 # located at the same level for sub-modules such as palatine
                 return Coalesce(
-                    Regexp(CleanText(Field('label'), replace=[('*', 'X')]), r'(\d{6}\X{6}\d{4})', default=NotAvailable),
-                    Regexp(CleanText(Field('label'), replace=[('*', 'X')]), r'(\d{4}\X{6}\d{6})', default=NotAvailable),
+                    Regexp(CleanText(Field('label'), replace=[('*', 'X')]), r'(\d{6}X{6}\d{4})', default=NotAvailable),
+                    Regexp(CleanText(Field('label'), replace=[('*', 'X')]), r'(\d{4}X{6}\d{6})', default=NotAvailable),
                 )(self)
 
             def obj_number(self):
