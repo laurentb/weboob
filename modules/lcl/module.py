@@ -145,7 +145,7 @@ class LCLModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapContact, 
 
     def transfer_check_label(self, old, new):
         old = re.sub(r"[/<\?='!\+:#&]", '', old).strip()
-        old = old.encode('latin-1', errors='replace').decode('latin-1')
+        old = old.encode('ISO8859-15', errors='replace').decode('ISO8859-15')  # latin-15
         # if no reason given, the site changes the label
         if not old and ("INTERNET-FAVEUR" in new):
             return True
