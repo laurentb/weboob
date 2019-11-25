@@ -61,7 +61,7 @@ class WeatherPage(HTMLPage):
                 if base_date.day > actual_day_number:
                     base_date = base_date.replace(
                         month=(
-                            (base_date.month + 1) % 12
+                            (base_date.month % 12) + 1
                         )
                     )
                 base_date = base_date.replace(day=actual_day_number)
