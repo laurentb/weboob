@@ -841,10 +841,8 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
             # (only used for GoCardLess transactions so far)
             t._has_link = bool(tds[self.COL_DEBIT].findall('a') or tds[self.COL_CREDIT].findall('a'))
 
-            # XXX We currently take the *value* date, but it will probably
-            # necessary to use the *operation* one.
-            # Default sort on website is by compta date, so in browser.py we
-            # change the sort on value date.
+            # Default sort on website is by compta date, in browser.py we
+            # change the sort on operation date.
             cleaner = CleanText(None).filter
             date = cleaner(tds[self.COL_OP_DATE])
             vdate = cleaner(tds[self.COL_VALUE_DATE])

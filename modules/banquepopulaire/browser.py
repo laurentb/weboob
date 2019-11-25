@@ -415,10 +415,10 @@ class BanquePopulaire(LoginBrowser):
             if not self.page or self.error_page.is_here() or self.page.no_operations():
                 return
 
-            # Sort by values dates (see comment in TransactionsPage.get_history)
+            # Sort by operation date
             if len(self.page.doc.xpath('//a[@id="tcl4_srt"]')) > 0:
                 form = self.page.get_form(id='myForm')
-                form.url = self.absurl('/cyber/internet/Sort.do?property=tbl1&sortBlocId=blc2&columnName=dateValeur')
+                form.url = self.absurl('/cyber/internet/Sort.do?property=tbl1&sortBlocId=blc2&columnName=dateOperation')
                 params['token'] = self.page.build_token(params['token'])
                 form.submit()
 
@@ -428,6 +428,7 @@ class BanquePopulaire(LoginBrowser):
                 assert self.transactions_page.is_here()
 
                 transaction_list = self.page.get_history(account, coming)
+
                 for tr in transaction_list:
                     # Add information about GoCardless
                     if 'GoCardless' in tr.label and tr._has_link:
