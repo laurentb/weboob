@@ -23,7 +23,7 @@ import re
 
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
 from weboob.browser.elements import ItemElement, ListElement, DictElement, TableElement, method
-from weboob.browser.filters.standard import CleanText, Date, DateTime, Format, CleanDecimal, Eval, Env, Field
+from weboob.browser.filters.standard import CleanText, Date, Format, CleanDecimal, Eval, Env, Field
 from weboob.browser.filters.html import Attr, Link, TableCell
 from weboob.browser.filters.json import Dict
 from weboob.exceptions import BrowserPasswordExpired, ActionNeeded
@@ -223,20 +223,6 @@ class InvestmentPage(LoggedPage, JsonPage):
             obj_original_valuation = Env('o_valuation', default=NotAvailable)
             obj_original_diff = Env('o_diff', default=NotAvailable)
             obj__security_id = Dict('SecurityId')
-
-            def obj_vdate(self):
-                raw_date = CleanText(Dict('Time'))(self)
-                if raw_date == '---':
-                    return NotAvailable
-                elif re.match(r'\d{2}\/\d{2}\/\d{4}', raw_date):
-                    # during stocks closing hours only date (dd/mm/yyyy) is given
-                    return Date(CleanText(Dict('Time')), dayfirst=True)(self)
-                elif re.match(r'\d{2}:\d{2}:\d{2}', raw_date):
-                    # during stocks opening hours only time (hh:mm:ss) is given,
-                    # can even be realtime, depending on user settings,
-                    # can be given in foreign markets time,
-                    # e.g. 10:00 is displayed at 9:00 for an action in NASDAQ Helsinki market
-                    return DateTime(CleanText(Dict('Time')), dayfirst=True, strict=False)(self)
 
             def obj_code(self):
                 if is_isin_valid(Dict('IsinCode')(self)):
