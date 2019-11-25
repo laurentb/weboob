@@ -84,7 +84,7 @@ class WikipediaARC4(object):
         self.x = 0
 
     def crypt(self, input):
-        output = [None]*len(input)
+        output = [None] * len(input)
         for i in range(len(input)):
             self.x = (self.x + 1) & 0xFF
             self.y = (self.state[self.x] + self.y) & 0xFF
@@ -113,11 +113,12 @@ class BasePage(object):
 
     def is_error(self):
         for script in self.doc.xpath('//script'):
-            if script.text is not None and \
-               (u"Le service est momentanément indisponible" in script.text or
-                u"Le service est temporairement indisponible" in script.text or
-                u"Votre abonnement ne vous permet pas d'accéder à ces services" in script.text or
-                u'Merci de bien vouloir nous en excuser' in script.text):
+            if script.text is not None and (
+                "Le service est momentanément indisponible" in script.text
+                or "Le service est temporairement indisponible" in script.text
+                or "Votre abonnement ne vous permet pas d'accéder à ces services" in script.text
+                or 'Merci de bien vouloir nous en excuser' in script.text
+            ):
                 return True
 
         return False
@@ -159,9 +160,10 @@ class BasePage(object):
                 continue
 
             for id, action, strategy in re.findall(r'''attEvt\(window,"(?P<id>[^"]+)","click","sab\('(?P<action>[^']+)','(?P<strategy>[^']+)'\);"''', script.text, re.MULTILINE):
-                actions[id] = {'dialogActionPerformed': action,
-                               'validationStrategy': strategy,
-                              }
+                actions[id] = {
+                    'dialogActionPerformed': action,
+                    'validationStrategy': strategy,
+                }
         return actions
 
     def get_back_button_params(self, params=None, actions=None):
@@ -272,7 +274,7 @@ class RedirectPage(LoggedPage, MyHTMLPage):
 class ErrorPage(LoggedPage, MyHTMLPage):
     def on_load(self):
         if CleanText('//script[contains(text(), "momentanément indisponible")]')(self.doc):
-            raise BrowserUnavailable(u"Le service est momentanément indisponible")
+            raise BrowserUnavailable("Le service est momentanément indisponible")
         elif CleanText('//h1[contains(text(), "Cette page est indisponible")]')(self.doc):
             raise BrowserUnavailable('Cette page est indisponible')
         return super(ErrorPage, self).on_load()
@@ -381,12 +383,12 @@ class Login2Page(LoginPage):
     def login(self, login, password):
         payload = {
             'validate': {
-                self.form_id[0]: [ {
+                self.form_id[0]: [{
                     'id': self.form_id[1],
                     'login': login.upper(),
                     'password': password,
                     'type': 'PASSWORD_LOOKUP',
-                } ]
+                }]
             }
         }
         url = self.request_url + '/step'
@@ -436,8 +438,8 @@ class Login2Page(LoginPage):
         if 'phase' in doc and doc['phase']['state'] == "ENROLLMENT":
             raise ActionNeeded()
 
-        if (('phase' in doc and doc['phase']['previousResult'] == 'FAILED_AUTHENTICATION') or
-            doc['response']['status'] != 'AUTHENTICATION_SUCCESS'):
+        if (('phase' in doc and doc['phase']['previousResult'] == 'FAILED_AUTHENTICATION')
+           or doc['response']['status'] != 'AUTHENTICATION_SUCCESS'):
             raise BrowserIncorrectPassword()
 
         data = {'SAMLResponse': doc['response']['saml2_post']['samlResponse']}
@@ -523,22 +525,23 @@ class HomePage(LoggedPage, MyHTMLPage):
 
 
 class AccountsPage(LoggedPage, MyHTMLPage):
-    ACCOUNT_TYPES = {u'Mes comptes d\'épargne':            Account.TYPE_SAVINGS,
-                     u'Mon épargne':                       Account.TYPE_SAVINGS,
-                     u'Placements':                        Account.TYPE_SAVINGS,
-                     u'Liste complète de mon épargne':     Account.TYPE_SAVINGS,
-                     u'Mes comptes':                       Account.TYPE_CHECKING,
-                     u'Comptes en euros':                  Account.TYPE_CHECKING,
-                     u'Mes comptes en devises':            Account.TYPE_CHECKING,
-                     u'Liste complète de mes comptes':     Account.TYPE_CHECKING,
-                     u'Mes emprunts':                      Account.TYPE_LOAN,
-                     u'Liste complète de mes emprunts':    Account.TYPE_LOAN,
-                     u'Financements':                      Account.TYPE_LOAN,
-                     u'Liste complète de mes engagements': Account.TYPE_LOAN,
-                     u'Mes services':                      None,    # ignore this kind of accounts (no bank ones)
-                     u'Équipements':                       None,    # ignore this kind of accounts (no bank ones)
-                     u'Synthèse':                          None,    # ignore this title
-                    }
+    ACCOUNT_TYPES = {
+        'Mes comptes d\'épargne': Account.TYPE_SAVINGS,
+        'Mon épargne': Account.TYPE_SAVINGS,
+        'Placements': Account.TYPE_SAVINGS,
+        'Liste complète de mon épargne': Account.TYPE_SAVINGS,
+        'Mes comptes': Account.TYPE_CHECKING,
+        'Comptes en euros': Account.TYPE_CHECKING,
+        'Mes comptes en devises': Account.TYPE_CHECKING,
+        'Liste complète de mes comptes': Account.TYPE_CHECKING,
+        'Mes emprunts': Account.TYPE_LOAN,
+        'Liste complète de mes emprunts': Account.TYPE_LOAN,
+        'Financements': Account.TYPE_LOAN,
+        'Liste complète de mes engagements': Account.TYPE_LOAN,
+        'Mes services': None,  # ignore this kind of accounts (no bank ones)
+        'Équipements': None,  # ignore this kind of accounts (no bank ones)
+        'Synthèse': None,  # ignore this title
+    }
 
     PATTERN = [
         (re.compile(r'.*Titres Pea.*'), Account.TYPE_PEA),
@@ -576,7 +579,7 @@ class AccountsPage(LoggedPage, MyHTMLPage):
         actions = self.get_button_actions()
 
         for div in self.doc.xpath('//div[has-class("btit")]'):
-            if div.text in (None, u'Synthèse'):
+            if div.text in (None, 'Synthèse'):
                 continue
             account_type = self.ACCOUNT_TYPES.get(div.text.strip(), Account.TYPE_UNKNOWN)
 
@@ -612,8 +615,8 @@ class AccountsPage(LoggedPage, MyHTMLPage):
 
                 account = Account()
                 account.id = args['identifiant'].replace(' ', '')
-                account.label = u' '.join([u''.join([txt.strip() for txt in tds[1].itertext()]),
-                                           u''.join([txt.strip() for txt in tds[2].itertext()])]).strip()
+                account.label = ' '.join([''.join([txt.strip() for txt in tds[1].itertext()]),
+                                           ''.join([txt.strip() for txt in tds[2].itertext()])]).strip()
 
                 for pattern, _type in self.PATTERN:
                     match = pattern.match(account.label)
@@ -623,7 +626,7 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                     else:
                         account.type = account_type
 
-                balance_text = u''.join([txt.strip() for txt in tds[3].itertext()])
+                balance_text = ''.join([txt.strip() for txt in tds[3].itertext()])
                 balance = FrenchTransaction.clean_amount(balance_text)
                 account.balance = Decimal(balance or '0.0')
                 account.currency = currency or Account.get_currency(balance_text)
@@ -637,7 +640,7 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                 account._coming_params = None
                 account._coming_count = None
                 account._invest_params = None
-                if balance != u'' and len(tds[3].xpath('.//a')) > 0:
+                if balance != '' and len(tds[3].xpath('.//a')) > 0:
                     account._params = params.copy()
                     account._params['dialogActionPerformed'] = 'SOLDE'
                     account._params['attribute($SEL_$%s)' % tr.attrib['id'].split('_')[0]] = tr.attrib['id'].split('_', 1)[1]
@@ -709,15 +712,15 @@ class CardsPage(LoggedPage, MyHTMLPage):
                 account.type = Account.TYPE_CARD
                 account.balance = account.coming = Decimal('0')
                 account._next_debit = datetime.date.today()
-                account._prev_debit = datetime.date(2000,1,1)
-                account.label = u' '.join([CleanText(None).filter(cols[self.COL_TYPE]),
+                account._prev_debit = datetime.date(2000, 1, 1)
+                account.label = ' '.join([CleanText(None).filter(cols[self.COL_TYPE]),
                                            CleanText(None).filter(cols[self.COL_LABEL])])
                 account.currency = currency
 
                 if accounts_parsed is not None:
                     for account_parsed in accounts_parsed:
-                        if (account_parsed.type == Account.TYPE_CHECKING and
-                            account_parsed.id.replace('CPT', '') == Regexp(CleanText('//div[@class="btit"]'), r'(\d+)$')(self.doc)):
+                        if (account_parsed.type == Account.TYPE_CHECKING
+                           and account_parsed.id.replace('CPT', '') == Regexp(CleanText('//div[@class="btit"]'), r'(\d+)$')(self.doc)):
                                 account.parent = account_parsed
 
                 account._params = None
@@ -749,7 +752,7 @@ class CardsPage(LoggedPage, MyHTMLPage):
 
             date = datetime.date(*[int(c) for c in m.groups()][::-1])
             if date.year < 100:
-                date = date.replace(year=date.year+2000)
+                date = date.replace(year=date.year + 2000)
 
             amount = Decimal(FrenchTransaction.clean_amount(CleanText(None).filter(cols[self.COL_AMOUNT])))
 
@@ -769,34 +772,25 @@ class CardsPage(LoggedPage, MyHTMLPage):
 
 
 class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile('^RET DAB (?P<text>.*?) RETRAIT (DU|LE) (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d+).*'),
-                                                            FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('^RET DAB (?P<text>.*?) CARTE ?:.*'),
-                                                            FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('^(?P<text>.*) RETRAIT DU (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) .*'),
-                                                            FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('^(RETRAIT CARTE )?RET(RAIT)? DAB (?P<text>.*)'),
-                                                            FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('((\w+) )?(?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) CB[:\*][^ ]+ (?P<text>.*)'),
-                                                            FrenchTransaction.TYPE_CARD),
-                (re.compile('^VIR(EMENT)? (?P<text>.*)'),   FrenchTransaction.TYPE_TRANSFER),
-                (re.compile('^(PRLV|PRELEVEMENT) (?P<text>.*)'),
-                                                            FrenchTransaction.TYPE_ORDER),
-                (re.compile('^(?P<text>CHEQUE .*)'),   FrenchTransaction.TYPE_CHECK),
-                (re.compile('^(AGIOS /|FRAIS) (?P<text>.*)', re.IGNORECASE),
-                                                            FrenchTransaction.TYPE_BANK),
-                (re.compile('^(CONVENTION \d+ )?COTIS(ATION)? (?P<text>.*)', re.IGNORECASE),
-                                                            FrenchTransaction.TYPE_BANK),
-                (re.compile('^REMISE (?P<text>.*)'),        FrenchTransaction.TYPE_DEPOSIT),
-                (re.compile('^(?P<text>ECHEANCE PRET .*)'), FrenchTransaction.TYPE_LOAN_PAYMENT),
-                (re.compile('^(?P<text>.*)( \d+)? QUITTANCE .*'),
-                                                            FrenchTransaction.TYPE_ORDER),
-                (re.compile('^.* LE (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})$'),
-                                                            FrenchTransaction.TYPE_UNKNOWN),
-                (re.compile(r'^RELEVE CARTE'), FrenchTransaction.TYPE_CARD_SUMMARY),
-                (re.compile(r'^RET GAB .*'), FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile(r'^RETRAIT CARTE AGENCE \d+$'), FrenchTransaction.TYPE_WITHDRAWAL),
-               ]
+    PATTERNS = [
+        (re.compile('^RET DAB (?P<text>.*?) RETRAIT (DU|LE) (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d+).*'), FrenchTransaction.TYPE_WITHDRAWAL),
+        (re.compile('^RET DAB (?P<text>.*?) CARTE ?:.*'), FrenchTransaction.TYPE_WITHDRAWAL),
+        (re.compile('^(?P<text>.*) RETRAIT DU (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) .*'), FrenchTransaction.TYPE_WITHDRAWAL),
+        (re.compile('^(RETRAIT CARTE )?RET(RAIT)? DAB (?P<text>.*)'), FrenchTransaction.TYPE_WITHDRAWAL),
+        (re.compile('((\w+) )?(?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) CB[:\*][^ ]+ (?P<text>.*)'), FrenchTransaction.TYPE_CARD),
+        (re.compile('^VIR(EMENT)? (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
+        (re.compile('^(PRLV|PRELEVEMENT) (?P<text>.*)'), FrenchTransaction.TYPE_ORDER),
+        (re.compile('^(?P<text>CHEQUE .*)'), FrenchTransaction.TYPE_CHECK),
+        (re.compile('^(AGIOS /|FRAIS) (?P<text>.*)', re.IGNORECASE), FrenchTransaction.TYPE_BANK),
+        (re.compile('^(CONVENTION \d+ )?COTIS(ATION)? (?P<text>.*)', re.IGNORECASE), FrenchTransaction.TYPE_BANK),
+        (re.compile('^REMISE (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
+        (re.compile('^(?P<text>ECHEANCE PRET .*)'), FrenchTransaction.TYPE_LOAN_PAYMENT),
+        (re.compile('^(?P<text>.*)( \d+)? QUITTANCE .*'), FrenchTransaction.TYPE_ORDER),
+        (re.compile('^.* LE (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})$'), FrenchTransaction.TYPE_UNKNOWN),
+        (re.compile(r'^RELEVE CARTE'), FrenchTransaction.TYPE_CARD_SUMMARY),
+        (re.compile(r'^RET GAB .*'), FrenchTransaction.TYPE_WITHDRAWAL),
+        (re.compile(r'^RETRAIT CARTE AGENCE \d+$'), FrenchTransaction.TYPE_WITHDRAWAL),
+    ]
 
 
 class TransactionsPage(LoggedPage, MyHTMLPage):
@@ -825,7 +819,7 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
 
     COL_COMPTA_DATE = 0
     COL_LABEL = 1
-    COL_REF = 2 # optional
+    COL_REF = 2  # optional
     COL_OP_DATE = -4
     COL_VALUE_DATE = -3
     COL_DEBIT = -2
@@ -897,10 +891,10 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
                 t.amount = -account._prev_balance
                 yield t
 
-        currency = Account.get_currency(self.doc\
-                                        .xpath('//table[@id="TabFact"]/thead//th')[self.COL_CARD_AMOUNT]\
-                                        .text\
-                                        .replace('(', ' ')\
+        currency = Account.get_currency(self.doc
+                                        .xpath('//table[@id="TabFact"]/thead//th')[self.COL_CARD_AMOUNT]
+                                        .text
+                                        .replace('(', ' ')
                                         .replace(')', ' '))
         for i, tr in enumerate(self.doc.xpath('//table[@id="TabFact"]/tbody/tr')):
             tds = tr.findall('td')
@@ -927,7 +921,7 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
     def no_operations(self):
         if len(self.doc.xpath('//table[@id="tbl1" or @id="TabFact"]//td[@colspan]')) > 0:
             return True
-        if len(self.doc.xpath(u'//div[contains(text(), "Accès à LineBourse")]')) > 0:
+        if len(self.doc.xpath('//div[contains(text(), "Accès à LineBourse")]')) > 0:
             return True
 
         return False
@@ -957,12 +951,12 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
         # index in which the link lies
         #
         # To get more details about how things are done, see the following javascript functions:
-        #- attachTableRowEvents (atre)
-        #- attachActiveSelectionEventsOnRow
-        #- astr
-        #- updateSelection (uds)
-        #- selectActionButton (sab)
-        #- a script element embedded in the html page (search for "tcl5", "tcl6")
+        # - attachTableRowEvents (atre)
+        # - attachActiveSelectionEventsOnRow
+        # - astr
+        # - updateSelection (uds)
+        # - selectActionButton (sab)
+        # - a script element embedded in the html page (search for "tcl5", "tcl6")
 
         assert transaction._has_link
 
@@ -1006,7 +1000,7 @@ class TransactionsBackPage(TransactionsPage):
 class NatixisRedirect(LoggedPage, XMLPage):
     def get_redirect(self):
         url = self.doc.xpath('/partial-response/redirect/@url')[0]
-        return url.replace('http://', 'https://') # why do they use http on a bank site???
+        return url.replace('http://', 'https://')  # why do they use http on a bank site???
 
 
 class NatixisErrorPage(LoggedPage, HTMLPage):
@@ -1029,7 +1023,7 @@ class IbanPage(LoggedPage, MyHTMLPage):
                 form['token'] = self.build_token(form['token'])
                 form['dialogActionPerformed'] = "DETAIL_IBAN_RIB"
                 tr_id = Attr(None, 'id').filter(tr.xpath('.')).split('_')
-                form[u'attribute($SEL_$%s)' % tr_id[0]] = tr_id[1]
+                form['attribute($SEL_$%s)' % tr_id[0]] = tr_id[1]
                 form.submit()
                 return True
         return False
@@ -1159,7 +1153,7 @@ class NatixisDetailsPage(LoggedPage, RawPage):
                         tr.amount = -abs(tr.amount)
                     else:
                         assert False, 'unhandled line %s' % label
-                    assert not any(len(cell) for cell in row[self.COL_LABEL+1:]), 'there should be only the label'
+                    assert not any(len(cell) for cell in row[self.COL_LABEL + 1:]), 'there should be only the label'
                 else:
                     if not tr:
                         continue
@@ -1188,17 +1182,18 @@ class AdvisorPage(LoggedPage, MyHTMLPage):
     class get_advisor(ItemElement):
         klass = Advisor
 
-        condition = lambda self: Field('name')(self)
+        def condition(self):
+            return Field('name')(self)
 
-        obj_name = CleanText(u'//div[label[contains(text(), "Votre conseiller")]]/span')
-        obj_agency = CleanText(u'//div[label[contains(text(), "Votre agence")]]/span')
+        obj_name = CleanText('//div[label[contains(text(), "Votre conseiller")]]/span')
+        obj_agency = CleanText('//div[label[contains(text(), "Votre agence")]]/span')
         obj_email = obj_mobile = NotAvailable
 
     @method
     class update_agency(ItemElement):
-        obj_phone = CleanText(u'//div[label[contains(text(), "Téléphone")]]/span', replace=[('.', '')])
-        obj_fax = CleanText(u'//div[label[contains(text(), "Fax")]]/span', replace=[('.', '')])
-        obj_address = CleanText(u'//div[div[contains(text(), "Votre agence")]]/following-sibling::div[1]//div[not(label)]/span')
+        obj_phone = CleanText('//div[label[contains(text(), "Téléphone")]]/span', replace=[('.', '')])
+        obj_fax = CleanText('//div[label[contains(text(), "Fax")]]/span', replace=[('.', '')])
+        obj_address = CleanText('//div[div[contains(text(), "Votre agence")]]/following-sibling::div[1]//div[not(label)]/span')
 
     def get_profile(self):
         profile = Person()

@@ -248,7 +248,7 @@ class BanquePopulaire(LoginBrowser):
             raise BrowserIncorrectPassword()
         if 'internetRescuePortal' in self.url:
             # 1 more request is necessary
-            data = {'integrationMode':	'INTERNET_RESCUE'}
+            data = {'integrationMode': 'INTERNET_RESCUE'}
             self.location('/cyber/internet/Login.do', data=data)
 
     ACCOUNT_URLS = ['mesComptes', 'mesComptesPRO', 'maSyntheseGratuite', 'accueilSynthese', 'equipementComplet']
@@ -407,7 +407,7 @@ class BanquePopulaire(LoginBrowser):
                 return
             params['token'] = self.page.build_token(params['token'])
 
-            if sel_tbl1 != None:
+            if sel_tbl1 is not None:
                 params['attribute($SEL_$tbl1)'] = str(sel_tbl1)
 
             self.location(self.absurl('/cyber/internet/ContinueTask.do', base=True), data=params)
@@ -460,10 +460,11 @@ class BanquePopulaire(LoginBrowser):
             account = self.get_account(account.id)
 
         if account._params:
-            params = {'taskInfoOID':            "ordreBourseCTJ",
-                      'controlPanelTaskAction': "true",
-                      'token':                  self.page.build_token(account._params['token'])
-                     }
+            params = {
+                'taskInfoOID': "ordreBourseCTJ",
+                'controlPanelTaskAction': "true",
+                'token': self.page.build_token(account._params['token']),
+            }
             self.location(self.absurl('/cyber/internet/StartTask.do', base=True), params=params)
         else:
             params = account._invest_params
