@@ -22,6 +22,8 @@ from __future__ import unicode_literals
 import os
 from datetime import datetime, timedelta
 
+from requests.exceptions import HTTPError
+
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.browsers import StatesMixin
 from weboob.browser.exceptions import ServerError
@@ -43,7 +45,9 @@ from .pages.accounthistory import (
     LifeInsuranceInvest, LifeInsuranceHistory, LifeInsuranceHistoryInv, RetirementHistory,
     SavingAccountSummary, CachemireCatalogPage,
 )
-from .pages.accountlist import MarketLoginPage, UselessPage, ProfilePage, MarketCheckPage
+from .pages.accountlist import (
+    MarketLoginPage, UselessPage, ProfilePage, MarketCheckPage, MarketHomePage,
+)
 from .pages.pro import RedirectPage, ProAccountsList, ProAccountHistory, DownloadRib, RibPage
 from .pages.mandate import MandateAccountsList, PreMandate, PreMandateBis, MandateLife, MandateMarket
 from .linebourse_browser import LinebourseBrowser
@@ -105,6 +109,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
                                  r'/voscomptes/canalXHTML/assurance/vie/detailMouvementHermesBompard-assuranceVie.ea\?idMouvement=(\w+)', LifeInsuranceHistoryInv)
     lifeinsurance_cachemire_catalog = URL(r'https://www.labanquepostale.fr/particuliers/bel_particuliers/assurance/accueil_cachemire.html', CachemireCatalogPage)
 
+    market_home = URL(r'https://labanquepostale.offrebourse.com/fr/\d+/?', MarketHomePage)
     market_login = URL(r'/voscomptes/canalXHTML/bourse/aiguillage/oicFormAutoPost.jsp', MarketLoginPage)
     market_check = URL(r'/voscomptes/canalXHTML/bourse/aiguillage/lancerBourseEnLigne-connexionBourseEnLigne.ea', MarketCheckPage)
     useless = URL(r'https://labanquepostale.offrebourse.com/ReroutageSJR', UselessPage)
@@ -387,8 +392,19 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
     @need_login
     def go_linebourse(self, account):
-        self.location(account.url)
-        self.market_login.go()
+        # Sometimes the redirection done from MarketLoginPage
+        # (to https://labanquepostale.offrebourse.com/ReroutageSJR)
+        # throws an error 404 or 403
+        location = retry(HTTPError, delay=5)(self.location)
+        location(account.url)
+
+        # TODO Might be deprecated, check the logs after some time to
+        # check if this is still used.
+        if not self.market_home.is_here():
+            self.logger.debug('Landed in unexpected market page, doing self.market_login.go()')
+            go = retry(HTTPError, delay=5)(self.market_login.go)
+            go()
+
         self.linebourse.session.cookies.update(self.session.cookies)
         self.par_accounts_checking.go()
 

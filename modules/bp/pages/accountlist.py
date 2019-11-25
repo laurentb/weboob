@@ -424,6 +424,10 @@ class AccountRIB(LoggedPage, RawPage):
         return None
 
 
+class MarketHomePage(LoggedPage, HTMLPage):
+    pass
+
+
 class MarketLoginPage(LoggedPage, PartialHTMLPage):
     def on_load(self):
         self.get_form(id='autoSubmit').submit()
