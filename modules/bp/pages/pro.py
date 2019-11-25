@@ -26,7 +26,6 @@ from weboob.browser.pages import LoggedPage, pagination
 from weboob.capabilities.bank import Account
 from weboob.capabilities.profile import Company
 from weboob.capabilities.base import NotAvailable
-from weboob.exceptions import BrowserUnavailable
 
 from .accounthistory import Transaction
 from .base import MyHTMLPage
@@ -35,6 +34,9 @@ from .base import MyHTMLPage
 class RedirectPage(LoggedPage, MyHTMLPage):
     def check_for_perso(self):
         return self.doc.xpath('''//p[contains(text(), "L'identifiant utilisé est celui d'un compte de Particuliers")]''')
+
+    def get_error(self):
+        return CleanText('//div[contains(@class, "bloc-erreur")]/h3')(self.doc)
 
 
 ACCOUNT_TYPES = {
@@ -51,12 +53,15 @@ class ProAccountsList(LoggedPage, MyHTMLPage):
     # on the new website people are able to make personnalized groups of account instead of the usual drop-down categories on which to parse to find a match in ACCOUNT_TYPES
     # If clients use the functionnality we might need to add entries new in ACCOUNT_TYPES
 
-    def on_load(self):
-        if self.doc.xpath('//div[@id="erreur_generale"]'):
-            raise BrowserUnavailable(CleanText('//div[@id="erreur_generale"]//p[contains(text(), "Le service est momentanément indisponible")]')(self.doc))
-
-    def is_here(self):
-        return CleanText('//h1[contains(text(), "Synthèse des comptes")]')(self.doc)
+    def get_errors(self):
+        # Full message for the second error is :
+        # Vous êtes uniquement habilité à accéder à OPnet.
+        # Pour toute modification de vos accès, veuillez-vous rapprocher
+        # du Mandataire Principal de votre contrat de banque en ligne.
+        return (
+            CleanText('//div[@id="erreur_generale"]//p[contains(text(), "Le service est momentanément indisponible")]')(self.doc)
+            or CleanText('//p[contains(text(), "veuillez-vous rapprocher du Mandataire Principal de votre contrat")]')(self.doc)
+        )
 
     @method
     class iter_accounts(ListElement):

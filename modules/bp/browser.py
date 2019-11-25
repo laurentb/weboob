@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 import os
 from datetime import datetime, timedelta
 
@@ -24,7 +26,10 @@ from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.browsers import StatesMixin
 from weboob.browser.exceptions import ServerError
 from weboob.capabilities.base import NotAvailable
-from weboob.exceptions import BrowserIncorrectPassword, BrowserBanned, NoAccountsException, BrowserUnavailable
+from weboob.exceptions import (
+    BrowserIncorrectPassword, BrowserBanned, NoAccountsException,
+    BrowserUnavailable, ActionNeeded,
+)
 from weboob.tools.compat import urlsplit, urlunsplit, parse_qsl
 from weboob.tools.decorators import retry
 
@@ -233,8 +238,11 @@ class BPBrowser(LoginBrowser, StatesMixin):
         self.location(self.login_url)
         self.page.login(self.username, self.password)
 
-        if self.redirect_page.is_here() and self.page.check_for_perso():
-            raise BrowserIncorrectPassword(u"L'identifiant utilisé est celui d'un compte de Particuliers.")
+        if self.redirect_page.is_here():
+            if self.page.check_for_perso():
+                raise BrowserIncorrectPassword("L'identifiant utilisé est celui d'un compte de Particuliers.")
+            error = self.page.get_error()
+            raise BrowserUnavailable(error or '')
         if self.badlogin.is_here():
             raise BrowserIncorrectPassword()
         if self.disabled_account.is_here():
@@ -635,6 +643,13 @@ class BProBrowser(BPBrowser):
     def _get_coming_transactions(self, account):
         return []
 
+    def check_accounts_list_error(self):
+        error = self.page.get_errors()
+        if error:
+            if 'veuillez-vous rapprocher du mandataire principal de votre contrat' in error.lower():
+                raise ActionNeeded(error)
+        raise BrowserUnavailable(error or '')
+
     @need_login
     def get_accounts_list(self):
         if self.accounts is None:
@@ -646,6 +661,7 @@ class BProBrowser(BPBrowser):
             self.location(self.accounts_url)
             assert self.pro_accounts_list.is_here()
 
+            self.check_accounts_list_error()
             for account in self.page.iter_accounts():
                 ids.add(account.id)
                 accounts.append(account)
@@ -654,6 +670,7 @@ class BProBrowser(BPBrowser):
                 self.location(self.accounts_and_loans_url)
                 assert self.pro_accounts_list.is_here()
 
+            self.check_accounts_list_error()
             for account in self.page.iter_accounts():
                 if account.id not in ids:
                     ids.add(account.id)
