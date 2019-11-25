@@ -1807,6 +1807,8 @@ class VerifCodePage(LoggedPage, HTMLPage):
         )
         for error in errors:
             if error:
+                # don't reload state
+                self.browser.need_clear_storage = True
                 raise AddRecipientBankError(message=error)
 
         action_needed = CleanText('//p[contains(text(), "Carte de CLÉS PERSONNELLES révoquée")]')(self.doc)
@@ -1836,6 +1838,8 @@ class VerifCodePage(LoggedPage, HTMLPage):
         error_msg = CleanText('//div[@class="blocmsg info"]/p')(self.doc)
         # the card was not activated yet
         if 'veuillez activer votre carte' in error_msg:
+            # don't reload state
+            self.browser.need_clear_storage = True
             raise AddRecipientBankError(message=error_msg)
 
 
