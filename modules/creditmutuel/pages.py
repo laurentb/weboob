@@ -1983,7 +1983,7 @@ class RevolvingLoansList(LoggedPage, HTMLPage):
 
             def obj_rate(self):
                 if not self.async_load:
-                    return MyDecimal(Regexp(CleanText('.//td[2]'), r'.* (\d*,\d*)%'))(self)
+                    return MyDecimal(Regexp(CleanText('.//td[2]'), r'.* (\d*,\d*)%', default=NotAvailable))(self)
 
 
 class ErrorPage(HTMLPage):
