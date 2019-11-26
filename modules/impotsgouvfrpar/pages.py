@@ -87,6 +87,8 @@ class ProfilePage(LoggedPage, HTMLPage):
 
     @method
     class fill_profile(ItemElement):
+        obj_firstname = CleanText('//div[span[contains(text(), "Prénom")]]/following-sibling::div/span')
+        obj_lastname = CleanText('//div[span[contains(text(), "Nom")]]/following-sibling::div/span')
         obj_email = CleanText('//div[span[contains(text(), "Adresse électronique")]]/following-sibling::div/span')
         obj_mobile = CleanText('//div[span[text()="Téléphone portable"]]/following-sibling::div/span', default=NotAvailable)
         obj_phone = CleanText('//div[span[text()="Téléphone fixe"]]/following-sibling::div/span', default=NotAvailable)
