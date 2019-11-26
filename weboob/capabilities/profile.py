@@ -49,6 +49,8 @@ class Person(Profile):
     Person.
     """
     birth_date =                  DateField('Birth date')
+    firstname =                   StringField("Person's firstname")
+    lastname =                    StringField("Person's lastname")
     nationality =                 StringField('Nationality of owner')
     mobile =                      StringField('Mobile number of owner')
     gender =                      StringField('Gender of owner (Male/Female)')
