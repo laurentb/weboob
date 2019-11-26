@@ -39,7 +39,7 @@ class ImpotsGouvFrParModule(AbstractModule, CapDocument, CapProfile):
     LICENSE = 'LGPLv3+'
     VERSION = '1.6'
     CONFIG = BackendConfig(
-        ValueBackendPassword('login', label='Numéro fiscal', regexp='^\d+{13}$', masked=False),
+        ValueBackendPassword('login', label='Numéro fiscal', regexp='^.*@.*$|^\d+$', masked=False),
         Value('login_source', label="méthode d'authentification", default='direct',
                              choices={'direct': 'directe', 'fc': 'France Connect'}),
         ValueBackendPassword('password', label='Mot de passe'),
