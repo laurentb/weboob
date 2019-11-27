@@ -272,3 +272,10 @@ class EcofiInvestmentPage(LoggedPage, HTMLPage):
             r'\/Horizon (.*)\.png'
         )
         obj_asset_category = CleanText('//div[contains(text(), "Classification")]/following-sibling::div[1]', default=NotAvailable)
+
+
+class SGGestionInvestmentPage(LoggedPage, HTMLPage):
+    @method
+    class fill_investment(ItemElement):
+        obj_asset_category = CleanText('//label[contains(text(), "Classe d\'actifs")]/following-sibling::span', default=NotAvailable)
+        obj_recommended_period = CleanText('//label[contains(text(), "Durée minimum")]/following-sibling::span', default=NotAvailable)

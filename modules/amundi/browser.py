@@ -28,7 +28,7 @@ from .pages import (
     LoginPage, AccountsPage, AccountHistoryPage, AmundiInvestmentsPage, AllianzInvestmentPage,
     EEInvestmentPage, EEInvestmentDetailPage, EEProductInvestmentPage, EresInvestmentPage,
     CprInvestmentPage, BNPInvestmentPage, BNPInvestmentApiPage, AxaInvestmentPage,
-    EpsensInvestmentPage, EcofiInvestmentPage,
+    EpsensInvestmentPage, EcofiInvestmentPage, SGGestionInvestmentPage,
 )
 
 
@@ -62,6 +62,8 @@ class AmundiBrowser(LoginBrowser):
     epsens_investments = URL(r'https://www.epsens.com/information-financiere', EpsensInvestmentPage)
     # Ecofi investments
     ecofi_investments = URL(r'http://www.ecofi.fr/fr/fonds/dynamis-solidaire', EcofiInvestmentPage)
+    # Société Générale gestion investments
+    sg_gestion_investments = URL(r'https://www.societegeneralegestion.fr/psSGGestionEntr/productsheet/view/idvm', SGGestionInvestmentPage)
 
     def do_login(self):
         data = {
@@ -110,6 +112,7 @@ class AmundiBrowser(LoginBrowser):
             'axa-im.fr/fr/fund-page',  # AxaInvestmentPage
             'www.epsens.com/information-financiere',  # EpsensInvestmentPage
             'www.ecofi.fr/fr/fonds/dynamis-solidaire',  # EcofiInvestmentPage
+            'www.societegeneralegestion.fr',  # SGGestionInvestmentPage
         )
 
         for inv in self.page.iter_investments(account_id=account.id):
@@ -149,7 +152,8 @@ class AmundiBrowser(LoginBrowser):
             self.cpr_investments.is_here() or
             self.ee_product_investments.is_here() or
             self.epsens_investments.is_here() or
-            self.ecofi_investments.is_here()):
+            self.ecofi_investments.is_here() or
+            self.sg_gestion_investments.is_here()):
             self.page.fill_investment(obj=inv)
 
         # Particular cases
