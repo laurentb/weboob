@@ -852,6 +852,8 @@ class ProfilePage(LoggedPage, HTMLPage):
         klass = Person
 
         obj_name = Format('%s %s %s', MySelect('genderTitle'), MyInput('firstName'), MyInput('lastName'))
+        obj_firstname = MyInput('firstName')
+        obj_lastname = MyInput('lastName')
         obj_nationality = CleanText(u'//span[contains(text(), "Nationalité")]/span')
         obj_spouse_name = MyInput('spouseFirstName')
         obj_children = CleanDecimal(MyInput('dependentChildren'), default=NotAvailable)
