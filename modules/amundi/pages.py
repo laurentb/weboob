@@ -84,7 +84,7 @@ class AccountsPage(LoggedPage, JsonPage):
                 except UnicodeError:
                     try:
                         return Dict('libelleDispositif')(self).encode('latin1').decode('utf8')
-                    except UnicodeDecodeError:
+                    except UnicodeError:
                         return Dict('libelleDispositif')(self)
 
     @method
