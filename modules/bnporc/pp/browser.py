@@ -51,7 +51,7 @@ from .pages import (
     UselessPage, TransferAssertionError, LoanDetailsPage,
 )
 
-from .document_pages import DocumentsPage, TitulairePage
+from .document_pages import DocumentsPage, DocumentsResearchPage, TitulairePage
 
 __all__ = ['BNPPartPro', 'HelloBank']
 
@@ -126,7 +126,8 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser, StatesMixin):
     advisor = URL(r'/conseiller-wspl/rest/monConseiller', AdvisorPage)
 
     titulaire = URL(r'/demat-wspl/rest/listerTitulairesDemat', TitulairePage)
-    document = URL(r'/demat-wspl/rest/rechercheCriteresDemat', DocumentsPage)
+    document = URL(r'/demat-wspl/rest/listerDocuments', DocumentsPage)
+    document_research = URL(r'/demat-wspl/rest/rechercheCriteresDemat', DocumentsResearchPage)
 
     profile = URL(r'/kyc-wspl/rest/informationsClient', ProfilePage)
     list_detail_card = URL(r'/udcarte-wspl/rest/listeDetailCartes', ListDetailCardPage)
@@ -546,18 +547,37 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser, StatesMixin):
         titulaires = self.titulaire.go().get_titulaires()
         # Calling '/demat-wspl/rest/listerDocuments' before the request on 'document'
         # is necessary when you specify an ikpi, otherwise no documents are returned
-        self.location('/demat-wspl/rest/listerDocuments')
+        self.document.go()
+        docs = []
+        id_docs = []
+        iter_documents_functions = [self.page.iter_documents, self.page.iter_documents_pro]
+        for iter_documents in iter_documents_functions:
+            for doc in iter_documents(sub_id=subscription.id, sub_number=subscription._number, baseurl=self.BASEURL):
+                docs.append(doc)
+                id_docs.append(doc.id)
+
+        # documents are sorted by type then date, sort them directly by date
+        docs = sorted(docs, key=lambda doc: doc.date, reverse=True)
+        for doc in docs:
+            yield doc
+
         # When we only have one titulaire, no need to use the ikpi parameter in the request,
         # all document are provided with this simple request
         data = {
             'dateDebut': (datetime.now() - relativedelta(years=3)).strftime('%d/%m/%Y'),
             'dateFin': datetime.now().strftime('%d/%m/%Y'),
         }
+
+        len_titulaires = len(titulaires)
+        self.logger.info('The total number of titulaires on this connection is %s.', len_titulaires)
         # Ikpi is necessary for multi titulaires accounts to get each document of each titulaires
-        if len(titulaires) > 1:
+        if len_titulaires > 1:
             data['ikpiPersonne'] = subscription._iduser
-        self.document.go(json=data)
-        return self.page.iter_documents(sub_id=subscription.id, sub_number=subscription._number, baseurl=self.BASEURL)
+
+        self.document_research.go(json=data)
+        for doc in self.page.iter_documents(sub_id=subscription.id, sub_number=subscription._number, baseurl=self.BASEURL):
+            if doc.id not in id_docs:
+                yield doc
 
     @need_login
     def iter_subscription(self):
@@ -575,6 +595,7 @@ class BNPParibasBrowser(JsonBrowserMixin, LoginBrowser, StatesMixin):
             # usefull for multi titulaires connexions
             sub._iduser = acc._iduser
             yield sub
+
 
 class BNPPartPro(BNPParibasBrowser):
     BASEURL_TEMPLATE = r'https://%s.bnpparibas/'

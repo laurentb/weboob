@@ -42,6 +42,7 @@ patterns = {
     r'Factures': DocumentTypes.BILL,
 }
 
+
 def get_document_type(family):
     for patt, type in patterns.items():
         if re.search(re.escape(patt), family):
@@ -54,67 +55,92 @@ class TitulairePage(LoggedPage, JsonPage):
         return set([t['idKpiTitulaire'] for t in self.doc['data']['listeTitulairesDemat']['listeTitulaires']])
 
 
+class ItemDocument(ItemElement):
+    klass = Document
+
+    def condition(self):
+        # There is two type of json, the one with the ibancrypte in it
+        # and the one with the idcontrat in it, here we check if
+        # the document belong to the subscription.
+        if 'ibanCrypte' in self.el:
+            return Env('sub_id')(self) in Dict('ibanCrypte')(self)
+        else:
+            return Env('sub_number')(self) in Dict('idContrat')(self)
+
+    obj_date = Date(Dict('dateDoc'), dayfirst=True)
+    obj_format = 'pdf'
+    obj_id = Format('%s_%s', Env('sub_id'), Dict('idDoc'))
+
+    def obj_label(self):
+        if 'ibanCrypte' in self.el:
+            return '%s %s N° %s' % (Dict('dateDoc')(self), Dict('libelleSousFamille')(self), Dict('numeroCompteAnonymise')(self))
+        else:
+            return '%s %s N° %s' % (Dict('dateDoc')(self), Dict('libelleSousFamille')(self), Dict('idContrat')(self))
+
+    def obj_url(self):
+        keys_to_copy = {
+            'idDocument' :'idDoc',
+            'dateDocument': 'dateDoc',
+            'idLocalisation': 'idLocalisation',
+            'viDocDocument': 'viDocDocument',
+        }
+        # Here we parse the json with ibancrypte in it, for most cases
+        if 'ibanCrypte' in self.el:
+            url = 'demat-wspl/rest/consultationDocumentDemat?'
+            keys_to_copy.update({
+                'typeCpt': 'typeCompte',
+                'familleDoc': 'famDoc',
+                'ibanCrypte': 'ibanCrypte',
+                'typeDoc': 'typeDoc',
+                'consulted': 'consulted',
+            })
+            request_params = {'typeFamille': 'R001', 'ikpiPersonne': ''}
+        # Here we parse the json with idcontrat in it. For the cases present
+        # on privee.mabanque where sometimes the doc url is different
+        else:
+            url = 'demat-wspl/rest/consultationDocumentSpecialBpfDemat?'
+            keys_to_copy.update({
+                'heureDocument': 'heureDoc',
+                'numClient': 'numClient',
+                'typeReport': 'typeReport',
+            })
+            request_params = {'ibanCrypte': ''}
+
+        for k, v in keys_to_copy.items():
+            request_params[k] = Dict(v)(self)
+
+        return Env('baseurl')(self) + url + urlencode(request_params)
+
+    def obj_type(self):
+        return get_document_type(Dict('libelleSousFamille')(self))
+
+
 class DocumentsPage(LoggedPage, JsonPage):
     @method
     class iter_documents(DictElement):
+        # * refer to the account, it can be 'Comptes chèques', 'Comptes d'épargne', etc...
+        item_xpath = 'data/listerDocumentDemat/mapReleves/*/listeDocument'
+        ignore_duplicate = True
+
+        class item(ItemDocument):
+            pass
+
+    @method
+    class iter_documents_pro(DictElement):
+        # * refer to the account, it can be 'Comptes chèques', 'Comptes d'épargne', etc...
+        item_xpath = 'data/listerDocumentDemat/mapRelevesPro/*/listeDocument'
+        ignore_duplicate = True
+
+        class item(ItemDocument):
+            pass
+
+
+class DocumentsResearchPage(LoggedPage, JsonPage):
+    @method
+    class iter_documents(DictElement):
+        # * refer to the account, it can be 'Comptes chèques', 'Comptes d'épargne', etc...
         item_xpath = 'data/rechercheCriteresDemat/*/*/listeDocument'
         ignore_duplicate = True
 
-        class item(ItemElement):
-            klass = Document
-
-            def condition(self):
-                # There is two type of json, the one with the ibancrypte in it
-                # and the one with the idcontrat in it, here we check if
-                # the document belong to the subscritpion.
-                if 'ibanCrypte' in self.el:
-                    return Env('sub_id')(self) in Dict('ibanCrypte')(self)
-                else:
-                    return Env('sub_number')(self) in Dict('idContrat')(self)
-
-            obj_date = Date(Dict('dateDoc'), dayfirst=True)
-            obj_format = 'pdf'
-            obj_id = Format('%s_%s', Env('sub_id'), Dict('idDoc'))
-
-            def obj_label(self):
-                if 'ibanCrypte' in self.el:
-                    return '%s %s N° %s' % (Dict('dateDoc')(self), Dict('libelleSousFamille')(self), Dict('numeroCompteAnonymise')(self))
-                else:
-                    return '%s %s N° %s' % (Dict('dateDoc')(self), Dict('libelleSousFamille')(self), Dict('idContrat')(self))
-
-            def obj_url(self):
-                keys_to_copy = {
-                    'idDocument' :'idDoc',
-                    'dateDocument': 'dateDoc',
-                    'idLocalisation': 'idLocalisation',
-                    'viDocDocument': 'viDocDocument',
-                }
-                # Here we parse the json with ibancrypte in it, for most cases
-                if 'ibanCrypte' in self.el:
-                    url = 'demat-wspl/rest/consultationDocumentDemat?'
-                    keys_to_copy.update({
-                        'typeCpt': 'typeCompte',
-                        'familleDoc': 'famDoc',
-                        'ibanCrypte': 'ibanCrypte',
-                        'typeDoc': 'typeDoc',
-                        'consulted': 'consulted',
-                    })
-                    request_params = {'typeFamille': 'R001', 'ikpiPersonne': ''}
-                # Here we parse the json with idcontrat in it. For the cases present
-                # on privee.mabanque where sometimes the doc url is different
-                else:
-                    url = 'demat-wspl/rest/consultationDocumentSpecialBpfDemat?'
-                    keys_to_copy.update({
-                        'heureDocument': 'heureDoc',
-                        'numClient': 'numClient',
-                        'typeReport': 'typeReport',
-                    })
-                    request_params = {'ibanCrypte': ''}
-
-                for k, v in keys_to_copy.items():
-                    request_params[k] = Dict(v)(self)
-
-                return Env('baseurl')(self) + url + urlencode(request_params)
-
-            def obj_type(self):
-                return get_document_type(Dict('libelleSousFamille')(self))
+        class item(ItemDocument):
+            pass
