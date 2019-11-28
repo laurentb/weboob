@@ -25,6 +25,7 @@ from decimal import Decimal
 import re
 from io import BytesIO
 from datetime import date
+from PIL import Image
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination, NextPage, FormNotFound, PartialHTMLPage, LoginPage, CsvPage, RawPage, JsonPage
 from weboob.browser.elements import ListElement, ItemElement, method, TableElement, SkipItem, DictElement
@@ -47,8 +48,7 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.value import Value
 from weboob.tools.date import parse_french_date
-from weboob.tools.captcha.virtkeyboard import VirtKeyboard, VirtKeyboardError
-from weboob.tools.compat import urljoin, urlencode, urlparse
+from weboob.tools.compat import urljoin, urlencode, urlparse, range
 from weboob.exceptions import BrowserQuestion, BrowserIncorrectPassword, BrowserHTTPNotFound, BrowserUnavailable, ActionNeeded
 
 
@@ -142,45 +142,72 @@ class VirtKeyboardPage(HTMLPage):
     pass
 
 
-class BoursoramaVirtKeyboard(VirtKeyboard):
-    symbols = {'0': (17, 7, 24, 17),
-               '1': (18, 6, 21, 18),
-               '2': (9, 7, 32, 34),
-               '3': (10, 7, 31, 34),
-               '4': (11, 6, 29, 34),
-               '5': (14, 6, 28, 34),
-               '6': (7, 7, 34, 34),
-               '7': (5, 6, 36, 34),
-               '8': (8, 7, 32, 34),
-               '9': (4, 7, 38, 34)}
+class BoursoramaVirtKeyboard(object):
+    symbols = {
+        '0': '0000110000001111110001110011100110000110111000011011100001101100000110111000011011100001100110000110011100111000111111000000110000',
+        '1': '0000110000000111000000111100000111110000011011000000001100000000110000000011000000001100000000110000000011000000001100000000110000',
+        '2': '0001111000011111110001100011100000000110000000011000000001100000001110000001110000001110000001110000001110000001111111110111111111',
+        '3': '0001111000011111111001100011100000000110000000011000000011100001111000000111110000000001100000000110111000111001111111100001110000',
+        '4': '0000011100000011110000001111000001101100000100110000110011000110001100011000110011111111101111111110000000111000000011000000001100',
+        '5': '1111111100111111110011100000001100000000110000000011111111001111111110010000011000000001100000000110111000111011111111000001110000',
+        '6': '0000111000001111111001110001000110000000011000000011101111001111111110111000011011100001100110000110011100111000111111000000111000',
+        '7': '0111111111011111111100000001100000000110000000111000000011000000011100000001100000000110000000110000000011000000011100000001100000',
+        '8': '0001111000011111111011100011101110000110011000011001111111000011111000011100111011100001101110000110111000111001111111100001111000',
+        '9': '0001110000011111110001100011101110000110110000011011100001100111111110001111011000000001100000000110001000110001111111000001110000',
+    }
 
-    color = (255,255,255)
+    def __init__(self, browser, page):
+        self.browser = browser
+        self.fingerprints = {}
+        col = 0
 
-    def __init__(self, page):
-        self.md5 = {}
+        keys = page.doc.xpath('//ul[@class="password-input"]//button/@data-matrix-key')
+
         for button in page.doc.xpath('//ul[@class="password-input"]//button'):
-            c = button.attrib['data-matrix-key']
             txt = button.attrib['style'].replace('background-image:url(data:image/png;base64,', '').rstrip(');')
-            img = BytesIO(b64decode(txt.encode('ascii')))
-            self.load_image(img, self.color, convert='RGB')
-            self.load_symbols((0, 0, 42, 42), c)
 
-    def load_symbols(self, coords, c):
-        coord = self.get_symbol_coords(coords)
-        if coord == (-1, -1, -1, -1):
-            return
-        self.md5[coord] = c
+            img = Image.open(BytesIO(b64decode(txt.encode('ascii'))))
+            width, height = img.size
 
-    def get_code(self, password):
-        code = ''
-        for i, d in enumerate(password):
-            if i > 0:
-                code += '|'
-            try:
-                code += self.md5[self.symbols[d]]
-            except KeyError:
-                raise VirtKeyboardError()
-        return code
+            img = img.crop((16, 6, width - 16, height - 23))
+            width, height = img.size
+
+            matrix = img.load()
+            s = ""
+            for y in range(height):
+                for x in range(width):
+                    (r, g, b, a) = matrix[x, y]
+                    # If the pixel is white and opaque enough
+                    if a > 200 and r + g + b > 740:
+                        s += "1"
+                    else:
+                        s += "0"
+            self.fingerprints[keys[col]] = s
+            col += 1
+
+    def get_symbol_code(self, char):
+        fingerprint = self.symbols[char]
+        for code, string in self.fingerprints.items():
+            if fingerprint == string:
+                return code
+        # Image contains some noise, and the match is not always perfect
+        # (this is why we can't use md5 hashs)
+        # But if we can't find the perfect one, we can take the best one
+        best = 0
+        result = None
+        for code, string in self.fingerprints.items():
+            match = 0
+            for j, bit in enumerate(string):
+                if bit == fingerprint[j]:
+                    match += 1
+            if match > best:
+                best = match
+                result = code
+        self.browser.logger.info(self.fingerprints[result] + "(" + result + ") match " + char)
+        return result
+
+    def get_string_code(self, string):
+        return '|'.join(self.get_symbol_code(c) for c in string)
 
 
 class LoginPage(LoginPage, HTMLPage):
@@ -199,8 +226,8 @@ class LoginPage(LoginPage, HTMLPage):
             password = ''.join([c if c.isdigit() else [k for k, v in self.TO_DIGIT.items() if c in v][0] for c in password.lower()])
         form = self.get_form()
         keyboard_page = self.browser.keyboard.open()
-        vk = BoursoramaVirtKeyboard(keyboard_page)
-        code = vk.get_code(password)
+        vk = BoursoramaVirtKeyboard(self.browser, keyboard_page)
+        code = vk.get_string_code(password)
         form['form[login]'] = login
         form['form[fakePassword]'] = len(password) * '•'
         form['form[password]'] = code
