@@ -510,6 +510,12 @@ class AbstractModule(Module):
     """
     PARENT = None
 
+    ADDITIONAL_CONFIG = BackendConfig()
+    """Optional additional Values for backends, appended to parent CONFIG
+
+    Values must be weboob.tools.value.Value objects.
+    """
+
     @classmethod
     def _resolve_abstract(cls, weboob, name):
         """ Replace AbstractModule parent with the real base class """
