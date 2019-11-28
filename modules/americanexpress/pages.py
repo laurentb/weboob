@@ -62,6 +62,10 @@ class LoginPage(JsonPage):
         # - 1 = Incorrect login/password
         return CleanDecimal(Dict('statusCode'))(self.doc)
 
+    def get_error_code(self):
+        # - LGON004 = ActionNeeded
+        return CleanText(Dict('errorCode'))(self.doc)
+
 
 class AccountsPage(LoggedPage, JsonPage):
     @method

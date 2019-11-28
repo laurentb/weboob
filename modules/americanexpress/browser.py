@@ -21,7 +21,7 @@ from __future__ import unicode_literals
 
 import datetime
 
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from weboob.browser.browsers import LoginBrowser, need_login
 from weboob.browser.exceptions import HTTPNotFound, ServerError
 from weboob.browser.url import URL
@@ -75,6 +75,11 @@ class AmericanExpressBrowser(LoginBrowser):
         })
 
         if self.page.get_status_code() != 0:
+            if self.page.get_error_code() == 'LGON004':
+                # This error happens when the website needs that the user
+                # enter his card information and reset his password.
+                # There is no message returned when this error happens.
+                raise ActionNeeded()
             raise BrowserIncorrectPassword()
 
     @need_login
