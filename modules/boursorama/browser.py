@@ -109,10 +109,11 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
                          '/compte/pea-pme/.*/mouvements', SavingMarketPage)
     market = URL('/compte/(?!assurance|cav|epargne).*/(positions|mouvements)',
                  '/compte/ord/.*/positions', MarketPage)
-    loans = URL('/credit/immobilier/.*/informations',
-                '/credit/immobilier/.*/caracteristiques',
-                '/credit/consommation/.*/informations',
-                '/credit/lombard/.*/caracteristiques', LoanPage)
+    loans = URL(r'/credit/paiement-3x/.*/informations',
+                r'/credit/immobilier/.*/informations',
+                r'/credit/immobilier/.*/caracteristiques',
+                r'/credit/consommation/.*/informations',
+                r'/credit/lombard/.*/caracteristiques', LoanPage)
     authentication = URL('/securisation', AuthenticationPage)
     iban = URL('/compte/(?P<webid>.*)/rib', IbanPage)
     profile = URL('/mon-profil/', ProfilePage)

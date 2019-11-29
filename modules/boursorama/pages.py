@@ -399,6 +399,7 @@ class LoanPage(LoggedPage, HTMLPage):
 
     LOAN_TYPES = {
         "PRÊT PERSONNEL": Account.TYPE_CONSUMER_CREDIT,
+        "CLIC": Account.TYPE_CONSUMER_CREDIT,
     }
 
     @method
@@ -408,18 +409,28 @@ class LoanPage(LoggedPage, HTMLPage):
 
         obj_id = CleanText('//h3[contains(@class, "account-number")]/strong')
         obj_label =  CleanText('//h2[contains(@class, "page-title__account")]//*[@class="account-edit-label"]/span[1]')
-        obj_total_amount = CleanDecimal('//p[contains(text(), "Montant emprunt")]/span', replace_dots=True)
-        obj_currency = CleanCurrency('//p[contains(text(), "Montant emprunt")]/span')
-        obj_duration = CleanDecimal('//p[contains(text(), "Nombre prévisionnel d\'échéances restantes")]/span', default=NotAvailable)
-        obj_rate = CleanDecimal('//p[contains(text(), "Taux nominal en vigueur du prêt")]/span')
-        obj_nb_payments_left = CleanDecimal('//p[contains(text(), "Nombre prévisionnel d\'échéances restantes")]/span', default=NotAvailable)
-        obj_next_payment_amount = CleanDecimal('//p[contains(text(), "Montant de la prochaine échéance")]/span', replace_dots=True, default=NotAvailable)
-        obj_nb_payments_total = CleanDecimal('//p[contains(text(), "Nombre d\'écheances totales") or contains(text(), "Nombre total d\'échéances")]/span')
+        obj_currency = CleanCurrency('//div[contains(text(), "Montant emprunt")]/following-sibling::div')
+        obj_duration = CleanDecimal.French('//p[contains(text(), "échéances restantes")]/span', default=NotAvailable)
+        obj_rate = CleanDecimal.French('//p[contains(text(), "Taux nominal en vigueur du prêt")]/span', default=NotAvailable)
+        obj_nb_payments_left = CleanDecimal.French('//p[contains(text(), "échéances restantes")]/span', default=NotAvailable)
+        obj_next_payment_amount = CleanDecimal.French('//p[contains(text(), "Montant de la prochaine échéance")]/span', default=NotAvailable)
+        obj_nb_payments_total = CleanDecimal.French('//p[contains(text(), "écheances totales") or contains(text(), "Nombre total")]/span')
         obj_subscription_date = Date(CleanText('//p[contains(text(), "Date de départ du prêt")]/span'), parse_func=parse_french_date)
-        obj_maturity_date = Date(CleanText('//p[contains(text(), "Date prévisionnelle d\'échéance finale")]/span'), parse_func=parse_french_date, default=NotAvailable)
+
+        def obj_total_amount(self):
+            total_amount = CleanText('//p[contains(text(), "Montant emprunt")]/span')(self)
+            if total_amount:
+                return CleanDecimal.French('//p[contains(text(), "Montant emprunt")]/span')(self)
+            return CleanDecimal.French('//div[contains(text(), "Montant emprunt")]/following-sibling::div')(self)
+
+        def obj_maturity_date(self):
+            maturity_date = CleanText('//p[contains(text(), "échéance finale")]/span')(self)
+            if maturity_date:
+                return Date(CleanText('//p[contains(text(), "échéance finale")]/span'), parse_func=parse_french_date)(self)
+            return Date(Regexp(CleanText('//p[contains(text(), "date de votre dernière échéance")]'), r'(\d.*)'), parse_func=parse_french_date, default=NotAvailable)(self)
 
         def obj_balance(self):
-            balance = CleanDecimal('//p[contains(text(), "Capital restant dû")]/span', replace_dots=True)(self)
+            balance = CleanDecimal.French('//div[contains(text(), "Capital restant dû")]/following-sibling::div')(self)
             if balance > 0:
                 balance *= -1
             return balance
@@ -432,7 +443,7 @@ class LoanPage(LoggedPage, HTMLPage):
             tmp = CleanText('//p[contains(text(), "Date de la prochaine échéance")]/span')(self)
             if tmp == "-":
                 return NotAvailable
-            return Date(CleanText('//p[contains(text(), "Date de la prochaine échéance")]/span'), parse_func=parse_french_date)(self)
+            return Date(CleanText('//div[contains(text(), "Prochaine échéance")]/following-sibling::div'))(self)
 
 
 class NoAccountPage(LoggedPage, HTMLPage):
