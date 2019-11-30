@@ -1,7 +1,7 @@
 before_script:
-  - "pip3 install -r .ci/requirements.txt"
-  - "REQUIREMENTS=$(mktemp) && python3 setup.py requirements > ${REQUIREMENTS} && pip3 install -r ${REQUIREMENTS} && rm ${REQUIREMENTS}"
-  - "pip3 install -r .ci/requirements_modules.txt"
+  - "pip install -r .ci/requirements.txt"
+  - "REQUIREMENTS=$(mktemp) && python setup.py requirements > ${REQUIREMENTS} && pip install -r ${REQUIREMENTS} && rm ${REQUIREMENTS}"
+  - "pip install -r .ci/requirements_modules.txt"
 
 build:2.7:
   image: "python:2.7"
