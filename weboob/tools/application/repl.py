@@ -34,6 +34,7 @@ from optparse import IndentedHelpFormatter, OptionGroup, OptionParser
 from weboob.capabilities.base import BaseObject, FieldNotFound, UserError, empty
 from weboob.capabilities.collection import BaseCollection, CapCollection, Collection, CollectionNotFound
 from weboob.core import CallErrors
+from weboob.exceptions import BrowserQuestion, BrowserRedirect, DecoupledValidation
 from weboob.tools.application.formatters.iformatter import MandatoryFieldsNotFound
 from weboob.tools.compat import basestring, range, unicode
 from weboob.tools.misc import to_unicode
@@ -387,7 +388,65 @@ class ReplApplication(ConsoleApplication, MyCmd):
                 print('Warning: some selected fields will not be displayed by the formatter. Fallback to another. Hint: use option -f', file=self.stderr)
                 self.formatter = self.formatters_loader.build_formatter(ReplApplication.DEFAULT_FORMATTER)
 
-        return self.weboob.do(self._do_complete, self.options.count, fields, function, *args, **kwargs)
+        return self._do_and_retry(self._do_complete, self.options.count, fields, function, *args, **kwargs)
+
+    def _do_and_retry(self, *args, **kwargs):
+        """
+        This method is a wrapper around Weboob.do(), and handle interactive
+        errors which allow to retry.
+
+        List of handled errors:
+        - BrowserQuestion
+        - BrowserRedirect
+        - DecoupledValidation
+        """
+        try:
+            for obj in self.weboob.do(*args, **kwargs):
+                yield obj
+        except CallErrors as errors:
+            # Errors which are not handled here and which will be re-raised.
+            remaining_errors = []
+            # Backends on which we will retry.
+            backends = set()
+
+            for backend, error, backtrace in errors.errors:
+                if isinstance(error, BrowserQuestion):
+                    for field in error.fields:
+                        v = self.ask(field)
+                        backend.config[field.id].set(v)
+                elif isinstance(error, BrowserRedirect):
+                    print(u'Open this URL in a browser:')
+                    print(error.url)
+                    print()
+                    value = self.ask('Please enter the final URL')
+                    backend.config['auth_uri'].set(value)
+                elif isinstance(error, DecoupledValidation):
+                    print(error.message)
+                    backend.config['resume'] = True
+                else:
+                    # Not handled error.
+                    remaining_errors.append((backend, error, backtrace))
+                    continue
+
+                backends.add(backend)
+
+            if backends:
+                # There is at least one backend on which we can retry, do it
+                # only on this ones.
+                kwargs['backends'] = backends
+                try:
+                    for obj in self._do_and_retry(*args, **kwargs):
+                        yield obj
+                except CallErrors as sub_errors:
+                    # As we called _do_and_retry, these sub errors are not
+                    # interactive ones, so we can add them to the remaining
+                    # errors.
+                    remaining_errors += sub_errors.errors
+
+            errors.errors = remaining_errors
+            if errors.errors:
+                # If there are remaining errors, raise them.
+                raise errors
 
     # -- command tools ------------
     def parse_command_args(self, line, nb, req_n=None):
