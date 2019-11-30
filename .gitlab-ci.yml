@@ -7,7 +7,7 @@ build:2.7:
   image: "python:2.7"
   stage: "build"
   script:
-    - "./tools/local_install.sh -2 ~/bin"
+    - "./tools/local_install.sh -2 --local-modules ~/bin"
 
 pyflakes:2.7:
   image: "python:2.7"
@@ -45,7 +45,7 @@ build:3:
   image: "python:3"
   stage: "build"
   script:
-    - "./tools/local_install.sh ~/bin"
+    - "./tools/local_install.sh --local-modules ~/bin"
 
 pyflakes:3:
   image: "python:3"
