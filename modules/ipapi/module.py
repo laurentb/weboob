@@ -37,7 +37,7 @@ class IpapiModule(Module, CapGeolocIp):
     BROWSER = Browser
 
     def get_location(self, ipaddr):
-        res = self.browser.location('http://ip-api.com/json/%s' % ipaddr.encode('utf-8'))
+        res = self.browser.location(u'http://ip-api.com/json/%s' % ipaddr)
         jres = json.loads(res.text)
 
         if "status" in jres and jres["status"] == "fail":
