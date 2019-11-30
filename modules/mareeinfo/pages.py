@@ -69,12 +69,12 @@ class IndexPage(HTMLPage):
 
         def _get_coef_value(self, AM=True, jour=0):
             if AM:
-                time = DateTime(CleanText('//tr[@id="MareeJours_%s"]/td[1]/b[1]' % jour))(self)
+                time = DateTime(CleanText('//tr[@id="MareeJours_%s"]/td[1]/b[1]' % jour), strict=False)(self)
                 value = CleanText('//tr[@id="MareeJours_%s"]/td[3]/b[1]' % jour)(self)
             else:
                 time, value = None, None
                 if len(XPath('//tr[@id="MareeJours_%s"]/td[1]/b' % jour)(self)) > 1:
-                    time = DateTime(CleanText('//tr[@id="MareeJours_%s"]/td[1]/b[2]' % jour))(self)
+                    time = DateTime(CleanText('//tr[@id="MareeJours_%s"]/td[1]/b[2]' % jour), strict=False)(self)
                     value = CleanText('//tr[@id="MareeJours_%s"]/td[3]/b[2]' % jour)(self)
 
             if time and value:
@@ -105,13 +105,13 @@ class IndexPage(HTMLPage):
 
         def _get_high_tide_value(self, AM=True, jour=0):
             if AM:
-                time = DateTime(CleanText('//tr[@id="MareeJours_%s"]/td[1]/b[1]' % jour))(self)
+                time = DateTime(CleanText('//tr[@id="MareeJours_%s"]/td[1]/b[1]' % jour), strict=False)(self)
                 value = CleanDecimal('//tr[@id="MareeJours_0"]/td[2]/b[1]', replace_dots=True)(self)
             else:
                 time, value = None, None
                 if len(XPath('//tr[@id="MareeJours_%s"]/td[1]/b' % jour)(self)) > 1:
                     time = DateTime(CleanText('//tr[@id="MareeJours_%s"]/td[1]/b[2]' % jour),
-                                    default=None)(self)
+                                    strict=False, default=None)(self)
                     value = CleanDecimal('//tr[@id="MareeJours_0"]/td[2]/b[2]', replace_dots=True,
                                          default=None)(self)
 
@@ -157,7 +157,7 @@ class IndexPage(HTMLPage):
             if AM:
                 time = DateTime(Regexp(CleanText('//tr[@id="MareeJours_%s"]/td[1]' % jour),
                                        re_time,
-                                       '\\%s' % slow_tide_pos))(self)
+                                       '\\%s' % slow_tide_pos), strict=False)(self)
 
                 value = CleanDecimal(Regexp(CleanText('//tr[@id="MareeJours_%s"]/td[2]' % jour),
                                             re_value,
@@ -170,7 +170,7 @@ class IndexPage(HTMLPage):
                 if len(m) > slow_tide_pos - 1:
                     time = DateTime(Regexp(CleanText('//tr[@id="MareeJours_%s"]/td[1]' % jour),
                                            re_time,
-                                           '\\%s' % slow_tide_pos))(self)
+                                           '\\%s' % slow_tide_pos), strict=False)(self)
 
                     value = CleanDecimal(Regexp(CleanText('//tr[@id="MareeJours_%s"]/td[2]' % jour),
                                                 re_value,
