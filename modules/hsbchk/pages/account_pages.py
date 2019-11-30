@@ -21,8 +21,6 @@ from __future__ import unicode_literals
 
 import re
 from decimal import Decimal
-import requests
-import json
 
 from weboob.browser.elements import DictElement, ItemElement, method
 from weboob.browser.filters.json import Dict
@@ -125,15 +123,10 @@ class JsonAccSum(LoggedPage, JsonBasePage):
                         res = Account.from_dict(self.get_acc_dict(subacc))
                         if subacc.get('hasAcctDetails'):
                             yield res
-                        else:
-                            self.logger.debug("skip account with no history: %s", res)
                 elif acc_prod == "CC":
-                    self.logger.debug("acc: %s", str(acc))
                     res = Account.from_dict(self.get_acc_dict(acc))
                     if acc.get('hasAcctDetails'):
                         yield res
-                    else:
-                        self.logger.debug("skip account with no history: %s", res)
                 else:
                     self.logger.error("Unknown account product code [%s]", acc_prod)
 
@@ -146,10 +139,6 @@ class JsonAccHist(LoggedPage, JsonBasePage):
         item_xpath = "txnSumm"
 
         def next_page(self):
-            self.logger.debug(
-                "paging (%s): %s",
-                Dict('responsePagingInfo/moreRecords', default='N')(self.page.doc),
-                self.page.doc.get('responsePagingInfo'))
             if Dict('responsePagingInfo/moreRecords', default='N')(self.page.doc) == 'Y':
                 self.logger.info("more values are available")
                 """

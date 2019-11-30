@@ -19,7 +19,6 @@
 
 
 from weboob.tools.test import BackendTest
-from weboob.capabilities.bank import Account
 
 class HSBCHKTest(BackendTest):
     MODULE = 'hsbchk'

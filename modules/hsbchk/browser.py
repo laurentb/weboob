@@ -103,7 +103,6 @@ class HSBCHK(StatesMixin, SubSeleniumMixin, PagesBrowser):
 
     def do_login(self):
         self.auth_token = None
-        self.logger.debug("currrent state is Logged:%s", self.logged)
         super(HSBCHK, self).do_login()
         self.auth_token = self.session.cookies.get('SYNC_TOKEN')
         self.logged = True

@@ -60,7 +60,7 @@ class HSBCHKModule(Module, CapBank):
             yield tr
 
     def iter_investment(self, account):
-        raise NotImplemented
+        raise NotImplementedError
 
     def iter_coming(self, account):
         # No coming entries on HSBC HK
