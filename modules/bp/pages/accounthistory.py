@@ -59,9 +59,10 @@ class Transaction(FrenchTransaction):
         (re.compile(r'^(?P<category>COTISATION TRIMESTRIELLE).*'), FrenchTransaction.TYPE_BANK),
         (re.compile(r'^REMISE COMMERCIALE.*'), FrenchTransaction.TYPE_BANK),
         (re.compile(r'^(?P<category>.*UTILISATION DU DECOUVERT$)'), FrenchTransaction.TYPE_BANK),
-        (re.compile(r'^(?P<category>FRAIS (TRIMESTRIELS) DE TENUE DE COMPTE.*)'), FrenchTransaction.TYPE_BANK),
+        (re.compile(r'^(?P<category>FRAIS (TRIMESTRIELS )?DE TENUE DE COMPTE).*'), FrenchTransaction.TYPE_BANK),
         (re.compile(r'^(?P<category>FRAIS IRREGULARITES ET INCIDENTS).*'), FrenchTransaction.TYPE_BANK),
-
+        (re.compile(r'^(?P<category>COMMISSION PAIEMENT PAR CARTE)'), FrenchTransaction.TYPE_BANK),
+        (re.compile(r'^(?P<category>CREDIT CARTE BANCAIRE) (?P<text>.*) (?P<dd>\d{2})\.(?P<mm>\d{2})\.(?P<yy>\d{2,4}) .*'), FrenchTransaction.TYPE_CARD),
     ]
 
 
