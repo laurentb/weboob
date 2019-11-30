@@ -20,6 +20,7 @@ echo "file://$WEBOOB_DIR/modules" > "${WEBOOB_TMPDIR}/sources.list"
 export WEBOOB_WORKDIR="${WEBOOB_TMPDIR}"
 export WEBOOB_DATADIR="${WEBOOB_TMPDIR}"
 export PYTHONPATH="${WEBOOB_DIR}"
+set +e
 $PYTHON "${WEBOOB_DIR}/scripts/weboob-config" update
 
 $PYTHON "${WEBOOB_DIR}/tools/weboob_lint.py"
