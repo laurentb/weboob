@@ -62,7 +62,7 @@ class RecipePage(HTMLPage):
 
             json_content = CleanText(u'.',
                                      replace=[('//<![CDATA[ ', ''),
-                                              (' //]]>', '')])(item[0])
+                                              (' //]]>', '')])(item[1])
             self.el = json.loads(json_content)
 
         obj_id = Env('id')
