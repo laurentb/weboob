@@ -18,13 +18,14 @@
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import date
-from itertools import imap, ifilter
 
-from weboob.browser.pages import JsonPage, HTMLPage
+from six.moves import filter, map
+
 from weboob.browser.elements import ItemElement, ListElement, method
-from weboob.capabilities.weather import Forecast, Current, City, Temperature
 from weboob.browser.filters.json import Dict
-from weboob.browser.filters.standard import Filter, CleanText
+from weboob.browser.filters.standard import CleanText, Filter
+from weboob.browser.pages import HTMLPage, JsonPage
+from weboob.capabilities.weather import City, Current, Forecast, Temperature
 
 
 class Id(Filter):
@@ -100,9 +101,9 @@ class WeatherPage(HTMLPage):
 
                         def info_for_value(value):
                             return CleanText(value % offset)(self).replace(u'edeltävän tunnin ', u'')
-                        return ("klo %s: " % hour) + ", ".join(ifilter(bool, imap(info_for_value, values)))
+                        return ("klo %s: " % hour) + ", ".join(filter(bool, map(info_for_value, values)))
 
-                return u'\n' + u'\n'.join(ifilter(bool, imap(descriptive_text_for_hour, ["02", "03", "14", "15"])))
+                return u'\n' + u'\n'.join(filter(bool, map(descriptive_text_for_hour, ["02", "03", "14", "15"])))
 
     def get_station_id(self):
         return CleanText(u'//select[@id="observation-station-menu"]/option[@selected="selected"]/@value')(self.doc)
