@@ -1245,9 +1245,14 @@ class LifeInsurance(MarketPage):
 
 
 class LifeInsuranceHistory(LoggedPage, JsonPage):
+    def build_doc(self, text):
+        # If history is empty, there is no text
+        if not text:
+            return {}
+        return super(LifeInsuranceHistory, self).build_doc(text)
+
     @method
     class iter_history(DictElement):
-
         def find_elements(self):
             return self.el or []  # JSON contains 'null' if no transaction
 
