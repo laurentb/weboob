@@ -20,7 +20,6 @@
 from __future__ import unicode_literals
 
 import re
-import hashlib
 import time
 
 from decimal import Decimal, InvalidOperation
@@ -1824,18 +1823,28 @@ class VerifCodePage(LoggedPage, HTMLPage):
                 return v
 
     def get_question(self):
-        s = CleanText('//label[@for="txtCle"]')(self.doc)
-        img_hash_md5 = hashlib.md5(self.browser.open(Attr('//label[@for="txtCle"]/img', 'src')(self.doc)).content).hexdigest()
-        key_case = self.get_key_case(img_hash_md5)
-        assert key_case, "Hash %s not found, matching key case is available on session folder." % img_hash_md5
-        return s[:25] + ' %s' % key_case + s[25:]
+        question = Regexp(CleanText('//div/p[input]'), r'(Veuillez .*):')(self.doc)
+        return question
 
     def post_code(self, key):
-        form = self.get_form(id='frm')
-        form['code'] = key
-        form['valChx.x'] = '1'
-        form['valChx.y'] = '1'
+        form = self.get_form('//form[contains(@action, "verif_code")]')
+        form['[t:xsd%3astring;]Data_KeyInput'] = key
+
+        # we don't know the card id
+        # by default all users have only one card
+        # but to be sure, let's get it dynamically
+        do_validate = [k for k in form.keys() if '_FID_DoValidate_cardId' in k]
+        assert len(do_validate) == 1, 'There should be only one card.'
+        form[do_validate[0]] = ''
+
+        activate = [k for k in form.keys() if '_FID_GoCardAction_action' in k]
+        assert len(activate) == 1, 'There should be only one card.'
+        del form[activate[0]]
+
         form.submit()
+
+    def get_url_next(self):
+        return Link('//form[div//span[contains(text(), "Suivant")]]//a')(self.doc)
 
     def handle_error(self):
         error_msg = CleanText('//div[@class="blocmsg info"]/p')(self.doc)
