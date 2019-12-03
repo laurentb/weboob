@@ -282,7 +282,9 @@ class item_account_generic(ItemElement):
     def loan_condition(self, check_no_details=False):
         _type = Field('type')(self)
         label = Field('label')(self)
-        details_link = Link('.//a', default=None)(self)
+        # The 'lien_inter_sites' link leads to a 404 and is not a link to loans details.
+        # The link name on the website is : Vos encours mobilisation de créances
+        details_link = Link('.//a[not(contains(@href, "lien_inter_sites"))]', default=None)(self)
 
         # mobile accounts are leading to a 404 error when parsing history
         # furthermore this is not exactly a loan account
