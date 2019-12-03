@@ -29,13 +29,15 @@ from weboob.exceptions import ActionNeeded
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.base import empty
 from weboob.capabilities.bank import (
-    Account, AccountOwnerType, Transaction, Investment,
+    Account, AccountOwnerType, Investment,
 )
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.capabilities.profile import Person, Company
 from weboob.capabilities.contact import Advisor
 from weboob.browser.elements import DictElement, ItemElement, method
 from weboob.browser.filters.standard import (
-    CleanText, CleanDecimal, Currency as CleanCurrency, Format, Field, Map, Eval, Env, Regexp, Date, Coalesce,
+    CleanText, CleanDecimal, Currency as CleanCurrency, Format, Field, Map, Eval, Env,
+    Regexp, Date, Coalesce, DateTime,
 )
 from weboob.browser.filters.html import Attr
 from weboob.browser.filters.json import Dict
@@ -43,8 +45,24 @@ from weboob.tools.capabilities.bank.investments import is_isin_valid
 
 from weboob.exceptions import BrowserPasswordExpired
 
+
 def float_to_decimal(f):
     return Decimal(str(f))
+
+
+class Transaction(FrenchTransaction):
+    # this is only used to to find the rdate
+    PATTERNS = [
+        (re.compile(r'^(?P<category>PAIEMENT PAR CARTE) (?P<text>.*) (?P<dd>\d{2})/(?P<mm>\d{2})$'), None),
+        (re.compile(r'^(?P<category>PRELEVEMENT) (?P<text>.*) (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{4}) .*'), None),
+        (re.compile(r'^(?P<category>PRELEVEMENT) (?P<text>.*) (?P<dd>\d{2})\s(?P<mm>\d{2})\s(?P<yy>\d{4}) .*'), None),
+        (re.compile(r'^(?P<category>VIREMENT EN VOTRE FAVEUR) (?P<text>.*) (?P<dd>\d{2})\.(?P<mm>\d{2})\.(?P<yy>\d{4})$'), None),
+        (re.compile(r'^(?P<category>REMBOURSEMENT DE PRET) (?P<text>.*) (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2,4})$'), None),
+        (re.compile(r'^(?P<category>RETRAIT AU DISTRIBUTEUR) (?P<text>.*) (?P<dd>\d{2})/(?P<mm>\d{2}) .*'), None),
+        (re.compile(r'^(?P<category>PRELEVEMENT URSSAF) (?P<text>.*) (du)? (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2,4})$'), None),
+        (re.compile(r"^(?P<category>VERSEMENT D'ESPECES) (?P<text>.*) (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{4}) .*"), None),
+        (re.compile(r'^(?P<category>PRELEVEMENT) (?P<text>.*) (?P<dd>\d{2})-(?P<mm>\d{2})$'), None),
+    ]
 
 
 class KeypadPage(JsonPage):
@@ -425,19 +443,28 @@ class HistoryPage(LoggedPage, JsonPage):
 
             klass = Transaction
 
+            obj_date = DateTime(Dict('dateValeur'))
+            # There is a key in the json called dateOperation but most of the time it is the
+            # same as the dateValeur, meanwhile a different rdate is available in many labels.
+            # So we force all rdate to NotAvailable and only fill it when we find something to
+            # extract from the label
+            obj_rdate = NotAvailable
             # Transactions in foreign currencies have no 'libelleTypeOperation'
             # and 'libelleComplementaire' keys, hence the default values.
             # The CleanText() gets rid of additional spaces.
-            obj_raw = CleanText(Format('%s %s %s', CleanText(Dict('libelleTypeOperation', default='')), CleanText(Dict('libelleOperation')), CleanText(Dict('libelleComplementaire', default=''))))
+            obj_raw = Transaction.Raw(
+                CleanText(
+                    Format(
+                        '%s %s %s',
+                        CleanText(Dict('libelleTypeOperation', default='')),
+                        CleanText(Dict('libelleOperation')),
+                        CleanText(Dict('libelleComplementaire', default=''))
+                    )
+                )
+            )
             obj_label = CleanText(Format('%s %s', CleanText(Dict('libelleTypeOperation', default='')), CleanText(Dict('libelleOperation'))))
             obj_amount = Eval(float_to_decimal, Dict('montant'))
             obj_type = Map(CleanText(Dict('libelleTypeOperation', default='')), TRANSACTION_TYPES, Transaction.TYPE_UNKNOWN)
-
-            def obj_date(self):
-                return dateutil.parser.parse(Dict('dateValeur')(self))
-
-            def obj_rdate(self):
-                return dateutil.parser.parse(Dict('dateOperation')(self))
 
 
 class CardsPage(LoggedPage, JsonPage):
