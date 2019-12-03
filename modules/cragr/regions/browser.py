@@ -324,17 +324,8 @@ class CragrRegion(LoginBrowser):
         return valid_accounts
 
     @need_login
-    def iter_perimeter_accounts(self, iban, all_accounts):
-        '''
-        In order to use this method, we must pass the 3 accounts URLs: Regular, Wealth and Loans.
-        Accounts may appear on several URLs: we must check for duplicates before adding to cragr_accounts.
-        Once we fetched all cragr accounts, we go to the Netfinca space to get Netfinca accounts.
-        If there are account duplicates, we preferably yield the Netfinca version because it is more
-        complete ; in addition, Netfinca may contain accounts that do not appear on the cragr website.
-        '''
-        cragr_accounts = []
-
-        # Regular accounts (Checking and Savings)
+    def iter_perimeter_regular_accounts(self, iban):
+        unique_ids = set()
         self.accounts.stay_or_go()
         self.page.set_cragr_code()
         for account in self.page.iter_accounts():
@@ -343,8 +334,23 @@ class CragrRegion(LoginBrowser):
                 # Refresh account form in case it expired
                 refreshed_account = find_object(self.page.iter_accounts(), id=account.id)
                 account.iban = self.get_account_iban(refreshed_account._form)
-            if account.id not in [a.id for a in cragr_accounts]:
-                cragr_accounts.append(account)
+
+            if account.id not in unique_ids:
+                # Do not yield accounts with duplicate IDs
+                unique_ids.add(account.id)
+                yield account
+
+    @need_login
+    def iter_perimeter_accounts(self, iban, all_accounts):
+        '''
+        In order to use this method, we must pass the 3 accounts URLs: Regular, Wealth and Loans.
+        Accounts may appear on several URLs: we must check for duplicates before adding to cragr_accounts.
+        Once we fetched all cragr accounts, we go to the Netfinca space to get Netfinca accounts.
+        If there are account duplicates, we preferably yield the Netfinca version because it is more
+        complete ; in addition, Netfinca may contain accounts that do not appear on the cragr website.
+        '''
+        # Regular accounts (Checking & Savings)
+        cragr_accounts = list(self.iter_perimeter_regular_accounts(iban))
 
         # Wealth accounts (PEA, Market, Life Insurances, PERP...)
         self.wealth.go()
@@ -606,8 +612,9 @@ class CragrRegion(LoginBrowser):
                 self.accounts.stay_or_go()
                 self.go_to_perimeter(account._perimeter)
 
-                # No need to fetch IBANs and Netfinca accounts just to fetch an account form
-                refreshed_account = find_object(self.iter_perimeter_accounts(iban=False, all_accounts=False), AccountNotFound, id=account.id)
+                # Only fetch the perimeter's regular accounts (Checking & Savings)
+                # No need to go to Wealth, Loans or Netfinca for transactions
+                refreshed_account = find_object(self.iter_perimeter_regular_accounts(iban=False), AccountNotFound, id=account.id)
                 refreshed_account._form.submit()
                 if self.failed_history.is_here():
                     self.logger.warning('Form submission failed to reach the account history, we try again.')
