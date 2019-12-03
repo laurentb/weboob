@@ -246,7 +246,7 @@ class item_account_generic(ItemElement):
         (re.compile(r'Ldd'), Account.TYPE_SAVINGS),
         (re.compile(r'Livret'), Account.TYPE_SAVINGS),
         (re.compile(r"Plan D'Epargne"), Account.TYPE_SAVINGS),
-        (re.compile(r'Tonic Croissance'), Account.TYPE_SAVINGS),
+        (re.compile(r'Tonic Crois'), Account.TYPE_SAVINGS),  # eg: 'Tonic Croissance', 'Tonic Crois Pro'
         (re.compile(r'Tonic Societaire'), Account.TYPE_SAVINGS),
         (re.compile(r'Capital Expansion'), Account.TYPE_SAVINGS),
         (re.compile(r'Épargne'), Account.TYPE_SAVINGS),
