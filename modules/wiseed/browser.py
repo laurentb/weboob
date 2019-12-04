@@ -64,7 +64,10 @@ class WiseedBrowser(LoginBrowser, StatesMixin):
 
         yield self.page.get_liquidities()
 
-        for inv in self.page.iter_funded():
+        for inv in self.page.iter_funded_bond():
+            yield inv
+
+        for inv in self.page.iter_funded_stock():
             yield inv
 
         for inv in self.page.iter_funding():

@@ -58,7 +58,7 @@ class InvestPage(LoggedPage, HTMLPage):
         return create_french_liquidity(value)
 
     @method
-    class iter_funded(TableElement):
+    class iter_funded_stock(TableElement):
         item_xpath = '//table[@id="portefeuilleAction"]/tbody/tr'
 
         head_xpath = '//table[@id="portefeuilleAction"]/thead//th'
@@ -81,11 +81,31 @@ class InvestPage(LoggedPage, HTMLPage):
                 Regexp(CleanText(TableCell('diff_ratio')), r'^000(\d+)\b')
             )
 
-            # unitprice and unitvalue are on a dedicated page, let's forget it
+    @method
+    class iter_funded_bond(TableElement):
+        item_xpath = '//div[@id="panel-OBLIGATIONS"]//table[has-class("portefeuille-liste")]/tbody/tr'
+
+        head_xpath = '//div[@id="panel-OBLIGATIONS"]//table[has-class("portefeuille-liste")]/thead//th'
+        col_bought = 'Vous avez investi'
+        col_label = 'Investissement dans'
+
+        class item(ItemElement):
+            klass = Investment
+
+            obj_label = CleanText(TableCell('label'))
+
+            obj_valuation = CleanDecimal.SI(
+                Regexp(CleanText(TableCell('bought')), r'^000(\d+)\b')
+            )
 
     @method
     class iter_funding(TableElement):
-        item_xpath = '//table[has-class("portefeuille-liste") and not(@id)]/tbody/tr'
+        def find_elements(self):
+            for el in self.page.doc.xpath('//div[has-class("panel")]'):
+                if 'souscription(s) en cours' in CleanText('.')(el):
+                    for sub in el.xpath('.//table[has-class("portefeuille-liste") and not(@id)]/tbody/tr'):
+                        yield sub
+                    return
 
         head_xpath = '//table[has-class("portefeuille-liste") and not(@id)]/thead//th'
         col_label = 'Opération / Cible'
