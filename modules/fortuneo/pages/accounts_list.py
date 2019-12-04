@@ -127,6 +127,7 @@ class PeaHistoryPage(LoggedPage, HTMLPage):
             return False
         form['dateDebut'] = (date.today() - relativedelta(years=2)).strftime('%d/%m/%Y')
         form['nbResultats'] = '100'
+        form['typeOperation'] = '01'
         form.submit()
         return True
 
