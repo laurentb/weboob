@@ -551,7 +551,7 @@ class AccountsPage(LoggedPage, MyHTMLPage):
         (re.compile(r'.*Titres.*'), Account.TYPE_MARKET),
         (re.compile(r'.*Selection Vie.*'), Account.TYPE_LIFE_INSURANCE),
         (re.compile(r'^Fructi Pulse.*'), Account.TYPE_MARKET),
-        (re.compile(r'^(Quintessa|Solevia).*'), Account.TYPE_MARKET),
+        (re.compile(r'^(Quintessa|Solevia).*'), Account.TYPE_LIFE_INSURANCE),
         (re.compile(r'^Plan Epargne Enfant Mul.*'), Account.TYPE_MARKET),
         (re.compile(r'^Alc Premium'), Account.TYPE_MARKET),
         (re.compile(r'^Plan Epargne Enfant Msu.*'), Account.TYPE_LIFE_INSURANCE),
@@ -615,6 +615,7 @@ class AccountsPage(LoggedPage, MyHTMLPage):
 
                 account = Account()
                 account.id = args['identifiant'].replace(' ', '')
+                account.number = account.id
                 account.label = ' '.join([''.join([txt.strip() for txt in tds[1].itertext()]),
                                            ''.join([txt.strip() for txt in tds[2].itertext()])]).strip()
 
@@ -709,6 +710,7 @@ class CardsPage(LoggedPage, MyHTMLPage):
                     yield account
                 account = Account()
                 account.id = id.replace(' ', '')
+                account.number = account.id
                 account.type = Account.TYPE_CARD
                 account.balance = account.coming = Decimal('0')
                 account._next_debit = datetime.date.today()
@@ -791,6 +793,23 @@ class Transaction(FrenchTransaction):
         (re.compile(r'^RET GAB .*'), FrenchTransaction.TYPE_WITHDRAWAL),
         (re.compile(r'^RETRAIT CARTE AGENCE \d+$'), FrenchTransaction.TYPE_WITHDRAWAL),
     ]
+
+
+class InvestmentPage(LoggedPage, HTMLPage):
+    def get_investment_page_params(self):
+        script = self.doc.xpath('//body')[0].attrib['onload']
+        url = None
+        m = re.search(r"','([^']+?)',\[", script, re.MULTILINE)
+        if m:
+            url = m.group(1)
+
+        params = {}
+        for key, value in re.findall(r"key:'(?P<key>SJRToken)'\,value:'(?P<value>.*?)'}", script, re.MULTILINE):
+            params[key] = value
+
+        if url and params:
+            return url, params
+        return None
 
 
 class TransactionsPage(LoggedPage, MyHTMLPage):
@@ -924,17 +943,6 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
 
         return False
 
-    def get_investment_page_params(self):
-        script = self.doc.xpath('//body')[0].attrib['onload']
-        url = None
-        m = re.search(r"','([^']+?)',\[", script, re.MULTILINE)
-        if m:
-            url = m.group(1)
-        params = {}
-        for key, value in re.findall(r"key:'(?P<key>SJRToken)'\,value:'(?P<value>.*?)'}", script, re.MULTILINE):
-            params[key] = value
-        return url, params if url and params else None
-
     def get_transaction_table_id(self, ref):
         tr = self.doc.xpath('//table[@id="tbl1"]/tbody/tr[.//span[contains(text(), "%s")]]' % ref)[0]
 
@@ -962,6 +970,14 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
             return 'AV'
         elif transaction._amount_type == 'credit':
             return 'NV'
+
+    def go_investment(self):
+        script = self.doc.xpath('//body')[0].attrib['onload']
+        if re.search(r'startWebAppTask\(', script) is None:
+            return False
+        params = {'oid': re.search(r"'urlReturn',\w+?,'(\w+)'\)", script).group(1)}
+        self.browser.location(self.browser.absurl('/cyber/ibp/ate/skin/internet/pages/webAppReroutingAutoSubmit.jsp'), params=params)
+        return True
 
 
 class NatixisChoicePage(LoggedPage, HTMLPage):
@@ -1049,7 +1065,7 @@ def float_to_decimal(f):
 
 class NatixisInvestPage(LoggedPage, JsonPage):
     @method
-    class get_investments(DictElement):
+    class iter_investments(DictElement):
         item_xpath = 'detailContratVie/valorisation/supports'
 
         class item(ItemElement):
