@@ -101,10 +101,10 @@ class DocumentsPage(LoggedPage, HTMLPage):
     @pagination
     @method
     class iter_documents(ListElement):
-        item_xpath = '//div[@class="documents"]/div[has-class("document")]'
+        item_xpath = '//ul[has-class("documents")]/li'
 
         def next_page(self):
-            previous_year = CleanText('//div[has-class("blocAnnee") and has-class("selected")]/following-sibling::div[1]/a')(self.page.doc)
+            previous_year = CleanText('//li[has-class("blocAnnee") and has-class("selected")]/following-sibling::li[1]/a')(self.page.doc)
             # only if previous_year, else we return to page with current year and fall to an infinite loop
             if previous_year:
                 return self.page.browser.documents.build(params={'n': previous_year})
