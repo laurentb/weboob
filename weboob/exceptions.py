@@ -45,6 +45,11 @@ class BrowserQuestion(BrowserInteraction):
     def __init__(self, *fields):
         self.fields = fields
 
+    def __str__(self):
+        return ", ".join("{}: {}".format(
+            field.id or field.label, field.description) for field in self.fields
+        )
+
 
 class DecoupledValidation(BrowserInteraction):
     def __init__(self, message='', resource=None, *values):
