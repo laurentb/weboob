@@ -44,8 +44,14 @@ class JsonMixin(JsonPage):
             for err in self.doc.get('errors', []):
                 raise Exception(err['msg'])
 
+        # at this point, success is true, but that doesn't really mean anything
         if isinstance(self.doc['d'], list) and self.doc['d']:
+            # does this still happen?
             msg = self.doc['d'][0].get('ErrorMessage')
+            if msg:
+                raise UserError(msg)
+        elif isinstance(self.doc['d'], dict) and self.doc['d'].get('Errors'):
+            msg = self.doc['d']['Errors'][0].get('Value')
             if msg:
                 raise UserError(msg)
 

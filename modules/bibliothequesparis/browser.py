@@ -64,6 +64,7 @@ class BibliothequesparisBrowser(LoginBrowser):
             'userUniqueIdentifier': '',
         }
         self.renew.go(json=post, headers=self.json_headers)
+        self.page.check_error()
 
     def search_books(self, pattern):
         max_page = 0
