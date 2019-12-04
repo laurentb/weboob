@@ -19,19 +19,19 @@ else:
 
 
 project = os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir))
-wd = os.path.join(project, 'localconfig')
-if not os.path.isdir(wd):
-    os.makedirs(wd)
 
-paths = os.getenv('PYTHONPATH', None)
-if not paths:
-    paths = sys.path
-else:
-    paths = paths.split(':')
-if project not in paths:
-    paths.insert(0, project)
+
+def get_project_dir(name):
+    wd = os.path.join(project, name)
+    if not os.path.isdir(wd):
+        os.makedirs(wd)
+    return wd
+
+
+wd = get_project_dir('localconfig')
+venv = get_project_dir('localenv')
+
 env = os.environ.copy()
-env['PYTHONPATH'] = ':'.join(p for p in paths if p)
 env['WEBOOB_WORKDIR'] = wd
 env['WEBOOB_DATADIR'] = wd
 env['WEBOOB_BACKENDS'] = os.getenv('WEBOOB_LOCAL_BACKENDS',
@@ -44,23 +44,35 @@ with tempfile.NamedTemporaryFile(mode='w', dir=wd, delete=False) as f:
     f.write("file://%s\n" % modpath)
 os.rename(f.name, os.path.join(wd, 'sources.list'))
 
+
 # Hide output unless there is an error
-p = subprocess.Popen(
-    [sys.executable, os.path.join(project, 'scripts', 'weboob-config'), 'update', '-d'],
-    env=env,
-    stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-s = p.communicate()
-if p.returncode != 0:
-    print(s[0])
-    if p.returncode > 1:
-        sys.exit(p.returncode)
+def run_quiet(cmd):
+    p = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env,
+    )
+    s = p.communicate()
+    if p.returncode != 0:
+        print(s[0].decode('utf-8'))
+        if p.returncode > 1:
+            sys.exit(p.returncode)
+
+
+venv_exe = os.path.join(venv, 'bin', 'python')
+run_quiet([
+    sys.executable, '-m', 'virtualenv', '--system-site-packages',
+    '--python', sys.executable, venv,
+])
+run_quiet([
+    venv_exe, '-m', 'pip', 'install', '--no-deps', '--editable', project,
+])
+run_quiet([os.path.join(venv, 'bin', 'weboob-config'), 'update', '-d'])
 
 if os.path.exists(script):
     spath = script
 else:
-    spath = os.path.join(project, 'scripts', script)
+    spath = os.path.join(venv, 'bin', script)
 
 os.execvpe(
-    sys.executable,
-    [sys.executable, '-s'] + pyargs + [spath] + args,
+    venv_exe,
+    [venv_exe, '-s'] + pyargs + [spath] + args,
     env)

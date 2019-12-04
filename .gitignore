@@ -10,6 +10,7 @@ tags
 docs/source/api
 modules/modules.list
 /localconfig
+/localenv
 *.idea/
 *.DS_Store
 *.coverage*
