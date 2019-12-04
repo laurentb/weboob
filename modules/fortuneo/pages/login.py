@@ -17,10 +17,11 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from weboob.browser.pages import HTMLPage
 from weboob.browser.filters.standard import CleanText
-from weboob.exceptions import BrowserUnavailable
+from weboob.exceptions import BrowserUnavailable, ActionNeeded
 
 
 class LoginPage(HTMLPage):
@@ -34,6 +35,11 @@ class LoginPage(HTMLPage):
         form['login'] = login
         form['passwd'] = passwd
         form.submit()
+
+    def check_is_blocked(self):
+        error_message = CleanText('//div[@id="acces_client"]//p[@class="container error"]/label')(self.doc)
+        if 'Votre accès est désormais bloqué' in error_message:
+            raise ActionNeeded(error_message)
 
 
 class UnavailablePage(HTMLPage):

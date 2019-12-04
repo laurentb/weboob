@@ -105,6 +105,7 @@ class Fortuneo(LoginBrowser, StatesMixin):
         self.page.login(self.username, self.password)
 
         if self.login_page.is_here():
+            self.page.check_is_blocked()
             raise BrowserIncorrectPassword()
 
         self.location('/fr/prive/default.jsp?ANav=1')
