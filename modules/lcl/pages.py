@@ -463,7 +463,12 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
         col_raw = [u'Vos opérations', u'Libellé']
 
         class item(Transaction.TransactionElement):
-            load_details = Attr('.', 'href', default=None) & AsyncLoad
+            def load_details(self):
+                link = Attr('.', 'href', default=None)(self)
+                if not link:
+                    self.logger.warning('Found operation without detail url.')
+                    return None
+                return self.page.browser.async_open(link, method='POST')
 
             def obj_type(self):
                 type = Async('details', CleanText(u'//td[contains(text(), "Nature de l\'opération")]/following-sibling::*[1]'))(self)
