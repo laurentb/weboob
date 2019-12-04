@@ -69,9 +69,13 @@ class BanquePopulaireModule(Module, CapBankWealth, CapContact, CapProfile, CapDo
         'www.ibps.sud.banquepopulaire.fr': 'Sud',
         'www.ibps.valdefrance.banquepopulaire.fr': 'Val de France',
         }.items(), key=lambda k_v: (k_v[1], k_v[0]))])
-    CONFIG = BackendConfig(Value('website',  label='Région', choices=website_choices),
-                           ValueBackendPassword('login',    label='Identifiant', masked=False),
-                           ValueBackendPassword('password', label='Mot de passe'))
+
+    CONFIG = BackendConfig(
+        Value('website', label='Région', choices=website_choices),
+        ValueBackendPassword('login', label='Identifiant', masked=False),
+        ValueBackendPassword('password', label='Mot de passe')
+    )
+
     BROWSER = BanquePopulaire
 
     accepted_document_types = (DocumentTypes.STATEMENT,)
@@ -89,10 +93,13 @@ class BanquePopulaireModule(Module, CapBankWealth, CapContact, CapProfile, CapDo
             ('ouest.banquepopulaire', 'bpgo.banquepopulaire'),
         ]
         website = reduce(lambda a, kv: a.replace(*kv), repls, self.config['website'].get())
-        return self.create_browser(website,
-                                   self.config['login'].get(),
-                                   self.config['password'].get(),
-                                   weboob=self.weboob)
+
+        return self.create_browser(
+            website,
+            self.config['login'].get(),
+            self.config['password'].get(),
+            weboob=self.weboob
+        )
 
     def iter_accounts(self):
         return self.browser.get_accounts_list()
@@ -105,13 +112,13 @@ class BanquePopulaireModule(Module, CapBankWealth, CapContact, CapProfile, CapDo
             raise AccountNotFound()
 
     def iter_history(self, account):
-        return self.browser.get_history(account)
+        return self.browser.iter_history(account)
 
     def iter_coming(self, account):
-        return self.browser.get_history(account, coming=True)
+        return self.browser.iter_history(account, coming=True)
 
     def iter_investment(self, account):
-        return self.browser.get_investment(account)
+        return self.browser.iter_investments(account)
 
     def iter_contacts(self):
         return self.browser.get_advisor()
