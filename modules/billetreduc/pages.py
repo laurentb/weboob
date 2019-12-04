@@ -139,7 +139,7 @@ class ResultsPage(HTMLPage):
     @method
     class iter_events(ListElement):
         item_xpath = '//table[@id="preliste"]/tr'
-        next_page = AbsoluteLink('(//a[text()=">"][contains(@href,"LISTEPEpg")])[1]')
+        next_page = AbsoluteLink('(//a[img[contains(@src,"btnPageSuivanteSmall")]])[1]')
 
         class item(ItemElement):
             klass = BREvent
