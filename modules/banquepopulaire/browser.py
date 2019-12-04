@@ -40,7 +40,7 @@ from .pages import (
     IbanPage, AdvisorPage, TransactionDetailPage, TransactionsBackPage,
     NatixisPage, EtnaPage, NatixisInvestPage, NatixisHistoryPage, NatixisErrorPage,
     NatixisDetailsPage, NatixisChoicePage, NatixisRedirect,
-    LineboursePage, AlreadyLoginPage,
+    LineboursePage, AlreadyLoginPage, InvestmentPage,
 )
 
 from .document_pages import BasicTokenPage, SubscriberPage, SubscriptionsPage, DocumentsPage
@@ -128,6 +128,8 @@ class BanquePopulaire(LoginBrowser):
                             r'https://[^/]+/cyber/internet/Sort.do\?.*',
                             TransactionsPage)
 
+    investment_page = URL(r'https://[^/]+/cyber/ibp/ate/skin/internet/pages/webAppReroutingAutoSubmit.jsp', InvestmentPage)
+
     transactions_back_page = URL(r'https://[^/]+/cyber/internet/ContinueTask.do\?.*ActionPerformed=BACK.*', TransactionsBackPage)
 
     transaction_detail_page = URL(r'https://[^/]+/cyber/internet/ContinueTask.do\?.*dialogActionPerformed=DETAIL_ECRITURE.*', TransactionDetailPage)
@@ -168,7 +170,7 @@ class BanquePopulaire(LoginBrowser):
     natixis_history = URL(r'https://www.assurances.natixis.fr/espaceinternet-bp/rest/v2/contratVie/load-operation/(?P<id1>\w+)/(?P<id2>\w+)/(?P<id3>\w+)', NatixisHistoryPage)
     natixis_pdf = URL(r'https://www.assurances.natixis.fr/espaceinternet-bp/rest/v2/contratVie/load-releve/(?P<id1>\w+)/(?P<id2>\w+)/(?P<id3>\w+)/(?P<year>\d+)', NatixisDetailsPage)
 
-    linebourse_home = URL(r'https://www.linebourse.fr/ReroutageSJR', LineboursePage)
+    linebourse_home = URL(r'https://www.linebourse.fr', LineboursePage)
 
     advisor = URL(r'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=accueil.*',
                   r'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=contacter.*', AdvisorPage)
@@ -194,7 +196,6 @@ class BanquePopulaire(LoginBrowser):
             dirname += '/bourse'
         self.linebourse = LinebourseBrowser('https://www.linebourse.fr', logger=self.logger, responses_dirname=dirname, weboob=self.weboob, proxy=self.PROXIES)
 
-        self.investments = {}
         self.documents_headers = None
 
     def deinit(self):
@@ -257,19 +258,26 @@ class BanquePopulaire(LoginBrowser):
     @need_login
     def go_on_accounts_list(self):
         for taskInfoOID in self.ACCOUNT_URLS:
+            # 4 possible URLs but we stop as soon as one of them works
             data = OrderedDict([('taskInfoOID', taskInfoOID), ('token', self.token)])
+
+            # Go from AdvisorPage to AccountsPage
             self.location(self.absurl('/cyber/internet/StartTask.do', base=True), params=data)
+
             if not self.page.is_error():
                 if self.page.pop_up():
                     self.logger.debug('Popup displayed, retry')
                     data = OrderedDict([('taskInfoOID', taskInfoOID), ('token', self.token)])
                     self.location('/cyber/internet/StartTask.do', params=data)
+
+                # Set the valid ACCOUNT_URL and break the loop
                 self.ACCOUNT_URLS = [taskInfoOID]
                 break
         else:
             raise BrokenPageError('Unable to go on the accounts list page')
 
         if self.page.is_short_list():
+            # Go from AccountsPage to AccountsFullPage to get the full accounts list
             form = self.page.get_form(nr=0)
             form['dialogActionPerformed'] = 'EQUIPEMENT_COMPLET'
             form['token'] = self.page.build_token(form['token'])
@@ -280,9 +288,9 @@ class BanquePopulaire(LoginBrowser):
 
     @retry(LoggedOut)
     @need_login
-    def get_accounts_list(self, get_iban=True):
-        # We have to parse account list in 2 different way depending if we want the iban number or not
-        # thanks to stateful website
+    def iter_accounts(self, get_iban=True):
+        # We have to parse account list in 2 different way depending if
+        # we want the iban number or not thanks to stateful website
         next_pages = []
         accounts = []
         profile = self.get_profile()
@@ -318,6 +326,7 @@ class BanquePopulaire(LoginBrowser):
                 params['token'] = self.page.build_token(self.token)
                 self.location('/cyber/internet/ContinueTask.do', data=params)
 
+            # Go to next_page with params and token
             next_page['token'] = self.page.build_token(self.token)
             self.location('/cyber/internet/ContinueTask.do', data=next_page)
 
@@ -330,8 +339,6 @@ class BanquePopulaire(LoginBrowser):
         if get_iban:
             for a in accounts:
                 a.iban = self.get_iban_number(a)
-            for a in accounts:
-                self.get_investment(a)
                 yield a
 
     # TODO: see if there's other type of account with a label without name which
@@ -365,7 +372,7 @@ class BanquePopulaire(LoginBrowser):
     @retry(LoggedOut)
     @need_login
     def get_account(self, id):
-        return find_object(self.get_accounts_list(False), id=id)
+        return find_object(self.iter_accounts(get_iban=False), id=id)
 
     def set_gocardless_transaction_details(self, transaction):
         # Setting references for a GoCardless transaction
@@ -385,7 +392,7 @@ class BanquePopulaire(LoginBrowser):
 
     @retry(LoggedOut)
     @need_login
-    def get_history(self, account, coming=False):
+    def iter_history(self, account, coming=False):
         def get_history_by_receipt(account, coming, sel_tbl1=None):
             account = self.get_account(account.id)
 
@@ -453,7 +460,6 @@ class BanquePopulaire(LoginBrowser):
 
     @need_login
     def go_investments(self, account, get_account=False):
-
         if not account._invest_params and not (account.id.startswith('TIT') or account.id.startswith('PRV')):
             raise NotImplementedError()
 
@@ -462,8 +468,8 @@ class BanquePopulaire(LoginBrowser):
 
         if account._params:
             params = {
-                'taskInfoOID': "ordreBourseCTJ",
-                'controlPanelTaskAction': "true",
+                'taskInfoOID': 'ordreBourseCTJ',
+                'controlPanelTaskAction': 'true',
                 'token': self.page.build_token(account._params['token']),
             }
             self.location(self.absurl('/cyber/internet/StartTask.do', base=True), params=params)
@@ -478,78 +484,74 @@ class BanquePopulaire(LoginBrowser):
         if self.error_page.is_here():
             raise NotImplementedError()
 
-        url, params = self.page.get_investment_page_params()
-        if params:
-            try:
-                self.location(url, data=params)
-            except BrowserUnavailable:
-                return False
-
-            if "linebourse" in self.url:
-                self.linebourse.session.cookies.update(self.session.cookies)
-                self.linebourse.invest.go()
-
-            if self.natixis_error_page.is_here():
-                self.logger.warning("natixis site doesn't work")
-                return False
-
-            if self.natixis_redirect.is_here():
-                url = self.page.get_redirect()
-                if re.match(r'https://www.assurances.natixis.fr/etna-ihs-bp/#/equipement;codeEtab=\d+\?windowId=[a-f0-9]+$', url):
-                    self.logger.warning('there may be no contract associated with %s, skipping', url)
+        if self.page.go_investment():
+            url, params = self.page.get_investment_page_params()
+            if params:
+                try:
+                    self.location(url, data=params)
+                except BrowserUnavailable:
                     return False
+
+                if 'linebourse' in self.url:
+                    self.linebourse.session.cookies.update(self.session.cookies)
+                    self.linebourse.invest.go()
+
+                if self.natixis_error_page.is_here():
+                    self.logger.warning('Natixis site does not work.')
+                    return False
+
+                if self.natixis_redirect.is_here():
+                    url = self.page.get_redirect()
+                    if re.match(r'https://www.assurances.natixis.fr/etna-ihs-bp/#/equipement;codeEtab=\d+\?windowId=[a-f0-9]+$', url):
+                        self.logger.warning('There may be no contract associated with %s, skipping', url)
+                        return False
         return True
 
     @need_login
-    def get_investment(self, account):
-        if account.type in (Account.TYPE_LOAN,):
-            self.investments[account.id] = []
-            return []
+    def iter_investments(self, account):
+        if account.type not in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_PEA, Account.TYPE_MARKET, Account.TYPE_PERP):
+            return
 
         # Add "Liquidities" investment if the account is a "Compte titres PEA":
         if account.type == Account.TYPE_PEA and account.id.startswith('CPT'):
-            self.investments[account.id] = [create_french_liquidity(account.balance)]
-            return self.investments[account.id]
+            yield create_french_liquidity(account.balance)
+            return
 
-        if account.id in self.investments.keys() and self.investments[account.id] is False:
-            raise NotImplementedError()
+        if self.go_investments(account, get_account=True):
+            # Redirection URL is https://www.linebourse.fr/ReroutageSJR
+            if 'linebourse' in self.url:
+                self.logger.warning('Going to Linebourse space to fetch investments.')
+                # Eliminating the 3 letters prefix to match IDs on Linebourse:
+                linebourse_id = account.id[3:]
+                for inv in self.linebourse.iter_investment(linebourse_id):
+                    yield inv
+                return
 
-        if account.id not in self.investments.keys():
-            self.investments[account.id] = []
-            try:
-                if self.go_investments(account, get_account=True):
-                    # Redirection URL is https://www.linebourse.fr/ReroutageSJR
-                    if "linebourse" in self.url:
-                        # Eliminating the 3 letters prefix to match IDs on Linebourse:
-                        linebourse_id = account.id[3:]
-                        for inv in self.linebourse.iter_investment(linebourse_id):
-                            self.investments[account.id].append(inv)
+            if self.etna.is_here():
+                self.logger.warning('Going to Etna space to fetch investments.')
+                params = self.page.params
 
-                    if self.etna.is_here():
-                        params = self.page.params
-                    elif self.natixis_redirect.is_here():
-                        # the url may contain a "#", so we cannot make a request to it, the params after "#" would be dropped
-                        url = self.page.get_redirect()
-                        self.logger.debug('using redirect url %s', url)
-                        m = self.etna.match(url)
-                        if not m:
-                            # url can be contratPrev which is not investments
-                            self.logger.debug('Unable to handle this kind of contract')
-                            raise NotImplementedError()
+            elif self.natixis_redirect.is_here():
+                self.logger.warning('Going to Natixis space to fetch investments.')
+                # the url may contain a "#", so we cannot make a request to it, the params after "#" would be dropped
+                url = self.page.get_redirect()
+                self.logger.debug('using redirect url %s', url)
+                m = self.etna.match(url)
+                if not m:
+                    # URL can be contratPrev which is not investments
+                    self.logger.warning('Unable to handle this kind of contract.')
+                    return
 
-                        params = m.groupdict()
+                params = m.groupdict()
 
-                    if self.natixis_redirect.is_here() or self.etna.is_here():
-                        try:
-                            self.natixis_invest.go(**params)
-                        except ServerError:
-                            # Broken website .. nothing to do.
-                            self.investments[account.id] = iter([])
-                            return self.investments[account.id]
-                        self.investments[account.id] = list(self.page.get_investments())
-            except NotImplementedError:
-                self.investments[account.id] = []
-        return self.investments[account.id]
+            if self.natixis_redirect.is_here() or self.etna.is_here():
+                try:
+                    self.natixis_invest.go(**params)
+                except ServerError:
+                    # Broken website... nothing to do.
+                    return
+                for inv in self.page.iter_investments():
+                    yield inv
 
     @need_login
     def get_invest_history(self, account):
@@ -600,7 +602,7 @@ class BanquePopulaire(LoginBrowser):
 
     @need_login
     def get_profile(self):
-        self.location('/cyber/internet/StartTask.do?taskInfoOID=accueil&token=%s' % self.token)
+        self.location(self.absurl('/cyber/internet/StartTask.do?taskInfoOID=accueil&token=%s' % self.token, base=True))
         return self.page.get_profile()
 
     @retry(LoggedOut)
