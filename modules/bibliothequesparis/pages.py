@@ -19,9 +19,13 @@
 
 from __future__ import unicode_literals
 
+from datetime import datetime
+
 from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method, DictElement
-from weboob.browser.filters.standard import CleanText, Date, Regexp, Field
+from weboob.browser.filters.standard import (
+    CleanText, Date, Regexp, Field,
+)
 from weboob.browser.filters.html import Link
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.base import UserError
@@ -46,8 +50,30 @@ class JsonMixin(JsonPage):
                 raise UserError(msg)
 
 
-class LoansPage(LoggedPage, JsonMixin):
-    def __init__(self, browser, response, *args, **kwargs):
+class LoansPage(LoggedPage, JsonPage):
+    @method
+    class get_loans(DictElement):
+        item_xpath = 'd/Loans'
+
+        class item(ItemElement):
+            klass = Book
+
+            obj_url = Dict('TitleLink')
+            obj_id = Dict('Id')
+            obj_name = Dict('Title')
+
+            def obj_date(self):
+                # 1569967200000+0200 is 2019-10-02 00:00:00 +0200
+                # but it's considered by the library to be 2019-10-01!
+                return datetime.fromtimestamp(int(Regexp(Dict('WhenBack'), r'\((\d+)000')(self)) - 3600).date()
+
+            obj_location = Dict('Location')
+            #obj_author = Regexp(CleanText('.//div[@class="loan-custom-result"]//p[@class="template-info"]'), '^(.*?) - ')
+
+            def obj__renew_data(self):
+                return self.el
+
+    def x__init__(self, browser, response, *args, **kwargs):
         super(LoansPage, self).__init__(browser, response, *args, **kwargs)
         self.sub = self.sub_class(browser, response, data=self.sub_data)
 

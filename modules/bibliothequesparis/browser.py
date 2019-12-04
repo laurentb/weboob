@@ -19,6 +19,8 @@
 
 from __future__ import unicode_literals
 
+from time import time
+
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.capabilities.base import find_object
 
@@ -29,13 +31,13 @@ class BibliothequesparisBrowser(LoginBrowser):
     BASEURL = 'https://bibliotheques.paris.fr/'
 
     login = URL(r'/Default/Portal/Recherche/logon.svc/logon', LoginPage)
-    bookings = URL('/Default/Portal/Recherche/Search.svc/RenderAccountWebFrame', LoansPage)
-    renew = URL(r'/Default/Portal/Services/ILSClient.svc/RenewLoans', RenewPage)
+    bookings = URL(r'/Default/Portal/Services/UserAccountService.svc/ListLoans\?serviceCode=SYRACUSE&token=(?P<ts>\d+)&userUniqueIdentifier=&timestamp=(?P<ts2>\d+)', LoansPage)
+
+    renew = URL(r'/Default/Portal/Services/UserAccountService.svc/RenewLoans', RenewPage)
     search = URL(r'/Default/Portal/Recherche/Search.svc/Search', SearchPage)
 
     json_headers = {
         'Accept': 'application/json, text/javascript',
-        'Content-Type': 'application/json; charset=utf-8',
     }
 
     def do_login(self):
@@ -47,19 +49,21 @@ class BibliothequesparisBrowser(LoginBrowser):
 
     @need_login
     def get_loans(self):
-        # do not add any space! the site is so fragile it breaks if even a single whitespace is added...
-        s = '{"portalId":5,"category":"Loans","providerCode":""}'
-        self.session.cookies['ErmesSearch_Default'] = '{"mainScenario":"CATALOGUE","mainScenarioText":"Catalogue"}'
-        self.bookings.go(data=s, headers=self.json_headers)
-        return self.page.sub.get_loans()
+        now = int(time() * 1000)
+        self.bookings.go(ts=now, ts2=now, headers=self.json_headers)
+        return self.page.get_loans()
 
     @need_login
     def do_renew(self, id):
         b = find_object(self.get_loans(), id=id)
         assert b, 'loan not found'
         assert b._renew_data, 'book has no data'
-        post = u'{"loans":[%s]}' % b._renew_data
-        self.renew.go(data=post.encode('utf-8'), headers=self.json_headers)
+        post = {
+            'loans': [b._renew_data],
+            'serviceCode': 'SYRACUSE',
+            'userUniqueIdentifier': '',
+        }
+        self.renew.go(json=post, headers=self.json_headers)
 
     def search_books(self, pattern):
         max_page = 0
