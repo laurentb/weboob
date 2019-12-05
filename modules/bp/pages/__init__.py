@@ -19,7 +19,7 @@
 
 
 from .login import LoginPage, Initident, CheckPassword,repositionnerCheminCourant, BadLoginPage, AccountDesactivate, UnavailablePage
-from .accountlist import AccountList, AccountRIB, Advisor
+from .accountlist import AccountList, AccountRIB, Advisor, ErrorPage
 from .accounthistory import AccountHistory, CardsList
 from .transfer import TransferChooseAccounts, CompleteTransfer, TransferConfirm, TransferSummary, CreateRecipient, ValidateRecipient,\
                       ValidateCountry, ConfirmPage, RcptSummary
@@ -29,4 +29,4 @@ from .subscription import SubscriptionPage, DownloadPage, ProSubscriptionPage
 __all__ = ['LoginPage', 'Initident', 'CheckPassword', 'repositionnerCheminCourant', "AccountList", 'AccountHistory', 'BadLoginPage',
            'AccountDesactivate', 'TransferChooseAccounts', 'CompleteTransfer', 'TransferConfirm', 'TransferSummary', 'UnavailablePage',
            'CardsList', 'AccountRIB', 'Advisor', 'CreateRecipient', 'ValidateRecipient', 'ValidateCountry', 'ConfirmPage', 'RcptSummary',
-           'SubscriptionPage', 'DownloadPage', 'ProSubscriptionPage']
+           'SubscriptionPage', 'DownloadPage', 'ProSubscriptionPage', 'ErrorPage']

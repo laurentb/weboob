@@ -189,7 +189,8 @@ class AccountList(LoggedPage, MyHTMLPage):
     def on_load(self):
         MyHTMLPage.on_load(self)
 
-        if self.doc.xpath('//h2[text()="ERREUR"]'): # website sometime crash
+        # website sometimes crash
+        if CleanText('//h2[text()="ERREUR"]')(self.doc):
             self.browser.location('https://voscomptesenligne.labanquepostale.fr/voscomptes/canalXHTML/securite/authentification/initialiser-identif.ea')
 
             raise BrowserUnavailable()
@@ -463,3 +464,9 @@ class ProfilePage(LoggedPage, HTMLPage):
         profile.job = CleanText('//div[@id="persoIdentiteDetail"]//dd[4]')(self.doc)
 
         return profile
+
+
+class ErrorPage(LoggedPage, HTMLPage):
+    def on_load(self):
+        if CleanText('//h1[contains(text(), "Erreur")]')(self.doc):
+            raise BrowserUnavailable()

@@ -31,7 +31,7 @@ from .pages import (
     LoginPage, Initident, CheckPassword, repositionnerCheminCourant, BadLoginPage, AccountDesactivate,
     AccountList, AccountHistory, CardsList, UnavailablePage, AccountRIB, Advisor,
     TransferChooseAccounts, CompleteTransfer, TransferConfirm, TransferSummary, CreateRecipient, ValidateRecipient,
-    ValidateCountry, ConfirmPage, RcptSummary, SubscriptionPage, DownloadPage, ProSubscriptionPage,
+    ValidateCountry, ConfirmPage, RcptSummary, SubscriptionPage, DownloadPage, ProSubscriptionPage, ErrorPage,
 )
 from .pages.accounthistory import (
     LifeInsuranceInvest, LifeInsuranceHistory, LifeInsuranceHistoryInv, RetirementHistory,
@@ -78,6 +78,8 @@ class BPBrowser(LoginBrowser, StatesMixin):
                             '/voscomptes/canalXHTML/sso/commun/init-integration.ea\?partenaire=cristalCEC',
                             '/voscomptes/canalXHTML/sso/lbpf/souscriptionCristalFormAutoPost.jsp',
                             AccountList)
+    error_page = URL(r'https://espaceclientcreditconso.labanquepostale.fr/sav/loginlbpcrypt.do', ErrorPage)
+
     par_accounts_revolving = URL('https://espaceclientcreditconso.labanquepostale.fr/sav/accueil.do', AccountList)
 
     accounts_rib = URL(r'.*voscomptes/canalXHTML/comptesCommun/imprimerRIB/init-imprimer_rib.ea.*',
