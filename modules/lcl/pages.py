@@ -746,7 +746,7 @@ class BoursePage(LoggedPage, HTMLPage):
                 return self.get_ownership(owner)
 
     def get_logout_link(self):
-        return Link('//a[@class="link-underline" and contains(text(), "espace client")]')(self.doc)
+        return Link('//a[contains(text(), "Retour aux comptes")]')(self.doc)
 
     @method
     class iter_investment(ListElement):

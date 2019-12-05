@@ -395,6 +395,9 @@ class BoursePage(AbstractPage):
     PARENT = 'lcl'
     PARENT_URL = 'bourse'
 
+    def get_logout_link(self):
+        return Link('//a[@title="Retour à l\'accueil"]')(self.doc)
+
 
 class BourseDisconnectPage(LoggedPage, HTMLPage):
     def get_relocation(self):
