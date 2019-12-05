@@ -481,10 +481,11 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
 
         # at this stage, the site doesn't show the real ids/ibans, we can only guess
         if recipients[0].label != ret.recipient_label:
-            if not recipients[0].label.startswith('%s - ' % ret.recipient_label):
-                # the label displayed here is just "<name>"
-                # but in the recipients list it is "<name> - <bank>"...
-                raise TransferError('Recipient label changed during transfer')
+            self.logger.info('Recipients from iter_recipient and from the transfer are diffent: "%s" and "%s"' % (recipients[0].label, ret.recipient_label))
+            if not ret.recipient_label.startswith('%s - ' % recipients[0].label):
+                # the label displayed here is  "<name> - <bank>"
+                # but in the recipients list it is "<name>"...
+                assert False, 'Recipient label changed during transfer (from "%s" to "%s")' % (recipients[0].label, ret.recipient_label)
         ret.recipient_id = recipients[0].id
         ret.recipient_iban = recipients[0].iban
 
