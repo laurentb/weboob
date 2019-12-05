@@ -89,9 +89,9 @@ class PortfolioPage(LoggedPage, JsonPage):
                     return NotAvailable
                 # obj_diff_ratio key can have several names:
                 if Dict('plvPourcentage', default=None)(self):
-                    return CleanDecimal(Dict('plvPourcentage'), sign=lambda x: Env('sign')(self))(self)
+                    return CleanDecimal.SI(Dict('plvPourcentage'))(self) / 100
                 elif Dict('pourcentagePlv', default=None)(self):
-                    return CleanDecimal(Dict('pourcentagePlv'), sign=lambda x: Env('sign')(self))(self)
+                    return CleanDecimal.SI(Dict('pourcentagePlv'))(self) / 100
 
             def obj_portfolio_share(self):
                 active_percent = Dict('pourcentageActif', default=NotAvailable)(self)
