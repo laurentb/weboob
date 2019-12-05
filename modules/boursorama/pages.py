@@ -1014,19 +1014,19 @@ class TransferConfirm(LoggedPage, HTMLPage):
     class get_transfer(ItemElement):
         klass = Transfer
 
-        obj_label = CleanText('//div[@id="transfer-label"]/span[@class="transfer__account-value"]')
-        obj_amount = CleanDecimal('//div[@id="transfer-amount"]/span[@class="transfer__account-value"]', replace_dots=True)
-        obj_currency = CleanCurrency('//div[@id="transfer-amount"]/span[@class="transfer__account-value"]')
+        obj_label = CleanText('//span[@id="transfer-label"]/span[@class="transfer__account-value"]')
+        obj_amount = CleanDecimal.French('//span[@id="transfer-amount"]/span[@class="transfer__account-value"]')
+        obj_currency = CleanCurrency('//span[@id="transfer-amount"]/span[@class="transfer__account-value"]')
 
         obj_account_label = CleanText('//span[@id="transfer-origin-account"]')
         obj_recipient_label = CleanText('//span[@id="transfer-destination-account"]')
 
         def obj_exec_date(self):
-            type_ = CleanText('//div[@id="transfer-type"]/span[@class="transfer__account-value"]')(self)
+            type_ = CleanText('//span[@id="transfer-type"]/span[@class="transfer__account-value"]')(self)
             if type_ == 'Ponctuel':
                 return datetime.date.today()
             elif type_ == 'Différé':
-                return Date(CleanText('//div[@id="transfer-date"]/span[@class="transfer__account-value"]'), dayfirst=True)(self)
+                return Date(CleanText('//span[@id="transfer-date"]/span[@class="transfer__account-value"]'), dayfirst=True)(self)
 
     def submit(self):
         form = self.get_form(name='Confirm')
