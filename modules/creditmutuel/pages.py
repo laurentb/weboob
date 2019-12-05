@@ -963,7 +963,7 @@ class CardPage(OperationsPage, LoggedPage):
                 return not CleanText('//td[contains(., "Aucun mouvement")]', default=False)(self)
 
             def parse(self, el):
-                label = CleanText('//*[contains(text(), "Achats")]')(el)
+                label = CleanText('//span[contains(text(), "Achats")]/following-sibling::span[2]')(el)
                 if not label:
                     return
                 try:
@@ -994,16 +994,24 @@ class CardPage(OperationsPage, LoggedPage):
 
                 def parse(self, el):
                     try:
-                        self.env['raw'] = "%s %s" % (CleanText().filter(TableCell('commerce')(self)[0].text),
-                                                     CleanText().filter(TableCell('ville')(self)[0].text))
-                    except (ColumnNotFound, AttributeError):
-                        self.env['raw'] = "%s" % (CleanText().filter(TableCell('commerce')(self)[0].text))
+                        self.env['raw'] = Format(
+                            '%s %s',
+                            CleanText(TableCell('commerce'), children=False),
+                            CleanText(TableCell('ville')),
+                        )(self)
+                    except ColumnNotFound:
+                        self.env['raw'] = CleanText(TableCell('commerce'), chilren=False)(self)
 
-                    self.env['type'] = (Transaction.TYPE_DEFERRED_CARD
-                                        if CleanText('//a[contains(text(), "Prélevé fin")]', default=None)
-                                        else Transaction.TYPE_CARD)
-                    self.env['differed_date'] = parse_french_date(Regexp(CleanText('//*[contains(text(), "Achats")]'),
-                                                                         r'au[\s]+(.*)')(self)).date()
+                    if CleanText('//span[contains(text(), "Prélevé fin")]', default=None)(self):
+                        self.env['type'] = Transaction.TYPE_DEFERRED_CARD
+                    else:
+                        self.env['type'] = Transaction.TYPE_CARD
+
+                    self.env['differed_date'] = Date(
+                        CleanText('//span[contains(text(), "Achats")]/following-sibling::span[2]'),
+                        parse_func=parse_french_date,
+                    )(self)
+
                     amount = TableCell('credit')(self)[0]
                     if self.page.browser.is_new_website:
                         if not len(amount.xpath('./div')):
