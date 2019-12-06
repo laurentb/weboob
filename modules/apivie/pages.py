@@ -36,6 +36,11 @@ class LoginPage(HTMLPage):
         return form.submit()
 
 
+class InfoPage(LoggedPage, HTMLPage):
+    def get_error_message(self):
+        return CleanText('//span[@class="ui-messages-fatal-detail"]')(self.doc)
+
+
 class AccountsPage(LoggedPage, HTMLPage):
     TYPES = {u'APIVIE': Account.TYPE_LIFE_INSURANCE,
              u'LINXEA ZEN CLIENT': Account.TYPE_LIFE_INSURANCE,

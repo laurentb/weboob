@@ -20,10 +20,9 @@
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.capabilities.base import find_object
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 
-from .pages import LoginPage, AccountsPage, InvestmentsPage, OperationsPage
-
+from .pages import LoginPage, AccountsPage, InvestmentsPage, OperationsPage, InfoPage
 
 __all__ = ['ApivieBrowser']
 
@@ -33,6 +32,7 @@ class ApivieBrowser(LoginBrowser):
                 r'/accueil$',
                 r'/perte.*',
                 LoginPage)
+    info = URL(r'/coordonnees.*', InfoPage)
     accounts = URL(r'/accueil-connect', AccountsPage)
     investments = URL(r'/synthese-contrat.*', InvestmentsPage)
     operations = URL(r'/historique-contrat.*', OperationsPage)
@@ -49,6 +49,12 @@ class ApivieBrowser(LoginBrowser):
             self.location('/accueil')
 
         self.page.login(self.username, self.password)
+
+        # If the user's contact info is too old the website asks to verify them. We're logged but we can't go further.
+        if self.info.is_here():
+            error_message = self.page.get_error_message()
+            assert error_message, 'Error message location has changed on info page'
+            raise ActionNeeded(error_message)
 
         if self.login.is_here() or self.page is None:
             raise BrowserIncorrectPassword()
