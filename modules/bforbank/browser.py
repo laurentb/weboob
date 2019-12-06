@@ -145,7 +145,9 @@ class BforbankBrowser(LoginBrowser):
             if not bourse_account:
                 return iter([])
 
-            self.location(bourse_account._link_id)
+            self.location(bourse_account._link_id, params={
+                'nump': bourse_account._market_id,
+            })
             assert self.bourse.is_here()
             history = list(self.page.iter_history())
             self.leave_espace_bourse()

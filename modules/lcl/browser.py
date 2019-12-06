@@ -434,8 +434,10 @@ class LCLBrowser(LoginBrowser, StatesMixin):
     def get_history(self, account):
         if hasattr(account, '_market_link') and account._market_link:
             self.connexion_bourse()
-            self.location(account._market_link)
-            self.location(account._link_id).page.get_fullhistory()
+            self.location(account._link_id, params={
+                'nump': account._market_id,
+            })
+            self.page.get_fullhistory()
             for tr in self.page.iter_history():
                 yield tr
             self.deconnexion_bourse()

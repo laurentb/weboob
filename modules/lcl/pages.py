@@ -715,7 +715,8 @@ class BoursePage(LoggedPage, HTMLPage):
                 '//td[contains(text(), "value latente")]/following-sibling::td[1]',
                 replace_dots=True,
             )
-            obj__market_link = Regexp(Attr(TableCell('label'), 'onclick'), "'(.*?)'")
+            obj__market_id = Regexp(Attr(TableCell('label'), 'onclick'), r'nump=(\d+:\d+)')
+            obj__market_link = Regexp(Attr(TableCell('label'), 'onclick'), r"goTo\('(.*?)'")
             obj__link_id = Async('details') & Link(u'//a[text()="Historique"]')
             obj__transfer_id = None
             obj_balance = Field('_titres')
