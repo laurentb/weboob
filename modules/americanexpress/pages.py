@@ -20,10 +20,14 @@
 from __future__ import unicode_literals
 
 from decimal import Decimal
+import re
 
-from weboob.browser.pages import LoggedPage, JsonPage, HTMLPage
+from weboob.browser.pages import LoggedPage, JsonPage, HTMLPage, RawPage
 from weboob.browser.elements import ItemElement, DictElement, method
-from weboob.browser.filters.standard import Date, Eval, Env, CleanText, Field, CleanDecimal, Format, Currency
+from weboob.browser.filters.standard import (
+    Date, Eval, Env, CleanText, Field, CleanDecimal, Format,
+    Currency,
+)
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.bank import Account, Transaction
 from weboob.capabilities.base import NotAvailable
@@ -56,15 +60,29 @@ class NotFoundPage(HTMLPage):
         raise BrowserUnavailable(alert_header, alert_content)
 
 
+class HomeLoginPage(HTMLPage):
+    pass
+
+
 class LoginPage(JsonPage):
     def get_status_code(self):
         # - 0 = OK
-        # - 1 = Incorrect login/password
+        # - 1 = Error
         return CleanDecimal(Dict('statusCode'))(self.doc)
 
     def get_error_code(self):
-        # - LGON004 = ActionNeeded
+        # - LGON001 = Incorrect password
+        # - LGON004 = Action needed
+        # - LGON005 = Account blocked
+        # - LGON008 = ?
+        # - LGON010 = Browser unavailable
         return CleanText(Dict('errorCode'))(self.doc)
+
+    def get_error_message(self):
+        return CleanText(Dict('errorMessage'))(self.doc)
+
+    def get_redirect_url(self):
+        return CleanText(Dict('redirectUrl'))(self.doc)
 
 
 class AccountsPage(LoggedPage, JsonPage):
@@ -191,3 +209,10 @@ class JsonHistory(LoggedPage, JsonPage):
                     return original_amount
 
             obj__ref = Dict('identifier')
+
+
+class JsDataPage(RawPage):
+    def get_version(self):
+        version = re.search(r'"(\d\.[\d\._]+)"', self.text)
+        assert version, 'Could not match version number in javascript'
+        return version.group(1)
