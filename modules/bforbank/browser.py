@@ -67,7 +67,7 @@ class BforbankBrowser(LoginBrowser):
                  BoursePage)
     bourse_titre = URL(r'https://bourse.bforbank.com/netfinca-titres/servlet/com.netfinca.frontcr.navigation.Titre', BoursePage)  # to get logout link
 
-    bourse_disco = URL(r'https://bourse.bforbank.com/netfinca-titres/servlet/com.netfinca.frontcr.login.ContextTransferDisconnect', BourseDisconnectPage)
+    bourse_disco = URL(r'https://bourse.bforbank.com/netfinca-titres/servlet/com.netfinca.frontcr.login.Logout', BourseDisconnectPage)
     profile = URL(r'/espace-client/profil/informations', ProfilePage)
 
     def __init__(self, birthdate, username, password, *args, **kwargs):
@@ -297,7 +297,7 @@ class BforbankBrowser(LoginBrowser):
         if self.bourse.is_here():
             self.location(self.bourse_titre.build())
             self.location(self.page.get_logout_link())
-            self.location(self.page.get_relocation())
+            self.login.go()
 
     @need_login
     def get_profile(self):

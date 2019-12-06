@@ -400,11 +400,7 @@ class BoursePage(AbstractPage):
 
 
 class BourseDisconnectPage(LoggedPage, HTMLPage):
-    def get_relocation(self):
-        link = re.search(r"window\.location= \'(.+)\';", self.content)
-        if link:
-            m = link.group(1)
-            return m
+    pass
 
 
 class ProfilePage(LoggedPage, HTMLPage):
