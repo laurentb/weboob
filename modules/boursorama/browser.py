@@ -21,7 +21,6 @@
 import requests
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
-from dateutil import parser
 
 from weboob.browser.retry import login_method, retry_on_logout, RetryLoginBrowser
 from weboob.browser.browsers import need_login, StatesMixin
@@ -31,9 +30,10 @@ from weboob.browser.exceptions import LoggedOut, ClientError
 from weboob.capabilities.bank import (
     Account, AccountNotFound, TransferError, TransferInvalidAmount,
     TransferInvalidEmitter, TransferInvalidLabel, TransferInvalidRecipient,
-    AddRecipientStep, Recipient, Rate, TransferBankError, AccountOwnership,
+    AddRecipientStep, Rate, TransferBankError, AccountOwnership, RecipientNotFound,
+    AddRecipientTimeout,
 )
-from weboob.capabilities.base import empty
+from weboob.capabilities.base import empty, find_object
 from weboob.capabilities.contact import Advisor
 from weboob.tools.captcha.virtkeyboard import VirtKeyboardError
 from weboob.tools.value import Value
@@ -126,7 +126,7 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
     currencylist = URL('https://www.boursorama.com/bourse/devises/parite/_detail-parite', CurrencyListPage)
     currencyconvert = URL('https://www.boursorama.com/bourse/devises/convertisseur-devises/convertir', CurrencyConvertPage)
 
-    __states__ = ('auth_token',)
+    __states__ = ('auth_token', 'recipient_form',)
 
     def __init__(self, config=None, *args, **kwargs):
         self.config = config
@@ -134,6 +134,7 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
         self.accounts_list = None
         self.cards_list = None
         self.deferred_card_calendar = None
+        self.recipient_form = None
         kwargs['username'] = self.config['login'].get()
         kwargs['password'] = self.config['password'].get()
         super(BoursoramaBrowser, self).__init__(*args, **kwargs)
@@ -145,8 +146,14 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
             pass
 
     def load_state(self, state):
-        if ('expire' in state and parser.parse(state['expire']) > datetime.now()) or state.get('auth_token'):
-            return super(BoursoramaBrowser, self).load_state(state)
+        # needed to continue the session while adding recipient with otp
+        # it keeps the form to continue to submit the otp
+        if state.get('recipient_form'):
+            state.pop('url', None)
+            super(BoursoramaBrowser, self).load_state(state)
+
+        elif state.get('auth_token'):
+            super(BoursoramaBrowser, self).load_state(state)
 
     def handle_authentication(self):
         if self.authentication.is_here():
@@ -410,34 +417,35 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
         advisor.phone = u"0146094949"
         return iter([advisor])
 
-    @need_login
-    def iter_transfer_recipients(self, account):
-        if account.type in (Account.TYPE_LOAN, Account.TYPE_LIFE_INSURANCE):
-            return []
-        assert account.url
-
+    def go_recipients_list(self, account_url, account_id):
         # url transfer preparation
-        url = urlsplit(account.url)
+        url = urlsplit(account_url)
         parts = [part for part in url.path.split('/') if part]
 
         assert len(parts) > 2, 'Account url missing some important part to iter recipient'
         account_type = parts[1] # cav, ord, epargne ...
         account_webid = parts[-1]
 
-        try:
-            self.transfer_main_page.go(acc_type=account_type, webid=account_webid)
-        except BrowserHTTPNotFound:
-            return []
+        self.transfer_main_page.go(acc_type=account_type, webid=account_webid)  # may raise a BrowserHTTPNotFound
 
         # can check all account available transfer option
         if self.transfer_main_page.is_here():
             self.transfer_accounts.go(acc_type=account_type, webid=account_webid)
 
         if self.transfer_accounts.is_here():
-            try:
-                self.page.submit_account(account.id)
-            except AccountNotFound:
-                return []
+            self.page.submit_account(account_id)  # may raise AccountNotFound
+
+
+    @need_login
+    def iter_transfer_recipients(self, account):
+        if account.type in (Account.TYPE_LOAN, Account.TYPE_LIFE_INSURANCE):
+            return []
+        assert account.url
+
+        try:
+            self.go_recipients_list(account.url, account.id)
+        except (BrowserHTTPNotFound, AccountNotFound):
+            return []
 
         assert self.recipients_page.is_here()
         return self.page.iter_recipients()
@@ -510,26 +518,11 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
         # the last page contains no info, return the last transfer object from init_transfer
         return transfer
 
-    def build_recipient(self, recipient):
-        r = Recipient()
-        r.iban = recipient.iban
-        r.id = recipient.iban
-        r.label = recipient.label
-        r.category = recipient.category
-        r.enabled_at = date.today()
-        r.currency = u'EUR'
-        r.bank_name = recipient.bank_name
-        return r
-
     @need_login
-    def new_recipient(self, recipient, **kwargs):
-        if 'code' in kwargs:
-            assert self.rcpt_page.is_here()
-            assert self.page.is_confirm_sms()
+    def init_new_recipient(self, recipient):
+        self.recipient_form = None  # so it is reset when a new recipient is added
 
-            self.page.confirm_sms(kwargs['code'])
-            return self.rcpt_after_sms()
-
+        # get url
         account = None
         for account in self.get_accounts_list():
             if account.url:
@@ -542,26 +535,57 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
             target = account.url + '/' + suffix
 
         self.location(target)
-        assert self.page.is_charac()
+        assert self.page.is_charac(), 'Not on the page to add recipients.'
 
+        # fill recipient form
         self.page.submit_recipient(recipient)
+        recipient.origin_account_id = account.id
+
+        # confirm sending sms
+        assert self.page.is_confirm_send_sms(), 'Cannot reach the page asking to send a sms.'
+        self.page.confirm_send_sms()
 
         if self.page.is_send_sms():
+            # send sms
             self.page.send_sms()
-            assert self.page.is_confirm_sms()
-            raise AddRecipientStep(self.build_recipient(recipient), Value('code', label='Veuillez saisir le code'))
-        # if the add recipient is restarted after the sms has been confirmed recently, the sms step is not presented again
+            assert self.page.is_confirm_sms(), 'The sms was not send.'
 
+            self.recipient_form = self.page.get_confirm_sms_form()
+            self.recipient_form['account_url'] = account.url
+            raise AddRecipientStep(recipient, Value('code', label='Veuillez saisir le code'))
+
+        # if the add recipient is restarted after the sms has been confirmed recently, the sms step is not presented again
         return self.rcpt_after_sms()
 
-    def rcpt_after_sms(self):
-        assert self.page.is_confirm()
+    def new_recipient(self, recipient, **kwargs):
+        # step 2 of new_recipient
+        if 'code' in kwargs:
+            # there is no confirmation to check the recipient
+            # validating the sms code directly adds the recipient
+            if not self.recipient_form:  # the session expired
+                raise AddRecipientTimeout()
 
-        ret = self.page.get_recipient()
-        self.page.confirm()
+            url = self.recipient_form.pop('url')
+            account_url = self.recipient_form.pop('account_url')
+            self.recipient_form['strong_authentication_confirm[code]'] = kwargs['code']
+            self.location(url, data=self.recipient_form)
 
-        assert self.page.is_created()
-        return ret
+            self.recipient_form = None
+            return self.rcpt_after_sms(recipient, account_url)
+
+        # step 1 of new recipient
+        return self.init_new_recipient(recipient)
+
+    def rcpt_after_sms(self, recipient, account_url):
+        assert self.page.is_created(), 'The recipient was not added.'
+
+        # at this point, the recipient was added to the webiste
+        # we just want here to return the right Recipient object
+        # we are taking it from the recipient list page
+        # because there is no summary of the adding
+        self.go_recipients_list(account_url, recipient.origin_account_id)
+        rec = find_object(self.page.iter_recipients(), id=recipient.id, error=RecipientNotFound)
+        return rec
 
     def iter_currencies(self):
         return self.currencylist.go().get_currency_list()

@@ -1065,42 +1065,31 @@ class AddRecipientPage(LoggedPage, HTMLPage):
         form['externalAccountsPrepareType[beneficiaryFirstname]'] = recipient.label
         form['externalAccountsPrepareType[bank]'] = recipient.bank_name or 'Autre'
         form['externalAccountsPrepareType[iban]'] = recipient.iban
+        form['submit'] = ''
         form.submit()
 
     def is_send_sms(self):
-        return self._is_form(name='otp_prepare')
+        return self._is_form(name='strong_authentication_prepare')
 
     def send_sms(self):
-        form = self.get_form(name='otp_prepare')
-        form['otp_prepare[receiveCode]'] = ''
+        form = self.get_form(name='strong_authentication_prepare')
         form.submit()
 
     def is_confirm_sms(self):
-        return self._is_form(name='otp_confirm')
+        return self._is_form(name='strong_authentication_confirm')
 
-    def confirm_sms(self, code):
-        form = self.get_form(name='otp_confirm')
-        form['otp_confirm[otpCode]'] = code
-        form.submit()
+    def get_confirm_sms_form(self):
+        form = self.get_form(name='strong_authentication_confirm')
+        recipient_form = {k: v for k, v in form.items()}
+        recipient_form['url'] = form.url
+        return recipient_form
 
-    def is_confirm(self):
+    def is_confirm_send_sms(self):
         return self._is_form(name='externalAccountsConfirmType')
 
-    def confirm(self):
-        self.get_form(name='externalAccountsConfirmType').submit()
-
-    def get_recipient(self):
-        div = self.doc.xpath('//div[@class="confirmation__text"]')[0]
-
-        ret = Recipient()
-        ret.label = CleanText('//p[b[contains(text(),"Libellé du compte :")]]/text()')(div)
-        ret.iban = ret.id = CleanText('//p[b[contains(text(),"Iban :")]]/text()')(div)
-        ret.bank_name = CleanText(u'//p[b[contains(text(),"Établissement bancaire :")]]/text()')(div)
-        ret.currency = u'EUR'
-        ret.category = u'Externe'
-        ret.enabled_at = datetime.date.today()
-        assert ret.label
-        return ret
+    def confirm_send_sms(self):
+        form = self.get_form(name='externalAccountsConfirmType')
+        form.submit()
 
     def is_created(self):
         return CleanText('//p[contains(text(), "Le bénéficiaire a bien été ajouté.")]')(self.doc) != ""
