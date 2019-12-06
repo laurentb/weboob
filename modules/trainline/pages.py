@@ -72,6 +72,7 @@ class DocumentsPage(LoggedPage, JsonPage):
                 after_sales_logs = [after_sales_logs_dict[asl_id] for asl_id in pnr['after_sales_log_ids']]
                 for asl in after_sales_logs:
                     new_bill = dict(bill)
+                    new_bill['id'] += '_' + asl['id']
                     new_bill['price'] = asl['refunded_cents']
                     bills.append(new_bill)
 
