@@ -278,6 +278,7 @@ class Form(OrderedDict):
         self.url = el.attrib.get('action', page.url)
         self.name = el.attrib.get('name', '')
         self.req = None
+        self.headers = None
         submits = 0
 
         # Find all elements of the form that will be useful to create the request
@@ -341,6 +342,8 @@ class Form(OrderedDict):
             else:
                 self.req = requests.Request(self.method, self.url, data=self)
             self.req.headers.setdefault('Referer', self.page.url)
+            if self.headers:
+                self.req.headers.update(self.headers)
         return self.req
 
     def submit(self, **kwargs):
@@ -351,6 +354,7 @@ class Form(OrderedDict):
         :type data_encoding: :class:`basestring`
         """
         kwargs.setdefault('data_encoding', self.page.encoding)
+        self.headers = kwargs.pop('headers', None)
         return self.page.browser.location(self.request, **kwargs)
 
 
