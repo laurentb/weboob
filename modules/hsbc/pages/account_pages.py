@@ -41,6 +41,7 @@ from .landing_pages import GenericLandingPage
 class Transaction(FrenchTransaction):
     PATTERNS = [
         (re.compile(r'^VIR(EMENT)? (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
+        (re.compile(r'^TRANSFERT? (?P<text>.*)'), FrenchTransaction.TYPE_TRANSFER),
         (re.compile(r'^(PRLV|OPERATION|(TVA )?FACT ABONNEMENTS) (?P<text>.*)'), FrenchTransaction.TYPE_ORDER),
         (re.compile(r'^CB (?P<text>.*?)\s+(?P<dd>\d+)/(?P<mm>[01]\d)'), FrenchTransaction.TYPE_CARD),
         (re.compile(r'^DAB (?P<dd>\d{2})/(?P<mm>\d{2}) ((?P<HH>\d{2})H(?P<MM>\d{2}) )?(?P<text>.*?)( CB N°.*)?$'), FrenchTransaction.TYPE_WITHDRAWAL),
@@ -50,6 +51,7 @@ class Transaction(FrenchTransaction):
         (re.compile(r'^ARRETE DE COMPTE.*'), FrenchTransaction.TYPE_BANK),
         (re.compile(r'^REMISE (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
         (re.compile(r'^FACTURES CB (?P<text>.*)'), FrenchTransaction.TYPE_CARD_SUMMARY),
+        (re.compile(r'^REJET VIR (?P<text>.*)'), FrenchTransaction.TYPE_BANK),
     ]
 
 
@@ -163,8 +165,8 @@ class AccountsPage(GenericLandingPage):
             for form in self.doc.xpath('//form[@id]'):
                 value = Attr('.//input[@name="CPT_IdPrestation" or @name="CB_IdPrestation"]', 'value')(form)
                 # * if needed, all the card numbers could be fetched at that point to replace 'XXXX' as they appear in 'value'
-                match = (re.match(r'^(.*)?(\d{11}(\w{3}))$', account.id) or re.match(r'^(.*)?(\d{6})(X{6})(\d{4})(.*)?$', account.id))
-                if (match.group(2) or (match.group(4) and match.group(2))) in value:
+                pattern = ".*{}.*".format(account.id.replace('XXXXXX', '\\d{6}'))
+                if re.match(pattern, value):
                     # certain forms have the same id atribute, we must submit the one with the same input 'value' attribute
                     self.get_form(xpath='//form[@id][input[@value="%s"]]' % value).submit()
                     return

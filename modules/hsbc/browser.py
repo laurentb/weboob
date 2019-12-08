@@ -475,10 +475,13 @@ class HSBC(LoginBrowser):
             history_tabs_urls = self.page.history_tabs_urls()
             guesser = LinearDateGuesser(date_max_bump=timedelta(45))
             history = []
-            if coming:
-                self.location(history_tabs_urls[0])  # fetch only first tab coming transactions
-                history += list(self.page.get_history(date_guesser=guesser))
-            else:
+            # gather coming anyway
+            # in case no new transaction has been recorded since last (past) payement
+            self.location(history_tabs_urls[0])  # fetch only first tab coming transactions
+            history.extend(list(self.page.get_history(date_guesser=guesser)))
+            if not coming:
+                # get further history
+                self.logger.debug("get history")
                 for tab in history_tabs_urls[1:]:
                     self.location(tab)  # fetch all tab but first of past transactions
                     history += list(self.page.get_history(date_guesser=guesser))
