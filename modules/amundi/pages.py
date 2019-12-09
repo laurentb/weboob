@@ -186,6 +186,21 @@ class EEInvestmentPage(LoggedPage, HTMLPage):
     def get_details_url(self):
         return Attr('//a[contains(text(), "Caractéristiques")]', 'data-href', default=None)(self.doc)
 
+    def get_performance_url(self):
+        return Attr('//a[contains(text(), "Performances")]', 'data-href', default=None)(self.doc)
+
+
+class EEInvestmentPerformancePage(LoggedPage, HTMLPage):
+    def get_performance_history(self):
+        perfs = {}
+        if CleanDecimal.French('//tr[td[text()="Fonds"]]//td[position()=last()-2]', default=None)(self.doc):
+            perfs[1] = Eval(lambda x: x / 100, CleanDecimal.French('//tr[td[text()="Fonds"]]//td[position()=last()-2]'))(self.doc)
+        if CleanDecimal.French('//tr[td[text()="Fonds"]]//td[position()=last()-1]', default=None)(self.doc):
+            perfs[3] = Eval(lambda x: x / 100, CleanDecimal.French('//tr[td[text()="Fonds"]]//td[position()=last()-1]'))(self.doc)
+        if CleanDecimal.French('//tr[td[text()="Fonds"]]//td[position()=last()]', default=None)(self.doc):
+            perfs[5] = Eval(lambda x: x / 100, CleanDecimal.French('//tr[td[text()="Fonds"]]//td[position()=last()]'))(self.doc)
+        return perfs
+
 
 class EEInvestmentDetailPage(LoggedPage, HTMLPage):
     def get_asset_category(self):

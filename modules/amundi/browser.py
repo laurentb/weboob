@@ -26,8 +26,8 @@ from weboob.capabilities.base import empty, NotAvailable
 
 from .pages import (
     LoginPage, AccountsPage, AccountHistoryPage, AmundiInvestmentsPage, AllianzInvestmentPage,
-    EEInvestmentPage, EEInvestmentDetailPage, EEProductInvestmentPage, EresInvestmentPage,
-    CprInvestmentPage, BNPInvestmentPage, BNPInvestmentApiPage, AxaInvestmentPage,
+    EEInvestmentPage, EEInvestmentPerformancePage, EEInvestmentDetailPage, EEProductInvestmentPage,
+    EresInvestmentPage, CprInvestmentPage, BNPInvestmentPage, BNPInvestmentApiPage, AxaInvestmentPage,
     EpsensInvestmentPage, EcofiInvestmentPage, SGGestionInvestmentPage,
 )
 
@@ -44,7 +44,8 @@ class AmundiBrowser(LoginBrowser):
     amundi_investments = URL(r'https://www.amundi.fr/fr_part/product/view', AmundiInvestmentsPage)
     # EEAmundi browser investments
     ee_investments = URL(r'https://www.amundi-ee.com/part/home_fp&partner=PACTEO_SYS', EEInvestmentPage)
-    ee_investment_details = URL(r'https://www.amundi-ee.com/psAmundiEEPart/ezjscore/call', EEInvestmentDetailPage)
+    ee_performance_details = URL(r'https://www.amundi-ee.com/psAmundiEEPart/ezjscore/call(.*)_tab_2', EEInvestmentPerformancePage)
+    ee_investment_details = URL(r'https://www.amundi-ee.com/psAmundiEEPart/ezjscore/call(.*)_tab_5', EEInvestmentDetailPage)
     # EEAmundi product investments
     ee_product_investments = URL(r'https://www.amundi-ee.com/product', EEProductInvestmentPage)
     # Allianz GI investments
@@ -103,7 +104,7 @@ class AmundiBrowser(LoginBrowser):
 
         handled_urls = (
             'www.amundi.fr/fr_part',  # AmundiInvestmentsPage
-            'www.amundi-ee.com/part/home_fp',  # EEInvestmentPage
+            'www.amundi-ee.com/part/home_fp',  # EEInvestmentDetailPage & EEInvestmentPerformancePage
             'www.amundi-ee.com/product',  # EEProductInvestmentPage
             'fr.allianzgi.com/fr-fr',  # AllianzInvestmentPage
             'www.eres-group.com/eres',  # EresInvestmentPage
@@ -160,10 +161,20 @@ class AmundiBrowser(LoginBrowser):
         elif self.ee_investments.is_here():
             inv.recommended_period = self.page.get_recommended_period()
             details_url = self.page.get_details_url()
+            performance_url = self.page.get_performance_url()
             if details_url:
                 self.location(details_url)
                 if self.ee_investment_details.is_here():
                     inv.asset_category = self.page.get_asset_category()
+            if performance_url:
+                self.location(performance_url)
+                if self.ee_performance_details.is_here():
+                    # The investments JSON only contains 1 & 5 years performances
+                    # If we can access EEInvestmentPerformancePage, we can fetch all three
+                    # values (1, 3 and 5 years), in addition the values are more accurate here.
+                    complete_performance_history = self.page.get_performance_history()
+                    if complete_performance_history:
+                        inv.performance_history = complete_performance_history
 
         elif self.bnp_investments.is_here():
             # We fetch the fund ID and get the attributes directly from the BNP-ERE API
