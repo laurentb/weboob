@@ -48,6 +48,7 @@ ACCOUNT_TYPES = {
     'PERCO': Account.TYPE_PERCO,
     'PERCOI': Account.TYPE_PERCO,
     'RSP': Account.TYPE_RSP,
+    'ART 83': Account.TYPE_ARTICLE_83,
 }
 
 class AccountsPage(LoggedPage, JsonPage):
