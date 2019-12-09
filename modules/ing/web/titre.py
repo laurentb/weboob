@@ -78,7 +78,9 @@ class TitrePage(LoggedPage, RawPage):
                 _pl = columns[start].split('{')[1]
                 _id = columns[start].split('{')[2]
             invest = Investment()
-            invest.label = columns[start].split('{')[-1]
+            # If the link with the label and ISIN code is present we use it to fill the label and code.
+            # If not, the label can still be found in the first column of the row but the ISIN is unavailable.
+            invest.label = columns[start].split('{')[-1] or columns[0]
             invest.code = _id or NotAvailable
             if invest.code and ':' in invest.code:
                 invest.code = self.browser.titrevalue.open(val=invest.code, pl=_pl).get_isin()
