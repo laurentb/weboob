@@ -1573,18 +1573,21 @@ class InternalTransferPage(LoggedPage, HTMLPage):
     def check_errors(self):
         # look for known errors
         content = self.text
-        messages = ['Le montant du virement doit être positif, veuillez le modifier',
-                    'Montant maximum autorisé au débit pour ce compte',
-                    'Dépassement du montant journalier autorisé',
-                    'Le solde de votre compte est insuffisant',
-                    'Nom prénom du bénéficiaire différent du titulaire. Utilisez un compte courant',
-                    "Pour effectuer cette opération, vous devez passer par l’intermédiaire d’un compte courant",
-                    'Montant maximum autorisé au crédit pour ce compte',
-                    'Débit interdit sur ce compte',
-                    'Virement interdit sur compte clos',
-                    "L'intitulé du virement ne peut contenir le ou les caractères suivants",
-                    'La date ne peut être inférieure à la date du jour. Veuillez la corriger',
-                   ]
+        messages = [
+            'Le montant du virement doit être positif, veuillez le modifier',
+            'Montant maximum autorisé au débit pour ce compte',
+            'Dépassement du montant journalier autorisé',
+            'Le solde de votre compte est insuffisant',
+            'Nom prénom du bénéficiaire différent du titulaire. Utilisez un compte courant',
+            "Pour effectuer cette opération, vous devez passer par l’intermédiaire d’un compte courant",
+            'Montant maximum autorisé au crédit pour ce compte',
+            'Débit interdit sur ce compte',
+            'Virement interdit sur compte clos',
+            "L'intitulé du virement ne peut contenir le ou les caractères suivants",
+            'La date ne peut être inférieure à la date du jour. Veuillez la corriger',
+            'Opération non conforme, les virements entre comptes Epargne ne sont pas autorisés.',
+            'Opération non conforme: entre titulaires différents, seul un compte courant peut être débité.',
+        ]
 
         for message in messages:
             if message in content:
