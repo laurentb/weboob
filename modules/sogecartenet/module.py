@@ -17,39 +17,47 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from weboob.tools.backend import Module, BackendConfig
-from weboob.capabilities.bank import CapBank, AccountNotFound
-from weboob.capabilities.base import find_object
-from weboob.tools.value import ValueBackendPassword
+from weboob.capabilities.bank import CapBank
+from weboob.tools.value import ValueBackendPassword, Value
 
-from .browser import SogecartesBrowser
-
+from .browser import SogecarteTitulaireBrowser
+from .ent_browser import SogecarteEntrepriseBrowser
 
 __all__ = ['SogecartenetModule']
 
 
 class SogecartenetModule(Module, CapBank):
     NAME = 'sogecartenet'
-    DESCRIPTION = u'Sogecarte Net'
-    MAINTAINER = u'Vincent Paredes'
-    EMAIL = 'vparedes@budget-insight.fr'
+    DESCRIPTION = 'Sogecarte Net'
+    MAINTAINER = 'Guillaume Risbourg'
+    EMAIL = 'guillaume.risbourg@budget-insight.com'
     LICENSE = 'LGPLv3+'
     VERSION = '1.6'
-    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
-                           ValueBackendPassword('password', label='Mot de passe'))
-
-    BROWSER = SogecartesBrowser
+    CONFIG = BackendConfig(
+        ValueBackendPassword('login', label='Identifiant', masked=False),
+        ValueBackendPassword('password', label='Mot de passe'),
+        Value('website', label="Type d'accès", default='titulaire', choices={
+            'titulaire': 'Accès Titulaire de carte Affaires',
+            'entreprise': 'Accès Administrateur Entreprise',
+        }),
+    )
 
     def create_default_browser(self):
-        return self.create_browser(self.config['login'].get(),
-                                   self.config['password'].get())
-
-    def get_account(self, _id):
-        return find_object(self.browser.iter_accounts(), id=_id, error=AccountNotFound)
+        browsers = {
+            'titulaire': SogecarteTitulaireBrowser,
+            'entreprise': SogecarteEntrepriseBrowser,
+        }
+        self.BROWSER = browsers[self.config['website'].get()]
+        return self.create_browser(self.config)
 
     def iter_accounts(self):
         return self.browser.iter_accounts()
 
     def iter_history(self, account):
-        return self.browser.get_history(account)
+        return self.browser.iter_history(account)
+
+    def iter_coming(self, account):
+        return self.browser.iter_coming(account)

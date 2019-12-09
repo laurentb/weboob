@@ -17,123 +17,145 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
-import requests
+from __future__ import unicode_literals
 
-from weboob.browser.pages import HTMLPage, CsvPage, pagination
-from weboob.exceptions import BrowserIncorrectPassword, BrowserPasswordExpired, NoAccountsException
-from weboob.browser.elements import DictElement, ItemElement, method, TableElement
-from weboob.browser.filters.standard import CleanText, CleanDecimal, Date, Env
-from weboob.browser.filters.html import TableCell
-from weboob.browser.filters.json import Dict
-from weboob.capabilities.bank import Account
-from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.browser.pages import LoggedPage
+from weboob.browser.elements import ItemElement, ListElement, TableElement, method
+from weboob.browser.filters.standard import (
+    CleanText, CleanDecimal, Date, Format, Currency,
+)
+from weboob.browser.filters.html import Attr, TableCell
+from weboob.capabilities.bank import Account, Transaction
+from weboob.browser.selenium import SeleniumPage, VisibleXPath, AllCondition
 
-__all__ = ['LoginPage', 'AccountsPage', 'TransactionsPage']
+from .ent_pages import LoginPage as _LoginPage
 
 
-class PassModificationPage(HTMLPage):
-    def on_load(self):
-        raise BrowserPasswordExpired('New pass needed')
+class LoginPage(_LoginPage):
+    def get_error(self):
+        return CleanText('//div[@id="labelQuestion"]')(self.doc)
 
-class LoginPage(HTMLPage):
-    pass
 
-class SogeLoggedPage(object):
-    @property
-    def logged(self):
-        if hasattr(self.doc, 'xpath'):
-            return not self.doc.xpath('//input[@value="LOGIN"][@name="QUEFAIRE"]')
-        return True
+class PreLoginPage(SeleniumPage):
+    is_here = VisibleXPath('//div[span[span[div[contains(text(), "Accès Titulaire")]]]]')
 
-    def on_load(self):
-        if hasattr(self.doc, 'xpath') and self.doc.xpath('//input[@value="LOGIN"][@name="QUEFAIRE"]'):
-            raise BrowserIncorrectPassword()
+    def go_login(self):
+        el = self.driver.find_element_by_xpath('//div[span[span[div[contains(text(), "Accès Titulaire")]]]]')
+        el.click()
 
-class AccountsPage(SogeLoggedPage, HTMLPage):
-    @pagination
+
+class AccountsPage(LoggedPage, SeleniumPage):
+    is_here = AllCondition(
+        VisibleXPath('//div[contains(text(), "Capacités de paiement et retrait")]'),
+        VisibleXPath('//div[@id="MESINFOS_HEADER_PANEL_CARTE"]'),
+        VisibleXPath('//div[contains(text(), "Mes coordonnées bancaires")]'),
+    )
+
     @method
-    class iter_accounts(TableElement):
-        item_xpath = '//table[@bgcolor="#92ADC2"]//tr'
-        head_xpath = '//table[@bgcolor="#92ADC2"]/tr[1]/td[text()]'
-
-        col_id = 'card iconetriwbeb(2);'
-        col_label = 'name iconetriwbeb(1);'
-
-        def parse(self, el):
-            msg = CleanText('//font[@color="#FF0000"]')(self)
-            if msg and 'NO INFORMATION AVAILABLE.' in msg:
-                raise NoAccountsException()
-
-        def next_page(self):
-            array_page = self.page.doc.xpath('//table[3]')[0]
-            if array_page.xpath('.//a[@href="javascript:fctSuivant();"]'):
-                curr_page = CleanDecimal().filter(array_page.xpath('.//td')[3].text)
-                data = {'PAGE': curr_page, 'QUEFAIRE':'NEXT', 'TRI':'ACC', 'TYPEDETAIL':'C'}
-                return requests.Request("POST", self.page.url, data=data)
-            return
-
+    class iter_accounts(ListElement):
         class item(ItemElement):
             klass = Account
 
-            obj_id = CleanText(TableCell('id'), replace=[(' ', ''), ('X','')])
-            obj_label = CleanText(TableCell('label'))
+            obj_id = obj_number = Format(
+                '%s_%s',
+                Attr('//div[span[contains(text(), "Identifiant prestation")]]/following-sibling::input', 'value'),
+                Attr('//div[span[contains(text(), "Numéro de la carte")]]/following-sibling::input', 'value'),
+            )
+            obj_label = CleanText('//div[@class="v-slot"]/div[contains(@class, "v-label-undef-w")]')
+
+            obj_iban = CleanText(Attr('//div[span[contains(text(), "IBAN")]]/following-sibling::input', 'value'), replace=[(' ', '')])
+
+            obj_balance = 0
             obj_type = Account.TYPE_CARD
-            obj_currency = u'EUR'
 
-            @property
-            def obj__url(self):
-                a = self.el.xpath('.//a')
-                if a and len(a) > 1:
-                     #handling relative path
-                    return '%s/%s' % ('/'.join(self.page.url.split('/')[:-1]), a[-1].attrib['href'][2:])
-                return None
 
-            def condition(self):
-                 return self.el.xpath('./td[@bgcolor="#FFFFFF"]')
-
-class TransactionsPage(SogeLoggedPage, CsvPage):
-    ENCODING = 'iso_8859_1'
-    HEADER = 1
-    FMTPARAMS = {'delimiter':';'}
-
-    def has_data(self):
-        return not Dict('processing date')(self.doc[0]) == u'No data found'
+class HistoryPage(LoggedPage, SeleniumPage):
+    is_here = AllCondition(
+        VisibleXPath('//thead[@role="rowgroup"]'),
+        VisibleXPath('//tbody[@role="rowgroup"]'),
+        VisibleXPath('//table[@role="presentation"]//td'),
+        VisibleXPath('//div[@role="tabpanel"]'),
+    )
 
     @method
-    class get_history(DictElement):
+    class fill_account_details(ItemElement):
+        def obj_coming(self):
+            # There might be multiple coming values (if the transactions are differed
+            # for more than 1 month). So we take the sum of all the coming values available
+            # in the table.
+            return sum(map(
+                CleanDecimal.SI().filter,
+                self.page.doc.xpath('//tbody[@role="rowgroup"]/tr/td[contains(@class, "montant")]')
+            ))
+
+    def go_coming_tab(self):
+        el = self.driver.find_element_by_xpath('//div[contains(text(), "Prélèvements à venir")]')
+        el.click()
+
+        self.browser.wait_xpath_visible('//tbody[@role="rowgroup"]/tr')
+
+    def go_history_tab(self):
+        el = self.driver.find_element_by_xpath('//table[@role="presentation"]//div[contains(text(), "Consultation")]')
+        el.click()
+
+        self.browser.wait_xpath_visible('//tbody[@role="rowgroup"]/tr')
+
+    def get_currency(self):
+        return Currency('//div[div[contains(text(), "Montant des opérations")]]/following-sibling::div[contains(@class, "v-slot")]/div')(self.doc)
+
+    def wait_history_xpaths_visible(self):
+        self.browser.wait_until(AllCondition(
+            VisibleXPath('//div[contains(@class, "debitDate")]'),
+            VisibleXPath('//div[div[contains(text(), "Montant des opérations")]]/following-sibling::div[@class="v-slot"]'),
+            VisibleXPath('//thead[@role="rowgroup"]'),
+            VisibleXPath('//tbody[@role="rowgroup"]'),
+        ))
+
+    def select_first_date_history(self):
+        self.go_history_tab()
+        el = self.driver.find_element_by_xpath('//div[div[contains(text(), "Arrêté du")]]/following-sibling::div//input')
+        el.click()
+
+        self.browser.wait_xpath_visible('//div[contains(@class, "suggestmenu")]//td')
+
+        el = self.driver.find_element_by_xpath('//div[contains(@class, "suggestmenu")]//tr[1]')
+        el.click()
+
+        self.browser.wait_xpath_invisible('//div[@id="VAADIN_COMBOBOX_OPTIONLIST"]')
+        # Wait for the data to refresh
+        self.wait_history_xpaths_visible()
+
+    def go_next_page(self):
+        el = self.driver.find_element_by_xpath('//div[div[contains(text(), "Arrêté du")]]/following-sibling::div//input')
+        el.click()
+
+        self.browser.wait_xpath_visible('//div[contains(@class, "suggestmenu")]//td')
+        # If we are not on the last item of the list already, there is still another page
+        if self.doc.xpath('//div[contains(@class, "suggestmenu")]//tr[td[contains(@class, "selected")]]/following-sibling::tr/td'):
+
+            el = self.driver.find_element_by_xpath('//div[contains(@class, "suggestmenu")]//tr[td[contains(@class, "selected")]]/following-sibling::tr/td[1]')
+            el.click()
+
+            self.browser.wait_xpath_invisible('//div[@id="VAADIN_COMBOBOX_OPTIONLIST"]')
+            # Wait for the data to refresh
+            self.wait_history_xpaths_visible()
+            return True
+        return False
+
+    @method
+    class iter_history(TableElement):
+        head_xpath = '//thead[@role="rowgroup"]/tr/th'
+        item_xpath = '//tbody[@role="rowgroup"]/tr'
+
+        col_label = 'Libellé'
+        col_amount = 'Montant transaction'
+        col_rdate = 'Date achat'
+
         class item(ItemElement):
-            klass = FrenchTransaction
+            klass = Transaction
 
-            obj_date = Date(CleanText(Dict('Processing date')))
-            obj_rdate = Date(CleanText(Dict('Transaction date')))
-            obj_raw = FrenchTransaction.Raw(CleanText(Dict('corporate name')))
-            obj_amount = FrenchTransaction.Amount(CleanText(Dict('charged amt')), replace_dots=False)
-            obj_original_amount = FrenchTransaction.Amount(CleanText(Dict('orig. currency gross amt')), replace_dots=False)
-            obj_original_currency = CleanText(Dict('orig. currency code'))
-            obj_country = CleanText(Dict('country cde'))
-            obj_type = FrenchTransaction.TYPE_CARD
-
-            def condition(self):
-                return False
-
-            def has_data(self):
-                return not Dict().filter(self.el)['processing date'] == u'No data found'
-
-            def check_debit(self):
-                return Dict().filter(self.el)['debit / credit'] == 'D'
-
-        class credit(item):
-            def condition(self):
-                return self.has_data() and not self.check_debit()
-
-        class debit(item):
-
-            obj_amount = FrenchTransaction.Amount(CleanText(Env('amount')), replace_dots=False)
-            obj_original_amount = FrenchTransaction.Amount(CleanText(Env('original_amount')), replace_dots=False)
-
-            def condition(self):
-                if self.has_data() and self.check_debit():
-                    self.env['amount'] = "-" + self.el['charged amt']
-                    self.env['original_amount'] = "-" + self.el['orig. currency gross amt']
-                    return True
-                return False
+            obj_date = Date(CleanText('//div[div[contains(text(), "Date de prélèvement")]]/following-sibling::div/div'), dayfirst=True)
+            obj_rdate = Date(CleanText(TableCell('rdate')), dayfirst=True)
+            obj_label = CleanText(TableCell('label'))
+            obj_amount = CleanDecimal.SI(TableCell('amount'))
+            obj_type = Transaction.TYPE_CARD
