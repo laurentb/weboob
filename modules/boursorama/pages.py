@@ -643,16 +643,6 @@ class CardHistoryPage(LoggedPage, CsvPage):
             def obj_category(self):
                 return Dict('category')(self)
 
-            # The csv page shows every transactions of the card account AND the associated
-            # check account. Here we want only the card transactions.
-            # Also, if there is more than one card account, the csv page will show
-            # transactions of every card account (smart) ... So we need to check for
-            # account number.
-            def validate(self, obj):
-                if "Relevé" in obj.raw:
-                    return Env('account_number')(self) in obj.raw
-                return ("CARTE" in obj.raw or "CARTE" in obj._account_label) and Env('account_number')(self) in Dict('accountNum')(self)
-
 
 class Myiter_investment(TableElement):
     # We do not scrape the investments contained in the "Engagements en liquidation" table
