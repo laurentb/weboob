@@ -229,7 +229,10 @@ class CDNBasePage(HTMLPage):
         return self.get_from_js("name: 'execution', value: '", "'")
 
     def iban_go(self):
-        return '%s%s' % ('/vos-comptes/IPT/cdnProxyResource', self.get_from_js('C_PROXY.StaticResourceClientTranslation( "', '"'))
+        value_from_js = self.get_from_js('C_PROXY.StaticResourceClientTranslation( "', '"')
+        if not value_from_js:
+            return None
+        return '/vos-comptes/IPT/cdnProxyResource%s' % value_from_js
 
 
 class ProIbanPage(CDNBasePage):

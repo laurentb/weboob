@@ -135,10 +135,15 @@ class CreditDuNordBrowser(LoginBrowser):
         self.multitype_iban.go()
         link = self.page.iban_go()
 
-        for a in accounts:
-            if a._acc_nb and a.type != Account.TYPE_CARD:
-                self.location(link + a._acc_nb)
-                a.iban = self.page.get_iban()
+        if link:
+            # For some accounts, the IBAN is displayed somewhere else behind
+            # an OTP validation (icd/zco/public-index.html#zco/transac/impression_rib),
+            # the link is None if this is the case.
+            # TODO when we will be able to test this OTP
+            for a in accounts:
+                if a._acc_nb and a.type != Account.TYPE_CARD:
+                    self.location(link + a._acc_nb)
+                    a.iban = self.page.get_iban()
 
         return accounts
 
