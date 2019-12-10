@@ -813,6 +813,12 @@ class InvestmentPage(LoggedPage, HTMLPage):
 
 
 class TransactionsPage(LoggedPage, MyHTMLPage):
+    def is_sorted_by_most_recent(self):
+        # If the transactions are not sorted correctly, the class of this
+        # 'a' tag changes ('tcth' if sorted the other way, 'tctm' if not sorted
+        # by operation date)
+        return CleanText('//a[@class="tctb" and contains(text(), "Date opé")]')(self.doc)
+
     def get_next_params(self):
         nxt = self.doc.xpath('//li[contains(@id, "_nxt")]')
         if len(nxt) == 0 or nxt[0].attrib.get('class', '') == 'nxt-dis':

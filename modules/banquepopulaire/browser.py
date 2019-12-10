@@ -424,10 +424,15 @@ class BanquePopulaire(LoginBrowser):
 
             # Sort by operation date
             if len(self.page.doc.xpath('//a[@id="tcl4_srt"]')) > 0:
-                form = self.page.get_form(id='myForm')
-                form.url = self.absurl('/cyber/internet/Sort.do?property=tbl1&sortBlocId=blc2&columnName=dateOperation')
-                params['token'] = self.page.build_token(params['token'])
-                form.submit()
+                # The first request sort might transaction by oldest. If this is the case,
+                # we need to do the request a second time for the transactions to be sorted by newest.
+                for _ in range(2):
+                    form = self.page.get_form(id='myForm')
+                    form.url = self.absurl('/cyber/internet/Sort.do?property=tbl1&sortBlocId=blc2&columnName=dateOperation')
+                    params['token'] = self.page.build_token(params['token'])
+                    form.submit()
+                    if self.page.is_sorted_by_most_recent():
+                        break
 
             transactions_next_page = True
 
