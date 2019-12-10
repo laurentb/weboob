@@ -218,22 +218,6 @@ class AccountList(LoggedPage, MyHTMLPage):
             def condition(self):
                 return item_account_generic.condition(self)
 
-
-    def get_revolving_attributes(self, account):
-        loan = Loan()
-        loan.id = account.id
-        loan.label = '%s - %s' %(account.label, account.id)
-        loan.currency = account.currency
-        loan.url = account.url
-
-        loan.used_amount =  CleanDecimal.US('//tr[td[contains(text(), "Montant Utilisé") or contains(text(), "Montant utilisé")]]/td[2]')(self.doc)
-        loan.available_amount = CleanDecimal.US(Regexp(CleanText('//tr[td[contains(text(), "Montant Disponible") or contains(text(), "Montant disponible")]]/td[2]'), r'(.*) au'))(self.doc)
-        loan.balance  = -loan.used_amount
-        loan._has_cards = False
-        loan.type = Account.TYPE_REVOLVING_CREDIT
-        return loan
-
-
     @method
     class iter_revolving_loans(ListElement):
         item_xpath = '//div[@class="bloc Tmargin"]//dl'
@@ -466,7 +450,21 @@ class ProfilePage(LoggedPage, HTMLPage):
         return profile
 
 
-class ErrorPage(LoggedPage, HTMLPage):
+class RevolvingAttributesPage(LoggedPage, HTMLPage):
     def on_load(self):
         if CleanText('//h1[contains(text(), "Erreur")]')(self.doc):
             raise BrowserUnavailable()
+
+    def get_revolving_attributes(self, account):
+        loan = Loan()
+        loan.id = account.id
+        loan.label = '%s - %s' % (account.label, account.id)
+        loan.currency = account.currency
+        loan.url = account.url
+
+        loan.used_amount = CleanDecimal.US('//tr[td[contains(text(), "Montant Utilisé") or contains(text(), "Montant utilisé")]]/td[2]')(self.doc)
+        loan.available_amount = CleanDecimal.US(Regexp(CleanText('//tr[td[contains(text(), "Montant Disponible") or contains(text(), "Montant disponible")]]/td[2]'), r'(.*) au'))(self.doc)
+        loan.balance = -loan.used_amount
+        loan._has_cards = False
+        loan.type = Account.TYPE_REVOLVING_CREDIT
+        return loan

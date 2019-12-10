@@ -26,12 +26,13 @@ from weboob.browser.exceptions import ServerError
 from weboob.capabilities.base import NotAvailable
 from weboob.exceptions import BrowserIncorrectPassword, BrowserBanned, NoAccountsException, BrowserUnavailable
 from weboob.tools.compat import urlsplit, urlunsplit, parse_qsl
+from weboob.tools.decorators import retry
 
 from .pages import (
     LoginPage, Initident, CheckPassword, repositionnerCheminCourant, BadLoginPage, AccountDesactivate,
     AccountList, AccountHistory, CardsList, UnavailablePage, AccountRIB, Advisor,
     TransferChooseAccounts, CompleteTransfer, TransferConfirm, TransferSummary, CreateRecipient, ValidateRecipient,
-    ValidateCountry, ConfirmPage, RcptSummary, SubscriptionPage, DownloadPage, ProSubscriptionPage, ErrorPage,
+    ValidateCountry, ConfirmPage, RcptSummary, SubscriptionPage, DownloadPage, ProSubscriptionPage, RevolvingAttributesPage,
 )
 from .pages.accounthistory import (
     LifeInsuranceInvest, LifeInsuranceHistory, LifeInsuranceHistoryInv, RetirementHistory,
@@ -76,11 +77,11 @@ class BPBrowser(LoginBrowser, StatesMixin):
                             '/voscomptes/canalXHTML/pret/creditRenouvelable/init-consulterCreditRenouvelable.ea',
                             '/voscomptes/canalXHTML/pret/encours/rechercherPret-encoursPrets.ea',
                             '/voscomptes/canalXHTML/sso/commun/init-integration.ea\?partenaire=cristalCEC',
-                            '/voscomptes/canalXHTML/sso/lbpf/souscriptionCristalFormAutoPost.jsp',
                             AccountList)
-    error_page = URL(r'https://espaceclientcreditconso.labanquepostale.fr/sav/loginlbpcrypt.do', ErrorPage)
 
-    par_accounts_revolving = URL('https://espaceclientcreditconso.labanquepostale.fr/sav/accueil.do', AccountList)
+    revolving_start = URL(r'/voscomptes/canalXHTML/sso/lbpf/souscriptionCristalFormAutoPost.jsp', AccountList)
+    par_accounts_revolving = URL(r'https://espaceclientcreditconso.labanquepostale.fr/sav/loginlbpcrypt.do', RevolvingAttributesPage)
+
 
     accounts_rib = URL(r'.*voscomptes/canalXHTML/comptesCommun/imprimerRIB/init-imprimer_rib.ea.*',
                        '/voscomptes/canalXHTML/comptesCommun/imprimerRIB/init-selection_rib.ea', AccountRIB)
@@ -277,8 +278,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
                                 accounts.append(student_loan)
                         else:
                             # The main revolving page is not accessible, we can reach it by this new way
-                            self.location(self.absurl('/voscomptes/canalXHTML/sso/lbpf/souscriptionCristalFormAutoPost.jsp'))
-                            self.page.go_revolving()
+                            self.go_revolving()
                             revolving_loan = self.page.get_revolving_attributes(account)
                             accounts.append(revolving_loan)
                         page.go()
@@ -313,6 +313,11 @@ class BPBrowser(LoginBrowser, StatesMixin):
                 raise NoAccountsException()
 
         return self.accounts
+
+    @retry(BrowserUnavailable, delay=5)
+    def go_revolving(self):
+        self.revolving_start.go()
+        self.page.go_revolving()
 
     def iter_cards(self, account):
         self.deferred_card_history.go(accountId=account.id, monthIndex=0, cardIndex=0)
