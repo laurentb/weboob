@@ -24,6 +24,7 @@ import re
 from datetime import datetime
 from io import BytesIO
 
+import dateutil.parser
 from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import TableCell, Attr
@@ -270,10 +271,18 @@ class AccountHistoryPage(LoggedPage, JsonPage):
             def obj_rdate(self):
                 raw = self.obj_raw()
                 mtc = re.search(r'\bDU (\d{6}|\d{8})\b', raw)
+
                 if mtc:
-                    date = mtc.group(1)
-                    date = '%s/%s/%s' % (date[0:2], date[2:4], date[4:])
-                    return parse_french_date(date)
+                    numbers = mtc.group(1)
+                    # we need to create this string because dateutil crashes
+                    # with dates in the ddmmyyyy format
+                    # dd/mm/yy and dd/mm/yyyy
+                    date = '%s/%s/%s' % (numbers[0:2], numbers[2:4], numbers[4:])
+                    try:
+                        return dateutil.parser.parse(date, dayfirst=True)
+                    except ValueError:
+                        # parsing failed assuming yyyymmdd format
+                        return dateutil.parser.parse(numbers)
 
                 return fromtimestamp(Dict('dateCreation')(self))
 
