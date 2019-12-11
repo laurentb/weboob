@@ -125,9 +125,9 @@ class HistoryPage(LoggedPage, HTMLPage):
                 # This wonderful website randomly displays separators as '.' or ','
                 # For example, numbers can look like "€12,345.67" or "12 345,67 €"
                 try:
-                    return CleanDecimal.French('./div[contains(@class, "accordion_header")]/div[6]')(self)
+                    return CleanDecimal.French('./div[contains(@class, "accordion_header")]/div[position()=last()]')(self)
                 except NumberFormatError:
-                    return CleanDecimal.US('./div[contains(@class, "accordion_header")]/div[6]')(self)
+                    return CleanDecimal.US('./div[contains(@class, "accordion_header")]/div[position()=last()]')(self)
 
 
 class InvestmentPage(LoggedPage, HTMLPage):
