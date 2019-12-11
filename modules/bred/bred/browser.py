@@ -180,17 +180,25 @@ class BredBrowser(LoginBrowser):
         seen = set()
         offset = 0
         next_page = True
+        end_date = date.today()
+        last_date = None
         while next_page:
+            if offset == 10000:
+                offset = 0
+                end_date = last_date
             operation_list = self._make_api_call(
                 account=account,
-                start_date=date(day=1, month=1, year=2000), end_date=date.today(),
+                start_date=date(day=1, month=1, year=2000), end_date=end_date,
                 offset=offset, max_length=50,
             )
 
             transactions = self.page.iter_history(account=account, operation_list=operation_list, seen=seen, today=today, coming=coming)
 
+            transactions = sorted_transactions(transactions)
+            if transactions:
+                last_date = transactions[-1].date
             # Transactions are unsorted
-            for t in sorted_transactions(transactions):
+            for t in transactions:
                 if coming == t._coming:
                     yield t
                 elif coming and not t._coming:
