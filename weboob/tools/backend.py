@@ -535,7 +535,8 @@ class AbstractModule(Module):
         if hasattr(parent, '_resolve_abstract'):
             parent._resolve_abstract(weboob, name)
 
-        cls.__bases__ = tuple([parent] + list(cls.iter_caps()))
+        parent_caps = parent.iter_caps()
+        cls.__bases__ = tuple([parent] + [cap for cap in cls.iter_caps() if cap not in parent_caps])
         return parent
 
     def __new__(cls, weboob, name, config=None, storage=None, logger=None, nofail=False):
