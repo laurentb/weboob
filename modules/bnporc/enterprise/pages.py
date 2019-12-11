@@ -36,7 +36,6 @@ from weboob.browser.filters.standard import (
 from weboob.capabilities.bank import Transaction, Account, Investment
 from weboob.capabilities.profile import Person
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
-from weboob.tools.date import parse_french_date
 from weboob.capabilities import NotAvailable
 from weboob.exceptions import ActionNeeded, BrowserForbidden
 
@@ -179,7 +178,7 @@ class BnpHistoryItem(ItemElement):
         mtc = re.search(r'\bDU (\d{2})\.?(\d{2})\.?(\d{2})\b', raw)
         if mtc:
             date = '%s/%s/%s' % (mtc.group(1), mtc.group(2), mtc.group(3))
-            return parse_french_date(date)
+            return dateutil.parser.parse(date, dayfirst=True)
 
         # The date can be truncated, so it is not retrieved
         if 'dateCreation' in self.el:
