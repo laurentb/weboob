@@ -69,7 +69,8 @@ class CreditDuNordBrowser(LoginBrowser):
             not self.page.doc.xpath(u'//b[contains(text(), "vous devez modifier votre code confidentiel")]')
 
     def do_login(self):
-        self.login.go().login(self.username, self.password)
+        self.login.go()
+        self.page.login(self.username, self.password)
         if self.accounts.is_here():
             expired_error = self.page.get_password_expired()
             if expired_error:
