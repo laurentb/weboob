@@ -258,7 +258,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
                 account.type == account.TYPE_REVOLVING_CREDIT and account._loan_type != 'PR_CONSO',
                 account.type in (account.TYPE_REVOLVING_CREDIT, account.TYPE_SAVINGS) and not account._is_json_histo
         )):
-            go = retry(TemporaryBrowserUnavailable)(self.accounts_details_page.go)
+            go = retry(TemporaryBrowserUnavailable)(self.account_details_page.go)
             go(params={'idprest': account._prestation_id})
 
             history_url = self.page.get_history_url()
