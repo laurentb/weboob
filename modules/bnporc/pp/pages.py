@@ -45,7 +45,7 @@ from weboob.capabilities.contact import Advisor
 from weboob.capabilities.profile import Person, ProfileMissing
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, BrowserPasswordExpired, ActionNeeded
 from weboob.tools.capabilities.bank.iban import rib2iban, rebuild_rib, is_iban_valid
-from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction, parse_with_patterns
 from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
 from weboob.tools.date import parse_french_date
 from weboob.tools.capabilities.bank.investments import is_isin_valid
@@ -650,9 +650,12 @@ class HistoryPage(BNPPage):
                 'amount': op.get('montant'),
                 'card': op.get('numeroPorteurCarte'),
             })
-            tr.parse(date=parse_french_date(op.get('dateOperation')),
-                     vdate=parse_french_date(op.get('valueDate')),
-                     raw=CleanText().filter(op.get('libelle')))
+
+            tr.date = parse_french_date(op.get('dateOperation'))
+            tr.vdate = parse_french_date(op.get('valueDate'))
+            tr.rdate = NotAvailable
+            tr.raw = CleanText().filter(op.get('libelle'))
+            parse_with_patterns(tr.raw, tr, Transaction.PATTERNS)
 
             if tr.type == Transaction.TYPE_CARD:
                 tr.type = self.browser.card_to_transaction_type.get(op.get('keyCarte'),
