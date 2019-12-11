@@ -34,11 +34,19 @@ class AmundiModule(Module, CapBankWealth):
     EMAIL = 'james.galt.bi@gmail.com'
     LICENSE = 'LGPLv3+'
     VERSION = '1.6'
-    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', regexp=r'\d+', masked=False),
-                           ValueBackendPassword('password', label=u"Mot de passe", regexp=r'\d+'),
-                           Value('website', label='Type de compte', default='ee',
-                                 choices={'ee': 'Amundi Epargne Entreprise',
-                                          'tc': 'Amundi Tenue de Compte'}))
+    CONFIG = BackendConfig(
+        ValueBackendPassword('login', label='Identifiant', regexp=r'\d+', masked=False),
+        ValueBackendPassword('password', label='Mot de passe'),
+        Value(
+            'website',
+            label='Type de compte',
+            default='ee',
+            choices={
+                'ee': 'Amundi Epargne Entreprise',
+                'tc': 'Amundi Tenue de Compte'
+            }
+        )
+    )
 
     def create_default_browser(self):
         b = {'ee': EEAmundi, 'tc': TCAmundi}
