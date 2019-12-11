@@ -735,6 +735,10 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             except (IndexError, AttributeError) as e:
                 self.logger.error(e)
                 return []
+            except ServerError as e:
+                if e.response.status_code == 500:
+                    raise BrowserUnavailable()
+                raise
         return self.page.iter_history()
 
     @need_login
