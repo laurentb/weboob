@@ -55,13 +55,13 @@ class Transaction(FrenchTransaction):
     PATTERNS = [
         (re.compile(r'^(?P<category>PAIEMENT PAR CARTE) (?P<text>.*) (?P<dd>\d{2})/(?P<mm>\d{2})$'), None),
         (re.compile(r'^(?P<category>PRELEVEMENT) (?P<text>.*) (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{4}) .*'), None),
-        (re.compile(r'^(?P<category>PRELEVEMENT) (?P<text>.*) (?P<dd>\d{2})\s(?P<mm>\d{2})\s(?P<yy>\d{4}) .*'), None),
+        (re.compile(r'^(?P<category>PRELEVEMENT) (?P<text>.*)(?<!\W\d{4}) (?P<dd>\d{2})\s(?P<mm>\d{2})\s(?P<yy>\d{4})(?:$|\s.*)'), None),
         (re.compile(r'^(?P<category>VIREMENT EN VOTRE FAVEUR) (?P<text>.*) (?P<dd>\d{2})\.(?P<mm>\d{2})\.(?P<yy>\d{4})$'), None),
         (re.compile(r'^(?P<category>REMBOURSEMENT DE PRET) (?P<text>.*) (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2,4})$'), None),
         (re.compile(r'^(?P<category>RETRAIT AU DISTRIBUTEUR) (?P<text>.*) (?P<dd>\d{2})/(?P<mm>\d{2}) .*'), None),
         (re.compile(r'^(?P<category>PRELEVEMENT URSSAF) (?P<text>.*) (du)? (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2,4})$'), None),
         (re.compile(r"^(?P<category>VERSEMENT D'ESPECES) (?P<text>.*) (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{4}) .*"), None),
-        (re.compile(r'^(?P<category>PRELEVEMENT) (?P<text>.*) (?P<dd>\d{2})-(?P<mm>\d{2})$'), None),
+        (re.compile(r'^(?P<category>PRELEVEMENT) (?P<text>.*) (?P<dd>\d{2})-(?P<mm>0[1-9]|1[012])$'), None),
     ]
 
 
