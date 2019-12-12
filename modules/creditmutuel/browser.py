@@ -631,7 +631,6 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
     def continue_new_recipient(self, recipient, **params):
         if 'Clé' in params:
             self.page.post_code(params['Clé'])
-            self.location(self.page.get_url_next())
             if self.verify_pass.is_here():
                 self.page.handle_error()
                 assert False, 'An error occured while checking the card code'

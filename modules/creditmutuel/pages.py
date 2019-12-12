@@ -1854,9 +1854,6 @@ class VerifCodePage(LoggedPage, HTMLPage):
 
         form.submit()
 
-    def get_url_next(self):
-        return Link('//form[div//span[contains(text(), "Suivant")]]//a')(self.doc)
-
     def handle_error(self):
         error_msg = CleanText('//div[@class="blocmsg info"]/p')(self.doc)
         # the card was not activated yet
