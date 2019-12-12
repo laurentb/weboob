@@ -28,6 +28,7 @@ import os
 import hashlib
 from tempfile import NamedTemporaryFile
 import time
+import logging
 
 try:
     from selenium import webdriver
@@ -423,6 +424,13 @@ class SeleniumBrowser(object):
         self.weboob = weboob
         self.logger = getLogger('browser', logger)
         self.proxy = proxy or {}
+
+        # We set the default value of selenium logger to ERROR to avoid
+        # spamming logs with useless information.
+        # Also, the data we send to the browser using selenium (with send_keys)
+        # can be displayed clearly in the log, if the log level is
+        # set to DEBUG.
+        logging.getLogger('selenium').setLevel(logging.ERROR)
 
         self.implicit_timeout = 0
         self.last_page_hash = None
