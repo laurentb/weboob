@@ -402,9 +402,10 @@ class CragrAPI(LoginBrowser):
             self.do_login()
             try:
                 self.contracts_page.go(space=self.space, id_contract=contract)
-            except ServerError:
-                self.logger.warning('Space switch returned a 500 error, try again.')
-                self.contracts_page.go(space=self.space, id_contract=contract)
+            except ServerError as e:
+                if e.response.status_code == 500:
+                    raise BrowserUnavailable()
+                raise
         assert self.accounts_page.is_here()
 
     @need_login
