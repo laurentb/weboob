@@ -31,6 +31,7 @@ from weboob.browser.exceptions import ServerError, ClientError, BrowserHTTPNotFo
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, ActionNeeded
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
+from weboob.tools.decorators import retry
 
 from .pages import (
     LoginPage, LoggedOutPage, KeypadPage, SecurityPage, ContractsPage, FirstConnectionPage, AccountsPage, AccountDetailsPage,
@@ -99,7 +100,6 @@ class CragrAPI(LoginBrowser):
                         TransferPage)
     old_website = URL(r'https://.*particuliers.html$', OldWebsitePage)
 
-
     def __init__(self, website, *args, **kwargs):
         super(CragrAPI, self).__init__(*args, **kwargs)
         self.website = website
@@ -118,6 +118,36 @@ class CragrAPI(LoginBrowser):
         super(CragrAPI, self).deinit()
         self.netfinca.deinit()
 
+    @retry(BrowserUnavailable)
+    def do_security_check(self):
+        try:
+            form = self.get_security_form()
+            self.security_check.go(data=form)
+        except ServerError as exc:
+            # Wrongpass returns a 500 server error...
+            exc_json = exc.response.json()
+            error = exc_json.get('error')
+            error_type = exc_json.get('erreurType')
+            if error:
+                message = error.get('message', '')
+                wrongpass_messages = ("Votre identification est incorrecte", "Vous n'avez plus droit")
+                if any(value in message for value in wrongpass_messages):
+                    raise BrowserIncorrectPassword()
+                if 'obtenir un nouveau code' in message:
+                    raise ActionNeeded(message)
+
+                code = error.get('code', '')
+                technical_error_messages = ('Un incident technique', 'identifiant et votre code personnel')
+                # Sometimes there is no error message, so we try to use the code as well
+                technical_error_codes = ('technical_error',)
+                if any(value in message for value in technical_error_messages) or \
+                   any(value in code for value in technical_error_codes):
+                    raise BrowserUnavailable(message)
+            elif error_type and 'UNAUTHORIZED_ERREUR_TYPE' in error_type:
+                # Usually appears when doing retries after a BrowserUnavailable
+                raise BrowserUnavailable()
+            raise
+
     def do_login(self):
         if not self.username or not self.password:
             raise BrowserIncorrectPassword()
@@ -133,31 +163,7 @@ class CragrAPI(LoginBrowser):
             self.logger.warning('This is a regional connection, switching to old website with URL %s', self.BASEURL)
             raise SiteSwitch('region')
 
-        form = self.get_security_form()
-        try:
-            self.security_check.go(data=form)
-        except ServerError as exc:
-            # Wrongpass returns a 500 server error...
-            error = exc.response.json().get('error')
-            if error:
-                message = error.get('message', '')
-                wrongpass_messages = ("Votre identification est incorrecte", "Vous n'avez plus droit")
-                if any(value in message for value in wrongpass_messages):
-                    raise BrowserIncorrectPassword()
-                if 'obtenir un nouveau code' in message:
-                    raise ActionNeeded(message)
-                technical_errors = ('Un incident technique', 'identifiant et votre code personnel')
-                if any(value in message for value in technical_errors):
-                    # If it is a technical error, we try login again
-                    form = self.get_security_form()
-                    try:
-                        self.security_check.go(data=form)
-                    except ServerError as exc:
-                        error = exc.response.json().get('error')
-                        if error:
-                            message = error.get('message', '')
-                            if 'Un incident technique' in message:
-                                raise BrowserUnavailable(message)
+        self.do_security_check()
 
         # accounts_url may contain '/particulier', '/professionnel', '/entreprise', '/agriculteur' or '/association'
         self.accounts_url = self.page.get_accounts_url()
