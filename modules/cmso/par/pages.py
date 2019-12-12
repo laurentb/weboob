@@ -360,6 +360,7 @@ class HistoryPage(LoggedPage, JsonPage):
             obj_raw = Transaction.Raw(Dict('libelleCourt'))
             obj_vdate = Date(Dict('dateValeur', NotAvailable), dayfirst=True, default=NotAvailable)
             obj_amount = CleanDecimal(Dict('montantEnEuro'), default=NotAvailable)
+            obj_id = Dict('operationId')
 
             def parse(self, el):
                 key = Env('key', default=None)(self)
@@ -372,12 +373,12 @@ class HistoryPage(LoggedPage, JsonPage):
 
                 # Skip duplicate transactions
                 amount = Dict('montantEnEuro', default=None)(self)
-                tr = Dict('libelleCourt')(self) + Dict('dateOperation', '')(self) + str(amount)
-                if amount is None or (tr in self.page.browser.trs['list'] and self.page.browser.trs['lastdate'] <= Field('date')(self)):
+                id = Dict('operationId')(self)
+                if amount is None or id in self.page.browser.trs['list']:
                     raise SkipItem()
 
                 self.page.browser.trs['lastdate'] = Field('date')(self)
-                self.page.browser.trs['list'].append(tr)
+                self.page.browser.trs['list'].append(id)
 
 
 class LifeinsurancePage(LoggedPage, HTMLPage):
