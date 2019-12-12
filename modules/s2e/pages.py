@@ -781,8 +781,8 @@ class APIInvestmentDetailsPage(LoggedPage, JsonPage):
     @method
     class fill_investment(ItemElement):
         obj_srri = Eval(int, Dict('risque'))
-        obj_asset_category = CleanText(Dict('classification'))
-        obj_recommended_period = CleanText(Dict('dureePlacement'))
+        obj_asset_category = Dict('classification')
+        obj_recommended_period = Dict('dureePlacement')
 
         def obj_performance_history(self):
             # Fetching the performance history (1 year, 3 years & 5 years)
