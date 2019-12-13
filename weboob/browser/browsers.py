@@ -51,6 +51,7 @@ from weboob.exceptions import BrowserHTTPSDowngrade, ModuleInstallError, Browser
 from weboob.tools.log import getLogger
 from weboob.tools.compat import basestring, unicode, urlparse, urljoin, urlencode, parse_qsl
 from weboob.tools.json import json
+from weboob.tools.value import Value
 
 from .adapters import HTTPAdapter
 from .cookies import WeboobCookieJar
@@ -1159,3 +1160,77 @@ class OAuth2PKCEMixin(OAuth2Mixin):
                 'client_id':        self.client_id,
                 'client_secret':    self.client_secret,
                 }
+
+
+class TwoFactorBrowser(LoginBrowser, StatesMixin):
+    STATE_DURATION = 60 * 24 * 90
+
+    RESUME_NAME = 'resume'
+    SMS_NAME = 'code'
+    OTP_NAME = 'otp'
+
+    def __init__(self, config, *args, **kwargs):
+        super(TwoFactorBrowser, self).__init__(*args, **kwargs)
+        self.config = config
+
+    def handle_polling(self):
+        """
+        This method must implement polling.
+
+        It's used when an AppValidation has been raised.
+        """
+        raise NotImplementedError()
+
+    def handle_sms(self):
+        """
+        This method must send the `code` entered by the PSU to the bank.
+
+        It's used when a BrowserQuestion has been raised and a `code` is set.
+        """
+        raise NotImplementedError()
+
+    def handle_otp(self):
+        """
+        This method must send the `otp` entered by the PSU to the bank.
+
+        It's used when a BrowserQuestion has been raised and an `otp` is set.
+        """
+        raise NotImplementedError()
+
+    def init_login(self):
+        """
+        Abstract method to implement initiation of login on website.
+
+        This method should raise an exception.
+
+        SCA exceptions :
+        - AppValidation for polling method
+        - BrowserQuestion for SMS method, token method etc.
+
+        Any other exceptions, default to BrowserIncorrectPassword.
+        """
+        raise NotImplementedError()
+
+    def clear_cookies(self):
+        # clear cookies to avoid some errors
+        self.session.cookies.clear()
+
+    def handle_login(self):
+        # handle validation on app
+        self.resume = self.config.get(self.RESUME_NAME, Value()).get()
+        # handle SMS
+        self.code = self.config.get(self.SMS_NAME, Value()).get()
+        # handle token
+        self.otp = self.config.get(self.OTP_NAME, Value()).get()
+
+        if self.resume:
+            self.handle_polling()
+        elif self.code:
+            self.handle_sms()
+        elif self.otp:
+            self.handle_otp()
+        else:
+            self.clear_cookies()
+            self.init_login()
+
+    do_login = handle_login
