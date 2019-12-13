@@ -276,7 +276,8 @@ class SGProfessionalBrowser(SGEnterpriseBrowser, StatesMixin):
     bank_statement_search = URL(r'/icd/syd-front/data/syd-rce-lancerRecherche.json', BankStatementPage)
 
     useless_page = URL(r'/icd-web/syd-front/index-comptes.html', UselessPage)
-    error_page = URL(r'https://static.societegenerale.fr/pro/erreur.html', ErrorPage)
+    error_page = URL(r'https://static.societegenerale.fr/pro/erreur.html',
+                     r'https://.*/pro/erreur.html', ErrorPage)
 
     markets_page = URL(r'/icd/npe/data/comptes-titres/findComptesTitresClasseurs-authsec.json', MarketAccountPage)
     investments_page = URL(r'/icd/npe/data/comptes-titres/findLignesCompteTitre-authsec.json', MarketInvestmentPage)

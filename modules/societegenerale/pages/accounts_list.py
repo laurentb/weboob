@@ -33,6 +33,7 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.investments import is_isin_valid, create_french_liquidity
 from weboob.tools.compat import urlsplit, urlunsplit, urlencode
 from weboob.browser.elements import DictElement, ItemElement, TableElement, method, ListElement
+from weboob.browser.exceptions import LoggedOut
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Regexp, Currency, Eval, Field, Format, Date, Env, Map, Coalesce,
@@ -72,6 +73,9 @@ class JsonBasePage(LoggedPage, JsonPage):
             if reason and 'err_tech' in reason:
                 # This error is temporary and usually do not happens on the next try
                 raise TemporaryBrowserUnavailable()
+
+            if reason == "niv_auth_insuff":
+                raise LoggedOut()
 
             if ('le service est momentanement indisponible' in reason and
             Dict('commun/origine')(self.doc) != 'cbo'):

@@ -27,6 +27,7 @@ from weboob.capabilities.bank import (
 )
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.capabilities.base import NotAvailable
+from weboob.browser.exceptions import LoggedOut
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Env, Date, Field, Format,
 )
@@ -47,6 +48,8 @@ class TransferJson(LoggedPage, JsonPage):
             elif self.doc['commun'].get('raison') in ('err_tech', 'err_is'):
                 # on SG website, there is unavalaible message 'Le service est momentanément indisponible.'
                 raise BrowserUnavailable()
+            elif self.doc['commun'].get('raison') == "niv_auth_insuff":
+                raise LoggedOut()
             else:
                 assert False, 'Something went wrong, transfer is not created: %s' % self.doc['commun'].get('raison')
 

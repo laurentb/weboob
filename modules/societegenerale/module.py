@@ -55,15 +55,31 @@ class SocieteGeneraleModule(Module, CapBankWealth, CapBankTransferAddRecipient, 
         ValueBackendPassword('login',      label='Code client', masked=False),
         ValueBackendPassword('password',   label='Code secret'),
         Value('website', label='Type de compte', default='par',
-              choices={'par': 'Particuliers', 'pro': 'Professionnels', 'ent': 'Entreprises'}))
+              choices={'par': 'Particuliers', 'pro': 'Professionnels', 'ent': 'Entreprises'}),
+        # SCA
+        Value('code', label='Code SMS', required=False, default='', noprompt=True),
+        Value('resume', noprompt=True, default=''),
+        Value('request_information', default=None, noprompt=True, required=False),
+    )
 
     accepted_document_types = (DocumentTypes.STATEMENT, DocumentTypes.RIB)
 
     def create_default_browser(self):
-        b = {'par': SocieteGenerale, 'pro': SGProfessionalBrowser, 'ent': SGEnterpriseBrowser}
-        self.BROWSER = b[self.config['website'].get()]
-        return self.create_browser(self.config['login'].get(),
-                                   self.config['password'].get())
+        website = self.config['website'].get()
+        browsers = {'par': SocieteGenerale, 'pro': SGProfessionalBrowser, 'ent': SGEnterpriseBrowser}
+        self.BROWSER = browsers[website]
+
+        if website in ('par',):
+            return self.create_browser(
+                self.config,
+                self.config['login'].get(),
+                self.config['password'].get()
+            )
+        else:
+            return self.create_browser(
+                self.config['login'].get(),
+                self.config['password'].get()
+            )
 
     def iter_accounts(self):
         for account in self.browser.get_accounts_list():

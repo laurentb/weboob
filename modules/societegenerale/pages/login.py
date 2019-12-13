@@ -131,9 +131,26 @@ class MainPage(BasePage, PasswordPage):
 
 
 class LoginPage(JsonPage):
+    # statut, status...
     def get_reason(self):
         if Dict('commun/statut')(self.doc).lower() != 'ok':
             return Dict('commun/raison')(self.doc)
+
+    def get_auth_method(self):
+        data = Dict('chgtnivauth')(self.doc)
+        if data['status'].lower() != 'ok':
+            return
+
+        auth_methods = []
+        for auth_method in data['list_proc']:
+            if not auth_method['unavailability_reason']:
+                auth_methods.append(auth_method)
+
+        # if we can't find any methods available we send the highest priority
+        # so we can raise the right exception to the user
+        auth_methods = auth_methods or data['list_proc']
+        if auth_methods:
+            return sorted(auth_methods, key=lambda k: k['priorite'])[0]
 
 
 class BadLoginPage(BasePage):

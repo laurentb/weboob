@@ -19,13 +19,20 @@
 
 from __future__ import unicode_literals
 
+import time
+
 from datetime import datetime
 from decimal import Decimal
 from dateutil.relativedelta import relativedelta
 
-from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
+from weboob.browser import URL, need_login
+from weboob.browser.browsers import TwoFactorBrowser
 from weboob.capabilities.bill import Document, DocumentTypes
-from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded, BrowserUnavailable
+from weboob.exceptions import (
+    BrowserIncorrectPassword, ActionNeeded, BrowserUnavailable,
+    AppValidation, BrowserQuestion, AppValidationError, AppValidationCancelled,
+    AppValidationExpired, AuthMethodNotImplemented,
+)
 from weboob.capabilities.bank import Account, TransferBankError, AddRecipientStep, TransactionType, AccountOwnerType
 from weboob.capabilities.base import find_object, NotAvailable
 from weboob.browser.exceptions import BrowserHTTPNotFound, ClientError
@@ -48,9 +55,9 @@ from .pages.subscription import BankStatementPage, RibPdfPage
 __all__ = ['SocieteGenerale']
 
 
-class SocieteGenerale(LoginBrowser, StatesMixin):
+class SocieteGenerale(TwoFactorBrowser):
     BASEURL = 'https://particuliers.societegenerale.fr'
-    STATE_DURATION = 5
+    # XXX STATE_DURATION was 5 minutes for transfers purposes...
 
     # Bank
     accounts_main_page = URL(r'/restitution/cns_listeprestation.html',
@@ -114,22 +121,30 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
                                    r'.*/Technical-pages/503-error-page/unavailable.html',
                                    r'.*/Technical-pages/service-indisponible/service-indisponible.html',
                                    UnavailableServicePage)
-    error = URL(r'https://static.societegenerale.fr/pri/erreur.html', ErrorPage)
-    login = URL(r'https://particuliers.societegenerale.fr//sec/vk/', LoginPage)  # yes, it works only with double slash
+    error = URL(r'https://static.societegenerale.fr/pri/erreur.html',
+                r'https://.*/pri/erreur.html', ErrorPage)
+    login = URL(r'https://particuliers.societegenerale.fr//sec/vk/',  # yes, it works only with double slash
+                r'/sec/oob_sendooba.json',
+                r'/sec/oob_pollingooba.json',
+                r'/sec/oob_auth.json', LoginPage)
     main_page = URL(r'https://particuliers.societegenerale.fr', MainPage)
 
     context = None
     dup = None
     id_transaction = None
+    polling_transaction = None
+    polling_duration = 300  # default to 5 minutes
 
-    __states__ = ('context', 'dup', 'id_transaction')
+    __states__ = ('context', 'dup', 'id_transaction', 'polling_transaction',)
+
+    def transfer_condition(self, state):
+        return state.get('dup') is not None and state.get('context') is not None
 
     def locate_browser(self, state):
-        self.location('/com/icd-web/cbo/index.html')
-
-    def load_state(self, state):
-        if state.get('dup') is not None and state.get('context') is not None:
-            super(SocieteGenerale, self).load_state(state)
+        if self.transfer_condition(state):
+            self.location('/com/icd-web/cbo/index.html')
+        else:
+            super(SocieteGenerale, self).locate_browser(state)
 
     def check_password(self):
         if not self.password.isdigit() or len(self.password) not in (6, 7):
@@ -137,10 +152,7 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
         if not self.username.isdigit() or len(self.username) < 8:
             raise BrowserIncorrectPassword()
 
-    def check_login_errors(self):
-        assert self.login.is_here(), "An error has occured, we should be on login page."
-
-        reason = self.page.get_reason()
+    def check_login_reason(self, reason):
         if reason == 'echec_authent':
             raise BrowserIncorrectPassword()
         elif reason in ('acces_bloq', 'acces_susp', 'pas_acces_bad', ):
@@ -150,7 +162,59 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
             # in SG website in that case ...
             raise BrowserUnavailable()
 
-    def do_login(self):
+    def check_auth_method(self, auth_method):
+        if not auth_method:
+            self.logger.warning('Not auth method available !')
+            raise ActionNeeded(
+                'Veuillez ajouter un numéro de téléphone sur votre banque et/ou activer votre Pass Sécurité'
+            )
+
+        if auth_method['unavailability_reason'] == "ts_non_enrole":
+            raise ActionNeeded(
+                'Veuillez ajouter un numéro de téléphone sur votre banque'
+            )
+
+        elif auth_method['unavailability_reason']:
+            assert False, 'Unknown unavailability reason "%s" found' % auth_method['unavailability_reason']
+
+        if auth_method['type_proc'].lower() == 'auth_oob':
+            self.location('/sec/oob_sendooba.json', method='POST', headers={'Content-Type': 'application/x-www-form-urlencoded'},)
+
+            donnees = self.page.doc['donnees']
+            self.polling_transaction = donnees['id-transaction']
+
+            if donnees.get('expiration_date_hh') and donnees.get('expiration_date_mm'):
+                now = datetime.now()
+                expiration_date = now.replace(
+                    hour=int(donnees['expiration_date_hh']),
+                    minute=int(donnees['expiration_date_mm'])
+                )
+                self.polling_duration = int((expiration_date - now).total_seconds())
+
+            raise AppValidation(
+                'Veuillez valider l\'opération dans votre application sur ' + auth_method['terminal'][0]['nom']
+            )
+
+        elif auth_method['type_proc'].lower() == 'auth_csa':
+            if auth_method['mode'] == "SMS":
+                self.location(
+                    '/app/auth/sec/csa/send.json',
+                )
+                raise BrowserQuestion(
+                    Value(
+                        'code_directaccess',
+                        label='Entrez le Code Sécurité reçu par SMS sur le numéro ' + auth_method['ts']
+                    )
+                )
+
+            self.logger.warning('Unknown CSA method "%s" found', auth_method['mod'])
+
+        else:
+            self.logger.warning('Unknown sign method "%s" found', auth_method['sign_proc'])
+
+        raise AuthMethodNotImplemented()
+
+    def init_login(self):
         self.check_password()
 
         self.main_page.go()
@@ -159,7 +223,50 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
         except BrowserHTTPNotFound:
             raise BrowserIncorrectPassword()
 
-        self.check_login_errors()
+        assert self.login.is_here(), "An error has occured, we should be on login page."
+
+        self.check_login_reason(self.page.get_reason())
+        self.check_auth_method(self.page.get_auth_method())
+
+    def check_polling_errors(self, status):
+        if status == "rejected":
+            raise AppValidationCancelled(
+                "L'opération dans votre application a été annulée"
+            )
+
+        if status == "aborted":
+            raise AppValidationExpired(
+                "L'opération dans votre application a expirée"
+            )
+
+        if status != "available":
+            raise AppValidationError()
+
+    def handle_polling(self):
+        assert self.polling_transaction, "polling_transaction is mandatory !"
+
+        data = {'n10_id_transaction': self.polling_transaction}
+        timeout = time.time() + self.polling_duration
+        while time.time() < timeout:
+            self.location('/sec/oob_pollingooba.json', data=data)
+
+            status = self.page.doc['donnees']['transaction_status']
+            if status != "in_progress":
+                break
+
+            time.sleep(3)
+        else:
+            status = "aborted"
+
+        self.check_polling_errors(status)
+
+        data.update({'oob_op': "auth",})
+        self.location('/sec/oob_auth.json', data=data)
+
+        if self.page.doc.get('commun', {}).get('statut').lower() == "nok":
+            raise BrowserUnavailable()
+
+        self.polling_transaction = None
 
     def iter_cards(self, account):
         for el in account._cards:
