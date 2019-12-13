@@ -131,21 +131,16 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
         if state.get('dup') is not None and state.get('context') is not None:
             super(SocieteGenerale, self).load_state(state)
 
-    def do_login(self):
+    def check_password(self):
         if not self.password.isdigit() or len(self.password) not in (6, 7):
             raise BrowserIncorrectPassword()
         if not self.username.isdigit() or len(self.username) < 8:
             raise BrowserIncorrectPassword()
-        self.username = self.username[:8]
 
-        self.main_page.go()
-        try:
-            self.page.login(self.username, self.password)
-        except BrowserHTTPNotFound:
-            raise BrowserIncorrectPassword()
+    def check_login_errors(self):
+        assert self.login.is_here(), "An error has occured, we should be on login page."
 
-        assert self.login.is_here()
-        reason, action = self.page.get_error()
+        reason = self.page.get_reason()
         if reason == 'echec_authent':
             raise BrowserIncorrectPassword()
         elif reason in ('acces_bloq', 'acces_susp', 'pas_acces_bad', ):
@@ -154,6 +149,17 @@ class SocieteGenerale(LoginBrowser, StatesMixin):
             # there is message "Service momentanément indisponible. Veuillez réessayer."
             # in SG website in that case ...
             raise BrowserUnavailable()
+
+    def do_login(self):
+        self.check_password()
+
+        self.main_page.go()
+        try:
+            self.page.login(self.username[:8], self.password)
+        except BrowserHTTPNotFound:
+            raise BrowserIncorrectPassword()
+
+        self.check_login_errors()
 
     def iter_cards(self, account):
         for el in account._cards:

@@ -131,10 +131,9 @@ class MainPage(BasePage, PasswordPage):
 
 
 class LoginPage(JsonPage):
-    def get_error(self):
-        if (Dict('commun/statut')(self.doc)).lower() != 'ok':
-            return Dict('commun/raison')(self.doc), Dict('commun/action')(self.doc)
-        return None, None
+    def get_reason(self):
+        if Dict('commun/statut')(self.doc).lower() != 'ok':
+            return Dict('commun/raison')(self.doc)
 
 
 class BadLoginPage(BasePage):
