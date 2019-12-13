@@ -147,7 +147,11 @@ class TransferConfirm(LoggedPage, CheckTransferError):
     def choose_device(self):
         # When there is no "Confirmer" button,
         # it means that the device pop up appeared (it is called by js)
-        if not self.doc.xpath('//input[@value="Confirmer"]'):
+        if (
+            not self.doc.xpath('//input[@value="Confirmer"]')
+            or self.doc.xpath('//input[@name="codeOTPSaisi"]')
+        ):
+            # transfer validation form with sms cannot be tested yet
             raise AuthMethodNotImplemented()
         assert False, 'Should not be on confirmation page after posting the form.'
 
