@@ -4,3 +4,4 @@ feedparser
 geopy
 google-api-python-client
 pycryptodomex
+selenium
