@@ -21,7 +21,9 @@ export WEBOOB_WORKDIR="${WEBOOB_TMPDIR}"
 export WEBOOB_DATADIR="${WEBOOB_TMPDIR}"
 export PYTHONPATH="${WEBOOB_DIR}"
 set +e
-$PYTHON "${WEBOOB_DIR}/scripts/weboob-config" update
+# TODO can we require weboob to be installed before being able to run run_tests.sh?
+# if we can, then weboob-config is present in PATH (virtualenv or whatever)
+${PYTHON} -c "import sys; sys.argv='weboob-config update'.split(); from weboob.applications.weboobcfg import WeboobCfg; WeboobCfg.run()"
 
 $PYTHON "${WEBOOB_DIR}/tools/weboob_lint.py"
 
