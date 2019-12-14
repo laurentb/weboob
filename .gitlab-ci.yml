@@ -3,44 +3,6 @@ before_script:
   - "REQUIREMENTS=$(mktemp) && python setup.py requirements > ${REQUIREMENTS} && pip install -r ${REQUIREMENTS} && rm ${REQUIREMENTS}"
   - "pip install -r .ci/requirements_modules.txt"
 
-build:2.7:
-  image: "python:2.7"
-  stage: "build"
-  script:
-    - "./tools/local_install.sh -2 --local-modules ~/bin"
-
-pyflakes:2.7:
-  image: "python:2.7"
-  stage: "test"
-  script:
-    - "./tools/pyflakes.sh -2"
-
-lint:2.7:
-  image: "python:2.7"
-  stage: "test"
-  allow_failure: true
-  script:
-    - "./tools/weboob_lint.sh -2"
-
-unittests:2.7:
-  image: "python:2.7"
-  stage: "test"
-  script:
-    - "./tools/run_tests.sh -2 --no-modules"
-
-unittests-modules:2.7:
-  image: "python:2.7"
-  stage: "test"
-  allow_failure: true
-  script:
-    - "./tools/run_tests.sh -2 --no-core"
-
-doc:2.7:
-  image: "python:2.7"
-  stage: "deploy"
-  script:
-    - "cd ./docs && make html"
-
 build:3:
   image: "python:3"
   stage: "build"
