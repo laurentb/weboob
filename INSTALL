@@ -17,8 +17,37 @@ Some modules may have more dependencies.
 After a package or system installation, you should run ``weboob-config update``
 as your login user.
 
-User installation
------------------
+There are 2 versions of weboob:
+
+* stable: for end-users, only modules are updated on this version, not the core or apps
+* master: for development, modules and core libs and apps are updated frequently
+
+End-user installation (stable version)
+--------------------------------------
+
+No need to use the git repository in this case. Just
+
+    $ pip install --user weboob
+
+This pip installation can be run within a virtualenv if desired (don't add ``--user``).
+
+Then `weboob-config update` can be run to fetch the list of available modules,
+and the various weboob commands (boobank, videoob, etc.) can be run and are able
+to install modules.
+
+Developer installation (master version)
+---------------------------------------
+
+There is a way to install weboob locally without messing with your system.
+
+    $ pip install --user -e .
+
+The scripts are copied to ``~/.local/bin``.
+
+This pip installation can be run within a virtualenv if desired (don't add ``--user``).
+
+Developer installation (master version, alternative)
+----------------------------------------------------
 
 There is a way to install weboob locally without messing with your system.
 Run ``./tools/local_install.sh`` as your local user. ::
@@ -33,12 +62,12 @@ System installation (discouraged)
 The install mode copies files to the Python system-wide packages directory (for
 example ``/usr/lib/python3.7/dist-packages`` for Python 3.7. ::
 
-    # ./setup.py install
+    # pip install --system .
 
 Scripts are copied to ``/usr/bin``.
 
-Development mode
-----------------
+No installation mode (master version)
+-------------------------------------
 
 This does not actually install anything, but lets you run Weboob from the
 source code, while also using the modules from that source. This is only
@@ -50,7 +79,6 @@ For example, instead of running ``videoob -b youtube search plop``, you would
 run::
 
     $ ./tools/local_run.sh videoob -b youtube search plop
-
 
 Bash completion
 ---------------
