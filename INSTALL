@@ -10,14 +10,9 @@ you have to handle them by hand, according to your distribution.
 The requirements are provided in ``setup.py``, except for:
 
 * gpgv (for secure updates). If not packaged alone, it should be in ``gnupg`` or ``gpg``.
-* PyQt5 (python3-pyqt5, pyqt5-dev-tools, python3-pyqt5.qtmultimedia) for graphical applications.
 * For more performance, ensure you have ``libyaml`` and ``simplejson`` installed.
 
 Some modules may have more dependencies.
-
-All installation procedures allow you to chose whether you want graphical
-applications.  Add ``--no-qt --no-xdg`` to disable them; ``--qt --xdg`` to
-enable them.
 
 After a package or system installation, you should run ``weboob-config update``
 as your login user.
