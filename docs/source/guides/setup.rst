@@ -13,16 +13,17 @@ Clone a git repository with this command::
 We don't want to install Weboob on the whole system, so we create local directories where
 we will put symbolic links to sources::
 
-    $ mkdir ~/bin/
-    $ export PATH=$PATH:$HOME/bin/
-    $ mkdir ~/python/
-    $ export PYTHONPATH=$PYTHONPATH:$HOME/python/
+    $ cd $HOME/src/weboob
 
-All executables in ~/bin/ will be accessible in console, and all python modules in ~/python/ will
-be loadable. Add symbolic links::
+If not in a virtualenv, executables are in ``~/.local/bin`` and modules are in
+``~/.local/lib/``:
 
-    $ ln -s $HOME/src/weboob/weboob ~/python/
-    $ find $HOME/src/weboob/scripts -type f -exec ln -s \{\} ~/bin/ \;
+    $ pip install --user -e .
+
+If inside a virtualenv, no need to update the paths, they are all in the virtualenv.
+
+    $ export PATH=$PATH:$HOME/.local/bin
+    $ pip install -e .
 
 Repositories setup
 ------------------
