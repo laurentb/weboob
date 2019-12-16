@@ -17,13 +17,11 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
-
 from __future__ import unicode_literals
 
-from weboob.capabilities.bank import CapBankWealth, AccountNotFound
-from weboob.capabilities.base import find_object
-from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.value import Value, ValueBackendPassword
+from weboob.capabilities.bank import CapBank
+from weboob.tools.backend import AbstractModule, BackendConfig
+from weboob.tools.value import ValueBackendPassword
 
 from .browser import GanAssurancesBrowser
 
@@ -31,7 +29,7 @@ from .browser import GanAssurancesBrowser
 __all__ = ['GanAssurancesModule']
 
 
-class GanAssurancesModule(Module, CapBankWealth):
+class GanAssurancesModule(AbstractModule, CapBank):
     NAME = 'ganassurances'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -39,28 +37,18 @@ class GanAssurancesModule(Module, CapBankWealth):
     DESCRIPTION = 'Gan Assurances'
     LICENSE = 'LGPLv3+'
     CONFIG = BackendConfig(
-        Value('login', label='Numéro client'),
+        ValueBackendPassword('login', label='Numéro client', masked=False),
         ValueBackendPassword('password', label="Code d'accès")
     )
+
+    PARENT = 'ganpatrimoine'
     BROWSER = GanAssurancesBrowser
+
 
     def create_default_browser(self):
         return self.create_browser(
+            'ganassurances',
             self.config['login'].get(),
-            self.config['password'].get()
+            self.config['password'].get(),
+            weboob=self.weboob
         )
-
-    def iter_accounts(self):
-        return self.browser.get_accounts_list(need_iban=True)
-
-    def get_account(self, _id):
-        return find_object(self.browser.get_accounts_list(need_iban=True), id=_id, error=AccountNotFound)
-
-    def iter_history(self, account):
-        return self.browser.get_history(account)
-
-    def iter_coming(self, account):
-        return self.browser.get_coming(account)
-
-    def iter_investment(self, account):
-        return self.browser.get_investment(account)
