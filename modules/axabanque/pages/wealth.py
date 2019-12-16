@@ -167,7 +167,7 @@ class AccountDetailsPage(LoggedPage, HTMLPage):
         return Attr('//div[contains(@data-analytics-label, "repartition_par_fond")]', 'data-url', default=None)(self.doc)
 
     def get_pid(self):
-        return Attr('//div[@data-module="operations-movements"]', 'data-module-operations-movements--pid')(self.doc)
+        return Attr('//div[@data-module="operations-movements"]', 'data-module-operations-movements--pid', default=None)(self.doc)
 
 
 class HistoryPage(LoggedPage, JsonPage):
