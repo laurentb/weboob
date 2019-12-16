@@ -66,20 +66,26 @@ class SubscriberPage(LoggedPage, JsonPage):
         elif self.doc['type'] == 'ENTREPRISE':
             subscriber_dict = self.doc['representantLegal']
 
-        return '%s %s %s' % (subscriber_dict['civilite'], subscriber_dict['prenom'], subscriber_dict['nom'])
+        subscriber = '%s %s %s' % (subscriber_dict.get('civilite', ''), subscriber_dict['prenom'], subscriber_dict['nom'])
+        return subscriber.strip()
 
 
 class SubscriptionDetail(LoggedPage, JsonPage):
     def get_label(self):
-        label_list = []
+        phone_numbers = list(self.get_phone_numbers())
+        account_id = self.params['id_account']
+
+        label = str(account_id)
+
+        if phone_numbers:
+            label += " ({})".format(" - ".join(phone_numbers))
+        return label
+
+    def get_phone_numbers(self):
         for s in self.doc['items']:
             if 'numeroTel' in s:
                 phone = re.sub(r'^\+\d{2}', '0', s['numeroTel'])
-                label_list.append(' '.join([phone[i:i + 2] for i in range(0, len(phone), 2)]))
-            else:
-                continue
-
-        return ' - '.join(label_list)
+                yield ' '.join([phone[i:i + 2] for i in range(0, len(phone), 2)])
 
 
 class SubscriptionPage(LoggedPage, JsonPage):
@@ -117,7 +123,10 @@ class DocumentPage(LoggedPage, JsonPage):
 
             obj_id = Format('%s_%s', Env('subid'), Dict('idFacture'))
             obj_price = CleanDecimal(Dict('mntTotFacture'))
-            obj_url = Coalesce(Dict('_links/facturePDF/href', default=NotAvailable), Dict('_links/facturePDFDF/href', default=NotAvailable))
+            obj_url = Coalesce(
+                    Dict('_links/facturePDF/href', default=NotAvailable),
+                    Dict('_links/facturePDFDF/href', default=NotAvailable)
+            )
             obj_date = MyDate(Dict('dateFacturation'))
             obj_duedate = MyDate(Dict('dateLimitePaieFacture', default=NotAvailable), default=NotAvailable)
             obj_label = Format('Facture %s', Dict('idFacture'))

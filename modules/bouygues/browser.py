@@ -120,4 +120,5 @@ class BouyguesBrowser(LoginBrowser):
 
     @need_login
     def download_document(self, document):
-        return self.location(document.url, headers=self.headers).content
+        if document.url:
+            return self.location(document.url, headers=self.headers).content
