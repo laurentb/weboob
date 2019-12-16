@@ -367,7 +367,8 @@ class ItemInvestment(ItemElement):
                     return
                 elif (url.startswith('http://sggestion-ede.com/product') or
                     url.startswith('https://www.lyxorfunds.com/part') or
-                    url.startswith('https://www.societegeneralegestion.fr')):
+                    url.startswith('https://www.societegeneralegestion.fr') or
+                    url.startswith('http://www.etoile-gestion.com/productsheet')):
                     self.env['_link'] = url
 
                 # Try to fetch ISIN code from URL with re.match
@@ -757,7 +758,7 @@ class EtoileGestionPage(HTMLPage, CodePage):
         return CleanText('//label[contains(text(), "Classe d\'actifs")]/following-sibling::span')(self.doc)
 
 
-class EtoileGestionCharacteristicsPage(PartialHTMLPage):
+class EtoileGestionCharacteristicsPage(LoggedPage, PartialHTMLPage):
     def get_isin_code(self):
         code = CleanText('//td[contains(text(), "Code Isin")]/following-sibling::td', default=None)(self.doc)
         return code
@@ -765,6 +766,24 @@ class EtoileGestionCharacteristicsPage(PartialHTMLPage):
     def get_code_amf(self):
         code = CleanText('//td[contains(text(), "Code AMF")]/following-sibling::td', default=None)(self.doc)
         return code
+
+    def get_performance_history(self):
+        perfs = {}
+        if CleanDecimal.French('//tr[td[text()="Fonds"]]//td[position()=last()-2]', default=None)(self.doc):
+            perfs[1] = Eval(lambda x: x / 100, CleanDecimal.French('//tr[td[text()="Fonds"]]//td[position()=last()-2]'))(self.doc)
+        if CleanDecimal.French('//tr[td[text()="Fonds"]]//td[position()=last()-1]', default=None)(self.doc):
+            perfs[3] = Eval(lambda x: x / 100, CleanDecimal.French('//tr[td[text()="Fonds"]]//td[position()=last()-1]'))(self.doc)
+        if CleanDecimal.French('//tr[td[text()="Fonds"]]//td[position()=last()]', default=None)(self.doc):
+            perfs[5] = Eval(lambda x: x / 100, CleanDecimal.French('//tr[td[text()="Fonds"]]//td[position()=last()]'))(self.doc)
+        return perfs
+
+
+class EtoileGestionDetailsPage(LoggedPage, HTMLPage):
+    def get_asset_category(self):
+        return CleanText('//label[text()="Classe d\'actifs:"]/following-sibling::span')(self.doc)
+
+    def get_performance_url(self):
+        return Attr('(//li[@role="presentation"])[1]//a', 'data-href', default=None)(self.doc)
 
 
 class EsaliaDetailsPage(LoggedPage, HTMLPage):

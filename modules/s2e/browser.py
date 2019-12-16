@@ -28,10 +28,10 @@ from weboob.capabilities.bank import Investment
 from weboob.tools.capabilities.bank.investments import is_isin_valid
 
 from .pages import (
-    LoginPage, AccountsPage, AMFHSBCPage, AMFAmundiPage, AMFSGPage, HistoryPage,
-    ErrorPage, LyxorfcpePage, EcofiPage, EcofiDummyPage, LandingPage, SwissLifePage, LoginErrorPage,
-    EtoileGestionPage, EtoileGestionCharacteristicsPage, ProfilePage, APIInvestmentDetailsPage,
-    LyxorFundsPage, EsaliaDetailsPage,
+    LoginPage, AccountsPage, AMFHSBCPage, AMFAmundiPage, AMFSGPage, HistoryPage, ErrorPage,
+    LyxorfcpePage, EcofiPage, EcofiDummyPage, LandingPage, SwissLifePage, LoginErrorPage,
+    EtoileGestionPage, EtoileGestionCharacteristicsPage, EtoileGestionDetailsPage,
+    APIInvestmentDetailsPage, LyxorFundsPage, EsaliaDetailsPage, ProfilePage,
 )
 
 
@@ -55,6 +55,7 @@ class S2eBrowser(LoginBrowser, StatesMixin):
     swisslife = URL(r'http://fr.swisslife-am.com/fr/produits/.*', SwissLifePage)
     etoile_gestion = URL(r'http://www.etoile-gestion.com/index.php/etg_fr_fr/productsheet/view/.*', EtoileGestionPage)
     etoile_gestion_characteristics = URL(r'http://www.etoile-gestion.com/etg_fr_fr/ezjscore/.*', EtoileGestionCharacteristicsPage)
+    etoile_gestion_details = URL(r'http://www.etoile-gestion.com/productsheet/.*', EtoileGestionDetailsPage)
     profile = URL(r'/portal/salarie-(?P<slug>\w+)/mesdonnees/coordperso\?scenario=ConsulterCP', ProfilePage)
     bnp_investments = URL(r'https://optimisermon.epargne-retraite-entreprises.bnpparibas.com')
     api_investment_details = URL(r'https://funds-api.bnpparibas.com/api/performances/FromIsinCode/', APIInvestmentDetailsPage)
@@ -163,11 +164,13 @@ class S2eBrowser(LoginBrowser, StatesMixin):
                             inv.code_type = Investment.CODE_TYPE_ISIN
                         self.location('https://funds-api.bnpparibas.com/api/performances/FromIsinCode/' + inv.code)
                         self.page.fill_investment(obj=inv)
+
                 elif self.amfcode_sg.match(inv._link) or self.lyxorfunds.match(inv._link):
                     # SGgestion-ede or Lyxor investments: not all of them have available attributes.
                     # For those requests to work in every case we need the headers from AccountsPage
                     self.location(inv._link, headers={'Referer': self.accounts.build(slug=self.SLUG)})
                     self.page.fill_investment(obj=inv)
+
                 elif self.esalia_details.match(inv._link):
                     # Esalia (Société Générale Épargne Salariale) details page:
                     # Fetch code, code_type & asset_category here
@@ -178,6 +181,18 @@ class S2eBrowser(LoginBrowser, StatesMixin):
                             inv.code_type = Investment.CODE_TYPE_ISIN
                     self.location(inv._link)
                     inv.asset_category = self.page.get_asset_category()
+
+                elif self.etoile_gestion_details.match(inv._link):
+                    # Etoile Gestion investments details page:
+                    # Fetch asset_category & performance_history
+                    self.location(inv._link)
+                    inv.asset_category = self.page.get_asset_category()
+                    performance_url = self.page.get_performance_url()
+                    if performance_url:
+                        self.location(performance_url)
+                        if self.etoile_gestion_characteristics.is_here():
+                            inv.performance_history = self.page.get_performance_history()
+
         return investments
 
     @need_login
