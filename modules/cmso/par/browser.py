@@ -260,7 +260,7 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
 
         self.history.go(data=json.dumps({'index': account._index}), page="detailcompte", headers=self.json_headers)
 
-        self.trs = {'lastdate': None, 'list': []}
+        self.trs = set()
 
         for tr in self.page.iter_history(index=account._index, nbs=nbs):
             if has_deferred_cards and tr.type == Transaction.TYPE_CARD:
