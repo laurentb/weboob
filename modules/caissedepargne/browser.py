@@ -39,7 +39,8 @@ from weboob.capabilities.bill import Subscription
 from weboob.capabilities.profile import Profile
 from weboob.browser.exceptions import BrowserHTTPNotFound, ClientError, ServerError
 from weboob.exceptions import (
-    BrowserIncorrectPassword, BrowserUnavailable, BrowserHTTPError, BrowserPasswordExpired, ActionNeeded
+    BrowserIncorrectPassword, BrowserUnavailable, BrowserHTTPError, BrowserPasswordExpired,
+    ActionNeeded, AuthMethodNotImplemented,
 )
 from weboob.tools.capabilities.bank.transactions import (
     sorted_transactions, FrenchTransaction, keep_only_card_transactions,
@@ -1024,7 +1025,10 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
     def otp_choose_sms(self):
         key = next(iter(self.otp_validation))
-        if self.otp_validation[key][0]['type'] == 'SMS':
+        auth_type = self.otp_validation[key][0]['type']
+        if  auth_type == 'CLOUDCARD':
+            raise AuthMethodNotImplemented()
+        if auth_type == 'SMS':
             return
 
         self.location(self.otp_url, json={'fallback': {}})
