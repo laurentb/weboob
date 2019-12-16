@@ -104,7 +104,15 @@ class BouyguesBrowser(LoginBrowser):
         self.subscriptions_page.go()
         for sub in self.page.iter_subscriptions():
             sub.subscriber = subscriber
-            sub.label = self.subscription_detail_page.go(id_account=sub.id, headers=self.headers).get_label()
+            try:
+                sub.label = self.subscription_detail_page.go(id_account=sub.id, headers=self.headers).get_label()
+            except ClientError as e:
+                if e.response.status_code == 403:
+                    # Sometimes, subscription_detail_page is not available for a subscription.
+                    # It's impossible to get the tel number associated with it and create a label with.
+                    sub.label = sub.id
+                else:
+                    raise
             yield sub
 
     @need_login
