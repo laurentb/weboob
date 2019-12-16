@@ -44,7 +44,11 @@ class BouyguesBrowser(LoginBrowser):
     BASEURL = 'https://api.bouyguestelecom.fr'
 
     login_page = URL(r'https://www.mon-compte.bouyguestelecom.fr/cas/login', LoginPage)
-    forgotten_password_page = URL(r'https://www.mon-compte.bouyguestelecom.fr/mon-compte/mot-de-passe-oublie', ForgottenPasswordPage)
+    forgotten_password_page = URL(
+            r'https://www.mon-compte.bouyguestelecom.fr/mon-compte/mot-de-passe-oublie',
+            r'https://www.bouyguestelecom.fr/mon-compte/mot-de-passe-oublie',
+            ForgottenPasswordPage
+    )
     app_config = URL(r'https://www.bouyguestelecom.fr/mon-compte/data/app-config.json', AppConfigPage)
     subscriber_page = MyURL(r'/personnes/(?P<id_personne>\d+)$', SubscriberPage)
     subscriptions_page = MyURL(r'/personnes/(?P<id_personne>\d+)/comptes-facturation', SubscriptionPage)
