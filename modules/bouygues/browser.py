@@ -23,7 +23,7 @@ from time import time
 from jose import jwt
 
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.browser.exceptions import HTTPNotFound
+from weboob.browser.exceptions import HTTPNotFound, ClientError
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.tools.compat import urlparse, parse_qsl
 
@@ -65,7 +65,13 @@ class BouyguesBrowser(LoginBrowser):
 
     def do_login(self):
         self.login_page.go()
-        self.page.login(self.username, self.password, self.lastname)
+
+        try:
+            self.page.login(self.username, self.password, self.lastname)
+        except ClientError as e:
+            if e.response.status_code == 401:
+                raise BrowserIncorrectPassword()
+            raise
 
         if self.login_page.is_here():
             msg = self.page.get_error_message()
