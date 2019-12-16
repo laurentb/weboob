@@ -59,19 +59,18 @@ class AsanaBrowser(APIBrowser):
             raise
 
     def _make_user(self, data):
-        u = User(data['id'], None)
+        u = User(data['gid'], None)
         if 'name' in data:
             u.name = data['name']
         return u
 
     def _make_project(self, data):
-        p = Project(str(data['id']), data['name'])
+        p = Project(str(data['gid']), data['name'])
         p.url = 'https://app.asana.com/0/%s' % p.id
         if 'members' in data:
             p.members = [self._make_user(u) for u in data['members']]
 
         p.statuses = [self.STATUS_OPEN, self.STATUS_CLOSED]
-        p._workspace = data['workspace']['id']
 
         # these fields don't exist in asana
         p.priorities = []
@@ -83,7 +82,7 @@ class AsanaBrowser(APIBrowser):
             # section, not task
             return None
 
-        i = Issue(str(data['id']))
+        i = Issue(str(data['gid']))
         i.url = 'https://app.asana.com/0/0/%s/f' % i.id
         i.title = data['name']
         if 'notes' in data:
