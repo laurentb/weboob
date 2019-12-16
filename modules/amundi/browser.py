@@ -28,7 +28,7 @@ from .pages import (
     LoginPage, AccountsPage, AccountHistoryPage, AmundiInvestmentsPage, AllianzInvestmentPage,
     EEInvestmentPage, EEInvestmentPerformancePage, EEInvestmentDetailPage, EEProductInvestmentPage,
     EresInvestmentPage, CprInvestmentPage, BNPInvestmentPage, BNPInvestmentApiPage, AxaInvestmentPage,
-    EpsensInvestmentPage, EcofiInvestmentPage, SGGestionInvestmentPage,
+    EpsensInvestmentPage, EcofiInvestmentPage, SGGestionInvestmentPage, SGGestionPerformancePage,
 )
 
 
@@ -65,6 +65,7 @@ class AmundiBrowser(LoginBrowser):
     ecofi_investments = URL(r'http://www.ecofi.fr/fr/fonds/dynamis-solidaire', EcofiInvestmentPage)
     # Société Générale gestion investments
     sg_gestion_investments = URL(r'https://www.societegeneralegestion.fr/psSGGestionEntr/productsheet/view/idvm', SGGestionInvestmentPage)
+    sg_gestion_performance = URL(r'https://www.societegeneralegestion.fr/psSGGestionEntr/ezjscore/call', SGGestionPerformancePage)
 
     def do_login(self):
         data = {
@@ -153,8 +154,7 @@ class AmundiBrowser(LoginBrowser):
             self.cpr_investments.is_here() or
             self.ee_product_investments.is_here() or
             self.epsens_investments.is_here() or
-            self.ecofi_investments.is_here() or
-            self.sg_gestion_investments.is_here()):
+            self.ecofi_investments.is_here()):
             self.page.fill_investment(obj=inv)
 
         # Particular cases
@@ -175,6 +175,15 @@ class AmundiBrowser(LoginBrowser):
                     complete_performance_history = self.page.get_performance_history()
                     if complete_performance_history:
                         inv.performance_history = complete_performance_history
+
+        elif self.sg_gestion_investments.is_here():
+            # Fetch asset category & recommended period
+            self.page.fill_investment(obj=inv)
+            # Fetch all performances on the details page
+            performance_url = self.page.get_performance_url()
+            if performance_url:
+                self.location(performance_url)
+                inv.performance_history = self.page.get_performance_history()
 
         elif self.bnp_investments.is_here():
             # We fetch the fund ID and get the attributes directly from the BNP-ERE API

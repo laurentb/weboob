@@ -295,3 +295,10 @@ class SGGestionInvestmentPage(LoggedPage, HTMLPage):
     class fill_investment(ItemElement):
         obj_asset_category = CleanText('//label[contains(text(), "Classe d\'actifs")]/following-sibling::span', default=NotAvailable)
         obj_recommended_period = CleanText('//label[contains(text(), "Durée minimum")]/following-sibling::span', default=NotAvailable)
+
+    def get_performance_url(self):
+        return Attr('(//li[@role="presentation"])[1]//a', 'data-href', default=None)(self.doc)
+
+
+class SGGestionPerformancePage(EEInvestmentPerformancePage):
+    pass
