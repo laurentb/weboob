@@ -44,7 +44,7 @@ class AsanaModule(Module, CapBugTracker):
     def create_default_browser(self):
         return self.create_browser(self.config['token'].get())
 
-    ## read-only issues and projects
+    #  read-only issues and projects
     def iter_issues(self, query):
         query = query.copy()
 
@@ -78,7 +78,7 @@ class AsanaModule(Module, CapBugTracker):
                 params['completed'] = 'true'
             else:
                 params['completed'] = 'false'
-                params['completed_since'] = 'now' # completed=false is not enough...
+                params['completed_since'] = 'now'  # completed=false is not enough...
 
         if not query.project:
             workspaces = list(self._iter_workspaces())
@@ -162,7 +162,7 @@ class AsanaModule(Module, CapBugTracker):
     def _iter_workspaces(self):
         return (d['id'] for d in self.browser.paginate('workspaces'))
 
-    ## writing issues
+    #  writing issues
     def create_issue(self, project):
         issue = Issue(0)
         issue._project = project
@@ -213,7 +213,7 @@ class AsanaModule(Module, CapBugTracker):
     def remove_issue(self, issue):
         self.browser.request('tasks/%s' % issue.id, method='DELETE')
 
-    ## filling
+    #  filling
     def fill_project(self, project, fields):
         if set(['members']) & set(fields):
             return self.get_project(project.id)
