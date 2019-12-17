@@ -34,7 +34,7 @@ from weboob.browser.filters.html import Attr, Link, TableCell
 from weboob.browser.exceptions import ServerError
 from weboob.capabilities.bank import Account, Investment, Loan, AccountOwnership
 from weboob.capabilities.contact import Advisor
-from weboob.capabilities.base import NotAvailable, empty
+from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.profile import Profile
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.exceptions import ParseError
@@ -360,7 +360,7 @@ class HistoryPage(LoggedPage, JsonPage):
             obj_raw = Transaction.Raw(Dict('libelleCourt'))
             obj_vdate = Date(Dict('dateValeur', NotAvailable), dayfirst=True, default=NotAvailable)
             obj_amount = CleanDecimal(Dict('montantEnEuro'), default=NotAvailable)
-            obj_id = Env('id')
+            obj_id = Dict('clefDomirama', default='')
 
             def parse(self, el):
                 key = Env('key', default=None)(self)
@@ -370,16 +370,6 @@ class HistoryPage(LoggedPage, JsonPage):
                         if deferred_date:
                             break
                     setattr(self.obj, '_deferred_date', self.FromTimestamp().filter(deferred_date))
-
-                # Skip duplicate transactions
-                amount = Dict('montantEnEuro', default=None)(self)
-                self.env['id'] = Dict('operationId', default='')(self)
-                if empty(amount) or self.env['id'] in self.page.browser.trs:
-                    raise SkipItem()
-
-                # There is no id for comings
-                if self.env['id']:
-                    self.page.browser.trs.add(self.env['id'])
 
 
 class LifeinsurancePage(LoggedPage, HTMLPage):

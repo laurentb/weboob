@@ -263,6 +263,10 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
         self.trs = set()
 
         for tr in self.page.iter_history(index=account._index, nbs=nbs):
+            # Check for duplicates
+            if tr.id in self.trs:
+                continue
+            self.trs.add(tr.id)
             if has_deferred_cards and tr.type == Transaction.TYPE_CARD:
                 tr.type = Transaction.TYPE_DEFERRED_CARD
                 tr.bdate = tr.rdate
@@ -284,7 +288,6 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
         self.history.go(data=json.dumps({"index": account._index}), page="pendingListOperations", headers=self.json_headers)
 
         for key in self.page.get_keys():
-            self.trs = {'lastdate': None, 'list': []}
             for c in self.page.iter_history(key=key):
                 if hasattr(c, '_deferred_date'):
                     c.bdate = c.rdate
