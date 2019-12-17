@@ -75,7 +75,8 @@ class AXABrowser(LoginBrowser):
     )
 
     def do_login(self):
-        # due to the website change, login changed too, this is for don't try to login with the wrong login
+        # Due to the website change, login changed too.
+        # This is for avoiding to log-in with the wrong login
         if self.username.isdigit() and len(self.username) > 7:
             raise ActionNeeded()
 
@@ -98,6 +99,12 @@ class AXABrowser(LoginBrowser):
 
         if not self.password.isdigit() or self.page.check_error():
             raise BrowserIncorrectPassword()
+
+        url = self.page.get_url()
+        if 'bank-otp' in url:
+            # The SCA is Cross-Browser so the user can do the SMS validation on the website
+            # and then try to synchronize the connection again.
+            raise ActionNeeded('Vous devez réaliser la double authentification sur le portail internet')
 
         # home page to finish login
         self.location('https://espaceclient.axa.fr/')

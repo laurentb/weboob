@@ -98,6 +98,9 @@ class LoginPage(JsonPage):
     def check_error(self):
         return (not Dict('errors')(self.doc)) is False
 
+    def get_url(self):
+        return CleanText(Dict('datas/url', default=''))(self.doc)
+
 
 class ChangepasswordPage(HTMLPage):
     def on_load(self):
