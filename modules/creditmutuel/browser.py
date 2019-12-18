@@ -499,7 +499,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                 for tr in self.list_operations(coming_link, account):
                     transactions.append(tr)
 
-            differed_date = None
+            deferred_date = None
             cards = ([page.select_card(account._card_number) for page in account._card_pages]
                      if hasattr(account, '_card_pages')
                      else account._card_links if hasattr(account, '_card_links') else [])
@@ -509,8 +509,8 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                     if tr._to_delete:
                         # Delete main transaction when subtransactions exist
                         continue
-                    if hasattr(tr, '_differed_date') and (not differed_date or tr._differed_date < differed_date):
-                        differed_date = tr._differed_date
+                    if hasattr(tr, '_deferred_date') and (not deferred_date or tr._deferred_date < deferred_date):
+                        deferred_date = tr._deferred_date
                     if tr.date >= datetime.now():
                         tr._is_coming = True
                     elif hasattr(account, '_card_pages'):
@@ -519,11 +519,11 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
                 if card_trs:
                     transactions.extend(self.get_monthly_transactions(card_trs))
 
-            if differed_date is not None:
+            if deferred_date is not None:
                 # set deleted for card_summary
                 for tr in transactions:
                     tr.deleted = (tr.type == FrenchTransaction.TYPE_CARD_SUMMARY
-                                  and differed_date.month <= tr.date.month
+                                  and deferred_date.month <= tr.date.month
                                   and not hasattr(tr, '_is_manualsum'))
 
             for tr in sorted_transactions(transactions):

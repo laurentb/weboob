@@ -381,7 +381,7 @@ class item_account_generic(ItemElement):
         self.env['_is_webid'] = False
 
         if "cartes" in CleanText('./td[1]')(el):
-            # handle cb differed card
+            # handle cb deferred card
             if "cartes" in CleanText('./preceding-sibling::tr[1]/td[1]', replace=[(' ', '')])(el):
                 # In case it's the second month of card history present, we need to ignore the first
                 # one to get the attach accoount
@@ -963,7 +963,10 @@ class CardPage(OperationsPage, LoggedPage):
                 return not CleanText('//td[contains(., "Aucun mouvement")]', default=False)(self)
 
             def parse(self, el):
-                label = CleanText('//span[contains(text(), "Achats")]/following-sibling::span[2]')(el)
+                label = (
+                    CleanText('//span[contains(text(), "Achats")]/following-sibling::span[2]')(el)
+                    or CleanText('//*[contains(text(), "Achats")]')(el)
+                )
                 if not label:
                     return
                 try:
@@ -983,7 +986,7 @@ class CardPage(OperationsPage, LoggedPage):
                 obj_amount = Env('amount')
                 obj_original_amount = Env('original_amount')
                 obj_original_currency = Env('original_currency')
-                obj__differed_date = Env('differed_date')
+                obj__deferred_date = Env('deferred_date')
 
                 def obj_bdate(self):
                     if Field('type')(self) == Transaction.TYPE_DEFERRED_CARD:
@@ -1007,10 +1010,11 @@ class CardPage(OperationsPage, LoggedPage):
                     else:
                         self.env['type'] = Transaction.TYPE_CARD
 
-                    self.env['differed_date'] = Date(
-                        CleanText('//span[contains(text(), "Achats")]/following-sibling::span[2]'),
-                        parse_func=parse_french_date,
-                    )(self)
+                    text_date = (
+                        CleanText('//span[contains(text(), "Achats")]/following-sibling::span[2]')(self)
+                        or Regexp(CleanText('//*[contains(text(), "Achats")]'), r'(\d+ [^ ]+ \d+)$')(self)
+                    )
+                    self.env['deferred_date'] = parse_french_date(text_date).date()
 
                     amount = TableCell('credit')(self)[0]
                     if self.page.browser.is_new_website:
@@ -2116,7 +2120,7 @@ class NewCardsListPage(LoggedPage, HTMLPage):
             klass = Account
 
             def condition(self):
-                # Numerous cards are not differed card, we keep the card only if there is a coming
+                # Numerous cards are not deferred card, we keep the card only if there is a coming
                 return 'Dépenses' in CleanText('.//tr[1]/td/a[contains(@id,"C:more-card")]')(self) and (CleanText('.//div[1]/p')(self) == 'Active' or Field('coming')(self) != 0)
 
             obj_balance = 0
