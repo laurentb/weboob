@@ -23,7 +23,7 @@ import hashlib
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.filters.standard import (
-    CleanText, Env, Field, Regexp, Format, Date, Coalesce,
+    CleanText, Env, Field, Regexp, Format, Date,
 )
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.html import Attr
@@ -68,7 +68,7 @@ class ProfilePage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Subscription
 
-            obj_subscriber = CleanText('//span[@class="cssTitrePrincipal"]')
+            obj_subscriber = Format('%s %s', CleanText('//span[@id="prenom"]'), CleanText('//span[@id="nom"]'))
             obj_id = Env('id')
             obj_label = obj_id
 
@@ -79,22 +79,13 @@ class ProfilePage(LoggedPage, HTMLPage):
     class get_profile(ItemElement):
         klass = Person
 
-        obj_name = Regexp(CleanText('//span[contains(@class, "TitrePrincipal")]'), r'^\w+ (.*)')
-        obj_address = Coalesce(
-            Regexp(CleanText('//td[contains(text(), "Taxe d\'habitation principale")]'), r"Taxe d'habitation principale (.*)", default=NotAvailable),
-            CleanText('//td[contains(@class, "TextePrincipalNonJustifie") and text()]'),
-        )
-
-    @method
-    class fill_profile(ItemElement):
-        obj_firstname = CleanText('//div[span[contains(text(), "Prénom")]]/following-sibling::div/span')
-        obj_lastname = CleanText('//div[span[contains(text(), "Nom")]]/following-sibling::div/span')
+        obj_name = Format('%s %s', Field('firstname'), Field('lastname'))
+        obj_firstname = CleanText('//span[@id="prenom"]')
+        obj_lastname = CleanText('//span[@id="nom"]')
         obj_email = CleanText('//div[span[contains(text(), "Adresse électronique")]]/following-sibling::div/span')
         obj_mobile = CleanText('//div[span[text()="Téléphone portable"]]/following-sibling::div/span', default=NotAvailable)
         obj_phone = CleanText('//div[span[text()="Téléphone fixe"]]/following-sibling::div/span', default=NotAvailable)
-
-        def obj_birth_date(self):
-            return parse_french_date(CleanText('//div[span[text()="Date de naissance"]]/following-sibling::div/span')(self)).date()
+        obj_birth_date = Date(CleanText('//span[@id="datenaissance"]'), parse_func=parse_french_date)
 
 
 class DocumentsPage(LoggedPage, HTMLPage):

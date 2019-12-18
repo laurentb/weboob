@@ -32,19 +32,11 @@ class ImpotsParBrowser(AbstractBrowser):
     login_access = URL(r'/LoginAccess', LoginAccessPage)
     login_ael = URL(r'/LoginAEL', LoginAELPage)
     profile = URL(
-        r'/acces-usager/cfs',
-        r'.*/accueilUsager.html',
-        ProfilePage
-    )
-    profile_details = URL(
         r'/enp/ensu/chargementprofil.do',
         r'/enp/?$',
         ProfilePage
     )
-    documents = URL(
-        r'/enp/ensu/documents.do',
-        DocumentsPage
-    )
+    documents = URL(r'/enp/ensu/documents.do', DocumentsPage)
 
     def __init__(self, login_source, *args, **kwargs):
         super(ImpotsParBrowser, self).__init__(*args, **kwargs)
@@ -62,7 +54,7 @@ class ImpotsParBrowser(AbstractBrowser):
         self.fc_call('dgfip', 'https://idp.impots.gouv.fr')
         self.login_impots()
         self.fc_redirect(self.page.get_redirect_url())
-        # Needed to set cookies to be able to access profile_details page
+        # Needed to set cookies to be able to access profile page
         # without being disconnected
         self.location('https://cfsfc.impots.gouv.fr/enp/')
 
@@ -88,7 +80,4 @@ class ImpotsParBrowser(AbstractBrowser):
     @need_login
     def get_profile(self):
         self.profile.go()
-        profile = self.page.get_profile()
-        self.profile_details.go()
-        self.page.fill_profile(obj=profile)
-        return profile
+        return self.page.get_profile()
