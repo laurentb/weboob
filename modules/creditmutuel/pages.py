@@ -802,6 +802,11 @@ class OperationsPage(LoggedPage, HTMLPage):
                              for txt in el.itertext() if txt.strip())
                     # Removing empty strings
                     parts = list(filter(bool, parts))
+
+                    # Some transactions have no label
+                    if not parts:
+                        return NotAvailable
+
                     # To simplify categorization of CB, reverse order of parts to separate
                     # location and institution
                     detail = "Cliquer pour déplier ou plier le détail de l'opération"
@@ -812,7 +817,11 @@ class OperationsPage(LoggedPage, HTMLPage):
 
                     return ' '.join(parts)
 
-            obj_raw = Transaction.Raw(OwnRaw())
+            def obj_raw(self):
+                own_raw = self.OwnRaw()(self)
+                if empty(own_raw):
+                    return NotAvailable
+                return Transaction.Raw(self.OwnRaw())(self)
 
     def find_amount(self, title):
         try:
