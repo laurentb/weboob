@@ -122,7 +122,7 @@ class DocumentsPage(LoggedPage, HTMLPage):
                 self.env['label'] = label_ct(self)
 
                 if not date:
-                    year = Regexp(label_ct, '\s(\d{4})\s', default=None)(self)
+                    year = Regexp(label_ct, '\s(\d{4})', default=None)(self)
                     if 'sur les revenus de' in self.env['label']:
                         # this kind of document always appear un july, (but we don't know the day)
                         date = '%s-07-01' % year
