@@ -146,6 +146,11 @@ class CragrAPI(LoginBrowser):
             elif error_type and 'UNAUTHORIZED_ERREUR_TYPE' in error_type:
                 # Usually appears when doing retries after a BrowserUnavailable
                 raise BrowserUnavailable()
+
+            # When a PSD2 SCA is required it also returns a 500, but info is under 'url' key
+            if exc.response.json().get('url') == 'dsp2/informations.html':
+                return self.handle_sca()
+
             raise
 
     def do_login(self):
@@ -171,6 +176,14 @@ class CragrAPI(LoginBrowser):
         self.location(self.accounts_url)
         assert self.accounts_page.is_here(), 'We failed to login after the security check: response URL is %s' % self.url
         # Once the security check is passed, we are logged in.
+
+    def handle_sca(self):
+        """
+        The ActionNeeded is temporary: we are waiting for an account to implement the SCA.
+        We can raise an ActionNeed because a validated SCA is cross web browser: if user performs
+        the SCA on its side there will be no SCA anymore on weboob.
+        """
+        raise ActionNeeded('Vous devez réaliser la double authentification sur le portail internet')
 
     def get_security_form(self):
         headers = {'Referer': self.BASEURL + 'particulier/acceder-a-mes-comptes.html'}
