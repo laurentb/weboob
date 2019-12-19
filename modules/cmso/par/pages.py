@@ -360,6 +360,8 @@ class HistoryPage(LoggedPage, JsonPage):
             obj_raw = Transaction.Raw(Dict('libelleCourt'))
             obj_vdate = Date(Dict('dateValeur', NotAvailable), dayfirst=True, default=NotAvailable)
             obj_amount = CleanDecimal(Dict('montantEnEuro'), default=NotAvailable)
+            # DO NOT USE `OperationID` the ids aren't constant after 1 month. `clefDomirama` seems
+            # to be constant forever. Must be kept under watch though
             obj_id = Dict('clefDomirama', default='')
 
             def parse(self, el):

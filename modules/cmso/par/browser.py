@@ -287,6 +287,7 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
 
         self.history.go(data=json.dumps({"index": account._index}), page="pendingListOperations", headers=self.json_headers)
 
+        # There is no ids for comings, so no check for duplicates
         for key in self.page.get_keys():
             for c in self.page.iter_history(key=key):
                 if hasattr(c, '_deferred_date'):
