@@ -395,6 +395,8 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     def get_measure_accounts_list(self):
         self.home.go()
 
+        owner_name = self.get_profile().name.upper().split(' ', 1)[1]
+
         # Make sure we are on list of measures page
         if self.measure_page.is_here():
             self.page.check_no_accounts()
@@ -403,7 +405,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             for measure_id in measure_ids:
                 self.page.go_measure_accounts_list(measure_id)
                 if self.page.check_measure_accounts():
-                    for account in list(self.page.get_list()):
+                    for account in list(self.page.get_list(owner_name)):
                         account._info['measure_id'] = measure_id
                         self.accounts.append(account)
                 self.page.go_measure_list()

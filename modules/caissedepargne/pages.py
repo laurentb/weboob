@@ -384,6 +384,7 @@ class IndexPage(LoggedPage, HTMLPage):
                 else:
                     # On the same row, there could have many accounts (check account and a card one).
                     # For the card line, the number will be the same than the checking account, so we skip it.
+                    ownership = self.get_ownership(tds, owner_name)
                     if len(tds) > 4:
                         for i, a in enumerate(tds[2].xpath('./a')):
                             label = CleanText('.')(a)
@@ -393,13 +394,13 @@ class IndexPage(LoggedPage, HTMLPage):
                             # checking parent account, we have to skip it.
                             if i == 0:
                                 number = CleanText('.')(tds[-4].xpath('./a')[0])
-                            self._add_account(accounts, a, label, account_type, balance, number)
+                            self._add_account(accounts, a, label, account_type, balance, number, ownership=ownership)
                     # Only 4 tds on "banque de la reunion" website.
                     elif len(tds) == 4:
                         for i, a in enumerate(tds[1].xpath('./a')):
                             label = CleanText('.')(a)
                             balance = CleanText('.')(tds[-1].xpath('./a')[i])
-                            self._add_account(accounts, a, label, account_type, balance)
+                            self._add_account(accounts, a, label, account_type, balance, ownership=ownership)
 
         self.logger.warning('we are on the %s website', 'old' if accounts else 'new')
 
