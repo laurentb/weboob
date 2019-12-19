@@ -40,6 +40,7 @@ from weboob.capabilities.profile import Person
 from weboob.capabilities.contact import Advisor
 from weboob.capabilities import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.capabilities.bank.investments import IsinCode, IsinType
 from weboob.tools.captcha.virtkeyboard import SplitKeyboard
 from weboob.tools.decorators import retry
 from weboob.tools.compat import urlsplit, parse_qsl
@@ -543,7 +544,7 @@ class AccountsPage(LoggedPage, MyHTMLPage):
         'Synthèse': None,  # ignore this title
     }
 
-    PATTERN = [
+    ACCOUNT_PATTERNS = [
         (re.compile(r'.*Titres Pea.*'), Account.TYPE_PEA),
         (re.compile(r".*Plan D'epargne En Actions.*"), Account.TYPE_PEA),
         (re.compile(r".*Compte Especes Pea.*"), Account.TYPE_PEA),
@@ -551,11 +552,12 @@ class AccountsPage(LoggedPage, MyHTMLPage):
         (re.compile(r'.*Titres.*'), Account.TYPE_MARKET),
         (re.compile(r'.*Selection Vie.*'), Account.TYPE_LIFE_INSURANCE),
         (re.compile(r'^Fructi Pulse.*'), Account.TYPE_MARKET),
-        (re.compile(r'^(Quintessa|Solevia).*'), Account.TYPE_LIFE_INSURANCE),
+        (re.compile(r'^(Quintessa|Solevia|Irriga|Delfea).*'), Account.TYPE_LIFE_INSURANCE),
         (re.compile(r'^Plan Epargne Enfant Mul.*'), Account.TYPE_MARKET),
         (re.compile(r'^Alc Premium'), Account.TYPE_MARKET),
         (re.compile(r'^Plan Epargne Enfant Msu.*'), Account.TYPE_LIFE_INSURANCE),
         (re.compile(r'^Parts Sociales.*'), Account.TYPE_MARKET),
+        (re.compile(r'^Contrat Generali.*'), Account.TYPE_LIFE_INSURANCE),
     ]
 
     def pop_up(self):
@@ -619,7 +621,7 @@ class AccountsPage(LoggedPage, MyHTMLPage):
                 account.label = ' '.join([''.join([txt.strip() for txt in tds[1].itertext()]),
                                            ''.join([txt.strip() for txt in tds[2].itertext()])]).strip()
 
-                for pattern, _type in self.PATTERN:
+                for pattern, _type in self.ACCOUNT_PATTERNS:
                     match = pattern.match(account.label)
                     if match:
                         account.type = _type
@@ -1078,7 +1080,19 @@ class NatixisInvestPage(LoggedPage, JsonPage):
             klass = Investment
 
             obj_label = CleanText(Dict('nom'))
-            obj_code = CleanText(Dict('codeIsin'))
+
+            def obj_code(self):
+                # Sometimes the 'codeIsin' key is not even in the JSON
+                code = Dict('codeIsin', default=None)(self)
+                if code:
+                    return IsinCode(CleanText(Dict('codeIsin')), default=NotAvailable)(self)
+                return NotAvailable
+
+            def obj_code_type(self):
+                code = Dict('codeIsin', default=None)(self)
+                if code:
+                    return IsinType(CleanText(Dict('codeIsin')), default=NotAvailable)(self)
+                return NotAvailable
 
             def obj_vdate(self):
                 dt = Dict('dateValeurUniteCompte', default=None)(self)
