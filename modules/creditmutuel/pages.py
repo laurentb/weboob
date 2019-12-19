@@ -794,6 +794,13 @@ class OperationsPage(LoggedPage, HTMLPage):
                 def __call__(self, item):
                     el = TableCell('raw')(item)[0]
 
+                    # All the sub-elements with the class "eir_showxs" are to
+                    # be shown only in mobile screens, and are hidden via
+                    # display:none on desktop.
+                    # Clear their content in place.
+                    for elem in el.xpath(".//node()[contains(@class, \"eir_showxs\")]"):
+                        elem.drop_tree()
+
                     # Remove hidden parts of labels:
                     # hideifscript: Date de valeur XX/XX/XXXX
                     # fd: Avis d'opéré
