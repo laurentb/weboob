@@ -397,7 +397,7 @@ class CBOperationPage(GenericLandingPage):
     @method
     class get_history(Pagination, Transaction.TransactionsElement):
         head_xpath = '//table/thead/tr/th'
-        item_xpath = '//table/tbody/tr[count(td) > 3][count(.//td//a[contains(text(), "Opérations débitées le")])=0]'
+        item_xpath = '//table/tbody/tr[not(has-class("rupture"))]'
         # items to fetch are contained in /tr with at least 4 /td
         # but avoid /tr that are categories such as 'Opérations débitées le ...'
 
@@ -409,7 +409,12 @@ class CBOperationPage(GenericLandingPage):
 
             def obj_date(self):
                 # debit date is guessed in text such as 'Opérations débitées le 05/07'
-                return DateGuesser(Regexp(CleanText(self.xpath('./preceding-sibling::tr[.//a[contains(text(), "Opérations débitées le")]][1]')), r'(\d{2}/\d{2})'), Env("date_guesser"))(self)
+                guessed_date = DateGuesser(Regexp(CleanText(self.xpath('./preceding-sibling::tr[.//a[contains(text(), "Opérations débitées le")]][1]')), r'(\d{2}/\d{2})'), Env("date_guesser"))(self)
+                # Handle the case where the guessed debit date would be before the rdate (happens when
+                # the debit date is in january whereas the rdate is in december).
+                if guessed_date < Field('rdate')(self):
+                    return guessed_date.replace(year=guessed_date.year + 1)
+                return guessed_date
 
     def get_parent_id(self):
         # The parent id is in the details of the card
