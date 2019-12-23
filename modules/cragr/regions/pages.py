@@ -691,11 +691,6 @@ class OtherSavingsHistoryPage(LoggedPage, CragrPage):
                         //tr[contains(@class, "ligne-")]'''
         next_page = Link('//a[@class="liennavigationcorpspage"][img[@alt="Page suivante"]]', default=None)
 
-        def fill_env(self, page, parent=None):
-            # This *Element's parent has only the dateguesser in its env and we want to
-            # use the same object, not copy it.
-            self.env = parent.env
-
         class item(ItemElement):
             klass = Transaction
 
