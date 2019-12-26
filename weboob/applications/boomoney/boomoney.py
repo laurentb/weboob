@@ -27,7 +27,7 @@ from __future__ import print_function
 from threading import Thread, Lock
 import copy
 import sys
-import StringIO
+from io import StringIO
 import os
 import re
 import subprocess
@@ -163,7 +163,7 @@ class HistoryThread(Thread):
                 self.boomoney.importIndex = self.boomoney.importIndex + 1
             return
 
-        boobank.stderr = StringIO.StringIO()
+        boobank.stderr = StringIO()
         boobank.stdout = boobank.stderr
         id, backend = self.account.split("@")
         module_name, foo = boobank.weboob.backends_config.get_backend(backend)
@@ -176,7 +176,7 @@ class HistoryThread(Thread):
         content = ''
         boobank.error = False
         while count <= MAX_RETRIES and not (found and not boobank.error):
-            boobank.options.outfile = StringIO.StringIO()
+            boobank.options.outfile = StringIO()
             boobank.error = False
 
             # executing history command
@@ -205,8 +205,8 @@ class HistoryThread(Thread):
 
         # postprocessing of the ofx content to match MSMoney expectations
         content = re.sub(r'<BALAMT>Not loaded', r'<BALAMT></BALAMT>', content)
-        input = StringIO.StringIO(content)
-        output = StringIO.StringIO()
+        input = StringIO(content)
+        output = StringIO()
         field = {}
         fields = ' '
         for line in input:
@@ -464,7 +464,7 @@ class Boomoney(Boobank):
 
     def getList(self):
         self.onecmd("select id label")
-        self.options.outfile = StringIO.StringIO()
+        self.options.outfile = StringIO()
         self.onecmd("list")
         listContent = self.options.outfile.getvalue()
         self.options.outfile.close()

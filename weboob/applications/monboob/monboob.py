@@ -21,8 +21,8 @@ from __future__ import print_function
 
 from email.mime.text import MIMEText
 from smtplib import SMTP
-from email.Header import Header, decode_header
-from email.Utils import parseaddr, formataddr, formatdate
+from email.header import Header, decode_header
+from email.utils import parseaddr, formataddr, formatdate
 from email import message_from_file, message_from_string
 from smtpd import SMTPServer
 import time

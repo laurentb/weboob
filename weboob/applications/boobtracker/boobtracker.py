@@ -21,7 +21,7 @@ from __future__ import print_function
 
 from datetime import timedelta
 from email import message_from_string, message_from_file
-from email.Header import decode_header
+from email.header import decode_header
 from email.mime.text import MIMEText
 from smtplib import SMTP
 import os
