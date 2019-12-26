@@ -409,7 +409,7 @@ class LoanPage(LoggedPage, HTMLPage):
 
         obj_id = CleanText('//h3[contains(@class, "account-number")]/strong')
         obj_label =  CleanText('//h2[contains(@class, "page-title__account")]//*[@class="account-edit-label"]/span[1]')
-        obj_currency = CleanCurrency('//div[contains(text(), "Montant emprunt")]/following-sibling::div')
+        obj_currency = CleanCurrency('//p[contains(text(), "Solde impayé")]/span')
         obj_duration = CleanDecimal.French('//p[contains(text(), "échéances restantes")]/span', default=NotAvailable)
         obj_rate = CleanDecimal.French('//p[contains(text(), "Taux nominal en vigueur du prêt")]/span', default=NotAvailable)
         obj_nb_payments_left = CleanDecimal.French('//p[contains(text(), "échéances restantes")]/span', default=NotAvailable)
