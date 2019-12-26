@@ -648,7 +648,7 @@ class BProBrowser(BPBrowser):
         if error:
             if 'veuillez-vous rapprocher du mandataire principal de votre contrat' in error.lower():
                 raise ActionNeeded(error)
-        raise BrowserUnavailable(error or '')
+            raise BrowserUnavailable(error)
 
     @need_login
     def get_accounts_list(self):
