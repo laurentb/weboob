@@ -1994,7 +1994,7 @@ class RevolvingLoansList(LoggedPage, HTMLPage):
                     async_page = Async('details').loaded_page(self)
                     return MyDecimal(
                         Format('-%s',CleanText('//main[@id="ei_tpl_content"]/div/div[2]/table//tr[2]/td[1]')))(async_page)
-                return Field('used_amount')(self)
+                return -Field('used_amount')(self)
 
             def obj_available_amount(self):
                 if self.async_load:
