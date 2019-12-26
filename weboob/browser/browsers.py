@@ -1178,6 +1178,7 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
         This method must implement polling.
 
         It's used when an AppValidation has been raised.
+        It's possible to set another name, instead of `resume` by setting RESUME_NAME.
         """
         raise NotImplementedError()
 
@@ -1185,7 +1186,11 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
         """
         This method must send the `code` entered by the PSU to the bank.
 
+        The difference with `handle_otp` method is that this one should be used
+        to specifically handle SMS code.
+
         It's used when a BrowserQuestion has been raised and a `code` is set.
+        It's possible to set another name, instead of `code` by setting SMS_NAME.
         """
         raise NotImplementedError()
 
@@ -1193,7 +1198,11 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
         """
         This method must send the `otp` entered by the PSU to the bank.
 
+        The difference with `handle_sms` method is that this one should be used
+        to handle tokens, for example a LuxTrust token, or any non SMS OTP.
+
         It's used when a BrowserQuestion has been raised and an `otp` is set.
+        It's possible to set another name, instead of `otp` by setting OTP_NAME.
         """
         raise NotImplementedError()
 
