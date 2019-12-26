@@ -426,6 +426,9 @@ class LoanPage(LoggedPage, HTMLPage):
         def obj_maturity_date(self):
             maturity_date = CleanText('//p[contains(text(), "échéance finale")]/span')(self)
             if maturity_date:
+                # Sometimes there is no maturity date, so instead there is just a dash
+                if maturity_date == '-':
+                    return NotAvailable
                 return Date(CleanText('//p[contains(text(), "échéance finale")]/span'), parse_func=parse_french_date)(self)
             return Date(Regexp(CleanText('//p[contains(text(), "date de votre dernière échéance")]'), r'(\d.*)'), parse_func=parse_french_date, default=NotAvailable)(self)
 
