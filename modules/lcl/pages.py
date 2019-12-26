@@ -464,11 +464,12 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
 
         class item(Transaction.TransactionElement):
             def load_details(self):
-                link = Attr('.', 'href', default=None)(self)
-                if not link:
-                    self.logger.warning('Found operation without detail url.')
-                    return None
-                return self.page.browser.async_open(link, method='POST')
+                row = Attr('.', 'id', default=None)(self)
+                assert row, 'HTML format of transactions details changed'
+                return self.page.browser.async_open(
+                    '/outil/UWLM/ListeMouvementsParticulier/accesDetailsMouvement?element=%s' % row,
+                    method='POST',
+                )
 
             def obj_type(self):
                 type = Async('details', CleanText(u'//td[contains(text(), "Nature de l\'opération")]/following-sibling::*[1]'))(self)

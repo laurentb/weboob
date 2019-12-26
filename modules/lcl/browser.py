@@ -71,7 +71,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
     accounts = URL(r'/outil/UWSP/Synthese', AccountsPage)
     client = URL(r'/outil/uwho', ClientPage)
     history = URL(
-        r'/outil/UWLM/ListeMouvements.*/accesListeMouvements.*',
+        r'/outil/UWLM/ListeMouvements.*/acces(ListeMouvements|DetailsMouvement).*',
         r'/outil/UWLM/DetailMouvement.*/accesDetailMouvement.*',
         r'/outil/UWLM/Rebond',
         AccountHistoryPage)
