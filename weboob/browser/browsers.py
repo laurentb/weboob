@@ -1173,6 +1173,9 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
     SMS_NAME = 'code'
     OTP_NAME = 'otp'
 
+    # list of cookie keys to clear before dumping state
+    COOKIES_TO_CLEAR = ()
+
     def __init__(self, config, *args, **kwargs):
         super(TwoFactorBrowser, self).__init__(*args, **kwargs)
         self.config = config
@@ -1225,9 +1228,19 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
         """
         raise NotImplementedError()
 
-    def clear_cookies(self):
+    def clear_init_cookies(self):
         # clear cookies to avoid some errors
         self.session.cookies.clear()
+
+    def clear_cookies(self):
+        # clear cookies that we don't need for 2FA
+        for cookie_key in self.COOKIES_TO_CLEAR:
+            if cookie_key in self.session.cookies:
+                del self.session.cookies[cookie_key]
+
+    def dump_state(self):
+        self.clear_cookies()
+        return super(TwoFactorBrowser, self).dump_state()
 
     def handle_login(self):
         # handle validation on app
@@ -1247,7 +1260,7 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
             # the user must be present on a login because there is always a 2FA
             raise NeedInteractiveFor2FA()
         else:
-            self.clear_cookies()
+            self.clear_init_cookies()
             self.init_login()
 
     do_login = handle_login
