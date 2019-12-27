@@ -264,7 +264,19 @@ class AccountsPage(LoggedPage, JsonPage):
 
         obj_id = CleanText(Dict('comptePrincipal/numeroCompte'))
         obj_number = CleanText(Dict('comptePrincipal/numeroCompte'))
-        obj_label = CleanText(Dict('comptePrincipal/libelleProduit'))
+
+        def obj_owner_type(self):
+            return self.page.get_owner_type()
+
+        def obj_label(self):
+            if Field('owner_type')(self) == AccountOwnerType.PRIVATE:
+                # All the accounts have the same owner if it is private,
+                # so adding the owner in the libelle is useless.
+                return CleanText(Dict('comptePrincipal/libelleProduit'))(self)
+            return Format('%s %s',
+                CleanText(Dict('comptePrincipal/libelleProduit')),
+                CleanText(Dict('comptePrincipal/libellePartenaireBam')),
+            )(self)
 
         def obj_balance(self):
             balance = Dict('comptePrincipal/solde', default=NotAvailable)(self)
@@ -333,7 +345,6 @@ class AccountsPage(LoggedPage, JsonPage):
                 return CleanText(Dict('numeroCompte'))(self)
 
             obj_number = CleanText(Dict('numeroCompte'))
-            obj_label = CleanText(Dict('libelleProduit'))
             obj_currency = CleanCurrency(Dict('idDevise'))
             obj__index = Dict('index')
             obj__category = Coalesce(
@@ -343,6 +354,19 @@ class AccountsPage(LoggedPage, JsonPage):
             obj__id_element_contrat = CleanText(Dict('idElementContrat'))
             obj__fam_product_code = CleanText(Dict('codeFamilleProduitBam'))
             obj__fam_contract_code = CleanText(Dict('codeFamilleContratBam'))
+
+            def obj_owner_type(self):
+                return self.page.get_owner_type()
+
+            def obj_label(self):
+                if Field('owner_type')(self) == AccountOwnerType.PRIVATE:
+                    # All the accounts have the same owner if it is private,
+                    # so adding the owner in the libelle is useless.
+                    return CleanText(Dict('libelleProduit'))(self)
+                return Format('%s %s',
+                    CleanText(Dict('libelleProduit')),
+                    CleanText(Dict('libellePartenaireBam')),
+                )(self)
 
             def obj_type(self):
                 if CleanText(Dict('libelleUsuelProduit'))(self) in ('HABITATION',):

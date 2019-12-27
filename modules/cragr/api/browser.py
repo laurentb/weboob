@@ -272,7 +272,6 @@ class CragrAPI(LoginBrowser):
                         card._contract = contract
                         deferred_cards[card.id] = card
 
-                main_account.owner_type = self.page.get_owner_type()
                 main_account._contract = contract
             else:
                 main_account = None
@@ -281,7 +280,6 @@ class CragrAPI(LoginBrowser):
             accounts_list = list(self.page.iter_accounts())
             for account in accounts_list:
                 account._contract = contract
-                account.owner_type = self.page.get_owner_type()
 
             ''' Other accounts have no balance in the main JSON, so we must get all
             the (_id_element_contrat, balance) pairs in the account_details JSON.
