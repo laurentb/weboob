@@ -46,7 +46,10 @@ try:
 except ImportError:
     raise ImportError('Please install python3-requests >= 2.0')
 
-from weboob.exceptions import BrowserHTTPSDowngrade, ModuleInstallError, BrowserRedirect, BrowserIncorrectPassword
+from weboob.exceptions import (
+    BrowserHTTPSDowngrade, ModuleInstallError, BrowserRedirect, BrowserIncorrectPassword,
+    NeedInteractiveFor2FA
+)
 
 from weboob.tools.log import getLogger
 from weboob.tools.compat import basestring, unicode, urlparse, urljoin, urlencode, parse_qsl
@@ -1165,6 +1168,7 @@ class OAuth2PKCEMixin(OAuth2Mixin):
 class TwoFactorBrowser(LoginBrowser, StatesMixin):
     STATE_DURATION = 60 * 24 * 90
 
+    INTERACTIVE_NAME = 'request_information'
     RESUME_NAME = 'resume'
     SMS_NAME = 'code'
     OTP_NAME = 'otp'
@@ -1172,6 +1176,7 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
     def __init__(self, config, *args, **kwargs):
         super(TwoFactorBrowser, self).__init__(*args, **kwargs)
         self.config = config
+        self.interactive = config.get(self.INTERACTIVE_NAME, Value()).get() is not None
 
     def handle_polling(self):
         """
@@ -1238,6 +1243,9 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
             self.handle_sms()
         elif self.otp:
             self.handle_otp()
+        elif not self.interactive:
+            # the user must be present on a login because there is always a 2FA
+            raise NeedInteractiveFor2FA()
         else:
             self.clear_cookies()
             self.init_login()
