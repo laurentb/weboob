@@ -53,6 +53,9 @@ class LoginPage(SeleniumPage):
 
         el.send_keys(Keys.RETURN)
 
+    def get_error(self):
+        return CleanText('//h1[contains(@class, "Notification-caption")]')(self.doc)
+
 
 class AccueilPage(LoggedPage, SeleniumPage):
     is_here = VisibleXPath('//div[@id="Menu-responsive"]')

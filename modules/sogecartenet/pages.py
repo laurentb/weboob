@@ -33,7 +33,10 @@ from .ent_pages import LoginPage as _LoginPage
 
 class LoginPage(_LoginPage):
     def get_error(self):
-        return CleanText('//div[@id="labelQuestion"]')(self.doc)
+        return (
+            CleanText('//div[@id="labelQuestion"]')(self.doc)
+            or CleanText('//h1[contains(@class, "Notification-caption")]')(self.doc)
+        )
 
 
 class PreLoginPage(SeleniumPage):

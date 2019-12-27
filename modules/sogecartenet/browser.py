@@ -17,10 +17,12 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 from datetime import date
 
 from weboob.browser import URL, need_login
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from weboob.browser.selenium import (
     SeleniumBrowser, webdriver, AnyCondition, IsHereCondition,
     VisibleXPath,
@@ -61,10 +63,18 @@ class SogecarteTitulaireBrowser(SeleniumBrowser):
         self.wait_until(AnyCondition(
             IsHereCondition(self.accueil),
             VisibleXPath('//div[@id="labelQuestion"]'),
+            VisibleXPath('//div[contains(@class, "Notification-error-message")]'),
         ))
 
         if not self.accueil.is_here():
-            raise BrowserIncorrectPassword(self.page.get_error())
+            assert self.login.is_here(), 'We landed on an unknown page'
+            error = self.page.get_error()
+            if any((
+                'Votre compte a été désactivé' in error,
+                'Votre compte est bloqué' in error,
+            )):
+                raise ActionNeeded(error)
+            raise BrowserIncorrectPassword(error)
 
     @need_login
     def iter_accounts(self):
