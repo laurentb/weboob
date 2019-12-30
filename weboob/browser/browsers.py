@@ -1169,9 +1169,11 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
     STATE_DURATION = 60 * 24 * 90
 
     INTERACTIVE_NAME = 'request_information'
-    RESUME_NAME = 'resume'
-    SMS_NAME = 'code'
-    OTP_NAME = 'otp'
+    AUTHENTICATION_METHODS = OrderedDict([
+        ('resume', 'polling'),
+        ('code', 'sms'),
+        ('otp', None),
+    ])
 
     # list of cookie keys to clear before dumping state
     COOKIES_TO_CLEAR = ()
@@ -1190,7 +1192,6 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
         This method must implement polling.
 
         It's used when an AppValidation has been raised.
-        It's possible to set another name, instead of `resume` by setting RESUME_NAME.
         """
         raise NotImplementedError()
 
@@ -1202,7 +1203,6 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
         to specifically handle SMS code.
 
         It's used when a BrowserQuestion has been raised and a `code` is set.
-        It's possible to set another name, instead of `code` by setting SMS_NAME.
         """
         raise NotImplementedError()
 
@@ -1214,7 +1214,6 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
         to handle tokens, for example a LuxTrust token, or any non SMS OTP.
 
         It's used when a BrowserQuestion has been raised and an `otp` is set.
-        It's possible to set another name, instead of `otp` by setting OTP_NAME.
         """
         raise NotImplementedError()
 
@@ -1251,19 +1250,18 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
             raise NeedInteractiveFor2FA()
 
     def handle_login(self):
-        # handle validation on app
-        self.resume = self.config.get(self.RESUME_NAME, Value()).get()
-        # handle SMS
-        self.code = self.config.get(self.SMS_NAME, Value()).get()
-        # handle token
-        self.otp = self.config.get(self.OTP_NAME, Value()).get()
+        """
+        This method will check AUTHENTICATION_METHODS
+        to dispatch to the right handle_* method.
 
-        if self.resume:
-            self.handle_polling()
-        elif self.code:
-            self.handle_sms()
-        elif self.otp:
-            self.handle_otp()
+        If no backend configuration could be found,
+        it will then call init_login method.
+        """
+        for config_key, handle_method in self.AUTHENTICATION_METHODS.items():
+            setattr(self, config_key, self.config.get(config_key, Value()).get())
+            if getattr(self, config_key):
+                getattr(self, 'handle_' + (handle_method or config_key))()
+                break
         else:
             if not self.HAS_REGULAR_LOGIN:
                 self.check_interactive()
