@@ -56,6 +56,8 @@ __all__ = ['SocieteGenerale']
 
 
 class SocieteGenerale(TwoFactorBrowser):
+    HAS_REGULAR_LOGIN = True
+
     BASEURL = 'https://particuliers.societegenerale.fr'
     # XXX STATE_DURATION was 5 minutes for transfers purposes...
 
@@ -152,7 +154,9 @@ class SocieteGenerale(TwoFactorBrowser):
         if not self.username.isdigit() or len(self.username) < 8:
             raise BrowserIncorrectPassword()
 
-    def check_login_reason(self, reason):
+    def check_login_reason(self):
+        reason = self.page.get_reason()
+
         if reason == 'echec_authent':
             raise BrowserIncorrectPassword()
         elif reason in ('acces_bloq', 'acces_susp', 'pas_acces_bad', ):
@@ -162,9 +166,11 @@ class SocieteGenerale(TwoFactorBrowser):
             # in SG website in that case ...
             raise BrowserUnavailable()
 
-    def check_auth_method(self, auth_method):
+    def check_auth_method(self):
+        auth_method = self.page.get_auth_method()
+
         if not auth_method:
-            self.logger.warning('Not auth method available !')
+            self.logger.warning('No auth method available !')
             raise ActionNeeded(
                 'Veuillez ajouter un numéro de téléphone sur votre banque et/ou activer votre Pass Sécurité'
             )
@@ -225,8 +231,11 @@ class SocieteGenerale(TwoFactorBrowser):
 
         assert self.login.is_here(), "An error has occured, we should be on login page."
 
-        self.check_login_reason(self.page.get_reason())
-        self.check_auth_method(self.page.get_auth_method())
+        self.check_login_reason()
+
+        if self.page.has_twofactor():
+            self.check_interactive()
+            self.check_auth_method()
 
     def check_polling_errors(self, status):
         if status == "rejected":

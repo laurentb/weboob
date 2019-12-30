@@ -136,6 +136,10 @@ class LoginPage(JsonPage):
         if Dict('commun/statut')(self.doc).lower() != 'ok':
             return Dict('commun/raison')(self.doc)
 
+    def has_twofactor(self):
+        # no auth method, probably no 2FA
+        return bool(Dict('chgtnivauth', default=None)(self.doc))
+
     def get_auth_method(self):
         data = Dict('chgtnivauth')(self.doc)
         if data['status'].lower() != 'ok':
