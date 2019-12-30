@@ -1176,6 +1176,10 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
     # list of cookie keys to clear before dumping state
     COOKIES_TO_CLEAR = ()
 
+    # handle both 2FA and regular login methods by preventing
+    # NeedInteractiveFor2FA exception to be raised
+    HAS_REGULAR_LOGIN = False
+
     def __init__(self, config, *args, **kwargs):
         super(TwoFactorBrowser, self).__init__(*args, **kwargs)
         self.config = config
@@ -1242,6 +1246,10 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
         self.clear_cookies()
         return super(TwoFactorBrowser, self).dump_state()
 
+    def check_interactive(self):
+        if not self.interactive:
+            raise NeedInteractiveFor2FA()
+
     def handle_login(self):
         # handle validation on app
         self.resume = self.config.get(self.RESUME_NAME, Value()).get()
@@ -1256,10 +1264,10 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
             self.handle_sms()
         elif self.otp:
             self.handle_otp()
-        elif not self.interactive:
-            # the user must be present on a login because there is always a 2FA
-            raise NeedInteractiveFor2FA()
         else:
+            if not self.HAS_REGULAR_LOGIN:
+                self.check_interactive()
+
             self.clear_init_cookies()
             self.init_login()
 
