@@ -128,7 +128,8 @@ class SocieteGenerale(TwoFactorBrowser):
     login = URL(r'https://particuliers.societegenerale.fr//sec/vk/',  # yes, it works only with double slash
                 r'/sec/oob_sendooba.json',
                 r'/sec/oob_pollingooba.json',
-                r'/sec/oob_auth.json', LoginPage)
+                r'/sec/oob_auth.json',
+                r'/sec/csa/check.json', LoginPage)
     main_page = URL(r'https://particuliers.societegenerale.fr', MainPage)
 
     context = None
@@ -145,7 +146,7 @@ class SocieteGenerale(TwoFactorBrowser):
     def locate_browser(self, state):
         if self.transfer_condition(state):
             self.location('/com/icd-web/cbo/index.html')
-        else:
+        elif all(url not in state['url'] for url in self.login.urls):
             super(SocieteGenerale, self).locate_browser(state)
 
     def check_password(self):
@@ -204,11 +205,12 @@ class SocieteGenerale(TwoFactorBrowser):
         elif auth_method['type_proc'].lower() == 'auth_csa':
             if auth_method['mode'] == "SMS":
                 self.location(
-                    '/app/auth/sec/csa/send.json',
+                    '/sec/csa/send.json',
+                    data={'csa_op': "auth",}
                 )
                 raise BrowserQuestion(
                     Value(
-                        'code_directaccess',
+                        'code',
                         label='Entrez le Code Sécurité reçu par SMS sur le numéro ' + auth_method['ts']
                     )
                 )
@@ -276,6 +278,21 @@ class SocieteGenerale(TwoFactorBrowser):
             raise BrowserUnavailable()
 
         self.polling_transaction = None
+
+    def handle_sms(self):
+        if len(self.code) != 6:
+            raise BrowserIncorrectPassword(
+                'Le Code Sécurité doit avoir une taille de 6 caractères'
+            )
+
+        data = {
+            'code': self.code,
+            'csa_op': "auth",
+        }
+        self.location('/sec/csa/check.json', data=data)
+
+        if self.page.doc.get('commun', {}).get('statut').lower() == "nok":
+            raise BrowserIncorrectPassword('Le Code Sécurité est invalide')
 
     def iter_cards(self, account):
         for el in account._cards:
