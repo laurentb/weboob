@@ -198,9 +198,12 @@ class SocieteGenerale(TwoFactorBrowser):
                 )
                 self.polling_duration = int((expiration_date - now).total_seconds())
 
-            raise AppValidation(
-                'Veuillez valider l\'opération dans votre application sur ' + auth_method['terminal'][0]['nom']
-            )
+            message = "Veuillez valider l'opération dans votre application"
+            terminal_name = auth_method['terminal'][0]['nom']
+            if terminal_name:
+                message += " sur " + terminal_name
+
+            raise AppValidation(message)
 
         elif auth_method['type_proc'].lower() == 'auth_csa':
             if auth_method['mode'] == "SMS":
