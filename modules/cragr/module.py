@@ -20,7 +20,6 @@
 from __future__ import unicode_literals
 
 
-import re
 from datetime import date
 from collections import OrderedDict
 
@@ -197,10 +196,6 @@ class CreditAgricoleModule(Module, CapBankWealth, CapBankTransferAddRecipient, C
         return self.browser.new_recipient(recipient, **params)
 
     def init_transfer(self, transfer, **params):
-        def to_ascii(s):
-            return s.encode('ascii', errors='ignore').decode('ascii')
-        if transfer.label:
-            transfer.label = re.sub(r'[+!]', '', to_ascii(transfer.label[:33]))
         return self.browser.init_transfer(transfer, **params)
 
     def execute_transfer(self, transfer, **params):

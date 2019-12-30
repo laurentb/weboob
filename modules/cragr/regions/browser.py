@@ -762,6 +762,11 @@ class CragrRegion(LoginBrowser):
         self.page.submit_accounts(transfer.account_id, transfer.recipient_id, transfer.amount, currency)
 
         assert self.page.is_reason()
+
+        if transfer.label:
+            label = transfer.label[:33].encode('ascii', errors='ignore').decode('ascii')
+            transfer.label = re.sub(r'[+!]', '', label)
+
         self.page.submit_more(transfer.label, transfer.exec_date)
 
         assert self.page.is_confirm()

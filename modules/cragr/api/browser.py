@@ -725,6 +725,10 @@ class CragrAPI(LoginBrowser):
         token = self.token_page.go().get_token()
         transfer_token = self.transfer_token.go(space=space, op=operation, headers={'Referer': referer}).get_token()
 
+        if transfer.label:
+            label = transfer.label[:33].encode('ISO-8859-15', errors='ignore').decode('ISO-8859-15')
+            transfer.label = re.sub(r'[+!]', '', label)
+
         data = {
             'connexionId': connection_id,
             'cr': self.session.cookies['caisse-regionale'],
