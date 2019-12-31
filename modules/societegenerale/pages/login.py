@@ -76,15 +76,15 @@ class MainPage(BasePage, PasswordPage):
     def get_url(self, path):
         return (self.browser.BASEURL + self.PREFIX_URL + path)
 
-    def get_authentication_infos(self):
+    def get_keyboard_infos(self):
         url = self.get_url('/vkm/gen_crypto?estSession=0')
         infos_data = self.browser.open(url).text
         infos_data = re.match('^_vkCallback\((.*)\);$', infos_data).group(1)
         infos = json.loads(infos_data.replace("'", '"'))
         return infos
 
-    def get_authentication_data(self):
-        infos = self.get_authentication_infos()
+    def get_keyboard_data(self):
+        infos = self.get_keyboard_infos()
 
         infos['grid'] = self.decode_grid(infos)
 
@@ -104,9 +104,9 @@ class MainPage(BasePage, PasswordPage):
         }
 
     def login(self, login, password):
-        authentication_data = self.get_authentication_data()
+        keyboard_data = self.get_keyboard_data()
 
-        pwd = authentication_data['img'].get_codes(password[:6])
+        pwd = keyboard_data['img'].get_codes(password[:6])
         t = pwd.split(',')
         newpwd = ','.join(t[self.strange_map[j]] for j in range(6))
 
@@ -117,7 +117,7 @@ class MainPage(BasePage, PasswordPage):
             'cible': 300,
             'user_id': login.encode('iso-8859-1'),
             'codsec': newpwd,
-            'cryptocvcs': authentication_data['infos']['crypto'].encode('iso-8859-1'),
+            'cryptocvcs': keyboard_data['infos']['crypto'].encode('iso-8859-1'),
             'vkm_op': 'auth',
         }
         self.browser.location(self.get_url('/vk/authent.json'), data=data)

@@ -164,10 +164,10 @@ class TransferPage(LoggedPage, ErrorCheckedJsonPage):
 
 class SignTransferPage(LoggedPage, LoginPage):
     def get_confirm_transfer_data(self, password):
-        authentication_data = self.get_authentication_data()
+        keyboard_data = self.get_keyboard_data()
         return {
-            'codsec': authentication_data['img'].get_codes(password[:6]),
-            'cryptocvcs': authentication_data['infos']['crypto'],
+            'codsec': keyboard_data['img'].get_codes(password[:6]),
+            'cryptocvcs': keyboard_data['infos']['crypto'],
             'vk_op': 'sign',
         }
 

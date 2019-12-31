@@ -110,15 +110,15 @@ class LoginPage(SGPEPage):
     def get_url(self, path):
         return (self.browser.BASEURL + self.PREFIX_URL + path)
 
-    def get_authentication_infos(self):
+    def get_keyboard_infos(self):
         url = self.get_url('/vk/gen_crypto?estSession=0')
         infos_data = self.browser.open(url).text
         infos_data = re.match('^_vkCallback\((.*)\);$', infos_data).group(1)
         infos = json.loads(infos_data.replace("'", '"'))
         return infos
 
-    def get_authentication_data(self):
-        infos = self.get_authentication_infos()
+    def get_keyboard_data(self):
+        infos = self.get_keyboard_infos()
 
         url = self.get_url('/vk/gen_ui?modeClavier=0&cryptogramme=' + infos['crypto'])
         img = Captcha(BytesIO(self.browser.open(url).content), infos)
@@ -138,16 +138,20 @@ class LoginPage(SGPEPage):
     def get_authentication_url(self):
         return self.browser.absurl('/authent.html')
 
-    def login(self, login, password):
-        authentication_data = self.get_authentication_data()
-
-        data = {
+    def get_authentication_data(self, login, password):
+        keyboard_data = self.get_keyboard_data()
+        return {
             'user_id': login,
-            'codsec': authentication_data['img'].get_codes(password[:6]),
-            'cryptocvcs': authentication_data['infos']['crypto'],
+            'codsec': keyboard_data['img'].get_codes(password[:6]),
+            'cryptocvcs': keyboard_data['infos']['crypto'],
             'vk_op': 'auth',
         }
-        self.browser.location(self.get_authentication_url(), data=data)
+
+    def login(self, login, password):
+        self.browser.location(
+            self.get_authentication_url(),
+            data=self.get_authentication_data(login, password)
+        )
 
 
 class CardsPage(LoggedPage, SGPEPage):

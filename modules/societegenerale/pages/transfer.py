@@ -158,15 +158,15 @@ class SignTransferPage(LoggedPage, MainPage):
 
     def get_confirm_transfer_data(self, password):
         token = self.get_token()
-        authentication_data = self.get_authentication_data()
+        keyboard_data = self.get_keyboard_data()
 
-        pwd = authentication_data['img'].get_codes(password[:6])
+        pwd = keyboard_data['img'].get_codes(password[:6])
         t = pwd.split(',')
         newpwd = ','.join(t[self.strange_map[j]] for j in range(6))
 
         return {
             'codsec': newpwd,
-            'cryptocvcs': authentication_data['infos']['crypto'].encode('iso-8859-1'),
+            'cryptocvcs': keyboard_data['infos']['crypto'].encode('iso-8859-1'),
             'vkm_op': 'sign',
             'cl1000_jtn': token,
         }
