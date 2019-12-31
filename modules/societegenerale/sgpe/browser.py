@@ -22,7 +22,7 @@ from __future__ import unicode_literals
 from datetime import date
 from dateutil.relativedelta import relativedelta
 
-from weboob.browser.browsers import LoginBrowser, need_login, StatesMixin
+from weboob.browser.browsers import LoginBrowser, need_login
 from weboob.browser.url import URL
 from weboob.browser.exceptions import ClientError
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded, NoAccountsException
@@ -34,9 +34,9 @@ from weboob.capabilities.bank import (
 from weboob.tools.value import Value
 
 from .pages import (
-    LoginPage, CardsPage, CardHistoryPage, IncorrectLoginPage,
-    ProfileProPage, ProfileEntPage, ChangePassPage, SubscriptionPage, InscriptionPage,
-    ErrorPage, UselessPage, MainPage,
+    LoginEntPage, CardsPage, CardHistoryPage, ProfileProPage,
+    ProfileEntPage, ChangePassPage, SubscriptionPage, InscriptionPage,
+    ErrorPage, UselessPage, MainPage, MainProPage, LoginProPage,
 )
 from .json_pages import (
     AccountsJsonPage, BalancesJsonPage, HistoryJsonPage, BankStatementPage,
@@ -47,12 +47,14 @@ from .transfer_pages import (
     AddRecipientPage, AddRecipientStepPage, ConfirmRecipientPage,
 )
 
+from ..browser import SocieteGenerale as SocieteGeneraleParBrowser
+
 
 __all__ = ['SGProfessionalBrowser', 'SGEnterpriseBrowser']
 
 
 class SGPEBrowser(LoginBrowser):
-    login = URL('$', LoginPage)
+    login = URL('$')
     cards = URL('/Pgn/.+PageID=Cartes&.+', CardsPage)
     cards_history = URL('/Pgn/.+PageID=ReleveCarte&.+', CardHistoryPage)
     change_pass = URL('/gao/changer-code-secret-expire-saisie.html',
@@ -137,6 +139,7 @@ class SGEnterpriseBrowser(SGPEBrowser):
     MENUID = 'BANREL'
     CERTHASH = '2231d5ddb97d2950d5e6fc4d986c23be4cd231c31ad530942343a8fdcc44bb99'
 
+    login = URL('$', LoginEntPage)
     main_page = URL('/icd-web/syd-front/index-comptes.html', MainPage)
 
     accounts = URL('/icd/syd-front/data/syd-comptes-accederDepuisMenu.json', AccountsJsonPage)
@@ -246,13 +249,19 @@ class SGEnterpriseBrowser(SGPEBrowser):
         self.subscription_form.go(data=data)
         return self.page.iter_documents(sub_id=subscription.id)
 
-class SGProfessionalBrowser(SGEnterpriseBrowser, StatesMixin):
+
+class SGProfessionalBrowser(SGEnterpriseBrowser, SocieteGeneraleParBrowser):
     BASEURL = 'https://professionnels.secure.societegenerale.fr'
     MENUID = 'SBOREL'
     CERTHASH = '9f5232c9b2283814976608bfd5bba9d8030247f44c8493d8d205e574ea75148e'
-    STATE_DURATION = 5
 
-    incorrect_login = URL(r'/authent.html', IncorrectLoginPage)
+    login = URL(r'/sec/vk/authent.json',
+                r'/sec/oob_sendooba.json',
+                r'/sec/oob_pollingooba.json',
+                r'/sec/oob_auth.json',
+                r'/sec/csa/send.json',
+                r'/sec/csa/check.json', LoginProPage)
+
     profile = URL(r'/gao/modifier-donnees-perso-saisie.html', ProfileProPage)
 
     transfer_dates = URL(r'/ord-web/ord//get-dates-execution.json', TransferDatesPage)
@@ -282,21 +291,19 @@ class SGProfessionalBrowser(SGEnterpriseBrowser, StatesMixin):
     markets_page = URL(r'/icd/npe/data/comptes-titres/findComptesTitresClasseurs-authsec.json', MarketAccountPage)
     investments_page = URL(r'/icd/npe/data/comptes-titres/findLignesCompteTitre-authsec.json', MarketInvestmentPage)
 
+    main_page = URL(r'https://professionnels.secure.societegenerale.fr',
+                    r'/sec/vk/gen_', MainProPage)
+
     date_max = None
     date_min = None
 
     new_rcpt_token = None
     new_rcpt_validate_form = None
-    need_reload_state = None
 
-    __states__ = ['need_reload_state', 'new_rcpt_token', 'new_rcpt_validate_form']
+    __states__ = ('new_rcpt_token', 'new_rcpt_validate_form', 'polling_transaction',)
 
-    def load_state(self, state):
-        # reload state only for new recipient feature
-        if state.get('need_reload_state'):
-            state.pop('url', None)
-            self.need_reload_state = None
-            super(SGProfessionalBrowser, self).load_state(state)
+    def do_login(self):
+        return super(SocieteGeneraleParBrowser, self).do_login()
 
     @need_login
     def iter_market_accounts(self):
@@ -416,7 +423,6 @@ class SGProfessionalBrowser(SGEnterpriseBrowser, StatesMixin):
         self.new_rcpt_validate_form.update(data)
 
         rcpt = self.copy_recipient_obj(recipient)
-        self.need_reload_state = True
         raise AddRecipientStep(rcpt, Value('code', label='Veuillez entrer le code reçu par SMS.'))
 
     @need_login

@@ -39,6 +39,7 @@ from weboob.tools.json import json
 from weboob.capabilities.base import NotAvailable
 
 from ..captcha import Captcha, TileError
+from ..pages.login import LoginPage as LoginParPage
 
 
 class Transaction(FrenchTransaction):
@@ -96,7 +97,7 @@ class ChangePassPage(SGPEPage):
         raise ActionNeeded(message)
 
 
-class LoginPage(SGPEPage):
+class LoginEntPage(SGPEPage):
     """
     be carefull : those differents methods and PREFIX_URL are used
     in another page of an another module which is an abstract of this page
@@ -152,6 +153,27 @@ class LoginPage(SGPEPage):
             self.get_authentication_url(),
             data=self.get_authentication_data(login, password)
         )
+
+
+class MainProPage(LoginEntPage):
+    def get_authentication_url(self):
+        return self.browser.absurl('/sec/vk/authent.json')
+
+    def login(self, login, password):
+        authentication_data = self.get_authentication_data(login, password)
+        authentication_data.update({
+            'top_code_etoile': 0,
+            'top_ident': 0,
+            'cible': 300,
+        })
+        self.browser.location(
+            self.get_authentication_url(),
+            data=authentication_data
+        )
+
+
+class LoginProPage(LoginParPage):
+    pass
 
 
 class CardsPage(LoggedPage, SGPEPage):

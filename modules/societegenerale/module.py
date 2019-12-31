@@ -69,7 +69,7 @@ class SocieteGeneraleModule(Module, CapBankWealth, CapBankTransferAddRecipient, 
         browsers = {'par': SocieteGenerale, 'pro': SGProfessionalBrowser, 'ent': SGEnterpriseBrowser}
         self.BROWSER = browsers[website]
 
-        if website in ('par',):
+        if website in ('par', 'pro',):
             return self.create_browser(
                 self.config,
                 self.config['login'].get(),

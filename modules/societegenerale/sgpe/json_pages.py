@@ -27,12 +27,13 @@ from weboob.browser.filters.standard import (
     Field, Regexp, Currency as CurrencyFilter,
 )
 from weboob.browser.filters.json import Dict
+from weboob.browser.exceptions import LoggedOut
 from weboob.capabilities.base import Currency, empty
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.bill import Document, Subscription, DocumentTypes
 from weboob.exceptions import (
-    BrowserUnavailable, NoAccountsException, BrowserIncorrectPassword, BrowserPasswordExpired,
+    BrowserUnavailable, NoAccountsException, BrowserPasswordExpired,
     AuthMethodNotImplemented,
 )
 from weboob.tools.capabilities.bank.iban import is_iban_valid
@@ -41,6 +42,7 @@ from weboob.tools.capabilities.bank.investments import is_isin_valid
 from weboob.tools.compat import quote_plus
 
 from .pages import Transaction
+
 
 class AccountsJsonPage(LoggedPage, JsonPage):
     ENCODING = 'utf-8'
@@ -65,7 +67,7 @@ class AccountsJsonPage(LoggedPage, JsonPage):
             if reason == 'SYD-COMPTES-UNAUTHORIZED-ACCESS':
                 raise NoAccountsException("Vous n'avez pas l'autorisation de consulter : {}".format(reason))
             elif reason == 'niv_auth_insuff':
-                raise BrowserIncorrectPassword('Vos identifiants sont incorrects')
+                raise LoggedOut()
             elif reason in ('chgt_mdp_oblig', 'chgt_mdp_init'):
                 raise BrowserPasswordExpired('Veuillez vous rendre sur le site de la banque pour renouveler votre mot de passe')
             elif reason == 'oob_insc_oblig':
@@ -73,7 +75,6 @@ class AccountsJsonPage(LoggedPage, JsonPage):
             # the BrowserUnavailable was raised for every unknown error, and was masking the real error.
             # So users and developers didn't know what kind of error it was.
             assert False, 'Error %s is not handled yet.' % reason
-
 
     @method
     class iter_class_accounts(DictElement):

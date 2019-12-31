@@ -31,7 +31,7 @@ from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import Date, Eval
 from weboob.capabilities.bank import Recipient, Transfer
 
-from .pages import LoginPage
+from .pages import LoginEntPage
 
 
 class ErrorCheckedJsonPage(JsonPage):
@@ -162,7 +162,7 @@ class TransferPage(LoggedPage, ErrorCheckedJsonPage):
         return Dict('donnees/statutOrdre')(self.doc) not in ('rejete', 'a_signer', )
 
 
-class SignTransferPage(LoggedPage, LoginPage):
+class SignTransferPage(LoggedPage, LoginEntPage):
     def get_confirm_transfer_data(self, password):
         keyboard_data = self.get_keyboard_data()
         return {
