@@ -27,7 +27,6 @@ from weboob.browser.filters.standard import (
     Field, Regexp, Currency as CurrencyFilter,
 )
 from weboob.browser.filters.json import Dict
-from weboob.browser.exceptions import LoggedOut
 from weboob.capabilities.base import Currency, empty
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import Account, Investment
@@ -61,20 +60,23 @@ class AccountsJsonPage(LoggedPage, JsonPage):
              u'Prêt':                Account.TYPE_LOAN,
             }
 
+    @property
+    def logged(self):
+        return Dict('commun/raison', default=None)(self.doc) != "niv_auth_insuff"
+
     def on_load(self):
         if self.doc['commun']['statut'].lower() == 'nok':
             reason = self.doc['commun']['raison']
             if reason == 'SYD-COMPTES-UNAUTHORIZED-ACCESS':
                 raise NoAccountsException("Vous n'avez pas l'autorisation de consulter : {}".format(reason))
-            elif reason == 'niv_auth_insuff':
-                raise LoggedOut()
             elif reason in ('chgt_mdp_oblig', 'chgt_mdp_init'):
                 raise BrowserPasswordExpired('Veuillez vous rendre sur le site de la banque pour renouveler votre mot de passe')
             elif reason == 'oob_insc_oblig':
                 raise AuthMethodNotImplemented("L'authentification par Secure Access n'est pas prise en charge")
-            # the BrowserUnavailable was raised for every unknown error, and was masking the real error.
-            # So users and developers didn't know what kind of error it was.
-            assert False, 'Error %s is not handled yet.' % reason
+            else:
+                # the BrowserUnavailable was raised for every unknown error, and was masking the real error.
+                # So users and developers didn't know what kind of error it was.
+                assert False, 'Error %s is not handled yet.' % reason
 
     @method
     class iter_class_accounts(DictElement):

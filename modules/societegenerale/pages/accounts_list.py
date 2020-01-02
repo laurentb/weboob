@@ -33,7 +33,6 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.investments import is_isin_valid, create_french_liquidity
 from weboob.tools.compat import urlsplit, urlunsplit, urlencode
 from weboob.browser.elements import DictElement, ItemElement, TableElement, method, ListElement
-from weboob.browser.exceptions import LoggedOut
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Regexp, Currency, Eval, Field, Format, Date, Env, Map, Coalesce,
@@ -62,6 +61,10 @@ def eval_decimal_amount(value, decimal_position):
 
 
 class JsonBasePage(LoggedPage, JsonPage):
+    @property
+    def logged(self):
+        return Dict('commun/raison', default=None)(self.doc) != "niv_auth_insuff"
+
     def on_load(self):
         if Dict('commun/statut')(self.doc).upper() == 'NOK':
             reason = Dict('commun/raison')(self.doc)
@@ -73,9 +76,6 @@ class JsonBasePage(LoggedPage, JsonPage):
             if reason and 'err_tech' in reason:
                 # This error is temporary and usually do not happens on the next try
                 raise TemporaryBrowserUnavailable()
-
-            if reason == "niv_auth_insuff":
-                raise LoggedOut()
 
             if ('le service est momentanement indisponible' in reason and
             Dict('commun/origine')(self.doc) != 'cbo'):
