@@ -464,6 +464,11 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
 
         class item(Transaction.TransactionElement):
             def load_details(self):
+                # Those are summary for deferred card transactions,
+                # they do not have details.
+                if CleanText('./td[contains(text(), "RELEVE CB")]')(self):
+                    return None
+
                 row = Attr('.', 'id', default=None)(self)
                 assert row, 'HTML format of transactions details changed'
                 return self.page.browser.async_open(
