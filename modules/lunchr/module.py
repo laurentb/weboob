@@ -21,8 +21,7 @@ from __future__ import unicode_literals
 
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
-from weboob.capabilities.base import find_object
-from weboob.capabilities.bank import CapBank, AccountNotFound
+from weboob.capabilities.bank import CapBank
 
 from .browser import LunchrBrowser
 
@@ -50,11 +49,8 @@ class LunchrModule(Module, CapBank):
             self.config['password'].get(),
         )
 
-    def get_account(self, id):
-        return find_object(self.iter_accounts(), id=id, error=AccountNotFound)
-
     def iter_accounts(self):
-        return self.browser.iter_accounts()
+        return self.browser.get_account()
 
     def iter_history(self, account):
         return self.browser.iter_history(account)

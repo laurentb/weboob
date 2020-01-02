@@ -19,7 +19,11 @@
 
 from __future__ import unicode_literals
 
-from weboob.browser.filters.standard import CleanDecimal, CleanText, DateTime
+from weboob.browser.filters.standard import (
+    CleanDecimal, CleanText, DateTime, Currency,
+    Format,
+)
+from weboob.capabilities.base import empty
 from weboob.browser.filters.json import Dict
 from weboob.browser.exceptions import ClientError
 from weboob.exceptions import BrowserIncorrectPassword
@@ -63,21 +67,25 @@ class LunchrBrowser(APIBrowser):
         self.session.headers['Authorization'] = 'Bearer ' + Dict('token')(json)
         return json
 
-    def get_account(self, id=None):
+    def get_account(self):
         json = self._auth()
         account = Account(id=Dict('id')(json))
+        account.number = account.id
         # weboob.capabilities.bank.BaseAccount
         account.bank_name = 'Lunchr'
-        account.label = CleanText(Dict('first_name'))(json) + ' ' + CleanText(Dict('last_name'))(json)
-        account.currency = CleanText(Dict('meal_voucher_info/balance/currency/iso_3'))(json)
-        # weboob.capabilities.bank.Account
-        account.type = Account.TYPE_CHECKING
-        account.balance = CleanDecimal(Dict('meal_voucher_info/balance/value'))(json)
-        account.cardlimit = CleanDecimal(Dict('meal_voucher_info/daily_balance/value'))(json)
-        return account
 
-    def iter_accounts(self):
-        yield self.get_account()
+        account.type = Account.TYPE_CHECKING
+
+        # Check if account have a card
+        balance = Dict('meal_voucher_info/balance/value', default=None)(json)
+        if empty(balance):
+            return
+
+        account.balance = CleanDecimal.SI(balance)(json)
+        account.label = Format('%s %s', CleanText(Dict('first_name')), CleanText(Dict('last_name')))(json)
+        account.currency = Currency(Dict('meal_voucher_info/balance/currency/iso_3'))(json)
+        account.cardlimit = CleanDecimal.SI(Dict('meal_voucher_info/daily_balance/value'))(json)
+        yield account
 
     def iter_history(self, account):
         page = 0
