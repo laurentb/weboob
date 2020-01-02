@@ -257,6 +257,12 @@ class AccountType(Enum):
     "Consumer credit"
     REVOLVING_CREDIT = 19
     "Revolving credit"
+    PER = 20
+    "Pension plan PER"
+    PER_INDIVIDUAL = 21
+    "Individual Pension plan PER"
+    PER_COMPANY = 22
+    "Company Pension plan PER"
 
 
 class AccountOwnerType(object):
@@ -307,6 +313,9 @@ class Account(BaseAccount):
     TYPE_MORTGAGE         = AccountType.MORTGAGE
     TYPE_CONSUMER_CREDIT  = AccountType.CONSUMER_CREDIT
     TYPE_REVOLVING_CREDIT = AccountType.REVOLVING_CREDIT
+    TYPE_PER              = AccountType.PER
+    TYPE_PER_INDIVIDUAL   = AccountType.PER_INDIVIDUAL
+    TYPE_PER_COMPANY      = AccountType.PER_COMPANY
 
     type =      EnumField('Type of account', AccountType, default=TYPE_UNKNOWN)
     owner_type = StringField('Usage of account')  # cf AccountOwnerType class
