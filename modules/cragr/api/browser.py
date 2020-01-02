@@ -143,12 +143,10 @@ class CragrAPI(LoginBrowser):
                 if any(value in message for value in technical_error_messages) or \
                    any(value in code for value in technical_error_codes):
                     raise BrowserUnavailable(message)
-            elif error_type and 'UNAUTHORIZED_ERREUR_TYPE' in error_type:
-                # Usually appears when doing retries after a BrowserUnavailable
-                raise BrowserUnavailable()
 
-            # When a PSD2 SCA is required it also returns a 500, but info is under 'url' key
-            if exc.response.json().get('url') == 'dsp2/informations.html':
+            # When a PSD2 SCA is required it also returns a 500, hopefully we can detect it
+            if (exc_json.get('url') == 'dsp2/informations.html' or
+                exc_json.get('redirection', '').endswith('dsp2/informations.html')):
                 return self.handle_sca()
 
             raise
