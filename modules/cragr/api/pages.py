@@ -160,6 +160,7 @@ ACCOUNT_TYPES = {
     'TRES. PRO': Account.TYPE_LOAN,
     'CT ATT HAB': Account.TYPE_LOAN,
     'PRET CEL': Account.TYPE_LOAN,
+    'PRET PEL': Account.TYPE_LOAN,
     'COLL. PUB': Account.TYPE_LOAN,
     'PEA': Account.TYPE_PEA,
     'PEAP': Account.TYPE_PEA,
@@ -200,6 +201,7 @@ ACCOUNT_TYPES = {
     'AST SELEC': Account.TYPE_LIFE_INSURANCE,
     'PRGE': Account.TYPE_LIFE_INSURANCE,
     'CONF': Account.TYPE_LIFE_INSURANCE,
+    'V O E': Account.TYPE_LIFE_INSURANCE,  # Vendome Optimum Euro
     'ATOUT LIB': Account.TYPE_REVOLVING_CREDIT,
     'PACC': Account.TYPE_CONSUMER_CREDIT,  # 'PAC' = 'Prêt à consommer'
     'PACP': Account.TYPE_CONSUMER_CREDIT,
