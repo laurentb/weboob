@@ -127,7 +127,6 @@ class CragrAPI(LoginBrowser):
             # Wrongpass returns a 500 server error...
             exc_json = exc.response.json()
             error = exc_json.get('error')
-            error_type = exc_json.get('erreurType')
             if error:
                 message = error.get('message', '')
                 wrongpass_messages = ("Votre identification est incorrecte", "Vous n'avez plus droit")
