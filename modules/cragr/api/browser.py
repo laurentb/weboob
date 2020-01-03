@@ -543,7 +543,7 @@ class CragrAPI(LoginBrowser):
             #for inv in self.page.iter_investments():
             #    yield inv
 
-        elif account.type in (Account.TYPE_PERP, Account.TYPE_PERCO, Account.TYPE_LIFE_INSURANCE, Account.TYPE_CAPITALISATION):
+        elif account.type in (Account.TYPE_PER, Account.TYPE_PERP, Account.TYPE_PERCO, Account.TYPE_LIFE_INSURANCE, Account.TYPE_CAPITALISATION):
             if account.label == "Vers l'avenir":
                 # Website crashes when clicking on these Life Insurances...
                 return
