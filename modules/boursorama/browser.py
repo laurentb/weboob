@@ -19,11 +19,12 @@
 
 
 import requests
+
 from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 
 from weboob.browser.retry import login_method, retry_on_logout, RetryLoginBrowser
-from weboob.browser.browsers import need_login, StatesMixin
+from weboob.browser.browsers import need_login, TwoFactorBrowser
 from weboob.browser.url import URL
 from weboob.exceptions import BrowserIncorrectPassword, BrowserHTTPNotFound, NoAccountsException, BrowserUnavailable
 from weboob.browser.exceptions import LoggedOut, ClientError
@@ -56,10 +57,11 @@ class BrowserIncorrectAuthenticationCode(BrowserIncorrectPassword):
     pass
 
 
-class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
+class BoursoramaBrowser(RetryLoginBrowser, TwoFactorBrowser):
     BASEURL = 'https://clients.boursorama.com'
     TIMEOUT = 60.0
-    STATE_DURATION = 10
+    HAS_CREDENTIALS_ONLY = True
+    TWOFA_DURATION = 60 * 24 * 90
 
     home = URL('/$', HomePage)
     keyboard = URL('/connexion/clavier-virtuel\?_hinclude=300000', VirtKeyboardPage)
@@ -137,7 +139,12 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
         self.recipient_form = None
         kwargs['username'] = self.config['login'].get()
         kwargs['password'] = self.config['password'].get()
-        super(BoursoramaBrowser, self).__init__(*args, **kwargs)
+
+        self.AUTHENTICATION_METHODS = {
+            'pin_code': self.handle_sms,
+        }
+
+        super(BoursoramaBrowser, self).__init__(config, *args, **kwargs)
 
     def locate_browser(self, state):
         try:
@@ -150,14 +157,16 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
         # it keeps the form to continue to submit the otp
         if state.get('recipient_form'):
             state.pop('url', None)
-            super(BoursoramaBrowser, self).load_state(state)
 
-        elif state.get('auth_token'):
-            super(BoursoramaBrowser, self).load_state(state)
+        super(BoursoramaBrowser, self).load_state(state)
 
     def handle_authentication(self):
         if self.authentication.is_here():
             if self.config['enable_twofactors'].get():
+                confirmation_link = self.page.get_confirmation_link()
+                if confirmation_link:
+                    self.location(confirmation_link)
+
                 self.page.sms_first_step()
                 self.page.sms_second_step()
             else:
@@ -166,27 +175,39 @@ class BoursoramaBrowser(RetryLoginBrowser, StatesMixin):
                     """ You will receive SMS code but are limited in request per day (around 15)"""
                 )
 
-    @login_method
-    def do_login(self):
+    def handle_sms(self):
+        # regular 2FA way
+        if self.auth_token:
+            self.page.authenticate()
+        # PSD2 way
+        else:
+            # we can't access form without sending a SMS again
+            self.location('/securisation/authentification/validation', data={
+                'strong_authentication_confirm[code]': self.config['pin_code'].get(),
+                'strong_authentication_confirm[type]': 'brs-otp-sms',
+            })
+
+        if self.authentication.is_here():
+            raise BrowserIncorrectAuthenticationCode()
+
+    def init_login(self):
         assert isinstance(self.config['device'].get(), basestring)
         assert isinstance(self.config['enable_twofactors'].get(), bool)
         if not self.password.isalnum():
             raise BrowserIncorrectPassword()
 
-        if self.auth_token and self.config['pin_code'].get():
-            self.page.authenticate()
-        else:
-            self.login.go()
-            self.page.login(self.username, self.password)
+        self.login.go()
+        self.page.login(self.username, self.password)
 
-            if self.login.is_here() or self.error.is_here():
-                raise BrowserIncorrectPassword()
+        if self.login.is_here() or self.error.is_here():
+            raise BrowserIncorrectPassword()
 
-            # After login, we might be redirected to the two factor authentication page.
-            self.handle_authentication()
+        # After login, we might be redirected to the two factor authentication page.
+        self.handle_authentication()
 
-        if self.authentication.is_here():
-            raise BrowserIncorrectAuthenticationCode('Invalid PIN code')
+    @login_method
+    def do_login(self):
+        return super(BoursoramaBrowser, self).do_login()
 
     def ownership_guesser(self):
         ownerless_accounts = [account for account in self.accounts_list if empty(account.ownership)]

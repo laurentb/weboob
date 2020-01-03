@@ -82,6 +82,9 @@ class AuthenticationPage(HTMLPage):
 
         self.browser.auth_token = None
 
+    def get_confirmation_link(self):
+        return Link('//a[contains(@href, "validation")]')(self.doc)
+
     def sms_first_step(self):
         """
         This function simulates the registration of a device on
@@ -99,9 +102,11 @@ class AuthenticationPage(HTMLPage):
             raise BrowserIncorrectPassword(error)
 
         form = self.get_form()
-        self.browser.auth_token = form['flow_secureForm_instance']
-        form['otp_prepare[receiveCode]'] = ''
-        form.submit()
+        # regular login way detection
+        if 'flow_secureForm_instance' in form:
+            self.browser.auth_token = form['flow_secureForm_instance']
+            form['otp_prepare[receiveCode]'] = ''
+            form.submit()
 
         raise BrowserQuestion(Value('pin_code', label='Enter the PIN Code'))
 
