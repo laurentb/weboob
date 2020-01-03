@@ -26,6 +26,7 @@ import datetime as dt
 
 from collections import OrderedDict
 
+from weboob.exceptions import BrowserUnavailable
 from weboob.browser.pages import HTMLPage, JsonPage, RawPage, LoggedPage, pagination
 from weboob.browser.elements import DictElement, ItemElement, TableElement, SkipItem, method
 from weboob.browser.filters.standard import CleanText, Upper, Date, Regexp, Format, CleanDecimal, Filter, Env, Slugify, Field
@@ -334,6 +335,13 @@ class HistoryPage(LoggedPage, JsonPage):
                 return requests.Request('POST', data=json.dumps(data), headers={'Content-Type': 'application/json'})
 
         def parse(self, el):
+            exception = Dict('exception', default=None)(self)
+            if exception:
+                message = exception.get('message', '')
+                assert 'SERVICE_INDISPONIBLE' in message, 'Unknown error in history page: "%s"' % message
+                # The error message is a stack trace so we do not
+                # send it.
+                raise BrowserUnavailable()
             # Key only if coming
             key = Env('key', default=None)(self)
             if key:
