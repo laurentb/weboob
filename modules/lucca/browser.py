@@ -82,7 +82,7 @@ class LuccaBrowser(LoginBrowser):
                 yield event
                 last = new_datetime(event.start_date)
 
-            start = window_end
+            start = window_end + timedelta(days=1)
 
     @need_login
     def get_subscription(self):
