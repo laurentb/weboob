@@ -211,6 +211,7 @@ ACCOUNT_TYPES = {
     'OPEN': Account.TYPE_REVOLVING_CREDIT,
     'PAGR': Account.TYPE_MADELIN,
     'ACCOR MULT': Account.TYPE_MADELIN,
+    'PERASSUR': Account.TYPE_PER,
 }
 
 
