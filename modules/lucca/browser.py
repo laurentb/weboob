@@ -35,7 +35,7 @@ class LuccaBrowser(LoginBrowser):
 
     login = URL('/identity/login', LoginPage)
     home = URL('/home', HomePage)
-    calendar = URL('/api/leaveAMPMs', CalendarPage)
+    calendar = URL('/api/v3/leaves', CalendarPage)
     users = URL(r'/api/departments\?fields=id%2Cname%2Ctype%2Clevel%2Cusers.id%2Cusers.displayName%2Cusers.dtContractStart%2Cusers.dtContractEnd%2Cusers.manager.id%2Cusers.manager2.id%2Cusers.legalEntityID%2Cusers.calendar.id&date=since%2C1970-01-01', UsersPage)
     subscriptions = URL(r'/api/v3/users/me\?fields=id,firstName,lastName,allowsElectronicPayslip,culture,login,mail,personalemail', SubscriptionPage)
     payslips = URL(r'/api/v3/payslips\?fields=id,import\[name,endDate\]&orderby=import\.endDate,desc,import\.startDate,desc,import\.creationDate,desc&ownerID=(?P<subid>\d+)', DocumentsPage)
@@ -71,9 +71,8 @@ class LuccaBrowser(LoginBrowser):
 
             params = {
                 'date': 'between,%s,%s' % (start.strftime('%Y-%m-%d'), window_end.strftime('%Y-%m-%d')),
-                'paging': '0,10000',
-                'owner.id': ','.join(str(u.id) for u in users.values()),
-                'fields': 'u,a,o,ls,mc,r,c,rw',
+                'leavePeriod.ownerId': ','.join(str(u.id) for u in users.values()),
+                'fields': 'leavePeriod[id,ownerId,isConfirmed],isAm,date,color,isRemoteWork,leaveAccount[name,isRemoteWork]',
             }
             self.calendar.go(params=params)
             events = self.page.iter_events(start, users=users)

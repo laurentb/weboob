@@ -22,7 +22,7 @@ from __future__ import unicode_literals
 from datetime import timedelta
 
 from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage
-from weboob.browser.filters.standard import CleanText
+from weboob.browser.filters.standard import CleanText, DateTime
 from weboob.exceptions import BrowserIncorrectPassword
 from weboob.capabilities.calendar import BaseCalendarEvent, STATUS
 from weboob.capabilities.bill import (
@@ -75,41 +75,43 @@ class UsersPage(LoggedPage, JsonPage):
 
 
 class CalendarPage(LoggedPage, JsonPage):
-    @staticmethod
-    def _offset(start_date, offset):
-        return start_date + timedelta(days=offset)
-
     def iter_events(self, start_date, users):
         start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
-        for d in self.doc['data']:
-            if not d['ls']: # seems to be validation state
-                continue
-            assert d['ls'] == 2
 
-            user = users[d['u']]
+        # key: (userId, date)
+        events = {}
+
+        for d in self.doc['data']['items']:
+            if not d['leavePeriod']['isConfirmed']:
+                # not validated by manager
+                continue
+
+            user_id = d['leavePeriod']['ownerId']
+            user = users[user_id]
 
             ev = BaseCalendarEvent()
             ev.timezone = 'Europe/Paris'
             ev.summary = user.name
             ev.status = STATUS.CONFIRMED
-            ev.start_date = self._offset(start_date, d['o'])
 
-            if d['a'] == 2:
-                ev.end_date = ev.start_date + timedelta(days=1)
-
-                ev.start_date = ev.start_date.date()
-                ev.end_date = ev.end_date.date()
-            elif d['a'] == 1:
+            ev.start_date = DateTime().filter(d['date'])
+            if not d['isAM']:
                 ev.start_date = ev.start_date + timedelta(hours=12)
                 ev.end_date = ev.start_date + timedelta(hours=12)
             else:
-                assert d['a'] == 0
                 ev.end_date = ev.start_date + timedelta(hours=12)
 
             if user.end and new_date(user.end) < new_date(ev.start_date):
                 continue
 
-            yield ev
+            event_key = user_id, ev.start_date.date()
+            if event_key in events:
+                ev.start_date = ev.start_date.date()
+                ev.end_date = ev.start_date + timedelta(days=1)
+
+            events[event_key] = ev
+
+        return events.values()
 
 
 class SubscriptionPage(LoggedPage, JsonPage):
