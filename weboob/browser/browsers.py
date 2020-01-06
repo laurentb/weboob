@@ -1182,14 +1182,13 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
     # list of cookie keys to clear before dumping state
     COOKIES_TO_CLEAR = ()
 
-    # handle both 2FA and regular login methods by preventing
-    # NeedInteractiveFor2FA exception to be raised
-    HAS_REGULAR_LOGIN = False
+    # The login is only made with username/password
+    HAS_ONLY_CREDENTIALS = False
 
     def __init__(self, config, *args, **kwargs):
         super(TwoFactorBrowser, self).__init__(*args, **kwargs)
         self.config = config
-        self.interactive = config.get(self.INTERACTIVE_NAME, Value()).get() is not None
+        self.is_interactive = config.get(self.INTERACTIVE_NAME, Value()).get() is not None
         self.__states__ += ('logged_date',)
 
     def handle_polling(self):
@@ -1240,7 +1239,7 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
         # clear cookies to avoid some errors
         self.session.cookies.clear()
 
-    def clear_cookies(self):
+    def clear_not_2fa_cookies(self):
         # clear cookies that we don't need for 2FA
         for cookie_key in self.COOKIES_TO_CLEAR:
             if cookie_key in self.session.cookies:
@@ -1256,14 +1255,14 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
             return unicode(max(expires_dates).replace(microsecond=0))
 
     def dump_state(self):
-        self.clear_cookies()
+        self.clear_not_2fa_cookies()
         return super(TwoFactorBrowser, self).dump_state()
 
     def check_interactive(self):
-        if not self.interactive:
+        if not self.is_interactive:
             raise NeedInteractiveFor2FA()
 
-    def handle_login(self):
+    def do_double_authentication(self):
         """
         This method will check AUTHENTICATION_METHODS
         to dispatch to the right handle_* method.
@@ -1280,10 +1279,10 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
                 self.logged_date = datetime.now()
                 break
         else:
-            if not self.HAS_REGULAR_LOGIN:
+            if not self.HAS_ONLY_CREDENTIALS:
                 self.check_interactive()
 
             self.clear_init_cookies()
             self.init_login()
 
-    do_login = handle_login
+    do_login = do_double_authentication
