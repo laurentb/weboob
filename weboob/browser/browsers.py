@@ -891,8 +891,9 @@ class StatesMixin(object):
         if 'url' in state:
             self.locate_browser(state)
 
-    def get_expire(self):
-        return unicode((datetime.now() + timedelta(minutes=self.STATE_DURATION)).replace(microsecond=0))
+    def get_expire(self, duration, start=datetime.now()):
+        if duration:
+            return unicode((start + timedelta(minutes=duration)).replace(microsecond=0))
 
     def dump_state(self):
         state = {}
@@ -905,7 +906,7 @@ class StatesMixin(object):
             except AttributeError:
                 pass
         if self.STATE_DURATION is not None:
-            state['expire'] = self.get_expire()
+            state['expire'] = self.get_expire(self.STATE_DURATION)
         self.logger.info('Stored cookies into storage')
         return state
 
@@ -1169,8 +1170,9 @@ class OAuth2PKCEMixin(OAuth2Mixin):
 
 
 class TwoFactorBrowser(LoginBrowser, StatesMixin):
-    STATE_DURATION = 60 * 24 * 90
-    STATE_DURATION_MIN = 5
+    # period to keep the same state
+    # it is different from STATE_DURATION which updates the expire date at each dump
+    TWOFA_DURATION = None
 
     INTERACTIVE_NAME = 'request_information'
     AUTHENTICATION_METHODS = OrderedDict([
@@ -1189,7 +1191,20 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
         super(TwoFactorBrowser, self).__init__(*args, **kwargs)
         self.config = config
         self.is_interactive = config.get(self.INTERACTIVE_NAME, Value()).get() is not None
-        self.__states__ += ('logged_date',)
+        self.twofa_logged_date = None
+        self.__states__ += ('twofa_logged_date',)
+
+    def get_expire(self, duration, start=datetime.now()):
+        if self.twofa_logged_date:
+            return super(TwoFactorBrowser, self).get_expire(self.TWOFA_DURATION, self.twofa_logged_date)
+        return super(TwoFactorBrowser, self).get_expire(duration, start)
+
+    def dump_state(self):
+        self.clear_not_2fa_cookies()
+        # so the date can be parsed in json
+        # because twofa_logged_date is in state
+        self.twofa_logged_date = str(self.twofa_logged_date)
+        return super(TwoFactorBrowser, self).dump_state()
 
     def handle_polling(self):
         """
@@ -1256,6 +1271,8 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
 
     def dump_state(self):
         self.clear_not_2fa_cookies()
+        # because twofa_logged_date is in state
+        self.twofa_logged_date = str(self.twofa_logged_date)
         return super(TwoFactorBrowser, self).dump_state()
 
     def check_interactive(self):
