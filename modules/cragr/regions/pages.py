@@ -205,6 +205,7 @@ ACCOUNT_TYPES = {
     'DEVISE USD': Account.TYPE_CHECKING,
     'EKO': Account.TYPE_CHECKING,
     'DEVISE CHF': Account.TYPE_CHECKING,
+    'GEST IMMO': Account.TYPE_CHECKING,
     'DAV NANTI': Account.TYPE_SAVINGS,
     'LIV A': Account.TYPE_SAVINGS,
     'LIV A ASS': Account.TYPE_SAVINGS,
