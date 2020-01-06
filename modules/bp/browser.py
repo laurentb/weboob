@@ -20,6 +20,7 @@
 from __future__ import unicode_literals
 
 import os
+import time
 from datetime import datetime, timedelta
 
 from requests.exceptions import HTTPError
@@ -30,7 +31,8 @@ from weboob.browser.exceptions import ServerError
 from weboob.capabilities.base import NotAvailable
 from weboob.exceptions import (
     BrowserIncorrectPassword, BrowserBanned, NoAccountsException,
-    BrowserUnavailable, ActionNeeded,
+    BrowserUnavailable, ActionNeeded, NeedInteractiveFor2FA,
+    BrowserQuestion, AppValidation, AppValidationCancelled, AppValidationExpired,
 )
 from weboob.tools.compat import urlsplit, urlunsplit, parse_qsl
 from weboob.tools.decorators import retry
@@ -40,6 +42,7 @@ from .pages import (
     AccountList, AccountHistory, CardsList, UnavailablePage, AccountRIB, Advisor,
     TransferChooseAccounts, CompleteTransfer, TransferConfirm, TransferSummary, CreateRecipient, ValidateRecipient,
     ValidateCountry, ConfirmPage, RcptSummary, SubscriptionPage, DownloadPage, ProSubscriptionPage, RevolvingAttributesPage,
+    TwoFAPage, Validated2FAPage, SmsPage, DecoupledPage
 )
 from .pages.accounthistory import (
     LifeInsuranceInvest, LifeInsuranceHistory, LifeInsuranceHistoryInv, RetirementHistory,
@@ -60,7 +63,7 @@ __all__ = ['BPBrowser', 'BProBrowser']
 
 class BPBrowser(LoginBrowser, StatesMixin):
     BASEURL = 'https://voscomptesenligne.labanquepostale.fr'
-    STATE_DURATION = 5
+    STATE_DURATION = 10
 
     # FIXME beware that '.*' in start of URL() won't match all domains but only under BASEURL
 
@@ -76,6 +79,14 @@ class BPBrowser(LoginBrowser, StatesMixin):
     redirect_page = URL(r'.*voscomptes/identification/identification.ea.*',
                         r'.*voscomptes/synthese/3-synthese.ea',
                         RedirectPage)
+
+    auth_page = URL(r'voscomptes/canalXHTML/securite/gestionAuthentificationForte/init-gestionAuthentificationForte.ea', TwoFAPage)
+    validated_2fa_page = URL(r'voscomptes/canalXHTML/securite/gestionAuthentificationForte/../../securite/authentification/retourDSP2-identif.ea',
+                             r'voscomptes/canalXHTML/securite/authentification/retourDSP2-identif.ea',
+                             Validated2FAPage)
+    decoupled_page = URL(r'/voscomptes/canalXHTML/securite/gestionAuthentificationForte/validationTerminal-gestionAuthentificationForte.ea', DecoupledPage)
+    sms_page = URL(r'/voscomptes/canalXHTML/securite/gestionAuthentificationForte/authenticateCerticode-gestionAuthentificationForte.ea', SmsPage)
+    sms_validation = URL(r'/voscomptes/canalXHTML/securite/gestionAuthentificationForte/validation-gestionAuthentificationForte.ea', SmsPage)
 
     par_accounts_checking = URL('/voscomptes/canalXHTML/comptesCommun/synthese_ccp/afficheSyntheseCCP-synthese_ccp.ea', AccountList)
     par_accounts_savings_and_invests = URL('/voscomptes/canalXHTML/comptesCommun/synthese_ep/afficheSyntheseEP-synthese_ep.ea', AccountList)
@@ -208,9 +219,14 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
     accounts = None
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, config, *args, **kwargs):
         self.weboob = kwargs.pop('weboob')
+        self.config = config
         super(BPBrowser, self).__init__(*args, **kwargs)
+        self.resume = config['resume'].get()
+        self.request_information = config['request_information'].get()
+        self.__states__ += ('sms_form', )
+
         dirname = self.responses_dirname
         if dirname:
             dirname += '/bourse'
@@ -218,8 +234,12 @@ class BPBrowser(LoginBrowser, StatesMixin):
         self.recipient_form = None
 
     def load_state(self, state):
+        if state.get('url'):
+            # We don't want to come back to last URL during SCA
+            state.pop('url')
+        super(BPBrowser, self).load_state(state)
+
         if 'recipient_form' in state and state['recipient_form'] is not None:
-            super(BPBrowser, self).load_state(state)
             self.logged = True
 
     def deinit(self):
@@ -239,7 +259,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
             parts[2] = os.path.abspath(parts[2])
             return self.open(urlunsplit(parts))
 
-    def do_login(self):
+    def login_without_2fa(self):
         self.location(self.login_url)
         self.page.login(self.username, self.password)
 
@@ -248,10 +268,71 @@ class BPBrowser(LoginBrowser, StatesMixin):
                 raise BrowserIncorrectPassword("L'identifiant utilisé est celui d'un compte de Particuliers.")
             error = self.page.get_error()
             raise BrowserUnavailable(error or '')
+
         if self.badlogin.is_here():
             raise BrowserIncorrectPassword()
         if self.disabled_account.is_here():
             raise BrowserBanned()
+
+    def do_login(self):
+        self.code = self.config['code'].get()
+        if self.resume:
+            return self.handle_polling()
+        elif self.code:
+            return self.handle_sms()
+
+        self.login_without_2fa()
+
+        self.auth_page.go()
+        if self.auth_page.is_here():
+            # Handle 2FA
+            # 2FA seem to be handled by LBP. Indeed logins after 2FA will redirect to the LBP main page
+            # Consequently no state for future connexion needs to be kept
+            if self.request_information is None:
+                raise NeedInteractiveFor2FA()
+            auth_method = self.page.get_auth_method()
+            if auth_method == 'cer+':
+                # We force here the first device present
+                self.decoupled_page.go(params={'deviceSelected': '0'})
+                self.location('/voscomptes/canalXHTML/securite/gestionAuthentificationForte/validationTerminal-gestionAuthentificationForte.ea?deviceSelected=0')
+                raise AppValidation(self.page.get_decoupled_message())
+
+            elif auth_method == 'cer':
+                self.location('/voscomptes/canalXHTML/securite/gestionAuthentificationForte/authenticateCerticode-gestionAuthentificationForte.ea')
+                self.page.check_if_is_blocked()
+                self.sms_form = self.page.get_sms_form()
+                raise BrowserQuestion(Value('code', label='Entrez le code reçu par SMS'))
+
+        # If we are here, we don't need 2FA, we are logged
+
+    def handle_polling(self):
+        timeout = time.time() + 300.00
+        while time.time() < timeout:
+            polling = self.location('/voscomptes/canalXHTML/securite/gestionAuthentificationForte/validationOperation-gestionAuthentificationForte.ea').json()
+            result = polling['statutOperation']
+            if result == '1':
+                # Waiting for PSU validation
+                time.sleep(10)
+                continue
+            elif result == '2':
+                # Validated
+                break
+            elif result == '3':
+                raise AppValidationCancelled()
+            elif result == '6':
+                raise AppValidationExpired()
+            else:
+                assert False, 'statutOperation: %s is not handled' % result
+
+            raise AppValidationExpired()
+
+        self.location('/voscomptes/canalXHTML/securite/gestionAuthentificationForte/finalisation-gestionAuthentificationForte.ea')
+
+    def handle_sms(self):
+        self.sms_form['codeOTPSaisi'] = self.code
+        self.sms_validation.go(data=self.sms_form)
+        if not self.validated_2fa_page.is_here() and self.page.is_sms_wrong():
+            raise BrowserIncorrectPassword('Le code de sécurité que vous avez saisi est erroné.')
 
     @need_login
     def get_accounts_list(self):

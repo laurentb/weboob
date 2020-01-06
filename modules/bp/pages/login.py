@@ -21,7 +21,7 @@ from __future__ import unicode_literals, division
 
 from io import BytesIO
 
-from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, NoAccountsException
+from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, NoAccountsException, ActionNeeded
 from weboob.browser.pages import LoggedPage
 from weboob.browser.filters.standard import CleanText, Regexp
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard
@@ -134,3 +134,41 @@ class BadLoginPage(MyHTMLPage):
 
 class AccountDesactivate(LoggedPage, MyHTMLPage):
     pass
+
+
+class TwoFAPage(MyHTMLPage):
+    def on_load(self):
+        # For pro browser this page can provoke a disconnection
+        # We have to do login again without 2fa
+        deconnexion = self.doc.xpath('//iframe[contains(@id, "deconnexion")] | //p[@class="txt" and contains(text(), "Session expir")]')
+        if deconnexion:
+            self.browser.login_without_2fa()
+
+    def get_auth_method(self):
+        if 'Certicode Plus' in CleanText('//div[@class="textFCK"]')(self.doc):
+            return 'cer+'
+        elif 'authentification forte via Certicode vous' in CleanText('//div[@class="textFCK"]')(self.doc):
+            return 'cer'
+        assert False, '2FA method not found'
+
+
+class Validated2FAPage(MyHTMLPage):
+    pass
+
+
+class SmsPage(MyHTMLPage):
+    def check_if_is_blocked(self):
+        error_message = CleanText('//div[@class="textFCK"]')(self.doc)
+        if "l'accès à votre Espace client est bloqué" in error_message:
+            raise ActionNeeded(error_message)
+
+    def get_sms_form(self):
+        return self.get_form()
+
+    def is_sms_wrong(self):
+        return 'Le code de sécurité que vous avez saisi est erroné' in CleanText('//div[@id="DSP2_Certicode_AF_ErreurCode1"]//div[@class="textFCK"]')(self.doc)
+
+
+class DecoupledPage(MyHTMLPage):
+    def get_decoupled_message(self):
+        return CleanText('//div[@class="textFCK"]/p[contains(text(), "Validez votre authentification")]')(self.doc)

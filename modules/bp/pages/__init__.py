@@ -18,7 +18,11 @@
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .login import LoginPage, Initident, CheckPassword,repositionnerCheminCourant, BadLoginPage, AccountDesactivate, UnavailablePage
+from .login import (
+    LoginPage, Initident, CheckPassword, repositionnerCheminCourant,
+    BadLoginPage, AccountDesactivate, UnavailablePage,
+    Validated2FAPage, TwoFAPage, SmsPage, DecoupledPage,
+)
 from .accountlist import AccountList, AccountRIB, Advisor, RevolvingAttributesPage
 from .accounthistory import AccountHistory, CardsList
 from .transfer import TransferChooseAccounts, CompleteTransfer, TransferConfirm, TransferSummary, CreateRecipient, ValidateRecipient,\
@@ -29,4 +33,5 @@ from .subscription import SubscriptionPage, DownloadPage, ProSubscriptionPage
 __all__ = ['LoginPage', 'Initident', 'CheckPassword', 'repositionnerCheminCourant', "AccountList", 'AccountHistory', 'BadLoginPage',
            'AccountDesactivate', 'TransferChooseAccounts', 'CompleteTransfer', 'TransferConfirm', 'TransferSummary', 'UnavailablePage',
            'CardsList', 'AccountRIB', 'Advisor', 'CreateRecipient', 'ValidateRecipient', 'ValidateCountry', 'ConfirmPage', 'RcptSummary',
-           'SubscriptionPage', 'DownloadPage', 'ProSubscriptionPage', 'RevolvingAttributesPage']
+           'SubscriptionPage', 'DownloadPage', 'ProSubscriptionPage', 'RevolvingAttributesPage', 'Validated2FAPage', 'TwoFAPage',
+           'SmsPage', 'DecoupledPage', ]

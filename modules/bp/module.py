@@ -48,17 +48,27 @@ class BPModule(
     VERSION = '1.6'
     LICENSE = 'LGPLv3+'
     DESCRIPTION = u'La Banque Postale'
-    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
-                           ValueBackendPassword('password', label='Mot de passe', regexp='^(\d{6})$'),
-                           Value('website', label='Type de compte', default='par',
-                                 choices={'par': 'Particuliers', 'pro': 'Professionnels'}))
+    CONFIG = BackendConfig(
+        ValueBackendPassword('login', label='Identifiant', masked=False),
+        Value('resume', noprompt=True, default=''),
+        Value('request_information', default=None, noprompt=True, required=False),
+        Value('code', label='Code SMS', required=False, default=''),
+        ValueBackendPassword('password', label='Mot de passe', regexp='^(\d{6})$'),
+        Value('website', label='Type de compte', default='par',
+              choices={'par': 'Particuliers', 'pro': 'Professionnels'})
+    )
 
     def create_default_browser(self):
         b = {'par': BPBrowser, 'pro': BProBrowser}
 
         self.BROWSER = b[self.config['website'].get()]
 
-        return self.create_browser(self.config['login'].get(), self.config['password'].get(), weboob=self.weboob)
+        return self.create_browser(
+            self.config,
+            self.config['login'].get(),
+            self.config['password'].get(),
+            weboob=self.weboob
+        )
 
     def iter_accounts(self):
         return self.browser.get_accounts_list()
