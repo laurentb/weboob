@@ -51,6 +51,8 @@ class TransferJson(LoggedPage, JsonPage):
             elif self.doc['commun'].get('raison') in ('err_tech', 'err_is'):
                 # on SG website, there is unavalaible message 'Le service est momentanément indisponible.'
                 raise BrowserUnavailable()
+            elif self.doc['commun'].get('raison') == "niv_auth_insuff":
+                return
             else:
                 assert False, 'Something went wrong, transfer is not created: %s' % self.doc['commun'].get('raison')
 

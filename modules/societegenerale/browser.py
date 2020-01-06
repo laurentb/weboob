@@ -31,7 +31,7 @@ from weboob.capabilities.bill import Document, DocumentTypes
 from weboob.exceptions import (
     BrowserIncorrectPassword, ActionNeeded, BrowserUnavailable,
     AppValidation, BrowserQuestion, AppValidationError, AppValidationCancelled,
-    AppValidationExpired, AuthMethodNotImplemented,
+    AppValidationExpired,
 )
 from weboob.capabilities.bank import Account, TransferBankError, AddRecipientStep, TransactionType, AccountOwnerType
 from weboob.capabilities.base import find_object, NotAvailable
@@ -221,9 +221,9 @@ class SocieteGenerale(TwoFactorBrowser):
             self.logger.warning('Unknown CSA method "%s" found', auth_method['mod'])
 
         else:
-            self.logger.warning('Unknown sign method "%s" found', auth_method['sign_proc'])
+            self.logger.warning('Unknown sign method "%s" found', auth_method['type_proc'])
 
-        raise AuthMethodNotImplemented()
+        assert False, 'Unknown auth method "%s: %s" found' % (auth_method['type_proc'], auth_method.get('mod'))
 
     def init_login(self):
         self.check_password()

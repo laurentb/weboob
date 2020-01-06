@@ -69,6 +69,8 @@ class AccountsJsonPage(LoggedPage, JsonPage):
             reason = self.doc['commun']['raison']
             if reason == 'SYD-COMPTES-UNAUTHORIZED-ACCESS':
                 raise NoAccountsException("Vous n'avez pas l'autorisation de consulter : {}".format(reason))
+            elif reason == 'niv_auth_insuff':
+                return
             elif reason in ('chgt_mdp_oblig', 'chgt_mdp_init'):
                 raise BrowserPasswordExpired('Veuillez vous rendre sur le site de la banque pour renouveler votre mot de passe')
             elif reason == 'oob_insc_oblig':

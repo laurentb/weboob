@@ -81,6 +81,9 @@ class JsonBasePage(LoggedPage, JsonPage):
             Dict('commun/origine')(self.doc) != 'cbo'):
                 raise BrowserUnavailable()
 
+            if reason == "niv_auth_insuff":
+                return
+
             conditions = (
                 'pas encore géré' in reason, # this page is not handled by SG api website
                 'le service est momentanement indisponible' in reason,  # can't access new website
