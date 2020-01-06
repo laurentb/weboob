@@ -214,6 +214,15 @@ class InvestmentPage(LoggedPage, HTMLPage):
     def get_performance(self):
         return Eval(lambda x: x/100, CleanDecimal.French('//p[contains(@class, "plusvalue--value")]'))(self.doc)
 
+    def go_investment_details(self):
+        investment_details_url = Link('//a[@id="C:T1:N"]')(self.doc)
+        self.browser.location(investment_details_url)
+
+
+class InvestmentDetailsPage(LoggedPage, HTMLPage):
+    def get_quantity(self):
+        return CleanDecimal.French('//tr[th[text()="Nombre de parts"]]//em', default=NotAvailable)(self.doc)
+
     def go_back(self):
         go_back_url = Link('//a[@id="C:A"]')(self.doc)
         self.browser.location(go_back_url)

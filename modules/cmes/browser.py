@@ -25,7 +25,8 @@ from dateutil.relativedelta import relativedelta
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import  BrowserIncorrectPassword
 from .pages import (
-    LoginPage, AccountsPage, OperationsListPage, OperationPage, ActionNeededPage, InvestmentPage,
+    LoginPage, AccountsPage, OperationsListPage, OperationPage, ActionNeededPage,
+    InvestmentPage, InvestmentDetailsPage,
 )
 
 
@@ -47,6 +48,7 @@ class CmesBrowser(LoginBrowser):
     )
 
     investments = URL(r'(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/supports/fiche-du-support.html', InvestmentPage)
+    investment_details = URL(r'(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/supports/epargne-sur-le-support.html', InvestmentDetailsPage)
 
     operations_list = URL(r'(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/operations/index.html', OperationsListPage)
 
@@ -92,7 +94,6 @@ class CmesBrowser(LoginBrowser):
                 self.page.fill_investment(obj=inv)
 
                 performances = {}
-
                 # Get 1-year performance
                 url = self.page.get_form_url()
                 self.location(url, data={'_FID_DoFilterChart_timePeriod:1Year': ''})
@@ -113,7 +114,12 @@ class CmesBrowser(LoginBrowser):
                 self.location(url, data=data)
                 performances[3] = self.page.get_performance()
                 inv.performance_history = performances
+
+                # Fetch investment quantity on the 'Mes Avoirs' tab
+                self.page.go_investment_details()
+                inv.quantity = self.page.get_quantity()
                 self.page.go_back()
+
             else:
                 self.logger.info('No available details for investment %s.', inv.label)
             yield inv
