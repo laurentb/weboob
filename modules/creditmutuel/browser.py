@@ -53,7 +53,8 @@ from .pages import (
     ExternalTransferPage, RevolvingLoanDetails, RevolvingLoansList,
     ErrorPage, SubscriptionPage, NewCardsListPage, CardPage2, FiscalityConfirmationPage,
     ConditionsPage, MobileConfirmationPage, UselessPage, DecoupledStatePage, CancelDecoupled,
-    OtpValidationPage, OtpBlockedErrorPage, TwoFAUnabledPage
+    OtpValidationPage, OtpBlockedErrorPage, TwoFAUnabledPage,
+    LoansOperationsPage,
 )
 
 
@@ -108,6 +109,8 @@ class CreditMutuelBrowser(TwoFactorBrowser):
                       r'/(?P<subbank>.*)fr/banque/nr/nr_devbooster.aspx.*',
                       r'(?P<subbank>.*)fr/banque/CRP8_GESTPMONT.aspx\?webid=.*&trnref=.*&contract=\d+&cardid=.*&cardmonth=\d+',
                       OperationsPage)
+    # This loans_operations contains operation for some loans, but not all of them.
+    loans_operations = URL(r'/(?P<subbank>.*)fr/banque/gec9.aspx.*', LoansOperationsPage)
     coming =      URL(r'/(?P<subbank>.*)fr/banque/mvts_instance.cgi.*',      ComingPage)
     info =        URL(r'/(?P<subbank>.*)fr/banque/BAD.*',                    EmptyPage)
     change_pass = URL(r'/(?P<subbank>.*)fr/validation/change_password.cgi',

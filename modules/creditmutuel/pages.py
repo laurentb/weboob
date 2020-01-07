@@ -30,7 +30,8 @@ from collections import OrderedDict
 from weboob.browser.pages import HTMLPage, FormNotFound, LoggedPage, pagination, XMLPage, PartialHTMLPage
 from weboob.browser.elements import ListElement, ItemElement, SkipItem, method, TableElement
 from weboob.browser.filters.standard import (
-    Filter, Env, CleanText, CleanDecimal, Field, Regexp, Async, AsyncLoad, Date, Format, Type, Currency,
+    Filter, Env, CleanText, CleanDecimal, Field, Regexp, Async,
+    AsyncLoad, Date, Format, Type, Currency,
 )
 from weboob.browser.filters.html import Link, Attr, TableCell, ColumnNotFound
 from weboob.exceptions import (
@@ -205,6 +206,7 @@ class OtpBlockedErrorPage(PartialHTMLPage):
 
     def get_error_message(self):
         return CleanText('//div[contains(@class, "bloctxt err")]')(self.doc)
+
 
 
 class EmptyPage(LoggedPage, HTMLPage):
@@ -804,6 +806,7 @@ class Transaction(FrenchTransaction):
         (re.compile(r'^CHEQUE( (?P<text>.*))?$'), FrenchTransaction.TYPE_CHECK),
         (re.compile(r'^(F )?COTIS\.? (?P<text>.*)'), FrenchTransaction.TYPE_BANK),
         (re.compile(r'^(REMISE|REM CHQ) (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
+        (re.compile(r'^(?P<text>(ÉCHÉANCE|Echéance)).*'), FrenchTransaction.TYPE_LOAN_PAYMENT),
     ]
 
     _is_coming = False
@@ -825,7 +828,11 @@ class OperationsPage(LoggedPage, HTMLPage):
         item_xpath = '//table[has-class("liste")]//tbody/tr'
 
         class item(Transaction.TransactionElement):
-            condition = lambda self: len(self.el.xpath('./td')) >= 3 and len(self.el.xpath('./td[@class="i g" or @class="p g" or contains(@class, "_c1")]')) > 0
+            def condition(self):
+                return (
+                    len(self.el.xpath('./td')) >= 3
+                    and len(self.el.xpath('./td[@class="i g" or @class="p g" or contains(@class, "_c1")]')) > 0
+                )
 
             class OwnRaw(Filter):
                 def __call__(self, item):
@@ -888,6 +895,42 @@ class OperationsPage(LoggedPage, HTMLPage):
 
     def get_balance(self):
         return CleanDecimal.French('//span[contains(text(), "Dont opérations enregistrées")]', default=NotAvailable)(self.doc)
+
+
+class LoansOperationsPage(OperationsPage):
+    @method
+    class get_history(Pagination, Transaction.TransactionsElement):
+        head_xpath = '//table[has-class("liste")]/thead/tr/th'
+        item_xpath = '//table[has-class("liste")]/tr'
+
+        class item(Transaction.TransactionElement):
+            def condition(self):
+                return (
+                    len(self.el.xpath('./td')) >= 3
+                    and len(self.el.xpath('./td[@class="i g" or @class="p g" or contains(@class, "_c1")]')) > 0
+                    and 'Echéance' in CleanText(TableCell('raw'))(self)
+                    and 'Intérêts' in CleanText(TableCell('raw'))(self)
+                )
+
+            # Crédit = Echéance / Débit = Intérêts (and Assurance sometimes)
+            # 'Intérêts' do not affect the loans value.
+            obj_gross_amount = CleanDecimal.French(TableCell('credit'))
+
+            # Need to set it manually to NotAvailable otherwise Transaction.TransactionElement
+            # set its value to TableCell('credit')
+            obj_amount = NotAvailable
+
+            def obj_commission(self):
+                raw = Field('raw')(self)
+                if 'Assurance' in raw and 'Intérêts' in raw:
+                    # There is 2 values in the 'debit' TableCell if we have
+                    # Assurance and Intérêts...
+                    interets, assurance = Regexp(CleanText(TableCell('debit')), r'([\d, ]+)', r'\1', nth='*')(self)
+                    return (
+                        CleanDecimal.French(sign=lambda x: -1).filter(interets)
+                        - CleanDecimal.French().filter(assurance)
+                    )
+                return CleanDecimal.French(TableCell('debit'), sign=lambda x: -1)(self)
 
 
 class CardsOpePage(OperationsPage):
