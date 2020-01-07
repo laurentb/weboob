@@ -82,6 +82,18 @@ class SogecarteEntrepriseBrowser(SeleniumBrowser):
                 raise ActionNeeded(error)
             raise BrowserIncorrectPassword(error)
 
+        self._update_cookie_time()
+
+    def _update_cookie_time(self):
+        # This cookie needs to be updated with a better time
+        # (here we put 1 day) otherwise we might get disconnected while
+        # parsing informations.
+        self.driver.execute_script("""
+        var exdate = new Date();
+        exdate.setDate(exdate.getDate() + 1);
+        document.cookie = encodeURIComponent('POPUP_COOKIE') + "=" + encodeURIComponent('CHECKED') + "; expires="+exdate.toUTCString();
+        """)
+
     @need_login
     def iter_accounts(self):
         self.account_list.stay_or_go()
