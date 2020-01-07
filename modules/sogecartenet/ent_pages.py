@@ -132,7 +132,6 @@ class HistoryPage(LoggedPage, SeleniumPage):
             Date(dayfirst=True).filter,
             CleanText('//div[@id="VAADIN_COMBOBOX_OPTIONLIST"]//div[contains(@class, "suggestmenu")]//span')(self.doc).split()
         ))
-        self.browser.save_response()
 
         # Click on the element again to restore the status of input
         el.click()
