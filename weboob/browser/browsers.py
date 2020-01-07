@@ -875,7 +875,7 @@ class StatesMixin(object):
             pass
 
     def load_state(self, state):
-        if 'expire' in state and parser.parse(state['expire']) < datetime.now():
+        if state.get('expire') and parser.parse(state['expire']) < datetime.now():
             return self.logger.info('State expired, not reloading it from storage')
         if 'cookies' in state:
             try:
@@ -891,6 +891,9 @@ class StatesMixin(object):
         if 'url' in state:
             self.locate_browser(state)
 
+    def get_expire(self):
+        return unicode((datetime.now() + timedelta(minutes=self.STATE_DURATION)).replace(microsecond=0))
+
     def dump_state(self):
         state = {}
         if hasattr(self, 'page') and self.page:
@@ -902,7 +905,7 @@ class StatesMixin(object):
             except AttributeError:
                 pass
         if self.STATE_DURATION is not None:
-            state['expire'] = unicode((datetime.now() + timedelta(minutes=self.STATE_DURATION)).replace(microsecond=0))
+            state['expire'] = self.get_expire()
         self.logger.info('Stored cookies into storage')
         return state
 
@@ -1167,6 +1170,7 @@ class OAuth2PKCEMixin(OAuth2Mixin):
 
 class TwoFactorBrowser(LoginBrowser, StatesMixin):
     STATE_DURATION = 60 * 24 * 90
+    STATE_DURATION_MIN = 5
 
     INTERACTIVE_NAME = 'request_information'
     AUTHENTICATION_METHODS = OrderedDict([
@@ -1186,6 +1190,7 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
         super(TwoFactorBrowser, self).__init__(*args, **kwargs)
         self.config = config
         self.interactive = config.get(self.INTERACTIVE_NAME, Value()).get() is not None
+        self.__states__ += ('logged_date',)
 
     def handle_polling(self):
         """
@@ -1241,6 +1246,15 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
             if cookie_key in self.session.cookies:
                 del self.session.cookies[cookie_key]
 
+    def get_expire(self):
+        if getattr(self, 'logged_date', None):
+            expires_dates = [self.logged_date + timedelta(minutes=self.STATE_DURATION)]
+
+            if self.STATE_DURATION_MIN is not None:
+                expires_dates.append(datetime.now() + timedelta(minutes=self.STATE_DURATION_MIN))
+
+            return unicode(max(expires_dates).replace(microsecond=0))
+
     def dump_state(self):
         self.clear_cookies()
         return super(TwoFactorBrowser, self).dump_state()
@@ -1257,10 +1271,13 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
         If no backend configuration could be found,
         it will then call init_login method.
         """
+        self.logged_date = None
+
         for config_key, handle_method in self.AUTHENTICATION_METHODS.items():
             setattr(self, config_key, self.config.get(config_key, Value()).get())
             if getattr(self, config_key):
                 getattr(self, 'handle_' + (handle_method or config_key))()
+                self.logged_date = datetime.now()
                 break
         else:
             if not self.HAS_REGULAR_LOGIN:
