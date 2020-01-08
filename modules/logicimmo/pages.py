@@ -332,10 +332,15 @@ class SearchPage(HTMLPage):
 
             def obj_photos(self):
                 photos = []
-                url = Attr(
-                    './/div[has-class("offer-picture")]//img',
-                    'src'
-                )(self)
+                url = None
+                try:
+                    url = Attr(
+                        './/div[has-class("offer-picture")]//img',
+                        'src'
+                    )(self)
+                except:
+                    pass
+
                 if url:
                     url = url.replace('400x267', '800x600')
                     url = urljoin(self.page.url, url)  # Ensure URL is absolute
