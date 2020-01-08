@@ -22,6 +22,7 @@ from __future__ import unicode_literals
 from datetime import datetime, timedelta
 
 from weboob.browser import LoginBrowser, URL, need_login
+from weboob.browser.switch import SiteSwitch
 from weboob.capabilities.base import NotAvailable
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded, BrowserUnavailable
 from weboob.browser.exceptions import ServerError, ClientError
@@ -69,6 +70,10 @@ class EdfproBrowser(LoginBrowser):
 
         if self.error.is_here():
             raise BrowserUnavailable(self.page.get_message())
+
+        if 'collectivites' in self.url:
+            self.logger.warning('entreprises-collectivites website')
+            raise SiteSwitch('collectivites')
 
         self.session.headers['Content-Type'] = 'application/json;charset=UTF-8'
         self.session.headers['X-XSRF-TOKEN'] = self.session.cookies['XSRF-TOKEN']
@@ -126,5 +131,4 @@ class EdfproBrowser(LoginBrowser):
     @need_login
     def get_profile(self):
         self.profile.go(json={'idSpcInterlocuteur': ''})
-
         return self.page.get_profile()
