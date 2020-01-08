@@ -33,7 +33,7 @@ from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages import (
     LoginPage, AuthPage, AccountsPage, AccountHistoryViewPage, AccountHistoryPage,
-    ActionNeededPage, TransactionPage, MarketPage, InvestPage,
+    PasswordExpiredPage, TransactionPage, MarketPage, InvestPage,
 )
 
 
@@ -63,7 +63,7 @@ class BNPEnterprise(LoginBrowser):
     # The Market page is used only if there are several market accounts
     market = URL(r'/opcvm/lister-portefeuilles/afficher.do', MarketPage)
 
-    renew_pass = URL('/sommaire/PseRedirectPasswordConnect', ActionNeededPage)
+    renew_pass = URL('/sommaire/PseRedirectPasswordConnect', PasswordExpiredPage)
 
     def __init__(self, config, *args, **kwargs):
         super(BNPEnterprise, self).__init__(config['login'].get(), config['password'].get(), *args, **kwargs)

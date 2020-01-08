@@ -37,7 +37,7 @@ from weboob.capabilities.bank import Transaction, Account, Investment
 from weboob.capabilities.profile import Person
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 from weboob.capabilities import NotAvailable
-from weboob.exceptions import ActionNeeded, BrowserForbidden
+from weboob.exceptions import BrowserPasswordExpired, BrowserForbidden
 
 def fromtimestamp(milliseconds):
     return datetime.fromtimestamp(milliseconds/1000)
@@ -99,9 +99,9 @@ class AuthPage(HTMLPage):
             raise BrowserForbidden(content)
 
 
-class ActionNeededPage(HTMLPage):
+class PasswordExpiredPage(HTMLPage):
     def on_load(self):
-        raise ActionNeeded(CleanText('//p[@class="message"]')(self.doc))
+        raise BrowserPasswordExpired(CleanText('//p[@class="message"]')(self.doc))
 
 
 class AccountsPage(LoggedPage, JsonPage):
