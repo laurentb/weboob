@@ -65,6 +65,7 @@ class Transaction(FrenchTransaction):
         (re.compile(r'^Remise Carte.*'), FrenchTransaction.TYPE_CARD),
         (re.compile(r'^Paiement Par Carte.*(?P<dd>\d{2})/(?P<mm>\d{2})$'), FrenchTransaction.TYPE_CARD),
         (re.compile(r'^Remboursement De Pret.*'), FrenchTransaction.TYPE_LOAN_PAYMENT),
+        (re.compile(r'^Versement.*'), FrenchTransaction.TYPE_DEPOSIT),
     ]
 
 class CragrPage(HTMLPage):
