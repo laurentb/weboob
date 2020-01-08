@@ -244,5 +244,5 @@ class HistoryPage(LoggedPage, SeleniumPage):
             obj_label = CleanText(TableCell('label'))
             obj_amount = CleanDecimal.SI(TableCell('amount'))
             obj_date = Env('date')
-            obj_bdate = Date(CleanText(TableCell('date')), dayfirst=True)
+            obj_rdate = Date(CleanText(TableCell('date')), dayfirst=True)
             obj_type = Transaction.TYPE_CARD
