@@ -129,8 +129,14 @@ class TransactionsPage(LoggedPage, JsonPage):
                 return CleanText(Dict('status'))(self) != 'failed'
 
             obj_date = Date(Dict('date'))
-            obj_raw = CleanText(Dict('outlet/name'))
             obj_amount = Eval(lambda x: x / 100, CleanDecimal(Dict('amount')))
+
+            def obj_raw(self):
+                name = CleanText(Dict('outlet/name'))(self)
+                reason = Dict('reason', default=None)(self)
+                if '-' not in name and reason is not None:
+                    return CleanText().filter(reason)
+                return name
 
             def obj_label(self):
                 # Raw labels can be like this :
@@ -139,7 +145,15 @@ class TransactionsPage(LoggedPage, JsonPage):
                 # SFR DISTRIBUTION-23-9.20-0.00-2019
                 # The regexp is to get the part with only the name
                 # The .strip() is to remove any leading whitespaces due to the ` ?-`
-                return Regexp(CleanText(Dict('outlet/name')), r'([^,-]+)(?: ?-|,).*')(self).strip()
+                name = CleanText(Dict('outlet/name'))(self)
+                if '-' not in name:
+                    reason = Dict('reason', default=None)(self)
+                    if reason:
+                        return Regexp(pattern=r'^([^|]+)').filter(
+                            CleanText().filter(reason)
+                        )
+                    return name
+                return Regexp(pattern=r'([^,-]+)(?: ?-|,).*').filter(name).strip()
 
             def obj_type(self):
                 if Field('amount')(self) < 0:
