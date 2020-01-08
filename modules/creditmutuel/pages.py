@@ -87,9 +87,9 @@ class LoginPage(HTMLPage):
     def login(self, login, passwd):
         form = self.get_form(xpath='//form[contains(@name, "ident")]')
         # format login/password like login/password sent by firefox or chromium browser
-        form['_cm_user'] = login.encode('cp1252', errors='xmlcharrefreplace').decode('cp1252')
-        form['_cm_pwd'] = passwd.encode('cp1252', errors='xmlcharrefreplace').decode('cp1252')
-        form['_charset_'] = 'cp1252'
+        form['_cm_user'] = login
+        form['_cm_pwd'] = passwd
+        form['_charset_'] = 'UTF-8'
         form.submit()
 
     @property
