@@ -170,7 +170,12 @@ class CragrAPI(LoginBrowser):
         # accounts_url may contain '/particulier', '/professionnel', '/entreprise', '/agriculteur' or '/association'
         self.accounts_url = self.page.get_accounts_url()
         assert self.accounts_url, 'Could not get accounts url from security check'
-        self.location(self.accounts_url)
+        try:
+            self.location(self.accounts_url)
+        except HTTPNotFound:
+            # Sometimes the url the json sends us back is just unavailable...
+            raise BrowserUnavailable()
+
         assert self.accounts_page.is_here(), 'We failed to login after the security check: response URL is %s' % self.url
         # Once the security check is passed, we are logged in.
 
