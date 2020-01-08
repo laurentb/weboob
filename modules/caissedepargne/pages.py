@@ -51,6 +51,7 @@ from weboob.exceptions import (
     NoAccountsException, BrowserUnavailable, ActionNeeded, BrowserIncorrectPassword,
 )
 from weboob.browser.filters.json import Dict
+from weboob.browser.exceptions import ClientError
 
 
 def MyDecimal(*args, **kwargs):
@@ -661,7 +662,13 @@ class IndexPage(LoggedPage, HTMLPage):
                             if 'JSESSIONID' in self.browser.session.cookies:
                                 # Need to delete this to access the consumer loans space (a new one will be created)
                                 del self.browser.session.cookies['JSESSIONID']
-                            self.go_loans_conso(tr)
+                            try:
+                                self.go_loans_conso(tr)
+                            except ClientError as e:
+                                if e.response.status_code == 401:
+                                    raise ActionNeeded('La situation actuelle de votre dossier ne vous permet pas d\'accéder à cette fonctionnalité. '
+                                        'Nous vous invitons à contacter votre Centre de relation Clientèle pour accéder à votre prêt.')
+                                raise
                             d = self.browser.loans_conso()
                             if d:
                                 account.total_amount = float_to_decimal(d['contrat']['creditMaxAutorise'])
