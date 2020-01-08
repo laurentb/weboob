@@ -53,6 +53,7 @@ class DocumentTypes(object):
     BILL = u'bill'
     OTHER = u'other'
     INCOME_TAX = u'income_tax'
+    KIID = u'kiid'
 
 
 class Detail(BaseObject, Currency):
