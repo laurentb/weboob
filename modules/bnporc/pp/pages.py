@@ -219,7 +219,7 @@ class LoginPage(JsonPage):
 
             wrongpass_codes = [201, 21510, 203, 202, 7]
             actionNeeded_codes = [21501, 3, 4, 50]
-            websiteUnavailable_codes = [207, 1001]
+            websiteUnavailable_codes = [207, 1000, 1001]
             if error in wrongpass_codes:
                 raise BrowserIncorrectPassword(msg)
             elif error == 21: # "Ce service est momentanément indisponible. Veuillez renouveler votre demande ultérieurement." -> In reality, account is blocked because of too much wrongpass
