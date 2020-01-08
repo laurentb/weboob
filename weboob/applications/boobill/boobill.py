@@ -60,6 +60,9 @@ class Boobill(CaptchaMixin, ReplApplication):
                            'ls':              'subscriptions',
                           }
 
+    def load_default_backends(self):
+        self.load_backends(CapDocument, storage=self.create_storage())
+
     def main(self, argv):
         self.load_config()
         return ReplApplication.main(self, argv)
