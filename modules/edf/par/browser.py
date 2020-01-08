@@ -78,7 +78,10 @@ class EdfBrowser(LoginBrowser, StatesMixin):
 
         if self.config['otp'].get():
             self.otp_data['callbacks'][0]['input'][0]['value'] = self.config['otp'].get()
-            self.authenticate.go(json=self.otp_data, params=auth_params)
+            headers = {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+            self.authenticate.go(json=self.otp_data, params=auth_params, headers=headers)
             self.id_token1 = self.page.get_data()['callbacks'][1]['output'][0]['value']
             # id_token1 is VERY important, we keep it indefinitely, without it edf will ask again otp
         else:
