@@ -18,7 +18,7 @@
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 import datetime
 from dateutil.relativedelta import relativedelta
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.capabilities.bank import Account, AccountNotFound
 from weboob.capabilities.base import empty
@@ -90,8 +90,18 @@ class BforbankBrowser(LoginBrowser):
         self.login.stay_or_go()
         assert self.login.is_here()
         self.page.login(self.birthdate, self.username, self.password)
-        if self.error.is_here():
+        # When we try to login, the server return a json, if no error occurred
+        # `error` will be None otherwise it will be filled with the content of
+        # the error.
+        error = self.page.get_error_message()
+        if error == 'error.compte.bloque':
+            raise ActionNeeded('Compte bloqué')
+        elif error == 'error.authentification':
             raise BrowserIncorrectPassword()
+        elif error is not None:
+            assert False, 'Unexpected error at login: "%s"' % error
+        # We must go home after login otherwise do_login will be done twice.
+        self.home.go()
 
     @need_login
     def iter_accounts(self):

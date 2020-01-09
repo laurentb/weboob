@@ -27,7 +27,7 @@ from base64 import b64decode
 from PIL import Image
 
 from weboob.exceptions import ActionNeeded
-from weboob.browser.pages import LoggedPage, HTMLPage, pagination, AbstractPage
+from weboob.browser.pages import LoggedPage, HTMLPage, pagination, AbstractPage, JsonPage
 from weboob.browser.elements import method, ListElement, ItemElement, TableElement
 from weboob.capabilities.bank import Account, AccountOwnership
 from weboob.capabilities.profile import Person
@@ -99,8 +99,9 @@ class LoginPage(HTMLPage):
         form.submit()
 
 
-class ErrorPage(HTMLPage):
-    pass
+class ErrorPage(JsonPage):
+    def get_error_message(self):
+        return self.doc.get('errorMessage', None)
 
 
 class UserValidationPage(HTMLPage):
