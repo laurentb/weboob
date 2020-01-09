@@ -71,13 +71,13 @@ class AccountsPage(LoggedPage, JsonPage):
 
             obj_id = CleanText(Dict('codeDispositif'))
             obj_balance = CleanDecimal(Dict('mtBrut'))
+            obj_currency = 'EUR'
+            obj_type = Map(Dict('typeDispositif'), ACCOUNT_TYPES, Account.TYPE_LIFE_INSURANCE)
+            obj_diff = CleanDecimal.SI(Dict('mtPMV', default=None), default=NotAvailable)
 
             def obj_number(self):
                 # just the id is a kind of company id so it can be unique on a backend but not unique on multiple backends
                 return '%s_%s' % (Field('id')(self), self.page.browser.username)
-
-            obj_currency = 'EUR'
-            obj_type = Map(Dict('typeDispositif'), ACCOUNT_TYPES, Account.TYPE_LIFE_INSURANCE)
 
             def obj_label(self):
                 try:
