@@ -142,6 +142,8 @@ class LoginPage(HTMLPage):
 
         form.submit()
 
+    def get_error_message(self):
+        return CleanText('//div[@class="messages error"]', default=None)(self.doc)
 
 class MaintenancePage(HTMLPage):
     def get_message(self):

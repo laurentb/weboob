@@ -114,7 +114,16 @@ class CarrefourBanqueBrowser(LoginBrowser, StatesMixin):
         self.page.enter_password(self.password)
 
         if not self.home.is_here():
-            raise BrowserIncorrectPassword()
+            error = self.page.get_error_message()
+            # Sometimes some connections aren't able to login because of a
+            # maintenance randomly occuring.
+            if error:
+                if 'travaux de maintenance dans votre Espace Client.' in error:
+                    raise BrowserUnavailable(error)
+                elif 'saisies ne correspondent pas à l\'identifiant' in error:
+                    raise BrowserIncorrectPassword(error)
+                assert False, 'Unexpected error at login: "%s"' % error
+            assert False, 'Unexpected error at login'
 
     @need_login
     def get_account_list(self):
