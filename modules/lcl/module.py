@@ -70,7 +70,7 @@ class LCLModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapContact, 
                                           'elcl': 'e.LCL'}))
     BROWSER = LCLBrowser
 
-    accepted_doc_types = (DocumentTypes.STATEMENT, DocumentTypes.NOTICE, DocumentTypes.REPORT, DocumentTypes.OTHER)
+    accepted_document_types = (DocumentTypes.STATEMENT, DocumentTypes.NOTICE, DocumentTypes.REPORT, DocumentTypes.OTHER)
 
     def create_default_browser(self):
         # assume all `website` option choices are defined here
