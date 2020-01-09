@@ -23,7 +23,7 @@ from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import method, ItemElement, ListElement
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Currency, Date, NumberFormatError,
-    Field, Env,
+    Field, Env, MapIn,
 )
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Account, Transaction, Investment
@@ -69,6 +69,10 @@ class UnexpectedPage(HTMLPage):
 
 
 class AccountPage(LoggedPage, HTMLPage):
+    ACCOUNT_TYPES = {
+        'PER ': Account.TYPE_PER,
+    }
+
     @method
     class iter_accounts(ListElement):
         item_xpath = '//div[@id="desktop-data-tables"]/table//tr'
@@ -98,7 +102,9 @@ class AccountPage(LoggedPage, HTMLPage):
             obj__login = CleanDecimal('./td[1]')
             obj_currency = Currency('./td[6]')
             obj_company_name = CleanText('./td[3]')
-            obj_type = Account.TYPE_PERP
+
+            def obj_type(self):
+                return MapIn(Field('label'), self.page.ACCOUNT_TYPES, Account.TYPE_UNKNOWN)(self)
 
             def obj_balance(self):
                 # This wonderful website randomly displays separators as '.' or ','
