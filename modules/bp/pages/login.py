@@ -23,6 +23,7 @@ from io import BytesIO
 
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, NoAccountsException, ActionNeeded
 from weboob.browser.pages import LoggedPage
+from weboob.browser.filters.html import Link
 from weboob.browser.filters.standard import CleanText, Regexp
 from weboob.tools.captcha.virtkeyboard import VirtKeyboard
 
@@ -145,11 +146,16 @@ class TwoFAPage(MyHTMLPage):
             self.browser.login_without_2fa()
 
     def get_auth_method(self):
-        if 'Certicode Plus' in CleanText('//div[@class="textFCK"]')(self.doc):
+        if 'Une authentification forte via Certicode Plus vous' in CleanText('//div[@class="textFCK"]')(self.doc):
             return 'cer+'
         elif 'authentification forte via Certicode vous' in CleanText('//div[@class="textFCK"]')(self.doc):
             return 'cer'
+        elif 'Si vous n’avez pas de solution d’authentification forte' in CleanText('//div[@class="textFCK"]')(self.doc):
+            return 'no2fa'
         assert False, '2FA method not found'
+
+    def get_skip_url(self):
+        return Link('//div[@class="certicode_footer"]/a')(self.doc)
 
 
 class Validated2FAPage(MyHTMLPage):

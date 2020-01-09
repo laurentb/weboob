@@ -291,10 +291,10 @@ class BPBrowser(LoginBrowser, StatesMixin):
             if self.request_information is None:
                 raise NeedInteractiveFor2FA()
             auth_method = self.page.get_auth_method()
+
             if auth_method == 'cer+':
                 # We force here the first device present
                 self.decoupled_page.go(params={'deviceSelected': '0'})
-                self.location('/voscomptes/canalXHTML/securite/gestionAuthentificationForte/validationTerminal-gestionAuthentificationForte.ea?deviceSelected=0')
                 raise AppValidation(self.page.get_decoupled_message())
 
             elif auth_method == 'cer':
@@ -302,6 +302,9 @@ class BPBrowser(LoginBrowser, StatesMixin):
                 self.page.check_if_is_blocked()
                 self.sms_form = self.page.get_sms_form()
                 raise BrowserQuestion(Value('code', label='Entrez le code reçu par SMS'))
+
+            elif auth_method == 'no2fa':
+                self.location(self.page.get_skip_url())
 
         # If we are here, we don't need 2FA, we are logged
 
