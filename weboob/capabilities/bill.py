@@ -110,7 +110,7 @@ class Subscription(BaseObject):
 
 
 class CapDocument(CapCollection):
-    accepted_doc_types = ()
+    accepted_document_types = ()
     """
     Tuple of document types handled by the module (:class:`DocumentTypes`)
     """
