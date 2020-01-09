@@ -18,17 +18,17 @@
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.browser.pages import AbstractPage, HTMLPage
+from weboob.browser.pages import AbstractPage, PartialHTMLPage
 
 
-class LoginPage(HTMLPage):
+class LoginPage(PartialHTMLPage):
     REFRESH_MAX = 10.0
 
-    def login(self, login, passwd):
+    def login(self, login, passwd, redirect=False):
         form = self.get_form(xpath='//form[contains(@name, "ident")]')
         form['_cm_user'] = login
         form['_cm_pwd'] = passwd
-        form.submit()
+        form.submit(allow_redirects=redirect)
 
     @property
     def logged(self):
@@ -38,4 +38,15 @@ class LoginPage(HTMLPage):
 class PorPage(AbstractPage):
     PARENT = 'creditmutuel'
     PARENT_URL = 'por'
+
+
+class DecoupledStatePage(AbstractPage):
+    PARENT = 'creditmutuel'
+    PARENT_URL = 'decoupled_state'
+    BROWSER_ATTR = 'package.browser.CreditMutuelBrowser'
+
+
+class CancelDecoupled(AbstractPage):
+    PARENT = 'creditmutuel'
+    PARENT_URL = 'cancel_decoupled'
     BROWSER_ATTR = 'package.browser.CreditMutuelBrowser'

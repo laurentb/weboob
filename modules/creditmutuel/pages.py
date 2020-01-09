@@ -20,7 +20,6 @@
 from __future__ import unicode_literals
 
 import re
-import time
 
 from decimal import Decimal, InvalidOperation
 from dateutil.relativedelta import relativedelta
@@ -28,7 +27,7 @@ from datetime import date, datetime
 from random import randint
 from collections import OrderedDict
 
-from weboob.browser.pages import HTMLPage, FormNotFound, LoggedPage, pagination, XMLPage
+from weboob.browser.pages import HTMLPage, FormNotFound, LoggedPage, pagination, XMLPage, PartialHTMLPage
 from weboob.browser.elements import ListElement, ItemElement, SkipItem, method, TableElement
 from weboob.browser.filters.standard import (
     Filter, Env, CleanText, CleanDecimal, Field, Regexp, Async, AsyncLoad, Date, Format, Type, Currency,
@@ -36,7 +35,7 @@ from weboob.browser.filters.standard import (
 from weboob.browser.filters.html import Link, Attr, TableCell, ColumnNotFound
 from weboob.exceptions import (
     BrowserIncorrectPassword, ParseError, ActionNeeded, BrowserUnavailable,
-    AuthMethodNotImplemented, AppValidation,
+    AuthMethodNotImplemented,
 )
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.base import empty, find_object
@@ -75,13 +74,13 @@ class RedirectPage(LoggedPage, HTMLPage):
             self.browser.location(link[0].attrib['href'])
 
 
-class NewHomePage(LoggedPage, HTMLPage):
+class NewHomePage(LoggedPage, PartialHTMLPage):
     def on_load(self):
         self.browser.is_new_website = True
         super(NewHomePage, self).on_load()
 
 
-class LoginPage(HTMLPage):
+class LoginPage(PartialHTMLPage):
     REFRESH_MAX = 10.0
 
     def on_load(self):
@@ -89,13 +88,13 @@ class LoginPage(HTMLPage):
         if self.doc.xpath(error_msg_xpath):
             raise BrowserIncorrectPassword(CleanText(error_msg_xpath)(self.doc))
 
-    def login(self, login, passwd):
+    def login(self, login, passwd, redirect=False):
         form = self.get_form(xpath='//form[contains(@name, "ident")]')
         # format login/password like login/password sent by firefox or chromium browser
         form['_cm_user'] = login
         form['_cm_pwd'] = passwd
         form['_charset_'] = 'UTF-8'
-        form.submit()
+        form.submit(allow_redirects=redirect)
 
     @property
     def logged(self):
@@ -111,76 +110,61 @@ class FiscalityConfirmationPage(LoggedPage, HTMLPage):
     pass
 
 
-class MobileConfirmationPage(LoggedPage, HTMLPage):
-    # OTP process:
-    # - first we get on this page, and the mobile app is pinged: scrap some JS
-    # object information from the HTML's page, to reuse later, including the
-    # page's URL to get a status update about OTP validation.
-    # - ping the status update page every second, as does the website. It
-    # returns a weird XML object, with a status field containing PENDING or
-    # VALIDATED.
-    # - once the status update page returns VALIDATED, do another POST request
-    # to finalize validation, using state recorded in the first step
-    # (otp_hidden).
-
-    MAX_WAIT = 120 # in seconds
+# keep PartialHTMLPage for this page has same url than other pages
+class MobileConfirmationPage(PartialHTMLPage):
+    def is_here(self):
+        return 'Démarrez votre application mobile' in CleanText('//div[contains(@id, "inMobileAppMessage")]')(self.doc)
 
     # We land on this page for some connections, but can still bypass this verification for now
-    def on_load(self):
+    def check_bypass(self):
         link = Attr('//a[contains(text(), "Accéder à mon Espace Client sans Confirmation Mobile")]', 'href', default=None)(self.doc)
         if link:
             self.logger.warning('This connexion is bypassing mobile confirmation')
             self.browser.location(link)
         else:
             self.logger.warning('This connexion cannot bypass mobile confirmation')
-            msg = CleanText('//div[@id="inMobileAppMessage"]')(self.doc)
-            if msg:
-                display_msg = re.search(r'Confirmer votre connexion depuis votre appareil ".+"', msg).group()
 
-                script = CleanText('//script[contains(text(), "otpInMobileAppParameters")]')(self.doc)
+    def get_validation_msg(self):
+        # ex: "Une demande de confirmation mobile a été transmise à votre appareil "SuperPhone de Toto". Démarrez votre application mobile Crédit Mutuel pour vérifier et confirmer cette opération."
+        return CleanText('//div[@id="inMobileAppMessage"]//h2[not(img)]')(self.doc)
 
-                transaction_id = re.search("transactionId: '(\w+)'", script)
-                if transaction_id is None:
-                    raise Exception('missing transaction_id in Credit Mutuel OTP')
-                transaction_id = transaction_id.group(1)
+    def get_polling_id(self):
+        return Regexp(CleanText('//script[contains(text(), "transactionId")]'), r"transactionId: '(.{49})', get")(self.doc)
 
-                validation_status_url = re.search("getTransactionValidationStateUrl: '(.*)', pollingInterval:", script)
-                if validation_status_url is None:
-                    raise Exception('missing validation_status_url in Credit Mutuel OTP')
-                validation_status_url = validation_status_url.group(1)
+    def get_final_url(self):
+        # Find the final url to POST to, once AppValidation has been made
+        # Importantly contains `k___ValidateAntiForgeryToken` generated for each polling
+        return Attr('//form[contains(@action, ConsentPage)]', 'action')(self.doc)
 
-                otp_hidden = CleanText('//input[@name="otp_hidden"]/@value')(self.doc)
-                if otp_hidden is None:
-                    raise Exception('missing otp_hidden in Credit Mutuel OTP')
+    def get_final_url_params(self):
+        # Params to give with final_url
+        form = self.get_form()
+        return {
+            'otp_hidden': form['otp_hidden'],
+            'global_backup_hidden_key': form['global_backup_hidden_key'],  # always seen empty
+            '_FID_DoValidate.x': 0,
+            '_FID_DoValidate.y': 0,
+            '_wxf2_cc': form['_wxf2_cc'],
+        }
 
-                num_attempts = 0
-                while num_attempts < self.MAX_WAIT:
-                    time.sleep(1)
-                    num_attempts += 1
+    def get_polling_data(self):
+        data = {
+            'polling_id': self.get_polling_id(),
+            'final_url': self.get_final_url(),
+            'final_url_params': self.get_final_url_params(),
+        }
+        assert data, "Can't proceed to polling if no polling_data"
+        return data
 
-                    response = self.browser.open(validation_status_url, method='POST', data={"transactionId":transaction_id})
-                    if response.status_code == 200:
-                        if 'PENDING' not in response.text:
-                            response = self.browser.open(
-                                '?_tabi+C&_pid=OtpValidationPage',
-                                method='POST',
-                                data={
-                                    "otp_hidden": otp_hidden,
-                                    "global_backup_hidden_key": "",
-                                    "_FID_DoValidate.x": "0",
-                                    "_FID_DoValidate.y": "0",
-                                    "_wxf2_cc":"fr-FR"
-                                }
-                            )
-                            if response.status_code != 200:
-                                break
-                            return
-                    else:
-                        break
 
-                raise AppValidation(display_msg)
+class DecoupledStatePage(XMLPage):
+    def get_decoupled_state(self):
+        return CleanText('//transactionState')(self.doc)
 
-            assert False, "Mobile authentication method not handled"
+
+class CancelDecoupled(HTMLPage):
+    pass
+
 
 class EmptyPage(LoggedPage, HTMLPage):
     REFRESH_MAX = 10.0
@@ -1845,7 +1829,9 @@ class VerifCodePage(LoggedPage, HTMLPage):
 
     def on_load(self):
         errors = (
-            CleanText('//p[contains(text(), "Clé invalide !")] | //p[contains(text(), "Vous n\'avez pas saisi de clé!")]')(self.doc),
+            CleanText('//p[contains(text(), "Clé invalide !")]')(self.doc),
+            CleanText('//p[contains(text(), "Vous n\'avez pas saisi de clé!")]')(self.doc),
+            CleanText('//p[contains(text(), "saisie est incorrecte")]')(self.doc),
             CleanText('//p[contains(text(), "Vous n\'êtes pas inscrit") and a[text()="service d\'identification renforcée"]]')(self.doc),
         )
         for error in errors:
@@ -1867,22 +1853,11 @@ class VerifCodePage(LoggedPage, HTMLPage):
         question = Regexp(CleanText('//div/p[input]'), r'(Veuillez .*):')(self.doc)
         return question
 
-    def post_code(self, key):
+    def get_recipient_form(self):
         form = self.get_form('//form[contains(@action, "verif_code")]')
-        form['[t:xsd%3astring;]Data_KeyInput'] = key
-
-        # we don't know the card id
-        # by default all users have only one card
-        # but to be sure, let's get it dynamically
-        do_validate = [k for k in form.keys() if '_FID_DoValidate_cardId' in k]
-        assert len(do_validate) == 1, 'There should be only one card.'
-        form[do_validate[0]] = ''
-
-        activate = [k for k in form.keys() if '_FID_GoCardAction_action' in k]
-        assert len(activate) == 1, 'There should be only one card.'
-        del form[activate[0]]
-
-        form.submit()
+        recipient_form = dict(self.get_form('//form[contains(@action, "verif_code")]').items())
+        recipient_form['url'] = form.url
+        return recipient_form
 
     def handle_error(self):
         error_msg = CleanText('//div[@class="blocmsg info"]/p')(self.doc)

@@ -20,8 +20,7 @@
 
 from weboob.capabilities.bank import CapBankTransferAddRecipient
 from weboob.capabilities.contact import CapContact
-from weboob.tools.backend import AbstractModule, BackendConfig
-from weboob.tools.value import ValueBackendPassword
+from weboob.tools.backend import AbstractModule
 
 from .browser import BECMBrowser
 
@@ -36,12 +35,11 @@ class BECMModule(AbstractModule, CapBankTransferAddRecipient, CapContact):
     VERSION = '1.6'
     DESCRIPTION = u'Banque Européenne Crédit Mutuel'
     LICENSE = 'LGPLv3+'
-    CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
-                           ValueBackendPassword('password', label='Mot de passe'))
+
     BROWSER = BECMBrowser
     PARENT = 'creditmutuel'
 
     def create_default_browser(self):
-        browser = self.create_browser(self.config['login'].get(), self.config['password'].get(), weboob=self.weboob)
+        browser = self.create_browser(self.config, weboob=self.weboob)
         browser.new_accounts.urls.insert(0, "/mabanque/fr/banque/comptes-et-contrats.html")
         return browser

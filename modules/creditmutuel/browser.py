@@ -20,19 +20,23 @@
 from __future__ import unicode_literals
 
 import re
+import time
 from datetime import datetime
 from itertools import groupby
 from operator import attrgetter
 
+from weboob.exceptions import (
+    AppValidation, AppValidationExpired, AppValidationCancelled, AuthMethodNotImplemented,
+    BrowserIncorrectPassword, BrowserUnavailable, NoAccountsException,
+)
 from weboob.tools.compat import basestring
 from weboob.tools.value import Value
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction, sorted_transactions
-from weboob.browser.browsers import LoginBrowser, need_login, StatesMixin
+from weboob.browser.browsers import need_login, TwoFactorBrowser
 from weboob.browser.profiles import Wget
 from weboob.browser.url import URL
 from weboob.browser.pages import FormNotFound
 from weboob.browser.exceptions import ClientError, ServerError
-from weboob.exceptions import BrowserIncorrectPassword, AuthMethodNotImplemented, BrowserUnavailable, NoAccountsException
 from weboob.capabilities.bank import Account, AddRecipientStep, Recipient, AccountOwnership
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
 from weboob.capabilities import NotAvailable
@@ -48,26 +52,36 @@ from .pages import (
     CardsOpePage, NewAccountsPage, InternalTransferPage,
     ExternalTransferPage, RevolvingLoanDetails, RevolvingLoansList,
     ErrorPage, SubscriptionPage, NewCardsListPage, CardPage2, FiscalityConfirmationPage,
-    ConditionsPage, MobileConfirmationPage, UselessPage,
+    ConditionsPage, MobileConfirmationPage, UselessPage, DecoupledStatePage, CancelDecoupled,
 )
 
 
 __all__ = ['CreditMutuelBrowser']
 
 
-class CreditMutuelBrowser(LoginBrowser, StatesMixin):
+class CreditMutuelBrowser(TwoFactorBrowser):
     PROFILE = Wget()
-    STATE_DURATION = 60 * 24 * 90
     TIMEOUT = 30
     BASEURL = 'https://www.creditmutuel.fr'
+    HAS_CREDENTIALS_ONLY = True
+    STATE_DURATION = 5
+    TWOFA_DURATION = 60 * 24 * 90
 
-    login =       URL('/fr/authentification.html',
-                      r'/(?P<subbank>.*)fr/$',
-                      r'/(?P<subbank>.*)fr/banques/accueil.html',
-                      r'/(?P<subbank>.*)fr/banques/particuliers/index.html',
-                      LoginPage)
+    # connexion
+    login = URL(
+        r'/fr/authentification.html',
+        r'/(?P<subbank>.*)fr/$',
+        r'/(?P<subbank>.*)fr/banques/accueil.html',
+        r'/(?P<subbank>.*)fr/banques/particuliers/index.html',
+        LoginPage
+    )
     login_error = URL(r'/(?P<subbank>.*)fr/identification/default.cgi',      LoginErrorPage)
+    mobile_confirmation = URL(r'/(?P<subbank>.*)fr/banque/validation.aspx', MobileConfirmationPage)
+    decoupled_state = URL(r'/fr/banque/async/otp/SOSD_OTP_GetTransactionState.htm', DecoupledStatePage)
+    cancel_decoupled = URL(r'/fr/banque/async/otp/SOSD_OTP_CancelTransaction.htm', CancelDecoupled)
     fiscality = URL(r'/(?P<subbank>.*)fr/banque/residencefiscale.aspx', FiscalityConfirmationPage)
+
+    # accounts
     accounts =    URL(r'/(?P<subbank>.*)fr/banque/situation_financiere.cgi',
                       r'/(?P<subbank>.*)fr/banque/situation_financiere.html',
                       AccountsPage)
@@ -79,6 +93,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
     user_space =  URL(r'/(?P<subbank>.*)fr/banque/espace_personnel.aspx',
                       r'/(?P<subbank>.*)fr/banque/accueil.cgi',
                       r'/(?P<subbank>.*)fr/banque/DELG_Gestion',
+                      r'/(?P<subbank>.*)fr/banque/paci_engine/engine.aspx',
                       r'/(?P<subbank>.*)fr/banque/paci_engine/static_content_manager.aspx',
                       UserSpacePage)
     card =        URL(r'/(?P<subbank>.*)fr/banque/operations_carte.cgi.*',
@@ -151,28 +166,128 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
     form = None
     logged = None
     need_clear_storage = None
-    otp_session = None
-
-    __states__ = ['currentSubBank', 'form', 'logged', 'is_new_website', 'need_clear_storage', 'otp_session']
-
     accounts_list = None
 
+    def __init__(self, config, *args, **kwargs):
+        self.config = config
+        self.weboob = kwargs['weboob']
+        kwargs['username'] = self.config['login'].get()
+        kwargs['password'] = self.config['password'].get()
+        super(CreditMutuelBrowser, self).__init__(config, *args, **kwargs)
+
+        self.__states__ += (
+            'currentSubBank', 'form', 'logged', 'is_new_website',
+            'need_clear_storage', 'recipient_form',
+            'twofa_auth_state', 'polling_data',
+        )
+        self.twofa_auth_state = {}
+        self.polling_data = {}
+        self.keep_session = None
+        self.recipient_form = None
+
+        self.AUTHENTICATION_METHODS = {
+            'resume': self.handle_polling,
+        }
+
+    def get_expire(self):
+        if self.twofa_auth_state:
+            expires = datetime.fromtimestamp(self.twofa_auth_state['expires']).isoformat()
+            return expires
+        return
+
     def load_state(self, state):
-        # when add recipient fails, state can't be reloaded. If state is reloaded, there is this error message:
+        # when add recipient fails, state can't be reloaded.
+        # If state is reloaded, there is this error message:
         # "Navigation interdite - Merci de bien vouloir recommencer votre action."
-        if not state.get('need_clear_storage'):
-            super(CreditMutuelBrowser, self).load_state(state)
+        if state.get('need_clear_storage'):
+            # only keep 'twofa_auth_state' state to avoid new 2FA
+            state = {'twofa_auth_state': state.get('twofa_auth_state')}
+
+        if state.get('polling_data') or state.get('recipient_form'):
+            # can't start on an url in the middle of a validation process
+            # or server will cancel it and launch another one
+            if 'url' in state:
+                state.pop('url')
+
+        # if state is empty (first login), it does nothing
+        super(CreditMutuelBrowser, self).load_state(state)
+
+    def go_twofa_validated_url(self, twofa_data):
+        """
+        Go to validated 2FA url. Before following redirection,
+        store 'auth_client_state' cookie to prove to server,
+        for a TWOFA_DURATION, that 2FA is already done.
+        """
+
+        self.location(
+            twofa_data['final_url'],
+            data=twofa_data['final_url_params'],
+            allow_redirects=False
+        )
+
+        for cookie in self.session.cookies:
+            if cookie.name == 'auth_client_state':
+                self.twofa_auth_state['value'] = cookie.value  # this is a token
+                self.twofa_auth_state['expires'] = cookie.expires  # this is a timestamp
+        
+        self.location(self.response.headers['Location'])
+
+    def handle_polling(self):
+        # 15' on website, we don't wait that much, but leave sufficient time for the user
+        timeout = time.time() + 600.00  # 15' on webview, need not to wait that much
+
+        while time.time() < timeout:
+            data = {'transactionId': self.polling_data['polling_id']}
+            self.decoupled_state.go(data=data)
+
+            decoupled_state = self.page.get_decoupled_state()
+            if decoupled_state == 'VALIDATED':
+                self.logger.info('AppValidation done, going to final_url')
+                self.go_twofa_validated_url(self.polling_data)
+                self.polling_data = {}
+                return
+            elif decoupled_state in ('CANCELLED', 'NONE'):
+                self.polling_data = {}
+                raise AppValidationCancelled()
+
+            assert decoupled_state == 'PENDING', 'Unhandled polling state: "%s"' % decoupled_state
+            time.sleep(5)  # every second on wbesite, need to slow that down
         else:
-            self.need_clear_storage = None
+            # manually cancel polling before website max duration for it
+            self.cancel_decoupled.go(data=data)
+            self.polling_data = {}
+            raise AppValidationExpired()
 
-    def do_login(self):
-        # Clear cookies.
-        self.do_logout()
+    def check_redirections(self):
+        self.logger.info('Checking redirections')
+        # MobileConfirmationPage or OtpValidationPage is coming but there is no request_information
+        location = self.response.headers.get('Location', '')
+        if 'validation.aspx' in location and not self.is_interactive:
+            self.check_interactive()
+        elif location:
+            self.location(location, allow_redirects=False)
 
+    def check_auth_methods(self):
+        if self.mobile_confirmation.is_here():
+            self.page.check_bypass()
+            if self.mobile_confirmation.is_here():
+                self.polling_data = self.page.get_polling_data()
+                raise AppValidation(self.page.get_validation_msg())
+
+    def init_login(self):
         self.login.go()
 
+        # 2FA already done, if valid, login() redirects to home page
+        if self.twofa_auth_state:
+            self.session.cookies.set('auth_client_state', self.twofa_auth_state['value'])
+            self.page.login(self.username, self.password, redirect=True)
+
         if not self.page.logged:
+            # 302 redirect to catch to know if polling
             self.page.login(self.username, self.password)
+            self.check_redirections()
+            # for cic, there is two redirections
+            self.check_redirections()
 
             # when people try to log in but there are on a sub site of creditmutuel
             if not self.page and not self.url.startswith(self.BASEURL):
@@ -183,6 +298,8 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
 
         if self.verify_pass.is_here():
             raise AuthMethodNotImplemented("L'identification renforcée avec la carte n'est pas supportée.")
+
+        self.check_auth_methods()
 
         self.getCurrentSubBank()
 
@@ -630,9 +747,26 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
         r.bank_name = NotAvailable
         return r
 
+    def format_recipient_form(self, key):
+        self.recipient_form['[t:xsd%3astring;]Data_KeyInput'] = key
+
+        # we don't know the card id
+        # by default all users have only one card
+        # but to be sure, let's get it dynamically
+        do_validate = [k for k in self.recipient_form.keys() if '_FID_DoValidate_cardId' in k]
+        assert len(do_validate) == 1, 'There should be only one card.'
+        self.recipient_form[do_validate[0]] = ''
+
+        activate = [k for k in self.recipient_form.keys() if '_FID_GoCardAction_action' in k]
+        for _ in activate:
+            del self.recipient_form[_]
+
     def continue_new_recipient(self, recipient, **params):
         if 'Clé' in params:
-            self.page.post_code(params['Clé'])
+            url = self.recipient_form.pop('url')
+            self.format_recipient_form(params['Clé'])
+            self.location(url, data=self.recipient_form)
+            self.recipient_form = None
             if self.verify_pass.is_here():
                 self.page.handle_error()
                 assert False, 'An error occured while checking the card code'
@@ -668,16 +802,23 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
         self.location(self.form['url'], data=data)
         self.page.ask_sms(self.get_recipient_object(recipient))
 
-    @need_login
-    def new_recipient(self, recipient, **params):
+    def set_new_recipient(self, recipient, **params):
         if self.currentSubBank is None:
             self.getCurrentSubBank()
+
         if 'Bic' in params:
             return self.post_with_bic(recipient, **params)
         if 'code' in params:
             return self.end_new_recipient(recipient, **params)
         if 'Clé' in params:
             return self.continue_new_recipient(recipient, **params)
+
+        assert False, 'An error occured while adding a recipient.'
+
+    @need_login
+    def new_recipient(self, recipient, **params):
+        if self.currentSubBank is None:
+            self.getCurrentSubBank()
 
         self.recipients_list.go(subbank=self.currentSubBank)
         if self.page.has_list():
@@ -687,6 +828,7 @@ class CreditMutuelBrowser(LoginBrowser, StatesMixin):
 
         self.page.go_to_add()
         if self.verify_pass.is_here():
+            self.recipient_form = self.page.get_recipient_form()
             raise AddRecipientStep(self.get_recipient_object(recipient), Value('Clé', label=self.page.get_question()))
         else:
             return self.continue_new_recipient(recipient, **params)

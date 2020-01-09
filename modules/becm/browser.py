@@ -23,7 +23,6 @@ from weboob.browser.browsers import AbstractBrowser
 from weboob.browser.profiles import Wget
 from weboob.browser.url import URL
 from weboob.browser.browsers import need_login
-from weboob.exceptions import ActionNeeded, AuthMethodNotImplemented
 
 from .pages import AdvisorPage, LoginPage
 
@@ -39,23 +38,6 @@ class BECMBrowser(AbstractBrowser):
 
     login = URL('/fr/authentification.html', LoginPage)
     advisor = URL('/fr/banques/Details.aspx\?banque=.*', AdvisorPage)
-
-    def do_login(self):
-        # Clear cookies.
-        self.do_logout()
-        self.login.go()
-        if not self.page.logged:
-            self.page.login(self.username, self.password)
-            # Many "Credit Mutuel" customers tried to add their connection to BECM, but the BECM
-            # website does not return any error when you try to login with correct Crédit Mutuel
-            # credentials, therefore we must suggest them to try regular Crédit Mutuel if login fails.
-            if self.login.is_here():
-                raise ActionNeeded("La connexion au site de BECM n'a pas fonctionné avec les identifiants fournis.\
-                                    Si vous êtes client du Crédit Mutuel, veuillez réessayer en sélectionnant le module Crédit Mutuel.")
-
-        if self.verify_pass.is_here():
-            raise AuthMethodNotImplemented("L'identification renforcée avec la carte n'est pas supportée.")
-
 
     @need_login
     def get_advisor(self):
