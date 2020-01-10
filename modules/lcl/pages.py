@@ -466,6 +466,13 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
 
                 row = Attr('.', 'id', default=None)(self)
                 assert row, 'HTML format of transactions details changed'
+
+                if not re.match(r'\d+', row):
+                    return self.page.browser.async_open(
+                        Attr('.', 'href')(self),
+                        method='POST',
+                    )
+
                 return self.page.browser.async_open(
                     '/outil/UWLM/ListeMouvementsParticulier/accesDetailsMouvement?element=%s' % row,
                     method='POST',
