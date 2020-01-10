@@ -1174,11 +1174,11 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
     TWOFA_DURATION = None
 
     INTERACTIVE_NAME = 'request_information'
-    AUTHENTICATION_METHODS = OrderedDict([
-        ('resume', 'polling'),
-        ('code', 'sms'),
-        ('otp', None),
-    ])
+    AUTHENTICATION_METHODS = {
+        'resume': 'handle_polling',
+        'code': 'handle_sms',
+        'otp': 'handle_otp',
+    }
 
     # list of cookie keys to clear before dumping state
     COOKIES_TO_CLEAR = ()
@@ -1279,7 +1279,7 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
         for config_key, handle_method in self.AUTHENTICATION_METHODS.items():
             setattr(self, config_key, self.config.get(config_key, Value()).get())
             if getattr(self, config_key):
-                getattr(self, 'handle_' + (handle_method or config_key))()
+                getattr(self, handle_method)()
 
                 self.twofa_logged_date = datetime.now()
 
