@@ -891,9 +891,8 @@ class StatesMixin(object):
         if 'url' in state:
             self.locate_browser(state)
 
-    def get_expire(self, duration, start=datetime.now()):
-        if duration:
-            return unicode((start + timedelta(minutes=duration)).replace(microsecond=0))
+    def get_expire(self):
+        return unicode((datetime.now() + timedelta(minutes=self.STATE_DURATION)).replace(microsecond=0))
 
     def dump_state(self):
         state = {}
@@ -906,7 +905,7 @@ class StatesMixin(object):
             except AttributeError:
                 pass
         if self.STATE_DURATION is not None:
-            state['expire'] = self.get_expire(self.STATE_DURATION)
+            state['expire'] = self.get_expire()
         self.logger.info('Stored cookies into storage')
         return state
 
@@ -1194,10 +1193,13 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
         self.twofa_logged_date = None
         self.__states__ += ('twofa_logged_date',)
 
-    def get_expire(self, duration, start=datetime.now()):
-        if self.twofa_logged_date:
-            return super(TwoFactorBrowser, self).get_expire(self.TWOFA_DURATION, self.twofa_logged_date)
-        return super(TwoFactorBrowser, self).get_expire(duration, start)
+    def get_expire(self):
+        expires_dates = [datetime.now() + timedelta(minutes=self.STATE_DURATION)]
+
+        if getattr(self, 'twofa_logged_date', None) and self.TWOFA_DURATION is not None:
+            expires_dates.append(self.twofa_logged_date + timedelta(minutes=self.TWOFA_DURATION))
+
+        return unicode(max(expires_dates).replace(microsecond=0))
 
     def dump_state(self):
         self.clear_not_2fa_cookies()
@@ -1260,21 +1262,6 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
             if cookie_key in self.session.cookies:
                 del self.session.cookies[cookie_key]
 
-    def get_expire(self):
-        if getattr(self, 'logged_date', None):
-            expires_dates = [self.logged_date + timedelta(minutes=self.STATE_DURATION)]
-
-            if self.STATE_DURATION_MIN is not None:
-                expires_dates.append(datetime.now() + timedelta(minutes=self.STATE_DURATION_MIN))
-
-            return unicode(max(expires_dates).replace(microsecond=0))
-
-    def dump_state(self):
-        self.clear_not_2fa_cookies()
-        # because twofa_logged_date is in state
-        self.twofa_logged_date = str(self.twofa_logged_date)
-        return super(TwoFactorBrowser, self).dump_state()
-
     def check_interactive(self):
         if not self.is_interactive:
             raise NeedInteractiveFor2FA()
@@ -1287,13 +1274,14 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
         If no backend configuration could be found,
         it will then call init_login method.
         """
-        self.logged_date = None
+        self.twofa_logged_date = None
 
         for config_key, handle_method in self.AUTHENTICATION_METHODS.items():
             setattr(self, config_key, self.config.get(config_key, Value()).get())
             if getattr(self, config_key):
                 getattr(self, 'handle_' + (handle_method or config_key))()
-                self.logged_date = datetime.now()
+
+                self.twofa_logged_date = datetime.now()
                 break
         else:
             if not self.HAS_ONLY_CREDENTIALS:
