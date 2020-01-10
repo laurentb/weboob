@@ -1183,8 +1183,8 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
     # list of cookie keys to clear before dumping state
     COOKIES_TO_CLEAR = ()
 
-    # The login is only made with username/password
-    HAS_ONLY_CREDENTIALS = False
+    # login can also be done with credentials without 2FA
+    HAS_CREDENTIALS_ONLY = False
 
     def __init__(self, config, *args, **kwargs):
         super(TwoFactorBrowser, self).__init__(*args, **kwargs)
@@ -1284,7 +1284,7 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
                 self.twofa_logged_date = datetime.now()
                 break
         else:
-            if not self.HAS_ONLY_CREDENTIALS:
+            if not self.HAS_CREDENTIALS_ONLY:
                 self.check_interactive()
 
             self.clear_init_cookies()
