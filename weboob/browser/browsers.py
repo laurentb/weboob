@@ -1282,6 +1282,12 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
                 getattr(self, 'handle_' + (handle_method or config_key))()
 
                 self.twofa_logged_date = datetime.now()
+
+                # cleaning authentication config keys
+                for config_key in self.AUTHENTICATION_METHODS.keys():
+                    if config_key in self.config:
+                        self.config[config_key] = self.config[config_key].default
+
                 break
         else:
             if not self.HAS_CREDENTIALS_ONLY:
