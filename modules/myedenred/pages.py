@@ -29,6 +29,7 @@ from weboob.browser.filters.standard import (
 )
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.bank import Account, Transaction
+from weboob.capabilities.base import NotAvailable, empty
 from weboob.tools.json import json
 from weboob.tools.compat import urlparse, parse_qs
 
@@ -132,11 +133,11 @@ class TransactionsPage(LoggedPage, JsonPage):
             obj_amount = Eval(lambda x: x / 100, CleanDecimal(Dict('amount')))
 
             def obj_raw(self):
-                name = CleanText(Dict('outlet/name'))(self)
-                reason = Dict('reason', default=None)(self)
-                if '-' not in name and reason is not None:
-                    return CleanText().filter(reason)
-                return name
+                name = Dict('outlet/name', default=NotAvailable)(self)
+                reason = Dict('reason', default=NotAvailable)(self)
+                if not empty(name) and ('-' in name or empty(reason)):
+                    return CleanText().filter(name)
+                return CleanText().filter(reason)
 
             def obj_label(self):
                 raw = Field('raw')(self)
@@ -149,14 +150,8 @@ class TransactionsPage(LoggedPage, JsonPage):
                 # SFR DISTRIBUTION-23-9.20-0.00-2019
                 # The regexp is to get the part with only the name
                 # The .strip() is to remove any leading whitespaces due to the ` ?-`
-                name = CleanText(Dict('outlet/name'))(self)
-                if '-' not in name:
-                    reason = Dict('reason', default=None)(self)
-                    if reason:
-                        return Regexp(pattern=r'^([^|]+)').filter(
-                            CleanText().filter(reason)
-                        )
-                    return name
+                if '-' not in raw:
+                    return Regexp(pattern=r'^([^|]+)').filter(raw)
                 return Regexp(pattern=r'([^,-]+)(?: ?-|,).*').filter(raw).strip()
 
             def obj_type(self):
