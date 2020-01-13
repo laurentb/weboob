@@ -132,6 +132,7 @@ class TransactionCSV(LoggedPage, CsvPage):
             TRANSACTION_TYPES = {
                 'FACTURE CB': Transaction.TYPE_CARD,
                 'RETRAIT CB': Transaction.TYPE_WITHDRAWAL,
+                "TRANSACTION INITIALE RECUE D'AVOIR": Transaction.TYPE_PAYBACK,
             }
 
             obj_label = CleanText(Dict('Raison sociale commerçant'))
