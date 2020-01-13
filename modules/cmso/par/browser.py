@@ -79,20 +79,20 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
     STATE_DURATION = 1
     headers = None
 
-    login = URL('/securityapi/tokens',
-                '/auth/checkuser', LoginPage)
-    logout = URL('/securityapi/revoke',
-                 '/auth/errorauthn',
-                 '/\/auth/errorauthn', LogoutPage)
-    accounts = URL('/domiapi/oauth/json/accounts/synthese(?P<type>.*)', AccountsPage)
-    history = URL('/domiapi/oauth/json/accounts/(?P<page>.*)', HistoryPage)
-    loans = URL('/creditapi/rest/oauth/v1/synthese', AccountsPage)
-    lifeinsurance = URL('/assuranceapi/v1/oauth/sso/suravenir/DETAIL_ASSURANCE_VIE/(?P<accid>.*)',
-                        'https://domiweb.suravenir.fr/', LifeinsurancePage)
-    market = URL('/domiapi/oauth/json/ssoDomifronttitre',
-                 'https://www.(?P<website>.*)/domifronttitre/front/sso/domiweb/01/(?P<action>.*)Portefeuille\?csrf=',
-                 'https://www.*/domiweb/prive/particulier', MarketPage)
-    advisor = URL('/edrapi/v(?P<version>\w+)/oauth/(?P<page>\w+)', AdvisorPage)
+    login = URL(r'/securityapi/tokens',
+                r'/auth/checkuser', LoginPage)
+    logout = URL(r'/securityapi/revoke',
+                 r'/auth/errorauthn',
+                 r'/\/auth/errorauthn', LogoutPage)
+    accounts = URL(r'/domiapi/oauth/json/accounts/synthese(?P<type>.*)', AccountsPage)
+    history = URL(r'/domiapi/oauth/json/accounts/(?P<page>.*)', HistoryPage)
+    loans = URL(r'/creditapi/rest/oauth/v1/synthese', AccountsPage)
+    lifeinsurance = URL(r'/assuranceapi/v1/oauth/sso/suravenir/DETAIL_ASSURANCE_VIE/(?P<accid>.*)',
+                        r'https://domiweb.suravenir.fr/', LifeinsurancePage)
+    market = URL(r'/domiapi/oauth/json/ssoDomifronttitre',
+                 r'https://www.(?P<website>.*)/domifronttitre/front/sso/domiweb/01/(?P<action>.*)Portefeuille\?csrf=',
+                 r'https://www.*/domiweb/prive/particulier', MarketPage)
+    advisor = URL(r'/edrapi/v(?P<version>\w+)/oauth/(?P<page>\w+)', AdvisorPage)
 
     # transfer
     transfer_info = URL(r'/domiapi/oauth/json/transfer/transferinfos', TransferInfoPage)
@@ -229,7 +229,7 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
         account = self.get_account(account.id)
 
         if account.type in (Account.TYPE_LOAN, Account.TYPE_PEE):
-            return iter([])
+            return []
 
         if account.type == Account.TYPE_LIFE_INSURANCE:
             url = json.loads(self.lifeinsurance.go(accid=account._index).text)['url']
@@ -281,7 +281,7 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
         account = self.get_account(account.id)
 
         if account.type is Account.TYPE_LOAN:
-            return iter([])
+            return []
 
         comings = []
 
@@ -309,7 +309,7 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
             url = json.loads(self.lifeinsurance.go(accid=account._index).text)['url']
             url = self.location(url).page.get_link("supports")
             if not url:
-                return iter([])
+                return []
             return self.location(url).page.iter_investment()
         elif account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
             data = {"place": "SITUATION_PORTEFEUILLE"}
@@ -324,12 +324,12 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
     @retry((ClientError, ServerError))
     @need_login
     def iter_recipients(self, account):
-        self.transfer_info.go(json={"beneficiaryType":"INTERNATIONAL"})
-
         if account.type in (Account.TYPE_LOAN, ):
             return
         if not account._eligible_debit:
             return
+
+        self.transfer_info.go(json={"beneficiaryType": "INTERNATIONAL"})
 
         # internal recipient
         for rcpt in self.page.iter_titu_accounts():
