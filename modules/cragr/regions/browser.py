@@ -60,8 +60,8 @@ __all__ = ['CragrRegion']
 class CragrRegion(LoginBrowser):
     # Login
     home = URL(r'/$', r'/particuliers.html', HomePage)
+    logged_out = URL(r'.*', LoggedOutPage)  # must be first to catch the page
     login = URL(r'/stb/entreeBam$', LoginPage)
-    logged_out = URL(r'.*', LoggedOutPage)
     password_expired = URL(r'/stb/entreeBam\?sessionSAG=(?P<browser_session_value>[^&]+)&stbpg=pagePU&act=Interstitielle', PasswordExpiredPage)
 
     # Perimeters
