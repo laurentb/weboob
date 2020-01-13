@@ -56,10 +56,10 @@ __all__ = ['SocieteGenerale']
 
 
 class SocieteGenerale(TwoFactorBrowser):
-    HAS_REGULAR_LOGIN = True
+    HAS_CREDENTIALS_ONLY = True
 
     BASEURL = 'https://particuliers.societegenerale.fr'
-    # XXX STATE_DURATION was 5 minutes for transfers purposes...
+    STATE_DURATION = 10
 
     # Bank
     accounts_main_page = URL(r'/restitution/cns_listeprestation.html',
@@ -139,6 +139,14 @@ class SocieteGenerale(TwoFactorBrowser):
     polling_duration = 300  # default to 5 minutes
 
     __states__ = ('context', 'dup', 'id_transaction', 'polling_transaction',)
+
+    def __init__(self, config, *args, **kwargs):
+        super(SocieteGenerale, self).__init__(config, *args, **kwargs)
+
+        self.AUTHENTICATION_METHODS = {
+            'resume': self.handle_polling,
+            'code': self.handle_sms,
+        }
 
     def transfer_condition(self, state):
         return state.get('dup') is not None and state.get('context') is not None
