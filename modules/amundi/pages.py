@@ -73,7 +73,6 @@ class AccountsPage(LoggedPage, JsonPage):
             obj_balance = CleanDecimal(Dict('mtBrut'))
             obj_currency = 'EUR'
             obj_type = Map(Dict('typeDispositif'), ACCOUNT_TYPES, Account.TYPE_LIFE_INSURANCE)
-            obj_diff = CleanDecimal.SI(Dict('mtPMV', default=None), default=NotAvailable)
 
             def obj_number(self):
                 # just the id is a kind of company id so it can be unique on a backend but not unique on multiple backends
@@ -114,6 +113,7 @@ class AccountsPage(LoggedPage, JsonPage):
             obj__details_url = Dict('urlFicheFonds', default=None)
             obj_code = IsinCode(Dict('codeIsin', default=NotAvailable), default=NotAvailable)
             obj_code_type = IsinType(Dict('codeIsin', default=NotAvailable))
+            obj_diff = CleanDecimal.SI(Dict('mtPMV', default=None), default=NotAvailable)
 
             def obj_srri(self):
                 srri = Dict('SRRI')(self)
