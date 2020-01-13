@@ -34,7 +34,7 @@ from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages import (
     LogoutPage, AccountsPage, HistoryPage, LifeinsurancePage, MarketPage,
-    AdvisorPage, LoginPage, ProfilePage,
+    AdvisorPage, LoginPage, ProfilePage, InsurancesPage, RedirectInsurancePage,
 )
 from .transfer_pages import TransferInfoPage, RecipientsListPage, TransferPage
 
@@ -87,8 +87,13 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
     accounts = URL(r'/domiapi/oauth/json/accounts/synthese(?P<type>.*)', AccountsPage)
     history = URL(r'/domiapi/oauth/json/accounts/(?P<page>.*)', HistoryPage)
     loans = URL(r'/creditapi/rest/oauth/v1/synthese', AccountsPage)
-    lifeinsurance = URL(r'/assuranceapi/v1/oauth/sso/suravenir/DETAIL_ASSURANCE_VIE/(?P<accid>.*)',
-                        r'https://domiweb.suravenir.fr/', LifeinsurancePage)
+    redirect_insurance = URL(
+        r'assuranceapi/v1/oauth/sso/suravenir/SYNTHESE_ASSURANCEVIE',
+        r'/assuranceapi/v1/oauth/sso/suravenir/DETAIL_ASSURANCE_VIE/(?P<accid>.*)',
+        RedirectInsurancePage
+    )
+    insurances = URL(r'https://domiweb.suravenir.fr/group/eclient-.*?/(?:;|$)', InsurancesPage)
+    lifeinsurance = URL(r'https://domiweb.suravenir.fr/group/eclient-.*?/', LifeinsurancePage)
     market = URL(r'/domiapi/oauth/json/ssoDomifronttitre',
                  r'https://www.(?P<website>.*)/domifronttitre/front/sso/domiweb/01/(?P<action>.*)Portefeuille\?csrf=',
                  r'https://www.*/domiweb/prive/particulier', MarketPage)
@@ -163,9 +168,10 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
             return self.accounts_list
 
         seen = {}
+        seen_savings = {}
         owner_name = self.get_profile().name.upper()
 
-        self.transfer_info.go(json={"beneficiaryType":"INTERNATIONAL"})
+        self.transfer_info.go(json={"beneficiaryType": "INTERNATIONAL"})
         numbers = self.page.get_numbers()
         # to know if account can do transfer
         accounts_eligibilite_debit = self.page.get_eligibilite_debit()
@@ -186,12 +192,28 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
         page = self.accounts.go(data=json.dumps({}), type='epargne', headers=self.json_headers)
         for key in page.get_keys():
             for a in page.iter_savings(key=key, numbers=numbers, name=owner_name):
+                seen_savings[a.id] = a
                 a._eligible_debit = accounts_eligibilite_debit.get(a.id, False)
                 if a._index in seen:
                     acc = seen[a._index]
                     self.accounts_list.remove(acc)
                     self.logger.warning('replace %s because it seems to be a duplicate of %s', seen[a._index], a)
                 self.accounts_list.append(a)
+
+        # Some saving accounts are not on the same page
+        # In this case we have no _index, we have the details url directly
+        url = self.redirect_insurance.go().get_url()
+        self.location(url)
+        for a in self.page.iter_accounts():
+            # Accounts can be on both pages. Info are slightly out-of-sync on both sites (balances are different).
+            # We keep this one because it's more coherent with invests data.
+            if a.id in seen_savings:
+                acc = seen_savings[a.id]
+                # We keep the _index because it's not available on the other website
+                a._index = acc._index
+                self.accounts_list.remove(acc)
+                self.logger.warning('replace %s because it seems to be a duplicate of %s', seen_savings[a.id], a)
+            self.accounts_list.append(a)
 
         # Then, get loans
         for key in self.loans.go().get_keys():
@@ -232,9 +254,11 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
             return []
 
         if account.type == Account.TYPE_LIFE_INSURANCE:
-            url = json.loads(self.lifeinsurance.go(accid=account._index).text)['url']
+            if not account.url and not hasattr(account, '_index'):
+                # No url and no _index, we can't get history
+                return []
+            url = account.url or self.redirect_insurance.go(accid=account._index).get_url()
             url = self.location(url).page.get_link("opérations")
-
             return self.location(url).page.iter_history()
         elif account.type in (Account.TYPE_PEA, Account.TYPE_MARKET):
             self._go_market_history()
@@ -285,8 +309,10 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
 
         comings = []
 
+        if not hasattr(account, '_index'):
+            # No _index, we can't get coming
+            return []
         self.history.go(data=json.dumps({"index": account._index}), page="pendingListOperations", headers=self.json_headers)
-
         # There is no ids for comings, so no check for duplicates
         for key in self.page.get_keys():
             for c in self.page.iter_history(key=key):
@@ -306,7 +332,10 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
         account = self.get_account(account.id)
 
         if account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_PERP):
-            url = json.loads(self.lifeinsurance.go(accid=account._index).text)['url']
+            if not account.url and not hasattr(account, '_index'):
+                # No url and no _index, we can't get investments
+                return []
+            url = account.url or self.redirect_insurance.go(accid=account._index).get_url()
             url = self.location(url).page.get_link("supports")
             if not url:
                 return []
@@ -324,12 +353,12 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
     @retry((ClientError, ServerError))
     @need_login
     def iter_recipients(self, account):
-        if account.type in (Account.TYPE_LOAN, ):
+        if account.type in (Account.TYPE_LOAN, Account.TYPE_LIFE_INSURANCE, ):
             return
         if not account._eligible_debit:
             return
 
-        self.transfer_info.go(json={"beneficiaryType": "INTERNATIONAL"})
+        self.transfer_info.go(json={"beneficiaryType":"INTERNATIONAL"})
 
         # internal recipient
         for rcpt in self.page.iter_titu_accounts():

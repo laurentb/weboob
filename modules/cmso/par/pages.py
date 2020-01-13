@@ -29,9 +29,12 @@ from collections import OrderedDict
 from weboob.exceptions import BrowserUnavailable
 from weboob.browser.pages import HTMLPage, JsonPage, RawPage, LoggedPage, pagination
 from weboob.browser.elements import DictElement, ItemElement, TableElement, SkipItem, method
-from weboob.browser.filters.standard import CleanText, Upper, Date, Regexp, Format, CleanDecimal, Filter, Env, Slugify, Field
+from weboob.browser.filters.standard import (
+    CleanText, Upper, Date, Regexp, Format, CleanDecimal, Filter, Env, Slugify,
+    Field, Currency,
+)
 from weboob.browser.filters.json import Dict
-from weboob.browser.filters.html import Attr, Link, TableCell
+from weboob.browser.filters.html import Attr, Link, TableCell, AbsoluteLink
 from weboob.browser.exceptions import ServerError
 from weboob.capabilities.bank import Account, Investment, Loan, AccountOwnership
 from weboob.capabilities.contact import Advisor
@@ -240,7 +243,7 @@ class AccountsPage(LoggedPage, JsonPage):
 
                 def get_lifenumber(self):
                     index = Dict('index')(self)
-                    data = json.loads(self.page.browser.lifeinsurance.open(accid=index).text)
+                    data = json.loads(self.page.browser.redirect_insurance.open(accid=index).text)
                     if not data:
                         raise SkipItem('account seems unavailable')
                     url = data['url']
@@ -380,6 +383,34 @@ class HistoryPage(LoggedPage, JsonPage):
                         if deferred_date:
                             break
                     setattr(self.obj, '_deferred_date', self.FromTimestamp().filter(deferred_date))
+
+
+class RedirectInsurancePage(LoggedPage, JsonPage):
+    def get_url(self):
+        return Dict('url')(self.doc)
+
+
+class InsurancesPage(LoggedPage, HTMLPage):
+    @method
+    class iter_accounts(TableElement):
+        item_xpath = '//div[@class="tabAssuranceVieCapi"]//table/tbody/tr[has-class("results-row")]'
+        head_xpath = '//div[@class="tabAssuranceVieCapi"]//table/thead/tr/th'
+
+        col_label = 'Contrat'
+        col_id = 'Numéro'
+        col_balance = 'Solde'
+
+        class item(ItemElement):
+            klass = Account
+
+            obj_id = CleanText(TableCell('id'), replace=[(' ', '')])
+            obj_label = CleanText(TableCell('label'))
+            obj_balance = CleanDecimal.French(TableCell('balance'))
+            obj_currency = Currency(TableCell('balance'))
+            obj_type = Account.TYPE_LIFE_INSURANCE
+
+            def obj_url(self):
+                return AbsoluteLink(TableCell('id')(self)[0].xpath('.//a'), default=NotAvailable)(self)
 
 
 class LifeinsurancePage(LoggedPage, HTMLPage):
