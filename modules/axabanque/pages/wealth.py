@@ -33,6 +33,7 @@ from weboob.browser.filters.html import Attr, Link, TableCell
 from weboob.capabilities.bank import Account, Investment, AccountOwnership
 from weboob.capabilities.profile import Person
 from weboob.capabilities.base import NotAvailable, NotLoaded, empty
+from weboob.tools.capabilities.bank.investments import IsinCode, IsinType
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 
 
@@ -152,6 +153,43 @@ class InvestmentPage(LoggedPage, HTMLPage):
         return bool(self.doc.xpath('//th[contains(text(), "Valeur de la part")]'))
 
 
+class InvestmentMonAxaPage(LoggedPage, HTMLPage):
+    def get_performance_url(self):
+        return Link('//a[contains(text(), "Performance")]')(self.doc)
+
+    @method
+    class iter_investment(TableElement):
+        item_xpath = '//div[@id="tabVisionContrat"]/table/tbody/tr'
+        head_xpath = '//div[@id="tabVisionContrat"]/table/thead//th'
+
+        col_label = 'Nom'
+        col_code = 'ISIN'
+        col_asset_category = 'Catégorie'
+        col_valuation = 'Montant'
+        col_portfolio_share = 'Poids'
+
+        class item(ItemElement):
+            klass = Investment
+
+            obj_label = CleanText(TableCell('label'))
+            obj_code = IsinCode(TableCell('code'), default=NotAvailable)
+            obj_code_type = IsinType(TableCell('code'), default=NotAvailable)
+            obj_asset_category = CleanText(TableCell('asset_category'))
+            obj_valuation = CleanDecimal.French(TableCell('valuation'), default=NotAvailable)
+
+            def obj_portfolio_share(self):
+                share_percent = CleanDecimal.French(TableCell('portfolio_share'), default=None)(self)
+                if not(empty(share_percent)):
+                    return share_percent / 100
+
+
+class PerformanceMonAxaPage(LoggedPage, HTMLPage):
+    @method
+    class fill_investment(ItemElement):
+        obj_vdate = Date(CleanText('//span[@id="cellDateValorisation"]'), dayfirst=True, default=NotAvailable)
+        # TODO Other values (like `quantity`) may be available. They are not available for the account we have.
+
+
 class Transaction(FrenchTransaction):
     PATTERNS = [
         (re.compile(r'^(?P<text>souscription.*)'), FrenchTransaction.TYPE_DEPOSIT),
@@ -165,6 +203,9 @@ class AccountDetailsPage(LoggedPage, HTMLPage):
 
     def get_investment_url(self):
         return Attr('//div[contains(@data-analytics-label, "repartition_par_fond")]', 'data-url', default=None)(self.doc)
+
+    def get_iframe_url(self):
+        return Attr('//div[contains(@class, "iframe-quantalys")]', 'data-module-iframe-quantalys--iframe-url', default=None)(self.doc)
 
     def get_pid(self):
         return Attr('//div[@data-module="operations-movements"]', 'data-module-operations-movements--pid', default=None)(self.doc)

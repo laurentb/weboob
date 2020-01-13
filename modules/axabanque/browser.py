@@ -37,15 +37,16 @@ from weboob.tools.capabilities.bank.investments import create_french_liquidity
 
 from .pages.login import (
     KeyboardPage, LoginPage, ChangepasswordPage, PredisconnectedPage, DeniedPage,
-    AccountSpaceLogin, ErrorPage,
+    AccountSpaceLogin, ErrorPage, AuthorizePage,
 )
 from .pages.bank import (
     AccountsPage as BankAccountsPage, CBTransactionsPage, TransactionsPage,
     UnavailablePage, IbanPage, LifeInsuranceIframe, BoursePage, BankProfilePage,
 )
 from .pages.wealth import (
-    AccountsPage as WealthAccountsPage, AccountDetailsPage,
-    InvestmentPage, HistoryPage, HistoryInvestmentsPage, ProfilePage,
+    AccountsPage as WealthAccountsPage, AccountDetailsPage, InvestmentPage,
+    InvestmentMonAxaPage, HistoryPage, HistoryInvestmentsPage, ProfilePage,
+    PerformanceMonAxaPage,
 )
 from .pages.transfer import (
     RecipientsPage, AddRecipientPage, ValidateTransferPage, RegisterTransferPage,
@@ -64,7 +65,7 @@ class AXABrowser(LoginBrowser):
         r'https://www.axa.fr/axa-postmaw-predisconnect.html',
         PredisconnectedPage
     )
-
+    authorize = URL(r'https://connect.axa.fr/connect/authorize', AuthorizePage)
     denied = URL(r'https://connect.axa.fr/Account/AccessDenied', DeniedPage)
     account_space_login = URL(r'https://connect.axa.fr/api/accountspace', AccountSpaceLogin)
     errors = URL(
@@ -598,7 +599,10 @@ class AXAAssurance(AXABrowser):
         r'/#',
         AccountDetailsPage
     )
+
     investment = URL(r'/content/ecc-popin-cards/savings/[^/]+/repartition', InvestmentPage)
+    investment_monaxa = URL(r'https://monaxaweb-gp.axa.fr/MonAxa/Contrat/', InvestmentMonAxaPage)
+    performance_monaxa = URL(r'https://monaxaweb-gp.axa.fr/MonAxa/ContratPerformance/', PerformanceMonAxaPage)
 
     documents_life_insurance = URL(
         r'/content/espace-client/accueil/mes-documents/situations-de-contrats-assurance-vie.content-inner.din_SAVINGS_STATEMENT.html',
@@ -640,31 +644,51 @@ class AXAAssurance(AXABrowser):
         return self.cache['accs']
 
     @need_login
+    def iter_investment_espaceclient(self, account):
+        portfolio_page = self.page
+        detailed_view = self.page.detailed_view()
+        if detailed_view:
+            self.location(detailed_view)
+            self.cache['invs'][account.id] = list(self.page.iter_investment(currency=account.currency))
+        else:
+            self.cache['invs'][account.id] = []
+        for inv in portfolio_page.iter_investment(currency=account.currency):
+            i = [i2 for i2 in self.cache['invs'][account.id] if
+                 (i2.valuation == inv.valuation and i2.label == inv.label)]
+            assert len(i) in (0, 1)
+            if i:
+                i[0].portfolio_share = inv.portfolio_share
+            else:
+                self.cache['invs'][account.id].append(inv)
+
+    @need_login
+    def iter_investment_monaxa(self, account):
+        # Try to fetch a URL to 'monaxaweb-gp.axa.fr'
+        self.cache['invs'][account.id] = list(self.page.iter_investment())
+
+        self.location(self.page.get_performance_url())
+        for inv in self.cache['invs'][account.id]:
+            self.page.fill_investment(obj=inv)
+
+        # return to espaceclient.axa.fr
+        self.accounts.go()
+
+    @need_login
     def iter_investment(self, account):
         if account.id not in self.cache['invs']:
             self.go_wealth_pages(account)
             investment_url = self.page.get_investment_url()
             if not investment_url:
-                # fake data, don't cache it
-                self.logger.warning('No investment URL available for account %s, investments cannot be retrieved.', account.id)
-                return []
-
-            self.location(investment_url)
-            portfolio_page = self.page
-            detailed_view = self.page.detailed_view()
-            if detailed_view:
-                self.location(detailed_view)
-                self.cache['invs'][account.id] = list(self.page.iter_investment(currency=account.currency))
+                iframe_url = self.page.get_iframe_url()
+                if not iframe_url:
+                    # No data available for this account.
+                    self.logger.warning('No investment URL available for account %s, investments cannot be retrieved.', account.id)
+                    return []
+                self.location(iframe_url)
+                self.iter_investment_monaxa(account)
             else:
-                self.cache['invs'][account.id] = []
-            for inv in portfolio_page.iter_investment(currency=account.currency):
-                i = [i2 for i2 in self.cache['invs'][account.id] if (i2.valuation == inv.valuation and i2.label == inv.label)]
-                assert len(i) in (0, 1)
-                if i:
-                    i[0].portfolio_share = inv.portfolio_share
-                else:
-                    self.cache['invs'][account.id].append(inv)
-
+                self.location(investment_url)
+                self.iter_investment_espaceclient(account)
         return self.cache['invs'][account.id]
 
     @need_login

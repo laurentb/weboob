@@ -131,3 +131,9 @@ class ErrorPage(PartialHTMLPage):
         for error in error_msg:
             if error:
                 raise BrowserUnavailable(error)
+
+
+class AuthorizePage(HTMLPage):
+    def on_load(self):
+        form = self.get_form()
+        form.submit()
