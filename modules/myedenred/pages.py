@@ -139,6 +139,10 @@ class TransactionsPage(LoggedPage, JsonPage):
                 return name
 
             def obj_label(self):
+                raw = Field('raw')(self)
+                if 'Annulation' in raw:
+                    return raw
+
                 # Raw labels can be like this :
                 # PASTA ANGERS,FRA
                 # O SEIZE - 16 RUE D ALSACE, ANGERS,49100,FRA
@@ -153,9 +157,11 @@ class TransactionsPage(LoggedPage, JsonPage):
                             CleanText().filter(reason)
                         )
                     return name
-                return Regexp(pattern=r'([^,-]+)(?: ?-|,).*').filter(name).strip()
+                return Regexp(pattern=r'([^,-]+)(?: ?-|,).*').filter(raw).strip()
 
             def obj_type(self):
                 if Field('amount')(self) < 0:
                     return Transaction.TYPE_CARD
+                elif 'Annulation' in Field('label')(self):
+                    return Transaction.TYPE_PAYBACK
                 return Transaction.TYPE_TRANSFER
