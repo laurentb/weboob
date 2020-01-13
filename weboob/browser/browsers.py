@@ -1174,11 +1174,9 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
     TWOFA_DURATION = None
 
     INTERACTIVE_NAME = 'request_information'
-    AUTHENTICATION_METHODS = {
-        'resume': 'handle_polling',
-        'code': 'handle_sms',
-        'otp': 'handle_otp',
-    }
+    # dict of config keys and methods used for double authentication
+    # must be set up in the init to handle function pointers
+    AUTHENTICATION_METHODS = {}
 
     # list of cookie keys to clear before dumping state
     COOKIES_TO_CLEAR = ()
@@ -1207,36 +1205,6 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
         # because twofa_logged_date is in state
         self.twofa_logged_date = str(self.twofa_logged_date)
         return super(TwoFactorBrowser, self).dump_state()
-
-    def handle_polling(self):
-        """
-        This method must implement polling.
-
-        It's used when an AppValidation has been raised.
-        """
-        raise NotImplementedError()
-
-    def handle_sms(self):
-        """
-        This method must send the `code` entered by the PSU to the bank.
-
-        The difference with `handle_otp` method is that this one should be used
-        to specifically handle SMS code.
-
-        It's used when a BrowserQuestion has been raised and a `code` is set.
-        """
-        raise NotImplementedError()
-
-    def handle_otp(self):
-        """
-        This method must send the `otp` entered by the PSU to the bank.
-
-        The difference with `handle_sms` method is that this one should be used
-        to handle tokens, for example a LuxTrust token, or any non SMS OTP.
-
-        It's used when a BrowserQuestion has been raised and an `otp` is set.
-        """
-        raise NotImplementedError()
 
     def init_login(self):
         """
@@ -1274,12 +1242,13 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
         If no backend configuration could be found,
         it will then call init_login method.
         """
+        assert self.AUTHENTICATION_METHODS, 'There is no config for the double authentication.'
         self.twofa_logged_date = None
 
         for config_key, handle_method in self.AUTHENTICATION_METHODS.items():
             setattr(self, config_key, self.config.get(config_key, Value()).get())
             if getattr(self, config_key):
-                getattr(self, handle_method)()
+                handle_method()
 
                 self.twofa_logged_date = datetime.now()
 
