@@ -165,6 +165,7 @@ ACCOUNT_TYPES = {
     'PEA': Account.TYPE_PEA,
     'PEAP': Account.TYPE_PEA,
     'DAV PEA': Account.TYPE_PEA,
+    'PEA VPRIVI': Account.TYPE_PEA,
     'CPS': Account.TYPE_MARKET,
     'TITR': Account.TYPE_MARKET,
     'TITR CTD': Account.TYPE_MARKET,
@@ -202,6 +203,7 @@ ACCOUNT_TYPES = {
     'PRGE': Account.TYPE_LIFE_INSURANCE,
     'CONF': Account.TYPE_LIFE_INSURANCE,
     'V O E': Account.TYPE_LIFE_INSURANCE,  # Vendome Optimum Euro
+    'VENDOME': Account.TYPE_LIFE_INSURANCE,  # Vendome Optimum Euro
     'ATOUT LIB': Account.TYPE_REVOLVING_CREDIT,
     'PACC': Account.TYPE_CONSUMER_CREDIT,  # 'PAC' = 'Prêt à consommer'
     'PACP': Account.TYPE_CONSUMER_CREDIT,
