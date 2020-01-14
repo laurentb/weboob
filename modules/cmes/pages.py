@@ -135,7 +135,12 @@ class AccountsPage(LoggedPage, HTMLPage):
             inv._account = account
             inv._el_pocket = elem_pocket
             inv.label = CleanText('.//td[1]')(row)
-            inv._url = Link('.//td[1]/a', default=None)(row)
+            _url = Link('.//td[1]/a', default=None)(row)
+            if _url:
+                inv._url = self.absurl(_url)
+            else:
+                # If _url is None, self.absurl returns the BASEURL, so we need to set the value manually.
+                inv._url = None
             inv.valuation = MyDecimal('.//td[2]')(row)
 
             # On all Cmes children the row shows percentages and the popup shows absolute values in currency.
@@ -189,6 +194,9 @@ class AccountsPage(LoggedPage, HTMLPage):
 
 
 class InvestmentPage(LoggedPage, HTMLPage):
+    def get_asset_management_url(self):
+        return Link('//a[.//span[text()="Fiche valeur"]]', default=None)(self.doc)
+
     @method
     class fill_investment(ItemElement):
         # Sometimes there is a 'LIBELLES EN EURO' string joined with the category so we remove it
@@ -217,6 +225,30 @@ class InvestmentPage(LoggedPage, HTMLPage):
     def go_investment_details(self):
         investment_details_url = Link('//a[@id="C:T1:N"]')(self.doc)
         self.browser.location(investment_details_url)
+
+
+class AssetManagementPage(LoggedPage, HTMLPage):
+    def get_page_params(self):
+        return {
+            'forceActualisation': 0,
+            'ddp': Regexp(CleanText('//script[contains(text(), "window.location.href")]'), 'window.location.href = ".*?ddp=(.*?)"')(self.doc)
+        }
+
+    def get_performance_history(self):
+        # Getting cells by th index
+        performance_xpath = '//table[@id="t_PerformancesEnDate"]/tbody/tr/td[@class="i d " and position()=count(//table[@id="t_PerformancesEnDate"]//th[@id="%s"]/preceding-sibling::th)]'
+        one_year = CleanDecimal.French(performance_xpath % 'th1an', default=None)(self.doc)
+        three_years = CleanDecimal.French(performance_xpath % 'th3ans', default=None)(self.doc)
+        five_years = CleanDecimal.French(performance_xpath % 'th5ans', default=None)(self.doc)
+
+        perfs = {}
+        if one_year:
+            perfs[1] = one_year / 100
+        if three_years:
+            perfs[3] = three_years / 100
+        if five_years:
+            perfs[5] = five_years / 100
+        return perfs
 
 
 class InvestmentDetailsPage(LoggedPage, HTMLPage):

@@ -26,7 +26,7 @@ from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import  BrowserIncorrectPassword
 from .pages import (
     LoginPage, AccountsPage, OperationsListPage, OperationPage, ActionNeededPage,
-    InvestmentPage, InvestmentDetailsPage,
+    InvestmentPage, InvestmentDetailsPage, AssetManagementPage,
 )
 
 
@@ -49,7 +49,11 @@ class CmesBrowser(LoginBrowser):
 
     investments = URL(r'(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/supports/fiche-du-support.html', InvestmentPage)
     investment_details = URL(r'(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/supports/epargne-sur-le-support.html', InvestmentDetailsPage)
-
+    asset_management = URL(
+        r'https://www.cmcic-am.fr/fr/conseillers-gestion-patrimoine/nos-fonds/VALE_FicheSynthese.aspx',
+        r'https://www.cmcic-am.fr/fr/conseillers-gestion-patrimoine/nos-fonds/VALE_Fiche.aspx',
+        AssetManagementPage
+    )
     operations_list = URL(r'(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/operations/index.html', OperationsListPage)
 
     operation = URL(r'(?P<subsite>.*)(?P<client_space>.*)fr/epargnants/operations/consulter-une-operation/index.html\?param_=(?P<idx>\d+)', OperationPage)
@@ -89,31 +93,40 @@ class CmesBrowser(LoginBrowser):
             if inv._url:
                 # Go to the investment details to get employee savings attributes
                 self.location(inv._url)
+                asset_management_url = self.page.get_asset_management_url()
 
                 # Fetch SRRI, asset category & recommended period
                 self.page.fill_investment(obj=inv)
 
-                performances = {}
-                # Get 1-year performance
-                url = self.page.get_form_url()
-                self.location(url, data={'_FID_DoFilterChart_timePeriod:1Year': ''})
-                performances[1] = self.page.get_performance()
+                if asset_management_url:
+                    self.location(asset_management_url)
+                    self.asset_management.go(params=self.page.get_page_params())
+                    inv.performance_history = self.page.get_performance_history()
+                    # We need to return to the investment page
+                    self.location(inv._url)
+                else:
+                    performances = {}
+                    # Get 1-year performance
+                    url = self.page.get_form_url()
+                    self.location(url, data={'_FID_DoFilterChart_timePeriod:1Year': ''})
+                    performances[1] = self.page.get_performance()
 
-                # Get 5-years performance
-                url = self.page.get_form_url()
-                self.location(url, data={'_FID_DoFilterChart_timePeriod:5Years': ''})
-                performances[5] = self.page.get_performance()
+                    # Get 5-years performance
+                    url = self.page.get_form_url()
+                    self.location(url, data={'_FID_DoFilterChart_timePeriod:5Years': ''})
+                    performances[5] = self.page.get_performance()
 
-                # There is no available form for 3-year history, we must build the request
-                url = self.page.get_form_url()
-                data = {
-                    '[t:dbt%3adate;]Data_StartDate': (datetime.today() - relativedelta(years=3)).strftime('%d/%m/%Y'),
-                    '[t:dbt%3adate;]Data_EndDate': datetime.today().strftime('%d/%m/%Y'),
-                    '_FID_DoDateFilterChart': '',
-                }
-                self.location(url, data=data)
-                performances[3] = self.page.get_performance()
-                inv.performance_history = performances
+                    # There is no available form for 3-year history, we must build the request
+                    url = self.page.get_form_url()
+                    data = {
+                        '[t:dbt%3adate;]Data_StartDate': (datetime.today() - relativedelta(years=3)).strftime(
+                            '%d/%m/%Y'),
+                        '[t:dbt%3adate;]Data_EndDate': datetime.today().strftime('%d/%m/%Y'),
+                        '_FID_DoDateFilterChart': '',
+                    }
+                    self.location(url, data=data)
+                    performances[3] = self.page.get_performance()
+                    inv.performance_history = performances
 
                 # Fetch investment quantity on the 'Mes Avoirs' tab
                 self.page.go_investment_details()
