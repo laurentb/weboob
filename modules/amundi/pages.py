@@ -30,7 +30,7 @@ from weboob.browser.filters.standard import (
 from weboob.browser.filters.html import Attr
 from weboob.browser.filters.json import Dict
 from weboob.browser.pages import LoggedPage, JsonPage, HTMLPage
-from weboob.capabilities.bank import Account, Investment, Transaction
+from weboob.capabilities.bank import Account, Investment, Transaction, Pocket
 from weboob.capabilities.base import NotAvailable
 from weboob.exceptions import NoAccountsException
 from weboob.tools.capabilities.bank.investments import IsinCode, IsinType
@@ -131,6 +131,29 @@ class AccountsPage(LoggedPage, JsonPage):
                 if Dict('performanceCinqAns', default=None)(self) not in (0.0, None):
                     perfs[5] = Eval(lambda x: x / 100, CleanDecimal(Dict('performanceCinqAns')))(self)
                 return perfs
+
+            # Fetch pockets for each investment:
+            class obj__pockets(DictElement):
+                item_xpath = 'positionSalarieFondsEchDto'
+
+                class item(ItemElement):
+                    klass = Pocket
+
+                    obj_condition = Env('condition')
+                    obj_availability_date = Env('availability_date')
+                    obj_amount = CleanDecimal.SI(Dict('mtBrut'))
+                    obj_quantity = CleanDecimal.SI(Dict('nbParts'))
+
+                    def parse(self, obj):
+                        availability_date = datetime.strptime(obj['dtEcheance'].split('T')[0], '%Y-%m-%d')
+                        if availability_date <= datetime.today():
+                            # In the past, already available
+                            self.env['availability_date'] = availability_date
+                            self.env['condition'] = Pocket.CONDITION_AVAILABLE
+                        else:
+                            # In the future, but we have no information on condition
+                            self.env['availability_date'] = availability_date
+                            self.env['condition'] = Pocket.CONDITION_UNKNOWN
 
 
 class AccountHistoryPage(LoggedPage, JsonPage):

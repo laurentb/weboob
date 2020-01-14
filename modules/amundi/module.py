@@ -18,7 +18,7 @@
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.capabilities.bank import CapBankWealth
+from weboob.capabilities.bank import CapBankPockets
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 
@@ -27,7 +27,7 @@ from .browser import EEAmundi, TCAmundi
 __all__ = ['AmundiModule']
 
 
-class AmundiModule(Module, CapBankWealth):
+class AmundiModule(Module, CapBankPockets):
     NAME = 'amundi'
     DESCRIPTION = u'Amundi'
     MAINTAINER = u'James GALT'
@@ -60,6 +60,9 @@ class AmundiModule(Module, CapBankWealth):
         for inv in self.browser.iter_investment(account):
             if inv.valuation != 0:
                 yield inv
+
+    def iter_pocket(self, account):
+        return self.browser.iter_pockets(account)
 
     def iter_history(self, account):
         return self.browser.iter_history(account)

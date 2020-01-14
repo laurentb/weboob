@@ -200,6 +200,20 @@ class AmundiBrowser(LoginBrowser):
         return inv
 
     @need_login
+    def iter_pockets(self, account):
+        if account.balance == 0:
+            self.logger.info('Account %s has a null balance, no pocket available.', account.label)
+            return
+
+        headers = {'X-noee-authorization': 'noeprd %s' % self.token}
+        self.accounts.go(headers=headers)
+        for investment in self.page.iter_investments(account_id=account.id):
+            for pocket in investment._pockets:
+                pocket.investment = investment
+                pocket.label = investment.label
+                yield pocket
+
+    @need_login
     def iter_history(self, account):
         headers = {'X-noee-authorization': 'noeprd %s' % self.token}
         self.account_history.go(headers=headers)
