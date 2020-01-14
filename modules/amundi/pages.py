@@ -45,8 +45,9 @@ ACCOUNT_TYPES = {
     'PEE': Account.TYPE_PEE,
     'PEG': Account.TYPE_PEE,
     'PEI': Account.TYPE_PEE,
-    'PERCO': Account.TYPE_PERCO,
-    'PERCOI': Account.TYPE_PERCO,
+    'PERCO': Account.TYPE_PER,
+    'PERCOI': Account.TYPE_PER,
+    'PER': Account.TYPE_PER,
     'RSP': Account.TYPE_RSP,
     'ART 83': Account.TYPE_ARTICLE_83,
 }
