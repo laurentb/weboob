@@ -1614,6 +1614,7 @@ class InternalTransferPage(LoggedPage, HTMLPage):
             'Opération non conforme',
             'Virement interdit',
             'Montant maximum autorisé',
+            'Votre ordre peut être traité au plus tard le',
         ]
 
         for message in messages:
