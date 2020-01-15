@@ -22,6 +22,7 @@ from __future__ import absolute_import
 import datetime
 import re
 import unicodedata
+import unidecode
 from collections import Iterator
 from decimal import Decimal, InvalidOperation
 from itertools import islice
@@ -291,7 +292,7 @@ class CleanText(Filter):
     True
     """
 
-    def __init__(self, selector=None, symbols='', replace=[], children=True, newlines=True, normalize='NFC', **kwargs):
+    def __init__(self, selector=None, symbols='', replace=[], children=True, newlines=True, transliterate=False, normalize='NFC', **kwargs):
         """
         :param symbols: list of strings to remove from text
         :type symbols: list
@@ -303,6 +304,8 @@ class CleanText(Filter):
         :type newlines: bool
         :param normalize: Unicode normalization to perform
         :type normalize: str or None
+        :param transliterate: Transliterates unicode characters into ASCII characters
+        :type transliterate: bool
         """
 
         super(CleanText, self).__init__(selector, **kwargs)
@@ -311,20 +314,21 @@ class CleanText(Filter):
         self.children = children
         self.newlines = newlines
         self.normalize = normalize
+        self.transliterate = transliterate
 
     @debug()
     def filter(self, txt):
         if isinstance(txt, (tuple, list)):
             txt = u' '.join([self.clean(item, children=self.children) for item in txt])
 
-        txt = self.clean(txt, self.children, self.newlines, self.normalize)
+        txt = self.clean(txt, self.children, self.newlines, self.normalize, self.transliterate)
         txt = self.remove(txt, self.symbols)
         txt = self.replace(txt, self.toreplace)
         # ensure it didn't become str by mistake
         return unicode(txt)
 
     @classmethod
-    def clean(cls, txt, children=True, newlines=True, normalize='NFC'):
+    def clean(cls, txt, children=True, newlines=True, normalize='NFC', transliterate=False):
         if not isinstance(txt, basestring):
             if children:
                 txt = [t.strip() for t in txt.itertext()]
@@ -342,6 +346,8 @@ class CleanText(Filter):
         # normalize to a standard Unicode form
         if normalize:
             txt = unicodedata.normalize(normalize, txt)
+        if transliterate:
+            txt = unidecode.unidecode(txt)
         return txt
 
     @classmethod
