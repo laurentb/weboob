@@ -26,7 +26,7 @@ from weboob.capabilities.base import empty, NotAvailable
 
 from .pages import (
     LoginPage, AccountsPage, AccountHistoryPage, AmundiInvestmentsPage, AllianzInvestmentPage,
-    EEInvestmentPage, EEInvestmentPerformancePage, EEInvestmentDetailPage, EEProductInvestmentPage,
+    EEInvestmentPage, InvestmentPerformancePage, InvestmentDetailPage, EEProductInvestmentPage,
     EresInvestmentPage, CprInvestmentPage, BNPInvestmentPage, BNPInvestmentApiPage, AxaInvestmentPage,
     EpsensInvestmentPage, EcofiInvestmentPage, SGGestionInvestmentPage, SGGestionPerformancePage,
 )
@@ -44,8 +44,8 @@ class AmundiBrowser(LoginBrowser):
     amundi_investments = URL(r'https://www.amundi.fr/fr_part/product/view', AmundiInvestmentsPage)
     # EEAmundi browser investments
     ee_investments = URL(r'https://www.amundi-ee.com/part/home_fp&partner=PACTEO_SYS', EEInvestmentPage)
-    ee_performance_details = URL(r'https://www.amundi-ee.com/psAmundiEEPart/ezjscore/call(.*)_tab_2', EEInvestmentPerformancePage)
-    ee_investment_details = URL(r'https://www.amundi-ee.com/psAmundiEEPart/ezjscore/call(.*)_tab_5', EEInvestmentDetailPage)
+    performance_details = URL(r'https://(.*)/ezjscore/call(.*)_tab_2', InvestmentPerformancePage)
+    investment_details = URL(r'https://(.*)/ezjscore/call(.*)_tab_5', InvestmentDetailPage)
     # EEAmundi product investments
     ee_product_investments = URL(r'https://www.amundi-ee.com/product', EEProductInvestmentPage)
     # Allianz GI investments
@@ -143,8 +143,7 @@ class AmundiBrowser(LoginBrowser):
             return inv
 
         # Pages with only asset category available
-        if (self.amundi_investments.is_here() or
-            self.allianz_investments.is_here() or
+        if (self.allianz_investments.is_here() or
             self.axa_investments.is_here()):
             inv.asset_category = self.page.get_asset_category()
             inv.recommended_period = NotAvailable
@@ -158,17 +157,20 @@ class AmundiBrowser(LoginBrowser):
             self.page.fill_investment(obj=inv)
 
         # Particular cases
-        elif self.ee_investments.is_here():
-            inv.recommended_period = self.page.get_recommended_period()
+        elif (self.ee_investments.is_here() or
+              self.amundi_investments.is_here()):
+            if self.ee_investments.is_here():
+                inv.recommended_period = self.page.get_recommended_period()
             details_url = self.page.get_details_url()
             performance_url = self.page.get_performance_url()
             if details_url:
                 self.location(details_url)
-                if self.ee_investment_details.is_here():
+                if self.investment_details.is_here():
+                    inv.recommended_period = inv.recommended_period or self.page.get_recommended_period()
                     inv.asset_category = self.page.get_asset_category()
             if performance_url:
                 self.location(performance_url)
-                if self.ee_performance_details.is_here():
+                if self.performance_details.is_here():
                     # The investments JSON only contains 1 & 5 years performances
                     # If we can access EEInvestmentPerformancePage, we can fetch all three
                     # values (1, 3 and 5 years), in addition the values are more accurate here.

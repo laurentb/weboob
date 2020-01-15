@@ -25,7 +25,7 @@ from datetime import datetime
 from weboob.browser.elements import ItemElement, method, DictElement
 from weboob.browser.filters.standard import (
     CleanDecimal, Date, Field, CleanText,
-    Env, Eval, Map, Regexp, Title,
+    Env, Eval, Map, Regexp, Title, Format,
 )
 from weboob.browser.filters.html import Attr
 from weboob.browser.filters.json import Dict
@@ -193,14 +193,18 @@ class AccountHistoryPage(LoggedPage, JsonPage):
 
 
 class AmundiInvestmentsPage(LoggedPage, HTMLPage):
-    def get_asset_category(self):
-        # Descriptions are like 'Fonds d'Investissement - (ISIN: FR001018 - Action'
-        # Fetch the last words of the description (e.g. 'Action' or 'Diversifié')
-        return Regexp(
-            CleanText('//div[@class="amundi-fund-legend"]//strong'),
-            r' ([^-]+)$',
-            default=NotAvailable
+    def get_tab_url(self, tab_id):
+        return Format(
+            '%s%d',
+            Regexp(CleanText('//script[contains(text(), "Product.init")]'), r'init\(.*?,"(.*?tab_)\d"', default=None),
+            tab_id
         )(self.doc)
+
+    def get_details_url(self):
+        return self.get_tab_url(5)
+
+    def get_performance_url(self):
+        return self.get_tab_url(2)
 
 
 class EEInvestmentPage(LoggedPage, HTMLPage):
@@ -214,7 +218,7 @@ class EEInvestmentPage(LoggedPage, HTMLPage):
         return Attr('//a[contains(text(), "Performances")]', 'data-href', default=None)(self.doc)
 
 
-class EEInvestmentPerformancePage(LoggedPage, HTMLPage):
+class InvestmentPerformancePage(LoggedPage, HTMLPage):
     def get_performance_history(self):
         perfs = {}
         if CleanDecimal.French('//tr[td[text()="Fonds"]]//td[position()=last()-2]', default=None)(self.doc):
@@ -226,7 +230,10 @@ class EEInvestmentPerformancePage(LoggedPage, HTMLPage):
         return perfs
 
 
-class EEInvestmentDetailPage(LoggedPage, HTMLPage):
+class InvestmentDetailPage(LoggedPage, HTMLPage):
+    def get_recommended_period(self):
+        return Title(CleanText('//label[contains(text(), "Durée minimum de placement")]/following-sibling::span', default=NotAvailable))(self.doc)
+
     def get_asset_category(self):
         return CleanText('//label[contains(text(), "Classe d\'actifs")]/following-sibling::span', default=NotAvailable)(self.doc)
 
@@ -324,5 +331,5 @@ class SGGestionInvestmentPage(LoggedPage, HTMLPage):
         return Attr('(//li[@role="presentation"])[1]//a', 'data-href', default=None)(self.doc)
 
 
-class SGGestionPerformancePage(EEInvestmentPerformancePage):
+class SGGestionPerformancePage(InvestmentPerformancePage):
     pass
