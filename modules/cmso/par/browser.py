@@ -34,7 +34,7 @@ from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
 from .pages import (
     LogoutPage, AccountsPage, HistoryPage, LifeinsurancePage, MarketPage,
-    AdvisorPage, LoginPage, ProfilePage, InsurancesPage, RedirectInsurancePage,
+    AdvisorPage, LoginPage, ProfilePage, RedirectInsurancePage,
 )
 from .transfer_pages import TransferInfoPage, RecipientsListPage, TransferPage
 
@@ -92,7 +92,6 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
         r'/assuranceapi/v1/oauth/sso/suravenir/DETAIL_ASSURANCE_VIE/(?P<accid>.*)',
         RedirectInsurancePage
     )
-    insurances = URL(r'https://domiweb.suravenir.fr/group/eclient-.*?/(?:;|$)', InsurancesPage)
     lifeinsurance = URL(r'https://domiweb.suravenir.fr/group/eclient-.*?/', LifeinsurancePage)
     market = URL(r'/domiapi/oauth/json/ssoDomifronttitre',
                  r'https://www.(?P<website>.*)/domifronttitre/front/sso/domiweb/01/(?P<action>.*)Portefeuille\?csrf=',

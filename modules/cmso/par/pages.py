@@ -390,7 +390,15 @@ class RedirectInsurancePage(LoggedPage, JsonPage):
         return Dict('url')(self.doc)
 
 
-class InsurancesPage(LoggedPage, HTMLPage):
+class LifeinsurancePage(LoggedPage, HTMLPage):
+    def get_account_id(self):
+        account_id = Regexp(CleanText('//h1[@class="portlet-title"]'), r'n° ([\s\w]+)', default=NotAvailable)(self.doc)
+        if account_id:
+            return re.sub(r'\s', '', account_id)
+
+    def get_link(self, page):
+        return Link(default=NotAvailable).filter(self.doc.xpath('//a[contains(text(), "%s")]' % page))
+
     @method
     class iter_accounts(TableElement):
         item_xpath = '//div[@class="tabAssuranceVieCapi"]//table/tbody/tr[has-class("results-row")]'
@@ -411,16 +419,6 @@ class InsurancesPage(LoggedPage, HTMLPage):
 
             def obj_url(self):
                 return AbsoluteLink(TableCell('id')(self)[0].xpath('.//a'), default=NotAvailable)(self)
-
-
-class LifeinsurancePage(LoggedPage, HTMLPage):
-    def get_account_id(self):
-        account_id = Regexp(CleanText('//h1[@class="portlet-title"]'), r'n° ([\s\w]+)', default=NotAvailable)(self.doc)
-        if account_id:
-            return re.sub(r'\s', '', account_id)
-
-    def get_link(self, page):
-        return Link(default=NotAvailable).filter(self.doc.xpath('//a[contains(text(), "%s")]' % page))
 
     @pagination
     @method
