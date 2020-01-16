@@ -38,8 +38,10 @@ class LoginPage(HTMLPage):
 
     def login(self, login, password):
         form = self.get_form('//form[@class="pagination-centered"]')
-        user = Attr(None, 'name').filter(self.doc.xpath('//input[contains(@placeholder, "Account ID")]'))
-        pwd = Attr(None, 'name').filter(self.doc.xpath('//input[@placeholder="Password"]'))
+        # because name attribute for login and password change each time we call this page
+        user = Attr('//form[@class="pagination-centered"]//input[@type="text"]', 'name')(self.doc)
+        pwd = Attr('//form[@class="pagination-centered"]//input[@type="password"]', 'name')(self.doc)
+
         form[user] = login
         form[pwd] = password
         form.submit()
