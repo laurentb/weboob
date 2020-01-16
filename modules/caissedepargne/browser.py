@@ -21,8 +21,9 @@ from __future__ import unicode_literals
 
 import re
 import datetime
-import json
 from hashlib import sha256
+from uuid import uuid4
+from collections import OrderedDict
 
 from decimal import Decimal
 from dateutil import parser
@@ -47,7 +48,8 @@ from weboob.tools.capabilities.bank.transactions import (
     omit_deferred_transactions,
 )
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
-from weboob.tools.compat import urljoin, urlparse
+from weboob.tools.compat import urljoin, urlparse, parse_qsl, parse_qs, urlencode, urlunparse
+from weboob.tools.json import json
 from weboob.tools.value import Value
 from weboob.tools.decorators import retry
 
@@ -55,10 +57,11 @@ from .pages import (
     IndexPage, ErrorPage, MarketPage, LifeInsurance, LifeInsuranceHistory, LifeInsuranceInvestments, GarbagePage, MessagePage, LoginPage,
     TransferPage, ProTransferPage, TransferConfirmPage, TransferSummaryPage, ProTransferConfirmPage,
     ProTransferSummaryPage, ProAddRecipientOtpPage, ProAddRecipientPage,
-    SmsPage, SmsPageOption, SmsRequest, AuthentPage, RecipientPage, CanceledAuth, CaissedepargneKeyboard,
+    SmsPage, SmsPageOption, SmsRequest, AuthentPage, RecipientPage, CanceledAuth, CaissedepargneKeyboard, CaissedepargneNewKeyboard,
     TransactionsDetailsPage, LoadingPage, ConsLoanPage, MeasurePage, NatixisLIHis, NatixisLIInv, NatixisRedirectPage,
     SubscriptionPage, CreditCooperatifMarketPage, UnavailablePage, CardsPage, CardsComingPage, CardsOldWebsitePage, TransactionPopupPage,
-    OldLeviesPage, NewLeviesPage,
+    OldLeviesPage, NewLeviesPage, NewLoginPage, JsFilePage, AuthorizePage, VkInitPage,
+    LoginValidationPage, LoginTokensPage,
 )
 
 from .linebourse_browser import LinebourseAPIBrowser
@@ -79,6 +82,21 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         r'https://.*/login.aspx',
         LoginPage
     )
+
+    new_login = URL(r'/se-connecter/sso', NewLoginPage)
+    js_file = URL(r'/se-connecter/main-.*.js$', JsFilePage)
+
+    authorize = URL(r'https://www.as-ex-ath-groupe.caisse-epargne.fr/api/oauth/v2/authorize', AuthorizePage)
+    login_tokens = URL(r'https://www.as-ex-ath-groupe.caisse-epargne.fr/api/oauth/v2/consume', LoginTokensPage)
+
+    login_validation = URL(r'https://www.icgauth.caisse-epargne.fr/dacsrest/api/v1u0/transaction/(?P<validation_id>[^/]+)/step', LoginValidationPage)
+
+    vk_init = URL(
+        r'https://www.icgauth.caisse-epargne.fr/dacsrest/api/v1u0/transaction/.*',
+        r'https://www.icgauth.caisse-epargne.fr/dacs-rest-media/api/v1u0/medias/mappings/[a-z0-9-]+/images',
+        VkInitPage,
+    )
+
     account_login = URL(r'/authentification/manage\?step=account&identifiant=(?P<login>.*)&account=(?P<accountType>.*)', LoginPage)
     loading = URL(r'https://.*/CreditConso/ReroutageCreditConso.aspx', LoadingPage)
     cons_loan = URL(r'https://www.credit-conso-cr.caisse-epargne.fr/websavcr-web/rest/contrat/getContrat\?datePourIe=(?P<datepourie>)', ConsLoanPage)
@@ -315,30 +333,39 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         if data.get('authMode', '') == 'redirect':  # the connection type EU could also be used as a criteria
             raise SiteSwitch('cenet')
 
-        typeAccount = data['account'][0]
+        type_account = data['account'][0]
 
         if self.multi_type:
-            assert typeAccount == self.typeAccount
+            assert type_account == self.typeAccount
 
+        if 'keyboard' in data:
+            self.do_old_login(data, type_account, accounts_types)
+        else:
+            # New virtual keyboard
+            self.do_new_login(data)
+
+    def do_old_login(self, data, type_account, accounts_types):
+        # Old virtual keyboard
         id_token_clavier = data['keyboard']['Id']
         vk = CaissedepargneKeyboard(data['keyboard']['ImageClavier'], data['keyboard']['Num']['string'])
+
         newCodeConf = vk.get_string_code(self.password)
 
-        playload = {
+        payload = {
             'idTokenClavier': id_token_clavier,
             'newCodeConf': newCodeConf,
             'auth_mode': 'ajax',
             'nuusager': self.nuser.encode('utf-8'),
             'codconf': '',  # must be present though empty
-            'typeAccount': typeAccount,
+            'typeAccount': type_account,
             'step': 'authentification',
-            'ctx': 'typsrv={}'.format(typeAccount),
+            'ctx': 'typsrv={}'.format(type_account),
             'clavierSecurise': '1',
             'nuabbd': self.username
         }
 
         try:
-            res = self.location(data['url'], params=playload)
+            res = self.location(data['url'], params=payload)
         except ValueError:
             raise BrowserUnavailable()
         if not res.page:
@@ -372,6 +399,119 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
             self.home.go()
         except BrowserHTTPNotFound:
             raise BrowserIncorrectPassword()
+
+    def do_new_login(self, data):
+        csid = str(uuid4())
+        redirect_url = data['url']
+
+        parts = list(urlparse(redirect_url))
+        url_params = parse_qs(urlparse(redirect_url).query)
+
+        qs = OrderedDict(parse_qsl(parts[4]))
+        qs.update({'csid': csid})
+        parts[4] = urlencode(qs)
+        url = urlunparse(parts)
+
+        continue_url = url_params['continue'][0]
+        continue_parameters = data['continueParameters']
+
+        self.location(
+            url,
+            method='POST',
+            params={
+                'continue_parameters': continue_parameters,
+            },
+        )
+
+        main_js_file = self.page.get_main_js_file_url()
+        self.location(main_js_file)
+
+        client_id = self.page.get_client_id()
+        nonce = self.page.get_nonce()  # Hardcoded in their js...
+
+        # On the website, this sends back json because of the header
+        # 'Accept': 'applcation/json'. If we do not add this header, we
+        # instead have a form that we can directly send to complete
+        # the login.
+        self.authorize.go(
+            params={
+                'nonce': nonce,
+                'scope': 'openid readUser',
+                'response_type': 'id_token token',
+                'response_mode': 'form_post',
+                'cdetab': url_params['cdetab'][0],
+                'login_hint': self.username,
+                'display': 'page',
+                'client_id': client_id,
+                'claims': '{"userinfo":{"cdetab":null,"authMethod":null,"authLevel":null},"id_token":{"auth_time":{"essential":true},"last_login":null}}',
+                'bpcesta': '{"csid":"%s","typ_app":"rest","enseigne":"ce","typ_sp":"out-band","typ_act":"auth","snid":"%s","cdetab":"%s","typ_srv":"part"}' % (csid, url_params['snid'][0], url_params['cdetab'][0]),
+            },
+        )
+
+        self.page.send_form()
+
+        images_url = self.page.get_vk_images_url()
+        vk_id = self.page.get_vk_id()
+        vk_validation_id = self.page.get_vk_validation_id()
+        pwd_validation_id = self.page.get_pwd_validation_id()
+
+        self.location(images_url)
+
+        images_url = self.page.get_all_images_data()
+        vk = CaissedepargneNewKeyboard(self, images_url)
+
+        code = vk.get_string_code(self.password)
+
+        self.login_validation.go(
+            validation_id=pwd_validation_id,
+            json={
+                'validate': {
+                    vk_validation_id: [{
+                        'id': vk_id,
+                        'password': code,
+                        'type': 'PASSWORD',
+                    }],
+                },
+            },
+            headers={
+                'Referer': self.BASEURL,
+                'Accept': 'application/json, text/plain, */*',
+            },
+        )
+
+        if self.page.is_login_failed():
+            raise BrowserIncorrectPassword()
+
+        redirect_data = self.page.get_redirect_data()
+        self.login_tokens.go(
+            data={
+                'SAMLResponse': redirect_data['samlResponse'],
+            },
+            headers={
+                'Referer': self.BASEURL,
+                'Accept': 'application/json, text/plain, */*',
+            },
+        )
+
+        access_token = self.page.get_access_token()
+        id_token = self.page.get_id_token()
+
+        continue_parameters = json.loads(continue_parameters)
+        self.location(
+            continue_url,
+            data={
+                'id_token': id_token,
+                'access_token': access_token,
+                'ctx': continue_parameters['ctx'],
+                'redirectUrl': continue_parameters['redirectUrl'],
+                'ctx_routage': continue_parameters['ctx_routage'],
+            },
+        )
+        # Url look like this : https://www.net382.caisse-epargne.fr/Portail.aspx
+        # We only want the https://www.net382.caisse-epargne.fr part
+        # We start the .find at 8 to get the first `/` after `https://`
+        parsed_url = urlparse(self.url)
+        self.BASEURL = 'https://' + parsed_url.netloc
 
     def loans_conso(self):
         days = ('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun')
@@ -1028,7 +1168,7 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     def otp_choose_sms(self):
         key = next(iter(self.otp_validation))
         auth_type = self.otp_validation[key][0]['type']
-        if  auth_type == 'CLOUDCARD':
+        if auth_type == 'CLOUDCARD':
             raise AuthMethodNotImplemented()
         if auth_type == 'SMS':
             return

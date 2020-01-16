@@ -20,16 +20,15 @@
 from __future__ import division
 from __future__ import unicode_literals
 
-
+import re
 from base64 import b64decode
 from collections import OrderedDict
-import re
+from PIL import Image, ImageFilter
 from io import BytesIO
-
 from decimal import Decimal
 from datetime import datetime
 
-from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage, pagination, FormNotFound
+from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage, pagination, FormNotFound, RawPage
 from weboob.browser.elements import ItemElement, method, ListElement, TableElement, SkipItem, DictElement
 from weboob.browser.filters.standard import (
     Date, CleanDecimal, Regexp, CleanText, Env, Upper,
@@ -45,7 +44,7 @@ from weboob.capabilities.bill import DocumentTypes, Subscription, Document
 from weboob.tools.capabilities.bank.investments import is_isin_valid
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_rib_valid, rib2iban, is_iban_valid
-from weboob.tools.captcha.virtkeyboard import GridVirtKeyboard
+from weboob.tools.captcha.virtkeyboard import SplitKeyboard, GridVirtKeyboard
 from weboob.tools.compat import unicode
 from weboob.exceptions import NoAccountsException, BrowserUnavailable, ActionNeeded
 from weboob.browser.filters.json import Dict
@@ -73,6 +72,11 @@ def float_to_decimal(f):
     return Decimal(str(f))
 
 
+class NewLoginPage(HTMLPage):
+    def get_main_js_file_url(self):
+        return Attr('//script[contains(@src, "main-")]', 'src')(self.doc)
+
+
 class LoginPage(JsonPage):
     def on_load(self):
         error_msg = self.doc.get('error')
@@ -83,19 +87,110 @@ class LoginPage(JsonPage):
         return self.doc
 
 
+class JsFilePage(RawPage):
+    def get_client_id(self):
+        return Regexp(pattern=r'{authenticated:{clientId:"([^"]+)"').filter(self.text)
+
+    def get_nonce(self):
+        return Regexp(pattern=r'\("nonce","([a-z0-9]+)"\)').filter(self.text)
+
+
+class AuthorizePage(HTMLPage):
+    def send_form(self):
+        form = self.get_form(id='submitMe')
+        form.submit()
+
+
+class VkInitPage(JsonPage):
+    def get_vk_images_url(self):
+        data = Dict('step/validationUnits')(self.doc)
+        # The data we are looking for is in a dict with a random
+        # uuid key.
+        key = list(data[0].keys())[0]
+        return data[0][key][0]['virtualKeyboard']['externalRestMediaApiUrl']
+
+    def get_vk_id(self):
+        data = Dict('step/validationUnits')(self.doc)
+        # The data we are looking for is in a dict with a random
+        # uuid key.
+        key = list(data[0].keys())[0]
+        return data[0][key][0]['id']
+
+    def get_vk_validation_id(self):
+        data = Dict('step/validationUnits')(self.doc)
+        return list(data[0].keys())[0]
+
+    def get_all_images_data(self):
+        return self.doc
+
+    def get_pwd_validation_id(self):
+        return Dict('id')(self.doc)
+
+
+class LoginValidationPage(JsonPage):
+    def is_login_failed(self):
+        return bool(self.doc.get('phase', {}).get('previousResult', '') == 'FAILED_AUTHENTICATION')
+
+    def get_redirect_data(self):
+        return Dict('response/saml2_post')(self.doc)
+
+
+class LoginTokensPage(JsonPage):
+    def get_access_token(self):
+        return Dict('parameters/access_token')(self.doc)
+
+    def get_id_token(self):
+        return Dict('parameters/id_token')(self.doc)
+
+
+class CaissedepargneNewKeyboard(SplitKeyboard):
+    char_to_hash = {
+        '0': '66ec79b200706e7f9c14f2b6d35dbb05',
+        '1': '529819241cce382b429b4624cb019b56',
+        '2': 'fab68678204198b794ce580015c8637f',
+        '3': '3fc5280d17cf057d1c4b58e4f442ceb8',
+        '4': ('dea8800bdd5fcaee1903a2b097fbdef0', 'e413098a4d69a92d08ccae226cea9267', '61f720966ccac6c0f4035fec55f61fe6', '2cbd19a4b01c54b82483f0a7a61c88a1'),
+        '5': 'ff1909c3b256e7ab9ed0d4805bdbc450',
+        '6': '7b014507ffb92a80f7f0534a3af39eaa',
+        '7': '7d598ff47a5607022cab932c6ad7bc5b',
+        '8': ('4ed28045e63fa30550f7889a18cdbd81', '88944bdbef2e0a49be9e0c918dd4be64'),
+        '9': 'dd6317eadb5a0c68f1938cec21b05ebe',
+    }
+    codesep = ' '
+
+    def __init__(self, browser, images):
+        code_to_filedata = {}
+        for img_item in images:
+            img_content = browser.location(img_item['uri']).content
+            img = Image.open(BytesIO(img_content))
+            img = img.filter(ImageFilter.UnsharpMask(
+                radius=2,
+                percent=150,
+                threshold=3,
+            ))
+            img = img.convert('L', dither=None)
+            img = Image.eval(img, lambda x: 0 if x < 20 else 255)
+            b = BytesIO()
+            img.save(b, format='PNG')
+            code_to_filedata[img_item['value']] = b.getvalue()
+        super(CaissedepargneNewKeyboard, self).__init__(code_to_filedata)
+
+
 class CaissedepargneKeyboard(GridVirtKeyboard):
     color = (255, 255, 255)
     margin = 3, 3
-    symbols = {'0': 'ef8d775a73b751c5fbee06e2d537785c',
-               '1': 'bf51842846c3045f76355de32e4689c7',
-               '2': 'e4c057317b7ceb17241a0ae4c26844c4',
-               '3': 'c28c0c109a63f034d0f7c0f7ffdb364c',
-               '4': '6ea6a5152efb1d12c33f9cbf9476caec',
-               '5': '7ec4b424b5db7e7b2a54e6300fdb7515',
-               '6': 'a1fa95fc856804f978f20ad42c60f6d7',
-               '7': '64646adaa5a0b2506880970d8e928156',
-               '8': '4abcc6b24fa77f3756b96257962615eb',
-               '9': '3f41daf8ca5f250be5df91fe24079735'}
+    symbols = {
+        '0': 'ef8d775a73b751c5fbee06e2d537785c',
+        '1': 'bf51842846c3045f76355de32e4689c7',
+        '2': 'e4c057317b7ceb17241a0ae4c26844c4',
+        '3': 'c28c0c109a63f034d0f7c0f7ffdb364c',
+        '4': '6ea6a5152efb1d12c33f9cbf9476caec',
+        '5': '7ec4b424b5db7e7b2a54e6300fdb7515',
+        '6': 'a1fa95fc856804f978f20ad42c60f6d7',
+        '7': '64646adaa5a0b2506880970d8e928156',
+        '8': '4abcc6b24fa77f3756b96257962615eb',
+        '9': '3f41daf8ca5f250be5df91fe24079735',
+    }
 
     def __init__(self, image, symbols):
         image = BytesIO(b64decode(image.encode('ascii')))
@@ -916,6 +1011,13 @@ class IndexPage(LoggedPage, HTMLPage):
             CleanText('//a/span[contains(text(), "Suivre mes prélèvements reçus")]')(self.doc)  # new website
             or CleanText('//a[contains(text(), "Suivre les prélèvements reçus")]')(self.doc)  # old website
         )
+
+    def get_trusted_device_url(self):
+        return Regexp(
+            CleanText('//script[contains(text(), "trusted-device")]'),
+            r'if\("([^"]+(?:trusted-device)[^"]+)"',
+            default=None,
+        )(self.doc)
 
 
 class TransactionPopupPage(LoggedPage, HTMLPage):
