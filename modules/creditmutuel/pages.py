@@ -57,6 +57,7 @@ def MyDecimal(*args, **kwargs):
     kwargs.update(replace_dots=True, default=NotAvailable)
     return CleanDecimal(*args, **kwargs)
 
+
 def MyDate(*args, **kwargs):
     kwargs.update(dayfirst=True, default=NotAvailable)
     return Date(*args, **kwargs)
@@ -164,6 +165,52 @@ class DecoupledStatePage(XMLPage):
 
 class CancelDecoupled(HTMLPage):
     pass
+
+
+# keep PartialHTMLPage for this page has same url than other pages
+class OtpValidationPage(PartialHTMLPage):
+    def is_here(self):
+        return 'envoyé par SMS' in CleanText('//div[contains(@id, "OTPDeliveryChannelText")]')(self.doc)
+
+    def get_message(self):
+        # Ex: 'Un code de confirmation vient de vous être envoyé par SMS au 06 XX XX X1 23, le jeudi 26 décembre 2019 à 18:12:56.'
+        return Regexp(CleanText('//div[contains(@id, "OTPDeliveryChannelText")]'), r'(.+\d{2}), le')(self.doc)
+
+    def get_error_message(self):
+        return CleanText('//div[contains(@class, "bloctxt err")]')(self.doc)
+
+    def get_final_url(self):
+        # Find the final url to POST to, once OTP has been entered
+        # Importantly contains `k___ValidateAntiForgeryToken` generated for each OTP
+        return Attr('//form[contains(@action, ConsentPage)]', 'action')(self.doc)
+
+    def get_final_url_params(self):
+        # Params to give with final_url
+        form = self.get_form()
+        return {
+            'otp_hidden': form['otp_hidden'],
+            'InputHiddenKeySMSSendNew1': form['InputHiddenKeySMSSendNew1'],
+            'global_backup_hidden_key': form['global_backup_hidden_key'],  # always seen empty
+            '_FID_DoValidate.x': 52,
+            '_FID_DoValidate.y': 15,
+            '_wxf2_cc': form['_wxf2_cc'],
+        }
+
+    def get_otp_data(self):
+        data = {
+            'final_url': self.get_final_url(),
+            'final_url_params': self.get_final_url_params(),
+        }
+        assert data, "Can't proceed to SMS handling if no otp_data"
+        return data
+
+# keep PartialHTMLPage for this page has same url than other pages
+class OtpBlockedErrorPage(PartialHTMLPage):
+    def is_here(self):
+        return 'temporairement bloqué' in CleanText('//div[contains(@class, "bloctxt err")]')(self.doc)
+
+    def get_error_message(self):
+        return CleanText('//div[contains(@class, "bloctxt err")]')(self.doc)
 
 
 class EmptyPage(LoggedPage, HTMLPage):

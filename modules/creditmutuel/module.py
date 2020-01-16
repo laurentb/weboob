@@ -56,7 +56,8 @@ class CreditMutuelModule(
         ValueBackendPassword('login', label='Identifiant', masked=False),
         ValueBackendPassword('password', label='Mot de passe'),
         Value('resume', label='resume', default=None, required=False, noprompt=True),
-        Value('request_information', label='request_information', default=None, required=False, noprompt=True)
+        Value('request_information', label='request_information', default=None, required=False, noprompt=True),
+        Value('code', label='code de confirmation', required=False, default='', noprompt=True, regexp=r'^\d{6}$'),
     )
     BROWSER = CreditMutuelBrowser
 

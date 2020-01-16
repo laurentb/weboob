@@ -27,7 +27,7 @@ from operator import attrgetter
 
 from weboob.exceptions import (
     AppValidation, AppValidationExpired, AppValidationCancelled, AuthMethodNotImplemented,
-    BrowserIncorrectPassword, BrowserUnavailable, NoAccountsException,
+    BrowserIncorrectPassword, BrowserUnavailable, BrowserQuestion, NoAccountsException,
 )
 from weboob.tools.compat import basestring
 from weboob.tools.value import Value
@@ -53,6 +53,7 @@ from .pages import (
     ExternalTransferPage, RevolvingLoanDetails, RevolvingLoansList,
     ErrorPage, SubscriptionPage, NewCardsListPage, CardPage2, FiscalityConfirmationPage,
     ConditionsPage, MobileConfirmationPage, UselessPage, DecoupledStatePage, CancelDecoupled,
+    OtpValidationPage, OtpBlockedErrorPage,
 )
 
 
@@ -79,6 +80,8 @@ class CreditMutuelBrowser(TwoFactorBrowser):
     mobile_confirmation = URL(r'/(?P<subbank>.*)fr/banque/validation.aspx', MobileConfirmationPage)
     decoupled_state = URL(r'/fr/banque/async/otp/SOSD_OTP_GetTransactionState.htm', DecoupledStatePage)
     cancel_decoupled = URL(r'/fr/banque/async/otp/SOSD_OTP_CancelTransaction.htm', CancelDecoupled)
+    otp_validation_page = URL(r'/(?P<subbank>.*)fr/banque/validation.aspx', OtpValidationPage)
+    otp_blocked_error_page = URL(r'/(?P<subbank>.*)fr/banque/validation.aspx', OtpBlockedErrorPage)
     fiscality = URL(r'/(?P<subbank>.*)fr/banque/residencefiscale.aspx', FiscalityConfirmationPage)
 
     # accounts
@@ -178,15 +181,17 @@ class CreditMutuelBrowser(TwoFactorBrowser):
         self.__states__ += (
             'currentSubBank', 'form', 'logged', 'is_new_website',
             'need_clear_storage', 'recipient_form',
-            'twofa_auth_state', 'polling_data',
+            'twofa_auth_state', 'polling_data', 'otp_data',
         )
         self.twofa_auth_state = {}
         self.polling_data = {}
+        self.otp_data = {}
         self.keep_session = None
         self.recipient_form = None
 
         self.AUTHENTICATION_METHODS = {
             'resume': self.handle_polling,
+            'code': self.handle_sms,
         }
 
     def get_expire(self):
@@ -203,7 +208,7 @@ class CreditMutuelBrowser(TwoFactorBrowser):
             # only keep 'twofa_auth_state' state to avoid new 2FA
             state = {'twofa_auth_state': state.get('twofa_auth_state')}
 
-        if state.get('polling_data') or state.get('recipient_form'):
+        if state.get('polling_data') or state.get('recipient_form') or state.get('otp_data'):
             # can't start on an url in the middle of a validation process
             # or server will cancel it and launch another one
             if 'url' in state:
@@ -212,7 +217,7 @@ class CreditMutuelBrowser(TwoFactorBrowser):
         # if state is empty (first login), it does nothing
         super(CreditMutuelBrowser, self).load_state(state)
 
-    def go_twofa_validated_url(self, twofa_data):
+    def finalize_twofa(self, twofa_data):
         """
         Go to validated 2FA url. Before following redirection,
         store 'auth_client_state' cookie to prove to server,
@@ -227,10 +232,10 @@ class CreditMutuelBrowser(TwoFactorBrowser):
 
         for cookie in self.session.cookies:
             if cookie.name == 'auth_client_state':
+                # only present if 2FA is valid
                 self.twofa_auth_state['value'] = cookie.value  # this is a token
                 self.twofa_auth_state['expires'] = cookie.expires  # this is a timestamp
-        
-        self.location(self.response.headers['Location'])
+                self.location(self.response.headers['Location'])
 
     def handle_polling(self):
         # 15' on website, we don't wait that much, but leave sufficient time for the user
@@ -243,7 +248,7 @@ class CreditMutuelBrowser(TwoFactorBrowser):
             decoupled_state = self.page.get_decoupled_state()
             if decoupled_state == 'VALIDATED':
                 self.logger.info('AppValidation done, going to final_url')
-                self.go_twofa_validated_url(self.polling_data)
+                self.finalize_twofa(self.polling_data)
                 self.polling_data = {}
                 return
             elif decoupled_state in ('CANCELLED', 'NONE'):
@@ -257,6 +262,35 @@ class CreditMutuelBrowser(TwoFactorBrowser):
             self.cancel_decoupled.go(data=data)
             self.polling_data = {}
             raise AppValidationExpired()
+
+    def check_otp_blocked(self):
+        # Too much wrong OTPs, locked down after total 3 wrong inputs
+        if self.otp_blocked_error_page.is_here():
+            error_msg = self.page.get_error_message()
+            if 'temporairement bloqué' not in error_msg:
+                error_msg = 'error not handled'
+            raise BrowserUnavailable(error_msg)
+
+    def handle_sms(self):
+        self.otp_data['final_url_params']['otp_password'] = self.code
+        self.finalize_twofa(self.otp_data)
+
+        ## cases where 2FA is not finalized
+        # Too much wrong OTPs, locked down after total 3 wrong inputs
+        self.check_otp_blocked()
+
+        # OTP is expired after 15', we end up on login page
+        if self.login.is_here():
+            raise BrowserIncorrectPassword("Le code de confirmation envoyé par SMS n'est plus utilisable")
+
+        # Wrong OTP leads to same form with error message, re-raise BrowserQuestion
+        elif self.otp_validation_page.is_here():
+            error_msg = self.page.get_error_message()
+            if 'erroné' in error_msg:
+                label = '%s %s' % (error_msg, self.page.get_message())
+                raise BrowserQuestion(Value('code', label=label))
+
+        self.otp_data = {}
 
     def check_redirections(self):
         self.logger.info('Checking redirections')
@@ -273,6 +307,12 @@ class CreditMutuelBrowser(TwoFactorBrowser):
             if self.mobile_confirmation.is_here():
                 self.polling_data = self.page.get_polling_data()
                 raise AppValidation(self.page.get_validation_msg())
+
+        if self.otp_validation_page.is_here():
+            self.otp_data = self.page.get_otp_data()
+            raise BrowserQuestion(Value('code', label=self.page.get_message()))
+
+        self.check_otp_blocked()
 
     def init_login(self):
         self.login.go()
@@ -293,7 +333,7 @@ class CreditMutuelBrowser(TwoFactorBrowser):
             if not self.page and not self.url.startswith(self.BASEURL):
                 raise BrowserIncorrectPassword()
 
-            if not self.page.logged or self.login_error.is_here():
+            if self.login_error.is_here():
                 raise BrowserIncorrectPassword()
 
         if self.verify_pass.is_here():
