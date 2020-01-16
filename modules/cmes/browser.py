@@ -101,7 +101,10 @@ class CmesBrowser(LoginBrowser):
                 if asset_management_url:
                     self.location(asset_management_url)
                     self.asset_management.go(params=self.page.get_page_params())
-                    inv.performance_history = self.page.get_performance_history()
+
+                    # Fetch performance history & asset category (more reliable on this page)
+                    self.page.fill_investment(obj=inv)
+
                     # We need to return to the investment page
                     self.location(inv._url)
                 else:
