@@ -92,7 +92,7 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
         r'/assuranceapi/v1/oauth/sso/suravenir/DETAIL_ASSURANCE_VIE/(?P<accid>.*)',
         RedirectInsurancePage
     )
-    lifeinsurance = URL(r'https://domiweb.suravenir.fr/group/eclient-.*?/', LifeinsurancePage)
+    lifeinsurance = URL(r'https://domiweb.suravenir.fr', LifeinsurancePage)
     market = URL(r'/domiapi/oauth/json/ssoDomifronttitre',
                  r'https://www.(?P<website>.*)/domifronttitre/front/sso/domiweb/01/(?P<action>.*)Portefeuille\?csrf=',
                  r'https://www.*/domiweb/prive/particulier', MarketPage)
