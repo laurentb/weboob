@@ -496,7 +496,7 @@ class HomePage(LoggedPage, MyHTMLPage):
         headers = {'Referer': self.url}
 
         # Sometime, the page is a 302 and redirect to a page where there are no information that we need,
-        # so we try with 2 others url to further fetch token when empty page
+        # so we try with 3 others url to further fetch token when empty page
         r = self.browser.open(url, data='taskId=aUniversMesComptes', params={'vary': vary}, headers=headers)
 
         if not int(r.headers.get('Content-Length', 0)):
@@ -504,6 +504,9 @@ class HomePage(LoggedPage, MyHTMLPage):
 
         if not int(r.headers.get('Content-Length', 0)):
             r = self.browser.open(url, data={'taskId': 'equipementDom'}, params={'vary': vary}, headers=headers)
+
+        if not int(r.headers.get('Content-Length', 0)):
+            r = self.browser.open(url)
 
         doc = r.page.doc
         date = None
