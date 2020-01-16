@@ -148,7 +148,7 @@ class Transaction(FrenchTransaction):
         (re.compile(r'^PRLV (?P<text>.*)', re.IGNORECASE), FrenchTransaction.TYPE_ORDER),
         (re.compile(r'^CHEQUE.*', re.IGNORECASE), FrenchTransaction.TYPE_CHECK),
         (re.compile(r'^(CONVENTION \d+ )?COTIS(ATION)? (?P<text>.*)', re.IGNORECASE), FrenchTransaction.TYPE_BANK),
-        (re.compile(r'^\* (?P<text>.*)', re.IGNORECASE), FrenchTransaction.TYPE_BANK),
+        (re.compile(r'^\* ?(?P<text>.*)', re.IGNORECASE), FrenchTransaction.TYPE_BANK),
         (re.compile(r'^REMISE (?P<text>.*)', re.IGNORECASE), FrenchTransaction.TYPE_CHECK),
         (re.compile(r'^Depot Esp (?P<text>.*)', re.IGNORECASE), FrenchTransaction.TYPE_DEPOSIT),
         (re.compile(r'^(?P<text>.*)( \d+)? QUITTANCE .*', re.IGNORECASE), FrenchTransaction.TYPE_ORDER),
@@ -164,6 +164,7 @@ class Transaction(FrenchTransaction):
         (re.compile(r'^REVALORISATION', re.IGNORECASE), FrenchTransaction.TYPE_BANK),
         (re.compile(r'^ARBITRAGE', re.IGNORECASE), FrenchTransaction.TYPE_BANK),
         (re.compile(r'^RACHAT PARTIEL', re.IGNORECASE), FrenchTransaction.TYPE_BANK),
+        (re.compile(r'^(?P<text>INTERETS.*)', re.IGNORECASE), FrenchTransaction.TYPE_BANK),
     ]
 
 
