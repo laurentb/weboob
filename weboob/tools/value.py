@@ -272,7 +272,7 @@ class ValueDate(Value):
 
     def check_valid(self, v):
         super(ValueDate, self).check_valid(v)
-        if not self.get_format(v):
+        if v is not None and not self.get_format(v):
             raise ValueError('Value "%s" does not match format in %s' % (self.show_value(v), self.show_value(self.formats_tuple)))
 
     def get(self):
