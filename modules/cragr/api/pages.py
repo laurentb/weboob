@@ -323,8 +323,7 @@ class AccountsPage(LoggedPage, JsonPage):
                     self.logger.warning('codeSituationCarte unknown, Check if the %s card is present on the website', Field('id')(self))
                 return card_situation != 5
 
-            def obj_id(self):
-                return CleanText(Dict('idCarte'))(self).replace(' ', '')
+            obj_id = CleanText(Dict('idCarte'), replace=[(' ', '')])
 
             obj_number = Field('id')
             obj_label = Format('Carte %s %s', Field('id'), CleanText(Dict('titulaire')))
@@ -401,22 +400,32 @@ class AccountDetailsPage(LoggedPage, JsonPage):
     def get_account_balances(self):
         # We use the 'idElementContrat' key because it is unique
         # whereas the account id may not be unique for Loans
+        balance_keys = (
+            'solde',
+            'encoursActuel',
+            'valorisationContrat',
+            'montantRestantDu',
+            'capitalDisponible',
+            'montantUtilise',
+            'montantPlafondAutorise',
+        )
+
         account_balances = {}
         for el in self.doc:
             # Insurances have no balance, we skip them
             if el.get('typeProduit') == 'assurance':
                 continue
-            value = el.get('solde',
-                    el.get('encoursActuel',
-                    el.get('valorisationContrat',
-                    el.get('montantRestantDu',
-                    el.get('capitalDisponible',
-                    el.get('montantUtilise',
-                    el.get('montantPlafondAutorise')))))))
+
+            value = None
+            for bal_key in balance_keys:
+                if bal_key in el:
+                    value = el[bal_key]
+                    break
 
             if value is None:
                 continue
             account_balances[Dict('idElementContrat')(el)] = float_to_decimal(value)
+
         return account_balances
 
     def get_loan_ids(self):
@@ -510,8 +519,7 @@ class CardsPage(LoggedPage, JsonPage):
             class item(ItemElement):
                 klass = Account
 
-                def obj_id(self):
-                    return CleanText(Dict('idCarte'))(self).replace(' ', '')
+                obj_id = CleanText(Dict('idCarte'), replace=[(' ', '')])
 
                 def condition(self):
                     assert CleanText(Dict('codeTypeDebitPaiementCarte'))(self) in ('D', 'I')

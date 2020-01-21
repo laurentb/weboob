@@ -45,9 +45,7 @@ class CreditAgricoleModule(Module, CapBankWealth, CapBankTransferAddRecipient, C
     DESCRIPTION = 'Crédit Agricole'
     LICENSE = 'LGPLv3+'
 
-    region_choices = OrderedDict(
-        [(website, u'%s (%s)' % (region, website)) for website, region in sorted(
-    {
+    region_choices = {
         'www.ca-alpesprovence.fr': 'Alpes Provence',
         'www.ca-alsace-vosges.fr': 'Alsace-Vosges',
         'www.ca-anjou-maine.fr': 'Anjou Maine',
@@ -87,7 +85,10 @@ class CreditAgricoleModule(Module, CapBankWealth, CapBankTransferAddRecipient, C
         'www.ca-tourainepoitou.fr': 'Tourraine Poitou',
         'www.ca-valdefrance.fr': 'Val de France',
         'www.ca-pyrenees-gascogne.fr': 'Pyrénées Gascogne',
-    }.items())])
+    }
+    region_choices = OrderedDict([
+        (website, u'%s (%s)' % (region, website)) for website, region in sorted(region_choices.items())
+    ])
 
     region_aliases = {
         'm.ca-alpesprovence.fr': 'www.ca-alpesprovence.fr',
@@ -143,10 +144,7 @@ class CreditAgricoleModule(Module, CapBankWealth, CapBankTransferAddRecipient, C
         region_website = self.config['website'].get()
 
         return self.create_browser(
-            region_website,
-            self.config['login'].get(),
-            self.config['password'].get(),
-            weboob=self.weboob
+            region_website, self.config['login'].get(), self.config['password'].get(), weboob=self.weboob
         )
 
     # Accounts methods
