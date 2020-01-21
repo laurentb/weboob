@@ -22,7 +22,7 @@ from __future__ import unicode_literals
 
 from weboob.capabilities.base import find_object
 from weboob.tools.backend import Module, BackendConfig
-from weboob.capabilities.bill import CapDocument, Document, DocumentTypes, SubscriptionNotFound, DocumentNotFound
+from weboob.capabilities.bill import CapDocument, Document, DocumentTypes, SubscriptionNotFound, DocumentNotFound, Subscription
 from weboob.tools.value import ValueBackendPassword
 
 from .browser import AmeliBrowser
@@ -56,6 +56,9 @@ class AmeliModule(Module, CapDocument):
         return find_object(self.iter_subscription(), id=_id, error=SubscriptionNotFound)
 
     def iter_documents(self, subscription):
+        if not isinstance(subscription, Subscription):
+            subscription = self.get_subscription(subscription)
+
         return self.browser.iter_documents(subscription)
 
     def get_document(self, _id):
