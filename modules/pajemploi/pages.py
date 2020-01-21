@@ -135,7 +135,7 @@ class TaxCertificatesPage(PajemploiPage):
             d = Document()
 
             d._annee = CleanText(Attr('.//input[@id="annee"]', "value"))(frm)
-            d.id = "%s_%s" % (subscription, d._annee)
+            d.id = "%s_%s" % (subscription.id, d._annee)
             d.date = parse_french_date("%s-12-31" % d._annee)
             d.label = "Attestation fiscale %s" % (d._annee)
             d.type = DocumentTypes.OTHER
@@ -200,7 +200,7 @@ class DeclarationListPage(PartialHTMLPage):
                 r"\('norng'\)\.value='([^\']+)'",
                 default=None,
             )
-            obj_id = Format("%s_%s", Env("subscription"), Field("_refdoc"))
+            obj_id = Format("%s_%s", Env("subscription_id"), Field("_refdoc"))
 
 
 class MonthlyReportDownloadPage(RawPage):
@@ -260,7 +260,7 @@ class DeclarationDetailPage(PajemploiPage):
             raise ParseError()
         return date
 
-    def iter_documents(self, proto_doc):
+    def iter_documents(self, proto_doc, subscription):
         date = self.get_date()
 
         # Bulletin de salaire
@@ -271,7 +271,7 @@ class DeclarationDetailPage(PajemploiPage):
             bs.date = date
             bs.format = "pdf"
             bs.type = DocumentTypes.OTHER
-            bs.label = "Bulletin de salaire de %s" % date.strftime("%d/%m/%Y")
+            bs.label = "Bulletin de salaire %s %s" % (subscription.label, date.strftime("%d/%m/%Y"))
             bs.url = Attr(".", "action")(frm[0])
             yield bs
 
@@ -283,7 +283,7 @@ class DeclarationDetailPage(PajemploiPage):
             rm.date = date
             rm.format = "pdf"
             rm.type = DocumentTypes.OTHER
-            rm.label = "Relevé mensuel du %s" % date.strftime("%d/%m/%Y")
+            rm.label = "Relevé mensuel %s %s" % (subscription.label, date.strftime("%d/%m/%Y"))
             rm.url = Regexp(
                 Attr(".", "onclick", default=""), r"open\('([^\']+)'", default=None
             )(btn[0])
@@ -298,7 +298,7 @@ class DeclarationDetailPage(PajemploiPage):
             ce.date = date
             ce.format = "pdf"
             ce.type = DocumentTypes.OTHER
-            ce.label = "Certificat d'enregistrement du %s" % date.strftime("%d/%m/%Y")
+            ce.label = "Certificat d'enregistrement %s %s" % (subscription.label, date.strftime("%d/%m/%Y"))
             ce.url = Regexp(
                 Attr(".", "onclick", default=""), r"open\('([^\']+)'", default=None
             )(btn[0])
@@ -313,7 +313,7 @@ class DeclarationDetailPage(PajemploiPage):
             dc.date = date
             dc.format = "pdf"
             dc.type = DocumentTypes.OTHER
-            dc.label = "Décompte de cotisations du %s" % date.strftime("%d/%m/%Y")
+            dc.label = "Décompte de cotisations %s %s" % (subscription.label, date.strftime("%d/%m/%Y"))
             dc.url = Attr(".", "action")(frm[0])
             yield dc
 

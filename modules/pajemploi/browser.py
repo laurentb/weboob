@@ -105,10 +105,10 @@ class PajemploiBrowser(LoginBrowser):
             data = self.page.get_data(subscription)
             self.declaration_list.go(data=data)
 
-            for proto_doc in self.page.iter_documents(subscription=subscription.id):
+            for proto_doc in self.page.iter_documents(subscription_id=subscription.id):
                 data = {"refdoc": proto_doc._refdoc, "norng": proto_doc._norng}
                 self.declaration_detail.go(data=data)
-                for doc in self.page.iter_documents(proto_doc):
+                for doc in self.page.iter_documents(proto_doc, subscription):
                     doc._previous_data = data
                     doc._previous_page = self.declaration_detail
                     yield doc
@@ -116,7 +116,7 @@ class PajemploiBrowser(LoginBrowser):
         elif subscription._type == "taxcertificates":
 
             self.tax_certificates.go()
-            for doc in self.page.iter_documents(subscription=subscription.id):
+            for doc in self.page.iter_documents(subscription=subscription):
                 yield doc
 
         return []
