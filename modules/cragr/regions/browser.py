@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+# yapf-compatible
 
 from __future__ import unicode_literals
 
@@ -53,7 +54,6 @@ from .transfer_pages import (
 
 from .netfinca_browser import NetfincaBrowser
 
-
 __all__ = ['CragrRegion']
 
 
@@ -62,7 +62,10 @@ class CragrRegion(LoginBrowser):
     home = URL(r'/$', r'/particuliers.html', HomePage)
     logged_out = URL(r'.*', LoggedOutPage)  # must be first to catch the page
     login = URL(r'/stb/entreeBam$', LoginPage)
-    password_expired = URL(r'/stb/entreeBam\?sessionSAG=(?P<browser_session_value>[^&]+)&stbpg=pagePU&act=Interstitielle', PasswordExpiredPage)
+    password_expired = URL(
+        r'/stb/entreeBam\?sessionSAG=(?P<browser_session_value>[^&]+)&stbpg=pagePU&act=Interstitielle',
+        PasswordExpiredPage
+    )
 
     # Perimeters
     perimeter_details_page = URL(r'/stb/.*act=Perimetre.*', PerimeterDetailsPage)
@@ -84,7 +87,9 @@ class CragrRegion(LoginBrowser):
         r'/stb/entreeBam\?sessionSAG=(?P<browser_session_value>[^&]+)&stbpg=pagePU&site=(?P<website>[^&]+)&typeaction=reroutage_aller&sdt=(?P<sdt>[^&]+)&parampartenaire=(?P<partenaire>[^&]+)',
         PredicaRedirectionPage
     )
-    predica_investments = URL(r'https://npcprediweb.predica.credit-agricole.fr/rest/detailEpargne/contrat/', PredicaInvestmentsPage)
+    predica_investments = URL(
+        r'https://npcprediweb.predica.credit-agricole.fr/rest/detailEpargne/contrat/', PredicaInvestmentsPage
+    )
 
     netfinca_redirection = BrowserParamURL(
         r'/stb/entreeBam\?sessionSAG=(?P<browser_session_value>[^&]+)&stbpg=pagePU&site=CATITRES&typeaction=reroutage_aller',
@@ -112,13 +117,18 @@ class CragrRegion(LoginBrowser):
     bgpi_investments = URL(r'https://bgpi-gestionprivee.credit-agricole.fr/bgpi/CompteDetail.do.*', BGPIInvestmentPage)
 
     # Transfer & Recipient
-    transfer_init_page = BrowserParamURL(r'/stb/entreeBam\?sessionSAG=(?P<browser_session_value>[^&]+)&stbpg=pagePU&act=Virementssepa&stbzn=bnt&actCrt=Virementssepa', TransferInit)
+    transfer_init_page = BrowserParamURL(
+        r'/stb/entreeBam\?sessionSAG=(?P<browser_session_value>[^&]+)&stbpg=pagePU&act=Virementssepa&stbzn=bnt&actCrt=Virementssepa',
+        TransferInit
+    )
     transfer_page = URL(r'/stb/collecteNI\?fwkaid=.*&fwkpid=.*$', TransferPage)
 
     recipient_list = URL(r'/stb/collecteNI\?.*&act=Vilistedestinataires.*', RecipientListPage)
-    recipient_page = URL(r'/stb/collecteNI\?.*fwkaction=Ajouter.*',
-                         r'/stb/collecteNI.*&IDENT=LI_VIR_RIB1&VIR_VIR1_FR3_LE=0&T3SEF_MTT_EURO=&T3SEF_MTT_CENT=&VICrt_REFERENCE=$',
-                         RecipientPage)
+    recipient_page = URL(
+        r'/stb/collecteNI\?.*fwkaction=Ajouter.*',
+        r'/stb/collecteNI.*&IDENT=LI_VIR_RIB1&VIR_VIR1_FR3_LE=0&T3SEF_MTT_EURO=&T3SEF_MTT_CENT=&VICrt_REFERENCE=$',
+        RecipientPage
+    )
     recipient_misc = URL(r'/stb/collecteNI\?fwkaid=.*&fwkpid=.*$', RecipientMiscPage)
     send_sms_page = URL(r'/stb/collecteNI\?fwkaid=.*&fwkpid=.*', SendSMSPage)
 
@@ -144,8 +154,9 @@ class CragrRegion(LoginBrowser):
     )
 
     # Profile
-    profile = BrowserParamURL(r'/stb/entreeBam\?sessionSAG=(?P<browser_session_value>[^&]+)&stbpg=pagePU&act=Coordonnees', ProfilePage)
-
+    profile = BrowserParamURL(
+        r'/stb/entreeBam\?sessionSAG=(?P<browser_session_value>[^&]+)&stbpg=pagePU&act=Coordonnees', ProfilePage
+    )
 
     def __init__(self, website, *args, **kwargs):
         super(CragrRegion, self).__init__(*args, **kwargs)
@@ -162,12 +173,7 @@ class CragrRegion(LoginBrowser):
         if dirname:
             dirname += '/netfinca'
         self.netfinca = NetfincaBrowser(
-            '',
-            '',
-            logger=self.logger,
-            weboob=self.weboob,
-            responses_dirname=dirname,
-            proxy=self.PROXIES
+            '', '', logger=self.logger, weboob=self.weboob, responses_dirname=dirname, proxy=self.PROXIES
         )
 
     def deinit(self):
@@ -230,7 +236,7 @@ class CragrRegion(LoginBrowser):
         params = {
             'sessionSAG': self.session_value,
             'stbpg': 'pagePU',
-            'act': 'Perimetre'
+            'act': 'Perimetre',
         }
         self.login.go(params=params)
 
@@ -240,7 +246,7 @@ class CragrRegion(LoginBrowser):
             'stbpg': 'pagePU',
             'act': 'ChgPerim',
             'typeaction': 'ChgPerim',
-            'stbzn' :'global'
+            'stbzn': 'global',
         }
         self.login.go(params=params)
 
@@ -317,7 +323,9 @@ class CragrRegion(LoginBrowser):
         valid_accounts = []
         for account in accounts_list:
             if empty(account.balance):
-                self.logger.warning('Account %s %s will be skipped because it has no balance.', account.label, account.id)
+                self.logger.warning(
+                    'Account %s %s will be skipped because it has no balance.', account.label, account.id
+                )
             else:
                 valid_accounts.append(account)
 
@@ -482,7 +490,9 @@ class CragrRegion(LoginBrowser):
         for card_link, parent_account in self.page.get_cards_parameters():
             self.page.go_to_card(card_link)
             if self.accounts.is_here():
-                self.logger.warning('Could not access card details for parent account %s, it will be skipped.', parent_account)
+                self.logger.warning(
+                    'Could not access card details for parent account %s, it will be skipped.', parent_account
+                )
                 continue
             if self.multiple_cards_page.is_here():
                 # There are multiple credit cards on this account
@@ -614,7 +624,9 @@ class CragrRegion(LoginBrowser):
 
                 # Only fetch the perimeter's regular accounts (Checking & Savings)
                 # No need to go to Wealth, Loans or Netfinca for transactions
-                refreshed_account = find_object(self.iter_perimeter_regular_accounts(iban=False), AccountNotFound, id=account.id)
+                refreshed_account = find_object(
+                    self.iter_perimeter_regular_accounts(iban=False), AccountNotFound, id=account.id
+                )
                 refreshed_account._form.submit()
                 if self.failed_history.is_here():
                     self.logger.warning('Form submission failed to reach the account history, we try again.')
@@ -623,9 +635,7 @@ class CragrRegion(LoginBrowser):
 
         # 3 types of history pages were identified so far
         if not (
-            self.checking_history.is_here()
-            or self.savings_history.is_here()
-            or self.other_savings_history.is_here()
+            self.checking_history.is_here() or self.savings_history.is_here() or self.other_savings_history.is_here()
         ):
             self.unhandled_method(account.id)
 
@@ -639,8 +649,12 @@ class CragrRegion(LoginBrowser):
             return
 
         handled_invest_accounts = (
-            Account.TYPE_MARKET, Account.TYPE_PEA, Account.TYPE_LIFE_INSURANCE,
-            Account.TYPE_CAPITALISATION, Account.TYPE_PERP, Account.TYPE_PERCO,
+            Account.TYPE_MARKET,
+            Account.TYPE_PEA,
+            Account.TYPE_LIFE_INSURANCE,
+            Account.TYPE_CAPITALISATION,
+            Account.TYPE_PERP,
+            Account.TYPE_PERCO,
         )
         if account.type not in handled_invest_accounts:
             self.unhandled_method(account.id)
@@ -829,7 +843,9 @@ class CragrRegion(LoginBrowser):
 
         if not self.page.add_recipient_is_allowed():
             if not [rec for rec in self.page.iter_recipients() if rec.category == 'Externe']:
-                raise AddRecipientBankError('Vous ne pouvez pas ajouter de bénéficiaires, veuillez contacter votre banque.')
+                raise AddRecipientBankError(
+                    'Vous ne pouvez pas ajouter de bénéficiaires, veuillez contacter votre banque.'
+                )
             assert False, 'Xpath for a recipient add is not catched'
 
         self.location(self.page.url_list_recipients())
@@ -842,7 +858,9 @@ class CragrRegion(LoginBrowser):
             self.logger.debug('good, we can add a recipient from the recipient list')
         else:
             # in this case, the link was missing
-            self.logger.warning('cannot add a recipient from the recipient list page, pretending to make a transfer in order to add it')
+            self.logger.warning(
+                'cannot add a recipient from the recipient list page, pretending to make a transfer in order to add it'
+            )
             self.transfer_init_page.go()
             assert self.transfer_init_page.is_here()
 
@@ -852,7 +870,9 @@ class CragrRegion(LoginBrowser):
             self.page.send_sms()
             # go to a GET page, so StatesMixin can reload it
             self.accounts.go()
-            raise AddRecipientStep(self.build_recipient(recipient), Value('sms_code', label='Veuillez saisir le code SMS'))
+            raise AddRecipientStep(
+                self.build_recipient(recipient), Value('sms_code', label='Veuillez saisir le code SMS')
+            )
         else:
             self.page.submit_code(params['sms_code'])
 

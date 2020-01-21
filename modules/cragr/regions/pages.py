@@ -17,9 +17,9 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+# yapf-compatible
 
 from __future__ import unicode_literals
-
 
 from decimal import Decimal
 import re
@@ -61,12 +61,16 @@ class Transaction(FrenchTransaction):
         (re.compile(r'^Prelevt.*'), FrenchTransaction.TYPE_ORDER),
         (re.compile(r'^Prelevmnt.*'), FrenchTransaction.TYPE_ORDER),
         (re.compile(r'^Prelevement.*'), FrenchTransaction.TYPE_ORDER),
-        (re.compile(r'^Prelevement Carte.*(?P<dd>\d{2})/(?P<mm>\d{2})$', re.IGNORECASE), FrenchTransaction.TYPE_CARD_SUMMARY),
+        (
+            re.compile(r'^Prelevement Carte.*(?P<dd>\d{2})/(?P<mm>\d{2})$', re.IGNORECASE),
+            FrenchTransaction.TYPE_CARD_SUMMARY
+        ),
         (re.compile(r'^Remise Carte.*'), FrenchTransaction.TYPE_CARD),
         (re.compile(r'^Paiement Par Carte.*(?P<dd>\d{2})/(?P<mm>\d{2})$'), FrenchTransaction.TYPE_CARD),
         (re.compile(r'^Remboursement De Pret.*'), FrenchTransaction.TYPE_LOAN_PAYMENT),
         (re.compile(r'^Versement.*'), FrenchTransaction.TYPE_DEPOSIT),
     ]
+
 
 class CragrPage(HTMLPage):
     ENCODING = 'iso8859-15'
@@ -78,7 +82,9 @@ class CragrPage(HTMLPage):
     def on_load(self):
         new_session_value = Regexp(
             CleanText('//script[@language="JavaScript"][contains(text(), "idSessionSag")]'),
-            r'idSessionSag = "([^"]+)', default=None)(self.doc)
+            r'idSessionSag = "([^"]+)',
+            default=None
+        )(self.doc)
         if new_session_value:
             self.browser.session_value = new_session_value
 
@@ -170,7 +176,9 @@ class PerimeterDetailsPage(LoggedPage, CragrPage):
     def get_perimeter_url(self, perimeter):
         # We need to search for the perimeter name in the list of perimeters,
         # However we must put the strings to lowercase and remove multiple spaces.
-        return Link('//p[label[contains(normalize-space(lower-case(text())), "%s")]]//a' % perimeter.lower(), default=None)(self.doc)
+        return Link(
+            '//p[label[contains(normalize-space(lower-case(text())), "%s")]]//a' % perimeter.lower(), default=None
+        )(self.doc)
 
 
 class PerimeterPage(LoggedPage, CragrPage):
@@ -178,9 +186,10 @@ class PerimeterPage(LoggedPage, CragrPage):
         if self.doc.xpath('//div[@class="validation"]'):
             # There is no complete message to fetch on the website but this node appears
             # when we land on a perimeter that has never been visited before.
-            raise ActionNeeded("Certains de vos périmètres n'ont encore jamais été visités.\
-                                Merci de parcourir tous les périmètres disponibles sur le site \
-                                Crédit Agricole et de réaliser les réglages requis pour chaque périmètre.")
+            raise ActionNeeded(
+                "Certains de vos périmètres n'ont encore jamais été visités. " +
+                "Merci de parcourir tous les périmètres disponibles sur le site Crédit Agricole et de réaliser les réglages requis pour chaque périmètre."
+            )
 
     def broken_perimeter(self):
         error_msg = CleanText('//h1[@class="h1-erreur"]')(self.doc)
@@ -193,9 +202,11 @@ class RibPage(LoggedPage, CragrPage):
         return CleanText('//b[contains(text(), "IDENTITÉ BANCAIRE")]')(self.doc)
 
     def get_iban(self):
-        return CleanText('//div[@id="trPagePu"]//table[2]//td[font[b[contains(text(), "IBAN")]]]//tr//b/text()',
-                         replace=[(' ', '')],
-                         default=NotAvailable)(self.doc)
+        return CleanText(
+            '//div[@id="trPagePu"]//table[2]//td[font[b[contains(text(), "IBAN")]]]//tr//b/text()',
+            replace=[(' ', '')],
+            default=NotAvailable
+        )(self.doc)
 
 
 ACCOUNT_TYPES = {
@@ -399,7 +410,9 @@ class CardsPage(LoggedPage, CragrPage):
         return CleanText('//div[@class="boutons-act"]//h1[contains(text(), "Cartes - détail")]')(self.doc)
 
     def has_unique_card(self):
-        return not CleanText('//table[@summary]//caption[@class="ca-table caption"or @class="caption tdb-cartes-caption"]')(self.doc)
+        return not CleanText(
+            '//table[@summary]//caption[@class="ca-table caption"or @class="caption tdb-cartes-caption"]'
+        )(self.doc)
 
     @method
     class get_unique_card(ItemElement):
@@ -408,22 +421,29 @@ class CardsPage(LoggedPage, CragrPage):
         klass = Account
 
         # Transform 'n° 4999 78xx xxxx xx72' into '499978xxxxxxxx72'
-        obj_number = CleanText('//table[@class="ca-table"][@summary]//tr[@class="ligne-impaire"]/td[@class="cel-texte"][1]',
-                               replace=[(' ', ''), ('n°', '')])
+        obj_number = CleanText(
+            '//table[@class="ca-table"][@summary]//tr[@class="ligne-impaire"]/td[@class="cel-texte"][1]',
+            replace=[(' ', ''), ('n°', '')]
+        )
 
         # Card ID is formatted as '499978xxxxxxxx72MrFirstnameLastname-'
-        obj_id = Format('%s%s',
-                        Field('number'),
-                        CleanText('//table[@class="ca-table"][@summary]//caption[@class="caption"]//b',
-                        replace=[(' ', '')]))
+        obj_id = Format(
+            '%s%s',
+            Field('number'),
+            CleanText('//table[@class="ca-table"][@summary]//caption[@class="caption"]//b', replace=[(' ', '')])
+        )
 
         # Card label is formatted as 'Carte VISA Premier - Mr M Lastname'
-        obj_label = Format('%s - %s',
-                           CleanText('//table[@class="ca-table"][@summary]//tr[@class="ligne-impaire ligne-bleu"]/th[@id="compte-1"]'),
-                           CleanText('//table[@class="ca-table"][@summary]//caption[@class="caption"]//b'))
+        obj_label = Format(
+            '%s - %s',
+            CleanText('//table[@class="ca-table"][@summary]//tr[@class="ligne-impaire ligne-bleu"]/th[@id="compte-1"]'),
+            CleanText('//table[@class="ca-table"][@summary]//caption[@class="caption"]//b')
+        )
 
         obj_balance = CleanDecimal(0)
-        obj_coming = CleanDecimal.French('//table[@class="ca-table"][@summary]//tr[@class="ligne-paire"]//td[@class="cel-num"]', default=0)
+        obj_coming = CleanDecimal.French(
+            '//table[@class="ca-table"][@summary]//tr[@class="ligne-paire"]//td[@class="cel-num"]', default=0
+        )
         obj_currency = Currency(Regexp(CleanText('//th[contains(text(), "Montant en")]'), r'^Montant en (.*)'))
         obj_type = Account.TYPE_CARD
         obj__form = None
@@ -435,8 +455,11 @@ class CardsPage(LoggedPage, CragrPage):
         # The title of the coming is usually 'Opérations débitées' but if
         # the coming is positive, it will become 'Opérations créditées'
         raw_date = Regexp(
-            CleanText('//table[@class="ca-table"]//tr[1]//b[contains(text(), "Opérations débitées") or contains(text(), "Opérations créditées")]'),
-            r'le (.*) :', default=None
+            CleanText(
+                '//table[@class="ca-table"]//tr[1]//b[contains(text(), "Opérations débitées") or contains(text(), "Opérations créditées")]'
+            ),
+            r'le (.*) :',
+            default=None
         )(self.doc)
         if not raw_date:
             return None
@@ -493,9 +516,9 @@ class MultipleCardsPage(CardsPage):
             obj__raw_number = CleanText('.//caption/span[@class="tdb-cartes-num"]')
 
             # Multiple card IDs are formatted as '499978xxxxxxxx72MrFirstnameLastname'
-            obj_id = Format('%s%s',
-                            Field('number'),
-                            CleanText('.//caption/span[@class="tdb-cartes-prop"]', replace=[(' ', '')]))
+            obj_id = Format(
+                '%s%s', Field('number'), CleanText('.//caption/span[@class="tdb-cartes-prop"]', replace=[(' ', '')])
+            )
 
             # Card label is formatted as 'Carte VISA Premier - Mr M Lastname'
             obj_label = Format(
@@ -510,21 +533,30 @@ class MultipleCardsPage(CardsPage):
             obj_currency = Currency(Regexp(CleanText('//span[contains(text(), "Montants en")]'), r'^Montants en (.*)'))
             obj__form = None
 
-
     def get_transactions_link(self, raw_number):
         # We cannot use Link() because the @href attribute contains line breaks and spaces.
         if len(self.doc.xpath('//table[@class="ca-table"][caption[span[text()="%s"]]]//tr' % raw_number)) == 1:
             # There is only one coming line (no card information link)
-            return CleanText('//table[@class="ca-table"][caption[span[text()="%s"]]]//tr[position()=last()]/th/a/@href'
-                             % raw_number, replace=[(' ', '')])(self.doc)
-        elif self.doc.xpath('//table[@class="ca-table"][caption[span[text()="%s"]]]//tr//a[contains(text(), "Infos carte")]' % raw_number):
+            return CleanText(
+                '//table[@class="ca-table"][caption[span[text()="%s"]]]//tr[position()=last()]/th/a/@href' % raw_number,
+                replace=[(' ', '')]
+            )(self.doc)
+        elif self.doc.xpath(
+            '//table[@class="ca-table"][caption[span[text()="%s"]]]//tr//a[contains(text(), "Infos carte")]'
+            % raw_number
+        ):
             # There is a card information line, select the <tr> before the last
-            return CleanText('//table[@class="ca-table"][caption[span[text()="%s"]]]//tr[position()=last()-1]/th/a/@href'
-                             % raw_number, replace=[(' ', '')])(self.doc)
+            return CleanText(
+                '//table[@class="ca-table"][caption[span[text()="%s"]]]//tr[position()=last()-1]/th/a/@href'
+                % raw_number,
+                replace=[(' ', '')]
+            )(self.doc)
         else:
             # There is no information line, return the last <tr>
-            return CleanText('//table[@class="ca-table"][caption[span[text()="%s"]]]//tr[position()=last()]/th/a/@href'
-                             % raw_number, replace=[(' ', '')])(self.doc)
+            return CleanText(
+                '//table[@class="ca-table"][caption[span[text()="%s"]]]//tr[position()=last()]/th/a/@href' % raw_number,
+                replace=[(' ', '')]
+            )(self.doc)
 
 
 class WealthPage(LoggedPage, CragrPage):
@@ -600,12 +632,19 @@ class LoansPage(LoggedPage, CragrPage):
                     # History table with 4 columns (no loan details)
                     self.env['next_payment_amount'] = NotAvailable
                     self.env['total_amount'] = NotAvailable
-                    self.env['balance'] = CleanDecimal.French('./td[4]//*[@class="montant3" or @class="montant4"]', default=NotAvailable)(self)
+                    self.env['balance'] = CleanDecimal.French(
+                        './td[4]//*[@class="montant3" or @class="montant4"]', default=NotAvailable
+                    )(self)
                 elif CleanText('self::node()[count(td)=6]')(self):
                     # History table with 5 columns (contains next_payment_amount & total_amount)
-                    self.env['next_payment_amount'] = CleanDecimal.French('./td[3]//*[@class="montant3"]', default=NotAvailable)(self)
-                    self.env['total_amount'] = CleanDecimal.French('./td[4]//*[@class="montant3"]', default=NotAvailable)(self)
-                    self.env['balance'] = CleanDecimal.French('./td[5]//*[@class="montant3"]', default=NotAvailable)(self)
+                    self.env['next_payment_amount'] = CleanDecimal.French(
+                        './td[3]//*[@class="montant3"]', default=NotAvailable
+                    )(self)
+                    self.env['total_amount'] = CleanDecimal.French(
+                        './td[4]//*[@class="montant3"]', default=NotAvailable
+                    )(self)
+                    self.env['balance'] = CleanDecimal.French('./td[5]//*[@class="montant3"]',
+                                                              default=NotAvailable)(self)
 
 
 class CheckingHistoryPage(LoggedPage, CragrPage):
@@ -629,29 +668,39 @@ class CheckingHistoryPage(LoggedPage, CragrPage):
             def parse(self, obj):
                 self.env['date'] = DateGuesser(CleanText('./td[1]'), Env('date_guesser'))(self)
                 self.env['vdate'] = NotAvailable
-                if CleanText('//table[@class="ca-table"][caption[span[b[text()="Historique des opérations"]]]]//tr[count(td) = 4]')(self):
+                if CleanText(
+                    '//table[@class="ca-table"][caption[span[b[text()="Historique des opérations"]]]]//tr[count(td) = 4]'
+                )(self):
                     # History table with 4 columns
                     self.env['raw'] = CleanText('./td[2]')(self)
                     self.env['amount'] = CleanDecimal.French('./td[last()]')(self)
 
-                elif CleanText('//table[@class="ca-table"][caption[span[b[text()="Historique des opérations"]]]]//tr[count(td) = 5]')(self):
+                elif CleanText(
+                    '//table[@class="ca-table"][caption[span[b[text()="Historique des opérations"]]]]//tr[count(td) = 5]'
+                )(self):
                     # History table with 5 columns
                     self.env['raw'] = CleanText('./td[3]')(self)
                     self.env['amount'] = CleanDecimal.French('./td[last()]')(self)
 
-                elif CleanText('//table[@class="ca-table"][caption[span[b[text()="Historique des opérations"]]]]//tr[count(td) = 6]')(self):
+                elif CleanText(
+                    '//table[@class="ca-table"][caption[span[b[text()="Historique des opérations"]]]]//tr[count(td) = 6]'
+                )(self):
                     # History table with 6 columns (contains vdate)
                     self.env['raw'] = CleanText('./td[4]')(self)
                     self.env['vdate'] = DateGuesser(CleanText('./td[2]'), Env('date_guesser'))(self)
                     self.env['amount'] = CleanDecimal.French('./td[last()]')(self)
 
-                elif CleanText('//table[@class="ca-table"][caption[span[b[text()="Historique des opérations"]]]]//tr[count(td) = 7]')(self):
+                elif CleanText(
+                    '//table[@class="ca-table"][caption[span[b[text()="Historique des opérations"]]]]//tr[count(td) = 7]'
+                )(self):
                     # History table with 7 columns
                     self.env['amount'] = Coalesce(
                         CleanDecimal.French('./td[6]', sign=lambda x: -1, default=None),
                         CleanDecimal.French('./td[7]', default=None)
                     )(self)
-                    if CleanText('//table[@class="ca-table"][caption[span[b[text()="Historique des opérations"]]]]//th[a[contains(text(), "Valeur")]]')(self):
+                    if CleanText(
+                        '//table[@class="ca-table"][caption[span[b[text()="Historique des opérations"]]]]//th[a[contains(text(), "Valeur")]]'
+                    )(self):
                         # With vdate column ('Valeur')
                         self.env['raw'] = CleanText('./td[4]')(self)
                         self.env['vdate'] = DateGuesser(CleanText('./td[2]'), Env('date_guesser'))(self)
@@ -691,7 +740,9 @@ class SavingsHistoryPage(LoggedPage, CragrPage):
 
 class OtherSavingsHistoryPage(LoggedPage, CragrPage):
     def is_here(self):
-        return CleanText('//span[@class="tdb-cartes-prop"]/b[contains(text(), "HISTORIQUE DES OPERATIONS") or text()="OPERATIONS"]')(self.doc)
+        return CleanText(
+            '//span[@class="tdb-cartes-prop"]/b[contains(text(), "HISTORIQUE DES OPERATIONS") or text()="OPERATIONS"]'
+        )(self.doc)
 
     @pagination
     @method
@@ -776,7 +827,9 @@ class PredicaInvestmentsPage(LoggedPage, JsonPage):
 
 class NetfincaRedirectionPage(LoggedPage, HTMLPage):
     def no_netfinca_access(self):
-        return CleanText('//p[@class="gras" and contains(text(), "service CA-Titres est actuellement indisponible")]')(self.doc)
+        return CleanText('//p[@class="gras" and contains(text(), "service CA-Titres est actuellement indisponible")]')(
+            self.doc
+        )
 
     def get_url(self):
         return Regexp(Attr('//body', 'onload', default=None), r'document.location="([^"]+)"')(self.doc)
@@ -802,7 +855,9 @@ class NetfincaToCragr(LoggedPage, CragrPage):
     def on_load(self):
         new_session_value = Regexp(
             CleanText('//script[@language="JavaScript"][contains(text(), "idSessionSag")]'),
-            r'idSessionSag = "([^"]+)', default=None)(self.doc)
+            r'idSessionSag = "([^"]+)',
+            default=None
+        )(self.doc)
         if new_session_value:
             self.browser.session_value = new_session_value
         # Automatically go back to the accounts page
@@ -819,14 +874,20 @@ class BGPIRedirectionPage(LoggedPage, HTMLPage):
 
 class BGPISpace(LoggedPage, HTMLPage):
     def get_account_details(self, account_id):
-        balance = CleanDecimal.French('//a[div[div[span[span[contains(text(), "%s")]]]]]/div[1]/div[2]/span/span'
-                                      % account_id, default=NotAvailable)(self.doc)
+        balance = CleanDecimal.French(
+            '//a[div[div[span[span[contains(text(), "%s")]]]]]/div[1]/div[2]/span/span' % account_id,
+            default=NotAvailable
+        )(self.doc)
 
-        currency = Currency('//a[div[div[span[span[contains(text(), "%s")]]]]]/div[1]/div[2]/span/span'
-                                      % account_id, default=NotAvailable)(self.doc)
+        currency = Currency(
+            '//a[div[div[span[span[contains(text(), "%s")]]]]]/div[1]/div[2]/span/span' % account_id,
+            default=NotAvailable
+        )(self.doc)
 
-        label = CleanText('//a[div[div[span[span[contains(text(), "%s")]]]]]/div[1]/div[1]/span/span'
-                                      % account_id, default=NotAvailable)(self.doc)
+        label = CleanText(
+            '//a[div[div[span[span[contains(text(), "%s")]]]]]/div[1]/div[1]/span/span' % account_id,
+            default=NotAvailable
+        )(self.doc)
 
         url = Link('//a[div[div[span[span[contains(text(), "%s")]]]]]' % account_id, default=None)(self.doc)
         if url:
@@ -847,10 +908,18 @@ class BGPIInvestmentPage(LoggedPage, HTMLPage):
             klass = Investment
 
             obj_label = CleanText('.//span[@class="uppercase"]')
-            obj_valuation = CleanDecimal.French('.//span[@class="box"][span[span[text()="Montant estimé"]]]/span[2]/span')
-            obj_quantity = CleanDecimal.French('.//span[@class="box"][span[span[text()="Nombre de part"]]]/span[2]/span')
-            obj_unitvalue = CleanDecimal.French('.//span[@class="box"][span[span[text()="Valeur liquidative"]]]/span[2]/span')
-            obj_unitprice = CleanDecimal.French('.//span[@class="box"][span[span[text()="Prix de revient"]]]/span[2]/span', default=NotAvailable)
+            obj_valuation = CleanDecimal.French(
+                './/span[@class="box"][span[span[text()="Montant estimé"]]]/span[2]/span'
+            )
+            obj_quantity = CleanDecimal.French(
+                './/span[@class="box"][span[span[text()="Nombre de part"]]]/span[2]/span'
+            )
+            obj_unitvalue = CleanDecimal.French(
+                './/span[@class="box"][span[span[text()="Valeur liquidative"]]]/span[2]/span'
+            )
+            obj_unitprice = CleanDecimal.French(
+                './/span[@class="box"][span[span[text()="Prix de revient"]]]/span[2]/span', default=NotAvailable
+            )
             obj_portfolio_share = Eval(
                 lambda x: x / 100,
                 CleanDecimal.French('.//span[@class="box"][span[span[text()="Répartition"]]]/span[2]/span')
@@ -858,17 +927,24 @@ class BGPIInvestmentPage(LoggedPage, HTMLPage):
 
             def obj_diff_ratio(self):
                 # Euro funds have '-' instead of a diff_ratio value
-                if CleanText('.//span[@class="box"][span[span[text()="+/- value latente (%)"]]]/span[2]/span')(self) == '-':
+                if (
+                    CleanText('.//span[@class="box"][span[span[text()="+/- value latente (%)"]]]/span[2]/span')(self) ==
+                    '-'
+                ):
                     return NotAvailable
                 return Eval(
                     lambda x: x / 100,
-                    CleanDecimal.French('.//span[@class="box"][span[span[text()="+/- value latente (%)"]]]/span[2]/span')
+                    CleanDecimal.French(
+                        './/span[@class="box"][span[span[text()="+/- value latente (%)"]]]/span[2]/span',
+                    )
                 )(self)
 
             def obj_diff(self):
                 if Field('diff_ratio')(self) == NotAvailable:
                     return NotAvailable
-                return CleanDecimal.French('.//span[@class="box"][span[span[text()="+/- value latente"]]]/span[2]/span')(self)
+                return CleanDecimal.French(
+                    './/span[@class="box"][span[span[text()="+/- value latente"]]]/span[2]/span'
+                )(self)
 
             def obj_code(self):
                 code = CleanText('.//span[@class="cl-secondary"]')(self)
@@ -889,15 +965,19 @@ class ProfilePage(LoggedPage, CragrPage):
 
         obj_email = Regexp(CleanText('//font/b/script', default=""), r'formatMail\(\'(.*)\'\)', default=NotAvailable)
         obj_job = CleanText('//td[contains(text(), "Type de profession")]/following::td[1]', default=NotAvailable)
-        obj_name = Format('%s %s',
-                          CleanText('//td[contains(text(), "Prénom")]/following::td[1]', default=NotAvailable),
-                          CleanText('//td[contains(text(), "Nom")]/following::td[1]', default=NotAvailable))
+        obj_name = Format(
+            '%s %s',
+            CleanText('//td[contains(text(), "Prénom")]/following::td[1]', default=NotAvailable),
+            CleanText('//td[contains(text(), "Nom")]/following::td[1]', default=NotAvailable)
+        )
 
         def obj_address(self):
             # The address is spread accross several <tr>/<td[3]>
             # So we must fetch them all and reconstitute it
             address_items = []
-            for item in self.page.doc.xpath('//table[tr[td[contains(text(), "Adresse")]]]/tr[position()>3 and position()<8]/td[3]'):
+            for item in self.page.doc.xpath(
+                '//table[tr[td[contains(text(), "Adresse")]]]/tr[position()>3 and position()<8]/td[3]'
+            ):
                 if CleanText(item)(self):
                     address_items.append(CleanText(item)(self))
             return ' '.join(address_items) or NotAvailable

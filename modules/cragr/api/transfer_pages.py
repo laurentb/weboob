@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+# yapf-compatible
+
 from __future__ import unicode_literals
 
 from datetime import date
@@ -54,7 +56,7 @@ class RecipientsPage(LoggedPage, JsonPage):
             obj_id = obj_number = Dict('accountNumber')
             obj_label = Coalesce(
                 Dict('accountNatureLongLabel', default=''),
-                Dict('accountNatureShortLabel', default='')
+                Dict('accountNatureShortLabel', default=''),
             )
             obj_iban = Dict('ibanCode')
             obj_currency = Dict('currencyCode')
@@ -77,9 +79,13 @@ class RecipientsPage(LoggedPage, JsonPage):
             klass = Recipient
 
             obj_id = Dict('accountNumber')
-            obj_label = CleanText(Format('%s %s',
-                                         Dict('accountHolderLongDesignation'),
-                                         Dict('accountNatureShortLabel', default='')))
+            obj_label = CleanText(
+                Format(
+                    '%s %s',
+                    Dict('accountHolderLongDesignation'),
+                    Dict('accountNatureShortLabel', default=''),
+                )
+            )
             obj_iban = Dict('ibanCode')
             obj_category = 'Interne'
             obj_enabled_at = date.today()

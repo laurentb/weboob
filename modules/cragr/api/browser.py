@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+# yapf-compatible
 
 from __future__ import unicode_literals
 
@@ -46,7 +47,6 @@ from weboob.tools.capabilities.bank.investments import create_french_liquidity
 
 from .netfinca_browser import NetfincaBrowser
 
-
 __all__ = ['CragrAPI']
 
 
@@ -59,45 +59,66 @@ class CragrAPI(LoginBrowser):
     token_page = URL(r'libs/granite/csrf/token.json', TokenPage)
     change_password = URL(r'(?P<space>[\w-]+)/operations/interstitielles/code-personnel.html', ChangePasswordPage)
 
-    contracts_page = URL(r'(?P<space>[\w-]+)/operations/.rechargement.contexte.html\?idBamIndex=(?P<id_contract>)', ContractsPage)
+    contracts_page = URL(
+        r'(?P<space>[\w-]+)/operations/.rechargement.contexte.html\?idBamIndex=(?P<id_contract>)', ContractsPage
+    )
 
     accounts_page = URL(r'[\w-]+/operations/synthese.html', AccountsPage)
 
-    account_details = URL(r'(?P<space>[\w-]+)/operations/synthese/jcr:content.produits-valorisation.json/(?P<category>)', AccountDetailsPage)
+    account_details = URL(
+        r'(?P<space>[\w-]+)/operations/synthese/jcr:content.produits-valorisation.json/(?P<category>)',
+        AccountDetailsPage
+    )
 
-    account_iban = URL(r'(?P<space>[\w-]+)/operations/operations-courantes/editer-rib/jcr:content.ibaninformation.json', IbanPage)
+    account_iban = URL(
+        r'(?P<space>[\w-]+)/operations/operations-courantes/editer-rib/jcr:content.ibaninformation.json', IbanPage
+    )
 
     cards = URL(r'(?P<space>[\w-]+)/operations/(?P<op>.*)/mes-cartes/jcr:content.listeCartesParCompte.json', CardsPage)
 
     history = URL(r'(?P<space>[\w-]+)/operations/synthese/detail-comptes/jcr:content.n3.operations.json', HistoryPage)
 
-    card_history = URL(r'(?P<space>[\w-]+)/operations/synthese/detail-comptes/jcr:content.n3.operations.encours.carte.debit.differe.json', CardHistoryPage)
+    card_history = URL(
+        r'(?P<space>[\w-]+)/operations/synthese/detail-comptes/jcr:content.n3.operations.encours.carte.debit.differe.json',
+        CardHistoryPage
+    )
 
-    life_insurance_investments = URL(r'(?P<space>[\w-]+)/operations/synthese/detail-assurance-vie.html\?idx=(?P<idx>\d+)&famillecode=(?P<category>\d+)',
-                                     LifeInsuranceInvestmentsPage)
+    life_insurance_investments = URL(
+        r'(?P<space>[\w-]+)/operations/synthese/detail-assurance-vie.html\?idx=(?P<idx>\d+)&famillecode=(?P<category>\d+)',
+        LifeInsuranceInvestmentsPage
+    )
 
-    netfinca_redirection = URL(r'(?P<space>[\w-]+)/operations/moco/catitres/_?jcr[:_]content.init.html', NetfincaRedirectionPage)
+    netfinca_redirection = URL(
+        r'(?P<space>[\w-]+)/operations/moco/catitres/_?jcr[:_]content.init.html', NetfincaRedirectionPage
+    )
 
-    predica_redirection = URL(r'(?P<space>[\w-]+)/operations/moco/predica/_?jcr[:_]content.init.html', PredicaRedirectionPage)
+    predica_redirection = URL(
+        r'(?P<space>[\w-]+)/operations/moco/predica/_?jcr[:_]content.init.html', PredicaRedirectionPage
+    )
 
-    predica_investments = URL(r'https://npcprediweb.predica.credit-agricole.fr/rest/detailEpargne/contrat/', PredicaInvestmentsPage)
+    predica_investments = URL(
+        r'https://npcprediweb.predica.credit-agricole.fr/rest/detailEpargne/contrat/', PredicaInvestmentsPage
+    )
 
     profile_page = URL(r'(?P<space>[\w-]+)/operations/synthese/jcr:content.npc.store.client.json', ProfilePage)
 
-    profile_details = URL(r'(?P<space>[\w-]+)/operations/profil/infos-personnelles/gerer-coordonnees.html', ProfileDetailsPage)
+    profile_details = URL(
+        r'(?P<space>[\w-]+)/operations/profil/infos-personnelles/gerer-coordonnees.html', ProfileDetailsPage
+    )
 
-    pro_profile_details = URL(r'(?P<space>[\w-]+)/operations/profil/infos-personnelles/controler-coordonnees.html', ProProfileDetailsPage)
+    pro_profile_details = URL(
+        r'(?P<space>[\w-]+)/operations/profil/infos-personnelles/controler-coordonnees.html', ProProfileDetailsPage
+    )
 
-    recipients = URL('(?P<space>.*)/operations/(?P<op>.*)/virement/jcr:content.accounts.json',
-                     RecipientsPage)
-    transfer_token = URL('(?P<space>.*)/operations/(?P<op>.*)/virement.npcgeneratetoken.json\?tokenTypeId=1',
-                         TransferTokenPage)
-    transfer = URL('(?P<space>.*)/operations/(?P<op>.*)/virement/jcr:content.check-transfer.json',
-                   TransferPage)
-    transfer_recap = URL('(?P<space>.*)/operations/(?P<op>.*)/virement/jcr:content.transfer-data.json\?useSession=true',
-                         TransferPage)
-    transfer_exec = URL('(?P<space>.*)/operations/(?P<op>.*)/virement/jcr:content.process-transfer.json',
-                        TransferPage)
+    recipients = URL('(?P<space>.*)/operations/(?P<op>.*)/virement/jcr:content.accounts.json', RecipientsPage)
+    transfer_token = URL(
+        '(?P<space>.*)/operations/(?P<op>.*)/virement.npcgeneratetoken.json\?tokenTypeId=1', TransferTokenPage
+    )
+    transfer = URL('(?P<space>.*)/operations/(?P<op>.*)/virement/jcr:content.check-transfer.json', TransferPage)
+    transfer_recap = URL(
+        '(?P<space>.*)/operations/(?P<op>.*)/virement/jcr:content.transfer-data.json\?useSession=true', TransferPage
+    )
+    transfer_exec = URL('(?P<space>.*)/operations/(?P<op>.*)/virement/jcr:content.process-transfer.json', TransferPage)
     old_website = URL(r'https://.*particuliers.html$', OldWebsitePage)
 
     def __init__(self, website, *args, **kwargs):
@@ -108,7 +129,9 @@ class CragrAPI(LoginBrowser):
         # Netfinca browser:
         self.weboob = kwargs.pop('weboob')
         dirname = self.responses_dirname
-        self.netfinca = NetfincaBrowser('', '', logger=self.logger, weboob=self.weboob, responses_dirname=dirname, proxy=self.PROXIES)
+        self.netfinca = NetfincaBrowser(
+            '', '', logger=self.logger, weboob=self.weboob, responses_dirname=dirname, proxy=self.PROXIES
+        )
 
     @property
     def space(self):
@@ -144,8 +167,10 @@ class CragrAPI(LoginBrowser):
                     raise BrowserUnavailable(message)
 
             # When a PSD2 SCA is required it also returns a 500, hopefully we can detect it
-            if (exc_json.get('url') == 'dsp2/informations.html' or
-                exc_json.get('redirection', '').endswith('dsp2/informations.html')):
+            if (
+                exc_json.get('url') == 'dsp2/informations.html'
+                or exc_json.get('redirection', '').endswith('dsp2/informations.html')
+            ):
                 return self.handle_sca()
 
             raise
@@ -228,7 +253,7 @@ class CragrAPI(LoginBrowser):
         try:
             self.go_to_account_space(contract)
         except ServerError:
-            self.logger.warning('Server returned error 500 when trying to access space %s, we try again' % contract)
+            self.logger.warning('Server returned error 500 when trying to access space %s, we try again', contract)
             try:
                 self.go_to_account_space(contract)
             except ServerError:
@@ -243,7 +268,7 @@ class CragrAPI(LoginBrowser):
             # We have been logged out.
             self.do_login()
         total_spaces = self.page.count_spaces()
-        self.logger.info('The total number of spaces on this connection is %s.' % total_spaces)
+        self.logger.info('The total number of spaces on this connection is %s.', total_spaces)
 
         # Complete accounts list is required to match card parent accounts
         # and to avoid accounts that are present on several spaces
@@ -252,7 +277,10 @@ class CragrAPI(LoginBrowser):
 
         for contract in range(total_spaces):
             if not self.check_space_connection(contract):
-                self.logger.warning('Server returned error 500 twice when trying to access space %s, this space will be skipped', contract)
+                self.logger.warning(
+                    'Server returned error 500 twice when trying to access space %s, this space will be skipped',
+                    contract
+                )
                 continue
 
             # Some spaces have no main account
@@ -282,7 +310,6 @@ class CragrAPI(LoginBrowser):
             accounts_list = list(self.page.iter_accounts())
             for account in accounts_list:
                 account._contract = contract
-
             ''' Other accounts have no balance in the main JSON, so we must get all
             the (_id_element_contrat, balance) pairs in the account_details JSON.
 
@@ -299,8 +326,7 @@ class CragrAPI(LoginBrowser):
             account_balances = {}
             loan_ids = {}
             for category in categories:
-                self.account_details.go(space=self.space,
-                                        category=category)
+                self.account_details.go(space=self.space, category=category)
                 account_balances.update(self.page.get_account_balances())
                 loan_ids.update(self.page.get_loan_ids())
 
@@ -323,7 +349,9 @@ class CragrAPI(LoginBrowser):
                 if account.type in (Account.TYPE_LOAN, Account.TYPE_CONSUMER_CREDIT):
                     account.id = account.number = loan_ids.get(account._id_element_contrat, account.id)
                     if empty(account.balance):
-                        self.logger.warning('Loan skip: no balance is available for %s, %s account' % (account.id, account.label))
+                        self.logger.warning(
+                            'Loan skip: no balance is available for %s, %s account', account.id, account.label
+                        )
                         continue
                     account = self.switch_account_to_loan(account)
                 elif account.type == Account.TYPE_REVOLVING_CREDIT:
@@ -332,20 +360,19 @@ class CragrAPI(LoginBrowser):
                 if account.id not in all_accounts:
                     all_accounts[account.id] = account
                     yield account
-
             ''' Fetch all deferred credit cards for this space: from the space type
             we must determine the required URL parameters to build the cards URL.
             If there is no card on the space, the server will return a 500 error
             (it is the same on the website) so we must handle it with try/except. '''
             cards_parameters = {
-                'PARTICULIER':          ('particulier',   'moyens-paiement'),
-                'HORS_MARCHE':          ('particulier',   'moyens-paiement'),
-                'PROFESSIONNEL':        ('professionnel', 'paiements-encaissements'),
-                'AGRICULTEUR':          ('agriculteur',   'paiements-encaissements'),
-                'ASSOC_CA_MODERE':      ('association',   'paiements-encaissements'),
-                'ENTREPRISE':           ('entreprise',    'paiements-encaissements'),
-                'PROFESSION_LIBERALE':  ('professionnel', 'paiements-encaissements'),
-                'PROMOTEURS':           ('professionnel', 'paiements-encaissements'),
+                'PARTICULIER': ('particulier', 'moyens-paiement'),
+                'HORS_MARCHE': ('particulier', 'moyens-paiement'),
+                'PROFESSIONNEL': ('professionnel', 'paiements-encaissements'),
+                'AGRICULTEUR': ('agriculteur', 'paiements-encaissements'),
+                'ASSOC_CA_MODERE': ('association', 'paiements-encaissements'),
+                'ENTREPRISE': ('entreprise', 'paiements-encaissements'),
+                'PROFESSION_LIBERALE': ('professionnel', 'paiements-encaissements'),
+                'PROMOTEURS': ('professionnel', 'paiements-encaissements'),
             }
             assert space_type in cards_parameters, 'Space type %s has never been encountered before.' % space_type
 
@@ -393,7 +420,18 @@ class CragrAPI(LoginBrowser):
 
     def switch_account_to_loan(self, account):
         loan = Loan()
-        copy_attrs = ('id', 'number', 'label', 'type', 'currency', '_index', '_category', '_contract', '_id_element_contrat', 'owner_type')
+        copy_attrs = (
+            'id',
+            'number',
+            'label',
+            'type',
+            'currency',
+            '_index',
+            '_category',
+            '_contract',
+            '_id_element_contrat',
+            'owner_type'
+        )
         for attr in copy_attrs:
             setattr(loan, attr, getattr(account, attr))
         loan.balance = -account.balance
@@ -401,7 +439,18 @@ class CragrAPI(LoginBrowser):
 
     def switch_account_to_revolving(self, account):
         loan = Loan()
-        copy_attrs = ('id', 'number', 'label', 'type', 'currency', '_index', '_category', '_contract', '_id_element_contrat', 'owner_type')
+        copy_attrs = (
+            'id',
+            'number',
+            'label',
+            'type',
+            'currency',
+            '_index',
+            '_category',
+            '_contract',
+            '_id_element_contrat',
+            'owner_type'
+        )
         for attr in copy_attrs:
             setattr(loan, attr, getattr(account, attr))
         loan.balance = Decimal(0)
@@ -490,7 +539,10 @@ class CragrAPI(LoginBrowser):
             return
 
         # These three parameters are required to get the transactions for non_card accounts
-        if empty(account._index) or empty(account._category) or empty(account._id_element_contrat) or account.type == Account.TYPE_CONSUMER_CREDIT:
+        if (
+            empty(account._index) or empty(account._category) or empty(account._id_element_contrat)
+            or account.type == Account.TYPE_CONSUMER_CREDIT
+        ):
             return
 
         self.go_to_account_space(account._contract)
@@ -530,25 +582,28 @@ class CragrAPI(LoginBrowser):
                 'startIndex': next_index,
                 'count': 100,
             }
-            self.history.go(space=self.space,
-                            params=params)
+            self.history.go(space=self.space, params=params)
             for tr in self.page.iter_history():
                 yield tr
 
     @need_login
     def iter_investment(self, account):
-        if account.type == Account.TYPE_LIFE_INSURANCE and (
-              'rothschild' in account.label.lower()
-            or re.match(r'^open (perspective|strat)', account.label, re.I)
+        if (
+            account.type == Account.TYPE_LIFE_INSURANCE
+            and ('rothschild' in account.label.lower() or re.match(r'^open (perspective|strat)', account.label, re.I))
         ):
-            self.life_insurance_investments.go(space=self.space,
-                                               idx=account._index,
-                                               category=account._category)
+            self.life_insurance_investments.go(space=self.space, idx=account._index, category=account._category)
             # TODO
             #for inv in self.page.iter_investments():
             #    yield inv
 
-        elif account.type in (Account.TYPE_PER, Account.TYPE_PERP, Account.TYPE_PERCO, Account.TYPE_LIFE_INSURANCE, Account.TYPE_CAPITALISATION):
+        elif account.type in (
+            Account.TYPE_PER,
+            Account.TYPE_PERP,
+            Account.TYPE_PERCO,
+            Account.TYPE_LIFE_INSURANCE,
+            Account.TYPE_CAPITALISATION
+        ):
             if account.label == "Vers l'avenir":
                 # Website crashes when clicking on these Life Insurances...
                 return
@@ -592,8 +647,7 @@ class CragrAPI(LoginBrowser):
             # and the only way to know if there are investments is to try
             # to go to the Netfinca space with the accounts parameters.
             try:
-                self.netfinca_redirection.go(space=self.space,
-                                             data=data)
+                self.netfinca_redirection.go(space=self.space, data=data)
             except BrowserHTTPNotFound:
                 self.logger.info('Investments are not available for this account.')
                 self.go_to_account_space(account._contract)
@@ -673,8 +727,14 @@ class CragrAPI(LoginBrowser):
 
     @need_login
     def iter_transfer_recipients(self, account, transfer_space_info=None):
-        if account.type in (account.TYPE_CARD, account.TYPE_LOAN, account.TYPE_LIFE_INSURANCE,
-                            account.TYPE_PEA, account.TYPE_CONSUMER_CREDIT, account.TYPE_REVOLVING_CREDIT, ):
+        if account.type in (
+            account.TYPE_CARD,
+            account.TYPE_LOAN,
+            account.TYPE_LIFE_INSURANCE,
+            account.TYPE_PEA,
+            account.TYPE_CONSUMER_CREDIT,
+            account.TYPE_REVOLVING_CREDIT,
+        ):
             return
 
         # avoid to call `get_account_transfer_space_info()` several time
@@ -760,7 +820,11 @@ class CragrAPI(LoginBrowser):
         self.transfer.go(
             space=space,
             op=operation,
-            headers={'Referer': referer, 'CSRF-Token': token, 'NPC-Generated-Token': transfer_token},
+            headers={
+                'Referer': referer,
+                'CSRF-Token': token,
+                'NPC-Generated-Token': transfer_token,
+            },
             json=data
         )
         assert self.page.check_transfer()
@@ -783,8 +847,10 @@ class CragrAPI(LoginBrowser):
             space=transfer._space,
             op=transfer._operation,
             headers={
-                'Referer': self.absurl('/%s/operations/%s/virement.postredirect.html' % (transfer._space, transfer._operation)),
-                'CSRF-Token': transfer._token
+                'Referer': self.absurl(
+                    '/%s/operations/%s/virement.postredirect.html' % (transfer._space, transfer._operation)
+                ),
+                'CSRF-Token': transfer._token,
             },
             json={'connexionId': transfer._connection_id}
         )

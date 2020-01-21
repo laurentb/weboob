@@ -17,9 +17,9 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+# yapf-compatible
 
 from __future__ import unicode_literals
-
 
 from datetime import date as ddate, datetime
 from decimal import Decimal
@@ -135,7 +135,7 @@ class TransferInit(LoggedPage, HandleErrorHTMLPage):
         form['DEVISE'] = currency or emitters[0].currency
         form['VIR_VIR1_FR3_LE_HID'] = emitters[0]._raw_label
         form['VIR_VIR1_FR3_LB_HID'] = recipients[0]._raw_label
-        form['fwkaction'] = 'Confirmer' # mandatory
+        form['fwkaction'] = 'Confirmer'  # mandatory
         form['fwkcodeaction'] = 'Executer'
         form.submit()
 
@@ -143,7 +143,10 @@ class TransferInit(LoggedPage, HandleErrorHTMLPage):
         return CleanText(u'(//a[contains(text(),"Liste des bénéficiaires")])[1]/@href')(self.doc)
 
     def add_recipient_is_allowed(self):
-        return bool(self.doc.xpath('//a[text()="+ Saisir un autre compte bénéficiaire"]') or self.doc.xpath('//a[contains(text(),"Liste des bénéficiaires")]'))
+        return bool(
+            self.doc.xpath('//a[text()="+ Saisir un autre compte bénéficiaire"]')
+            or self.doc.xpath('//a[contains(text(),"Liste des bénéficiaires")]')
+        )
 
     def url_add_recipient(self):
         link = Link('//a[text()="+ Saisir un autre compte bénéficiaire"]')(self.doc)
@@ -196,21 +199,28 @@ class TransferPage(RecipientAddingMixin, CollectePageMixin, LoggedPage, HandleEr
         transfer.currency = CleanCurrency(amount_xpath)(self.doc)
 
         if self.is_sent():
-            transfer.account_id = Regexp(CleanText('//p[@class="nomarge"][span[contains(text(),'
-                                                   '"Compte émetteur")]]/text()'),
-                                         r'n°(\d+)')(self.doc)
+            transfer.account_id = Regexp(
+                CleanText('//p[@class="nomarge"][span[contains(text(),'
+                          '"Compte émetteur")]]/text()'), r'n°(\d+)'
+            )(self.doc)
 
-            base = CleanText('//fieldset//table[.//span[contains(text(), "Compte bénéficiaire")]]'
-                             '//td[contains(text(),"n°") or contains(text(),"IBAN :")]//text()', newlines=False)(self.doc)
+            base = CleanText(
+                '//fieldset//table[.//span[contains(text(), "Compte bénéficiaire")]]'
+                + '//td[contains(text(),"n°") or contains(text(),"IBAN :")]//text()',
+                newlines=False
+            )(self.doc)
             transfer.recipient_id = Regexp(None, r'IBAN : ([^\n]+)|n°(\d+)').filter(base)
             transfer.recipient_id = transfer.recipient_id.replace(' ', '')
             if 'IBAN' in base:
                 transfer.recipient_iban = transfer.recipient_id
 
-            transfer.exec_date = MyDate(CleanText('//p[@class="nomarge"][span[contains(text(), "Date de l\'ordre")]]/text()'))(self.doc)
+            transfer.exec_date = MyDate(
+                CleanText('//p[@class="nomarge"][span[contains(text(), "Date de l\'ordre")]]/text()')
+            )(self.doc)
         else:
-            transfer.account_id = Regexp(CleanText('//fieldset[.//h3[contains(text(), "Compte émetteur")]]//p'),
-                                         r'n°(\d+)')(self.doc)
+            transfer.account_id = Regexp(
+                CleanText('//fieldset[.//h3[contains(text(), "Compte émetteur")]]//p'), r'n°(\d+)'
+            )(self.doc)
 
             base = CleanText('//fieldset[.//h3[contains(text(), "Compte bénéficiaire")]]//text()',
                              newlines=False)(self.doc)
@@ -219,7 +229,9 @@ class TransferPage(RecipientAddingMixin, CollectePageMixin, LoggedPage, HandleEr
             if 'IBAN' in base:
                 transfer.recipient_iban = transfer.recipient_id
 
-            transfer.exec_date = MyDate(CleanText('//fieldset//p[span[contains(text(), "Virement unique le :")]]/text()'))(self.doc)
+            transfer.exec_date = MyDate(
+                CleanText('//fieldset//p[span[contains(text(), "Virement unique le :")]]/text()')
+            )(self.doc)
 
         transfer.label = CleanText('//fieldset//p[span[contains(text(), "Référence opération")]]')(self.doc)
         transfer.label = re.sub(r'^Référence opération(?:\s*):', '', transfer.label).strip()
@@ -268,7 +280,7 @@ class TransferPage(RecipientAddingMixin, CollectePageMixin, LoggedPage, HandleEr
     def check_error(self):
         # this is for transfer error, it's not a `AddRecipientBankError` but a `TransferBankError`
 
-        msg = CleanText('//tr[@bgcolor="#C74545"]', default='')(self.doc) # there is no id, class or anything...
+        msg = CleanText('//tr[@bgcolor="#C74545"]', default='')(self.doc)  # there is no id, class or anything...
         if msg:
             raise TransferBankError(message=msg)
 
@@ -276,7 +288,7 @@ class TransferPage(RecipientAddingMixin, CollectePageMixin, LoggedPage, HandleEr
         # this is a copy-paste from RecipientMiscPage, i can't test if it works on this page...
         # this is for add recipient by initiate transfer
 
-        msg = CleanText('//tr[@bgcolor="#C74545"]', default='')(self.doc) # there is no id, class or anything...
+        msg = CleanText('//tr[@bgcolor="#C74545"]', default='')(self.doc)  # there is no id, class or anything...
         if msg:
             raise AddRecipientBankError(message=msg)
 
@@ -307,7 +319,7 @@ class RecipientMiscPage(RecipientAddingMixin, CollectePageMixin, LoggedPage, Han
         form.submit()
 
     def check_recipient_error(self):
-        msg = CleanText('//tr[@bgcolor="#C74545"]', default='')(self.doc) # there is no id, class or anything...
+        msg = CleanText('//tr[@bgcolor="#C74545"]', default='')(self.doc)  # there is no id, class or anything...
         if msg:
             raise AddRecipientBankError(message=msg)
 
@@ -327,7 +339,7 @@ class RecipientMiscPage(RecipientAddingMixin, CollectePageMixin, LoggedPage, Han
                 res = Recipient()
                 res.iban = iban
                 res.id = iban
-                res.label = CleanText('./td[%s]' % (iban_col-1))(tr)
+                res.label = CleanText('./td[%s]' % (iban_col - 1))(tr)
                 return res
 
 

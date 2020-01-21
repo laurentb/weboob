@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+# yapf-compatible
+
 from __future__ import unicode_literals
 
 from decimal import Decimal
@@ -55,12 +57,35 @@ class Transaction(FrenchTransaction):
     PATTERNS = [
         (re.compile(r'^(?P<category>PAIEMENT PAR CARTE) (?P<text>.*) (?P<dd>\d{2})/(?P<mm>\d{2})$'), None),
         (re.compile(r'^(?P<category>PRELEVEMENT) (?P<text>.*) (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{4}) .*'), None),
-        (re.compile(r'^(?P<category>PRELEVEMENT) (?P<text>.*)(?<!\W\d{4}) (?P<dd>\d{2})\s(?P<mm>\d{2})\s(?P<yy>\d{4})(?:$|\s.*)'), None),
-        (re.compile(r'^(?P<category>VIREMENT EN VOTRE FAVEUR) (?P<text>.*) (?P<dd>\d{2})\.(?P<mm>\d{2})\.(?P<yy>\d{4})$'), None),
-        (re.compile(r'^(?P<category>REMBOURSEMENT DE PRET) (?P<text>.*) (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2,4})$'), None),
+        (
+            re.compile(
+                r'^(?P<category>PRELEVEMENT) (?P<text>.*)(?<!\W\d{4}) (?P<dd>\d{2})\s(?P<mm>\d{2})\s(?P<yy>\d{4})(?:$|\s.*)'
+            ),
+            None
+        ),
+        (
+            re.compile(
+                r'^(?P<category>VIREMENT EN VOTRE FAVEUR) (?P<text>.*) (?P<dd>\d{2})\.(?P<mm>\d{2})\.(?P<yy>\d{4})$'
+            ),
+            None
+        ),
+        (
+            re.compile(
+                r'^(?P<category>REMBOURSEMENT DE PRET) (?P<text>.*) (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2,4})$',
+            ),
+            None
+        ),
         (re.compile(r'^(?P<category>RETRAIT AU DISTRIBUTEUR) (?P<text>.*) (?P<dd>\d{2})/(?P<mm>\d{2}) .*'), None),
-        (re.compile(r'^(?P<category>PRELEVEMENT URSSAF) (?P<text>.*) (du)? (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2,4})$'), None),
-        (re.compile(r"^(?P<category>VERSEMENT D'ESPECES) (?P<text>.*) (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{4}) .*"), None),
+        (
+            re.compile(
+                r'^(?P<category>PRELEVEMENT URSSAF) (?P<text>.*) (du)? (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2,4})$'
+            ),
+            None
+        ),
+        (
+            re.compile(r"^(?P<category>VERSEMENT D'ESPECES) (?P<text>.*) (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{4}) .*"),
+            None
+        ),
         (re.compile(r'^(?P<category>PRELEVEMENT) (?P<text>.*) (?P<dd>\d{2})-(?P<mm>0[1-9]|1[012])$'), None),
     ]
 
@@ -235,7 +260,12 @@ class AccountsPage(LoggedPage, JsonPage):
         Some professional connections have a very specific xpath
         so we must look for nodes with 'idBamIndex' as well as
         "HubAccounts-link--cael" otherwise there might be space duplicates.'''
-        return len(self.html_doc.xpath('//a[contains(@class, "HubAccounts-link--cael") and contains(@href, "idBamIndex=")]')) + 1
+        return (
+            len(
+                self.html_doc.
+                xpath('//a[contains(@class, "HubAccounts-link--cael") and contains(@href, "idBamIndex=")]')
+            ) + 1
+        )
 
     def get_space_type(self):
         return Dict('marche')(self.doc)
@@ -255,8 +285,7 @@ class AccountsPage(LoggedPage, JsonPage):
 
     def get_connection_id(self):
         connection_id = Regexp(
-            CleanText('//script[contains(text(), "NPC.utilisateur.ccptea")]'),
-            r"NPC.utilisateur.ccptea = '(\d+)';"
+            CleanText('//script[contains(text(), "NPC.utilisateur.ccptea")]'), r"NPC.utilisateur.ccptea = '(\d+)';"
         )(self.html_doc)
         return connection_id
 
@@ -278,7 +307,8 @@ class AccountsPage(LoggedPage, JsonPage):
                 # All the accounts have the same owner if it is private,
                 # so adding the owner in the libelle is useless.
                 return CleanText(Dict('comptePrincipal/libelleProduit'))(self)
-            return Format('%s %s',
+            return Format(
+                '%s %s',
                 CleanText(Dict('comptePrincipal/libelleProduit')),
                 CleanText(Dict('comptePrincipal/libellePartenaireBam')),
             )(self)
@@ -297,9 +327,13 @@ class AccountsPage(LoggedPage, JsonPage):
         obj__fam_contract_code = CleanText(Dict('comptePrincipal/codeFamilleContratBam'))
 
         def obj_type(self):
-            _type = Map(CleanText(Dict('comptePrincipal/libelleUsuelProduit')), ACCOUNT_TYPES, Account.TYPE_UNKNOWN)(self)
+            _type = Map(CleanText(Dict('comptePrincipal/libelleUsuelProduit')), ACCOUNT_TYPES,
+                        Account.TYPE_UNKNOWN)(self)
             if _type == Account.TYPE_UNKNOWN:
-                self.logger.warning('We got an untyped account: please add "%s" to ACCOUNT_TYPES.' % CleanText(Dict('comptePrincipal/libelleUsuelProduit'))(self))
+                self.logger.warning(
+                    'We got an untyped account: please add "%s" to ACCOUNT_TYPES.',
+                    CleanText(Dict('comptePrincipal/libelleUsuelProduit'))(self)
+                )
             return _type
 
     def has_main_cards(self):
@@ -320,7 +354,9 @@ class AccountsPage(LoggedPage, JsonPage):
                 if card_situation not in (5, 7):
                     # Cards with codeSituationCarte equal to 7 are active and present on the website
                     # Cards with codeSituationCarte equal to 5 are absent on the website, we skip them
-                    self.logger.warning('codeSituationCarte unknown, Check if the %s card is present on the website', Field('id')(self))
+                    self.logger.warning(
+                        'codeSituationCarte unknown, Check if the %s card is present on the website', Field('id')(self)
+                    )
                 return card_situation != 5
 
             obj_id = CleanText(Dict('idCarte'), replace=[(' ', '')])
@@ -338,13 +374,19 @@ class AccountsPage(LoggedPage, JsonPage):
         item_xpath = 'grandesFamilles/*/elementsContrats'
 
         class item(ItemElement):
-            IGNORED_ACCOUNT_FAMILIES = ('MES ASSURANCES', 'VOS ASSURANCES',)
+            IGNORED_ACCOUNT_FAMILIES = (
+                'MES ASSURANCES',
+                'VOS ASSURANCES',
+            )
 
             klass = Account
 
             def obj_id(self):
                 # Loan/credit ids may be duplicated so we use the contract number for now:
-                if Field('type')(self) in (Account.TYPE_LOAN, Account.TYPE_CONSUMER_CREDIT, Account.TYPE_REVOLVING_CREDIT):
+                if (
+                    Field('type')(self) in
+                    (Account.TYPE_LOAN, Account.TYPE_CONSUMER_CREDIT, Account.TYPE_REVOLVING_CREDIT)
+                ):
                     return CleanText(Dict('idElementContrat'))(self)
                 return CleanText(Dict('numeroCompte'))(self)
 
@@ -354,7 +396,8 @@ class AccountsPage(LoggedPage, JsonPage):
             obj__category = Coalesce(
                 Dict('grandeFamilleProduitCode', default=None),
                 Dict('sousFamilleProduit/niveau', default=None),
-                default=None)
+                default=None
+            )
             obj__id_element_contrat = CleanText(Dict('idElementContrat'))
             obj__fam_product_code = CleanText(Dict('codeFamilleProduitBam'))
             obj__fam_contract_code = CleanText(Dict('codeFamilleContratBam'))
@@ -367,7 +410,8 @@ class AccountsPage(LoggedPage, JsonPage):
                     # All the accounts have the same owner if it is private,
                     # so adding the owner in the libelle is useless.
                     return CleanText(Dict('libelleProduit'))(self)
-                return Format('%s %s',
+                return Format(
+                    '%s %s',
                     CleanText(Dict('libelleProduit')),
                     CleanText(Dict('libellePartenaireBam')),
                 )(self)
@@ -378,7 +422,10 @@ class AccountsPage(LoggedPage, JsonPage):
                     return NotAvailable
                 _type = Map(CleanText(Dict('libelleUsuelProduit')), ACCOUNT_TYPES, Account.TYPE_UNKNOWN)(self)
                 if _type == Account.TYPE_UNKNOWN:
-                    self.logger.warning('There is an untyped account: please add "%s" to ACCOUNT_TYPES.' % CleanText(Dict('libelleUsuelProduit'))(self))
+                    self.logger.warning(
+                        'There is an untyped account: please add "%s" to ACCOUNT_TYPES.',
+                        CleanText(Dict('libelleUsuelProduit'))(self)
+                    )
                 return _type
 
             def obj_balance(self):
@@ -461,22 +508,22 @@ class HistoryPage(LoggedPage, JsonPage):
         class item(ItemElement):
 
             TRANSACTION_TYPES = {
-                'PAIEMENT PAR CARTE':        Transaction.TYPE_CARD,
-                'REMISE CARTE':              Transaction.TYPE_CARD,
-                'PRELEVEMENT CARTE':         Transaction.TYPE_CARD_SUMMARY,
-                'RETRAIT AU DISTRIBUTEUR':   Transaction.TYPE_WITHDRAWAL,
-                "RETRAIT MUR D'ARGENT":      Transaction.TYPE_WITHDRAWAL,
-                'FRAIS':                     Transaction.TYPE_BANK,
-                'COTISATION':                Transaction.TYPE_BANK,
-                'VIREMENT':                  Transaction.TYPE_TRANSFER,
-                'VIREMENT EN VOTRE FAVEUR':  Transaction.TYPE_TRANSFER,
-                'VIREMENT EMIS':             Transaction.TYPE_TRANSFER,
-                'CHEQUE EMIS':               Transaction.TYPE_CHECK,
-                'REMISE DE CHEQUE':          Transaction.TYPE_DEPOSIT,
-                'PRELEVEMENT':               Transaction.TYPE_ORDER,
-                'PRELEVT':                   Transaction.TYPE_ORDER,
-                'PRELEVMNT':                 Transaction.TYPE_ORDER,
-                'REMBOURSEMENT DE PRET':     Transaction.TYPE_LOAN_PAYMENT,
+                'PAIEMENT PAR CARTE': Transaction.TYPE_CARD,
+                'REMISE CARTE': Transaction.TYPE_CARD,
+                'PRELEVEMENT CARTE': Transaction.TYPE_CARD_SUMMARY,
+                'RETRAIT AU DISTRIBUTEUR': Transaction.TYPE_WITHDRAWAL,
+                "RETRAIT MUR D'ARGENT": Transaction.TYPE_WITHDRAWAL,
+                'FRAIS': Transaction.TYPE_BANK,
+                'COTISATION': Transaction.TYPE_BANK,
+                'VIREMENT': Transaction.TYPE_TRANSFER,
+                'VIREMENT EN VOTRE FAVEUR': Transaction.TYPE_TRANSFER,
+                'VIREMENT EMIS': Transaction.TYPE_TRANSFER,
+                'CHEQUE EMIS': Transaction.TYPE_CHECK,
+                'REMISE DE CHEQUE': Transaction.TYPE_DEPOSIT,
+                'PRELEVEMENT': Transaction.TYPE_ORDER,
+                'PRELEVT': Transaction.TYPE_ORDER,
+                'PRELEVMNT': Transaction.TYPE_ORDER,
+                'REMBOURSEMENT DE PRET': Transaction.TYPE_LOAN_PAYMENT,
             }
 
             klass = Transaction
@@ -500,9 +547,15 @@ class HistoryPage(LoggedPage, JsonPage):
                     )
                 )
             )
-            obj_label = CleanText(Format('%s %s', CleanText(Dict('libelleTypeOperation', default='')), CleanText(Dict('libelleOperation'))))
+            obj_label = CleanText(
+                Format(
+                    '%s %s', CleanText(Dict('libelleTypeOperation', default='')), CleanText(Dict('libelleOperation'))
+                )
+            )
             obj_amount = Eval(float_to_decimal, Dict('montant'))
-            obj_type = Map(CleanText(Dict('libelleTypeOperation', default='')), TRANSACTION_TYPES, Transaction.TYPE_UNKNOWN)
+            obj_type = Map(
+                CleanText(Dict('libelleTypeOperation', default='')), TRANSACTION_TYPES, Transaction.TYPE_UNKNOWN
+            )
 
 
 class CardsPage(LoggedPage, JsonPage):
@@ -611,6 +664,7 @@ class LifeInsuranceInvestmentsPage(LoggedPage, HTMLPage):
     # TODO
     pass
 
+
 class ProfilePage(LoggedPage, JsonPage):
     @method
     class get_user_profile(ItemElement):
@@ -636,7 +690,9 @@ class ProfilePage(LoggedPage, JsonPage):
             # If no advisor is displayed, we return the agency advisor.
             if Dict('advisorGivenName')(self) and Dict('advisorFamilyName')(self):
                 return Format('%s %s', CleanText(Dict('advisorGivenName')), CleanText(Dict('advisorFamilyName')))(self)
-            return Format('%s %s', CleanText(Dict('branchManagerGivenName')), CleanText(Dict('branchManagerFamilyName')))(self)
+            return Format(
+                '%s %s', CleanText(Dict('branchManagerGivenName')), CleanText(Dict('branchManagerFamilyName'))
+            )(self)
 
 
 class ProfileDetailsPage(LoggedPage, HTMLPage):
@@ -647,7 +703,9 @@ class ProfileDetailsPage(LoggedPage, HTMLPage):
 
     @method
     class fill_advisor(ItemElement):
-        obj_phone = CleanText('//div[@id="blockConseiller"]//a[contains(@class, "advisorNumber")]', default=NotAvailable)
+        obj_phone = CleanText(
+            '//div[@id="blockConseiller"]//a[contains(@class, "advisorNumber")]', default=NotAvailable
+        )
 
 
 class ProProfileDetailsPage(ProfileDetailsPage):

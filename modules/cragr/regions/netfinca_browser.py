@@ -2,6 +2,7 @@
 
 # Copyright(C) 2012-2019  Budget Insight
 
+# yapf-compatible
 
 from weboob.browser import AbstractBrowser
 
