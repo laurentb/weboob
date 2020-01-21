@@ -105,7 +105,7 @@ class EmployeesPage(CesuApiPage):
 
             obj_id = CleanText(Dict("noIntSala"))
             obj_label = Format(
-                "Bulletins de salaire %s %s",
+                "%s %s",
                 CleanText(Dict("prenom")),
                 CleanText(Dict("nom")),
             )
