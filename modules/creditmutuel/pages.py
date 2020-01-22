@@ -454,6 +454,7 @@ class item_account_generic(ItemElement):
             accounting = page.find_amount("Solde comptable") if page else None
             # on old website we want card's history in account's history
             if not page.browser.is_new_website:
+                self.logger.info('On old creditmutuel website')
                 account = self.parent.objects[_id]
                 if not account.coming:
                     account.coming = Decimal('0.0')
@@ -1071,6 +1072,7 @@ class CardPage(OperationsPage, LoggedPage):
 
                     amount = TableCell('credit')(self)[0]
                     if self.page.browser.is_new_website:
+                        self.logger.info('On old creditmutuel website')
                         if not len(amount.xpath('./div')):
                             amount = TableCell('debit')(self)[0]
                         original_amount = amount.xpath('./div')[1].text if len(amount.xpath('./div')) > 1 else None
@@ -1529,6 +1531,7 @@ class IbanPage(LoggedPage, HTMLPage):
 
         # Old website
         for ele in self.doc.xpath('//table[has-class("liste")]/tr[@class]/td[1]'):
+            self.logger.info('On old creditmutuel website')
             for a in accounts:
                 if a._is_webid:
                     if a.label in CleanText('.//div[1]')(ele).title():

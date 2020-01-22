@@ -425,6 +425,7 @@ class CreditMutuelBrowser(TwoFactorBrowser):
 
             # Populate accounts from old website
             if not self.is_new_website:
+                self.logger.info('On old creditmutuel website')
                 self.accounts.stay_or_go(subbank=self.currentSubBank)
                 has_no_account = self.page.has_no_account()
                 self.accounts_list.extend(self.page.iter_accounts())
@@ -754,6 +755,7 @@ class CreditMutuelBrowser(TwoFactorBrowser):
     def get_advisor(self):
         advisor = None
         if not self.is_new_website:
+            self.logger.info('On old creditmutuel website')
             self.accounts.stay_or_go(subbank=self.currentSubBank)
             if self.page.get_advisor_link():
                 advisor = self.page.get_advisor()
@@ -770,6 +772,7 @@ class CreditMutuelBrowser(TwoFactorBrowser):
     @need_login
     def get_profile(self):
         if not self.is_new_website:
+            self.logger.info('On old creditmutuel website')
             profile = self.accounts.stay_or_go(subbank=self.currentSubBank).get_profile()
         else:
             profile = self.new_accounts.stay_or_go(subbank=self.currentSubBank).get_profile()

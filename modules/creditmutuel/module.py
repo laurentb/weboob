@@ -94,6 +94,7 @@ class CreditMutuelModule(
 
     def iter_transfer_recipients(self, origin_account):
         if not self.browser.is_new_website:
+            self.logger.info('On old creditmutuel website')
             raise NotImplementedError()
 
         if not isinstance(origin_account, Account):
