@@ -57,7 +57,7 @@ class SogecartenetModule(Module, CapBank):
         return self.browser.iter_accounts()
 
     def iter_history(self, account):
-        return self.browser.iter_history(account)
+        return self.browser.iter_transactions(account)
 
     def iter_coming(self, account):
-        return self.browser.iter_coming(account)
+        return self.browser.iter_transactions(account, True)

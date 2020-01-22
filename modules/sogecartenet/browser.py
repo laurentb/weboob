@@ -121,11 +121,3 @@ class SogecarteTitulaireBrowser(SeleniumBrowser):
                     return
             page_count += 1
             has_next_page = self.page.go_next_page()
-
-    @need_login
-    def iter_history(self, account):
-        return self.iter_transactions(account)
-
-    @need_login
-    def iter_coming(self, account):
-        return self.iter_transactions(account, coming=True)

@@ -19,6 +19,10 @@
 
 from __future__ import unicode_literals
 
+import os
+import shutil
+import tempfile
+import time
 from datetime import date
 
 from weboob.browser import URL, need_login
@@ -26,10 +30,12 @@ from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 from weboob.browser.selenium import (
     SeleniumBrowser, webdriver, AnyCondition, VisibleXPath, IsHereCondition,
+    FakeResponse,
 )
 
 from .ent_pages import (
     LoginPage, AccueilPage, AccountsPage, HistoryPage,
+    AccountsXlsPage, HistoryXlsPage,
 )
 
 
@@ -44,7 +50,7 @@ class SogecarteEntrepriseBrowser(SeleniumBrowser):
 
     DRIVER = webdriver.Chrome
 
-    login = URL(r'/gestionnaire-ihm/SOCGEN/FRA$', LoginPage)
+    login = URL(r'/gestionnaire-ihm/SOCGEN/FRA', LoginPage)
     accueil = URL(r'/gestionnaire-ihm/SOCGEN/FRA#!ACCUEIL', AccueilPage)
     account_list = URL(r'/gestionnaire-ihm/SOCGEN/FRA#!GESTION_PARC_CARTES', AccountsPage)
     history = URL(r'/gestionnaire-ihm/SOCGEN/FRA#!DEPENSES_ENTREPRISE', HistoryPage)
@@ -53,12 +59,19 @@ class SogecarteEntrepriseBrowser(SeleniumBrowser):
         self.config = config
         self.username = self.config['login'].get()
         self.password = self.config['password'].get()
+        # Safe way to create a temporary folder.
+        self.dl_folder = tempfile.mkdtemp()
+        kwargs['preferences'] = {
+            'download.default_directory': self.dl_folder,
+        }
         super(SogecarteEntrepriseBrowser, self).__init__(*args, **kwargs)
-
-        # The parsing using selenium is really long, this will avoid
-        # errors if the day changes while parsing.
+        # This is to avoid errors if the day changes while parsing.
         self.today = date.today()
-        self.date_list = []
+        self.selected_account = None
+
+    def deinit(self):
+        super(SogecarteEntrepriseBrowser, self).deinit()
+        shutil.rmtree(self.dl_folder)
 
     def do_login(self):
         self.login.go()
@@ -81,56 +94,81 @@ class SogecarteEntrepriseBrowser(SeleniumBrowser):
                 raise ActionNeeded(error)
             raise BrowserIncorrectPassword(error)
 
+    def find_file_path(self, prefix, suffix):
+        # We don't know the name of the file, but we know the folder.
+        # The folder is empty (since we delete every file after using them),
+        # so we just try to find all files in that folder and we are going to find only one.
+        file_path = ''
+        for file in os.listdir(self.dl_folder):
+            if file.endswith(suffix) and file.startswith(prefix):
+                file_path = os.path.join(self.dl_folder, file)
+                break
+        return file_path
+
+    def retry_find_file_path(self, prefix, suffix):
+        start = time.time()
+        # Try to find the new file every 0.5s, faster and safer than waiting
+        # a fixed amount of time after downloading the file.
+        while time.time() < start + 30.0:
+            path = self.find_file_path(prefix, suffix)
+            if path:
+                return path
+            time.sleep(0.5)
+
     @need_login
     def iter_accounts(self):
         self.account_list.stay_or_go()
         self.wait_until_is_here(self.account_list)
 
-        return self.page.iter_accounts()
+        # This download the file with the list of all accounts in a `.xls`
+        self.page.download_accounts()
 
-        # The following code is to retrieve the coming value
-        # for each account. It is currently not used, because
-        # it takes a LOT of time to do that since there usually is
-        # a lot of cards on one account, but might be useful later
-        # so we do not delete it.
-        '''for acc in account_list:
-            self.select_account(acc.label)
+        file_path = self.retry_find_file_path('details_carte', '.xls')
+        assert file_path, 'Could not find the downloaded file'
 
-            self.history.go()
-            self.wait_until_is_here(self.history)
+        # We can't force change the SeleniumBrowser's page (self.page = ...)
+        page = AccountsXlsPage(self, file_path, FakeResponse(
+            url=self.url,
+            text='',
+            content=b'',
+            encoding='latin-1',
+        ))
 
-            if not self.date_list:
-                self.date_list = self.page.fetch_date_list()
+        for acc in page.iter_accounts():
+            yield acc
 
-            self.page.display_all_comings(self.date_list, self.today)
-            acc.coming = self.page.get_transactions_amount_sum()
-            yield acc'''
+        os.remove(file_path)
 
-    def select_account(self, account_label):
-        self.account_list.go()
-        self.wait_until_is_here(self.account_list)
-
-        self.page.select_account(account_label)
-
+    @need_login
     def iter_transactions(self, account, coming=False):
-        self.select_account(account.label)
-
         self.history.go()
+
         self.wait_until_is_here(self.history)
+        self.page.go_transactions_list_tab()
 
-        if not self.date_list:
-            self.date_list = self.page.fetch_date_list()
+        if not self.selected_account or self.selected_account != account.id:
+            # The input with the information of the selected account can't
+            # be parsed. So we have to manually track of which account is
+            # selected to avoid re-select the same account and loose time.
+            self.page.select_account(account)
+            self.selected_account = account.id
 
-        for date_choice in self.date_list:
-            if (coming and date_choice >= self.today) or (not coming and date_choice < self.today):
-                self.page.display_transactions(date_choice)
-                for tr in sorted_transactions(self.page.iter_history(date=date_choice)):
+        if self.page.download_transactions():
+            file_path = self.retry_find_file_path('requete_cumul', '.xls')
+            assert file_path, 'Could not find the downloaded file'
+
+            # We can't force change the SeleniumBrowser's page (self.page = ...)
+            page = HistoryXlsPage(self, file_path, FakeResponse(
+                url=self.url,
+                text='',
+                content=b'',
+                encoding='latin-1',
+            ))
+
+            for tr in sorted_transactions(page.iter_history()):
+                if tr.date >= self.today and coming:
+                    yield tr
+                elif tr.date < self.today and not coming:
                     yield tr
 
-    @need_login
-    def iter_history(self, account):
-        return self.iter_transactions(account)
-
-    @need_login
-    def iter_coming(self, account):
-        return self.iter_transactions(account, coming=True)
+            os.remove(file_path)
