@@ -48,7 +48,7 @@ class ImpotsGouvFrParModule(AbstractModule, CapDocument, CapProfile):
 
     BROWSER = ImpotsParBrowser
 
-    accepted_document_types = (DocumentTypes.OTHER,)
+    accepted_document_types = (DocumentTypes.INCOME_TAX,)
 
     def create_default_browser(self):
         return self.create_browser(
