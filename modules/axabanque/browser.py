@@ -629,8 +629,6 @@ class AXAAssurance(AXABrowser):
 
     def __init__(self, *args, **kwargs):
         super(AXAAssurance, self).__init__(*args, **kwargs)
-        self.cache = {}
-        self.cache['invs'] = {}
 
     def go_wealth_pages(self, account):
         self.location('/' + account.url)
@@ -638,58 +636,59 @@ class AXAAssurance(AXABrowser):
 
     @need_login
     def iter_accounts(self):
-        if 'accs' not in self.cache.keys():
-            self.accounts.go()
-            self.cache['accs'] = list(self.page.iter_accounts())
-        return self.cache['accs']
+        self.accounts.go()
+        return self.page.iter_accounts()
 
     @need_login
     def iter_investment_espaceclient(self, account):
+        invests = []
         portfolio_page = self.page
         detailed_view = self.page.detailed_view()
         if detailed_view:
             self.location(detailed_view)
-            self.cache['invs'][account.id] = list(self.page.iter_investment(currency=account.currency))
-        else:
-            self.cache['invs'][account.id] = []
+            invests.extend(self.page.iter_investment(currency=account.currency))
         for inv in portfolio_page.iter_investment(currency=account.currency):
-            i = [i2 for i2 in self.cache['invs'][account.id] if
+            i = [i2 for i2 in invests if
                  (i2.valuation == inv.valuation and i2.label == inv.label)]
             assert len(i) in (0, 1)
             if i:
                 i[0].portfolio_share = inv.portfolio_share
             else:
-                self.cache['invs'][account.id].append(inv)
+                invests.append(inv)
+        return invests
 
     @need_login
     def iter_investment_monaxa(self, account):
         # Try to fetch a URL to 'monaxaweb-gp.axa.fr'
-        self.cache['invs'][account.id] = list(self.page.iter_investment())
+        invests = list(self.page.iter_investment())
 
-        self.location(self.page.get_performance_url())
-        for inv in self.cache['invs'][account.id]:
-            self.page.fill_investment(obj=inv)
+        performance_url = self.page.get_performance_url()
+        if performance_url:
+            self.location(performance_url)
+            for inv in invests:
+                self.page.fill_investment(obj=inv)
 
         # return to espaceclient.axa.fr
         self.accounts.go()
+        return invests
 
     @need_login
     def iter_investment(self, account):
-        if account.id not in self.cache['invs']:
-            self.go_wealth_pages(account)
-            investment_url = self.page.get_investment_url()
-            if not investment_url:
-                iframe_url = self.page.get_iframe_url()
-                if not iframe_url:
-                    # No data available for this account.
-                    self.logger.warning('No investment URL available for account %s, investments cannot be retrieved.', account.id)
-                    return []
-                self.location(iframe_url)
-                self.iter_investment_monaxa(account)
-            else:
-                self.location(investment_url)
-                self.iter_investment_espaceclient(account)
-        return self.cache['invs'][account.id]
+        self.go_wealth_pages(account)
+
+        investment_url = self.page.get_investment_url()
+        if investment_url:
+            self.location(investment_url)
+            return self.iter_investment_espaceclient(account)
+
+        iframe_url = self.page.get_iframe_url()
+        if iframe_url:
+            self.location(iframe_url)
+            return self.iter_investment_monaxa(account)
+
+        # No data available for this account.
+        self.logger.warning('No investment URL available for account %s, investments cannot be retrieved.', account.id)
+        return []
 
     @need_login
     def iter_history(self, account):

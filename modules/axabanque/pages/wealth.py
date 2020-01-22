@@ -155,7 +155,7 @@ class InvestmentPage(LoggedPage, HTMLPage):
 
 class InvestmentMonAxaPage(LoggedPage, HTMLPage):
     def get_performance_url(self):
-        return Link('//a[contains(text(), "Performance")]')(self.doc)
+        return Link('//a[contains(text(), "Performance")]', default=None)(self.doc)
 
     @method
     class iter_investment(TableElement):
@@ -179,8 +179,9 @@ class InvestmentMonAxaPage(LoggedPage, HTMLPage):
 
             def obj_portfolio_share(self):
                 share_percent = CleanDecimal.French(TableCell('portfolio_share'), default=None)(self)
-                if not(empty(share_percent)):
+                if not empty(share_percent):
                     return share_percent / 100
+                return NotAvailable
 
 
 class PerformanceMonAxaPage(LoggedPage, HTMLPage):
