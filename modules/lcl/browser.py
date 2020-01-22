@@ -32,6 +32,7 @@ from weboob.capabilities.bank import (
     Account, AddRecipientBankError, AddRecipientStep, Recipient, AccountOwnerType,
     AccountOwnership,
 )
+from weboob.tools.date import LinearDateGuesser
 from weboob.capabilities.base import find_object
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
 from weboob.tools.compat import basestring, urlsplit, unicode
@@ -449,7 +450,8 @@ class LCLBrowser(LoginBrowser, StatesMixin):
             if self.login.is_here():
                 # Website crashed and we are disconnected.
                 raise BrowserUnavailable()
-            for tr in self.page.get_operations():
+            date_guesser = LinearDateGuesser()
+            for tr in self.page.get_operations(date_guesser=date_guesser):
                 yield tr
 
         elif account.type == Account.TYPE_CARD:

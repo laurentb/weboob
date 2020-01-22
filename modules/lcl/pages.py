@@ -458,6 +458,11 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
         col_raw = [u'Vos opérations', u'Libellé']
 
         class item(Transaction.TransactionElement):
+            def fill_env(self, page, parent=None):
+                # This *Element's parent has only the dateguesser in its env and we want to
+                # use the same object, not copy it.
+                self.env = parent.env
+
             def load_details(self):
                 # Those are summary for deferred card transactions,
                 # they do not have details.
@@ -477,6 +482,14 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
                     '/outil/UWLM/ListeMouvementsParticulier/accesDetailsMouvement?element=%s' % row,
                     method='POST',
                 )
+
+            def obj_rdate(self):
+                rdate = self.obj.rdate
+                date = Field('date')(self)
+                if rdate > date:
+                    date_guesser = Env('date_guesser')(self)
+                    return date_guesser.guess_date(rdate.day, rdate.month)
+                return rdate
 
             def obj_type(self):
                 type = Async('details', CleanText(u'//td[contains(text(), "Nature de l\'opération")]/following-sibling::*[1]'))(self)
@@ -524,8 +537,8 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
                 return True
 
     @pagination
-    def get_operations(self):
-        return self._get_operations(self)()
+    def get_operations(self, date_guesser):
+        return self._get_operations(self)(date_guesser=date_guesser)
 
 
 class CardsPage(LoggedPage, HTMLPage):
