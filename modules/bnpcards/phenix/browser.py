@@ -19,6 +19,7 @@
 
 
 from weboob.exceptions import BrowserIncorrectPassword, BrowserPasswordExpired
+from weboob.browser.exceptions import ClientError
 from weboob.browser import LoginBrowser, URL, need_login
 
 from .pages import (
@@ -50,9 +51,16 @@ class BnpcartesentreprisePhenixBrowser(LoginBrowser):
 
     def do_login(self):
         self.login_cas.go()
-        self.page.login(self.username, self.password)
-        if not(self.page.is_logged()):
+        try:
+            self.page.login(self.username, self.password)
+        except ClientError as e:
+            if e.response.status_code == 401:
+                raise BrowserIncorrectPassword()
+            raise
+
+        if not self.page.is_logged():
             raise BrowserIncorrectPassword(self.page.get_error_message())
+
         self.dashboard.go()
         if self.password_expired.is_here():
             raise BrowserPasswordExpired(self.page.get_error_message())
