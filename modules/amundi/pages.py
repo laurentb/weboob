@@ -31,9 +31,15 @@ from weboob.browser.filters.html import Attr
 from weboob.browser.filters.json import Dict
 from weboob.browser.pages import LoggedPage, JsonPage, HTMLPage
 from weboob.capabilities.bank import Account, Investment, Transaction, Pocket
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable, empty
 from weboob.exceptions import NoAccountsException
 from weboob.tools.capabilities.bank.investments import IsinCode, IsinType
+
+
+def percent_to_ratio(value):
+    if empty(value):
+        return NotAvailable
+    return value / 100
 
 
 class LoginPage(JsonPage):
@@ -220,13 +226,20 @@ class EEInvestmentPage(LoggedPage, HTMLPage):
 
 class InvestmentPerformancePage(LoggedPage, HTMLPage):
     def get_performance_history(self):
+        # The positions of the columns depend on the age of the investment fund.
+        # For example, if the fund is younger than 5 years, there will be not '5 ans' column.
+        durations = [CleanText('.')(el) for el in self.doc.xpath('//div[h2[contains(text(), "Performances glissantes")]]//th')]
+        values = [CleanText('.')(el) for el in self.doc.xpath('//div[h2[contains(text(), "Performances glissantes")]]//tr[td[text()="Fonds"]]//td')]
+        matches = dict(zip(durations, values))
+        # We do not fill the performance dictionary if no performance is available,
+        # otherwise it will overwrite the data obtained from the JSON with empty values.
         perfs = {}
-        if CleanDecimal.French('//tr[td[text()="Fonds"]]//td[position()=last()-2]', default=None)(self.doc):
-            perfs[1] = Eval(lambda x: x / 100, CleanDecimal.French('//tr[td[text()="Fonds"]]//td[position()=last()-2]'))(self.doc)
-        if CleanDecimal.French('//tr[td[text()="Fonds"]]//td[position()=last()-1]', default=None)(self.doc):
-            perfs[3] = Eval(lambda x: x / 100, CleanDecimal.French('//tr[td[text()="Fonds"]]//td[position()=last()-1]'))(self.doc)
-        if CleanDecimal.French('//tr[td[text()="Fonds"]]//td[position()=last()]', default=None)(self.doc):
-            perfs[5] = Eval(lambda x: x / 100, CleanDecimal.French('//tr[td[text()="Fonds"]]//td[position()=last()]'))(self.doc)
+        if matches.get('1 an'):
+            perfs[1] = percent_to_ratio(CleanDecimal.French(default=NotAvailable).filter(matches['1 an']))
+        if matches.get('3 ans'):
+            perfs[3] = percent_to_ratio(CleanDecimal.French(default=NotAvailable).filter(matches['3 ans']))
+        if matches.get('5 ans'):
+            perfs[5] = percent_to_ratio(CleanDecimal.French(default=NotAvailable).filter(matches['5 ans']))
         return perfs
 
 
