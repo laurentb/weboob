@@ -558,6 +558,11 @@ class WealthPage(LoggedPage, CragrPage):
                     return 'BGPI'
                 return url
 
+            def validate(self, obj):
+                # Skip 'ESPE INTEG' accounts, these liquidities are already available
+                # on the associated Market account on the Netfinca website
+                return obj.label != 'ESPE INTEG'
+
 
 class LoansPage(LoggedPage, CragrPage):
     @pagination
