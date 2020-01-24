@@ -62,6 +62,11 @@ def MyDate(*args, **kwargs):
     kwargs.update(dayfirst=True, default=NotAvailable)
     return Date(*args, **kwargs)
 
+
+class UselessPage(LoggedPage, HTMLPage):
+    pass
+
+
 class RedirectPage(LoggedPage, HTMLPage):
     def on_load(self):
         super(RedirectPage, self).on_load()
