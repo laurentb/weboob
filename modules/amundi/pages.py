@@ -290,8 +290,9 @@ class CprInvestmentPage(LoggedPage, HTMLPage):
     @method
     class fill_investment(ItemElement):
         obj_srri = CleanText('//span[@class="active"]', default=NotAvailable)
-        obj_asset_category = CleanText('//div[contains(text(), "Classe d\'actifs")]//strong', default=NotAvailable)
-        obj_recommended_period = CleanText('//div[contains(text(), "Durée recommandée")]//strong', default=NotAvailable)
+        # Text headers can be in French or in English
+        obj_asset_category = Title('//div[contains(text(), "Classe d\'actifs") or contains(text(), "Asset class")]//strong', default=NotAvailable)
+        obj_recommended_period = Title('//div[contains(text(), "Durée recommandée") or contains(text(), "Recommended duration")]//strong', default=NotAvailable)
 
 
 class BNPInvestmentPage(LoggedPage, HTMLPage):
