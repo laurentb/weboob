@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
-from .pages import LoginPage
+from .pages import LoginPage, PorPage
 from weboob.browser.browsers import AbstractBrowser
 from weboob.browser.profiles import Wget
 from weboob.browser.url import URL
@@ -31,9 +31,13 @@ class CICBrowser(AbstractBrowser):
     BASEURL = 'https://www.cic.fr'
     PARENT = 'creditmutuel'
 
-    login =       URL('/fr/authentification.html',
-                      '/sb/fr/banques/particuliers/index.html',
-                      '/(?P<subbank>.*)/fr/$',
-                      '/(?P<subbank>.*)/fr/banques/accueil.html',
-                      '/(?P<subbank>.*)/fr/banques/particuliers/index.html',
-                      LoginPage)
+    login = URL(
+        r'/fr/authentification.html',
+        r'/sb/fr/banques/particuliers/index.html',
+        r'/(?P<subbank>.*)/fr/$',
+        r'/(?P<subbank>.*)/fr/banques/accueil.html',
+        r'/(?P<subbank>.*)/fr/banques/particuliers/index.html',
+        LoginPage
+    )
+
+    por = URL(r'/(?P<subbank>.*)fr/banque/PORT_Synthese.aspx', PorPage)

@@ -18,7 +18,7 @@
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.browser.pages import HTMLPage
+from weboob.browser.pages import AbstractPage, HTMLPage
 
 
 class LoginPage(HTMLPage):
@@ -33,3 +33,9 @@ class LoginPage(HTMLPage):
     @property
     def logged(self):
         return self.doc.xpath('//div[@id="e_identification_ok"]')
+
+
+class PorPage(AbstractPage):
+    PARENT = 'creditmutuel'
+    PARENT_URL = 'por'
+    BROWSER_ATTR = 'package.browser.CreditMutuelBrowser'
