@@ -456,11 +456,15 @@ class SeleniumBrowser(object):
 
     def _setup_driver(self):
         proxy = Proxy()
-        proxy.proxy_type = ProxyType.DIRECT
         if 'http' in self.proxy:
+            proxy.proxy_type = ProxyType.MANUAL
             proxy.http_proxy = self.proxy['http']
         if 'https' in self.proxy:
+            proxy.proxy_type = ProxyType.MANUAL
             proxy.ssl_proxy = self.proxy['https']
+
+        if proxy.proxy_type != ProxyType.MANUAL:
+            proxy.proxy_type = ProxyType.DIRECT
 
         capa = self._build_capabilities()
         proxy.add_to_capabilities(capa)
