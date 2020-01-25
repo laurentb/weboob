@@ -95,8 +95,6 @@ class PajemploiBrowser(LoginBrowser):
         for sub in self.page.iter_subscriptions(subscriber=None):
             yield sub
 
-        return []
-
     @need_login
     def iter_documents(self, subscription):
         if subscription._type == "employee":
@@ -118,8 +116,6 @@ class PajemploiBrowser(LoginBrowser):
             self.tax_certificates.go()
             for doc in self.page.iter_documents(subscription=subscription):
                 yield doc
-
-        return []
 
     def download_document(self, document):
         if (

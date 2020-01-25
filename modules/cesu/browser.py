@@ -115,8 +115,6 @@ class CesuBrowser(LoginBrowser):
         s._type = s.id
         yield s
 
-        return []
-
     def _search_registrations(
         self, subscription, begin_date, end_date, num_start, step
     ):
@@ -205,5 +203,3 @@ class CesuBrowser(LoginBrowser):
                 subscription=subscription.id, employer=self.employer
             ):
                 yield doc
-
-        return []

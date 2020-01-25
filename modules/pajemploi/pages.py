@@ -316,5 +316,3 @@ class DeclarationDetailPage(PajemploiPage):
             dc.label = "Décompte de cotisations %s %s" % (subscription.label, date.strftime("%d/%m/%Y"))
             dc.url = Attr(".", "action")(frm[0])
             yield dc
-
-        return []
