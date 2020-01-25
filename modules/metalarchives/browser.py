@@ -17,14 +17,14 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
 from __future__ import unicode_literals
-
 
 from weboob.browser import URL, LoginBrowser, need_login
 from .pages import BandPage, SearchBandsPage, LoginPage, FavoritesPage, SuggestionsPage, AlbumPage
 
+
 __all__ = ['MetalArchivesBrowser']
+
 
 class MetalArchivesBrowser(LoginBrowser):
     """
@@ -33,11 +33,11 @@ class MetalArchivesBrowser(LoginBrowser):
 
     BASEURL = 'https://www.metal-archives.com/'
     login = URL('authentication/login', LoginPage)
-    bands = URL('search/ajax-band-search/\?field=name&query=(?P<pattern>.*)', SearchBandsPage)
+    bands = URL(r'search/ajax-band-search/\?field=name&query=(?P<pattern>.*)', SearchBandsPage)
     band = URL('bands/Band/(?P<band_id>.*)', BandPage)
     albums = URL('band/discography/id/(?P<band_id>.*)/tab/all', AlbumPage)
-    favorites = URL('bookmark/ajax-list/type/band\?sEcho=1', FavoritesPage)
-    suggested = URL('band/ajax-recommendations/id/(?P<band_id>.*)\?showMoreSimilar=1', SuggestionsPage)
+    favorites = URL(r'bookmark/ajax-list/type/band\?sEcho=1', FavoritesPage)
+    suggested = URL(r'band/ajax-recommendations/id/(?P<band_id>.*)\?showMoreSimilar=1', SuggestionsPage)
 
     def do_login(self):
         d = {

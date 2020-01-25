@@ -17,9 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
 from __future__ import unicode_literals
-
 
 from weboob.browser.pages import JsonPage, HTMLPage
 from weboob.browser.elements import ItemElement, ListElement, DictElement, method
@@ -28,7 +26,7 @@ from weboob.browser.filters.standard import (
     Regexp, CleanText, Format, Env,
 )
 from weboob.browser.filters.html import Link
-from weboob.capabilities.bands import Bandinfo, Bandsearch, Favorites, Albums, Suggestions
+from weboob.capabilities.bands import BandInfo, BandSearch, Favorite, Albums, Suggestion
 
 
 class LoginPage(HTMLPage):
@@ -47,7 +45,7 @@ class SearchBandsPage(JsonPage):
         ignore_duplicate = True
 
         class item(ItemElement):
-            klass = Bandsearch
+            klass = BandSearch
             obj_id = Regexp(Dict('0'), '/([0-9]+)\\"')
             obj_name = Regexp(Dict('0'), '>([^<]+)')
             obj_short_description = Format('Genre: %s - Country: %s', Dict('1'), Dict('2'))
@@ -59,7 +57,7 @@ class BandPage(HTMLPage):
     """
     @method
     class get_info(ItemElement):
-        klass = Bandinfo
+        klass = BandInfo
 
         obj_id = Env('band_id')
         obj_name = CleanText('//h1[@class="band_name"]/a/text()')
@@ -98,7 +96,7 @@ class FavoritesPage(JsonPage):
         ignore_duplicate = True
 
         class item(ItemElement):
-            klass = Favorites
+            klass = Favorite
 
             obj_id = Regexp(Dict('0'), '/([0-9]+)\\"')
             obj_name = Regexp(Dict('0'), '>([^<]+)')
@@ -114,8 +112,9 @@ class SuggestionsPage(HTMLPage):
     class iter_suggestions(ListElement):
         # Takes all the <td> except the last one that is not a band
         item_xpath = '//tbody/tr[position() < last()]'
+
         class item(ItemElement):
-            klass = Suggestions
+            klass = Suggestion
 
             obj_id = Regexp(Link('./td[2]/a'), '/([0-9]+)')
             obj_name = CleanText('./td[2]/a/text()')

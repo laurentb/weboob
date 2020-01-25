@@ -17,19 +17,17 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
-from datetime import datetime, date
-
-from weboob.tools.compat import basestring, unicode
-
-from .base import Capability, BaseObject, Field, StringField, UserError, NotLoaded
-from .date import DateField
+from .base import Capability, BaseObject, StringField, UserError
 
 
-__all__ = ['Bandinfo', 'Band', 'Albums', 'BandNotFound', 'CapBands']
+__all__ = [
+    'BandInfo', 'BandSearch', 'Albums', 'BandNotFound',
+    'Suggestion', 'Favorite',
+    'CapBands',
+]
 
 
-class Bandsearch(BaseObject):
+class BandSearch(BaseObject):
     """
     Bands search.
     """
@@ -37,7 +35,7 @@ class Bandsearch(BaseObject):
     short_description =     StringField('Short description of the band')
 
     def __init__(self, id='', name=None, short_description=None, url=None):
-        super(Bandsearch, self).__init__(id, url)
+        super(BandSearch, self).__init__(id, url)
         self.name = name
         self.short_description = short_description
 
@@ -49,7 +47,7 @@ class BandNotFound(UserError):
     pass
 
 
-class Bandinfo(BaseObject):
+class BandInfo(BaseObject):
     """
     Information about one specific band.
     """
@@ -60,7 +58,7 @@ class Bandinfo(BaseObject):
     description =      StringField('Description of the band')
 
     def __init__(self, name=None, year=None, country=None, genre=None, description=None, url=None):
-        super(Bandinfo, self).__init__(id, url)
+        super(BandInfo, self).__init__(id, url)
         self.name = name
         self.genre = genre
         self.year = year
@@ -85,7 +83,7 @@ class Albums(BaseObject):
         self.reviews = reviews
 
 
-class Favorites(BaseObject):
+class Favorite(BaseObject):
     """
     Fetch your favorite bands.
     """
@@ -94,13 +92,13 @@ class Favorites(BaseObject):
     short_description =     StringField('Short description of the favorite band')
 
     def __init__(self, id='', name=None, band_url=None, short_description=None):
-        super(Favorites, self).__init__(id, name)
+        super(Favorite, self).__init__(id, name)
         self.name = name
         self.band_url = band_url
         self.short_description = short_description
 
 
-class Suggestions(BaseObject):
+class Suggestion(BaseObject):
     """
     Band suggestions based on your favorite bands.
     """
@@ -109,7 +107,7 @@ class Suggestions(BaseObject):
     url =                   StringField('URL of suggested band')
 
     def __init__(self, id='', name=None, description=None, url=None):
-        super(Suggestions, self).__init__(id, url)
+        super(Suggestion, self).__init__(id, url)
         self.name = name
         self.url = url
         self.description = description
@@ -125,19 +123,17 @@ class CapBands(Capability):
         Look for a band.
         :param pattern: pattern to search
         :type pattern: str
-        :rtype: iter[:class:`Bandsearch`]
+        :rtype: iter[:class:`BandSearch`]
         """
         raise NotImplementedError()
-
 
     def get_info(self):
         """
         Get band info.
         :param band_id: ID of the band
-        :rtype: :class:`Bandinfo`
+        :rtype: :class:`BandInfo`
         """
         raise NotImplementedError()
-
 
     def get_albums(self):
         """
@@ -147,20 +143,18 @@ class CapBands(Capability):
         """
         raise NotImplementedError()
 
-
     def get_favorites(self):
         """
         Get my favorite bands.
 
-        :rtype: iter[:class:`Favorites`]
+        :rtype: iter[:class:`Favorite`]
         """
         raise NotImplementedError()
-
 
     def suggestions(self):
         """
         Get band suggestions according to your favorite bands.
 
-        :rtype: iter[:class:`Suggestions`]
+        :rtype: iter[:class:`Suggestion`]
         """
         raise NotImplementedError()
