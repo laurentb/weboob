@@ -39,16 +39,16 @@ class AllocineBrowser(APIBrowser):
     PROFILE = Android()
 
     PARTNER_KEY = '100043982026'
-    SECRET_KEY = '29d185d98c984a359e6e6f26a0474269'
+    SECRET_KEY = b'29d185d98c984a359e6e6f26a0474269'
 
     def __do_request(self, method, params):
-        params["sed"] = time.strftime('%Y%m%d', time.localtime())
-        params["sig"] = base64.b64encode(
+        params.append(("sed", time.strftime('%Y%m%d', time.localtime())))
+        params.append(("sig", base64.b64encode(
             hashlib.sha1(
                 self.SECRET_KEY +
-                urlencode(params)
+                urlencode(params).encode('utf-8')
             ).digest()
-        )
+        ).decode()))
 
         return self.request(
             'http://api.allocine.fr/rest/v3/{}'.format(method),
@@ -528,7 +528,7 @@ class AllocineBrowser(APIBrowser):
         result = self.__do_request('movie', params)
         if result is None:
             return
-        return self.parse_video(result['movie'])
+        return self.parse_movie(result['movie'])
 
     def get_video_from_id(self, _id, category):
         return find_object(self.get_categories_videos(category), id=u'%s#%s' % (_id, category))
