@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+# yapf-compatible
+
 from __future__ import unicode_literals
 
 import re
@@ -73,13 +75,15 @@ class ItemDocument(ItemElement):
 
     def obj_label(self):
         if 'ibanCrypte' in self.el:
-            return '%s %s N° %s' % (Dict('dateDoc')(self), Dict('libelleSousFamille')(self), Dict('numeroCompteAnonymise')(self))
+            return '%s %s N° %s' % (
+                Dict('dateDoc')(self), Dict('libelleSousFamille')(self), Dict('numeroCompteAnonymise')(self)
+            )
         else:
             return '%s %s N° %s' % (Dict('dateDoc')(self), Dict('libelleSousFamille')(self), Dict('idContrat')(self))
 
     def obj_url(self):
         keys_to_copy = {
-            'idDocument' :'idDoc',
+            'idDocument': 'idDoc',
             'dateDocument': 'dateDoc',
             'idLocalisation': 'idLocalisation',
             'viDocDocument': 'viDocDocument',

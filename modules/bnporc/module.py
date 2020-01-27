@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+# yapf-compatible
+
 from __future__ import unicode_literals
 
 import re
@@ -42,11 +44,12 @@ from .enterprise.browser import BNPEnterprise
 from .company.browser import BNPCompany
 from .pp.browser import BNPPartPro, HelloBank
 
-
 __all__ = ['BNPorcModule']
 
 
-class BNPorcModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapMessages, CapContact, CapProfile, CapDocument):
+class BNPorcModule(
+    Module, CapBankWealth, CapBankTransferAddRecipient, CapMessages, CapContact, CapProfile, CapDocument
+):
     NAME = 'bnporc'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
@@ -54,15 +57,22 @@ class BNPorcModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapMessag
     LICENSE = 'LGPLv3+'
     DESCRIPTION = 'BNP Paribas'
     CONFIG = BackendConfig(
-        ValueBackendPassword('login',      label=u'Numéro client', masked=False),
-        ValueBackendPassword('password',   label=u'Code secret', regexp='^(\d{6})$'),
-        ValueBool('rotating_password',     label=u'Automatically renew password every 100 connections', default=False),
-        ValueBool('digital_key',           label=u'User with digital key have to add recipient with digital key', default=False),
-        Value('website', label='Type de compte', default='pp',
-              choices={'pp': 'Particuliers/Professionnels',
-                       'hbank': 'HelloBank',
-                       'ent': 'Entreprises',
-                       'ent2': 'Entreprises et PME (nouveau site)'}))
+        ValueBackendPassword('login', label=u'Numéro client', masked=False),
+        ValueBackendPassword('password', label=u'Code secret', regexp='^(\d{6})$'),
+        ValueBool('rotating_password', label=u'Automatically renew password every 100 connections', default=False),
+        ValueBool('digital_key', label=u'User with digital key have to add recipient with digital key', default=False),
+        Value(
+            'website',
+            label='Type de compte',
+            default='pp',
+            choices={
+                'pp': 'Particuliers/Professionnels',
+                'hbank': 'HelloBank',
+                'ent': 'Entreprises',
+                'ent2': 'Entreprises et PME (nouveau site)'
+            }
+        )
+    )
     STORAGE = {'seen': []}
 
     accepted_document_types = (
@@ -141,7 +151,9 @@ class BNPorcModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapMessag
 
         recipient = strict_find_object(self.iter_transfer_recipients(account.id), iban=transfer.recipient_iban)
         if not recipient:
-            recipient = strict_find_object(self.iter_transfer_recipients(account.id), id=transfer.recipient_id, error=RecipientNotFound)
+            recipient = strict_find_object(
+                self.iter_transfer_recipients(account.id), id=transfer.recipient_id, error=RecipientNotFound
+            )
 
         assert account.id.isdigit()
         # quantize to show 2 decimals.

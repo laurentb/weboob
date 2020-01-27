@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+# yapf-compatible
+
 from __future__ import unicode_literals
 
 from datetime import date, timedelta
@@ -27,7 +29,6 @@ from weboob.capabilities.bank import AccountNotFound
 from weboob.tools.compat import basestring
 
 from .pages import LoginPage, AccountsPage, HistoryPage
-
 
 __all__ = ['BNPCompany']
 
@@ -48,7 +49,6 @@ class BNPCompany(LoginBrowser):
         assert self.login.is_here()
 
         self.page.login(self.username, self.password)
-
 
     @need_login
     def iter_accounts(self):
@@ -74,10 +74,11 @@ class BNPCompany(LoginBrowser):
 
     @need_login
     def iter_history(self, account):
-        return self.get_transactions(account.id,
-                                'Comptable',
-                                (date.today() - timedelta(days=90)).strftime('%Y%m%d'),
-                                date.today().strftime('%Y%m%d'))
+        return self.get_transactions(
+            account.id,
+            'Comptable', (date.today() - timedelta(days=90)).strftime('%Y%m%d'),
+            date.today().strftime('%Y%m%d')
+        )
 
     @need_login
     def iter_documents(self, subscription):
@@ -89,9 +90,7 @@ class BNPCompany(LoginBrowser):
 
     @need_login
     def iter_coming_operations(self, account):
-        return self.get_transactions(account.id,
-                                'Previsionnel',
-                                (date.today().strftime('%Y%m%d')))
+        return self.get_transactions(account.id, 'Previsionnel', (date.today().strftime('%Y%m%d')))
 
     @need_login
     def iter_investment(self, account):

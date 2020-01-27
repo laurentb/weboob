@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+# yapf-compatible
+
 from __future__ import unicode_literals
 
 import re
@@ -39,22 +41,24 @@ from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardEr
 from weboob.capabilities import NotAvailable
 from weboob.exceptions import BrowserPasswordExpired, BrowserForbidden
 
+
 def fromtimestamp(milliseconds):
-    return datetime.fromtimestamp(milliseconds/1000)
+    return datetime.fromtimestamp(milliseconds / 1000)
 
 
 class BNPVirtKeyboard(MappedVirtKeyboard):
-    symbols = {'0': '8adee734aaefb163fb008d26bb9b3a42',
-               '1': 'dad45ef18a75200030073ab102155e2f',
-               '2': '6cb4c69361f5ce32b68b477db98dd0fb',
-               '3': 'aa9f2d90c8112b84805d908938eefff7',
-               '4': '5aa9329aceab4318c2c96130915e87b7',
-               '5': 'd9fbfdf531ad888a9d79855536905d23',
-               '6': '50ce19be233ac07bebb59a16a3b9d4a7',
-               '7': '3a1f932237aab949fa6c59565823218b',
-               '8': 'd46cf28408db75caa915edb871ea573a',
-               '9': '87686fd75d283905d7651e1098db0882',
-               }
+    symbols = {
+        '0': '8adee734aaefb163fb008d26bb9b3a42',
+        '1': 'dad45ef18a75200030073ab102155e2f',
+        '2': '6cb4c69361f5ce32b68b477db98dd0fb',
+        '3': 'aa9f2d90c8112b84805d908938eefff7',
+        '4': '5aa9329aceab4318c2c96130915e87b7',
+        '5': 'd9fbfdf531ad888a9d79855536905d23',
+        '6': '50ce19be233ac07bebb59a16a3b9d4a7',
+        '7': '3a1f932237aab949fa6c59565823218b',
+        '8': 'd46cf28408db75caa915edb871ea573a',
+        '9': '87686fd75d283905d7651e1098db0882',
+    }
 
     color = (0, 0, 0)
 
@@ -106,8 +110,8 @@ class PasswordExpiredPage(HTMLPage):
 
 class AccountsPage(LoggedPage, JsonPage):
     TYPES = {
-        'Compte chèque':  Account.TYPE_CHECKING,
-        'Compte à vue':   Account.TYPE_CHECKING,
+        'Compte chèque': Account.TYPE_CHECKING,
+        'Compte à vue': Account.TYPE_CHECKING,
     }
 
     @method
@@ -121,9 +125,7 @@ class AccountsPage(LoggedPage, JsonPage):
                 return CleanText(Dict('numeroCompte'))(self)[2:]
 
             obj_balance = Eval(
-                lambda x, y: x / 10**y,
-                CleanDecimal(Dict('soldeComptable')),
-                CleanDecimal(Dict('decSoldeComptable'))
+                lambda x, y: x / 10 ** y, CleanDecimal(Dict('soldeComptable')), CleanDecimal(Dict('decSoldeComptable'))
             )
             obj_label = CleanText(Dict('libelleCompte'))
             obj_currency = CleanText(Dict('deviseTenue'))
@@ -133,9 +135,7 @@ class AccountsPage(LoggedPage, JsonPage):
                 return self.page.TYPES.get(Dict('libelleType')(self), Account.TYPE_UNKNOWN)
 
             def obj_coming(self):
-                page = self.page.browser.open(
-                    BrowserURL('account_coming', identifiant=Field('iban'))(self)
-                ).page
+                page = self.page.browser.open(BrowserURL('account_coming', identifiant=Field('iban'))(self)).page
 
                 nb_decimal = 0
                 if 'nb_dec' in Dict('infoOperationsAvenir/cumulTotal')(page.doc):
@@ -144,7 +144,7 @@ class AccountsPage(LoggedPage, JsonPage):
                     nb_decimal = Dict('infoOperationsAvenir/cumulTotal/nbDec')
 
                 coming = Eval(
-                    lambda x, y: x / 10**y,
+                    lambda x, y: x / 10**y,  # yapf: disable
                     CleanDecimal(Dict('infoOperationsAvenir/cumulTotal/montant', default='0')),
                     CleanDecimal(nb_decimal)
                 )(page.doc)
@@ -161,7 +161,6 @@ class AccountHistoryViewPage(LoggedPage, HTMLPage):
 
 
 class BnpHistoryItem(ItemElement):
-
     def obj_raw(self):
         if self.el.get('nature.libelle') and self.el.get('libelle'):
             return "%s %s" % (
@@ -195,10 +194,12 @@ class CardItemElement(ItemElement):
             return
 
         url = self.page.browser.transaction_detail.build()
-        return self.page.browser.open(url, is_async=True, data={
-            'type_mvt': self.detail_type_mvt,
-            'numero_mvt': Field('_trid')(self),
-        })
+        return self.page.browser.open(
+            url, is_async=True, data={
+                'type_mvt': self.detail_type_mvt,
+                'numero_mvt': Field('_trid')(self),
+            }
+        )
 
 
 class AccountHistoryPage(LoggedPage, JsonPage):
@@ -257,10 +258,10 @@ class AccountHistoryPage(LoggedPage, JsonPage):
 
             def obj_type(self):
                 type = self.page.TYPES.get(Dict('nature/codefamille')(self), Transaction.TYPE_UNKNOWN)
-                if (
-                    (type == Transaction.TYPE_CARD and re.search(r' RELEVE DU \d+\.', Field('raw')(self))) or
-                    (type == Transaction.TYPE_UNKNOWN and re.search(r'FACTURE CARTE AFFAIRES \w{16} SUIVANT RELEVE DU \d{2}.\d{2}.\d{4}', Field('raw')(self)))
-                ):
+                if ((type == Transaction.TYPE_CARD and re.search(r' RELEVE DU \d+\.', Field('raw')(self))) or (
+                    type == Transaction.TYPE_UNKNOWN and
+                    re.search(r'FACTURE CARTE AFFAIRES \w{16} SUIVANT RELEVE DU \d{2}.\d{2}.\d{4}', Field('raw')(self))
+                )):
                     return Transaction.TYPE_CARD_SUMMARY
                 return type
 
@@ -289,14 +290,9 @@ class AccountHistoryPage(LoggedPage, JsonPage):
                 return fromtimestamp(Dict('dateValeur')(self))
 
             def obj_amount(self):
-                decimal_nb = Dict('montant/nbDec', default=None)(self)\
-                                or Dict('montant/nb_dec')(self)
+                decimal_nb = (Dict('montant/nbDec', default=None)(self) or Dict('montant/nb_dec')(self))
 
-                return Eval(
-                    lambda x, y: x / 10**y,
-                    CleanDecimal(Dict('montant/montant')),
-                    decimal_nb
-                )(self)
+                return Eval(lambda x, y: x / 10 ** y, CleanDecimal(Dict('montant/montant')), decimal_nb)(self)
 
             obj__trid = Dict('id')
 
@@ -328,11 +324,7 @@ class AccountHistoryPage(LoggedPage, JsonPage):
                 decimal_nb = Dict('montantMvmt/nbDec', default=None)(self)\
                                 or Dict('montantMvmt/nb_dec')(self)
 
-                return Eval(
-                    lambda x, y: x / 10**y,
-                    CleanDecimal(Dict('montantMvmt/montant')),
-                    decimal_nb
-                )(self)
+                return Eval(lambda x, y: x / 10 ** y, CleanDecimal(Dict('montantMvmt/montant')), decimal_nb)(self)
 
             obj__trid = Dict('idMouvement')
 
@@ -343,14 +335,16 @@ class TransactionPage(LoggedPage, JsonPage):
 
 class MarketPage(LoggedPage, HTMLPage):
     TYPES = {
-        'comptes de titres':  Account.TYPE_MARKET,
+        'comptes de titres': Account.TYPE_MARKET,
     }
 
     @method
     class iter_market_accounts(TableElement):
         def condition(self):
-            return not self.el.xpath('//table[@id="table-portefeuille"]//tr/td[contains(text(), "Aucun portefeuille à afficher") \
-                or contains(text(), "No portfolio to display")]')
+            return not self.el.xpath(
+                '//table[@id="table-portefeuille"]//tr/td[contains(text(), "Aucun portefeuille à afficher") \
+                or contains(text(), "No portfolio to display")]'
+            )
 
         item_xpath = '//table[@id="table-portefeuille"]/tbody[@class="main-content"]/tr'
         head_xpath = '//table[@id="table-portefeuille"]/thead/tr/th/label'
@@ -384,7 +378,9 @@ class MarketPage(LoggedPage, HTMLPage):
 
     def get_id(self, label):
         id_simple = re.search(r'[0-9]+', label).group(0)
-        for options in self.doc.xpath('//div[@class="filterbox-content hide"]//select[@id="numero-compte-titre"]//option'):
+        for options in self.doc.xpath(
+            '//div[@class="filterbox-content hide"]//select[@id="numero-compte-titre"]//option'
+        ):
             if id_simple in CleanText(options)(self.doc):
                 return CleanText(options.xpath('./@value'))(self)
 
@@ -404,7 +400,6 @@ class InvestPage(LoggedPage, HTMLPage):
         obj__parent = CleanText('//h3/span[span[@class="info-cheque"]]', children=False)
         obj__unique = True
 
-
     @method
     class iter_investment(TableElement):
         item_xpath = '//table[@class="csv-data-container hide"]//tr'
@@ -416,13 +411,11 @@ class InvestPage(LoggedPage, HTMLPage):
         col_unitvalue = 'Valeur de la part'
         col_valuation = 'Valorisation'
         col_diff = '+/- value'
-
         """
         Note: Pagination is not handled yet for investments, if we find a
         customer with more than 10 invests we might have to handle clicking
         on the button to get 50 invests per page or check if there is a link.
         """
-
         class item(ItemElement):
             klass = Investment
 
@@ -432,7 +425,11 @@ class InvestPage(LoggedPage, HTMLPage):
             obj_unitvalue = CleanDecimal(TableCell('unitvalue'), replace_dots=True)
             obj_valuation = CleanDecimal(TableCell('valuation'), replace_dots=True)
             obj_diff = CleanDecimal(TableCell('diff'), replace_dots=True)
-            obj_code_type = lambda self: Investment.CODE_TYPE_ISIN if Field('code')(self) is not NotAvailable else NotAvailable
+
+            def obj_code_type(self):
+                if Field('code')(self):
+                    return Investment.CODE_TYPE_ISIN
+                return NotAvailable
 
             def obj_code(self):
                 string = CleanText(TableCell('label'))(self)

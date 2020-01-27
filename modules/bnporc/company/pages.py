@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+# yapf-compatible
+
 from __future__ import unicode_literals
 
 from io import BytesIO
@@ -32,19 +34,20 @@ from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardEr
 
 
 class BNPVirtKeyboard(MappedVirtKeyboard):
-    symbols = {'0': 'ff069462836e30a39c911034048f5bb3',
-               '1': '7969f04e4e82eaefa2ce7a9a23c26178',
-               '2': '1e6020f97ca1c3ce3da4f39ded15d67d',
-               '3': 'f84284b40aea93c24814e23e14e76cc8',
-               '4': '88bab262d4b344c0ef8f06ddd01adbcf',
-               '5': '0a270764fc5d8334bcb55053432b26cb',
-               '6': 'e6a4444a6c752cd3e655f2883e530080',
-               '7': '933d4ca5df6b2b3df2dea00a21a3fed6',
-               '8': ['f28b918777d21a5fde2bffb9899e2138', 'a97e6e27159084d50f8ef00548b70252'],
-               '9': 'be751b77af0d998ab4c2cfd38455b2a6',
-               }
+    symbols = {
+        '0': 'ff069462836e30a39c911034048f5bb3',
+        '1': '7969f04e4e82eaefa2ce7a9a23c26178',
+        '2': '1e6020f97ca1c3ce3da4f39ded15d67d',
+        '3': 'f84284b40aea93c24814e23e14e76cc8',
+        '4': '88bab262d4b344c0ef8f06ddd01adbcf',
+        '5': '0a270764fc5d8334bcb55053432b26cb',
+        '6': 'e6a4444a6c752cd3e655f2883e530080',
+        '7': '933d4ca5df6b2b3df2dea00a21a3fed6',
+        '8': ['f28b918777d21a5fde2bffb9899e2138', 'a97e6e27159084d50f8ef00548b70252'],
+        '9': 'be751b77af0d998ab4c2cfd38455b2a6',
+    }
 
-    color=(0,0,0)
+    color = (0, 0, 0)
 
     def __init__(self, basepage):
         img = basepage.doc.xpath('//img[@id="gridpass_img"]')[0]
