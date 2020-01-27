@@ -538,8 +538,12 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
     def get_measure_accounts_list(self):
         self.home.go()
 
-        owner_name = self.get_profile().name.upper().split(' ', 1)[1]
-
+        # Get name from profile to verify who is the owner of accounts.
+        name = self.get_profile().name.upper().split(' ', 1)
+        if len(name) == 2:  # if the name is complete (with first and last name)
+            owner_name = name[1]
+        else:  # if there is only first name
+            owner_name = name[0]
         # Make sure we are on list of measures page
         if self.measure_page.is_here():
             self.page.check_no_accounts()
@@ -584,7 +588,12 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
         if self.accounts is None:
             self.accounts = self.get_measure_accounts_list()
         if self.accounts is None:
-            owner_name = self.get_profile().name.upper().split(' ', 1)[1]
+            # Get name from profile to verify who is the owner of accounts.
+            name = self.get_profile().name.upper().split(' ', 1)
+            if len(name) == 2:  # if the name is complete (with first and last name)
+                owner_name = name[1]
+            else:  # if there is only first name
+                owner_name = name[0]
             if self.home.is_here():
                 self.page.check_no_accounts()
                 self.page.go_list()
