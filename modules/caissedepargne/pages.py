@@ -102,6 +102,9 @@ class AuthorizePage(HTMLPage):
 
 
 class VkInitPage(JsonPage):
+    def is_here(self):
+        return 'OPS_GENERIQUE' in Dict('context')(self.doc)
+
     def get_vk_images_url(self):
         data = Dict('step/validationUnits')(self.doc)
         # The data we are looking for is in a dict with a random
@@ -120,14 +123,19 @@ class VkInitPage(JsonPage):
         data = Dict('step/validationUnits')(self.doc)
         return list(data[0].keys())[0]
 
-    def get_all_images_data(self):
-        return self.doc
-
     def get_pwd_validation_id(self):
         return Dict('id')(self.doc)
 
 
+class VkImagePage(JsonPage):
+    def get_all_images_data(self):
+        return self.doc
+
+
 class LoginValidationPage(JsonPage):
+    def is_here(self):
+        return 'OPS_GENERIQUE' in Dict('context')(self.doc)
+
     def is_login_failed(self):
         return bool(self.doc.get('phase', {}).get('previousResult', '') == 'FAILED_AUTHENTICATION')
 

@@ -60,7 +60,7 @@ from .pages import (
     SmsPage, SmsPageOption, SmsRequest, AuthentPage, RecipientPage, CanceledAuth, CaissedepargneKeyboard, CaissedepargneNewKeyboard,
     TransactionsDetailsPage, LoadingPage, ConsLoanPage, MeasurePage, NatixisLIHis, NatixisLIInv, NatixisRedirectPage,
     SubscriptionPage, CreditCooperatifMarketPage, UnavailablePage, CardsPage, CardsComingPage, CardsOldWebsitePage, TransactionPopupPage,
-    OldLeviesPage, NewLeviesPage, NewLoginPage, JsFilePage, AuthorizePage, VkInitPage,
+    OldLeviesPage, NewLeviesPage, NewLoginPage, JsFilePage, AuthorizePage, VkInitPage, VkImagePage,
     LoginValidationPage, LoginTokensPage,
 )
 
@@ -93,8 +93,11 @@ class CaisseEpargne(LoginBrowser, StatesMixin):
 
     vk_init = URL(
         r'https://www.icgauth.caisse-epargne.fr/dacsrest/api/v1u0/transaction/.*',
-        r'https://www.icgauth.caisse-epargne.fr/dacs-rest-media/api/v1u0/medias/mappings/[a-z0-9-]+/images',
         VkInitPage,
+    )
+    vk_image = URL(
+        r'https://www.icgauth.caisse-epargne.fr/dacs-rest-media/api/v1u0/medias/mappings/[a-z0-9-]+/images',
+        VkImagePage,
     )
 
     account_login = URL(r'/authentification/manage\?step=account&identifiant=(?P<login>.*)&account=(?P<accountType>.*)', LoginPage)
