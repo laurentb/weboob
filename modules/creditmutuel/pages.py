@@ -75,12 +75,14 @@ class RedirectPage(LoggedPage, HTMLPage):
             self.browser.location(link[0].attrib['href'])
 
 
+# PartialHTMLPage: this page may be used while redirecting, and so bear empty text
 class NewHomePage(LoggedPage, PartialHTMLPage):
     def on_load(self):
         self.browser.is_new_website = True
         super(NewHomePage, self).on_load()
 
 
+# PartialHTMLPage: this page may be used while redirecting, and so bear empty text
 class LoginPage(PartialHTMLPage):
     REFRESH_MAX = 10.0
 
@@ -111,7 +113,8 @@ class FiscalityConfirmationPage(LoggedPage, HTMLPage):
     pass
 
 
-# keep PartialHTMLPage for this page has same url than other pages
+# PartialHTMLPage: this page shares URL with other pages,
+# and might be empty of text while used in a redirection
 class MobileConfirmationPage(PartialHTMLPage):
     def is_here(self):
         return 'Démarrez votre application mobile' in CleanText('//div[contains(@id, "inMobileAppMessage")]')(self.doc)
@@ -132,29 +135,14 @@ class MobileConfirmationPage(PartialHTMLPage):
     def get_polling_id(self):
         return Regexp(CleanText('//script[contains(text(), "transactionId")]'), r"transactionId: '(.{49})', get")(self.doc)
 
-    def get_final_url(self):
-        # Find the final url to POST to, once AppValidation has been made
-        # Importantly contains `k___ValidateAntiForgeryToken` generated for each polling
-        return Attr('//form[contains(@action, ConsentPage)]', 'action')(self.doc)
-
-    def get_final_url_params(self):
-        # Params to give with final_url
-        form = self.get_form()
-        return {
-            'otp_hidden': form['otp_hidden'],
-            'global_backup_hidden_key': form['global_backup_hidden_key'],  # always seen empty
-            '_FID_DoValidate.x': 0,
-            '_FID_DoValidate.y': 0,
-            '_wxf2_cc': form['_wxf2_cc'],
-        }
-
     def get_polling_data(self):
+        form = self.get_form()
         data = {
             'polling_id': self.get_polling_id(),
-            'final_url': self.get_final_url(),
-            'final_url_params': self.get_final_url_params(),
+            'final_url': form.url,
+            # Need to convert form into dict, pickling during dump_state() with boobank doesn't work
+            'final_url_params': dict(form.items()),
         }
-        assert data, "Can't proceed to polling if no polling_data"
         return data
 
 
@@ -167,7 +155,8 @@ class CancelDecoupled(HTMLPage):
     pass
 
 
-# keep PartialHTMLPage for this page has same url than other pages
+# PartialHTMLPage: this page shares URL with other pages,
+# and might be empty of text while used in a redirection
 class OtpValidationPage(PartialHTMLPage):
     def is_here(self):
         return 'envoyé par SMS' in CleanText('//div[contains(@id, "OTPDeliveryChannelText")]')(self.doc)
@@ -179,32 +168,18 @@ class OtpValidationPage(PartialHTMLPage):
     def get_error_message(self):
         return CleanText('//div[contains(@class, "bloctxt err")]')(self.doc)
 
-    def get_final_url(self):
-        # Find the final url to POST to, once OTP has been entered
-        # Importantly contains `k___ValidateAntiForgeryToken` generated for each OTP
-        return Attr('//form[contains(@action, ConsentPage)]', 'action')(self.doc)
-
-    def get_final_url_params(self):
-        # Params to give with final_url
-        form = self.get_form()
-        return {
-            'otp_hidden': form['otp_hidden'],
-            'InputHiddenKeySMSSendNew1': form['InputHiddenKeySMSSendNew1'],
-            'global_backup_hidden_key': form['global_backup_hidden_key'],  # always seen empty
-            '_FID_DoValidate.x': 52,
-            '_FID_DoValidate.y': 15,
-            '_wxf2_cc': form['_wxf2_cc'],
-        }
-
     def get_otp_data(self):
+        form = self.get_form()
         data = {
-            'final_url': self.get_final_url(),
-            'final_url_params': self.get_final_url_params(),
+            'final_url': form.url,
+            # Need to convert form into dict, pickling during dump_state() with boobank doesn't work
+            'final_url_params': dict(form.items()),
         }
-        assert data, "Can't proceed to SMS handling if no otp_data"
         return data
 
-# keep PartialHTMLPage for this page has same url than other pages
+
+# PartialHTMLPage: this page shares URL with other pages,
+# and might be empty of text while used in a redirection
 class OtpBlockedErrorPage(PartialHTMLPage):
     def is_here(self):
         return 'temporairement bloqué' in CleanText('//div[contains(@class, "bloctxt err")]')(self.doc)

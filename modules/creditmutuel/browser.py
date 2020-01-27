@@ -257,18 +257,16 @@ class CreditMutuelBrowser(TwoFactorBrowser):
 
             assert decoupled_state == 'PENDING', 'Unhandled polling state: "%s"' % decoupled_state
             time.sleep(5)  # every second on wbesite, need to slow that down
-        else:
-            # manually cancel polling before website max duration for it
-            self.cancel_decoupled.go(data=data)
-            self.polling_data = {}
-            raise AppValidationExpired()
+
+        # manually cancel polling before website max duration for it
+        self.cancel_decoupled.go(data=data)
+        self.polling_data = {}
+        raise AppValidationExpired()
 
     def check_otp_blocked(self):
         # Too much wrong OTPs, locked down after total 3 wrong inputs
         if self.otp_blocked_error_page.is_here():
             error_msg = self.page.get_error_message()
-            if 'temporairement bloqué' not in error_msg:
-                error_msg = 'error not handled'
             raise BrowserUnavailable(error_msg)
 
     def handle_sms(self):
@@ -286,7 +284,9 @@ class CreditMutuelBrowser(TwoFactorBrowser):
         # Wrong OTP leads to same form with error message, re-raise BrowserQuestion
         elif self.otp_validation_page.is_here():
             error_msg = self.page.get_error_message()
-            if 'erroné' in error_msg:
+            if 'erroné' not in error_msg:
+                raise BrowserUnavailable(error_msg)
+            else:
                 label = '%s %s' % (error_msg, self.page.get_message())
                 raise BrowserQuestion(Value('code', label=label))
 
@@ -306,10 +306,12 @@ class CreditMutuelBrowser(TwoFactorBrowser):
             self.page.check_bypass()
             if self.mobile_confirmation.is_here():
                 self.polling_data = self.page.get_polling_data()
+                assert self.polling_data, "Can't proceed to polling if no polling_data"
                 raise AppValidation(self.page.get_validation_msg())
 
         if self.otp_validation_page.is_here():
             self.otp_data = self.page.get_otp_data()
+            assert self.otp_data, "Can't proceed to SMS handling if no otp_data"
             raise BrowserQuestion(Value('code', label=self.page.get_message()))
 
         self.check_otp_blocked()
