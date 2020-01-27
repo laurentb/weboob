@@ -21,12 +21,9 @@ from __future__ import unicode_literals
 
 from datetime import datetime
 
-from weboob.browser.pages import HTMLPage, JsonPage, LoggedPage
-from weboob.browser.elements import ListElement, ItemElement, method, DictElement
-from weboob.browser.filters.standard import (
-    CleanText, Date, Regexp, Field,
-)
-from weboob.browser.filters.html import Link
+from weboob.browser.pages import JsonPage, LoggedPage
+from weboob.browser.elements import ItemElement, method, DictElement
+from weboob.browser.filters.standard import Regexp
 from weboob.browser.filters.json import Dict
 from weboob.capabilities.base import UserError
 from weboob.capabilities.library import Book
@@ -74,43 +71,9 @@ class LoansPage(LoggedPage, JsonPage):
                 return datetime.fromtimestamp(int(Regexp(Dict('WhenBack'), r'\((\d+)000')(self)) - 3600).date()
 
             obj_location = Dict('Location')
-            #obj_author = Regexp(CleanText('.//div[@class="loan-custom-result"]//p[@class="template-info"]'), '^(.*?) - ')
 
             def obj__renew_data(self):
                 return self.el
-
-    def x__init__(self, browser, response, *args, **kwargs):
-        super(LoansPage, self).__init__(browser, response, *args, **kwargs)
-        self.sub = self.sub_class(browser, response, data=self.sub_data)
-
-    @property
-    def sub_data(self):
-        if isinstance(self.doc['d'], dict):
-            return b''
-        return self.doc['d'].encode('utf-8')
-
-    class sub_class(HTMLPage):
-        data = None
-
-        def __init__(self, browser, response, data):
-            self.data = data
-            super(LoansPage.sub_class, self).__init__(browser, response)
-
-        @method
-        class get_loans(ListElement):
-            item_xpath = '//div[@id="loans-box"]//li[has-class("loan-item")]'
-
-            class item(ItemElement):
-                klass = Book
-
-                obj_url = Link('.//div[@class="loan-custom-result"]/a')
-                obj_id = Regexp(Field('url'), r'/SYRACUSE/(\d+)/')
-                obj_name = CleanText('.//h3[has-class("title")]')
-                # warning: date span may also contain "(à rendre bientôt)" along with date
-                obj_date = Date(Regexp(CleanText('.//li[has-class("dateretour")]/span[@class="loan-info-value"]'), r'(\d+/\d+/\d+)'), dayfirst=True)
-                obj_location = CleanText('.//li[has-class("localisation")]//span[@class="loan-info-value"]')
-                obj_author = Regexp(CleanText('.//div[@class="loan-custom-result"]//p[@class="template-info"]'), '^(.*?) - ')
-                obj__renew_data = CleanText('.//span[has-class("loan-data")]')
 
 
 class RenewPage(LoggedPage, JsonMixin):
