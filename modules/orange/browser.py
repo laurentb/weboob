@@ -39,6 +39,8 @@ __all__ = ['OrangeBillBrowser']
 
 
 class OrangeBillBrowser(LoginBrowser):
+    TIMEOUT = 60
+
     BASEURL = 'https://espaceclientv3.orange.fr'
 
     home_page = URL(r'https://businesslounge.orange.fr/$', HomePage)
