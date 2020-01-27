@@ -1768,7 +1768,11 @@ class ExternalTransferPage(InternalTransferPage):
                 self.env['origin_account']._external_recipients.add(Field('id')(self))
 
     def get_transfer_form(self):
-        return self.get_form(xpath='//form[@id="P1:F"] | //form[@id="P2:F"]', submit='//input[@type="submit" and contains(@value, "Valider")]')
+        # transfer form id change from "P1:F" to "P2:F" and from "P2:F" to "P3:F"
+        # search for other info to get transfer form
+        transfer_form_xpath = '//form[contains(@action, "fr/banque/virements/vplw") and @method="post"]'
+        transfer_form_submit_xpath = '//input[@type="submit" and contains(@value, "Valider")]'
+        return self.get_form(xpath=transfer_form_xpath, submit=transfer_form_submit_xpath)
 
 class VerifCodePage(LoggedPage, HTMLPage):
     HASHES = {
