@@ -193,7 +193,12 @@ class EmptyPage(LoggedPage, HTMLPage):
 
     def on_load(self):
         # Action needed message is like "Votre Carte de Clés Personnelles numéro 3 est révoquée."
-        action_needed = CleanText('//p[contains(text(), "Votre Carte de Clés Personnelles") and contains(text(), "est révoquée")]')(self.doc)
+        # or "Avant de passer toute opération sur ce site, nous vous invitons à prendre
+        # connaissance de l'information générale sur la bourse et les marchés financiers."
+        action_needed = (
+            CleanText('//p[contains(text(), "Votre Carte de Clés Personnelles") and contains(text(), "est révoquée")]')(self.doc)
+            or CleanText('//p[contains(text(), "Avant de passer toute opération sur ce site")]')(self.doc)
+        )
         if action_needed:
             raise ActionNeeded(action_needed)
         maintenance = CleanText('//td[@class="ALERTE"]/p/span[contains(text(), "Dans le cadre de l\'amélioration de nos services, nous vous informons que le service est interrompu")]')(self.doc)

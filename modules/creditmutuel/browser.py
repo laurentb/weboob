@@ -123,6 +123,8 @@ class CreditMutuelBrowser(TwoFactorBrowser):
     por =         URL(r'/(?P<subbank>.*)fr/banque/POR_ValoToute.aspx',
                       r'/(?P<subbank>.*)fr/banque/POR_SyntheseLst.aspx',
                       PorPage)
+    por_action_needed = URL(r'/(?P<subbank>.*)fr/banque/ORDR_InfosGenerales.aspx', EmptyPage)
+
     li =          URL(r'/(?P<subbank>.*)fr/assurances/profilass.aspx\?domaine=epargne',
                       r'/(?P<subbank>.*)fr/assurances/(consultations?/)?WI_ASS.*',
                       r'/(?P<subbank>.*)fr/assurances/WI_ASS',
@@ -432,14 +434,16 @@ class CreditMutuelBrowser(TwoFactorBrowser):
                 has_no_account = self.page.has_no_account()
                 self.accounts_list.extend(self.page.iter_accounts())
                 self.iban.go(subbank=self.currentSubBank).fill_iban(self.accounts_list)
-                self.por.go(subbank=self.currentSubBank).add_por_accounts(self.accounts_list)
+                self.por.go(subbank=self.currentSubBank)
+                self.page.add_por_accounts(self.accounts_list)
             # Populate accounts from new website
             else:
                 self.new_accounts.stay_or_go(subbank=self.currentSubBank)
                 has_no_account = self.page.has_no_account()
                 self.accounts_list.extend(self.page.iter_accounts())
                 self.iban.go(subbank=self.currentSubBank).fill_iban(self.accounts_list)
-                self.por.go(subbank=self.currentSubBank).add_por_accounts(self.accounts_list)
+                self.por.go(subbank=self.currentSubBank)
+                self.page.add_por_accounts(self.accounts_list)
 
             self.li.go(subbank=self.currentSubBank)
             self.accounts_list.extend(self.page.iter_li_accounts())
