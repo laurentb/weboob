@@ -99,7 +99,7 @@ class IngAPIBrowser(LoginBrowser, StatesMixin):
     context = URL(r'/secure/api-v1/session/context')
     login = URL(r'/secure/api-v1/login/cif', LoginPage)
     keypad = URL(r'/secure/api-v1/login/keypad', LoginPage)
-    pin_page = URL(r'/secure/api-v1/login/pin', LoginPage)
+    pin_page = URL(r'/secure/api-v1/login/sca/pin', LoginPage)
 
     # Error on old website
     errorpage = URL(r'https://secure.ing.fr/.*displayCoordonneesCommand.*', StopPage)
@@ -189,13 +189,14 @@ class IngAPIBrowser(LoginBrowser, StatesMixin):
         data = '{"keyPadSize":{"width":3800,"height":1520},"mode":""}'
         self.keypad.go(data=data, headers={'Content-Type': 'application/json'})
 
-        img = self.open('/secure/api-v1/keypad/newkeypad.png').content
+        keypad_url = self.page.get_keypad_url()
+        img = self.open('/secure/api-v1%s' % keypad_url).content
         data = {
             'clickPositions': self.page.get_password_coord(img, self.password)
         }
 
         try:
-            self.pin_page.go(json=data, headers={'Referer': 'https://m.ing.fr/secure/login/pin'})
+            self.pin_page.go(json=data, headers={'Referer': self.pin_page.build()})
         except ClientError as e:
             self.handle_login_error(e)
 
