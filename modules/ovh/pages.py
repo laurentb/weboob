@@ -34,7 +34,7 @@ class LoginPage(HTMLPage):
             raise AuthMethodNotImplemented('Two-Factor authentication is not supported.')
 
     def is_logged(self):
-        return not self.doc.xpath('//div[has-class("error")]') and not self.doc.xpath('//form//input[contains(@placeholder, "Account ID")]')
+        return not self.doc.xpath('//input[@name="credentialToken"]')
 
     def login(self, login, password):
         form = self.get_form('//form[@class="pagination-centered"]')
