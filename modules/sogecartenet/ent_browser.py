@@ -53,7 +53,6 @@ class SogecarteEntrepriseBrowser(SeleniumBrowser):
         self.config = config
         self.username = self.config['login'].get()
         self.password = self.config['password'].get()
-        kwargs['responses_dirname'] = '/tmp/selenium'
         super(SogecarteEntrepriseBrowser, self).__init__(*args, **kwargs)
 
         # The parsing using selenium is really long, this will avoid
