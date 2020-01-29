@@ -495,6 +495,12 @@ class CleanDecimal(CleanText):
         kwargs['replace_dots'] = (' ', '.')
         return cls(*args, **kwargs)
 
+    @classmethod
+    def Italian(cls, *args, **kwargs):
+        kwargs['legacy'] = False
+        kwargs['replace_dots'] = ('.', ',')
+        return cls(*args, **kwargs)
+
 
 class Slugify(Filter):
     @debug()
