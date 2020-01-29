@@ -87,6 +87,7 @@ class Transaction(FrenchTransaction):
             None
         ),
         (re.compile(r'^(?P<category>PRELEVEMENT) (?P<text>.*) (?P<dd>\d{2})-(?P<mm>0[1-9]|1[012])$'), None),
+        (re.compile(r'^(?P<text>(?P<category>AVOIR) .*) (?P<dd>\d{2})/(?P<mm>\d{2})$'), None),
     ]
 
 
@@ -524,6 +525,10 @@ class HistoryPage(LoggedPage, JsonPage):
                 'PRELEVT': Transaction.TYPE_ORDER,
                 'PRELEVMNT': Transaction.TYPE_ORDER,
                 'REMBOURSEMENT DE PRET': Transaction.TYPE_LOAN_PAYMENT,
+                "REMISE D'EFFETS": Transaction.TYPE_PAYBACK,
+                'AVOIR': Transaction.TYPE_PAYBACK,
+                "VERSEMENT D'ESPECES": Transaction.TYPE_CASH_DEPOSIT,
+                'INTERETS CREDITEURS': Transaction.TYPE_BANK,
             }
 
             klass = Transaction
