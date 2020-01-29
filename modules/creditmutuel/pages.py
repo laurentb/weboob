@@ -135,6 +135,8 @@ class MobileConfirmationPage(LoggedPage, HTMLPage):
             self.logger.warning('This connexion cannot bypass mobile confirmation')
             msg = CleanText('//div[@id="inMobileAppMessage"]')(self.doc)
             if msg:
+                display_msg = re.search(r'Confirmer votre connexion depuis votre appareil ".+"', msg).group()
+
                 script = CleanText('//script[contains(text(), "otpInMobileAppParameters")]')(self.doc)
 
                 transaction_id = re.search("transactionId: '(\w+)'", script)
@@ -160,7 +162,7 @@ class MobileConfirmationPage(LoggedPage, HTMLPage):
                     if response.status_code == 200:
                         if 'PENDING' not in response.text:
                             response = self.browser.open(
-                                '?_tabi=C&_pid=OtpValidationPage',
+                                '?_tabi+C&_pid=OtpValidationPage',
                                 method='POST',
                                 data={
                                     "otp_hidden": otp_hidden,
@@ -176,7 +178,6 @@ class MobileConfirmationPage(LoggedPage, HTMLPage):
                     else:
                         break
 
-                display_msg = re.search(r'Démarrez votre application mobile Crédit Mutuel depuis votre appareil ".+"', msg).group()
                 raise AppValidation(display_msg)
 
             assert False, "Mobile authentication method not handled"
