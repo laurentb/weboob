@@ -22,8 +22,8 @@ from __future__ import unicode_literals
 from weboob.browser import AbstractBrowser, LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded
 from .pages import (
-    LoginPage, ProfilePage, ErrorPage, AccountPage, InvestmentPage,
-    TermPage, UnexpectedPage, HistoryPage,
+    LoginPage, ProfilePage, ErrorPage, AccountPage, AccountSwitchPage,
+    InvestmentPage, TermPage, UnexpectedPage, HistoryPage,
 )
 
 
@@ -43,6 +43,7 @@ class VisiogoBrowser(LoginBrowser):
     error_page2 = URL(r'https://authentication.bnpparibas.com/Error\?Code=500', UnexpectedPage)
     term_page = URL(r'/Home/TermsOfUseApproval', TermPage)
     account_page = URL(r'/GlobalView/Synthesis', AccountPage)
+    account_switch = URL(r'/Contract/_ChangeAffiliation', AccountSwitchPage)
     investment_page = URL(r'/Saving/Details', InvestmentPage)
     profile_page = URL(r'/en/Profile/EditContactDetails', ProfilePage)
     history_page = URL(r'/en/Operation/History', HistoryPage)
@@ -78,14 +79,31 @@ class VisiogoBrowser(LoginBrowser):
         # in order to handle their investments properly
         if len(accounts_list) > 1:
             self.multi_accounts = True
+            # In order to access an account's detail, we must determine its index
+            # in the list, but the order on investment_page is not the same as on
+            # account_page, so we must get the account indices on investment_page.
+            self.investment_page.go()
+            for account in accounts_list:
+                account._index = self.page.get_account_index(account._sublabel)
         return accounts_list
 
     def iter_investment(self, account):
         if self.multi_accounts:
-            # No connection with multi-accounts containing investments yet
-            raise NotImplementedError()
+            # Access details of the right account
+            self.account_switch.go(
+                data={'index': account._index}
+            )
         self.investment_page.go()
         return self.page.iter_investments()
+
+    def iter_history(self, account):
+        if self.multi_accounts:
+            # Access details of the right account
+            self.account_switch.go(
+                data={'index': account._index}
+            )
+        self.history_page.go()
+        return self.page.iter_history()
 
     def iter_pocket(self, account):
         raise NotImplementedError()
@@ -93,7 +111,3 @@ class VisiogoBrowser(LoginBrowser):
     def get_profile(self):
         self.profile_page.go()
         return self.page.get_profile()
-
-    def iter_history(self, account):
-        self.history_page.stay_or_go()
-        return self.page.iter_history(account)
