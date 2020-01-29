@@ -137,7 +137,14 @@ class LoginValidationPage(JsonPage):
         return 'OPS_GENERIQUE' in Dict('context')(self.doc)
 
     def is_login_failed(self):
-        return bool(self.doc.get('phase', {}).get('previousResult', '') == 'FAILED_AUTHENTICATION')
+        # AUTHENTICATION_LOCKED is a BrowserIncorrectPassword because there is a key
+        # 'unlockingDate', in the json, that tells when the account will be unlocked.
+        # So it does not require any action from the user and is automatic.
+        errors = ('FAILED_AUTHENTICATION', 'AUTHENTICATION_LOCKED')
+        return any((
+            self.doc.get('phase', {}).get('previousResult', '') in errors,
+            self.doc.get('response', {}).get('status', '') in errors,
+        ))
 
     def get_redirect_data(self):
         return Dict('response/saml2_post')(self.doc)
