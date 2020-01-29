@@ -39,7 +39,7 @@ from weboob.capabilities.contact import Advisor
 from weboob.browser.elements import DictElement, ItemElement, method
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Currency as CleanCurrency, Format, Field, Map, Eval, Env,
-    Regexp, Date, Coalesce, DateTime,
+    Regexp, Date, Coalesce,
 )
 from weboob.browser.filters.html import Attr
 from weboob.browser.filters.json import Dict
@@ -533,12 +533,8 @@ class HistoryPage(LoggedPage, JsonPage):
 
             klass = Transaction
 
-            obj_date = DateTime(Dict('dateValeur'))
-            # There is a key in the json called dateOperation but most of the time it is the
-            # same as the dateValeur, meanwhile a different rdate is available in many labels.
-            # So we force all rdate to NotAvailable and only fill it when we find something to
-            # extract from the label
-            obj_rdate = NotAvailable
+            obj_date = Date(Dict('dateValeur'))
+
             # Transactions in foreign currencies have no 'libelleTypeOperation'
             # and 'libelleComplementaire' keys, hence the default values.
             # The CleanText() gets rid of additional spaces.
@@ -552,6 +548,22 @@ class HistoryPage(LoggedPage, JsonPage):
                     )
                 )
             )
+
+            # There is a key in the json called dateOperation but most of the time it is the
+            # same as the dateValeur. If the patterns do not find the rdate in the label,
+            # we set the value of rdate to dateOperation if dateOperation is before
+            # dateValeur (there are cases where dateOperation is after dateValeur).
+            def obj_rdate(self):
+                date = Field('date')(self)
+                # rdate is already set by `obj_raw` and the patterns.
+                rdate = self.obj.rdate
+                date_operation = Date(Dict('dateOperation'))(self)
+                if rdate == date and date_operation < date:
+                    return date_operation
+                elif rdate != date:
+                    return rdate
+                return NotAvailable
+
             obj_label = CleanText(
                 Format(
                     '%s %s', CleanText(Dict('libelleTypeOperation', default='')), CleanText(Dict('libelleOperation'))
