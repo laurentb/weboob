@@ -122,6 +122,12 @@ class AccountsPage(LoggedPage, JsonPage):
             obj_code_type = IsinType(Dict('codeIsin', default=NotAvailable))
             obj_diff = CleanDecimal.SI(Dict('mtPMV', default=None), default=NotAvailable)
 
+            def obj_portfolio_share(self):
+                portfolio_share_percent = CleanDecimal.SI(Dict('pourcentageSupport', default=None), default=None)(self)
+                if portfolio_share_percent is None:
+                    return NotAvailable
+                return portfolio_share_percent / 100
+
             def obj_srri(self):
                 srri = Dict('SRRI')(self)
                 # The website displays '0 - Non disponible' when not available
@@ -248,7 +254,7 @@ class InvestmentDetailPage(LoggedPage, HTMLPage):
         return Title(CleanText('//label[contains(text(), "Durée minimum de placement")]/following-sibling::span', default=NotAvailable))(self.doc)
 
     def get_asset_category(self):
-        return CleanText('//label[contains(text(), "Classe d\'actifs")]/following-sibling::span', default=NotAvailable)(self.doc)
+        return CleanText('(//label[contains(text(), "Classe d\'actifs")])[1]/following-sibling::span', default=NotAvailable)(self.doc)
 
 
 class EEProductInvestmentPage(LoggedPage, HTMLPage):
