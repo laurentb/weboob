@@ -18,21 +18,12 @@
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.browser.pages import AbstractPage, PartialHTMLPage
+from weboob.browser.pages import AbstractPage
 
 
-class LoginPage(PartialHTMLPage):
-    REFRESH_MAX = 10.0
-
-    def login(self, login, passwd, redirect=False):
-        form = self.get_form(xpath='//form[contains(@name, "ident")]')
-        form['_cm_user'] = login
-        form['_cm_pwd'] = passwd
-        form.submit(allow_redirects=redirect)
-
-    @property
-    def logged(self):
-        return self.doc.xpath('//div[@id="e_identification_ok"]')
+class LoginPage(AbstractPage):
+    PARENT = 'creditmutuel'
+    PARENT_URL = 'login'
 
 
 class PorPage(AbstractPage):

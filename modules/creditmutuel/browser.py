@@ -26,7 +26,7 @@ from itertools import groupby
 from operator import attrgetter
 
 from weboob.exceptions import (
-    AppValidation, AppValidationExpired, AppValidationCancelled, AuthMethodNotImplemented,
+    ActionNeeded, AppValidation, AppValidationExpired, AppValidationCancelled, AuthMethodNotImplemented,
     BrowserIncorrectPassword, BrowserUnavailable, BrowserQuestion, NoAccountsException,
 )
 from weboob.tools.compat import basestring
@@ -53,7 +53,7 @@ from .pages import (
     ExternalTransferPage, RevolvingLoanDetails, RevolvingLoansList,
     ErrorPage, SubscriptionPage, NewCardsListPage, CardPage2, FiscalityConfirmationPage,
     ConditionsPage, MobileConfirmationPage, UselessPage, DecoupledStatePage, CancelDecoupled,
-    OtpValidationPage, OtpBlockedErrorPage,
+    OtpValidationPage, OtpBlockedErrorPage, TwoFAUnabledPage
 )
 
 
@@ -77,6 +77,7 @@ class CreditMutuelBrowser(TwoFactorBrowser):
         LoginPage
     )
     login_error = URL(r'/(?P<subbank>.*)fr/identification/default.cgi',      LoginErrorPage)
+    twofa_unabled_page = URL(r'/(?P<subbank>.*)fr/banque/validation.aspx', TwoFAUnabledPage)
     mobile_confirmation = URL(r'/(?P<subbank>.*)fr/banque/validation.aspx', MobileConfirmationPage)
     decoupled_state = URL(r'/fr/banque/async/otp/SOSD_OTP_GetTransactionState.htm', DecoupledStatePage)
     cancel_decoupled = URL(r'/fr/banque/async/otp/SOSD_OTP_CancelTransaction.htm', CancelDecoupled)
@@ -90,7 +91,6 @@ class CreditMutuelBrowser(TwoFactorBrowser):
                       AccountsPage)
     useless_page = URL(r'/(?P<subbank>.*)fr/banque/paci/defi-solidaire.html', UselessPage)
 
-    mobile_confirmation = URL(r'/(?P<subbank>.*)fr/banque/validation.aspx', MobileConfirmationPage)
     revolving_loan_list = URL(r'/(?P<subbank>.*)fr/banque/CR/arrivee.asp\?fam=CR.*', RevolvingLoansList)
     revolving_loan_details = URL(r'/(?P<subbank>.*)fr/banque/CR/cam9_vis_lstcpt.asp.*', RevolvingLoanDetails)
     user_space =  URL(r'/(?P<subbank>.*)fr/banque/espace_personnel.aspx',
@@ -332,6 +332,8 @@ class CreditMutuelBrowser(TwoFactorBrowser):
             self.check_redirections()
             # for cic, there is two redirections
             self.check_redirections()
+            if self.twofa_unabled_page.is_here():
+                raise ActionNeeded(self.page.get_error_msg())
 
             # when people try to log in but there are on a sub site of creditmutuel
             if not self.page and not self.url.startswith(self.BASEURL):

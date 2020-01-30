@@ -87,9 +87,14 @@ class LoginPage(PartialHTMLPage):
     REFRESH_MAX = 10.0
 
     def on_load(self):
-        error_msg_xpath = '//div[has-class("err")]//p[contains(text(), "votre mot de passe est faux")]'
-        if self.doc.xpath(error_msg_xpath):
-            raise BrowserIncorrectPassword(CleanText(error_msg_xpath)(self.doc))
+        error_msg = CleanText('//div[contains(@class, "blocmsg err")] | //div[contains(@class, "blocmsg alerte")]')(self.doc)
+        wrong_pass_msg = ('mot de passe est faux', 'mot de passe est révoqué')
+        action_needed_msg = ('pas autorisé à accéder à ce service', 'bloqué')
+        if any(msg in error_msg for msg in wrong_pass_msg):
+            raise BrowserIncorrectPassword(error_msg)
+        elif any(msg in error_msg for msg in action_needed_msg):
+            raise ActionNeeded(error_msg)
+        assert not error_msg, "Unhandled error: '%s'" % error_msg
 
     def login(self, login, passwd, redirect=False):
         form = self.get_form(xpath='//form[contains(@name, "ident")]')
@@ -117,11 +122,15 @@ class FiscalityConfirmationPage(LoggedPage, HTMLPage):
 # and might be empty of text while used in a redirection
 class MobileConfirmationPage(PartialHTMLPage):
     def is_here(self):
-        return 'Démarrez votre application mobile' in CleanText('//div[contains(@id, "inMobileAppMessage")]')(self.doc)
+        return {
+            'Démarrez votre application mobile' in CleanText('//div[contains(@id, "inMobileAppMessage")]')(self.doc) or
+            # for Banque Transatlantique and BECM
+            'demande de confirmation mobile' in CleanText('//div[contains(@id, "inMobileAppMessage")]')(self.doc)
+        }
 
     # We land on this page for some connections, but can still bypass this verification for now
     def check_bypass(self):
-        link = Attr('//a[contains(text(), "Accéder à mon Espace Client sans Confirmation Mobile")]', 'href', default=None)(self.doc)
+        link = Attr('//a[contains(text(), "Accéder à mon Espace Client sans Confirmation Mobile") or contains(text(), "accéder à votre espace client")]', 'href', default=None)(self.doc)
         if link:
             self.logger.warning('This connexion is bypassing mobile confirmation')
             self.browser.location(link)
@@ -144,6 +153,14 @@ class MobileConfirmationPage(PartialHTMLPage):
             'final_url_params': dict(form.items()),
         }
         return data
+
+
+class TwoFAUnabledPage(PartialHTMLPage):
+    def is_here(self):
+        return self.doc.xpath('//*[contains(text(), "aucun moyen pour confirmer")]')
+
+    def get_error_msg(self):
+        return CleanText('//*[contains(text(), "aucun moyen pour confirmer")]')(self.doc)
 
 
 class DecoupledStatePage(XMLPage):

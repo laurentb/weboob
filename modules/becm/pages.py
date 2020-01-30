@@ -18,30 +18,15 @@
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
 
-from weboob.browser.pages import HTMLPage, LoggedPage
+from weboob.browser.pages import HTMLPage, LoggedPage, AbstractPage
 from weboob.browser.elements import method, ItemElement
 from weboob.browser.filters.standard import CleanText, Format
 from weboob.capabilities import NotAvailable
-from weboob.exceptions import BrowserIncorrectPassword
 
 
-class LoginPage(HTMLPage):
-    REFRESH_MAX = 10.0
-
-    def login(self, login, passwd):
-        form = self.get_form(xpath='//form[contains(@name, "ident")]')
-        form['_cm_user'] = login
-        form['_cm_pwd'] = passwd
-        form.submit()
-
-    @property
-    def logged(self):
-        return self.doc.xpath('//div[@id="e_identification_ok"]')
-
-    def on_load(self):
-        error_msg_xpath = '//div[has-class("err")]//p[contains(text(), "votre mot de passe est faux")]'
-        if self.doc.xpath(error_msg_xpath):
-            raise BrowserIncorrectPassword(CleanText(error_msg_xpath)(self.doc))
+class LoginPage(AbstractPage):
+    PARENT = 'creditmutuel'
+    PARENT_URL = 'login'
 
 
 class AdvisorPage(LoggedPage, HTMLPage):
