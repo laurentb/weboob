@@ -27,7 +27,7 @@ from requests.exceptions import HTTPError
 
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.browsers import StatesMixin
-from weboob.browser.exceptions import ServerError
+from weboob.browser.exceptions import ServerError, BrowserHTTPNotFound
 from weboob.capabilities.base import NotAvailable
 from weboob.exceptions import (
     BrowserIncorrectPassword, BrowserBanned, NoAccountsException,
@@ -283,7 +283,12 @@ class BPBrowser(LoginBrowser, StatesMixin):
 
         self.login_without_2fa()
 
-        self.auth_page.go()
+        try:
+            self.auth_page.go()
+        except BrowserHTTPNotFound:
+            # Instability of the website. We can try do_login again without 2fa request
+            self.login_without_2fa()
+
         if self.auth_page.is_here():
             # Handle 2FA
             # 2FA seem to be handled by LBP. Indeed logins after 2FA will redirect to the LBP main page
