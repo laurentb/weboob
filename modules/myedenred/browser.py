@@ -19,6 +19,10 @@
 
 from __future__ import unicode_literals
 
+from random import randint
+from hashlib import sha256
+from base64 import b64encode
+
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.exceptions import BrowserIncorrectPassword
 
@@ -40,35 +44,44 @@ class MyedenredBrowser(LoginBrowser):
     transactions = URL(r'/v1/users/(?P<username>.+)/accounts/(?P<card_class>.*)-(?P<account_ref>\d+)/operations', TransactionsPage)
 
     params_js = URL(r'https://www.myedenred.fr/js/parameters.(?P<random_str>\w+).js', JsParamsPage)
-    user_js = URL(r'https://myedenred.fr/js/user.(?P<random_str>\w+).js', JsUserPage)
+    connexion_js = URL(r'https://myedenred.fr/js/connexion.(?P<random_str>\w+).js', JsUserPage)
     app_js = URL(r'https://myedenred.fr/js/app.(?P<random_str>\w+).js', JsAppPage)
 
-    def __init__(self, *args, **kwargs):
-        super(MyedenredBrowser, self).__init__(*args, **kwargs)
+    def _b64encode(self, value):
+        return b64encode(value).replace('+', '-').replace('/', '_').replace('=', '')
+
+    def get_code_verifier(self):
+        return self._b64encode(''.join([str(randint(0, 9)) for _ in range(32)]))
+
+    def get_code_challenge(self, verifier):
+        return self._b64encode(sha256(verifier).digest())
 
     def do_login(self):
         self.home.go()
         params_random_str = self.page.get_href_randomstring('parameters')
-        user_random_str = self.page.get_href_randomstring('user')
+        connexion_random_str = self.page.get_href_randomstring('connexion')
         app_random_str = self.page.get_href_randomstring('app')
 
         self.params_js.go(random_str=params_random_str)
         js_parameters = self.page.get_json_content()
 
-        self.user_js.go(random_str=user_random_str)
-        user_js = self.page.get_json_content()
+        self.connexion_js.go(random_str=connexion_random_str)
+        connexion_js = self.page.get_json_content()
+
+        code_verifier = self.get_code_verifier()
+        code_challenge = self.get_code_challenge(code_verifier)
 
         self.init_login.go(params={
-            'acr_values': js_parameters['acr_values'],
+            'acr_values': 'tenant:fr-ben',
             'client_id': js_parameters['EDCId'],
-            'code_challenge': user_js['code_challenge'],
-            'code_challenge_method': user_js['code_challenge_method'],
-            'nonce': user_js['nonce'],
+            'code_challenge': code_challenge,
+            'code_challenge_method': connexion_js['code_challenge_method'],
+            'nonce': connexion_js['nonce'],
             'redirect_uri': 'https://www.myedenred.fr/connect',
-            'response_type': user_js['response_type'],
-            'scope': user_js['scope'],
+            'response_type': connexion_js['response_type'],
+            'scope': connexion_js['scope'],
             'state': '',
-            'ui_locales': 'fr-fr',
+            'ui_locales': connexion_js['ui_locales'],
         })
 
         json_model = self.page.get_json_model()
@@ -87,7 +100,6 @@ class MyedenredBrowser(LoginBrowser):
         code = self.page.get_code()
 
         self.app_js.go(random_str=app_random_str)
-        code_verifier = self.page.get_code_verifier()
 
         self.token.go(
             data={
