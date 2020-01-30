@@ -417,7 +417,7 @@ class SeleniumBrowser(object):
 
     MAX_SAVED_RESPONSES = (1 << 30)  # limit to 1GiB
 
-    def __init__(self, logger=None, proxy=None, responses_dirname=None, weboob=None, proxy_headers=None):
+    def __init__(self, logger=None, proxy=None, responses_dirname=None, weboob=None, proxy_headers=None, preferences=None):
         super(SeleniumBrowser, self).__init__()
         self.responses_dirname = responses_dirname
         self.responses_count = 0
@@ -435,7 +435,7 @@ class SeleniumBrowser(object):
         self.implicit_timeout = 0
         self.last_page_hash = None
 
-        self._setup_driver()
+        self._setup_driver(preferences)
 
         self._urls = []
         cls = type(self)
@@ -448,8 +448,15 @@ class SeleniumBrowser(object):
                 self._urls.append(val)
         self._urls.sort(key=lambda u: u._creation_counter)
 
-    def _build_options(self):
-        return OPTIONS_CLASSES[self.DRIVER]()
+    def _build_options(self, preferences):
+        options = OPTIONS_CLASSES[self.DRIVER]()
+        if preferences:
+            if isinstance(options, webdriver.FirefoxOptions):
+                for key, value in preferences.items():
+                    options.set_preference(key, value)
+            elif isinstance(options, webdriver.ChromeOptions):
+                options.add_experimental_option('prefs', preferences)
+        return options
 
     def _build_capabilities(self):
         return CAPA_CLASSES[self.DRIVER].copy()
@@ -460,7 +467,7 @@ class SeleniumBrowser(object):
             return proxy_url.geturl().replace('%s://' % proxy_url.scheme, '')
         return url
 
-    def _setup_driver(self):
+    def _setup_driver(self, preferences):
         proxy = Proxy()
         if 'http' in self.proxy:
             proxy.proxy_type = ProxyType.MANUAL
@@ -475,7 +482,7 @@ class SeleniumBrowser(object):
         capa = self._build_capabilities()
         proxy.add_to_capabilities(capa)
 
-        options = self._build_options()
+        options = self._build_options(preferences)
         # TODO some browsers don't need headless
         # TODO handle different proxy setting?
         options.set_headless(self.HEADLESS)
