@@ -161,6 +161,8 @@ class TransferPage(LoggedPage, JsonPage):
     def transfer_is_validated(self):
         return Dict('acknowledged')(self.doc)
 
+    def is_otp_authentication(self):
+        return 'otpValidateResponse' in self.doc
 
 class AddRecipientPage(LoggedPage, JsonPage):
     def check_recipient(self, recipient):

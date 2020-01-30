@@ -25,7 +25,7 @@ from functools import wraps
 import re
 
 from weboob.browser import LoginBrowser, URL, StatesMixin
-from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
+from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded, AuthMethodNotImplemented
 from weboob.browser.exceptions import ClientError
 from weboob.capabilities.bank import (
     TransferBankError, TransferInvalidAmount,
@@ -398,6 +398,9 @@ class IngAPIBrowser(LoginBrowser, StatesMixin):
             self.init_transfer_page.go(json=data, headers={'Referer': self.absurl('/secure/transfers/new')})
         except ClientError as e:
             self.handle_transfer_errors(e)
+
+        if self.page.is_otp_authentication():
+            raise AuthMethodNotImplemented()
 
         suggested_date = self.page.suggested_date
         if transfer.exec_date and transfer.exec_date < suggested_date:
