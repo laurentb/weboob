@@ -56,8 +56,6 @@ then
     echo "file://$SRC/modules" > "$WEBOOB_WORKDIR/sources.list"
 fi
 
-./bin/weboob-config update
-
 cat > use-weboob-local.sh << EOF
 VDIR="$VDIR"
 . "$VDIR/bin/activate"
@@ -75,3 +73,4 @@ then
     echo "You can add file://$SRC/modules into $VDIR/workdir/sources.list to use local modules instead of downloading modules."
 fi
 
+./bin/weboob-config update
