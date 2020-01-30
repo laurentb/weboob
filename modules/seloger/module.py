@@ -66,6 +66,15 @@ class SeLogerModule(Module, CapHousing):
         return photo
 
     def fill_housing(self, housing, fields):
-        return self.browser.get_housing(housing.id, housing)
+
+        if 'DPE' in fields or 'GES' in fields:
+            housing = self.browser.get_housing_detail(housing)
+            fields.remove('DPE')
+            fields.remove('GES')
+
+        if len(fields) > 0:
+            housing = self.browser.get_housing(housing.id, housing)
+
+        return housing
 
     OBJECTS = {HousingPhoto: fill_photo, Housing: fill_housing}

@@ -74,7 +74,7 @@ class ENERGY_CLASS(Enum):
 
 
 class POSTS_TYPES(Enum):
-    RENT=u'RENT'
+    RENT = u'RENT'
     SALE = u'SALE'
     SHARING = u'SHARING'
     FURNISHED_RENT = u'FURNISHED_RENT'

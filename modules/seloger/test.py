@@ -33,9 +33,6 @@ class SeLogerTest(BackendTest, HousingTest):
         "cost",  # Some posts don't have cost in seloger
         "currency",  # Same
         "photos",
-        "station",
-        "rooms",
-        "bedrooms"
     ]
     FIELDS_ALL_SINGLE_HOUSING = [
         "id", "url", "type", "advert_type", "house_type", "title", "area",
