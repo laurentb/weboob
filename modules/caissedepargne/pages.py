@@ -37,8 +37,9 @@ from weboob.browser.filters.standard import (
 from weboob.browser.filters.html import Link, Attr, TableCell
 from weboob.capabilities import NotAvailable
 from weboob.capabilities.bank import (
-    Account, Investment, Recipient, TransferBankError, Transfer,
-    AddRecipientBankError, Loan, AccountOwnership,
+    Account, Investment, Loan, AccountOwnership,
+    Transfer, TransferBankError, TransferInvalidOTP,
+    Recipient, AddRecipientBankError, RecipientInvalidOTP,
 )
 from weboob.capabilities.bill import DocumentTypes, Subscription, Document
 from weboob.tools.capabilities.bank.investments import is_isin_valid
@@ -46,7 +47,9 @@ from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_rib_valid, rib2iban, is_iban_valid
 from weboob.tools.captcha.virtkeyboard import SplitKeyboard, GridVirtKeyboard
 from weboob.tools.compat import unicode
-from weboob.exceptions import NoAccountsException, BrowserUnavailable, ActionNeeded
+from weboob.exceptions import (
+    NoAccountsException, BrowserUnavailable, ActionNeeded, BrowserIncorrectPassword,
+)
 from weboob.browser.filters.json import Dict
 
 
@@ -101,30 +104,71 @@ class AuthorizePage(HTMLPage):
         form.submit()
 
 
-class VkInitPage(JsonPage):
-    def is_here(self):
-        return 'OPS_GENERIQUE' in Dict('context')(self.doc)
-
-    def get_vk_images_url(self):
-        data = Dict('step/validationUnits')(self.doc)
-        # The data we are looking for is in a dict with a random
-        # uuid key.
-        key = list(data[0].keys())[0]
-        return data[0][key][0]['virtualKeyboard']['externalRestMediaApiUrl']
-
-    def get_vk_id(self):
-        data = Dict('step/validationUnits')(self.doc)
-        # The data we are looking for is in a dict with a random
-        # uuid key.
-        key = list(data[0].keys())[0]
-        return data[0][key][0]['id']
-
-    def get_vk_validation_id(self):
-        data = Dict('step/validationUnits')(self.doc)
-        return list(data[0].keys())[0]
-
-    def get_pwd_validation_id(self):
+class AuthenticationMethodPage(JsonPage):
+    def get_validation_id(self):
         return Dict('id')(self.doc)
+
+    @property
+    def validation_units(self):
+        return Dict('step/validationUnits')(self.doc)[0]
+
+    @property
+    def validation_unit_id(self):
+        assert len(self.validation_units) == 1
+        # The data we are looking for is in a dict with a random uuid key.
+        return next(iter(self.validation_units))
+
+    def get_authentication_method_info(self):
+        # The data we are looking for is in a dict with a random uuid key.
+        return self.validation_units[self.validation_unit_id][0]
+
+    def get_authentication_method_type(self):
+        return self.get_authentication_method_info()['type']
+
+    def login_errors(self, error):
+        # AUTHENTICATION_LOCKED is a BrowserIncorrectPassword because there is a key
+        # 'unlockingDate', in the json, that tells when the account will be unlocked.
+        # So it does not require any action from the user and is automatic.
+        if error in ('FAILED_AUTHENTICATION', 'AUTHENTICATION_LOCKED', ):
+            raise BrowserIncorrectPassword()
+
+    def transfer_errors(self, error):
+        if error == 'FAILED_AUTHENTICATION':
+            # For the moment, only otp sms is handled
+            raise TransferInvalidOTP(message="Le code SMS que vous avez renseigné n'est pas valide")
+
+    def recipient_errors(self, error):
+        if error == 'FAILED_AUTHENTICATION':
+            # For the moment, only otp sms is handled
+            raise RecipientInvalidOTP(message="Le code SMS que vous avez renseigné n'est pas valide")
+
+    def check_errors(self, feature):
+        if 'response' in self.doc:
+            result = self.doc['response']['status']
+        elif 'step' in self.doc:
+            # Can have error at first authentication request,
+            # error will be handle in `if` case.
+            # If there is no error, it will retrive 'AUTHENTICATION' as result value.
+            result = self.doc['step']['phase']['state']
+        else:
+            result = self.doc['phase']['previousResult']
+
+        if result in ('AUTHENTICATION', 'AUTHENTICATION_SUCCESS'):
+            return
+
+        FEATURES_ERRORS = {
+            'login': self.login_errors,
+            'transfer': self.transfer_errors,
+            'recipient': self.recipient_errors,
+        }
+        FEATURES_ERRORS[feature](error=result)
+
+        assert False, 'Error during %s authentication is not handled yet: %s' % (feature, result)
+
+
+class AuthenticationStepPage(AuthenticationMethodPage):
+    def get_redirect_data(self):
+        return Dict('response/saml2_post')(self.doc)
 
 
 class VkImagePage(JsonPage):
@@ -132,22 +176,8 @@ class VkImagePage(JsonPage):
         return self.doc
 
 
-class LoginValidationPage(JsonPage):
-    def is_here(self):
-        return 'OPS_GENERIQUE' in Dict('context')(self.doc)
-
-    def is_login_failed(self):
-        # AUTHENTICATION_LOCKED is a BrowserIncorrectPassword because there is a key
-        # 'unlockingDate', in the json, that tells when the account will be unlocked.
-        # So it does not require any action from the user and is automatic.
-        errors = ('FAILED_AUTHENTICATION', 'AUTHENTICATION_LOCKED')
-        return any((
-            self.doc.get('phase', {}).get('previousResult', '') in errors,
-            self.doc.get('response', {}).get('status', '') in errors,
-        ))
-
-    def get_redirect_data(self):
-        return Dict('response/saml2_post')(self.doc)
+class SmsPageOption(LoggedPage, HTMLPage):
+    pass
 
 
 class LoginTokensPage(JsonPage):
@@ -1828,34 +1858,6 @@ class ProTransferPage(TransferPage):
 
 class CanceledAuth(Exception):
     pass
-
-
-class SmsPageOption(LoggedPage, HTMLPage):
-    pass
-
-
-class SmsRequestStep(LoggedPage, JsonPage):
-    pass
-
-
-class SmsRequest(LoggedPage, JsonPage):
-    def validation_unit(self):
-        if 'step' in self.doc:
-            return self.doc['step']['validationUnits'][0]
-        return self.doc['validationUnits'][0]
-
-    def get_saml(self, otp_exception):
-        if 'response' not in self.doc:
-            error = self.doc['phase']['previousResult']
-
-            if error == 'FAILED_AUTHENTICATION':
-                raise otp_exception()
-            assert not error, 'Error during recipient validation: %s' % error
-
-        return self.doc['response']['saml2_post']['samlResponse']
-
-    def get_action(self):
-        return self.doc['response']['saml2_post']['action']
 
 
 class SmsPage(LoggedPage, HTMLPage):
