@@ -120,7 +120,13 @@ class AccountsPage(LoggedPage, JsonPage):
             obj__details_url = Dict('urlFicheFonds', default=None)
             obj_code = IsinCode(Dict('codeIsin', default=NotAvailable), default=NotAvailable)
             obj_code_type = IsinType(Dict('codeIsin', default=NotAvailable))
-            obj_diff = CleanDecimal.SI(Dict('mtPMV', default=None), default=NotAvailable)
+
+            def obj_diff(self):
+                diff = CleanDecimal.SI(Dict('mtPMV', default=None), default=NotAvailable)(self)
+                # Some invests have no diff value but the website fills the json field with the valuation.
+                if diff == Field('valuation')(self):
+                    return NotAvailable
+                return diff
 
             def obj_portfolio_share(self):
                 portfolio_share_percent = CleanDecimal.SI(Dict('pourcentageSupport', default=None), default=None)(self)
