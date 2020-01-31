@@ -245,8 +245,8 @@ class InvestmentPerformancePage(LoggedPage, HTMLPage):
     def get_performance_history(self):
         # The positions of the columns depend on the age of the investment fund.
         # For example, if the fund is younger than 5 years, there will be not '5 ans' column.
-        durations = [CleanText('.')(el) for el in self.doc.xpath('//div[h2[contains(text(), "Performances glissantes")]]//th')]
-        values = [CleanText('.')(el) for el in self.doc.xpath('//div[h2[contains(text(), "Performances glissantes")]]//tr[td[text()="Fonds"]]//td')]
+        durations = [CleanText('.')(el) for el in self.doc.xpath('//div[contains(@class, "fpPerfglissanteclassique")]//th')]
+        values = [CleanText('.')(el) for el in self.doc.xpath('//div[contains(@class, "fpPerfglissanteclassique")]//tr[td[text()="Fonds"]]//td')]
         matches = dict(zip(durations, values))
         # We do not fill the performance dictionary if no performance is available,
         # otherwise it will overwrite the data obtained from the JSON with empty values.
