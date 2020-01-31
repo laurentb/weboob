@@ -107,6 +107,11 @@ class AbstractElement(object):
         else:
             self.el = page.doc
 
+        parent_logger = None
+        if self.page:
+            parent_logger = self.page.logger
+        self.logger = getLogger(self.__class__.__name__.lower(), parent_logger)
+
         self.fill_env(page, parent)
 
         # Used by debug
@@ -166,7 +171,6 @@ class ListElement(AbstractElement):
 
     def __init__(self, *args, **kwargs):
         super(ListElement, self).__init__(*args, **kwargs)
-        self.logger = getLogger(self.__class__.__name__.lower())
         self.objects = OrderedDict()
 
     def __call__(self, *args, **kwargs):
@@ -292,7 +296,6 @@ class ItemElement(with_metaclass(_ItemElementMeta, AbstractElement)):
 
     def __init__(self, *args, **kwargs):
         super(ItemElement, self).__init__(*args, **kwargs)
-        self.logger = getLogger(self.__class__.__name__.lower())
         self.obj = None
         self.saved_attrib = {}  # safer way would be to clone lxml tree
 
