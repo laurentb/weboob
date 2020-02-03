@@ -27,8 +27,9 @@ from weboob.capabilities.base import empty, NotAvailable
 from .pages import (
     LoginPage, AccountsPage, AccountHistoryPage, AmundiInvestmentsPage, AllianzInvestmentPage,
     EEInvestmentPage, InvestmentPerformancePage, InvestmentDetailPage, EEProductInvestmentPage,
-    EresInvestmentPage, CprInvestmentPage, BNPInvestmentPage, BNPInvestmentApiPage, AxaInvestmentPage,
-    EpsensInvestmentPage, EcofiInvestmentPage, SGGestionInvestmentPage, SGGestionPerformancePage,
+    EresInvestmentPage, CprInvestmentPage, CprPerformancePage, BNPInvestmentPage, BNPInvestmentApiPage,
+    AxaInvestmentPage, EpsensInvestmentPage, EcofiInvestmentPage, SGGestionInvestmentPage,
+    SGGestionPerformancePage,
 )
 
 
@@ -54,6 +55,7 @@ class AmundiBrowser(LoginBrowser):
     eres_investments = URL(r'https://www.eres-group.com/eres/new_fiche_fonds.php', EresInvestmentPage)
     # CPR asset management investments
     cpr_investments = URL(r'https://www.cpr-am.fr/particuliers/product/view', CprInvestmentPage)
+    cpr_performance = URL(r'https://www.cpr-am.fr/particuliers/ezjscore', CprPerformancePage)
     # BNP Paribas Epargne Retraite Entreprises
     bnp_investments = URL(r'https://www.epargne-retraite-entreprises.bnpparibas.com/entreprises/fonds', BNPInvestmentPage)
     bnp_investment_api = URL(r'https://www.epargne-retraite-entreprises.bnpparibas.com/api2/funds/overview/(?P<fund_id>.*)', BNPInvestmentApiPage)
@@ -150,7 +152,6 @@ class AmundiBrowser(LoginBrowser):
 
         # Pages with asset category & recommended period
         elif (self.eres_investments.is_here() or
-            self.cpr_investments.is_here() or
             self.ee_product_investments.is_here() or
             self.epsens_investments.is_here() or
             self.ecofi_investments.is_here()):
@@ -178,14 +179,17 @@ class AmundiBrowser(LoginBrowser):
                     if complete_performance_history:
                         inv.performance_history = complete_performance_history
 
-        elif self.sg_gestion_investments.is_here():
+        elif (self.sg_gestion_investments.is_here() or
+              self.cpr_investments.is_here()):
             # Fetch asset category & recommended period
             self.page.fill_investment(obj=inv)
             # Fetch all performances on the details page
             performance_url = self.page.get_performance_url()
             if performance_url:
                 self.location(performance_url)
-                inv.performance_history = self.page.get_performance_history()
+                complete_performance_history = self.page.get_performance_history()
+                if complete_performance_history:
+                    inv.performance_history = complete_performance_history
 
         elif self.bnp_investments.is_here():
             # We fetch the fund ID and get the attributes directly from the BNP-ERE API

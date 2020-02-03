@@ -237,6 +237,11 @@ class EEInvestmentPage(LoggedPage, HTMLPage):
 
 
 class InvestmentPerformancePage(LoggedPage, HTMLPage):
+    '''
+    Note: this class is used to parse a pop-up that contains
+    investment details for the regular Amundi website,
+    as well as the SG Gestion and the CPR spaces.
+    '''
     def get_performance_history(self):
         # The positions of the columns depend on the age of the investment fund.
         # For example, if the fund is younger than 5 years, there will be not '5 ans' column.
@@ -253,6 +258,14 @@ class InvestmentPerformancePage(LoggedPage, HTMLPage):
         if matches.get('5 ans'):
             perfs[5] = percent_to_ratio(CleanDecimal.French(default=NotAvailable).filter(matches['5 ans']))
         return perfs
+
+
+class SGGestionPerformancePage(InvestmentPerformancePage):
+    pass
+
+
+class CprPerformancePage(InvestmentPerformancePage):
+    pass
 
 
 class InvestmentDetailPage(LoggedPage, HTMLPage):
@@ -306,6 +319,13 @@ class CprInvestmentPage(LoggedPage, HTMLPage):
         obj_asset_category = Title('//div[contains(text(), "Classe d\'actifs") or contains(text(), "Asset class")]//strong', default=NotAvailable)
         obj_recommended_period = Title('//div[contains(text(), "Durée recommandée") or contains(text(), "Recommended duration")]//strong', default=NotAvailable)
 
+    def get_performance_url(self):
+        js_script = CleanText('//script[@language="javascript"]')(self.doc)  # beurk
+        # Extract performance URL from a string such as 'Product.init(false,"/particuliers..."'
+        m = re.search(r'(/particuliers[^\"]+)', js_script)
+        if m:
+            return 'https://www.cpr-am.fr' + m.group(1)
+
 
 class BNPInvestmentPage(LoggedPage, HTMLPage):
     def get_fund_id(self):
@@ -355,7 +375,3 @@ class SGGestionInvestmentPage(LoggedPage, HTMLPage):
 
     def get_performance_url(self):
         return Attr('(//li[@role="presentation"])[1]//a', 'data-href', default=None)(self.doc)
-
-
-class SGGestionPerformancePage(InvestmentPerformancePage):
-    pass
