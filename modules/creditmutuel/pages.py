@@ -105,7 +105,6 @@ class LoginPage(PartialHTMLPage):
         # format login/password like login/password sent by firefox or chromium browser
         form['_cm_user'] = login
         form['_cm_pwd'] = passwd
-        form['_charset_'] = 'UTF-8'
         form.submit(allow_redirects=redirect)
 
     @property
