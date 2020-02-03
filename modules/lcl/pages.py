@@ -45,7 +45,7 @@ from weboob.browser.filters.standard import (
 )
 from weboob.browser.filters.json import Dict
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, ActionNeeded, ParseError
-from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.tools.capabilities.bank.transactions import FrenchTransaction, parse_with_patterns
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard, VirtKeyboardError
 from weboob.tools.compat import unicode, urlparse, parse_qs, urljoin
 from weboob.tools.html import html2text
@@ -525,6 +525,10 @@ class AccountHistoryPage(LoggedPage, HTMLPage):
                 elif not obj.raw:
                     # Empty transaction label
                     obj.raw = obj.label = Async('details', CleanText(u'//td[contains(text(), "Nature de l\'opération")]/following-sibling::*[1]'))(self)
+                # Some transactions have no details, but we can find the type of the transaction,
+                # the label and the category from the raw label.
+                if obj.type == Transaction.TYPE_UNKNOWN:
+                    parse_with_patterns(obj.raw, obj, self.klass.PATTERNS)
                 if not obj.date:
                     obj.date = Async('details', Date(CleanText(u'//td[contains(text(), "Date de l\'opération")]/following-sibling::*[1]', default=u''), dayfirst=True, default=NotAvailable))(self)
                     obj.rdate = obj.date
