@@ -19,12 +19,13 @@
 
 from __future__ import unicode_literals
 
-from weboob.browser.pages import HTMLPage, LoggedPage, FormNotFound, PartialHTMLPage
+from weboob.browser.pages import HTMLPage, LoggedPage, FormNotFound, PartialHTMLPage, pagination
 from weboob.browser.elements import ItemElement, ListElement, method
 from weboob.browser.filters.html import Link
 from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Env, Regexp, Format,
-    Field, Currency, RegexpError, Date, Async, AsyncLoad
+    Field, Currency, RegexpError, Date, Async, AsyncLoad,
+    Coalesce,
 )
 from weboob.capabilities.bill import DocumentTypes, Bill, Subscription
 from weboob.capabilities.base import NotAvailable
@@ -130,9 +131,13 @@ class SubscriptionsPage(LoggedPage, HTMLPage):
 
 
 class DocumentsPage(LoggedPage, HTMLPage):
+    @pagination
     @method
     class iter_documents(ListElement):
         item_xpath = '//div[contains(@class, "order") and contains(@class, "a-box-group")]'
+
+        def next_page(self):
+            return Link('//ul[@class="a-pagination"]/li[@class="a-last"]/a')(self)
 
         class item(ItemElement):
             klass = Bill
@@ -146,20 +151,27 @@ class DocumentsPage(LoggedPage, HTMLPage):
             obj_type = DocumentTypes.BILL
 
             def obj_date(self):
-                date = Date(CleanText('.//div[has-class("a-span4") and not(has-class("recipient"))]/div[2]'),
-                            parse_func=parse_french_date, dayfirst=True, default=NotAvailable)(self)
-                if date is NotAvailable:
-                    return Date(CleanText('.//div[has-class("a-span3") and not(has-class("recipient"))]/div[2]'),
-                                parse_func=parse_french_date, dayfirst=True)(self)
-                return date
+                # The date xpath changes depending on the kind of order
+                return Coalesce(
+                    Date(CleanText('.//div[has-class("a-span4") and not(has-class("recipient"))]/div[2]'), parse_func=parse_french_date, dayfirst=True, default=NotAvailable),
+                    Date(CleanText('.//div[has-class("a-span3") and not(has-class("recipient"))]/div[2]'), parse_func=parse_french_date, dayfirst=True, default=NotAvailable),
+                    Date(CleanText('.//div[has-class("a-span2") and not(has-class("recipient"))]/div[2]'), parse_func=parse_french_date, dayfirst=True, default=NotAvailable),
+                )(self)
 
             def obj_price(self):
+                # Some orders, audiobooks for example, are paid using "audio credits", they have no price or currency
                 currency = Env('currency')(self)
-                return CleanDecimal('.//div[has-class("a-col-left")]//span[has-class("value") and contains(., "%s")]' % currency, replace_dots=currency == u'EUR')(self)
+                return CleanDecimal(
+                    './/div[has-class("a-col-left")]//span[has-class("value") and contains(., "%s")]' % currency,
+                    replace_dots=currency == 'EUR', default=NotAvailable
+                )(self)
 
             def obj_currency(self):
                 currency = Env('currency')(self)
-                return Currency('.//div[has-class("a-col-left")]//span[has-class("value") and contains(., "%s")]' % currency)(self)
+                return Currency(
+                    './/div[has-class("a-col-left")]//span[has-class("value") and contains(., "%s")]' % currency,
+                    default=NotAvailable
+                )(self)
 
             def obj_url(self):
                 async_page = Async('details').loaded_page(self)
