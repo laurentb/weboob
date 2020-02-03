@@ -285,6 +285,31 @@ class LoansPage(JsonBasePage):
         if not empty(account_parent):
             loan._parent_id = account_parent.replace(' ', '')
 
+    def guess_loan_monthly_repayment(self, loan):
+        # We only know the next payment day (without the month or the year).
+        # But since we know that's a monthly repayment, we can guess it.
+
+        periodicity = CleanText(Dict('periodicite'))(loan)
+        if periodicity != 'MENSUELLE':
+            self.logger.warning('Not handled periodicity: %s', periodicity)
+
+        repayment_day = CleanDecimal(Dict('jourEcheanceMensuelle'))(loan)
+        if not repayment_day:
+            return NotAvailable
+
+        now = datetime.date.today()
+        try:
+            next_payment_date = now.replace(day=repayment_day)
+        except ValueError:
+            # When the repayment day is 30, there is a value error
+            # because February 30th will never exist.
+            # It's also the 30 on the website ...
+            return NotAvailable
+
+        if repayment_day < now.day:
+            next_payment_date += relativedelta(months=1)
+        return next_payment_date
+
     def get_loan_account(self, account):
         assert account._prestation_id in Dict('donnees/tabIdAllPrestations')(self.doc), \
             'Loan with prestation id %s should be on this page ...' % account._prestation_id
@@ -303,24 +328,10 @@ class LoansPage(JsonBasePage):
 
                 loan.total_amount = Eval(lambda x: x / 100, CleanDecimal(Dict('montantPret/valeur')))(acc)
                 loan.next_payment_amount = Eval(lambda x: x / 100, CleanDecimal(Dict('montantEcheance/valeur')))(acc)
+                loan.next_payment_date = self.guess_loan_monthly_repayment(acc)
 
                 loan.duration = Dict('dureeNbMois')(acc)
                 loan.maturity_date = datetime.datetime.strptime(Dict('dateFin')(acc), '%Y%m%d')
-
-                # We only know the next payment day (without the month or the year). But since we know that's
-                # a monthly repayment, we can guess it.
-                if CleanText(Dict('periodicite'))(acc) == 'MENSUELLE':
-                    repayment_day = CleanDecimal(Dict('jourEcheanceMensuelle'))(acc)
-                    if not repayment_day:
-                        loan.next_payment_date = NotAvailable
-                    else:
-                        now = datetime.datetime.now().date()
-                        next_payment_date = now.replace(day=repayment_day)
-                        if repayment_day < now.day:
-                            next_payment_date += relativedelta(months=1)
-                        loan.next_payment_date = next_payment_date
-                else:
-                    self.logger.warning('Not handled periodicity: %s', CleanText(Dict('periodicite'))(acc))
 
                 self.set_parent_account_id(loan, acc)
 
