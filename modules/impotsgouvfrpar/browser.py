@@ -31,8 +31,10 @@ class ImpotsParBrowser(AbstractBrowser):
 
     login_access = URL(r'/LoginAccess', LoginAccessPage)
     login_ael = URL(r'/LoginAEL', LoginAELPage)
+
+    # affichageadresse.do is pretty similar to chargementprofil.do but display address
     profile = URL(
-        r'/enp/ensu/chargementprofil.do',
+        r'/enp/ensu/affichageadresse.do',
         r'/enp/?$',
         ProfilePage
     )
