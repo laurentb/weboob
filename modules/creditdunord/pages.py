@@ -194,6 +194,11 @@ class LabelsPage(LoggedPage, JsonPage):
 
 class ProfilePage(LoggedPage, JsonPage):
     def get_profile(self):
+        if CleanText(Dict('commun/statut', default=''))(self.doc) == 'nok':
+            reason = CleanText(Dict('commun/raison', default=''))(self.doc)
+            assert reason == 'GDPR', 'Unhandled error : %s' % reason
+            raise ActionNeeded(reason)
+
         profile = Profile()
         profile.name = Format('%s %s', CleanText(Dict('donnees/nom')), CleanText(Dict('donnees/prenom'), default=''))(self.doc)
         return profile
