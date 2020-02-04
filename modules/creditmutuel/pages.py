@@ -1113,7 +1113,6 @@ class CardPage(OperationsPage, LoggedPage):
 
                     amount = TableCell('credit')(self)[0]
                     if self.page.browser.is_new_website:
-                        self.logger.info('On old creditmutuel website')
                         if not len(amount.xpath('./div')):
                             amount = TableCell('debit')(self)[0]
                         original_amount = amount.xpath('./div')[1].text if len(amount.xpath('./div')) > 1 else None
