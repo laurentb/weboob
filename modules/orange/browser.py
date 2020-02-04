@@ -177,7 +177,14 @@ class OrangeBillBrowser(LoginBrowser):
             assert len(documents) != 72
         else:
             headers = {'x-orange-caller-id': 'ECQ'}
-            self.bills_api_par.go(subid=subscription.id, headers=headers)
+            try:
+                self.bills_api_par.go(subid=subscription.id, headers=headers)
+            except ServerError as e:
+                if e.response.status_code in (503, ):
+                    self.logger.info("Server Error : %d" % e.response.status_code)
+                    return []
+                raise
+
             for b in self.page.get_bills(subid=subscription.id):
                 documents.append(b)
         return iter(documents)
