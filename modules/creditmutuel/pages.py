@@ -94,6 +94,8 @@ class LoginPage(PartialHTMLPage):
             raise BrowserIncorrectPassword(error_msg)
         elif any(msg in error_msg for msg in action_needed_msg):
             raise ActionNeeded(error_msg)
+        elif 'service est temporairement interrompu' in error_msg:
+            raise BrowserUnavailable(error_msg)
         assert not error_msg, "Unhandled error: '%s'" % error_msg
 
     def login(self, login, passwd, redirect=False):
