@@ -162,6 +162,7 @@ class BoursoramaBrowser(RetryLoginBrowser, TwoFactorBrowser):
 
     def handle_authentication(self):
         if self.authentication.is_here():
+            self.check_interactive()
             if self.config['enable_twofactors'].get():
                 confirmation_link = self.page.get_confirmation_link()
                 if confirmation_link:
