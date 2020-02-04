@@ -259,7 +259,7 @@ class LyxorfcpePage(LoggedPage, HTMLPage, CodePage):
 class LyxorFundsPage(LoggedPage, HTMLPage):
     @method
     class fill_investment(ItemElement):
-        obj_asset_category = CleanText('//div[contains(@class, "asset-class-list")]//div[contains(@class, "assetClass")][2]/span')
+        obj_asset_category = CleanText('//div[contains(@class, "asset-class-picto")]//h4')
 
         def obj_performance_history(self):
             # Fetching the performance history (1 year, 3 years & 5 years)
