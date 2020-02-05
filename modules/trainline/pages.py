@@ -111,4 +111,4 @@ class DocumentsPage(LoggedPage, JsonPage):
                 if Field('income')(self):
                     return Format('Remboursement du %s', Field('date'))(self)
                 else:
-                    return Format('Trajet du %s', Field('date'))(self)
+                    return Format('Achat du %s', Field('date'))(self)
