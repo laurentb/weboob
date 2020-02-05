@@ -68,6 +68,19 @@ class S2eBrowser(LoginBrowser, StatesMixin):
         kwargs['username'] = self.config['login'].get()
         kwargs['password'] = self.config['password'].get()
 
+        ''' All abstract modules have a regex on the password (such as '\d{6}'), except
+        'bnppere' because the Visiogo browser accepts non-digital passwords, since
+        there is no virtual keyboard on the visiogo website. Instead of crashing, it
+        sometimes works to extract the digits from the input and try to login if the original
+        input contains exactly 6 digits. '''
+        if not str.isdigit(str(kwargs['password'])):
+            digital_password = re.sub(r'[^0-9]', '', kwargs['password'])
+            if len(digital_password) != 6:
+                # No need to try to login, it will fail
+                raise BrowserIncorrectPassword()
+            # Try the 6 extracted digits as password
+            kwargs['password'] = digital_password
+
         self.secret = self.config['secret'].get() if 'secret' in self.config else None
         super(S2eBrowser, self).__init__(*args, **kwargs)
         self.cache = {}
