@@ -129,7 +129,7 @@ class AuthenticationMethodPage(JsonPage):
         # AUTHENTICATION_LOCKED is a BrowserIncorrectPassword because there is a key
         # 'unlockingDate', in the json, that tells when the account will be unlocked.
         # So it does not require any action from the user and is automatic.
-        if error in ('FAILED_AUTHENTICATION', 'AUTHENTICATION_LOCKED', ):
+        if error in ('FAILED_AUTHENTICATION', 'AUTHENTICATION_LOCKED', 'AUTHENTICATION_FAILED'):
             raise BrowserIncorrectPassword()
 
     def transfer_errors(self, error):
