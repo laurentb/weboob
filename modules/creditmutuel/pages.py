@@ -91,11 +91,12 @@ class LoginPage(PartialHTMLPage):
         error_msg = CleanText('//div[contains(@class, "blocmsg err")] | //div[contains(@class, "blocmsg alerte")]')(self.doc)
         wrong_pass_msg = ('mot de passe est faux', 'mot de passe est révoqué')
         action_needed_msg = ('pas autorisé à accéder à ce service', 'bloqué')
+        website_unavailable_msg = ('service est temporairement interrompu', 'Problème technique')
         if any(msg in error_msg for msg in wrong_pass_msg):
             raise BrowserIncorrectPassword(error_msg)
         elif any(msg in error_msg for msg in action_needed_msg):
             raise ActionNeeded(error_msg)
-        elif 'service est temporairement interrompu' in error_msg:
+        elif any(msg in error_msg for msg in website_unavailable_msg):
             raise BrowserUnavailable(error_msg)
         assert not error_msg, "Unhandled error: '%s'" % error_msg
 
