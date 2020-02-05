@@ -62,10 +62,14 @@ class DocumentsPage(LoggedPage, JsonPage):
                 'currency': pnr['currency'] or '',  # because pnr['currency'] can be None
             }
 
-            assert proof['type'] in ('purchase', 'refund'), proof['type']
-            if proof['type'] == 'purchase':
+            assert proof['type'] in ('purchase', 'refund', 'carrier_invoice'), proof['type']
+            if proof['type'] in ('purchase', 'carrier_invoice'):
                 # pnr['cents'] is 0 if this purchase has a refund, but there is nowhere to take it
                 # except make an addition, but we don't do that
+
+                # carrier_invoice comes along with a purchase
+                # typically when travel is in a foreign country
+
                 bill['price'] = pnr['cents']
                 bills.append(bill)
             else:  # proof['type'] == 'refund'
