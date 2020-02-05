@@ -39,8 +39,8 @@ def get_backtrace(empty="Empty backtrace."):
     """
     try:
         info = sys.exc_info()
-        trace = traceback.format_exception(*info)
-        if trace[0] != "None\n":
+        if info != (None, None, None):
+            trace = traceback.format_exception(*info)
             return "".join(trace)
     except:
         return "Error while trying to get backtrace"
