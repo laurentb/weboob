@@ -18,6 +18,7 @@
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
 from time import sleep
+from datetime import date
 
 from dateutil.relativedelta import relativedelta
 
@@ -57,12 +58,12 @@ class TrainlineBrowser(LoginBrowser):
 
     @need_login
     def iter_documents(self, subscription):
-        min_date = None
+        min_date = date.today()
         docs = {}
 
         i = 0
         while i < 10:
-            params = {'date': min_date.strftime('%Y-%m-01')} if min_date else None
+            params = {'date': min_date.strftime('%Y-%m-01')}
             # date params has a very silly behavior
             # * day seems to be useless, (but we have to put it anyway)
             # * server return last 3 months from date (including month we give)
