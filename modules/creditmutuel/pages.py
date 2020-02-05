@@ -125,11 +125,10 @@ class FiscalityConfirmationPage(LoggedPage, HTMLPage):
 # and might be empty of text while used in a redirection
 class MobileConfirmationPage(PartialHTMLPage):
     def is_here(self):
-        return {
+        return (
             'Démarrez votre application mobile' in CleanText('//div[contains(@id, "inMobileAppMessage")]')(self.doc) or
-            # for Banque Transatlantique and BECM
             'demande de confirmation mobile' in CleanText('//div[contains(@id, "inMobileAppMessage")]')(self.doc)
-        }
+        )
 
     # We land on this page for some connections, but can still bypass this verification for now
     def check_bypass(self):
