@@ -36,16 +36,28 @@ class BnppereModule(AbstractModule, CapBankWealth, CapProfile):
     LICENSE = 'LGPLv3+'
     VERSION = '1.6'
     CONFIG = BackendConfig(
-             ValueBackendPassword('login',    label='Identifiant', masked=False),
-             ValueBackendPassword('password', label='Code secret'),
-             Value('otp', label=u'Code de sécurité', default='', regexp='^(\d{6})$'),
-             Value('website', label='Espace Client', default='personeo',
-                   choices={'personeo': 'PEE, PERCO (Personeo)', 'visiogo': 'PER Entreprises (Visiogo)'}))
+        ValueBackendPassword('login', label='Identifiant', masked=False),
+        ValueBackendPassword('password', label='Code secret'),
+        Value('otp', label=u'Code de sécurité', default='', regexp=r'^(\d{6})$'),
+        Value(
+            'website',
+            label='Espace Client',
+            default='personeo',
+            choices={
+                'personeo': 'PEE, PERCO (Personeo)',
+                'visiogo': 'PER Entreprises (Visiogo)'
+            }
+        )
+    )
+
     PARENT = 's2e'
 
     def create_default_browser(self):
-        b = {'personeo': BnppereBrowser, 'visiogo': VisiogoBrowser}
-        self.BROWSER = b[self.config['website'].get()]
+        websites = {
+            'personeo': BnppereBrowser,
+            'visiogo': VisiogoBrowser
+        }
+        self.BROWSER = websites[self.config['website'].get()]
         return self.create_browser(self.config, weboob=self.weboob)
 
     def iter_accounts(self):
