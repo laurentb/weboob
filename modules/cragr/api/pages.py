@@ -619,10 +619,10 @@ class CardHistoryPage(LoggedPage, JsonPage):
             obj_bdate = Field('rdate')
 
             def obj_date(self):
-                return dateutil.parser.parse(Dict('datePrelevement')(self))
+                return dateutil.parser.parse(Dict('datePrelevement')(self)).date()
 
             def obj_rdate(self):
-                return dateutil.parser.parse(Dict('dateOperation')(self))
+                return dateutil.parser.parse(Dict('dateOperation')(self)).date()
 
 
 class NetfincaRedirectionPage(LoggedPage, HTMLPage):
