@@ -126,6 +126,7 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
         self.logged = False
 
     def do_login(self):
+        self.location(self.BASEURL)
         if self.headers:
             self.session.headers = self.headers
         else:
@@ -133,29 +134,32 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
             self.session.cookies.clear()
             self.accounts_list = []
 
-            data = {
-                'accessCode': self.username,
-                'password': self.password,
-                'clientId': 'com.arkea.%s.siteaccessible' % self.name,
-                'redirectUri': '%s/auth/checkuser' % self.BASEURL,
-                'errorUri': '%s/auth/errorauthn' % self.BASEURL
-            }
-
-            self.login.go(data=data)
-
+            self.login.go(data=self.get_login_data())
             if self.logout.is_here():
                 raise BrowserIncorrectPassword()
 
-            m = re.search('access_token=([^&]+).*id_token=(.*)', self.url)
-
-            self.session.headers.update({
-                'Authentication': "Bearer %s" % m.group(2),
-                'Authorization': "Bearer %s" % m.group(1),
-                'X-ARKEA-EFS': self.arkea,
-                'X-Csrf-Token': m.group(1)
-            })
+            self.update_authentication_headers()
 
             self.headers = self.session.headers
+
+    def get_login_data(self):
+        return {
+            'accessCode': self.username,
+            'password': self.password,
+            'clientId': 'com.arkea.%s.siteaccessible' % self.name,
+            'redirectUri': '%s/auth/checkuser' % self.BASEURL,
+            'errorUri': '%s/auth/errorauthn' % self.BASEURL
+        }
+
+    def update_authentication_headers(self):
+        m = re.search('access_token=([^&]+).*id_token=(.*)', self.url)
+
+        self.session.headers.update({
+            'Authentication': "Bearer %s" % m.group(2),
+            'Authorization': "Bearer %s" % m.group(1),
+            'X-ARKEA-EFS': self.arkea,
+            'X-Csrf-Token': m.group(1)
+        })
 
     def get_account(self, _id):
         return find_object(self.iter_accounts(), id=_id, error=AccountNotFound)
