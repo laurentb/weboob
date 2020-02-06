@@ -36,7 +36,7 @@ class LoginPage(PartialHTMLPage):
         return Attr('//div[@class="g-recaptcha"]', 'data-sitekey', default=NotAvailable)(self.doc)
 
     def login(self, login, password, captcha_response=None):
-        maxlength = Attr('//input[@id="Email"]', 'data-val-maxlength-max')(self.doc)
+        maxlength = int(Attr('//input[@id="Email"]', 'data-val-maxlength-max')(self.doc))
         regex = Attr('//input[@id="Email"]', 'data-val-regex-pattern')(self.doc)
         # their regex is: ^([\w\-+\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,15}|[0-9]{1,3})(\]?)$
         # but it is not very good, we escape - inside [] to avoid bad character range Exception
