@@ -24,7 +24,7 @@ from dateutil.relativedelta import relativedelta
 from itertools import chain
 
 from weboob.capabilities.bank import Account
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, BrowserPasswordExpired
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.tools.date import new_date
 
@@ -112,6 +112,8 @@ class OneyBrowser(LoginBrowser):
 
         error = self.page.get_error()
         if error:
+            if error == 'Authenticator : Le facteur d’authentification est rattaché':
+                raise BrowserPasswordExpired()
             raise BrowserIncorrectPassword(error)
 
         token = self.page.get_token()
