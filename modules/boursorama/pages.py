@@ -126,6 +126,7 @@ class Transaction(FrenchTransaction):
                                                             FrenchTransaction.TYPE_CARD),
                 (re.compile(r'^(?P<text>.+)?((ACHAT|PAIEMENT)\s)?CARTE (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{4}) (?P<text2>.*)'),
                                                             FrenchTransaction.TYPE_CARD),
+                (re.compile(r'(?P<text>.+) CARTE (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2}) (?P<text2>.*)'), FrenchTransaction.TYPE_CARD),
                 (re.compile('^(PRLV SEPA |PRLV |TIP )(?P<text>.*)'),
                                                             FrenchTransaction.TYPE_ORDER),
                 (re.compile('^RETRAIT DAB (?P<dd>\d{2})/?(?P<mm>\d{2})/?(?P<yy>\d{2}) (?P<text>.*)'),
@@ -134,12 +135,14 @@ class Transaction(FrenchTransaction):
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
                 (re.compile(r'^([A-Z][\sa-z]* )?Retrait dab (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{4}) (?P<text>.*)'),
                                                             FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('^AVOIR (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{2}) (?P<text>.*)'),   FrenchTransaction.TYPE_PAYBACK),
+                (re.compile(r'^AVOIR (?P<dd>\d{2})/?(?P<mm>\d{2})/?(?P<yy>\d{2}) (?P<text>.*)'),   FrenchTransaction.TYPE_PAYBACK),
                 (re.compile(r'^(?P<text>[A-Z][\sa-z]* )?AVOIR (?P<dd>\d{2})(?P<mm>\d{2})(?P<yy>\d{4}) (?P<text2>.*)'),   FrenchTransaction.TYPE_PAYBACK),
                 (re.compile('^REM CHQ (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
                 (re.compile(u'^([*]{3} solde des operations cb [*]{3} )?Relevé différé Carte (.*)'), FrenchTransaction.TYPE_CARD_SUMMARY),
                 (re.compile(u'^[*]{3} solde des operations cb [*]{3}(.*)'), FrenchTransaction.TYPE_CARD),
                 (re.compile(r'^Ech pret'), FrenchTransaction.TYPE_LOAN_PAYMENT),
+                (re.compile(r'\*INTER(ETS DEBITEURS AU|\.BRUTS) (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})'), FrenchTransaction.TYPE_BANK),
+                (re.compile(r'^\*.*'), FrenchTransaction.TYPE_BANK),
                ]
 
 
