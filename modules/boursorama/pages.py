@@ -306,7 +306,7 @@ class AccountsPage(LoggedPage, HTMLPage):
                         //li[span[text()="Total des +/- values latentes"]]/span[has-class("overview__value")]', replace_dots=True, default=NotAvailable)
             obj__holder = None
 
-            obj__amount = CleanDecimal('.//a[has-class("account--balance")]', replace_dots=True)
+            obj__amount = CleanDecimal.French('.//a[has-class("account--balance")]')
 
             def obj_balance(self):
                 if Field('type')(self) != Account.TYPE_CARD:
@@ -516,17 +516,10 @@ class HistoryPage(LoggedPage, HTMLPage):
         class item(ItemElement):
             klass = Transaction
 
-            obj_amount = CleanDecimal('.//div[has-class("list__movement__line--amount")]', replace_dots=True)
-            obj_category = CleanText('.//span[has-class("category")]')
+            obj_amount = CleanDecimal.French('.//div[has-class("list-operation-item__amount")]')
+            obj_category = CleanText('.//span[contains(@class, "category")]')
             obj__account_name = CleanText('.//span[contains(@class, "account__name-xs")]', default=None)
-
-            # div "label__name" contain two span: one with the short label (hidden in the website) and one with
-            # the long label. We try to get the long one. If it's empty, we take the content of "label__name" to
-            # be sure to have a value.
-            obj_raw = Coalesce(
-                Transaction.Raw(CleanText('.//span[has-class("list__movement--label-long")]')),
-                Transaction.Raw(CleanText('.//div[has-class("list__movement__line--label__name")]')),
-            )
+            obj_raw = Transaction.Raw(CleanText('.//div[has-class("list-operation-item__label-name")]'))
 
             def obj_id(self):
                 return Attr('.', 'data-id', default=NotAvailable)(self) or Attr('.', 'data-custom-id', default=NotAvailable)(self)
@@ -560,10 +553,14 @@ class HistoryPage(LoggedPage, HTMLPage):
                 return Date(dayfirst=True, default=NotAvailable).filter('%s-%s-%s' % (s[:2], s[2:4], s[4:]))
 
             def obj__is_coming(self):
-                return Env('coming', default=False)(self) or len(self.xpath(u'.//span[@title="Mouvement à débit différé"]')) or self.obj_date() > date.today()
+                return Env('coming', default=False)(self) or len(self.xpath('.//span[@title="Mouvement à débit différé"]')) or self.obj_date() > date.today()
 
             def obj_date(self):
-                date = Date(Attr('.//time', 'datetime'))(self)
+                # Months with accents are retrieved like that: f\xe9vrier
+                date = Date(
+                    CleanText('./preceding-sibling::li[contains(@class, "date-line")][1]', transliterate=True),
+                    parse_func=parse_french_date,
+                )(self)
                 if Env('is_card', default=False)(self):
                     if self.page.browser.deferred_card_calendar is None:
                         self.page.browser.location(Link('//a[contains(text(), "calendrier")]')(self))
@@ -576,8 +573,8 @@ class HistoryPage(LoggedPage, HTMLPage):
                 # TYPE_DEFERRED_CARD transactions are already present in the card history
                 # so we only return TYPE_DEFERRED_CARD for the coming:
                 if not Env('coming', default=False)(self):
-                    return not len(self.xpath(u'.//span[has-class("icon-carte-bancaire")]')) \
-                           and not len(self.xpath(u'.//a[contains(@href, "/carte")]')) \
+                    return not len(self.xpath('.//span[has-class("icon-carte-bancaire")]')) \
+                           and not len(self.xpath('.//a[contains(@href, "/carte")]')) \
                            and obj.type != Transaction.TYPE_DEFERRED_CARD
                 elif Env('coming', default=False)(self):
                     # Do not return coming from deferred cards if their
