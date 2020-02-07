@@ -792,6 +792,25 @@ class EsaliaDetailsPage(LoggedPage, HTMLPage):
     def get_asset_category(self):
         return CleanText('//label[text()="Classe d\'actifs:"]/following-sibling::span')(self.doc)
 
+    def get_performance_url(self):
+        return Attr('//a[contains(text(), "Performances")]', 'data-href', default=None)(self.doc)
+
+
+class EsaliaPerformancePage(LoggedPage, HTMLPage):
+    def get_performance_history(self):
+        # The positions of the columns depend on the age of the investment fund.
+        # For example, if the fund is younger than 5 years, there will be not '5 ans' column.
+        durations = [CleanText('.')(el) for el in self.doc.xpath('//div[contains(@class, "fpPerfglissanteclassique")]//th')]
+        values = [CleanText('.')(el) for el in self.doc.xpath('//div[contains(@class, "fpPerfglissanteclassique")]//tr[td[text()="Fonds"]]//td')]
+        matches = dict(zip(durations, values))
+        # We do not fill the performance dictionary if no performance is available,
+        # otherwise it will overwrite the data obtained from the JSON with empty values.
+        perfs = {}
+        for k, v in {1: '1 an', 3: '3 ans', 5: '5 ans'}.items():
+            if matches.get(v):
+                perfs[k] = percent_to_ratio(CleanDecimal.French(default=NotAvailable).filter(matches[v]))
+        return perfs
+
 
 class ProfilePage(LoggedPage, MultiPage):
     def get_company_name(self):

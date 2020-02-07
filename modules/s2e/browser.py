@@ -31,7 +31,8 @@ from .pages import (
     LoginPage, AccountsPage, AMFHSBCPage, AMFAmundiPage, AMFSGPage, HistoryPage, ErrorPage,
     LyxorfcpePage, EcofiPage, EcofiDummyPage, LandingPage, SwissLifePage, LoginErrorPage,
     EtoileGestionPage, EtoileGestionCharacteristicsPage, EtoileGestionDetailsPage,
-    APIInvestmentDetailsPage, LyxorFundsPage, EsaliaDetailsPage, ProfilePage,
+    APIInvestmentDetailsPage, LyxorFundsPage, EsaliaDetailsPage, EsaliaPerformancePage,
+    ProfilePage,
 )
 
 
@@ -41,25 +42,36 @@ class S2eBrowser(LoginBrowser, StatesMixin):
                 r'/portal/j_security_check', LoginPage)
     login_error = URL(r'/portal/login', LoginErrorPage)
     landing = URL(r'(.*)portal/salarie-bnp/accueil', LandingPage)
-    accounts = URL(r'/portal/salarie-(?P<slug>\w+)/monepargne/mesavoirs\?language=(?P<lang>)',
-                   r'/portal/salarie-(?P<slug>\w+)/monepargne/mesavoirs', AccountsPage)
+    accounts = URL(
+        r'/portal/salarie-(?P<slug>\w+)/monepargne/mesavoirs\?language=(?P<lang>)',
+        r'/portal/salarie-(?P<slug>\w+)/monepargne/mesavoirs',
+        AccountsPage
+    )
+    history = URL(r'/portal/salarie-(?P<slug>\w+)/operations/consulteroperations', HistoryPage)
+    error = URL(r'/maintenance/.+/', ErrorPage)
+    profile = URL(r'/portal/salarie-(?P<slug>\w+)/mesdonnees/coordperso\?scenario=ConsulterCP', ProfilePage)
+    # AMF code pages
     amfcode_hsbc = URL(r'https://www.assetmanagement.hsbc.com/feedRequest', AMFHSBCPage)
     amfcode_amundi = URL(r'https://www.amundi-ee.com/entr/product', AMFAmundiPage)
     amfcode_sg = URL(r'http://sggestion-ede.com/product', AMFSGPage)
+    # Ecofi pages
     isincode_ecofi = URL(r'http://www.ecofi.fr/fr/fonds/.*#yes\?bypass=clientprive', EcofiPage)
     pdf_file_ecofi = URL(r'http://www.ecofi.fr/sites/.*', EcofiDummyPage)
+    # Lyxor pages
     lyxorfcpe = URL(r'http://www.lyxorfcpe.com/part', LyxorfcpePage)
     lyxorfunds = URL(r'https://www.lyxorfunds.com', LyxorFundsPage)
-    history = URL(r'/portal/salarie-(?P<slug>\w+)/operations/consulteroperations', HistoryPage)
-    error = URL(r'/maintenance/.+/', ErrorPage)
+    # Swisslife pages
     swisslife = URL(r'http://fr.swisslife-am.com/fr/produits/.*', SwissLifePage)
+    # Etoile Gestion pages
     etoile_gestion = URL(r'http://www.etoile-gestion.com/index.php/etg_fr_fr/productsheet/view/.*', EtoileGestionPage)
     etoile_gestion_characteristics = URL(r'http://www.etoile-gestion.com/etg_fr_fr/ezjscore/.*', EtoileGestionCharacteristicsPage)
     etoile_gestion_details = URL(r'http://www.etoile-gestion.com/productsheet/.*', EtoileGestionDetailsPage)
-    profile = URL(r'/portal/salarie-(?P<slug>\w+)/mesdonnees/coordperso\?scenario=ConsulterCP', ProfilePage)
+    # BNP pages
     bnp_investments = URL(r'https://optimisermon.epargne-retraite-entreprises.bnpparibas.com')
     api_investment_details = URL(r'https://funds-api.bnpparibas.com/api/performances/FromIsinCode/', APIInvestmentDetailsPage)
+    # Esalia pages
     esalia_details = URL(r'https://www.societegeneralegestion.fr/psSGGestionEntr/productsheet/view', EsaliaDetailsPage)
+    esalia_performance = URL(r'https://www.societegeneralegestion.fr/psSGGestionEntr/ezjscore/call(.*)_tab_2', EsaliaPerformancePage)
 
     STATE_DURATION = 10
 
@@ -194,6 +206,11 @@ class S2eBrowser(LoginBrowser, StatesMixin):
                             inv.code_type = Investment.CODE_TYPE_ISIN
                     self.location(inv._link)
                     inv.asset_category = self.page.get_asset_category()
+                    # Fetch performance_history if available URL
+                    performance_url = self.page.get_performance_url()
+                    if performance_url:
+                        self.location('https://www.societegeneralegestion.fr' + performance_url)
+                        inv.performance_history = self.page.get_performance_history()
 
                 elif self.etoile_gestion_details.match(inv._link):
                     # Etoile Gestion investments details page:
