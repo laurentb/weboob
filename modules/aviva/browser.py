@@ -35,6 +35,7 @@ from .pages.account_page import AccountsPage
 
 
 class AvivaBrowser(LoginBrowser):
+    TIMEOUT = 120
     BASEURL = 'https://www.aviva.fr'
 
     validation = BrowserParamURL(r'/conventions/acceptation\?backurl=/(?P<browser_subsite>[^/]+)/Accueil', ValidationPage)
