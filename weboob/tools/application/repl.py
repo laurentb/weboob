@@ -388,7 +388,7 @@ class ReplApplication(ConsoleApplication, MyCmd):
                 print('Warning: some selected fields will not be displayed by the formatter. Fallback to another. Hint: use option -f', file=self.stderr)
                 self.formatter = self.formatters_loader.build_formatter(ReplApplication.DEFAULT_FORMATTER)
 
-        return self._do_and_retry(self._do_complete, self.options.count, fields, function, *args, **kwargs)
+        return self.weboob.do(self._do_complete, self.options.count, fields, function, *args, **kwargs)
 
     def _do_and_retry(self, *args, **kwargs):
         """
@@ -1180,9 +1180,12 @@ class ReplApplication(ConsoleApplication, MyCmd):
         split_path = self.working_path.get()
 
         try:
-            for res in self.do('iter_resources', objs=objs,
-                                                 split_path=split_path,
-                                                 caps=CapCollection):
+            for res in self._do_and_retry(
+                'iter_resources',
+                objs=objs,
+                split_path=split_path,
+                caps=CapCollection
+            ):
                 yield res
         except CallErrors as errors:
             self.bcall_errors_handler(errors, CollectionNotFound)
