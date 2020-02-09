@@ -437,7 +437,10 @@ class ReplApplication(ConsoleApplication, MyCmd):
                     backend.config['auth_uri'].set(value)
                 elif isinstance(error, DecoupledValidation):
                     print(error.message)
-                    backend.config['resume'] = True
+                    # FIXME we should reset this value, in case another DecoupledValidation occurs
+                    key = 'resume'
+                    if key in backend.config:
+                        backend.config[key].set(True)
                 else:
                     # Not handled error.
                     remaining_errors.append((backend, error, backtrace))
