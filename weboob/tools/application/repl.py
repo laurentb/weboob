@@ -400,6 +400,21 @@ class ReplApplication(ConsoleApplication, MyCmd):
         - BrowserRedirect
         - DecoupledValidation
         """
+
+        if self.interactive:
+            # Set a non-None value to all backends's request_information
+            #
+            # - None indicates non-interactive: do not trigger 2FA challenges,
+            #   raise NeedInteractive* exceptions before doing so
+            # - non-None indicates interactive: ok to trigger 2FA challenges,
+            #   raise BrowserQuestion/AppValidation when facing one
+            # It should be a dict because when non-empty, it will contain HTTP
+            # headers for legal PSD2 AIS/PIS authentication.
+            for backend in self.enabled_backends:
+                key = 'request_information'
+                if key in backend.config and backend.config[key].get() is None:
+                    backend.config[key].set({})
+
         try:
             for obj in self.weboob.do(*args, **kwargs):
                 yield obj
