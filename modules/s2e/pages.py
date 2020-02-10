@@ -28,7 +28,10 @@ from lxml import objectify
 
 from weboob.browser.pages import HTMLPage, XMLPage, RawPage, LoggedPage, pagination, FormNotFound, PartialHTMLPage, JsonPage
 from weboob.browser.elements import ItemElement, TableElement, SkipItem, method
-from weboob.browser.filters.standard import CleanText, Date, Regexp, Eval, CleanDecimal, Env, Field, MapIn, Upper
+from weboob.browser.filters.standard import (
+    CleanText, Date, Regexp, Eval, CleanDecimal,
+    Env, Field, MapIn, Upper, Format, Title,
+)
 from weboob.browser.filters.html import Attr, TableCell
 from weboob.browser.filters.json import Dict
 from weboob.browser.exceptions import HTTPNotFound
@@ -218,6 +221,19 @@ class AMFAmundiPage(HTMLPage, CodePage):
         return Regexp(CleanText('//td[@class="bannerColumn"]//li[contains(., "(C)")]', default=NotAvailable),
                r'(\d+)', default=NotAvailable)(self.doc)
 
+    def get_tab_url(self, tab_id):
+        return Format(
+            '%s%d',
+            Regexp(CleanText('//script[contains(text(), "Product.init")]'), r'init\(.*?,"(.*?tab_)\d"', default=None),
+            tab_id
+        )(self.doc)
+
+    def get_details_url(self):
+        return self.get_tab_url(5)
+
+    def get_performance_url(self):
+        return self.get_tab_url(2)
+
 
 class AMFSGPage(LoggedPage, HTMLPage, CodePage):
     CODE_TYPE = Investment.CODE_TYPE_AMF
@@ -369,6 +385,7 @@ class ItemInvestment(ItemElement):
                 elif (url.startswith('http://sggestion-ede.com/product') or
                     url.startswith('https://www.lyxorfunds.com/part') or
                     url.startswith('https://www.societegeneralegestion.fr') or
+                    url.startswith('https://www.amundi-ee.com') or
                     url.startswith('http://www.etoile-gestion.com/productsheet')):
                     self.env['_link'] = url
 
@@ -810,6 +827,22 @@ class EsaliaPerformancePage(LoggedPage, HTMLPage):
             if matches.get(v):
                 perfs[k] = percent_to_ratio(CleanDecimal.French(default=NotAvailable).filter(matches[v]))
         return perfs
+
+
+class AmundiPerformancePage(EsaliaPerformancePage):
+    '''
+    The parsing of this page is exactly like EsaliaPerformancePage
+    but the URL is quite different so we handle it with a separated page
+    '''
+    pass
+
+
+class AmundiDetailsPage(LoggedPage, HTMLPage):
+    def get_recommended_period(self):
+        return Title(CleanText('//label[contains(text(), "Durée minimum de placement")]/following-sibling::span', default=NotAvailable))(self.doc)
+
+    def get_asset_category(self):
+        return CleanText('(//label[contains(text(), "Classe d\'actifs")])[1]/following-sibling::span', default=NotAvailable)(self.doc)
 
 
 class ProfilePage(LoggedPage, MultiPage):

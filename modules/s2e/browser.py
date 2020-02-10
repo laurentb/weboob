@@ -32,7 +32,7 @@ from .pages import (
     LyxorfcpePage, EcofiPage, EcofiDummyPage, LandingPage, SwissLifePage, LoginErrorPage,
     EtoileGestionPage, EtoileGestionCharacteristicsPage, EtoileGestionDetailsPage,
     APIInvestmentDetailsPage, LyxorFundsPage, EsaliaDetailsPage, EsaliaPerformancePage,
-    ProfilePage,
+    AmundiDetailsPage, AmundiPerformancePage, ProfilePage,
 )
 
 
@@ -50,9 +50,12 @@ class S2eBrowser(LoginBrowser, StatesMixin):
     history = URL(r'/portal/salarie-(?P<slug>\w+)/operations/consulteroperations', HistoryPage)
     error = URL(r'/maintenance/.+/', ErrorPage)
     profile = URL(r'/portal/salarie-(?P<slug>\w+)/mesdonnees/coordperso\?scenario=ConsulterCP', ProfilePage)
-    # AMF code pages
     amfcode_hsbc = URL(r'https://www.assetmanagement.hsbc.com/feedRequest', AMFHSBCPage)
+    # Amundi pages
     amfcode_amundi = URL(r'https://www.amundi-ee.com/entr/product', AMFAmundiPage)
+    performance_details = URL(r'https://www.amundi-ee.com/entr/ezjscore/call(.*)_tab_2', AmundiPerformancePage)
+    investment_details = URL(r'https://www.amundi-ee.com/entr/ezjscore/call(.*)_tab_5', AmundiDetailsPage)
+    # SG Gestion pages
     amfcode_sg = URL(r'http://sggestion-ede.com/product', AMFSGPage)
     # Ecofi pages
     isincode_ecofi = URL(r'http://www.ecofi.fr/fr/fonds/.*#yes\?bypass=clientprive', EcofiPage)
@@ -189,6 +192,20 @@ class S2eBrowser(LoginBrowser, StatesMixin):
                             inv.code_type = Investment.CODE_TYPE_ISIN
                         self.location('https://funds-api.bnpparibas.com/api/performances/FromIsinCode/' + inv.code)
                         self.page.fill_investment(obj=inv)
+
+                elif self.amfcode_amundi.match(inv._link):
+                    self.location(inv._link)
+                    details_url = self.page.get_details_url()
+                    performance_url = self.page.get_performance_url()
+                    if details_url:
+                        self.location(details_url)
+                        if self.investment_details.is_here():
+                            inv.recommended_period = self.page.get_recommended_period()
+                            inv.asset_category = self.page.get_asset_category()
+                    if performance_url:
+                        self.location(performance_url)
+                        if self.performance_details.is_here():
+                            inv.performance_history = self.page.get_performance_history()
 
                 elif self.amfcode_sg.match(inv._link) or self.lyxorfunds.match(inv._link):
                     # SGgestion-ede or Lyxor investments: not all of them have available attributes.
