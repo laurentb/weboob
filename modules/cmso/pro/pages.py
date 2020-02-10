@@ -22,14 +22,14 @@ from __future__ import unicode_literals
 import re
 
 from weboob.exceptions import BrowserIncorrectPassword
-from weboob.browser.pages import HTMLPage, JsonPage, pagination
+from weboob.browser.pages import HTMLPage, JsonPage, pagination, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, TableElement, method
 from weboob.browser.filters.standard import CleanText, CleanDecimal, DateGuesser, Env, Field, Filter, Regexp, Currency, Date
 from weboob.browser.filters.html import Link, Attr, TableCell
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
-from weboob.tools.compat import urljoin, parse_qsl
+from weboob.tools.compat import urljoin
 from weboob.tools.capabilities.bank.investments import is_isin_valid
 
 
@@ -46,41 +46,16 @@ class PasswordCreationPage(HTMLPage):
         return '%s%s' % (CleanText(xpath + '/strong')(self.doc), CleanText(xpath, children=False)(self.doc))
 
 
-class ChoiceLinkPage(HTMLPage):
-    def on_load(self):
-        link_line = self.doc.xpath('//script')[-1].text
-        m = re.search(r'lien\("(.*)"', link_line)
-        if m:
-            self.browser.location(m.group(1))
+class ErrorPage(HTMLPage):
+    pass
 
 
-class SubscriptionPage(HTMLPage):
-    def on_load(self):
-        if "Vous ne disposez d'aucun contrat sur cet accès." in CleanText('.')(self.doc):
-            raise BrowserIncorrectPassword()
+class SubscriptionPage(LoggedPage, JsonPage):
+    pass
 
-    def get_csrf(self):
-        div = self.doc.xpath('.//div[@onclick]')[0]
-        m = re.search(r'csrf=(\w+)', div.attrib['onclick'])
-        return m.group(1)
-
-    def get_areas(self):
-        for div in self.doc.xpath('//div[@class="listeAbonnementsBox"]'):
-            site_type = div.xpath('./div[1]')[0].text
-            if site_type != 'Particulier':
-                for link in div.xpath('./div/@onclick'):
-                    m = re.search(r"href='(.*)'", link)
-                    if m:
-                        yield m.group(1)
 
 class LoginPage(HTMLPage):
-    def login(self, username, password):
-        form = self.get_form('//form[@id="formAuthent"]')
-
-        form['noPersonne'] = username
-        form['motDePasse'] = password[:16]
-
-        form.submit()
+    pass
 
 
 class CMSOPage(HTMLPage):
@@ -209,23 +184,23 @@ class InvestmentAccountPage(CMSOPage):
 
 
 class Transaction(FrenchTransaction):
-    PATTERNS = [(re.compile('^RET DAB (?P<dd>\d{2})/?(?P<mm>\d{2})(/?(?P<yy>\d{2}))? (?P<text>.*)'),
+    PATTERNS = [(re.compile(r'^RET DAB (?P<dd>\d{2})/?(?P<mm>\d{2})(/?(?P<yy>\d{2}))? (?P<text>.*)'),
                                                               FrenchTransaction.TYPE_WITHDRAWAL),
-                (re.compile('CARTE (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'),
+                (re.compile(r'CARTE (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'),
                                                               FrenchTransaction.TYPE_CARD),
-                (re.compile('^(?P<category>VIR(EMEN)?T? (SEPA)?(RECU|FAVEUR)?)( /FRM)?(?P<text>.*)'),
+                (re.compile(r'^(?P<category>VIR(EMEN)?T? (SEPA)?(RECU|FAVEUR)?)( /FRM)?(?P<text>.*)'),
                                                               FrenchTransaction.TYPE_TRANSFER),
-                (re.compile('^PRLV (?P<text>.*)( \d+)?$'),    FrenchTransaction.TYPE_ORDER),
-                (re.compile('^(CHQ|CHEQUE) .*$'),             FrenchTransaction.TYPE_CHECK),
-                (re.compile('^(AGIOS /|FRAIS) (?P<text>.*)'), FrenchTransaction.TYPE_BANK),
-                (re.compile('^(CONVENTION \d+ |F )?COTIS(ATION)? (?P<text>.*)'),
+                (re.compile(r'^PRLV (?P<text>.*)( \d+)?$'),    FrenchTransaction.TYPE_ORDER),
+                (re.compile(r'^(CHQ|CHEQUE) .*$'),             FrenchTransaction.TYPE_CHECK),
+                (re.compile(r'^(AGIOS /|FRAIS) (?P<text>.*)'), FrenchTransaction.TYPE_BANK),
+                (re.compile(r'^(CONVENTION \d+ |F )?COTIS(ATION)? (?P<text>.*)'),
                                                               FrenchTransaction.TYPE_BANK),
-                (re.compile('^REMISE (?P<text>.*)'),          FrenchTransaction.TYPE_DEPOSIT),
-                (re.compile('^(?P<text>.*)( \d+)? QUITTANCE .*'),
+                (re.compile(r'^REMISE (?P<text>.*)'),          FrenchTransaction.TYPE_DEPOSIT),
+                (re.compile(r'^(?P<text>.*)( \d+)? QUITTANCE .*'),
                                                               FrenchTransaction.TYPE_ORDER),
-                (re.compile('^.* LE (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})$'),
+                (re.compile(r'^.* LE (?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{2})$'),
                                                               FrenchTransaction.TYPE_UNKNOWN),
-                (re.compile('^.* PAIEMENT (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'),
+                (re.compile(r'^.* PAIEMENT (?P<dd>\d{2})/(?P<mm>\d{2}) (?P<text>.*)'),
                                                               FrenchTransaction.TYPE_UNKNOWN),
                ]
 
@@ -260,14 +235,14 @@ class HistoryPage(CMSOPage):
         class item(CmsoTransactionElement):
 
             def date(selector):
-                return DateGuesser(CleanText(selector, children=False), Env('date_guesser')) | Transaction.Date(selector)
+                return DateGuesser(Regexp(CleanText(selector), r'\w+ (\d{2}/\d{2})'), Env('date_guesser')) | Transaction.Date(selector)
 
             # CAUTION: this website write a 'Date valeur' inside a div with a class == 'c-ope'
             # and a 'Date opération' inside a div with a class == 'c-val'
             # so actually i assume 'c-val' class is the real operation date and 'c-ope' is value date
             obj_date = date('./div[contains(@class, "c-val")]')
             obj_vdate = date('./div[contains(@class, "c-ope")]')
-            obj_raw = Transaction.Raw('./div[contains(@class, "c-libelle-long")]', children=False)
+            obj_raw = Transaction.Raw(Regexp(CleanText('./div[contains(@class, "c-libelle-long")]'), r'Libellé étendu (.+)'))
             obj_amount = Transaction.Amount('./div[contains(@class, "c-credit")]', './div[contains(@class, "c-debit")]')
 
 
@@ -280,17 +255,6 @@ class UpdateTokenMixin(object):
 class SSODomiPage(JsonPage, UpdateTokenMixin):
     def get_sso_url(self):
         return self.doc['urlSSO']
-
-
-class TokenPage(CMSOPage, UpdateTokenMixin):
-    def on_load(self):
-        auth_query_params = re.search(r'parent\.location = ".*#(.*)";', self.text)
-        assert auth_query_params, 'Url query parameter with token for authentication was not found'
-        auth_query_params = auth_query_params.group(1)
-
-        params = dict(parse_qsl(auth_query_params))
-        self.browser.token = params.get('id_token', None)
-        self.browser.csrf = params['access_token']
 
 
 class AuthCheckUser(HTMLPage):

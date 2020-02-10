@@ -26,14 +26,15 @@ import re
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 from weboob.capabilities.base import find_object
 from weboob.capabilities.bank import Account
-from weboob.exceptions import BrowserHTTPError, BrowserIncorrectPassword, ActionNeeded, BrowserUnavailable
+from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.exceptions import ServerError
 from weboob.tools.date import LinearDateGuesser
+from weboob.tools.compat import urlparse, parse_qsl
 
 from .pages import (
-    LoginPage, PasswordCreationPage, AccountsPage, HistoryPage, ChoiceLinkPage, SubscriptionPage, InvestmentPage,
-    InvestmentAccountPage, UselessPage, TokenPage, SSODomiPage, AuthCheckUser,
+    LoginPage, PasswordCreationPage, AccountsPage, HistoryPage, SubscriptionPage, InvestmentPage,
+    InvestmentAccountPage, UselessPage, SSODomiPage, AuthCheckUser, ErrorPage,
 )
 
 from ..par.pages import ProfilePage
@@ -41,56 +42,69 @@ from ..par.browser import CmsoParBrowser
 
 
 class CmsoProBrowser(LoginBrowser):
-    login = URL(r'/banque/assurance/credit-mutuel/pro/accueil\?espace=professionnels', LoginPage)
-    choice_link = URL(r'/domiweb/accueil.jsp', ChoiceLinkPage)
-    subscription = URL(r'/domiweb/prive/espacesegment/selectionnerAbonnement/0-selectionnerAbonnement.act', SubscriptionPage)
+    login = URL(r'https://api.(?P<website>[\w.]+)/oauth-implicit/token', LoginPage)
+    subscription = URL(r'https://api.(?P<website>[\w.]+)/domiapi/oauth/json/accesAbonnement', SubscriptionPage)
     accounts = URL(r'/domiweb/prive/professionnel/situationGlobaleProfessionnel/0-situationGlobaleProfessionnel.act', AccountsPage)
     history = URL(r'/domiweb/prive/professionnel/situationGlobaleProfessionnel/1-situationGlobaleProfessionnel.act', HistoryPage)
     password_creation = URL(r'/domiweb/prive/particulier/modificationMotDePasse/0-creationMotDePasse.act', PasswordCreationPage)
     useless = URL(r'/domiweb/prive/particulier/modificationMotDePasse/0-expirationMotDePasse.act', UselessPage)
-
     investment = URL(r'/domiweb/prive/particulier/portefeuilleSituation/0-situationPortefeuille.act', InvestmentPage)
     invest_account = URL(r'/domiweb/prive/particulier/portefeuilleSituation/2-situationPortefeuille.act\?(?:csrf=[^&]*&)?indiceCompte=(?P<idx>\d+)&idRacine=(?P<idroot>\d+)', InvestmentAccountPage)
-
-    profile = URL(r'https://(?P<webtype>[\w.]+).(?P<website>[\w.]+)/domiapi/oauth/json/edr/infosPerson', ProfilePage)
-
-    tokens = URL(r'/domiweb/prive/espacesegment/selectionnerAbonnement/3-selectionnerAbonnement.act', TokenPage)
-    ssoDomiweb = URL(r'https://(?P<webtype>[\w.]+).(?P<website>[\w.]+)/domiapi/oauth/json/ssoDomiwebEmbedded', SSODomiPage)
-    auth_checkuser = URL(r'https://pro.(?P<website>[\w.]+)/auth/checkuser', AuthCheckUser)
+    error = URL(r'https://pro.(?P<website>[\w.]+)/auth/errorauthn', ErrorPage)
+    profile = URL(r'https://api.(?P<website>[\w.]+)/domiapi/oauth/json/edr/infosPerson', ProfilePage)
+    ssoDomiweb = URL(r'https://api.(?P<website>[\w.]+)/domiapi/oauth/json/ssoDomiwebEmbedded', SSODomiPage)
+    auth_checkuser = URL(r'https://api.(?P<website>[\w.]+)/securityapi/checkuser', AuthCheckUser)
 
     def __init__(self, website, *args, **kwargs):
         super(CmsoProBrowser, self).__init__(*args, **kwargs)
 
-        # Arkea Banque Privee uses a specific URL prefix
-        if website == 'arkeabanqueprivee.fr':
-            self.BASEURL = "https://m.%s" % website
-        else:
-            self.BASEURL = "https://mon.%s" % website
-
         self.BASEURL = "https://www.%s" % website
         self.website = website
-        self.webtype = None
-        self.areas = None
+        self.areas = []
+        self.curr_area = None
         self.arkea = CmsoParBrowser.ARKEA[website]
-        self.csrf = None
         self.last_csrf = None
-        self.token = None
+        self.name = website.split('.')[0]
+        # This ids can be found pro.{website}/mabanque/config-XXXXXX.js
+        self.client_id = 'nMdBJgaYgVaT67Ysf7XvTS9ayr9fdI69'
+
+    def get_login_data(self):
+        return {
+            'accessCode': self.username,
+            'password': self.password,
+            'client_id': self.client_id,
+            'responseType': 'token',
+            'clientId': 'com.arkea.sitemobilepro.%s' % self.name,
+            'redirectUri': 'https://pro.%s/auth/checkuser' % self.website,
+            'errorUri': 'https://pro.%s/auth/errorauthn' % self.website,
+            'fingerprint': 'b61a924d1245beb7469fef44db132e96',
+        }
 
     def do_login(self):
-        self.login.stay_or_go()
-        try:
-            self.page.login(self.username, self.password)
-        except BrowserHTTPError as e:
-            # Yes, I know... In the Wild Wild Web, nobody respects nothing
-            if e.response.status_code in (500, 401):
+        self.login.go(data=self.get_login_data(), website=self.website)
+        if self.error.is_here():
+            if 'INVALID_CREDENTIALS' in self.url:
                 raise BrowserIncorrectPassword()
-            else:
-                raise
+            raise Exception('Login error not handled: %r' % (urlparse(self.url).fragment,))
+
+        hidden_params = dict(parse_qsl(urlparse(self.url).fragment))
+        assert 'access_token' in hidden_params, 'Could not retrieve csrf token'
+
+        self.session.headers.update({
+            'Authorization': "Bearer %s" % hidden_params['access_token'],
+            'X-ARKEA-EFS': self.arkea,
+            'X-Csrf-Token': hidden_params['access_token'],
+            'X-REFERER-TOKEN': 'RWDPRO',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        })
+
+        self.auth_checkuser.go(json={"espaceApplication": "PRO", "espacePRO": "PRO"}, website=self.website)
 
         if self.useless.is_here():
             # user didn't change his password for 6 months and website ask us if we want to change it
             # just skip it by calling this url
-            self.location('/domiweb/accueil.jsp', method='POST')
+            self.location('https://pro.%s/mabanque/pro/comptes/comptes' % self.website, method='POST')
 
         if self.password_creation.is_here():
             # user got a temporary password and never changed it, website ask to set a new password before grant access
@@ -99,9 +113,17 @@ class CmsoProBrowser(LoginBrowser):
         self.fetch_areas()
 
     def fetch_areas(self):
-        if self.areas is None:
-            self.subscription.stay_or_go()
-            self.areas = list(self.page.get_areas())
+        if not self.areas:
+            self.subscription.go(
+                json={'includePart': False},
+                website=self.website,
+            )
+
+            for sub in self.page.get('listAbonnement'):
+                self.areas.append({
+                    'contract': sub['numContratBAD'],
+                    'id': sub['numeroPersonne'],
+                })
 
     def go_with_ssodomi(self, path):
         if isinstance(path, URL):
@@ -114,29 +136,10 @@ class CmsoProBrowser(LoginBrowser):
             'service': path,
         }
 
-        headers = {
-            'Authorization': 'Bearer %s' % self.csrf,
-            'X-Csrf-Token': self.csrf,
-            'X-ARKEA-EFS' : self.arkea,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'ADRIM': 'isAjax:true',
-        }
-        if self.token:
-            self.webtype = 'pro'
-            headers['Authentication'] = 'Bearer %s' % self.token
-            headers['X-REFERER-TOKEN'] = 'RWDPRO'
-        else:
-            self.webtype = 'api'
-        try:
-            url = self.ssoDomiweb.go(webtype=self.webtype,
-                                     website=self.website,
-                                     headers=headers,
-                                     json=json).get_sso_url()
-        except BrowserHTTPError as e:
-            if e.response.status_code == 500:
-                raise BrowserUnavailable()
-            raise
+        url = self.ssoDomiweb.go(
+            website=self.website,
+            headers={'ADRIM': 'isAjax:true'},
+            json=json).get_sso_url()
 
         page = self.location(url).page
         # each time we get a new csrf we store it because it can be used in further navigation
@@ -144,14 +147,22 @@ class CmsoProBrowser(LoginBrowser):
         return page
 
     def go_on_area(self, area):
-        if not self.subscription.is_here():
-            self.go_with_ssodomi(self.subscription)
-        area = re.sub(r'csrf=(\w+)', 'csrf=' + self.page.get_csrf(), area)
-
-        self.logger.info('Go on area %s', area)
-        self.location(area)
-        self.location('/domiweb/accueil.jsp')
-        self.auth_checkuser.go(website=self.website)
+        if self.curr_area == area:
+            return
+        ret = self.location(
+            'https://api.%s/securityapi/changeSpace' % (self.website),
+            json={
+                'clientIdSource': self.client_id,
+                'espaceDestination': 'PRO',
+                'fromMobile': False,
+                'numContractDestination': area['contract'],
+            }).json()
+        # Csrf is updated each time we change area
+        self.session.headers.update({
+            'Authorization': "Bearer %s" % ret['accessToken'],
+            'X-Csrf-Token': ret['accessToken'],
+        })
+        self.curr_area = area
 
     @need_login
     def iter_accounts(self):
@@ -186,7 +197,7 @@ class CmsoProBrowser(LoginBrowser):
                     seen.add(seenkey)
                     yield a
             except ServerError:
-                self.logger.warning('Area not unavailable.')
+                self.logger.warning('Area unavailable.')
 
     def _build_next_date_range(self, date_range):
         date_format = '%d/%m/%Y'
@@ -277,29 +288,14 @@ class CmsoProBrowser(LoginBrowser):
     @need_login
     def get_profile(self):
         self.go_on_area(self.areas[0])
-        # this code is copied from CmsoParBrowser
-        if self.token is None:
-            try:
-                self.tokens.go()
-            except ServerError:
-                self.logger.warning('Tokens are unavailable for this area.')
 
         headers = {
-            'Authorization': 'Bearer %s' % self.csrf,
-            'X-Csrf-Token': self.csrf,
-            'X-ARKEA-EFS' : self.arkea,
             'Content-Type': 'application/json',
             'Accept': 'application/json',
             'ADRIM': 'isAjax:true',
         }
-        if self.token:
-            self.webtype = 'pro'
-            headers['Authentication'] = 'Bearer %s' % self.token
-            headers['X-REFERER-TOKEN'] = 'RWDPRO'
-        else:
-            self.webtype = 'api'
 
-        return self.profile.go(webtype=self.webtype,
-                               website=self.website,
-                               data='{}',
-                               headers=headers).get_profile()
+        return self.profile.go(
+            website=self.website,
+            json={},
+            headers=headers).get_profile()
