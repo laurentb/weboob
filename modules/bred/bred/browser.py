@@ -27,14 +27,16 @@ from datetime import date
 from weboob.capabilities.bank import Account
 from weboob.browser import LoginBrowser, need_login, URL
 from weboob.capabilities.base import find_object
+from weboob.tools.capabilities.bank.investments import create_french_liquidity
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
+from .linebourse_browser import LinebourseAPIBrowser
 from .pages import (
     HomePage, LoginPage, UniversePage,
     TokenPage, MoveUniversePage, SwitchPage,
     LoansPage, AccountsPage, IbanPage, LifeInsurancesPage,
     SearchPage, ProfilePage, EmailsPage, ErrorPage,
-    ErrorCodePage,
+    ErrorCodePage, LinebourseLoginPage,
 )
 
 __all__ = ['BredBrowser']
@@ -42,6 +44,8 @@ __all__ = ['BredBrowser']
 
 class BredBrowser(LoginBrowser):
     BASEURL = 'https://www.bred.fr'
+
+    LINEBOURSE_BROWSER = LinebourseAPIBrowser
 
     home = URL(r'/$', HomePage)
     login = URL(r'/transactionnel/Authentication', LoginPage)
@@ -56,6 +60,7 @@ class BredBrowser(LoginBrowser):
     loans = URL(r'/transactionnel/services/applications/prets/liste', LoansPage)
     accounts = URL(r'/transactionnel/services/rest/Account/accounts', AccountsPage)
     iban = URL(r'/transactionnel/services/rest/Account/account/(?P<number>.*)/iban', IbanPage)
+    linebourse_login = URL(r'/transactionnel/v2/services/applications/SSO/linebourse', LinebourseLoginPage)
     life_insurances = URL(r'/transactionnel/services/applications/avoirsPrepar/getAvoirs', LifeInsurancesPage)
     search = URL(r'/transactionnel/services/applications/operations/getSearch/', SearchPage)
     profile = URL(r'/transactionnel/services/rest/User/user', ProfilePage)
@@ -72,6 +77,23 @@ class BredBrowser(LoginBrowser):
         self.accnum = accnum
         self.universes = None
         self.current_univers = None
+
+        dirname = self.responses_dirname
+        if dirname:
+            dirname += '/bourse'
+
+        self.weboob = kwargs['weboob']
+        self.linebourse = self.LINEBOURSE_BROWSER(
+            'https://www.linebourse.fr',
+            logger=self.logger,
+            responses_dirname=dirname,
+            weboob=self.weboob,
+            proxy=self.PROXIES,
+        )
+        # Some accounts are detailed on linebourse. The only way to know which is to go on linebourse.
+        # The parameters to do so depend on the universe.
+        self.linebourse_urls = {}
+        self.linebourse_tokens = {}
 
     def do_login(self):
         if 'hsess' not in self.session.cookies:
@@ -96,7 +118,7 @@ class BredBrowser(LoginBrowser):
         self.session.headers.update({'X-Token-Bred': x_token_bred, })  # update headers for session
         return {'X-Token-Bred': x_token_bred, }
 
-    def move_to_univers(self, univers):
+    def move_to_universe(self, univers):
         if univers == self.current_univers:
             return
         self.move_universe.go(key=univers)
@@ -115,14 +137,47 @@ class BredBrowser(LoginBrowser):
     def get_accounts_list(self):
         accounts = []
         for universe_key in self.get_universes():
-            self.move_to_univers(universe_key)
-            accounts.extend(self.get_list())
-            accounts.extend(self.get_life_insurance_list(accounts))
-            accounts.extend(self.get_loans_list())
+            self.move_to_universe(universe_key)
+            universe_accounts = []
+            universe_accounts.extend(self.get_list())
+            universe_accounts.extend(self.get_life_insurance_list(accounts))
+            universe_accounts.extend(self.get_loans_list())
+            linebourse_accounts = self.get_linebourse_accounts(universe_key)
+            for account in universe_accounts:
+                account._is_in_linebourse = False
+                # Accound id looks like 'bred_account_id.folder_id'
+                # We only want bred_account_id and we need to clean it to match it to linebourse IDs.
+                account_id = account.id.strip('0').split('.')[0]
+                for linebourse_account in linebourse_accounts:
+                    if account_id in linebourse_account:
+                        account._is_in_linebourse = True
+            accounts.extend(universe_accounts)
 
         # Life insurances are sometimes in multiple universes, we have to remove duplicates
         unique_accounts = {account.id: account for account in accounts}
         return sorted(unique_accounts.values(), key=operator.attrgetter('_univers'))
+
+    @need_login
+    def get_linebourse_accounts(self, universe_key):
+        self.move_to_universe(universe_key)
+        if universe_key not in self.linebourse_urls:
+            self.linebourse_login.go()
+            if self.linebourse_login.is_here():
+                linebourse_url = self.page.get_linebourse_url()
+                if linebourse_url:
+                    self.linebourse_urls[universe_key] = linebourse_url
+                    self.linebourse_tokens[universe_key] = self.page.get_linebourse_token()
+        if universe_key in self.linebourse_urls:
+            self.linebourse.location(
+                self.linebourse_urls[universe_key],
+                data={'SJRToken': self.linebourse_tokens[universe_key]}
+            )
+            self.linebourse.session.headers['X-XSRF-TOKEN'] = self.linebourse.session.cookies.get('XSRF-TOKEN')
+            params = {'_': '{}'.format(int(time.time() * 1000))}
+            self.linebourse.account_codes.go(params=params)
+            if self.linebourse.account_codes.is_here():
+                return self.linebourse.page.get_accounts_list()
+        return []
 
     @need_login
     def get_loans_list(self):
@@ -172,7 +227,7 @@ class BredBrowser(LoginBrowser):
             raise NotImplementedError()
 
         if account._univers != self.current_univers:
-            self.move_to_univers(account._univers)
+            self.move_to_universe(account._univers)
 
         today = date.today()
         seen = set()
@@ -213,11 +268,31 @@ class BredBrowser(LoginBrowser):
 
     @need_login
     def get_investment(self, account):
-        if account.type != Account.TYPE_LIFE_INSURANCE:
+        if account.type == Account.TYPE_LIFE_INSURANCE:
+            for invest in account._investments:
+                yield invest
+
+        elif account.type in (Account.TYPE_PEA, Account.TYPE_MARKET):
+            if 'Portefeuille Titres' in account.label:
+                if account._is_in_linebourse:
+                    if account._univers != self.current_univers:
+                        self.move_to_universe(account._univers)
+                    self.linebourse.location(
+                        self.linebourse_urls[account._univers],
+                        data={'SJRToken': self.linebourse_tokens[account._univers]}
+                    )
+                    self.linebourse.session.headers['X-XSRF-TOKEN'] = self.linebourse.session.cookies.get('XSRF-TOKEN')
+                    for investment in self.linebourse.iter_investments(account.id.strip('0').split('.')[0]):
+                        yield investment
+                else:
+                    raise NotImplementedError()
+            else:
+                # Compte espèces
+                yield create_french_liquidity(account.balance)
+
+        else:
             raise NotImplementedError()
 
-        for invest in account._investments:
-            yield invest
 
     @need_login
     def get_profile(self):

@@ -148,7 +148,10 @@ class AccountsPage(MyJsonPage):
                 a._univers = current_univers
                 a.id = '%s.%s' % (a._number, a._nature)
 
-                a.type = self.ACCOUNT_TYPES.get(poste['codeNature'], Account.TYPE_UNKNOWN)
+                if content['comptePEA']:
+                    a.type = Account.TYPE_PEA
+                else:
+                    a.type = self.ACCOUNT_TYPES.get(poste['codeNature'], Account.TYPE_UNKNOWN)
                 if a.type == Account.TYPE_UNKNOWN:
                     self.logger.warning("unknown type %s" % poste['codeNature'])
 
@@ -198,8 +201,15 @@ class IbanPage(MyJsonPage):
         account.iban = iban_response.get('iban', NotAvailable)
 
 
-class LifeInsurancesPage(LoggedPage, JsonPage):
+class LinebourseLoginPage(LoggedPage, JsonPage):
+    def get_linebourse_url(self):
+        return Dict('content/url', default=None)(self.doc)
 
+    def get_linebourse_token(self):
+        return Dict('content/token', default=None)(self.doc)
+
+
+class LifeInsurancesPage(LoggedPage, JsonPage):
     @method
     class iter_lifeinsurances(DictElement):
         item_xpath = 'content'
