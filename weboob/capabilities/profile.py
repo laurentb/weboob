@@ -17,8 +17,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
-
-from .base import Capability, BaseObject, DecimalField, StringField, UserError
+from .address import PostalAddress, compat_field
+from .base import Capability, BaseObject, DecimalField, StringField, UserError, Field
 from .date import DateField
 
 __all__ = ['Profile', 'Person', 'Company', 'CapProfile']
@@ -35,13 +35,15 @@ class Profile(BaseObject):
     Profile.
     """
     name =                        StringField('Full name or company name')
-    address =                     StringField('Full Address')
+    postal_address =              Field('Postal address of owner', PostalAddress)
     country =                     StringField('Country of owner')
     phone =                       StringField('Phone number')
     professional_phone =          StringField('Professional phone number')
     email =                       StringField('Mail of owner')
     professional_email =          StringField('Professional email of owner')
     main_bank =                   StringField('Main bank of owner')
+
+    address = compat_field('postal_address', 'full_address')
 
 
 class Person(Profile):
