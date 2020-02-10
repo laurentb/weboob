@@ -20,6 +20,7 @@
 from __future__ import unicode_literals
 
 import hashlib
+import re
 
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.filters.standard import (
@@ -27,6 +28,7 @@ from weboob.browser.filters.standard import (
 )
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.html import Attr
+from weboob.capabilities.address import PostalAddress
 from weboob.capabilities.bill import DocumentTypes, Document, Subscription
 from weboob.capabilities.profile import Person
 from weboob.capabilities.base import NotAvailable
@@ -86,7 +88,25 @@ class ProfilePage(LoggedPage, HTMLPage):
         obj_mobile = CleanText('//div[span[text()="Téléphone portable"]]/following-sibling::div/span', default=NotAvailable)
         obj_phone = CleanText('//div[span[text()="Téléphone fixe"]]/following-sibling::div/span', default=NotAvailable)
         obj_birth_date = Date(CleanText('//span[@id="datenaissance"]'), parse_func=parse_french_date)
-        obj_address = CleanText('//span[@id="adressepostale"]')
+
+        class obj_postal_address(ItemElement):
+            klass = PostalAddress
+
+            obj_full_address = Env('full_address', default=NotAvailable)
+            obj_street = Env('street', default=NotAvailable)
+            obj_postal_code = Env('postal_code', default=NotAvailable)
+            obj_city = Env('city', default=NotAvailable)
+
+            def parse(self, obj):
+                full_address = CleanText('//span[@id="adressepostale"]')(self)
+                m = re.search(r'([\w ]+) (\d{5}) ([\w ]+)', full_address)
+                if not m:
+                    self.env['full_address'] = full_address
+                else:
+                    street, postal_code, city = m.groups()
+                    self.env['street'] = street
+                    self.env['postal_code'] = postal_code
+                    self.env['city'] = city
 
 
 class DocumentsPage(LoggedPage, HTMLPage):
