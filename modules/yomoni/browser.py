@@ -28,7 +28,7 @@ import re
 
 from weboob.browser.browsers import APIBrowser
 from weboob.browser.exceptions import ClientError
-from weboob.browser.filters.standard import CleanDecimal, Date
+from weboob.browser.filters.standard import CleanDecimal, Date, Coalesce
 from weboob.browser.filters.html import ReplaceEntities
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded
 from weboob.capabilities.bank import Account, Investment, Transaction
@@ -142,7 +142,16 @@ class YomoniBrowser(APIBrowser):
             self.investments[account.id] = []
             for inv in invs:
                 i = Investment()
-                i.label = "%s - %s" % (inv['classification'], inv['description'])
+                # If nothing is given to make the label, we use the ISIN instead
+                # We let it crash if the ISIN is not available either.
+                if all([inv['classification'], inv['description']]):
+                    i.label = "%s - %s" % (inv['classification'], inv['description'])
+                else:
+                    i.label = Coalesce().filter((
+                        inv['classification'],
+                        inv['description'],
+                        inv['isin'],
+                    ))
                 i.code = inv['isin']
                 if not is_isin_valid(i.code):
                     i.code = NotAvailable
@@ -153,15 +162,13 @@ class YomoniBrowser(APIBrowser):
                     i.code_type = Investment.CODE_TYPE_ISIN
 
                 i.quantity = CleanDecimal(default=NotAvailable).filter(inv['nombreParts'])
-                i.unitprice = CleanDecimal().filter(inv['prixMoyenAchat'])
-                i.unitvalue = CleanDecimal().filter(inv['valeurCotation'])
+                i.unitprice = CleanDecimal(default=NotAvailable).filter(inv['prixMoyenAchat'])
+                i.unitvalue = CleanDecimal(default=NotAvailable).filter(inv['valeurCotation'])
                 i.valuation = CleanDecimal().filter(inv['montantEuro'])
                 # For some invests the vdate returned is None
                 # Consequently we set the default value at NotAvailable
                 i.vdate = Date(default=NotAvailable).filter(inv['datePosition'])
-                # performanceEuro is null sometimes in the JSON we retrieve.
-                if inv['performanceEuro']:
-                    i.diff = CleanDecimal().filter(inv['performanceEuro'])
+                i.diff = CleanDecimal(default=NotAvailable).filter(inv['performanceEuro'])
 
                 self.investments[account.id].append(i)
         return self.investments[account.id]
