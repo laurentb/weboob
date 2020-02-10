@@ -46,7 +46,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from selenium.webdriver.remote.command import Command
 from weboob.tools.log import getLogger
-from weboob.tools.compat import urljoin
+from weboob.tools.compat import urljoin, urlparse
 
 from .pages import HTMLPage as BaseHTMLPage
 from .url import URL
@@ -454,14 +454,20 @@ class SeleniumBrowser(object):
     def _build_capabilities(self):
         return CAPA_CLASSES[self.DRIVER].copy()
 
+    def get_proxy_url(self, url):
+        if self.DRIVER is webdriver.Firefox:
+            proxy_url = urlparse(url)
+            return proxy_url.geturl().replace('%s://' % proxy_url.scheme, '')
+        return url
+
     def _setup_driver(self):
         proxy = Proxy()
         if 'http' in self.proxy:
             proxy.proxy_type = ProxyType.MANUAL
-            proxy.http_proxy = self.proxy['http']
+            proxy.http_proxy = self.get_proxy_url(self.proxy['http'])
         if 'https' in self.proxy:
             proxy.proxy_type = ProxyType.MANUAL
-            proxy.ssl_proxy = self.proxy['https']
+            proxy.ssl_proxy = self.get_proxy_url(self.proxy['https'])
 
         if proxy.proxy_type != ProxyType.MANUAL:
             proxy.proxy_type = ProxyType.DIRECT
