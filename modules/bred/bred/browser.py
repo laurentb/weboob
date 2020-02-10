@@ -80,8 +80,6 @@ class BredBrowser(LoginBrowser):
 
         # hard-coded authentication payload
         data = dict(identifiant=self.username, password=self.password)
-        cookies = {k: v for k, v in self.session.cookies.items() if k in ('hsess', )}
-        self.session.cookies.update(cookies)
         self.login.go(data=data)
 
     @need_login
