@@ -29,7 +29,7 @@ from weboob.capabilities.bill import (
     Document, DocumentNotFound,
 )
 from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.value import ValueBackendPassword, Value
+from weboob.tools.value import ValueBackendPassword, Value, ValueTransient
 
 from .browser import BPBrowser, BProBrowser
 
@@ -50,12 +50,12 @@ class BPModule(
     DESCRIPTION = u'La Banque Postale'
     CONFIG = BackendConfig(
         ValueBackendPassword('login', label='Identifiant', masked=False),
-        Value('resume', noprompt=True, default=''),
-        Value('request_information', default=None, noprompt=True, required=False),
-        Value('code', label='Code SMS', required=False, default=''),
         ValueBackendPassword('password', label='Mot de passe', regexp='^(\d{6})$'),
         Value('website', label='Type de compte', default='par',
-              choices={'par': 'Particuliers', 'pro': 'Professionnels'})
+              choices={'par': 'Particuliers', 'pro': 'Professionnels'}),
+        ValueTransient('request_information'),
+        ValueTransient('code'),
+        ValueTransient('resume'),
     )
 
     def create_default_browser(self):

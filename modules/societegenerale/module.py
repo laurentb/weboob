@@ -34,7 +34,7 @@ from weboob.capabilities.contact import CapContact
 from weboob.capabilities.profile import CapProfile
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.value import Value, ValueBackendPassword
+from weboob.tools.value import Value, ValueBackendPassword, ValueTransient
 from weboob.capabilities.base import find_object, NotAvailable, strict_find_object
 
 from .browser import SocieteGenerale
@@ -57,9 +57,9 @@ class SocieteGeneraleModule(Module, CapBankWealth, CapBankTransferAddRecipient, 
         Value('website', label='Type de compte', default='par',
               choices={'par': 'Particuliers', 'pro': 'Professionnels', 'ent': 'Entreprises'}),
         # SCA
-        Value('code', label='Code SMS', required=False, default='', noprompt=True),
-        Value('resume', noprompt=True, default=''),
-        Value('request_information', default=None, noprompt=True, required=False),
+        ValueTransient('code'),
+        ValueTransient('resume'),
+        ValueTransient('request_information'),
     )
 
     accepted_document_types = (DocumentTypes.STATEMENT, DocumentTypes.RIB)

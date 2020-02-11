@@ -21,7 +21,7 @@ from __future__ import unicode_literals
 
 from weboob.capabilities.bank import CapBank
 from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.value import Value, ValueBackendPassword
+from weboob.tools.value import Value, ValueBackendPassword, ValueTransient
 
 from .browser import Number26Browser
 
@@ -41,8 +41,8 @@ class Number26Module(Module, CapBank):
     CONFIG = BackendConfig(
                  Value('login', label='Email', regexp='.+'),
                  ValueBackendPassword('password', label='Password'),
-                 Value('otp', label='OTP', default='', noprompt=True),
-                 Value('request_information', label='request_information', default=None, required=False, noprompt=True)
+                 ValueTransient('otp'),
+                 ValueTransient('request_information')
              )
 
     STORAGE = {'categories': {}}

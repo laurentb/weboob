@@ -33,7 +33,7 @@ from weboob.capabilities.bill import (
     Document, DocumentNotFound, DocumentTypes,
 )
 from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.value import ValueBackendPassword, Value
+from weboob.tools.value import ValueBackendPassword, ValueTransient
 
 from .browser import CreditMutuelBrowser
 
@@ -55,9 +55,9 @@ class CreditMutuelModule(
     CONFIG = BackendConfig(
         ValueBackendPassword('login', label='Identifiant', masked=False),
         ValueBackendPassword('password', label='Mot de passe'),
-        Value('resume', label='resume', default=None, required=False, noprompt=True),
-        Value('request_information', label='request_information', default=None, required=False, noprompt=True),
-        Value('code', label='code de confirmation', required=False, default='', noprompt=True, regexp=r'^\d{6}$'),
+        ValueTransient('resume'),
+        ValueTransient('request_information'),
+        ValueTransient('code', regexp=r'^\d{6}$'),
     )
     BROWSER = CreditMutuelBrowser
 
