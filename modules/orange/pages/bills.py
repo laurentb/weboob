@@ -29,7 +29,9 @@ from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage
 from weboob.capabilities.bill import Subscription
 from weboob.browser.elements import DictElement, ListElement, ItemElement, method, TableElement
 from weboob.browser.filters.standard import (
-    CleanDecimal, CleanText, Env, Field, Regexp, Date, Currency, BrowserURL, Format, Eval
+    CleanDecimal, CleanText, Env, Field,
+    Regexp, Date, Currency, BrowserURL,
+    Format, Eval, Lower,
 )
 from weboob.browser.filters.html import Link, TableCell
 from weboob.browser.filters.javascript import JSValue
@@ -216,9 +218,29 @@ class ContractsPage(LoggedPage, JsonPage):
 
             obj_id = Dict('id')
             obj_label = Format('%s %s', Dict('name'), Dict('mainLine'))
+            obj__from_api = False
 
             def condition(self):
                 return Dict('status')(self) == 'OK'
 
             def obj__is_pro(self):
                 return Dict('offerNature')(self) == 'PROFESSIONAL'
+
+
+class ContractsApiPage(LoggedPage, JsonPage):
+    @method
+    class iter_subscriptions(DictElement):
+        item_xpath = 'contracts'
+
+        class item(ItemElement):
+            klass = Subscription
+
+            obj_id = CleanText(Dict('cid'))
+            obj_label = Dict('offerName')
+            obj_subscriber = Format('%s %s', CleanText(Dict('holder/firstName')), CleanText(Dict('holder/lastName')))
+
+            obj__is_pro = False
+            obj__from_api = True
+
+            def condition(self):
+                return Lower(Dict('status'))(self) == 'actif'

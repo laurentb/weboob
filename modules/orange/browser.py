@@ -27,7 +27,7 @@ from .pages import LoginPage, BillsPage
 from .pages.login import ManageCGI, HomePage, PasswordPage
 from .pages.bills import (
     SubscriptionsPage, SubscriptionsApiPage, BillsApiProPage, BillsApiParPage,
-    ContractsPage,
+    ContractsPage, ContractsApiPage
 )
 from .pages.profile import ProfilePage
 from weboob.browser.exceptions import ClientError, ServerError
@@ -52,6 +52,7 @@ class OrangeBillBrowser(LoginBrowser):
     password_page = URL(r'https://login.orange.fr/front/password', PasswordPage)
 
     contracts = URL(r'https://espaceclientpro.orange.fr/api/contracts\?page=1&nbcontractsbypage=15', ContractsPage)
+    contracts_api = URL(r'https://sso-f.orange.fr/omoi_erb/portfoliomanager/contracts/users/current\?filter=telco,security', ContractsApiPage)
 
     subscriptions = URL(r'https://espaceclientv3.orange.fr/js/necfe.php\?zonetype=bandeau&idPage=gt-home-page', SubscriptionsPage)
     subscriptions_api = URL(r'https://sso-f.orange.fr/omoi_erb/portfoliomanager/v2.0/contractSelector/users/current', SubscriptionsApiPage)
@@ -67,6 +68,7 @@ class OrangeBillBrowser(LoginBrowser):
         r'https://espaceclientv3.orange.fr/maf.php',
         r'https://espaceclientv3.orange.fr/\?idContrat=(?P<subid>.*)&page=factures-historique',
         r'https://espaceclientv3.orange.fr/\?page=factures-historique&idContrat=(?P<subid>.*)',
+        r'https://espace-client.orange.fr/factures-paiement/(?P<subid>\d+?)',
         BillsPage,
     )
 
@@ -78,8 +80,8 @@ class OrangeBillBrowser(LoginBrowser):
     bills_api_par = URL(r'https://sso-f.orange.fr/omoi_erb/facture/v2.0/billsAndPaymentInfos/users/current/contracts/(?P<subid>\d+)', BillsApiParPage)
     doc_api_par = URL(r'https://sso-f.orange.fr/omoi_erb/facture/v1.0/pdf')
 
-    doc_api_pro = URL('https://espaceclientpro.orange.fr/api/contract/(?P<subid>\d+)/bill/(?P<dir>.*)/(?P<fact_type>.*)/\?(?P<billparams>)')
-    profile = URL('/\?page=profil-infosPerso', ProfilePage)
+    doc_api_pro = URL(r'https://espaceclientpro.orange.fr/api/contract/(?P<subid>\d+)/bill/(?P<dir>.*)/(?P<fact_type>.*)/\?(?P<billparams>)')
+    profile = URL(r'/\?page=profil-infosPerso', ProfilePage)
 
     def do_login(self):
         assert isinstance(self.username, basestring)
@@ -145,6 +147,22 @@ class OrangeBillBrowser(LoginBrowser):
             assert nb_sub < 15
         except ServerError:
             pass
+
+        try:
+            headers = {
+                "Accept": "application/json;version=1",
+                "X-Orange-Caller-Id": "ECQ",
+                "X-Orange-Origin-ID": "ECQ",
+            }
+            for sub in self.contracts_api.go(headers=headers).iter_subscriptions():
+                nb_sub += 1
+                yield sub
+        except (ServerError, ClientError) as e:
+            # The orange website will return odd status codes when there are no subscriptions to return
+            # I've seen the 404, 500 and 503 response codes
+            # In a well designed website, it should be just a 204.
+            if e.response.status_code not in (404, 500, 503):
+                raise
 
         if nb_sub > 0:
             return
