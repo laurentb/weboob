@@ -41,6 +41,10 @@ class LoginPage(JsonPage):
         # pin positions (website side) start at 1, our positions start at 0
         return [password_random_coords[index - 1] for index in pin_position]
 
+    def has_strong_authentication(self):
+        # If this value is at False, this mean there is an OTP needed to login
+        return not Dict('strongAuthenticationLoginExempted')(self.doc)
+
     def get_password_coord(self, img, password):
         assert 'pinPositions' in self.doc, 'Virtualkeyboard position has failed'
         assert 'keyPadUrl' in self.doc, 'Virtualkeyboard image url is missing'

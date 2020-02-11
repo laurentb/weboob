@@ -203,9 +203,12 @@ class IngAPIBrowser(LoginBrowser, StatesMixin):
         except ClientError as e:
             self.handle_login_error(e)
 
-        self.auth_token = self.page.response.headers['Ingdf-Auth-Token']
-        self.session.headers['Ingdf-Auth-Token'] = self.auth_token
-        self.session.cookies['ingdfAuthToken'] = self.auth_token
+        if not self.page.has_strong_authentication():
+            self.auth_token = self.page.response.headers['Ingdf-Auth-Token']
+            self.session.headers['Ingdf-Auth-Token'] = self.auth_token
+            self.session.cookies['ingdfAuthToken'] = self.auth_token
+        else:
+            raise ActionNeeded("Vous devez réaliser la double authentification sur le portail internet")
 
         # to be on logged page, to avoid relogin
         self.accounts.go()
