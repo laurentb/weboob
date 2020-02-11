@@ -265,14 +265,16 @@ class BNPParibasBrowser(LoginBrowser, StatesMixin):
             return []
         if account.type == Account.TYPE_PEA and account.label.endswith('Espèces'):
             return []
-        if account.type == account.TYPE_LIFE_INSURANCE:
+        if account.type == Account.TYPE_LIFE_INSURANCE:
             return self.iter_lifeinsurance_history(account, coming)
-        elif account.type in (account.TYPE_MARKET, Account.TYPE_PEA) and not coming:
+        elif account.type in (Account.TYPE_MARKET, Account.TYPE_PEA):
+            if coming:
+                return []
             try:
                 self.market_list.go(json={}, method='POST')
             except ServerError:
                 self.logger.warning("An Internal Server Error occurred")
-                return iter([])
+                return []
             for market_acc in self.page.get_list():
                 if account.number[-4:] == market_acc['securityAccountNumber'][-4:]:
                     self.page = self.market_history.go(
@@ -281,7 +283,7 @@ class BNPParibasBrowser(LoginBrowser, StatesMixin):
                         }
                     )
                     return self.page.iter_history()
-            return iter([])
+            return []
         else:
             if not self.card_to_transaction_type:
                 self.list_detail_card.go()
