@@ -48,13 +48,13 @@ class MyedenredBrowser(LoginBrowser):
     app_js = URL(r'https://myedenred.fr/js/app.(?P<random_str>\w+).js', JsAppPage)
 
     def _b64encode(self, value):
-        return b64encode(value).replace('+', '-').replace('/', '_').replace('=', '')
+        return b64encode(value).decode('utf-8').replace('+', '-').replace('/', '_').replace('=', '')
 
     def get_code_verifier(self):
-        return self._b64encode(''.join([str(randint(0, 9)) for _ in range(32)]))
+        return self._b64encode(''.join([str(randint(0, 9)) for _ in range(32)]).encode('utf-8'))
 
     def get_code_challenge(self, verifier):
-        return self._b64encode(sha256(verifier).digest())
+        return self._b64encode(sha256(verifier.encode('utf-8')).digest())
 
     def do_login(self):
         self.home.go()
