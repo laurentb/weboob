@@ -58,10 +58,13 @@ class Value(object):
     :param regexp: if specified, on load the specified value is checked against this regexp, and an error is raised if it doesn't match
     :type regexp: str
     :param choices: if this parameter is set, the value must be in the list
+    :type choices: (list,dict)
     :param aliases: mapping of old choices values that should be accepted but not presented
     :type aliases: dict
     :param tiny: the value of choices can be entered by an user (as they are small)
-    :type choices: (list,dict)
+    :type tiny: bool
+    :param transient: this value is not persistent (asked only if needed)
+    :type transient: bool
     """
 
     def __init__(self, *args, **kwargs):
@@ -80,6 +83,7 @@ class Value(object):
         if isinstance(self.choices, (list, tuple)):
             self.choices = OrderedDict(((v, v) for v in self.choices))
         self.tiny = kwargs.get('tiny', None)
+        self.transient = kwargs.get('transient', None)
         self.masked = kwargs.get('masked', False)
         self.required = kwargs.get('required', self.default is None)
         self._value = kwargs.get('value', None)
@@ -143,6 +147,17 @@ class Value(object):
         Get the value.
         """
         return self._value
+
+
+class ValueTransient(Value):
+    def __init__(self, *args, **kwargs):
+        kwargs['transient'] = True
+        kwargs['default'] = None
+        kwargs['required'] = False
+        super(ValueTransient, self).__init__(*args, **kwargs)
+
+    def dump(self):
+        return ''
 
 
 class ValueBackendPassword(Value):

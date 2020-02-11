@@ -354,6 +354,9 @@ class ConsoleApplication(Application):
         # ask for params non-specified on command-line arguments
         asked_config = False
         for key, value in config.items():
+            if value.transient:
+                continue
+
             if not asked_config:
                 asked_config = True
                 print('')

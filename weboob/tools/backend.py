@@ -180,7 +180,8 @@ class BackendConfig(ValuesDict):
         """
         settings = {}
         for name, value in self.items():
-            settings[name] = value.dump()
+            if not value.transient:
+                settings[name] = value.dump()
         return settings
 
     def save(self, edit=True, params=None):
