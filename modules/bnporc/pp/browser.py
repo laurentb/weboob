@@ -298,7 +298,7 @@ class BNPParibasBrowser(LoginBrowser, StatesMixin):
             except BrowserUnavailable:
                 # old url is still used for certain connections bu we don't know which one is,
                 # so the same HistoryPage is attained by the old url in another URL object
-                data[1]['startDate'] = (datetime.now() - relativedelta(years=3)).strftime('%d%m%Y')
+                data['startDate'] = (datetime.now() - relativedelta(years=3)).strftime('%d%m%Y')
                 # old url authorizes up to 3 years of history
                 self.history_old.go(data=data)
 
