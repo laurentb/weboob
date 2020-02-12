@@ -24,13 +24,13 @@ import time
 import json
 from datetime import datetime, timedelta
 
-from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
-from weboob.exceptions import AuthMethodNotImplemented, BrowserIncorrectPassword, ActionNeeded
+from weboob.browser import TwoFactorBrowser, URL, need_login
+from weboob.exceptions import AuthMethodNotImplemented, BrowserQuestion, BrowserIncorrectPassword, ActionNeeded
 from weboob.capabilities.bank import Account, AddRecipientStep, Recipient
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 from weboob.tools.value import Value
 
-from .pages.login import LoginPage, UnavailablePage
+from .pages.login import LoginPage, TwoFaPage, UnavailablePage
 from .pages.accounts_list import (
     AccountsList, AccountHistoryPage, CardHistoryPage, InvestmentHistoryPage, PeaHistoryPage, LoanPage, ProfilePage, ProfilePageCSV, SecurityPage, FakeActionPage,
 )
@@ -41,11 +41,16 @@ from .pages.transfer import (
 __all__ = ['Fortuneo']
 
 
-class Fortuneo(LoginBrowser, StatesMixin):
+class Fortuneo(TwoFactorBrowser):
     BASEURL = 'https://mabanque.fortuneo.fr'
     STATE_DURATION = 5
 
     login_page = URL(r'.*identification\.jsp.*', LoginPage)
+    twofa_page = URL(
+        r'.*/prive/mes-comptes/synthese-mes-comptes.jsp',
+        r'.*/prive/obtenir-otp-connexion.jsp',
+        r'.*/prive/valider-otp-connexion.jsp',
+        TwoFaPage)
 
     accounts_page = URL(r'/fr/prive/default.jsp\?ANav=1',
                         r'.*prive/default\.jsp.*',
@@ -90,15 +95,29 @@ class Fortuneo(LoginBrowser, StatesMixin):
 
     need_reload_state = None
 
-    __states__ = ['need_reload_state', 'add_recipient_form']
+    __states__ = ['need_reload_state', 'add_recipient_form', 'sms_form']
 
-    def __init__(self, *args, **kwargs):
-        LoginBrowser.__init__(self, *args, **kwargs)
+    def __init__(self, config, *args, **kwargs):
+        super(Fortuneo, self).__init__(config, *args, **kwargs)
         self.investments = {}
         self.action_needed_processed = False
         self.add_recipient_form = None
 
-    def do_login(self):
+        self.AUTHENTICATION_METHODS = {
+            'code': self.handle_sms,
+        }
+
+    def init_login(self):
+        self.first_login_step()
+
+        if self.twofa_page.is_here():
+            # Need to convert Form object into dict for storage
+            self.sms_form = dict(self.page.get_sms_form())
+            raise BrowserQuestion(Value('code', label='Entrez le code reçu par SMS'))
+
+        self.last_login_step()
+
+    def first_login_step(self):
         if not self.login_page.is_here():
             self.location('/fr/identification.jsp')
 
@@ -108,14 +127,25 @@ class Fortuneo(LoginBrowser, StatesMixin):
             self.page.check_is_blocked()
             raise BrowserIncorrectPassword()
 
+    def handle_sms(self):
+        self.sms_form['otp'] = self.code
+        self.sms_form['typeOperationSensible'] = 'AUTHENTIFICATION_FORTE_CONNEXION'
+        self.location('/fr/prive/valider-otp-connexion.jsp', data=self.sms_form)
+        self.sms_form = None
+        self.page.check_otp_error_message()
+
+        self.location('/fr/prive/mes-comptes/synthese-mes-comptes.jsp')
+        self.last_login_step()
+
+    def last_login_step(self):
         self.location('/fr/prive/default.jsp?ANav=1')
         if self.accounts_page.is_here() and self.page.need_sms():
             raise AuthMethodNotImplemented('Authentification with sms is not supported')
 
     def load_state(self, state):
-        # reload state only for new recipient feature
-        if state.get('need_reload_state'):
-            # don't use locate browser for add recipient step
+        # reload state only for new recipient and 2fa features
+        if state.get('need_reload_state') or state.get('sms_form'):
+            # don't use locate browser for add recipient step and 2fa validation
             state.pop('url', None)
             super(Fortuneo, self).load_state(state)
 

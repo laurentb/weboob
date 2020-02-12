@@ -25,7 +25,7 @@ from weboob.capabilities.bank import (
 )
 from weboob.capabilities.profile import CapProfile
 from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.value import ValueBackendPassword
+from weboob.tools.value import ValueBackendPassword, ValueTransient
 
 from .browser import Fortuneo
 
@@ -41,14 +41,19 @@ class FortuneoModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapProf
     LICENSE = 'LGPLv3+'
     DESCRIPTION = u'Fortuneo'
     CONFIG = BackendConfig(
-                ValueBackendPassword('login',     label='Identifiant', masked=False, required=True),
-                ValueBackendPassword('password',  label='Mot de passe', required=True))
+        ValueBackendPassword('login', label='Identifiant', masked=False, required=True),
+        ValueBackendPassword('password', label='Mot de passe', required=True),
+        ValueTransient('code'),
+        ValueTransient('request_information')
+    )
     BROWSER = Fortuneo
 
     def create_default_browser(self):
         return self.create_browser(
-                self.config['login'].get(),
-                self.config['password'].get()
+            self.config,
+            self.config['login'].get(),
+            self.config['password'].get(),
+            weboob=self.weboob
         )
 
     def iter_accounts(self):

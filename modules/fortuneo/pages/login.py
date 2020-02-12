@@ -20,8 +20,9 @@
 from __future__ import unicode_literals
 
 from weboob.browser.pages import HTMLPage
+from weboob.browser.filters.html import Attr
 from weboob.browser.filters.standard import CleanText
-from weboob.exceptions import BrowserUnavailable, ActionNeeded
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded
 
 
 class LoginPage(HTMLPage):
@@ -40,6 +41,26 @@ class LoginPage(HTMLPage):
         error_message = CleanText('//div[@id="acces_client"]//p[@class="container error"]/label')(self.doc)
         if 'Votre accès est désormais bloqué' in error_message:
             raise ActionNeeded(error_message)
+
+
+class TwoFaPage(HTMLPage):
+    def is_here(self):
+        # Handle 90 days 2FA and Secure access
+        return 'Sécurité renforcée tous les 90 jours' in CleanText('//div[@id="titre_page"]/h1')(self.doc)
+
+    def get_sms_form(self):
+        sms_form = self.get_form()
+        sms_form['numeroSelectionne.value'] = Attr(
+            '//div[@id="div_secu_forte_otp"]/input[@name="numeroSelectionne.value"]',
+            'value'
+        )(self.doc)
+        return sms_form
+
+    def check_otp_error_message(self):
+        error_message = CleanText('//span/label[@class="error"]')(self.doc)
+        if 'Le code saisi est incorrect' in error_message:
+            raise BrowserIncorrectPassword()
+        assert not error_message, 'Error during otp validation: %s' % error_message
 
 
 class UnavailablePage(HTMLPage):
