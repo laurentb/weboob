@@ -32,7 +32,7 @@ class InaModule(Module, CapVideo, CapAudio):
     NAME = 'ina'
     MAINTAINER = u'Christophe Benz'
     EMAIL = 'christophe.benz@gmail.com'
-    VERSION = '2.0'
+    VERSION = '2.1'
     DESCRIPTION = 'INA French TV video archives'
     LICENSE = 'AGPLv3+'
     BROWSER = InaBrowser

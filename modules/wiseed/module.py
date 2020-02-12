@@ -35,7 +35,7 @@ class WiseedModule(Module, CapBankWealth):
     MAINTAINER = 'Vincent A'
     EMAIL = 'dev@indigo.re'
     LICENSE = 'LGPLv3+'
-    VERSION = '2.0'
+    VERSION = '2.1'
 
     BROWSER = WiseedBrowser
 

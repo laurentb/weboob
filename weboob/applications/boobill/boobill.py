@@ -47,7 +47,7 @@ class SubscriptionsFormatter(PrettyFormatter):
 
 class Boobill(CaptchaMixin, ReplApplication):
     APPNAME = 'boobill'
-    VERSION = '2.0'
+    VERSION = '2.1'
     COPYRIGHT = 'Copyright(C) 2012-YEAR Florent Fourcot'
     DESCRIPTION = 'Console application allowing to get/download documents and bills.'
     SHORT_DESCRIPTION = "get/download documents and bills"

@@ -37,7 +37,7 @@ class FortuneoModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapProf
     NAME = 'fortuneo'
     MAINTAINER = u'Gilles-Alexandre Quenot'
     EMAIL = 'gilles.quenot@gmail.com'
-    VERSION = '2.0'
+    VERSION = '2.1'
     LICENSE = 'LGPLv3+'
     DESCRIPTION = u'Fortuneo'
     CONFIG = BackendConfig(

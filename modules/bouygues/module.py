@@ -37,7 +37,7 @@ class BouyguesModule(Module, CapDocument):
     MAINTAINER = 'Florian Duguet'
     EMAIL = 'florian.duguet@budget-insight.com'
     LICENSE = 'LGPLv3+'
-    VERSION = '2.0'
+    VERSION = '2.1'
     CONFIG = BackendConfig(Value('login', label='Numéro de mobile, de clé/tablette ou e-mail en @bbox.fr'),
                            ValueBackendPassword('password', label='Mot de passe'),
                            ValueBackendPassword('lastname', label='Nom de famille', default=''))

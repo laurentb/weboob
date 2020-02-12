@@ -32,7 +32,7 @@ class AdeccoModule(Module, CapJob):
     DESCRIPTION = u'adecco website'
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
-    VERSION = '2.0'
+    VERSION = '2.1'
 
     BROWSER = AdeccoBrowser
 

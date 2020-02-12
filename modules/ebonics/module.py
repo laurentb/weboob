@@ -45,7 +45,7 @@ class EbonicsModule(Module, CapTranslate):
     NAME = 'ebonics'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '2.0'
+    VERSION = '2.1'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u'English to Ebonics translation service'
     BROWSER = Ebonics

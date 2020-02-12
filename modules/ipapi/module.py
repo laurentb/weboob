@@ -31,7 +31,7 @@ class IpapiModule(Module, CapGeolocIp):
     NAME = 'ipapi'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'julien.veyssier@aiur.fr'
-    VERSION = '2.0'
+    VERSION = '2.1'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u"IP-API Geolocation API"
     BROWSER = Browser

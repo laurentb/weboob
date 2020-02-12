@@ -31,7 +31,7 @@ class SachsenLevelModule(Module, CapGauge):
     NAME = 'sachsen'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
-    VERSION = '2.0'
+    VERSION = '2.1'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u"Level of Sachsen river"
     BROWSER = SachsenBrowser

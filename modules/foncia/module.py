@@ -35,7 +35,7 @@ class FonciaModule(Module, CapHousing):
     MAINTAINER = u'Phyks (Lucas Verney)'
     EMAIL = 'phyks@phyks.me'
     LICENSE = 'AGPLv3+'
-    VERSION = '2.0'
+    VERSION = '2.1'
 
     BROWSER = FonciaBrowser
 

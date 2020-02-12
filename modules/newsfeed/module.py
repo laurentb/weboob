@@ -31,7 +31,7 @@ class NewsfeedModule(Module, CapMessages):
     NAME = 'newsfeed'
     MAINTAINER = u'Clément Schreiner'
     EMAIL = "clemux@clemux.info"
-    VERSION = '2.0'
+    VERSION = '2.1'
     DESCRIPTION = "Loads RSS and Atom feeds from any website"
     LICENSE = "AGPLv3+"
     CONFIG = BackendConfig(Value('url', label="Atom/RSS feed's url", regexp='https?://.*'))

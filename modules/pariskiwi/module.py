@@ -34,7 +34,7 @@ class ParisKiwiModule(Module, CapCalendarEvent):
     MAINTAINER = u'Vincent A'
     EMAIL = 'dev@indigo.re'
     LICENSE = 'AGPLv3+'
-    VERSION = '2.0'
+    VERSION = '2.1'
 
     BROWSER = ParisKiwiBrowser
 

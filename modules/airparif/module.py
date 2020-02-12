@@ -37,7 +37,7 @@ class AirparifModule(Module, CapGauge):
     MAINTAINER = 'Vincent A'
     EMAIL = 'dev@indigo.re'
     LICENSE = 'LGPLv3+'
-    VERSION = '2.0'
+    VERSION = '2.1'
 
     BROWSER = AirparifBrowser
 

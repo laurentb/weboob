@@ -29,7 +29,7 @@ class AmeliProModule(Module, CapDocument):
     DESCRIPTION = u'Ameli website: French Health Insurance for Professionals'
     MAINTAINER = u'Christophe Lampin'
     EMAIL = 'weboob@lampin.net'
-    VERSION = '2.0'
+    VERSION = '2.1'
     LICENSE = 'LGPLv3+'
     BROWSER = AmeliProBrowser
     CONFIG = BackendConfig(ValueBackendPassword('login',

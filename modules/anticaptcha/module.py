@@ -38,7 +38,7 @@ class AnticaptchaModule(Module, CapCaptchaSolver):
     MAINTAINER = 'Vincent A'
     EMAIL = 'dev@indigo.re'
     LICENSE = 'AGPLv3+'
-    VERSION = '2.0'
+    VERSION = '2.1'
 
     CONFIG = BackendConfig(
         ValueBackendPassword('api_key', label='API key', regexp='^[0-9a-f]+$'),

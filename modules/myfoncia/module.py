@@ -38,7 +38,7 @@ class MyFonciaModule(Module, CapDocument):
     MAINTAINER = u'Phyks (Lucas Verney)'
     EMAIL = 'phyks@phyks.me'
     LICENSE = 'LGPLv3+'
-    VERSION = '2.0'
+    VERSION = '2.1'
     CONFIG = BackendConfig(
         Value(
             'login',

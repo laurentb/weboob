@@ -34,7 +34,7 @@ class ErehsbcModule(AbstractModule, CapBank):
     MAINTAINER = u'Edouard Lambert'
     EMAIL = 'elambert@budget-insight.com'
     LICENSE = 'LGPLv3+'
-    VERSION = '2.0'
+    VERSION = '2.1'
     CONFIG = BackendConfig(
              ValueBackendPassword('login',    label='Identifiant', masked=False),
              ValueBackendPassword('password', label='Code secret', regexp='^(\d{6})$'),

@@ -27,7 +27,7 @@ from .tools import rssid, url2id
 class NewspaperTazModule(AbstractModule, CapMessages):
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
-    VERSION = '2.0'
+    VERSION = '2.1'
     LICENSE = 'AGPLv3+'
     STORAGE = {'seen': {}}
     NAME = 'taz'

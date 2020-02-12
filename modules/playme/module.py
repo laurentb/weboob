@@ -90,7 +90,7 @@ class PlayMeModule(Module, CapMessages, CapMessagesPost, CapDating, CapAccount):
     MAINTAINER = u'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'
     LICENSE = 'AGPLv3+'
-    VERSION = '2.0'
+    VERSION = '2.1'
     CONFIG = BackendConfig(Value('username',                label='Facebook email'),
                            ValueBackendPassword('password', label='Facebook password'))
 

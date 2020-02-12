@@ -35,7 +35,7 @@ class GroupamaesModule(Module, CapBankPockets):
     MAINTAINER = 'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
     LICENSE = 'LGPLv3+'
-    VERSION = '2.0'
+    VERSION = '2.1'
 
     BROWSER = GroupamaesBrowser
 

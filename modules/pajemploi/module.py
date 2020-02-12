@@ -48,7 +48,7 @@ class PajemploiModule(Module, CapDocument):
     MAINTAINER = "Ludovic LANGE"
     EMAIL = "llange@users.noreply.github.com"
     LICENSE = "LGPLv3+"
-    VERSION = "2.0"
+    VERSION = "2.1"
 
     CONFIG = BackendConfig(
         Value("username", label="User ID"),

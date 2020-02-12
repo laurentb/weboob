@@ -34,7 +34,7 @@ class VirginRadioModule(Module, CapRadio, CapCollection):
     NAME = 'virginradio'
     MAINTAINER = u'Johann Broudin'
     EMAIL = 'Johann.Broudin@6-8.fr'
-    VERSION = '2.0'
+    VERSION = '2.1'
     DESCRIPTION = u'VirginRadio french radio'
     LICENSE = 'AGPLv3+'
     BROWSER = Browser

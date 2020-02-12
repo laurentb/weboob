@@ -36,7 +36,7 @@ class XHamsterModule(Module, CapVideo):
     MAINTAINER = 'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'
     LICENSE = 'AGPLv3+'
-    VERSION = '2.0'
+    VERSION = '2.1'
 
     BROWSER = XHamsterBrowser
 

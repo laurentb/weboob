@@ -33,7 +33,7 @@ class BtpbanqueModule(AbstractModule, CapBank):
     DESCRIPTION = u'BTP Banque'
     MAINTAINER = u'Edouard Lambert'
     EMAIL = 'elambert@budget-insight.com'
-    VERSION = '2.0'
+    VERSION = '2.1'
     LICENSE = 'LGPLv3+'
     auth_type = {'weak' : "Code confidentiel (pro)",
                  'strong': "Sesame (pro)"}

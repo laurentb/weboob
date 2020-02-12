@@ -35,7 +35,7 @@ class CreditdunordpeeModule(AbstractModule, CapBank):
     MAINTAINER = u'Ludovic LANGE'
     EMAIL = 'llange@users.noreply.github.com'
     LICENSE = 'LGPLv3+'
-    VERSION = '2.0'
+    VERSION = '2.1'
     CONFIG = BackendConfig(
              ValueBackendPassword('login',    label='Identifiant', masked=False),
              ValueBackendPassword('password', label='Code secret', regexp='^(\d{6})$'),

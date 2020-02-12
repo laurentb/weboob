@@ -354,7 +354,7 @@ class HistoryThread(Thread):
 
 class Boomoney(Boobank):
     APPNAME = 'boomoney'
-    VERSION = '2.0'
+    VERSION = '2.1'
     COPYRIGHT = 'Copyright(C) 2018-YEAR Bruno Chabrier'
     DESCRIPTION = "Console application that imports bank accounts into Microsoft Money"
     SHORT_DESCRIPTION = "import bank accounts into Microsoft Money"

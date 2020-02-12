@@ -33,7 +33,7 @@ class DPDModule(Module, CapParcel):
     MAINTAINER = u'Matthieu Weber'
     EMAIL = 'mweber+weboob@free.fr'
     LICENSE = 'AGPLv3+'
-    VERSION = '2.0'
+    VERSION = '2.1'
 
     BROWSER = DPDBrowser
 

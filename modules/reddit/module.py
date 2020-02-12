@@ -44,7 +44,7 @@ class RedditModule(Module, CapImage, CapCollection, CapMessages):
     MAINTAINER = u'Vincent A'
     EMAIL = 'dev@indigo.re'
     LICENSE = 'AGPLv3+'
-    VERSION = '2.0'
+    VERSION = '2.1'
     CONFIG = BackendConfig(
         Value('subreddit', label='Name of the sub-reddit', regexp='[^/]+', default='pics'),
     )

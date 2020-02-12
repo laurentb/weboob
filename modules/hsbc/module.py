@@ -34,7 +34,7 @@ class HSBCModule(Module, CapBankWealth, CapProfile):
     NAME = 'hsbc'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '2.0'
+    VERSION = '2.1'
     LICENSE = 'LGPLv3+'
     DESCRIPTION = 'HSBC France'
     CONFIG = BackendConfig(

@@ -47,7 +47,7 @@ class YoutubeModule(Module, CapVideo, CapCollection):
     NAME = 'youtube'
     MAINTAINER = u'Laurent Bachelier'
     EMAIL = 'laurent@bachelier.name'
-    VERSION = '2.0'
+    VERSION = '2.1'
     DESCRIPTION = 'YouTube video streaming website'
     LICENSE = 'AGPLv3+'
     BROWSER = None

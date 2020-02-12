@@ -36,7 +36,7 @@ class NefModule(Module, CapBankTransfer):
     MAINTAINER = 'Damien Cassou'
     EMAIL = 'damien@cassou.me'
     LICENSE = 'LGPLv3+'
-    VERSION = '2.0'
+    VERSION = '2.1'
 
     BROWSER = NefBrowser
 

@@ -48,7 +48,7 @@ class SocieteGeneraleModule(Module, CapBankWealth, CapBankTransferAddRecipient, 
     NAME = 'societegenerale'
     MAINTAINER = u'Jocelyn Jaubert'
     EMAIL = 'jocelyn.jaubert@gmail.com'
-    VERSION = '2.0'
+    VERSION = '2.1'
     LICENSE = 'LGPLv3+'
     DESCRIPTION = u'Société Générale'
     CONFIG = BackendConfig(

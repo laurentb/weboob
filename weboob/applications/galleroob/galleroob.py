@@ -47,7 +47,7 @@ class GalleryListFormatter(PrettyFormatter):
 
 class Galleroob(ReplApplication):
     APPNAME = 'galleroob'
-    VERSION = '2.0'
+    VERSION = '2.1'
     COPYRIGHT = u'Copyright(C) 2011-2014 Noé Rubinstein'
     DESCRIPTION = 'galleroob browses and downloads web image galleries'
     SHORT_DESCRIPTION = 'browse and download web image galleries'
