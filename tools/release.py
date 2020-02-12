@@ -11,7 +11,6 @@ from subprocess import check_call, check_output
 from weboob.tools.misc import to_unicode
 
 WORKTREE = 'release_tmp'
-OPTIONS = ['--qt', '--xdg']
 
 
 def make_tarball(tag, wheel):
@@ -22,12 +21,12 @@ def make_tarball(tag, wheel):
     assert os.path.isdir(WORKTREE)
     os.chdir(WORKTREE)
 
-    check_call([sys.executable, 'setup.py'] + OPTIONS +
+    check_call([sys.executable, 'setup.py'] +
                ['sdist',
                 '--keep',
                 '--dist-dir', '../dist'])
     if wheel:
-        check_call([sys.executable, 'setup.py'] + OPTIONS +
+        check_call([sys.executable, 'setup.py'] +
                    ['bdist_wheel',
                     '--keep',
                     '--dist-dir', '../dist'])
