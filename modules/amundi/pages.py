@@ -251,12 +251,10 @@ class InvestmentPerformancePage(LoggedPage, HTMLPage):
         # We do not fill the performance dictionary if no performance is available,
         # otherwise it will overwrite the data obtained from the JSON with empty values.
         perfs = {}
-        if matches.get('1 an'):
-            perfs[1] = percent_to_ratio(CleanDecimal.French(default=NotAvailable).filter(matches['1 an']))
-        if matches.get('3 ans'):
-            perfs[3] = percent_to_ratio(CleanDecimal.French(default=NotAvailable).filter(matches['3 ans']))
-        if matches.get('5 ans'):
-            perfs[5] = percent_to_ratio(CleanDecimal.French(default=NotAvailable).filter(matches['5 ans']))
+        for k, v in {1: '1 an', 3: '3 ans', 5: '5 ans'}.items():
+            if matches.get(v):
+                perfs[k] = percent_to_ratio(CleanDecimal.French(default=NotAvailable).filter(matches[v]))
+
         return perfs
 
 
