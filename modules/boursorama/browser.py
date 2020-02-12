@@ -163,18 +163,13 @@ class BoursoramaBrowser(RetryLoginBrowser, TwoFactorBrowser):
     def handle_authentication(self):
         if self.authentication.is_here():
             self.check_interactive()
-            if self.config['enable_twofactors'].get():
-                confirmation_link = self.page.get_confirmation_link()
-                if confirmation_link:
-                    self.location(confirmation_link)
 
-                self.page.sms_first_step()
-                self.page.sms_second_step()
-            else:
-                raise BrowserIncorrectAuthenticationCode(
-                    """Boursorama - activate the two factor authentication in boursorama config."""
-                    """ You will receive SMS code but are limited in request per day (around 15)"""
-                )
+            confirmation_link = self.page.get_confirmation_link()
+            if confirmation_link:
+                self.location(confirmation_link)
+
+            self.page.sms_first_step()
+            self.page.sms_second_step()
 
     def handle_sms(self):
         # regular 2FA way
@@ -192,8 +187,6 @@ class BoursoramaBrowser(RetryLoginBrowser, TwoFactorBrowser):
             raise BrowserIncorrectAuthenticationCode()
 
     def init_login(self):
-        assert isinstance(self.config['device'].get(), basestring)
-        assert isinstance(self.config['enable_twofactors'].get(), bool)
         if not self.password.isalnum():
             raise BrowserIncorrectPassword()
 

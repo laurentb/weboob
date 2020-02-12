@@ -28,7 +28,7 @@ from weboob.capabilities.bank import CapBankWealth, CapBankTransferAddRecipient,
 from weboob.capabilities.profile import CapProfile
 from weboob.capabilities.contact import CapContact
 from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.value import ValueBackendPassword, ValueBool, Value
+from weboob.tools.value import ValueBackendPassword, ValueTransient
 
 from .browser import BoursoramaBrowser
 
@@ -45,10 +45,8 @@ class BoursoramaModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapPr
     DESCRIPTION = u'Boursorama'
     CONFIG = BackendConfig(ValueBackendPassword('login',      label='Identifiant', masked=False),
                            ValueBackendPassword('password',   label='Mot de passe'),
-                           ValueBool('enable_twofactors',     label='Send validation sms', default=False),
-                           Value('device',                    label='Device name', regexp='\w*', default='weboob'),
-                           Value('pin_code',                  label='Sms code', required=False, default=''),
-                           Value('request_information', default=None, noprompt=True, required=False),
+                           ValueTransient('pin_code'),
+                           ValueTransient('request_information'),
                           )
     BROWSER = BoursoramaBrowser
 

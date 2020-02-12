@@ -52,10 +52,6 @@ from weboob.tools.compat import urljoin, urlencode, urlparse, range
 from weboob.exceptions import BrowserQuestion, BrowserIncorrectPassword, BrowserHTTPNotFound, BrowserUnavailable, ActionNeeded
 
 
-class BrowserAuthenticationCodeMaxLimit(BrowserIncorrectPassword):
-    pass
-
-
 class IncidentPage(HTMLPage):
     pass
 
@@ -89,8 +85,6 @@ class AuthenticationPage(HTMLPage):
         """
         This function simulates the registration of a device on
         boursorama two factor authentification web page.
-        @param device device name to register
-        @exception BrowserAuthenticationCodeMaxLimit when daily limit is consumed
         """
         form = self.get_form()
         form.submit()
