@@ -31,7 +31,7 @@ class LaCentraleModule(Module, CapPriceComparison):
     NAME = 'lacentrale'
     MAINTAINER = u'Vicnet'
     EMAIL = 'vo.publique@gmail.com'
-    VERSION = '1.6'
+    VERSION = '2.0'
     DESCRIPTION = 'Vehicule prices at LaCentrale.fr'
     LICENSE = 'AGPLv3+'
     BROWSER = LaCentraleBrowser

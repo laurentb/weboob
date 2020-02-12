@@ -40,7 +40,7 @@ class BoursoramaModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapPr
     NAME = 'boursorama'
     MAINTAINER = u'Gabriel Kerneis'
     EMAIL = 'gabriel@kerneis.info'
-    VERSION = '1.6'
+    VERSION = '2.0'
     LICENSE = 'LGPLv3+'
     DESCRIPTION = u'Boursorama'
     CONFIG = BackendConfig(ValueBackendPassword('login',      label='Identifiant', masked=False),

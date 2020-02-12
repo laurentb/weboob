@@ -40,7 +40,7 @@ class RATPModule(Module, CapGauge):
     MAINTAINER = u'Phyks (Lucas Verney)'
     EMAIL = 'phyks@phyks.me'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.6'
+    VERSION = '2.0'
 
     BROWSER = RATPBrowser
 

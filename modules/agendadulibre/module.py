@@ -35,7 +35,7 @@ class AgendadulibreModule(Module, CapCalendarEvent):
     MAINTAINER = u'Bezleputh'
     EMAIL = 'carton_ben@yahoo.fr'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.6'
+    VERSION = '2.0'
     ASSOCIATED_CATEGORIES = [CATEGORIES.CONF]
     BROWSER = AgendadulibreBrowser
 

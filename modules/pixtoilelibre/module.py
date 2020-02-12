@@ -42,7 +42,7 @@ class PixtoilelibreModule(Module, CapPaste):
     MAINTAINER = u'Vincent A'
     EMAIL = 'dev@indigo.re'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.6'
+    VERSION = '2.0'
 
     BROWSER = PixtoilelibreBrowser
 

@@ -32,7 +32,7 @@ class DresdenWetterModule(Module, CapGauge):
     NAME = 'dresdenwetter'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
-    VERSION = '1.6'
+    VERSION = '2.0'
     LICENSE = 'AGPLv3+'
     DESCRIPTION = u"Private wetter station Dresden"
     BROWSER = DresdenWetterBrowser

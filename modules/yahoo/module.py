@@ -33,7 +33,7 @@ class YahooModule(Module, CapWeather):
     NAME = 'yahoo'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '1.6'
+    VERSION = '2.0'
     DESCRIPTION = 'Yahoo! Weather.'
     LICENSE = 'AGPLv3+'
     BROWSER = YahooBrowser

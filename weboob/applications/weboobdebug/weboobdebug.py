@@ -27,7 +27,7 @@ from weboob.browser.elements import generate_table_element
 
 class WeboobDebug(Application):
     APPNAME = 'weboob-debug'
-    VERSION = '1.6'
+    VERSION = '2.0'
     COPYRIGHT = 'Copyright(C) 2010-YEAR Christophe Benz'
     DESCRIPTION = "Weboob-Debug is a console application to debug backends."
     SHORT_DESCRIPTION = "debug backends"

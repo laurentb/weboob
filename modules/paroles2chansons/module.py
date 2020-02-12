@@ -29,7 +29,7 @@ class Paroles2chansonsModule(Module, CapLyrics):
     NAME = 'paroles2chansons'
     MAINTAINER = u'Julien Veyssier'
     EMAIL = 'eneiluj@gmx.fr'
-    VERSION = '1.6'
+    VERSION = '2.0'
     DESCRIPTION = 'Paroles2chansons.com song lyrics website'
     LICENSE = 'AGPLv3+'
     BROWSER = Paroles2chansonsBrowser

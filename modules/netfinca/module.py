@@ -34,6 +34,6 @@ class NetfincaModule(Module, CapBank):
     MAINTAINER = 'Martin Sicot'
     EMAIL = 'martin.sicot@budget-insight.com'
     LICENSE = 'LGPLv3+'
-    VERSION = '1.6'
+    VERSION = '2.0'
 
     BROWSER = NetfincaBrowser

@@ -37,7 +37,7 @@ class AXABanqueModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapDoc
     NAME = 'axabanque'
     MAINTAINER = 'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '1.6'
+    VERSION = '2.0'
     DESCRIPTION = 'AXA Banque'
     LICENSE = 'LGPLv3+'
     CONFIG = BackendConfig(

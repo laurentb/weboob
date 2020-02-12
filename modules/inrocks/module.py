@@ -28,7 +28,7 @@ from .tools import rssid
 class NewspaperInrocksModule(AbstractModule, CapMessages):
     MAINTAINER = u'Julien Hebert'
     EMAIL = 'juke@free.fr'
-    VERSION = '1.6'
+    VERSION = '2.0'
     LICENSE = 'AGPLv3+'
     STORAGE = {'seen': {}}
     NAME = 'inrocks'

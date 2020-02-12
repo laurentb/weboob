@@ -35,7 +35,7 @@ class LendosphereModule(Module, CapBankWealth):
     MAINTAINER = 'Vincent A'
     EMAIL = 'dev@indigo.re'
     LICENSE = 'LGPLv3+'
-    VERSION = '1.6'
+    VERSION = '2.0'
 
     BROWSER = LendosphereBrowser
 

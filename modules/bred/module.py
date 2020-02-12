@@ -36,7 +36,7 @@ class BredModule(Module, CapBankWealth, CapProfile):
     NAME = 'bred'
     MAINTAINER = u'Romain Bignon'
     EMAIL = 'romain@weboob.org'
-    VERSION = '1.6'
+    VERSION = '2.0'
     DESCRIPTION = u'Bred'
     LICENSE = 'LGPLv3+'
     CONFIG = BackendConfig(

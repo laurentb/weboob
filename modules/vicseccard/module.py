@@ -30,7 +30,7 @@ class VicSecCardModule(Module, CapBank):
     NAME = 'vicseccard'
     MAINTAINER = u'Oleg Plakhotniuk'
     EMAIL = 'olegus8@gmail.com'
-    VERSION = '1.6'
+    VERSION = '2.0'
     LICENSE = 'LGPLv3+'
     DESCRIPTION = u'Victoria\'s Secret Angel Card'
     CONFIG = BackendConfig(

@@ -33,7 +33,7 @@ class VimeoModule(Module, CapVideo):
     NAME = 'vimeo'
     MAINTAINER = u'François Revol'
     EMAIL = 'revol@free.fr'
-    VERSION = '1.6'
+    VERSION = '2.0'
     DESCRIPTION = 'Vimeo video streaming website'
     LICENSE = 'AGPLv3+'
     BROWSER = VimeoBrowser

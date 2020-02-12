@@ -27,7 +27,7 @@ __all__ = ['WeboobCli']
 
 class WeboobCli(ReplApplication):
     APPNAME = 'weboob-cli'
-    VERSION = '1.6'
+    VERSION = '2.0'
     COPYRIGHT = 'Copyright(C) 2010-YEAR Romain Bignon'
     SYNOPSIS =  'Usage: %prog [-dqv] [-b backends] [-cnfs] capability method [arguments..]\n'
     SYNOPSIS += '       %prog [--help] [--version]'

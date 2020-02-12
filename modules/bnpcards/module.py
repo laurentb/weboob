@@ -36,7 +36,7 @@ class BnpcartesentrepriseModule(Module, CapBank):
     MAINTAINER = 'Baptiste Delpey'
     EMAIL = 'bdelpey@budget-insight.fr'
     LICENSE = 'LGPLv3+'
-    VERSION = '1.6'
+    VERSION = '2.0'
     CONFIG = BackendConfig(
         ValueBackendPassword('login', label='Identifiant', masked=False),
         ValueBackendPassword('password', label='Code personnel'),

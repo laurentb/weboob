@@ -42,7 +42,7 @@ class GithubModule(Module, CapBugTracker):
     MAINTAINER = u'Vincent A'
     EMAIL = 'dev@indigo.re'
     LICENSE = 'AGPLv3+'
-    VERSION = '1.6'
+    VERSION = '2.0'
     CONFIG = BackendConfig(Value('username', label='Username', default=''),
                            ValueBackendPassword('password', label='Password or Personal token', default=''))
 

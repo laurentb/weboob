@@ -32,7 +32,7 @@ class BECMModule(AbstractModule, CapBankTransferAddRecipient, CapContact):
     NAME = 'becm'
     MAINTAINER = u'Victor Kannemacher'
     EMAIL = 'vkannemacher.budgetinsight@gmail.com'
-    VERSION = '1.6'
+    VERSION = '2.0'
     DESCRIPTION = u'Banque Européenne Crédit Mutuel'
     LICENSE = 'LGPLv3+'
 

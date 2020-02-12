@@ -32,7 +32,7 @@ class PaypalModule(Module, CapBank):
     NAME = 'paypal'
     MAINTAINER = u'Laurent Bachelier'
     EMAIL = 'laurent@bachelier.name'
-    VERSION = '1.6'
+    VERSION = '2.0'
     LICENSE = 'LGPLv3+'
     DESCRIPTION = u'PayPal'
     CONFIG = BackendConfig(ValueBackendPassword('login',      label='E-mail', masked=False),

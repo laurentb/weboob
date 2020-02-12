@@ -46,7 +46,7 @@ __all__ = ['WeboobMain']
 
 class WeboobMain(ConsoleApplication):
     APPNAME = 'weboob'
-    VERSION = '1.6'
+    VERSION = '2.0'
     COPYRIGHT = 'Copyright(C) 2010-YEAR The Weboob Team'
     DESCRIPTION = "This is a console script to launch weboob applications,"
     SHORT_DESCRIPTION = "launch weboob applications"

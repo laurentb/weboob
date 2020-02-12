@@ -32,7 +32,7 @@ class CreditCooperatifModule(AbstractModule, CapBankTransferAddRecipient, CapPro
     NAME = 'creditcooperatif'
     MAINTAINER = u'Kevin Pouget'
     EMAIL = 'weboob@kevin.pouget.me'
-    VERSION = '1.6'
+    VERSION = '2.0'
     DESCRIPTION = u'Crédit Coopératif'
     LICENSE = 'LGPLv3+'
     auth_type = {'particular': "Interface Particuliers",

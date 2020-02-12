@@ -33,7 +33,7 @@ class HSBCHKModule(Module, CapBank):
     NAME = 'hsbchk'
     MAINTAINER = u'sinopsysHK'
     EMAIL = 'sinofwd@gmail.com'
-    VERSION = '1.6'
+    VERSION = '2.0'
     LICENSE = 'LGPLv3+'
     DESCRIPTION = 'HSBC Hong Kong'
     CONFIG = BackendConfig(ValueBackendPassword('login',      label='User identifier', masked=False),

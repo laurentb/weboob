@@ -34,7 +34,7 @@ class FreeMobileModule(Module, CapDocument, CapMessages, CapMessagesPost, CapPro
     NAME = 'freemobile'
     MAINTAINER = u'Florent Fourcot'
     EMAIL = 'weboob@flo.fourcot.fr'
-    VERSION = '1.6'
+    VERSION = '2.0'
     LICENSE = 'LGPLv3+'
     DESCRIPTION = 'Free Mobile website'
     CONFIG = BackendConfig(ValueBackendPassword('login',

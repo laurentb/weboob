@@ -109,7 +109,7 @@ class SuggestionsFormatter(PrettyFormatter):
 
 class Boobands(ReplApplication):
     APPNAME = 'boobands'
-    VERSION = '1.6'
+    VERSION = '2.0'
     COPYRIGHT = 'Copyright(C) 2018-YEAR Quentin Defenouillere'
     DESCRIPTION = "Console application allowing to display music bands and offer music suggestions."
     SHORT_DESCRIPTION = "Display bands and suggestions"

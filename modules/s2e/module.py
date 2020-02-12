@@ -28,7 +28,7 @@ class S2eModule(Module, CapBankPockets):
     MAINTAINER = u'Edouard Lambert'
     EMAIL = 'elambert@budget-insight.com'
     LICENSE = 'LGPLv3+'
-    VERSION = '1.6'
+    VERSION = '2.0'
 
     def iter_accounts(self):
         return self.browser.iter_accounts()

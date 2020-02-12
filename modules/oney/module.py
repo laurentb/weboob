@@ -35,7 +35,7 @@ class OneyModule(Module, CapBank):
     NAME = 'oney'
     MAINTAINER = 'Vincent Paredes'
     EMAIL = 'vparedes@budget-insight.com'
-    VERSION = '1.6'
+    VERSION = '2.0'
     LICENSE = 'LGPLv3+'
     DESCRIPTION = 'Oney'
     CONFIG = BackendConfig(
