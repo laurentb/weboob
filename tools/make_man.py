@@ -228,7 +228,7 @@ For full copyright information see the COPYING file in the weboob package.
     mantext = u"%s\n%s\n%s\n%s\n%s\n%s\n%s" % (coding, comment, header, name, helptext, condition, footer)
     with open(os.path.join(BASE_PATH, DEST_DIR, "%s.1" % script_name), 'w+') as manfile:
         for line in mantext.split('\n'):
-            manfile.write('%s\n' % line.lstrip().encode('utf-8'))
+            manfile.write('%s\n' % line.lstrip())
     print("wrote %s/%s.1" % (DEST_DIR, script_name))
 
     return application._shell_completion_items()
