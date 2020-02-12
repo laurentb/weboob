@@ -107,6 +107,9 @@ class AccountCodesPage(LoggedPage, JsonPage):
                 return acc['identifiantContratCrypte']
         assert False, 'the account code was not found in the linebourse API'
 
+    def get_accounts_list(self):
+        return [acc['affichage'] for acc in self.doc['data']]
+
 
 class NewWebsiteFirstConnectionPage(LoggedPage, JsonPage):
     def build_doc(self, content):
