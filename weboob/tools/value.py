@@ -100,10 +100,10 @@ class Value(object):
 
         :raises: ValueError
         """
-        if self.default is not None and v == self.default:
-            return
         if self.required and v is None:
             raise ValueError('Value is required and thus must be set')
+        if v == self.default:
+            return
         if v == '' and self.default != '' and (self.choices is None or v not in self.choices):
             raise ValueError('Value can\'t be empty')
         if self.regexp is not None and not re.match(self.regexp + '$', unicode(v) if v is not None else ''):
@@ -152,7 +152,7 @@ class Value(object):
 class ValueTransient(Value):
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('transient', True)
-        kwargs.setdefault('default', '')
+        kwargs.setdefault('default', None)
         kwargs.setdefault('required', False)
         super(ValueTransient, self).__init__(*args, **kwargs)
 
