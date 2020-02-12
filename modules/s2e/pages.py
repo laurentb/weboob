@@ -375,7 +375,7 @@ class ItemInvestment(ItemElement):
                 match = re.match(r'http://www.cpr-am.fr/fr/fonds_detail.php\?isin=([A-Z0-9]+)', url)
                 match = match or re.match(r'http://www.cpr-am.fr/particuliers/product/view/([A-Z0-9]+)', url)
                 if match:
-                    self.env['code'] = m.group(1)
+                    self.env['code'] = match.group(1)
                     if is_isin_valid(match.group(1)):
                         self.env['code_type'] = Investment.CODE_TYPE_ISIN
                     else:
