@@ -401,7 +401,7 @@ class ReplApplication(ConsoleApplication, MyCmd):
         - DecoupledValidation
         """
 
-        if self.interactive:
+        if self.stdout.isatty():
             # Set a non-None value to all backends's request_information
             #
             # - None indicates non-interactive: do not trigger 2FA challenges,
