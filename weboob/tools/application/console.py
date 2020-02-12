@@ -36,7 +36,7 @@ from weboob.core.repositories import IProgress
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, BrowserForbidden, \
                               BrowserSSLError, BrowserQuestion, BrowserHTTPSDowngrade, \
                               ModuleInstallError, ModuleLoadError, NoAccountsException, \
-                              ActionNeeded, CaptchaQuestion
+                              ActionNeeded, CaptchaQuestion, NeedInteractiveFor2FA
 from weboob.tools.value import Value, ValueBool, ValueFloat, ValueInt, ValueBackendPassword
 from weboob.tools.misc import to_unicode
 from weboob.tools.compat import unicode, long
@@ -609,6 +609,8 @@ class ConsoleApplication(Application):
             print(u'Error(%s): this feature is not supported yet by this backend.' % backend.name, file=self.stderr)
             print(u'      %s   To help the maintainer of this backend implement this feature,' % (' ' * len(backend.name)), file=self.stderr)
             print(u'      %s   please contact us on the project mailing list' % (' ' * len(backend.name)), file=self.stderr)
+        elif isinstance(error, NeedInteractiveFor2FA):
+            print(u'Error(%s): You have to run %s in interactive mode to perform a two-factor authentication' % (backend.name, self.APPNAME), file=self.stderr)
         elif isinstance(error, UserError):
             print(u'Error(%s): %s' % (backend.name, to_unicode(error)), file=self.stderr)
         elif isinstance(error, MoreResultsAvailable):
