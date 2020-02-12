@@ -146,12 +146,16 @@ class TwoFAPage(MyHTMLPage):
             self.browser.login_without_2fa()
 
     def get_auth_method(self):
-        if 'Une authentification forte via Certicode Plus vous' in CleanText('//div[@class="textFCK"]')(self.doc):
+        status_message = CleanText('//div[@class="textFCK"]')(self.doc)
+        if 'Une authentification forte via Certicode Plus vous' in status_message:
             return 'cer+'
-        elif 'authentification forte via Certicode vous' in CleanText('//div[@class="textFCK"]')(self.doc):
+        elif 'authentification forte via Certicode vous' in status_message:
             return 'cer'
-        elif 'Si vous n’avez pas de solution d’authentification forte' in CleanText('//div[@class="textFCK"]')(self.doc):
+        elif 'Si vous n’avez pas de solution d’authentification forte' in status_message:
             return 'no2fa'
+        elif 'Nous rencontrons un problème pour valider votre opération. Veuillez reessayer plus tard' in status_message:
+            raise BrowserUnavailable(status_message)
+
         assert False, '2FA method not found'
 
     def get_skip_url(self):
