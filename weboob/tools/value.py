@@ -151,9 +151,9 @@ class Value(object):
 
 class ValueTransient(Value):
     def __init__(self, *args, **kwargs):
-        kwargs['transient'] = True
-        kwargs['default'] = None
-        kwargs['required'] = False
+        kwargs.setdefault('transient', True)
+        kwargs.setdefault('default', '')
+        kwargs.setdefault('required', False)
         super(ValueTransient, self).__init__(*args, **kwargs)
 
     def dump(self):
