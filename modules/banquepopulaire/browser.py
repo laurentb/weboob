@@ -20,6 +20,7 @@
 from __future__ import unicode_literals
 
 import re
+from uuid import uuid4
 
 from datetime import datetime
 from collections import OrderedDict
@@ -32,6 +33,7 @@ from weboob.browser import LoginBrowser, URL, need_login
 from weboob.capabilities.bank import Account, AccountOwnership
 from weboob.capabilities.base import NotAvailable, find_object
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
+from weboob.tools.compat import urlparse, parse_qs
 
 from .pages import (
     LoggedOut,
@@ -41,6 +43,8 @@ from .pages import (
     NatixisPage, EtnaPage, NatixisInvestPage, NatixisHistoryPage, NatixisErrorPage,
     NatixisDetailsPage, NatixisChoicePage, NatixisRedirect,
     LineboursePage, AlreadyLoginPage, InvestmentPage,
+    NewLoginPage, JsFilePage, AuthorizePage, LoginTokensPage, VkImagePage,
+    AuthenticationMethodPage, AuthenticationStepPage, CaissedepargneVirtKeyboard,
 )
 
 from .document_pages import BasicTokenPage, SubscriberPage, SubscriptionsPage, DocumentsPage
@@ -102,6 +106,21 @@ def no_need_login(func):
 
 class BanquePopulaire(LoginBrowser):
     login_page = URL(r'https://[^/]+/auth/UI/Login.*', LoginPage)
+    new_login = URL(r'https://[^/]+/se-connecter/sso', NewLoginPage)
+    js_file = URL(r'https://[^/]+/se-connecter/main-.*.js$', JsFilePage)
+    authorize = URL(r'https://www.as-ex-ath-groupe.banquepopulaire.fr/api/oauth/v2/authorize', AuthorizePage)
+    login_tokens = URL(r'https://www.as-ex-ath-groupe.banquepopulaire.fr/api/oauth/v2/consume', LoginTokensPage)
+    authentication_step = URL(
+        r'https://www.icgauth.banquepopulaire.fr/dacsrest/api/v1u0/transaction/(?P<validation_id>[^/]+)/step', AuthenticationStepPage
+    )
+    authentication_method_page = URL(
+        r'https://www.icgauth.banquepopulaire.fr/dacsrest/api/v1u0/transaction/(?P<validation_id>)',
+        AuthenticationMethodPage,
+    )
+    vk_image = URL(
+        r'https://www.icgauth.banquepopulaire.fr/dacs-rest-media/api/v1u0/medias/mappings/[a-z0-9-]+/images',
+        VkImagePage,
+    )
     index_page = URL(r'https://[^/]+/cyber/internet/Login.do', IndexPage)
     accounts_page = URL(r'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=mesComptes.*',
                         r'https://[^/]+/cyber/internet/StartTask.do\?taskInfoOID=maSyntheseGratuite.*',
@@ -152,8 +171,11 @@ class BanquePopulaire(LoginBrowser):
                     r'https://[^/]+/cyber/internet/ShowPortal.do\?token=.*',
                     HomePage)
 
-    already_login_page = URL(r'https://[^/]+/dacswebssoissuer.*',
-                             r'https://[^/]+/WebSSO_BP/_(?P<bankid>\d+)/index.html\?transactionID=(?P<transactionID>.*)', AlreadyLoginPage)
+    already_login_page = URL(
+        r'https://[^/]+/dacswebssoissuer.*',
+        r'https://[^/]+/WebSSO_BP/_(?P<bankid>\d+)/index.html\?transactionID=(?P<transactionID>.*)',
+        AlreadyLoginPage
+    )
     login2_page = URL(r'https://[^/]+/WebSSO_BP/_(?P<bankid>\d+)/index.html\?transactionID=(?P<transactionID>.*)', Login2Page)
 
     # natixis
@@ -234,6 +256,14 @@ class BanquePopulaire(LoginBrowser):
         if self.home_page.is_here():
             return
 
+        if self.new_login.is_here():
+            return self.do_new_login()
+        return self.do_old_login()
+
+    def do_old_login(self):
+        assert self.login2_page.is_here(), 'Should be on login2 page'
+        self.page.set_form_ids()
+
         try:
             self.page.login(self.username, self.password)
         except BrowserUnavailable as ex:
@@ -252,7 +282,107 @@ class BanquePopulaire(LoginBrowser):
             data = {'integrationMode': 'INTERNET_RESCUE'}
             self.location('/cyber/internet/Login.do', data=data)
 
+    def do_new_login(self):
+        # Same login as caissedepargne
+        url_params = parse_qs(urlparse(self.url).query)
+        cdetab = url_params['cdetab'][0]
+        continue_url = url_params['continue'][0]
+
+        main_js_file = self.page.get_main_js_file_url()
+        self.location(main_js_file)
+
+        client_id = self.page.get_client_id()
+        nonce = self.page.get_nonce()  # Hardcoded in their js...
+
+        # On the website, this sends back json because of the header
+        # 'Accept': 'applcation/json'. If we do not add this header, we
+        # instead have a form that we can directly send to complete
+        # the login.
+        self.authorize.go(
+            params={
+                'nonce': nonce,
+                'scope': '',
+                'response_type': 'id_token token',
+                'response_mode': 'form_post',
+                'cdetab': cdetab,
+                'login_hint': self.username,
+                'display': 'page',
+                'client_id': client_id,
+                'claims': '{"userinfo":{"cdetab":null,"authMethod":null,"authLevel":null},"id_token":{"auth_time":{"essential":true},"last_login":null}}',
+                'bpcesta': '{"csid":"%s","typ_app":"rest","enseigne":"bp","typ_sp":"out-band","typ_act":"auth","snid":"%s","cdetab":"%s","typ_srv":"part","phase":"1"}' % (str(uuid4()), 123456, cdetab),
+            },
+        )
+        self.page.send_form()
+
+        self.page.check_errors(feature='login')
+
+        validation_id = self.page.get_validation_id()
+        validation_unit_id = self.page.validation_unit_id
+
+        vk_info = self.page.get_authentication_method_info()
+        vk_id = vk_info['id']
+        vk_images_url = vk_info['virtualKeyboard']['externalRestMediaApiUrl']
+
+        self.location(vk_images_url)
+        images_url = self.page.get_all_images_data()
+        vk = CaissedepargneVirtKeyboard(self, images_url)
+        code = vk.get_string_code(self.password)
+
+        headers = {
+            'Referer': self.BASEURL,
+            'Accept': 'application/json, text/plain, */*',
+        }
+        self.authentication_step.go(
+            validation_id=validation_id,
+            json={
+                'validate': {
+                    validation_unit_id: [{
+                        'id': vk_id,
+                        'password': code,
+                        'type': 'PASSWORD',
+                    }],
+                },
+            },
+            headers=headers,
+        )
+
+        assert self.authentication_step.is_here()
+        self.page.check_errors(feature='login')
+
+        self.do_redirect(headers)
+
+        access_token = self.page.get_access_token()
+        expires_in = self.page.get_expires_in()
+
+        self.location(
+            continue_url,
+            params={
+                'access_token': access_token,
+                'token_type': 'Bearer',
+                'grant_type': 'implicit flow',
+                'NameId': self.username,
+                'Segment': 'part',
+                'scopes': '',
+                'expires_in': expires_in,
+            },
+        )
+
+        url_params = parse_qs(urlparse(self.url).query)
+        validation_id = url_params['transactionID'][0]
+
+        self.authentication_method_page.go(validation_id=validation_id)
+        # Need to do the redirect a second time to finish login
+        self.do_redirect(headers)
+
     ACCOUNT_URLS = ['mesComptes', 'mesComptesPRO', 'maSyntheseGratuite', 'accueilSynthese', 'equipementComplet']
+
+    def do_redirect(self, headers):
+        redirect_data = self.page.get_redirect_data()
+        self.location(
+            redirect_data['action'],
+            data={'SAMLResponse': redirect_data['samlResponse']},
+            headers=headers,
+        )
 
     @retry(BrokenPageError)
     @need_login

@@ -33,7 +33,10 @@ from weboob.browser.filters.html import Attr, Link, AttributeNotFound
 from weboob.browser.filters.json import Dict
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, ActionNeeded
 
-from weboob.browser.pages import HTMLPage, LoggedPage, FormNotFound, JsonPage, RawPage, XMLPage
+from weboob.browser.pages import (
+    HTMLPage, LoggedPage, FormNotFound, JsonPage, RawPage, XMLPage,
+    AbstractPage,
+)
 
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.profile import Person
@@ -306,6 +309,54 @@ class UnavailablePage(LoggedPage, MyHTMLPage):
         self.browser.location(a)
 
 
+class NewLoginPage(AbstractPage):
+    PARENT = 'caissedepargne'
+    PARENT_URL = 'new_login'
+    BROWSER_ATTR = 'package.browser.CaisseEpargne'
+
+
+class JsFilePage(AbstractPage):
+    PARENT = 'caissedepargne'
+    PARENT_URL = 'js_file'
+    BROWSER_ATTR = 'package.browser.CaisseEpargne'
+
+
+class AuthorizePage(AbstractPage):
+    PARENT = 'caissedepargne'
+    PARENT_URL = 'authorize'
+    BROWSER_ATTR = 'package.browser.CaisseEpargne'
+
+
+class LoginTokensPage(AbstractPage):
+    PARENT = 'caissedepargne'
+    PARENT_URL = 'login_tokens'
+    BROWSER_ATTR = 'package.browser.CaisseEpargne'
+
+    def get_expires_in(self):
+        return Dict('parameters/expires_in')(self.doc)
+
+
+class VkImagePage(AbstractPage):
+    PARENT = 'caissedepargne'
+    PARENT_URL = 'vk_image'
+    BROWSER_ATTR = 'package.browser.CaisseEpargne'
+
+
+class AuthenticationMethodPage(AbstractPage):
+    PARENT = 'caissedepargne'
+    PARENT_URL = 'authentication_method_page'
+    BROWSER_ATTR = 'package.browser.CaisseEpargne'
+
+    def get_redirect_data(self):
+        return Dict('response/saml2_post')(self.doc)
+
+
+class AuthenticationStepPage(AbstractPage):
+    PARENT = 'caissedepargne'
+    PARENT_URL = 'authentication_step'
+    BROWSER_ATTR = 'package.browser.CaisseEpargne'
+
+
 class LoginPage(MyHTMLPage):
     def on_load(self):
         h1 = CleanText('//h1[1]')(self.doc)
@@ -322,6 +373,39 @@ class LoginPage(MyHTMLPage):
         form['IDToken1'] = login.encode(self.ENCODING)
         form['IDToken2'] = passwd.encode(self.ENCODING)
         form.submit()
+
+
+class CaissedepargneVirtKeyboard(SplitKeyboard):
+    char_to_hash = {
+        '0': '66ec79b200706e7f9c14f2b6d35dbb05',
+        '1': '529819241cce382b429b4624cb019b56',
+        '2': 'fab68678204198b794ce580015c8637f',
+        '3': '3fc5280d17cf057d1c4b58e4f442ceb8',
+        '4': ('dea8800bdd5fcaee1903a2b097fbdef0', 'e413098a4d69a92d08ccae226cea9267', '61f720966ccac6c0f4035fec55f61fe6', '2cbd19a4b01c54b82483f0a7a61c88a1'),
+        '5': 'ff1909c3b256e7ab9ed0d4805bdbc450',
+        '6': '7b014507ffb92a80f7f0534a3af39eaa',
+        '7': '7d598ff47a5607022cab932c6ad7bc5b',
+        '8': ('4ed28045e63fa30550f7889a18cdbd81', '88944bdbef2e0a49be9e0c918dd4be64'),
+        '9': 'dd6317eadb5a0c68f1938cec21b05ebe',
+    }
+    codesep = ' '
+
+    def __init__(self, browser, images):
+        code_to_filedata = {}
+        for img_item in images:
+            img_content = browser.location(img_item['uri']).content
+            img = Image.open(BytesIO(img_content))
+            img = img.filter(ImageFilter.UnsharpMask(
+                radius=2,
+                percent=150,
+                threshold=3,
+            ))
+            img = img.convert('L', dither=None)
+            img = Image.eval(img, lambda x: 0 if x < 20 else 255)
+            b = BytesIO()
+            img.save(b, format='PNG')
+            code_to_filedata[img_item['value']] = b.getvalue()
+        super(CaissedepargneVirtKeyboard, self).__init__(code_to_filedata)
 
 
 class MyVirtKeyboard(SplitKeyboard):
@@ -364,6 +448,7 @@ class Login2Page(LoginPage):
         if not self.browser.no_login:
             raise LoggedOut()
 
+    def set_form_ids(self):
         r = self.browser.open(self.request_url)
         doc = r.json()
 
