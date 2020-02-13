@@ -24,9 +24,9 @@ from weboob.browser.pages import HTMLPage, LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
 from weboob.browser.filters.standard import (
     CleanText, Title, Format, Date, Regexp, CleanDecimal, Env,
-    Currency, Field, Eval, Coalesce,
+    Currency, Field, Eval, Coalesce, MapIn, Lower,
 )
-from weboob.capabilities.bank import Investment, Transaction
+from weboob.capabilities.bank import Account, Investment, Transaction
 from weboob.capabilities.base import NotAvailable
 from weboob.exceptions import ActionNeeded, BrowserUnavailable
 from weboob.tools.compat import urljoin
@@ -59,12 +59,29 @@ class MigrationPage(LoggedPage, HTMLPage):
         return CleanText('//h1[contains(text(), "Votre nouvel identifiant et mot de passe")]')(self.doc)
 
 
+ACCOUNT_TYPES = {
+    "assurance vie": Account.TYPE_LIFE_INSURANCE,
+    "retraite madelin": Account.TYPE_MADELIN,
+    "article 83": Account.TYPE_ARTICLE_83,
+    "plan d'epargne retraite populaire": Account.TYPE_PERP,
+    "plan epargne retraite": Account.TYPE_PER,
+}
+
 class InvestmentPage(LoggedPage, HTMLPage):
     @method
     class fill_account(ItemElement):
-        obj_balance = CleanDecimal.French('//ul[has-class("m-data-group")]//strong')
-        obj_currency = Currency('//ul[has-class("m-data-group")]//strong')
+        obj_balance = Coalesce(
+            CleanDecimal.French('//h3[contains(text(), "Valeur de rachat")]/following-sibling::p/strong', default=NotAvailable),
+            CleanDecimal.French('//h3[contains(text(), "pargne retraite")]/following-sibling::p/strong', default=NotAvailable),
+            CleanDecimal.French('//h3[contains(text(), "Capital constitutif de rente")]/following-sibling::p', default=NotAvailable),
+        )
+        obj_currency = Coalesce(
+            Currency('//h3[contains(text(), "Valeur de rachat")]/following-sibling::p/strong', default=NotAvailable),
+            Currency('//h3[contains(text(), "pargne retraite")]/following-sibling::p/strong', default=NotAvailable),
+            Currency('//h3[contains(text(), "Capital constitutif de rente")]/following-sibling::p', default=NotAvailable),
+        )
         obj_valuation_diff = CleanDecimal.French('//h3[contains(., "value latente")]/following-sibling::p[1]', default=NotAvailable)
+        obj_type = MapIn(Lower(CleanText('//h3[contains(text(), "Type de produit")]/following-sibling::p')), ACCOUNT_TYPES, Account.TYPE_UNKNOWN)
 
     def get_history_link(self):
         history_link = self.doc.xpath('//li/a[contains(text(), "Historique")]/@href')

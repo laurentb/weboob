@@ -23,6 +23,7 @@ from __future__ import unicode_literals
 from weboob.browser import LoginBrowser, need_login
 from weboob.browser.url import BrowserParamURL
 from weboob.capabilities.base import empty, NotAvailable
+from weboob.capabilities.bank import Account
 from weboob.exceptions import BrowserIncorrectPassword, BrowserPasswordExpired, ActionNeeded, BrowserHTTPError
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 
@@ -82,6 +83,8 @@ class AvivaBrowser(LoginBrowser):
                     # and accounts with unavailable balances
                     continue
                 self.page.fill_account(obj=account)
+                if account.type == Account.TYPE_UNKNOWN:
+                    self.logger.warning('Account "%s" is untyped, please check the related type in account details.', account.label)
                 yield account
             except BrowserHTTPError:
                 self.logger.warning('Could not get the account details: account %s will be skipped', account.id)

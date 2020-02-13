@@ -21,20 +21,12 @@ from __future__ import unicode_literals
 
 from weboob.browser.pages import LoggedPage
 from weboob.browser.elements import ListElement, ItemElement, method
-from weboob.browser.filters.standard import (
-    CleanText, Field, Map, Regexp
-)
+from weboob.browser.filters.standard import CleanText, Field
 from weboob.browser.filters.html import AbsoluteLink
 from weboob.capabilities.bank import Account
 from weboob.capabilities.base import NotAvailable
 
 from .detail_pages import BasePage
-
-
-ACCOUNT_TYPES = {
-    'Assurance vie': Account.TYPE_LIFE_INSURANCE,
-    'Epargne – Retraite': Account.TYPE_PERP,
-}
 
 
 class AccountsPage(LoggedPage, BasePage):
@@ -49,9 +41,6 @@ class AccountsPage(LoggedPage, BasePage):
             obj_number = Field('id')
             obj_label = CleanText('.//p[has-class("a-heading")]', default=NotAvailable)
             obj_url = AbsoluteLink('.//a[contains(text(), "Détail")]')
-            obj_type = Map(Regexp(CleanText('../../../div[contains(@class, "o-product-roundels-category")]'),
-                           r'Vérifier votre (.*) contrats', default=NotAvailable),
-                           ACCOUNT_TYPES, Account.TYPE_UNKNOWN)
 
             def condition(self):
                 # 'Prévoyance' div is for insurance contracts -- they are not bank accounts and thus are skipped
