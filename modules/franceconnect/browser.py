@@ -39,9 +39,10 @@ class FranceConnectBrowser(LoginBrowser):
         params = {'provider': provider, 'storeFI': 'false'}
         self.location('/call', params=params)
 
-    def fc_redirect(self, url):
+    def fc_redirect(self, url=None):
         self.BASEURL = 'https://app.franceconnect.gouv.fr'
-        self.location(url)
+        if url is not None:
+            self.location(url)
         self.page.redirect()
         parse_result = urlparse(self.url)
         self.BASEURL = parse_result.scheme + '://' + parse_result.netloc
