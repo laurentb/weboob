@@ -44,12 +44,11 @@ ACCOUNT_TYPES = {
 }
 
 class AccountsPage(LoggedPage, HTMLPage):
-
     # UTF8 tag in the meta div, but that's wrong
     ENCODING = 'iso-8859-1'
 
     @method
-    class get_accounts(TableElement):
+    class iter_accounts(TableElement):
 
         head_xpath = '//table[contains(@class,"tableau_comptes_details")]//th'
 
@@ -88,6 +87,8 @@ class AccountsPage(LoggedPage, HTMLPage):
                 currency = tablecell.xpath('./span[@class="intraday"]')
                 return Currency(currency)(self)
 
+    def get_action_needed_message(self):
+        return CleanText('//form[@id="profilForm"]')(self.doc)
 
     def get_nump_id(self, account):
         # Return an element needed in the request in order to access investments details

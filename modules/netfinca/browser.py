@@ -21,7 +21,7 @@ from __future__ import unicode_literals
 
 
 from weboob.browser import LoginBrowser, URL
-from weboob.exceptions import BrowserUnavailable
+from weboob.exceptions import BrowserUnavailable, ActionNeeded
 
 from .pages import InvestmentsPage, AccountsPage
 
@@ -35,7 +35,11 @@ class NetfincaBrowser(LoginBrowser):
 
     def iter_accounts(self):
         self.accounts.stay_or_go()
-        return self.page.get_accounts()
+        message = self.page.get_action_needed_message()
+        if 'merci de renseigner les informations' in message:
+            # Customers have to fill their e-mail address and phone number
+            raise ActionNeeded(message)
+        return self.page.iter_accounts()
 
     def iter_investments(self, account):
         self.accounts.stay_or_go()
