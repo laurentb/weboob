@@ -1251,7 +1251,11 @@ class TwoFactorBrowser(LoginBrowser, StatesMixin):
         self.twofa_logged_date = None
 
         for config_key, handle_method in self.AUTHENTICATION_METHODS.items():
-            setattr(self, config_key, self.config.get(config_key, Value()).get())
+            config_value = self.config.get(config_key, Value())
+            if not config_value:
+                continue
+
+            setattr(self, config_key, config_value.get())
             if getattr(self, config_key):
                 handle_method()
 
