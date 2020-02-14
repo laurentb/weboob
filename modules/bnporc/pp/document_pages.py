@@ -25,9 +25,9 @@ import re
 
 from weboob.browser.elements import DictElement, ItemElement, method
 from weboob.browser.filters.json import Dict
-from weboob.browser.filters.standard import Format, Date, Env
+from weboob.browser.filters.standard import Format, Date, Env, Field
 from weboob.browser.pages import JsonPage, LoggedPage
-from weboob.capabilities.bill import Document, DocumentTypes
+from weboob.capabilities.bill import Document, Bill, DocumentTypes
 from weboob.tools.compat import urlencode
 
 patterns = {
@@ -58,7 +58,10 @@ class TitulairePage(LoggedPage, JsonPage):
 
 
 class ItemDocument(ItemElement):
-    klass = Document
+    def build_object(self):
+        if Field('type')(self) == DocumentTypes.BILL:
+            return Bill()
+        return Document()
 
     def condition(self):
         # There is two type of json, the one with the ibancrypte in it
