@@ -56,7 +56,7 @@ class CmsoProBrowser(LoginBrowser):
 
     arkea = '03'
 
-    def __init__(self, website, *args, **kwargs):
+    def __init__(self, website, config, *args, **kwargs):
         super(CmsoProBrowser, self).__init__(*args, **kwargs)
 
         self.BASEURL = "https://www.%s" % website

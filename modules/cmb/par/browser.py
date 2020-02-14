@@ -27,6 +27,7 @@ class CmbParBrowser(AbstractBrowser):
 
     name = 'cmb'
     arkea = '01'
+    arkea_si = '001'
     arkea_client_id = 'ARCM6W0q6zHX31vvdVczlWRtGjSGbkPv'
 
     original_site = 'https://mon.cmb.fr'

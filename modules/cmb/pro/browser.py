@@ -26,6 +26,6 @@ class CmbProBrowser(AbstractBrowser):
 
     arkea = '01'
 
-    def __init__(self, website, *args, **kwargs):
-        super(CmbProBrowser, self).__init__(website, *args, **kwargs)
+    def __init__(self, website, config, *args, **kwargs):
+        super(CmbProBrowser, self).__init__(website, config, *args, **kwargs)
         self.client_id = 'IVhzJ7zf3GiGvslYOuLGgvRvYXFtn2wR'
