@@ -20,7 +20,6 @@
 from __future__ import unicode_literals
 
 from collections import OrderedDict
-from functools import reduce
 
 from weboob.capabilities.bank import CapBankWealth, AccountNotFound
 from weboob.capabilities.base import find_object
@@ -70,8 +69,23 @@ class BanquePopulaireModule(Module, CapBankWealth, CapContact, CapProfile, CapDo
         'www.ibps.valdefrance.banquepopulaire.fr': 'Val de France',
         }.items(), key=lambda k_v: (k_v[1], k_v[0]))])
 
+    # Some regions have been renamed after bank cooptation
+    region_aliases = {
+        'www.ibps.alsace.banquepopulaire.fr': 'www.ibps.bpalc.banquepopulaire.fr',
+        'www.ibps.lorrainechampagne.banquepopulaire.fr': 'www.ibps.bpalc.banquepopulaire.fr',
+        'www.ibps.loirelyonnais.banquepopulaire.fr': 'www.ibps.bpaura.banquepopulaire.fr',
+        'www.ibps.alpes.banquepopulaire.fr': 'www.ibps.bpaura.banquepopulaire.fr',
+        'www.ibps.massifcentral.banquepopulaire.fr': 'www.ibps.bpaura.banquepopulaire.fr',
+        # creditmaritime atlantique now redirecting to Banque Populaire Aquitaine Centre Atlantique (new website)
+        'www.ibps.atlantique.creditmaritime.groupe.banquepopulaire.fr': 'www.ibps.bpaca.banquepopulaire.fr',
+        # creditmaritime bretagnenormandie now redirecting to Banque Populaire Grand Ouest (old website)
+        'www.ibps.bretagnenormandie.cmm.groupe.banquepopulaire.fr': 'www.ibps.cmgo.creditmaritime.groupe.banquepopulaire.fr',
+        'www.ibps.atlantique.banquepopulaire.fr': 'www.ibps.bpgo.banquepopulaire.fr',
+        'www.ibps.ouest.banquepopulaire.fr': 'www.ibps.bpgo.banquepopulaire.fr',
+    }
+
     CONFIG = BackendConfig(
-        Value('website', label='Région', choices=website_choices),
+        Value('website', label='Région', choices=website_choices, aliases=region_aliases),
         ValueBackendPassword('login', label='Identifiant', masked=False),
         ValueBackendPassword('password', label='Mot de passe')
     )
@@ -81,18 +95,7 @@ class BanquePopulaireModule(Module, CapBankWealth, CapContact, CapProfile, CapDo
     accepted_document_types = (DocumentTypes.STATEMENT,)
 
     def create_default_browser(self):
-        repls = [
-            ('alsace', 'bpalc'),
-            ('lorrainechampagne', 'bpalc'),
-            ('loirelyonnais', 'bpaura'),
-            ('alpes', 'bpaura'),
-            ('massifcentral', 'bpaura'),
-            ('atlantique.creditmaritime', 'cmgo.creditmaritime'),
-            ('bretagnenormandie.cmm', 'cmgo'),
-            ('atlantique.banquepopulaire', 'bpgo.banquepopulaire'),
-            ('ouest.banquepopulaire', 'bpgo.banquepopulaire'),
-        ]
-        website = reduce(lambda a, kv: a.replace(*kv), repls, self.config['website'].get())
+        website = self.config['website'].get()
 
         return self.create_browser(
             website,
