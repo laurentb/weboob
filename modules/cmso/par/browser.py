@@ -24,13 +24,14 @@ import json
 from datetime import date
 from functools import wraps
 
-from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
+from weboob.browser.browsers import TwoFactorBrowser, URL, need_login
 from weboob.browser.exceptions import ClientError, ServerError
-from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, AuthMethodNotImplemented
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, BrowserQuestion
 from weboob.capabilities.bank import Account, Transaction, AccountNotFound
 from weboob.capabilities.base import find_object
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
 from weboob.tools.compat import urlparse, parse_qsl
+from weboob.tools.value import Value
 
 from .pages import (
     LogoutPage, AccountsPage, HistoryPage, LifeinsurancePage, MarketPage,
@@ -74,14 +75,19 @@ def retry(exc_check, tries=4):
     return decorator
 
 
-class CmsoParBrowser(LoginBrowser, StatesMixin):
+class CmsoParBrowser(TwoFactorBrowser):
     __states__ = ('headers',)
     STATE_DURATION = 1
     headers = None
+    HAS_CREDENTIALS_ONLY = True
+
     BASEURL = 'https://api.cmso.com'
 
-    login = URL(r'/oauth-implicit/token',
-                r'/auth/checkuser', LoginPage)
+    login = URL(
+        r'/oauth-implicit/token',
+        r'/auth/checkuser',
+        LoginPage
+    )
     logout = URL(
         r'/securityapi/revoke',
         r'https://.*/auth/errorauthn',
@@ -114,19 +120,26 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
     # Values needed for login which are specific for each arkea child
     name = 'cmso'
     arkea = '03'
+    arkea_si = '003'
     arkea_client_id = 'RGY7rjEcGXkHe3NufA93HTUDkjnMUqrm'
 
     # Need for redirect_uri
     original_site = 'https://mon.cmso.com'
 
-    def __init__(self, website, *args, **kwargs):
-        super(CmsoParBrowser, self).__init__(*args, **kwargs)
+    def __init__(self, website, config, *args, **kwargs):
+        super(CmsoParBrowser, self).__init__(config, *args, **kwargs)
+
+        self.config = config
 
         self.website = website
         self.accounts_list = []
         self.logged = False
 
-    def do_login(self):
+        self.AUTHENTICATION_METHODS = {
+            'code': self.handle_sms,
+        }
+
+    def init_login(self):
         self.location(self.original_site)
         if self.headers:
             self.session.headers = self.headers
@@ -135,14 +148,47 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
             self.session.cookies.clear()
             self.accounts_list = []
 
-            self.login.go(data=self.get_login_data())
+            data = self.get_login_data()
+            self.login.go(data=data)
+
             if self.logout.is_here():
                 raise BrowserIncorrectPassword()
 
             self.update_authentication_headers()
 
-            self.headers = self.session.headers
+    def send_sms(self):
+        contact_information = self.location('/securityapi/person/coordonnees', method='POST').json()
+        data = {
+            'template': '',
+            'typeMedia': 'SMS',  # can be SVI for interactive voice server
+            'valueMedia': contact_information['portable']['numeroCrypte']
+        }
+        self.location('/securityapi/otp/generate', json=data)
 
+        raise BrowserQuestion(Value('code', label='Enter the SMS code'))
+
+    def handle_sms(self):
+        self.session.headers = self.headers
+        data = self.get_sms_data()
+        otp_validation = self.location('/securityapi/otp/authenticate', json=data).json()
+        self.session.headers['Authorization'] = 'Bearer %s' % otp_validation['access_token']
+        self.headers = self.session.headers
+
+    def get_sms_data(self):
+        return {
+            'otpValue': self.code,
+            'typeMedia': 'WEB',
+            'userAgent': 'Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101 Firefox/68.0',
+            'redirectUri': '%s/auth/checkuser' % self.redirect_url,
+            'errorUri': '%s/auth/errorauthn' % self.redirect_url,
+            'clientId': 'com.arkea.%s.siteaccessible' % self.name,
+            'redirect': 'true',
+            'client_id': self.arkea_client_id,
+            'accessInfos': {
+                'efs': self.arkea,
+                'si': self.arkea_si,
+            }
+        }
     def get_login_data(self):
         return {
             'client_id': self.arkea_client_id,
@@ -164,11 +210,12 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
             'X-Csrf-Token': hidden_params['access_token'],
             'X-REFERER-TOKEN': 'RWDPART',
         })
+        self.headers = self.session.headers
 
-        # TODO: if the scope is "consent", there is an OTP
         if hidden_params.get('scope') == 'consent':
-            # Will be handle soon
-            raise AuthMethodNotImplemented()
+            self.check_interactive()
+            self.send_sms()
+
 
     def get_account(self, _id):
         return find_object(self.iter_accounts(), id=_id, error=AccountNotFound)

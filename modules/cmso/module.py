@@ -24,7 +24,7 @@ from weboob.capabilities.contact import CapContact
 from weboob.capabilities.base import find_object, strict_find_object
 from weboob.capabilities.profile import CapProfile
 from weboob.tools.backend import Module, BackendConfig
-from weboob.tools.value import Value, ValueBackendPassword
+from weboob.tools.value import Value, ValueTransient, ValueBackendPassword
 
 from .par.browser import CmsoParBrowser
 from .pro.browser import CmsoProBrowser
@@ -42,6 +42,8 @@ class CmsoModule(Module, CapBankTransfer, CapBankWealth, CapContact, CapProfile)
     LICENSE = 'LGPLv3+'
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
                            ValueBackendPassword('password', label='Mot de passe'),
+                           ValueTransient('code'),
+                           ValueTransient('request_information'),
                            Value('website', label='Type de compte', default='par',
                                  choices={'par': 'Particuliers', 'pro': 'Professionnels'}))
 
@@ -51,6 +53,7 @@ class CmsoModule(Module, CapBankTransfer, CapBankWealth, CapContact, CapProfile)
     def create_default_browser(self):
         self.BROWSER = self.AVAILABLE_BROWSERS[self.config['website'].get()]
         return self.create_browser("%s.%s" % (self.NAME, 'com' if self.NAME == 'cmso' else 'fr'),
+                                   self.config,
                                    self.config['login'].get(),
                                    self.config['password'].get(),
                                    weboob=self.weboob)
