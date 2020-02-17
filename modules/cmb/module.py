@@ -23,6 +23,9 @@ from weboob.capabilities.bank import CapBankTransfer
 from weboob.capabilities.contact import CapContact
 from weboob.tools.value import Value, ValueBackendPassword
 
+from .par.browser import CmbParBrowser
+from .pro.browser import CmbProBrowser
+
 
 __all__ = ['CmbModule']
 
@@ -35,6 +38,7 @@ class CmbModule(AbstractModule, CapBankTransfer, CapContact):
     DESCRIPTION = u'Crédit Mutuel de Bretagne'
     LICENSE = 'LGPLv3+'
     PARENT = 'cmso'
+    AVAILABLE_BROWSERS = {'par': CmbParBrowser, 'pro': CmbProBrowser}
 
     CONFIG = BackendConfig(ValueBackendPassword('login',    label='Identifiant', masked=False),
                            ValueBackendPassword('password', label='Mot de passe'),

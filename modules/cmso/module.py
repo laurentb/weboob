@@ -46,13 +46,14 @@ class CmsoModule(Module, CapBankTransfer, CapBankWealth, CapContact, CapProfile)
                                  choices={'par': 'Particuliers', 'pro': 'Professionnels'}))
 
     BROWSER = CmsoParBrowser
+    AVAILABLE_BROWSERS = {'par': CmsoParBrowser, 'pro': CmsoProBrowser}
 
     def create_default_browser(self):
-        b = {'par': CmsoParBrowser, 'pro': CmsoProBrowser}
-        self.BROWSER = b[self.config['website'].get()]
+        self.BROWSER = self.AVAILABLE_BROWSERS[self.config['website'].get()]
         return self.create_browser("%s.%s" % (self.NAME, 'com' if self.NAME == 'cmso' else 'fr'),
                                    self.config['login'].get(),
-                                   self.config['password'].get())
+                                   self.config['password'].get(),
+                                   weboob=self.weboob)
 
     def get_account(self, _id):
         return find_object(self.browser.iter_accounts(), id=_id, error=AccountNotFound)

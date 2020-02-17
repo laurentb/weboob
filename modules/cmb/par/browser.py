@@ -20,6 +20,6 @@
 from weboob.browser import AbstractBrowser
 
 
-class CmsoParBrowser(AbstractBrowser):
+class CmbParBrowser(AbstractBrowser):
     PARENT = 'cmso'
     PARENT_ATTR = 'package.par.browser.CmsoParBrowser'
