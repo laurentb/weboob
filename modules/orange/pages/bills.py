@@ -237,9 +237,18 @@ class ContractsApiPage(LoggedPage, JsonPage):
 
             obj_id = CleanText(Dict('cid'))
             obj_label = Dict('offerName')
-            obj_subscriber = Format('%s %s', CleanText(Dict('holder/firstName')), CleanText(Dict('holder/lastName')))
 
-            obj__is_pro = False
+            def obj_subscriber(self):
+                names = (
+                    CleanText(Dict('holder/firstName', default=""))(self),
+                    CleanText(Dict('holder/lastName', default=""))(self),
+                )
+                assert any(names), "At least one name field should be populated. Has the page changed?"
+                return ' '.join([n for n in names if n])
+
+            def obj__is_pro(self):
+                return Dict('telco/marketType', default='PAR')(self) == 'PRO'
+
             obj__from_api = True
 
             def condition(self):
