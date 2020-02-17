@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
-from .pages import LoginPage, PorPage, DecoupledStatePage, CancelDecoupled
+from .pages import LoginPage, PorPage, DecoupledStatePage, CancelDecoupled, InvestmentDetailsPage
 from weboob.browser.browsers import AbstractBrowser
 from weboob.browser.profiles import Wget
 from weboob.browser.url import URL
@@ -41,5 +41,7 @@ class CICBrowser(AbstractBrowser):
     )
 
     por = URL(r'/(?P<subbank>.*)fr/banque/PORT_Synthese.aspx', PorPage)
+    investment_details = URL(r'/(?P<subbank>.*)fr/banque/PORT_Valo.aspx', InvestmentDetailsPage)
+
     decoupled_state = URL(r'/fr/otp/SOSD_OTP_GetTransactionState.htm', DecoupledStatePage)
     cancel_decoupled = URL(r'/fr/otp/SOSD_OTP_CancelTransaction.htm', CancelDecoupled)
