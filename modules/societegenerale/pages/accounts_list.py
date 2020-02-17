@@ -741,9 +741,9 @@ class LifeInsuranceInvest(LifeInsurance):
         head_xpath = '//table/thead/tr/td'
 
         col_label = re.compile('Support')
-        col_quantity = re.compile("Nombre")
-        col_unitvalue = re.compile("Valeur")
-        col_valuation = re.compile("Capital")
+        col_quantity = re.compile('Nombre')
+        col_unitvalue = re.compile('Valeur')
+        col_valuation = re.compile('Capital|Epargne')
 
         class item(ItemElement):
             klass = Investment
@@ -751,8 +751,7 @@ class LifeInsuranceInvest(LifeInsurance):
             obj_code = Regexp(CleanText(TableCell('label')), r'Code ISIN : (\w+) ', default=NotAvailable)
             obj_quantity = MyDecimal(TableCell('quantity'), default=NotAvailable)
             obj_unitvalue = MyDecimal(TableCell('unitvalue'), default=NotAvailable)
-
-            # Some PERP invests don't have valuation
+            # Valuation column for PERP invests may be "Capital" or "Epargne"
             obj_valuation = MyDecimal(TableCell('valuation', default=NotAvailable), default=NotAvailable)
 
             def obj_label(self):
