@@ -125,8 +125,15 @@ class BNPorcModule(
     def iter_transfer_recipients(self, origin_account):
         if self.config['website'].get() != 'pp':
             raise NotImplementedError()
+
         if isinstance(origin_account, Account):
-            origin_account = origin_account.id
+            emitter_account = find_object(self.iter_accounts(), id=origin_account.id)
+            if not emitter_account:
+                # account_id is different in PSD2 case
+                # search for the account with iban first to get the account_id
+                assert origin_account.iban, 'Cannot do iter_transfer_recipient, the origin account was not found'
+                emitter_account = find_object(self.iter_accounts(), iban=origin_account.iban, error=AccountNotFound)
+            origin_account = emitter_account.id
         return self.browser.iter_recipients(origin_account)
 
     def new_recipient(self, recipient, **params):
@@ -174,6 +181,10 @@ class BNPorcModule(
         else:
             # iternal recipients id
             return old == new
+
+    def transfer_check_account_id(self, old, new):
+        # don't check account id because in PSD2 case, account_id is different
+        return True
 
     def iter_contacts(self):
         if not hasattr(self.browser, 'get_advisor'):
