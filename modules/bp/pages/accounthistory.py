@@ -274,6 +274,10 @@ class InvestItem(ItemElement):
     obj_quantity = CleanDecimal(TableCell('quantity', support_th=True), replace_dots=True, default=NotAvailable)
     obj_valuation = CleanDecimal(TableCell('valuation', support_th=True), replace_dots=True, default=NotAvailable)
 
+    def validate(self, obj):
+        # Skip investments with empty valuation
+        return not empty(obj.valuation)
+
 
 class CachemireCatalogPage(LoggedPage, MyHTMLPage):
     def on_load(self):
