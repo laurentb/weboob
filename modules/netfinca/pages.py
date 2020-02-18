@@ -122,7 +122,7 @@ class InvestmentsPage(LoggedPage, HTMLPage):
             klass = Investment
 
             obj_valuation = CleanDecimal.French(TableCell('valuation'))
-            obj_diff = CleanDecimal.French(TableCell('diff'))
+            obj_diff = CleanDecimal.French(TableCell('diff', default=NotAvailable), default=NotAvailable)
 
             # Some invests have a format such as '22,120' but some others have '0,7905 (79,05%)'
             obj_unitprice = CleanDecimal.French(
