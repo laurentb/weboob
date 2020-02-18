@@ -30,7 +30,7 @@ from datetime import datetime, timedelta
 from weboob.capabilities.base import empty, find_object, NotAvailable
 from weboob.capabilities.bank import (
     Account, Investment, Recipient, TransferError, TransferBankError, Transfer,
-    AccountOwnership,
+    AccountOwnership, AddRecipientBankError,
 )
 from weboob.capabilities.bill import Document, Subscription, DocumentTypes
 from weboob.capabilities.profile import Person, ProfileMissing
@@ -1381,9 +1381,24 @@ class AddRecipientPage(LoggedPage, HTMLPage):
 
 class CheckValuesPage(LoggedPage, HTMLPage):
     def check_values(self, iban, label):
-        values = CleanText('//form[contains(@action, "/outil")]')(self.doc)
-        assert iban in values, 'Iban (%s) not found in values: %s' % (iban, values)
-        assert label in values, 'Recipient label (%s) not found in values: %s' % (label, values)
+        # This method is also used in `RecipConfirmPage`.
+        # In `CheckValuesPage`, xpath can be like `//strong[@id="iban"]`
+        # but not in `RecipConfirmPage`.
+        # So, use more generic xpaths which work for the two pages.
+        iban_xpath = '//div[label[contains(text(), "IBAN")]]//strong'
+        scraped_iban = CleanText(iban_xpath, replace=[(' ', '')])(self.doc)
+
+        label_xpath = '//div[label[contains(text(), "Libellé")]]//strong'
+        scraped_label = CleanText(label_xpath)(self.doc)
+
+        assert iban == scraped_iban, 'Recipient Iban changed from (%s) to (%s)' % (iban, scraped_iban)
+        assert label == scraped_label, 'Recipient label changed from (%s) to (%s)' % (label, scraped_label)
+
+    def get_authent_mechanism(self):
+        if self.doc.xpath('//div[@id="envoiMobile" and @class="selectTel"]'):
+            return 'otp_sms'
+        elif self.doc.xpath('//script[contains(text(), "AuthentForteDesktop")]'):
+            return 'app_validation'
 
 
 class DocumentsPage(LoggedPage, HTMLPage):
@@ -1450,7 +1465,13 @@ class RecipientPage(LoggedPage, HTMLPage):
 
 
 class SmsPage(LoggedPage, HTMLPage):
-    pass
+    def check_error(self, otp_sent=False):
+        # This page contains only 'true' or 'false'
+        result = CleanText('.')(self.doc) == 'true'
+
+        if not result and otp_sent:
+            raise AddRecipientBankError(message='Mauvais code sms.')
+        assert result, 'Something went wrong during add new recipient sent otp sms'
 
 
 class RecipRecapPage(CheckValuesPage):

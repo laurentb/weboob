@@ -21,10 +21,11 @@
 from __future__ import unicode_literals
 
 import re
+import time
 from datetime import datetime, timedelta, date
 from functools import wraps
 
-from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, AuthMethodNotImplemented
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.browser.exceptions import ServerError
 from weboob.capabilities.base import NotAvailable
@@ -128,13 +129,24 @@ class LCLBrowser(LoginBrowser, StatesMixin):
     loans = URL(r'/outil/UWCR/SynthesePar/', LoansPage)
     loans_pro = URL(r'/outil/UWCR/SynthesePro/', LoansProPage)
 
+    # Transfer / Add recipient
     transfer_page = URL(r'/outil/UWVS/', TransferPage)
     confirm_transfer = URL(r'/outil/UWVS/Accueil/redirectView', TransferPage)
     recipients = URL(r'/outil/UWBE/Consultation/list', RecipientPage)
     add_recip = URL(r'/outil/UWBE/Creation/creationSaisie', AddRecipientPage)
-    recip_confirm = URL(r'/outil/UWBE/Creation/creationConfirmation', RecipConfirmPage)
-    send_sms = URL(r'/outil/UWBE/Otp/envoiCodeOtp\?telChoisi=MOBILE', '/outil/UWBE/Otp/getValidationCodeOtp\?codeOtp', SmsPage)
-    recip_recap = URL(r'/outil/UWBE/Creation/executeCreation', RecipRecapPage)
+    recip_confirm = URL(r'/outil/UWAF/AuthentForteDesktop/authenticate', RecipConfirmPage)
+    send_sms = URL(
+        r'/outil/.*/Otp/envoiCodeOtp',
+        r'/outil/.*/Otp/validationCodeOtp',
+        SmsPage
+    )
+    recip_recap = URL(
+        r'/outil/UWAF/AuthentForteDesktop/executionAction',
+        r'/outil/UWBE/Creation/executeCreation',
+        RecipRecapPage
+    )
+
+    # Bill
     documents = URL(
         r'/outil/UWDM/ConsultationDocument/derniersReleves',
         r'/outil/UWDM/Recherche/rechercherAll',
@@ -159,6 +171,8 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         self.owner_type = AccountOwnerType.PRIVATE
 
     def load_state(self, state):
+        if 'envoiCodeOtp' in state.get('url', ''):
+            state.pop('url')
         super(LCLBrowser, self).load_state(state)
 
         # lxml _ElementStringResult were put in the state, convert them to plain strs
@@ -554,17 +568,9 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         elif account.id in self.get_bourse_accounts_ids():
             yield create_french_liquidity(account.balance)
 
-    def locate_browser(self, state):
-        if state['url'] == 'https://particuliers.secure.lcl.fr/outil/UWBE/Creation/creationConfirmation':
-            self.logged = True
-        else:
-            super(LCLBrowser, self).locate_browser(state)
-
-    @need_login
     def send_code(self, recipient, **params):
-        res = self.open('/outil/UWBE/Otp/validationCodeOtp?codeOtp=%s' % params['code'])
-        if res.text == 'false':
-            raise AddRecipientBankError(message='Mauvais code sms.')
+        self.location('/outil/UWAF/Otp/validationCodeOtp?codeOtp=%s' % params['code'])
+        self.page.check_error()
         self.recip_recap.go().check_values(recipient.iban, recipient.label)
         return self.get_recipient_object(recipient.iban, recipient.label)
 
@@ -581,13 +587,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         return r
 
     @need_login
-    def new_recipient(self, recipient, **params):
-        if 'code' in params:
-            return self.send_code(recipient, **params)
-
-        if recipient.iban[:2] not in ('FR', 'MC'):
-            raise AddRecipientBankError(message=u"LCL n'accepte que les iban commençant par MC ou FR.")
-
+    def init_new_recipient(self, recipient, **params):
         for _ in range(2):
             self.add_recip.go()
             if self.add_recip.is_here():
@@ -602,9 +602,32 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         assert self.recip_confirm.is_here(), 'Navigation failed: not on recip_confirm'
         self.page.check_values(recipient.iban, recipient.label)
 
-        # Send sms to user.
-        self.open('/outil/UWBE/Otp/envoiCodeOtp?telChoisi=MOBILE')
-        raise AddRecipientStep(self.get_recipient_object(recipient.iban, recipient.label), Value('code', label='Saisissez le code.'))
+        authent_mechanism = self.page.get_authent_mechanism()
+        assert authent_mechanism, 'There are some update for new Recipient validate mechanisms'
+
+        if authent_mechanism == 'otp_sms':
+            # Send sms to user.
+            data = [
+                ('telChoisi', 'MOBILE'),
+                ('_', int(round(time.time() * 1000)))
+            ]
+            self.location('/outil/UWAF/Otp/envoiCodeOtp', params=data)
+            self.page.check_error()
+            raise AddRecipientStep(
+                self.get_recipient_object(recipient.iban, recipient.label),
+                Value('code', label='Saisissez le code.')
+            )
+        elif authent_mechanism == 'app_validation':
+            raise AuthMethodNotImplemented()
+
+    def new_recipient(self, recipient, **params):
+        if 'code' in params:
+            return self.send_code(recipient, **params)
+
+        if recipient.iban[:2] not in ('FR', 'MC'):
+            raise AddRecipientBankError(message="LCL n'accepte que les iban commençant par MC ou FR.")
+
+        self.init_new_recipient(recipient, **params)
 
     @go_contract
     @need_login
