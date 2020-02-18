@@ -42,13 +42,8 @@ from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.profile import Profile
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.exceptions import ParseError
-from weboob.tools.capabilities.bank.investments import is_isin_valid
+from weboob.tools.capabilities.bank.investments import IsinCode, IsinType
 from weboob.tools.compat import unicode
-
-
-def MyDecimal(*args, **kwargs):
-    kwargs.update(replace_dots=True, default=NotAvailable)
-    return CleanDecimal(*args, **kwargs)
 
 
 class LoginPage(HTMLPage):
@@ -437,33 +432,31 @@ class LifeinsurancePage(LoggedPage, HTMLPage):
 
             obj_raw = Transaction.Raw(TableCell('label'))
             obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
-            obj_amount = MyDecimal(TableCell('amount'))
+            obj_amount = CleanDecimal.French(TableCell('amount'), default=NotAvailable)
 
     @method
     class iter_investment(TableElement):
         item_xpath = '//table/tbody/tr[contains(@class, "results")]'
         head_xpath = '//table/thead/tr/th'
 
-        col_label = re.compile('Libellé')
-        col_quantity = re.compile('Nb parts')
-        col_vdate = re.compile('Date VL')
-        col_unitvalue = re.compile('VL')
-        col_unitprice = re.compile('Prix de revient')
-        col_valuation = re.compile('Solde')
+        col_label = re.compile(r'Libellé')
+        col_quantity = re.compile(r'Nb parts')
+        col_vdate = re.compile(r'Date VL')
+        col_unitvalue = re.compile(r'VL')
+        col_unitprice = re.compile(r'Prix de revient')
+        col_valuation = re.compile(r'Solde')
 
         class item(ItemElement):
             klass = Investment
 
             obj_label = CleanText(TableCell('label'))
-            obj_code = Regexp(Link('./td/a'), r'Isin%253D([^%]+)')
-            obj_quantity = MyDecimal(TableCell('quantity'))
-            obj_unitprice = MyDecimal(TableCell('unitprice'))
-            obj_unitvalue = MyDecimal(TableCell('unitvalue'))
-            obj_valuation = MyDecimal(TableCell('valuation'))
+            obj_code = IsinCode(Regexp(Link('./td/a'), r'Isin%253D([^%]+)'), default=NotAvailable)
+            obj_code_type = IsinType(Regexp(Link('./td/a'), r'Isin%253D([^%]+)'), default=NotAvailable)
+            obj_quantity = CleanDecimal.French(TableCell('quantity'), default=NotAvailable)
+            obj_unitprice = CleanDecimal.French(TableCell('unitprice'), default=NotAvailable)
+            obj_unitvalue = CleanDecimal.French(TableCell('unitvalue'), default=NotAvailable)
+            obj_valuation = CleanDecimal.French(TableCell('valuation'))
             obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True, default=NotAvailable)
-
-            def obj_code_type(self):
-                return Investment.CODE_TYPE_ISIN if is_isin_valid(Field('code')(self)) else NotAvailable
 
 
 class MarketPage(LoggedPage, HTMLPage):
@@ -535,14 +528,14 @@ class MarketPage(LoggedPage, HTMLPage):
             obj_label = CleanText(TableCell('label'))
             obj_type = Transaction.TYPE_BANK
             obj_date = Date(CleanText(TableCell('date')), dayfirst=True)
-            obj_amount = CleanDecimal(TableCell('amount'))
+            obj_amount = CleanDecimal.SI(TableCell('amount'))
             obj_investments = Env('investments')
 
             def parse(self, el):
                 i = Investment()
                 i.label = Field('label')(self)
                 i.code = CleanText(TableCell('code'))(self)
-                i.quantity = MyDecimal(TableCell('quantity'))(self)
+                i.quantity = CleanDecimal.French(TableCell('quantity'), default=NotAvailable)(self)
                 i.valuation = Field('amount')(self)
                 i.vdate = Field('date')(self)
                 self.env['investments'] = [i]
@@ -566,20 +559,18 @@ class MarketPage(LoggedPage, HTMLPage):
             condition = lambda self: not CleanText('//div[has-class("errorConteneur")]', default=None)(self.el)
 
             obj_label = Upper(TableCell('label'))
-            obj_quantity = MyDecimal(TableCell('quantity'))
-            obj_unitprice = MyDecimal(TableCell('unitprice'))
-            obj_unitvalue = MyDecimal(TableCell('unitvalue'))
-            obj_valuation = CleanDecimal(TableCell('valuation'), replace_dots=True)
+            obj_quantity = CleanDecimal.French(TableCell('quantity'), default=NotAvailable)
+            obj_unitprice = CleanDecimal.French(TableCell('unitprice'), default=NotAvailable)
+            obj_unitvalue = CleanDecimal.French(TableCell('unitvalue'), default=NotAvailable)
+            obj_valuation = CleanDecimal.French(TableCell('valuation'))
             obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True, default=NotAvailable)
 
             def obj_code(self):
                 if Field('label')(self) == "LIQUIDITES":
                     return 'XX-liquidity'
-                code = CleanText(TableCell('code'))(self)
-                return code if is_isin_valid(code) else NotAvailable
+                return IsinCode(CleanText(TableCell('code')), default=NotAvailable)(self)
 
-            def obj_code_type(self):
-                return Investment.CODE_TYPE_ISIN if is_isin_valid(Field('code')(self)) else NotAvailable
+            obj_code_type = IsinType(CleanText(TableCell('code')), default=NotAvailable)
 
 
 class AdvisorPage(LoggedPage, JsonPage):
