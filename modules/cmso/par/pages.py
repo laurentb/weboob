@@ -415,6 +415,14 @@ class LifeinsurancePage(LoggedPage, HTMLPage):
             def obj_url(self):
                 return AbsoluteLink(TableCell('id')(self)[0].xpath('.//a'), default=NotAvailable)(self)
 
+    @method
+    class fill_account(ItemElement):
+        def obj_valuation_diff_ratio(self):
+            valuation_diff_percent = CleanDecimal.French('//div[@class="perfContrat"]/span[@class="value"]', default=None)(self)
+            if valuation_diff_percent:
+                return valuation_diff_percent / 100
+            return NotAvailable
+
     @pagination
     @method
     class iter_history(TableElement):
@@ -444,6 +452,7 @@ class LifeinsurancePage(LoggedPage, HTMLPage):
         col_vdate = re.compile(r'Date VL')
         col_unitvalue = re.compile(r'VL')
         col_unitprice = re.compile(r'Prix de revient')
+        col_diff_ratio = re.compile(r'Perf\.')
         col_valuation = re.compile(r'Solde')
 
         class item(ItemElement):
@@ -457,6 +466,12 @@ class LifeinsurancePage(LoggedPage, HTMLPage):
             obj_unitvalue = CleanDecimal.French(TableCell('unitvalue'), default=NotAvailable)
             obj_valuation = CleanDecimal.French(TableCell('valuation'))
             obj_vdate = Date(CleanText(TableCell('vdate')), dayfirst=True, default=NotAvailable)
+
+            def obj_diff_ratio(self):
+                diff_ratio_percent = CleanDecimal.French(TableCell('diff_ratio'), default=None)(self)
+                if diff_ratio_percent:
+                    return diff_ratio_percent / 100
+                return NotAvailable
 
 
 class MarketPage(LoggedPage, HTMLPage):

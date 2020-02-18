@@ -216,6 +216,10 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
                 a._index = acc._index
                 self.accounts_list.remove(acc)
                 self.logger.warning('replace %s because it seems to be a duplicate of %s', seen_savings[a.id], a)
+            url = a.url or self.redirect_insurance.go(accid=a._index).get_url()
+            self.location(url)
+            if self.lifeinsurance.is_here():
+                self.page.fill_account(obj=a)
             self.accounts_list.append(a)
 
         # Then, get loans
