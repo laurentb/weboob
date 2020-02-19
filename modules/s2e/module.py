@@ -19,10 +19,10 @@
 
 
 from weboob.tools.backend import Module
-from weboob.capabilities.bank import CapBankPockets
+from weboob.capabilities.bank import CapBankWealth
 
 
-class S2eModule(Module, CapBankPockets):
+class S2eModule(Module, CapBankWealth):
     NAME = 's2e'
     DESCRIPTION = u'Épargne Salariale'
     MAINTAINER = u'Edouard Lambert'
