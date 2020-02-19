@@ -558,7 +558,11 @@ class HistoryPage(LoggedPage, JsonPage):
                 # rdate is already set by `obj_raw` and the patterns.
                 rdate = self.obj.rdate
                 date_operation = Date(Dict('dateOperation'))(self)
-                if rdate == date and date_operation < date:
+                if rdate.year < 1970 or abs(rdate.year - date.year) >= 2:
+                    # website can send wrong date in label used to build rdate
+                    # ex: "VIREMENT EN VOTRE FAVEUR TOTO 19.03.1214"
+                    return NotAvailable
+                elif rdate == date and date_operation < date:
                     return date_operation
                 elif rdate != date:
                     return rdate
