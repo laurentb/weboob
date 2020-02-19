@@ -1982,10 +1982,13 @@ class RecipientsListPage(LoggedPage, HTMLPage):
             raise AuthMethodNotImplemented("La confirmation par validation sur votre application mobile n'est pas supportée")
 
     def has_list(self):
-        return bool(CleanText('//th[contains(text(), "Listes pour virements ordinaires")]')(self.doc))
+        return any((
+            CleanText('//th[contains(text(), "Listes pour virements ordinaires")]')(self.doc),
+            CleanText('//th[contains(text(), "Listes pour virements spéciaux")]')(self.doc),
+        ))
 
     def get_recipients_list(self):
-        return [CleanText('.')(a) for a in self.doc.xpath('//tr[td[has-class("a_actions")]]//a[@title="Afficher le bénéficiaires de la liste"]')]
+        return [CleanText('.')(a) for a in self.doc.xpath('//a[@title="Afficher le bénéficiaires de la liste"]')]
 
     def go_list(self, category):
         form = self.get_form(id='P1:F', submit='//input[@value="%s"]' % category)
