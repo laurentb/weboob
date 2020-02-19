@@ -877,7 +877,7 @@ class CreditMutuelBrowser(TwoFactorBrowser):
         self.recipients_list.go(subbank=self.currentSubBank)
         if self.page.has_list():
             assert recipient.category in self.page.get_recipients_list(), \
-                'Recipient category is not on the website available list.'
+                'Recipient category "%s" is not on the website available list.' % recipient.category
             self.page.go_list(recipient.category)
 
         self.page.go_to_add()
