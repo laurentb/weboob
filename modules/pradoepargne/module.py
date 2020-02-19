@@ -21,13 +21,13 @@ from __future__ import unicode_literals
 
 from weboob.tools.backend import AbstractModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword
-from weboob.capabilities.bank import CapBankPockets
+from weboob.capabilities.bank import CapBankWealth
 
 
 __all__ = ['PradoepargneModule']
 
 
-class PradoepargneModule(AbstractModule, CapBankPockets):
+class PradoepargneModule(AbstractModule, CapBankWealth):
     NAME = 'pradoepargne'
     DESCRIPTION = 'Prado Épargne Salariale'
     MAINTAINER = 'Edouard Lambert'

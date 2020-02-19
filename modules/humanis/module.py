@@ -21,7 +21,7 @@ from __future__ import unicode_literals
 
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
-from weboob.capabilities.bank import CapBankPockets
+from weboob.capabilities.bank import CapBankWealth
 
 from .browser import HumanisBrowser
 
@@ -29,7 +29,7 @@ from .browser import HumanisBrowser
 __all__ = ['HumanisModule']
 
 
-class HumanisModule(Module, CapBankPockets):
+class HumanisModule(Module, CapBankWealth):
     NAME = 'humanis'
     DESCRIPTION = 'Humanis Épargne Salariale'
     MAINTAINER = 'Quentin Defenouillère'

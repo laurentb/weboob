@@ -19,7 +19,7 @@
 
 from __future__ import unicode_literals
 
-from weboob.capabilities.bank import CapBankPockets
+from weboob.capabilities.bank import CapBankWealth
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 
@@ -29,7 +29,7 @@ from .browser import GroupamaesBrowser
 __all__ = ['GroupamaesModule']
 
 
-class GroupamaesModule(Module, CapBankPockets):
+class GroupamaesModule(Module, CapBankWealth):
     NAME = 'groupamaes'
     DESCRIPTION = 'Groupama Épargne Salariale'
     MAINTAINER = 'Bezleputh'
