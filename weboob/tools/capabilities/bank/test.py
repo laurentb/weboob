@@ -20,7 +20,7 @@
 from datetime import date
 
 from weboob.capabilities.base import empty, NotLoaded
-from weboob.capabilities.bank import CapBankTransfer, CapBankWealth, CapBankPockets
+from weboob.capabilities.bank import CapBankTransfer, CapBankWealth
 from weboob.exceptions import NoAccountsException
 from weboob.tools.capabilities.bank.iban import is_iban_valid
 from weboob.tools.capabilities.bank.investments import is_isin_valid
@@ -162,7 +162,7 @@ class BankStandardTest(object):
             self.assertTrue(0 < inv.portfolio_share <= 1, 'investment %r has invalid portfolio_share' % inv)
 
     def check_pockets(self, account):
-        if not isinstance(self.backend, CapBankPockets):
+        if not isinstance(self.backend, CapBankWealth):
             return
         for pocket in self.backend.iter_pocket(account):
             self.check_pocket(account, pocket)
