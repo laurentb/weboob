@@ -35,7 +35,7 @@ from .collection import CapCollection
 
 
 __all__ = [
-    'CapBank', 'BaseAccount', 'Account', 'Loan', 'Transaction', 'AccountNotFound',
+    'CapBank', 'BaseAccount', 'Account', 'Loan', 'Per', 'Transaction', 'AccountNotFound',
     'AccountType', 'AccountOwnership',
     'CapBankWealth', 'Investment', 'Pocket',
     'CapBankTransfer', 'Transfer', 'Recipient',
@@ -380,6 +380,26 @@ class Loan(Account):
     last_payment_date = DateField('Date of the last payment done')
     next_payment_amount = DecimalField('Amount of next payment')
     next_payment_date = DateField('Date of the next payment')
+
+
+class PerVersion(Enum):
+    PERIN = 'perin'  # "PER individuel", subscribed by the account holder
+    PERCOL = 'percol'  # "PER collectif", subscribed by the employer for all employees
+    PERCAT = 'percat'  # "PER catégoriel", subscribed by the employer for a category of employees (for example managers)
+
+
+class PerProviderType(Enum):
+    BANK = 'bank'
+    INSURER = 'insurer'
+
+
+class Per(Account):
+    """
+    Account type dedicated to PER retirement savings plans.
+    """
+
+    version = EnumField('Version of PER', PerVersion)
+    provider_type = EnumField('Type of account provider', PerProviderType)
 
 
 class TransactionType(Enum):
