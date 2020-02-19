@@ -37,7 +37,7 @@ from .collection import CapCollection
 __all__ = [
     'CapBank', 'BaseAccount', 'Account', 'Loan', 'Transaction', 'AccountNotFound',
     'AccountType', 'AccountOwnership',
-    'CapBankWealth', 'Investment', 'CapBankPockets', 'Pocket',
+    'CapBankWealth', 'Investment', 'Pocket',
     'CapBankTransfer', 'Transfer', 'Recipient',
     'TransferError', 'TransferBankError', 'TransferInvalidAmount', 'TransferInsufficientFunds',
     'TransferInvalidCurrency', 'TransferInvalidLabel',
@@ -690,7 +690,7 @@ class CapCgp(CapBank):
 
 class CapBankWealth(CapBank):
     """
-    Capability of bank websites to see investment.
+    Capability of bank websites to see investments and pockets.
     """
 
     def iter_investment(self, account):
@@ -703,12 +703,6 @@ class CapBankWealth(CapBank):
         :raises: :class:`AccountNotFound`
         """
         raise NotImplementedError()
-
-
-class CapBankPockets(CapBankWealth):
-    """
-    Capability of bank websites to see pockets.
-    """
 
     def iter_pocket(self, account):
         """
