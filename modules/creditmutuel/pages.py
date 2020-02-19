@@ -802,6 +802,7 @@ class Transaction(FrenchTransaction):
         (re.compile(r'^Regroupement \d+ PAIEMENTS (?P<dd>\d{2})(?P<mm>\d{2}) (?P<text>.*) CARTE \d+ ?(.*)$'), FrenchTransaction.TYPE_CARD),
         (re.compile(r'^(?P<text>RELEVE CARTE.*)'), FrenchTransaction.TYPE_CARD_SUMMARY),
         (re.compile(r'^RETRAIT DAB (?P<dd>\d{2})(?P<mm>\d{2}) (?P<text>.*) CARTE [\*\d]+'), FrenchTransaction.TYPE_WITHDRAWAL),
+        (re.compile(r'^(?P<dd>\d{2})/(?P<mm>\d{2})/(?P<yy>\d{4}) RETRAIT DAB (?P<text>.*)'), FrenchTransaction.TYPE_WITHDRAWAL),
         (re.compile(r'^CHEQUE( (?P<text>.*))?$'), FrenchTransaction.TYPE_CHECK),
         (re.compile(r'^(F )?COTIS\.? (?P<text>.*)'), FrenchTransaction.TYPE_BANK),
         (re.compile(r'^(REMISE|REM CHQ) (?P<text>.*)'), FrenchTransaction.TYPE_DEPOSIT),
