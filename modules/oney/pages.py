@@ -79,10 +79,22 @@ class LoginPage(HTMLPage):
 
 
 class ChoicePage(LoggedPage, HTMLPage):
+    def get_redirect_other_space(self):
+        # On some accounts, there is multiple spaces, it seems that the previous way to handle
+        # the second space is not working for all the different spaces. the link we get here is supposed
+        # to redirect us to the good space.
+        return re.search(r'"action", "(.*?)"', CleanText('//div[@class="conteneur"]/script')(self.doc)).group(1)
+
     def get_pages(self):
         for page_attrib in self.doc.xpath('//a[@data-site]/@data-site'):
             yield self.browser.open('/site/s/login/loginidentifiant.html',
                                     data={'selectedSite': page_attrib}).page
+
+
+class ClientSpacePage(LoggedPage, HTMLPage):
+    # skip consumer credit, there is not enough information.
+    # If an other type of page appear handle it here
+    pass
 
 
 class DetailPage(LoggedPage, HTMLPage):
