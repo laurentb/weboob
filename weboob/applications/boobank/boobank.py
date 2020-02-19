@@ -34,7 +34,7 @@ from weboob.capabilities.base import empty, find_object
 from weboob.capabilities.bank import (
     Account, Transaction,
     Transfer, TransferStep, Recipient, AddRecipientStep,
-    CapBank, CapBankTransfer, CapBankWealth, CapBankPockets,
+    CapBank, CapBankTransfer, CapBankWealth,
     TransferInvalidLabel, TransferInvalidAmount, TransferInvalidDate,
     TransferInvalidEmitter, TransferInvalidRecipient,
 )
@@ -765,7 +765,7 @@ class Boobank(CaptchaMixin, ReplApplication):
 
         caps = {
             'iter_investment': CapBankWealth,
-            'iter_pocket': CapBankPockets,
+            'iter_pocket': CapBankWealth,
         }
 
         self.start_format()
