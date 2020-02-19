@@ -318,7 +318,9 @@ class CleanText(Filter):
 
     @debug()
     def filter(self, txt):
-        if isinstance(txt, (tuple, list)):
+        if isinstance(txt, int):
+            txt = str(txt)
+        elif isinstance(txt, (tuple, list)):
             txt = u' '.join([self.clean(item, children=self.children) for item in txt])
 
         txt = self.clean(txt, self.children, self.newlines, self.normalize, self.transliterate)
