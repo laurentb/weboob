@@ -28,7 +28,7 @@ from weboob.browser.filters.standard import (
     Field, Env, MapIn,
 )
 from weboob.capabilities.base import NotAvailable, empty
-from weboob.capabilities.bank import Account, Transaction, Investment
+from weboob.capabilities.bank import Account, Transaction, Investment, PerVersion
 from weboob.browser.filters.html import Attr
 from weboob.capabilities.profile import Profile
 from weboob.tools.capabilities.bank.investments import IsinCode, IsinType
@@ -123,6 +123,15 @@ class AccountPage(LoggedPage, HTMLPage):
                     return CleanDecimal.French('./td[6]')(self)
                 except NumberFormatError:
                     return CleanDecimal.US('./td[6]')(self)
+
+    PER_VERSIONS = {
+        'Entreprises': PerVersion.PERCOL,
+    }
+
+    @method
+    class fill_per(ItemElement):
+        def obj_version(self):
+            return MapIn(self, self.page.PER_VERSIONS, NotAvailable).filter(self.obj.label)
 
 
 class AccountSwitchPage(LoggedPage, RawPage):

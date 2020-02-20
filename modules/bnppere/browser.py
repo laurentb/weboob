@@ -20,6 +20,7 @@
 from __future__ import unicode_literals
 
 from weboob.browser import AbstractBrowser, LoginBrowser, URL, need_login
+from weboob.capabilities.bank import Account, Per
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded
 from .pages import (
     LoginPage, ProfilePage, ErrorPage, AccountPage, AccountSwitchPage,
@@ -71,7 +72,16 @@ class VisiogoBrowser(LoginBrowser):
     @need_login
     def iter_accounts(self):
         self.account_page.go()
-        accounts_list = list(self.page.iter_accounts())
+        accounts_list = []
+
+        for account in self.page.iter_accounts():
+            if account.type == Account.TYPE_PER:
+                per = Per.from_dict(account.to_dict())
+                self.page.fill_per(obj=per)
+                accounts_list.append(per)
+            else:
+                accounts_list.append(account)
+
         # We need to know if there are several accounts
         # in order to handle their investments properly
         if len(accounts_list) > 1:
