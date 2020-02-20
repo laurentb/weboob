@@ -28,7 +28,7 @@ from weboob.capabilities.bill import (
     SubscriptionNotFound, DocumentNotFound, DocumentTypes,
 )
 from weboob.capabilities.profile import CapProfile
-from weboob.capabilities.base import find_object, strict_find_object
+from weboob.capabilities.base import find_object, strict_find_object, empty
 from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword, ValueDate
 
@@ -97,9 +97,18 @@ class INGModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapDocument,
 
     ############# CapTransferAddRecipient #############
     def iter_transfer_recipients(self, account):
+        emitter_account = None
         if not isinstance(account, Account):
-            account = self.get_account(account)
-        return self.browser.iter_recipients(account)
+            emitter_account = self.get_account(account)
+        elif empty(account.iban):
+            # Some accounts do not have IBAN like life insurance
+            emitter_account = account
+
+        if not emitter_account and isinstance(account, Account):
+            # In PSD2 case we did not found the account with id
+            # We are looking for the account with IBAN
+            emitter_account = find_object(self.iter_accounts(), iban=account.iban, error=AccountNotFound)
+        return self.browser.iter_recipients(emitter_account)
 
     def new_recipient(self, recipient, **params):
         cleaned_label = re.sub("[^0-9a-zA-Z:/\-\?\(\)\.,\+ ']", '', recipient.label)
@@ -111,7 +120,10 @@ class INGModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapDocument,
     def init_transfer(self, transfer, **params):
         self.logger.info('Going to do a new transfer')
 
-        account = strict_find_object(self.iter_accounts(), id=transfer.account_id, error=AccountNotFound)
+        if transfer.account_iban:
+            account = find_object(self.iter_accounts(), iban=transfer.account_iban, error=AccountNotFound)
+        else:
+            account = find_object(self.iter_accounts(), id=transfer.account_id, error=AccountNotFound)
 
         recipient = strict_find_object(self.iter_transfer_recipients(account), id=transfer.recipient_id, error=RecipientNotFound)
 
@@ -125,6 +137,10 @@ class INGModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapDocument,
     def transfer_check_exec_date(self, old_exec_date, new_exec_date):
         # week-end + 1 holiday
         return old_exec_date <= new_exec_date <= old_exec_date + timedelta(days=3)
+
+    def transfer_check_account_id(self, old, new):
+        # don't check account id for PSD2 case, account_id is different
+        return True
 
     ############# CapDocument #############
     def iter_subscription(self):
