@@ -184,8 +184,8 @@ class HistoryJsonPage(LoggedPage, JsonPage):
         class item(ItemElement):
             klass = Transaction
 
-            obj_rdate = Date(Dict('date', default=None), dayfirst=True, default=NotAvailable)
-            obj_date = Date(Dict('dVl', default=None), dayfirst=True, default=NotAvailable)
+            obj_rdate = Env('rdate')
+            obj_date = Env('date')
             obj__coming = False
 
             # Label is split into l1, l2, l3, l4, l5.
@@ -230,6 +230,17 @@ class HistoryJsonPage(LoggedPage, JsonPage):
 
             def obj_deleted(self):
                 return self.obj.type == FrenchTransaction.TYPE_CARD_SUMMARY
+
+            def parse(self, el):
+                self.env['rdate'] = Date(Dict('date', default=None), dayfirst=True, default=NotAvailable)(self)
+                self.env['date'] = Date(Dict('dVl', default=None), dayfirst=True, default=NotAvailable)(self)
+
+                if 'REGULARISATION DE COMMISSION' in Dict('l1')(self) and self.env['date'] < self.env['rdate']:
+                    # transaction corresponding a bank reimbursement were date and rdate are inverted
+                    # ex: 24/07 in Dict('dVl'), but 24/09 is in Dict('date');
+                    # so for this particular transaction the order should be 24/07 (rdate)
+                    # while the effective date of credit on the account should be 27/09 (date)
+                    self.env['rdate'], self.env['date'] = self.env['date'], self.env['rdate']
 
 
 class BankStatementPage(LoggedPage, JsonPage):
