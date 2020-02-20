@@ -1939,6 +1939,11 @@ class VerifCodePage(LoggedPage, HTMLPage):
             if h == _hash or _hash in h:
                 return v
 
+    def check_personal_keys_error(self):
+        error = CleanText('//div[contains(@class, "alerte")]/p')(self.doc)
+        if 'Vous ne possédez actuellement aucune Carte de Clés Personnelles active' in error:
+            raise AddRecipientBankError(message=error)
+
     def get_question(self):
         question = Regexp(CleanText('//div/p[input]'), r'(Veuillez .*):')(self.doc)
         return question

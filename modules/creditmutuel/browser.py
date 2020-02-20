@@ -882,6 +882,7 @@ class CreditMutuelBrowser(TwoFactorBrowser):
 
         self.page.go_to_add()
         if self.verify_pass.is_here():
+            self.page.check_personal_keys_error()
             self.recipient_form = self.page.get_recipient_form()
             raise AddRecipientStep(self.get_recipient_object(recipient), Value('Clé', label=self.page.get_question()))
         else:
