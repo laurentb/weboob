@@ -591,6 +591,47 @@ class Pocket(BaseObject):
     investment =        Field('Reference to the investment of the pocket', Investment)
 
 
+class MarketOrderType(Enum):
+    UNKNOWN = 0
+    MARKET = 1
+    """Order executed at the current market price"""
+    LIMIT = 2
+    """Order executed with a maximum or minimum price limit"""
+    TRIGGER = 3
+    """Order executed when the price reaches a specific value"""
+
+
+class MarketOrderDirection(Enum):
+    UNKNOWN = 0
+    BUY = 1
+    SALE = 2
+
+
+class MarketOrder(BaseObject):
+    """
+    Market order
+    """
+
+    # Important: a Market Order always corresponds to one (and only one) investment
+    label = StringField('Label of the market order')
+
+    # MarketOrder values
+    unitprice = DecimalField('Value of the stock at the moment of the market order')
+    unitvalue = DecimalField('Current value of the stock associated with the market order')
+    ordervalue = DecimalField('Limit value or trigger value, only relevant if the order type is LIMIT or TRIGGER')
+    currency = StringField('Currency of the market order - not always the same as account currency')
+    quantity = DecimalField('Quantity of stocks in the market order')
+
+    # MarketOrder additional information
+    order_type = EnumField('Type of market order', MarketOrderType, default=MarketOrderType.UNKNOWN)
+    direction = EnumField('Direction of the market order (buy or sale)', MarketOrderDirection, default=MarketOrderDirection.UNKNOWN)
+    date = DateField('Date when the market order was executed')
+    validity_date = DateField('Validity date of the market order')
+    state = StringField('Current state of the market order (e.g. executed)')
+    code = StringField('Identifier of the stock related to the order')
+    stock_market = StringField('Stock market on which the order was executed')
+
+
 class TransferStep(BrowserQuestion):
     def __init__(self, transfer, *values):
         super(TransferStep, self).__init__(*values)
@@ -725,6 +766,17 @@ class CapBankWealth(CapBank):
         :param account: account to get pockets
         :type account: :class:`Account`
         :rtype: iter[:class:`Pocket`]
+        :raises: :class:`AccountNotFound`
+        """
+        raise NotImplementedError()
+
+    def iter_market_orders(self, account):
+        """
+        Iter market orders
+
+        :param account: account to get market orders
+        :type account: :class:`Account`
+        :rtype: iter[:class:`MarketOrder`]
         :raises: :class:`AccountNotFound`
         """
         raise NotImplementedError()
