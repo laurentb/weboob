@@ -30,7 +30,7 @@ from weboob.browser.filters.html import TableCell
 from weboob.capabilities.base import NotAvailable
 from weboob.capabilities.bank import Investment
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction as Transaction
-from weboob.tools.capabilities.bank.investments import create_french_liquidity
+from weboob.tools.capabilities.bank.investments import create_french_liquidity, IsinCode, IsinType
 from weboob.tools.compat import quote_plus
 from weboob.exceptions import ActionNeeded
 
@@ -135,10 +135,10 @@ class InvestmentPage(AccountPage):
             obj_valuation = MyDecimal(TableCell('valuation'), default=NotAvailable)
             obj_portfolio_share = Eval(lambda x: x / 100 if x else NotAvailable, MyDecimal(TableCell('portfolio_share'), default=NotAvailable))
             obj_diff = MyDecimal(TableCell('diff', default=NotAvailable), default=NotAvailable)
-            obj_code_type = Investment.CODE_TYPE_ISIN
+            obj_label = CleanText(Regexp(CleanText('./preceding-sibling::tr/td[1]'), r'(.*)- .*'))
 
-            obj_label = CleanText(Regexp(CleanText('./preceding-sibling::tr/td[1]'), '(.*)- .*'))
-            obj_code = Regexp(CleanText('./preceding-sibling::tr/td[1]'), '- (.*)')
+            obj_code = IsinCode(Regexp(CleanText('./preceding-sibling::tr/td[1]'), r'- ([^\s]*)'), default=NotAvailable)
+            obj_code_type = IsinType(Regexp(CleanText('./preceding-sibling::tr/td[1]'), r'- ([^\s]*)'), default=NotAvailable)
 
     # Only used by bp modules since others quality websites provide another account with the liquidities
     def get_liquidity(self):
