@@ -27,7 +27,7 @@ from weboob.browser.elements import method, ItemElement, TableElement
 from weboob.browser.filters.standard import CleanText, CleanDecimal, Currency, Map, Field, Regexp
 from weboob.browser.filters.html import TableCell, Attr, Link
 from weboob.capabilities.bank import Investment, Account
-from weboob.capabilities.base import NotAvailable
+from weboob.capabilities.base import NotAvailable, empty
 from weboob.tools.capabilities.bank.investments import is_isin_valid, create_french_liquidity, IsinType
 
 
@@ -127,7 +127,7 @@ class InvestmentsPage(LoggedPage, HTMLPage):
             # Some invests have a format such as '22,120' but some others have '0,7905 (79,05%)'
             obj_unitprice = CleanDecimal.French(
                 Regexp(
-                    CleanText(TableCell('unitprice')),
+                    CleanText(TableCell('unitprice', default=NotAvailable)),
                     r'([0-9]+,[0-9]+)',
                     default=NotAvailable
                 ),
@@ -135,8 +135,10 @@ class InvestmentsPage(LoggedPage, HTMLPage):
             )
 
             def obj_quantity(self):
-                tablecell = TableCell('quantity')(self)[0]
-                return CleanDecimal.French(tablecell.xpath('./span'))(self)
+                tablecell = TableCell('quantity', default=NotAvailable)(self)
+                if empty(tablecell):
+                    return NotAvailable
+                return CleanDecimal.French(tablecell[0].xpath('./span'))(self)
 
             def obj_label(self):
                 tablecell = TableCell('label')(self)[0]
@@ -163,7 +165,7 @@ class InvestmentsPage(LoggedPage, HTMLPage):
                         return code
                 return NotAvailable
 
-            obj_code_type = IsinType(Field('code'))
+            obj_code_type = IsinType(Field('code'), default=NotAvailable)
 
             def obj_unitvalue(self):
                 currency, unitvalue = self.original_unitvalue()
@@ -185,10 +187,12 @@ class InvestmentsPage(LoggedPage, HTMLPage):
                     return unitvalue
 
             def obj_vdate(self):
-                tablecell = TableCell('vdate')(self)[0]
-                vdate_scraped = tablecell.xpath('./preceding-sibling::td[position()=1]//span/text()')[0]
+                tablecell = TableCell('vdate', default=NotAvailable)(self)
+                if empty(tablecell):
+                    return NotAvailable
+                vdate_scraped = tablecell[0].xpath('./preceding-sibling::td[position()=1]//span/text()')[0]
 
-                # Scrapped date could be a schedule time (00:00) or a date (01/01/1970)
+                # Scraped date could be a schedule time (00:00) or a date (01/01/1970)
                 vdate = NotAvailable
 
                 if ':' in vdate_scraped:
@@ -204,8 +208,10 @@ class InvestmentsPage(LoggedPage, HTMLPage):
 
             # extract unitvalue and currency
             def original_unitvalue(self):
-                tablecell = TableCell('unitvalue')(self)[0]
-                text = tablecell.xpath('./text()')
+                tablecell = TableCell('unitvalue', default=NotAvailable)(self)
+                if empty(tablecell):
+                    return NotAvailable
+                text = tablecell[0].xpath('./text()')
                 return Currency(text, default=NotAvailable)(self), CleanDecimal.French(text, default=NotAvailable)(self)
 
     def get_liquidity(self):
