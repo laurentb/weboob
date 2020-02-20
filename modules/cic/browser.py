@@ -40,7 +40,7 @@ class CICBrowser(AbstractBrowser):
         LoginPage
     )
 
-    por = URL(r'/(?P<subbank>.*)fr/banque/PORT_Synthese.aspx', PorPage)
+    por = URL(r'/(?P<subbank>.*)fr/banque/PORT_Synthese.aspx\?entete=1', PorPage)
     investment_details = URL(r'/(?P<subbank>.*)fr/banque/PORT_Valo.aspx', InvestmentDetailsPage)
 
     decoupled_state = URL(r'/fr/otp/SOSD_OTP_GetTransactionState.htm', DecoupledStatePage)

@@ -27,6 +27,7 @@ from weboob.browser.filters.standard import CleanText, CleanDecimal, Currency, E
 from weboob.browser.pages import AbstractPage, LoggedPage, HTMLPage
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
+from weboob.exceptions import ActionNeeded
 from weboob.tools.capabilities.bank.investments import IsinCode, IsinType
 
 
@@ -38,6 +39,12 @@ class LoginPage(AbstractPage):
 class PorPage(AbstractPage):
     PARENT = 'creditmutuel'
     PARENT_URL = 'por'
+
+    def on_load(self):
+        # Raising the ActionNeeded in the on_load because the browser is abstract but we don't visit this page
+        # in the parent module (it still uses the old portfolio page which was removed from CIC)
+        if self.doc.xpath('//form[contains(@action, "MsgCommerciaux")]') and self.doc.xpath('//input[contains(@id, "Valider")]'):
+            raise ActionNeeded(CleanText('//div[@id="divMessage"]/p[1]')(self.doc))
 
     def add_por_accounts(self, accounts):
         for por_account in self.iter_por_accounts():
