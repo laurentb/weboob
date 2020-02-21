@@ -38,6 +38,16 @@ class LoginPage(HTMLPage):
         form.submit()
 
 
+class RedirectPage(LoggedPage, HTMLPage):
+    REFRESH_MAX = 0
+    REFRESH_XPATH = '//meta[@http-equiv="refresh"]'
+
+
+class CguPage(LoggedPage, HTMLPage):
+    def get_cgu_message(self):
+        return CleanText('//div[@class="page_nouvelles_cgus"]/p')(self.doc)
+
+
 class ErrorPage(HTMLPage):
     def on_load(self):
         msg = CleanText('//div[@id="backgroundId"]//p')(self.doc)

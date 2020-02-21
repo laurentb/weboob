@@ -24,7 +24,9 @@ from time import time
 from dateutil.relativedelta import relativedelta
 
 from weboob.browser import LoginBrowser, URL, need_login
-from .pages import ErrorPage, LoginPage, SubscriptionPage, DocumentsPage
+from weboob.exceptions import ActionNeeded
+
+from .pages import ErrorPage, LoginPage, RedirectPage, CguPage, SubscriptionPage, DocumentsPage
 
 
 class AmeliBrowser(LoginBrowser):
@@ -32,12 +34,17 @@ class AmeliBrowser(LoginBrowser):
 
     error_page = URL(r'/vu/INDISPO_COMPTE_ASSURES.html', ErrorPage)
     login_page = URL(r'/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&connexioncompte_2actionEvt=afficher.*', LoginPage)
+    redirect_page = URL(r'/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&.*validationconnexioncompte.*', RedirectPage)
+    cgu_page = URL(r'/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_conditions_generales_page.*', CguPage)
     subscription_page = URL(r'/PortailAS/appmanager/PortailAS/assure\?_nfpb=true&_pageLabel=as_info_perso_page.*', SubscriptionPage)
     documents_page = URL(r'/PortailAS/paiements.do', DocumentsPage)
 
     def do_login(self):
         self.login_page.go()
         self.page.login(self.username, self.password)
+
+        if self.cgu_page.is_here():
+            raise ActionNeeded(self.page.get_cgu_message())
 
     @need_login
     def iter_subscription(self):
