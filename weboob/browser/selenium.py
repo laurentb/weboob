@@ -46,7 +46,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.firefox_profile import FirefoxProfile
 from selenium.webdriver.remote.command import Command
 from weboob.tools.log import getLogger
-from weboob.tools.compat import urljoin, urlparse
+from weboob.tools.compat import (
+    urljoin, urlparse, urlencode, parse_qsl,
+    urlunparse,
+)
 
 from .pages import HTMLPage as BaseHTMLPage
 from .url import URL
@@ -569,10 +572,27 @@ class SeleniumBrowser(object):
         :any:`wait_until`)
         """
         assert method is None
-        assert params is None
         assert data is None
         assert json is None
         assert not headers
+
+        params = params or {}
+
+        # if it's a list of 2-tuples, it will cast into a dict
+        # otherwise, it will raise a TypeError
+        try:
+            params = dict(params)
+        except TypeError:
+            raise TypeError("'params' keyword argument must be a dict, a list of tuples or None.")
+
+        params = params.items()
+        url_parsed = urlparse(url)
+        original_params = parse_qsl(url_parsed.query)
+        original_params.extend(params)
+        query = urlencode(original_params)
+        url_parsed._replace(query=query)
+        url = urlunparse(url_parsed)
+
         self.logger.debug('opening %r', url)
         self.driver.get(url)
 
