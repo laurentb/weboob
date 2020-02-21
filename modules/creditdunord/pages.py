@@ -33,7 +33,7 @@ from weboob.browser.elements import method, ItemElement, TableElement
 from weboob.browser.filters.standard import CleanText, Date, CleanDecimal, Regexp, Format, Field, Eval, Lower
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import Attr, TableCell
-from weboob.exceptions import ActionNeeded, BrowserIncorrectPassword, BrowserUnavailable, BrowserPasswordExpired
+from weboob.exceptions import ActionNeeded, BrowserUnavailable, BrowserPasswordExpired
 from weboob.capabilities.bank import Account, Investment, AccountOwnership
 from weboob.capabilities.profile import Profile
 from weboob.capabilities.base import Currency, find_object
@@ -118,31 +118,31 @@ class EntryPage(LoggedPage, HTMLErrorPage):
     pass
 
 
+class LoginConfirmPage(JsonPage):
+    def get_reason(self):
+        return Dict('commun/raison', default='')(self.doc)
+
+    def get_status(self):
+        return Dict('commun/statut')(self.doc)
+
+
 class LoginPage(HTMLErrorPage):
     VIRTUALKEYBOARD = CDNVirtKeyboard
 
     def login(self, username, password):
-        login_selector = self.doc.xpath('//input[@id="codsec"]')
-        if login_selector:
-            if not password.isdigit() or not len(password) == 6:
-                raise BrowserIncorrectPassword('The credentials have changed on website %s. Please update them.' % self.browser.BASEURL)
-            self.vk_login(username, password)
-        else:
-            self.classic_login(username,password)
-
-    def vk_login(self, username, password):
-        res = self.browser.open('/sec/vk/gen_crypto?estSession=0').text
-        crypto = re.search(r"'crypto': '([^']+)'", res).group(1)
-        grid = re.search(r"'grid': \[([^\]]+)]", res).group(1).split(',')
+        res = self.browser.open('/sec/vk/gen_crypto.json').json()
+        crypto = res['donnees']['crypto']
+        grid = res['donnees']['grid']
 
         vk = self.VIRTUALKEYBOARD(self.browser, crypto, grid)
 
-        data = {'user_id':      username,
-                'codsec':       vk.get_string_code(password),
-                'cryptocvcs':   crypto,
-                'vk_op':        'auth',
-               }
-        self.browser.location('/swm/redirectCDN.html', data=data)
+        data = {
+            'user_id': username,
+            'vk_op': 'auth',
+            'codsec': vk.get_string_code(password),
+            'cryptocvcs': crypto,
+        }
+        self.browser.location('/sec/vk/authent.json', data=data)
 
     def classic_login(self, username, password):
         m = re.match('https://www.([^\.]+).fr', self.browser.BASEURL)
