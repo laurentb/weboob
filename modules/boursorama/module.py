@@ -74,7 +74,10 @@ class BoursoramaModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapPr
                 yield tr
 
     def iter_investment(self, account):
-        return self.browser.get_investment(account)
+        return self.browser.iter_investment(account)
+
+    def iter_market_orders(self, account):
+        return self.browser.iter_market_orders(account)
 
     def get_profile(self):
         return self.browser.get_profile()

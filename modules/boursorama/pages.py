@@ -33,19 +33,21 @@ from weboob.browser.filters.standard import (
     CleanText, CleanDecimal, Field, Format,
     Regexp, Date, AsyncLoad, Async, Eval, Env,
     Currency as CleanCurrency, Map, Coalesce,
-    MapIn, Lower,
+    MapIn, Lower, Base,
 )
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.html import Attr, Link, TableCell
 from weboob.capabilities.bank import (
-    Account, Investment, Recipient, Transfer, AccountNotFound,
+    Account, Investment, MarketOrder, Recipient, Transfer, AccountNotFound,
     AddRecipientBankError, TransferInvalidAmount, Loan, AccountOwnership,
+    MarketOrderType, MarketOrderDirection,
 )
 from weboob.tools.capabilities.bank.investments import create_french_liquidity
 from weboob.capabilities.base import NotAvailable, Currency, find_object, empty
 from weboob.capabilities.profile import Person
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
 from weboob.tools.capabilities.bank.iban import is_iban_valid
+from weboob.tools.capabilities.bank.investments import IsinCode
 from weboob.tools.value import Value
 from weboob.tools.date import parse_french_date
 from weboob.tools.compat import urljoin, urlencode, urlparse, range
@@ -691,6 +693,16 @@ def my_pagination(func):
     return inner
 
 
+MARKET_ORDER_TYPES = {
+    'LIM': MarketOrderType.LIMIT,
+}
+
+MARKET_DIRECTIONS = {
+    'Achat': MarketOrderDirection.BUY,
+    'Vente': MarketOrderDirection.SALE,
+}
+
+
 class MarketPage(LoggedPage, HTMLPage):
     def get_balance(self, account_type):
         txt = u"Solde au" if account_type is Account.TYPE_LIFE_INSURANCE else u"Total Portefeuille"
@@ -698,6 +710,9 @@ class MarketPage(LoggedPage, HTMLPage):
         h_balance = CleanDecimal('//li[h4[contains(text(), "%s")]]/h3' % txt, replace_dots=True, default=None)(self.doc)
         span_balance = CleanDecimal('//li/span[contains(text(), "%s")]/following-sibling::span' % txt, replace_dots=True, default=None)(self.doc)
         return h_balance or span_balance or None
+
+    def get_market_order_link(self):
+        return Link('//a[contains(@data-url, "orders")]', default=None)(self.doc)
 
     @my_pagination
     @method
@@ -777,6 +792,45 @@ class MarketPage(LoggedPage, HTMLPage):
                     t.amount = sum_amount
 
                 yield t
+
+    @method
+    class iter_market_orders(TableElement):
+        item_xpath = '//table/tbody/tr[td]'
+        head_xpath = '//table/thead/tr/th'
+
+        col_date = 'Date'
+        col_label = 'Libellé'
+        col_direction = 'Sens'
+        col_state = 'Etat'
+        col_quantity = 'Qté'
+        col_order_type = 'Type'
+        col_unitvalue = 'Cours'
+        col_validity_date = 'Validité'
+        col_stock_market = 'Marché'
+
+        class item(ItemElement):
+            klass = MarketOrder
+
+            obj_id = Base(TableCell('date'), CleanText('.//a'))
+            obj_label = CleanText(TableCell('label'), children=False)
+            obj_direction = Map(CleanText(TableCell('direction')), MARKET_DIRECTIONS, MarketOrderDirection.UNKNOWN)
+            obj_code = IsinCode(Base(TableCell('label'), CleanText('.//a')))
+            obj_stock_market = CleanText(TableCell('stock_market'))
+            obj_currency = CleanCurrency(TableCell('unitvalue'))
+
+            # Unitprice may be absent if the order is still ongoing
+            obj_unitprice = CleanDecimal.US(TableCell('state'), default=NotAvailable)
+            obj_unitvalue = CleanDecimal.French(TableCell('unitvalue'))
+            obj_ordervalue = CleanDecimal.French(TableCell('order_type'))
+            obj_quantity = CleanDecimal.French(TableCell('quantity'))
+
+            obj_date = Date(Base(TableCell('date'), CleanText('.//span')), dayfirst=True)
+            obj_validity_date = Date(CleanText(TableCell('validity_date')), dayfirst=True)
+
+            # Text format looks like 'LIM 49,000', we only use the 'LIM' for typing
+            obj_order_type = Map(Regexp(CleanText(TableCell('order_type')), r'^([^ ]+) '), MARKET_ORDER_TYPES, MarketOrderType.UNKNOWN)
+            # Text format looks like 'Exécuté 12.345 $' or 'En cours', we only fetch the first words
+            obj_state = CleanText(Regexp(CleanText(TableCell('state')), r'^(\D+)'))
 
 
 class SavingMarketPage(MarketPage):

@@ -109,7 +109,7 @@ class BoursoramaBrowser(RetryLoginBrowser, TwoFactorBrowser):
                          '/compte/pea/.*/mouvements',
                          '/compte/0%25pea/.*/mouvements',
                          '/compte/pea-pme/.*/mouvements', SavingMarketPage)
-    market = URL('/compte/(?!assurance|cav|epargne).*/(positions|mouvements)',
+    market = URL('/compte/(?!assurance|cav|epargne).*/(positions|mouvements|ordres)',
                  '/compte/ord/.*/positions', MarketPage)
     loans = URL(r'/credit/paiement-3x/.*/informations',
                 r'/credit/immobilier/.*/informations',
@@ -400,17 +400,29 @@ class BoursoramaBrowser(RetryLoginBrowser, TwoFactorBrowser):
         for t in sorted(transactions, key=lambda tr: tr.date, reverse=True):
             yield t
 
+    @retry_on_logout()
     @need_login
-    def get_investment(self, account):
-        if '/compte/derive' in account.url:
-            return iter([])
-        if not account.type in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET, Account.TYPE_PEA):
-            raise NotImplementedError()
+    def iter_investment(self, account):
+        if '/compte/derive' in account.url or account.type not in (Account.TYPE_LIFE_INSURANCE, Account.TYPE_MARKET, Account.TYPE_PEA):
+            return []
         self.location(account.url)
-        # We might deconnect at this point.
-        if self.login.is_here():
-            return self.get_investment(account)
         return self.page.iter_investment()
+
+    @retry_on_logout()
+    @need_login
+    def iter_market_orders(self, account):
+        # Only Market & PEA accounts have the Market Orders tab
+        if '/compte/derive' in account.url or account.type not in (Account.TYPE_MARKET, Account.TYPE_PEA):
+            return []
+        self.location(account.url)
+
+        # Go to Market Orders tab ('Mes ordres')
+        market_order_link = self.page.get_market_order_link()
+        if not market_order_link:
+            self.logger.warning('Could not find market orders link for account "%s".', account.label)
+            return []
+        self.location(market_order_link)
+        return self.page.iter_market_orders()
 
     @need_login
     def get_profile(self):
