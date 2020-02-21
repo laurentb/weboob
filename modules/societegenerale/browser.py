@@ -87,8 +87,7 @@ class SocieteGenerale(TwoFactorBrowser):
                          r'/sec/oob_polling.json', SignRecipientPage)
     # Transfer
     json_transfer = URL(r'/icd/vupri/data/vupri-liste-comptes.json\?an200_isBack=false',
-                        r'/icd/vupri/data/vupri-check.json',
-                        r'/lgn/url.html', TransferJson)
+                        r'/icd/vupri/data/vupri-check.json', TransferJson)
     sign_transfer = URL(r'/icd/vupri/data/vupri-generate-token.json', SignTransferPage)
     confirm_transfer = URL(r'/icd/vupri/data/vupri-save.json', TransferJson)
 
