@@ -21,16 +21,16 @@ from __future__ import unicode_literals
 
 from requests.exceptions import ConnectTimeout
 
-from weboob.browser import LoginBrowser, URL, need_login
+from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, ActionNeeded, BrowserPasswordExpired
 from .pages import LoginPage, BillsPage
-from .pages.login import ManageCGI, HomePage, PasswordPage
+from .pages.login import ManageCGI, HomePage, PasswordPage, PortalPage
 from .pages.bills import (
     SubscriptionsPage, SubscriptionsApiPage, BillsApiProPage, BillsApiParPage,
     ContractsPage, ContractsApiPage
 )
 from .pages.profile import ProfilePage
-from weboob.browser.exceptions import ClientError, ServerError
+from weboob.browser.exceptions import ClientError, ServerError, LoggedOut
 from weboob.tools.compat import basestring
 from weboob.tools.decorators import retry
 
@@ -38,12 +38,13 @@ from weboob.tools.decorators import retry
 __all__ = ['OrangeBillBrowser']
 
 
-class OrangeBillBrowser(LoginBrowser):
+class OrangeBillBrowser(LoginBrowser, StatesMixin):
     TIMEOUT = 60
 
     BASEURL = 'https://espaceclientv3.orange.fr'
 
     home_page = URL(r'https://businesslounge.orange.fr/$', HomePage)
+    portal_page = URL(r'https://www.orange.fr/portail', PortalPage)
     loginpage = URL(
         r'https://login.orange.fr/\?service=sosh&return_url=https://www.sosh.fr/',
         r'https://login.orange.fr/front/login',
@@ -83,12 +84,24 @@ class OrangeBillBrowser(LoginBrowser):
     doc_api_pro = URL(r'https://espaceclientpro.orange.fr/api/contract/(?P<subid>\d+)/bill/(?P<dir>.*)/(?P<fact_type>.*)/\?(?P<billparams>)')
     profile = URL(r'/\?page=profil-infosPerso', ProfilePage)
 
+    def locate_browser(self, state):
+        try:
+            self.portal_page.go()
+        except ClientError as e:
+            if e.response.status_code == 401:
+                self.do_login()
+                return
+            raise
+
     def do_login(self):
         assert isinstance(self.username, basestring)
         assert isinstance(self.password, basestring)
-
         try:
-            self.loginpage.stay_or_go().login(self.username, self.password)
+            self.loginpage.go()
+            data = self.page.do_login_and_get_token(self.username, self.password)
+            self.password_page.go(json=data)
+            self.portal_page.go()
+
         except ClientError as error:
             if error.response.status_code == 401:
                 raise BrowserIncorrectPassword()
@@ -121,7 +134,9 @@ class OrangeBillBrowser(LoginBrowser):
         try:
             self.profile.go()
 
-            assert self.profile.is_here() or self.manage_cgi.is_here()
+            if not (self.profile.is_here() or self.manage_cgi.is_here()):
+                self.session.cookies.clear()
+                raise LoggedOut()
 
             # we land on manage_cgi page when there is cgu to validate
             if self.manage_cgi.is_here():

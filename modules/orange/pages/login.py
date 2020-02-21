@@ -23,25 +23,27 @@ import lxml.html as html
 
 from io import StringIO
 
-from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage
+from weboob.browser.pages import HTMLPage, LoggedPage, JsonPage, RawPage
 from weboob.tools.json import json
 from weboob.browser.filters.standard import CleanText, Format
 
 
 class LoginPage(HTMLPage):
-    def login(self, username, password):
+    def do_login_and_get_token(self, username, password):
         json_data = {
+            'force': 'pwd',
             'login': username,
             'mem': False,
         }
         response = self.browser.location('https://login.orange.fr/front/login', json=json_data)
+        encrypt = json.loads(response.json()['options'])['loginEncrypt']
 
         json_data = {
             'login': username,
             'password': password,
-            'loginEncrypt': json.loads(response.json()['options'])['loginEncrypt']
+            'loginEncrypt': encrypt,
         }
-        self.browser.location('https://login.orange.fr/front/password', json=json_data)
+        return json_data
 
 
 class PasswordPage(JsonPage):
@@ -76,3 +78,7 @@ class ManageCGI(HTMLPage):
 class HomePage(LoggedPage, HTMLPage):
     def get_error_message(self):
         return Format('%s %s', CleanText('//div[has-class("modal-dialog")]//h3'), CleanText('//div[has-class("modal-dialog")]//p[1]'))(self.doc)
+
+
+class PortalPage(LoggedPage, RawPage):
+    pass
