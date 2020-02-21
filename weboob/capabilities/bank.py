@@ -682,12 +682,6 @@ class CapBank(CapCollection):
         raise NotImplementedError()
 
 
-class CapCgp(CapBank):
-    """
-    Capability of cgp website to see accounts and transactions.
-    """
-
-
 class CapBankWealth(CapBank):
     """
     Capability of bank websites to see investments and pockets.
