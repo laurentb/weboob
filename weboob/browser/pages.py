@@ -575,6 +575,11 @@ class HTMLPage(Page):
     Default value is None, means refreshes aren't handled.
     """
 
+    REFRESH_XPATH = '//head/meta[lower-case(@http-equiv)="refresh"]'
+    """
+    Default xpath, which is also the most commun, override it if needed
+    """
+
     def __init__(self, *args, **kwargs):
         import lxml.html as html
         ns = html.etree.FunctionNamespace(None)
@@ -590,7 +595,7 @@ class HTMLPage(Page):
         if self.REFRESH_MAX is None:
             return
 
-        for refresh in self.doc.xpath('//head/meta[lower-case(@http-equiv)="refresh"]'):
+        for refresh in self.doc.xpath(self.REFRESH_XPATH):
             m = self.browser.REFRESH_RE.match(refresh.get('content', ''))
             if not m:
                 continue
