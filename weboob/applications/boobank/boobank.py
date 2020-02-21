@@ -791,6 +791,7 @@ class Boobank(CaptchaMixin, ReplApplication):
         caps = {
             'iter_investment': CapBankWealth,
             'iter_pocket': CapBankWealth,
+            'iter_market_orders': CapBankWealth,
         }
 
         self.start_format()
@@ -812,6 +813,14 @@ class Boobank(CaptchaMixin, ReplApplication):
         Display pockets of an account.
         """
         self.show_wealth('iter_pocket', id)
+
+    def do_market_order(self, id):
+        """
+        market_order ID
+
+        Display market orders of an account.
+        """
+        self.show_wealth('iter_market_orders', id)
 
     def do_budgea(self, line):
         """
