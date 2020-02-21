@@ -72,6 +72,7 @@ class LoginPage(JsonPage):
 
     def get_error_code(self):
         # - LGON001 = Incorrect password
+        # - LGON003 = Incorrect password: 'Le code utilisateur ou le mot de passe est erroné. Veuillez essayer de nouveau.' on website
         # - LGON004 = Action needed
         # - LGON005 = Account blocked
         # - LGON008 = ?

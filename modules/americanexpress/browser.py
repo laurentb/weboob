@@ -98,7 +98,7 @@ class AmericanExpressBrowser(LoginBrowser):
         if self.page.get_status_code() != 0:
             error_code = self.page.get_error_code()
             message = self.page.get_error_message()
-            if error_code == 'LGON001':
+            if any(code in error_code for code in ('LGON001', 'LGON003')):
                 raise BrowserIncorrectPassword(message)
             elif error_code == 'LGON004':
                 # This error happens when the website needs the user to
