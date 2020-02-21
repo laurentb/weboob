@@ -93,7 +93,7 @@ class DocumentsPage(LoggedPage, HTMLPage):
             obj_url = Attr('./span[1]/a', 'href', default=NotAvailable)
             obj_date = Env('date')
             obj_format = 'pdf'
-            obj_label = Format('Facture %s', CleanText('./span[1]/strong'))
+            obj_label = Format("Facture %s", CleanText("./span[2]"))
             obj_type = DocumentTypes.BILL
             obj_price = CleanDecimal(CleanText('./span[has-class("last")]'), replace_dots=True)
             obj_currency = 'EUR'
