@@ -37,13 +37,15 @@ class AmericanExpressModule(Module, CapBank):
     LICENSE = 'LGPLv3+'
     CONFIG = BackendConfig(
         ValueBackendPassword('login', label='Code utilisateur', masked=False),
-        ValueBackendPassword('password', label='Mot de passe'),
+        ValueBackendPassword('password', label='Mot de passe')
     )
-
     BROWSER = AmericanExpressBrowser
 
     def create_default_browser(self):
-        return self.create_browser(self.config)
+        return self.create_browser(
+            self.config['login'].get(),
+            self.config['password'].get()
+        )
 
     def iter_accounts(self):
         return self.browser.iter_accounts()
