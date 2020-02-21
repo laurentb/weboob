@@ -31,7 +31,7 @@ from weboob.capabilities.base import NotAvailable
 
 class LoginPage(HTMLPage):
     def login(self, login, password):
-        form = self.get_form('//form[@id="login"]')
+        form = self.get_form('//form[contains(@action, "/login_check")]')
         form['_username'] = login
         form['_password'] = password
         form.submit()
