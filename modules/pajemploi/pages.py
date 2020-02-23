@@ -29,7 +29,7 @@ from weboob.browser.pages import (
     pagination,
     NextPage,
 )
-from weboob.exceptions import ParseError
+from weboob.exceptions import ParseError, BrowserUnavailable
 from weboob.browser.elements import method, ItemElement, TableElement
 from weboob.browser.filters.standard import (
     Filter,
@@ -69,6 +69,11 @@ class LoginPage(HTMLPage):
 
 class HomePage(PajemploiPage):
     pass
+
+
+class ErrorMaintenancePage(HTMLPage):
+    def on_load(self):
+        raise BrowserUnavailable(CleanText().filter(self.doc.xpath('//div[@class="message"]')))
 
 
 class EmployeesPage(PajemploiPage):

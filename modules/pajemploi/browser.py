@@ -37,6 +37,7 @@ from .pages import (
     RegistrationRecordDownloadPage,
     CotisationsDownloadPage,
     AjaxDetailSocialInfoPage,
+    ErrorMaintenancePage,
 )
 
 
@@ -70,6 +71,7 @@ class PajemploiBrowser(LoginBrowser):
     registration_record_download = URL(r"/pajeweb/afficherCertificat.htm$", RegistrationRecordDownloadPage)
     cotisations_download         = URL(r"/pajeweb/paje_decomptecotiempl.pdf?ref=(?P<refdoc>.*)", CotisationsDownloadPage)
     ajax_detail_social_info      = URL(r'/pajeweb/ajaxdetailvs.jsp$', AjaxDetailSocialInfoPage)
+    error_maintenance            = URL(r'/pajeweb/logindec.htm', ErrorMaintenancePage)
 
     def do_login(self):
         self.session.cookies.clear()
