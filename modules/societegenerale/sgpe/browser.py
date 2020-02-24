@@ -532,6 +532,10 @@ class SGProfessionalBrowser(SGEnterpriseBrowser, SocieteGeneraleParBrowser):
         self.confirm_transfer.go(data=data)
 
         self.page.is_transfer_validated()
+
+        # Go on the accounts page to avoid reloading the confirm_transfer
+        # url in locate_browser.
+        self.accounts.go()
         return transfer
 
     @need_login
