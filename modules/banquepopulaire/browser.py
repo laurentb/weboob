@@ -257,6 +257,9 @@ class BanquePopulaire(LoginBrowser):
             return
 
         if self.new_login.is_here():
+            if not self.password.isnumeric():
+                # Vk from new login only accepts numeric characters
+                raise BrowserIncorrectPassword('Le mot de passe doit être composé de chiffres uniquement')
             return self.do_new_login()
         return self.do_old_login()
 
@@ -274,6 +277,8 @@ class BanquePopulaire(LoginBrowser):
             if 'Cette page est indisponible' in ex.message and not self.password.isdigit():
                 raise BrowserIncorrectPassword()
             raise
+        if not self.password.isnumeric():
+            self.logger.warning('Password with non numeric chararacters still works')
 
         if self.login_page.is_here():
             raise BrowserIncorrectPassword()
