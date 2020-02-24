@@ -792,7 +792,7 @@ class BanquePopulaire(LoginBrowser):
                 {'typeDocument': {'code': 'EXTRAIT', 'label': 'Extrait de compte', 'type': 'referenceLogiqueDocument'}}
             ]
         }
-        self.location('/api-bp/wapi/2.0/abonnes/current/documents/recherche-avancee', json=body, headers=self.documents_headers)
+        self.documents_page.go(json=body, headers=self.documents_headers)
         return self.page.iter_documents(subid=subscription.id)
 
     def download_document(self, document):
