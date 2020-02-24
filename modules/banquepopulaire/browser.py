@@ -795,6 +795,7 @@ class BanquePopulaire(LoginBrowser):
         self.documents_page.go(json=body, headers=self.documents_headers)
         return self.page.iter_documents(subid=subscription.id)
 
+    @retry(ClientError)
     def download_document(self, document):
         return self.open(document.url, headers=self.documents_headers).content
 
