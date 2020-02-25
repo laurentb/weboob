@@ -850,18 +850,18 @@ class ProfilePage(LoggedPage, MultiPage):
     def get_company_name(self):
         return CleanText('//div[contains(@class, "operation-bloc")]//span[contains(text(), "Entreprise")]/following-sibling::span[1]')(self.doc)
 
-    def get_profile(self):
-        profile = Person()
-        civilite = CleanText('//div/span[contains(text(), "Civilité")]/following-sibling::div/span')(self.doc)
-        familly_name = CleanText('//div/span[contains(text(), "Nom")]/following-sibling::div/span')(self.doc)
-        given_name = CleanText('//div/span[contains(text(), "Prénom")]/following-sibling::div/span')(self.doc)
-        profile.name = u'%s %s %s' % (civilite, given_name, familly_name)
-        profile.address = CleanText('//div/span[contains(text(), "Adresse postale")]/following-sibling::div/div[2]')(self.doc)
-        profile.phone = CleanText('//div/span[contains(text(), "Tél. portable")]/following-sibling::div/span')(self.doc)
-        profile.email = CleanText('//div/span[contains(text(), "E-mail")]/following-sibling::div/span')(self.doc)
-        profile.company_name = CleanText('//div[contains(@class, "operation-bloc")]//span[contains(text(), "Entreprise")]/following-sibling::span[1]')(self.doc)
+    @method
+    class get_profile(ItemElement):
+        klass = Person
 
-        return profile
+        obj__civilite = CleanText('//div/span[contains(text(), "Civilité")]/following-sibling::div/span')
+        obj_lastname = CleanText('//div/span[contains(text(), "Nom")]/following-sibling::div/span')
+        obj_firstname = CleanText('//div/span[contains(text(), "Prénom")]/following-sibling::div/span')
+        obj_name = Format(u'%s %s %s', obj__civilite, obj_firstname, obj_lastname)
+        obj_address = CleanText('//div/span[contains(text(), "Adresse postale")]/following-sibling::div/div[2]')
+        obj_phone = CleanText('//div/span[contains(text(), "Tél. portable")]/following-sibling::div/span')
+        obj_email = CleanText('//div/span[contains(text(), "E-mail")]/following-sibling::div/span')
+        obj_company_name = CleanText('//div[contains(@class, "operation-bloc")]//span[contains(text(), "Entreprise")]/following-sibling::span[1]')
 
 
 class APIInvestmentDetailsPage(LoggedPage, JsonPage):
