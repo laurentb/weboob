@@ -533,7 +533,12 @@ class HistoryPage(LoggedPage, JsonPage):
 
             klass = Transaction
 
-            obj_date = Date(Dict('dateValeur'))
+            # There are 2 values in the json, dateOperation and dateValeur.
+            # On the website they always display dateOperation.
+            # dateValeur seems to be arbitrary (it is sometimes before the real
+            # rdate of some transactions, which doesn't make any sense) so
+            # we do not use it.
+            obj_date = Date(CleanText(Dict('dateOperation')))
 
             # Transactions in foreign currencies have no 'libelleTypeOperation'
             # and 'libelleComplementaire' keys, hence the default values.
@@ -549,24 +554,19 @@ class HistoryPage(LoggedPage, JsonPage):
                 )
             )
 
-            # There is a key in the json called dateOperation but most of the time it is the
-            # same as the dateValeur. If the patterns do not find the rdate in the label,
-            # we set the value of rdate to dateOperation if dateOperation is before
-            # dateValeur (there are cases where dateOperation is after dateValeur).
+            # If the patterns do not find the rdate in the label, we set the value
+            # of rdate to date (dateOperation).
             def obj_rdate(self):
                 date = Field('date')(self)
                 # rdate is already set by `obj_raw` and the patterns.
                 rdate = self.obj.rdate
-                date_operation = Date(Dict('dateOperation'))(self)
-                if rdate.year < 1970 or abs(rdate.year - date.year) >= 2:
+                if rdate.year < 1970 or abs(rdate.year - date.year) >= 2 or rdate > date:
                     # website can send wrong date in label used to build rdate
                     # ex: "VIREMENT EN VOTRE FAVEUR TOTO 19.03.1214"
                     return NotAvailable
-                elif rdate == date and date_operation < date:
-                    return date_operation
                 elif rdate != date:
                     return rdate
-                return NotAvailable
+                return date
 
             obj_label = CleanText(
                 Format(
