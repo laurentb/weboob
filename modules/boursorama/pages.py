@@ -446,7 +446,7 @@ class LoanPage(LoggedPage, HTMLPage):
 
         def obj_next_payment_date(self):
             tmp = CleanText('//p[contains(text(), "Date de la prochaine échéance")]/span')(self)
-            if tmp == "-":
+            if tmp in ('', '-'):
                 return NotAvailable
             return Date(CleanText('//div[contains(text(), "Prochaine échéance")]/following-sibling::div'))(self)
 
