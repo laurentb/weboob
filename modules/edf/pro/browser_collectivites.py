@@ -65,9 +65,9 @@ class EdfproCollectivitesBrowser(LoginBrowser):
         message = {
             "actions":[
                 {
-                    "id": "467;a",
-                    "descriptor": "serviceComponent://ui.self.service.components.profileMenu.ProfileMenuController/ACTION$getProfileMenuResponse",
-                    "callingDescriptor": "UNKNOWN",
+                    "id": "894;a",
+                    "descriptor": "apex://CNICE_VFC172_DisplayUserProfil/ACTION$getContactInfo",
+                    "callingDescriptor": "markup://c:CNICE_LC265_DisplayUserProfil",
                     "params": {}
                 }
             ]
@@ -81,8 +81,8 @@ class EdfproCollectivitesBrowser(LoginBrowser):
         message = {
             "actions":[
                 {
-                    "id": "235;a",
-                    "descriptor": "apex://CNICE_VFC151_CompteurListe/ACTION$getCompteurListe",
+                    "id": "557;a",
+                    "descriptor": "apex://CNICE_VFC151_CompteurListe/ACTION$getCarouselInfos",
                     "callingDescriptor": "markup://c:CNICE_LC218_CompteurListe",
                     "params": {}
                 }
@@ -97,13 +97,13 @@ class EdfproCollectivitesBrowser(LoginBrowser):
         message = {
             "actions":[
                 {
-                    "id": "655;a",
+                    "id": "685;a",
                     "descriptor": "apex://CNICE_VFC158_HistoFactu/ACTION$initializeReglementSolde",
                     "callingDescriptor": "markup://c:CNICE_LC230_HistoFactu",
                     "params": {}
                 },
                 {
-                    "id": "720;a",
+                    "id": "751;a",
                     "descriptor": "apex://CNICE_VFC160_ListeFactures/ACTION$getFacturesbyId",
                     "callingDescriptor": "markup://c:CNICE_LC232_ListeFactures2",
                     "params":
