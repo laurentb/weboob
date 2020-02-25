@@ -91,7 +91,7 @@ class GSummaryPage(LoggedPage, HTMLPage):
         obj_label = 'Lendosphere'
 
         obj__liquidities = CleanDecimal.French('//div[div[@class="subtitle"][contains(text(),"Somme disponible")]]/div[@class="amount"]')
-        obj__invested = CleanDecimal.French('//tr[td[contains(text(),"Echéances brutes restantes*")]]/td[last()]')
+        obj__invested = CleanDecimal.French('//tr[td[contains(text(),"Echéances restantes")]]/td[last()]')
 
         def obj_balance(self):
             return Field('_liquidities')(self) + Field('_invested')(self)
