@@ -100,12 +100,22 @@ class BNPEnterprise(LoginBrowser):
     @need_login
     def iter_accounts(self):
         accounts = []
-        # Fetch checking accounts:
-        for account in self.accounts.stay_or_go().iter_accounts():
-            accounts.append(account)
+        # Trying to go on the accounts page without any account results in a generic error handled by AccountsPage.on_load()
+        try:
+            self.accounts.go()
+        except BrowserForbidden:
+            pass
+        else:
+            # Fetch checking accounts:
+            for account in self.page.iter_accounts():
+                accounts.append(account)
+
         # Fetch market accounts:
         try:
             self.market.go()
+        except BrowserForbidden:
+            pass
+        else:
             if self.market.is_here():
                 for market_account in self.page.iter_market_accounts():
                     market_account.parent = find_object(accounts, label=market_account._parent)
@@ -117,9 +127,6 @@ class BNPEnterprise(LoginBrowser):
                 account = self.page.get_unique_market_account()
                 account.parent = find_object(accounts, label=account._parent)
                 accounts.append(account)
-
-        except BrowserForbidden:
-            pass
 
         return accounts
 
@@ -205,5 +212,5 @@ class BNPEnterprise(LoginBrowser):
 
     @need_login
     def get_profile(self):
-        profile = self.account_history_view.go().get_profile()
-        return profile
+        self.auth.go()
+        return self.page.get_profile()

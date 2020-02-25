@@ -102,6 +102,12 @@ class AuthPage(HTMLPage):
         if content:
             raise BrowserForbidden(content)
 
+    @method
+    class get_profile(ItemElement):
+        klass = Person
+
+        obj_name = Regexp(CleanText('//p[@class="brandbar-info"]'), r'(.+?)\s-')
+
 
 class PasswordExpiredPage(HTMLPage):
     def on_load(self):
@@ -153,11 +159,7 @@ class AccountsPage(LoggedPage, JsonPage):
 
 
 class AccountHistoryViewPage(LoggedPage, HTMLPage):
-    @method
-    class get_profile(ItemElement):
-        klass = Person
-
-        obj_name = Regexp(CleanText('//p[@class="brandbar-info"]'), '(.+?)\s-')
+    pass
 
 
 class BnpHistoryItem(ItemElement):
