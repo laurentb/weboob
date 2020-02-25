@@ -18,12 +18,6 @@ weboob.modules_loader.load_all()
 
 modules_without_tests = []
 modules_without_icons = []
-modules_without_py3 = []
-
-with open(os.path.join(os.path.dirname(__file__), 'py3-compatible.modules')) as p:
-    modules_py3_compatible = [m.strip()
-                              for m in p.readlines()
-                              if not m.startswith('#')]
 
 
 for name, module in weboob.modules_loader.loaded.items():
@@ -35,17 +29,12 @@ for name, module in weboob.modules_loader.loaded.items():
        not module.icon:
         modules_without_icons.append(name)
 
-    if name not in modules_py3_compatible:
-        modules_without_py3.append(name)
-
 
 if modules_without_tests:
     print('\nModules without tests: %s' % ', '.join(sorted(modules_without_tests)))
 if modules_without_icons:
     print('\nModules without icons: %s' % ', '.join(sorted(modules_without_icons)))
-if modules_without_py3:
-    print('\nModules for Python 2 only: %s' % ', '.join(sorted(modules_without_py3)))
 
 
-if modules_without_tests or modules_without_icons or modules_without_py3:
+if modules_without_tests or modules_without_icons:
     sys.exit(1)
