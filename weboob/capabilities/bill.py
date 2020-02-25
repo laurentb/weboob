@@ -80,6 +80,7 @@ class Document(BaseObject):
     type =          StringField('type of document')
     transactions =  Field('List of transaction ID related to the document', list, default=[])
     has_file =      BoolField('Boolean to set if file is available', default=True)
+    number =        StringField('Number of the document (if present and meaningful for user)')
 
 
 class Bill(Document, Currency):
