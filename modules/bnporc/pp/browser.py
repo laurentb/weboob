@@ -24,7 +24,7 @@ from __future__ import unicode_literals
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import time
-from requests.exceptions import ConnectionError
+from requests.exceptions import ConnectionError, SSLError
 
 from weboob.browser.browsers import LoginBrowser, URL, need_login, StatesMixin
 from weboob.capabilities.base import find_object
@@ -241,7 +241,15 @@ class BNPParibasBrowser(LoginBrowser, StatesMixin):
                 self.capitalisation_page.go(params=params)
             except ServerError:
                 self.logger.warning("An Internal Server Error occurred")
-            else:
+            except SSLError as e:
+                self.logger.warning("SSL Error occurred : %s", e)
+                certificate_errors = (
+                    'SEC_ERROR_EXPIRED_CERTIFICATE',  # nss
+                    'certificate verify failed',  # openssl
+                )
+                if all(error not in str(e) for error in certificate_errors):
+                    raise e
+            finally:
                 if self.capitalisation_page.is_here() and self.page.has_contracts():
                     for account in self.page.iter_capitalisation():
                         # Life Insurance accounts may appear BOTH in the API and the "Assurances Vie" domain,
