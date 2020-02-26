@@ -246,10 +246,10 @@ class Application(object):
         self.config = klass(path)
         self.config.load(self.CONFIG)
 
-        if self.config.get('use_nss', default=False):
+        if int(self.config.get('use_nss', default=0)):
             self.setup_nss()
 
-        if self.config.get('export_session', default=False):
+        if int(self.config.get('export_session', default=0)):
             log_settings['export_session'] = True
 
     def main(self, argv):
