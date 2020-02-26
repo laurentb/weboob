@@ -485,7 +485,12 @@ class SeleniumBrowser(object):
         options = self._build_options(preferences)
         # TODO some browsers don't need headless
         # TODO handle different proxy setting?
-        options.headless = self.HEADLESS
+        try:
+            # New Selenium versions
+            options.headless = self.HEADLESS
+        except AttributeError:
+            # Keep compatibility with old Selenium versions
+            options.set_headless(self.HEADLESS)
 
         if self.DRIVER is webdriver.Firefox:
             if self.responses_dirname and not os.path.isdir(self.responses_dirname):
