@@ -310,7 +310,7 @@ class BanquePopulaire(LoginBrowser):
                 'response_type': 'id_token token',
                 'response_mode': 'form_post',
                 'cdetab': cdetab,
-                'login_hint': self.username,
+                'login_hint': self.username.upper(),
                 'display': 'page',
                 'client_id': client_id,
                 'claims': '{"userinfo":{"cdetab":null,"authMethod":null,"authLevel":null},"id_token":{"auth_time":{"essential":true},"last_login":null}}',
