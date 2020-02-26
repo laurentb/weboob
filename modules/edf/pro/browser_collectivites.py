@@ -16,7 +16,11 @@ from .collectivites_pages import (
 class EdfproCollectivitesBrowser(LoginBrowser):
     BASEURL = 'https://entreprises-collectivites.edf.fr'
 
-    client_space = URL(r'/espaceclient/s/$', ClientSpace)
+    client_space = URL(
+        r'/espaceclient/s/$',
+        r'/espaceclient/s/aiguillage',
+        ClientSpace
+    )
     cnice = URL(r'/espaceclient/services/authcallback/CNICE', CnicePage)
     aura = URL(r'/espaceclient/s/sfsites/aura', AuraPage)
     download_page = URL(r'/espaceclient/sfc/servlet.shepherd/version/download/(?P<id_download>.*)', PdfPage)
