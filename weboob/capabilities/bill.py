@@ -18,7 +18,10 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
-from .base import BaseObject, StringField, DecimalField, BoolField, UserError, Currency, Field
+from .base import (
+    BaseObject, StringField, DecimalField, BoolField, UserError, Currency, Field,
+    empty,
+)
 from .date import DateField
 from .collection import CapCollection
 
@@ -87,17 +90,52 @@ class Bill(Document, Currency):
     """
     Bill.
     """
-    price =         DecimalField('Price to pay')
+    total_price =   DecimalField('Price to pay')
     currency =      StringField('Currency', default=None)
     vat =           DecimalField('VAT included in the price')
     duedate =       DateField('The day the bill must be paid')
     startdate =     DateField('The first day the bill applies to')
     finishdate =    DateField('The last day the bill applies to')
-    income =        BoolField('Boolean to set if bill is income or invoice', default=False)
+
+    # compatibility properties
+    @property
+    def price(self):
+        if empty(self.total_price):
+            return self.total_price
+        return abs(self.total_price)
+
+    @price.setter
+    def price(self, value):
+        value = abs(value)
+        if not self.income:
+            self.total_price = value
+        else:
+            self.total_price = -value
+        self._income = None
+
+    @property
+    def income(self):
+        if empty(self.total_price):
+            return self._income or False
+        return self.total_price <= 0
+
+    @income.setter
+    def income(self, value):
+        if empty(self.total_price):
+            self._income = value
+        else:
+            # the price was set before income
+            # we can avoid handling the obnoxious _income field
+            income_sign = {True: -1, False: 1}
+            self.total_price = abs(self.total_price) * income_sign[value]
+            self._income = None
 
     def __init__(self, *args, **kwargs):
         super(Bill, self).__init__(*args, **kwargs)
         self.type = DocumentTypes.BILL
+        self._income = None
+        # _income shall be set to True or False only if income is set *before* price property
+        # in all other cases, we can map income property depending on total_price
 
 
 class Subscription(BaseObject):
