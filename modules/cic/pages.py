@@ -41,10 +41,20 @@ class PorPage(AbstractPage):
     PARENT_URL = 'por'
 
     def on_load(self):
-        # Raising the ActionNeeded in the on_load because the browser is abstract but we don't visit this page
-        # in the parent module (it still uses the old portfolio page which was removed from CIC)
-        if self.doc.xpath('//form[contains(@action, "MsgCommerciaux")]') and self.doc.xpath('//input[contains(@id, "Valider")]'):
-            raise ActionNeeded(CleanText('//div[@id="divMessage"]/p[1]')(self.doc))
+        # info page, appearing every 30 min
+        # we can bypass without asking to never show it again
+        # parent module still uses the old portfolio PorPage which was removed from CIC
+        if (
+            self.doc.xpath('//form[contains(@action, "MsgCommerciaux")]') and
+            self.doc.xpath('//input[contains(@id, "Valider")]') and
+            'Pensez à activer Confirmation Mobile' in CleanText('//div[@id="divMessage"]/p[1]')(self.doc)
+        ):
+            if self.doc.xpath('//input[contains(@id, "chxOption")]'):  # "Ne plus afficher ce message" checkbox
+                self.logger.info('Skipping message on PorPage')
+                form = self.get_form(id='frmMere')
+                form.submit()
+            else:
+                raise ActionNeeded(CleanText('//div[@id="divMessage"]/p[1]')(self.doc))
 
     def add_por_accounts(self, accounts):
         for por_account in self.iter_por_accounts():
