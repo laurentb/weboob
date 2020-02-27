@@ -119,6 +119,9 @@ class Base(Filter):
 
     def __call__(self, item):
         base = self.select(self.base, item)
+        if isinstance(base, list):
+            assert len(base) == 1, 'If using a list, there must be one element only'
+            base = base[0]
         return self.select(self.selector, base)
 
     def __init__(self, base, selector=None, default=_NO_DEFAULT):
