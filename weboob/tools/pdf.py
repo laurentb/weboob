@@ -461,7 +461,12 @@ class BlinkPdfError(Exception):
     pass
 
 
-def blinkpdf(browser, url, extra_options=None, filter_cookie=None):
+def blinkpdf(browser, url, extra_options=None, filter_cookie=None, start_xvfb=True):
+    # - xvfb is required for blinkpdf 1.0, but not for 1.1
+    # - xvfb is not necessary for QtWebEngine 5.14, but it is for 5.11, which is the version
+    #   available on the ppa for debian/buster stable
+
+    xvfb_exists = False
     blinkpdf_exists = False
     paths = os.getenv('PATH', os.defpath).split(os.pathsep)
     for path in paths:
@@ -469,7 +474,7 @@ def blinkpdf(browser, url, extra_options=None, filter_cookie=None):
         if os.path.exists(fpath) and os.access(fpath, os.X_OK):
             blinkpdf_exists = True
 
-    if not blinkpdf_exists:
+    if (not xvfb_exists and start_xvfb) or not blinkpdf_exists:
         raise NotImplementedError()
 
     args = []
@@ -490,14 +495,20 @@ def blinkpdf(browser, url, extra_options=None, filter_cookie=None):
     args.append(url)
     args.append('-')  # - : don't write it on disk, simply return value
 
-    cmd = ['blinkpdf'] + list(args)
+    if start_xvfb:
+        # put a very small resolution to reduce used memory, because we don't really need it, it doesn't influence pdf size
+        # -screen 0 width*height*bit depth
+        prepend = ['xvfb-run', '-a', '-s', '-screen 0 2x2x8', 'blinkpdf']
+    else:
+        prepend = ['blinkpdf']
+
+    cmd = list(prepend) + list(args)
 
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = proc.communicate()
 
     if proc.returncode != 0:
         raise BlinkPdfError('command returned non-zero exit status 1: ' + stderr)
-
     return stdout
 
 
