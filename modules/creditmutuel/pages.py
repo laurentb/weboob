@@ -20,6 +20,7 @@
 from __future__ import unicode_literals
 
 import re
+from hashlib import md5
 
 from decimal import Decimal, InvalidOperation
 from dateutil.relativedelta import relativedelta
@@ -1852,71 +1853,71 @@ class ExternalTransferPage(InternalTransferPage):
 
 class VerifCodePage(LoggedPage, HTMLPage):
     HASHES = {
-        ('c5aa0990f26b7ab94b956ca4a8f32620', '1a34be567967c34d53ef2ba73715d481'): 'A1',
-        ('dc2e60c9ea7e8a4076f2ced9a0764c3c', '6fe82ee8a1ebe352f15e950abf248120'): 'A2',
-        ('2c2842278e250204c16376a0efab5a95', '764e59ca04057aae0466cf0bc4f27a01'): 'A3',
-        ('62b3987e9f1322bfdff6d5dc0b38db08', '599cd1197e50c7380db35f35e2b508c9'): 'A4',
-        ('4d3bc686ee24c909cf3e513b315b5551', 'a41d16429734249f25b8426b4e4c641e'): 'A5',
-        ('54c44d50e8ad2ce142d3116c24de3846', '6715d118267ab4af827f3a4b3a8f87fc'): 'A6',
-        ('d079635c75592592f8fba617ba96f781', '48d84f64e4e696571b1f8109c97a7a7b'): 'A7',
-        ('89b084012994c80ba29fd59ae759a9c1', '0dc1676008e0dd73a82ecedfc57e1ed1'): 'A8',
-        ('4850adcdee0b34d2c496ae9512790422', 'a22ac030922232d72e4544885c931c4c'): 'B1',
-        ('ecf777518d4ba4c84bc3784b53e33279', 'a10c7138295d2dddaa5cc46a96b3f874'): 'B2',
-        ('bcbd6ff41afc246fa3c9d89ef1d7c8ba', '28b8d78bd89d46c0fd23f2969ba4bd36'): 'B3',
-        ('ef70cdd8973f051c73027dddcf2905e0', 'f445c1ff3ed090a6582385901b72a590'): 'B4',
-        ('76167582ad6272b7b2ccce1f218f1b68', '2b37f61aa64cb8c9eaaaa40a3cb7dd9d'): 'B5',
-        ('2e42ff3e319b7788f40b8494b06d2e7f', 'aee9142703a64e4286388f5bb7b37ab0'): 'B6',
-        ('fc379f6d576b803d20d23c143404b27b', '4ddea67432645a269634d28312cde6ff'): 'B7',
-        ('e7b1bc375f6a2f022fc97d25345c275f', '6dcceade2fcbbff131ce39331aca0302'): 'B8',
-        ('00cb13da73d8759dce3b1efa3c9073ed', '9cb3e55fe6e7287fdfe66ad335a99657'): 'C1',
-        ('a7a60cfa11ac35f69e833e6993f4d620', 'afa19495194aa130cb0226101d2c1ecf'): 'C2',
-        ('c391e1da87e22e4ffdc8e864285e858b', 'f8654ed4cf9b1c40da216ccc981e5328'): 'C3',
-        ('a8b9b55786955656d4dcf3e1fda79865', 'a0f90e50d2b18e672693d325c61cd08f'): 'C4',
-        ('d4a1ad08f9b43acb84b10bf8715b0cc6', '3db3f9c8b223c9aecb272e67c0548437'): 'C5',
-        ('aea1cab2813ee28a00590f331b5dc148', 'b49628a46a50423afe8568763df373b3'): 'C6',
-        ('cd9dfa746761b5b03384eb8988a77189', 'c2de8d8c1f2988e19474ce2ccda7aac6'): 'C7',
-        ('81f95a02a90cadfbd555ba4b7e3d2203', '969db1200abdbcaa38c477fffbd16ac1'): 'C8',
-        ('a7ddf5e4033fab294bba4a3abb1b7db4', 'a02376697a5f5bc3364a157209846c68'): 'D1',
-        ('df6352fd5eeda71fd3fe49c6523f93ae', '80eae27b7225dd1141687a01a0b91a52'): 'D2',
-        ('185ad70f321b901aa4a53f4364e747f5', '3f0ce53ac49085d9b161c7d6133510ff'): 'D3',
-        ('6caf4a58ccf5e873a30c47e5ec56761e', '5c54e59cec34b2a4542c62ca7fc95e1f'): 'D4',
-        ('3e63d6517b934c2f56a326d167040609', '5f082bc1949f359cf514e016a5a60fec'): 'D5',
-        ('6703817598ecc33e12f285af111dee2e', '1dabb2b992d7d33d7b338d21f0bca026'): 'D6',
-        ('cec8a1b5a815575b3ff549b63d7af98c', '382bfbb7bfe679fcf0f17dfdd330a7d5'): 'D7',
-        ('3362f25f5b2cc5c5e0bdb09cd179bda0', '915971387e7125caddd19b134d250413'): 'D8',
-        ('e2701343f157fc4ac5e47263b9b8663e', '8786bd17b43fc0f70f3595374dc16d71'): 'E1',
-        ('2ee0dfbd7d34a415f87482f7ccd6fd36', '122762a913c28d26ac879ce8e1193340'): 'E2',
-        ('112c85cfccf6a5fc7d925cc01572a041', 'f00fb7afd16c9ce7c1c3b1cf597fd775'): 'E3',
-        ('809d68e42776c0a9f4b68e68c68fffd3', 'b7d54cd0c6feeb81dd3334b60db60402'): 'E4',
-        ('af996f7e536f6fc905b92ab7c1c33d31', 'af9a53c2bcda08d26c68f1a98b8e7cd6'): 'E5',
-        ('9e694194e4c16771d2d90085c0edbbd3', '5f7fb45d3b67dfeddeb7b9e6db633e30'): 'E6',
-        ('e49c03811ce80bb5dec6df7dc817f545', '9260cb4ee31cbf8171c2b4ed125c7029'): 'E7',
-        ('da4398cc81d9399dc0b1aebdf554dc9c', 'b5f61e3816a6c2e4e4dce47415e2d5cc'): 'E8',
-        ('9fc496cc4d416fd53eda938d8643b9f4', '7177915e2a661e4c8202e96f0ea1a0d1'): 'F1',
-        ('77ada5bfbeb73d0c77acd7d0d1ab50b4', '5688f91980bb7ad01c3c55eea4eeb79e'): 'F2',
-        ('03837ab975dee769a3fc4418a9b27184', 'a3269c9f223dc4fde1b42dcc4c84f222'): 'F3',
-        ('a68defaa9b8b6f9f63c337dc91f0af0f', '64c1f2fa82e0273a5821e4c8ae4f20f8'): 'F4',
-        ('deaec96b46cd269b125705a50bc7db78', '8c5336120496f045689e61b0698d3b26'): 'F5',
-        ('6cc495fa739c998320623e10b1a7a832', '8e92a39f5b115d3f583d23f6fe23b637'): 'F6',
-        ('ed97b23f70d1ae7b22a89b14554c0df1', '993f2c8dd975541abfd90e067ef83f05'): 'F7',
-        ('dc67341a14c5495d4422ee7b766a3d6d', 'b9e6e9b37ab35bc1d171d106bb20ae24'): 'F8',
-        ('39a5e6807e9c10a1777fca5ab2d97f99', '78be55d32a664162065a0749437ed494'): 'G1',
-        ('114f9c8d5440f6e31dd151b5f6c7b0d5', '64704aa9e54b3a666aaa415f97be48fb'): 'G2',
-        ('d77bb8c4161b59186f038b4f3c2c7a7c', '2e1260ce780c906fa73718216c86371e'): 'G3',
-        ('912d2bc8d64f6c87971a76e0a6d4d04c', 'a12629927ef319a9621db9a915862940'): 'G4',
-        ('de00ec70d550474359fe671e8eada3c1', 'c609aca9677b37e499437e32a2ab3ee5'): 'G5',
-        ('5a8211709a85604d1e01465f9e0e8440', '4ad2fe1572cebfede774bd815c5f8879'): 'G6',
-        ('509e7acaad0ab886116a64798332bd68', 'c143e43dfbaac43e6324960892a77e0c'): 'G7',
-        ('46ac73377b08712a1bbe297d5f3a51f3', 'cb937faa00e5c7f61bf05ae50193409d'): 'G8',
-        ('bc288cbfa82b119c508cf4fbcfe75a6e', '1532e66e91cecf527733645f81a40d2e'): 'H1',
-        ('6a8f5a82419fed29eeb8bd439a109920', '5a1f282e02cfe1aaf0db5511a9a6cdde'): 'H2',
-        ('36ad9e845c7a6ca642b0021c3b2cef2c', '2cc8bfeea91f8d2be5af3a3671611a33'): 'H3',
-        ('0124561f987c77a5118abe6b5b1a56d5', 'b511e98b398ba2e9c809d3f3e1ca66a8'): 'H4',
-        ('d20f5baef6301de18cc0ffed06806f18', '5c31d4554b0159727acb6402f9dd6975'): 'H5',
-        ('004c7a4ec9ad6fdcf1723269c6e78c6c', '9d407d3aad2b904f9bdc056801cbba3e'): 'H6',
-        ('54b06cc669a176693649076c87eb1239', '88113a9fa2c104d1a85d6aad96d022ac'): 'H7',
-        ('d5a615cd08d558cee1f2feaa4fb92785', '6028e69c33007466fdb137935941958d'): 'H8',
-        }
+        'f8d9330f322575cb3d5853c347c4ed16': 'A1',
+        '72b11c4c4991a6ec37126a8892f9e398': 'A2',
+        'dce4a0228485a23f490ebbdd7ec96bff': 'A3',
+        'b09099c0cccfa5843793e29cc6b50c2e': 'A4',
+        '83fdc778b984cc7df4c54c74b3e06118': 'A5',
+        '70e1292e81678f3dd4463dc78ac20c23': 'A6',
+        '6a3c5cecde55a71af5ad52f3c3218bd8': 'A7',
+        'e94d438f1301e7ba7b69061b09766d2d': 'A8',
+        'd0eb3289d399cc070963cdbe8ed74482': 'B1',
+        'c66bbade362a73b5a1304d15ba7cec3f': 'B2',
+        '698e0ed53572c112bdcd4e02b90c0f76': 'B3',
+        '453023b486e4baddc5c866fd3a0dae6a': 'B4',
+        '78cab490f003eaa6c9260a08daee3c48': 'B5',
+        'a6cf0fed8511f655421c9d1d6c1dfae9': 'B6',
+        '79873f1e9af1833b9691dcd9c97096ac': 'B7',
+        '6f76286584707a1e6a0d8e3d421f7b0d': 'B8',
+        '57f365a252248e9376003329cd798fd3': 'C1',
+        'd052368c3aba2c4296669b25dc3f5b83': 'C2',
+        '423612655316cdb050378004b2bc5d2e': 'C3',
+        'd679310f45034c095afcaa88a5422256': 'C4',
+        'd739655c364a3b489260be7b42a13252': 'C5',
+        '7c1e33515a42bfd819a6004f78b09615': 'C6',
+        '55ffe065456d33e70152ad860154d190': 'C7',
+        '13a927f61873ba6f2615fb529608629f': 'C8',
+        'e48146297f68ce172b9d4092827fbd2c': 'D1',
+        '92ee176c2ee21821066747ca22ab42f0': 'D2',
+        'b405d1912ba172052c198b14b50db18f': 'D3',
+        '6a65689653e2465fc50e8765b8d5f89b': 'D4',
+        'de0f615ea01463a764e5031a696160a2': 'D5',
+        'b90f7ee198f0384480d79f7ebc8e8d3c': 'D6',
+        '844def4fead85f22e280a5b379b69492': 'D7',
+        '7485085e2dda01d90a190371509518d5': 'D8',
+        'd2142b7028ee0e67f03379468243ab09': 'E1',
+        'c42126f7c01365992c2a99d6164c6599': 'E2',
+        '978172427932c2a2a867baa25eb68ee0': 'E3',
+        '837c374cba2c11cfea800aaff06ca0b1': 'E4',
+        '041deaaff4b0d312f99afd5d9256af6c': 'E5',
+        'a3d2eea803f71200b851146d6f57998b': 'E6',
+        '9cd913b53b6cd028bd609b8546af9b0d': 'E7',
+        '17308564239363735a6a9f34021d26a9': 'E8',
+        '89b913bc935a3788bf4fe6b35778a372': 'F1',
+        '7651835218b5a7538b5b9d20546d014b': 'F2',
+        'f32bcdac80720bf39927dde41a8a21b8': 'F3',
+        '4ed222ecfd6676fcb6a4908ce915e63d': 'F4',
+        '4151f3c6531cde9bc6a1c44e89d9e47a': 'F5',
+        '6a2987e43cccc6a265c37aa73bb18703': 'F6',
+        '67f777297fec2040638378fae4113aa5': 'F7',
+        '50c2c36fbb49e64365f43068ee76c521': 'F8',
+        '8c38cd983eac6a02080c880e9c5c5a42': 'G1',
+        '4eba3b877f4e99fadb9369bfea6bc100': 'G2',
+        '4a3f409303806e53f8d5397a24fa0966': 'G3',
+        '88a7ec3d1377f913969c05859489020b': 'G4',
+        '4feda60f9dce97a400b3a6e07c8ad3f1': 'G5',
+        '0247c3ab8786018e4b324b05991a137c': 'G6',
+        'c3c2eac333cc3f8ff6b7d2814ad51943': 'G7',
+        '395881853e2d2fe7ed317c0b82227c8c': 'G8',
+        '213cab37d52ebcddd3950f2132fdeafd': 'H1',
+        'a826e4b3f2bfc9e07882a55929523a21': 'H2',
+        'cb4c92a05ef2c621b49b3b12bdc1676e': 'H3',
+        '641883bd5878f512b6bcd60c53872749': 'H4',
+        '9e5541bd54865ba57514466881b9db41': 'H5',
+        '03cc8d41cdf5e3d8d7e3f11b25f1cd5c': 'H6',
+        '203ec0695ec93bfd947c33b41802562b': 'H7',
+        'cbd1e9d2276ecc9cd7e6cae9b0127d58': 'H8',
+    }
 
     def on_load(self):
         errors = (
@@ -1937,7 +1938,7 @@ class VerifCodePage(LoggedPage, HTMLPage):
 
     def get_key_case(self, _hash):
         for h, v in self.HASHES.items():
-            if h == _hash or _hash in h:
+            if h == _hash:
                 return v
 
     def check_personal_keys_error(self):
@@ -1947,6 +1948,16 @@ class VerifCodePage(LoggedPage, HTMLPage):
 
     def get_question(self):
         question = Regexp(CleanText('//div/p[input]'), r'(Veuillez .*):')(self.doc)
+        if CleanText('//div[p[input] and p[img]]')(self.doc):
+            # The case name is an image
+            img_base64 = Attr('//div[p[input] and p[img]]/p/img', 'src')(self.doc)
+            img_base64 = img_base64.replace('data:image/png;base64,', '')
+
+            img_md5 = md5(img_base64.encode('ascii')).hexdigest()
+            key_case = self.get_key_case(img_md5)
+            assert key_case, "Unhandled image hash : '%s'" % img_md5
+
+            question = question.replace('case', 'case %s' % key_case)
         return question
 
     def get_recipient_form(self):

@@ -104,7 +104,7 @@ class CreditMutuelModule(
     def new_recipient(self, recipient, **params):
         # second step of the new_recipient
         # there should be a parameter
-        if any(p in params for p in ('Bic', 'code', 'Clé')):
+        if any(p in params for p in ('Bic', 'code', u'Clé')):
             return self.browser.set_new_recipient(recipient, **params)
 
         return self.browser.new_recipient(recipient, **params)
