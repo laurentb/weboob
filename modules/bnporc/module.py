@@ -79,6 +79,7 @@ class BNPorcModule(
         DocumentTypes.STATEMENT,
         DocumentTypes.REPORT,
         DocumentTypes.BILL,
+        DocumentTypes.RIB,
         DocumentTypes.OTHER,
     )
 

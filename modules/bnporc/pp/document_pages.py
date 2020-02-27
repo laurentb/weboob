@@ -26,7 +26,7 @@ import re
 from weboob.browser.elements import DictElement, ItemElement, method
 from weboob.browser.filters.json import Dict
 from weboob.browser.filters.standard import Format, Date, Env, Field
-from weboob.browser.pages import JsonPage, LoggedPage
+from weboob.browser.pages import JsonPage, LoggedPage, RawPage
 from weboob.capabilities.bill import Document, Bill, DocumentTypes
 from weboob.tools.compat import urlencode
 
@@ -151,3 +151,9 @@ class DocumentsResearchPage(LoggedPage, JsonPage):
 
         class item(ItemDocument):
             pass
+
+
+class RIBPage(LoggedPage, RawPage):
+    def is_rib_available(self):
+        # If the page has no content, it means no RIB can be found
+        return bool(self.content)

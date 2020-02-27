@@ -32,7 +32,7 @@ from weboob.capabilities.bank import (
     AccountNotFound, Account, AddRecipientStep, AddRecipientTimeout,
     TransferInvalidRecipient, Loan,
 )
-from weboob.capabilities.bill import Subscription
+from weboob.capabilities.bill import Subscription, Document, DocumentTypes
 from weboob.capabilities.profile import ProfileMissing
 from weboob.tools.decorators import retry
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
@@ -52,7 +52,7 @@ from .pages import (
     UselessPage, TransferAssertionError, LoanDetailsPage,
 )
 
-from .document_pages import DocumentsPage, DocumentsResearchPage, TitulairePage
+from .document_pages import DocumentsPage, DocumentsResearchPage, TitulairePage, RIBPage
 
 __all__ = ['BNPPartPro', 'HelloBank']
 
@@ -119,6 +119,7 @@ class BNPParibasBrowser(LoginBrowser, StatesMixin):
     titulaire = URL(r'/demat-wspl/rest/listerTitulairesDemat', TitulairePage)
     document = URL(r'/demat-wspl/rest/listerDocuments', DocumentsPage)
     document_research = URL(r'/demat-wspl/rest/rechercheCriteresDemat', DocumentsResearchPage)
+    rib_page = URL(r'/rib-wspl/rpc/restituerRIB', RIBPage)
 
     profile = URL(r'/kyc-wspl/rest/informationsClient', ProfilePage)
     list_detail_card = URL(r'/udcarte-wspl/rest/listeDetailCartes', ListDetailCardPage)
@@ -545,8 +546,30 @@ class BNPParibasBrowser(LoginBrowser, StatesMixin):
     def get_thread(self, thread):
         raise NotImplementedError()
 
+    def _fetch_rib_document(self, subscription):
+        self.rib_page.go(
+            params={
+                'contractId': subscription.id,
+                'i18nSiteType': 'part',  # site type value doesn't seem to matter as long as it's present
+                'i18nLang': 'fr',
+                'i18nVersion': 'V1',
+            },
+        )
+        if self.rib_page.is_here() and self.page.is_rib_available():
+            d = Document()
+            d.id = subscription.id + '_RIB'
+            d.url = self.page.url
+            d.type = DocumentTypes.RIB
+            d.format = 'pdf'
+            d.label = 'RIB'
+            return d
+
     @need_login
     def iter_documents(self, subscription):
+        rib = self._fetch_rib_document(subscription)
+        if rib:
+            yield rib
+
         titulaires = self.titulaire.go().get_titulaires()
         # Calling '/demat-wspl/rest/listerDocuments' before the request on 'document'
         # is necessary when you specify an ikpi, otherwise no documents are returned
