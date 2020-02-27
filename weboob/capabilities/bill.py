@@ -93,6 +93,7 @@ class Bill(Document, Currency):
     total_price =   DecimalField('Price to pay')
     currency =      StringField('Currency', default=None)
     vat =           DecimalField('VAT included in the price')
+    pre_tax_price = DecimalField('Price without the VAT or other taxes')
     duedate =       DateField('The day the bill must be paid')
     startdate =     DateField('The first day the bill applies to')
     finishdate =    DateField('The last day the bill applies to')
