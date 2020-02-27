@@ -18,6 +18,8 @@
 # along with weboob. If not, see <http://www.gnu.org/licenses/>.
 
 
+from collections import OrderedDict
+
 try:
     from requests.packages.urllib3.util.request import ACCEPT_ENCODING
 except ImportError:
@@ -75,13 +77,15 @@ class Firefox(Profile):
         # Replace all base requests headers
         # https://developer.mozilla.org/en/Gecko_user_agent_string_reference
         # https://bugzilla.mozilla.org/show_bug.cgi?id=572650
-        session.headers = {
-            'Accept-Language': 'en-US,en;q=0.5',
-            'Accept-Encoding': 'gzip, deflate',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101 Firefox/68.0',
-            'Upgrade-Insecure-Requests': '1',
-            'DNT': '1'}
+        session.headers = OrderedDict([
+            ('Accept-Language', 'en-US,en;q=0.5'),
+            ('Accept-Encoding', 'gzip, deflate'),
+            ('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'),
+            ('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101 Firefox/68.0'),
+            ('Upgrade-Insecure-Requests', '1'),
+            ('DNT', '1'),
+        ])
+
         if 'br' in ENCODINGS:
             session.headers['Accept-Encoding'] += ', br'
 
