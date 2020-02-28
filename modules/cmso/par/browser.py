@@ -19,7 +19,6 @@
 
 from __future__ import unicode_literals
 
-import re
 import json
 
 from datetime import date
@@ -27,10 +26,11 @@ from functools import wraps
 
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.browser.exceptions import ClientError, ServerError
-from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, AuthMethodNotImplemented
 from weboob.capabilities.bank import Account, Transaction, AccountNotFound
 from weboob.capabilities.base import find_object
 from weboob.tools.capabilities.bank.transactions import sorted_transactions
+from weboob.tools.compat import urlparse, parse_qsl
 
 from .pages import (
     LogoutPage, AccountsPage, HistoryPage, LifeinsurancePage, MarketPage,
@@ -79,7 +79,7 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
     STATE_DURATION = 1
     headers = None
 
-    login = URL(r'/securityapi/tokens',
+    login = URL(r'/oauth-implicit/token',
                 r'/auth/checkuser', LoginPage)
     logout = URL(r'/securityapi/revoke',
                  r'/auth/errorauthn',
@@ -107,26 +107,25 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
     profile = URL(r'/domiapi/oauth/json/edr/infosPerson', ProfilePage)
 
     json_headers = {'Content-Type': 'application/json'}
-    ARKEA = {'cmso.com': '03', 'cmb.fr': '01', 'bpe.fr' : '08', 'arkeabanqueprivee.fr': '70',}
+
+    # Values needed for login and are specific for each arkea child
+    name = 'cmso'
+    arkea = '03'
+    arkea_client_id = 'RGY7rjEcGXkHe3NufA93HTUDkjnMUqrm'
+
+    # Need for redirect_uri
+    original_site = 'https://mon.cmso.com'
 
     def __init__(self, website, *args, **kwargs):
         super(CmsoParBrowser, self).__init__(*args, **kwargs)
-
-        # Arkea Banque Privee uses specific URL prefix and name
-        if website == 'arkeabanqueprivee.fr':
-            self.BASEURL = "https://m.%s" % website
-            self.name = 'abp'
-        else:
-            self.BASEURL = "https://mon.%s" % website
-            self.name = website.split('.')[0]
+        self.BASEURL = 'https://api.%s' % website
 
         self.website = website
-        self.arkea = self.ARKEA[website]
         self.accounts_list = []
         self.logged = False
 
     def do_login(self):
-        self.location(self.BASEURL)
+        self.location(self.original_site)
         if self.headers:
             self.session.headers = self.headers
         else:
@@ -144,22 +143,30 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
 
     def get_login_data(self):
         return {
+            'client_id': self.arkea_client_id,
+            'responseType': 'token',
             'accessCode': self.username,
             'password': self.password,
             'clientId': 'com.arkea.%s.siteaccessible' % self.name,
-            'redirectUri': '%s/auth/checkuser' % self.BASEURL,
-            'errorUri': '%s/auth/errorauthn' % self.BASEURL
+            'redirectUri': '%s/auth/checkuser' % self.original_site,
+            'errorUri': '%s/auth/errorauthn' % self.original_site,
+            'fingerprint': 'b61a924d1245beb7469fef44db132e96',
         }
 
     def update_authentication_headers(self):
-        m = re.search('access_token=([^&]+).*id_token=(.*)', self.url)
+        hidden_params = dict(parse_qsl(urlparse(self.url).fragment))
 
         self.session.headers.update({
-            'Authentication': "Bearer %s" % m.group(2),
-            'Authorization': "Bearer %s" % m.group(1),
+            'Authorization': "Bearer %s" % hidden_params['access_token'],
             'X-ARKEA-EFS': self.arkea,
-            'X-Csrf-Token': m.group(1)
+            'X-Csrf-Token': hidden_params['access_token'],
+            'X-REFERER-TOKEN': 'RWDPART',
         })
+
+        # TODO: if the scope is "consent", there is an OTP
+        if hidden_params.get('scope') == 'consent':
+            # Will be handle soon
+            raise AuthMethodNotImplemented()
 
     def get_account(self, _id):
         return find_object(self.iter_accounts(), id=_id, error=AccountNotFound)
