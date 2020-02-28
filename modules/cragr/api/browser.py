@@ -24,7 +24,7 @@ from __future__ import unicode_literals
 from decimal import Decimal
 import re
 
-from weboob.capabilities.bank import Account, Loan, Transaction, AccountNotFound, RecipientNotFound
+from weboob.capabilities.bank import Account, Loan, Per, PerProviderType, Transaction, AccountNotFound, RecipientNotFound
 from weboob.capabilities.base import empty, NotAvailable, strict_find_object
 from weboob.browser import LoginBrowser, URL, need_login
 from weboob.browser.switch import SiteSwitch
@@ -341,6 +341,7 @@ class CragrAPI(LoginBrowser):
             for account in accounts_list:
                 if empty(account.balance):
                     account.balance = account_balances.get(account._id_element_contrat, NotAvailable)
+
                 if account.type == Account.TYPE_CHECKING:
                     account.iban = self.get_account_iban(account._index, account._category, account.id)
 
@@ -354,9 +355,14 @@ class CragrAPI(LoginBrowser):
                         )
                         continue
                     account = self.switch_account_to_loan(account)
+
                 elif account.type == Account.TYPE_REVOLVING_CREDIT:
                     account.id = account.number = loan_ids.get(account._id_element_contrat, account.id)
                     account = self.switch_account_to_revolving(account)
+
+                elif account.type == Account.TYPE_PER:
+                    account = self.switch_account_to_per(account)
+
                 if account.id not in all_accounts:
                     all_accounts[account.id] = account
                     yield account
@@ -456,6 +462,25 @@ class CragrAPI(LoginBrowser):
         loan.balance = Decimal(0)
         loan.available_amount = account.balance
         return loan
+
+    def switch_account_to_per(self, account):
+        per = Per.from_dict(account.to_dict())
+        copy_attrs = (
+            '_index',
+            '_category',
+            '_contract',
+            '_id_element_contrat',
+        )
+        for attr in copy_attrs:
+            setattr(per, attr, getattr(account, attr))
+
+        if per.label == 'PER Assurance':
+            per.provider_type = PerProviderType.INSURER
+        else:
+            per.provider_type = PerProviderType.BANK
+
+        # No available information concerning PER version
+        return per
 
     @need_login
     def go_to_account_space(self, contract):
