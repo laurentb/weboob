@@ -122,17 +122,26 @@ class InvestmentsPage(LoggedPage, HTMLPage):
             klass = Investment
 
             obj_valuation = CleanDecimal.French(TableCell('valuation'))
-            obj_diff = CleanDecimal.French(TableCell('diff', default=NotAvailable), default=NotAvailable)
+
+            def obj_diff(self):
+                tablecell = TableCell('diff', default=NotAvailable)(self)
+                if empty(tablecell):
+                    return NotAvailable
+                return CleanDecimal.French(TableCell('diff'), default=NotAvailable)(self)
 
             # Some invests have a format such as '22,120' but some others have '0,7905 (79,05%)'
-            obj_unitprice = CleanDecimal.French(
-                Regexp(
-                    CleanText(TableCell('unitprice', default=NotAvailable)),
-                    r'([0-9]+,[0-9]+)',
+            def obj_unitprice(self):
+                tablecell = TableCell('unitprice', default=NotAvailable)(self)
+                if empty(tablecell):
+                    return NotAvailable
+                return CleanDecimal.French(
+                    Regexp(
+                        CleanText(TableCell('unitprice')),
+                        r'([0-9]+,[0-9]+)',
+                        default=NotAvailable
+                    ),
                     default=NotAvailable
-                ),
-                default=NotAvailable
-            )
+                )(self)
 
             def obj_quantity(self):
                 tablecell = TableCell('quantity', default=NotAvailable)(self)
@@ -169,7 +178,6 @@ class InvestmentsPage(LoggedPage, HTMLPage):
 
             def obj_unitvalue(self):
                 currency, unitvalue = self.original_unitvalue()
-
                 if currency == self.env['account_currency']:
                     return unitvalue
                 return NotAvailable
