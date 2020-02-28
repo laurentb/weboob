@@ -116,6 +116,10 @@ class CarrefourBanqueBrowser(LoginBrowser, StatesMixin):
 
         self.page.enter_password(self.password)
 
+        if self.login.is_here():
+            # Check if the website asks for strong authentication with OTP
+            self.page.check_action_needed()
+
         if not self.home.is_here():
             error = self.page.get_error_message()
             # Sometimes some connections aren't able to login because of a

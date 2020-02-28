@@ -24,6 +24,7 @@ import base64
 from io import BytesIO
 from PIL import Image
 
+from weboob.tools.json import json
 from weboob.browser.pages import HTMLPage, LoggedPage, pagination
 from weboob.browser.elements import ListElement, TableElement, ItemElement, method
 from weboob.browser.filters.standard import (
@@ -33,6 +34,7 @@ from weboob.browser.filters.html import Link, TableCell, Attr, AttributeNotFound
 from weboob.capabilities.bank import Account, Investment
 from weboob.capabilities.base import NotAvailable
 from weboob.tools.capabilities.bank.transactions import FrenchTransaction
+from weboob.exceptions import ActionNeeded
 
 
 class CarrefourBanqueKeyboard(object):
@@ -138,9 +140,26 @@ class LoginPage(HTMLPage):
         form = self.get_form(nr=1)
         form['pass'] = '*' * len(password)
         form['cpass'] = codestring
-        form.pop('form_number') # don't remember me
+        form.pop('form_number')  # don't remember me
 
         form.submit()
+
+    def check_action_needed(self):
+        # The JavaScript variable 'tc_vars' is supposed to contain the 'user_login' value
+        # and 'user_login'='logged'. If there is no user_login and 'user_login'='unlogged',
+        # the customer has to validate an OTP by SMS.
+        raw_text = Regexp(
+            CleanText('//script[contains(text(), "tc_vars")]'),
+            r'var tc_vars = (\{[^]]+\})'
+        )(self.doc)
+        json_text = json.loads(raw_text)
+        if not json_text['user_ID'] and json_text['user_login'] == 'unlogged':
+            # The real message contains the user's phone number, so we send a generic message.
+            raise ActionNeeded(
+                "Veuillez vous connecter sur le site de Carrefour Banque pour "
+                "recevoir un code par SMS afin d'accéder à votre Espace Client."
+            )
+        assert False, 'Unhandled error: password submission failed and we are still on Login Page.'
 
     def get_error_message(self):
         return CleanText('//div[@class="messages error"]', default=None)(self.doc)
