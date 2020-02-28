@@ -619,3 +619,6 @@ class ProfilePage(LoggedPage, JsonPage):
 
         obj_name = Format('%s %s', Dict('firstName'), Dict('lastName'))
         obj_email = Dict('email', default=NotAvailable) # can be unavailable on pro website for example
+
+    def get_token(self):
+        return Dict('loginEncrypted')(self.doc)
