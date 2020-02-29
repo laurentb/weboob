@@ -28,7 +28,7 @@ from decimal import Decimal, InvalidOperation
 
 from weboob.browser.browsers import APIBrowser
 from weboob.browser.profiles import Weboob
-from weboob.exceptions import BrowserHTTPError, CaptchaQuestion
+from weboob.exceptions import BrowserHTTPError, CaptchaQuestion, DecoupledValidation
 from weboob.core.bcall import CallErrors
 from weboob.capabilities.base import empty, find_object
 from weboob.capabilities.bank import (
@@ -481,6 +481,17 @@ class Boobank(CaptchaMixin, ReplApplication):
                 params[field.id] = v
             try:
                 next(iter(self.do('add_recipient', error.recipient, **params)))
+            except CallErrors as e:
+                self.bcall_errors_handler(e)
+        elif isinstance(error, DecoupledValidation):
+            # XXX for now, assume we are in a add_recipient process.
+            print(error.message)
+            params = {'backends': backend,
+                      'resume':   True
+                     }
+
+            try:
+                next(iter(self.do('add_recipient', error.resource, **params)))
             except CallErrors as e:
                 self.bcall_errors_handler(e)
         elif isinstance(error, TransferInvalidAmount):
