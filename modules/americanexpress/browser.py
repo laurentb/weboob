@@ -91,6 +91,7 @@ class AmericanExpressBrowser(LoginBrowser):
                 'inauth_profile_transaction_id': 'USLOGON-%s' % str(uuid4()),
             },
             headers={
+                'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
                 'Referer': 'https://global.americanexpress.com/login?inav=fr_utility_logout',
             },
         )
@@ -111,6 +112,14 @@ class AmericanExpressBrowser(LoginBrowser):
                 self.location(self.page.get_redirect_url())
             elif error_code == 'LGON010':
                 raise BrowserUnavailable(message)
+            elif error_code == 'LGON011':
+                # this kind of error is for mystical reasons,
+                # but until now it was headers related, it could be :
+                # - headers not in the right order
+                # - headers with value that doesn't match the one from website
+                # what's next ?
+                assert False, 'Error code "%s" (msg:"%s")' % (error_code, message)
+
             assert False, 'Error code "%s" (msg:"%s") not handled' % (error_code, message)
 
     @need_login

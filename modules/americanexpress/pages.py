@@ -80,7 +80,10 @@ class LoginPage(JsonPage):
         return CleanText(Dict('errorCode'))(self.doc)
 
     def get_error_message(self):
-        return CleanText(Dict('errorMessage'))(self.doc)
+        return (
+            CleanText(Dict('errorMessage'))(self.doc) or
+            CleanText(Dict('debugInfo', default=''))(self.doc)
+        )
 
     def get_redirect_url(self):
         return CleanText(Dict('redirectUrl'))(self.doc)
