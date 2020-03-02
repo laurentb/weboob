@@ -35,7 +35,15 @@ class LoginPage(HTMLPage):
         form = self.get_form(name="acces_identification")
         form['login'] = login
         form['passwd'] = passwd
-        form.submit()
+        # With form submit and allow_redirects=False
+        # self.response is associated with precedent request
+        # so we need to store the submit response
+        submit_page = form.submit(allow_redirects=False)
+
+        if submit_page.headers.get('X-Arkea-sca') == '1':
+            # User needs to validate its 2FA
+            self.browser.check_interactive()
+        self.browser.location(submit_page.headers['Location'])
 
     def check_is_blocked(self):
         error_message = CleanText('//div[@id="acces_client"]//p[@class="container error"]/label')(self.doc)

@@ -42,6 +42,7 @@ __all__ = ['Fortuneo']
 
 
 class Fortuneo(TwoFactorBrowser):
+    HAS_CREDENTIALS_ONLY = True
     BASEURL = 'https://mabanque.fortuneo.fr'
     STATE_DURATION = 5
 
