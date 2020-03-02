@@ -22,11 +22,13 @@ from __future__ import unicode_literals
 import datetime
 from uuid import uuid4
 from dateutil.parser import parse as parse_date
+from collections import OrderedDict
 
 from weboob.exceptions import BrowserIncorrectPassword, ActionNeeded, BrowserUnavailable
 from weboob.browser.browsers import LoginBrowser, need_login
 from weboob.browser.exceptions import HTTPNotFound, ServerError
 from weboob.browser.url import URL
+from weboob.tools.compat import urlencode
 
 from .pages import (
     AccountsPage, JsonBalances, JsonPeriods, JsonHistory,
@@ -79,22 +81,43 @@ class AmericanExpressBrowser(LoginBrowser):
 
     def do_login(self):
         self.home_login.go()
-        self.login.go(
-            data={
-                'request_type': 'login',
-                'UserID': self.username,
-                'Password': self.password,
-                'Logon': 'Logon',
-                'REMEMBERME': 'on',
-                'Face': 'fr_FR',
-                'DestPage': 'https://global.americanexpress.com/dashboard',
-                'inauth_profile_transaction_id': 'USLOGON-%s' % str(uuid4()),
-            },
-            headers={
-                'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
-                'Referer': 'https://global.americanexpress.com/login?inav=fr_utility_logout',
-            },
-        )
+
+        data = {
+            'request_type': 'login',
+            'UserID': self.username,
+            'Password': self.password,
+            'Logon': 'Logon',
+            'REMEMBERME': 'on',
+            'Face': 'fr_FR',
+            'DestPage': self.BASEURL + '/dashboard',
+            'inauth_profile_transaction_id': 'USLOGON-%s' % str(uuid4()),
+        }
+
+        # we have to overwrite `Content-Length` and `Cookie` to get all
+        # headers in alphabetical order or they will be added at the end
+        # when doing request, also we add every headers needed on website
+        # to try to exactly match what's done or we could get a LGON011 error
+        self.session.headers.update({
+            'Accept': '*/*',
+            'Accept-Encoding': 'gzip: deflate: br',
+            'Accept-Language': 'en-US,en;q=0.9,fr;q=0.8',
+            'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
+            'Content-Length': str(len(urlencode(data))),
+            'Cookie': '; '.join('%s=%s' % (k, v) for k, v in self.session.cookies.get_dict().items()),
+            'Origin': self.BASEURL,
+            'Referer': self.BASEURL + '/login?inav=fr_utility_logout',
+            'Sec-Fetch-Dest': 'empty',
+            'Sec-Fetch-Mode': 'cors',
+            'Sec-Fetch-Site': 'same-origin',
+        })
+
+        self.session.headers = OrderedDict(sorted(self.session.headers.items()))
+        del self.session.headers['Upgrade-Insecure-Requests']
+
+        self.login.go(data=data)
+
+        # set back headers
+        self.set_profile(self.PROFILE)
 
         if self.page.get_status_code() != 0:
             error_code = self.page.get_error_code()
@@ -117,6 +140,7 @@ class AmericanExpressBrowser(LoginBrowser):
                 # but until now it was headers related, it could be :
                 # - headers not in the right order
                 # - headers with value that doesn't match the one from website
+                # - headers missing
                 # what's next ?
                 assert False, 'Error code "%s" (msg:"%s")' % (error_code, message)
 
