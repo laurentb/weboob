@@ -131,6 +131,7 @@ class CreditMutuelBrowser(TwoFactorBrowser):
     li =          URL(r'/(?P<subbank>.*)fr/assurances/profilass.aspx\?domaine=epargne',
                       r'/(?P<subbank>.*)fr/assurances/(consultations?/)?WI_ASS.*',
                       r'/(?P<subbank>.*)fr/assurances/WI_ASS',
+                      r'/(?P<subbank>.*)fr/assurances/SYNASSINT.aspx.*',
                       '/fr/assurances/', LIAccountsPage)
     iban =        URL(r'/(?P<subbank>.*)fr/banque/rib.cgi', IbanPage)
 
