@@ -142,9 +142,9 @@ class AmericanExpressBrowser(LoginBrowser):
                 # - headers with value that doesn't match the one from website
                 # - headers missing
                 # what's next ?
-                assert False, 'Error code "%s" (msg:"%s")' % (error_code, message)
-
-            assert False, 'Error code "%s" (msg:"%s") not handled' % (error_code, message)
+                assert False, 'Error code "LGON011" (msg:"%s")' % message
+            else:
+                assert False, 'Error code "%s" (msg:"%s") not handled' % (error_code, message)
 
     @need_login
     def iter_accounts(self):
