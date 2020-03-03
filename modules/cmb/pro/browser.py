@@ -24,6 +24,8 @@ class CmbProBrowser(AbstractBrowser):
     PARENT = 'cmso'
     PARENT_ATTR = 'package.pro.browser.CmsoProBrowser'
 
+    arkea = '01'
+
     def __init__(self, website, *args, **kwargs):
         super(CmbProBrowser, self).__init__(website, *args, **kwargs)
         self.client_id = 'IVhzJ7zf3GiGvslYOuLGgvRvYXFtn2wR'

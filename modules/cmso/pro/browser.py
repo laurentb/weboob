@@ -38,7 +38,6 @@ from .pages import (
 )
 
 from ..par.pages import ProfilePage
-from ..par.browser import CmsoParBrowser
 
 
 class CmsoProBrowser(LoginBrowser):
@@ -55,6 +54,8 @@ class CmsoProBrowser(LoginBrowser):
     ssoDomiweb = URL(r'https://api.(?P<website>[\w.]+)/domiapi/oauth/json/ssoDomiwebEmbedded', SSODomiPage)
     auth_checkuser = URL(r'https://api.(?P<website>[\w.]+)/securityapi/checkuser', AuthCheckUser)
 
+    arkea = '03'
+
     def __init__(self, website, *args, **kwargs):
         super(CmsoProBrowser, self).__init__(*args, **kwargs)
 
@@ -62,7 +63,6 @@ class CmsoProBrowser(LoginBrowser):
         self.website = website
         self.areas = []
         self.curr_area = None
-        self.arkea = CmsoParBrowser.ARKEA[website]
         self.last_csrf = None
         self.name = website.split('.')[0]
         # This ids can be found pro.{website}/mabanque/config-XXXXXX.js
