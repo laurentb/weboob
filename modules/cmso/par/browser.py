@@ -78,6 +78,7 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
     __states__ = ('headers',)
     STATE_DURATION = 1
     headers = None
+    BASEURL = 'https://api.cmso.com'
 
     login = URL(r'/oauth-implicit/token',
                 r'/auth/checkuser', LoginPage)
@@ -108,7 +109,7 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
 
     json_headers = {'Content-Type': 'application/json'}
 
-    # Values needed for login and are specific for each arkea child
+    # Values needed for login which are specific for each arkea child
     name = 'cmso'
     arkea = '03'
     arkea_client_id = 'RGY7rjEcGXkHe3NufA93HTUDkjnMUqrm'
@@ -118,7 +119,6 @@ class CmsoParBrowser(LoginBrowser, StatesMixin):
 
     def __init__(self, website, *args, **kwargs):
         super(CmsoParBrowser, self).__init__(*args, **kwargs)
-        self.BASEURL = 'https://api.%s' % website
 
         self.website = website
         self.accounts_list = []

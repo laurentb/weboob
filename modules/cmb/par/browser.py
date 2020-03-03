@@ -23,6 +23,7 @@ from weboob.browser import AbstractBrowser
 class CmbParBrowser(AbstractBrowser):
     PARENT = 'cmso'
     PARENT_ATTR = 'package.par.browser.CmsoParBrowser'
+    BASEURL = 'https://api.cmb.fr'
 
     name = 'cmb'
     arkea = '01'
