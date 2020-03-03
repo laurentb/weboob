@@ -1618,8 +1618,8 @@ class MyRecipients(ListElement):
                     self.logger.warning('skipping recipient without a label: %r', full)
                     raise SkipItem()
 
-                # <recipient name> - <account number or iban> - <bank name (optional)> <optional last dash>
-                mtc = re.match('(?P<label>.+) - (?P<id>[^-]+) -(?P<bank> [^-]*)?-?$', full)
+                # <recipient name> - <account number or iban> - <bank name (optional)>
+                mtc = re.match('(?P<label>.+) - (?P<id>[^-]+) - ?(?P<bank>[\w ]+-?[\w ]+)?$', full)
                 assert mtc
                 self.env['id'] = self.env['iban'] = mtc.group('id')
                 self.env['bank_name'] = (mtc.group('bank') and mtc.group('bank').strip()) or NotAvailable
