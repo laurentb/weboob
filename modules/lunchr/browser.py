@@ -19,6 +19,8 @@
 
 from __future__ import unicode_literals
 
+from datetime import date, timedelta
+
 from weboob.browser.filters.standard import (
     CleanDecimal, CleanText, DateTime, Currency,
     Format,
@@ -88,13 +90,24 @@ class LunchrBrowser(APIBrowser):
         yield account
 
     def iter_history(self, account):
-        page = 0
-        while True:
-            response = self.open('/api/v0/payments_history?page={:d}&per=20'.format(page))
+        # make sure we have today's transactions
+        before = date.today() + timedelta(days=1)
+
+        for page in range(200):  # limit pagination
+            response = self.open(
+                '/api/v0/payments_history',
+                params={
+                    'per': 20,
+                    'before': before.isoformat(),
+                    # don't pass page= param, it works but
+                    # it's slower than the before= param
+                },
+            )
             json = response.json()
             if len(Dict('payments_history')(json)) == 0:
                 break
 
+            transaction = None
             for payment in Dict('payments_history')(json):
                 if 'refunding_transaction' in payment:
                     refund = self._parse_transaction(payment['refunding_transaction'])
@@ -105,9 +118,15 @@ class LunchrBrowser(APIBrowser):
                 if transaction:
                     yield transaction
 
-            page += 1
-            if page >= Dict('pagination/pages_count')(json):
+            if transaction is None:
                 break
+
+            # this is a millisecond-precise datetime (with a timezone).
+            # fortunately, the api excludes transactions occuring at the exact datetime we pass.
+            # if the page boundary is hit on transactions occurring at the same datetime, we might lose some of them though.
+            before = transaction.date
+        else:
+            raise Exception("that's a lot of transactions, probable infinite loop?")
 
     def _parse_transaction(self, payment):
         transaction = Transaction()
