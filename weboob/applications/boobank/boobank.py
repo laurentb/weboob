@@ -484,14 +484,21 @@ class Boobank(CaptchaMixin, ReplApplication):
             except CallErrors as e:
                 self.bcall_errors_handler(e)
         elif isinstance(error, DecoupledValidation):
-            # XXX for now, assume we are in a add_recipient process.
-            print(error.message)
-            params = {'backends': backend,
-                      'resume':   True
-                     }
+            if isinstance(error.resource, Recipient):
+                func_name = 'add_recipient'
+            elif isinstance(error.resource, Transfer):
+                func_name = 'transfer'
+            else:
+                print(u'Error(%s): The resource should be of type Recipient or Transfer, not "%s"' % (backend.name, type(error.resource)), file=self.stderr)
+                return False
 
+            print(error.message)
+            params = {
+                'backends': backend,
+                'resume': True,
+            }
             try:
-                next(iter(self.do('add_recipient', error.resource, **params)))
+                next(iter(self.do(func_name, error.resource, **params)))
             except CallErrors as e:
                 self.bcall_errors_handler(e)
         elif isinstance(error, TransferInvalidAmount):
