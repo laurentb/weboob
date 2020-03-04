@@ -28,7 +28,10 @@ from decimal import Decimal, InvalidOperation
 
 from weboob.browser.browsers import APIBrowser
 from weboob.browser.profiles import Weboob
-from weboob.exceptions import BrowserHTTPError, CaptchaQuestion, DecoupledValidation
+from weboob.exceptions import (
+    BrowserHTTPError, CaptchaQuestion, DecoupledValidation,
+    AppValidationCancelled, AppValidationExpired,
+)
 from weboob.core.bcall import CallErrors
 from weboob.capabilities.base import empty, find_object
 from weboob.capabilities.bank import (
@@ -501,6 +504,10 @@ class Boobank(CaptchaMixin, ReplApplication):
                 next(iter(self.do(func_name, error.resource, **params)))
             except CallErrors as e:
                 self.bcall_errors_handler(e)
+        elif isinstance(error, AppValidationCancelled):
+            print(u'Error(%s): %s' % (backend.name, to_unicode(error) or 'The app validation has been cancelled'), file=self.stderr)
+        elif isinstance(error, AppValidationExpired):
+            print(u'Error(%s): %s' % (backend.name, to_unicode(error) or 'The app validation has expired'), file=self.stderr)
         elif isinstance(error, TransferInvalidAmount):
             print(u'Error(%s): %s' % (backend.name, to_unicode(error) or 'The transfer amount is invalid'), file=self.stderr)
         elif isinstance(error, TransferInvalidLabel):
