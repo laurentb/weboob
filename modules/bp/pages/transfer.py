@@ -84,7 +84,10 @@ class TransferChooseAccounts(LoggedPage, MyHTMLPage):
                 return datetime.now().replace(microsecond=0)
 
             def parse(self, el):
-                if any(s in CleanText('.')(el) for s in ['Avoir disponible', 'Solde']) or self.page.is_inner(CleanText('.')(el)):
+                if (
+                    any(s in CleanText('.')(el) for s in ['Avoir disponible', 'Solde']) or self.page.is_inner(CleanText('.')(el))
+                    or not is_iban_valid(CleanText(Attr('.', 'value'))(el))  # if the id is not an iban, it is an internal id (for internal accounts)
+                ):
                     self.env['category'] = 'Interne'
                 else:
                     self.env['category'] = 'Externe'
@@ -98,13 +101,19 @@ class TransferChooseAccounts(LoggedPage, MyHTMLPage):
                         self.env['label'] = account.label
                         self.env['iban'] = account.iban
                     except AccountNotFound:
-                        self.env['id'] = Regexp(CleanText('.'), '- (.*?) -')(el).replace(' ', '')
+                        # Some internal recipients cannot be parsed on the website and so, do not
+                        # appear in the iter_accounts. We can still do transfer to those accounts
+                        # because they have an internal id (internal id = id that is not an iban).
+                        self.env['id'] = _id
                         self.env['iban'] = NotAvailable
-                        label = CleanText('.')(el).split('-')
-                        holder = label[-1] if not any(string in label[-1] for string in ['Avoir disponible', 'Solde']) else label[-2]
-                        self.env['label'] = '%s %s' % (label[0].strip(), holder.strip())
+                        raw_label = CleanText('.')(el)
+                        if '-' in raw_label:
+                            label = raw_label.split('-')
+                            holder = label[-1] if not any(string in label[-1] for string in ['Avoir disponible', 'Solde']) else label[-2]
+                            self.env['label'] = '%s %s' % (label[0].strip(), holder.strip())
+                        else:
+                            self.env['label'] = raw_label
                     self.env['bank_name'] = 'La Banque Postale'
-
                 else:
                     self.env['id'] = self.env['iban'] = Regexp(CleanText('.'), '- (.*?) -')(el).replace(' ', '')
                     self.env['label'] = Regexp(CleanText('.'), '- (.*?) - (.*)', template='\\2')(el).strip()
