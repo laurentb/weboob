@@ -107,6 +107,11 @@ class Bill(Document, Currency):
 
     @price.setter
     def price(self, value):
+        if empty(value):
+            self.total_price = value
+            self._income = None
+            return
+
         value = abs(value)
         if not self.income:
             self.total_price = value
