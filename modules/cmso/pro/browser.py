@@ -95,8 +95,6 @@ class CmsoProBrowser(LoginBrowser):
             'X-ARKEA-EFS': self.arkea,
             'X-Csrf-Token': hidden_params['access_token'],
             'X-REFERER-TOKEN': 'RWDPRO',
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
         })
 
         self.auth_checkuser.go(json={"espaceApplication": "PRO", "espacePRO": "PRO"}, website=self.website)
