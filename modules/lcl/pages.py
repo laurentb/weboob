@@ -37,7 +37,7 @@ from weboob.capabilities.profile import Person, ProfileMissing
 from weboob.capabilities.contact import Advisor
 from weboob.browser.elements import method, ListElement, TableElement, ItemElement, DictElement
 from weboob.browser.exceptions import ServerError
-from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage, FormNotFound, pagination
+from weboob.browser.pages import LoggedPage, HTMLPage, JsonPage, FormNotFound, pagination, PartialHTMLPage
 from weboob.browser.filters.html import Attr, Link, TableCell, AttributeNotFound, AbsoluteLink
 from weboob.browser.filters.standard import (
     CleanText, Field, Regexp, Format, Date, CleanDecimal, Map, AsyncLoad, Async, Env, Slugify,
@@ -177,7 +177,12 @@ class LoginPage(HTMLPage):
             pass
 
         try:
-            form.submit()
+            form_page = form.submit(allow_redirects=False)
+            if form_page.status_code == 302 and 'AuthentForteDesktop' in form_page.headers['location']:
+                # 2fa if we follow the redirection
+                # SMS and appvalidation exist
+                raise ActionNeeded('Vous devez réaliser la double authentification sur le portail internet')
+            # If no 2FA the submit gives a 200
         except BrowserUnavailable:
             # Login is not valid
             return False
@@ -197,7 +202,7 @@ class LoginPage(HTMLPage):
         raise BrowserIncorrectPassword()
 
 
-class ContractsPage(LoginPage):
+class ContractsPage(LoginPage, PartialHTMLPage):
     def on_load(self):
         # after login we are redirect in ContractsPage even if there is an error at login
         # I let the error check code here to simplify
