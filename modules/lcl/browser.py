@@ -208,7 +208,6 @@ class LCLBrowser(LoginBrowser, StatesMixin):
                 self.page.select_contract()
             self.parsed_contracts = True
 
-        self.accounts_list = None
         self.accounts.stay_or_go()
 
     @need_login
@@ -226,6 +225,10 @@ class LCLBrowser(LoginBrowser, StatesMixin):
 
     def deconnexion_bourse(self):
         self.disc.stay_or_go()
+        self.accounts.go()
+        if self.login.is_here():
+            # When we logout we can be disconnected from the main site
+            self.do_login()
 
     @need_login
     def go_life_insurance_website(self):
