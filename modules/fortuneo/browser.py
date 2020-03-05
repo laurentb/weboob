@@ -32,7 +32,10 @@ from weboob.tools.value import Value
 
 from .pages.login import LoginPage, TwoFaPage, UnavailablePage
 from .pages.accounts_list import (
-    AccountsList, AccountHistoryPage, CardHistoryPage, InvestmentHistoryPage, PeaHistoryPage, LoanPage, ProfilePage, ProfilePageCSV, SecurityPage, FakeActionPage,
+    AccountsList, AccountHistoryPage, CardHistoryPage,
+    InvestmentHistoryPage, PeaHistoryPage, LoanPage,
+    ProfilePage, ProfilePageCSV, SecurityPage, FakeActionPage,
+    InformationsPage, ActionNeededPage,
 )
 from .pages.transfer import (
     RegisterTransferPage, ValidateTransferPage, ConfirmTransferPage, RecipientsPage, RecipientSMSPage
@@ -69,6 +72,7 @@ class Fortuneo(TwoFactorBrowser):
     loan_contract = URL(r'/fr/prive/mes-comptes/credit-immo/contrat-credit-immo/contrat-pret-immobilier.jsp.*', LoanPage)
     unavailable = URL(r'/customError/indispo.html', UnavailablePage)
     security_page = URL(r'/fr/prive/identification-carte-securite-forte.jsp.*', SecurityPage)
+    informations_page = URL(r'/fr/prive/accueil-informations-client-partiel.jsp', InformationsPage)
 
     # transfer
     recipients = URL(
@@ -218,10 +222,14 @@ class Fortuneo(TwoFactorBrowser):
                                    'Veuillez contacter le Service Clients pour renseigner vos coordonnées téléphoniques.')
 
             # if there are skippable CGUs, skip them
-            if self.accounts_page.is_here() and self.page.has_action_needed():
-                # Look for the request in the event listener registered to the button
-                # can be harcoded, no variable part. It is a POST request without data.
-                self.location(self.absurl('ReloadContext?action=1&', base=True), method='POST')
+            if isinstance(self.page, ActionNeededPage):
+                if self.page.has_skippable_action_needed():
+                    # Look for the request in the event listener registered to the button
+                    # can be harcoded, no variable part. It is a POST request without data.
+                    self.location(self.absurl('ReloadContext?action=1&', base=True), method='POST')
+                elif self.page.get_action_needed_message():
+                    raise ActionNeeded(self.page.get_action_needed_message())
+
             self.accounts_page.go()  # go back to the accounts page whenever there was an iframe or not
 
         self.action_needed_processed = True

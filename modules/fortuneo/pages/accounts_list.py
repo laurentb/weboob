@@ -62,6 +62,30 @@ class Transaction(FrenchTransaction):
                ]
 
 
+class ActionNeededPage(LoggedPage, HTMLPage):
+    def has_skippable_action_needed(self):
+        # NB: The CGUs happens on every page as long as it is not skipped or
+        # validated. The implementation is done in the Accounts page because
+        # we decide to skip the CGUs in browser.iter_accounts()
+        return bool(self.doc.xpath(u'//input[@class="bouton_valid01" and contains(@title, "Me le demander ultérieurement")]'))
+
+    def get_action_needed_message(self):
+        warning = self.doc.xpath(
+            '''
+            //div[@id="message_renouvellement_mot_passe"] |
+            //span[contains(text(), "Votre identifiant change")] |
+            //span[contains(text(), "Nouveau mot de passe")] |
+            //span[contains(text(), "Renouvellement de votre mot de passe")] |
+            //span[contains(text(), "Mieux vous connaître")] |
+            //span[contains(text(), "Souscrivez au Livret + en quelques clics")] |
+            //p[@class="warning" and contains(text(),
+            "Cette opération sensible doit être validée par un code sécurité envoyé par SMS")]
+            '''
+        )
+        if warning:
+            return warning[0].text
+
+
 class PeaHistoryPage(LoggedPage, HTMLPage):
     COL_LABEL = 0
     COL_UNITVALUE = 1
@@ -360,26 +384,7 @@ class CardHistoryPage(LoggedPage, HTMLPage):
         return bool(self.doc.xpath('//span[@class="loading"]'))
 
 
-class AccountsList(LoggedPage, HTMLPage):
-    def has_action_needed(self):
-        # NB: The CGUs happens on every page as long as it is not skipped or
-        # validated. The implementation is done in the Accounts page because
-        # we decide to skip the CGUs in browser.iter_accounts()
-        skip_button = self.doc.xpath(u'//input[@class="bouton_valid01" and contains(@title, "Me le demander ultérieurement")]')
-        if skip_button:
-            return True
-        else:
-            warning = self.doc.xpath(u'//div[@id="message_renouvellement_mot_passe"] | \
-                                   //span[contains(text(), "Votre identifiant change")] | \
-                                   //span[contains(text(), "Nouveau mot de passe")] | \
-                                   //span[contains(text(), "Renouvellement de votre mot de passe")] |\
-                                   //span[contains(text(), "Mieux vous connaître")] |\
-                                   //span[contains(text(), "Souscrivez au Livret + en quelques clics")] |\
-                                   //p[@class="warning" and contains(text(), "Cette opération sensible doit être validée par un code sécurité envoyé par SMS ou serveur vocal")]'
-                                   )
-            if warning:
-                raise ActionNeeded(warning[0].text)
-
+class AccountsList(ActionNeededPage):
     @method
     class fill_person_name(ItemElement):
         klass = Account
@@ -624,4 +629,8 @@ class ProfilePageCSV(LoggedPage, CsvPage):
 
 
 class SecurityPage(LoggedPage, HTMLPage):
+    pass
+
+
+class InformationsPage(ActionNeededPage):
     pass
