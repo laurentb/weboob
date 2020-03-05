@@ -1619,7 +1619,9 @@ class MyRecipients(ListElement):
                     raise SkipItem()
 
                 # <recipient name> - <account number or iban> - <bank name (optional)>
-                mtc = re.match('(?P<label>.+) - (?P<id>[^-]+) - ?(?P<bank>[\w ]+-?[\w ]+)?$', full)
+                # bank name can have one dash or multiple dots in their names
+                # eg: ING-DiBan / C.PROF. / B.R.E.D
+                mtc = re.match(r'(?P<label>.+) - (?P<id>[^-]+) - ?(?P<bank>[^-]+-?[\w\. ]+)?$', full)
                 assert mtc
                 self.env['id'] = self.env['iban'] = mtc.group('id')
                 self.env['bank_name'] = (mtc.group('bank') and mtc.group('bank').strip()) or NotAvailable
