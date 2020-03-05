@@ -116,15 +116,15 @@ class LunchrBrowser(APIBrowser):
 
                 transaction = self._parse_transaction(payment)
                 if transaction:
+                    # this is a millisecond-precise datetime (with a timezone).
+                    # fortunately, the api excludes transactions occuring at the exact datetime we pass.
+                    # if the page boundary is hit on transactions occurring at the same datetime, we might lose some of them though.
+                    before = transaction.date
+
                     yield transaction
 
             if transaction is None:
                 break
-
-            # this is a millisecond-precise datetime (with a timezone).
-            # fortunately, the api excludes transactions occuring at the exact datetime we pass.
-            # if the page boundary is hit on transactions occurring at the same datetime, we might lose some of them though.
-            before = transaction.date
         else:
             raise Exception("that's a lot of transactions, probable infinite loop?")
 
