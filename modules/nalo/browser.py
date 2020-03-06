@@ -74,4 +74,5 @@ class NaloBrowser(LoginBrowser):
             inv.label = item['name']
             inv.portfolio_share = item['share']
             inv.valuation = account.balance * inv.portfolio_share
+            inv.asset_category = item['asset_type']
             yield inv

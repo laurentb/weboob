@@ -70,6 +70,14 @@ class HistoryPage(LoggedPage, JsonPage):
     pass
 
 
+# using site labels
+ASSET_TYPE = {
+    'risky': 'Actions',
+    'risk_free': 'Obligations',
+    'guaranteed': 'Fonds à capital garanti',
+}
+
+
 class InvestPage(LoggedPage, JsonPage):
     ENCODING = 'utf-8'
 
@@ -91,4 +99,5 @@ class InvestPage(LoggedPage, JsonPage):
                 'isin': line['isin'],
                 'name': line['name'],
                 'share': float_to_decimal(line['weight']) / 100,
+                'asset_type': ASSET_TYPE[line['risk_type']],
             }
