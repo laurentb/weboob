@@ -457,6 +457,10 @@ def html_to_pdf(browser, url=None, data=None, extra_options=None):
     return callback(url or data, False, options=options)
 
 
+class BlinkPdfError(Exception):
+    pass
+
+
 def blinkpdf(browser, url, extra_options=None, filter_cookie=None):
     blinkpdf_exists = False
     paths = os.getenv('PATH', os.defpath).split(os.pathsep)
@@ -487,7 +491,14 @@ def blinkpdf(browser, url, extra_options=None, filter_cookie=None):
     args.append('-')  # - : don't write it on disk, simply return value
 
     cmd = ['blinkpdf'] + list(args)
-    return subprocess.check_output(cmd)
+
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = proc.communicate()
+
+    if proc.returncode != 0:
+        raise BlinkPdfError('command returned non-zero exit status 1: ' + stderr)
+
+    return stdout
 
 
 # extract all text from PDF
