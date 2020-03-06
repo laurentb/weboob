@@ -20,7 +20,7 @@
 from __future__ import unicode_literals
 
 
-from .module import LunchrModule
+from .module import SwileModule
 
 
-__all__ = ['LunchrModule']
+__all__ = ['SwileModule']

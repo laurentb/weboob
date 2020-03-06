@@ -23,20 +23,20 @@ from weboob.tools.backend import Module, BackendConfig
 from weboob.tools.value import ValueBackendPassword
 from weboob.capabilities.bank import CapBank
 
-from .browser import LunchrBrowser
+from .browser import SwileBrowser
 
-__all__ = ['LunchrModule']
+__all__ = ['SwileModule']
 
 
-class LunchrModule(Module, CapBank):
-    NAME = 'lunchr'
-    DESCRIPTION = 'Lunchr'
+class SwileModule(Module, CapBank):
+    NAME = 'swile'
+    DESCRIPTION = 'Swile'
     MAINTAINER = 'Roger Philibert'
     EMAIL = 'roger.philibert@gmail.com'
     LICENSE = 'LGPLv3+'
     VERSION = '2.1'
 
-    BROWSER = LunchrBrowser
+    BROWSER = SwileBrowser
 
     CONFIG = BackendConfig(
         ValueBackendPassword('login', label='E-mail', masked=False),

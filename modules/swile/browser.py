@@ -34,13 +34,13 @@ from weboob.browser.browsers import APIBrowser
 from weboob.capabilities.bank import Account, Transaction
 
 
-class LunchrBrowser(APIBrowser):
-    BASEURL = 'https://api.lunchr.fr'
+class SwileBrowser(APIBrowser):
+    BASEURL = 'https://customer-api.swile.co'
 
     def __init__(self, login, password, *args, **kwargs):
-        """LunchrBrowser needs login and password to fetch Lunchr API"""
-        super(LunchrBrowser, self).__init__(*args, **kwargs)
-        # self.session.headers are the HTTP headers for Lunchr API requests
+        """SwileBrowser needs login and password to fetch Swile API"""
+        super(SwileBrowser, self).__init__(*args, **kwargs)
+        # self.session.headers are the HTTP headers for Swile API requests
         self.session.headers['x-api-key'] = '644a4ef497286a229aaf8205c2dc12a9086310a8'
         self.session.headers['x-lunchr-app-version'] = 'b6c6ca66c79ca059222779fe8f1ac98c8485b9f0'
         self.session.headers['x-lunchr-platform'] = 'web'
@@ -53,7 +53,7 @@ class LunchrBrowser(APIBrowser):
         }
 
     def _auth(self):
-        """Authenticate to Lunchr API using self.credentials.
+        """Authenticate to Swile API using self.credentials.
         If authentication succeeds, authorization header is set in self.headers
         and response's json payload is returned unwrapped into dictionary.
         """
@@ -74,7 +74,7 @@ class LunchrBrowser(APIBrowser):
         account = Account(id=Dict('id')(json))
         account.number = account.id
         # weboob.capabilities.bank.BaseAccount
-        account.bank_name = 'Lunchr'
+        account.bank_name = 'Swile'
 
         account.type = Account.TYPE_CHECKING
 
@@ -139,7 +139,7 @@ class LunchrBrowser(APIBrowser):
         transaction.rdate = DateTime(Dict('created_at'))(payment)
 
         types = {
-            'ORDER': Transaction.TYPE_CARD,  # order on lunchr website
+            'ORDER': Transaction.TYPE_CARD,  # order on swile website
             'LUNCHR_CARD_PAYMENT': Transaction.TYPE_CARD,  # pay in shop
             'MEAL_VOUCHER_CREDIT': Transaction.TYPE_DEPOSIT,
             # type can be null for refunds
