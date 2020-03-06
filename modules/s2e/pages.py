@@ -30,14 +30,15 @@ from weboob.browser.pages import HTMLPage, XMLPage, RawPage, LoggedPage, paginat
 from weboob.browser.elements import ItemElement, TableElement, SkipItem, method
 from weboob.browser.filters.standard import (
     CleanText, Date, Regexp, Eval, CleanDecimal,
-    Env, Field, MapIn, Upper, Format, Title,
+    Env, Field, MapIn, Upper, Format, Title, QueryValue,
 )
-from weboob.browser.filters.html import Attr, TableCell
+from weboob.browser.filters.html import (
+    Attr, TableCell, AbsoluteLink, XPath,
+)
 from weboob.browser.filters.json import Dict
 from weboob.browser.exceptions import HTTPNotFound
 from weboob.capabilities.bank import Account, Investment, Pocket, Transaction
 from weboob.capabilities.profile import Person
-from weboob.browser.filters.html import Link, XPath
 from weboob.capabilities.bill import Document, DocumentTypes
 from weboob.capabilities.base import NotAvailable, empty
 from weboob.tools.captcha.virtkeyboard import MappedVirtKeyboard
@@ -885,25 +886,38 @@ class APIInvestmentDetailsPage(LoggedPage, JsonPage):
             return perfs
 
 
+DOCUMENT_TYPE_LABEL = {
+    'RDC': DocumentTypes.STATEMENT,  # is this in label?
+    'Relevé de situation': DocumentTypes.STATEMENT,
+    'Relevé de compte': DocumentTypes.STATEMENT,
+    'Bulletin': DocumentTypes.STATEMENT,
+    'Sit Pat': DocumentTypes.REPORT,  # is this in label?
+    'Situation de patrimoine': DocumentTypes.REPORT,
+    'Avis': DocumentTypes.REPORT,
+}
+
+
 class EServicePage(LoggedPage, HTMLPage):
 
-    def get_view_state(self):
-        # Note: the whole website is built with JavaServer Faces (JSF) ; and multiple parts of the pages
-        # can be partially replaced (via ajax calls) instead of full page refresh.
-        # The first page does not have the data we need, but a placeholder div (identified by the GUID below)
-        # which, at the load of this page, is filled with other data than the one we need.
-        # Another request is needed to provides the data (and, in a real browser, is replacing the div content).
-        # (However it seems not possible to only fetch the data, without loading the other page first)
-        # the ViewState is an important parameter for JSF web sites, thus we extract it and provide it
-        # to the browser.
-        view_state = XPath('//div[@id="a835f01c-278d-46c3-9910-06e43e7ccc5a"]//input[@id="javax.faces.ViewState"]/@value')(self.doc)
-        return view_state
+    def show_more(self):
+        form = self.get_form(xpath='//div[@id="gestion"]//form')
+        try:
+            # erehsbc: tout afficher
+            # bnppere: afficher tous les e-documents
+            button_el = form.el.xpath(
+                './/input[matches(@value,"Tout afficher|Afficher tous")]'
+            )[0]
+        except IndexError:
+            self.logger.debug('no "display all" button, everything already is displayed?')
+            return
+        buttonid = button_el.attrib['id']
 
-
-class EServicePartialPage(LoggedPage, PartialHTMLPage):
-    # Note: this is in fact an HTML page enclosed in some XML tags.
-    # As the XML tags offer no value I found it simpler to inherit from
-    # PartialHTMLPage than from XMLPage
+        form['javax.faces.source'] = buttonid
+        form['javax.faces.partial.event'] = 'click'
+        form['javax.faces.partial.execute'] = '%s @component' % buttonid
+        form['org.richfaces.ajax.component'] = buttonid
+        self.logger.debug('showing all documents')
+        form.submit()
 
     @method
     class iter_documents(TableElement):
@@ -918,19 +932,11 @@ class EServicePartialPage(LoggedPage, PartialHTMLPage):
 
             obj_date = Date(CleanText(XPath('.//td[1]')), dayfirst=True)
             obj_label = Format('%s %s', CleanText(XPath('.//td[2]')), CleanText(XPath('.//td[1]')))
-            # Note: the id is constructed from the file name, which gives us some interesting information:
-            # - Document type
-            # - Document date
-            # Ex: RDCdirect_28112018
-            obj_id = Link('.//a') & Regexp(pattern=r'titrePDF=(.*)', nth=0) & CleanText(symbols='/ ')
-            obj_url = Link('.//a')
             obj_format = 'pdf'
+            obj_url = AbsoluteLink('.//a')
 
-            def obj_type(self):
-                result = DocumentTypes.OTHER
-                doc_type = Regexp(Link('.//a'), r'titrePDF=(.*) / ', nth=0)(self)
-                if doc_type == 'RDC':
-                    result = DocumentTypes.STATEMENT
-                if doc_type == 'Sit Pat':
-                    result = DocumentTypes.REPORT
-                return result
+            # Note: the id is constructed from the file name, which gives us some interesting information:
+            # - Document date
+            # Ex: RDCdirect_28112018link
+            obj_id = CleanText(QueryValue(obj_url, 'titrePDF'), symbols='/ ')
+            obj_type = MapIn(Field('label'), DOCUMENT_TYPE_LABEL, default=DocumentTypes.OTHER)
