@@ -77,6 +77,7 @@ class VisiogoBrowser(LoginBrowser):
         for account in self.page.iter_accounts():
             if account.type == Account.TYPE_PER:
                 per = Per.from_dict(account.to_dict())
+                per._sublabel = account._sublabel
                 self.page.fill_per(obj=per)
                 accounts_list.append(per)
             else:
