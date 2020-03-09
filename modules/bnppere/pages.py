@@ -101,7 +101,6 @@ class AccountPage(LoggedPage, HTMLPage):
 
             obj_number = obj_id
             obj_label = CleanText('./td[2]', replace=[(' o ', ' ')])
-            obj__login = CleanDecimal('./td[1]')
             obj_currency = Currency('./td[6]')
             obj_company_name = CleanText('./td[3]')
 
