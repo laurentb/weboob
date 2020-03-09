@@ -20,7 +20,9 @@
 
 from weboob.tools.backend import AbstractModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
-from weboob.capabilities.bank import CapBank
+from weboob.capabilities.bank import CapBankWealth
+from weboob.capabilities.bill import CapDocument
+from weboob.capabilities.profile import CapProfile
 
 from .browser import ErehsbcBrowser
 
@@ -28,7 +30,7 @@ from .browser import ErehsbcBrowser
 __all__ = ['ErehsbcModule']
 
 
-class ErehsbcModule(AbstractModule, CapBank):
+class ErehsbcModule(AbstractModule, CapBankWealth, CapDocument, CapProfile):
     NAME = 'erehsbc'
     DESCRIPTION = u'HSBC Épargne Salariale'
     MAINTAINER = u'Edouard Lambert'

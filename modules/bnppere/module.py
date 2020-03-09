@@ -21,6 +21,7 @@
 from weboob.tools.backend import AbstractModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
 from weboob.capabilities.bank import CapBankWealth
+from weboob.capabilities.bill import CapDocument
 from weboob.capabilities.profile import CapProfile
 from .browser import BnppereBrowser, VisiogoBrowser
 
@@ -28,7 +29,7 @@ from .browser import BnppereBrowser, VisiogoBrowser
 __all__ = ['BnppereModule']
 
 
-class BnppereModule(AbstractModule, CapBankWealth, CapProfile):
+class BnppereModule(AbstractModule, CapBankWealth, CapDocument, CapProfile):
     NAME = 'bnppere'
     DESCRIPTION = u'BNP Épargne Salariale'
     MAINTAINER = u'Edouard Lambert'
@@ -68,3 +69,9 @@ class BnppereModule(AbstractModule, CapBankWealth, CapProfile):
 
     def get_profile(self):
         return self.browser.get_profile()
+
+    def iter_subscription(self):
+        website = self.config['website'].get()
+        if website == 'visiogo':
+            raise NotImplementedError()
+        return super(BnppereModule, self).iter_subscription()

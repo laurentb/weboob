@@ -20,7 +20,9 @@
 
 from weboob.tools.backend import AbstractModule, BackendConfig
 from weboob.tools.value import ValueBackendPassword, Value
-from weboob.capabilities.bank import CapBank
+from weboob.capabilities.bank import CapBankWealth
+from weboob.capabilities.bill import CapDocument
+from weboob.capabilities.profile import CapProfile
 
 from .browser import EsaliaBrowser
 
@@ -28,7 +30,7 @@ from .browser import EsaliaBrowser
 __all__ = ['EsaliaModule']
 
 
-class EsaliaModule(AbstractModule, CapBank):
+class EsaliaModule(AbstractModule, CapBankWealth, CapDocument, CapProfile):
     NAME = 'esalia'
     DESCRIPTION = u'Société Générale Épargne Salariale'
     MAINTAINER = u'Edouard Lambert'
