@@ -151,7 +151,11 @@ class InvestmentsPage(LoggedPage, HTMLPage):
 
             def obj_label(self):
                 tablecell = TableCell('label')(self)[0]
-                return CleanText(tablecell.xpath('./following-sibling::td[@class=""]/div/a')[0])(self)
+                tablecell_values = tablecell.xpath('./following-sibling::td[@class=""]/div/a')
+                if tablecell_values:
+                    return CleanText(tablecell_values[0])(self)
+                # In rare cases the last invest of the table has a different <td> class name
+                return CleanText(tablecell.xpath('./following-sibling::td[has-class("last")]/div/a')[0])(self)
 
             def obj_code(self):
                 # We try to get the code from <a> div. If we didn't find code in url,
