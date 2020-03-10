@@ -27,7 +27,6 @@ import re
 from weboob.capabilities.bank import Account, Loan, Per, PerProviderType, Transaction, AccountNotFound, RecipientNotFound
 from weboob.capabilities.base import empty, NotAvailable, strict_find_object
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.browser.switch import SiteSwitch
 from weboob.browser.exceptions import ServerError, ClientError, BrowserHTTPNotFound, HTTPNotFound
 from weboob.exceptions import BrowserUnavailable, BrowserIncorrectPassword, ActionNeeded
 from weboob.tools.capabilities.bank.iban import is_iban_valid
@@ -37,7 +36,7 @@ from weboob.tools.decorators import retry
 from .pages import (
     LoginPage, LoggedOutPage, KeypadPage, SecurityPage, ContractsPage, FirstConnectionPage, AccountsPage, AccountDetailsPage,
     TokenPage, ChangePasswordPage, IbanPage, HistoryPage, CardsPage, CardHistoryPage, NetfincaRedirectionPage, PredicaRedirectionPage,
-    PredicaInvestmentsPage, ProfilePage, ProfileDetailsPage, ProProfileDetailsPage, LifeInsuranceInvestmentsPage, OldWebsitePage,
+    PredicaInvestmentsPage, ProfilePage, ProfileDetailsPage, ProProfileDetailsPage, LifeInsuranceInvestmentsPage,
 )
 from .transfer_pages import (
     RecipientsPage, TransferPage, TransferTokenPage,
@@ -47,10 +46,10 @@ from weboob.tools.capabilities.bank.investments import create_french_liquidity
 
 from .netfinca_browser import NetfincaBrowser
 
-__all__ = ['CragrAPI']
+__all__ = ['CreditAgricoleBrowser']
 
 
-class CragrAPI(LoginBrowser):
+class CreditAgricoleBrowser(LoginBrowser):
     login_page = URL(r'particulier/acceder-a-mes-comptes.html$', LoginPage)
     keypad = URL(r'particulier/acceder-a-mes-comptes.authenticationKeypad.json', KeypadPage)
     security_check = URL(r'particulier/acceder-a-mes-comptes.html/j_security_check', SecurityPage)
@@ -119,10 +118,9 @@ class CragrAPI(LoginBrowser):
         '(?P<space>.*)/operations/(?P<op>.*)/virement/jcr:content.transfer-data.json\?useSession=true', TransferPage
     )
     transfer_exec = URL('(?P<space>.*)/operations/(?P<op>.*)/virement/jcr:content.process-transfer.json', TransferPage)
-    old_website = URL(r'https://.*particuliers.html$', OldWebsitePage)
 
     def __init__(self, website, *args, **kwargs):
-        super(CragrAPI, self).__init__(*args, **kwargs)
+        super(CreditAgricoleBrowser, self).__init__(*args, **kwargs)
         self.website = website
         self.accounts_url = None
 
@@ -138,7 +136,7 @@ class CragrAPI(LoginBrowser):
         return self.session.cookies.get('marche', None)
 
     def deinit(self):
-        super(CragrAPI, self).deinit()
+        super(CreditAgricoleBrowser, self).deinit()
         self.netfinca.deinit()
 
     @retry(BrowserUnavailable)
@@ -179,17 +177,13 @@ class CragrAPI(LoginBrowser):
         if not self.username or not self.password:
             raise BrowserIncorrectPassword()
 
-        # First we try to connect to the new website: if the connection
-        # is on the old website, we will automatically redirected.
-        website = self.website.replace('.fr', '')
-        region_domain = re.sub(r'^www\.', 'www.credit-agricole.fr/', website)
+        # For historical reasons (old cragr website), the websites look like 'www.ca-region.fr',
+        # from which we extract 'ca-region' to construct the BASEURL with a format such as:
+        # 'https://www.credit-agricole.fr/ca-region/'
+        region_domain = re.sub(r'^www\.', 'www.credit-agricole.fr/', self.website.replace('.fr', ''))
         self.BASEURL = 'https://%s/' % region_domain
-        self.login_page.go()
-        if self.old_website.is_here():
-            self.BASEURL = 'https://%s/' % self.website
-            self.logger.warning('This is a regional connection, switching to old website with URL %s', self.BASEURL)
-            raise SiteSwitch('region')
 
+        self.login_page.go()
         self.do_security_check()
 
         # accounts_url may contain '/particulier', '/professionnel', '/entreprise', '/agriculteur' or '/association'

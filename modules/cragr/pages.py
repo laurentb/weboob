@@ -177,6 +177,8 @@ ACCOUNT_TYPES = {
     'DATG': Account.TYPE_DEPOSIT,
     'CB': Account.TYPE_SAVINGS,  # Carré bleu / PEL
     'LIS': Account.TYPE_SAVINGS,
+    'BOOSTE4': Account.TYPE_SAVINGS,  # Livret d'Epargne Forteo
+    'PEPS': Account.TYPE_SAVINGS,  # Plan d'Epargne Populaire
     'PRET PERSO': Account.TYPE_LOAN,
     'P. ENTREPR': Account.TYPE_LOAN,
     'P. HABITAT': Account.TYPE_LOAN,
@@ -730,8 +732,4 @@ class ProfileDetailsPage(LoggedPage, HTMLPage):
 
 
 class ProProfileDetailsPage(ProfileDetailsPage):
-    pass
-
-
-class OldWebsitePage(HTMLPage):
     pass
