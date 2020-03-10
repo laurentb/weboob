@@ -17,9 +17,10 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this weboob module. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
 
 from weboob.browser import LoginBrowser, URL, need_login
-from weboob.exceptions import BrowserIncorrectPassword
+from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable
 
 from .pages import LoginPage, HomePage, ConsolePage, SuiviPage, DocumentsPage, ProfilePage
 
@@ -53,6 +54,8 @@ class FreeBrowser(LoginBrowser):
             error = self.page.get_error()
             if error and 'mot de passe' in error:
                 raise BrowserIncorrectPassword(error)
+            if error and 'reeconnecter' in error:
+                raise BrowserUnavailable(error)
             raise AssertionError('Unhandled behavior at login: error is "{}"'.format(error))
 
         elif self.documents.is_here():
