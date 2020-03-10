@@ -32,7 +32,7 @@ from weboob.capabilities.bank import (
     CapBankWealth, CapBankTransferAddRecipient, Account, AccountNotFound,
 )
 
-from .proxy_browser import ProxyBrowser
+from .browser import CreditAgricoleBrowser
 
 __all__ = ['CreditAgricoleModule']
 
@@ -132,7 +132,7 @@ class CreditAgricoleModule(Module, CapBankWealth, CapBankTransferAddRecipient, C
         'm.lefil.com': 'www.ca-pyrenees-gascogne.fr',
     }
 
-    BROWSER = ProxyBrowser
+    BROWSER = CreditAgricoleBrowser
 
     CONFIG = BackendConfig(
         Value('website', label='Caisse Régionale', choices=region_choices, aliases=region_aliases),
