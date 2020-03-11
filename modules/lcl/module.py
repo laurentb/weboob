@@ -112,7 +112,7 @@ class LCLModule(Module, CapBankWealth, CapBankTransferAddRecipient, CapContact, 
     @only_for_websites('par', 'pro', 'elcl')
     def new_recipient(self, recipient, **params):
         # Recipient label has max 15 alphanumrical chars.
-        recipient.label = ' '.join(w for w in re.sub('[^0-9a-zA-Z ]+', '', recipient.label).split())[:15]
+        recipient.label = ' '.join(w for w in re.sub('[^0-9a-zA-Z ]+', '', recipient.label).split())[:15].strip()
         return self.browser.new_recipient(recipient, **params)
 
     @only_for_websites('par', 'pro', 'elcl')
