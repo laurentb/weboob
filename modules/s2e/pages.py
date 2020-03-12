@@ -479,6 +479,7 @@ class AccountsPage(LoggedPage, MultiPage):
         'PLAN': Account.TYPE_PEE,
         'PAGA': Account.TYPE_PEE,
         'ABONDEMENT EXCEPTIONNEL': Account.TYPE_PEE,
+        'REINVESTISSEMENT DIVIDENDES': Account.TYPE_PEE,
         'PERCO': Account.TYPE_PERCO,
         'PERCOI': Account.TYPE_PERCO,
         'PERECO': Account.TYPE_PER,
