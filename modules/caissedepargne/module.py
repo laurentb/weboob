@@ -59,7 +59,7 @@ class CaisseEpargneModule(Module, CapBankWealth, CapBankTransferAddRecipient, Ca
         Value('nuser', label='User ID (optional)', default='', regexp='[A-Z\d]{0,8}'),
     )
 
-    accepted_document_types = (DocumentTypes.OTHER,)
+    accepted_document_types = (DocumentTypes.STATEMENT, DocumentTypes.OTHER,)
 
     def create_default_browser(self):
         return self.create_browser(nuser=self.config['nuser'].get(),
