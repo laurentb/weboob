@@ -130,9 +130,10 @@ class SwileBrowser(APIBrowser):
     def _parse_transaction(self, payment):
         transaction = Transaction()
         transaction_id = Dict('transaction_number', default=None)(payment)
-        # Check if transaction_id is None which indicates failed transaction
-        if transaction_id is None:
+        # Check if transaction_id is None or declined date exists which indicates failed transaction
+        if transaction_id is None or Dict('declined_at', default=None)(payment):
             return
+
         transaction.id = transaction_id
         transaction.date = DateTime(Dict('executed_at'))(payment)
         transaction.rdate = DateTime(Dict('created_at'))(payment)
