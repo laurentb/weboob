@@ -898,6 +898,32 @@ DOCUMENT_TYPE_LABEL = {
 
 
 class EServicePage(LoggedPage, HTMLPage):
+    def select_documents_tab(self):
+        # force lowercase, it's not always the same case
+        # and label to search for depends on child module
+        edoc_td_xpath = '//td[matches(lower-case(text()),"e-documents|mes relevés|mes e-relevés|services en ligne")]'
+        try:
+            form = self.get_form(xpath=edoc_td_xpath + '/ancestor::form')
+        except FormNotFound:
+            self.logger.debug('no e-documents link, maybe we are already there')
+            return
+
+        doc_tab_id = (self.doc.xpath(edoc_td_xpath + '/ancestor::td/@id')[0])
+        # warning: lxml returns its special string type which is incompatible with "re"
+        assert re.search(':header:', doc_tab_id)
+        form_tab = re.sub(':header:.*', '', doc_tab_id)
+
+        for k, v in form.items():
+            if v == 'coordPerso':
+                form[k] = 'eService'
+                break
+
+        form['javax.faces.source'] = form_tab
+        form['javax.faces.partial.event'] = 'click'
+        form['javax.faces.partial.execute'] = '%s @component' % form_tab
+        form['org.richfaces.ajax.component'] = form_tab
+        self.logger.debug('selecting e-documents tab')
+        form.submit()
 
     def show_more(self):
         form = self.get_form(xpath='//div[@id="gestion"]//form')

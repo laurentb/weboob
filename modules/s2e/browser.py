@@ -285,6 +285,8 @@ class S2eBrowser(LoginBrowser, StatesMixin):
     @need_login
     def iter_documents(self):
         self.e_service_page.stay_or_go(slug=self.SLUG)
+        # we might land on the documents page, but sometimes we land on user info "tab"
+        self.page.select_documents_tab()
         self.page.show_more()
         return self.page.iter_documents()
 
