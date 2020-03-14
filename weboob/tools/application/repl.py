@@ -416,7 +416,7 @@ class ReplApplication(ConsoleApplication, MyCmd):
                     backend.config[key].set({})
 
         try:
-            for obj in self.weboob.do(*args, **kwargs):
+            for obj in self.do(*args, **kwargs):
                 yield obj
         except CallErrors as errors:
             # Errors which are not handled here and which will be re-raised.
