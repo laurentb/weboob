@@ -921,7 +921,7 @@ class IndexPage(LoggedPage, HTMLPage):
                 continue
 
             # Remove useless details
-            detail = tr.cssselect('div.detail')
+            detail = tr.xpath('.//div[has-class("detail")]')
             if len(detail) > 0:
                 detail[0].drop_tree()
 

@@ -1648,11 +1648,11 @@ class InternalTransferPage(LoggedPage, HTMLPage):
                 return l[0].iban
 
     def get_account_index(self, direction, account):
-        for div in self.doc.getroot().cssselect(".dw_dli_contents"):
-            inp = div.cssselect("input")[0]
+        for div in self.doc.xpath('//*[has-class("dw_dli_contents")]'):
+            inp = div.xpath(".//input")[0]
             if inp.name != direction:
                 continue
-            acct = div.cssselect("span.doux")[0].text.replace(" ", "")
+            acct = div.xpath('.//span[has-class("doux")]')[0].text.replace(" ", "")
             if account.endswith(acct):
                 return inp.attrib['value']
         else:

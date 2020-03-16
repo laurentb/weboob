@@ -63,7 +63,7 @@ class LoginResultPage(HTMLPage):
         else:
             self.browser.set_all_readonly(False)
             accounts = OrderedDict()
-            for tr in self.doc.getroot().cssselect('table.compteTable > tbody > tr'):
+            for tr in self.doc.xpath('//table[has-class("compteTable")]/tbody/tr'):
                 if len(tr.findall('td')) == 0:
                     continue
                 attr = tr.xpath('.//a')[0].attrib.get('onclick', '')

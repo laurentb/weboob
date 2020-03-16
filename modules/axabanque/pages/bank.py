@@ -436,7 +436,7 @@ class TransactionsPage(LoggedPage, MyHTMLPage):
         if len(tables) == 0:
             tables = self.doc.xpath('//table[@id="table-detail"]')
         if len(tables) == 0:
-            tables = self.doc.getroot().cssselect('table.table-detail')
+            tables = self.doc.xpath('//table[has-class("table-detail")]')
         if len(tables) == 0:
             assert len(self.doc.xpath('//td[has-class("no-result")]')) > 0
             return

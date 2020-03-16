@@ -50,4 +50,4 @@ class PageUpload(HTMLPage):
 
 class PageFile(HTMLPage):
     def has_error(self):
-        return bool(self.doc.getroot().cssselect('.error'))
+        return bool(self.doc.xpath('//*[has-class("error")]'))

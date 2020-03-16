@@ -250,11 +250,11 @@ class AccountsList(LoggedPage, HTMLPage):
         return self.doc.xpath('//input[@id="javax.faces.ViewState"]/@value')[0]
 
     def islast(self):
-        havemore = self.doc.getroot().cssselect('.show-more-transactions')
+        havemore = self.doc.xpath('//*[has-class("show-more-transactions")]')
         if len(havemore) == 0:
             return True
 
-        nomore = self.doc.getroot().cssselect('.no-more-transactions')
+        nomore = self.doc.xpath('//*[has-class("no-more-transactions")]')
         return len(nomore) > 0
 
     @property

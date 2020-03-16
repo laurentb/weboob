@@ -82,8 +82,8 @@ class Transaction(FrenchTransaction):
 
 class SGPEPage(HTMLPage):
     def get_error(self):
-        err = self.doc.getroot().cssselect('div.ngo_mire_reco_message') \
-            or self.doc.getroot().cssselect('#nge_zone_centre .nge_cadre_message_utilisateur') \
+        err = self.doc.xpath('//div[has-class("ngo_mire_reco_message")]') \
+            or self.doc.xpath('//*[@id="#nge_zone_centre"]//*[has-class("nge_cadre_message_utilisateur")]') \
             or self.doc.xpath(u'//div[contains(text(), "Echec de connexion à l\'espace Entreprises")]') \
             or self.doc.xpath(u'//div[contains(@class, "waitAuthJetonMsg")]')
         if err:

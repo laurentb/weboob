@@ -40,20 +40,20 @@ class LoginPage(HTMLPage):
 
 class AccountPage(LoggedPage, HTMLPage):
     def get_accounts(self):
-        for el in self.doc.getroot().cssselect('div#content tr.row'):
+        for el in self.doc.xpath('//div[@id="content"]//tr[has-class("row")]'):
             account = Account()
 
-            balance = el.cssselect('td.Balance')[0].text
+            balance = el.xpath('.//td[has-class("Balance")]')[0].text
             account.balance = Decimal(Transaction.clean_amount(balance))
-            account.id = el.cssselect('span')[0].text.strip()
+            account.id = el.xpath('.//span')[0].text.strip()
             account.currency = u'NZD'  # TODO: handle other currencies
             account.type = Account.TYPE_CHECKING
 
-            if el.cssselect('td.AccountName > a'):
-                label_el = el.cssselect('td.AccountName > a')[0]
+            if el.xpath('.//td[has-class("AccountName")]/a'):
+                label_el = el.xpath('.//td[has-class("AccountName")]/a')[0]
                 account._link = label_el.get('href')
             else:
-                label_el = el.cssselect('td.AccountName')[0]
+                label_el = el.xpath('.//td[has-class("AccountName")]')[0]
                 account._link = None
 
             account.label = unicode(label_el.text.strip())
@@ -64,10 +64,10 @@ class AccountPage(LoggedPage, HTMLPage):
 class HistoryPage(LoggedPage, HTMLPage):
     def get_history(self):
         # TODO: get more results from "next" page, only 15 transactions per page
-        for el in self.doc.getroot().cssselect('div#content tr.row'):
+        for el in self.doc.xpath('//div[@id="content"]//tr[has-class("row")]'):
             transaction = Transaction()
 
-            label = unicode(el.cssselect('td.tranDesc')[0].text)
+            label = unicode(el.xpath('.//td[has-class("tranDesc")]')[0].text)
             transaction.label = label
 
             for pattern, _type in Transaction.PATTERNS:
@@ -76,10 +76,10 @@ class HistoryPage(LoggedPage, HTMLPage):
                     transaction.type = _type
                     break
 
-            date = el.cssselect('td.tranDate')[0].text
+            date = el.xpath('.//td[has-class("tranDate")]')[0].text
             transaction.date = datetime.datetime.strptime(date, '%d %b \'%y')
 
-            amount = el.cssselect('td.tranAmnt')[0].text
+            amount = el.xpath('.//td[has-class("tranAmnt")]')[0].text
             transaction.amount = Decimal(Transaction.clean_amount(amount))
 
             yield transaction
