@@ -41,15 +41,14 @@ class SwileBrowser(APIBrowser):
         """SwileBrowser needs login and password to fetch Swile API"""
         super(SwileBrowser, self).__init__(*args, **kwargs)
         # self.session.headers are the HTTP headers for Swile API requests
-        self.session.headers['x-api-key'] = '644a4ef497286a229aaf8205c2dc12a9086310a8'
-        self.session.headers['x-lunchr-app-version'] = 'b6c6ca66c79ca059222779fe8f1ac98c8485b9f0'
+        self.session.headers['x-api-key'] = '23d842943f515b6d06a1c5b273bc3314e49c648a'
         self.session.headers['x-lunchr-platform'] = 'web'
         # self.credentials is the HTTP POST data used in self._auth()
         self.credentials = {
-            'user': {
-                'email': login,
-                'password': password,
-            }
+            'client_id': "533bf5c8dbd05ef18fd01e2bbbab3d7f69e3511dd08402862b5de63b9a238923",
+            'grant_type': "password",
+            'username': login,
+            'password': password,
         }
 
     def _auth(self):
@@ -58,16 +57,16 @@ class SwileBrowser(APIBrowser):
         and response's json payload is returned unwrapped into dictionary.
         """
         try:
-            response = self.open('/api/v0/users/login', data=self.credentials)
+            response = self.open('/oauth/token', data=self.credentials)
         except ClientError as e:
             json = e.response.json()
             if e.response.status_code == 401:
-                message = json['result']['error']['message']
+                message = json['error_description']
                 raise BrowserIncorrectPassword(message)
             raise e
-        json = Dict('user')(response.json())
-        self.session.headers['Authorization'] = 'Bearer ' + Dict('token')(json)
-        return json
+
+        self.session.headers['Authorization'] = 'Bearer ' + Dict('access_token')(response.json())
+        return self.request('/api/v0/users/me')['user']
 
     def get_account(self):
         json = self._auth()
