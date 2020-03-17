@@ -263,7 +263,7 @@ class BPBrowser(LoginBrowser, StatesMixin):
         self.location(self.login_url)
         self.page.login(self.username, self.password)
 
-        if self.redirect_page.is_here():
+        if self.redirect_page.is_here() and not self.page.is_logged():
             if self.page.check_for_perso():
                 raise BrowserIncorrectPassword("L'identifiant utilisé est celui d'un compte de Particuliers.")
             error = self.page.get_error()

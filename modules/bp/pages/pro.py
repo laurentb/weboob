@@ -38,6 +38,9 @@ class RedirectPage(LoggedPage, MyHTMLPage):
     def get_error(self):
         return CleanText('//div[contains(@class, "bloc-erreur")]/h3')(self.doc)
 
+    def is_logged(self):
+        return 'Vous êtes bien authentifié' in CleanText('//p[@class="txt"]')(self.doc)
+
 
 ACCOUNT_TYPES = {
     'Comptes titres': Account.TYPE_MARKET,
