@@ -25,7 +25,10 @@ import time
 from datetime import datetime, timedelta, date
 from functools import wraps
 
-from weboob.exceptions import BrowserIncorrectPassword, BrowserUnavailable, AuthMethodNotImplemented
+from weboob.exceptions import (
+    BrowserIncorrectPassword, BrowserUnavailable,
+    AuthMethodNotImplemented, ActionNeeded,
+)
 from weboob.browser import LoginBrowser, URL, need_login, StatesMixin
 from weboob.browser.exceptions import ServerError
 from weboob.capabilities.base import NotAvailable
@@ -67,6 +70,7 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         r'/outil/UAUT/Contract/getContract.*',
         r'/outil/UAUT/Contract/selectContracts.*',
         r'/outil/UAUT/Accueil/preRoutageLogin',
+        r'/outil/UAUT/Contract/redirection',
         ContractsPage)
     contracts_choice = URL(r'.*outil/UAUT/Contract/routing', ContractsChoicePage)
     home = URL(r'/outil/UWHO/Accueil/', HomePage)
@@ -196,8 +200,22 @@ class LCLBrowser(LoginBrowser, StatesMixin):
         # if the session expire
         # Must set the referer to avoid redirection to the home page
         self.login.go(headers={"Referer": "https://www.lcl.fr/"})
+        try:
+            self.page.login(self.username, self.password)
+        except BrowserUnavailable:
+            self.page.check_error()
 
-        if not self.page.login(self.username, self.password) or self.login.is_here():
+        if self.response.status_code == 302:
+            if 'AuthentForteDesktop' in self.response.headers['location']:
+                # If we follow the redirection we will get a 2fa
+                # The 2fa validation is crossbrowser, for now we raise an ActionNeeded
+                # TODO Handle SMS and appvalidation
+                raise ActionNeeded('Vous devez réaliser la double authentification sur le portail internet')
+            else:
+                # If we're not redirected to 2fa page, it's likely to be the home page and we're logged in
+                self.location(self.response.headers['location'])
+
+        if self.login.is_here():
             self.page.check_error()
 
         if not self.contracts and not self.parsed_contracts:

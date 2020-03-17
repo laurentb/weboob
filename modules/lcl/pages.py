@@ -176,17 +176,7 @@ class LoginPage(HTMLPage):
         except AttributeError:
             pass
 
-        try:
-            form_page = form.submit(allow_redirects=False)
-            if form_page.status_code == 302 and 'AuthentForteDesktop' in form_page.headers['location']:
-                # 2fa if we follow the redirection
-                # SMS and appvalidation exist
-                raise ActionNeeded('Vous devez réaliser la double authentification sur le portail internet')
-            # If no 2FA the submit gives a 200
-        except BrowserUnavailable:
-            # Login is not valid
-            return False
-        return True
+        form.submit(allow_redirects=False)
 
     def check_error(self):
         errors = self.doc.xpath(u'//*[@class="erreur" or @class="messError"]')
