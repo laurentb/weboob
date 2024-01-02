@@ -42,5 +42,5 @@ For more information, please go to [the official website](http://weboob.org/).
 Some extra info is available in the [Gitlab
 wiki](https://git.weboob.org/weboob/devel/wikis/home).
 
-If you are a developper and looking for how to write a module or contribute to
-Weboob, you can have a look at the [developper documentation](http://dev.weboob.org/).
+If you are a developer and looking for how to write a module or contribute to
+Weboob, you can have a look at the [developer documentation](http://dev.weboob.org/).
